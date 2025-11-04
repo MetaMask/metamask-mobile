@@ -7,8 +7,10 @@ import GanacheSeeder from '../../../app/util/test/ganache-seeder';
 import axios from 'axios';
 import {
   getFixturesServerPort,
-  getLocalTestDappPort,
-  getMockServerPort,
+  AnvilPort,
+  getGanachePort,
+  getDappServerPortByIndex,
+  startResourceWithRetry,
 } from './FixtureUtils';
 import Utilities from '../../framework/Utilities';
 import TestHelpers from '../../helpers';
@@ -27,11 +29,17 @@ import {
   GanacheNodeOptions,
   TestSpecificMock,
 } from '../types';
-import { TestDapps, DappVariants, defaultGanacheOptions } from '../Constants';
+import {
+  TestDapps,
+  DappVariants,
+  defaultGanacheOptions,
+  DEFAULT_MOCKSERVER_PORT,
+} from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
 import { mockNotificationServices } from '../../specs/notifications/utils/mocks';
+import { ResourceId } from '../PortManager';
 import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
 import CommandQueueServer from './CommandQueueServer';
 import DappServer from '../DappServer';
@@ -52,14 +60,13 @@ async function handleDapps(
   logger.debug(
     `Starting dapps: ${dapps.map((dapp) => dapp.dappVariant).join(', ')}`,
   );
-  const dappBasePort = getLocalTestDappPort();
   for (let i = 0; i < dapps.length; i++) {
     const dapp = dapps[i];
     switch (dapp.dappVariant) {
       case DappVariants.TEST_DAPP:
         dappServer.push(
           new DappServer({
-            port: dappBasePort + i,
+            dappCounter: i,
             rootDirectory:
               dapp.dappPath || TestDapps[DappVariants.TEST_DAPP].dappPath,
             dappVariant: DappVariants.TEST_DAPP,
@@ -69,7 +76,7 @@ async function handleDapps(
       case DappVariants.MULTICHAIN_TEST_DAPP:
         dappServer.push(
           new DappServer({
-            port: dappBasePort + i,
+            dappCounter: i,
             rootDirectory:
               dapp.dappPath ||
               TestDapps[DappVariants.MULTICHAIN_TEST_DAPP].dappPath,
@@ -80,7 +87,7 @@ async function handleDapps(
       case DappVariants.SOLANA_TEST_DAPP:
         dappServer.push(
           new DappServer({
-            port: dappBasePort + i,
+            dappCounter: i,
             rootDirectory:
               dapp.dappPath ||
               TestDapps[DappVariants.SOLANA_TEST_DAPP].dappPath,
@@ -93,7 +100,13 @@ async function handleDapps(
           `Unsupported dapp variant: '${dapp.dappVariant}'. Cannot start the server.`,
         );
     }
-    await dappServer[i].start();
+
+    const resourceId = `${ResourceId.DAPP_SERVER}_${i}` as ResourceId;
+    await startResourceWithRetry(
+      resourceId,
+      dappServer[i],
+      getDappServerPortByIndex(i),
+    );
   }
 }
 
@@ -166,7 +179,13 @@ async function handleLocalNodes(
           localNode = new AnvilManager();
           localNodeSpecificOptions = nodeOptions as AnvilNodeOptions;
 
-          await localNode.start(localNodeSpecificOptions);
+          // Set start options before starting
+          localNode.setStartOptions(localNodeSpecificOptions);
+          await startResourceWithRetry(
+            ResourceId.ANVIL,
+            localNode,
+            localNodeSpecificOptions.port || AnvilPort(),
+          );
           localNodes.push(localNode);
           break;
 
@@ -193,7 +212,14 @@ async function handleLocalNodes(
                 defaultGanacheOptions.hardfork;
             }
           }
-          await localNode.start(localNodeSpecificOptions);
+
+          // Set start options before starting
+          localNode.setStartOptions(localNodeSpecificOptions);
+          await startResourceWithRetry(
+            ResourceId.GANACHE,
+            localNode,
+            getGanachePort(),
+          );
           localNodes.push(localNode);
           break;
         case LocalNodeType.bitcoin:
@@ -255,13 +281,65 @@ async function handleDappCleanup(
  * @returns {Promise<void>} - A promise that resolves once the fixture is successfully loaded.
  * @throws {Error} - Throws an error if the fixture fails to load or if the fixture server is not properly set up.
  */
+/**
+ * Updates RPC URLs in the fixture to use actual allocated ports from PortManager.
+ * This ensures that if Anvil/Ganache got a different port than the default,
+ * the fixture will have the correct URL.
+ *
+ * @param state - The fixture state to update
+ * @returns The updated fixture state
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function updateRpcUrlsWithAllocatedPorts(state: any): any {
+  const actualAnvilPort = AnvilPort();
+  const actualGanachePort = getGanachePort();
+
+  // Update NetworkController network configurations
+  const networkConfigs =
+    state.state?.engine?.backgroundState?.NetworkController
+      ?.networkConfigurationsByChainId;
+  if (networkConfigs) {
+    for (const chainId of Object.keys(networkConfigs)) {
+      const config = networkConfigs[chainId];
+      if (config.rpcEndpoints) {
+        for (const endpoint of config.rpcEndpoints) {
+          if (endpoint.url) {
+            // Replace default Anvil port (8545) with actual allocated port
+            endpoint.url = endpoint.url.replace(
+              /:8545(\/|$)/,
+              `:${actualAnvilPort}$1`,
+            );
+            // Replace default Ganache port with actual allocated port
+            endpoint.url = endpoint.url.replace(
+              /localhost:(\d+)/,
+              (_match: string, port: string) => {
+                // If it's a localhost URL with a port, check if it's the default and replace
+                if (port === '8545' || port === actualGanachePort.toString()) {
+                  return `localhost:${actualAnvilPort}`;
+                }
+                return `localhost:${port}`;
+              },
+            );
+          }
+        }
+      }
+    }
+  }
+
+  return state;
+}
+
 export const loadFixture = async (
   fixtureServer: FixtureServer,
   { fixture }: { fixture: FixtureBuilder },
 ) => {
   // If no fixture is provided, the `onboarding` option is set to `true` by default, which means
   // the app will be loaded without any fixtures and will start and go through the onboarding process.
-  const state = fixture || new FixtureBuilder({ onboarding: true }).build();
+  let state = fixture || new FixtureBuilder({ onboarding: true }).build();
+
+  // Update RPC URLs with actual allocated ports from PortManager
+  state = updateRpcUrlsWithAllocatedPorts(state);
+
   await fixtureServer.loadJsonState(state, null);
   // Checks if state is loaded
   logger.debug(
@@ -282,13 +360,17 @@ export const createMockAPIServer = async (
   mockServerInstance: MockServerE2E;
   mockServerPort: number;
 }> => {
-  const mockServerPort = getMockServerPort();
   const mockServerInstance = new MockServerE2E({
     events: DEFAULT_MOCKS,
-    port: mockServerPort,
     testSpecificMock,
   });
-  await mockServerInstance.start();
+
+  const mockServerPort = await startResourceWithRetry(
+    ResourceId.MOCK_SERVER,
+    mockServerInstance,
+    DEFAULT_MOCKSERVER_PORT,
+  );
+
   const mockServer = mockServerInstance.server;
 
   if (testSpecificMock) {
@@ -514,7 +596,6 @@ export async function withFixtures(
       } catch (cleanupError) {
         logger.warn('React Native reload failed (non-critical):', cleanupError);
         // Don't add to cleanupErrors as this is a non-critical cleanup operation
-        // The test should not fail if only React Native reload fails
       }
     }
 

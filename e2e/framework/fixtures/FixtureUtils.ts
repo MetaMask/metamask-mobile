@@ -14,10 +14,88 @@ import {
   DEFAULT_COMMAND_QUEUE_SERVER_PORT,
 } from '../Constants';
 import { createLogger } from '../logger';
+import PortManager, { ResourceId } from '../PortManager';
+import { Resource } from '../types';
 
 const logger = createLogger({
   name: 'FixtureUtils',
 });
+
+/**
+ * Starts a resource with automatic port retry logic.
+ *
+ * This function handles the race condition where a port appears available
+ * but becomes occupied before the resource can bind to it. It will retry
+ * with a new port if the start fails with EADDRINUSE.
+ */
+export async function startResourceWithRetry(
+  resourceId: ResourceId | string,
+  resource: Resource,
+  preferredPort?: number,
+  maxRetries: number = 3,
+): Promise<number> {
+  let attempt = 0;
+  let lastError: Error | undefined;
+  let currentPreferredPort = preferredPort;
+
+  while (attempt <= maxRetries) {
+    try {
+      const port = await PortManager.getInstance().getAvailablePort({
+        resourceId,
+        preferredPort: currentPreferredPort,
+      });
+
+      resource.setServerPort(port);
+      await resource.start();
+
+      logger.debug(
+        `✓ Resource ${resourceId} started successfully on port ${port}`,
+      );
+      return port;
+    } catch (error) {
+      lastError = error as Error;
+      const errorMessage = (
+        error instanceof Error ? error.message : String(error)
+      ).toLowerCase();
+
+      // Get the failed port before releasing
+      const failedPort =
+        PortManager.getInstance().getPortForResource(resourceId);
+
+      // Release the failed port allocation
+      if (failedPort !== undefined) {
+        PortManager.getInstance().releasePort(failedPort);
+      }
+
+      // Check if it's a port conflict error that we should retry
+      if (
+        attempt < maxRetries &&
+        (errorMessage.includes('eaddrinuse') ||
+          errorMessage.includes('address already in use'))
+      ) {
+        attempt++;
+        // Try next port on retry to avoid the same conflict
+        currentPreferredPort =
+          failedPort !== undefined ? failedPort + 1 : undefined;
+        logger.debug(
+          `Port ${failedPort} conflict for ${resourceId}, retrying with port ${currentPreferredPort || 'next available'} (${attempt}/${maxRetries})`,
+        );
+        continue;
+      }
+
+      // Non-retryable error or max retries reached
+      logger.error(
+        `Failed to start ${resourceId} after ${attempt} attempts:`,
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  throw new Error(
+    `Failed to start ${resourceId} after ${maxRetries} retries: ${lastError?.message}`,
+  );
+}
 
 /**
  * Determines if tests are running on BrowserStack with local tunnel enabled.
@@ -59,22 +137,23 @@ export function getLocalHost() {
   return isBrowserStack() ? 'bs-local.com' : 'localhost';
 }
 
-function transformToValidPort(defaultPort: number, pid: number) {
-  // Improve uniqueness by using a simple transformation
-  const transformedPort = (pid % 100000) + defaultPort;
-
-  // Ensure the transformed port falls within the valid port range (0-65535)
-  return transformedPort % 65536;
-}
-
-function getServerPort(defaultPort: number) {
-  if (process.env.CI) {
-    if (isBrowserStack()) {
-      // if running on browserstack, do not use dynamic ports
-      return defaultPort;
-    }
-    return transformToValidPort(defaultPort, process.pid);
+function getServerPort(
+  resourceId: ResourceId | string,
+  defaultPort: number,
+): number {
+  if (isBrowserStack()) {
+    return defaultPort;
   }
+  const allocatedPort =
+    PortManager.getInstance().getPortForResource(resourceId);
+
+  if (allocatedPort !== undefined) {
+    logger.debug(
+      `Using PortManager allocated port ${allocatedPort} for ${resourceId}`,
+    );
+    return allocatedPort;
+  }
+
   return defaultPort;
 }
 
@@ -92,7 +171,13 @@ export function getSecondTestDappLocalUrl() {
 
 export function getTestDappLocalUrlByDappCounter(dappCounter: number) {
   const host = device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1';
-  return `http://${host}:${getLocalTestDappPort() + dappCounter}`;
+  const port = getDappServerPortByIndex(dappCounter);
+  return `http://${host}:${port}`;
+}
+
+export function getDappServerPortByIndex(index: number): number {
+  const resourceId = `dapp-server-${index}`;
+  return getServerPort(resourceId, DEFAULT_DAPP_SERVER_PORT + index);
 }
 
 export function getTestDappLocalUrl() {
@@ -100,29 +185,31 @@ export function getTestDappLocalUrl() {
 }
 
 export function getGanachePort(): number {
-  return getServerPort(DEFAULT_GANACHE_PORT);
+  return getServerPort(ResourceId.GANACHE, DEFAULT_GANACHE_PORT);
 }
 export function AnvilPort(): number {
-  return getServerPort(DEFAULT_ANVIL_PORT);
+  return getServerPort(ResourceId.ANVIL, DEFAULT_ANVIL_PORT);
 }
 export function getFixturesServerPort(): number {
-  return getServerPort(DEFAULT_FIXTURE_SERVER_PORT);
+  return getServerPort(ResourceId.FIXTURE_SERVER, DEFAULT_FIXTURE_SERVER_PORT);
 }
 export function getCommandQueueServerPort(): number {
-  return getServerPort(DEFAULT_COMMAND_QUEUE_SERVER_PORT);
+  return getServerPort(
+    ResourceId.COMMAND_QUEUE_SERVER,
+    DEFAULT_COMMAND_QUEUE_SERVER_PORT,
+  );
 }
 
 export function getLocalTestDappPort(): number {
-  return getServerPort(DEFAULT_DAPP_SERVER_PORT);
+  return getServerPort(ResourceId.DAPP_SERVER, DEFAULT_DAPP_SERVER_PORT);
 }
 
 export function getMockServerPort(): number {
-  return getServerPort(DEFAULT_MOCKSERVER_PORT);
+  return getServerPort(ResourceId.MOCK_SERVER, DEFAULT_MOCKSERVER_PORT);
 }
 
 export function getSecondTestDappPort(): number {
-  // Use a different base port for the second dapp
-  return getServerPort(DEFAULT_DAPP_SERVER_PORT + 1);
+  return getServerPort(ResourceId.DAPP_SERVER_1, DEFAULT_DAPP_SERVER_PORT + 1);
 }
 
 interface Caip25Permission {

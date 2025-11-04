@@ -14,6 +14,7 @@ import {
   processPostRequestBody,
 } from './helpers/mockHelpers';
 import { getLocalHost } from '../framework/fixtures/FixtureUtils';
+import PortManager from '../framework/PortManager';
 
 const logger = createLogger({
   name: 'MockServer',
@@ -95,11 +96,10 @@ export default class MockServerE2E implements Resource {
 
   constructor(params: {
     events: MockEventsObject;
-    port: number;
     testSpecificMock?: TestSpecificMock;
   }) {
     this._events = params.events;
-    this._serverPort = params.port;
+    this._serverPort = 0; // Will be set when starting the server
     this._testSpecificMock = params.testSpecificMock;
   }
 
@@ -126,34 +126,28 @@ export default class MockServerE2E implements Resource {
     return this._server;
   }
 
+  setServerPort(port: number): void {
+    this._serverPort = port;
+  }
+
   async start(): Promise<void> {
     if (this._serverStatus === ServerStatus.STARTED) {
       logger.debug('Mock server already started');
       return;
     }
 
-    const mockServer = getLocal() as InternalMockServer;
-    mockServer._liveRequests = [];
-
-    try {
-      await mockServer.start(this._serverPort);
-    } catch (error) {
-      logger.error(
-        `Failed to start mock server on port ${this._serverPort}: ${error}`,
-      );
-      throw new Error(
-        `Failed to start mock server on port ${this._serverPort}: ${error}`,
-      );
-    }
+    this._server = getLocal() as InternalMockServer;
+    this._server._liveRequests = [];
+    await this._server.start(this._serverPort);
 
     logger.debug(
       `Mockttp server running at http://${getLocalHost()}:${this._serverPort}`,
     );
 
-    await mockServer
+    await this._server
       .forGet('/health-check')
       .thenReply(200, 'Mock server is running');
-    await mockServer
+    await this._server
       .forGet(
         /^http:\/\/(localhost|127\.0\.0\.1|10\.0\.2\.2)(:\\d+)?\/favicon\.ico$/,
       )
@@ -161,10 +155,10 @@ export default class MockServerE2E implements Resource {
 
     if (this._testSpecificMock) {
       logger.info('Applying testSpecificMock function (takes precedence)');
-      await this._testSpecificMock(mockServer);
+      await this._testSpecificMock(this._server);
     }
 
-    await mockServer
+    await this._server
       .forAnyRequest()
       .matching((request) => request.path.startsWith('/proxy'))
       .thenCallback(async (request) => {
@@ -259,7 +253,7 @@ export default class MockServerE2E implements Resource {
         if (!isUrlAllowed(updatedUrl)) {
           const errorMessage = `Request going to live server: ${updatedUrl}`;
           logger.warn(errorMessage);
-          mockServer._liveRequests?.push({
+          this._server?._liveRequests?.push({
             url: updatedUrl,
             method,
             timestamp: new Date().toISOString(),
@@ -279,11 +273,11 @@ export default class MockServerE2E implements Resource {
         );
       });
 
-    await mockServer.forUnmatchedRequest().thenCallback(async (request) => {
+    await this._server.forUnmatchedRequest().thenCallback(async (request) => {
       if (!isUrlAllowed(request.url)) {
         const errorMessage = `Request going to live server: ${request.url}`;
         logger.warn(errorMessage);
-        mockServer._liveRequests?.push({
+        this._server?._liveRequests?.push({
           url: request.url,
           method: request.method,
           timestamp: new Date().toISOString(),
@@ -303,7 +297,6 @@ export default class MockServerE2E implements Resource {
       );
     });
 
-    this._server = mockServer;
     this._serverStatus = ServerStatus.STARTED;
   }
 
@@ -321,6 +314,10 @@ export default class MockServerE2E implements Resource {
     } finally {
       this._server = null;
       this._serverStatus = ServerStatus.STOPPED;
+      // Release the port after server is stopped
+      if (this._serverPort > 0) {
+        PortManager.getInstance().releasePort(this._serverPort);
+      }
     }
   }
 
