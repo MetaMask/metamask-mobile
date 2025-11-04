@@ -27,6 +27,9 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountAddress: jest.fn(),
 }));
+jest.mock('../selectors/predictController', () => ({
+  selectPredictClaimablePositionsByAddress: jest.fn(),
+}));
 
 describe('usePredictPositions', () => {
   const mockGetPositions = jest.fn();
@@ -44,7 +47,8 @@ describe('usePredictPositions', () => {
       if (selector === selectSelectedInternalAccountAddress) {
         return '0x1234567890123456789012345678901234567890';
       }
-      return undefined;
+      // Return empty array for claimable positions selector
+      return [];
     });
     (usePredictTrading as jest.Mock).mockReturnValue({
       getPositions: mockGetPositions,

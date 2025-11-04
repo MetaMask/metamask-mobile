@@ -17,7 +17,13 @@ import {
 } from '../../../../util/transaction-controller';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import type { OrderPreview } from '../providers/types';
-import { PredictClaimStatus, PredictWithdrawStatus, Side } from '../types';
+import {
+  PredictClaimStatus,
+  PredictPosition,
+  PredictPositionStatus,
+  PredictWithdrawStatus,
+  Side,
+} from '../types';
 import {
   getDefaultPredictControllerState,
   PredictController,
@@ -99,6 +105,34 @@ function getRootMessenger(): RootMessenger {
 
 describe('PredictController', () => {
   let mockPolymarketProvider: jest.Mocked<PolymarketProvider>;
+
+  function createMockPosition(
+    overrides?: Partial<PredictPosition>,
+  ): PredictPosition {
+    return {
+      id: 'position-1',
+      providerId: 'polymarket',
+      marketId: 'market-1',
+      outcomeId: 'outcome-1',
+      outcome: 'Yes',
+      outcomeTokenId: 'token-1',
+      currentValue: 100,
+      title: 'Test Market',
+      icon: 'https://example.com/icon.png',
+      amount: 10,
+      price: 0.5,
+      status: PredictPositionStatus.OPEN,
+      size: 10,
+      outcomeIndex: 0,
+      percentPnl: 0,
+      cashPnl: 0,
+      claimable: false,
+      initialValue: 100,
+      avgPrice: 0.5,
+      endDate: '2025-12-31T23:59:59Z',
+      ...overrides,
+    };
+  }
 
   function createMockOrderPreview(
     overrides?: Partial<OrderPreview>,
@@ -1151,7 +1185,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('get positions from multiple providers when no providerId specified', async () => {
+    it('defaults to polymarket provider when no providerId specified', async () => {
       await withController(async ({ controller }) => {
         const polymarketPositions = [
           {
@@ -1189,17 +1223,16 @@ describe('PredictController', () => {
 
         const result = await controller.getPositions({
           address: '0x1234567890123456789012345678901234567890',
-        }); // No providerId
+        }); // No providerId - should default to polymarket
 
-        expect(result).toHaveLength(2);
+        expect(result).toHaveLength(1);
         expect(result).toEqual(
           expect.arrayContaining([
             expect.objectContaining({ providerId: 'polymarket' }),
-            expect.objectContaining({ providerId: 'second-provider' }),
           ]),
         );
         expect(mockPolymarketProvider.getPositions).toHaveBeenCalled();
-        expect(mockSecondProvider.getPositions).toHaveBeenCalled();
+        expect(mockSecondProvider.getPositions).not.toHaveBeenCalled();
       });
     });
 
@@ -1408,6 +1441,7 @@ describe('PredictController', () => {
     };
 
     it('claim a single position successfully', async () => {
+      // Arrange
       const mockBatchId = 'claim-batch-1';
       await withController(async ({ controller }) => {
         mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
@@ -1424,11 +1458,14 @@ describe('PredictController', () => {
         (addTransactionBatch as jest.Mock).mockResolvedValue({
           batchId: mockBatchId,
         });
+        await controller.getPositions({ claimable: true });
 
+        // Act
         const result = await controller.claimWithConfirmation({
           providerId: 'polymarket',
         });
 
+        // Assert
         expect(result.batchId).toBe(mockBatchId);
         expect(result.status).toBe(PredictClaimStatus.PENDING);
         expect(mockPolymarketProvider.prepareClaim).toHaveBeenCalledWith({
@@ -1442,6 +1479,7 @@ describe('PredictController', () => {
     });
 
     it('claim multiple positions successfully using batch transaction', async () => {
+      // Arrange
       const mockBatchId = 'claim-batch-1';
       await withController(async ({ controller }) => {
         mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
@@ -1483,11 +1521,14 @@ describe('PredictController', () => {
         (addTransactionBatch as jest.Mock).mockResolvedValue({
           batchId: mockBatchId,
         });
+        await controller.getPositions({ claimable: true });
 
+        // Act
         const result = await controller.claimWithConfirmation({
           providerId: 'polymarket',
         });
 
+        // Assert
         expect(result.batchId).toBe(mockBatchId);
         expect(result.status).toBe(PredictClaimStatus.PENDING);
         expect(addTransactionBatch).toHaveBeenCalled();
@@ -1505,6 +1546,7 @@ describe('PredictController', () => {
     });
 
     it('handle general claim error', async () => {
+      // Arrange
       await withController(async ({ controller }) => {
         mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
           {
@@ -1519,7 +1561,9 @@ describe('PredictController', () => {
           .mockImplementation(() => {
             throw new Error('Claim preparation failed');
           });
+        await controller.getPositions({ claimable: true });
 
+        // Act & Assert
         await expect(
           controller.claimWithConfirmation({
             providerId: 'polymarket',
@@ -1529,6 +1573,7 @@ describe('PredictController', () => {
     });
 
     it('return CANCELLED status when user denies transaction signature', async () => {
+      // Arrange
       await withController(async ({ controller }) => {
         const mockClaimablePositions = [
           {
@@ -1547,11 +1592,14 @@ describe('PredictController', () => {
           .mockImplementation(() => {
             throw new Error('User denied transaction signature');
           });
+        await controller.getPositions({ claimable: true });
 
+        // Act
         const result = await controller.claimWithConfirmation({
           providerId: 'polymarket',
         });
 
+        // Assert
         expect(result.batchId).toBe('NA');
         expect(result.chainId).toBe(0);
         expect(result.status).toBe(PredictClaimStatus.CANCELLED);
@@ -1559,6 +1607,7 @@ describe('PredictController', () => {
     });
 
     it('return CANCELLED status when user denial error is wrapped', async () => {
+      // Arrange
       await withController(async ({ controller }) => {
         const mockClaimablePositions = [
           {
@@ -1580,11 +1629,14 @@ describe('PredictController', () => {
         mockPolymarketProvider.prepareClaim = jest
           .fn()
           .mockResolvedValue(mockClaim);
+        await controller.getPositions({ claimable: true });
 
+        // Act
         const result = await controller.claimWithConfirmation({
           providerId: 'polymarket',
         });
 
+        // Assert
         expect(result.batchId).toBe('NA');
         expect(result.chainId).toBe(0);
         expect(result.status).toBe(PredictClaimStatus.CANCELLED);
@@ -1592,9 +1644,12 @@ describe('PredictController', () => {
     });
 
     it('throws error when no claimable positions found', async () => {
+      // Arrange
       await withController(async ({ controller }) => {
         mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([]);
+        await controller.getPositions({ claimable: true });
 
+        // Act & Assert
         await expect(
           controller.claimWithConfirmation({
             providerId: 'polymarket',
@@ -1604,6 +1659,7 @@ describe('PredictController', () => {
     });
 
     it('updates error state when claim fails', async () => {
+      // Arrange
       await withController(async ({ controller }) => {
         mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
           {
@@ -1617,7 +1673,9 @@ describe('PredictController', () => {
         mockPolymarketProvider.prepareClaim = jest
           .fn()
           .mockRejectedValue(new Error(errorMessage));
+        await controller.getPositions({ claimable: true });
 
+        // Act & Assert
         await expect(
           controller.claimWithConfirmation({
             providerId: 'polymarket',
@@ -1630,6 +1688,7 @@ describe('PredictController', () => {
     });
 
     it('throws error when network client not found', async () => {
+      // Arrange
       await withController(async ({ controller }) => {
         mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
           {
@@ -1647,7 +1706,9 @@ describe('PredictController', () => {
         mockPolymarketProvider.prepareClaim = jest
           .fn()
           .mockResolvedValue(mockClaim);
+        await controller.getPositions({ claimable: true });
 
+        // Act & Assert
         await expect(
           controller.claimWithConfirmation({
             providerId: 'polymarket',
@@ -1657,6 +1718,7 @@ describe('PredictController', () => {
     });
 
     it('throws error when transaction batch returns no batchId', async () => {
+      // Arrange
       await withController(async ({ controller }) => {
         mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
           {
@@ -1676,7 +1738,9 @@ describe('PredictController', () => {
           .mockReturnValue('mainnet');
 
         (addTransactionBatch as jest.Mock).mockResolvedValue({});
+        await controller.getPositions({ claimable: true });
 
+        // Act & Assert
         await expect(
           controller.claimWithConfirmation({
             providerId: 'polymarket',
@@ -1688,6 +1752,7 @@ describe('PredictController', () => {
     });
 
     it('throws error when prepareClaim returns no transactions', async () => {
+      // Arrange
       await withController(async ({ controller }) => {
         mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
           {
@@ -1701,7 +1766,9 @@ describe('PredictController', () => {
           chainId: 1,
           transactions: [],
         });
+        await controller.getPositions({ claimable: true });
 
+        // Act & Assert
         await expect(
           controller.claimWithConfirmation({
             providerId: 'polymarket',
@@ -1711,6 +1778,7 @@ describe('PredictController', () => {
     });
 
     it('throws error when prepareClaim returns no chainId', async () => {
+      // Arrange
       await withController(async ({ controller }) => {
         mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
           {
@@ -1730,7 +1798,9 @@ describe('PredictController', () => {
             },
           ],
         });
+        await controller.getPositions({ claimable: true });
 
+        // Act & Assert
         await expect(
           controller.claimWithConfirmation({
             providerId: 'polymarket',
@@ -1740,9 +1810,9 @@ describe('PredictController', () => {
     });
 
     it('clears error state on successful claim', async () => {
+      // Arrange
       const mockBatchId = 'claim-batch-1';
       await withController(async ({ controller }) => {
-        // Set initial error state
         controller.updateStateForTesting((state) => {
           state.lastError = 'Previous error';
         });
@@ -1767,11 +1837,14 @@ describe('PredictController', () => {
         (addTransactionBatch as jest.Mock).mockResolvedValue({
           batchId: mockBatchId,
         });
+        await controller.getPositions({ claimable: true });
 
+        // Act
         const result = await controller.claimWithConfirmation({
           providerId: 'polymarket',
         });
 
+        // Assert
         expect(result.batchId).toBe(mockBatchId);
         expect(controller.state.lastError).toBeNull();
         expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
@@ -3468,6 +3541,227 @@ describe('PredictController', () => {
         expect(controller.state.withdrawTransaction).toBeNull();
         expect(controller.state.eligibility).toEqual(originalEligibility);
         expect(controller.state.lastError).toBe(originalLastError);
+      });
+    });
+  });
+
+  describe('confirmClaim', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('clears claimable positions from state after confirmation', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        const testAddress = '0x1234567890123456789012345678901234567890';
+        const mockPositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 100,
+            cashPnl: 50,
+          }),
+          createMockPosition({
+            id: 'position-2',
+            status: PredictPositionStatus.WON,
+            currentValue: 200,
+            cashPnl: 100,
+          }),
+        ];
+
+        // Set up state with claimable positions
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions[testAddress] = mockPositions;
+        });
+
+        mockPolymarketProvider.confirmClaim = jest.fn();
+
+        // Act
+        controller.confirmClaim({ providerId: 'polymarket' });
+
+        // Assert
+        expect(controller.state.claimablePositions[testAddress]).toEqual([]);
+      });
+    });
+
+    it('calls provider confirmClaim with correct positions', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        const testAddress = '0x1234567890123456789012345678901234567890';
+        const mockPositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 100,
+            cashPnl: 50,
+          }),
+        ];
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions[testAddress] = mockPositions;
+        });
+
+        mockPolymarketProvider.confirmClaim = jest.fn();
+
+        // Act
+        controller.confirmClaim({ providerId: 'polymarket' });
+
+        // Assert
+        expect(mockPolymarketProvider.confirmClaim).toHaveBeenCalledWith({
+          positions: mockPositions,
+          signer: expect.objectContaining({
+            address: testAddress,
+          }),
+        });
+      });
+    });
+
+    it('returns early when no claimable positions exist', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        const testAddress = '0x1234567890123456789012345678901234567890';
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions[testAddress] = [];
+        });
+
+        mockPolymarketProvider.confirmClaim = jest.fn();
+
+        // Act
+        controller.confirmClaim({ providerId: 'polymarket' });
+
+        // Assert
+        expect(mockPolymarketProvider.confirmClaim).not.toHaveBeenCalled();
+      });
+    });
+
+    it('returns early when claimable positions undefined for address', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {};
+        });
+
+        mockPolymarketProvider.confirmClaim = jest.fn();
+
+        // Act
+        controller.confirmClaim({ providerId: 'polymarket' });
+
+        // Assert
+        expect(mockPolymarketProvider.confirmClaim).not.toHaveBeenCalled();
+      });
+    });
+
+    it('throws error when provider not available', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        // Act & Assert
+        expect(() =>
+          controller.confirmClaim({ providerId: 'invalid-provider' }),
+        ).toThrow('Provider not available');
+      });
+    });
+
+    it('handles provider without confirmClaim method', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        const testAddress = '0x1234567890123456789012345678901234567890';
+        const mockPositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 100,
+            cashPnl: 50,
+          }),
+        ];
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions[testAddress] = mockPositions;
+        });
+
+        // Remove confirmClaim method from provider
+        delete (mockPolymarketProvider as { confirmClaim?: unknown })
+          .confirmClaim;
+
+        // Act
+        controller.confirmClaim({ providerId: 'polymarket' });
+
+        // Assert - should not throw, state should still be cleared
+        expect(controller.state.claimablePositions[testAddress]).toEqual([]);
+      });
+    });
+  });
+
+  describe('getPositions', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('defaults to polymarket provider when no providerId specified', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        const mockPositions = [
+          {
+            id: 'position-1',
+            marketId: 'market-1',
+            providerId: 'polymarket',
+            status: PredictPositionStatus.OPEN,
+            currentValue: 100,
+            cashPnl: 0,
+          },
+        ];
+
+        mockPolymarketProvider.getPositions = jest
+          .fn()
+          .mockResolvedValue(mockPositions);
+
+        // Act
+        const result = await controller.getPositions({
+          address: '0x1234567890123456789012345678901234567890',
+        });
+
+        // Assert
+        expect(result).toEqual(mockPositions);
+        expect(mockPolymarketProvider.getPositions).toHaveBeenCalled();
+      });
+    });
+
+    it('stores claimable positions keyed by address', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        const testAddress = '0x1234567890123456789012345678901234567890';
+        const mockClaimablePositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 100,
+            cashPnl: 50,
+          }),
+          createMockPosition({
+            id: 'position-2',
+            status: PredictPositionStatus.WON,
+            currentValue: 200,
+            cashPnl: 100,
+          }),
+        ];
+
+        mockPolymarketProvider.getPositions = jest
+          .fn()
+          .mockResolvedValue(mockClaimablePositions);
+
+        // Act
+        await controller.getPositions({
+          address: testAddress,
+          claimable: true,
+        });
+
+        // Assert
+        expect(controller.state.claimablePositions[testAddress]).toHaveLength(
+          2,
+        );
+        expect(controller.state.claimablePositions[testAddress]).toEqual(
+          mockClaimablePositions,
+        );
       });
     });
   });

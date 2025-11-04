@@ -133,7 +133,6 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('SelectedNetworkController');
     expect(engine.context).toHaveProperty('SnapInterfaceController');
     expect(engine.context).toHaveProperty('MultichainBalancesController');
-    expect(engine.context).toHaveProperty('RatesController');
     expect(engine.context).toHaveProperty('MultichainNetworkController');
     expect(engine.context).toHaveProperty('BridgeController');
     expect(engine.context).toHaveProperty('BridgeStatusController');
@@ -227,7 +226,7 @@ describe('Engine', () => {
         lastError: null,
         lastUpdateTimestamp: 0,
         balances: {},
-        claimablePositions: [],
+        claimablePositions: {},
         pendingDeposits: {},
         withdrawTransaction: null,
         isOnboarded: {},
