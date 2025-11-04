@@ -59,9 +59,9 @@ const OrderProcessing = () => {
       order?.state === FIAT_ORDER_STATES.COMPLETED
         ? strings('deposit.order_processing.success_title')
         : order?.state === FIAT_ORDER_STATES.CANCELLED ||
-          order?.state === FIAT_ORDER_STATES.FAILED
-        ? strings('deposit.order_processing.error_title')
-        : strings('deposit.order_processing.title');
+            order?.state === FIAT_ORDER_STATES.FAILED
+          ? strings('deposit.order_processing.error_title')
+          : strings('deposit.order_processing.title');
 
     navigation.setOptions(
       getDepositNavbarOptions(navigation, { title }, theme),

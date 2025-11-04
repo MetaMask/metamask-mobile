@@ -117,6 +117,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
             activeOpacity={1}
             onPress={[Function]}
             onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -780,7 +781,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               }
             }
           >
-            Select this to show fiat conversion on test networks
+            Select this to show fiat conversion on test networks.
           </Text>
         </View>
         <View
@@ -825,6 +826,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
             activeOpacity={1}
             onPress={[Function]}
             onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",

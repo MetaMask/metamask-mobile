@@ -14,6 +14,7 @@ import {
   SolMethod,
   TrxMethod,
   isEvmAccountType,
+  TrxMethod,
 } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
@@ -222,8 +223,8 @@ export const selectCanSignTransactions = createSelector(
       selectedAccount?.methods?.includes(SolMethod.SignMessage) ||
       selectedAccount?.methods?.includes(SolMethod.SendAndConfirmTransaction) ||
       selectedAccount?.methods?.includes(SolMethod.SignAndSendTransaction) ||
-      selectedAccount?.methods?.includes(BtcMethod.SignPsbt) ||
-      selectedAccount?.methods?.includes(TrxMethod.SignMessageV2)) ??
+      selectedAccount?.methods?.includes(TrxMethod.SignMessageV2) ||
+      selectedAccount?.methods?.includes(BtcMethod.SignPsbt)) ??
     false,
 );
 

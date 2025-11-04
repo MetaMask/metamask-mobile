@@ -30,11 +30,11 @@ import {
 } from '../../../Perps/constants/hyperLiquidConfig';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
-import { PredictDepositStatus } from '../../types';
 import { formatPrice } from '../../utils/format';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../../types/navigation';
+import { usePredictWithdraw } from '../../hooks/usePredictWithdraw';
 
 // This is a temporary component that will be removed when the deposit flow is fully implemented
 interface PredictBalanceProps {
@@ -51,20 +51,21 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
     loadOnMount: true,
     refreshOnFocus: true,
   });
-  const { deposit, status } = usePredictDeposit();
+  const { deposit, isDepositPending } = usePredictDeposit();
+  const { withdraw } = usePredictWithdraw();
   const { executeGuardedAction } = usePredictActionGuard({
     providerId: 'polymarket',
     navigation,
   });
 
-  const isAddingFunds = status === PredictDepositStatus.PENDING;
+  const isAddingFunds = isDepositPending;
   const hasBalance = balance > 0;
 
   useEffect(() => {
-    if (status === PredictDepositStatus.CONFIRMED) {
+    if (!isDepositPending) {
       loadBalance({ isRefresh: true });
     }
-  }, [status, loadBalance]);
+  }, [isDepositPending, loadBalance]);
 
   const handleAddFunds = useCallback(() => {
     executeGuardedAction(() => {
@@ -73,8 +74,13 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
   }, [deposit, executeGuardedAction]);
 
   const handleWithdraw = useCallback(() => {
-    // TODO: implement withdraw
-  }, []);
+    executeGuardedAction(
+      () => {
+        withdraw();
+      },
+      { checkBalance: true },
+    );
+  }, [withdraw, executeGuardedAction]);
 
   if (isLoading) {
     return (
@@ -115,7 +121,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
         <Box
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="bg-muted rounded-t-xl p-4 border-b border-muted"
+          twClassName="bg-muted rounded-t-xl p-4 mx-4 border-b border-muted"
         >
           <Text style={tw.style('text-body-sm')}>
             {strings('predict.deposit.adding_your_funds')}
@@ -125,7 +131,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
       )}
       <Box
         style={tw.style(
-          'bg-muted p-4 gap-3 rounded-xl',
+          'bg-muted p-4 mx-4 gap-3 rounded-xl',
           isAddingFunds ? 'rounded-t-none' : 'rounded-t-xl',
         )}
         testID="predict-balance-card"

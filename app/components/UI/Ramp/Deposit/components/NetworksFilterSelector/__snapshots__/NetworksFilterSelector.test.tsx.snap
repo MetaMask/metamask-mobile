@@ -8,6 +8,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is a subset
     activeOpacity={1}
     onPress={[Function]}
     onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",
@@ -574,6 +575,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is a subset
       activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
@@ -615,6 +617,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is null 1`]
     activeOpacity={1}
     onPress={[Function]}
     onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",
@@ -1149,6 +1152,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is null 1`]
       activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
@@ -1190,6 +1194,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is the same
     activeOpacity={1}
     onPress={[Function]}
     onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
       {
         "alignItems": "center",
@@ -1772,6 +1777,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is the same
       activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
           "alignItems": "center",

@@ -21,14 +21,14 @@ const styleSheet = (params: { theme: Theme }) => {
     currentValue: {
       fontSize: 64,
       fontWeight: '500',
-      lineHeight: 72,
+      lineHeight: 74,
       letterSpacing: 0,
       textAlign: 'center',
       verticalAlign: 'middle',
     },
     percentPnl: {
-      fontSize: 20,
-      lineHeight: 28,
+      fontSize: 16,
+      lineHeight: 24,
       letterSpacing: 0,
       textAlign: 'center',
       ...fontStyles.bold,
@@ -61,17 +61,11 @@ const styleSheet = (params: { theme: Theme }) => {
     detailsLeft: {
       flex: 1,
       minWidth: 0,
-      fontSize: 16,
-      fontWeight: '500',
-      letterSpacing: 0,
     },
     detailsResolves: {
       flex: 1,
       minWidth: 0,
       color: theme.colors.text.alternative,
-      fontSize: 14,
-      fontWeight: '500',
-      letterSpacing: 0,
     },
     detailsRight: {
       flexShrink: 0,
@@ -82,7 +76,7 @@ const styleSheet = (params: { theme: Theme }) => {
     positionIcon: {
       width: 40,
       height: 40,
-      borderRadius: 4.4,
+      borderRadius: 4,
     },
     cashOutButtonContainer: {
       justifyContent: 'center',
@@ -90,9 +84,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     cashOutButton: {
       width: '100%',
-      color: theme.colors.primary.inverse,
-      height: 48,
-      opacity: 1,
     },
     cashOutButtonText: {
       textAlign: 'center',

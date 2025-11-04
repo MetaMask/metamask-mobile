@@ -13,7 +13,11 @@ import {
 } from '../../../components/Views/confirmations/utils/bridge';
 import { TransactionControllerInitMessenger } from '../../../core/Engine/messengers/transaction-controller-messenger';
 import { PayHook } from './pay-hook';
-import { Messenger } from '@metamask/base-controller';
+import {
+  Messenger,
+  MOCK_ANY_NAMESPACE,
+  MockAnyNamespace,
+} from '@metamask/messenger';
 import {
   BridgeStatusController,
   BridgeStatusControllerActions,
@@ -63,15 +67,23 @@ const BRIDGE_TRANSACTION_META_2_MOCK = {
   id: BRIDGE_TRANSACTION_ID_2_MOCK,
 } as TransactionMeta;
 
+type RootMessenger = Messenger<
+  MockAnyNamespace,
+  BridgeStatusControllerActions | TransactionControllerGetStateAction,
+  | BridgeStatusControllerEvents
+  | TransactionControllerStateChangeEvent
+  | TransactionControllerUnapprovedTransactionAddedEvent
+>;
+
+const getRootMessenger = (): RootMessenger =>
+  new Messenger({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+
 describe('Pay Publish Hook', () => {
   let hook: PayHook;
-  let baseMessenger: Messenger<
-    BridgeStatusControllerActions | TransactionControllerGetStateAction,
-    | BridgeStatusControllerEvents
-    | TransactionControllerStateChangeEvent
-    | TransactionControllerUnapprovedTransactionAddedEvent
-  >;
-  let messengerMock: jest.Mocked<TransactionControllerInitMessenger>;
+  let rootMessenger: RootMessenger;
+  let messengerMock: TransactionControllerInitMessenger;
 
   const selectShouldUseSmartTransactionMock = jest.mocked(
     selectShouldUseSmartTransaction,
@@ -90,7 +102,7 @@ describe('Pay Publish Hook', () => {
   }
 
   function unapprovedTransactionEvent(transactionId: string) {
-    baseMessenger.publish('TransactionController:unapprovedTransactionAdded', {
+    rootMessenger.publish('TransactionController:unapprovedTransactionAdded', {
       ...TRANSACTION_META_MOCK,
       id: transactionId,
       chainId: toHex(123),
@@ -101,7 +113,7 @@ describe('Pay Publish Hook', () => {
     transactionId: string,
     status: TransactionStatus,
   ) {
-    baseMessenger.publish(
+    rootMessenger.publish(
       'TransactionController:stateChange',
       {
         transactions: [
@@ -124,7 +136,7 @@ describe('Pay Publish Hook', () => {
     transactionId: string,
     status: StatusTypes,
   ): void {
-    baseMessenger.publish(
+    rootMessenger.publish(
       'BridgeStatusController:stateChange',
       {
         txHistory: {
@@ -142,36 +154,48 @@ describe('Pay Publish Hook', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    baseMessenger = new Messenger();
+    rootMessenger = getRootMessenger();
 
-    baseMessenger.registerActionHandler(
+    rootMessenger.registerActionHandler(
       'BridgeStatusController:getState',
       getBridgeStatusStateMock,
     );
 
-    baseMessenger.registerActionHandler(
+    rootMessenger.registerActionHandler(
       'BridgeStatusController:submitTx',
       submitTransactionMock,
     );
 
-    baseMessenger.registerActionHandler(
+    rootMessenger.registerActionHandler(
       'TransactionController:getState',
       getTransactionStateMock,
     );
 
-    messengerMock = baseMessenger.getRestricted({
-      name: 'TransactionControllerInitMessenger',
-      allowedActions: [
+    messengerMock = new Messenger<
+      'TransactionControllerInitMessenger',
+      BridgeStatusControllerActions | TransactionControllerGetStateAction,
+      | BridgeStatusControllerEvents
+      | TransactionControllerStateChangeEvent
+      | TransactionControllerUnapprovedTransactionAddedEvent,
+      RootMessenger
+    >({
+      namespace: 'TransactionControllerInitMessenger',
+      parent: rootMessenger,
+    });
+
+    rootMessenger.delegate({
+      actions: [
         'BridgeStatusController:getState',
         'BridgeStatusController:submitTx',
         'TransactionController:getState',
       ],
-      allowedEvents: [
+      events: [
         'BridgeStatusController:stateChange',
         'TransactionController:stateChange',
         'TransactionController:unapprovedTransactionAdded',
       ],
-    }) as jest.Mocked<TransactionControllerInitMessenger>;
+      messenger: messengerMock,
+    });
 
     hook = new PayHook({
       messenger: messengerMock,

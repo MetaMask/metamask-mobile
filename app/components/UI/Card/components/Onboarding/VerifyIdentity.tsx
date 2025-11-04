@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
@@ -10,12 +10,12 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../../constants/navigation/Routes';
 import useStartVerification from '../../hooks/useStartVerification';
-import { useCardSDK } from '../../sdk';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 
 const VerifyIdentity = () => {
   const navigation = useNavigation();
-  const { user } = useCardSDK();
-
+  const { trackEvent, createEventBuilder } = useMetrics();
   const {
     data: verificationResponse,
     isLoading: startVerificationIsLoading,
@@ -25,21 +25,31 @@ const VerifyIdentity = () => {
 
   const { sessionUrl } = verificationResponse || {};
 
-  const handleContinue = () => {
-    if (!sessionUrl) {
-      return;
+  const handleContinue = useCallback(() => {
+    if (sessionUrl) {
+      navigation.navigate(Routes.CARD.ONBOARDING.WEBVIEW, {
+        url: sessionUrl,
+      });
     }
 
-    navigation.navigate(Routes.CARD.ONBOARDING.VALIDATING_KYC, {
-      sessionUrl,
-    });
-  };
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.VERIFY_IDENTITY_BUTTON,
+        })
+        .build(),
+    );
+  }, [navigation, sessionUrl, trackEvent, createEventBuilder]);
 
   useEffect(() => {
-    if (user?.verificationState === 'PENDING') {
-      navigation.navigate(Routes.CARD.ONBOARDING.VALIDATING_KYC);
-    }
-  }, [navigation, user?.verificationState]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties({
+          screen: CardScreens.VERIFY_IDENTITY,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   const renderFormFields = () => (
     <>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import { Text, View, TouchableOpacity, Image } from 'react-native';
 import OnboardingStep from './OnboardingStep';
 
@@ -61,25 +61,6 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-// Mock react-native-safe-area-context
-jest.mock('react-native-safe-area-context', () => ({
-  SafeAreaView: ({
-    children,
-    ...props
-  }: {
-    children: React.ReactNode;
-    [key: string]: unknown;
-  }) => {
-    const ReactActual = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return ReactActual.createElement(
-      View,
-      { testID: 'safe-area-view', ...props },
-      children,
-    );
-  },
-}));
-
 // Mock the FOX logo image
 jest.mock('../../../../../images/branding/fox.png', () => 'fox-logo');
 
@@ -96,12 +77,6 @@ describe('OnboardingStep Component', () => {
   });
 
   describe('Component Rendering', () => {
-    it('renders without crashing with required props', () => {
-      render(<OnboardingStep {...defaultProps} />);
-
-      expect(screen.getByTestId('safe-area-view')).toBeDefined();
-    });
-
     it('renders with all required props provided', () => {
       const { getByText } = render(<OnboardingStep {...defaultProps} />);
 
@@ -284,22 +259,12 @@ describe('OnboardingStep Component', () => {
   });
 
   describe('Layout Structure', () => {
-    it('renders with proper container structure', () => {
-      const { getByTestId } = render(<OnboardingStep {...defaultProps} />);
-
-      // Verify SafeAreaView is rendered with correct props
-      const safeAreaView = getByTestId('safe-area-view');
-      expect(safeAreaView).toBeDefined();
-      expect(safeAreaView.props.edges).toEqual(['bottom']);
-    });
-
     it('maintains proper component hierarchy', () => {
       const { getByText, getByTestId } = render(
         <OnboardingStep {...defaultProps} />,
       );
 
       // Verify all main elements are present in the component tree
-      expect(getByTestId('safe-area-view')).toBeDefined();
       expect(getByText('Test Title')).toBeDefined();
       expect(getByText('Test Description')).toBeDefined();
       expect(getByTestId('test-form-fields')).toBeDefined();

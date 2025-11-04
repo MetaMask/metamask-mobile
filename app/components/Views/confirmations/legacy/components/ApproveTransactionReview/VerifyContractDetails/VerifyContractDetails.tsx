@@ -103,8 +103,8 @@ const VerifyContractDetails = ({
           {tokenStandard === ERC20
             ? strings('contract_allowance.token_allowance.token_contract')
             : tokenStandard === ERC721 || tokenStandard === ERC1155
-            ? strings('contract_allowance.token_allowance.nft_contract')
-            : strings('contract_allowance.token_allowance.address')}
+              ? strings('contract_allowance.token_allowance.nft_contract')
+              : strings('contract_allowance.token_allowance.address')}
         </Text>
         <View style={styles.contractSection}>
           <ContractBox
@@ -127,8 +127,8 @@ const VerifyContractDetails = ({
                 tokenStandard === ERC20
                   ? strings('contract_allowance.token_allowance.spending_cap')
                   : tokenStandard === ERC721 || tokenStandard === ERC1155
-                  ? strings('contract_allowance.token_allowance.access')
-                  : '',
+                    ? strings('contract_allowance.token_allowance.access')
+                    : '',
             },
           )}
         </Text>

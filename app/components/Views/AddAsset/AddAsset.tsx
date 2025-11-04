@@ -15,7 +15,7 @@ import ScrollableTabView, {
 } from '@tommasini/react-native-scrollable-tab-view';
 import { strings } from '../../../../locales/i18n';
 import AddCustomCollectible from '../../UI/AddCustomCollectible';
-import { getImportTokenNavbarOptions } from '../../UI/Navbar';
+import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
 import {
   selectEvmChainId,
@@ -104,22 +104,9 @@ const AddAsset = () => {
     return tokensData && Object.keys(tokensData).length > 0;
   }, [selectedNetwork, tokenListForAllChains]);
 
-  const updateNavBar = useCallback(() => {
-    navigation.setOptions(
-      getImportTokenNavbarOptions(
-        `add_asset.${assetType === TOKEN ? TOKEN_TITLE : NFT_TITLE}`,
-        true,
-        navigation,
-        colors,
-        true,
-        0,
-      ),
-    );
-  }, [assetType, colors, navigation]);
-
-  useEffect(() => {
-    updateNavBar();
-  }, [updateNavBar]);
+  const handleBackPress = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const goToSecuritySettings = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -147,6 +134,9 @@ const AddAsset = () => {
 
   return (
     <SafeAreaView style={styles.wrapper} testID={`add-${assetType}-screen`}>
+      <BottomSheetHeader onBack={handleBackPress}>
+        {strings(`add_asset.${assetType === TOKEN ? TOKEN_TITLE : NFT_TITLE}`)}
+      </BottomSheetHeader>
       {assetType !== 'token' && (
         <View style={styles.infoWrapper}>
           <Banner

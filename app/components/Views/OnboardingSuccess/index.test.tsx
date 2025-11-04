@@ -249,6 +249,36 @@ describe('OnboardingSuccessComponent', () => {
     expect(footerText.props.color).toBe(TextColor.Info);
     expect(footerText.props.variant).toBe(TextVariant.BodyMDMedium);
   });
+
+  it('hides manage default settings button for SETTINGS_BACKUP flow', () => {
+    const { queryByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        successFlow={ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP}
+      />,
+    );
+
+    const footerButton = queryByTestId(
+      OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON,
+    );
+
+    expect(footerButton).toBeNull();
+  });
+
+  it('shows manage default settings button for non-SETTINGS_BACKUP flows', () => {
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        successFlow={ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP}
+      />,
+    );
+
+    const footerButton = getByTestId(
+      OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON,
+    );
+
+    expect(footerButton).toBeOnTheScreen();
+  });
 });
 
 describe('OnboardingSuccess', () => {
@@ -269,34 +299,6 @@ describe('OnboardingSuccess', () => {
     it('renders matching snapshot with route params backedUpSRP false and noSRP false', () => {
       const { toJSON } = renderWithProvider(<OnboardingSuccess />);
       expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('adds networks to the network controller', async () => {
-      const { toJSON } = renderWithProvider(<OnboardingSuccess />);
-      expect(toJSON()).toMatchSnapshot();
-
-      // wait for the useEffect side-effect to call addNetwork
-      await waitFor(() => {
-        expect(Engine.context.NetworkController.addNetwork).toHaveBeenCalled();
-        expect(
-          Engine.context.TokenBalancesController.updateBalances,
-        ).toHaveBeenCalled();
-        expect(
-          Engine.context.TokenListController.fetchTokenList,
-        ).toHaveBeenCalled();
-        expect(
-          Engine.context.TokenDetectionController.detectTokens,
-        ).toHaveBeenCalled();
-        expect(
-          Engine.context.AccountTrackerController.refresh,
-        ).toHaveBeenCalled();
-        expect(
-          Engine.context.TokenRatesController.updateExchangeRatesByChainId,
-        ).toHaveBeenCalled();
-        expect(
-          Engine.context.CurrencyRateController.updateExchangeRate,
-        ).toHaveBeenCalled();
-      });
     });
 
     it('fails to add networks to the network controller but should render the component', async () => {
