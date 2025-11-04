@@ -41,13 +41,14 @@ jest.mock(
 
 // Mock hooks (consolidated to avoid conflicts)
 const mockNavigateBack = jest.fn();
+const mockNavigateToMarketList = jest.fn();
 jest.mock('../../hooks', () => ({
   usePerpsHomeData: jest.fn(),
   usePerpsMeasurement: jest.fn(),
   usePerpsNavigation: jest.fn(() => ({
     navigateTo: jest.fn(),
     navigateToMarketDetails: jest.fn(),
-    navigateToMarketList: jest.fn(),
+    navigateToMarketList: mockNavigateToMarketList,
     navigateBack: mockNavigateBack,
     goBack: jest.fn(),
   })),
@@ -391,6 +392,7 @@ describe('PerpsHomeView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigateBack.mockClear();
+    mockNavigateToMarketList.mockClear();
     mockUsePerpsHomeData.mockReturnValue(mockDefaultData);
   });
 
@@ -420,32 +422,23 @@ describe('PerpsHomeView', () => {
     expect(getByTestId('perps-home-search-toggle')).toBeTruthy();
   });
 
-  it('toggles search bar visibility when search button is pressed', () => {
+  it('navigates to market list view with search enabled when search button is pressed', () => {
     // Arrange
     const { getByTestId, queryByTestId } = render(<PerpsHomeView />);
 
-    // Act - Initially search should not be visible
+    // Assert - Search bar should not be visible initially
     expect(queryByTestId('perps-home-search-bar')).toBeNull();
 
-    // Press search toggle
+    // Act - Press search toggle
     fireEvent.press(getByTestId('perps-home-search-toggle'));
 
-    // Assert - Search should now be visible
-    expect(getByTestId('perps-home-search-bar')).toBeTruthy();
-  });
-
-  it('hides search bar when toggle is pressed again', () => {
-    // Arrange
-    const { getByTestId, queryByTestId } = render(<PerpsHomeView />);
-
-    // Act - Open search
-    fireEvent.press(getByTestId('perps-home-search-toggle'));
-    expect(getByTestId('perps-home-search-bar')).toBeTruthy();
-
-    // Close search - when search is visible, the toggle becomes cancel button
-    fireEvent.press(getByTestId('perps-home-search-close'));
-
-    // Assert - Search should be hidden
+    // Assert - Should navigate to MarketListView with search enabled
+    expect(mockNavigateToMarketList).toHaveBeenCalledWith({
+      defaultSearchVisible: true,
+      source: 'homescreen_tab',
+      fromHome: true,
+    });
+    // Search bar should still not be visible in HomeView (navigation happens, component doesn't toggle search)
     expect(queryByTestId('perps-home-search-bar')).toBeNull();
   });
 

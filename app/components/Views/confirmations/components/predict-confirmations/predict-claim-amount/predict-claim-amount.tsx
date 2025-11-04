@@ -15,6 +15,7 @@ import {
   formatPercentage,
   formatPrice,
 } from '../../../../../UI/Predict/utils/format';
+import { PredictClaimConfirmationSelectorsIDs } from '../../../../../../../e2e/selectors/Predict/Predict.selectors';
 import styleSheet from './predict-claim-amount.styles';
 import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
 
@@ -44,7 +45,10 @@ export function PredictClaimAmount() {
   })} (${formatPercentage((winningsPnl / winningsFiat) * 100)})`;
 
   return (
-    <Box style={styles.container}>
+    <Box
+      style={styles.container}
+      testID={PredictClaimConfirmationSelectorsIDs.CLAIM_AMOUNT_CONTAINER}
+    >
       <Text variant={TextVariant.HeadingLG} color={TextColor.Alternative}>
         {strings('confirm.predict_claim.summary')}
       </Text>
