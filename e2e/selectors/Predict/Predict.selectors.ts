@@ -96,12 +96,11 @@ export const PredictPositionsSelectorsIDs = {
   RESOLVED_MARKETS_HEADER: 'predict-resolved-markets-header',
 } as const;
 
-// Helper functions for position selectors with unique identifiers
-export const getPredictPositionSelector = {
-  currentPositionCard: 'predict-current-position-card',
-  resolvedPositionCard: (positionId: string) =>
-    `predict-resolved-position-card-${positionId}`,
-};
+// Predict position selectors
+export const PredictPositionSelectorsIDs = {
+  CURRENT_POSITION_CARD: 'predict-current-position-card',
+  RESOLVED_POSITION_CARD: 'predict-resolved-position-card',
+} as const;
 
 // ========================================
 // PREDICT CASH OUT SELECTORS
@@ -147,4 +146,12 @@ export const PredictActivityDetailsSelectorsIDs = {
   CONTAINER: 'predict-activity-details-container',
   TITLE_TEXT: 'predict-activity-details-title',
   AMOUNT_DISPLAY: 'predict-activity-details-amount',
+} as const;
+
+// ========================================
+// PREDICT BALANCE SELECTORS
+// ========================================
+
+export const PredictBalanceSelectorsIDs = {
+  BALANCE_CARD: 'predict-balance-card',
 } as const;

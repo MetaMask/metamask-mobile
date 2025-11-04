@@ -12,6 +12,7 @@ export const PredictEventProperties = {
   MARKET_ID: 'market_id',
   MARKET_TITLE: 'market_title',
   MARKET_CATEGORY: 'market_category',
+  MARKET_TAGS: 'market_tags',
   ENTRY_POINT: 'entry_point',
   TRANSACTION_TYPE: 'transaction_type',
   LIQUIDITY: 'liquidity',
@@ -19,7 +20,7 @@ export const PredictEventProperties = {
   FAILURE_REASON: 'failure_reason',
 
   // Sensitive properties
-  AMOUNT: 'amount',
+  AMOUNT_USD: 'amount_usd',
   SHARE_PRICE: 'share_price',
   ORDER_ID: 'order_id',
   USER_ADDRESS: 'user_address',

@@ -60,6 +60,11 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     navigation,
   });
 
+  // filter resolved outcomes
+  const filteredOutcomes = market.outcomes.filter(
+    (outcome) => outcome.tokens[0].price !== 0 && outcome.tokens[0].price !== 1,
+  );
+
   const getFirstOutcomePrice = (
     outcomePrices?: number[],
   ): string | undefined => {
@@ -132,7 +137,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   const totalVolumeDisplay = formatVolume(totalVolume);
 
   const truncateLabel = (label: string): string =>
-    label.length > 3 ? `${label.substring(0, 3)}.` : label;
+    label.length > 3 ? `${label.substring(0, 3)}` : label;
 
   return (
     <TouchableOpacity
@@ -155,10 +160,10 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
             twClassName="mb-3 gap-4"
           >
             <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
-              {market.outcomes[0]?.image && (
+              {market.image && (
                 <Box twClassName="w-full h-full">
                   <Image
-                    source={{ uri: market.outcomes[0].image }}
+                    source={{ uri: market.image }}
                     style={tw.style('w-full h-full')}
                     resizeMode="cover"
                   />
@@ -175,8 +180,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
               </Text>
             </Box>
           </Box>
-
-          {market.outcomes.slice(0, 3).map((outcome) => {
+          {filteredOutcomes.slice(0, 3).map((outcome) => {
             const outcomeLabels = outcome.tokens.map((token) => token.title);
             return (
               <Box
@@ -212,11 +216,12 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   <Button
                     variant={ButtonVariants.Secondary}
                     size={ButtonSize.Md}
-                    width={ButtonWidthTypes.Full}
                     label={
                       <Text
                         style={tw.style('font-medium')}
                         color={TextColor.Success}
+                        numberOfLines={1}
+                        ellipsizeMode="clip"
                       >
                         {truncateLabel(outcomeLabels[0])}
                       </Text>
@@ -232,6 +237,8 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                       <Text
                         style={tw.style('font-medium')}
                         color={TextColor.Error}
+                        numberOfLines={1}
+                        ellipsizeMode="clip"
                       >
                         {truncateLabel(outcomeLabels[1])}
                       </Text>
@@ -251,9 +258,9 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
             twClassName="mt-3"
           >
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {market.outcomes.length > 3
-                ? `+${market.outcomes.length - 3} ${
-                    market.outcomes.length - 3 === 1
+              {filteredOutcomes.length > 3
+                ? `+${filteredOutcomes.length - 3} ${
+                    filteredOutcomes.length - 3 === 1
                       ? strings('predict.outcomes_singular')
                       : strings('predict.outcomes_plural')
                   }`

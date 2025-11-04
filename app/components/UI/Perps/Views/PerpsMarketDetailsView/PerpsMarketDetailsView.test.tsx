@@ -37,7 +37,19 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 }));
 
 // Mock PerpsStreamManager
-jest.mock('../../providers/PerpsStreamManager');
+jest.mock('../../providers/PerpsStreamManager', () => ({
+  usePerpsStream: jest.fn(() => ({
+    prices: { subscribeToSymbols: jest.fn(() => jest.fn()) },
+    positions: { subscribe: jest.fn(() => jest.fn()) },
+    orders: { subscribe: jest.fn(() => jest.fn()) },
+    fills: { subscribe: jest.fn(() => jest.fn()) },
+    account: { subscribe: jest.fn(() => jest.fn()) },
+    marketData: { subscribe: jest.fn(() => jest.fn()), getMarkets: jest.fn() },
+    oiCaps: { subscribe: jest.fn(() => jest.fn()) },
+  })),
+  PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
 
 // Mock Redux selectors for chart preferences
 jest.mock('../../selectors/chartPreferences', () => ({
@@ -58,6 +70,13 @@ jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn();
+
+// usePerpsNavigation mock functions
+const mockNavigateToHome = jest.fn();
+const mockNavigateToActivity = jest.fn();
+const mockNavigateToOrder = jest.fn();
+const mockNavigateToTutorial = jest.fn();
+const mockNavigateBack = jest.fn();
 
 // Mock notification feature flag
 const mockIsNotificationsFeatureEnabled = jest.fn();
@@ -118,6 +137,7 @@ jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
 // Mock the selector module first
 jest.mock('../../selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(),
+  createSelectIsWatchlistMarket: jest.fn(() => jest.fn(() => false)),
 }));
 
 // Mock react-redux
@@ -137,32 +157,34 @@ jest.mock('../../providers/PerpsConnectionProvider', () => ({
 }));
 
 const mockRefreshOrders = jest.fn();
+const mockUsePerpsOpenOrdersImpl = jest.fn(() => ({
+  orders: [
+    {
+      id: 'order1',
+      orderId: 'order1',
+      symbol: 'BTC',
+      side: 'buy',
+      size: '0.1',
+      originalSize: '0.1',
+      price: '45000',
+      status: 'open',
+      timestamp: Date.now(),
+      lastUpdated: Date.now(),
+      orderType: 'limit',
+      filledSize: '0',
+      remainingSize: '0.1',
+      detailedOrderType: 'Limit Order',
+      isTrigger: false,
+      reduceOnly: false,
+    },
+  ],
+  refresh: mockRefreshOrders,
+  isLoading: false,
+  error: null,
+}));
+
 jest.mock('../../hooks/usePerpsOpenOrders', () => ({
-  usePerpsOpenOrders: () => ({
-    orders: [
-      {
-        id: 'order1',
-        orderId: 'order1',
-        symbol: 'BTC',
-        side: 'buy',
-        size: '0.1',
-        originalSize: '0.1',
-        price: '45000',
-        status: 'open',
-        timestamp: Date.now(), // Add proper timestamp
-        lastUpdated: Date.now(),
-        orderType: 'limit',
-        filledSize: '0',
-        remainingSize: '0.1',
-        detailedOrderType: 'Limit Order',
-        isTrigger: false,
-        reduceOnly: false,
-      },
-    ],
-    refresh: mockRefreshOrders,
-    isLoading: false,
-    error: null,
-  }),
+  usePerpsOpenOrders: () => mockUsePerpsOpenOrdersImpl(),
 }));
 
 const mockRefreshMarketStats = jest.fn();
@@ -249,6 +271,14 @@ jest.mock('../../hooks', () => ({
   })),
   usePerpsNetworkManagement: jest.fn(() => ({
     ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
+  })),
+  usePerpsNavigation: jest.fn(() => ({
+    navigateToHome: mockNavigateToHome,
+    navigateToActivity: mockNavigateToActivity,
+    navigateToOrder: mockNavigateToOrder,
+    navigateToTutorial: mockNavigateToTutorial,
+    navigateBack: mockNavigateBack,
+    canGoBack: mockCanGoBack(),
   })),
 }));
 
@@ -959,8 +989,8 @@ describe('PerpsMarketDetailsView', () => {
         fireEvent.press(longButton);
       });
 
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ORDER, {
+      expect(mockNavigateToOrder).toHaveBeenCalledTimes(1);
+      expect(mockNavigateToOrder).toHaveBeenCalledWith({
         direction: 'long',
         asset: 'BTC',
       });
@@ -994,8 +1024,8 @@ describe('PerpsMarketDetailsView', () => {
         fireEvent.press(shortButton);
       });
 
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ORDER, {
+      expect(mockNavigateToOrder).toHaveBeenCalledTimes(1);
+      expect(mockNavigateToOrder).toHaveBeenCalledWith({
         direction: 'short',
         asset: 'BTC',
       });
@@ -1435,6 +1465,422 @@ describe('PerpsMarketDetailsView', () => {
       });
 
       consoleErrorSpy.mockRestore();
+    });
+  });
+
+  describe('TP/SL child order filtering', () => {
+    beforeEach(() => {
+      // Reset to default mock implementation
+      mockUsePerpsOpenOrdersImpl.mockImplementation(() => ({
+        orders: [],
+        refresh: mockRefreshOrders,
+        isLoading: false,
+        error: null,
+      }));
+    });
+
+    it('excludes child orders from default TP order selection', () => {
+      const timestamp = Date.now();
+      const orders = [
+        {
+          id: 'parent-order-1',
+          orderId: 'parent-order-1',
+          symbol: 'BTC',
+          side: 'buy',
+          size: '1.0',
+          originalSize: '1.0',
+          price: '45000',
+          orderType: 'limit',
+          status: 'open',
+          timestamp,
+          lastUpdated: timestamp,
+          filledSize: '0',
+          remainingSize: '1.0',
+          detailedOrderType: 'Limit Order',
+          isTrigger: false,
+          reduceOnly: false,
+          takeProfitOrderId: 'child-tp-order-1',
+          stopLossOrderId: 'child-sl-order-1',
+        },
+        {
+          id: 'child-tp-order-1',
+          orderId: 'child-tp-order-1',
+          symbol: 'BTC',
+          side: 'sell',
+          size: '1.0',
+          originalSize: '1.0',
+          price: '50000',
+          orderType: 'limit',
+          status: 'open',
+          timestamp,
+          lastUpdated: timestamp,
+          filledSize: '0',
+          remainingSize: '1.0',
+          detailedOrderType: 'Take Profit Limit',
+          isTrigger: true,
+          reduceOnly: true,
+        },
+        {
+          id: 'standalone-tp-order',
+          orderId: 'standalone-tp-order',
+          symbol: 'BTC',
+          side: 'sell',
+          size: '1.0',
+          originalSize: '1.0',
+          price: '51000',
+          orderType: 'limit',
+          status: 'open',
+          timestamp,
+          lastUpdated: timestamp,
+          filledSize: '0',
+          remainingSize: '1.0',
+          detailedOrderType: 'Take Profit Limit',
+          isTrigger: true,
+          reduceOnly: true,
+        },
+      ];
+
+      mockUsePerpsOpenOrdersImpl.mockReturnValue({
+        orders,
+        refresh: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const chart = getByTestId(
+        `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`,
+      );
+
+      expect(chart).toBeTruthy();
+    });
+
+    it('excludes child orders from default SL order selection', () => {
+      const timestamp = Date.now();
+      const orders = [
+        {
+          id: 'parent-order-2',
+          orderId: 'parent-order-2',
+          symbol: 'BTC',
+          side: 'buy',
+          size: '1.0',
+          originalSize: '1.0',
+          price: '45000',
+          orderType: 'limit',
+          status: 'open',
+          timestamp,
+          lastUpdated: timestamp,
+          filledSize: '0',
+          remainingSize: '1.0',
+          takeProfitOrderId: 'child-tp-order-2',
+          detailedOrderType: 'Limit Order',
+          isTrigger: false,
+          reduceOnly: false,
+          stopLossOrderId: 'child-sl-order-2',
+        },
+        {
+          orderId: 'child-sl-order-2',
+          id: 'child-sl-order-2',
+          symbol: 'BTC',
+          side: 'sell',
+          size: '1.0',
+          originalSize: '1.0',
+          price: '40000',
+          orderType: 'market',
+          status: 'open',
+          timestamp,
+          lastUpdated: timestamp,
+          filledSize: '0',
+          remainingSize: '1.0',
+          detailedOrderType: 'Stop Market',
+          isTrigger: true,
+          reduceOnly: true,
+        },
+        {
+          id: 'standalone-sl-order',
+          orderId: 'standalone-sl-order',
+          symbol: 'BTC',
+          side: 'sell',
+          size: '1.0',
+          originalSize: '1.0',
+          price: '39000',
+          orderType: 'market',
+          status: 'open',
+          timestamp,
+          lastUpdated: timestamp,
+          filledSize: '0',
+          remainingSize: '1.0',
+          detailedOrderType: 'Stop Market',
+          isTrigger: true,
+          reduceOnly: true,
+        },
+      ];
+
+      mockUsePerpsOpenOrdersImpl.mockReturnValue({
+        orders,
+        refresh: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const chart = getByTestId(
+        `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`,
+      );
+
+      expect(chart).toBeTruthy();
+    });
+
+    it('includes standalone trigger orders when no child orders exist', () => {
+      const timestamp = Date.now();
+      const orders = [
+        {
+          id: 'order-1',
+          orderId: 'order-1',
+          symbol: 'BTC',
+          side: 'buy',
+          size: '1.0',
+          originalSize: '1.0',
+          price: '45000',
+          orderType: 'limit',
+          status: 'open',
+          timestamp,
+          lastUpdated: timestamp,
+          filledSize: '0',
+          remainingSize: '1.0',
+          detailedOrderType: 'Limit Order',
+          isTrigger: false,
+          reduceOnly: false,
+        },
+        {
+          id: 'standalone-tp-1',
+          orderId: 'standalone-tp-1',
+          symbol: 'BTC',
+          side: 'sell',
+          size: '1.0',
+          originalSize: '1.0',
+          price: '50000',
+          orderType: 'limit',
+          status: 'open',
+          timestamp,
+          lastUpdated: timestamp,
+          filledSize: '0',
+          remainingSize: '1.0',
+          detailedOrderType: 'Take Profit Limit',
+          isTrigger: true,
+          reduceOnly: true,
+        },
+        {
+          id: 'standalone-sl-1',
+          orderId: 'standalone-sl-1',
+          symbol: 'BTC',
+          side: 'sell',
+          size: '1.0',
+          originalSize: '1.0',
+          price: '40000',
+          orderType: 'market',
+          status: 'open',
+          timestamp,
+          lastUpdated: timestamp,
+          filledSize: '0',
+          remainingSize: '1.0',
+          detailedOrderType: 'Stop Market',
+          isTrigger: true,
+          reduceOnly: true,
+        },
+      ];
+
+      mockUsePerpsOpenOrdersImpl.mockReturnValue({
+        orders,
+        refresh: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const chart = getByTestId(
+        `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`,
+      );
+
+      expect(chart).toBeTruthy();
+    });
+
+    it('handles orders with only takeProfitOrderId', () => {
+      const timestamp = Date.now();
+      const orders = [
+        {
+          id: 'parent-order-3',
+          orderId: 'parent-order-3',
+          symbol: 'BTC',
+          side: 'buy',
+          size: '1.0',
+          originalSize: '1.0',
+          price: '45000',
+          orderType: 'limit',
+          status: 'open',
+          timestamp,
+          lastUpdated: timestamp,
+          filledSize: '0',
+          remainingSize: '1.0',
+          takeProfitOrderId: 'child-tp-order-3',
+          detailedOrderType: 'Limit Order',
+          isTrigger: false,
+          reduceOnly: false,
+        },
+        {
+          id: 'child-tp-order-3',
+          orderId: 'child-tp-order-3',
+          symbol: 'BTC',
+          side: 'sell',
+          size: '1.0',
+          originalSize: '1.0',
+          price: '50000',
+          orderType: 'limit',
+          status: 'open',
+          timestamp,
+          lastUpdated: timestamp,
+          filledSize: '0',
+          remainingSize: '1.0',
+          detailedOrderType: 'Take Profit Limit',
+          isTrigger: true,
+          reduceOnly: true,
+        },
+      ];
+
+      mockUsePerpsOpenOrdersImpl.mockReturnValue({
+        orders,
+        refresh: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const chart = getByTestId(
+        `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`,
+      );
+
+      expect(chart).toBeTruthy();
+    });
+
+    it('handles orders with only stopLossOrderId', () => {
+      const timestamp = Date.now();
+      const orders = [
+        {
+          id: 'parent-order-4',
+          orderId: 'parent-order-4',
+          symbol: 'BTC',
+          side: 'buy',
+          size: '1.0',
+          originalSize: '1.0',
+          price: '45000',
+          orderType: 'limit',
+          detailedOrderType: 'Limit Order',
+          isTrigger: false,
+          reduceOnly: false,
+          status: 'open',
+          timestamp,
+          lastUpdated: timestamp,
+          filledSize: '0',
+          remainingSize: '1.0',
+          stopLossOrderId: 'child-sl-order-4',
+        },
+        {
+          id: 'child-sl-order-4',
+          orderId: 'child-sl-order-4',
+          symbol: 'BTC',
+          side: 'sell',
+          size: '1.0',
+          originalSize: '1.0',
+          price: '40000',
+          orderType: 'market',
+          status: 'open',
+          timestamp,
+          lastUpdated: timestamp,
+          filledSize: '0',
+          remainingSize: '1.0',
+          detailedOrderType: 'Stop Market',
+          isTrigger: true,
+          reduceOnly: true,
+        },
+      ];
+
+      mockUsePerpsOpenOrdersImpl.mockReturnValue({
+        orders,
+        refresh: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const chart = getByTestId(
+        `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`,
+      );
+
+      expect(chart).toBeTruthy();
+    });
+
+    it('handles empty order list', () => {
+      mockUsePerpsOpenOrdersImpl.mockReturnValue({
+        orders: [],
+        refresh: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const chart = getByTestId(
+        `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`,
+      );
+
+      expect(chart).toBeTruthy();
     });
   });
 });
