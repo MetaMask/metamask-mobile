@@ -49,6 +49,7 @@ import { ButtonVariants } from '../../../component-library/components/Buttons/Bu
 import CustomText, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
+import ConditionalScrollView from '../../../component-library/components-temp/ConditionalScrollView';
 import {
   ToastContext,
   ToastVariants,
@@ -117,8 +118,8 @@ import { Hex, KnownCaipNamespace } from '@metamask/utils';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
-import TokenBalancesLoadMarker from '../../UI/Assets/components/TokenBalancesLoadMarker';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { useMultichainAccountsIntroModal } from '../../hooks/useMultichainAccountsIntroModal';
@@ -246,6 +247,9 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
+  );
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
   );
   const isPerpsEnabled = useMemo(
     () =>
@@ -481,7 +485,9 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
         key={tabsKey}
         ref={tabsListRef}
         onChangeTab={handleTabChange}
-        testID="wallet-tabs"
+        tabsListContentTwClassName={
+          isHomepageRedesignV1Enabled ? '!flex-initial' : ''
+        }
       >
         {tabsToRender}
       </TabsList>
@@ -504,9 +510,6 @@ const Wallet = ({
   const route = useRoute<RouteProp<ParamListBase, string>>();
   const walletRef = useRef(null);
   const theme = useTheme();
-
-  // Track when Tokens tab is selected to reset TokenBalancesLoadMarker
-  const [tokensTabResetKey, setTokensTabResetKey] = useState(0);
 
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
   const isPerpsGTMModalEnabled = useSelector(
@@ -1073,6 +1076,9 @@ const Wallet = ({
 
   const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
 
   useEffect(() => {
     if (!selectedInternalAccount) return;
@@ -1225,8 +1231,6 @@ const Wallet = ({
           : '';
       if (tabLabel === strings('wallet.tokens')) {
         trackEvent(createEventBuilder(MetaMetricsEvents.WALLET_TOKENS).build());
-        // Increment reset key to trigger TokenBalancesLoadMarker reset for performance testing
-        setTokensTabResetKey((prev) => prev + 1);
       } else if (tabLabel === strings('wallet.defi')) {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.DEFI_TAB_SELECTED).build(),
@@ -1299,84 +1303,64 @@ const Wallet = ({
     basicFunctionalityEnabled &&
     assetsDefiPositionsEnabled;
 
-  const renderContent = useCallback(
-    () => (
-      <View
-        style={styles.wrapper}
-        testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
-      >
-        <AssetPollingProvider />
-        <View style={styles.banner}>
-          {!basicFunctionalityEnabled ? (
-            <BannerAlert
-              severity={BannerAlertSeverity.Error}
-              title={strings('wallet.banner.title')}
-              description={
-                <CustomText
-                  color={TextColor.Info}
-                  onPress={turnOnBasicFunctionality}
-                >
-                  {strings('wallet.banner.link')}
-                </CustomText>
-              }
-            />
-          ) : null}
-          <NetworkConnectionBanner />
-        </View>
-        <>
-          {isMultichainAccountsState2Enabled ? (
-            <AccountGroupBalance />
-          ) : (
-            <PortfolioBalance />
-          )}
-
-          {/* Performance marker for measuring token balances load time (without prices) */}
-          <TokenBalancesLoadMarker resetKey={tokensTabResetKey} />
-
-          <AssetDetailsActions
-            displayBuyButton={displayBuyButton}
-            displaySwapsButton={displaySwapsButton}
-            goToSwaps={goToSwaps}
-            onReceive={onReceive}
-            onSend={onSend}
-            buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-            swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-            sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-            receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
-          />
-
-          {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
-
-          <WalletTokensTabView
-            navigation={navigation}
-            onChangeTab={onChangeTab}
-            defiEnabled={defiEnabled}
-            collectiblesEnabled={collectiblesEnabled}
-            navigationParams={route.params}
-          />
-        </>
-      </View>
-    ),
-    [
-      styles.banner,
-      styles.carousel,
+  const scrollViewContentStyle = useMemo(
+    () => [
       styles.wrapper,
-      basicFunctionalityEnabled,
-      defiEnabled,
-      isMultichainAccountsState2Enabled,
-      turnOnBasicFunctionality,
-      onChangeTab,
-      navigation,
-      goToSwaps,
-      displayBuyButton,
-      displaySwapsButton,
-      onReceive,
-      onSend,
-      route.params,
-      isCarouselBannersEnabled,
-      collectiblesEnabled,
-      tokensTabResetKey,
+      isHomepageRedesignV1Enabled && { flex: undefined, flexGrow: 0 },
     ],
+    [styles.wrapper, isHomepageRedesignV1Enabled],
+  );
+
+  const content = (
+    <>
+      <AssetPollingProvider />
+      <View style={styles.banner}>
+        {!basicFunctionalityEnabled ? (
+          <BannerAlert
+            severity={BannerAlertSeverity.Error}
+            title={strings('wallet.banner.title')}
+            description={
+              <CustomText
+                color={TextColor.Info}
+                onPress={turnOnBasicFunctionality}
+              >
+                {strings('wallet.banner.link')}
+              </CustomText>
+            }
+          />
+        ) : null}
+        <NetworkConnectionBanner />
+      </View>
+      <>
+        {isMultichainAccountsState2Enabled ? (
+          <AccountGroupBalance />
+        ) : (
+          <PortfolioBalance />
+        )}
+
+        <AssetDetailsActions
+          displayBuyButton={displayBuyButton}
+          displaySwapsButton={displaySwapsButton}
+          goToSwaps={goToSwaps}
+          onReceive={onReceive}
+          onSend={onSend}
+          buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+          swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+          sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+          receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+        />
+
+        {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+
+        <WalletTokensTabView
+          navigation={navigation}
+          onChangeTab={onChangeTab}
+          defiEnabled={defiEnabled}
+          collectiblesEnabled={collectiblesEnabled}
+          navigationParams={route.params}
+        />
+      </>
+    </>
   );
   const renderLoader = useCallback(
     () => (
@@ -1390,7 +1374,24 @@ const Wallet = ({
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
       <View style={baseStyles.flexGrow}>
-        {selectedInternalAccount ? renderContent() : renderLoader()}
+        {selectedInternalAccount ? (
+          <View
+            style={styles.wrapper}
+            testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+          >
+            <ConditionalScrollView
+              isScrollEnabled={isHomepageRedesignV1Enabled}
+              scrollViewProps={{
+                contentContainerStyle: scrollViewContentStyle,
+                showsVerticalScrollIndicator: false,
+              }}
+            >
+              {content}
+            </ConditionalScrollView>
+          </View>
+        ) : (
+          renderLoader()
+        )}
       </View>
     </ErrorBoundary>
   );
