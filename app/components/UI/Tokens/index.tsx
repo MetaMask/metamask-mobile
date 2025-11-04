@@ -25,7 +25,6 @@ import { refreshTokens, removeEvmToken, goToAddEvmToken } from './util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Box } from '@metamask/design-system-react-native';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { TokenListControlBar } from './TokenListControlBar';
 import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
 import { ScamWarningModal } from './TokenList/ScamWarningModal';
@@ -34,8 +33,11 @@ import { selectSortedTokenKeys } from '../../../selectors/tokenList';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
-import { SolScope } from '@metamask/keyring-api';
+import { CaipAssetType, CaipChainId, SolScope } from '@metamask/keyring-api';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import Engine from '../../../core/Engine';
+import Logger from '../../../util/Logger';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import { TokensEmptyState } from '../TokensEmptyState';
 
@@ -65,12 +67,15 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
   );
   const currentChainId = useSelector(selectChainId);
   const nativeCurrencies = useSelector(selectNativeNetworkCurrencies);
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const actionSheet = useRef<typeof ActionSheet>();
-  const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
+  const tokenToRemoveRef = useRef<TokenI | undefined>();
   const [refreshing, setRefreshing] = useState(false);
   const selectedAccountId = useSelector(selectSelectedInternalAccountId);
+
+  const selectInternalAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
+  );
 
   const selectedSolanaAccount =
     useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) || null;
@@ -108,16 +113,12 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
     }
   }, [sortedTokenKeys, hasInitialLoad]);
 
-  const showRemoveMenu = useCallback(
-    (token: TokenI) => {
-      // remove token currently only supported on evm
-      if (isEvmSelected && actionSheet.current) {
-        setTokenToRemove(token);
-        actionSheet.current.show();
-      }
-    },
-    [isEvmSelected],
-  );
+  const showRemoveMenu = useCallback((token: TokenI) => {
+    if (actionSheet.current) {
+      tokenToRemoveRef.current = token;
+      actionSheet.current.show();
+    }
+  }, []);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -141,22 +142,37 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
 
   const removeToken = useCallback(async () => {
     // remove token currently only supported on evm
-    if (isEvmSelected && tokenToRemove) {
-      await removeEvmToken({
-        tokenToRemove,
-        currentChainId,
-        trackEvent,
-        strings,
-        getDecimalChainId,
-        createEventBuilder, // Now passed as a prop
-      });
+    const tokenToRemove = tokenToRemoveRef.current;
+    if (tokenToRemove?.chainId !== undefined) {
+      if (isNonEvmChainId(tokenToRemove.chainId)) {
+        const selectedNonEvmAccount = selectInternalAccountByScope(
+          tokenToRemove.chainId as CaipChainId,
+        );
+        if (!selectedNonEvmAccount) {
+          Logger.log('Tokens List: No account ID found');
+          return;
+        }
+        const { MultichainAssetsController } = Engine.context;
+        await MultichainAssetsController.ignoreAssets(
+          [tokenToRemove.address as CaipAssetType],
+          selectedNonEvmAccount.id,
+        );
+      } else {
+        await removeEvmToken({
+          tokenToRemove,
+          currentChainId,
+          trackEvent,
+          strings,
+          getDecimalChainId,
+          createEventBuilder, // Now passed as a prop
+        });
+      }
     }
   }, [
-    isEvmSelected,
-    tokenToRemove,
     currentChainId,
     trackEvent,
     createEventBuilder,
+    selectInternalAccountByScope,
   ]);
 
   const goToAddToken = useCallback(() => {
