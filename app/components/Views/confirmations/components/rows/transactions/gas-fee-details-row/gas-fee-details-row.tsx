@@ -4,42 +4,56 @@ import {
 } from '@metamask/transaction-controller';
 import React, { useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../../locales/i18n';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../../component-library/components/Icons/Icon';
+import {
+  TextColor,
+  TextVariant,
+} from '../../../../../../../component-library/components/Texts/Text';
 import Text from '../../../../../../../component-library/components/Texts/Text/Text';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { TOOLTIP_TYPES } from '../../../../../../../core/Analytics/events/confirmations';
 import useHideFiatForTestnet from '../../../../../../hooks/useHideFiatForTestnet';
+import useBalanceChanges from '../../../../../../UI/SimulationDetails/useBalanceChanges';
 import { useFeeCalculations } from '../../../../hooks/gas/useFeeCalculations';
 import { useFeeCalculationsTransactionBatch } from '../../../../hooks/gas/useFeeCalculationsTransactionBatch';
+import { useSelectedGasFeeToken } from '../../../../hooks/gas/useGasFeeToken';
+import { useIsGaslessSupported } from '../../../../hooks/gas/useIsGaslessSupported';
 import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
 import { useTransactionBatchesMetadata } from '../../../../hooks/transactions/useTransactionBatchesMetadata';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
+import { useAutomaticGasFeeTokenSelect } from '../../../../hooks/useAutomaticGasFeeTokenSelect';
+import { GasFeeTokenToast } from '../../../gas/gas-fee-token-toast';
 import { GasSpeed } from '../../../gas/gas-speed';
+import { SelectedGasFeeToken } from '../../../gas/selected-gas-fee-token';
 import { GasFeeModal } from '../../../modals/gas-fee-modal';
 import AlertRow from '../../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import InfoSection from '../../../UI/info-row/info-section';
 import styleSheet from './gas-fee-details-row.styles';
-import { SelectedGasFeeToken } from '../../../gas/selected-gas-fee-token';
-import { useSelectedGasFeeToken } from '../../../../hooks/gas/useGasFeeToken';
-import {
-  TextColor,
-  TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text';
-import { GasFeeTokenToast } from '../../../gas/gas-fee-token-toast';
-import { useAutomaticGasFeeTokenSelect } from '../../../../hooks/useAutomaticGasFeeTokenSelect';
-import { useIsGaslessSupported } from '../../../../hooks/gas/useIsGaslessSupported';
 
 const PaidByMetaMask = () => (
   <Text variant={TextVariant.BodyMD} testID="paid-by-metamask">
     {strings('transactions.paid_by_metamask')}
   </Text>
 );
+
+const SkeletonEstimationInfo = () => (
+  <SkeletonPlaceholder>
+    <SkeletonPlaceholder.Item
+      width={120}
+      height={24}
+      borderRadius={8}
+      marginTop={2}
+    />
+  </SkeletonPlaceholder>
+);
+
 const EstimationInfo = ({
   hideFiatForTestnet,
   feeCalculations,
@@ -65,11 +79,22 @@ const EstimationInfo = ({
     hideFiatForTestnet || !fiatValue
       ? styles.primaryValue
       : styles.secondaryValue;
+  const transactionMetadata = useTransactionMetadataRequest();
+  const { chainId, simulationData, networkClientId } =
+    (transactionMetadata as TransactionMeta) ?? {};
+  const balanceChangesResult = useBalanceChanges({
+    chainId,
+    simulationData,
+    networkClientId,
+  });
+  const isSimulationLoading = !simulationData || balanceChangesResult.pending;
 
   return (
     <View style={styles.estimationContainer}>
       {isGasFeeSponsored ? (
         <PaidByMetaMask />
+      ) : isSimulationLoading ? (
+        <SkeletonEstimationInfo />
       ) : (
         <>
           {displayValue && <Text style={displayStyle}>{displayValue}</Text>}
@@ -235,6 +260,15 @@ const GasFeesDetailsRow = ({
     : strings('transactions.network_fee_tooltip');
 
   const Container = noSection ? View : InfoSection;
+
+  const { chainId, simulationData, networkClientId } =
+    (transactionMetadata as TransactionMeta) ?? {};
+  const balanceChangesResult = useBalanceChanges({
+    chainId,
+    simulationData,
+    networkClientId,
+  });
+  const isSimulationLoading = !simulationData || balanceChangesResult.pending;
   return (
     <>
       <Container testID={ConfirmationRowComponentIDs.GAS_FEES_DETAILS}>
@@ -245,7 +279,10 @@ const GasFeesDetailsRow = ({
           onTooltipPress={handleNetworkFeeTooltipClickedEvent}
         >
           <View style={styles.valueContainer}>
-            {disableUpdate || gasFeeToken || isGasFeeSponsored ? (
+            {disableUpdate ||
+            gasFeeToken ||
+            isGasFeeSponsored ||
+            isSimulationLoading ? (
               <RenderEstimationInfo
                 transactionBatchesMetadata={transactionBatchesMetadata}
                 hideFiatForTestnet={hideFiatForTestnet}

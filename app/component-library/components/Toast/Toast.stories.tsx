@@ -78,6 +78,9 @@ export const Toast = {
             { label: ' network.' },
           ],
           networkImageSource: { uri: TEST_NETWORK_IMAGE_URL },
+          descriptionOptions: {
+            description: 'This is a description text for the network toast.',
+          },
           linkButtonOptions: {
             label: 'Click here!',
             onPress: () => {

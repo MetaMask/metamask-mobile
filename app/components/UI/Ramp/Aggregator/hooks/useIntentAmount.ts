@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import type BN4 from 'bnjs4';
 import { useRampSDK } from '../sdk';
-import parseAmount from '../utils/parseAmount';
 import { toTokenMinimalUnit } from '../../../../../util/number';
 import { FiatCurrency } from '@consensys/on-ramp-sdk';
+import parseAmount from '../../../../../util/parseAmount';
 
 /**
  * This hook is used to parse and set the amount of the ramp intent in the view state.
