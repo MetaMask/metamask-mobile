@@ -19,11 +19,13 @@ import {
   CustomIdData,
   FiatOrder,
   FiatOrdersState,
+  RampRegionSupport,
 } from './types';
 import type { RootState } from '../';
 import { getDecimalChainId } from '../../util/networks';
 
 export type { FiatOrder } from './types';
+export { RampRoutingType, RampRegionSupport } from './types';
 
 /** Action Creators */
 
@@ -137,6 +139,20 @@ export const removeFiatSellTxHash = (orderId: string) => ({
 export const setDetectedGeolocation = (geolocation: string | undefined) => ({
   type: ACTIONS.FIAT_SET_DETECTED_GEOLOCATION,
   payload: geolocation,
+});
+
+export const setRampRegionSupport = (
+  regionSupport: FiatOrdersState['rampRegionSupport'],
+) => ({
+  type: ACTIONS.FIAT_SET_RAMP_REGION_SUPPORT,
+  payload: regionSupport,
+});
+
+export const setRampRoutingDecision = (
+  routingDecision: FiatOrdersState['rampRoutingDecision'],
+) => ({
+  type: ACTIONS.FIAT_SET_RAMP_ROUTING_DECISION,
+  payload: routingDecision,
 });
 
 /**
@@ -308,6 +324,16 @@ export const getDetectedGeolocation: (
 ) => string | undefined = (state: RootState) =>
   state.fiatOrders.detectedGeolocation;
 
+export const getRampRegionSupport: (
+  state: RootState,
+) => FiatOrdersState['rampRegionSupport'] = (state: RootState) =>
+  state.fiatOrders.rampRegionSupport;
+
+export const getRampRoutingDecision: (
+  state: RootState,
+) => FiatOrdersState['rampRoutingDecision'] = (state: RootState) =>
+  state.fiatOrders.rampRoutingDecision;
+
 export const initialState: FiatOrdersState = {
   orders: [],
   customOrderIds: [],
@@ -323,6 +349,8 @@ export const initialState: FiatOrdersState = {
   authenticationUrls: [],
   activationKeys: [],
   detectedGeolocation: undefined,
+  rampRegionSupport: RampRegionSupport.DEPOSIT,
+  rampRoutingDecision: null,
 };
 
 const findOrderIndex = (
@@ -615,6 +643,18 @@ const fiatOrderReducer: (
       return {
         ...state,
         detectedGeolocation: action.payload,
+      };
+    }
+    case ACTIONS.FIAT_SET_RAMP_REGION_SUPPORT: {
+      return {
+        ...state,
+        rampRegionSupport: action.payload,
+      };
+    }
+    case ACTIONS.FIAT_SET_RAMP_ROUTING_DECISION: {
+      return {
+        ...state,
+        rampRoutingDecision: action.payload,
       };
     }
 
