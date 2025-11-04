@@ -28,6 +28,55 @@ export const escapeRegex = (str: string): string =>
   str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 /**
+ * Validate market filter pattern for safety
+ * Prevents regex DoS attacks from malicious patterns
+ *
+ * @param pattern - Pattern to validate
+ * @returns true if pattern is safe
+ * @throws Error if pattern is unsafe
+ *
+ * @example Valid patterns
+ * validateMarketPattern("BTC") // → true
+ * validateMarketPattern("xyz:TSLA") // → true
+ * validateMarketPattern("xyz:*") // → true
+ *
+ * @example Invalid patterns
+ * validateMarketPattern("") // → throws Error
+ * validateMarketPattern("xyz:.*") // → throws Error (regex chars)
+ * validateMarketPattern("BTC#SCAM") // → throws Error (invalid char)
+ */
+export const validateMarketPattern = (pattern: string): boolean => {
+  // Reject empty patterns
+  if (!pattern || pattern.trim().length === 0) {
+    throw new Error('Market pattern cannot be empty');
+  }
+
+  // Reject patterns that are too long (potential DoS)
+  if (pattern.length > 100) {
+    throw new Error(
+      `Market pattern exceeds maximum length (100 chars): ${pattern}`,
+    );
+  }
+
+  // Reject patterns with suspicious regex control characters
+  // Allow only colon and asterisk for our pattern syntax
+  const dangerousChars = /[\\()[\]{}^$+?.|]/;
+  if (dangerousChars.test(pattern)) {
+    throw new Error(
+      `Market pattern contains invalid regex characters: ${pattern}`,
+    );
+  }
+
+  // Allow only: alphanumeric, colon, hyphen, underscore, asterisk
+  const validPattern = /^[a-zA-Z0-9:_\-*]+$/;
+  if (!validPattern.test(pattern)) {
+    throw new Error(`Market pattern contains invalid characters: ${pattern}`);
+  }
+
+  return true;
+};
+
+/**
  * Compile market filter pattern into optimized matcher
  * Supports wildcards ("xyz:*"), DEX shorthand ("xyz"), and exact matches ("xyz:TSLA")
  *
@@ -47,6 +96,9 @@ export const escapeRegex = (str: string): string =>
  * compileMarketPattern("xyz:TSLA") // → "xyz:TSLA"
  */
 export const compileMarketPattern = (pattern: string): MarketPatternMatcher => {
+  // Validate pattern before compilation to prevent regex DoS
+  validateMarketPattern(pattern);
+
   if (pattern.endsWith(':*')) {
     // Wildcard: "xyz:*" → regex /^xyz:/
     const prefix = pattern.slice(0, -2);

@@ -6,6 +6,7 @@ import {
   compileMarketPattern,
   matchesMarketPattern,
   shouldIncludeMarket,
+  validateMarketPattern,
 } from './marketUtils';
 import type { CandleData } from '../types/perps-types';
 import { CandlePeriod } from '../constants/chartConfig';
@@ -464,13 +465,6 @@ describe('marketUtils', () => {
         expect(typeof matcher).toBe('string');
         expect(matcher).toBe('xyz:TSLA');
       });
-
-      it('handles special regex characters in DEX name', () => {
-        const matcher = compileMarketPattern('test.dex:*');
-        expect(matcher).toBeInstanceOf(RegExp);
-        expect((matcher as RegExp).test('test.dex:ASSET')).toBe(true);
-        expect((matcher as RegExp).test('testXdex:ASSET')).toBe(false);
-      });
     });
 
     describe('matchesMarketPattern', () => {
@@ -581,6 +575,161 @@ describe('marketUtils', () => {
         const enabled = [{ pattern: 'xyz:*', matcher: /^xyz:/ }];
 
         expect(shouldIncludeMarket('xyz:TSLA', 'xyz', enabled, [])).toBe(true);
+      });
+    });
+  });
+
+  describe('validateMarketPattern', () => {
+    describe('valid patterns', () => {
+      it('accepts simple alphanumeric patterns', () => {
+        expect(() => validateMarketPattern('BTC')).not.toThrow();
+        expect(() => validateMarketPattern('ETH')).not.toThrow();
+        expect(() => validateMarketPattern('SOL')).not.toThrow();
+      });
+
+      it('accepts HIP-3 market patterns', () => {
+        expect(() => validateMarketPattern('xyz:TSLA')).not.toThrow();
+        expect(() => validateMarketPattern('abc:AAPL')).not.toThrow();
+        expect(() => validateMarketPattern('dex1:MARKET1')).not.toThrow();
+      });
+
+      it('accepts wildcard patterns', () => {
+        expect(() => validateMarketPattern('xyz:*')).not.toThrow();
+        expect(() => validateMarketPattern('abc:*')).not.toThrow();
+      });
+
+      it('accepts patterns with hyphens and underscores', () => {
+        expect(() => validateMarketPattern('dex-name:MARKET')).not.toThrow();
+        expect(() => validateMarketPattern('dex_name:MARKET')).not.toThrow();
+        expect(() => validateMarketPattern('xyz:MARKET-1')).not.toThrow();
+        expect(() => validateMarketPattern('xyz:MARKET_1')).not.toThrow();
+      });
+
+      it('returns true for valid patterns', () => {
+        expect(validateMarketPattern('BTC')).toBe(true);
+        expect(validateMarketPattern('xyz:TSLA')).toBe(true);
+      });
+    });
+
+    describe('invalid patterns - empty/whitespace', () => {
+      it('rejects empty string', () => {
+        expect(() => validateMarketPattern('')).toThrow(
+          'Market pattern cannot be empty',
+        );
+      });
+
+      it('rejects whitespace-only string', () => {
+        expect(() => validateMarketPattern('   ')).toThrow(
+          'Market pattern cannot be empty',
+        );
+      });
+    });
+
+    describe('invalid patterns - length', () => {
+      it('rejects patterns that are too long', () => {
+        const longPattern = 'a'.repeat(101);
+        expect(() => validateMarketPattern(longPattern)).toThrow(
+          'Market pattern exceeds maximum length (100 chars)',
+        );
+      });
+
+      it('accepts patterns at maximum length', () => {
+        const maxPattern = 'a'.repeat(100);
+        expect(() => validateMarketPattern(maxPattern)).not.toThrow();
+      });
+    });
+
+    describe('invalid patterns - regex control characters', () => {
+      it('rejects patterns with backslash', () => {
+        expect(() => validateMarketPattern('BTC\\d+')).toThrow(
+          'Market pattern contains invalid regex characters',
+        );
+      });
+
+      it('rejects patterns with parentheses', () => {
+        expect(() => validateMarketPattern('BTC(SCAM)')).toThrow(
+          'Market pattern contains invalid regex characters',
+        );
+      });
+
+      it('rejects patterns with brackets', () => {
+        expect(() => validateMarketPattern('BTC[a-z]')).toThrow(
+          'Market pattern contains invalid regex characters',
+        );
+        expect(() => validateMarketPattern('xyz:{TSLA}')).toThrow(
+          'Market pattern contains invalid regex characters',
+        );
+      });
+
+      it('rejects patterns with caret', () => {
+        expect(() => validateMarketPattern('^BTC')).toThrow(
+          'Market pattern contains invalid regex characters',
+        );
+      });
+
+      it('rejects patterns with dollar sign', () => {
+        expect(() => validateMarketPattern('BTC$')).toThrow(
+          'Market pattern contains invalid regex characters',
+        );
+      });
+
+      it('rejects patterns with plus', () => {
+        expect(() => validateMarketPattern('BTC+')).toThrow(
+          'Market pattern contains invalid regex characters',
+        );
+      });
+
+      it('rejects patterns with question mark', () => {
+        expect(() => validateMarketPattern('BTC?')).toThrow(
+          'Market pattern contains invalid regex characters',
+        );
+      });
+
+      it('rejects patterns with dot (except escaped)', () => {
+        expect(() => validateMarketPattern('BTC.SCAM')).toThrow(
+          'Market pattern contains invalid regex characters',
+        );
+        expect(() => validateMarketPattern('xyz:.*')).toThrow(
+          'Market pattern contains invalid regex characters',
+        );
+      });
+
+      it('rejects patterns with pipe', () => {
+        expect(() => validateMarketPattern('BTC|ETH')).toThrow(
+          'Market pattern contains invalid regex characters',
+        );
+      });
+    });
+
+    describe('invalid patterns - special characters', () => {
+      it('rejects patterns with hash', () => {
+        expect(() => validateMarketPattern('BTC#SCAM')).toThrow(
+          'Market pattern contains invalid characters',
+        );
+      });
+
+      it('rejects patterns with at symbol', () => {
+        expect(() => validateMarketPattern('xyz:@SCAM')).toThrow(
+          'Market pattern contains invalid characters',
+        );
+      });
+
+      it('rejects patterns with exclamation mark', () => {
+        expect(() => validateMarketPattern('xyz:SCAM!')).toThrow(
+          'Market pattern contains invalid characters',
+        );
+      });
+
+      it('rejects patterns with spaces', () => {
+        expect(() => validateMarketPattern('BTC ETH')).toThrow(
+          'Market pattern contains invalid characters',
+        );
+      });
+
+      it('rejects patterns with percent', () => {
+        expect(() => validateMarketPattern('BTC%')).toThrow(
+          'Market pattern contains invalid characters',
+        );
       });
     });
   });

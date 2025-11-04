@@ -90,12 +90,6 @@ const styleSheet = (params: { theme: Theme }) => {
       marginLeft: 12,
       flex: 1,
     },
-    debugContainer: {
-      backgroundColor: colors.warning.muted,
-      padding: 12,
-      margin: 8,
-      borderRadius: 8,
-    },
   });
 };
 
