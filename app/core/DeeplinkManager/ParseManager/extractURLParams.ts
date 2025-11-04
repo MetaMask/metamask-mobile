@@ -62,7 +62,7 @@ function extractURLParams(url: string) {
       params = {
         ...params,
         ...parsedParams,
-        hr: ['1', 'true'].includes(parsedParams.hr as string),
+        hr: parsedParams.hr === '1',
       };
 
       if (params.message) {

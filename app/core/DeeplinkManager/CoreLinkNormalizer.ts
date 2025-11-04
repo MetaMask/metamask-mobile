@@ -15,6 +15,8 @@ import {
   SUPPORTED_PROTOCOLS,
 } from './types/CoreUniversalLink';
 
+const { HTTPS, METAMASK, DAPP, HTTP } = PROTOCOLS;
+
 export class CoreLinkNormalizer {
   private static readonly ACTION_PATH_MAP: Record<
     string,
@@ -79,8 +81,6 @@ export class CoreLinkNormalizer {
         requiresAuth: AUTH_REQUIRED_ACTIONS.includes(action),
       };
     } catch (_error) {
-      // for some reason SonarQube doesn't think this
-      // counts as "handling" the error
       return {
         protocol: 'https',
         action: '',
@@ -99,7 +99,7 @@ export class CoreLinkNormalizer {
 
   /**
    * Convert a CoreUniversalLink to metamask:// protocol
-   * @param link - The CoreUniversalLink to convert
+   * @param link - The CoreUniversalLinkv (object) to convert
    * @returns URL string with metamask:// protocol
    */
   static toMetaMaskProtocol(link: CoreUniversalLink): string {
@@ -110,12 +110,12 @@ export class CoreLinkNormalizer {
     const { action, params } = link;
     const queryParams = this.buildQueryString(params);
 
-    return `${PROTOCOLS.METAMASK}://${action}${queryParams ? '?' + queryParams : ''}`;
+    return `${METAMASK}://${action}${queryParams ? '?' + queryParams : ''}`;
   }
 
   /**
    * Check if a URL is a supported deep link
-   * @param url - The URL to check
+   * @param url - The URL (string) to check
    * @returns boolean indicating if the link is supported
    */
   static isSupportedDeeplink(url: string): boolean {
@@ -142,11 +142,11 @@ export class CoreLinkNormalizer {
     const queryString = params ? this.buildQueryString(params) : '';
 
     if (protocol === 'metamask') {
-      return `${PROTOCOLS.METAMASK}://${action}${queryString ? '?' + queryString : ''}`;
+      return `${METAMASK}://${action}${queryString ? '?' + queryString : ''}`;
     }
 
     const host = AppConstants.MM_IO_UNIVERSAL_LINK_HOST;
-    return `${PROTOCOLS.HTTPS}://${host}/${action}${queryString ? '?' + queryString : ''}`;
+    return `${HTTPS}://${host}/${action}${queryString ? '?' + queryString : ''}`;
   }
 
   /**
@@ -156,8 +156,8 @@ export class CoreLinkNormalizer {
   private static cleanUrl(url: string): string {
     // Remove dapp protocol prefix handling
     return url
-      .replace(`${PROTOCOLS.DAPP}/${PROTOCOLS.HTTPS}://`, `${PROTOCOLS.DAPP}/`)
-      .replace(`${PROTOCOLS.DAPP}/${PROTOCOLS.HTTP}://`, `${PROTOCOLS.DAPP}/`);
+      .replace(`${DAPP}/${HTTPS}://`, `${DAPP}/`)
+      .replace(`${DAPP}/${HTTP}://`, `${DAPP}/`);
   }
 
   private static extractProtocol(urlObj: URL): CoreUniversalLink['protocol'] {
@@ -169,10 +169,10 @@ export class CoreLinkNormalizer {
   }
 
   private static convertToHttpsIfNeeded(url: string, urlObj: URL): string {
-    if (urlObj.protocol === `${PROTOCOLS.METAMASK}:`) {
+    if (urlObj.protocol === `${METAMASK}:`) {
       return url.replace(
-        `${PROTOCOLS.METAMASK}://`,
-        `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/`,
+        `${METAMASK}://`,
+        `${HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/`,
       );
     }
     return url;
@@ -202,7 +202,7 @@ export class CoreLinkNormalizer {
       ...this.getActionSpecificParams(action, actionPath),
     };
 
-    params.hr = ['true', '1'].includes(params.hr as unknown as string);
+    params.hr = String(params.hr) === '1';
 
     // Clean up message parameter
     if (params.message) {
@@ -308,9 +308,12 @@ export class CoreLinkNormalizer {
         value !== undefined &&
         value !== ''
       ) {
-        // Special handling for boolean hr parameter
         if (key === 'hr' && typeof value === 'boolean') {
-          filteredParams[key] = value ? '1' : '0';
+          // Only include hr parameter if it's true
+          if (value) {
+            filteredParams[key] = '1';
+          }
+          // If false, omit from URL entirely (default is false anyway)
         } else {
           filteredParams[key] = String(value);
         }

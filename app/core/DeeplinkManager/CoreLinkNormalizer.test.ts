@@ -2,6 +2,8 @@ import { CoreLinkNormalizer } from './CoreLinkNormalizer';
 import { CoreUniversalLink } from './types/CoreUniversalLink';
 import AppConstants from '../AppConstants';
 
+const { MM_IO_UNIVERSAL_LINK_HOST } = AppConstants;
+
 describe('CoreLinkNormalizer', () => {
   const mockTimestamp = 1234567890;
 
@@ -27,19 +29,19 @@ describe('CoreLinkNormalizer', () => {
     });
 
     it('normalizes https:// universal links', () => {
-      const url = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/send`;
+      const url = `https://${MM_IO_UNIVERSAL_LINK_HOST}/send`;
       const source = 'browser';
 
       const result = CoreLinkNormalizer.normalize(url, source);
 
       expect(result.protocol).toBe('https');
       expect(result.action).toBe('send');
-      expect(result.host).toBe(AppConstants.MM_IO_UNIVERSAL_LINK_HOST);
+      expect(result.host).toBe(MM_IO_UNIVERSAL_LINK_HOST);
       expect(result.isValid).toBe(true);
     });
 
     it('normalizes universal links with paths and parameters', () => {
-      const url = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/dapp/app.uniswap.org?chain=1`;
+      const url = `https://${MM_IO_UNIVERSAL_LINK_HOST}/dapp/app.uniswap.org?chain=1`;
       const source = 'deep-link';
 
       const result = CoreLinkNormalizer.normalize(url, source);
@@ -75,7 +77,7 @@ describe('CoreLinkNormalizer', () => {
     });
 
     it('extracts ramp actions with paths', () => {
-      const url = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/buy-crypto?amount=100&currency=USD`;
+      const url = `https://${MM_IO_UNIVERSAL_LINK_HOST}/buy-crypto?amount=100&currency=USD`;
       const source = 'ramp';
 
       const result = CoreLinkNormalizer.normalize(url, source);
@@ -87,7 +89,7 @@ describe('CoreLinkNormalizer', () => {
     });
 
     it('extracts perps actions', () => {
-      const url = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/perps-asset/ETH-USD`;
+      const url = `https://${MM_IO_UNIVERSAL_LINK_HOST}/perps-asset/ETH-USD`;
       const source = 'perps';
 
       const result = CoreLinkNormalizer.normalize(url, source);
@@ -97,7 +99,7 @@ describe('CoreLinkNormalizer', () => {
     });
 
     it('defaults to home action', () => {
-      const url = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/`;
+      const url = `https://${MM_IO_UNIVERSAL_LINK_HOST}/`;
       const source = 'test';
 
       const result = CoreLinkNormalizer.normalize(url, source);
@@ -145,13 +147,13 @@ describe('CoreLinkNormalizer', () => {
     it('converts https links to metamask protocol', () => {
       const link: CoreUniversalLink = {
         protocol: 'https',
-        host: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+        host: MM_IO_UNIVERSAL_LINK_HOST,
         action: 'swap',
         params: { from: 'ETH', to: 'DAI' },
         source: 'test',
         timestamp: mockTimestamp,
-        originalUrl: `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/swap?from=ETH&to=DAI`,
-        normalizedUrl: `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/swap?from=ETH&to=DAI`,
+        originalUrl: `https://${MM_IO_UNIVERSAL_LINK_HOST}/swap?from=ETH&to=DAI`,
+        normalizedUrl: `https://${MM_IO_UNIVERSAL_LINK_HOST}/swap?from=ETH&to=DAI`,
         isValid: true,
         isSupportedAction: true,
         isPrivateLink: false,
