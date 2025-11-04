@@ -65,7 +65,10 @@ const FundActionMenu = () => {
       closeBottomSheetAndNavigate(config.navigationAction);
 
       // Special handling for buy action with custom onBuy
-      if (config.type === 'buy' && customOnBuy) {
+      if (
+        (config.type === 'buy' || config.type === 'buy-unified') &&
+        customOnBuy
+      ) {
         return; // Skip analytics for custom onBuy
       }
 
