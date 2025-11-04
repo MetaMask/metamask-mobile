@@ -33,8 +33,9 @@ const RUNTIME_VERSION = packageJson.version;
 /**
  * Expo Project ID
  * The unique identifier for the Expo project
+ * Loaded from environment variables
  */
-const PROJECT_ID = 'fddf3e54-a014-4ba7-a695-d116a9ef9620';
+const PROJECT_ID = process.env.EXPO_PROJECT_ID || '';
 
 /**
  * Expo Updates URL
