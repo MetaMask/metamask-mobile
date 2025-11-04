@@ -1029,6 +1029,9 @@ export class PredictController extends BaseController<
 
             // Optimistically update balance
             this.update((state) => {
+              if (!state.balances[providerId]) {
+                state.balances[providerId] = {};
+              }
               state.balances[providerId][signer.address] = {
                 balance: cachedBalance - realAmountUsd,
                 // valid for 5 seconds (since it takes some time to reflect balance on-chain)
@@ -1042,6 +1045,9 @@ export class PredictController extends BaseController<
 
             // Optimistically update balance
             this.update((state) => {
+              if (!state.balances[providerId]) {
+                state.balances[providerId] = {};
+              }
               state.balances[providerId][signer.address] = {
                 balance: cachedBalance + realAmountUsd,
                 // valid for 5 seconds (since it takes some time to reflect balance on-chain)
