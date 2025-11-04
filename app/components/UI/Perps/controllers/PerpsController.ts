@@ -904,12 +904,12 @@ export class PerpsController extends BaseController<
       validatedEquity !== undefined && validatedEquity !== this.hip3Enabled;
     const enabledMarketsChanged =
       validatedEnabledMarkets !== undefined &&
-      JSON.stringify(validatedEnabledMarkets.sort()) !==
-        JSON.stringify(this.hip3EnabledMarkets.sort());
+      JSON.stringify([...validatedEnabledMarkets].sort()) !==
+        JSON.stringify([...this.hip3EnabledMarkets].sort());
     const blockedMarketsChanged =
       validatedBlockedMarkets !== undefined &&
-      JSON.stringify(validatedBlockedMarkets.sort()) !==
-        JSON.stringify(this.hip3BlockedMarkets.sort());
+      JSON.stringify([...validatedBlockedMarkets].sort()) !==
+        JSON.stringify([...this.hip3BlockedMarkets].sort());
 
     if (equityChanged || enabledMarketsChanged || blockedMarketsChanged) {
       DevLogger.log(
