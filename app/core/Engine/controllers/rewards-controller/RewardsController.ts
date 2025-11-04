@@ -842,7 +842,7 @@ export class RewardsController extends BaseController<
         });
 
         // Check if the account has not opted in (result is false)
-        if (optInStatusResult.ois && optInStatusResult.ois[0] === false) {
+        if (optInStatusResult.ois?.[0] === false) {
           Logger.log(
             'RewardsController: Account has not opted in, skipping silent auth',
             internalAccount.address,
@@ -1010,15 +1010,15 @@ export class RewardsController extends BaseController<
 
     // Check if we have a cached discount and if threshold hasn't been reached
     if (
-      accountState &&
-      accountState.perpsFeeDiscount !== null &&
-      accountState.lastPerpsDiscountRateFetched !== null &&
+      accountState?.perpsFeeDiscount !== null &&
+      accountState?.lastPerpsDiscountRateFetched !== null &&
+      accountState?.lastPerpsDiscountRateFetched &&
       Date.now() - accountState.lastPerpsDiscountRateFetched <
         PERPS_DISCOUNT_CACHE_THRESHOLD_MS
     ) {
       return {
-        hasOptedIn: !!accountState.hasOptedIn,
-        discountBips: accountState.perpsFeeDiscount,
+        hasOptedIn: !!accountState?.hasOptedIn,
+        discountBips: accountState?.perpsFeeDiscount,
       };
     }
 
@@ -1033,14 +1033,15 @@ export class RewardsController extends BaseController<
       );
 
       // Make sure all account caip indexes are stored the same way
-      const coercedAccount =
-        account?.startsWith('eip155') && !account?.startsWith('eip155:0')
-          ? (`eip155:0:${account
-              .split(':')[2]
-              ?.toLowerCase()}` as CaipAccountId)
-          : account?.startsWith('eip155')
-            ? (account.toLowerCase() as CaipAccountId)
-            : (account as CaipAccountId);
+      let coercedAccount: CaipAccountId;
+      if (account?.startsWith('eip155') && !account?.startsWith('eip155:0')) {
+        coercedAccount =
+          `eip155:0:${account.split(':')[2]?.toLowerCase()}` as CaipAccountId;
+      } else if (account?.startsWith('eip155')) {
+        coercedAccount = account.toLowerCase() as CaipAccountId;
+      } else {
+        coercedAccount = account as CaipAccountId;
+      }
 
       this.update((state: RewardsControllerState) => {
         // Create account state if it doesn't exist
@@ -1610,12 +1611,12 @@ export class RewardsController extends BaseController<
         )) as DiscoverSeasonsDto;
 
         // Check if the requested season is either current or next
-        const seasonInfo =
-          type === 'current'
-            ? discoverSeasons.current
-            : type === 'next'
-              ? discoverSeasons.next
-              : null;
+        let seasonInfo = null;
+        if (type === 'current') {
+          seasonInfo = discoverSeasons.current;
+        } else if (type === 'next') {
+          seasonInfo = discoverSeasons.next;
+        }
 
         // If found with valid start date, fetch metadata and populate cache
         if (seasonInfo?.startDate) {
