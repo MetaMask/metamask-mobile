@@ -1,5 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
-import useRampsSmartRouting, { RampEligibilityAPIResponse } from './useRampsSmartRouting';
+import useRampsSmartRouting, {
+  RampEligibilityAPIResponse,
+} from './useRampsSmartRouting';
 import {
   FiatOrder,
   RampRoutingType,
