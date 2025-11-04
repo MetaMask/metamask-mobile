@@ -57,13 +57,13 @@ jobs:
 
       - name: Cache Xcode derived data
         uses: cirruslabs/cache@0ea6c28a9b52ff2a1a01354742d8fbe0c4599693
+        env:
+          XCODE_CACHE_VERSION: 1
         with:
           path: |
             ~/Library/Developer/Xcode/DerivedData
             ios/build
-          key: ${{ runner.os }}-xcode-${{ hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-xcode-
+          key: ${{ runner.os }}-xcode-${{ env.XCODE_CACHE_VERSION }}-${{ hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
 
       # Install Node.js, Xcode tools, and other iOS development dependencies
       - name: Installing iOS Environment Setup
