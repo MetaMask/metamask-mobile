@@ -22,30 +22,19 @@ type CodeOwnerRule = {
   owners: string[];
 }
 
-// Team emoji mappings for MetaMask Mobile
-const teamEmojis: TeamEmojis = {
-  '@MetaMask/design-system-engineers': '🎨',
-  '@MetaMask/mobile-platform': '📱',
-  '@MetaMask/ramp': '📈',
-  '@MetaMask/card': '💳',
-  '@MetaMask/confirmations': '✅',
-  '@MetaMask/metamask-earn': '💰',
-  '@MetaMask/wallet-integrations': '🔌',
-  '@MetaMask/accounts-engineers': '🔑',
-  '@MetaMask/mobile-core-ux': '🖥️',
-  '@MetaMask/swaps-engineers': '🔄',
-  '@MetaMask/notifications': '🔔',
-  '@MetaMask/supply-chain': '🔗',
-  '@MetaMask/portfolio': '📊',
-  '@MetaMask/core-platform': '🫰',
-  '@MetaMask/rewards': '🎁',
-  '@MetaMask/perps': '📉',
-  '@MetaMask/metamask-assets': '💎',
-  '@MetaMask/transactions': '💸',
-  '@MetaMask/web3auth': '🔐',
-  '@MetaMask/delegation': '🤝',
-  '@MetaMask/qa': '🧪',
-};
+type TopologyTeam = {
+  name: string;
+  githubHandle: string;
+  emoji: string;
+  [key: string]: any;
+}
+
+type Topology = {
+  [teamKey: string]: TopologyTeam;
+}
+
+// URL to the MetaMask team topology configuration
+const TOPOLOGY_URL = 'https://raw.githubusercontent.com/MetaMask/MetaMask-planning/main/topology.json';
 
 main().catch((error: Error): void => {
   console.error(error);
@@ -71,6 +60,9 @@ async function main(): Promise<void> {
     core.setFailed('Pull request number not found');
     process.exit(1);
   }
+
+  // Fetch team emoji mappings from topology
+  const teamEmojis = await fetchTeamEmojis();
 
   // Get detailed file change information
   const filesInfo: PullRequestFile[] = await retrievePullRequestFiles(octokit, owner, repo, prNumber);
@@ -99,6 +91,35 @@ async function main(): Promise<void> {
 
   // Check for an existing comment and update or create as needed
   await updateOrCreateComment(octokit, owner, repo, prNumber, commentBody);
+}
+
+async function fetchTeamEmojis(): Promise<TeamEmojis> {
+  try {
+    console.log(`Fetching team topology from ${TOPOLOGY_URL}`);
+    const response = await fetch(TOPOLOGY_URL);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch topology: ${response.status} ${response.statusText}`);
+    }
+
+    const topology: Topology = await response.json();
+    const teamEmojis: TeamEmojis = {};
+
+    // Build the emoji mapping from the topology
+    Object.values(topology).forEach((team: TopologyTeam) => {
+      if (team.githubHandle && team.emoji) {
+        teamEmojis[team.githubHandle] = team.emoji;
+      }
+    });
+
+    console.log(`Loaded ${Object.keys(teamEmojis).length} team emoji mappings`);
+    return teamEmojis;
+  } catch (error) {
+    console.error('Failed to fetch team topology:', error);
+    // Return a fallback empty object if fetching fails
+    // This allows the script to continue with default emojis
+    return {};
+  }
 }
 
 async function getCodeownersContent(
