@@ -168,9 +168,6 @@ export function usePerpsCloseAllCalculations({
   // Per-position fee and rewards calculation
   // This ensures accurate coin-specific rewards calculation
   useEffect(() => {
-    // Reset valid results flag when dependencies change (positions, account, or discount)
-    hasValidResultsRef.current = false;
-
     // Skip recalculation if we already have valid results
     // Prevents slow points API calls from retriggering on WebSocket position updates
     if (hasValidResultsRef.current) {
@@ -332,9 +329,12 @@ export function usePerpsCloseAllCalculations({
       console.error('Unhandled error in calculatePerPosition:', error);
       setHasCalculationError(true);
     });
-  }, [positions, selectedAddress, currentChainId, feeDiscountBips]);
-  // Note: priceData intentionally excluded from deps to prevent recalculation on every price update
-  // Calculations use the latest priceData reference but only re-run when positions/account/discount changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [positions, selectedAddress, currentChainId]);
+  // Note: priceData and feeDiscountBips intentionally excluded from deps to prevent recalculation on every update
+  // - priceData: Uses ref to get latest price without triggering re-renders
+  // - feeDiscountBips: Fetched separately, will be applied on next calculation trigger (positions/account change)
+  //   Including it in deps would cause recalculation on every WebSocket position update after discount arrives
 
   // Aggregate results from per-position calculations
   const aggregatedResults = useMemo(() => {
