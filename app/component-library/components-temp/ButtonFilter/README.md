@@ -4,17 +4,22 @@
 
 ## Props
 
-This component extends `PressableProps` from React Native, so all Pressable props are available.
+This component extends `ButtonBaseProps` from `@metamask/design-system-react-native`, so all ButtonBase props are available.
 
 ### Required
 
-- **`label`** (string): The label text to display in the button.
+- **`children`** (string | ReactNode): The content to display in the button.
+- **`onPress`** (function): Function to trigger when pressing the button.
 
 ### Optional
 
 - **`isActive`** (boolean): Whether the button is in an active state. Defaults to `false`.
-- **`labelProps`** (Partial\<TextProps\>): Optional additional props to pass to the Text component.
-- **`...PressableProps`**: All props from React Native's `Pressable` component (including `onPress`, `disabled`, `testID`, etc.)
+- **`size`** (ButtonSize): The size of the button. Defaults to `Md`.
+- **`isDisabled`** (boolean): Whether the button is disabled.
+- **`isLoading`** (boolean): Whether the button is in a loading state.
+- **`startIconName`** (IconName): Icon to display before the content.
+- **`endIconName`** (IconName): Icon to display after the content.
+- **`...ButtonBaseProps`**: All other props from ButtonBase (including `testID`, `accessibilityLabel`, etc.)
 
 ## Usage
 
@@ -26,10 +31,11 @@ const MyComponent = () => {
 
   return (
     <ButtonFilter
-      label="All"
       isActive={filter === 'all'}
       onPress={() => setFilter('all')}
-    />
+    >
+      All
+    </ButtonFilter>
   );
 };
 ```

@@ -4,60 +4,91 @@ import { render, fireEvent } from '@testing-library/react-native';
 import ButtonFilter from './ButtonFilter';
 
 describe('ButtonFilter', () => {
-  it('renders correctly ', () => {
-    const { toJSON, getByText } = render(
-      <ButtonFilter label="All" isActive onPress={jest.fn()} />,
-    );
+  const defaultProps = {
+    children: 'All',
+    onPress: jest.fn(),
+  };
 
-    expect(getByText('All')).toBeTruthy();
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('renders with children prop', () => {
+    const { getByRole } = render(<ButtonFilter {...defaultProps} />);
+
+    expect(getByRole('button')).toBeOnTheScreen();
+  });
+
+  it('renders correctly in active state', () => {
+    const { toJSON } = render(<ButtonFilter {...defaultProps} isActive />);
+
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('calls onPress handler when pressed', () => {
-    const mockOnPress = jest.fn();
-    const { getByText } = render(
-      <ButtonFilter label="All" isActive={false} onPress={mockOnPress} />,
+  it('renders correctly in inactive state', () => {
+    const { toJSON } = render(
+      <ButtonFilter {...defaultProps} isActive={false} />,
     );
 
-    const button = getByText('All');
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('calls onPress when pressed', () => {
+    const mockOnPress = jest.fn();
+    const { getByRole } = render(
+      <ButtonFilter {...defaultProps} onPress={mockOnPress} />,
+    );
+
+    const button = getByRole('button');
     fireEvent.press(button);
 
     expect(mockOnPress).toHaveBeenCalledTimes(1);
   });
 
-  it('applies custom label props when provided', () => {
-    const { getByText } = render(
+  it('verifies disabled state prevents interaction', () => {
+    const mockOnPress = jest.fn();
+    const { getByTestId } = render(
       <ButtonFilter
-        label="All"
-        isActive={false}
-        onPress={jest.fn()}
-        labelProps={{ testID: 'custom-label' }}
+        {...defaultProps}
+        testID="filter-button"
+        onPress={mockOnPress}
+        isDisabled
       />,
     );
 
-    const label = getByText('All');
+    const button = getByTestId('filter-button');
+    expect(button).toBeDisabled();
 
-    expect(label.props.testID).toBe('custom-label');
-  });
-
-  it('uses label as accessibility label when no custom accessibility label is provided', () => {
-    const { getByLabelText } = render(
-      <ButtonFilter label="All" isActive={false} onPress={jest.fn()} />,
-    );
-
-    expect(getByLabelText('All')).toBeTruthy();
+    fireEvent.press(button);
+    expect(mockOnPress).not.toHaveBeenCalled();
   });
 
   it('uses custom accessibility label when provided', () => {
-    const { getByLabelText } = render(
+    const { getByTestId } = render(
       <ButtonFilter
-        label="All"
-        isActive={false}
-        onPress={jest.fn()}
+        {...defaultProps}
+        testID="filter-button"
         accessibilityLabel="Filter by all"
       />,
     );
 
-    expect(getByLabelText('Filter by all')).toBeTruthy();
+    const button = getByTestId('filter-button');
+    expect(button).toHaveAccessibleName('Filter by all');
+  });
+
+  it('spreads additional props to ButtonBase', () => {
+    const customStyle = { marginTop: 20 };
+
+    const { getByTestId } = render(
+      <ButtonFilter
+        {...defaultProps}
+        testID="filter-button"
+        style={customStyle}
+      />,
+    );
+
+    const button = getByTestId('filter-button');
+    expect(button).toBeOnTheScreen();
+    expect(button).toHaveStyle(customStyle);
   });
 });

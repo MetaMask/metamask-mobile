@@ -12,12 +12,12 @@ const ButtonFilterMeta = {
     isActive: {
       control: 'boolean',
     },
-    label: {
+    children: {
       control: 'text',
     },
   },
   args: {
-    label: 'Filter',
+    children: 'Filter',
     onPress: () => {
       // For demo purposes only
     },
@@ -37,9 +37,11 @@ export const Active = {
 export const FilterGroup = {
   render: (args: ButtonFilterProps) => (
     <Box flexDirection={BoxFlexDirection.Row} gap={3}>
-      <ButtonFilter {...args} label="All" isActive />
-      <ButtonFilter {...args} label="Purchased" />
-      <ButtonFilter {...args} label="Sold" />
+      <ButtonFilter {...args} isActive>
+        All
+      </ButtonFilter>
+      <ButtonFilter {...args}>Purchased</ButtonFilter>
+      <ButtonFilter {...args}>Sold</ButtonFilter>
     </Box>
   ),
 };
