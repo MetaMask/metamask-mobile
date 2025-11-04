@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, fireEvent } from '@testing-library/react-native';
+import { screen, fireEvent, waitFor } from '@testing-library/react-native';
 import AccountSelector from './AccountSelector';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
@@ -116,7 +116,10 @@ jest.mock('react-redux', () => ({
         avatarAccountType: mockAvatarAccountType,
       },
     };
-    return (selector as (mockState: unknown) => unknown)(mockState);
+    if (typeof selector === 'function') {
+      return selector(mockState);
+    }
+    return undefined;
   },
 }));
 
@@ -183,6 +186,26 @@ jest.mock(
   }),
 );
 
+const mockSelectSelectedAccountGroup = jest.fn().mockReturnValue(null);
+const mockSelectSelectedAccountGroupInternalAccounts = jest
+  .fn()
+  .mockReturnValue([]);
+
+jest.mock(
+  '../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectSelectedAccountGroup: () => mockSelectSelectedAccountGroup(),
+    selectSelectedAccountGroupInternalAccounts: () =>
+      mockSelectSelectedAccountGroupInternalAccounts(),
+    selectAccountTreeControllerState: () => ({
+      accountTree: { wallets: {} },
+      selectedAccountGroupId: null,
+    }),
+    selectSelectedAccountGroupId: () => null,
+    selectAccountGroupWithInternalAccounts: () => [],
+  }),
+);
+
 const mockUseAccountsOperationsLoadingStates = jest.fn();
 jest.mock('../../../util/accounts/useAccountsOperationsLoadingStates', () => ({
   useAccountsOperationsLoadingStates: () =>
@@ -205,6 +228,7 @@ describe('AccountSelector', () => {
     // Reset multichain selectors to disabled state by default
     mockSelectMultichainAccountsState2Enabled.mockReturnValue(false);
     mockSelectMultichainAccountsState1Enabled.mockReturnValue(false);
+    mockSelectSelectedAccountGroup.mockReturnValue(null);
 
     // Reset useAccountsOperationsLoadingStates hook to default values
     mockUseAccountsOperationsLoadingStates.mockReturnValue({
@@ -273,7 +297,7 @@ describe('AccountSelector', () => {
     expect(queryByText(internalAccount2.metadata.name)).toBeDefined();
   });
 
-  it('should display add account button', () => {
+  it('displays add account button by default', () => {
     renderScreen(
       AccountSelectorWrapper,
       {
@@ -286,6 +310,54 @@ describe('AccountSelector', () => {
     );
 
     const addButton = screen.getByTestId(
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+    );
+    expect(addButton).toBeDefined();
+  });
+
+  it('displays add account button when showAddAccountButton is true', () => {
+    const routeWithShowButton = {
+      params: {
+        ...mockRoute.params,
+        showAddAccountButton: true,
+      },
+    };
+
+    renderScreen(
+      () => <AccountSelector route={routeWithShowButton} />,
+      {
+        name: Routes.SHEET.ACCOUNT_SELECTOR,
+      },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    const addButton = screen.getByTestId(
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+    );
+    expect(addButton).toBeDefined();
+  });
+
+  it('displays add account button even when showAddAccountButton is false', () => {
+    const routeWithoutShowButton = {
+      params: {
+        ...mockRoute.params,
+        showAddAccountButton: false,
+      },
+    };
+
+    renderScreen(
+      () => <AccountSelector route={routeWithoutShowButton} />,
+      {
+        name: Routes.SHEET.ACCOUNT_SELECTOR,
+      },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    const addButton = screen.queryByTestId(
       AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
     );
     expect(addButton).toBeDefined();
@@ -308,6 +380,74 @@ describe('AccountSelector', () => {
       AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
     );
     expect(accountsList).toBeDefined();
+  });
+
+  describe('showAddAccountButton prop', () => {
+    it('shows add account button when showAddAccountButton is true', async () => {
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
+      mockSelectSelectedAccountGroup.mockReturnValue({
+        id: '1',
+        accounts: ['0x1234'],
+        metadata: { name: 'Wallet 1' },
+      });
+
+      const routeWithShowButton = {
+        params: {
+          ...mockRoute.params,
+          showAddAccountButton: true,
+        },
+      };
+
+      renderScreen(
+        () => <AccountSelector route={routeWithShowButton} />,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await waitFor(() => {
+        const addButton = screen.queryByTestId(
+          AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+        );
+        expect(addButton).toBeOnTheScreen();
+      });
+    });
+
+    it('does not show add account button when showAddAccountButton is false', async () => {
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
+      mockSelectSelectedAccountGroup.mockReturnValue({
+        id: '1',
+        accounts: ['0x1234'],
+        metadata: { name: 'Wallet 1' },
+      });
+
+      const routeWithoutShowButton = {
+        params: {
+          ...mockRoute.params,
+          showAddAccountButton: false,
+        },
+      };
+
+      renderScreen(
+        () => <AccountSelector route={routeWithoutShowButton} />,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await waitFor(() => {
+        const addButton = screen.queryByTestId(
+          AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+        );
+        expect(addButton).not.toBeOnTheScreen();
+      });
+    });
   });
 
   describe('Multichain Accounts V2', () => {
