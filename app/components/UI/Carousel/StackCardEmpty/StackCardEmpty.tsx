@@ -12,7 +12,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { ANIMATION_TIMINGS } from '../animations/animationTimings';
 import { StackCardEmptyProps } from './StackCardEmpty.types';
 import { strings } from '../../../../../locales/i18n';
-// eslint-disable-next-line import/no-unresolved, @typescript-eslint/no-explicit-any
 import CarouselConfetti from '../../../../animations/Carousel_Confetti.riv';
 
 const BANNER_HEIGHT = 100;
