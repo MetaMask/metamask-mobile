@@ -1808,6 +1808,7 @@
       "title": "Unavailable in your region",
       "description": "Predictions aren't available in your region due to legal restrictions.",
       "link": "See Polymarket terms",
+      "webview_title": "Polymarket Terms",
       "button": "Got it"
     },
     "deposit": {

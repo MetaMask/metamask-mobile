@@ -1,24 +1,29 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react-native';
-import { Linking } from 'react-native';
 import PredictUnavailable, {
   PredictUnavailableRef,
 } from './PredictUnavailable';
 
+const mockNavigate = jest.fn();
+
 jest.mock('react-native', () => ({
   ...jest.requireActual('react-native'),
-  Linking: {
-    openURL: jest.fn(),
+  InteractionManager: {
+    runAfterInteractions: (callback: () => void) => {
+      callback();
+      return { cancel: jest.fn() };
+    },
   },
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const mockStrings: Record<string, string> = {
-      'predict.unavailable.title': 'Predict Unavailable',
+      'predict.unavailable.title': 'Unavailable in your region',
       'predict.unavailable.description':
-        'Predict is currently unavailable in your region. Please check the',
-      'predict.unavailable.link': 'Polymarket Terms of Service',
+        "Predictions aren't available in your region due to legal restrictions.",
+      'predict.unavailable.link': 'See Polymarket terms',
+      'predict.unavailable.webview_title': 'Polymarket Terms',
       'predict.unavailable.button': 'Got it',
     };
     return mockStrings[key] || key;
@@ -77,7 +82,7 @@ jest.mock('react-native-safe-area-context', () => ({
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
-    navigate: jest.fn(),
+    navigate: mockNavigate,
     goBack: jest.fn(),
     canGoBack: jest.fn(() => true),
   }),
@@ -185,7 +190,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 describe('PredictUnavailable', () => {
   const mockOnDismiss = jest.fn();
-  const mockLinking = Linking as jest.Mocked<typeof Linking>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -211,7 +215,7 @@ describe('PredictUnavailable', () => {
       act(() => {
         ref.current?.onOpenBottomSheet();
       });
-      expect(screen.getByText('Predict Unavailable')).toBeOnTheScreen();
+      expect(screen.getByText('Unavailable in your region')).toBeOnTheScreen();
       expect(screen.getByTestId('bottom-sheet-header')).toBeOnTheScreen();
     });
 
@@ -222,8 +226,8 @@ describe('PredictUnavailable', () => {
       act(() => {
         ref.current?.onOpenBottomSheet();
       });
-      expect(screen.getByText('Predict Unavailable')).toBeOnTheScreen();
-      expect(screen.getByText('Polymarket Terms of Service')).toBeOnTheScreen();
+      expect(screen.getByText('Unavailable in your region')).toBeOnTheScreen();
+      expect(screen.getByText('See Polymarket terms')).toBeOnTheScreen();
       expect(screen.getByText('Got it')).toBeOnTheScreen();
     });
 
@@ -274,7 +278,7 @@ describe('PredictUnavailable', () => {
       expect(mockOnDismiss).toHaveBeenCalled();
     });
 
-    it('opens Polymarket terms when link is pressed', () => {
+    it('renders terms link with correct testID', () => {
       // Arrange
       const ref = React.createRef<PredictUnavailableRef>();
 
@@ -284,13 +288,9 @@ describe('PredictUnavailable', () => {
         ref.current?.onOpenBottomSheet();
       });
 
-      const termsLink = screen.getByText('Polymarket Terms of Service');
-      fireEvent.press(termsLink);
-
       // Assert
-      expect(mockLinking.openURL).toHaveBeenCalledWith(
-        'https://polymarket.com/tos',
-      );
+      const termsLink = screen.getByTestId('polymarket-terms-link');
+      expect(termsLink).toBeOnTheScreen();
     });
   });
 
@@ -302,7 +302,7 @@ describe('PredictUnavailable', () => {
       act(() => {
         ref.current?.onOpenBottomSheet();
       });
-      expect(screen.getByText('Predict Unavailable')).toBeOnTheScreen();
+      expect(screen.getByText('Unavailable in your region')).toBeOnTheScreen();
     });
 
     it('closes bottom sheet when onCloseBottomSheet is called', () => {
@@ -312,7 +312,7 @@ describe('PredictUnavailable', () => {
       act(() => {
         ref.current?.onOpenBottomSheet();
       });
-      expect(screen.getByText('Predict Unavailable')).toBeOnTheScreen();
+      expect(screen.getByText('Unavailable in your region')).toBeOnTheScreen();
 
       act(() => {
         ref.current?.onCloseBottomSheet();
@@ -328,7 +328,7 @@ describe('PredictUnavailable', () => {
         ref.current?.onOpenBottomSheet();
         ref.current?.onOpenBottomSheet();
       });
-      expect(screen.getByText('Predict Unavailable')).toBeOnTheScreen();
+      expect(screen.getByText('Unavailable in your region')).toBeOnTheScreen();
     });
   });
 
@@ -340,7 +340,7 @@ describe('PredictUnavailable', () => {
       act(() => {
         ref.current?.onOpenBottomSheet();
       });
-      expect(screen.getByText('Predict Unavailable')).toBeOnTheScreen();
+      expect(screen.getByText('Unavailable in your region')).toBeOnTheScreen();
     });
 
     it('handles undefined onDismiss gracefully', () => {
@@ -365,7 +365,7 @@ describe('PredictUnavailable', () => {
       act(() => {
         ref.current?.onOpenBottomSheet();
       });
-      expect(screen.getByText('Predict Unavailable')).toBeOnTheScreen();
+      expect(screen.getByText('Unavailable in your region')).toBeOnTheScreen();
     });
 
     it('handles bottom sheet close callback', () => {
@@ -382,21 +382,34 @@ describe('PredictUnavailable', () => {
     });
   });
 
-  describe('External Link Handling', () => {
-    it('opens external URL when terms link is pressed', () => {
+  describe('Terms Link', () => {
+    it('renders terms link as touchable', () => {
+      // Arrange
       const ref = React.createRef<PredictUnavailableRef>();
 
+      // Act
       render(<PredictUnavailable ref={ref} onDismiss={mockOnDismiss} />);
       act(() => {
         ref.current?.onOpenBottomSheet();
       });
 
-      const termsLink = screen.getByText('Polymarket Terms of Service');
-      fireEvent.press(termsLink);
+      // Assert
+      const termsLink = screen.getByTestId('polymarket-terms-link');
+      expect(termsLink).toBeOnTheScreen();
+    });
 
-      expect(mockLinking.openURL).toHaveBeenCalledWith(
-        'https://polymarket.com/tos',
-      );
+    it('displays terms text with correct styling', () => {
+      // Arrange
+      const ref = React.createRef<PredictUnavailableRef>();
+
+      // Act
+      render(<PredictUnavailable ref={ref} onDismiss={mockOnDismiss} />);
+      act(() => {
+        ref.current?.onOpenBottomSheet();
+      });
+
+      // Assert
+      expect(screen.getByText('See Polymarket terms')).toBeOnTheScreen();
     });
   });
 
@@ -410,7 +423,7 @@ describe('PredictUnavailable', () => {
       });
       expect(screen.getByTestId('header-close-button')).toBeOnTheScreen();
       expect(screen.getByTestId('footer-button-0')).toBeOnTheScreen();
-      expect(screen.getByText('Polymarket Terms of Service')).toBeOnTheScreen();
+      expect(screen.getByText('See Polymarket terms')).toBeOnTheScreen();
     });
   });
 });
