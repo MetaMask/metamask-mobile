@@ -279,7 +279,7 @@ describe('verifySignature', () => {
 
         expect(result).toBe(VALID);
         const verifyCall = mockSubtle.verify.mock.calls[0];
-        const dataBuffer = verifyCall[3] as Uint8Array;
+        const dataBuffer = verifyCall[3] as Uint8Array; // data is 4th param ([3])
         const canonicalUrl = new TextDecoder().decode(dataBuffer);
 
         // Should include param1, param2, and sig_params itself, but NOT param3
@@ -293,7 +293,7 @@ describe('verifySignature', () => {
           'base64',
         );
         const url = new URL(
-          `https://example.com?channel=mobile&sig_params=channel&sig=${validSignature}`,
+          `https://example.com?channel=someValue&sig_params=channel&sig=${validSignature}`,
         );
 
         mockSubtle.verify.mockResolvedValue(true);
@@ -302,16 +302,16 @@ describe('verifySignature', () => {
 
         expect(result).toBe(VALID);
         const verifyCall = mockSubtle.verify.mock.calls[0];
-        const dataBuffer = verifyCall[3] as Uint8Array;
+        const dataBuffer = verifyCall[3] as Uint8Array; // 4th param ([3]) is data
         const canonicalUrl = new TextDecoder().decode(dataBuffer);
 
         // Should include both channel AND sig_params
         expect(canonicalUrl).toBe(
-          'https://example.com/?channel=mobile&sig_params=channel',
+          'https://example.com/?channel=someValue&sig_params=channel',
         );
       });
 
-      it('handles empty sig_params correctly', async () => {
+      it('handles empty sig_params correctly (legacy behavior)', async () => {
         const validSignature = Buffer.from(new Array(64).fill(0)).toString(
           'base64',
         );
@@ -464,7 +464,7 @@ describe('verifySignature', () => {
         const dataBuffer = verifyCall[3] as Uint8Array;
         const canonicalUrl = new TextDecoder().decode(dataBuffer);
 
-        // filter(Boolean) should remove empty string from trailing comma
+        // empty string from trailing comma should be removed
         expect(canonicalUrl).toBe(
           'https://example.com/?param1=value1&param2=value2&sig_params=param1%2Cparam2%2C',
         );
