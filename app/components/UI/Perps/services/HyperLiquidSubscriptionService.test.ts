@@ -248,6 +248,7 @@ describe('HyperLiquidSubscriptionService', () => {
     service = new HyperLiquidSubscriptionService(
       mockClientService,
       mockWalletService,
+      true, // equityEnabled - test expects webData3
     );
   });
 

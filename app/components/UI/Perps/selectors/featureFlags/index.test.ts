@@ -640,7 +640,7 @@ describe('Perps Feature Flag Selectors', () => {
         },
       };
       const result = selectPerpsEnabledMarkets(stateWithEmptyRemoteFlag);
-      expect(result).toEqual(['BTC']); // Falls back to local
+      expect(result).toEqual([]); // Remote empty string returns [] (discovery mode)
     });
 
     it('falls back to local flag when remote flag is invalid type', () => {
@@ -756,7 +756,7 @@ describe('Perps Feature Flag Selectors', () => {
         },
       };
       const result = selectPerpsBlockedMarkets(stateWithEmptyRemoteFlag);
-      expect(result).toEqual(['BTC']); // Falls back to local
+      expect(result).toEqual([]); // Remote empty string returns [] (no blocking)
     });
 
     it('falls back to local flag when remote flag is invalid type', () => {
