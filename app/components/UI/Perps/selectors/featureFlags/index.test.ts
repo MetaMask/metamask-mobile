@@ -2,7 +2,6 @@ import {
   selectPerpsEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
   selectPerpsEquityEnabledFlag,
-  selectPerpsEnabledDexs,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import {
@@ -464,7 +463,7 @@ describe('Perps Feature Flag Selectors', () => {
 
   describe('selectPerpsEquityEnabledFlag', () => {
     it('returns false by default when local flag is not set', () => {
-      process.env.MM_PERPS_EQUITY_ENABLED = undefined;
+      process.env.MM_PERPS_HIP3_ENABLED = undefined;
       const stateWithEmptyFlags = {
         engine: {
           backgroundState: {
@@ -480,7 +479,7 @@ describe('Perps Feature Flag Selectors', () => {
     });
 
     it('returns true when local flag is true and remote flag not present', () => {
-      process.env.MM_PERPS_EQUITY_ENABLED = 'true';
+      process.env.MM_PERPS_HIP3_ENABLED = 'true';
       const stateWithEmptyFlags = {
         engine: {
           backgroundState: {
@@ -496,7 +495,7 @@ describe('Perps Feature Flag Selectors', () => {
     });
 
     it('returns true when remote flag is valid and enabled', () => {
-      process.env.MM_PERPS_EQUITY_ENABLED = 'false';
+      process.env.MM_PERPS_HIP3_ENABLED = 'false';
       const stateWithRemoteFlag = {
         engine: {
           backgroundState: {
@@ -517,7 +516,7 @@ describe('Perps Feature Flag Selectors', () => {
     });
 
     it('returns false when remote flag is valid but disabled', () => {
-      process.env.MM_PERPS_EQUITY_ENABLED = 'true';
+      process.env.MM_PERPS_HIP3_ENABLED = 'true';
       const stateWithRemoteFlag = {
         engine: {
           backgroundState: {
@@ -538,7 +537,7 @@ describe('Perps Feature Flag Selectors', () => {
     });
 
     it('falls back to local flag when remote flag is invalid', () => {
-      process.env.MM_PERPS_EQUITY_ENABLED = 'true';
+      process.env.MM_PERPS_HIP3_ENABLED = 'true';
       const stateWithInvalidFlag = {
         engine: {
           backgroundState: {
@@ -556,146 +555,6 @@ describe('Perps Feature Flag Selectors', () => {
       };
       const result = selectPerpsEquityEnabledFlag(stateWithInvalidFlag);
       expect(result).toBe(true);
-    });
-  });
-
-  describe('selectPerpsEnabledDexs', () => {
-    it('returns empty array by default when local flag is not set', () => {
-      process.env.MM_PERPS_ENABLED_DEXS = undefined;
-      const stateWithEmptyFlags = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {},
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-      const result = selectPerpsEnabledDexs(stateWithEmptyFlags);
-      expect(result).toEqual([]);
-    });
-
-    it('parses local flag as comma-separated list', () => {
-      process.env.MM_PERPS_ENABLED_DEXS = 'xyz,test-dex, another ';
-      const stateWithEmptyFlags = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {},
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-      const result = selectPerpsEnabledDexs(stateWithEmptyFlags);
-      expect(result).toEqual(['xyz', 'test-dex', 'another']);
-    });
-
-    it('returns empty array when local flag is empty string', () => {
-      process.env.MM_PERPS_ENABLED_DEXS = '';
-      const stateWithEmptyFlags = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {},
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-      const result = selectPerpsEnabledDexs(stateWithEmptyFlags);
-      expect(result).toEqual([]);
-    });
-
-    it('returns remote flag when valid array of strings', () => {
-      process.env.MM_PERPS_ENABLED_DEXS = 'local1,local2';
-      const stateWithRemoteFlag = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                perpsEnabledDexs: ['remote1', 'remote2'],
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-      const result = selectPerpsEnabledDexs(stateWithRemoteFlag);
-      expect(result).toEqual(['remote1', 'remote2']);
-    });
-
-    it('returns empty array when remote flag is empty array', () => {
-      process.env.MM_PERPS_ENABLED_DEXS = 'local1,local2';
-      const stateWithRemoteFlag = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                perpsEnabledDexs: [],
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-      const result = selectPerpsEnabledDexs(stateWithRemoteFlag);
-      expect(result).toEqual([]);
-    });
-
-    it('falls back to local flag when remote flag is not an array', () => {
-      process.env.MM_PERPS_ENABLED_DEXS = 'local1,local2';
-      const stateWithInvalidFlag = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                perpsEnabledDexs: 'not-an-array',
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-      const result = selectPerpsEnabledDexs(stateWithInvalidFlag);
-      expect(result).toEqual(['local1', 'local2']);
-    });
-
-    it('falls back to local flag when remote flag contains non-string values', () => {
-      process.env.MM_PERPS_ENABLED_DEXS = 'local1';
-      const stateWithInvalidFlag = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                perpsEnabledDexs: ['valid', 123, null],
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-      const result = selectPerpsEnabledDexs(stateWithInvalidFlag);
-      expect(result).toEqual(['local1']);
-    });
-
-    it('falls back to local flag when remote flag contains empty strings', () => {
-      process.env.MM_PERPS_ENABLED_DEXS = 'local1';
-      const stateWithInvalidFlag = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                perpsEnabledDexs: ['valid', '', 'another'],
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-      const result = selectPerpsEnabledDexs(stateWithInvalidFlag);
-      expect(result).toEqual(['local1']);
     });
   });
 });

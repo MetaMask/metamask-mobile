@@ -154,12 +154,23 @@ export class HyperLiquidProvider implements IPerpsProvider {
     { value: number; timestamp: number }
   >();
 
+  // Cache for market data (meta() API responses) to reduce redundant calls
+  private marketCache = new Map<
+    string, // DEX name (empty string for main DEX)
+    { data: MarketInfo[]; timestamp: number }
+  >();
+  private readonly MARKET_CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes
+
+  // Cache for compiled market filter patterns (for performance)
+  private patternCache = new Map<string, RegExp | string>();
+
   // Fee discount context for MetaMask reward discounts (in basis points)
   private userFeeDiscountBips?: number;
 
-  // Feature flag configuration for HIP-3 DEX support
+  // Feature flag configuration for HIP-3 market filtering
   private equityEnabled: boolean;
-  private enabledDexs: string[];
+  private enabledMarkets: string[];
+  private blockedMarkets: string[];
   private useDexAbstraction: boolean;
 
   // Cache for validated DEXs to avoid redundant perpDexs() API calls
@@ -184,15 +195,17 @@ export class HyperLiquidProvider implements IPerpsProvider {
     options: {
       isTestnet?: boolean;
       equityEnabled?: boolean;
-      enabledDexs?: string[];
+      enabledMarkets?: string[];
+      blockedMarkets?: string[];
       useDexAbstraction?: boolean;
     } = {},
   ) {
     const isTestnet = options.isTestnet || false;
 
-    // Dev-friendly defaults: Enable all DEXs by default for easier testing
+    // Dev-friendly defaults: Enable all markets by default for easier testing (discovery mode)
     this.equityEnabled = options.equityEnabled ?? __DEV__;
-    this.enabledDexs = options.enabledDexs ?? [];
+    this.enabledMarkets = options.enabledMarkets ?? [];
+    this.blockedMarkets = options.blockedMarkets ?? [];
 
     // Attempt native balance abstraction, fallback to programmatic transfer if unsupported
     this.useDexAbstraction = options.useDexAbstraction ?? true;
@@ -204,17 +217,23 @@ export class HyperLiquidProvider implements IPerpsProvider {
       this.clientService,
       this.walletService,
       this.equityEnabled,
-      this.enabledDexs,
+      [], // enabledDexs - will be populated after DEX discovery in buildAssetMapping
+      this.enabledMarkets,
+      this.blockedMarkets,
     );
 
     // NOTE: Clients are NOT initialized here - they'll be initialized lazily
     // when first needed. This avoids accessing Engine.context before it's ready.
 
-    // Debug: Confirm batch methods exist
+    // Debug: Confirm batch methods exist and show HIP-3 config
     DevLogger.log('[HyperLiquidProvider] Constructor complete', {
       hasBatchCancel: typeof this.cancelOrders === 'function',
       hasBatchClose: typeof this.closePositions === 'function',
       protocolId: this.protocolId,
+      equityEnabled: this.equityEnabled,
+      enabledMarkets: this.enabledMarkets,
+      blockedMarkets: this.blockedMarkets,
+      isTestnet,
     });
   }
 
@@ -309,7 +328,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
     if (this.coinToAssetId.size === 0) {
       DevLogger.log('HyperLiquidProvider: Building asset mapping', {
         equityEnabled: this.equityEnabled,
-        enabledDexs: this.enabledDexs,
+        enabledMarkets: this.enabledMarkets,
+        blockedMarkets: this.blockedMarkets,
       });
       await this.buildAssetMapping();
     }
@@ -319,7 +339,52 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Get validated list of DEXs to use based on feature flags
+   * Get all available DEXs without whitelist filtering
+   * Used when skipWhitelist=true in getMarkets()
+   * @returns Array of all DEX names (null for main DEX, strings for HIP-3 DEXs)
+   */
+  private async getAllAvailableDexs(): Promise<(string | null)[]> {
+    // If already cached by getValidatedDexs, use that
+    if (
+      this.cachedAllPerpDexs !== null &&
+      Array.isArray(this.cachedAllPerpDexs)
+    ) {
+      const availableHip3Dexs: string[] = [];
+      this.cachedAllPerpDexs.forEach((dex) => {
+        if (dex !== null) {
+          availableHip3Dexs.push(dex.name);
+        }
+      });
+      return [null, ...availableHip3Dexs];
+    }
+
+    // Fetch fresh from API
+    const infoClient = this.clientService.getInfoClient();
+    try {
+      const allDexs = await infoClient.perpDexs();
+      if (!allDexs || !Array.isArray(allDexs)) {
+        return [null]; // Fallback to main DEX only
+      }
+
+      this.cachedAllPerpDexs = allDexs;
+      const availableHip3Dexs: string[] = [];
+      allDexs.forEach((dex) => {
+        if (dex !== null) {
+          availableHip3Dexs.push(dex.name);
+        }
+      });
+      return [null, ...availableHip3Dexs];
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getAllAvailableDexs'),
+      );
+      return [null]; // Fallback to main DEX only
+    }
+  }
+
+  /**
+   * Get validated list of DEXs to use based on feature flags and whitelist
    * Implements Step 3b from HIP-3-IMPLEMENTATION.md (lines 108-134)
    *
    * Logic Flow:
@@ -385,43 +450,222 @@ export class HyperLiquidProvider implements IPerpsProvider {
       }
     });
 
-    DevLogger.log('HyperLiquidProvider: Available HIP-3 DEXs', {
-      count: availableHip3Dexs.length,
-      dexNames: availableHip3Dexs,
-    });
+    DevLogger.log(
+      'HyperLiquidProvider: Available DEXs (market filtering applied at data layer)',
+      {
+        count: availableHip3Dexs.length,
+        dexNames: availableHip3Dexs,
+      },
+    );
 
-    // Auto-discovery mode: Show all available DEXs
-    if (this.enabledDexs.length === 0) {
-      DevLogger.log(
-        'HyperLiquidProvider: Auto-discovery mode - all DEXs enabled',
-        {
-          mainDex: true,
-          hip3Dexs: availableHip3Dexs,
-          totalDexCount: availableHip3Dexs.length + 1,
-        },
-      );
-      this.cachedValidatedDexs = [null, ...availableHip3Dexs];
-      return this.cachedValidatedDexs;
+    // Return all DEXs - market filtering is applied at subscription data layer
+    // webData3 automatically connects to ALL DEXs
+    DevLogger.log(
+      'HyperLiquidProvider: All DEXs enabled (market filtering at data layer)',
+      {
+        mainDex: true,
+        hip3Dexs: availableHip3Dexs,
+        totalDexCount: availableHip3Dexs.length + 1,
+      },
+    );
+    this.cachedValidatedDexs = [null, ...availableHip3Dexs];
+    return this.cachedValidatedDexs;
+  }
+
+  /**
+   * Clear market cache (called when feature flags change)
+   */
+  private clearMarketCache(): void {
+    this.marketCache.clear();
+    DevLogger.log('HyperLiquidProvider: Market cache cleared');
+  }
+
+  /**
+   * Escape special regex characters
+   * @param str - String to escape
+   * @returns Escaped string safe for regex
+   */
+  private escapeRegex(str: string): string {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  /**
+   * Compile pattern into optimized matcher (cached)
+   * @param pattern - e.g., "xyz:*", "BTC", "xyz"
+   * @returns Compiled matcher for fast checking
+   */
+  private compilePattern(pattern: string): RegExp | string {
+    // Check cache first
+    const cached = this.patternCache.get(pattern);
+    if (cached !== undefined) {
+      return cached;
     }
 
-    // Whitelist mode: Filter to only specified DEXs
-    const validatedDexs = this.enabledDexs.filter((dex) => {
-      const isValid = availableHip3Dexs.includes(dex);
-      if (!isValid) {
-        DevLogger.log(
-          `HyperLiquidProvider: Invalid DEX name '${dex}' in whitelist - skipping`,
-        );
+    let matcher: RegExp | string;
+
+    if (pattern.endsWith(':*')) {
+      // Wildcard: "xyz:*" → regex /^xyz:/
+      const prefix = pattern.slice(0, -2);
+      matcher = new RegExp(`^${this.escapeRegex(prefix)}:`);
+    } else if (!pattern.includes(':')) {
+      // DEX shorthand: "xyz" → regex /^xyz:/
+      matcher = new RegExp(`^${this.escapeRegex(pattern)}:`);
+    } else {
+      // Exact match: just use string
+      matcher = pattern;
+    }
+
+    this.patternCache.set(pattern, matcher);
+    return matcher;
+  }
+
+  /**
+   * Fast pattern matching using pre-compiled matchers
+   * @param symbol - Market symbol (e.g., "BTC", "xyz:XYZ100")
+   * @param pattern - Pattern to match (e.g., "xyz:*", "BTC", "xyz")
+   * @returns true if matches
+   */
+  private matchesPattern(symbol: string, pattern: string): boolean {
+    const matcher = this.compilePattern(pattern);
+
+    if (typeof matcher === 'string') {
+      // Exact match - fastest
+      return symbol === matcher;
+    }
+
+    // RegExp match - still very fast
+    return matcher.test(symbol);
+  }
+
+  /**
+   * Check if HIP-3 market should be included based on whitelist + blacklist
+   * Main DEX markets are ALWAYS included (no filtering)
+   *
+   * Logic: Start with all → apply whitelist (if non-empty) → apply blacklist
+   * @param symbol - Market symbol (e.g., "BTC", "xyz:XYZ100")
+   * @param dex - DEX name (null for main DEX, "xyz" for HIP-3 DEX)
+   * @returns true if market should be shown
+   */
+  private shouldIncludeMarket(symbol: string, dex: string | null): boolean {
+    // ALWAYS include main DEX markets (no filtering)
+    if (dex === null) {
+      return true;
+    }
+
+    // Apply filtering only to HIP-3 DEX markets
+    const enabledMarkets = this.enabledMarkets;
+    const blockedMarkets = this.blockedMarkets;
+
+    // Step 1: Apply whitelist only if non-empty
+    if (enabledMarkets.length > 0) {
+      const whitelisted = enabledMarkets.some((pattern) =>
+        this.matchesPattern(symbol, pattern),
+      );
+      if (!whitelisted) {
+        return false;
       }
-      return isValid;
+    }
+
+    // Step 2: Apply blacklist ONLY if non-empty (early return optimization)
+    if (blockedMarkets.length === 0) {
+      return true; // No blacklist to check - accept immediately
+    }
+
+    // Only reach here if blacklist has values
+    const blacklisted = blockedMarkets.some((pattern) =>
+      this.matchesPattern(symbol, pattern),
+    );
+
+    return !blacklisted;
+  }
+
+  /**
+   * Check if cached market data is still valid (not expired)
+   * @param dex - DEX name (empty string for main DEX)
+   * @returns true if cache exists and is not expired
+   */
+  private isCachedMarketDataValid(dex: string): boolean {
+    const cached = this.marketCache.get(dex);
+    if (!cached) {
+      return false;
+    }
+
+    const age = Date.now() - cached.timestamp;
+    const isValid = age < this.MARKET_CACHE_TTL_MS;
+
+    if (!isValid) {
+      DevLogger.log('HyperLiquidProvider: Market cache expired', {
+        dex: dex || 'main',
+        ageMs: age,
+        ttlMs: this.MARKET_CACHE_TTL_MS,
+      });
+    }
+
+    return isValid;
+  }
+
+  /**
+   * Fetch markets for a specific DEX with caching
+   * @param dex - DEX name (null for main DEX)
+   * @param skipFilters - If true, skip market filtering (default: false)
+   * @returns Array of market info
+   */
+  private async fetchMarketsForDex(
+    dex: string | null,
+    skipFilters = false,
+  ): Promise<MarketInfo[]> {
+    // Cache key includes skipFilters flag to separate filtered/unfiltered data
+    const cacheKey = `${dex ?? ''}_${skipFilters ? 'raw' : 'filtered'}`;
+
+    // Check cache first
+    if (this.isCachedMarketDataValid(cacheKey)) {
+      const cached = this.marketCache.get(cacheKey);
+      if (cached) {
+        DevLogger.log('HyperLiquidProvider: Using cached market data', {
+          dex: dex || 'main',
+          marketCount: cached.data.length,
+        });
+        return cached.data;
+      }
+    }
+
+    // Fetch from API
+    const infoClient = this.clientService.getInfoClient();
+    const dexParam = dex ?? '';
+    const meta = await infoClient.meta(
+      dexParam ? { dex: dexParam } : undefined,
+    );
+
+    if (!meta.universe || !Array.isArray(meta.universe)) {
+      DevLogger.log(
+        `HyperLiquidProvider: Invalid universe data for DEX ${dex || 'main'}`,
+      );
+      return [];
+    }
+
+    const markets = meta.universe.map((asset) => adaptMarketFromSDK(asset));
+
+    // Apply market filtering for HIP-3 DEXs only (main DEX or skipFilters returns all markets)
+    const filteredMarkets =
+      skipFilters || dex === null
+        ? markets // Skip filtering if requested or for main DEX
+        : markets.filter((market) =>
+            this.shouldIncludeMarket(market.name, dex),
+          );
+
+    // Store filtered markets in cache
+    this.marketCache.set(cacheKey, {
+      data: filteredMarkets,
+      timestamp: Date.now(),
     });
 
-    DevLogger.log('HyperLiquidProvider: Whitelist mode', {
-      requested: this.enabledDexs,
-      validated: validatedDexs,
+    DevLogger.log('HyperLiquidProvider: Cached market data', {
+      dex: dex || 'main',
+      marketCount: filteredMarkets.length,
+      ttlMs: this.MARKET_CACHE_TTL_MS,
     });
 
-    this.cachedValidatedDexs = [null, ...validatedDexs];
-    return this.cachedValidatedDexs;
+    return filteredMarkets;
   }
 
   /**
@@ -480,18 +724,24 @@ export class HyperLiquidProvider implements IPerpsProvider {
       dexs: dexsToMap,
       previousMapSize: this.coinToAssetId.size,
       equityEnabled: this.equityEnabled,
-      enabledDexs: this.enabledDexs,
+      enabledMarkets: this.enabledMarkets,
+      blockedMarkets: this.blockedMarkets,
       timestamp: new Date().toISOString(),
     });
 
-    // Notify subscription service of discovered HIP-3 DEXs for position subscriptions
-    const hip3Dexs = dexsToMap.filter((d): d is string => d !== null);
-    if (hip3Dexs.length > 0) {
-      await this.subscriptionService.updateFeatureFlags(
-        this.equityEnabled,
-        hip3Dexs,
-      );
-    }
+    // Update subscription service with current feature flags
+    // Extract HIP-3 DEX names (filter out null which represents main DEX)
+    const enabledDexs = dexsToMap.filter((dex): dex is string => dex !== null);
+
+    await this.subscriptionService.updateFeatureFlags(
+      this.equityEnabled,
+      enabledDexs,
+      this.enabledMarkets,
+      this.blockedMarkets,
+    );
+
+    // Clear market cache when rebuilding asset mapping (feature flags changed)
+    this.clearMarketCache();
 
     // Fetch metadata for each DEX in parallel
     const allMetas = await Promise.allSettled(
@@ -856,7 +1106,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
     }
 
     // Try other HIP-3 DEXs
-    for (const dex of this.enabledDexs) {
+    // Get all available DEXs from cache (includes all HIP-3 DEXs since we no longer filter)
+    const availableDexs =
+      this.cachedValidatedDexs?.filter((d): d is string => d !== null) ?? [];
+    for (const dex of availableDexs) {
       if (dex === targetDex) continue;
 
       try {
@@ -1329,7 +1582,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
         hip3AssetsCount: hip3Keys.length,
         hip3AssetsSample: hip3Keys.slice(0, 10),
         equityEnabled: this.equityEnabled,
-        enabledDexs: this.enabledDexs,
+        enabledMarkets: this.enabledMarkets,
+        blockedMarkets: this.blockedMarkets,
       });
 
       // Ensure builder fee approval and referral code are set before placing any order
@@ -3237,7 +3491,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]> {
     try {
       await this.ensureReady();
-      const infoClient = this.clientService.getInfoClient();
 
       // Path 1: Symbol filtering - group by DEX and fetch in parallel
       if (params?.symbols && params.symbols.length > 0) {
@@ -3260,17 +3513,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
           }
         });
 
-        // Query each unique DEX in parallel
+        // Query each unique DEX in parallel (with caching)
         const marketArrays = await Promise.all(
-          Array.from(symbolsByDex.keys()).map(async (dex) => {
-            const dexParam = dex ?? ''; // Empty string for main DEX
-            const meta = await infoClient.meta(
-              dexParam ? { dex: dexParam } : undefined,
-            );
-            return (
-              meta.universe?.map((asset) => adaptMarketFromSDK(asset)) || []
-            );
-          }),
+          Array.from(symbolsByDex.keys()).map(async (dex) =>
+            this.fetchMarketsForDex(dex, params?.skipFilters),
+          ),
         );
 
         // Combine and filter by requested symbols
@@ -3284,33 +3531,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // Path 2: Multi-DEX aggregation - fetch from all enabled DEXs
       if (!params?.dex && this.equityEnabled) {
-        const enabledDexs = await this.getValidatedDexs();
+        // Determine which DEXs to query based on skipFilters flag
+        const dexsToQuery = params?.skipFilters
+          ? await this.getAllAvailableDexs()
+          : await this.getValidatedDexs();
 
-        if (enabledDexs.length > 1) {
+        if (dexsToQuery.length > 1) {
           // More than just main DEX
-          DevLogger.log(
-            'HyperLiquidProvider: Fetching markets from all enabled DEXs',
-            {
-              dexCount: enabledDexs.length,
-            },
-          );
+          DevLogger.log('HyperLiquidProvider: Fetching markets from DEXs', {
+            dexCount: dexsToQuery.length,
+            skipFilters: params?.skipFilters || false,
+          });
 
           const marketArrays = await Promise.all(
-            enabledDexs.map(async (dex) => {
+            dexsToQuery.map(async (dex) => {
               try {
-                const dexParam = dex ?? '';
-                const meta = await infoClient.meta(
-                  dexParam ? { dex: dexParam } : undefined,
-                );
-                if (!meta.universe || !Array.isArray(meta.universe)) {
-                  DevLogger.log(
-                    `HyperLiquidProvider: Invalid universe data for DEX ${
-                      dex || 'main'
-                    }`,
-                  );
-                  return [];
-                }
-                return meta.universe.map((asset) => adaptMarketFromSDK(asset));
+                return await this.fetchMarketsForDex(dex, params?.skipFilters);
               } catch (error) {
                 Logger.error(
                   ensureError(error),
@@ -3327,26 +3563,15 @@ export class HyperLiquidProvider implements IPerpsProvider {
         }
       }
 
-      // Path 3: Single DEX query (main DEX or specific DEX)
+      // Path 3: Single DEX query (main DEX or specific DEX) - with caching
       DevLogger.log('HyperLiquidProvider: Getting markets for single DEX', {
         dex: params?.dex || 'main',
       });
 
-      const meta = await infoClient.meta(
-        params?.dex !== undefined ? { dex: params.dex } : undefined,
+      return await this.fetchMarketsForDex(
+        params?.dex ?? null,
+        params?.skipFilters,
       );
-
-      if (!meta.universe || !Array.isArray(meta.universe)) {
-        DevLogger.log(
-          `HyperLiquidProvider: Invalid universe data for DEX ${
-            params?.dex || 'main'
-          }`,
-          { hasUniverse: !!meta.universe },
-        );
-        return [];
-      }
-
-      return meta.universe.map((asset) => adaptMarketFromSDK(asset));
     } catch (error) {
       Logger.error(
         ensureError(error),
@@ -3434,6 +3659,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
   /**
    * Get market data with prices, volumes, and 24h changes
    * Aggregates data from all enabled DEXs (main + HIP-3) when equity is enabled
+   *
+   * Note: This is called once during initialization and cached by PerpsStreamManager.
+   * Real-time price updates come from WebSocket subscriptions, not this method.
    */
   async getMarketDataWithPrices(): Promise<PerpsMarketData[]> {
     DevLogger.log('Getting market data with prices via HyperLiquid SDK');
@@ -3490,7 +3718,16 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
     dexDataResults.forEach((result) => {
       if (result.success && result.meta?.universe) {
-        combinedUniverse.push(...result.meta.universe);
+        // Apply market filtering for HIP-3 DEXs only (main DEX returns all markets)
+        const marketsFromDex = result.meta.universe;
+        const filteredMarkets =
+          result.dex === null
+            ? marketsFromDex // Main DEX: no filtering
+            : marketsFromDex.filter((asset) =>
+                this.shouldIncludeMarket(asset.name, result.dex),
+              );
+
+        combinedUniverse.push(...filteredMarkets);
         combinedAssetCtxs.push(...result.assetCtxs);
         // Merge price data from this DEX into combined prices
         Object.assign(combinedAllMids, result.allMids);

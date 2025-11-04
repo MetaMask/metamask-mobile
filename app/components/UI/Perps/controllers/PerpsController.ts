@@ -15,7 +15,7 @@ import {
   TransactionParams,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { parseCaipAssetId, type Hex } from '@metamask/utils';
+import { parseCaipAssetId, type Hex, hasProperty } from '@metamask/utils';
 import performance from 'react-native-performance';
 import { setMeasurement } from '@sentry/react-native';
 import type { Span } from '@sentry/core';
@@ -111,6 +111,10 @@ import type {
   RemoteFeatureFlagControllerStateChangeEvent,
   RemoteFeatureFlagControllerGetStateAction,
 } from '@metamask/remote-feature-flag-controller';
+import {
+  type VersionGatedFeatureFlag,
+  validatedVersionGatedFeatureFlag,
+} from '../../../../util/remoteFeatureFlag';
 
 // Simple wait utility
 const wait = (ms: number): Promise<void> =>
@@ -248,6 +252,10 @@ export type PerpsControllerState = {
   // Error handling
   lastError: string | null;
   lastUpdateTimestamp: number;
+
+  // HIP-3 Configuration Version (incremented when HIP-3 remote flags change)
+  // Used to trigger reconnection and cache invalidation in ConnectionManager
+  hip3ConfigVersion: number;
 };
 
 /**
@@ -293,6 +301,7 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
     mainnet: {},
   },
   marketFilterPreferences: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
+  hip3ConfigVersion: 0,
 });
 
 /**
@@ -436,6 +445,12 @@ const metadata: StateMetadata<PerpsControllerState> = {
     persist: true,
     includeInDebugSnapshot: false,
     usedInUi: true,
+  },
+  hip3ConfigVersion: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: false,
   },
 };
 
@@ -626,9 +641,11 @@ export class PerpsController extends BaseController<
     source: 'fallback',
   };
 
-  // Store HIP-3 configuration from client
-  private readonly equityEnabled: boolean;
-  private readonly enabledDexs: string[];
+  // Store HIP-3 configuration (mutable for runtime updates from remote flags)
+  private hip3Enabled: boolean;
+  private hip3EnabledMarkets: string[];
+  private hip3BlockedMarkets: string[];
+  private hip3ConfigSource: 'remote' | 'fallback' = 'fallback';
 
   constructor({
     messenger,
@@ -642,10 +659,14 @@ export class PerpsController extends BaseController<
       state: { ...getDefaultPerpsControllerState(), ...state },
     });
 
-    // Store HIP-3 configuration from client (immutable after construction)
-    // Clone array to prevent external mutations
-    this.equityEnabled = clientConfig.equityEnabled ?? false;
-    this.enabledDexs = [...(clientConfig.enabledDexs ?? [])];
+    // Set HIP-3 fallback configuration from client (will be updated if remote flags available)
+    this.hip3Enabled = clientConfig.fallbackHip3Enabled ?? false;
+    this.hip3EnabledMarkets = [
+      ...(clientConfig.fallbackHip3EnabledMarkets ?? []),
+    ];
+    this.hip3BlockedMarkets = [
+      ...(clientConfig.fallbackHip3BlockedMarkets ?? []),
+    ];
 
     // Immediately set the fallback region list since RemoteFeatureFlagController is empty by default and takes a moment to populate.
     this.setBlockedRegionList(
@@ -730,6 +751,216 @@ export class PerpsController extends BaseController<
 
     if (Array.isArray(remoteBlockedRegions)) {
       this.setBlockedRegionList(remoteBlockedRegions, 'remote');
+    }
+
+    // Also check for HIP-3 config changes
+    this.refreshHip3ConfigOnFeatureFlagChange(remoteFeatureFlagControllerState);
+  }
+
+  /**
+   * Refresh HIP-3 configuration when remote feature flags change.
+   * This method extracts HIP-3 settings from remote flags, validates them,
+   * and updates internal state if they differ from current values.
+   * When config changes, increments hip3ConfigVersion to trigger ConnectionManager reconnection.
+   *
+   * Follows the "sticky remote" pattern: once remote config is loaded, never downgrade to fallback.
+   *
+   * @param remoteFeatureFlagControllerState - State from RemoteFeatureFlagController
+   */
+  private refreshHip3ConfigOnFeatureFlagChange(
+    remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState,
+  ): void {
+    const remoteFlags = remoteFeatureFlagControllerState.remoteFeatureFlags;
+
+    // Extract and validate remote HIP-3 equity enabled flag
+    const equityFlag =
+      remoteFlags?.perpsEquityEnabled as unknown as VersionGatedFeatureFlag;
+    const validatedEquity = validatedVersionGatedFeatureFlag(equityFlag);
+
+    DevLogger.log('PerpsController: HIP-3 equity flag validation', {
+      equityFlag,
+      validatedEquity,
+      willUse: validatedEquity !== undefined ? 'remote' : 'fallback',
+    });
+
+    // Extract and validate remote HIP-3 enabled markets (whitelist)
+    let validatedEnabledMarkets: string[] | undefined;
+    if (hasProperty(remoteFlags, 'perpsEnabledMarkets')) {
+      const remoteMarkets = remoteFlags.perpsEnabledMarkets;
+
+      DevLogger.log('PerpsController: HIP-3 enabledMarkets validation', {
+        remoteMarkets,
+        type: typeof remoteMarkets,
+        isArray: Array.isArray(remoteMarkets),
+      });
+
+      // LaunchDarkly returns comma-separated strings for list values
+      if (typeof remoteMarkets === 'string') {
+        const parsed = remoteMarkets
+          .split(',')
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0);
+
+        if (parsed.length > 0) {
+          validatedEnabledMarkets = parsed;
+          DevLogger.log(
+            'PerpsController: HIP-3 enabledMarkets validated from string',
+            { validatedEnabledMarkets },
+          );
+        } else {
+          DevLogger.log(
+            'PerpsController: HIP-3 enabledMarkets string was empty after parsing',
+            { fallbackValue: this.hip3EnabledMarkets },
+          );
+        }
+      } else if (
+        Array.isArray(remoteMarkets) &&
+        remoteMarkets.every(
+          (item) => typeof item === 'string' && item.length > 0,
+        )
+      ) {
+        // Fallback: Validate array of non-empty strings (in case format changes)
+        validatedEnabledMarkets = (remoteMarkets as string[])
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0);
+
+        DevLogger.log(
+          'PerpsController: HIP-3 enabledMarkets validated from array',
+          { validatedEnabledMarkets },
+        );
+      } else {
+        DevLogger.log(
+          'PerpsController: HIP-3 enabledMarkets validation FAILED - falling back to local config',
+          {
+            reason: Array.isArray(remoteMarkets)
+              ? 'Array contains non-string or empty values'
+              : 'Invalid type (expected string or array)',
+            fallbackValue: this.hip3EnabledMarkets,
+          },
+        );
+      }
+    }
+
+    // Extract and validate remote HIP-3 blocked markets (blacklist)
+    let validatedBlockedMarkets: string[] | undefined;
+    if (hasProperty(remoteFlags, 'perpsBlockedMarkets')) {
+      const remoteBlocked = remoteFlags.perpsBlockedMarkets;
+
+      DevLogger.log('PerpsController: HIP-3 blockedMarkets validation', {
+        remoteBlocked,
+        type: typeof remoteBlocked,
+        isArray: Array.isArray(remoteBlocked),
+      });
+
+      // LaunchDarkly returns comma-separated strings for list values
+      if (typeof remoteBlocked === 'string') {
+        const parsed = remoteBlocked
+          .split(',')
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0);
+
+        if (parsed.length > 0) {
+          validatedBlockedMarkets = parsed;
+          DevLogger.log(
+            'PerpsController: HIP-3 blockedMarkets validated from string',
+            { validatedBlockedMarkets },
+          );
+        } else {
+          DevLogger.log(
+            'PerpsController: HIP-3 blockedMarkets string was empty after parsing',
+            { fallbackValue: this.hip3BlockedMarkets },
+          );
+        }
+      } else if (
+        Array.isArray(remoteBlocked) &&
+        remoteBlocked.every(
+          (item) => typeof item === 'string' && item.length > 0,
+        )
+      ) {
+        // Fallback: Validate array of non-empty strings (in case format changes)
+        validatedBlockedMarkets = (remoteBlocked as string[])
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0);
+
+        DevLogger.log(
+          'PerpsController: HIP-3 blockedMarkets validated from array',
+          { validatedBlockedMarkets },
+        );
+      } else {
+        DevLogger.log(
+          'PerpsController: HIP-3 blockedMarkets validation FAILED - falling back to local config',
+          {
+            reason: Array.isArray(remoteBlocked)
+              ? 'Array contains non-string or empty values'
+              : 'Invalid type (expected string or array)',
+            fallbackValue: this.hip3BlockedMarkets,
+          },
+        );
+      }
+    }
+
+    // Detect changes (only if we have valid remote values)
+    const equityChanged =
+      validatedEquity !== undefined && validatedEquity !== this.hip3Enabled;
+    const enabledMarketsChanged =
+      validatedEnabledMarkets !== undefined &&
+      JSON.stringify(validatedEnabledMarkets.sort()) !==
+        JSON.stringify(this.hip3EnabledMarkets.sort());
+    const blockedMarketsChanged =
+      validatedBlockedMarkets !== undefined &&
+      JSON.stringify(validatedBlockedMarkets.sort()) !==
+        JSON.stringify(this.hip3BlockedMarkets.sort());
+
+    if (equityChanged || enabledMarketsChanged || blockedMarketsChanged) {
+      DevLogger.log(
+        '[MARKET:FILTERING] PerpsController: HIP-3 config CHANGED via remote feature flags',
+        {
+          equityChanged,
+          enabledMarketsChanged,
+          blockedMarketsChanged,
+          oldEquity: this.hip3Enabled,
+          newEquity: validatedEquity,
+          oldEnabledMarkets: this.hip3EnabledMarkets,
+          newEnabledMarkets: validatedEnabledMarkets,
+          oldBlockedMarkets: this.hip3BlockedMarkets,
+          newBlockedMarkets: validatedBlockedMarkets,
+          source: 'remote',
+        },
+      );
+
+      // Update internal state (sticky remote - never downgrade)
+      if (validatedEquity !== undefined) {
+        this.hip3Enabled = validatedEquity;
+      }
+      if (validatedEnabledMarkets !== undefined) {
+        this.hip3EnabledMarkets = [...validatedEnabledMarkets];
+      }
+      if (validatedBlockedMarkets !== undefined) {
+        this.hip3BlockedMarkets = [...validatedBlockedMarkets];
+      }
+      this.hip3ConfigSource = 'remote';
+
+      // Increment version to trigger ConnectionManager reconnection and cache clearing
+      const newVersion = (this.state.hip3ConfigVersion || 0) + 1;
+      this.update((state) => {
+        state.hip3ConfigVersion = newVersion;
+      });
+
+      DevLogger.log(
+        '[MARKET:FILTERING] PerpsController: Incremented hip3ConfigVersion to trigger reconnection',
+        {
+          newVersion,
+          newHip3Enabled: this.hip3Enabled,
+          newHip3EnabledMarkets: this.hip3EnabledMarkets,
+          newHip3BlockedMarkets: this.hip3BlockedMarkets,
+        },
+      );
+
+      // Note: ConnectionManager will handle:
+      // 1. Detecting hip3ConfigVersion change via Redux monitoring
+      // 2. Clearing all StreamManager caches
+      // 3. Calling reconnectWithNewContext() -> initializeProviders()
+      // 4. Provider reinitialization will read the new HIP-3 config below
     }
   }
 
@@ -974,8 +1205,10 @@ export class PerpsController extends BaseController<
     DevLogger.log(
       'PerpsController: Creating provider with HIP-3 configuration',
       {
-        equityEnabled: this.equityEnabled,
-        enabledDexs: this.enabledDexs,
+        hip3Enabled: this.hip3Enabled,
+        hip3EnabledMarkets: this.hip3EnabledMarkets,
+        hip3BlockedMarkets: this.hip3BlockedMarkets,
+        hip3ConfigSource: this.hip3ConfigSource,
         isTestnet: this.state.isTestnet,
       },
     );
@@ -984,8 +1217,9 @@ export class PerpsController extends BaseController<
       'hyperliquid',
       new HyperLiquidProvider({
         isTestnet: this.state.isTestnet,
-        equityEnabled: this.equityEnabled,
-        enabledDexs: this.enabledDexs,
+        equityEnabled: this.hip3Enabled,
+        enabledMarkets: this.hip3EnabledMarkets,
+        blockedMarkets: this.hip3BlockedMarkets,
       }),
     );
 

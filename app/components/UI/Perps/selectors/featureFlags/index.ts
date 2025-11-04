@@ -5,6 +5,7 @@ import {
   validatedVersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
 import { hasProperty } from '@metamask/utils';
+import type { RootState } from '../../../../../reducers';
 
 export const selectPerpsEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
@@ -52,7 +53,7 @@ export const selectPerpsGtmOnboardingModalEnabledFlag = createSelector(
 export const selectPerpsEquityEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const localFlag = process.env.MM_PERPS_EQUITY_ENABLED === 'true';
+    const localFlag = process.env.MM_PERPS_HIP3_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.perpsEquityEnabled as unknown as VersionGatedFeatureFlag;
 
@@ -62,37 +63,93 @@ export const selectPerpsEquityEnabledFlag = createSelector(
 );
 
 /**
- * Selector for HIP-3 DEX whitelist
- * Controls which specific HIP-3 DEXs are shown to users
+ * Selector for HIP-3 market whitelist
+ * Controls which specific markets are shown to users
  *
  * Only applies when perpsEquityEnabled === true
  *
- * @returns string[] - Empty array = auto-discover all DEXs, non-empty = whitelist
+ * Supports wildcards: "xyz:*" (all xyz markets), "xyz" (shorthand for "xyz:*")
+ * Supports specific markets: "xyz:XYZ100", "BTC" (main DEX)
+ *
+ * @returns string[] - Empty array = enable all markets (discovery mode), non-empty = whitelist
  */
-export const selectPerpsEnabledDexs = createSelector(
+export const selectPerpsEnabledMarkets = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
     // Parse local fallback (comma-separated list or empty string)
-    const localFallback = process.env.MM_PERPS_ENABLED_DEXS
-      ? process.env.MM_PERPS_ENABLED_DEXS.split(',')
+    const localFallback = process.env.MM_PERPS_HIP3_ENABLED_MARKETS
+      ? process.env.MM_PERPS_HIP3_ENABLED_MARKETS.split(',')
           .map((s) => s.trim())
           .filter((s) => s.length > 0)
       : [];
 
-    if (!hasProperty(remoteFeatureFlags, 'perpsEnabledDexs')) {
+    if (!hasProperty(remoteFeatureFlags, 'perpsEnabledMarkets')) {
       return localFallback;
     }
 
-    const enabledDexs = remoteFeatureFlags.perpsEnabledDexs;
+    const enabledMarkets = remoteFeatureFlags.perpsEnabledMarkets;
 
-    // Validate it's an array of non-empty strings
-    if (
-      !Array.isArray(enabledDexs) ||
-      !enabledDexs.every((item) => typeof item === 'string' && item.length > 0)
-    ) {
-      return localFallback;
+    // LaunchDarkly always returns comma-separated strings for list values
+    if (typeof enabledMarkets === 'string') {
+      const parsed = enabledMarkets
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+      return parsed.length > 0 ? parsed : localFallback;
     }
 
-    return enabledDexs as string[];
+    // Invalid format - use fallback
+    return localFallback;
   },
 );
+
+/**
+ * Selector for HIP-3 market blacklist
+ * Controls which specific markets are blocked from being shown
+ *
+ * Always applied regardless of perpsEquityEnabled state
+ *
+ * Supports wildcards: "xyz:*" (block all xyz markets), "xyz" (shorthand for "xyz:*")
+ * Supports specific markets: "xyz:XYZ100", "BTC" (main DEX)
+ *
+ * @returns string[] - Empty array = no blocking, non-empty = blacklist
+ */
+export const selectPerpsBlockedMarkets = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    // Parse local fallback (comma-separated list or empty string)
+    const localFallback = process.env.MM_PERPS_HIP3_BLOCKED_MARKETS
+      ? process.env.MM_PERPS_HIP3_BLOCKED_MARKETS.split(',')
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0)
+      : [];
+
+    if (!hasProperty(remoteFeatureFlags, 'perpsBlockedMarkets')) {
+      return localFallback;
+    }
+
+    const blockedMarkets = remoteFeatureFlags.perpsBlockedMarkets;
+
+    // LaunchDarkly always returns comma-separated strings for list values
+    if (typeof blockedMarkets === 'string') {
+      const parsed = blockedMarkets
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+      return parsed.length > 0 ? parsed : localFallback;
+    }
+
+    // Invalid format - use fallback
+    return localFallback;
+  },
+);
+
+/**
+ * Selector for HIP-3 configuration version
+ * Used by ConnectionManager to detect when HIP-3 config changes and trigger reconnection
+ *
+ * @param state - Redux root state
+ * @returns number - Version increments when HIP-3 config changes
+ */
+export const selectHip3ConfigVersion = (state: RootState): number =>
+  state.engine.backgroundState.PerpsController?.hip3ConfigVersion ?? 0;
