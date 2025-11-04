@@ -29,19 +29,21 @@ export const escapeRegex = (str: string): string =>
 
 /**
  * Compile market filter pattern into optimized matcher
- * Supports wildcards ("xyz:*"), DEX shorthand ("xyz"), and exact matches ("xyz:TSLA", "BTC")
+ * Supports wildcards ("xyz:*"), DEX shorthand ("xyz"), and exact matches ("xyz:TSLA")
  *
- * @param pattern - Pattern string (e.g., "xyz:*", "BTC", "xyz")
- * @returns Compiled matcher (RegExp for wildcards, string for exact match)
+ * Note: Main DEX markets (no prefix) don't need filtering - they're always included.
+ * Patterns without colons are treated as HIP-3 DEX shorthand.
  *
- * @example Wildcard
+ * @param pattern - Pattern string (e.g., "xyz:*", "xyz:TSLA", "xyz")
+ * @returns Compiled matcher (RegExp for wildcards/shorthand, string for exact match)
+ *
+ * @example Wildcard - matches all markets from a DEX
  * compileMarketPattern("xyz:*") // → /^xyz:/
  *
- * @example DEX shorthand
- * compileMarketPattern("xyz") // → /^xyz:/
+ * @example DEX shorthand - equivalent to wildcard
+ * compileMarketPattern("xyz") // → /^xyz:/ (matches all xyz markets)
  *
- * @example Exact match
- * compileMarketPattern("BTC") // → "BTC"
+ * @example Exact match - matches specific market
  * compileMarketPattern("xyz:TSLA") // → "xyz:TSLA"
  */
 export const compileMarketPattern = (pattern: string): MarketPatternMatcher => {

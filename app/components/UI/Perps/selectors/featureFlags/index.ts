@@ -95,7 +95,8 @@ export const selectPerpsEnabledMarkets = createSelector(
         .split(',')
         .map((s) => s.trim())
         .filter((s) => s.length > 0);
-      return parsed.length > 0 ? parsed : localFallback;
+      // Remote empty string intentionally returns [] (discovery mode = allow all)
+      return parsed;
     }
 
     // Invalid format - use fallback
@@ -136,7 +137,8 @@ export const selectPerpsBlockedMarkets = createSelector(
         .split(',')
         .map((s) => s.trim())
         .filter((s) => s.length > 0);
-      return parsed.length > 0 ? parsed : localFallback;
+      // Remote empty string intentionally returns [] (block nothing)
+      return parsed;
     }
 
     // Invalid format - use fallback

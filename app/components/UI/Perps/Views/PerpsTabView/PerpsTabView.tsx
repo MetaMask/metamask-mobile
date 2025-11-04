@@ -26,6 +26,11 @@ import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
 import { useSelector } from 'react-redux';
 import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 import {
+  selectPerpsEquityEnabledFlag,
+  selectPerpsEnabledMarkets,
+  selectPerpsBlockedMarkets,
+} from '../../selectors/featureFlags';
+import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
@@ -56,6 +61,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
   );
+
+  // DEBUG: Feature flag values
+  const equityEnabled = useSelector(selectPerpsEquityEnabledFlag);
+  const enabledMarkets = useSelector(selectPerpsEnabledMarkets);
+  const blockedMarkets = useSelector(selectPerpsBlockedMarkets);
 
   const { positions, isInitialLoading } = usePerpsLivePositions({
     throttleMs: 1000, // Update positions every second
@@ -247,6 +257,23 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           hasPositions={hasPositions}
           hasOrders={hasOrders}
         />
+        {/* DEBUG VIEW - Remove after validation */}
+        {__DEV__ && (
+          <View style={styles.debugContainer}>
+            <Text variant={TextVariant.BodySMBold} color={TextColor.Default}>
+              DEBUG: Feature Flags
+            </Text>
+            <Text variant={TextVariant.BodyXS} color={TextColor.Default}>
+              Equity Enabled: {String(equityEnabled)}
+            </Text>
+            <Text variant={TextVariant.BodyXS} color={TextColor.Default}>
+              Enabled Markets: {JSON.stringify(enabledMarkets)}
+            </Text>
+            <Text variant={TextVariant.BodyXS} color={TextColor.Default}>
+              Blocked Markets: {JSON.stringify(blockedMarkets)}
+            </Text>
+          </View>
+        )}
         <ConditionalScrollView
           isScrollEnabled={!isHomepageRedesignV1Enabled}
           scrollViewProps={{
