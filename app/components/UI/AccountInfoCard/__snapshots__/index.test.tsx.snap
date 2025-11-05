@@ -112,8 +112,9 @@ exports[`AccountInfoCard should match snapshot 1`] = `
             "lineHeight": 24,
           }
         }
+        tooltip="Account 1"
       >
-        Account 1
+        Account 1...
       </Text>
     </View>
     <View

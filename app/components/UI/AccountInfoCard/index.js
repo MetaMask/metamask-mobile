@@ -21,6 +21,7 @@ import {
   renderShortAddress,
   safeToChecksumAddress,
   getInternalAccountByAddress,
+  renderShortAccountName,
 } from '../../../util/address';
 import Device from '../../../util/device';
 import { hexToBN, renderFromWei, weiToFiat } from '../../../util/number';
@@ -224,8 +225,9 @@ class AccountInfoCard extends PureComponent {
                 styles.accountName,
                 accountLabelTag ? styles.accountNameSmall : undefined,
               ]}
+              tooltip={accountLabel}
             >
-              {accountLabel}
+              {renderShortAccountName(accountLabel)}
             </Text>
           </View>
           <View style={styles.accountNameAndAddress}>
