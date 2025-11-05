@@ -629,7 +629,7 @@ describe('MetaMetrics', () => {
 
   describe('Ids', () => {
     it('is returned from StorageWrapper when instance not configured', async () => {
-      const UUID = '00000000-0000-0000-0000-000000000000';
+      const UUID = '12345678-1234-4234-b234-123456789012';
       mockGet.mockImplementation(async (key: string) =>
         key === METAMETRICS_ID ? UUID : '',
       );
@@ -639,7 +639,7 @@ describe('MetaMetrics', () => {
     });
 
     it('is returned from memory when instance configured', async () => {
-      const testID = '00000000-0000-0000-0000-000000000000';
+      const testID = '12345678-1234-4234-b234-123456789012';
       mockGet.mockImplementation(async () => testID);
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
@@ -720,7 +720,7 @@ describe('MetaMetrics', () => {
     });
 
     it('uses Metametrics ID if it is set', async () => {
-      const UUID = '00000000-0000-0000-0000-000000000000';
+      const UUID = '12345678-1234-4234-b234-123456789012';
       mockGet.mockImplementation(async (key: string) =>
         key === METAMETRICS_ID ? UUID : '',
       );
@@ -860,6 +860,24 @@ describe('MetaMetrics', () => {
         expect(validate(metricsId as unknown as string)).toBe(true);
       });
 
+      it('regenerates new ID when stored ID is NIL UUID (all zeros)', async () => {
+        const nilUUID = '00000000-0000-0000-0000-000000000000';
+        mockGet.mockImplementation(async (key: string) =>
+          key === METAMETRICS_ID ? nilUUID : '',
+        );
+        const metaMetrics = TestMetaMetrics.getInstance();
+
+        await metaMetrics.configure();
+
+        const metricsId = await metaMetrics.getMetaMetricsId();
+        expect(metricsId).not.toEqual(nilUUID);
+        expect(validate(metricsId as string)).toBe(true);
+        expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+          METAMETRICS_ID,
+          metricsId,
+        );
+      });
+
       it('accepts valid UUIDv4 format', async () => {
         const validUUID = '12345678-1234-4234-a234-123456789012';
         mockGet.mockImplementation(async (key: string) =>
@@ -874,6 +892,63 @@ describe('MetaMetrics', () => {
         expect(StorageWrapper.setItem).not.toHaveBeenCalledWith(
           METAMETRICS_ID,
           expect.anything(),
+        );
+      });
+
+      it('regenerates new ID when stored ID is version 1 UUID', async () => {
+        // Example UUIDv1 format: time-based
+        const uuidV1 = '12345678-1234-1234-a234-123456789012';
+        mockGet.mockImplementation(async (key: string) =>
+          key === METAMETRICS_ID ? uuidV1 : '',
+        );
+        const metaMetrics = TestMetaMetrics.getInstance();
+
+        await metaMetrics.configure();
+
+        const metricsId = await metaMetrics.getMetaMetricsId();
+        expect(metricsId).not.toEqual(uuidV1);
+        expect(validate(metricsId as string)).toBe(true);
+        expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+          METAMETRICS_ID,
+          metricsId,
+        );
+      });
+
+      it('regenerates new ID when stored ID is version 3 UUID', async () => {
+        // Example UUIDv3 format: MD5-based
+        const uuidV3 = '12345678-1234-3234-a234-123456789012';
+        mockGet.mockImplementation(async (key: string) =>
+          key === METAMETRICS_ID ? uuidV3 : '',
+        );
+        const metaMetrics = TestMetaMetrics.getInstance();
+
+        await metaMetrics.configure();
+
+        const metricsId = await metaMetrics.getMetaMetricsId();
+        expect(metricsId).not.toEqual(uuidV3);
+        expect(validate(metricsId as string)).toBe(true);
+        expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+          METAMETRICS_ID,
+          metricsId,
+        );
+      });
+
+      it('regenerates new ID when stored ID is version 5 UUID', async () => {
+        // Example UUIDv5 format: SHA1-based
+        const uuidV5 = '12345678-1234-5234-a234-123456789012';
+        mockGet.mockImplementation(async (key: string) =>
+          key === METAMETRICS_ID ? uuidV5 : '',
+        );
+        const metaMetrics = TestMetaMetrics.getInstance();
+
+        await metaMetrics.configure();
+
+        const metricsId = await metaMetrics.getMetaMetricsId();
+        expect(metricsId).not.toEqual(uuidV5);
+        expect(validate(metricsId as string)).toBe(true);
+        expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+          METAMETRICS_ID,
+          metricsId,
         );
       });
     });
