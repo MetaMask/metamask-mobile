@@ -55,7 +55,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import LoadingAnimation from '../../components/LoadingAnimation';
 import useInterval from '../../../../../hooks/useInterval';
 import useInAppBrowser from '../../hooks/useInAppBrowser';
-import { createCheckoutNavDetails } from '../Checkout';
+import { createCheckoutNavDetails } from '../Checkout/Checkout';
 import { PROVIDER_LINKS, ScreenLocation } from '../../types';
 import Logger from '../../../../../../util/Logger';
 import { isBuyQuote } from '../../utils';

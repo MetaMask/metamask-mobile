@@ -1,34 +1,46 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { TouchableOpacity } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { parseUrl } from 'query-string';
 import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
 import { useNavigation } from '@react-navigation/native';
 import { Provider } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
-import { baseStyles } from '../../../../../styles/common';
-import { useTheme } from '../../../../../util/theme';
-import { getFiatOnRampAggNavbar } from '../../../Navbar';
-import { useRampSDK, SDK } from '../sdk';
+import { useTheme } from '../../../../../../util/theme';
+import { getDepositNavbarOptions } from '../../../../Navbar';
+import { useRampSDK, SDK } from '../../sdk';
 import {
   addFiatCustomIdData,
   removeFiatCustomIdData,
-} from '../../../../../reducers/fiatOrders';
-import { CustomIdData } from '../../../../../reducers/fiatOrders/types';
+} from '../../../../../../reducers/fiatOrders';
+import { CustomIdData } from '../../../../../../reducers/fiatOrders/types';
 import {
   createNavigationDetails,
   useParams,
-} from '../../../../../util/navigation/navUtils';
-import { aggregatorOrderToFiatOrder } from '../orderProcessor/aggregator';
-import { createCustomOrderIdData } from '../orderProcessor/customOrderId';
-import ScreenLayout from '../components/ScreenLayout';
-import ErrorView from '../components/ErrorView';
-import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
-import useAnalytics from '../../hooks/useAnalytics';
-import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
-import useHandleSuccessfulOrder from '../hooks/useHandleSuccessfulOrder';
-import Logger from '../../../../../util/Logger';
+} from '../../../../../../util/navigation/navUtils';
+import { aggregatorOrderToFiatOrder } from '../../orderProcessor/aggregator';
+import { createCustomOrderIdData } from '../../orderProcessor/customOrderId';
+import ScreenLayout from '../../components/ScreenLayout';
+import ErrorView from '../../components/ErrorView';
+import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
+import useAnalytics from '../../../hooks/useAnalytics';
+import { strings } from '../../../../../../../locales/i18n';
+import Routes from '../../../../../../constants/navigation/Routes';
+import useHandleSuccessfulOrder from '../../hooks/useHandleSuccessfulOrder';
+import Logger from '../../../../../../util/Logger';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../../component-library/components/Buttons/ButtonIcon';
+import {
+  IconColor,
+  IconName,
+} from '../../../../../../component-library/components/Icons/Icon';
+import { useStyles } from '../../../../../../component-library/hooks';
+import styleSheet from './Checkout.styles';
 
 interface CheckoutParams {
   url: string;
@@ -43,6 +55,7 @@ export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
 const CheckoutWebView = () => {
   const { selectedAsset, selectedAddress, sdkError, callbackBaseUrl, isBuy } =
     useRampSDK();
+  const sheetRef = useRef<BottomSheetRef>(null);
   const dispatch = useDispatch();
   const trackEvent = useAnalytics();
   const [error, setError] = useState('');
@@ -51,8 +64,10 @@ const CheckoutWebView = () => {
   const [key, setKey] = useState(0);
   const navigation = useNavigation();
   const params = useParams<CheckoutParams>();
-  const { colors } = useTheme();
+  const theme = useTheme();
   const handleSuccessfulOrder = useHandleSuccessfulOrder();
+
+  const { styles } = useStyles(styleSheet, {});
 
   const { url: uri, customOrderId, provider } = params;
 
@@ -77,14 +92,14 @@ const CheckoutWebView = () => {
 
   useEffect(() => {
     navigation.setOptions(
-      getFiatOnRampAggNavbar(
+      getDepositNavbarOptions(
         navigation,
-        { title: provider.name, showNetwork: false },
-        colors,
+        { title: provider.name },
+        theme,
         handleCancelPress,
       ),
     );
-  }, [navigation, colors, handleCancelPress, provider.name]);
+  }, [navigation, theme, handleCancelPress, provider.name]);
 
   useEffect(() => {
     if (
@@ -158,40 +173,108 @@ const CheckoutWebView = () => {
 
   if (sdkError) {
     return (
-      <ScreenLayout>
-        <ScreenLayout.Body>
-          <ErrorViewWithReporting
-            error={sdkError}
-            location={'Provider Webview'}
-          />
-        </ScreenLayout.Body>
-      </ScreenLayout>
+      <BottomSheet
+        ref={sheetRef}
+        shouldNavigateBack
+        isFullscreen
+        keyboardAvoidingViewEnabled={false}
+      >
+        <BottomSheetHeader
+          endAccessory={
+            <TouchableOpacity>
+              <ButtonIcon
+                iconName={IconName.Close}
+                size={ButtonIconSizes.Lg}
+                iconColor={IconColor.Default}
+                onPress={() => {
+                  handleCancelPress();
+                  sheetRef.current?.onCloseBottomSheet();
+                }}
+              />
+            </TouchableOpacity>
+          }
+          style={styles.headerWithoutPadding}
+        />
+        <ScreenLayout>
+          <ScreenLayout.Body>
+            <ErrorViewWithReporting
+              error={sdkError}
+              location={'Provider Webview'}
+            />
+          </ScreenLayout.Body>
+        </ScreenLayout>
+      </BottomSheet>
     );
   }
 
   if (error) {
     return (
-      <ScreenLayout>
-        <ScreenLayout.Body>
-          <ErrorView
-            description={error}
-            ctaOnPress={() => {
-              setKey((prevKey) => prevKey + 1);
-              setError('');
-              setIsRedirectionHandled(false);
-            }}
-            location={'Provider Webview'}
-          />
-        </ScreenLayout.Body>
-      </ScreenLayout>
+      <BottomSheet
+        ref={sheetRef}
+        shouldNavigateBack
+        isFullscreen
+        keyboardAvoidingViewEnabled={false}
+      >
+        <BottomSheetHeader
+          endAccessory={
+            <TouchableOpacity>
+              <ButtonIcon
+                iconName={IconName.Close}
+                size={ButtonIconSizes.Lg}
+                iconColor={IconColor.Default}
+                onPress={() => {
+                  handleCancelPress();
+                  sheetRef.current?.onCloseBottomSheet();
+                }}
+              />
+            </TouchableOpacity>
+          }
+          style={styles.headerWithoutPadding}
+        />
+        <ScreenLayout>
+          <ScreenLayout.Body>
+            <ErrorView
+              description={error}
+              ctaOnPress={() => {
+                setKey((prevKey) => prevKey + 1);
+                setError('');
+                setIsRedirectionHandled(false);
+              }}
+              location={'Provider Webview'}
+            />
+          </ScreenLayout.Body>
+        </ScreenLayout>
+      </BottomSheet>
     );
   }
 
   if (uri) {
     return (
-      <View style={baseStyles.flexGrow}>
+      <BottomSheet
+        ref={sheetRef}
+        shouldNavigateBack
+        isFullscreen
+        keyboardAvoidingViewEnabled={false}
+      >
+        <BottomSheetHeader
+          endAccessory={
+            <TouchableOpacity>
+              <ButtonIcon
+                iconName={IconName.Close}
+                size={ButtonIconSizes.Lg}
+                iconColor={IconColor.Default}
+                onPress={() => {
+                  handleCancelPress();
+                  sheetRef.current?.onCloseBottomSheet();
+                }}
+              />
+            </TouchableOpacity>
+          }
+          style={styles.headerWithoutPadding}
+        />
         <WebView
           key={key}
+          style={styles.webview}
           source={{ uri }}
           onHttpError={(syntheticEvent) => {
             const { nativeEvent } = syntheticEvent;
@@ -214,7 +297,7 @@ const CheckoutWebView = () => {
           userAgent={provider?.features?.buy?.userAgent ?? undefined}
           testID="checkout-webview"
         />
-      </View>
+      </BottomSheet>
     );
   }
 

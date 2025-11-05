@@ -1,13 +1,13 @@
 import { Provider } from '@consensys/on-ramp-sdk';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import Checkout from './Checkout';
-import { RampSDK } from '../sdk';
-import Routes from '../../../../../constants/navigation/Routes';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
-import { createCustomOrderIdData } from '../orderProcessor/customOrderId';
+import { RampSDK } from '../../sdk';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../../util/test/accountsControllerTestUtils';
+import { createCustomOrderIdData } from '../../orderProcessor/customOrderId';
 import { Network } from '@consensys/on-ramp-sdk/dist/API';
-import Logger from '../../../../../util/Logger';
+import Logger from '../../../../../../util/Logger';
 
 const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
@@ -16,11 +16,11 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockTrackEvent = jest.fn();
-jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 const mockHandleSuccessfulOrder = jest.fn();
 jest.mock(
-  '../hooks/useHandleSuccessfulOrder',
+  '../../hooks/useHandleSuccessfulOrder',
   () => () => mockHandleSuccessfulOrder,
 );
 
@@ -34,7 +34,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockNavigation,
 }));
 
-jest.mock('../orderProcessor/customOrderId');
+jest.mock('../../orderProcessor/customOrderId');
 
 const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   selectedAddress: '0x123',
@@ -48,8 +48,8 @@ let mockUseRampSDKValues: Partial<RampSDK> = {
   ...mockUseRampSDKInitialValues,
 };
 
-jest.mock('../sdk', () => ({
-  ...jest.requireActual('../sdk'),
+jest.mock('../../sdk', () => ({
+  ...jest.requireActual('../../sdk'),
   useRampSDK: () => mockUseRampSDKValues,
   SDK: {
     orders: jest.fn().mockResolvedValue({
@@ -64,8 +64,8 @@ const mockUseParams = jest.fn(() => ({
   provider: { id: 'test-provider', name: 'Test Provider' } as Provider,
 }));
 
-jest.mock('../../../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../../../util/navigation/navUtils'),
+jest.mock('../../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../../util/navigation/navUtils'),
   useParams: () => mockUseParams(),
 }));
 
