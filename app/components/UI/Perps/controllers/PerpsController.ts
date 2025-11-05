@@ -775,7 +775,7 @@ export class PerpsController extends BaseController<
 
     // Extract and validate remote HIP-3 equity enabled flag
     const equityFlag =
-      remoteFlags?.perpsEquityEnabled as unknown as VersionGatedFeatureFlag;
+      remoteFlags?.perpsHip3Enabled as unknown as VersionGatedFeatureFlag;
     const validatedEquity = validatedVersionGatedFeatureFlag(equityFlag);
 
     DevLogger.log('PerpsController: HIP-3 equity flag validation', {
@@ -786,8 +786,8 @@ export class PerpsController extends BaseController<
 
     // Extract and validate remote HIP-3 allowlist markets (allowlist)
     let validatedAllowlistMarkets: string[] | undefined;
-    if (hasProperty(remoteFlags, 'perpsAllowlistMarkets')) {
-      const remoteMarkets = remoteFlags.perpsAllowlistMarkets;
+    if (hasProperty(remoteFlags, 'perpsHip3AllowlistMarkets')) {
+      const remoteMarkets = remoteFlags.perpsHip3AllowlistMarkets;
 
       DevLogger.log('PerpsController: HIP-3 allowlistMarkets validation', {
         remoteMarkets,
@@ -841,8 +841,8 @@ export class PerpsController extends BaseController<
 
     // Extract and validate remote HIP-3 blocklist markets (blocklist)
     let validatedBlocklistMarkets: string[] | undefined;
-    if (hasProperty(remoteFlags, 'perpsBlocklistMarkets')) {
-      const remoteBlocked = remoteFlags.perpsBlocklistMarkets;
+    if (hasProperty(remoteFlags, 'perpsHip3BlocklistMarkets')) {
+      const remoteBlocked = remoteFlags.perpsHip3BlocklistMarkets;
 
       DevLogger.log('PerpsController: HIP-3 blocklistMarkets validation', {
         remoteBlocked,
