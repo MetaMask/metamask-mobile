@@ -21,6 +21,11 @@ import Logger from '../../../../util/Logger';
 // Mock the HyperLiquidProvider
 jest.mock('./providers/HyperLiquidProvider');
 
+// Mock wait utility to speed up retry tests
+jest.mock('../utils/wait', () => ({
+  wait: jest.fn().mockResolvedValue(undefined),
+}));
+
 // Mock stream manager
 const mockStreamManager = {
   positions: { pause: jest.fn(), resume: jest.fn() },
@@ -160,14 +165,14 @@ describe('PerpsController', () => {
 
   describe('constructor', () => {
     it('initializes with default state', () => {
-      // Constructor immediately starts initialization, so state diverges from defaults
+      // Constructor immediately starts and completes initialization (wait() is mocked)
       expect(controller.state.activeProvider).toBe('hyperliquid');
       expect(controller.state.positions).toEqual([]);
       expect(controller.state.accountState).toBeNull();
       expect(controller.state.connectionStatus).toBe('disconnected');
-      expect(controller.state.initializationState).toBe('initializing'); // Constructor starts init
+      expect(controller.state.initializationState).toBe('initialized'); // Completes instantly with mocked wait()
       expect(controller.state.initializationError).toBeNull();
-      expect(controller.state.initializationAttempts).toBe(1); // First attempt started
+      expect(controller.state.initializationAttempts).toBe(1); // First attempt succeeded
       expect(controller.state.isEligible).toBe(false);
       expect(controller.state.isTestnet).toBe(false); // Default to mainnet
     });
@@ -747,8 +752,9 @@ describe('PerpsController', () => {
         state: getDefaultPerpsControllerState(),
       });
 
-      // Wait for initialization to complete (will fail after 3 retries: 1s + 2s + 4s + overhead)
-      await new Promise((resolve) => setTimeout(resolve, 8000));
+      // Wait for initialization to complete (retries happen instantly due to mocked wait())
+      // Small delay allows async promise chain to resolve
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       // Verify failure state
       expect(testController.state.initializationState).toBe('failed');
@@ -767,7 +773,7 @@ describe('PerpsController', () => {
       expect(testController.state.initializationState).toBe('initialized');
       expect(testController.state.initializationError).toBeNull();
       expect((testController as any).isInitialized).toBe(true);
-    }, 10000); // 10 second timeout
+    }); // Fast execution with mocked wait()
   });
 
   describe('getPositions', () => {

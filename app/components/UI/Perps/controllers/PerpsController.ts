@@ -116,10 +116,7 @@ import {
   validatedVersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
 import { parseCommaSeparatedString } from '../utils/stringParseUtils';
-
-// Simple wait utility
-const wait = (ms: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms));
+import { wait } from '../utils/wait';
 
 // Re-export error codes from separate file to avoid circular dependencies
 export { PERPS_ERROR_CODES, type PerpsErrorCode } from './perpsErrorCodes';
@@ -127,7 +124,7 @@ export { PERPS_ERROR_CODES, type PerpsErrorCode } from './perpsErrorCodes';
 /**
  * Initialization state enum for state machine tracking
  */
-enum InitializationState {
+export enum InitializationState {
   UNINITIALIZED = 'uninitialized',
   INITIALIZING = 'initializing',
   INITIALIZED = 'initialized',
