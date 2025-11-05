@@ -213,12 +213,8 @@ export default class PortManager {
       });
 
       server.once('listening', () => {
-        // Keep the server open briefly to hold the port while the resource binds
-        // This reduces the race condition window
-        setTimeout(() => {
-          server.close();
-          resolve(true);
-        }, 100);
+        server.close();
+        resolve(true);
       });
 
       server.listen(port);
