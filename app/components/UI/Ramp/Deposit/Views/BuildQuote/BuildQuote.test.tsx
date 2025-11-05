@@ -395,6 +395,158 @@ describe('BuildQuote Component', () => {
       );
     });
 
+    it('tracks RAMPS_TOKEN_SELECTOR_CLICKED with empty string when selectedRegion isoCode is undefined', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: {
+            ...MOCK_US_REGION,
+            isoCode: undefined as unknown as string,
+          },
+        }),
+      );
+
+      render(BuildQuote);
+
+      const tokenButton = screen.getByText('USDC');
+      fireEvent.press(tokenButton);
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_TOKEN_SELECTOR_CLICKED',
+        {
+          ramp_type: 'DEPOSIT',
+          region: '',
+          location: 'build_quote',
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
+          currency_source: MOCK_US_REGION.currency,
+          is_authenticated: false,
+        },
+      );
+    });
+
+    it('tracks RAMPS_TOKEN_SELECTOR_CLICKED with undefined when selectedRegion currency is undefined', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: {
+            ...MOCK_US_REGION,
+            currency: undefined as unknown as string,
+          },
+        }),
+      );
+
+      render(BuildQuote);
+
+      const tokenButton = screen.getByText('USDC');
+      fireEvent.press(tokenButton);
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_TOKEN_SELECTOR_CLICKED',
+        {
+          ramp_type: 'DEPOSIT',
+          region: MOCK_US_REGION.isoCode,
+          location: 'build_quote',
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
+          currency_source: undefined,
+          is_authenticated: false,
+        },
+      );
+    });
+
+    it('tracks RAMPS_TOKEN_SELECTOR_CLICKED with undefined when selectedCryptoCurrency chainId is undefined', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedCryptoCurrency: {
+            ...MOCK_USDC_TOKEN,
+            chainId: undefined as unknown as string,
+          },
+        }),
+      );
+
+      render(BuildQuote);
+
+      const tokenButton = screen.getByText('USDC');
+      fireEvent.press(tokenButton);
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_TOKEN_SELECTOR_CLICKED',
+        {
+          ramp_type: 'DEPOSIT',
+          region: MOCK_US_REGION.isoCode,
+          location: 'build_quote',
+          chain_id: undefined,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Unknown Network',
+          currency_source: MOCK_US_REGION.currency,
+          is_authenticated: false,
+        },
+      );
+    });
+
+    it('tracks RAMPS_TOKEN_SELECTOR_CLICKED with undefined when selectedCryptoCurrency assetId is undefined', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedCryptoCurrency: {
+            ...MOCK_USDC_TOKEN,
+            assetId: undefined as unknown as string,
+          },
+        }),
+      );
+
+      render(BuildQuote);
+
+      const tokenButton = screen.getByText('USDC');
+      fireEvent.press(tokenButton);
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_TOKEN_SELECTOR_CLICKED',
+        {
+          ramp_type: 'DEPOSIT',
+          region: MOCK_US_REGION.isoCode,
+          location: 'build_quote',
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: undefined,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
+          currency_source: MOCK_US_REGION.currency,
+          is_authenticated: false,
+        },
+      );
+    });
+
+    it('tracks RAMPS_TOKEN_SELECTOR_CLICKED with undefined networkName when selectedCryptoCurrency is null', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedCryptoCurrency: null,
+        }),
+      );
+
+      render(BuildQuote);
+
+      const tokenButton = screen.getByText('mUSD');
+      fireEvent.press(tokenButton);
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_TOKEN_SELECTOR_CLICKED',
+        {
+          ramp_type: 'DEPOSIT',
+          region: MOCK_US_REGION.isoCode,
+          location: 'build_quote',
+          chain_id: undefined,
+          currency_destination: undefined,
+          currency_destination_symbol: undefined,
+          currency_destination_network: undefined,
+          currency_source: MOCK_US_REGION.currency,
+          is_authenticated: false,
+        },
+      );
+    });
+
     it('does not open token modal when crypto currencies error occurs', () => {
       jest
         .mocked(useCryptoCurrencies)
@@ -447,6 +599,92 @@ describe('BuildQuote Component', () => {
     });
   });
 
+  describe('Token Exchange with null region currency', () => {
+    it('renders when selectedRegion currency is null', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: {
+            ...MOCK_US_REGION,
+            currency: null as unknown as string,
+          },
+        }),
+      );
+
+      render(BuildQuote);
+
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('renders when selectedRegion currency is undefined', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: {
+            ...MOCK_US_REGION,
+            currency: undefined as unknown as string,
+          },
+        }),
+      );
+
+      render(BuildQuote);
+
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('handles token exchange loading state when region currency is null', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: null,
+        }),
+      );
+
+      mockUseDepositTokenExchange.mockReturnValue({
+        tokenAmount: '0.00',
+        isLoading: true,
+        error: null,
+      });
+
+      render(BuildQuote);
+
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('handles token exchange error when region currency is null', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: null,
+        }),
+      );
+
+      mockUseDepositTokenExchange.mockReturnValue({
+        tokenAmount: '0.00',
+        isLoading: false,
+        error: new Error('Exchange rate fetch failed'),
+      });
+
+      render(BuildQuote);
+
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('does not display converted amount when region currency is null', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: null,
+        }),
+      );
+
+      mockUseDepositTokenExchange.mockReturnValue({
+        tokenAmount: '0.00',
+        isLoading: false,
+        error: null,
+      });
+
+      render(BuildQuote);
+
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+  });
+
   describe('User Details Error', () => {
     it('displays user details error alert when fetching fails', () => {
       jest.mocked(useDepositUser).mockReturnValue(MOCK_USE_DEPOSIT_USER_ERROR);
@@ -471,6 +709,265 @@ describe('BuildQuote Component', () => {
 
       await waitFor(() => {
         expect(mockGetQuote).toHaveBeenCalled();
+      });
+    });
+
+    it('tracks RAMPS_ORDER_PROPOSED with empty string when selectedPaymentMethod id is undefined', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedPaymentMethod: {
+            ...MOCK_CREDIT_DEBIT_CARD,
+            id: undefined as unknown as string,
+          },
+        }),
+      );
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_PROPOSED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 0,
+          amount_destination: 0,
+          payment_method_id: '',
+          region: MOCK_US_REGION.isoCode,
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
+          currency_source: MOCK_US_REGION.currency,
+          is_authenticated: false,
+        });
+      });
+    });
+
+    it('tracks RAMPS_ORDER_PROPOSED with empty strings when selectedRegion properties are undefined', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: {
+            ...MOCK_US_REGION,
+            isoCode: undefined as unknown as string,
+            currency: undefined as unknown as string,
+          },
+        }),
+      );
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_PROPOSED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 0,
+          amount_destination: 0,
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: '',
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
+          currency_source: '',
+          is_authenticated: false,
+        });
+      });
+    });
+
+    it('tracks RAMPS_ORDER_PROPOSED with empty strings when selectedCryptoCurrency properties are undefined', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedCryptoCurrency: {
+            ...MOCK_USDC_TOKEN,
+            chainId: undefined as unknown as string,
+            assetId: undefined as unknown as string,
+            symbol: undefined as unknown as string,
+          },
+        }),
+      );
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_PROPOSED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 0,
+          amount_destination: 0,
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: MOCK_US_REGION.isoCode,
+          chain_id: '',
+          currency_destination: '',
+          currency_destination_symbol: undefined,
+          currency_destination_network: 'Unknown Network',
+          currency_source: MOCK_US_REGION.currency,
+          is_authenticated: false,
+        });
+      });
+    });
+
+    it('tracks RAMPS_ORDER_PROPOSED with empty string when selectedRegion isoCode is undefined', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: {
+            ...MOCK_US_REGION,
+            isoCode: undefined as unknown as string,
+          },
+        }),
+      );
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_PROPOSED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 0,
+          amount_destination: 0,
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: '',
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
+          currency_source: MOCK_US_REGION.currency,
+          is_authenticated: false,
+        });
+      });
+    });
+
+    it('tracks RAMPS_ORDER_PROPOSED with empty string when selectedRegion currency is undefined', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: {
+            ...MOCK_US_REGION,
+            currency: undefined as unknown as string,
+          },
+        }),
+      );
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_PROPOSED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 0,
+          amount_destination: 0,
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: MOCK_US_REGION.isoCode,
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
+          currency_source: '',
+          is_authenticated: false,
+        });
+      });
+    });
+
+    it('tracks RAMPS_ORDER_PROPOSED with empty string when selectedCryptoCurrency chainId is undefined', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedCryptoCurrency: {
+            ...MOCK_USDC_TOKEN,
+            chainId: undefined as unknown as string,
+          },
+        }),
+      );
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_PROPOSED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 0,
+          amount_destination: 0,
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: MOCK_US_REGION.isoCode,
+          chain_id: '',
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Unknown Network',
+          currency_source: MOCK_US_REGION.currency,
+          is_authenticated: false,
+        });
+      });
+    });
+
+    it('tracks RAMPS_ORDER_PROPOSED with empty string when selectedCryptoCurrency assetId is undefined', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedCryptoCurrency: {
+            ...MOCK_USDC_TOKEN,
+            assetId: undefined as unknown as string,
+          },
+        }),
+      );
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_PROPOSED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 0,
+          amount_destination: 0,
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: MOCK_US_REGION.isoCode,
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: '',
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
+          currency_source: MOCK_US_REGION.currency,
+          is_authenticated: false,
+        });
+      });
+    });
+
+    it('tracks RAMPS_ORDER_PROPOSED with undefined when selectedCryptoCurrency symbol is undefined', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedCryptoCurrency: {
+            ...MOCK_USDC_TOKEN,
+            symbol: undefined as unknown as string,
+          },
+        }),
+      );
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_PROPOSED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 0,
+          amount_destination: 0,
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: MOCK_US_REGION.isoCode,
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: undefined,
+          currency_destination_network: 'Ethereum',
+          currency_source: MOCK_US_REGION.currency,
+          is_authenticated: false,
+        });
       });
     });
 
@@ -602,6 +1099,401 @@ describe('BuildQuote Component', () => {
       });
     });
 
+    it('tracks RAMPS_ORDER_SELECTED with empty string when selectedPaymentMethod id is undefined', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote',
+        fiatAmount: 100,
+        cryptoAmount: 0.05,
+        conversionPrice: 2000,
+        feeBreakdown: [
+          { type: 'network_fee', value: 0.01 },
+          { type: 'transak_fee', value: 0.02 },
+        ],
+        totalFee: 0.03,
+      } as BuyQuote;
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          selectedPaymentMethod: {
+            ...MOCK_CREDIT_DEBIT_CARD,
+            id: undefined as unknown as string,
+          },
+        }),
+      );
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_SELECTED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 100,
+          amount_destination: 0.05,
+          exchange_rate: 2000,
+          gas_fee: 0.01,
+          processing_fee: 0.02,
+          total_fee: 0.03,
+          payment_method_id: '',
+          region: MOCK_US_REGION.isoCode,
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
+          currency_source: MOCK_US_REGION.currency,
+        });
+      });
+    });
+
+    it('tracks RAMPS_ORDER_SELECTED with empty strings when selectedRegion properties are undefined', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote',
+        fiatAmount: 100,
+        cryptoAmount: 0.05,
+        conversionPrice: 2000,
+        feeBreakdown: [
+          { type: 'network_fee', value: 0.01 },
+          { type: 'transak_fee', value: 0.02 },
+        ],
+        totalFee: 0.03,
+      } as BuyQuote;
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          selectedRegion: {
+            ...MOCK_US_REGION,
+            isoCode: undefined as unknown as string,
+            currency: undefined as unknown as string,
+          },
+        }),
+      );
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_SELECTED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 100,
+          amount_destination: 0.05,
+          exchange_rate: 2000,
+          gas_fee: 0.01,
+          processing_fee: 0.02,
+          total_fee: 0.03,
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: '',
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
+          currency_source: '',
+        });
+      });
+    });
+
+    it('tracks RAMPS_ORDER_SELECTED with empty strings when selectedCryptoCurrency properties are undefined', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote',
+        fiatAmount: 100,
+        cryptoAmount: 0.05,
+        conversionPrice: 2000,
+        feeBreakdown: [
+          { type: 'network_fee', value: 0.01 },
+          { type: 'transak_fee', value: 0.02 },
+        ],
+        totalFee: 0.03,
+      } as BuyQuote;
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          selectedCryptoCurrency: {
+            ...MOCK_USDC_TOKEN,
+            chainId: undefined as unknown as string,
+            assetId: undefined as unknown as string,
+            symbol: undefined as unknown as string,
+          },
+        }),
+      );
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_SELECTED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 100,
+          amount_destination: 0.05,
+          exchange_rate: 2000,
+          gas_fee: 0.01,
+          processing_fee: 0.02,
+          total_fee: 0.03,
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: MOCK_US_REGION.isoCode,
+          chain_id: '',
+          currency_destination: '',
+          currency_destination_symbol: undefined,
+          currency_destination_network: 'Unknown Network',
+          currency_source: MOCK_US_REGION.currency,
+        });
+      });
+    });
+
+    it('tracks RAMPS_ORDER_SELECTED with empty string when selectedRegion isoCode is undefined', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote',
+        fiatAmount: 100,
+        cryptoAmount: 0.05,
+        conversionPrice: 2000,
+        feeBreakdown: [
+          { type: 'network_fee', value: 0.01 },
+          { type: 'transak_fee', value: 0.02 },
+        ],
+        totalFee: 0.03,
+      } as BuyQuote;
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          selectedRegion: {
+            ...MOCK_US_REGION,
+            isoCode: undefined as unknown as string,
+          },
+        }),
+      );
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_SELECTED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 100,
+          amount_destination: 0.05,
+          exchange_rate: 2000,
+          gas_fee: 0.01,
+          processing_fee: 0.02,
+          total_fee: 0.03,
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: '',
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
+          currency_source: MOCK_US_REGION.currency,
+        });
+      });
+    });
+
+    it('tracks RAMPS_ORDER_SELECTED with empty string when selectedRegion currency is undefined', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote',
+        fiatAmount: 100,
+        cryptoAmount: 0.05,
+        conversionPrice: 2000,
+        feeBreakdown: [
+          { type: 'network_fee', value: 0.01 },
+          { type: 'transak_fee', value: 0.02 },
+        ],
+        totalFee: 0.03,
+      } as BuyQuote;
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          selectedRegion: {
+            ...MOCK_US_REGION,
+            currency: undefined as unknown as string,
+          },
+        }),
+      );
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_SELECTED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 100,
+          amount_destination: 0.05,
+          exchange_rate: 2000,
+          gas_fee: 0.01,
+          processing_fee: 0.02,
+          total_fee: 0.03,
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: MOCK_US_REGION.isoCode,
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
+          currency_source: '',
+        });
+      });
+    });
+
+    it('tracks RAMPS_ORDER_SELECTED with empty string when selectedCryptoCurrency chainId is undefined', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote',
+        fiatAmount: 100,
+        cryptoAmount: 0.05,
+        conversionPrice: 2000,
+        feeBreakdown: [
+          { type: 'network_fee', value: 0.01 },
+          { type: 'transak_fee', value: 0.02 },
+        ],
+        totalFee: 0.03,
+      } as BuyQuote;
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          selectedCryptoCurrency: {
+            ...MOCK_USDC_TOKEN,
+            chainId: undefined as unknown as string,
+          },
+        }),
+      );
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_SELECTED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 100,
+          amount_destination: 0.05,
+          exchange_rate: 2000,
+          gas_fee: 0.01,
+          processing_fee: 0.02,
+          total_fee: 0.03,
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: MOCK_US_REGION.isoCode,
+          chain_id: '',
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Unknown Network',
+          currency_source: MOCK_US_REGION.currency,
+        });
+      });
+    });
+
+    it('tracks RAMPS_ORDER_SELECTED with empty string when selectedCryptoCurrency assetId is undefined', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote',
+        fiatAmount: 100,
+        cryptoAmount: 0.05,
+        conversionPrice: 2000,
+        feeBreakdown: [
+          { type: 'network_fee', value: 0.01 },
+          { type: 'transak_fee', value: 0.02 },
+        ],
+        totalFee: 0.03,
+      } as BuyQuote;
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          selectedCryptoCurrency: {
+            ...MOCK_USDC_TOKEN,
+            assetId: undefined as unknown as string,
+          },
+        }),
+      );
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_SELECTED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 100,
+          amount_destination: 0.05,
+          exchange_rate: 2000,
+          gas_fee: 0.01,
+          processing_fee: 0.02,
+          total_fee: 0.03,
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: MOCK_US_REGION.isoCode,
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: '',
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
+          currency_source: MOCK_US_REGION.currency,
+        });
+      });
+    });
+
+    it('tracks RAMPS_ORDER_SELECTED with undefined when selectedCryptoCurrency symbol is undefined', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote',
+        fiatAmount: 100,
+        cryptoAmount: 0.05,
+        conversionPrice: 2000,
+        feeBreakdown: [
+          { type: 'network_fee', value: 0.01 },
+          { type: 'transak_fee', value: 0.02 },
+        ],
+        totalFee: 0.03,
+      } as BuyQuote;
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          isAuthenticated: true,
+          selectedCryptoCurrency: {
+            ...MOCK_USDC_TOKEN,
+            symbol: undefined as unknown as string,
+          },
+        }),
+      );
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_SELECTED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 100,
+          amount_destination: 0.05,
+          exchange_rate: 2000,
+          gas_fee: 0.01,
+          processing_fee: 0.02,
+          total_fee: 0.03,
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: MOCK_US_REGION.isoCode,
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: undefined,
+          currency_destination_network: 'Ethereum',
+          currency_source: MOCK_US_REGION.currency,
+        });
+      });
+    });
+
     it('displays error when quote fetch fails', async () => {
       mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
       mockGetQuote.mockRejectedValue(new Error('Failed to fetch quote'));
@@ -692,6 +1584,297 @@ describe('BuildQuote Component', () => {
       });
     });
 
+    it('tracks RAMPS_ORDER_FAILED with empty string when selectedPaymentMethod id is undefined', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedPaymentMethod: {
+            ...MOCK_CREDIT_DEBIT_CARD,
+            id: undefined as unknown as string,
+          },
+        }),
+      );
+      mockGetQuote.mockRejectedValue(new Error('Failed to fetch quote'));
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_FAILED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 0,
+          amount_destination: 0,
+          payment_method_id: '',
+          region: MOCK_US_REGION.isoCode,
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
+          currency_source: MOCK_US_REGION.currency,
+          error_message: 'BuildQuote - Error fetching quote',
+          is_authenticated: false,
+        });
+      });
+    });
+
+    it('tracks RAMPS_ORDER_FAILED with empty strings when selectedRegion properties are undefined', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: {
+            ...MOCK_US_REGION,
+            isoCode: undefined as unknown as string,
+            currency: undefined as unknown as string,
+          },
+        }),
+      );
+      mockGetQuote.mockRejectedValue(new Error('Failed to fetch quote'));
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_FAILED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 0,
+          amount_destination: 0,
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: '',
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
+          currency_source: '',
+          error_message: 'BuildQuote - Error fetching quote',
+          is_authenticated: false,
+        });
+      });
+    });
+
+    it('tracks RAMPS_ORDER_FAILED with empty strings when selectedCryptoCurrency properties are undefined', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedCryptoCurrency: {
+            ...MOCK_USDC_TOKEN,
+            chainId: undefined as unknown as string,
+            assetId: undefined as unknown as string,
+            symbol: undefined as unknown as string,
+          },
+        }),
+      );
+      mockGetQuote.mockRejectedValue(new Error('Failed to fetch quote'));
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_FAILED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 0,
+          amount_destination: 0,
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: MOCK_US_REGION.isoCode,
+          chain_id: '',
+          currency_destination: '',
+          currency_destination_symbol: undefined,
+          currency_destination_network: 'Unknown Network',
+          currency_source: MOCK_US_REGION.currency,
+          error_message: 'BuildQuote - Error fetching quote',
+          is_authenticated: false,
+        });
+      });
+    });
+
+    it('tracks RAMPS_ORDER_FAILED with empty string when selectedRegion isoCode is undefined', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: {
+            ...MOCK_US_REGION,
+            isoCode: undefined as unknown as string,
+          },
+        }),
+      );
+      mockGetQuote.mockRejectedValue(new Error('Failed to fetch quote'));
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_FAILED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 0,
+          amount_destination: 0,
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: '',
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
+          currency_source: MOCK_US_REGION.currency,
+          error_message: 'BuildQuote - Error fetching quote',
+          is_authenticated: false,
+        });
+      });
+    });
+
+    it('tracks RAMPS_ORDER_FAILED with empty string when selectedRegion currency is undefined', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: {
+            ...MOCK_US_REGION,
+            currency: undefined as unknown as string,
+          },
+        }),
+      );
+      mockGetQuote.mockRejectedValue(new Error('Failed to fetch quote'));
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_FAILED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 0,
+          amount_destination: 0,
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: MOCK_US_REGION.isoCode,
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
+          currency_source: '',
+          error_message: 'BuildQuote - Error fetching quote',
+          is_authenticated: false,
+        });
+      });
+    });
+
+    it('tracks RAMPS_ORDER_FAILED with empty string when selectedCryptoCurrency chainId is undefined', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedCryptoCurrency: {
+            ...MOCK_USDC_TOKEN,
+            chainId: undefined as unknown as string,
+          },
+        }),
+      );
+      mockGetQuote.mockRejectedValue(new Error('Failed to fetch quote'));
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_FAILED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 0,
+          amount_destination: 0,
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: MOCK_US_REGION.isoCode,
+          chain_id: '',
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Unknown Network',
+          currency_source: MOCK_US_REGION.currency,
+          error_message: 'BuildQuote - Error fetching quote',
+          is_authenticated: false,
+        });
+      });
+    });
+
+    it('tracks RAMPS_ORDER_FAILED with empty string when selectedCryptoCurrency assetId is undefined', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedCryptoCurrency: {
+            ...MOCK_USDC_TOKEN,
+            assetId: undefined as unknown as string,
+          },
+        }),
+      );
+      mockGetQuote.mockRejectedValue(new Error('Failed to fetch quote'));
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_FAILED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 0,
+          amount_destination: 0,
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: MOCK_US_REGION.isoCode,
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: '',
+          currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
+          currency_destination_network: 'Ethereum',
+          currency_source: MOCK_US_REGION.currency,
+          error_message: 'BuildQuote - Error fetching quote',
+          is_authenticated: false,
+        });
+      });
+    });
+
+    it('tracks RAMPS_ORDER_FAILED with undefined when selectedCryptoCurrency symbol is undefined', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedCryptoCurrency: {
+            ...MOCK_USDC_TOKEN,
+            symbol: undefined as unknown as string,
+          },
+        }),
+      );
+      mockGetQuote.mockRejectedValue(new Error('Failed to fetch quote'));
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_FAILED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 0,
+          amount_destination: 0,
+          payment_method_id: MOCK_CREDIT_DEBIT_CARD.id,
+          region: MOCK_US_REGION.isoCode,
+          chain_id: MOCK_USDC_TOKEN.chainId,
+          currency_destination: MOCK_USDC_TOKEN.assetId,
+          currency_destination_symbol: undefined,
+          currency_destination_network: 'Ethereum',
+          currency_source: MOCK_US_REGION.currency,
+          error_message: 'BuildQuote - Error fetching quote',
+          is_authenticated: false,
+        });
+      });
+    });
+
     it('displays error when routeAfterAuthentication throws', async () => {
       const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
 
@@ -756,6 +1939,184 @@ describe('BuildQuote Component', () => {
         });
       });
     });
+  });
+
+  describe('Empty string fallback handling', () => {
+    it('renders when selectedRegion is null', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: null,
+        }),
+      );
+
+      render(BuildQuote);
+
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('renders with null networkImageSource when selectedCryptoCurrency is null', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedCryptoCurrency: null,
+        }),
+      );
+
+      render(BuildQuote);
+
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('renders with null networkImageSource when selectedCryptoCurrency chainId is undefined', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedCryptoCurrency: {
+            ...MOCK_USDC_TOKEN,
+            chainId: undefined as unknown as string,
+          },
+        }),
+      );
+
+      render(BuildQuote);
+
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('renders with null networkImageSource when selectedCryptoCurrency chainId is empty string', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedCryptoCurrency: {
+            ...MOCK_USDC_TOKEN,
+            chainId: '',
+          },
+        }),
+      );
+
+      render(BuildQuote);
+
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('renders when selectedPaymentMethod is null', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedPaymentMethod: null,
+        }),
+      );
+
+      render(BuildQuote);
+
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('renders when all selection values are null', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: null,
+          selectedCryptoCurrency: null,
+          selectedPaymentMethod: null,
+        }),
+      );
+
+      render(BuildQuote);
+
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('does not call getQuote when selectedCryptoCurrency is null', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedCryptoCurrency: null,
+        }),
+      );
+
+      render(BuildQuote);
+
+      expect(mockGetQuote).not.toHaveBeenCalled();
+    });
+
+    it('does not call getQuote when selectedPaymentMethod is null', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedPaymentMethod: null,
+        }),
+      );
+
+      render(BuildQuote);
+
+      expect(mockGetQuote).not.toHaveBeenCalled();
+    });
+
+    it('does not call getQuote when both selectedCryptoCurrency and selectedPaymentMethod are null', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedCryptoCurrency: null,
+          selectedPaymentMethod: null,
+        }),
+      );
+
+      render(BuildQuote);
+
+      expect(mockGetQuote).not.toHaveBeenCalled();
+    });
+
+    it('does not call navigateToVerifyIdentity when selectedCryptoCurrency is null', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedCryptoCurrency: null,
+        }),
+      );
+
+      render(BuildQuote);
+
+      expect(mockNavigateToVerifyIdentity).not.toHaveBeenCalled();
+      expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
+    });
+
+    it('does not call navigateToVerifyIdentity when selectedPaymentMethod is null', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedPaymentMethod: null,
+        }),
+      );
+
+      render(BuildQuote);
+
+      expect(mockNavigateToVerifyIdentity).not.toHaveBeenCalled();
+      expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
+    });
+
+    it('does not track RAMPS_ORDER_PROPOSED when selectedCryptoCurrency is null', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedCryptoCurrency: null,
+        }),
+      );
+
+      render(BuildQuote);
+
+      expect(mockTrackEvent).not.toHaveBeenCalledWith(
+        'RAMPS_ORDER_PROPOSED',
+        expect.any(Object),
+      );
+    });
+
+    it('does not track RAMPS_ORDER_PROPOSED when selectedPaymentMethod is null', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedPaymentMethod: null,
+        }),
+      );
+
+      render(BuildQuote);
+
+      expect(mockTrackEvent).not.toHaveBeenCalledWith(
+        'RAMPS_ORDER_PROPOSED',
+        expect.any(Object),
+      );
+    });
+  });
+
+  describe('shouldRouteImmediately functionality', () => {
     it('calls handleOnPressContinue when shouldRouteImmediately is true', async () => {
       const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
 
@@ -898,6 +2259,74 @@ describe('BuildQuote Component', () => {
         expect(mockGetQuote).toHaveBeenCalled();
       });
     });
+
+    it('returns early when shouldRouteImmediately is true, isAuthenticated is true, and isFetchingUserDetails is true', async () => {
+      jest.mocked(useDepositUser).mockReturnValue({
+        ...MOCK_USE_DEPOSIT_USER_RETURN,
+        isFetching: true,
+      });
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({ isAuthenticated: true }),
+      );
+
+      mockUseRoute.mockReturnValue({
+        params: { shouldRouteImmediately: true },
+      });
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockSetParams).not.toHaveBeenCalled();
+        expect(mockGetQuote).not.toHaveBeenCalled();
+      });
+    });
+
+    it('returns early when shouldRouteImmediately is true, isAuthenticated is true, and userDetails is null', async () => {
+      jest.mocked(useDepositUser).mockReturnValue({
+        ...MOCK_USE_DEPOSIT_USER_RETURN,
+        userDetails: null,
+        isFetching: false,
+      });
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({ isAuthenticated: true }),
+      );
+
+      mockUseRoute.mockReturnValue({
+        params: { shouldRouteImmediately: true },
+      });
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockSetParams).not.toHaveBeenCalled();
+        expect(mockGetQuote).not.toHaveBeenCalled();
+      });
+    });
+
+    it('returns early when shouldRouteImmediately is true, isAuthenticated is true, isFetchingUserDetails is true, and userDetails is null', async () => {
+      jest.mocked(useDepositUser).mockReturnValue({
+        ...MOCK_USE_DEPOSIT_USER_RETURN,
+        userDetails: null,
+        isFetching: true,
+      });
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({ isAuthenticated: true }),
+      );
+
+      mockUseRoute.mockReturnValue({
+        params: { shouldRouteImmediately: true },
+      });
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockSetParams).not.toHaveBeenCalled();
+        expect(mockGetQuote).not.toHaveBeenCalled();
+      });
+    });
   });
 
   describe('Tracing functionality', () => {
@@ -908,7 +2337,7 @@ describe('BuildQuote Component', () => {
       mockTrace.mockClear();
     });
 
-    it('should call endTrace for LoadDepositExperience when component mounts', () => {
+    it('calls endTrace for LoadDepositExperience when component mounts', () => {
       const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
 
       render(BuildQuote);
@@ -995,6 +2424,70 @@ describe('BuildQuote Component', () => {
             error: 'Failed to fetch quote',
           },
         });
+      });
+    });
+
+    it('calls trace with empty string when selectedCryptoCurrency symbol is undefined', async () => {
+      const mockTrace = trace as jest.MockedFunction<typeof trace>;
+      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedCryptoCurrency: {
+            ...MOCK_USDC_TOKEN,
+            symbol: undefined as unknown as string,
+          },
+        }),
+      );
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      render(BuildQuote);
+
+      await act(async () => {
+        const continueButton = screen.getByText('Continue');
+        fireEvent.press(continueButton);
+      });
+
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: 'Deposit Continue Flow',
+        tags: {
+          amount: 0,
+          currency: '',
+          paymentMethod: MOCK_CREDIT_DEBIT_CARD.id,
+          authenticated: false,
+        },
+      });
+    });
+
+    it('calls trace with empty string when selectedPaymentMethod id is undefined', async () => {
+      const mockTrace = trace as jest.MockedFunction<typeof trace>;
+      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedPaymentMethod: {
+            ...MOCK_CREDIT_DEBIT_CARD,
+            id: undefined as unknown as string,
+          },
+        }),
+      );
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      render(BuildQuote);
+
+      await act(async () => {
+        const continueButton = screen.getByText('Continue');
+        fireEvent.press(continueButton);
+      });
+
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: 'Deposit Continue Flow',
+        tags: {
+          amount: 0,
+          currency: MOCK_USDC_TOKEN.symbol,
+          paymentMethod: '',
+          authenticated: false,
+        },
       });
     });
   });
