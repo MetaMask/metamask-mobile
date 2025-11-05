@@ -18,7 +18,13 @@ import Avatar, {
 } from '../../../component-library/components/Avatars/Avatar';
 import { Box } from '@metamask/design-system-react-native';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
-import { IconName } from '../../../component-library/components/Icons/Icon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../component-library/components/Buttons/ButtonIcon';
+import {
+  IconName,
+  IconColor,
+} from '../../../component-library/components/Icons/Icon';
 import TextComponent, {
   getFontFamily,
   TextVariant,
@@ -76,6 +82,19 @@ const createStyles = (params) => {
     tabWrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
+    },
+    headerWithBackButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: colors.background.default,
+    },
+    headerBackButton: {
+      marginRight: 12,
+    },
+    headerTitleContainer: {
+      flex: 1,
     },
     controlButtonOuterWrapper: {
       flexDirection: 'row',
@@ -200,21 +219,35 @@ const ActivityView = () => {
     }
   };
 
+  const handleBackPress = useCallback(() => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
+  }, [navigation]);
+
+  const showBackButton = params.showBackButton || false;
+
   useEffect(
     () => {
       const title = 'activity_view.title';
-      navigation.setOptions(
-        getTransactionsNavbarOptions(
-          title,
-          colors,
-          navigation,
-          selectedAddress,
-          openAccountSelector,
-        ),
-      );
+      if (!showBackButton) {
+        navigation.setOptions(
+          getTransactionsNavbarOptions(
+            title,
+            colors,
+            navigation,
+            selectedAddress,
+            openAccountSelector,
+          ),
+        );
+      } else {
+        navigation.setOptions({
+          headerShown: false,
+        });
+      }
     },
     /* eslint-disable-next-line */
-    [navigation, colors, selectedAddress, openAccountSelector],
+    [navigation, colors, selectedAddress, openAccountSelector, showBackButton],
   );
 
   // Calculate if Perps tab is currently active
@@ -265,14 +298,36 @@ const ActivityView = () => {
         twClassName="flex-1 bg-default gap-4"
         style={{ marginTop: insets.top }}
       >
-        <Box twClassName="px-4 mb-4">
-          <TextComponent
-            variant={TextVariant.HeadingLG}
-            twClassName="text-default"
+        {showBackButton ? (
+          <View
+            style={[styles.headerWithBackButton, { marginTop: insets.top }]}
           >
-            {strings('activity_view.title')}
-          </TextComponent>
-        </Box>
+            <View style={styles.headerBackButton}>
+              <ButtonIcon
+                iconName={IconName.ArrowLeft}
+                iconColor={IconColor.Default}
+                size={ButtonIconSizes.Md}
+                onPress={handleBackPress}
+                testID="activity-view-back-button"
+              />
+            </View>
+            <View style={styles.headerTitleContainer}>
+              <TextComponent variant={TextVariant.HeadingMD}>
+                {strings('transactions_view.title')}
+              </TextComponent>
+            </View>
+          </View>
+        ) : (
+          <Box twClassName="px-4 mb-4">
+            <TextComponent
+              variant={TextVariant.HeadingLG}
+              twClassName="text-default"
+            >
+              {strings('activity_view.title')}
+            </TextComponent>
+          </Box>
+        )}
+
         <TabsList
           ref={tabViewRef}
           onChangeTab={({ i }) => setActiveTabIndex(i)}

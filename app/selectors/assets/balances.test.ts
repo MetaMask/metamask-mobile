@@ -174,6 +174,11 @@ const makeState = (overrides: Record<string, unknown> = {}) => ({
           },
         },
       },
+      MultichainAssetsController: {
+        accountsAssets: {},
+        assetsMetadata: {},
+        allIgnoredAssets: {},
+      },
       TokensController: {
         allTokens: {
           '0x1': {
@@ -229,6 +234,11 @@ describe('assets balance and balance change selectors (mobile)', () => {
             TokenRatesController: { marketData: {} },
             MultichainAssetsRatesController: { conversionRates: {} },
             MultichainBalancesController: { balances: {} },
+            MultichainAssetsController: {
+              accountsAssets: {},
+              assetsMetadata: {},
+              allIgnoredAssets: {},
+            },
             TokensController: {
               allTokens: {},
               allIgnoredTokens: {},
@@ -530,7 +540,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
       // Verify calculateBalanceForAllWallets was called with proper enabledNetworkMap
       expect(mockCalculateBalanceForAllWallets).toHaveBeenCalledTimes(1);
       const enabledNetworkMap =
-        mockCalculateBalanceForAllWallets.mock.calls[0][8];
+        mockCalculateBalanceForAllWallets.mock.calls[0][9];
 
       // Should include mainnet networks only
       expect(enabledNetworkMap).toEqual({

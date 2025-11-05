@@ -5,7 +5,7 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { Image, Pressable, ScrollView } from 'react-native';
+import { Image, Pressable, RefreshControl, ScrollView } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -24,7 +24,11 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
-import { formatVolume, formatAddress } from '../../utils/format';
+import {
+  formatVolume,
+  formatAddress,
+  estimateLineCount,
+} from '../../utils/format';
 import Engine from '../../../../../core/Engine';
 import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import {
@@ -95,8 +99,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [userSelectedTab, setUserSelectedTab] = useState<boolean>(false);
   const insets = useSafeAreaInsets();
   const [isResolvedExpanded, setIsResolvedExpanded] = useState<boolean>(false);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
-  const { marketId, entryPoint } = route.params || {};
+  const { marketId, entryPoint, title, image } = route.params || {};
   const resolvedMarketId = marketId;
   const providerId = 'polymarket';
 
@@ -105,15 +110,28 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     navigation,
   });
 
-  const { market, isFetching: isMarketFetching } = usePredictMarket({
+  const {
+    market,
+    isFetching: isMarketFetching,
+    refetch: refetchMarket,
+  } = usePredictMarket({
     id: resolvedMarketId,
     providerId,
     enabled: Boolean(resolvedMarketId),
   });
 
+  const titleLineCount = useMemo(
+    () => estimateLineCount(title ?? market?.title),
+    [title, market?.title],
+  );
+
   const claimable = market?.status === PredictMarketStatus.CLOSED;
 
-  const { positions, isLoading: isPositionsLoading } = usePredictPositions({
+  const {
+    positions,
+    isLoading: isPositionsLoading,
+    loadPositions,
+  } = usePredictPositions({
     marketId: resolvedMarketId,
     claimable: claimable && !isMarketFetching,
   });
@@ -221,7 +239,12 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     );
 
   const selectedFidelity = DEFAULT_FIDELITY_BY_INTERVAL[selectedTimeframe];
-  const { priceHistories, isFetching, errors } = usePredictPriceHistory({
+  const {
+    priceHistories,
+    isFetching: isPriceHistoryFetching,
+    errors,
+    refetch: refetchPriceHistory,
+  } = usePredictPriceHistory({
     marketIds: loadedOutcomeTokenIds,
     interval: selectedTimeframe,
     providerId,
@@ -318,6 +341,16 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     setUserSelectedTab(true);
     setActiveTab(tabIndex);
   };
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await Promise.allSettled([
+      refetchMarket(),
+      refetchPriceHistory(),
+      loadPositions({ isRefresh: true }),
+    ]);
+    setIsRefreshing(false);
+  }, [loadPositions, refetchMarket, refetchPriceHistory]);
 
   type TabKey = 'positions' | 'outcomes' | 'about';
 
@@ -431,41 +464,48 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const renderHeader = () => (
     <Box
-      twClassName="flex-row items-start gap-3"
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Start}
+      twClassName="gap-3"
       style={{ paddingTop: insets.top + 12 }}
     >
-      <Pressable
-        onPress={handleBackPress}
-        hitSlop={12}
-        accessibilityRole="button"
-        accessibilityLabel={strings('back')}
-        style={tw.style('items-center justify-center rounded-full w-10 h-10')}
-        testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
-      >
-        <Icon
-          name={IconName.ArrowLeft}
-          size={IconSize.Md}
-          color={colors.icon.default}
-        />
-      </Pressable>
-      <Box twClassName="w-12 h-12 rounded-lg bg-muted overflow-hidden">
-        {market?.image ? (
-          <Image
-            source={{ uri: market?.image }}
-            style={tw.style('w-full h-full')}
-            resizeMode="cover"
-          />
-        ) : (
-          <Box twClassName="w-full h-full bg-muted" />
-        )}
-      </Box>
-      <Box twClassName="flex-1">
-        <Text
-          variant={TextVariant.HeadingMD}
-          color={TextColor.Default}
-          style={tw.style('mb-1')}
+      <Box twClassName="flex-row items-center gap-3 px-1">
+        <Pressable
+          onPress={handleBackPress}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel={strings('back')}
+          style={tw.style('items-center justify-center rounded-full')}
+          testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
         >
-          {market?.title ||
+          <Icon
+            name={IconName.ArrowLeft}
+            size={IconSize.Lg}
+            color={colors.icon.default}
+          />
+        </Pressable>
+        <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
+          {image || market?.image ? (
+            <Image
+              source={{ uri: image || market?.image }}
+              style={tw.style('w-full h-full')}
+              resizeMode="cover"
+            />
+          ) : (
+            <Box twClassName="w-full h-full bg-muted" />
+          )}
+        </Box>
+      </Box>
+      <Box
+        twClassName="flex-1 min-h-[40px]"
+        justifyContent={
+          titleLineCount >= 2 ? undefined : BoxJustifyContent.Center
+        }
+        style={titleLineCount >= 2 ? tw.style('mt-[-5px]') : undefined}
+      >
+        <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+          {title ||
+            market?.title ||
             (isMarketFetching ? strings('predict.loading') : '')}
         </Text>
       </Box>
@@ -916,11 +956,15 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                         <Box
                           flexDirection={BoxFlexDirection.Row}
                           alignItems={BoxAlignItems.Center}
-                          twClassName="gap-2"
+                          twClassName="gap-1"
                         >
                           <Text
                             variant={TextVariant.BodyMDMedium}
-                            color={TextColor.Default}
+                            color={
+                              outcome.tokens[0].price > outcome.tokens[1].price
+                                ? TextColor.Default
+                                : TextColor.Alternative
+                            }
                           >
                             {outcome.tokens[0].price > outcome.tokens[1].price
                               ? outcome.tokens[0].title
@@ -929,6 +973,14 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                                 ? outcome.tokens[1].title
                                 : 'draw'}
                           </Text>
+                          {outcome.tokens[0].price >
+                            outcome.tokens[1].price && (
+                            <Icon
+                              name={IconName.Confirmation}
+                              size={IconSize.Md}
+                              color={TextColor.Success}
+                            />
+                          )}
                         </Box>
                       </Box>
                     </Box>
@@ -976,6 +1028,14 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         stickyHeaderIndices={[1]}
         showsVerticalScrollIndicator={false}
         style={tw.style('flex-1')}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.primary.default}
+            colors={[colors.primary.default]}
+          />
+        }
       >
         {/* Header content - scrollable */}
         <Box twClassName="px-3 gap-4">
@@ -986,7 +1046,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
               timeframes={PRICE_HISTORY_TIMEFRAMES}
               selectedTimeframe={selectedTimeframe}
               onTimeframeChange={handleTimeframeChange}
-              isLoading={isFetching}
+              isLoading={isPriceHistoryFetching}
               emptyLabel={chartEmptyLabel}
             />
           )}
