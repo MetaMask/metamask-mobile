@@ -18,7 +18,8 @@ jobs:
     name: Temp Android E2E - Build & Test
     runs-on: ${{ fromJSON('{"group":"temp-bitrise-runners"}') }}
     container:
-      image: bitriseio/ubuntu-noble-24.04-bitrise-2025-android:latest
+      image: bitriseio/ubuntu-22-android:latest
+      options: --device /dev/kvm
     env:
       GRADLE_USER_HOME: /home/admin/_work/.gradle
       ANDROID_AVD_HOME: /root/.android/avd
