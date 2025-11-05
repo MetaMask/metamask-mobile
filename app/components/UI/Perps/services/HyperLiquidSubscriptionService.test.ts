@@ -204,6 +204,42 @@ describe('HyperLiquidSubscriptionService', () => {
 
         return Promise.resolve(mockSubscription);
       }),
+      webData2: jest.fn((_params: any, callback: any) => {
+        // Simulate webData2 data with clearinghouseState (HIP-3 disabled)
+        setTimeout(() => {
+          callback({
+            clearinghouseState: {
+              assetPositions: [
+                {
+                  position: { szi: '0.1' },
+                  coin: 'BTC',
+                },
+              ],
+              marginSummary: {
+                accountValue: '10000',
+                totalMarginUsed: '500',
+              },
+              withdrawable: '9500',
+            },
+            openOrders: [
+              {
+                oid: 12345,
+                coin: 'BTC',
+                side: 'B',
+                sz: '0.5',
+                origSz: '1.0',
+                limitPx: '50000',
+                orderType: 'Limit',
+                timestamp: 1234567890000,
+                isTrigger: false,
+                reduceOnly: false,
+              },
+            ],
+            perpsAtOpenInterestCap: [],
+          });
+        }, 0);
+        return Promise.resolve(mockSubscription);
+      }),
       userFills: jest.fn((_params: any, callback: any) => {
         // Simulate order fill data
         setTimeout(() => {
@@ -727,6 +763,142 @@ describe('HyperLiquidSubscriptionService', () => {
 
       unsubscribe();
       unsubscribe2();
+    });
+
+    it('uses webData2 subscription when HIP-3 is disabled', async () => {
+      // Arrange
+      const positionCallback = jest.fn();
+      const orderCallback = jest.fn();
+      const accountCallback = jest.fn();
+      const oiCapCallback = jest.fn();
+
+      // Create service with HIP-3 disabled
+      const serviceWithoutHip3 = new HyperLiquidSubscriptionService(
+        mockClientService,
+        mockWalletService,
+        false, // hip3Enabled = false
+        [], // enabledDexs
+      );
+
+      mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+        '0x123' as Hex,
+      );
+
+      // Mock webData2 to call callback with clearinghouseState data
+      mockSubscriptionClient.webData2.mockImplementation(
+        (_addr: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              clearinghouseState: {
+                assetPositions: [
+                  {
+                    position: {
+                      coin: 'BTC',
+                      szi: '1.5',
+                      entryPx: '50000',
+                      positionValue: '75000',
+                      unrealizedPnl: '5000',
+                      returnOnEquity: '0.1',
+                      leverage: { type: 'cross', value: 10 },
+                      liquidationPx: '45000',
+                      marginUsed: '7500',
+                    },
+                  },
+                ],
+                marginSummary: {
+                  accountValue: '100000',
+                  totalMarginUsed: '7500',
+                  totalNtlPos: '75000',
+                  totalRawUsd: '100000',
+                },
+                withdrawable: '92500',
+                crossMarginSummary: {
+                  accountValue: '100000',
+                  totalMarginUsed: '7500',
+                  totalNtlPos: '75000',
+                  totalRawUsd: '100000',
+                },
+                time: Date.now(),
+              },
+              openOrders: [
+                {
+                  oid: 456,
+                  coin: 'ETH',
+                  side: 'A',
+                  sz: '2.0',
+                  origSz: '2.0',
+                  limitPx: '3000',
+                  orderType: 'Limit',
+                  timestamp: Date.now(),
+                  isTrigger: false,
+                  reduceOnly: false,
+                },
+              ],
+              perpsAtOpenInterestCap: ['BTC', 'DOGE'],
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      // Act
+      const unsubscribePositions = serviceWithoutHip3.subscribeToPositions({
+        callback: positionCallback,
+      });
+      const unsubscribeOrders = serviceWithoutHip3.subscribeToOrders({
+        callback: orderCallback,
+      });
+      const unsubscribeAccount = serviceWithoutHip3.subscribeToAccount({
+        callback: accountCallback,
+      });
+      const unsubscribeOICaps = serviceWithoutHip3.subscribeToOICaps({
+        callback: oiCapCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      // Assert
+      expect(mockSubscriptionClient.webData2).toHaveBeenCalledTimes(1);
+      expect(mockSubscriptionClient.webData2).toHaveBeenCalledWith(
+        { user: '0x123' },
+        expect.any(Function),
+      );
+      expect(mockSubscriptionClient.webData3).not.toHaveBeenCalled();
+
+      expect(positionCallback).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            coin: 'BTC',
+            size: '1.5',
+          }),
+        ]),
+      );
+
+      expect(orderCallback).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            orderId: '456',
+            symbol: 'ETH',
+          }),
+        ]),
+      );
+
+      expect(accountCallback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          totalBalance: expect.any(String),
+          marginUsed: expect.any(String),
+        }),
+      );
+
+      expect(oiCapCallback).toHaveBeenCalledWith(['BTC', 'DOGE']);
+
+      // Cleanup
+      unsubscribePositions();
+      unsubscribeOrders();
+      unsubscribeAccount();
+      unsubscribeOICaps();
     });
   });
 
