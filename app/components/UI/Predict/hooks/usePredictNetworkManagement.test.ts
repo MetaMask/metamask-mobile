@@ -150,12 +150,17 @@ describe('usePredictNetworkManagement', () => {
       expect(mockLoggerError).toHaveBeenCalledWith(networkError, {
         tags: {
           component: 'usePredictNetworkManagement',
-          action: 'add_polygon_network',
-          operation: 'network_management',
+          feature: 'Predict',
         },
-        extra: {
-          chainId: polygonChainId,
-          caipChainId: POLYGON_MAINNET_CAIP_CHAIN_ID,
+        context: {
+          name: 'usePredictNetworkManagement',
+          data: {
+            action: 'add_polygon_network',
+            method: 'ensurePolygonMainnet',
+            operation: 'network_management',
+            chainId: polygonChainId,
+            caipChainId: POLYGON_MAINNET_CAIP_CHAIN_ID,
+          },
         },
       });
     });

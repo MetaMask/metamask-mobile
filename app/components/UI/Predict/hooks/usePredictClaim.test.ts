@@ -188,11 +188,14 @@ describe('usePredictClaim', () => {
         expect.objectContaining({
           tags: {
             component: 'usePredictClaim',
-            action: 'claim_winnings',
-            operation: 'position_management',
+            feature: 'Predict',
           },
-          extra: {
-            claimContext: {
+          context: {
+            name: 'usePredictClaim',
+            data: {
+              action: 'claim_winnings',
+              method: 'claim',
+              operation: 'position_management',
               providerId: POLYMARKET_PROVIDER_ID,
             },
           },
@@ -238,11 +241,14 @@ describe('usePredictClaim', () => {
         expect.objectContaining({
           tags: {
             component: 'usePredictClaim',
-            action: 'claim_winnings',
-            operation: 'position_management',
+            feature: 'Predict',
           },
-          extra: {
-            claimContext: {
+          context: {
+            name: 'usePredictClaim',
+            data: {
+              action: 'claim_winnings',
+              method: 'claim',
+              operation: 'position_management',
               providerId: POLYMARKET_PROVIDER_ID,
             },
           },
@@ -293,11 +299,14 @@ describe('usePredictClaim', () => {
         expect.objectContaining({
           tags: {
             component: 'usePredictClaim',
-            action: 'claim_winnings',
-            operation: 'position_management',
+            feature: 'Predict',
           },
-          extra: {
-            claimContext: {
+          context: {
+            name: 'usePredictClaim',
+            data: {
+              action: 'claim_winnings',
+              method: 'claim',
+              operation: 'position_management',
               providerId: POLYMARKET_PROVIDER_ID,
             },
           },
@@ -322,11 +331,14 @@ describe('usePredictClaim', () => {
         {
           tags: {
             component: 'usePredictClaim',
-            action: 'claim_winnings',
-            operation: 'position_management',
+            feature: 'Predict',
           },
-          extra: {
-            claimContext: {
+          context: {
+            name: 'usePredictClaim',
+            data: {
+              action: 'claim_winnings',
+              method: 'claim',
+              operation: 'position_management',
               providerId: POLYMARKET_PROVIDER_ID,
             },
           },
@@ -352,11 +364,14 @@ describe('usePredictClaim', () => {
         {
           tags: {
             component: 'usePredictClaim',
-            action: 'claim_winnings',
-            operation: 'position_management',
+            feature: 'Predict',
           },
-          extra: {
-            claimContext: {
+          context: {
+            name: 'usePredictClaim',
+            data: {
+              action: 'claim_winnings',
+              method: 'claim',
+              operation: 'position_management',
               providerId: POLYMARKET_PROVIDER_ID,
             },
           },
@@ -396,11 +411,14 @@ describe('usePredictClaim', () => {
         expect.objectContaining({
           tags: {
             component: 'usePredictClaim',
-            action: 'claim_winnings',
-            operation: 'position_management',
+            feature: 'Predict',
           },
-          extra: {
-            claimContext: {
+          context: {
+            name: 'usePredictClaim',
+            data: {
+              action: 'claim_winnings',
+              method: 'claim',
+              operation: 'position_management',
               providerId: POLYMARKET_PROVIDER_ID,
             },
           },

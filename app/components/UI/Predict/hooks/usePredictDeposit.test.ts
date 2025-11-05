@@ -559,11 +559,14 @@ describe('usePredictDeposit', () => {
       expect(mockLoggerError).toHaveBeenCalledWith(mockError, {
         tags: {
           component: 'usePredictDeposit',
-          action: 'deposit_initialization',
-          operation: 'financial_operations',
+          feature: 'Predict',
         },
-        extra: {
-          depositContext: {
+        context: {
+          name: 'usePredictDeposit',
+          data: {
+            action: 'deposit_initialization',
+            method: 'deposit',
+            operation: 'financial_operations',
             providerId: 'polymarket',
           },
         },
@@ -588,11 +591,14 @@ describe('usePredictDeposit', () => {
       expect(mockLoggerError).toHaveBeenCalledWith(new Error('String error'), {
         tags: {
           component: 'usePredictDeposit',
-          action: 'deposit_initialization',
-          operation: 'financial_operations',
+          feature: 'Predict',
         },
-        extra: {
-          depositContext: {
+        context: {
+          name: 'usePredictDeposit',
+          data: {
+            action: 'deposit_initialization',
+            method: 'deposit',
+            operation: 'financial_operations',
             providerId: 'polymarket',
           },
         },
@@ -615,11 +621,14 @@ describe('usePredictDeposit', () => {
       expect(mockLoggerError).toHaveBeenCalledWith(mockError, {
         tags: {
           component: 'usePredictDeposit',
-          action: 'deposit_navigation',
-          operation: 'financial_operations',
+          feature: 'Predict',
         },
-        extra: {
-          depositContext: {
+        context: {
+          name: 'usePredictDeposit',
+          data: {
+            action: 'deposit_navigation',
+            method: 'deposit',
+            operation: 'financial_operations',
             providerId: 'polymarket',
           },
         },
@@ -643,11 +652,14 @@ describe('usePredictDeposit', () => {
         {
           tags: {
             component: 'usePredictDeposit',
-            action: 'deposit_navigation',
-            operation: 'financial_operations',
+            feature: 'Predict',
           },
-          extra: {
-            depositContext: {
+          context: {
+            name: 'usePredictDeposit',
+            data: {
+              action: 'deposit_navigation',
+              method: 'deposit',
+              operation: 'financial_operations',
               providerId: 'polymarket',
             },
           },
