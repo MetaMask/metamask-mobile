@@ -20,7 +20,7 @@ const styleSheet = (params: { theme: Theme }) => {
       width: toastWidth,
       left: marginWidth,
       bottom: 0,
-      backgroundColor: colors.background.muted,
+      backgroundColor: colors.background.section,
       borderWidth: 1,
       borderColor: colors.border.muted,
       borderRadius: 12,

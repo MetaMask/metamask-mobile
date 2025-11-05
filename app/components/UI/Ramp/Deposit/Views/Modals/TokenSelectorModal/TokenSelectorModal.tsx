@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
-import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
 
 import NetworksFilterBar from '../../../components/NetworksFilterBar';
@@ -31,11 +30,11 @@ import { useStyles } from '../../../../../../hooks/useStyles';
 import useSearchTokenResults from '../../../hooks/useSearchTokenResults';
 import { useDepositSDK } from '../../../sdk';
 
-import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../../selectors/networkController';
 import {
   createNavigationDetails,
   useParams,
 } from '../../../../../../../util/navigation/navUtils';
+import { useDepositCryptoCurrencyNetworkName } from '../../../hooks/useDepositCryptoCurrencyNetworkName';
 import { getNetworkImageSource } from '../../../../../../../util/networks';
 import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 import Routes from '../../../../../../../constants/navigation/Routes';
@@ -69,6 +68,7 @@ function TokenSelectorModal() {
 
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
+  const getNetworkName = useDepositCryptoCurrencyNetworkName();
 
   const {
     setSelectedCryptoCurrency,
@@ -85,10 +85,6 @@ function TokenSelectorModal() {
     searchString,
   });
 
-  const allNetworkConfigurations = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
-  );
-
   const handleSelectAssetIdCallback = useCallback(
     (assetId: string) => {
       const selectedToken = supportedTokens.find(
@@ -100,6 +96,8 @@ function TokenSelectorModal() {
           region: selectedRegion?.isoCode || '',
           chain_id: selectedToken.chainId,
           currency_destination: selectedToken.assetId,
+          currency_destination_symbol: selectedToken.symbol,
+          currency_destination_network: getNetworkName(selectedToken.chainId),
           currency_source: selectedRegion?.currency || '',
           is_authenticated: isAuthenticated,
         });
@@ -108,6 +106,7 @@ function TokenSelectorModal() {
       sheetRef.current?.onCloseBottomSheet();
     },
     [
+      getNetworkName,
       supportedTokens,
       trackEvent,
       selectedRegion?.isoCode,
@@ -140,7 +139,7 @@ function TokenSelectorModal() {
 
   const renderToken = useCallback(
     ({ item: token }: { item: DepositCryptoCurrency }) => {
-      const networkName = allNetworkConfigurations[token.chainId]?.name;
+      const networkName = getNetworkName(token.chainId);
       const networkImageSource = getNetworkImageSource({
         chainId: token.chainId,
       });
@@ -180,7 +179,7 @@ function TokenSelectorModal() {
       );
     },
     [
-      allNetworkConfigurations,
+      getNetworkName,
       colors.text.alternative,
       handleSelectAssetIdCallback,
       selectedCryptoCurrency?.assetId,

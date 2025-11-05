@@ -65,8 +65,8 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
   const generateSignatureMessage = useCallback(
     (address: string, nonce: string): string => {
       const now = new Date();
-      // Expiration time needs to be 30 secods
-      const expirationTime = new Date(now.getTime() + 30 * 1000);
+      // Expiration time needs to be 2 minutes
+      const expirationTime = new Date(now.getTime() + 2 * 60 * 1000);
       const chainId = token?.caipChainId?.split(':')[1] ?? '59144';
       const domain = AppConstants.MM_UNIVERSAL_LINK_HOST;
       const uri = `https://${domain}`;

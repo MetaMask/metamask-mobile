@@ -162,12 +162,6 @@ import SwapsController, {
   SwapsControllerActions,
   SwapsControllerEvents,
 } from '@metamask/swaps-controller';
-import {
-  PPOMController,
-  PPOMControllerActions,
-  PPOMControllerEvents,
-  PPOMState,
-} from '@metamask/ppom-validator';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   SnapController,
@@ -384,7 +378,6 @@ type RequiredControllers = Omit<
   Controllers,
   | 'ErrorReportingService'
   | 'MultichainRouter'
-  | 'PPOMController'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
 >;
@@ -396,7 +389,6 @@ type OptionalControllers = Pick<
   Controllers,
   | 'ErrorReportingService'
   | 'MultichainRouter'
-  | 'PPOMController'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
 >;
@@ -467,7 +459,6 @@ type GlobalActions =
   | AccountsControllerActions
   | AccountTreeControllerActions
   | PreferencesControllerActions
-  | PPOMControllerActions
   | TokenBalancesControllerActions
   | TokensControllerActions
   | TokenDetectionControllerActions
@@ -535,7 +526,6 @@ type GlobalEvents =
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
-  | PPOMControllerEvents
   | AccountsControllerEvents
   | PreferencesControllerEvents
   | TokenBalancesControllerEvents
@@ -625,7 +615,6 @@ export type Controllers = {
   PhishingController: PhishingController;
   PreferencesController: PreferencesController;
   RemoteFeatureFlagController: RemoteFeatureFlagController;
-  PPOMController: PPOMController;
   TokenBalancesController: TokenBalancesController;
   TokenListController: TokenListController;
   TokenDetectionController: TokenDetectionController;
@@ -723,7 +712,6 @@ export type EngineState = {
   PermissionController: PermissionControllerState<Permissions>;
   ApprovalController: ApprovalControllerState;
   LoggingController: LoggingControllerState;
-  PPOMController: PPOMState;
   AccountsController: AccountsControllerState;
   AccountTreeController: AccountTreeControllerState;
   SelectedNetworkController: SelectedNetworkControllerState;
@@ -843,7 +831,6 @@ export type ControllersToInitialize =
   | 'BridgeController'
   | 'BridgeStatusController'
   | 'NetworkEnablementController'
-  | 'PPOMController'
   | 'RewardsController'
   | 'RewardsDataService'
   | 'GatorPermissionsController'
@@ -920,8 +907,9 @@ export type ControllerInitRequest<
 
   /**
    * The MetaMetrics ID to use for tracking.
+   * This is always provided at runtime and should not be undefined.
    */
-  metaMetricsId?: string;
+  metaMetricsId: string;
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   /**
@@ -986,7 +974,7 @@ export interface InitModularizedControllersFunctionRequest {
   existingControllersByName?: Partial<ControllerByName>;
   getGlobalChainId: () => Hex;
   getState: () => RootState;
-  metaMetricsId?: string;
+  metaMetricsId: string;
   initialKeyringState?: KeyringControllerState | null;
   qrKeyringScanner: QrKeyringDeferredPromiseBridge;
   codefiTokenApiV2: CodefiTokenPricesServiceV2;

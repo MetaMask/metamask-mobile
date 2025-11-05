@@ -86,7 +86,7 @@ const UNLOCKED_REWARDS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
 
 // Opt-in status stale threshold for not opted-in accounts to force a fresh check
-const NOT_OPTED_IN_OIS_STALE_CACHE_THRESHOLD_MS = 1000 * 60 * 60 * 24; // 24 hours
+const NOT_OPTED_IN_OIS_STALE_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 1 hour
 
 /**
  * State metadata for the RewardsController
@@ -669,18 +669,36 @@ export class RewardsController extends BaseController<
         const sortedAccounts = sortAccounts(accounts);
 
         // Try silent auth on each account until one succeeds
+        let successAccount: InternalAccount | null = null;
         for (const account of sortedAccounts) {
           try {
             const subscriptionId = await this.performSilentAuth(
               account,
-              true,
+              false,
               true,
             );
-            if (subscriptionId) {
-              break; // Stop on first success
+            if (subscriptionId && !successAccount) {
+              successAccount = account;
             }
           } catch {
             // Continue to next account
+          }
+        }
+
+        // Set the active account to the first successful account or the first account in the sorted accounts array
+        const activeAccountCandidate: InternalAccount =
+          successAccount || sortedAccounts[0];
+        if (activeAccountCandidate) {
+          const caipAccount = this.convertInternalAccountToCaipAccountId(
+            activeAccountCandidate,
+          );
+          if (caipAccount) {
+            const accountState = this.#getAccountState(caipAccount);
+            if (accountState) {
+              this.update((state: RewardsControllerState) => {
+                state.activeAccount = accountState;
+              });
+            }
           }
         }
       }
@@ -842,7 +860,7 @@ export class RewardsController extends BaseController<
         });
 
         // Check if the account has not opted in (result is false)
-        if (optInStatusResult.ois && optInStatusResult.ois[0] === false) {
+        if (optInStatusResult.ois?.[0] === false) {
           Logger.log(
             'RewardsController: Account has not opted in, skipping silent auth',
             internalAccount.address,
@@ -1010,15 +1028,15 @@ export class RewardsController extends BaseController<
 
     // Check if we have a cached discount and if threshold hasn't been reached
     if (
-      accountState &&
-      accountState.perpsFeeDiscount !== null &&
-      accountState.lastPerpsDiscountRateFetched !== null &&
+      accountState?.perpsFeeDiscount !== null &&
+      accountState?.lastPerpsDiscountRateFetched !== null &&
+      accountState?.lastPerpsDiscountRateFetched &&
       Date.now() - accountState.lastPerpsDiscountRateFetched <
         PERPS_DISCOUNT_CACHE_THRESHOLD_MS
     ) {
       return {
-        hasOptedIn: !!accountState.hasOptedIn,
-        discountBips: accountState.perpsFeeDiscount,
+        hasOptedIn: !!accountState?.hasOptedIn,
+        discountBips: accountState?.perpsFeeDiscount,
       };
     }
 
@@ -1033,14 +1051,15 @@ export class RewardsController extends BaseController<
       );
 
       // Make sure all account caip indexes are stored the same way
-      const coercedAccount =
-        account?.startsWith('eip155') && !account?.startsWith('eip155:0')
-          ? (`eip155:0:${account
-              .split(':')[2]
-              ?.toLowerCase()}` as CaipAccountId)
-          : account?.startsWith('eip155')
-            ? (account.toLowerCase() as CaipAccountId)
-            : (account as CaipAccountId);
+      let coercedAccount: CaipAccountId;
+      if (account?.startsWith('eip155') && !account?.startsWith('eip155:0')) {
+        coercedAccount =
+          `eip155:0:${account.split(':')[2]?.toLowerCase()}` as CaipAccountId;
+      } else if (account?.startsWith('eip155')) {
+        coercedAccount = account.toLowerCase() as CaipAccountId;
+      } else {
+        coercedAccount = account as CaipAccountId;
+      }
 
       this.update((state: RewardsControllerState) => {
         // Create account state if it doesn't exist
@@ -1610,12 +1629,12 @@ export class RewardsController extends BaseController<
         )) as DiscoverSeasonsDto;
 
         // Check if the requested season is either current or next
-        const seasonInfo =
-          type === 'current'
-            ? discoverSeasons.current
-            : type === 'next'
-              ? discoverSeasons.next
-              : null;
+        let seasonInfo = null;
+        if (type === 'current') {
+          seasonInfo = discoverSeasons.current;
+        } else if (type === 'next') {
+          seasonInfo = discoverSeasons.next;
+        }
 
         // If found with valid start date, fetch metadata and populate cache
         if (seasonInfo?.startDate) {
@@ -1782,7 +1801,7 @@ export class RewardsController extends BaseController<
                 error instanceof Error ? error.message : String(error),
               );
               this.invalidateSubscriptionCache(subscriptionId);
-              this.invalidateAccountsAndSubscriptions();
+              await this.invalidateAccountsAndSubscriptions();
               throw error;
             }
           }
@@ -1804,7 +1823,7 @@ export class RewardsController extends BaseController<
     return result;
   }
 
-  invalidateAccountsAndSubscriptions() {
+  async invalidateAccountsAndSubscriptions() {
     this.update((state: RewardsControllerState) => {
       if (state.activeAccount) {
         state.activeAccount = {
@@ -1820,6 +1839,7 @@ export class RewardsController extends BaseController<
       state.accounts = {};
       state.subscriptions = {};
     });
+    await resetAllSubscriptionTokens();
     Logger.log('RewardsController: Invalidated accounts and subscriptions');
   }
 
@@ -2361,7 +2381,8 @@ export class RewardsController extends BaseController<
         if (
           subscriptionId &&
           Boolean(sessionToken?.token) &&
-          Boolean(sessionToken?.success)
+          Boolean(sessionToken?.success) &&
+          Boolean(this.state.subscriptions[subscriptionId])
         ) {
           return subscriptionId;
         }

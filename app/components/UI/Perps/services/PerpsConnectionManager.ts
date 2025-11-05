@@ -17,6 +17,7 @@ import Logger from '../../../../util/Logger';
 import { PERPS_CONSTANTS, PERFORMANCE_CONFIG } from '../constants/perpsConfig';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import { selectPerpsNetwork } from '../selectors/perpsController';
+import { selectHip3ConfigVersion } from '../selectors/featureFlags';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import type { ReconnectOptions } from '../types/perps-types';
 import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
@@ -46,6 +47,7 @@ class PerpsConnectionManagerClass {
   private unsubscribeFromStore: (() => void) | null = null;
   private previousAddress: string | undefined;
   private previousPerpsNetwork: 'mainnet' | 'testnet' | undefined;
+  private previousHip3Version: number = 0;
   private gracePeriodTimer: number | null = null;
   private isInGracePeriod = false;
   private pendingReconnectPromise: Promise<void> | null = null;
@@ -71,6 +73,7 @@ class PerpsConnectionManagerClass {
       selectSelectedInternalAccountByScope(state)('eip155:1');
     this.previousAddress = selectedEvmAccount?.address;
     this.previousPerpsNetwork = selectPerpsNetwork(state);
+    this.previousHip3Version = selectHip3ConfigVersion(state);
 
     // Subscribe to Redux store changes
     this.unsubscribeFromStore = store.subscribe(() => {
@@ -79,6 +82,7 @@ class PerpsConnectionManagerClass {
         selectSelectedInternalAccountByScope(currentState)('eip155:1');
       const currentAddress = currentEvmAccount?.address;
       const currentPerpsNetwork = selectPerpsNetwork(currentState);
+      const currentHip3Version = selectHip3ConfigVersion(currentState);
 
       const hasAccountChanged =
         this.previousAddress !== undefined &&
@@ -86,23 +90,38 @@ class PerpsConnectionManagerClass {
       const hasPerpsNetworkChanged =
         this.previousPerpsNetwork !== undefined &&
         this.previousPerpsNetwork !== currentPerpsNetwork;
+      const hasHip3Changed = this.previousHip3Version !== currentHip3Version;
 
-      // If account or network changed and we're connected, trigger reconnection
-      if ((hasAccountChanged || hasPerpsNetworkChanged) && this.isConnected) {
+      // If account, network, or HIP-3 config changed and we're connected, trigger reconnection
+      if (
+        (hasAccountChanged || hasPerpsNetworkChanged || hasHip3Changed) &&
+        this.isConnected
+      ) {
         DevLogger.log(
-          'PerpsConnectionManager: Account or network change detected',
+          hasHip3Changed
+            ? '[DEX:WHITELIST] PerpsConnectionManager: HIP-3 config version CHANGED - triggering reconnection'
+            : 'PerpsConnectionManager: State change detected',
           {
             accountChanged: hasAccountChanged,
             networkChanged: hasPerpsNetworkChanged,
+            hip3Changed: hasHip3Changed,
             previousAddress: this.previousAddress,
             currentAddress,
             previousNetwork: this.previousPerpsNetwork,
             currentNetwork: currentPerpsNetwork,
+            previousHip3Version: this.previousHip3Version,
+            currentHip3Version,
           },
         );
 
         // Immediately clear ALL cached data to prevent old account data from showing
         const streamManager = getStreamManagerInstance();
+
+        if (hasHip3Changed) {
+          DevLogger.log(
+            '[DEX:WHITELIST] PerpsConnectionManager: Clearing ALL caches due to HIP-3 config change',
+          );
+        }
 
         // Clear caches immediately - this disconnects old WebSockets and sets accountAddress to null
         streamManager.positions.clearCache();
@@ -125,6 +144,7 @@ class PerpsConnectionManagerClass {
       // Update tracked values
       this.previousAddress = currentAddress;
       this.previousPerpsNetwork = currentPerpsNetwork;
+      this.previousHip3Version = currentHip3Version;
     });
 
     DevLogger.log('PerpsConnectionManager: State monitoring set up');
@@ -139,6 +159,7 @@ class PerpsConnectionManagerClass {
       this.unsubscribeFromStore = null;
       this.previousAddress = undefined;
       this.previousPerpsNetwork = undefined;
+      this.previousHip3Version = 0;
       DevLogger.log('PerpsConnectionManager: State monitoring cleaned up');
     }
   }

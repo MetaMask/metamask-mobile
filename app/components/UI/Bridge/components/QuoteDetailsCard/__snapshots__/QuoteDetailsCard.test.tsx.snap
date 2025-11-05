@@ -570,7 +570,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                   testID="label"
                                 >
-                                  Network Fee
+                                  Network fee
                                 </Text>
                                 <TouchableOpacity
                                   accessibilityLabel="Network Fee tooltip"
@@ -867,7 +867,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                   testID="label"
                                 >
-                                  Price Impact
+                                  Price impact
                                 </Text>
                                 <TouchableOpacity
                                   accessibilityLabel="Price Impact tooltip"

@@ -108,7 +108,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
           alignItems={BoxAlignItems.Center}
           twClassName="flex-1 gap-3"
         >
-          <Box twClassName="w-12 h-12 rounded-lg bg-muted overflow-hidden">
+          <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
             {getImageUrl() ? (
               <Image
                 source={{ uri: getImageUrl() }}
@@ -132,15 +132,6 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
               >
                 {getTitle()}
               </Text>
-              {isClosed && outcomeToken && outcomeToken.price === 1 && (
-                <Text
-                  variant={TextVariant.BodyXS}
-                  color={TextColor.Success}
-                  style={tw.style('bg-success-muted px-1 py-0.5 rounded-sm')}
-                >
-                  Winner
-                </Text>
-              )}
             </Box>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               ${getVolumeDisplay()} {strings('predict.volume_abbreviated')}
@@ -148,17 +139,35 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
           </View>
           <Text>
             {isClosed && outcomeToken ? (
-              <Icon
-                name={
-                  outcomeToken.price === 1
-                    ? IconName.CheckBold
-                    : IconName.CircleX
-                }
-                size={IconSize.Md}
-                color={
-                  outcomeToken.price === 1 ? TextColor.Success : TextColor.Muted
-                }
-              />
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                twClassName="gap-1"
+              >
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  color={
+                    outcomeToken.price === 1
+                      ? TextColor.Default
+                      : TextColor.Alternative
+                  }
+                >
+                  {outcomeToken.price === 1
+                    ? strings('predict.outcome_winner')
+                    : strings('predict.outcome_loser')}
+                </Text>
+                {outcomeToken.price === 1 && (
+                  <Icon
+                    name={IconName.Confirmation}
+                    size={IconSize.Md}
+                    color={
+                      outcomeToken.price === 1
+                        ? TextColor.Success
+                        : TextColor.Muted
+                    }
+                  />
+                )}
+              </Box>
             ) : (
               <Text
                 style={tw.style('text-[20px] font-medium')}

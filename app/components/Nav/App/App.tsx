@@ -75,7 +75,6 @@ import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import CardNotification from '../../Views/CardNotification';
 import LegacyEditMultichainAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
 import { EditMultichainAccountName } from '../../Views/MultichainAccounts/sheets/EditMultichainAccountName';
-import { PPOMView } from '../../../lib/ppom/PPOMView';
 import LockScreen from '../../Views/LockScreen';
 import StorageWrapper from '../../../store/storage-wrapper';
 import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
@@ -598,6 +597,7 @@ const ImportPrivateKeyView = () => (
 
 const ImportSRPView = () => (
   <Stack.Navigator
+    mode="modal"
     screenOptions={{
       headerShown: false,
     }}
@@ -605,6 +605,14 @@ const ImportSRPView = () => (
     <Stack.Screen
       name={Routes.MULTI_SRP.IMPORT}
       component={ImportNewSecretRecoveryPhrase}
+    />
+    <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
+    <Stack.Screen
+      name={Routes.SHEET.SEEDPHRASE_MODAL}
+      component={SeedphraseModal}
+      options={{
+        cardStyle: { backgroundColor: 'transparent' },
+      }}
     />
   </Stack.Navigator>
 );
@@ -1231,7 +1239,6 @@ const App: React.FC = () => {
 
   return (
     <>
-      <PPOMView />
       <AppFlow />
       <Toast ref={toastRef} />
       <ProfilerManager />

@@ -195,6 +195,7 @@ const mockUseLimitsInitialValues: Partial<ReturnType<typeof useLimits>> = {
     feeFixedRate: 1,
     quickAmounts: [100, 500, 1000],
   },
+  isFetching: false,
   isAmountBelowMinimum: jest
     .fn()
     .mockImplementation((amount) => amount < MIN_LIMIT),
@@ -982,6 +983,9 @@ describe('BuildQuote View', () => {
       amount: VALID_AMOUNT,
       currency_source: mockUseFiatCurrenciesValues?.currentFiatCurrency?.symbol,
       currency_destination: mockUseRampSDKValues?.selectedAsset?.symbol,
+      currency_destination_symbol: mockUseRampSDKValues?.selectedAsset?.symbol,
+      currency_destination_network:
+        mockUseRampSDKValues?.selectedAsset?.network.shortName,
       payment_method_id: mockUsePaymentMethodsValues.currentPaymentMethod?.id,
       chain_id_destination: '1',
       location: 'Amount to Buy Screen',
@@ -1024,6 +1028,9 @@ describe('BuildQuote View', () => {
     expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_QUOTES_REQUESTED', {
       amount: VALID_AMOUNT,
       currency_source: mockUseRampSDKValues?.selectedAsset?.symbol,
+      currency_source_symbol: mockUseRampSDKValues?.selectedAsset?.symbol,
+      currency_source_network:
+        mockUseRampSDKValues?.selectedAsset?.network?.shortName,
       currency_destination:
         mockUseFiatCurrenciesValues?.currentFiatCurrency?.symbol,
       payment_method_id: mockUsePaymentMethodsValues.currentPaymentMethod?.id,

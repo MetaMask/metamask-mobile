@@ -22,6 +22,7 @@ export function buildControllerInitRequestMock(
     controllerMessenger: controllerMessenger as unknown as ControllerMessenger,
     getController: jest.fn(),
     getGlobalChainId: jest.fn(),
+    metaMetricsId: 'mock-meta-metrics-id',
     getState: jest.fn(),
     initMessenger: jest.fn() as unknown as void,
     qrKeyringScanner: jest.fn() as unknown as QrKeyringDeferredPromiseBridge,

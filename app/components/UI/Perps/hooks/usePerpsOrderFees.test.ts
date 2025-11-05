@@ -329,6 +329,33 @@ describe('usePerpsOrderFees', () => {
   });
 
   describe('Error handling', () => {
+    it('should handle undefined fee rates from provider', async () => {
+      mockCalculateFees.mockResolvedValue({
+        feeRate: 0.001,
+        feeAmount: 100,
+        metamaskFeeRate: undefined,
+        protocolFeeRate: undefined,
+      });
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '100000',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(result.current.metamaskFee).toBe(0);
+      expect(result.current.totalFee).toBe(0);
+      expect(result.current.metamaskFeeRate).toBeUndefined();
+      expect(result.current.protocolFeeRate).toBeUndefined();
+    });
+
     it('should fall back to default fee rate on error', async () => {
       mockCalculateFees.mockRejectedValue(new Error('Network error'));
 

@@ -47,13 +47,11 @@ describe('useFiatCurrencies', () => {
     expect(useSDKMethod).toHaveBeenCalledWith(
       'getDefaultFiatCurrency',
       'test-region-id',
-      [],
     );
 
     expect(useSDKMethod).toHaveBeenCalledWith(
       'getFiatCurrencies',
       'test-region-id',
-      ['test-payment-method-id'],
     );
   });
 
@@ -72,13 +70,11 @@ describe('useFiatCurrencies', () => {
     expect(useSDKMethod).toHaveBeenCalledWith(
       'getDefaultSellFiatCurrency',
       'test-region-id',
-      [],
     );
 
     expect(useSDKMethod).toHaveBeenCalledWith(
       'getSellFiatCurrencies',
       'test-region-id',
-      ['test-payment-method-id'],
     );
   });
 
@@ -119,6 +115,7 @@ describe('useFiatCurrencies', () => {
       queryGetFiatCurrencies: mockQueryGetFiatCurrencies,
       errorFiatCurrency: null,
       isFetchingFiatCurrency: true,
+      isFetchingFiatCurrencies: false,
       currentFiatCurrency: { id: 'test-fiat-currency-id-1' },
     });
   });
@@ -151,7 +148,8 @@ describe('useFiatCurrencies', () => {
       fiatCurrencies: null,
       queryGetFiatCurrencies: mockQueryGetFiatCurrencies,
       errorFiatCurrency: null,
-      isFetchingFiatCurrency: true,
+      isFetchingFiatCurrency: false,
+      isFetchingFiatCurrencies: true,
       currentFiatCurrency: { id: 'default-fiat-currency-id' },
     });
   });
@@ -193,6 +191,7 @@ describe('useFiatCurrencies', () => {
       queryGetFiatCurrencies: mockQueryGetFiatCurrencies,
       errorFiatCurrency: 'error-fetching-default-fiat-currency',
       isFetchingFiatCurrency: false,
+      isFetchingFiatCurrencies: false,
       currentFiatCurrency: { id: 'test-fiat-currency-id-1' },
     });
   });
@@ -226,6 +225,7 @@ describe('useFiatCurrencies', () => {
       queryGetFiatCurrencies: mockQueryGetFiatCurrencies,
       errorFiatCurrency: 'error-fetching-fiat-currencies',
       isFetchingFiatCurrency: false,
+      isFetchingFiatCurrencies: false,
       currentFiatCurrency: { id: 'default-fiat-currency-id' },
     });
   });
