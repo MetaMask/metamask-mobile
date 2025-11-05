@@ -101,11 +101,6 @@ const createStyles = (colors) =>
     loader: {
       alignSelf: 'center',
     },
-    text: {
-      fontSize: 20,
-      color: colors.text.muted,
-      ...fontStyles.normal,
-    },
     textTransactions: {
       fontSize: 20,
       color: colors.text.muted,

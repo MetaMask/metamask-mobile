@@ -14,9 +14,6 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       paddingVertical: 40,
     },
-    emptyListText: {
-      color: colors.text.muted,
-    },
     modal: {
       justifyContent: 'flex-end',
       margin: 0,

@@ -8,22 +8,12 @@ export const styleSheet = (params: { theme: Theme }) => {
     container: {
       flex: 1,
     },
-    filterTabText: {
-      color: colors.text.alternative,
-    },
     filterContainer: {
       paddingVertical: 8,
       backgroundColor: colors.background.default,
     },
     filterScrollView: {
       flexGrow: 0,
-    },
-    filterTabActive: {
-      backgroundColor: colors.background.defaultPressed,
-    },
-    transactionList: {
-      flex: 1,
-      minHeight: 1, // Prevents FlashList layout issues
     },
     tabDescription: {
       paddingHorizontal: 16,
@@ -38,48 +28,6 @@ export const styleSheet = (params: { theme: Theme }) => {
       fontSize: 16,
       fontWeight: '600' as const,
       color: colors.text.alternative,
-    },
-    transactionItem: {
-      flexDirection: 'row' as const,
-      alignItems: 'center' as const,
-      paddingVertical: 16,
-      paddingHorizontal: 16,
-      minHeight: 72, // Consistent height for FlashList
-    },
-    tokenIconContainer: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      marginRight: 12,
-      overflow: 'hidden' as const,
-      justifyContent: 'center' as const,
-      alignItems: 'center' as const,
-    },
-    transactionContent: {
-      flex: 1,
-    },
-    transactionContentCentered: {
-      flex: 1,
-      justifyContent: 'center' as const,
-    },
-    transactionTitle: {
-      fontSize: 16,
-      fontWeight: '400' as const,
-      color: colors.text.default,
-      marginBottom: 4,
-    },
-    transactionTitleCentered: {
-      fontSize: 16,
-      fontWeight: '400' as const,
-      color: colors.text.default,
-      marginBottom: 0, // No margin when centered
-    },
-    transactionSubtitle: {
-      fontSize: 14,
-      color: colors.text.alternative,
-    },
-    rightContent: {
-      alignItems: 'flex-end' as const,
     },
     profitAmount: {
       color: colors.success.default,
@@ -101,16 +49,6 @@ export const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'center' as const,
       alignItems: 'center' as const,
       paddingVertical: 40,
-    },
-    emptyText: {
-      textAlign: 'center' as const,
-      marginTop: 16,
-      color: colors.text.muted,
-    },
-    fillTag: {
-      flexDirection: 'row' as const,
-      alignItems: 'center' as const,
-      gap: 10,
     },
   };
 };

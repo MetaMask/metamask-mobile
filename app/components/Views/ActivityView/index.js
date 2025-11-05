@@ -1,4 +1,3 @@
-import { typography } from '@metamask/design-tokens';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import React, {
   useCallback,
@@ -29,7 +28,6 @@ import {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import TextComponent, {
-  getFontFamily,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -78,26 +76,9 @@ const createStyles = (params) => {
   const { theme } = params;
   const { colors } = theme;
   return StyleSheet.create({
-    wrapper: {
-      flex: 1,
-      paddingHorizontal: 16,
-    },
     tabWrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
-    },
-    headerWithBackButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      backgroundColor: colors.background.default,
-    },
-    headerBackButton: {
-      marginRight: 12,
-    },
-    headerTitleContainer: {
-      flex: 1,
     },
     controlButtonOuterWrapper: {
       flexDirection: 'row',
@@ -129,18 +110,6 @@ const createStyles = (params) => {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 4,
-    },
-    header: {
-      backgroundColor: colors.background.default,
-      flexDirection: 'row',
-      paddingHorizontal: 16,
-    },
-    title: {
-      marginTop: 20,
-      fontSize: 20,
-      color: colors.text.default,
-      ...typography.sHeadingMD,
-      fontFamily: getFontFamily(TextVariant.HeadingMD),
     },
     titleText: {
       color: colors.text.default,

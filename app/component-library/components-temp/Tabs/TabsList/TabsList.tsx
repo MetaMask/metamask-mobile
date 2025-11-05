@@ -45,7 +45,8 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
             const tabLabel = props.tabLabel || `Tab ${index + 1}`;
             const isDisabled = props.isDisabled || false;
             return {
-              key: (child as React.ReactElement).key?.toString() || `tab-${index}`,
+              key:
+                (child as React.ReactElement).key?.toString() || `tab-${index}`,
               label: tabLabel,
               content: child,
               isDisabled,
