@@ -11,7 +11,6 @@ import { TokenPrice } from 'app/components/hooks/useTokenHistoricalPrices';
 export function distributeDataPoints(dataPoints: TokenPrice[]): TokenPrice[] {
   const numDataPoints = dataPoints.length;
 
-  // If we have 100 or fewer points, return all of them
   if (numDataPoints <= 100) {
     return dataPoints;
   }
