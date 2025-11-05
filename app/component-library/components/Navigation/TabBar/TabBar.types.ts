@@ -32,7 +32,7 @@ export type IconByTabBarIconKey = {
   [key in TabBarIconKey]: IconName;
 };
 
-interface ExtendedBottomTabDescriptor extends BottomTabDescriptor {
+export interface ExtendedBottomTabDescriptor extends BottomTabDescriptor {
   options: BottomTabNavigationOptions & {
     tabBarIconKey: TabBarIconKey;
     callback: () => void;
