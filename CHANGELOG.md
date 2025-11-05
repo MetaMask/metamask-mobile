@@ -749,6 +749,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: keep error stack trace with modified lockdown option ([#19736](https://github.com/MetaMask/metamask-mobile/pull/19736))
 - fix: Replace hostname with origin in SDK connection JSON RPC pipeline ([#19542](https://github.com/MetaMask/metamask-mobile/pull/19542))
 
+## [7.57.2]
+
+### Added 
+
+- feat: Implement extra validations and alert when sending burn address in EVM transfer transactions ([#22018](https://github.com/MetaMask/metamask-mobile/pull/22018))
+- feat: Accurate opt out translations for rewards cp-7.57.2 ([#22021](https://github.com/MetaMask/metamask-mobile/pull/22021))
+
+### Fixed
+
+- fix: cp-7.58.0 formatTimeRemaining to correctly display time remaining ([#21868](https://github.com/MetaMask/metamask-mobile/pull/21868))
+- fix:  remove currency rates multichain ([#22022](https://github.com/MetaMask/metamask-mobile/pull/22022))
+
 ## [7.57.1]
 
 ### Fixed
