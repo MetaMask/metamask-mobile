@@ -99,7 +99,7 @@ class PredictDetailsScreen {
       const aboutTab = await this.aboutTab;
       await Gestures.waitAndTap(aboutTab);
     } else {
-      await AppwrightGestures.tap(this.aboutTab);
+      await AppwrightGestures.tap(await this.aboutTab);
     }
   }
 
