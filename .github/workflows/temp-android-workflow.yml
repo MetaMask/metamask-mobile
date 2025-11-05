@@ -21,6 +21,7 @@ jobs:
       image: bitriseio/ubuntu-noble-24.04-bitrise-2025-android:latest
     env:
       GRADLE_USER_HOME: /home/admin/_work/.gradle
+      ANDROID_AVD_HOME: /root/.android/avd
       CACHE_GENERATION: v1
       METAMASK_ENVIRONMENT: qa
       METAMASK_BUILD_TYPE: main
@@ -59,6 +60,32 @@ jobs:
           ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --list_installed || true
           echo ""
           echo "✅ Android SDK ready"
+
+      - name: Create Android Virtual Device (AVD)
+        run: |
+          echo "📱 Creating Android Virtual Device for Detox..."
+          
+          # Create AVD directory
+          mkdir -p "$ANDROID_AVD_HOME"
+          
+          # Create AVD with the name 'emulator' (what Detox expects)
+          IMAGE="system-images;android-34;google_apis;x86_64"
+          echo "Creating AVD 'emulator' with image: $IMAGE"
+          echo "ANDROID_AVD_HOME: $ANDROID_AVD_HOME"
+          
+          ${ANDROID_HOME}/cmdline-tools/latest/bin/avdmanager create avd \
+            --force \
+            --name "emulator" \
+            --package "$IMAGE" \
+            --device "pixel_5" \
+            --tag "google_apis" \
+            --abi "x86_64"
+          
+          echo "✅ AVD 'emulator' created successfully"
+          
+          # List available AVDs
+          echo "Available AVDs:"
+          ${ANDROID_HOME}/cmdline-tools/latest/bin/avdmanager list avd
 
       - name: Configure Android Signing Certificates
         uses: MetaMask/github-tools/.github/actions/configure-keystore@0259e8a920318b02a8860e178d79796eaa08de02
@@ -107,6 +134,14 @@ jobs:
             echo "🚀 Setting up project..."
             yarn setup:github-ci --no-build-ios
 
+      # Generate fingerprint AFTER setup but BEFORE any build modifications
+      - name: Generate current fingerprint
+        id: generate-fingerprint
+        run: |
+          FINGERPRINT=$(yarn fingerprint:generate)
+          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
+          echo "Current fingerprint: ${FINGERPRINT}"
+
       - name: Determine target paths and Artifact Names
         id: determine-target-paths
         run: |
@@ -117,8 +152,23 @@ jobs:
             echo "artifact_name=app-prod-release"
           } >> "$GITHUB_OUTPUT"
 
+      - name: Check and restore cached APKs if Fingerprint is found
+        id: apk-cache-restore
+        uses: cirruslabs/cache@v4
+        with:
+          path: |
+            ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
+            ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
+            ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.aab
+          # Include Gradle properties in key to force rebuild when properties change
+          key: android-apk-main-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            android-apk-main-${{ env.CACHE_GENERATION }}-
+            android-apk-
+
       - name: Cache Gradle dependencies
         uses: cirruslabs/cache@v4
+        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
         env:
           GRADLE_CACHE_VERSION: 1
         with:
@@ -128,6 +178,7 @@ jobs:
           key: gradle-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Build Android E2E APKs
+        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
         run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=8192"
@@ -166,6 +217,65 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
+      - name: Repack APK with JS updates using @expo/repack-app
+        if: ${{ steps.apk-cache-restore.outputs.cache-hit == 'true' }}
+        run: |
+          echo "📦 Repacking APK with updated JavaScript bundle using @expo/repack-app..."
+          # Use the optimized repack script which uses @expo/repack-app
+          yarn build:repack:android
+          echo "📦 Final APK size: $(du -h "${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk" | cut -f1)"
+        env:
+          PLATFORM: android
+          METAMASK_ENVIRONMENT: qa
+          METAMASK_BUILD_TYPE: main
+          IS_TEST: true
+          E2E: 'true'
+          IGNORE_BOXLOGS_DEVELOPMENT: true
+          GITHUB_CI: 'true'
+          CI: 'true'
+          NODE_OPTIONS: '--max-old-space-size=8192'
+          BRIDGE_USE_DEV_APIS: 'true'
+          RAMP_INTERNAL_BUILD: 'true'
+          SEEDLESS_ONBOARDING_ENABLED: 'true'
+          MM_NOTIFICATIONS_UI_ENABLED: 'true'
+          MM_SECURITY_ALERTS_API_ENABLED: 'true'
+          MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
+          FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
+          FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
+          SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+          SEGMENT_WRITE_KEY_FLASK: ${{ secrets.SEGMENT_WRITE_KEY_FLASK }}
+          SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+          SEGMENT_PROXY_URL_FLASK: ${{ secrets.SEGMENT_PROXY_URL_FLASK }}
+          SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+          SEGMENT_DELETE_API_SOURCE_ID_FLASK: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_FLASK }}
+          SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
+          SEGMENT_REGULATIONS_ENDPOINT_FLASK: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_FLASK }}
+          MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
+          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+          MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
+          FLASK_IOS_GOOGLE_CLIENT_ID_PROD: ${{ secrets.FLASK_IOS_GOOGLE_CLIENT_ID_PROD }}
+          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
+          FLASK_IOS_GOOGLE_REDIRECT_URI_PROD: ${{ secrets.FLASK_IOS_GOOGLE_REDIRECT_URI_PROD }}
+          MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
+          FLASK_ANDROID_APPLE_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_APPLE_CLIENT_ID_PROD }}
+          MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
+          FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD }}
+          MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
+          FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD }}
+          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+
+      # Cache build artifacts with the pre-build fingerprint
+      - name: Cache build artifacts
+        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
+        uses: cirruslabs/cache@v4
+        with:
+          path: |
+            ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
+            ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
+            ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.aab
+          key: android-apk-main-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       # ============================
       # TEST PHASE
@@ -185,35 +295,6 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number || '' }}
           MM_TEST_WALLET_SRP: ${{ secrets.MM_TEST_WALLET_SRP }}
           MM_SOLANA_E2E_TEST_SRP: ${{ secrets.MM_SOLANA_E2E_TEST_SRP }}
-
-      - name: Merge Detox JUnit reports
-        if: always()
-        continue-on-error: true
-        run: |
-          echo "📊 Merging Detox JUnit XML reports..."
-
-          # Install xml2js for XML parsing (lightweight, no full yarn install needed)
-          mkdir -p temp-deps && cd temp-deps
-          npm init -y > /dev/null 2>&1
-          npm install xml2js@0.6.2 --no-audit --no-fund --silent
-
-          # Copy node_modules to workspace for script usage
-          cp -r node_modules ${{ github.workspace }}/
-          cd ${{ github.workspace }}
-
-          # Run merge script
-          node .github/scripts/e2e-merge-detox-junit-reports.mjs
-
-          # Clean up temporary node_modules
-          rm -rf node_modules temp-deps
-
-      - name: Upload JUnit XML results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-e2e-temp-android-junit-results
-          path: e2e/reports/
-          retention-days: 7
 
       - name: Upload Screenshots
         if: failure()
