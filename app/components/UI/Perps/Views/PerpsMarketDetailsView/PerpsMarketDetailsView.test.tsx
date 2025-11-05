@@ -221,6 +221,7 @@ jest.mock('../../hooks/usePerpsPositionData', () => ({
     isLoadingHistory: false,
     error: null,
     refreshCandleData: mockRefreshCandleData,
+    hasHistoricalData: true,
   }),
 }));
 
@@ -1425,8 +1426,8 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Find and press the Trading View link
-      const tradingViewLink = getByText('Trading View.');
+      // Find and press the TradingView link
+      const tradingViewLink = getByText('TradingView.');
       fireEvent.press(tradingViewLink);
 
       // Verify Linking.openURL was called with correct URL
@@ -1455,8 +1456,8 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Find and press the Trading View link
-      const tradingViewLink = getByText('Trading View.');
+      // Find and press the TradingView link
+      const tradingViewLink = getByText('TradingView.');
       fireEvent.press(tradingViewLink);
 
       // Wait for the error to be logged
