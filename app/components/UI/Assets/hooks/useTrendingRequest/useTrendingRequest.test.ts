@@ -73,7 +73,6 @@ describe('useTrendingRequest', () => {
       jest.advanceTimersByTime(DEBOUNCE_WAIT);
     });
 
-    spyGetTrendingTokens.mockClear();
     expect(spyGetTrendingTokens).not.toHaveBeenCalled();
   });
 
