@@ -251,7 +251,8 @@ export function usePerpsCloseAllCalculations({
           isComponentMountedRef.current
         ) {
           setHasCalculationError(true);
-          setFeeDiscountBips(0);
+          // Note: Don't set feeDiscountBips here - would create infinite loop since it's in deps
+          // The fetchFeeDiscount effect is solely responsible for managing feeDiscountBips state
         }
         return;
       }
@@ -451,11 +452,11 @@ export function usePerpsCloseAllCalculations({
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [positions, selectedAddress, currentChainId, feeDiscountBips]);
-  // Dependencies trigger freeze reset (line 173), allowing exactly one recalculation per change:
+  // Dependencies trigger freeze reset, allowing exactly one recalculation per change:
   // - positions: Recalculate when user opens/closes positions
   // - selectedAddress/currentChainId: Recalculate on account switch
   // - feeDiscountBips: Recalculate when discount arrives from async fetch (happens once)
-  // Price updates (priceDataRef) do NOT trigger recalculation due to freeze mechanism (line 177)
+  // Price updates (priceDataRef) do NOT trigger recalculation due to freeze mechanism
 
   // Cleanup effect to prevent state updates after component unmounts
   useEffect(
@@ -487,7 +488,7 @@ export function usePerpsCloseAllCalculations({
     );
 
     // Batch API returns aggregated total for ALL positions (not per-position)
-    // All positions share the same batchPoints object (see line 390), so use first result directly
+    // All positions share the same batchPoints object, so use first result directly
     // Summing would incorrectly multiply by number of positions (e.g., 300 points × 3 positions = 900)
     const totalEstimatedPoints =
       perPositionResults.length > 0
