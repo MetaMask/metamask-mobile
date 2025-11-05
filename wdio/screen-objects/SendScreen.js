@@ -79,6 +79,7 @@ class SendScreen {
   get addAddressButton() {
     return Selectors.getElementByPlatform(ADD_ADDRESS_BUTTON);
   }
+  
 
   get searchTokenField() {
     return AppwrightSelectors.getElementByCatchAll(this._device, 'Search tokens and NFTs');

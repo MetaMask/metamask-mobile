@@ -711,9 +711,11 @@ describe('AssetOverview', () => {
       { state: mockInitialState },
     );
 
+    // Act
     const receiveButton = getByTestId('token-receive-button');
     fireEvent.press(receiveButton);
 
+    // Assert - Should navigate to ShareAddressQR
     expect(navigate).toHaveBeenCalledTimes(1);
     expect(navigate).toHaveBeenNthCalledWith(
       1,

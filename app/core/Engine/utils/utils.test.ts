@@ -75,6 +75,18 @@ describe('initModularizedControllers', () => {
         CaveatSpecificationConstraint
       >,
     });
+    mockPredictControllerInit.mockReturnValue({
+      controller: {} as unknown as PredictController,
+    });
+    mockGatorPermissionsControllerInit.mockReturnValue({
+      controller: {} as unknown as GatorPermissionsController,
+    });
+    mockSubjectMetadataControllerInit.mockReturnValue({
+      controller: {} as unknown as SubjectMetadataController,
+    });
+    mockPreferencesControllerInit.mockReturnValue({
+      controller: {} as unknown as PreferencesController,
+    });
   });
 
   it('initializes controllers', () => {

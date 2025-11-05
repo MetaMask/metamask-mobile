@@ -4311,6 +4311,105 @@ describe('RewardsController', () => {
         'RewardsController: Failed to get referral details:',
         '404',
       );
+      expect(result).toBe('sub-789');
+    });
+
+    it('should handle storeSubscriptionToken errors gracefully without throwing', async () => {
+      // Arrange
+      const mockOptinResponse = {
+        sessionId: 'session-456',
+        subscription: {
+          id: 'sub-789',
+          referralCode: 'REF123',
+          accounts: [],
+        },
+      };
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature123');
+        } else if (method === 'RewardsDataService:mobileOptin') {
+          return Promise.resolve(mockOptinResponse);
+        }
+        return Promise.resolve({
+          id: 'challenge-123',
+          message: 'test challenge message',
+        });
+      });
+
+      const mockError = new Error('Token storage failed');
+      mockStoreSubscriptionToken.mockRejectedValue(mockError);
+
+      // Act
+      const result = await controller.optIn(mockEvmInternalAccount);
+
+      // Assert
+      expect(mockStoreSubscriptionToken).toHaveBeenCalledWith(
+        'sub-789',
+        'session-456',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to store subscription token:',
+        mockError,
+      );
+      // Should still complete successfully and return subscription id
+      expect(result).toBe('sub-789');
+    });
+
+    it('should not store subscription token when optin response lacks subscription id', async () => {
+      // Arrange
+      const mockOptinResponse = {
+        sessionId: 'session-456',
+        subscription: {
+          // Missing id
+          referralCode: 'REF123',
+          accounts: [],
+        },
+      } as any; // Type assertion to allow incomplete response for testing
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature123');
+        } else if (method === 'RewardsDataService:mobileOptin') {
+          return Promise.resolve(mockOptinResponse);
+        }
+        return Promise.resolve();
+      });
+
+      // Act
+      const result = await controller.optIn(mockEvmInternalAccount);
+
+      // Assert
+      expect(mockStoreSubscriptionToken).not.toHaveBeenCalled();
+      expect(result).toBeUndefined();
+    });
+
+    it('should not store subscription token when optin response lacks session id', async () => {
+      // Arrange
+      const mockOptinResponse = {
+        // Missing sessionId
+        subscription: {
+          id: 'sub-789',
+          referralCode: 'REF123',
+          accounts: [],
+        },
+      } as any; // Type assertion to allow incomplete response for testing
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature123');
+        } else if (method === 'RewardsDataService:mobileOptin') {
+          return Promise.resolve(mockOptinResponse);
+        }
+        return Promise.resolve();
+      });
+
+      // Act
+      const result = await controller.optIn(mockEvmInternalAccount);
+
+      // Assert
+      expect(mockStoreSubscriptionToken).not.toHaveBeenCalled();
+      expect(result).toBe('sub-789');
     });
   });
 
@@ -6872,6 +6971,7 @@ describe('RewardsController', () => {
   describe('optOut', () => {
     beforeEach(() => {
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
+      jest.clearAllMocks();
     });
 
     it('should return false when subscription ID is not found', async () => {

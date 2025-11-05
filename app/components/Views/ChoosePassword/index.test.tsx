@@ -1711,6 +1711,87 @@ describe('ChoosePassword', () => {
         expect(submitButton.props.disabled).toBe(true);
       });
     });
+
+    describe('iOS OAuth Description Text', () => {
+      it('should show iOS-specific description for OAuth login success on iOS', async () => {
+        const originalPlatform = Platform.OS;
+        Object.defineProperty(Platform, 'OS', { writable: true, value: 'ios' });
+
+        const props: ChoosePasswordProps = {
+          ...defaultProps,
+          route: {
+            ...defaultProps.route,
+            params: {
+              ...defaultProps.route.params,
+              [PREVIOUS_SCREEN]: ONBOARDING,
+              oauthLoginSuccess: true,
+            },
+          },
+        };
+
+        const component = renderWithProviders(<ChoosePassword {...props} />);
+
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        // Should show iOS-specific description
+        expect(() =>
+          component.getByText(
+            /Use this for wallet recovery on all devices\. MetaMask can't reset it\./,
+          ),
+        ).not.toThrow();
+
+        Object.defineProperty(Platform, 'OS', {
+          writable: true,
+          value: originalPlatform,
+        });
+      });
+
+      it('should show Android-specific description for OAuth login success on Android', async () => {
+        const originalPlatform = Platform.OS;
+        Object.defineProperty(Platform, 'OS', {
+          writable: true,
+          value: 'android',
+        });
+
+        const props: ChoosePasswordProps = {
+          ...defaultProps,
+          route: {
+            ...defaultProps.route,
+            params: {
+              ...defaultProps.route.params,
+              [PREVIOUS_SCREEN]: ONBOARDING,
+              oauthLoginSuccess: true,
+            },
+          },
+        };
+
+        const component = renderWithProviders(<ChoosePassword {...props} />);
+
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        // Should show Android-specific description
+        expect(
+          component.getAllByText(/If you lose this password/),
+        ).toHaveLength(1);
+        expect(component.getAllByText(/Store it somewhere safe/)).toHaveLength(
+          1,
+        );
+
+        // Should show Android-specific bold text
+        expect(component.getAllByText(/MetaMask can't reset it/)).toHaveLength(
+          1,
+        );
+
+        Object.defineProperty(Platform, 'OS', {
+          writable: true,
+          value: originalPlatform,
+        });
+      });
+    });
   });
 
   describe('OAuth Login Description Text', () => {

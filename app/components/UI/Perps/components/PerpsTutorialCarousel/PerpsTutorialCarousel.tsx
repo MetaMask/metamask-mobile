@@ -174,6 +174,9 @@ const PerpsTutorialCarousel: React.FC = () => {
 
   const { styles } = useStyles(createStyles, {
     shouldShowSkipButton,
+    titleFontSize,
+    descriptionFontSize,
+    subtitleFontSize,
   });
 
   const PerpsOnboardingAnimation = useMemo(

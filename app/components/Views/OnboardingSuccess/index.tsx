@@ -191,12 +191,19 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
             <View style={styles.descriptionWrapper}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {isSocialLogin
-                  ? strings(
-                      'onboarding_success.import_description_social_login',
-                      {
-                        authConnection: capitalize(authConnection) || '',
-                      },
-                    )
+                  ? Platform.OS === 'ios'
+                    ? strings(
+                        'onboarding_success.import_description_social_login_ios',
+                        {
+                          authConnection: capitalize(authConnection) || '',
+                        },
+                      )
+                    : strings(
+                        'onboarding_success.import_description_social_login',
+                        {
+                          authConnection: capitalize(authConnection) || '',
+                        },
+                      )
                   : strings('onboarding_success.import_description')}
               </Text>
               {isSocialLogin ? (
@@ -204,9 +211,13 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
                   variant={TextVariant.BodyMD}
                   color={TextColor.Alternative}
                 >
-                  {strings(
-                    'onboarding_success.import_description_social_login_2',
-                  )}
+                  {Platform.OS === 'ios'
+                    ? strings(
+                        'onboarding_success.import_description_social_login_2_pin',
+                      )
+                    : strings(
+                        'onboarding_success.import_description_social_login_2',
+                      )}
                 </Text>
               ) : (
                 <Text

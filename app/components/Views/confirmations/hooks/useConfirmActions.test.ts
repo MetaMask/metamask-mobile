@@ -205,4 +205,45 @@ describe('useConfirmAction', () => {
     result?.current?.onReject(undefined, true);
     expect(goBackSpy).not.toHaveBeenCalled();
   });
+
+  it('calls updateTransaction with batchTransactions and gas properties when smart transactions are enabled', async () => {
+    jest
+      .spyOn(SmartTransactionsSelector, 'selectShouldUseSmartTransaction')
+      .mockReturnValue(true);
+
+    const mockGasFeeToken = {
+      transferTransaction: { id: 'mock-tx' },
+      gas: '0x5208',
+      maxFeePerGas: '0x10',
+      maxPriorityFeePerGas: '0x5',
+    } as unknown as ReturnType<typeof GasFeeTokenHook.useSelectedGasFeeToken>;
+    jest
+      .spyOn(GasFeeTokenHook, 'useSelectedGasFeeToken')
+      .mockReturnValue(mockGasFeeToken);
+
+    const updateTransactionSpy = jest.spyOn(
+      TransactionController,
+      'updateTransaction',
+    );
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: stakingDepositConfirmationState,
+    });
+
+    await result.current.onConfirm();
+    await flushPromises();
+
+    expect(updateTransactionSpy).toHaveBeenCalledTimes(1);
+    expect(updateTransactionSpy.mock.calls[0][0]).toMatchObject({
+      batchTransactions: [mockGasFeeToken?.transferTransaction],
+      txParams: {
+        gas: mockGasFeeToken?.gas,
+        maxFeePerGas: mockGasFeeToken?.maxFeePerGas,
+        maxPriorityFeePerGas: mockGasFeeToken?.maxPriorityFeePerGas,
+      },
+    });
+    expect(updateTransactionSpy.mock.calls[0][1]).toContain(
+      'Mobile:UseConfirmActions - batchTransactions and gas properties updated',
+    );
+  });
 });

@@ -236,6 +236,14 @@ describe('RewardsSettingsView', () => {
 
     it('renders component with proper styling', () => {
       // Act
+      const { getByTestId } = renderWithNavigation(<RewardsSettingsView />);
+
+      // Assert
+      expect(getByTestId('toast')).toBeOnTheScreen();
+    });
+
+    it('renders component with proper styling', () => {
+      // Act
       const component = renderWithNavigation(<RewardsSettingsView />);
 
       // Assert - Component should render without errors

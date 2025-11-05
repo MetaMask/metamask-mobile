@@ -1976,7 +1976,8 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               />
                                             </View>
                                           </View>
-                                          <View
+                                          <Text
+                                            accessibilityRole="text"
                                             style={
                                               {
                                                 "alignItems": "center",
@@ -2530,7 +2531,8 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               />
                                             </View>
                                           </View>
-                                          <View
+                                          <Text
+                                            accessibilityRole="text"
                                             style={
                                               {
                                                 "alignItems": "center",
@@ -3114,7 +3116,8 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               />
                                             </View>
                                           </View>
-                                          <View
+                                          <Text
+                                            accessibilityRole="text"
                                             style={
                                               {
                                                 "alignItems": "center",

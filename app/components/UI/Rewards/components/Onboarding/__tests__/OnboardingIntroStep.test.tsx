@@ -494,6 +494,12 @@ describe('OnboardingIntroStep', () => {
       ).isHardwareAccount as jest.Mock;
       mockIsHardwareAccount.mockReturnValue(false);
 
+      // Ensure hardware account check returns false so geo check is reached
+      const mockIsHardwareAccount = jest.requireMock(
+        '../../../../../../util/address',
+      ).isHardwareAccount as jest.Mock;
+      mockIsHardwareAccount.mockReturnValue(false);
+
       const mockSelectorWithGeoBlocked = jest.fn((selector) => {
         if (selector === selectSelectedAccountGroupInternalAccounts) {
           return defaultAccountGroupAccounts;
@@ -1333,6 +1339,59 @@ describe('OnboardingIntroStep', () => {
         };
         return selector(state);
       });
+
+      renderWithProviders(<OnboardingIntroStep />);
+
+      // Should render skeleton when subscription exists
+      expect(screen.queryByTestId('onboarding-intro-container')).toBeNull();
+    });
+
+    it('should render skeleton when candidateSubscriptionId is pending and no subscription exists', () => {
+      const mockSelectorWithSubscriptionId = jest.fn((selector) => {
+        const state = {
+          rewards: {
+            optinAllowedForGeo: true,
+            optinAllowedForGeoLoading: false,
+            onboardingActiveStep: 'intro',
+            candidateSubscriptionId: null,
+            rewardsControllerState: {
+              activeAccount: {
+                subscriptionId: 'existing-subscription',
+                account: 'test-account',
+                hasOptedIn: true,
+              },
+            },
+          },
+          engine: {
+            backgroundState: {
+              AccountsController: {
+                internalAccounts: {
+                  selectedAccount: 'test-account',
+                  accounts: {
+                    'test-account': {
+                      type: 'eip155:eoa',
+                    },
+                  },
+                },
+              },
+              RewardsController: {
+                activeAccount: {
+                  subscriptionId: 'existing-subscription',
+                  account: 'test-account',
+                  hasOptedIn: true,
+                },
+              },
+            },
+          },
+        };
+        return selector(state);
+      });
+
+      const mockUseSelectorWithSubscriptionId = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorWithSubscriptionId.mockImplementation(
+        mockSelectorWithSubscriptionId,
+      );
 
       renderWithProviders(<OnboardingIntroStep />);
 

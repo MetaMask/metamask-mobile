@@ -15,6 +15,10 @@ export function TotalRow() {
     return <SkeletonRow testId="total-row-skeleton" />;
   }
 
+  if (isQuotesLoading) {
+    return <SkeletonRow testId="total-row-skeleton" />;
+  }
+
   return (
     <View testID="total-row">
       <InfoRow label={strings('confirm.label.total')}>

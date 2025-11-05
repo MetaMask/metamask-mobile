@@ -1,3 +1,5 @@
+import compareVersions from 'compare-versions';
+import { getVersion } from 'react-native-device-info';
 import { TRIGGER_TYPES } from '@metamask/notification-services-controller/notification-services';
 import {
   ModalFieldType,

@@ -1123,6 +1123,7 @@ describe('usePerpsTPSLForm', () => {
         currentPrice: 50000,
         liquidationPrice: '46000',
         isVisible: true,
+        orderType: 'limit' as const,
       };
 
       const { result } = renderHook(() => usePerpsTPSLForm(params), {

@@ -552,6 +552,58 @@ export const selectBip44DefaultPair = createSelector(
   },
 );
 
+export const selectIsGaslessSwapEnabled = createSelector(
+  selectIsSwap,
+  selectBridgeFeatureFlags,
+  (_: RootState, chainId: Hex | CaipChainId) => chainId,
+  (isSwap, bridgeFeatureFlags, chainId) => {
+    const caipChainId = formatChainIdToCaip(chainId);
+    const chainConfig = bridgeFeatureFlags.chains[caipChainId];
+    return isSwap && chainConfig?.isGaslessSwapEnabled === true;
+  },
+);
+
+export const selectNoFeeAssets = createSelector(
+  selectBridgeFeatureFlags,
+  (_: RootState, chainId: Hex | CaipChainId | undefined) => chainId,
+  (bridgeFeatureFlags, chainId) => {
+    if (!chainId) {
+      return [];
+    }
+    const caipChainId = formatChainIdToCaip(chainId);
+    return bridgeFeatureFlags.chains[caipChainId]?.noFeeAssets;
+  },
+);
+
+export const selectBip44DefaultPair = createSelector(
+  selectBridgeFeatureFlags,
+  selectChainId,
+  (bridgeFeatureFlags, chainId) => {
+    const caipChainId = formatChainIdToCaip(chainId);
+    const { namespace } = parseCaipChainId(caipChainId);
+    const bip44DefaultPair =
+      bridgeFeatureFlags.bip44DefaultPairs?.[namespace]?.standard;
+
+    if (!bip44DefaultPair) {
+      return undefined;
+    }
+
+    // If 0th entry doesn't exist, error thrown and we return undefined
+    const pairs = Object.entries(bip44DefaultPair);
+    const sourceAssetId = pairs[0]?.[0];
+    const destAssetId = pairs[0]?.[1];
+    const sourceAsset =
+      Bip44TokensForDefaultPairs[sourceAssetId as CaipAssetType];
+    const destAsset = Bip44TokensForDefaultPairs[destAssetId as CaipAssetType];
+
+    if (!sourceAsset || !destAsset) {
+      return undefined;
+    }
+
+    return { sourceAsset, destAsset };
+  },
+);
+
 // Actions
 export const {
   setSourceAmount,

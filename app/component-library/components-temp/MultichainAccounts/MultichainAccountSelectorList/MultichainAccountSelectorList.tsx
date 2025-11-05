@@ -211,6 +211,37 @@ const MultichainAccountSelectorList = ({
     }
   }, [flattenedData, selectedAccountGroups, listRefToUse]);
 
+  // Track if we've done the initial scroll to selected item
+  const hasScrolledToSelected = useRef(false);
+
+  // Scroll to selected item on initial mount
+  useEffect(() => {
+    if (
+      !hasScrolledToSelected.current &&
+      listRefToUse.current &&
+      flattenedData.length > 0
+    ) {
+      const targetId = selectedAccountGroups?.[0]?.id;
+      if (targetId) {
+        const idx = flattenedData.findIndex(
+          (item) => item.type === 'cell' && item.data.id === targetId,
+        );
+        if (idx >= 0) {
+          const frameId = requestAnimationFrame(() => {
+            listRefToUse.current?.scrollToIndex({
+              index: idx,
+              animated: false,
+              viewPosition: 0.5,
+            });
+          });
+          hasScrolledToSelected.current = true;
+          return () => cancelAnimationFrame(frameId);
+        }
+      }
+      hasScrolledToSelected.current = true;
+    }
+  }, [flattenedData, selectedAccountGroups, listRefToUse]);
+
   // Reset scroll to top when search text changes
   useEffect(() => {
     if (listRefToUse.current) {

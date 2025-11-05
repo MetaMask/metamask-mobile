@@ -331,7 +331,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={14}
+              handlerTag={25}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}

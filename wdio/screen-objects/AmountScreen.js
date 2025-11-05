@@ -84,6 +84,14 @@ class AmountScreen {
       throw error;
     }
   }
+  // Helper method to split amount into digits
+  splitAmountIntoDigits(amount) {
+    // Convert to string and split into array of digits
+    return amount.toString().split('').map(char => {
+      // Return only numeric digits, filter out decimal points, commas, etc.
+      return /\d/.test(char) ? parseInt(char, 10) : char;
+    });
+  }
 
   async enterAmount(text) {
     if (!this._device) {

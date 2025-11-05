@@ -427,6 +427,49 @@ export const useRewardOptinSummary = (): useRewardOptinSummaryResult => {
     return null;
   }, [byWallet, selectedAccountGroup?.id]);
 
+  const coercedLinkedAccounts = useMemo(() => {
+    if (activeAccountSubscriptionId) {
+      const accountsForSameSubscription = linkedAccounts.filter((account) => {
+        const caipAccount = convertInternalAccountToCaipAccountId(account);
+        if (!caipAccount) {
+          return false;
+        }
+        try {
+          const actualSubscriptionId = Engine.controllerMessenger.call(
+            'RewardsController:getActualSubscriptionId',
+            caipAccount,
+          );
+          return actualSubscriptionId === activeAccountSubscriptionId;
+        } catch (error) {
+          return false;
+        }
+      });
+      return accountsForSameSubscription;
+    }
+    return linkedAccounts;
+  }, [activeAccountSubscriptionId, linkedAccounts]);
+
+  // Update user traits with the count of reward-enabled accounts
+  useEffect(() => {
+    const updateUserTraits = async () => {
+      const traits = {
+        [UserProfileProperty.REWARD_ENABLED_ACCOUNTS_COUNT]:
+          coercedLinkedAccounts.length,
+      };
+      Logger.log(
+        'Triggering update of user traits for reward-enabled accounts',
+        traits,
+      );
+      await addTraitsToUser(traits);
+    };
+
+    // Only track once per session when we have the data
+    if (!hasTrackedLinkedAccountsRef.current && !isLoading) {
+      hasTrackedLinkedAccountsRef.current = true;
+      updateUserTraits();
+    }
+  }, [coercedLinkedAccounts, addTraitsToUser, isLoading]);
+
   return {
     bySelectedAccountGroup,
     byWallet: byWallet || [],

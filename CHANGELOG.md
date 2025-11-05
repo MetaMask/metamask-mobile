@@ -2328,6 +2328,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: add logging to get more info around blocking login biometrics: ([#19274](https://github.com/MetaMask/metamask-mobile/pull/19274))
 
 ### Fixed
+
 - update solana to 2.3.6 ([#19241](https://github.com/MetaMask/metamask-mobile/pull/19241))
 - fix: stable sync secret ([#19252](https://github.com/MetaMask/metamask-mobile/pull/19252))
 
@@ -2411,7 +2412,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: redux infra for contextual chain id for send flow ([#18012](https://github.com/MetaMask/metamask-mobile/pull/18012))
 - feat: selectors for the contextual network selector ([#18042](https://github.com/MetaMask/metamask-mobile/pull/18042))
 - feat: solana websockets ([#17600](https://github.com/MetaMask/metamask-mobile/pull/17600))
-- feat: transition bridge controllers to new init pattern ([#17676](https://github.com/MetaMask/metamask-mobile/pull/17676))
 - feat: update perps trading tooltips ([#17942](https://github.com/MetaMask/metamask-mobile/pull/17942))
 - feat: use perps deposit confirmation ([#18224](https://github.com/MetaMask/metamask-mobile/pull/18224))
 - feat: wallet selector ([#17502](https://github.com/MetaMask/metamask-mobile/pull/17502))

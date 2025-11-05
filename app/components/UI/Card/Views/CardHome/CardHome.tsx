@@ -153,6 +153,14 @@ const CardHome = () => {
     return balanceFiat;
   }, [balanceFiat, mainBalance]);
 
+  const isPriorityTokenSupportedDeposit = useMemo(() => {
+    if (priorityToken?.symbol) {
+      return DEPOSIT_SUPPORTED_TOKENS.find(
+        (t) => t.toLowerCase() === priorityToken.symbol?.toLowerCase(),
+      );
+    }
+  }, [priorityToken]);
+
   const renderAddFundsBottomSheet = useCallback(
     () => (
       <AddFundsBottomSheet

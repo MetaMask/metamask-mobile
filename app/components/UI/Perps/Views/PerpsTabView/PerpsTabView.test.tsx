@@ -78,7 +78,7 @@ jest.mock('../../hooks', () => ({
   usePerpsConnection: jest.fn(),
   usePerpsTrading: jest.fn(),
   usePerpsFirstTimeUser: jest.fn(),
-  usePerpsAccount: jest.fn(),
+  usePerpsLiveAccount: jest.fn(),
   usePerpsEventTracking: jest.fn(() => ({
     track: jest.fn(),
   })),
@@ -204,7 +204,8 @@ describe('PerpsTabView', () => {
   const mockUsePerpsTrading = jest.requireMock('../../hooks').usePerpsTrading;
   const mockUsePerpsFirstTimeUser =
     jest.requireMock('../../hooks').usePerpsFirstTimeUser;
-  const mockUsePerpsAccount = jest.requireMock('../../hooks').usePerpsAccount;
+  const mockUsePerpsAccount =
+    jest.requireMock('../../hooks').usePerpsLiveAccount;
 
   const mockPosition: Position = {
     coin: 'ETH',

@@ -250,6 +250,13 @@ describe('useRewardOptinSummary', () => {
         useRewardOptinSummary(),
       );
 
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
       // Wait for the effect to complete
       await waitForNextUpdate();
 
@@ -303,6 +310,20 @@ describe('useRewardOptinSummary', () => {
         mockAccount3,
       );
 
+      // Verify that isOptInSupported was called for each account
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:isOptInSupported',
+        mockAccount1,
+      );
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:isOptInSupported',
+        mockAccount2,
+      );
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:isOptInSupported',
+        mockAccount3,
+      );
+
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:getOptInStatus',
         {
@@ -335,6 +356,13 @@ describe('useRewardOptinSummary', () => {
       const { result, waitForNextUpdate } = renderHook(() =>
         useRewardOptinSummary(),
       );
+
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
 
       await waitForNextUpdate();
 
@@ -369,6 +397,13 @@ describe('useRewardOptinSummary', () => {
       const { result, waitForNextUpdate } = renderHook(() =>
         useRewardOptinSummary(),
       );
+
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
 
       await waitForNextUpdate();
 
@@ -419,6 +454,13 @@ describe('useRewardOptinSummary', () => {
       const { result, waitForNextUpdate } = renderHook(() =>
         useRewardOptinSummary(),
       );
+
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
 
       await waitForNextUpdate();
 
@@ -643,6 +685,9 @@ describe('useRewardOptinSummary', () => {
         useRewardOptinSummary(),
       );
 
+      // Trigger fetch
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
       await waitForNextUpdate();
 
       // Assert

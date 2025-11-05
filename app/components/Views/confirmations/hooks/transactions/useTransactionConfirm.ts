@@ -28,6 +28,8 @@ import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 
 const log = createProjectLogger('transaction-confirm');
 
+const log = createProjectLogger('transaction-confirm');
+
 export function useTransactionConfirm() {
   const { onConfirm: onRequestConfirm } = useApprovalRequest();
   const dispatch = useDispatch();

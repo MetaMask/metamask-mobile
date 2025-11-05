@@ -1632,7 +1632,7 @@
       "simulate_connection_error": "Simuler une erreur de connexion"
     },
     "transactions": {
-      "title": "Perps",
+      "title": "Contrats à terme perpétuels",
       "tabs": {
         "trades": "Trades",
         "orders": "Ordres",

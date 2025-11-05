@@ -132,12 +132,17 @@ jest.mock('../../../reducers/rewards/selectors', () => ({
   selectOptinAllowedForGeo: jest.fn(),
 }));
 
+jest.mock('../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccount: jest.fn(),
+}));
+
 // Import mocked selectors for setup
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import {
   selectOnboardingActiveStep,
   selectOptinAllowedForGeo,
 } from '../../../reducers/rewards/selectors';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 
 const mockSelectRewardsSubscriptionId =
   selectRewardsSubscriptionId as jest.MockedFunction<
@@ -150,6 +155,10 @@ const mockSelectOnboardingActiveStep =
 const mockSelectOptinAllowedForGeo =
   selectOptinAllowedForGeo as jest.MockedFunction<
     typeof selectOptinAllowedForGeo
+  >;
+const mockSelectSelectedInternalAccount =
+  selectSelectedInternalAccount as jest.MockedFunction<
+    typeof selectSelectedInternalAccount
   >;
 
 // Mock hooks
@@ -203,6 +212,24 @@ describe('OnboardingNavigator', () => {
     mockSelectOnboardingActiveStep.mockReturnValue(OnboardingStep.INTRO);
     mockSelectOptinAllowedForGeo.mockReturnValue(true);
     mockUseGeoRewardsMetadata.mockReturnValue(undefined);
+    mockSelectSelectedInternalAccount.mockReturnValue({
+      address: '0x123',
+      type: 'eip155:eoa',
+      id: '',
+      options: {},
+      metadata: {
+        name: '',
+        importTime: 0,
+        keyring: {
+          type: '',
+        },
+        nameLastUpdatedAt: undefined,
+        snap: undefined,
+        lastSelected: undefined,
+      },
+      scopes: [],
+      methods: [],
+    });
   });
 
   const renderWithNavigation = (component: React.ReactElement) =>

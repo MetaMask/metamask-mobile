@@ -72,6 +72,14 @@ const QuoteDetailsCard: React.FC = () => {
     isQuoteLoading,
   });
 
+  // Use custom hook for Rive animation logic
+  const { riveRef } = useRewardsIconAnimation({
+    isRewardsLoading,
+    estimatedPoints,
+    hasRewardsError,
+    shouldShowRewardsRow,
+  });
+
   const handleSlippagePress = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SLIPPAGE_MODAL,
@@ -95,6 +103,13 @@ const QuoteDetailsCard: React.FC = () => {
   const formattedMinToTokenAmount = intlNumberFormatter.format(
     parseFloat(activeQuote?.minToTokenAmount?.amount || '0'),
   );
+
+  let formattedEstimatedPoints = '';
+  if (hasRewardsError) {
+    formattedEstimatedPoints = strings('bridge.unable_to_load');
+  } else if (estimatedPoints !== null) {
+    formattedEstimatedPoints = intlNumberFormatter.format(estimatedPoints);
+  }
 
   return (
     <Box>
