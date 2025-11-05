@@ -13,7 +13,6 @@ const env = {
   GITHUB_STEP_SUMMARY: process.env.GITHUB_STEP_SUMMARY || '',
 };
 
-// Constants
 const PR_COMMENT_FILE = 'pr_comment.md';
 
 function execCommand(command, options = {}) {
