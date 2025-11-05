@@ -85,10 +85,10 @@ test('Predict Market Details - Load Time Performance', async ({
   await performanceTracker.attachToTest(testInfo);
 
   console.log('✅ Predict Market Details Performance Test completed');
-  console.log(`📊 Modal to Market List: ${timer2.duration}ms`);
-  console.log(`📊 Market List to Details: ${timer3.duration}ms`);
-  console.log(`📊 About Tab Load: ${timer4.duration}ms`);
-  console.log(`📊 Outcomes Tab Load: ${timer5.duration}ms`);
+  console.log(`📊 Modal to Market List: ${timer2.getDuration()}ms`);
+  console.log(`📊 Market List to Details: ${timer3.getDuration()}ms`);
+  console.log(`📊 About Tab Load: ${timer4.getDuration()}ms`);
+  console.log(`📊 Outcomes Tab Load: ${timer5.getDuration()}ms`);
   console.log(
     `📊 Total Time: ${timer2.getDuration() + timer3.getDuration() + timer4.getDuration() + timer5.getDuration()}ms`,
   );
