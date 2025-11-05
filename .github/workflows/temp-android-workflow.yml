@@ -218,6 +218,27 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
+      - name: Verify APKs were built
+        run: |
+          echo "🔍 Verifying APKs exist..."
+          echo "Main APK path: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk"
+          echo "Test APK path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk"
+          echo ""
+          echo "Listing build outputs:"
+          ls -lah android/app/build/outputs/apk/prod/release/ || echo "Main APK directory not found"
+          ls -lah android/app/build/outputs/apk/androidTest/prod/release/ || echo "Test APK directory not found"
+          echo ""
+          if [ -f "${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk" ]; then
+            echo "✅ Main APK exists"
+          else
+            echo "❌ Main APK missing!"
+          fi
+          if [ -f "${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk" ]; then
+            echo "✅ Test APK exists"
+          else
+            echo "❌ Test APK missing!"
+          fi
+
       - name: Repack APK with JS updates using @expo/repack-app
         if: ${{ steps.apk-cache-restore.outputs.cache-hit == 'true' }}
         run: |
