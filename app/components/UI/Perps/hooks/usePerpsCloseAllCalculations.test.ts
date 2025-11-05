@@ -725,10 +725,12 @@ describe('usePerpsCloseAllCalculations', () => {
       });
 
       // Total fees: (270+30) + (180+20) = 500
-      // Weighted average MetaMask fee rate: (270*0.01 + 180*0.008) / 450 = 0.0092
+      // Weighted average MetaMask fee rate uses total fees as weights:
+      // (300*0.01 + 200*0.008) / 500 = 0.0092
       expect(result.current.avgMetamaskFeeRate).toBeCloseTo(0.0092, 4);
 
-      // Weighted average protocol fee rate: (30*0.001 + 20*0.0012) / 50 = 0.00108
+      // Weighted average protocol fee rate uses total fees as weights:
+      // (300*0.001 + 200*0.0012) / 500 = 0.00108
       expect(result.current.avgProtocolFeeRate).toBeCloseTo(0.00108, 5);
     });
 

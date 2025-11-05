@@ -26,8 +26,8 @@ export interface CloseAllCalculationsResult {
   totalEstimatedPoints: number;
   /** Average fee discount percentage across all positions */
   avgFeeDiscountPercentage: number;
-  /** Average bonus multiplier in basis points */
-  avgBonusBips: number;
+  /** Average bonus multiplier in basis points (undefined when unavailable) */
+  avgBonusBips: number | undefined;
   /** Average MetaMask fee rate across all positions (as decimal, e.g. 0.01 for 1%) */
   avgMetamaskFeeRate: number;
   /** Average protocol fee rate across all positions (as decimal, e.g. 0.00045 for 0.045%) */
@@ -380,7 +380,10 @@ export function usePerpsCloseAllCalculations({
         }
 
         // Step 3: Combine fee results with batch points
-        // Batch API returns aggregated points (sum) and average bonus
+        // Batch API returns ONE aggregated response for ALL positions:
+        // - pointsEstimate: Total points sum across all positions
+        // - bonusBips: Average bonus multiplier already calculated by backend
+        // All positions intentionally share the same batchPoints object reference
         const results = feeResults.map((result) => ({
           position: result.position,
           fees: result.fees,
@@ -459,7 +462,7 @@ export function usePerpsCloseAllCalculations({
         totalFees: 0,
         totalEstimatedPoints: 0,
         avgFeeDiscountPercentage: 0,
-        avgBonusBips: 0,
+        avgBonusBips: undefined,
         avgMetamaskFeeRate: 0,
         avgProtocolFeeRate: 0,
         avgOriginalMetamaskFeeRate: 0,
@@ -474,7 +477,7 @@ export function usePerpsCloseAllCalculations({
     );
 
     // Batch API returns aggregated total for ALL positions (not per-position)
-    // All positions share the same batchPoints object (see line 307), so use first result directly
+    // All positions share the same batchPoints object (see line 390), so use first result directly
     // Summing would incorrectly multiply by number of positions (e.g., 300 points × 3 positions = 900)
     const totalEstimatedPoints =
       perPositionResults.length > 0
@@ -518,18 +521,13 @@ export function usePerpsCloseAllCalculations({
     const avgFeeDiscountPercentage =
       feeDiscountBips > 0 ? feeDiscountBips / 100 : 0;
 
-    // Calculate average bonus bips (weighted by points)
-    let weightedBonusBips = 0;
-    let totalPointsWeight = 0;
-    perPositionResults.forEach((result) => {
-      const pointsWeight = result.points?.pointsEstimate ?? 0;
-      if (pointsWeight > 0 && result.points) {
-        weightedBonusBips += result.points.bonusBips * pointsWeight;
-        totalPointsWeight += pointsWeight;
-      }
-    });
+    // Batch API returns average bonusBips already calculated by backend
+    // All positions share the same batchPoints object, so use first result directly
+    // Return undefined when unavailable to allow UI to show proper loading/fallback state
     const avgBonusBips =
-      totalPointsWeight > 0 ? weightedBonusBips / totalPointsWeight : 0;
+      perPositionResults.length > 0 && perPositionResults[0].points
+        ? perPositionResults[0].points.bonusBips
+        : undefined;
 
     // Show rewards if at least one position has valid points
     const shouldShowRewards = perPositionResults.some(
