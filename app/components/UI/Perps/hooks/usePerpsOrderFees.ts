@@ -161,8 +161,7 @@ export function usePerpsOrderFees({
       // Check cache first
       const now = Date.now();
       if (
-        feeDiscountCache &&
-        feeDiscountCache.address === address &&
+        feeDiscountCache?.address === address &&
         now - feeDiscountCache.timestamp < feeDiscountCache.ttl
       ) {
         DevLogger.log('Rewards: Using cached fee discount', {
@@ -409,8 +408,7 @@ export function usePerpsOrderFees({
       try {
         const now = Date.now();
         const cacheValid =
-          pointsCalculationCache &&
-          pointsCalculationCache.address === userAddress &&
+          pointsCalculationCache?.address === userAddress &&
           now - pointsCalculationCache.timestamp < pointsCalculationCache.ttl &&
           pointsCalculationCache.basePointsPerDollar > 0 &&
           Number.isFinite(pointsCalculationCache.basePointsPerDollar);
