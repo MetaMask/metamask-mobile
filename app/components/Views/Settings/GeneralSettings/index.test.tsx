@@ -74,7 +74,6 @@ describe('updateUserTraitsWithCurrentCurrency', () => {
         .addProperties({
           [UserProfileProperty.CURRENT_CURRENCY]: mockCurrency,
           location: 'app_settings',
-          relatedFlags: [],
         })
         .build(),
     );

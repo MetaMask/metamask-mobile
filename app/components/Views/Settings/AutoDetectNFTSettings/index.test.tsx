@@ -130,7 +130,6 @@ describe('AutoDetectNFTSettings', () => {
         )
           .addProperties({
             nft_autodetection_enabled: true,
-            relatedFlags: [],
           })
           .build(),
       );
@@ -156,7 +155,6 @@ describe('AutoDetectNFTSettings', () => {
         )
           .addProperties({
             nft_autodetection_enabled: false,
-            relatedFlags: [],
           })
           .build(),
       );

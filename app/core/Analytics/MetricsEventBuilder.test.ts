@@ -24,7 +24,7 @@ describe('MetricsEventBuilder', () => {
 
   it('creates a tracking event from new ITrackingEvent type', () => {
     const event = MetricsEventBuilder.createEventBuilder(mockEvent)
-      .addProperties({ trackingProp: 'trackingValue', relatedFlags: [] })
+      .addProperties({ trackingProp: 'trackingValue' })
       .addSensitiveProperties({ sensitiveProp: 'sensitiveValue' })
       .setSaveDataRecording(false)
       .build();
@@ -51,17 +51,18 @@ describe('MetricsEventBuilder', () => {
    */
 
   it('adds properties', () => {
-    const newProps: JsonMap = { newProp: 'newValue', relatedFlags: [] };
+    const newProps: JsonMap = { newProp: 'newValue' };
 
     const event = MetricsEventBuilder.createEventBuilder(mockEvent)
       .addProperties(newProps)
       .build();
-    expect(event.properties).toEqual(newProps);
+    const expectedProps: JsonMap = { ...newProps };
+    expect(event.properties).toEqual(expectedProps);
 
     const rebuiltEvent = MetricsEventBuilder.createEventBuilder(event)
       .addProperties(newProps)
       .build();
-    expect(rebuiltEvent.properties).toEqual(newProps);
+    expect(rebuiltEvent.properties).toEqual(expectedProps);
   });
 
   it('adds sensitive properties', () => {
@@ -83,7 +84,6 @@ describe('MetricsEventBuilder', () => {
   it('compares events', () => {
     const newProps: JsonMap = {
       newProp: 'newValue',
-      relatedFlags: [],
     };
 
     const event = MetricsEventBuilder.createEventBuilder(mockLegacyEvent)
@@ -108,13 +108,13 @@ describe('MetricsEventBuilder', () => {
       .addProperties({ newProp: 'newValue' })
       .removeProperties(['newProp'])
       .build();
-    expect(event.properties).toEqual({ relatedFlags: [] });
+    expect(event.properties).toEqual({});
 
     const rebuiltEvent = MetricsEventBuilder.createEventBuilder(event)
       .addProperties({ newProp: 'newValue' })
       .removeProperties(['newProp'])
       .build();
-    expect(rebuiltEvent.properties).toEqual({ relatedFlags: [] });
+    expect(rebuiltEvent.properties).toEqual({});
   });
 
   it('removes sensitive properties', () => {
