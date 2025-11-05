@@ -2,6 +2,7 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { usePerpsPositionData } from './usePerpsPositionData';
 import Engine from '../../../../core/Engine';
 import { CandlePeriod, TimeDuration } from '../constants/chartConfig';
+import { useSelector } from 'react-redux';
 
 // Type definitions for test helpers
 interface PriceUpdate {
@@ -31,6 +32,12 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+// Mock react-redux
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
 describe('usePerpsPositionData', () => {
   const mockFetchHistoricalCandles = Engine.context.PerpsController
     .fetchHistoricalCandles as jest.Mock;
@@ -56,6 +63,9 @@ describe('usePerpsPositionData', () => {
     jest.clearAllMocks();
     mockFetchHistoricalCandles.mockResolvedValue(mockCandleData);
     mockSubscribeToPrices.mockReturnValue(jest.fn()); // Default unsubscribe function
+
+    // Mock initialization state as 'initialized' for all tests
+    (useSelector as jest.Mock).mockReturnValue('initialized');
   });
 
   afterEach(() => {
