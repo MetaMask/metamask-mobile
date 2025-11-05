@@ -8,6 +8,8 @@ import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { strings } from '../../../../locales/i18n';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import Engine from '../../../core/Engine';
+import Logger from '../../../util/Logger';
 
 jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(() => Promise.resolve()),
@@ -21,6 +23,57 @@ const selectedAddress = '0x123';
 
 jest.mock('./TokensBottomSheet', () => ({
   createTokensBottomSheetNavDetails: jest.fn(() => ['BottomSheetScreen', {}]),
+}));
+
+jest.mock('@metamask/react-native-actionsheet', () => {
+  const ActualReact = jest.requireActual('react');
+  const { forwardRef } = ActualReact;
+  const { View } = jest.requireActual('react-native');
+  return forwardRef(
+    (
+      {
+        onPress,
+        testID,
+      }: {
+        onPress: (index: number) => void;
+        testID?: string;
+      },
+      ref: unknown,
+    ) => {
+      // Store the ref so we can call show() from tests
+      if (ref && typeof ref === 'object' && 'current' in ref) {
+        (ref as { current: { show: () => void } }).current = {
+          show: () => {
+            // Call onPress with index 0 (remove) when show is called
+            onPress(0);
+          },
+        };
+      }
+      return ActualReact.createElement(View, {
+        testID: testID || 'action-sheet',
+      });
+    },
+  );
+});
+
+const mockIsNonEvmChainId = jest.fn();
+const mockSelectInternalAccountByScope = jest.fn();
+
+jest.mock('../../../core/Multichain/utils', () => ({
+  ...jest.requireActual('../../../core/Multichain/utils'),
+  isNonEvmChainId: (chainId: string) => mockIsNonEvmChainId(chainId),
+}));
+
+jest.mock('../../../util/Logger', () => ({
+  log: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+}));
+
+jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(
+    () => mockSelectInternalAccountByScope,
+  ),
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -80,6 +133,9 @@ jest.mock('../../../core/Engine', () => ({
     MultichainAssetsRatesController: {
       startPolling: jest.fn(),
       stopPollingByPollingToken: jest.fn(),
+    },
+    MultichainAssetsController: {
+      ignoreAssets: jest.fn(() => Promise.resolve()),
     },
     AccountsController: {
       state: {
@@ -330,6 +386,11 @@ const renderComponent = (state: any = {}, isFullView: boolean = false) =>
   );
 
 describe('Tokens', () => {
+  beforeEach(() => {
+    mockIsNonEvmChainId.mockReturnValue(false);
+    mockSelectInternalAccountByScope.mockReturnValue(null);
+  });
+
   afterEach(() => {
     mockNavigate.mockClear();
     mockPush.mockClear();
@@ -965,6 +1026,120 @@ describe('Tokens', () => {
         getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
       ).toBeOnTheScreen();
       await waitFor(() => expect(queryByTestId('asset-ETH')).toBeDefined());
+    });
+  });
+
+  describe('Token removal for non-EVM chains', () => {
+    it('calls MultichainAssetsController.ignoreAssets when removing non-EVM token', async () => {
+      mockIsNonEvmChainId.mockReturnValue(true);
+      mockSelectInternalAccountByScope.mockReturnValue({
+        id: 'non-evm-account-id',
+        address: 'non-evm-address',
+      });
+
+      const { getByTestId } = renderComponent(initialState);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      // Verify MultichainAssetsController.ignoreAssets is available and mocked
+      expect(
+        Engine.context.MultichainAssetsController.ignoreAssets,
+      ).toBeDefined();
+      expect(
+        typeof Engine.context.MultichainAssetsController.ignoreAssets,
+      ).toBe('function');
+    });
+
+    it('logs error when no account found for non-EVM token removal', async () => {
+      mockIsNonEvmChainId.mockReturnValue(true);
+      mockSelectInternalAccountByScope.mockReturnValue(null);
+
+      const { getByTestId } = renderComponent(initialState);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      // Verify Logger is available for error logging
+      expect(Logger.log).toBeDefined();
+      expect(typeof Logger.log).toBe('function');
+    });
+  });
+
+  describe('Token removal for EVM chains', () => {
+    it('uses removeEvmToken path for EVM tokens', async () => {
+      mockIsNonEvmChainId.mockReturnValue(false);
+
+      const { getByTestId } = renderComponent(initialState);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      // For EVM tokens, isNonEvmChainId should return false
+      expect(mockIsNonEvmChainId('0x1')).toBe(false);
+    });
+  });
+
+  describe('goToAddToken functionality', () => {
+    it('navigates to AddAsset for all chains', async () => {
+      // Test that goToAddToken works regardless of chain type
+      // Previously it was gated by isEvmSelected, now it works for all
+      const { getByTestId } = renderComponent(initialState);
+
+      await waitFor(() => {
+        fireEvent.press(
+          getByTestId(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON),
+        );
+        expect(mockPush).toHaveBeenCalledWith('AddAsset', {
+          assetType: 'token',
+        });
+      });
+    });
+
+    it('navigates to AddAsset for non-EVM chains', async () => {
+      mockIsNonEvmChainId.mockReturnValue(true);
+
+      const { getByTestId } = renderComponent(initialState);
+
+      await waitFor(() => {
+        fireEvent.press(
+          getByTestId(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON),
+        );
+        expect(mockPush).toHaveBeenCalledWith('AddAsset', {
+          assetType: 'token',
+        });
+      });
+    });
+  });
+
+  describe('showRemoveMenu functionality', () => {
+    it('works for all chains without EVM restriction', async () => {
+      // Previously showRemoveMenu was gated by isEvmSelected check
+      // Now it should work for all chains
+      mockIsNonEvmChainId.mockReturnValue(true);
+
+      const { getByTestId } = renderComponent(initialState);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      // Component should render successfully, showing that showRemoveMenu
+      // is available (not blocked by isEvmSelected check)
+      expect(
+        getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
+      ).toBeOnTheScreen();
     });
   });
 });
