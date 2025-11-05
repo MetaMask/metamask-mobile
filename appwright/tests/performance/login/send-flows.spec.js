@@ -23,7 +23,7 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   device,
   performanceTracker,
 }, testInfo) => {
-  test.setTimeout(3600000); // TODO: Investigate why this is taking so long on Android
+  test.setTimeout(1800000); // TODO: Investigate why this is taking so long on Android
   WalletAccountModal.device = device;
   WalletMainScreen.device = device;
   AccountListComponent.device = device;
