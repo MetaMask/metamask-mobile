@@ -40,11 +40,10 @@ function setGithubOutputs(key, value) {
   }
 }
 
-// function appendGithubSummary(content) {
-//   if (!env.GITHUB_STEP_SUMMARY) return;
-//   appendFileSync(env.GITHUB_STEP_SUMMARY, content + '\n');
-// }
-
+function appendGithubSummary(content) {
+  if (!env.GITHUB_STEP_SUMMARY) return;
+  appendFileSync(env.GITHUB_STEP_SUMMARY, content + '\n');
+}
 
 function generateAnalysisSummary(analysis) {
   const { tagDisplay, tagCount, riskLevel, confidence, reasoning } = analysis;
@@ -125,7 +124,7 @@ async function main() {
     setGitHubOutputs(analysis);
 
     const summaryContent = generateAnalysisSummary(analysis);
-    // appendGithubSummary('## 🔍 Smart E2E Test Selection\n' + summaryContent);
+    appendGithubSummary('## 🔍 Smart E2E Test Selection\n' + summaryContent);
     generatePRComment(summaryContent);
 
   } catch (error) {
