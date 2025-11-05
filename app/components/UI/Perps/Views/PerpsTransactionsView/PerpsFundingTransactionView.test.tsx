@@ -26,7 +26,6 @@ const mockUseNavigation = jest.fn();
 const mockUseRoute = jest.fn();
 const mockUsePerpsNetwork = jest.fn();
 const mockUsePerpsBlockExplorerUrl = jest.fn();
-const mockGetHyperliquidExplorerUrl = jest.fn();
 const mockFormatPerpsFiat = jest.fn();
 const mockFormatTransactionDate = jest.fn();
 const mockGetPerpsTransactionsDetailsNavbar = jest.fn();
@@ -54,10 +53,6 @@ jest.mock('../../hooks', () => ({
 jest.mock('../../../Navbar', () => ({
   getPerpsTransactionsDetailsNavbar: () =>
     mockGetPerpsTransactionsDetailsNavbar(),
-}));
-
-jest.mock('../../utils/blockchainUtils', () => ({
-  getHyperliquidExplorerUrl: () => mockGetHyperliquidExplorerUrl(),
 }));
 
 describe('PerpsFundingTransactionView', () => {
