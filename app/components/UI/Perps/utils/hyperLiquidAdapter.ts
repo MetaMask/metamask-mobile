@@ -83,9 +83,26 @@ export function adaptOrderToSDK(
  * Transform SDK AssetPosition to MetaMask Perps API format
  * @param assetPosition - AssetPosition data from HyperLiquid SDK
  * @returns MetaMask Perps API position object
+ * @throws Error if position data is invalid or missing required fields
  */
 export function adaptPositionFromSDK(assetPosition: AssetPosition): Position {
   const pos = assetPosition.position;
+
+  // Validate critical fields exist - fail fast with diagnostics
+  if (!pos.leverage) {
+    throw new Error(
+      `Invalid position data: missing leverage for ${pos.coin || 'unknown coin'}. ` +
+        `Raw assetPosition: ${JSON.stringify(assetPosition, null, 2)}`,
+    );
+  }
+
+  if (!pos.leverage.type || pos.leverage.value === undefined) {
+    throw new Error(
+      `Invalid leverage data for ${pos.coin}: type=${pos.leverage.type}, value=${pos.leverage.value}. ` +
+        `Raw leverage: ${JSON.stringify(pos.leverage, null, 2)}`,
+    );
+  }
+
   return {
     coin: pos.coin,
     size: pos.szi,
@@ -405,31 +422,21 @@ export function formatHyperLiquidPrice(params: {
     return priceNum.toString();
   }
 
-  // Calculate max decimal places allowed
-  const maxDecimalPlaces =
-    DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS - szDecimals;
+  // First apply max 5 significant figures using toPrecision()
+  // toPrecision() natively handles significant figures correctly
+  let formattedPrice = priceNum.toPrecision(5);
 
-  // Format with proper decimal places
-  let formattedPrice = priceNum.toFixed(maxDecimalPlaces);
-
-  // Remove trailing zeros
+  // Remove scientific notation by converting to float and back to string
   formattedPrice = parseFloat(formattedPrice).toString();
 
-  // Check significant figures (max 5)
-  const [integerPart, decimalPart = ''] = formattedPrice.split('.');
-  const significantDigits =
-    integerPart.replace(/^0+/, '').length + decimalPart.length;
+  // Then enforce max decimal places as a safety check
+  const maxDecimalPlaces =
+    DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS - szDecimals;
+  const decimalPlaces = (formattedPrice.split('.')[1] || '').length;
 
-  if (significantDigits > 5) {
-    // Need to reduce precision to maintain max 5 significant figures
-    const totalDigits = integerPart.length + decimalPart.length;
-    const digitsToRemove = totalDigits - 5;
-
-    if (digitsToRemove > 0 && decimalPart.length > 0) {
-      const newDecimalPlaces = Math.max(0, decimalPart.length - digitsToRemove);
-      formattedPrice = priceNum.toFixed(newDecimalPlaces);
-      formattedPrice = parseFloat(formattedPrice).toString();
-    }
+  if (decimalPlaces > maxDecimalPlaces) {
+    formattedPrice = parseFloat(formattedPrice).toFixed(maxDecimalPlaces);
+    formattedPrice = parseFloat(formattedPrice).toString();
   }
 
   return formattedPrice;

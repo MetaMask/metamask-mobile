@@ -134,6 +134,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
   // Asset mapping
   private coinToAssetId = new Map<string, number>();
+  // Cache meta.universe data fetched during buildAssetMapping to avoid redundant API calls
+  private cachedMetaByDex = new Map<string, MetaResponse>();
 
   // Cache for user fee rates to avoid excessive API calls
   private userFeeCache = new Map<
@@ -178,6 +180,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
   } | null = null;
   private readonly REFERRAL_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
+  // Cache for referral code ready status (referrer's state)
+  private referralCodeReadyCache: {
+    isReady: boolean;
+    checkedAt: number;
+  } | null = null;
+  private readonly REFERRAL_CODE_READY_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+
   // Error mappings from HyperLiquid API errors to standardized PERPS_ERROR_CODES
   private readonly ERROR_MAPPINGS = {
     'isolated position does not have sufficient margin available to decrease leverage':
@@ -186,6 +195,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
   // Track whether clients have been initialized (lazy initialization)
   private clientsInitialized = false;
+
+  // Track if DEX abstraction has been checked/enabled (one-time operation)
+  // Prevents rate limiting from excessive API calls to HyperLiquid
+  private dexAbstractionChecked = false;
 
   constructor(
     options: {
@@ -252,10 +265,18 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * If successful, HyperLiquid automatically manages collateral transfers for HIP-3 orders.
    * If not supported, disables the flag to trigger programmatic transfer fallback.
    *
+   * Caches result to prevent rate limiting from excessive API calls.
+   *
    * @private
    */
   private async ensureDexAbstractionEnabled(): Promise<void> {
+    // Skip if already checked/enabled - prevents rate limiting
+    if (this.dexAbstractionChecked) {
+      return;
+    }
+
     if (!this.useDexAbstraction) {
+      this.dexAbstractionChecked = true;
       return; // Feature disabled
     }
 
@@ -272,6 +293,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         DevLogger.log('HyperLiquidProvider: DEX abstraction already enabled', {
           user: userAddress,
         });
+        this.dexAbstractionChecked = true; // Mark as complete
         return;
       }
 
@@ -287,6 +309,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
       DevLogger.log(
         '✅ HyperLiquidProvider: DEX abstraction enabled successfully',
       );
+
+      this.dexAbstractionChecked = true; // Mark as complete
     } catch (error) {
       // Don't blindly disable the flag on any error
       // Network errors or unknown issues shouldn't trigger fallback to manual transfer
@@ -296,7 +320,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
           note: 'Could not enable DEX abstraction (may already be enabled or network error), will verify on first order',
         }),
       );
-      // Keep useDexAbstraction flag as-is, let placeOrder() verify actual status if needed
+      // Keep dexAbstractionChecked = false to allow retry on next operation
+      // But this should be rare (only actual errors, not rate limiting anymore)
     }
   }
 
@@ -531,17 +556,16 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
         // Validate that meta.universe exists and is an array
         if (!meta.universe || !Array.isArray(meta.universe)) {
-          DevLogger.log(
-            `HyperLiquidProvider: Skipping DEX ${
-              dex || 'main'
-            } - invalid or missing universe data`,
-            {
-              hasUniverse: !!meta.universe,
-              isArray: Array.isArray(meta.universe),
-            },
+          throw new Error(
+            `Failed to load universe data for DEX ${dex || 'main'} during asset mapping. ` +
+              `WebSocket connection may not be ready or API returned invalid data. ` +
+              `hasUniverse: ${!!meta.universe}, isArray: ${Array.isArray(meta.universe)}`,
           );
-          return;
         }
+
+        // Store validated meta data in cache for reuse by getMarkets() and placeOrder()
+        const dexKey = dex || 'main';
+        this.cachedMetaByDex.set(dexKey, meta);
 
         // Find perpDexIndex for this DEX in the perpDexs array
         // Main DEX (dex=null) is at index 0
@@ -1350,13 +1374,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // Get asset info from the correct DEX
       const infoClient = this.clientService.getInfoClient();
-      const meta = await infoClient.meta({ dex: dexName ?? '' });
+
+      // Use cached meta data from buildAssetMapping instead of making redundant API calls
+      const dexKey = dexName || 'main';
+      const meta = this.cachedMetaByDex.get(dexKey);
+      if (!meta) {
+        throw new Error(
+          `No cached meta data for DEX ${dexKey} when placing order for ${params.coin}. ` +
+            `buildAssetMapping() may not have completed yet. ` +
+            `Available DEXs: ${Array.from(this.cachedMetaByDex.keys()).join(', ')}`,
+        );
+      }
 
       if (!meta.universe || !Array.isArray(meta.universe)) {
         throw new Error(
-          `Invalid universe data for DEX ${
-            dexName || 'main'
-          } when placing order for ${params.coin}`,
+          `Invalid cached meta data for DEX ${dexKey}. ` +
+            `Universe is ${meta.universe ? 'not an array' : 'missing'}.`,
         );
       }
 
@@ -2006,9 +2039,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
     try {
       await this.ensureReady();
 
-      // Get all current positions
-      // Force fresh API data (not WebSocket cache) since we're about to mutate positions
-      const positions = await this.getPositions({ skipCache: true });
+      // Get all current positions from WebSocket cache (real-time, reliable)
+      // WebSocket subscriptions provide live updates, avoiding flaky API responses
+      const positions = await this.getPositions();
 
       // Filter positions based on params
       positionsToClose =
@@ -2226,11 +2259,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       const { coin, takeProfitPrice, stopLossPrice } = params;
 
-      // Get current position to validate it exists
-      // Force fresh API data (not WebSocket cache) since we're about to mutate the position
+      // Get current position to validate it exists using WebSocket cache (real-time, reliable)
+      // WebSocket subscriptions provide live updates, avoiding flaky API responses
       let positions: Position[];
       try {
-        positions = await this.getPositions({ skipCache: true });
+        positions = await this.getPositions();
       } catch (error) {
         Logger.error(
           ensureError(error),
@@ -2468,8 +2501,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
     try {
       DevLogger.log('Closing position:', params);
 
-      // Force fresh API data (not WebSocket cache) since we're about to mutate the position
-      const positions = await this.getPositions({ skipCache: true });
+      // Use WebSocket cache for real-time position data (more reliable than API)
+      // WebSocket subscriptions provide live updates, avoiding flaky API responses
+      const positions = await this.getPositions();
       const position = positions.find((p) => p.coin === params.coin);
 
       if (!position) {
@@ -2623,111 +2657,138 @@ export class HyperLiquidProvider implements IPerpsProvider {
       });
 
       // Combine and process positions from all DEXs
-      const allPositions = stateResults.flatMap((result) =>
-        result.data.assetPositions
+      const allPositions = stateResults.flatMap((result) => {
+        // Defensive check: Validate API response has expected structure
+        if (!result.data?.assetPositions) {
+          DevLogger.log(
+            'WARNING: Missing assetPositions in clearinghouseState response',
+            {
+              dex: result.dex,
+              hasData: !!result.data,
+              dataKeys: result.data ? Object.keys(result.data) : [],
+              rawData: result.data,
+            },
+          );
+          return [];
+        }
+
+        return result.data.assetPositions
           .filter((assetPos) => assetPos.position.szi !== '0')
           .map((assetPos) => {
-            const position = adaptPositionFromSDK(assetPos);
+            // Wrap in try-catch to capture corruption with full context
+            try {
+              const position = adaptPositionFromSDK(assetPos);
 
-            // Find TP/SL orders for this position
-            // First check direct trigger orders
-            const positionOrders = allOrders.filter(
-              (order) =>
-                order.coin === position.coin &&
-                order.isTrigger &&
-                order.reduceOnly,
-            );
-
-            // Also check for parent orders that might have TP/SL children
-            const parentOrdersWithChildren = allOrders.filter(
-              (order) =>
-                order.coin === position.coin &&
-                order.children &&
-                order.children.length > 0,
-            );
-
-            // Look for TP and SL trigger orders
-            let takeProfitPrice: string | undefined;
-            let stopLossPrice: string | undefined;
-
-            // Check direct trigger orders
-            positionOrders.forEach((order) => {
-              // Frontend orders have explicit orderType field
-              if (
-                order.orderType === 'Take Profit Market' ||
-                order.orderType === 'Take Profit Limit'
-              ) {
-                takeProfitPrice = order.triggerPx;
-                DevLogger.log(`Found TP order for ${position.coin}:`, {
-                  triggerPrice: order.triggerPx,
-                  orderId: order.oid,
-                  orderType: order.orderType,
-                  isPositionTpsl: order.isPositionTpsl,
-                });
-              } else if (
-                order.orderType === 'Stop Market' ||
-                order.orderType === 'Stop Limit'
-              ) {
-                stopLossPrice = order.triggerPx;
-                DevLogger.log(`Found SL order for ${position.coin}:`, {
-                  triggerPrice: order.triggerPx,
-                  orderId: order.oid,
-                  orderType: order.orderType,
-                  isPositionTpsl: order.isPositionTpsl,
-                });
-              }
-            });
-
-            // Check child orders (for normalTpsl grouping)
-            parentOrdersWithChildren.forEach((parentOrder) => {
-              DevLogger.log(
-                `Parent order with children for ${position.coin}:`,
-                {
-                  parentOid: parentOrder.oid,
-                  childrenCount: parentOrder.children.length,
-                },
+              // Find TP/SL orders for this position
+              // First check direct trigger orders
+              const positionOrders = allOrders.filter(
+                (order) =>
+                  order.coin === position.coin &&
+                  order.isTrigger &&
+                  order.reduceOnly,
               );
 
-              parentOrder.children.forEach((childOrder: FrontendOrder) => {
-                if (childOrder.isTrigger && childOrder.reduceOnly) {
-                  if (
-                    childOrder.orderType === 'Take Profit Market' ||
-                    childOrder.orderType === 'Take Profit Limit'
-                  ) {
-                    takeProfitPrice = childOrder.triggerPx;
-                    DevLogger.log(
-                      `Found TP child order for ${position.coin}:`,
-                      {
-                        triggerPrice: childOrder.triggerPx,
-                        orderId: childOrder.oid,
-                        orderType: childOrder.orderType,
-                      },
-                    );
-                  } else if (
-                    childOrder.orderType === 'Stop Market' ||
-                    childOrder.orderType === 'Stop Limit'
-                  ) {
-                    stopLossPrice = childOrder.triggerPx;
-                    DevLogger.log(
-                      `Found SL child order for ${position.coin}:`,
-                      {
-                        triggerPrice: childOrder.triggerPx,
-                        orderId: childOrder.oid,
-                        orderType: childOrder.orderType,
-                      },
-                    );
-                  }
+              // Also check for parent orders that might have TP/SL children
+              const parentOrdersWithChildren = allOrders.filter(
+                (order) =>
+                  order.coin === position.coin &&
+                  order.children &&
+                  order.children.length > 0,
+              );
+
+              // Look for TP and SL trigger orders
+              let takeProfitPrice: string | undefined;
+              let stopLossPrice: string | undefined;
+
+              // Check direct trigger orders
+              positionOrders.forEach((order) => {
+                // Frontend orders have explicit orderType field
+                if (
+                  order.orderType === 'Take Profit Market' ||
+                  order.orderType === 'Take Profit Limit'
+                ) {
+                  takeProfitPrice = order.triggerPx;
+                  DevLogger.log(`Found TP order for ${position.coin}:`, {
+                    triggerPrice: order.triggerPx,
+                    orderId: order.oid,
+                    orderType: order.orderType,
+                    isPositionTpsl: order.isPositionTpsl,
+                  });
+                } else if (
+                  order.orderType === 'Stop Market' ||
+                  order.orderType === 'Stop Limit'
+                ) {
+                  stopLossPrice = order.triggerPx;
+                  DevLogger.log(`Found SL order for ${position.coin}:`, {
+                    triggerPrice: order.triggerPx,
+                    orderId: order.oid,
+                    orderType: order.orderType,
+                    isPositionTpsl: order.isPositionTpsl,
+                  });
                 }
               });
-            });
 
-            return {
-              ...position,
-              takeProfitPrice,
-              stopLossPrice,
-            };
-          }),
-      );
+              // Check child orders (for normalTpsl grouping)
+              parentOrdersWithChildren.forEach((parentOrder) => {
+                DevLogger.log(
+                  `Parent order with children for ${position.coin}:`,
+                  {
+                    parentOid: parentOrder.oid,
+                    childrenCount: parentOrder.children.length,
+                  },
+                );
+
+                parentOrder.children.forEach((childOrder: FrontendOrder) => {
+                  if (childOrder.isTrigger && childOrder.reduceOnly) {
+                    if (
+                      childOrder.orderType === 'Take Profit Market' ||
+                      childOrder.orderType === 'Take Profit Limit'
+                    ) {
+                      takeProfitPrice = childOrder.triggerPx;
+                      DevLogger.log(
+                        `Found TP child order for ${position.coin}:`,
+                        {
+                          triggerPrice: childOrder.triggerPx,
+                          orderId: childOrder.oid,
+                          orderType: childOrder.orderType,
+                        },
+                      );
+                    } else if (
+                      childOrder.orderType === 'Stop Market' ||
+                      childOrder.orderType === 'Stop Limit'
+                    ) {
+                      stopLossPrice = childOrder.triggerPx;
+                      DevLogger.log(
+                        `Found SL child order for ${position.coin}:`,
+                        {
+                          triggerPrice: childOrder.triggerPx,
+                          orderId: childOrder.oid,
+                          orderType: childOrder.orderType,
+                        },
+                      );
+                    }
+                  }
+                });
+              });
+
+              return {
+                ...position,
+                takeProfitPrice,
+                stopLossPrice,
+              };
+            } catch (error) {
+              // Log corruption with full context for root cause analysis
+              DevLogger.log('ERROR: Failed to adapt position from SDK', {
+                error: error instanceof Error ? error.message : String(error),
+                assetPos,
+                dex: result.dex,
+                stack: error instanceof Error ? error.stack : undefined,
+              });
+              // Re-throw to surface in Sentry with full context
+              throw error;
+            }
+          });
+      });
 
       return allPositions;
     } catch (error) {
@@ -3304,10 +3365,16 @@ export class HyperLiquidProvider implements IPerpsProvider {
         // Query each unique DEX in parallel
         const marketArrays = await Promise.all(
           Array.from(symbolsByDex.keys()).map(async (dex) => {
-            const dexParam = dex ?? ''; // Empty string for main DEX
-            const meta = await infoClient.meta(
-              dexParam ? { dex: dexParam } : undefined,
-            );
+            // Use cached meta data from buildAssetMapping instead of making redundant API calls
+            const dexKey = dex || 'main';
+            const meta = this.cachedMetaByDex.get(dexKey);
+            if (!meta) {
+              throw new Error(
+                `No cached meta data for DEX ${dexKey}. ` +
+                  `buildAssetMapping() may not have completed yet. ` +
+                  `Available DEXs: ${Array.from(this.cachedMetaByDex.keys()).join(', ')}`,
+              );
+            }
 
             // Track market data API response
             DevLogger.log('[MarketData] getMarkets Path 1 (symbol filter)', {
@@ -3385,10 +3452,16 @@ export class HyperLiquidProvider implements IPerpsProvider {
           const marketArrays = await Promise.all(
             enabledDexs.map(async (dex) => {
               try {
-                const dexParam = dex ?? '';
-                const meta = await infoClient.meta(
-                  dexParam ? { dex: dexParam } : undefined,
-                );
+                // Use cached meta data from buildAssetMapping instead of making redundant API calls
+                const dexKey = dex || 'main';
+                const meta = this.cachedMetaByDex.get(dexKey);
+                if (!meta) {
+                  throw new Error(
+                    `No cached meta data for DEX ${dexKey}. ` +
+                      `buildAssetMapping() may not have completed yet. ` +
+                      `Available DEXs: ${Array.from(this.cachedMetaByDex.keys()).join(', ')}`,
+                  );
+                }
 
                 // Track market data API response
                 DevLogger.log('[MarketData] getMarkets Path 2 (multi-DEX)', {
@@ -3399,12 +3472,16 @@ export class HyperLiquidProvider implements IPerpsProvider {
                 });
 
                 if (!meta.universe || !Array.isArray(meta.universe)) {
-                  DevLogger.log(
-                    `HyperLiquidProvider: Invalid universe data for DEX ${
-                      dex || 'main'
-                    }`,
-                  );
-                  return [];
+                  const errorMsg = `Invalid universe data for DEX ${
+                    dex || 'main'
+                  } (Path 2) - API returned empty or invalid data`;
+                  DevLogger.log(`HyperLiquidProvider: ${errorMsg}`, {
+                    dex: dex || 'main',
+                    hasUniverse: !!meta.universe,
+                    isArray: Array.isArray(meta.universe),
+                    note: 'Throwing error to prevent downstream issues',
+                  });
+                  throw new Error(errorMsg);
                 }
 
                 // Special ASTER tracking
@@ -4392,18 +4469,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
     }
 
     // Get asset's max leverage to calculate maintenance margin
-    let maxLeverage = PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE; // Default fallback
-    if (asset) {
-      try {
-        maxLeverage = await this.getMaxLeverage(asset);
-      } catch (error) {
-        DevLogger.log('Failed to get max leverage for asset, using default', {
-          asset,
-          error,
-        });
-        // Use default if we can't fetch the asset's max leverage
-      }
+    // No fallback - throw error if universe data unavailable
+    if (!asset) {
+      throw new Error('Asset required for liquidation price calculation');
     }
+    const maxLeverage = await this.getMaxLeverage(asset);
 
     // Calculate maintenance leverage and margin according to HyperLiquid docs
     const maintenanceLeverage = 2 * maxLeverage;
@@ -4500,21 +4570,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // Check if meta and universe exist and is valid
       if (!meta?.universe || !Array.isArray(meta.universe)) {
-        console.warn(
-          `Meta or universe not available for DEX ${
-            dexName || 'main'
-          }, using default max leverage`,
+        throw new Error(
+          `Failed to load universe data for DEX ${dexName || 'main'}. ` +
+            `WebSocket connection may not be ready or API returned invalid data.`,
         );
-        return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
       }
 
       // asset.name format: "BTC" for main DEX, "xyz:XYZ100" for HIP-3
       const assetInfo = meta.universe.find((a) => a.name === asset);
       if (!assetInfo) {
-        DevLogger.log(
-          `Asset ${asset} not found in universe, using default max leverage`,
+        throw new Error(
+          `Asset ${asset} not found in universe for DEX ${dexName || 'main'}. ` +
+            `Available assets: ${meta.universe.map((a) => a.name).join(', ')}`,
         );
-        return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
       }
 
       // Cache the result
@@ -4525,13 +4593,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       return assetInfo.maxLeverage;
     } catch (error) {
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('getMaxLeverage', {
-          asset,
-        }),
+      // Re-throw with context - no default fallback
+      throw new Error(
+        `Failed to get max leverage for asset ${asset}: ${error instanceof Error ? error.message : String(error)}`,
       );
-      return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
     }
   }
 
@@ -5040,9 +5105,28 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
   /**
    * Check if the referral code is ready to be used
+   * Uses cache to prevent rate limiting from excessive API calls
    * @returns Promise resolving to true if referral code is ready
    */
   private async isReferralCodeReady(): Promise<boolean> {
+    const now = Date.now();
+
+    // Check cache first - avoid API call if recently checked
+    if (
+      this.referralCodeReadyCache &&
+      now - this.referralCodeReadyCache.checkedAt <
+        this.REFERRAL_CODE_READY_CACHE_TTL_MS
+    ) {
+      const cacheAgeSeconds = Math.round(
+        (now - this.referralCodeReadyCache.checkedAt) / 1000,
+      );
+      DevLogger.log('Using cached referral code ready status', {
+        cacheAge: `${cacheAgeSeconds}s`,
+        isReady: this.referralCodeReadyCache.isReady,
+      });
+      return this.referralCodeReadyCache.isReady;
+    }
+
     const errorMessage = 'Error checking if referral code is ready';
     try {
       const infoClient = this.clientService.getInfoClient();
@@ -5061,6 +5145,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
             `Ready for referrals but there is a config code mismatch ${onFile} vs ${code}`,
           );
         }
+        // Cache the successful result
+        this.referralCodeReadyCache = { isReady: true, checkedAt: now };
         return true;
       }
       console.error('Referral code not ready', {
@@ -5069,9 +5155,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
         referrerAddr,
         referral,
       });
+      // Cache the not-ready result
+      this.referralCodeReadyCache = { isReady: false, checkedAt: now };
       return false;
     } catch (error) {
       console.error(errorMessage, error);
+      // Don't cache errors - allow retry on next attempt
       return false;
     }
   }

@@ -970,10 +970,20 @@ describe('hyperLiquidAdapter', () => {
         '123456',
       );
 
-      // Small decimal with many significant figures
+      // Small decimal with 6 significant figures → limited to 5
       expect(formatHyperLiquidPrice({ price: 0.123456, szDecimals: 0 })).toBe(
-        '0.1235',
+        '0.12346',
       );
+
+      // Bug fix: 0.004207 has 4 significant figures → should NOT be truncated
+      expect(formatHyperLiquidPrice({ price: 0.004207, szDecimals: 0 })).toBe(
+        '0.004207',
+      );
+
+      // Very low price: limited by maxDecimalPlaces (6), not sig figs
+      expect(
+        formatHyperLiquidPrice({ price: 0.000123456, szDecimals: 0 }),
+      ).toBe('0.000123');
     });
 
     it('should handle string inputs', () => {
