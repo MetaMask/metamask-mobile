@@ -419,7 +419,7 @@ const ActivityView = () => {
           {isPredictEnabled && (
             <View
               key="predict"
-              tabLabel={strings('wallet.predict')}
+              tabLabel={strings('predict.transactions.title')}
               style={styles.tabWrapper}
             >
               <PredictTransactionsView isVisible={isPredictTabActive} />
