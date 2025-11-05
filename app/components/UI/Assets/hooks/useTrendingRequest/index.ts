@@ -1,10 +1,11 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useEffect } from 'react';
 import { debounce } from 'lodash';
 import { CaipChainId } from '@metamask/utils';
 import {
   getTrendingTokens,
   SortTrendingBy,
 } from '@metamask/assets-controllers';
+import { useStableArray } from '../../../Perps/hooks/useStableArray';
 export const DEBOUNCE_WAIT = 500;
 
 /**
@@ -30,10 +31,13 @@ export const useTrendingRequest = (options: {
     maxMarketCap,
   } = options;
 
+  // Stabilize the chainIds array reference to prevent unnecessary re-memoization
+  const stableChainIds = useStableArray(chainIds);
+
   // Memoize the options object to ensure stable reference
   const memoizedOptions = useMemo(
     () => ({
-      chainIds,
+      chainIds: stableChainIds,
       sortBy,
       minLiquidity,
       minVolume24hUsd,
@@ -42,7 +46,7 @@ export const useTrendingRequest = (options: {
       maxMarketCap,
     }),
     [
-      chainIds,
+      stableChainIds,
       sortBy,
       minLiquidity,
       minVolume24hUsd,
@@ -60,8 +64,18 @@ export const useTrendingRequest = (options: {
     await getTrendingTokens(memoizedOptions);
   }, [memoizedOptions]);
 
-  return useMemo(
+  const debouncedFetchTrendingTokens = useMemo(
     () => debounce(fetchTrendingTokens, DEBOUNCE_WAIT),
     [fetchTrendingTokens],
   );
+
+  // Cleanup debounced function on unmount or when dependencies change
+  useEffect(
+    () => () => {
+      debouncedFetchTrendingTokens.cancel();
+    },
+    [debouncedFetchTrendingTokens],
+  );
+
+  return debouncedFetchTrendingTokens;
 };

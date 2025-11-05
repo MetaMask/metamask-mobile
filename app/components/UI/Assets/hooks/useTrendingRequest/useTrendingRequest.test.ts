@@ -76,4 +76,42 @@ describe('useTrendingRequest', () => {
     spyGetTrendingTokens.mockClear();
     expect(spyGetTrendingTokens).not.toHaveBeenCalled();
   });
+
+  it('maintains stable debounced function reference when chainIds array reference changes but values remain the same', () => {
+    let chainIds: CaipChainId[] = ['eip155:1', 'eip155:10'];
+    const { result, rerender } = renderHookWithProvider(() =>
+      useTrendingRequest({
+        chainIds,
+      }),
+    );
+
+    const firstDebouncedFunction = result.current;
+
+    // Rerender with same array values but different reference
+    chainIds = ['eip155:1', 'eip155:10'];
+    rerender(undefined);
+
+    // The debounced function should remain the same reference
+    // because the array values are identical
+    expect(result.current).toBe(firstDebouncedFunction);
+  });
+
+  it('creates new debounced function when chainIds values change', () => {
+    let chainIds: CaipChainId[] = ['eip155:1', 'eip155:10'];
+    const { result, rerender } = renderHookWithProvider(() =>
+      useTrendingRequest({
+        chainIds,
+      }),
+    );
+
+    const firstDebouncedFunction = result.current;
+
+    // Rerender with different array values
+    chainIds = ['eip155:1', 'eip155:137'];
+    rerender(undefined);
+
+    // The debounced function should be a new reference
+    // because the array values changed
+    expect(result.current).not.toBe(firstDebouncedFunction);
+  });
 });
