@@ -6,6 +6,7 @@ import {
   selectIsWatchlistMarket,
   selectMarketFilterPreferences,
 } from '../../controllers/selectors';
+import { InitializationState } from '../../controllers/PerpsController';
 
 const selectPerpsControllerState = (state: RootState) =>
   state.engine.backgroundState.PerpsController;
@@ -68,6 +69,23 @@ const selectPerpsMarketFilterPreferences = createSelector(
   (perpsControllerState) => selectMarketFilterPreferences(perpsControllerState),
 );
 
+/**
+ * Selects the current initialization state of the Perps controller.
+ * Used by UI components to determine if operations can be performed.
+ *
+ * @returns InitializationState enum value:
+ * - 'uninitialized': Controller not yet started
+ * - 'initializing': Currently attempting initialization (may be retrying)
+ * - 'initialized': Ready for operations
+ * - 'failed': All retry attempts exhausted, user action required
+ */
+const selectPerpsInitializationState = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState) =>
+    perpsControllerState?.initializationState ||
+    InitializationState.UNINITIALIZED,
+);
+
 // Factory function to create selector for specific market
 export const createSelectIsWatchlistMarket = (symbol: string) =>
   createSelector(selectPerpsControllerState, (perpsControllerState) =>
@@ -84,4 +102,5 @@ export {
   selectIsFirstTimePerpsUser,
   selectPerpsWatchlistMarkets,
   selectPerpsMarketFilterPreferences,
+  selectPerpsInitializationState,
 };
