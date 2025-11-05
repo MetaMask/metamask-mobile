@@ -226,6 +226,34 @@ export const BridgeTokenSelector: React.FC = () => {
     [navigation, dispatch, route.params?.type],
   );
 
+  const handleInfoButtonPress = useCallback(
+    (item: BridgeToken) => {
+      navigation.dispatch({
+        type: 'NAVIGATE',
+        payload: {
+          name: 'Asset',
+          key: `Asset-${item.address}-${item.chainId}-${Date.now()}`,
+          params: { ...item },
+        },
+      });
+
+      Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
+        UnifiedSwapBridgeEventName.AssetDetailTooltipClicked,
+        {
+          token_name: item.name ?? 'Unknown',
+          token_symbol: item.symbol,
+          token_contract: item.address,
+          chain_name: getNetworkName(
+            item.chainId as Hex,
+            networkConfigurations,
+          ),
+          chain_id: item.chainId,
+        },
+      );
+    },
+    [navigation, networkConfigurations],
+  );
+
   const renderToken = useCallback(
     ({ item }: { item: BridgeToken | null }) => {
       // This is to support a partial loading state for top tokens
@@ -233,33 +261,6 @@ export const BridgeTokenSelector: React.FC = () => {
       if (!item) {
         return <SkeletonItem />;
       }
-
-      // Open the asset details screen as a bottom sheet
-      // Use dispatch with unique key to force new modal instance
-      const handleInfoButtonPress = () => {
-        navigation.dispatch({
-          type: 'NAVIGATE',
-          payload: {
-            name: 'Asset',
-            key: `Asset-${item.address}-${item.chainId}-${Date.now()}`,
-            params: { ...item },
-          },
-        });
-
-        Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
-          UnifiedSwapBridgeEventName.AssetDetailTooltipClicked,
-          {
-            token_name: item.name ?? 'Unknown',
-            token_symbol: item.symbol,
-            token_contract: item.address,
-            chain_name: getNetworkName(
-              item.chainId as Hex,
-              networkConfigurations,
-            ),
-            chain_id: item.chainId,
-          },
-        );
-      };
 
       const isNoFeeAsset =
         route.params?.type === 'source'
@@ -282,23 +283,25 @@ export const BridgeTokenSelector: React.FC = () => {
           <ButtonIcon
             iconName={IconName.Info}
             size={ButtonIconSize.Md}
-            onPress={handleInfoButtonPress}
+            onPress={() => handleInfoButtonPress(item)}
             iconProps={{ color: IconColor.IconAlternative }}
           />
         </TokenSelectorItem>
       );
     },
     [
-      navigation,
       selectedToken,
       handleTokenPress,
       route.params?.type,
-      networkConfigurations,
+      handleInfoButtonPress,
     ],
   );
 
-  const keyExtractor = (item: BridgeToken | null, index: number) =>
-    item ? `${item.chainId}-${item.address}` : `skeleton-${index}`;
+  const keyExtractor = useCallback(
+    (item: BridgeToken | null, index: number) =>
+      item ? `${item.chainId}-${item.address}` : `skeleton-${index}`,
+    [],
+  );
 
   // Load more results when user scrolls to the bottom
   const handleLoadMore = useCallback(() => {
@@ -359,6 +362,11 @@ export const BridgeTokenSelector: React.FC = () => {
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
           ListFooterComponent={renderFooter}
+          removeClippedSubviews
+          maxToRenderPerBatch={10}
+          windowSize={11}
+          initialNumToRender={15}
+          updateCellsBatchingPeriod={50}
         />
       </Box>
     </ScreenView>
