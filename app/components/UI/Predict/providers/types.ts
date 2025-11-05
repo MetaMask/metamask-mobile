@@ -48,6 +48,8 @@ export interface PlaceOrderParams {
     sharePrice?: number;
     liquidity?: number;
     volume?: number;
+    marketType?: string;
+    outcome?: string;
   };
 }
 
@@ -198,6 +200,10 @@ export interface SignWithdrawResponse {
 }
 
 export interface PredictProvider {
+  readonly providerId: string;
+  readonly name: string;
+  readonly chainId: number;
+
   // Market data
   getMarkets(params: GetMarketsParams): Promise<PredictMarket[]>;
   getMarketDetails(params: { marketId: string }): Promise<PredictMarket>;
