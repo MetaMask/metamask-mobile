@@ -24,7 +24,7 @@ inputs:
 outputs:
   e2e_test_tags:
     description: 'E2E test tags to run'
-    value: ${{ steps.ai-analysis.outputs.e2e_test_tags }}
+    value: ${{ steps.ai-analysis.outputs.ai_e2e_test_tags }}
 
 runs:
   using: 'composite'
@@ -96,7 +96,8 @@ runs:
         GITHUB_REPOSITORY: ${{ inputs.repository }}
         GITHUB_RUN_ID: ${{ github.run_id }}
       run: |
-        echo "e2e_test_tags=[\"ALL\"]" >> "$GITHUB_OUTPUT"
+        echo "ai_e2e_test_tags=[\"ALL\"]" >> "$GITHUB_OUTPUT"
+        echo "ai_confidence=0" >> "$GITHUB_OUTPUT"
         SHOULD_SKIP=false
         SKIP_REASON=""
 
