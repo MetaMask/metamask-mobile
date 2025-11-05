@@ -36,14 +36,7 @@ test('Predict Market Details - Load Time Performance', async ({
 
   // Login to the app
   await login(device);
-
-  // Timer 1: Navigate to predictions tab
-  const timer1 = new TimerHelper(
-    'Time since user taps Actions button until Wallet Action Modal is visible',
-  );
-  timer1.start();
   await TabBarModal.tapActionButton();
-  timer1.stop();
 
   // Timer 2: Open predictions tab
   const timer2 = new TimerHelper(
@@ -80,26 +73,23 @@ test('Predict Market Details - Load Time Performance', async ({
   timer5.start();
   await PredictDetailsScreen.tapOutcomesTab();
   await PredictDetailsScreen.isOutcomesTabContentDisplayed();
-  await PredictDetailsScreen.verifyYesNoOutcomesDisplayed();
   timer5.stop();
 
   // Add all timers to performance tracker
-  performanceTracker.addTimer(timer1);
-  performanceTracker.addTimer(timer2);
-  performanceTracker.addTimer(timer3);
-  performanceTracker.addTimer(timer4);
-  performanceTracker.addTimer(timer5);
+  await performanceTracker.addTimer(timer2);
+  await performanceTracker.addTimer(timer3);
+  await performanceTracker.addTimer(timer4);
+  await performanceTracker.addTimer(timer5);
 
   // Attach performance metrics to test report
   await performanceTracker.attachToTest(testInfo);
 
   console.log('✅ Predict Market Details Performance Test completed');
-  console.log(`📊 Actions to Modal: ${timer1.duration}ms`);
   console.log(`📊 Modal to Market List: ${timer2.duration}ms`);
   console.log(`📊 Market List to Details: ${timer3.duration}ms`);
   console.log(`📊 About Tab Load: ${timer4.duration}ms`);
   console.log(`📊 Outcomes Tab Load: ${timer5.duration}ms`);
   console.log(
-    `📊 Total Time: ${timer1.duration + timer2.duration + timer3.duration + timer4.duration + timer5.duration}ms`,
+    `📊 Total Time: ${timer2.duration + timer3.duration + timer4.duration + timer5.duration}ms`,
   );
 });

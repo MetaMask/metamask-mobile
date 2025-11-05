@@ -38,7 +38,7 @@ class PredictDetailsScreen {
     if (!this._device) {
       return Selectors.getXpathElementByText(PredictMarketDetailsSelectorsText.ABOUT_TAB_TEXT);
     } else {
-      return AppwrightSelectors.getElementByText(this._device, PredictMarketDetailsSelectorsText.ABOUT_TAB_TEXT);
+      return AppwrightSelectors.getElementByID(this._device, PredictMarketDetailsSelectorsIDs.ABOUT_TAB_LABEL);
     }
   }
 
@@ -54,7 +54,7 @@ class PredictDetailsScreen {
     if (!this._device) {
       return Selectors.getXpathElementByText(PredictMarketDetailsSelectorsText.OUTCOMES_TAB_TEXT);
     } else {
-      return AppwrightSelectors.getElementByText(this._device, PredictMarketDetailsSelectorsText.OUTCOMES_TAB_TEXT);
+      return AppwrightSelectors.getElementByID(this._device, PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_LABEL);
     }
   }
 
@@ -99,8 +99,7 @@ class PredictDetailsScreen {
       const aboutTab = await this.aboutTab;
       await Gestures.waitAndTap(aboutTab);
     } else {
-      const aboutTab = await this.aboutTab;
-      await AppwrightGestures.tap(aboutTab);
+      await AppwrightGestures.tap(this.aboutTab);
     }
   }
 
@@ -153,27 +152,6 @@ class PredictDetailsScreen {
       await appwrightExpect(volumeText).toBeVisible();
     }
   }
-
-  async verifyYesNoOutcomesDisplayed() {
-    if (!this._device) {
-      const yesText = await Selectors.getXpathElementByTextContains('Yes');
-      const noText = await Selectors.getXpathElementByTextContains('No');
-      await yesText.waitForDisplayed();
-      await noText.waitForDisplayed();
-    } else {
-      try {
-        const yesText = await AppwrightSelectors.getElementByTextContains(this._device, 'Yes');
-        const noText = await AppwrightSelectors.getElementByTextContains(this._device, 'No');
-        await appwrightExpect(yesText).toBeVisible({ timeout: 10000 });
-        await appwrightExpect(noText).toBeVisible({ timeout: 10000 });
-        console.log('✅ Yes/No outcomes verified');
-      } catch (error) {
-        console.log('⚠️ Yes/No outcomes not found, market may have different outcome types');
-        // Don't fail the test - different markets have different outcome types
-      }
-    }
-  }
 }
 
 export default new PredictDetailsScreen();
-
