@@ -90,6 +90,6 @@ test('Predict Market Details - Load Time Performance', async ({
   console.log(`📊 About Tab Load: ${timer4.duration}ms`);
   console.log(`📊 Outcomes Tab Load: ${timer5.duration}ms`);
   console.log(
-    `📊 Total Time: ${timer2.duration + timer3.duration + timer4.duration + timer5.duration}ms`,
+    `📊 Total Time: ${timer2.getDuration() + timer3.getDuration() + timer4.getDuration() + timer5.getDuration()}ms`,
   );
 });
