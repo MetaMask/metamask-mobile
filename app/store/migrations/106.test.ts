@@ -1,11 +1,11 @@
 import { MMKV } from 'react-native-mmkv';
-import migrate from './107';
+import migrate from './106';
 
 jest.mock('react-native-mmkv', () => ({
   MMKV: jest.fn(),
 }));
 
-describe('Migration #107', () => {
+describe('Migration #106', () => {
   const mockMMKVInstance = {
     getAllKeys: jest.fn(),
     clearAll: jest.fn(),
@@ -21,7 +21,7 @@ describe('Migration #107', () => {
     jest.restoreAllMocks();
   });
 
-  it('should clear PPOM storage when keys exist', () => {
+  it('clears PPOM storage when keys exist', () => {
     const oldState = {
       engine: {
         backgroundState: {},
@@ -38,7 +38,7 @@ describe('Migration #107', () => {
     expect(newState).toEqual(oldState);
   });
 
-  it('should not call clearAll when no keys exist', () => {
+  it('does not call clearAll when no keys exist', () => {
     const oldState = {
       engine: {
         backgroundState: {},
@@ -55,7 +55,7 @@ describe('Migration #107', () => {
     expect(newState).toEqual(oldState);
   });
 
-  it('should handle errors gracefully', () => {
+  it('returns state unchanged when getAllKeys throws error', () => {
     const oldState = {
       engine: {
         backgroundState: {},
@@ -71,7 +71,7 @@ describe('Migration #107', () => {
     expect(newState).toEqual(oldState);
   });
 
-  it('should return state unchanged if state is invalid', () => {
+  it('returns state unchanged when state is invalid', () => {
     const invalidStates = [null, undefined, {}, { engine: null }];
 
     invalidStates.forEach((invalidState) => {

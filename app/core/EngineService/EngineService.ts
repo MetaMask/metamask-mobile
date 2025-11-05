@@ -140,9 +140,10 @@ export class EngineService {
       tags: getTraceTags(reduxState),
     });
 
-    const state = ( isE2E
-      ? reduxState?.engine?.backgroundState
-      : persistedState?.backgroundState) ?? {};
+    const state =
+      (isE2E
+        ? reduxState?.engine?.backgroundState
+        : persistedState?.backgroundState) ?? {};
 
     const Engine = UntypedEngine;
     try {
@@ -240,7 +241,8 @@ export class EngineService {
       // This is a critical failure, if we can't set up persistence,
       // the wallet shouldn't continue as users will lose all data
       throw new Error(
-        `Critical: Engine persistence setup failed. Cannot continue safely. ${(error as Error).message
+        `Critical: Engine persistence setup failed. Cannot continue safely. ${
+          (error as Error).message
         }`,
       );
     }
