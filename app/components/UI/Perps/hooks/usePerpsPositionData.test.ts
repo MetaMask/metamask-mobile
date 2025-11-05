@@ -31,6 +31,15 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+// Mock Redux selector
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => 'initialized'), // Default to initialized state
+}));
+
+jest.mock('../selectors/perpsController', () => ({
+  selectPerpsInitializationState: jest.fn(),
+}));
+
 describe('usePerpsPositionData', () => {
   const mockFetchHistoricalCandles = Engine.context.PerpsController
     .fetchHistoricalCandles as jest.Mock;
