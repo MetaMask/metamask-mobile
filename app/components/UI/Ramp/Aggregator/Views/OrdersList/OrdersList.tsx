@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { FlatList, TouchableHighlight, Pressable, View } from 'react-native';
+import { FlatList, TouchableHighlight, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -11,12 +11,8 @@ import OrderListItem from '../../components/OrderListItem';
 import createStyles from './OrdersList.styles';
 
 import { TabEmptyState } from '../../../../../../component-library/components-temp/TabEmptyState';
-import {
-  Box,
-  Text,
-  TextVariant,
-  FontWeight,
-} from '@metamask/design-system-react-native';
+import ButtonFilter from '../../../../../../component-library/components-temp/ButtonFilter';
+import { Box, ButtonBaseSize } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import {
@@ -101,27 +97,15 @@ function OrdersList() {
     const isActive = currentFilter === filter;
 
     return (
-      <Pressable
+      <ButtonFilter
         key={filter}
         onPress={() => setCurrentFilter(filter)}
-        accessibilityRole="button"
+        isActive={isActive}
+        size={ButtonBaseSize.Md}
         accessibilityLabel={label}
-        style={({ pressed }) =>
-          tw.style(
-            'h-10 px-4 rounded-xl items-center justify-center',
-            isActive ? 'bg-icon-default' : 'bg-background-muted',
-            pressed && 'opacity-70',
-          )
-        }
       >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          twClassName={isActive ? 'text-icon-inverse' : 'text-default'}
-        >
-          {label}
-        </Text>
-      </Pressable>
+        {label}
+      </ButtonFilter>
     );
   };
 
@@ -153,8 +137,8 @@ function OrdersList() {
               currentFilter === 'ALL'
                 ? strings('fiat_on_ramp_aggregator.empty_orders_list')
                 : currentFilter === 'PURCHASE'
-                ? strings('fiat_on_ramp_aggregator.empty_buy_orders_list')
-                : strings('fiat_on_ramp_aggregator.empty_sell_orders_list')
+                  ? strings('fiat_on_ramp_aggregator.empty_buy_orders_list')
+                  : strings('fiat_on_ramp_aggregator.empty_sell_orders_list')
             }
           />
         </View>

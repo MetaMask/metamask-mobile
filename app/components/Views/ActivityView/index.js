@@ -18,6 +18,9 @@ import Avatar, {
 } from '../../../component-library/components/Avatars/Avatar';
 import { Box } from '@metamask/design-system-react-native';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
+import HeaderBase, {
+  HeaderBaseVariant,
+} from '../../../component-library/components/HeaderBase';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
@@ -298,35 +301,23 @@ const ActivityView = () => {
         twClassName="flex-1 bg-default gap-4"
         style={{ marginTop: insets.top }}
       >
-        {showBackButton ? (
-          <View
-            style={[styles.headerWithBackButton, { marginTop: insets.top }]}
-          >
-            <View style={styles.headerBackButton}>
+        <HeaderBase
+          variant={HeaderBaseVariant.Display}
+          style={tw.style('px-4 mb-4')}
+          startAccessory={
+            showBackButton && (
               <ButtonIcon
                 iconName={IconName.ArrowLeft}
                 iconColor={IconColor.Default}
-                size={ButtonIconSizes.Md}
+                size={ButtonIconSizes.Lg}
                 onPress={handleBackPress}
                 testID="activity-view-back-button"
               />
-            </View>
-            <View style={styles.headerTitleContainer}>
-              <TextComponent variant={TextVariant.HeadingMD}>
-                {strings('transactions_view.title')}
-              </TextComponent>
-            </View>
-          </View>
-        ) : (
-          <Box twClassName="px-4 mb-4">
-            <TextComponent
-              variant={TextVariant.HeadingLG}
-              twClassName="text-default"
-            >
-              {strings('activity_view.title')}
-            </TextComponent>
-          </Box>
-        )}
+            )
+          }
+        >
+          {strings('activity_view.title')}
+        </HeaderBase>
 
         <TabsList
           ref={tabViewRef}

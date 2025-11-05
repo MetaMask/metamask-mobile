@@ -7,15 +7,16 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
+import { RefreshControl, ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
   Text,
   TextVariant,
-  FontWeight,
+  ButtonBaseSize,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
+import ButtonFilter from '../../../../../component-library/components-temp/ButtonFilter';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -208,29 +209,17 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       };
 
       return (
-        <Pressable
+        <ButtonFilter
           key={tab}
           onPress={handleTabPress}
-          accessibilityRole="button"
-          style={({ pressed }) =>
-            tw.style(
-              'h-10 px-4 rounded-xl items-center justify-center',
-              isActive ? 'bg-icon-default' : 'bg-background-muted',
-              pressed && 'opacity-70',
-            )
-          }
+          isActive={isActive}
+          size={ButtonBaseSize.Md}
         >
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            twClassName={isActive ? 'text-icon-inverse' : 'text-default'}
-          >
-            {strings(`perps.transactions.tabs.${i18nKey}`)}
-          </Text>
-        </Pressable>
+          {strings(`perps.transactions.tabs.${i18nKey}`)}
+        </ButtonFilter>
       );
     },
-    [activeFilter, tw],
+    [activeFilter],
   );
 
   const handleTransactionPress = (transaction: PerpsTransaction) => {
