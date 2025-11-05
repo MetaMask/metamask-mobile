@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import ScreenView from '../../../../Base/ScreenView';
 import { strings } from '../../../../../../locales/i18n';
 import { getBridgeTokenSelectorNavbar } from '../../../Navbar';
 import { FlatList } from 'react-native-gesture-handler';
@@ -335,7 +335,7 @@ export const BridgeTokenSelector: React.FC = () => {
   }, [isLoadingMore]);
 
   return (
-    <ScreenView>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <Box style={styles.buttonContainer}>
         <NetworkPills
           selectedChainId={selectedChainId}
@@ -351,24 +351,18 @@ export const BridgeTokenSelector: React.FC = () => {
         />
       </Box>
 
-      <Box style={styles.tokensListContainer}>
-        <FlatList
-          style={styles.tokensList}
-          data={displayData}
-          renderItem={renderToken}
-          keyExtractor={keyExtractor}
-          showsVerticalScrollIndicator
-          showsHorizontalScrollIndicator={false}
-          onEndReached={handleLoadMore}
-          onEndReachedThreshold={0.5}
-          ListFooterComponent={renderFooter}
-          removeClippedSubviews
-          maxToRenderPerBatch={10}
-          windowSize={11}
-          initialNumToRender={15}
-          updateCellsBatchingPeriod={50}
-        />
-      </Box>
-    </ScreenView>
+      <FlatList
+        style={styles.tokensList}
+        contentContainerStyle={styles.tokensListContainer}
+        data={displayData}
+        renderItem={renderToken}
+        keyExtractor={keyExtractor}
+        showsVerticalScrollIndicator
+        showsHorizontalScrollIndicator={false}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={renderFooter}
+      />
+    </SafeAreaView>
   );
 };

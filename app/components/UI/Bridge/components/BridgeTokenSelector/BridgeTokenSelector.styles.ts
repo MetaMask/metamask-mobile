@@ -4,11 +4,15 @@ import { Theme } from '../../../../../util/theme/models';
 export const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
   return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background.default,
+    },
     tokensList: {
-      marginTop: 10,
+      flex: 1,
     },
     tokensListContainer: {
-      flex: 1,
+      paddingBottom: 16,
     },
     buttonContainer: {
       paddingHorizontal: 8,
