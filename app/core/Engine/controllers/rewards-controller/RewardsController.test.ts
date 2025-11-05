@@ -5529,7 +5529,7 @@ describe('RewardsController', () => {
       expect(result).toBe(false);
     });
 
-    it('should return true when account has not opted in but cache is fresh (within 24 hours)', () => {
+    it('should return true when account has not opted in but cache is fresh (within 1 hour)', () => {
       // Arrange
       const mockInternalAccount = {
         address: '0x123',
@@ -5546,7 +5546,7 @@ describe('RewardsController', () => {
       };
 
       const caipAccount = 'eip155:1:0x123' as CaipAccountId;
-      const recentTime = Date.now() - 1000 * 60 * 60 * 12; // 12 hours ago (within 24 hour threshold)
+      const recentTime = Date.now() - 1000 * 60 * 30; // 30 minutes ago (within 1 hour threshold)
 
       const accountState: RewardsAccountState = {
         account: caipAccount,
@@ -5582,7 +5582,7 @@ describe('RewardsController', () => {
       expect(result).toBe(true);
     });
 
-    it('should return false when account has not opted in and cache is stale (beyond 24 hours)', () => {
+    it('should return false when account has not opted in and cache is stale (beyond 1 hour)', () => {
       // Arrange
       const mockInternalAccount = {
         address: '0x123',
@@ -5599,7 +5599,7 @@ describe('RewardsController', () => {
       };
 
       const caipAccount = 'eip155:1:0x123' as CaipAccountId;
-      const staleTime = Date.now() - 1000 * 60 * 60 * 24 * 2; // 2 days ago (beyond 24 hour threshold)
+      const staleTime = Date.now() - 1000 * 60 * 60 * 2; // 2 hours ago (beyond 1 hour threshold)
 
       const accountState: RewardsAccountState = {
         account: caipAccount,

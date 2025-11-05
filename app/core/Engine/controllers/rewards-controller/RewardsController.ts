@@ -86,7 +86,7 @@ const UNLOCKED_REWARDS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
 
 // Opt-in status stale threshold for not opted-in accounts to force a fresh check
-const NOT_OPTED_IN_OIS_STALE_CACHE_THRESHOLD_MS = 1000 * 60 * 60 * 24; // 24 hours
+const NOT_OPTED_IN_OIS_STALE_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 1 hour
 
 /**
  * State metadata for the RewardsController
