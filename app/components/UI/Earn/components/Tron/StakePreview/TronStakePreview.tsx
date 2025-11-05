@@ -15,7 +15,7 @@ import { ComputeFeeResult } from '../../../utils/tron-staking';
 
 export interface TronStakePreviewProps {
   resourceType?: ResourceType;
-  fee?: ComputeFeeResult;
+  fee?: ComputeFeeResult | ComputeFeeResult[0];
 }
 
 const Row = ({
@@ -38,8 +38,11 @@ const Row = ({
 
 const TronStakePreview = ({
   resourceType = TRON_RESOURCE.ENERGY,
+  fee,
 }: TronStakePreviewProps) => {
   const tw = useTailwind();
+
+  const feeItem: ComputeFeeResult[0] | undefined = Array.isArray(fee) ? fee[0] : fee;
 
   return (
     <Box twClassName="w-full bg-default pl-6 pr-6 rounded-lg" style={tw.style()}
@@ -62,7 +65,10 @@ const TronStakePreview = ({
         label={strings('stake.tron.trx_locked_for')}
         value={''}
       /> */}
-      <Row label={strings('stake.tron.fee')} value={''} />
+      <Row
+        label={strings('stake.tron.fee')}
+        value={feeItem ? `${feeItem.asset.amount} ${feeItem.asset.unit}` : ''}
+      />
     </Box>
   );
 };

@@ -5318,6 +5318,9 @@
     "stake": "Stake",
     "earn": "Earn",
     "tron": {
+      "stake_completed": "Staking completed",
+      "stake_completed_description": "Your staking transaction has been completed successfully.",
+      "stake_failed": "Staking failed",
       "bandwidth": "Bandwidth",
       "energy": "Energy",
       "estimated_annual_reward": "Estimated annual reward",

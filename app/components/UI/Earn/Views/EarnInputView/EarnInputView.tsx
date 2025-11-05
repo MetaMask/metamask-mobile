@@ -81,7 +81,7 @@ import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagCon
 import { toTokenMinimalUnit, normalizeToDotDecimal } from '../../../../../util/number';
 import useTronStake from '../../hooks/useTronStake';
 import TronStakePreview from '../../components/Tron/StakePreview/TronStakePreview';
-import { TRON_RESOURCE } from '../../../../../core/Multichain/constants';
+import { TRON_RESOURCE, TronResourceType } from '../../../../../core/Multichain/constants';
 import { ComputeFeeResult } from '../../utils/tron-staking';
 ///: END:ONLY_INCLUDE_IF
 
@@ -139,7 +139,6 @@ const EarnInputView = () => {
   const isTronNative =
     token.ticker === 'TRX' && String(token.chainId).startsWith('tron:');
 
-    // TODO: Validade with Ulisses
   const {
     validate: tronValidate,
     confirm: tronConfirm,
@@ -620,21 +619,33 @@ const EarnInputView = () => {
 
   const handleEarnPress = useCallback(async () => {
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
-    // TODO: Validade with Ulisses
     if (isTrxStakingEnabled && isTronNative) {
-      const purpose = resourceType === TRON_RESOURCE.ENERGY ? 'ENERGY' : 'BANDWIDTH';
+      
       const result = await tronConfirm?.(
         amountToken,
-        purpose,
+        resourceType as TronResourceType,
         String(token.chainId),
       );
       if (result?.valid && (!result.errors || result.errors.length === 0)) {
+        navigation.goBack();
+        requestAnimationFrame(() => {
+          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+            params: {
+              title: strings('stake.tron.stake_completed'),
+              description: strings('stake.tron.stake_completed_description'),
+              type: 'success',
+              closeOnPrimaryButtonPress: true,
+            },
+          });
+        });
+      } else {
         navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
           screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
           params: {
-            title: strings('stake.stake'),
-            description: strings('stake.review'),
-            type: 'success',
+            title: strings('stake.tron.stake_failed'),
+            description: result?.errors?.join('\n') ?? '',
+            type: 'error',
           },
         });
       }
@@ -939,7 +950,6 @@ const EarnInputView = () => {
       </ScrollView>
       {
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
-        // TODO: Validade with Ulisses
         isTrxStakingEnabled && isTronNative && isNonZeroAmount && (
           <TronStakePreview
             resourceType={resourceType}
@@ -959,7 +969,6 @@ const EarnInputView = () => {
         onChange={debounce((data) => {
           handleKeypadChange(data);
           ///: BEGIN:ONLY_INCLUDE_IF(tron)
-          // TODO: Validade with Ulisses
           if (isTrxStakingEnabled && isTronNative && !isFiat) {
             tronValidate?.(String(data.value), String(token.chainId));
           }

@@ -9,8 +9,9 @@ import {
   TronStakeResult,
   computeTronFee,
 } from '../utils/tron-staking';
+import { TronResourceType } from '../../../../core/Multichain/constants';
 
-type Purpose = 'ENERGY' | 'BANDWIDTH';
+type Purpose = TronResourceType.ENERGY | TronResourceType.BANDWIDTH;
 
 interface UseTronStakeReturn {
   validating: boolean;
@@ -55,11 +56,20 @@ const useTronStake = (): UseTronStakeReturn => {
         rest && Object.keys(rest).length > 0 ? rest : undefined;
 
       try {
-        const fee = await computeTronFee(selectedTronAccount, {
-          transaction: 'stake',
-          accountId: selectedTronAccount.id,
-          scope: chainId,
-        });
+        // const fee = await computeTronFee(selectedTronAccount, {
+        //   transaction: 'stake',
+        //   accountId: selectedTronAccount.id,
+        //   scope: chainId,
+        // });
+        const fee = {
+          type: 'fee',
+          asset: {
+            unit: 'TRX',
+            type: 'TRX',
+            amount: '0.01',
+            fungible: true,
+          },
+        };
         nextPreview = { ...(nextPreview ?? {}), fee };
       } catch {
         console.error('Error computing fee preview');
@@ -68,6 +78,8 @@ const useTronStake = (): UseTronStakeReturn => {
       if (nextPreview) setPreview(nextPreview);
       setErrors(validationErrors);
       setValidating(false);
+
+      console.log('useTronStake - validation', validation);
       return validation;
     },
     [selectedTronAccount],
@@ -85,10 +97,12 @@ const useTronStake = (): UseTronStakeReturn => {
         fromAccountId: selectedTronAccount.id,
         assetId,
         value: amount,
-        options: { purpose },
+        options: { purpose: purpose.toUpperCase() as TronResourceType},
       });
       setValidating(false);
       setErrors(confirmation?.errors);
+
+      console.log('useTronStake - confirmation', confirmation);
       return confirmation;
     },
     [selectedTronAccount],
