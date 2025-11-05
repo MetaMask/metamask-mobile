@@ -675,11 +675,20 @@ describe('Predict Controller Selectors', () => {
     it('returns balance for specified provider and address', () => {
       const balances = {
         polymarket: {
-          '0x123': 1000,
-          '0x456': 2000,
+          '0x123': {
+            balance: 1000,
+            validUntil: Date.now() + 1000,
+          },
+          '0x456': {
+            balance: 2000,
+            validUntil: Date.now() + 1000,
+          },
         },
         kalshi: {
-          '0xabc': 500,
+          '0xabc': {
+            balance: 500,
+            validUntil: Date.now() + 1000,
+          },
         },
       };
 
@@ -706,7 +715,10 @@ describe('Predict Controller Selectors', () => {
     it('returns zero when provider does not exist', () => {
       const balances = {
         polymarket: {
-          '0x123': 1000,
+          '0x123': {
+            balance: 1000,
+            validUntil: Date.now() + 1000,
+          },
         },
       };
 
@@ -733,7 +745,10 @@ describe('Predict Controller Selectors', () => {
     it('returns zero when address does not exist for provider', () => {
       const balances = {
         polymarket: {
-          '0x123': 1000,
+          '0x123': {
+            balance: 1000,
+            validUntil: Date.now() + 1000,
+          },
         },
       };
 
@@ -800,12 +815,24 @@ describe('Predict Controller Selectors', () => {
     it('returns correct balance for different provider and address combinations', () => {
       const balances = {
         polymarket: {
-          '0x123': 1000,
-          '0x456': 2000,
+          '0x123': {
+            balance: 1000,
+            validUntil: Date.now() + 1000,
+          },
+          '0x456': {
+            balance: 2000,
+            validUntil: Date.now() + 1000,
+          },
         },
         kalshi: {
-          '0xabc': 500,
-          '0xdef': 750,
+          '0xabc': {
+            balance: 500,
+            validUntil: Date.now() + 1000,
+          },
+          '0xdef': {
+            balance: 750,
+            validUntil: Date.now() + 1000,
+          },
         },
       };
 
@@ -840,7 +867,10 @@ describe('Predict Controller Selectors', () => {
     it('returns zero for balance with value of zero', () => {
       const balances = {
         polymarket: {
-          '0x123': 0,
+          '0x123': {
+            balance: 0,
+            validUntil: Date.now() + 1000,
+          },
         },
       };
 
