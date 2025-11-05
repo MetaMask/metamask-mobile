@@ -711,6 +711,63 @@ describe('PerpsController', () => {
       await controller.initializeProviders();
       expect((controller as any).isInitialized).toBe(true);
     });
+
+    it('allows retry after all initialization attempts fail', async () => {
+      // Set up mock to throw errors BEFORE creating controller
+      const networkError = new Error('Network error');
+      (
+        HyperLiquidProvider as jest.MockedClass<typeof HyperLiquidProvider>
+      ).mockImplementation(() => {
+        throw networkError;
+      });
+
+      // Create new controller with failing provider mock
+      const mockCall = jest.fn().mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return {
+            remoteFeatureFlags: {
+              perpsPerpTradingGeoBlockedCountriesV2: {
+                blockedRegions: [],
+              },
+            },
+          };
+        }
+        return undefined;
+      });
+
+      const testController = new PerpsController({
+        messenger: {
+          call: mockCall,
+          publish: jest.fn(),
+          subscribe: jest.fn(),
+          registerActionHandler: jest.fn(),
+          registerEventHandler: jest.fn(),
+          registerInitialEventPayload: jest.fn(),
+        } as unknown as any,
+        state: getDefaultPerpsControllerState(),
+      });
+
+      // Wait for initialization to complete (will fail after 3 retries: 1s + 2s + 4s + overhead)
+      await new Promise((resolve) => setTimeout(resolve, 8000));
+
+      // Verify failure state
+      expect(testController.state.initializationState).toBe('failed');
+      expect(testController.state.initializationError).toBe('Network error');
+      expect((testController as any).isInitialized).toBe(false);
+
+      // Network recovers - provider succeeds on next attempt
+      (
+        HyperLiquidProvider as jest.MockedClass<typeof HyperLiquidProvider>
+      ).mockImplementation(() => mockProvider);
+
+      // User retries initialization (e.g., via network switch)
+      await testController.initializeProviders();
+
+      // Verify initialization succeeds (not cached failure)
+      expect(testController.state.initializationState).toBe('initialized');
+      expect(testController.state.initializationError).toBeNull();
+      expect((testController as any).isInitialized).toBe(true);
+    }, 10000); // 10 second timeout
   });
 
   describe('getPositions', () => {

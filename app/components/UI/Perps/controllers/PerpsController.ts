@@ -1333,6 +1333,7 @@ export class PerpsController extends BaseController<
       state.initializationState = InitializationState.FAILED;
       state.initializationError = lastError?.message ?? 'Unknown error';
     });
+    this.initializationPromise = null; // Clear promise to allow retry
 
     DevLogger.log('PerpsController: Initialization failed', {
       error: lastError?.message,
