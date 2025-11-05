@@ -368,9 +368,6 @@ describe('usePerpsHomeData', () => {
       expect(mockUsePerpsLiveOrders).toHaveBeenCalledWith(
         expect.objectContaining({ throttleMs: 1000 }),
       );
-      expect(mockUsePerpsLiveFills).toHaveBeenCalledWith(
-        expect.objectContaining({ throttleMs: 1000 }),
-      );
     });
 
     it('hides TP/SL orders from home screen', () => {
@@ -741,6 +738,12 @@ describe('usePerpsHomeData', () => {
         isRefreshing: false,
         error: null,
         refresh: mockRefreshMarkets,
+      });
+      mockUsePerpsTransactionHistory.mockReturnValue({
+        transactions: [],
+        isLoading: false,
+        error: null,
+        refetch: jest.fn().mockResolvedValue(undefined),
       });
 
       const { result } = renderHook(() => usePerpsHomeData());
