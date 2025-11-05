@@ -75,7 +75,6 @@ import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import CardNotification from '../../Views/CardNotification';
 import LegacyEditMultichainAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
 import { EditMultichainAccountName } from '../../Views/MultichainAccounts/sheets/EditMultichainAccountName';
-import { PPOMView } from '../../../lib/ppom/PPOMView';
 import LockScreen from '../../Views/LockScreen';
 import StorageWrapper from '../../../store/storage-wrapper';
 import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
@@ -1231,7 +1230,6 @@ const App: React.FC = () => {
 
   return (
     <>
-      <PPOMView />
       <AppFlow />
       <Toast ref={toastRef} />
       <ProfilerManager />
