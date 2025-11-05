@@ -31,8 +31,6 @@ import Text, {
 import { strings } from '../../../../../locales/i18n';
 import { View, ActivityIndicator, Alert } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
-import Logger from '../../../../util/Logger';
-
 const Stack = createStackNavigator();
 
 const KYCModalavigationOptions = ({
@@ -113,8 +111,6 @@ const ValidatingKYCNavigationOptions = ({
 const OnboardingNavigator: React.FC = () => {
   const onboardingId = useSelector(selectOnboardingId);
   const { user, isLoading } = useCardSDK();
-  Logger.log('onboardingId', onboardingId);
-  Logger.log('user', user);
 
   const getInitialRouteName = useCallback(() => {
     if (!onboardingId || !user?.id) {
