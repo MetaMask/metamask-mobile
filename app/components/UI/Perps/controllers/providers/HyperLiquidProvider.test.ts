@@ -5948,5 +5948,233 @@ describe('HyperLiquidProvider', () => {
         );
       });
     });
+
+    describe('autoTransferForHip3Order', () => {
+      interface ProviderWithAutoTransfer {
+        autoTransferForHip3Order(params: {
+          targetDex: string;
+          requiredMargin: number;
+        }): Promise<{ amount: number; sourceDex: string } | null>;
+        getBalanceForDex(params: { dex: string | null }): Promise<number>;
+        findSourceDexWithBalance(params: {
+          targetDex: string;
+          requiredAmount: number;
+        }): Promise<{ sourceDex: string; available: number } | null>;
+        transferBetweenDexs(params: {
+          sourceDex: string;
+          destinationDex: string;
+          amount: string;
+        }): Promise<{ success: boolean; error?: string }>;
+      }
+
+      let testableProvider: ProviderWithAutoTransfer;
+
+      beforeEach(() => {
+        testableProvider = provider as unknown as ProviderWithAutoTransfer;
+      });
+
+      it('returns null when target DEX has sufficient balance', async () => {
+        // Arrange
+        jest
+          .spyOn(testableProvider, 'getBalanceForDex')
+          .mockResolvedValue(1000);
+
+        // Act
+        const result = await testableProvider.autoTransferForHip3Order({
+          targetDex: 'xyz',
+          requiredMargin: 500,
+        });
+
+        // Assert
+        expect(result).toBeNull();
+      });
+
+      it('transfers from main DEX when target has insufficient balance', async () => {
+        // Arrange
+        jest.spyOn(testableProvider, 'getBalanceForDex').mockResolvedValue(100); // Target has only 100
+        jest
+          .spyOn(testableProvider, 'findSourceDexWithBalance')
+          .mockResolvedValue({ sourceDex: '', available: 1000 });
+        jest
+          .spyOn(testableProvider, 'transferBetweenDexs')
+          .mockResolvedValue({ success: true });
+
+        // Act
+        const result = await testableProvider.autoTransferForHip3Order({
+          targetDex: 'xyz',
+          requiredMargin: 500,
+        });
+
+        // Assert
+        expect(result).toEqual({ amount: expect.any(Number), sourceDex: '' });
+        expect(testableProvider.transferBetweenDexs).toHaveBeenCalledWith({
+          sourceDex: '',
+          destinationDex: 'xyz',
+          amount: expect.any(String),
+        });
+      });
+
+      it('throws error when no source has sufficient balance', async () => {
+        // Arrange
+        jest.spyOn(testableProvider, 'getBalanceForDex').mockResolvedValue(100); // Target has only 100
+        jest
+          .spyOn(testableProvider, 'findSourceDexWithBalance')
+          .mockResolvedValue(null); // No source found
+
+        // Act & Assert
+        await expect(
+          testableProvider.autoTransferForHip3Order({
+            targetDex: 'xyz',
+            requiredMargin: 500,
+          }),
+        ).rejects.toThrow('Insufficient balance for HIP-3 order');
+      });
+
+      it('throws error when transfer fails', async () => {
+        // Arrange
+        jest.spyOn(testableProvider, 'getBalanceForDex').mockResolvedValue(100);
+        jest
+          .spyOn(testableProvider, 'findSourceDexWithBalance')
+          .mockResolvedValue({ sourceDex: '', available: 1000 });
+        jest
+          .spyOn(testableProvider, 'transferBetweenDexs')
+          .mockResolvedValue({ success: false, error: 'Transfer failed' });
+
+        // Act & Assert
+        await expect(
+          testableProvider.autoTransferForHip3Order({
+            targetDex: 'xyz',
+            requiredMargin: 500,
+          }),
+        ).rejects.toThrow('Auto-transfer failed: Transfer failed');
+      });
+    });
+
+    describe('calculateHip3RequiredMargin', () => {
+      interface ProviderWithMarginCalc {
+        calculateHip3RequiredMargin(params: {
+          coin: string;
+          dexName: string;
+          positionSize: number;
+          orderPrice: number;
+          leverage: number;
+          isBuy: boolean;
+        }): Promise<number>;
+        getPositions(): Promise<
+          { coin: string; size: string; marginUsed: string }[]
+        >;
+      }
+
+      let testableProvider: ProviderWithMarginCalc;
+
+      beforeEach(() => {
+        testableProvider = provider as unknown as ProviderWithMarginCalc;
+      });
+
+      it('calculates total margin when increasing existing long position', async () => {
+        // Arrange
+        jest.spyOn(testableProvider, 'getPositions').mockResolvedValue([
+          {
+            coin: 'BTC',
+            size: '1.0', // Existing long position
+            marginUsed: '5000',
+          },
+        ]);
+
+        // Act
+        const result = await testableProvider.calculateHip3RequiredMargin({
+          coin: 'BTC',
+          dexName: 'xyz',
+          positionSize: 0.5, // Adding to position
+          orderPrice: 50000,
+          leverage: 10,
+          isBuy: true, // Long order - increasing position
+        });
+
+        // Assert
+        // Total size = 1.0 + 0.5 = 1.5
+        // Total notional = 1.5 * 50000 = 75000
+        // Total margin = 75000 / 10 = 7500
+        // With buffer (1.003) = 7522.5
+        expect(result).toBeCloseTo(7522.5, 1);
+      });
+
+      it('calculates incremental margin when reversing position', async () => {
+        // Arrange
+        jest.spyOn(testableProvider, 'getPositions').mockResolvedValue([
+          {
+            coin: 'BTC',
+            size: '1.0', // Existing long position
+            marginUsed: '5000',
+          },
+        ]);
+
+        // Act
+        const result = await testableProvider.calculateHip3RequiredMargin({
+          coin: 'BTC',
+          dexName: 'xyz',
+          positionSize: 0.5,
+          orderPrice: 50000,
+          leverage: 10,
+          isBuy: false, // Short order - opposite direction
+        });
+
+        // Assert
+        // Only new order margin (not total)
+        // Notional = 0.5 * 50000 = 25000
+        // Margin = 25000 / 10 = 2500
+        // With buffer (1.003) = 2507.5
+        expect(result).toBeCloseTo(2507.5, 1);
+      });
+
+      it('calculates margin for new position when no existing position', async () => {
+        // Arrange
+        jest.spyOn(testableProvider, 'getPositions').mockResolvedValue([]);
+
+        // Act
+        const result = await testableProvider.calculateHip3RequiredMargin({
+          coin: 'ETH',
+          dexName: 'xyz',
+          positionSize: 10,
+          orderPrice: 3000,
+          leverage: 5,
+          isBuy: true,
+        });
+
+        // Assert
+        // Notional = 10 * 3000 = 30000
+        // Margin = 30000 / 5 = 6000
+        // With buffer (1.003) = 6018
+        expect(result).toBeCloseTo(6018, 1);
+      });
+
+      it('calculates total margin when increasing existing short position', async () => {
+        // Arrange
+        jest.spyOn(testableProvider, 'getPositions').mockResolvedValue([
+          {
+            coin: 'ETH',
+            size: '-5.0', // Existing short position
+            marginUsed: '3000',
+          },
+        ]);
+
+        // Act
+        const result = await testableProvider.calculateHip3RequiredMargin({
+          coin: 'ETH',
+          dexName: 'xyz',
+          positionSize: 2.0, // Adding to short
+          orderPrice: 3000,
+          leverage: 5,
+          isBuy: false, // Short order - increasing short position
+        });
+
+        // Assert
+        // Total size = 5.0 + 2.0 = 7.0
+        // Total notional = 7.0 * 3000 = 21000
+        // Total margin = 21000 / 5 = 4200
+        // With buffer (1.003) = 4212.6
+        expect(result).toBeCloseTo(4212.6, 1);
+      });
+    });
   });
 });
