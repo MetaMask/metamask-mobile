@@ -73,6 +73,26 @@ describe('usePredictActionGuard', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
+    it('executes action with skipEligibilityCheck (redundant when already eligible)', async () => {
+      const { result } = renderHook(() =>
+        usePredictActionGuard({
+          providerId: 'polymarket',
+          navigation: mockNavigation,
+        }),
+      );
+
+      const mockAction = jest.fn();
+
+      await act(async () => {
+        await result.current.executeGuardedAction(mockAction, {
+          skipEligibilityCheck: true,
+        });
+      });
+
+      expect(mockAction).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
     it('returns correct eligibility and balance state', () => {
       const { result } = renderHook(() =>
         usePredictActionGuard({
@@ -156,6 +176,26 @@ describe('usePredictActionGuard', () => {
       expect(mockAction).not.toHaveBeenCalled();
     });
 
+    it('executes action when skipEligibilityCheck is true', async () => {
+      const { result } = renderHook(() =>
+        usePredictActionGuard({
+          providerId: 'polymarket',
+          navigation: mockNavigation,
+        }),
+      );
+
+      const mockAction = jest.fn();
+
+      await act(async () => {
+        await result.current.executeGuardedAction(mockAction, {
+          skipEligibilityCheck: true,
+        });
+      });
+
+      expect(mockAction).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
     it('returns correct eligibility state', () => {
       const { result } = renderHook(() =>
         usePredictActionGuard({
@@ -215,6 +255,29 @@ describe('usePredictActionGuard', () => {
       expect(mockAction).not.toHaveBeenCalled();
     });
 
+    it('still navigates to add funds when skipEligibilityCheck is true and checkBalance is true', async () => {
+      const { result } = renderHook(() =>
+        usePredictActionGuard({
+          providerId: 'polymarket',
+          navigation: mockNavigation,
+        }),
+      );
+
+      const mockAction = jest.fn();
+
+      await act(async () => {
+        await result.current.executeGuardedAction(mockAction, {
+          skipEligibilityCheck: true,
+          checkBalance: true,
+        });
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+      });
+      expect(mockAction).not.toHaveBeenCalled();
+    });
+
     it('returns correct balance state', () => {
       const { result } = renderHook(() =>
         usePredictActionGuard({
@@ -264,6 +327,56 @@ describe('usePredictActionGuard', () => {
         },
       );
       expect(mockAction).not.toHaveBeenCalled();
+    });
+
+    it('navigates to add funds when skipEligibilityCheck is true and checkBalance is true', async () => {
+      const { result } = renderHook(() =>
+        usePredictActionGuard({
+          providerId: 'polymarket',
+          navigation: mockNavigation,
+        }),
+      );
+
+      const mockAction = jest.fn();
+
+      await act(async () => {
+        await result.current.executeGuardedAction(mockAction, {
+          skipEligibilityCheck: true,
+          checkBalance: true,
+        });
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.PREDICT.MODALS.ROOT,
+        {
+          screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+        },
+      );
+      expect(mockAction).not.toHaveBeenCalled();
+    });
+
+    it('executes action when skipEligibilityCheck is true and checkBalance is false', async () => {
+      const { result } = renderHook(() =>
+        usePredictActionGuard({
+          providerId: 'polymarket',
+          navigation: mockNavigation,
+        }),
+      );
+
+      const mockAction = jest.fn();
+
+      await act(async () => {
+        await result.current.executeGuardedAction(mockAction, {
+          skipEligibilityCheck: true,
+          checkBalance: false,
+        });
+      });
+
+      expect(mockAction).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('returns correct eligibility and balance state', () => {
