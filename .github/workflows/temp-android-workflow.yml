@@ -17,6 +17,8 @@ jobs:
   build-and-test-android:
     name: Temp Android E2E - Build & Test
     runs-on: ${{ fromJSON('{"group":"temp-bitrise-runners"}') }}
+    container:
+      image: bitriseio/ubuntu-noble-24.04-bitrise-2025-android:latest
     env:
       GRADLE_USER_HOME: /home/admin/_work/.gradle
       CACHE_GENERATION: v1
