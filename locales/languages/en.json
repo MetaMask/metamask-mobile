@@ -542,7 +542,8 @@
     "activity": "Activity",
     "trade": "Trade",
     "settings": "Settings",
-    "rewards": "Rewards"
+    "rewards": "Rewards",
+    "trending": "Trending"
   },
   "drawer": {
     "send_button": "Send",
@@ -1827,6 +1828,14 @@
     "add_funds_sheet": {
       "title": "Add funds",
       "description": "You'll need to add funds to your Predictions account to get started. You can add any token and make your first prediction in seconds."
+    },
+    "consent_sheet": {
+      "title": "Terms of use",
+      "description": "MetaMask partners with Polymarket to offer prediction markets. All of our available markets, orders, and settlements happen on Polymarket.",
+      "learn_more": "Learn more.",
+      "agree": "Agree",
+      "disagree": "Disagree",
+      "disclaimer": "By continuing, you accept Polymarket’s terms."
     },
     "transactions": {
       "title": "Predictions",
@@ -6764,5 +6773,9 @@
     "update_rpc": "Update RPC",
     "check_network_connectivity": "Check your network connectivity.",
     "check_network_connectivity_or": "Check your network connectivity or"
+  },
+  "trending": {
+    "title": "Trending",
+    "coming_soon": "Trending tokens coming soon"
   }
 }
