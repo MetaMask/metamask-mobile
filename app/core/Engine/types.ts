@@ -115,12 +115,8 @@ import {
 } from '@metamask/preferences-controller';
 import {
   AnalyticsController,
-  getDefaultAnalyticsControllerState,
+  AnalyticsControllerState,
 } from '@metamask/analytics-controller';
-
-type AnalyticsControllerState = ReturnType<
-  typeof getDefaultAnalyticsControllerState
->;
 import {
   TransactionController,
   TransactionControllerActions,
