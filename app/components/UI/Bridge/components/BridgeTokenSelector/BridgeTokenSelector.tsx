@@ -1,14 +1,9 @@
-import React, { useRef, useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+import ScreenView from '../../../../Base/ScreenView';
 import { strings } from '../../../../../../locales/i18n';
+import { getBridgeTokenSelectorNavbar } from '../../../Navbar';
 import { FlatList } from 'react-native-gesture-handler';
 import { NetworkPills } from './NetworkPills';
 import { CaipChainId, parseCaipAssetType } from '@metamask/utils';
@@ -65,7 +60,6 @@ export const BridgeTokenSelector: React.FC = () => {
   const dispatch = useDispatch();
   const route =
     useRoute<RouteProp<{ params: BridgeTokenSelectorRouteParams }, 'params'>>();
-  const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(createStyles, {});
   const [searchString, setSearchString] = useState<string>('');
   const networkConfigurations = useSelector(selectNetworkConfigurations);
@@ -73,6 +67,11 @@ export const BridgeTokenSelector: React.FC = () => {
   const bridgeFeatureFlags = useSelector((state: RootState) =>
     selectBridgeFeatureFlags(state),
   );
+
+  // Set navigation options for header
+  useEffect(() => {
+    navigation.setOptions(getBridgeTokenSelectorNavbar(navigation));
+  }, [navigation]);
 
   // Initialize selectedChainId with the chain id of the selected token
   const sourceToken = useSelector(selectSourceToken);
@@ -201,10 +200,6 @@ export const BridgeTokenSelector: React.FC = () => {
     sourceToken,
     destToken,
   ]);
-
-  const handleClose = () => {
-    navigation.goBack();
-  };
 
   const handleChainSelect = (chainId?: CaipChainId) => {
     setSelectedChainId(chainId);
@@ -337,17 +332,7 @@ export const BridgeTokenSelector: React.FC = () => {
   }, [isLoadingMore]);
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      isFullscreen
-      keyboardAvoidingViewEnabled={false}
-    >
-      <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('bridge.select_token')}
-        </Text>
-      </BottomSheetHeader>
-
+    <ScreenView>
       <Box style={styles.buttonContainer}>
         <NetworkPills
           selectedChainId={selectedChainId}
@@ -376,6 +361,6 @@ export const BridgeTokenSelector: React.FC = () => {
           ListFooterComponent={renderFooter}
         />
       </Box>
-    </BottomSheet>
+    </ScreenView>
   );
 };

@@ -29,6 +29,11 @@ export const BridgeScreenStack = () => (
       component={BridgeView}
       options={{ title: '' }}
     />
+    <Stack.Screen
+      name={Routes.BRIDGE.TOKEN_SELECTOR}
+      component={BridgeTokenSelector}
+      options={{ title: '' }}
+    />
   </Stack.Navigator>
 );
 
@@ -53,10 +58,6 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR}
       component={BridgeDestNetworkSelector}
-    />
-    <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.TOKEN_SELECTOR}
-      component={BridgeTokenSelector}
     />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.SLIPPAGE_MODAL}

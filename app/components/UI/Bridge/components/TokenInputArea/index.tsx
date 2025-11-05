@@ -250,20 +250,14 @@ export const TokenInputArea = forwardRef<
     const navigation = useNavigation();
 
     const navigateToDestTokenSelector = () => {
-      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-        screen: Routes.BRIDGE.MODALS.TOKEN_SELECTOR,
-        params: {
-          type: 'dest',
-        },
+      navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
+        type: 'dest',
       });
     };
 
     const navigateToSourceTokenSelector = () => {
-      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-        screen: Routes.BRIDGE.MODALS.TOKEN_SELECTOR,
-        params: {
-          type: 'source',
-        },
+      navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
+        type: 'source',
       });
     };
 

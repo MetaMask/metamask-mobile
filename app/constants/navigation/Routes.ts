@@ -230,6 +230,7 @@ const Routes = {
   BRIDGE: {
     ROOT: 'Bridge',
     BRIDGE_VIEW: 'BridgeView',
+    TOKEN_SELECTOR: 'BridgeTokenSelector',
     MODALS: {
       ROOT: 'BridgeModals',
       SOURCE_TOKEN_SELECTOR: 'BridgeSourceTokenSelector',
@@ -237,7 +238,6 @@ const Routes = {
       SLIPPAGE_MODAL: 'SlippageModal',
       DEST_TOKEN_SELECTOR: 'BridgeDestTokenSelector',
       DEST_NETWORK_SELECTOR: 'BridgeDestNetworkSelector',
-      TOKEN_SELECTOR: 'BridgeTokenSelector',
       TRANSACTION_DETAILS_BLOCK_EXPLORER: 'TransactionDetailsBlockExplorer',
       QUOTE_EXPIRED_MODAL: 'QuoteExpiredModal',
       BLOCKAID_MODAL: 'BlockaidModal',

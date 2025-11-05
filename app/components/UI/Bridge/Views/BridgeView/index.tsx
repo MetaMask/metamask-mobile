@@ -327,19 +327,13 @@ const BridgeView = () => {
   };
 
   const handleSourceTokenPress = () =>
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.TOKEN_SELECTOR,
-      params: {
-        type: 'source',
-      },
+    navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
+      type: 'source',
     });
 
   const handleDestTokenPress = () =>
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.TOKEN_SELECTOR,
-      params: {
-        type: 'dest',
-      },
+    navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
+      type: 'dest',
     });
 
   const getButtonLabel = () => {
