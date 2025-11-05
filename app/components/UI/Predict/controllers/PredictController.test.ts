@@ -4484,7 +4484,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('replaces address when accepting agreement for different address with same provider', () => {
+    it('preserves existing addresses when accepting agreement for different address with same provider', () => {
       withController(({ controller }) => {
         const providerId = 'polymarket';
         const address1 = '0x1234567890123456789012345678901234567890';
@@ -4505,10 +4505,11 @@ describe('PredictController', () => {
           address: address2,
         });
 
-        // Note: Current implementation replaces the entire address object
-        expect(
-          controller.state.accountMeta[providerId][address1],
-        ).toBeUndefined();
+        // Both addresses should exist
+        expect(controller.state.accountMeta[providerId][address1]).toEqual({
+          isOnboarded: false,
+          acceptedToS: true,
+        });
         expect(controller.state.accountMeta[providerId][address2]).toEqual({
           isOnboarded: false,
           acceptedToS: true,
@@ -4626,7 +4627,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('replaces previous address when accepting agreement for new address', () => {
+    it('preserves first address metadata when accepting agreement for second address', () => {
       withController(({ controller }) => {
         const providerId = 'polymarket';
         const address1 = '0x1111111111111111111111111111111111111111';
@@ -4650,10 +4651,11 @@ describe('PredictController', () => {
           address: address2,
         });
 
-        // Note: Current implementation replaces the entire address object
-        expect(
-          controller.state.accountMeta[providerId][address1],
-        ).toBeUndefined();
+        // Both addresses should exist with their metadata
+        expect(controller.state.accountMeta[providerId][address1]).toEqual({
+          isOnboarded: false,
+          acceptedToS: true,
+        });
         expect(controller.state.accountMeta[providerId][address2]).toEqual({
           isOnboarded: false,
           acceptedToS: true,

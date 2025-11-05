@@ -1727,6 +1727,7 @@ export class PredictController extends BaseController<
         };
 
         state.accountMeta[params.providerId] = {
+          ...(state.accountMeta[params.providerId] || {}),
           [params.address]: {
             ...accountMeta,
             acceptedToS: true,
