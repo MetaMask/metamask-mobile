@@ -43,6 +43,10 @@ const PerpsTooltipView: React.FC = () => {
     bottomSheetRef.current?.onCloseBottomSheet();
   }, []);
 
+  if (!contentKey) {
+    return null;
+  }
+
   const title = strings(`perps.tooltips.${contentKey}.title`);
 
   const renderContent = () => {
