@@ -75,19 +75,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       { focus: () => void; blur: () => void }
     > | null>(null);
 
-    // Refs to track timeouts
-    const validateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-    // Cleanup timeouts on unmount
-    useEffect(
-      () => () => {
-        if (validateTimeoutRef.current) {
-          clearTimeout(validateTimeoutRef.current);
-        }
-      },
-      [],
-    );
-
     // Calculate trimmed seed phrase length
     const trimmedSeedPhraseLength = useMemo(
       () => getTrimmedSeedPhraseLength(seedPhrase),
@@ -224,18 +211,11 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
         if (SRP_LENGTHS.includes(updatedTrimmedText.length)) {
           onSeedPhraseChange(updatedTrimmedText);
 
-          if (validateTimeoutRef.current) {
-            clearTimeout(validateTimeoutRef.current);
-          }
-
           // Validate complete phrases that might have invalid words
-          validateTimeoutRef.current = setTimeout(() => {
-            setErrorWordIndexes(validateWords(updatedTrimmedText));
-            setNextSeedPhraseInputFocusedIndex(null);
-            seedPhraseInputRefs.current?.get(0)?.blur();
-            Keyboard.dismiss();
-            validateTimeoutRef.current = null;
-          }, 150);
+          setErrorWordIndexes(validateWords(updatedTrimmedText));
+          setNextSeedPhraseInputFocusedIndex(null);
+          seedPhraseInputRefs.current?.get(0)?.blur();
+          Keyboard.dismiss();
         } else {
           handleSeedPhraseChangeAtIndexRef.current?.(text, 0);
         }
