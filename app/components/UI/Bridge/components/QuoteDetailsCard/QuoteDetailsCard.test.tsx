@@ -420,7 +420,7 @@ describe('QuoteDetailsCard', () => {
 
     // The key is testing the shouldShowPriceImpactWarning conditional branches
     // Verify the Price Impact section is visible (this exercises the component logic)
-    expect(getByText('Price Impact')).toBeTruthy();
+    expect(getByText('Price impact')).toBeTruthy();
 
     // Test the shouldShowPriceImpactWarning branches by checking for tooltip presence
     const hasWarningTooltip =
