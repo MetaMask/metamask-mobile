@@ -93,25 +93,6 @@ function OrdersList() {
     </TouchableHighlight>
   );
 
-  const renderFilterTab = useCallback(
-    (filter: filterType, label: string) => {
-      const isActive = currentFilter === filter;
-
-      return (
-        <ButtonFilter
-          key={filter}
-          onPress={() => setCurrentFilter(filter)}
-          isActive={isActive}
-          size={ButtonBaseSize.Md}
-          accessibilityLabel={label}
-        >
-          {label}
-        </ButtonFilter>
-      );
-    },
-    [currentFilter],
-  );
-
   return (
     <FlatList
       ListHeaderComponent={
@@ -121,12 +102,30 @@ function OrdersList() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={tw.style('flex-row gap-3')}
           >
-            {renderFilterTab('ALL', strings('fiat_on_ramp_aggregator.All'))}
-            {renderFilterTab(
-              'PURCHASE',
-              strings('fiat_on_ramp_aggregator.Purchased'),
-            )}
-            {renderFilterTab('SELL', strings('fiat_on_ramp_aggregator.Sold'))}
+            <ButtonFilter
+              onPress={() => setCurrentFilter('ALL')}
+              isActive={currentFilter === 'ALL'}
+              size={ButtonBaseSize.Md}
+              accessibilityLabel={strings('fiat_on_ramp_aggregator.All')}
+            >
+              {strings('fiat_on_ramp_aggregator.All')}
+            </ButtonFilter>
+            <ButtonFilter
+              onPress={() => setCurrentFilter('PURCHASE')}
+              isActive={currentFilter === 'PURCHASE'}
+              size={ButtonBaseSize.Md}
+              accessibilityLabel={strings('fiat_on_ramp_aggregator.Purchased')}
+            >
+              {strings('fiat_on_ramp_aggregator.Purchased')}
+            </ButtonFilter>
+            <ButtonFilter
+              onPress={() => setCurrentFilter('SELL')}
+              isActive={currentFilter === 'SELL'}
+              size={ButtonBaseSize.Md}
+              accessibilityLabel={strings('fiat_on_ramp_aggregator.Sold')}
+            >
+              {strings('fiat_on_ramp_aggregator.Sold')}
+            </ButtonFilter>
           </ScrollView>
         </Box>
       }
