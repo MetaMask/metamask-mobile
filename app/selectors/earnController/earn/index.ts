@@ -541,6 +541,29 @@ const selectEarnTokenPair = createSelector(
   },
 );
 
+const selectPrimaryEarnExperienceTypeForAsset = createSelector(
+  [
+    (_state: RootState, asset: TokenI) => asset,
+    selectEarnToken,
+    selectEarnOutputToken,
+    selectTrxStakingEnabled,
+  ],
+  (asset, earnToken, outputToken, isTrxStakingEnabled) => {
+    const typeFromMetadata =
+      earnToken?.experience?.type ?? outputToken?.experience?.type;
+    if (typeFromMetadata) {
+      return typeFromMetadata;
+    }
+
+    const isTronNative =
+      asset?.ticker === 'TRX' && asset?.chainId?.startsWith('tron:');
+    if (isTronNative && isTrxStakingEnabled) {
+      return EARN_EXPERIENCES.POOLED_STAKING;
+    }
+    return undefined;
+  },
+);
+
 export const earnSelectors = {
   selectEarnControllerState,
   selectEarnTokens,
@@ -549,4 +572,5 @@ export const earnSelectors = {
   selectEarnTokenPair,
   selectPairedEarnToken,
   selectPairedEarnOutputToken,
+  selectPrimaryEarnExperienceTypeForAsset,
 };

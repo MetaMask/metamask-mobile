@@ -34,6 +34,7 @@ import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { Hex } from '@metamask/utils';
 import { trace, TraceName } from '../../../../../util/trace';
+import { earnSelectors } from '../../../../../selectors/earnController/earn';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 ///: END:ONLY_INCLUDE_IF
@@ -68,6 +69,10 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
   const { getEarnToken } = useEarnTokens();
   const earnToken = getEarnToken(asset);
+
+  const primaryExperienceType = useSelector((state: RootState) =>
+    earnSelectors.selectPrimaryEarnExperienceTypeForAsset(state, asset),
+  );
 
   const areEarnExperiencesDisabled =
     !isPooledStakingEnabled && !isStablecoinLendingEnabled;
@@ -190,19 +195,13 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   };
 
   const onEarnButtonPress = async () => {
-    if (earnToken?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING) {
+    if (primaryExperienceType === EARN_EXPERIENCES.POOLED_STAKING) {
       return handleStakeRedirect();
     }
 
-    if (earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING) {
+    if (primaryExperienceType === EARN_EXPERIENCES.STABLECOIN_LENDING) {
       return handleLendingRedirect();
     }
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
-    // Fallback for TRX (stake flag on) when no earnToken metadata is present yet
-    if (isTronNative && isTrxStakingEnabled) {
-      return handleStakeRedirect();
-    }
-    ///: END:ONLY_INCLUDE_IF
   };
 
   if (
