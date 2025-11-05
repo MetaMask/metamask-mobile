@@ -17,20 +17,23 @@ jest.mock('../../../component-library/components-temp/Tabs', () => {
   const React = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
 
-  const TabsList = React.forwardRef((props: {
-    children?: React.ReactElement[];
-    [key: string]: unknown;
-  }, ref: unknown) => {
-    // Render first tab content by default (index 0)
-    const firstTab = Array.isArray(props.children) ? props.children[0] : props.children;
-    
-    return React.createElement(
-      View,
-      { testID: 'tabs-list', ref },
-      firstTab,
-    );
-  });
-  
+  const TabsList = React.forwardRef(
+    (
+      props: {
+        children?: React.ReactElement[];
+        [key: string]: unknown;
+      },
+      ref: unknown,
+    ) => {
+      // Render first tab content by default (index 0)
+      const firstTab = Array.isArray(props.children)
+        ? props.children[0]
+        : props.children;
+
+      return React.createElement(View, { testID: 'tabs-list', ref }, firstTab);
+    },
+  );
+
   return { TabsList };
 });
 
