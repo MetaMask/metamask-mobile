@@ -227,13 +227,4 @@ describe('useRampNavigation', () => {
       expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
     });
   });
-
-  it('throws error for invalid mode', () => {
-    const invalidMode = 'invalid' as RampMode;
-    const { result } = renderHook(() => useRampNavigation());
-
-    expect(() => result.current.goToRamps(invalidMode)).toThrow(
-      `Invalid ramp mode: ${invalidMode}. Must be ${RampMode.AGGREGATOR} or ${RampMode.DEPOSIT}`,
-    );
-  });
 });

@@ -39,23 +39,19 @@ export const useRampNavigation = () => {
         return;
       }
 
-      if (mode === RampMode.AGGREGATOR) {
+      if (mode === RampMode.DEPOSIT) {
+        navigation.navigate(
+          ...createDepositNavigationDetails(params as DepositNavigationParams),
+        );
+      } else {
         const { intent, rampType = AggregatorRampType.BUY } = (params ||
           {}) as AggregatorParams;
 
         if (rampType === AggregatorRampType.BUY) {
           navigation.navigate(...createBuyNavigationDetails(intent));
-        } else if (rampType === AggregatorRampType.SELL) {
+        } else {
           navigation.navigate(...createSellNavigationDetails(intent));
         }
-      } else if (mode === RampMode.DEPOSIT) {
-        navigation.navigate(
-          ...createDepositNavigationDetails(params as DepositNavigationParams),
-        );
-      } else {
-        throw new Error(
-          `Invalid ramp mode: ${mode}. Must be ${RampMode.AGGREGATOR} or ${RampMode.DEPOSIT}`,
-        );
       }
     },
     [navigation, isRampsUnifiedV1Enabled],
