@@ -117,7 +117,6 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Use ref to access latest price without triggering fee recalculations
   // This prevents continuous recalculations on every WebSocket price update
-  // Pattern matches usePerpsCloseAllCalculations (lines 96-98, 336-339)
   const currentPriceRef = useRef(currentPrice);
   currentPriceRef.current = currentPrice;
 
