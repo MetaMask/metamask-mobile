@@ -93,7 +93,6 @@ runs:
         EVENT_NAME: ${{ inputs.event-name }}
         PR_NUMBER: ${{ inputs.pr-number }}
         GH_TOKEN: ${{ inputs.github-token }}
-        PR_COMMENT_FILE: pr_comment.md
         GITHUB_REPOSITORY: ${{ inputs.repository }}
         GITHUB_RUN_ID: ${{ github.run_id }}
       run: |
@@ -153,6 +152,8 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.github-token }}
       run: |
+        # Comment configuration (single source of truth)
+        COMMENT_FILE="pr_comment.md"
         TITLE="## 🔍 Smart E2E Test Selection"
         FOOTER="[View GitHub Actions results](https://github.com/${{ inputs.repository }}/actions/runs/${{ github.run_id }})"
         MARKER="<!-- smart-e2e-selection -->"
@@ -163,11 +164,11 @@ runs:
           All E2E tests pre-selected."
           
         else
-          # Read analysis results from the file specified in env
-          if [ -f "$PR_COMMENT_FILE" ]; then
-            COMMENT_BODY=$(cat "$PR_COMMENT_FILE")
+          # Read analysis results from file
+          if [ -f "$COMMENT_FILE" ]; then
+            COMMENT_BODY=$(cat "$COMMENT_FILE")
           else
-            echo "⚠️ PR comment file not found: $PR_COMMENT_FILE - using default message"
+            echo "⚠️ PR comment file not found: $COMMENT_FILE - using default message"
             COMMENT_BODY="AI analysis completed but results file was not generated."
           fi
         fi

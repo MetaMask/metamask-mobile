@@ -3,16 +3,18 @@ import { execSync } from 'child_process';
 import { appendFileSync, writeFileSync } from 'fs';
 
 /**
- * Smart E2E selection script
- * Runs AI analysis to select appropriate E2E test tags based on code changes
- */
+ * Runs the Smart E2E selection script,
+ * Generates the Github outputs, Step Summary and PR Comment Body
+*/
 
 const env = {
-  PR_COMMENT_FILE: process.env.PR_COMMENT_FILE || 'pr_comment.md',
   PR_NUMBER: process.env.PR_NUMBER || '',
   GITHUB_OUTPUT: process.env.GITHUB_OUTPUT || '',
   GITHUB_STEP_SUMMARY: process.env.GITHUB_STEP_SUMMARY || '',
 };
+
+// Constants
+const PR_COMMENT_FILE = 'pr_comment.md';
 
 function execCommand(command, options = {}) {
   try {
@@ -69,11 +71,13 @@ function generateAnalysisSummary(analysis) {
 
 function generatePRComment(summaryContent) {
   if (!env.PR_NUMBER) {
+    console.log('⏭️ Skipping PR comment file generation - no PR number');
     return;
   }
+
   // Write just the body content - action will add title, footer, and marker
-  writeFileSync(env.PR_COMMENT_FILE, summaryContent, 'utf8');
-  console.log(`✅ PR comment body written to ${env.PR_COMMENT_FILE}`);
+  writeFileSync(PR_COMMENT_FILE, summaryContent, 'utf8');
+  console.log(`✅ PR comment body written to ${PR_COMMENT_FILE}`);
 }
 
 function setGitHubOutputs(analysis) {
@@ -122,7 +126,6 @@ async function main() {
     console.log(`🔢 AI Confidence: ${analysis.confidence}`);
 
     setGitHubOutputs(analysis);
-
     const summaryContent = generateAnalysisSummary(analysis);
     appendGithubSummary('## 🔍 Smart E2E Test Selection\n' + summaryContent);
     generatePRComment(summaryContent);
