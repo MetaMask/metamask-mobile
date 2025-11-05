@@ -122,6 +122,14 @@ import { toHex } from '@metamask/controller-utils';
 import { parseCaipAccountId } from '@metamask/utils';
 import { selectBrowserFullscreen } from '../../../selectors/browser';
 import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
+import {
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+} from '@metamask/design-system-react-native';
 
 /**
  * Tab component for the in-app browser
@@ -1354,10 +1362,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       [],
     );
 
+    const handleBackPress = useCallback(() => {
+      navigation.goBack();
+    }, [navigation]);
+
     const onCancelUrlBar = useCallback(() => {
       // If from trending and feature flag is on, navigate back to trending
       if (fromTrending && isAssetsTrendingTokensEnabled) {
-        navigation.navigate(Routes.TRENDING_VIEW);
+        navigation.goBack();
         return;
       }
 
@@ -1372,6 +1384,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       isAssetsTrendingTokensEnabled,
       navigation,
     ]);
+
+    const showBackButton = fromTrending && isAssetsTrendingTokensEnabled;
 
     const onFocusUrlBar = useCallback(() => {
       // Show the autocomplete results
@@ -1494,20 +1508,37 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             style={styles.wrapper}
             {...(Device.isAndroid() ? { collapsable: false } : {})}
           >
-            <BrowserUrlBar
-              ref={urlBarRef}
-              connectionType={connectionType}
-              onSubmitEditing={onSubmitEditing}
-              onCancel={onCancelUrlBar}
-              onFocus={onFocusUrlBar}
-              onBlur={hideAutocomplete}
-              onChangeText={onChangeUrlBar}
-              connectedAccounts={permittedCaipAccountAddressesList}
-              activeUrl={resolvedUrlRef.current}
-              setIsUrlBarFocused={setIsUrlBarFocused}
-              isUrlBarFocused={isUrlBarFocused}
-              showCloseButton={fromTrending && isAssetsTrendingTokensEnabled}
-            />
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+            >
+              {showBackButton && (
+                <ButtonIcon
+                  iconName={IconName.ArrowLeft}
+                  size={ButtonIconSize.Lg}
+                  onPress={handleBackPress}
+                  testID="browser-tab-back-button"
+                />
+              )}
+              <Box twClassName="flex-1">
+                <BrowserUrlBar
+                  ref={urlBarRef}
+                  connectionType={connectionType}
+                  onSubmitEditing={onSubmitEditing}
+                  onCancel={onCancelUrlBar}
+                  onFocus={onFocusUrlBar}
+                  onBlur={hideAutocomplete}
+                  onChangeText={onChangeUrlBar}
+                  connectedAccounts={permittedCaipAccountAddressesList}
+                  activeUrl={resolvedUrlRef.current}
+                  setIsUrlBarFocused={setIsUrlBarFocused}
+                  isUrlBarFocused={isUrlBarFocused}
+                  showCloseButton={
+                    fromTrending && isAssetsTrendingTokensEnabled
+                  }
+                />
+              </Box>
+            </Box>
             <View style={styles.wrapper}>
               {renderProgressBar()}
               <View style={styles.webview}>
