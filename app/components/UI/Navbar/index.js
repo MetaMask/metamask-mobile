@@ -2041,6 +2041,7 @@ export function getDepositNavbarOptions(
               navigation.dangerouslyGetParent()?.pop();
               onClose?.();
             }}
+            testID="deposit-close-navbar-button"
           />
         )
       : null,
