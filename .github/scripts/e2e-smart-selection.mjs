@@ -3,7 +3,7 @@ import { execSync } from 'child_process';
 import { appendFileSync, writeFileSync } from 'fs';
 
 /**
- * Smart E2E selection Script
+ * Smart E2E selection script
  * Runs AI analysis to select appropriate E2E test tags based on code changes
  */
 
@@ -97,16 +97,15 @@ function generatePRComment(summaryContent) {
   setGithubOutputs('pr_comment_file', env.PR_COMMENT_FILE);
 }
 
-function setGitHubOutputs(analysis, testMatrix) {
+function setGitHubOutputs(analysis) {
   const { tags, tagDisplay, riskLevel, reasoning, confidence, testFileBreakdown } = analysis;
 
   // Set outputs for GitHub Actions
-  setGithubOutputs('test_matrix', JSON.stringify(testMatrix));
-  setGithubOutputs('e2e_test_tags', tags);
-  setGithubOutputs('tags_display', tagDisplay);
-  setGithubOutputs('risk_level', riskLevel);
-  setGithubOutputs('reasoning', reasoning);
-  setGithubOutputs('confidence', confidence);
+  setGithubOutputs('ai_e2e_test_tags', tags);
+  setGithubOutputs('ai_tags_display', tagDisplay);
+  setGithubOutputs('ai_risk_level', riskLevel);
+  setGithubOutputs('ai_reasoning', reasoning);
+  setGithubOutputs('ai_confidence', confidence);
 
   // Handle multi-line breakdown content
   if (testFileBreakdown) {
@@ -119,27 +118,15 @@ function setGitHubOutputs(analysis, testMatrix) {
 
 async function main() {
   try {
-    console.log('🤖 Running AI analysis...');
-    console.log(`PR number: ${env.PR_NUMBER}`);
+    console.log('🤖 Starting AI analysis...');
 
-    // Only run AI analysis for pull_request events
     if (!env.PR_NUMBER) {
       console.log('⏭️ Skipping AI analysis - only runs on PRs');
-      setGithubOutputs('test_matrix', '[]');
-      setGithubOutputs('tags', '');
-      setGithubOutputs('tags_display', 'None (AI analysis skipped)');
-      setGithubOutputs('risk_level', 'N/A');
-      setGithubOutputs('reasoning', 'AI analysis only runs for pull_request events with changed files');
-      setGithubOutputs('confidence', '0');
       return;
     }
 
     // Build command - use --pr flag for better analysis (agent will fetch diffs from GitHub)
     const baseCmd = `node -r esbuild-register e2e/scripts/ai-e2e-tags-selector.ts --output json --pr ${env.PR_NUMBER}`;
-
-    console.log(`🤖 Running AI analysis with command: ${baseCmd}`);
-
-    // Execute the AI analysis command
     const result = execCommand(baseCmd, { silent: true });
 
     // Validate JSON output
@@ -152,7 +139,7 @@ async function main() {
       process.exit(1);
     }
 
-    console.log('📊 AI analysis completed successfully (builds running in parallel)');
+    console.log('📊 AI analysis completed.');
 
     // Parse results
     const analysis = {
@@ -165,27 +152,12 @@ async function main() {
       testFileBreakdown: parsedResult.testFileBreakdown || [],
     };
 
-    console.log(`✅ Selected tags: ${analysis.tagDisplay}`);
+    console.log(`✅ Selected E2E test tags: ${analysis.tagDisplay}`);
     console.log(`📈 Risk level: ${analysis.riskLevel}`);
     console.log(`🔢 Tag count: ${analysis.tagCount}`);
 
-    // Generate test matrix for GitHub Actions
-    const testMatrix = generateTestMatrix(analysis.testFileBreakdown);
-    const matrixLength = testMatrix.length;
-
-    // Log summary
-    if (analysis.tagCount === 0) {
-      console.log('ℹ️ No E2E tests recommended - AI determined changes are very low risk');
-    } else if (matrixLength > 0) {
-      console.log(`✅ Generated test matrix with ${matrixLength} job(s)`);
-    } else {
-      console.log('ℹ️ Selected tags have no test files');
-    }
-
-    console.log(`🔢 Generated test matrix: ${JSON.stringify(testMatrix)}`);
-
     // Set GitHub Actions outputs
-    setGitHubOutputs(analysis, testMatrix);
+    setGitHubOutputs(analysis);
 
     // Generate analysis summary (body content only)
     const summaryContent = generateAnalysisSummary(analysis);

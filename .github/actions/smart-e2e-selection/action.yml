@@ -160,7 +160,7 @@ runs:
 
         if [[ "${{ steps.check-skip-label.outputs.SKIP }}" == "true" ]]; then
           COMMENT_BODY="⏭️ **Smart E2E selection disabled due to \`skip-smart-e2e-selection\` label**
-          All E2E tests will run according to the standard CI/CD pipeline configuration."
+          All E2E tests pre-selected."
           
         else
           # Read analysis results from file
