@@ -199,7 +199,7 @@
     "@react-native-community/blur": "^4.4.0",
     "@react-native-community/checkbox": "^0.5.17",
     "@react-native-community/datetimepicker": "^7.5.0",
-    "@react-native-community/netinfo": "^9.5.0",
+    "@react-native-community/netinfo": "^11.4.1",
     "@react-native-community/slider": "^4.4.3",
     "@react-native-cookies/cookies": "^6.2.1",
     "@react-native-firebase/app": "^20.5.0",
