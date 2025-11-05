@@ -479,7 +479,7 @@
     "regenerator-runtime": "0.13.9",
     "rn-nodeify": "10.3.0",
     "serve-handler": "^6.1.6",
-    "simple-git": "^3.25.0",
+    "simple-git": "^3.29.0",
     "typescript": "~5.4.5",
     "wdio-cucumberjs-json-reporter": "^4.4.3",
     "webpack": "^5.96.1",
