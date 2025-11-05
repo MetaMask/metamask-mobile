@@ -20,13 +20,45 @@ export const useTrendingRequest = (options: {
   minMarketCap?: number;
   maxMarketCap?: number;
 }) => {
+  const {
+    chainIds,
+    sortBy,
+    minLiquidity,
+    minVolume24hUsd,
+    maxVolume24hUsd,
+    minMarketCap,
+    maxMarketCap,
+  } = options;
+
+  // Memoize the options object to ensure stable reference
+  const memoizedOptions = useMemo(
+    () => ({
+      chainIds,
+      sortBy,
+      minLiquidity,
+      minVolume24hUsd,
+      maxVolume24hUsd,
+      minMarketCap,
+      maxMarketCap,
+    }),
+    [
+      chainIds,
+      sortBy,
+      minLiquidity,
+      minVolume24hUsd,
+      maxVolume24hUsd,
+      minMarketCap,
+      maxMarketCap,
+    ],
+  );
+
   const fetchTrendingTokens = useCallback(async () => {
-    if (!options.chainIds.length) {
+    if (!memoizedOptions.chainIds.length) {
       return;
     }
 
-    await getTrendingTokens(options);
-  }, [options]);
+    await getTrendingTokens(memoizedOptions);
+  }, [memoizedOptions]);
 
   return useMemo(
     () => debounce(fetchTrendingTokens, DEBOUNCE_WAIT),

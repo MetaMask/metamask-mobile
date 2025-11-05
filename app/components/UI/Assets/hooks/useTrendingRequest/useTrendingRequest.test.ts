@@ -1,4 +1,3 @@
-import '../../_mocks_/initialState';
 import { DEBOUNCE_WAIT, useTrendingRequest } from './';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { act } from '@testing-library/react-native';
