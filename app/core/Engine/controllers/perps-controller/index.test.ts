@@ -129,6 +129,7 @@ describe('perps controller init', () => {
         mainnet: {},
       },
       marketFilterPreferences: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
+      hip3ConfigVersion: 0,
       withdrawInProgress: false,
       lastWithdrawResult: null,
       withdrawalRequests: [],

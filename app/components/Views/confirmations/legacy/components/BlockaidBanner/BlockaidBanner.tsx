@@ -29,7 +29,6 @@ import {
   UTM_SOURCE,
 } from '../../../../../../constants/urls';
 import { BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../../../util/networks';
-import BlockaidVersionInfo from '../../../../../../lib/ppom/blockaid-version';
 import { WALLET_CONNECT_ORIGIN } from '../../../../../../util/walletconnect';
 import AppConstants from '../../../../../../core/AppConstants';
 import { ConfirmationTopSheetSelectorsIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
@@ -85,7 +84,6 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
       classification: reason,
       resultType: result_type,
       reproduce: JSON.stringify(features),
-      blockaidVersion: BlockaidVersionInfo.BlockaidVersion,
     };
 
     (async () => {
