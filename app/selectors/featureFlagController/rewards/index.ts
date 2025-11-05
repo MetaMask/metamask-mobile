@@ -17,22 +17,13 @@ export const CARD_SPEND_FLAG_NAME = 'rewardsEnableCardSpend';
 export const selectRewardsEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   selectBasicFunctionalityEnabled,
-  (remoteFeatureFlags, isBasicFunctionalityEnabled) => {
+  (_, isBasicFunctionalityEnabled) => {
     // If basic functionality is disabled, rewards should be disabled
     if (!isBasicFunctionalityEnabled) {
       return false;
     }
 
-    if (!hasProperty(remoteFeatureFlags, FEATURE_FLAG_NAME)) {
-      return DEFAULT_REWARDS_ENABLED;
-    }
-    const remoteFlag = remoteFeatureFlags[
-      FEATURE_FLAG_NAME
-    ] as unknown as VersionGatedFeatureFlag;
-
-    return (
-      validatedVersionGatedFeatureFlag(remoteFlag) ?? DEFAULT_REWARDS_ENABLED
-    );
+    return DEFAULT_REWARDS_ENABLED;
   },
 );
 
