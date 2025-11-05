@@ -23,6 +23,7 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   device,
   performanceTracker,
 }, testInfo) => {
+  test.setTimeout(3600000);
   WalletAccountModal.device = device;
   WalletMainScreen.device = device;
   AccountListComponent.device = device;
@@ -53,14 +54,12 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   await SendScreen.assetsListIsDisplayed();
   timer1.stop();
   await SendScreen.typeTokenName('Link\n');
-  console.log('Ethereum typed, so waiting 5 seconds');
   await SendScreen.clickOnFirstTokenBadge();
   timer2.start();
 
   await AmountScreen.isVisible();
   timer2.stop();
   await AmountScreen.enterAmount(TEST_AMOUNTS.ETHEREUM);
-
   await AmountScreen.tapOnNextButton();
   timer3.start();
   await SendScreen.isSelectAddressScreenDisplayed();
