@@ -190,10 +190,9 @@ const CardHome = () => {
         sheetRef={addFundsSheetRef}
         setOpenAddFundsBottomSheet={setOpenAddFundsBottomSheet}
         priorityToken={priorityToken ?? undefined}
-        navigate={navigation.navigate}
       />
     ),
-    [priorityToken, navigation],
+    [priorityToken],
   );
 
   const renderAssetSelectionBottomSheet = useCallback(

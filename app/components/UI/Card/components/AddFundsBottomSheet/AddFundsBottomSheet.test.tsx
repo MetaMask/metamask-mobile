@@ -11,9 +11,13 @@ import { CardTokenAllowance, AllowanceState } from '../../types';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { createDepositNavigationDetails } from '../../../Ramp/Deposit/routes/utils';
+import {
+  useRampNavigation,
+  RampMode,
+} from '../../../Ramp/hooks/useRampNavigation';
 
 // Mock dependencies
+jest.mock('../../../Ramp/hooks/useRampNavigation');
 jest.mock('../../hooks/useOpenSwaps', () => ({
   useOpenSwaps: jest.fn(),
 }));
@@ -80,6 +84,7 @@ function renderWithProvider(component: React.ComponentType) {
 
 describe('AddFundsBottomSheet', () => {
   const mockNavigate = jest.fn();
+  const mockGoToRamps = jest.fn();
   const mockOpenSwaps = jest.fn();
   const mockTrackEvent = jest.fn();
   const mockCreateEventBuilder = jest.fn();
@@ -114,6 +119,10 @@ describe('AddFundsBottomSheet', () => {
 
     (useOpenSwaps as jest.Mock).mockReturnValue({
       openSwaps: mockOpenSwaps,
+    });
+
+    (useRampNavigation as jest.Mock).mockReturnValue({
+      goToRamps: mockGoToRamps,
     });
 
     (useDepositEnabled as jest.Mock).mockReturnValue({
@@ -294,9 +303,7 @@ describe('AddFundsBottomSheet', () => {
 
     fireEvent.press(getByText('Fund with cash'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      ...createDepositNavigationDetails(),
-    );
+    expect(mockGoToRamps).toHaveBeenCalledWith({ mode: RampMode.DEPOSIT });
   });
 
   it('handles ref prop correctly', () => {

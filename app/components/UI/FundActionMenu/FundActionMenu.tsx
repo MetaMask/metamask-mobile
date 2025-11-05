@@ -26,7 +26,7 @@ import { trace, TraceName } from '../../../util/trace';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { RampType } from '../../../reducers/fiatOrders/types';
 import useDepositEnabled from '../Ramp/Deposit/hooks/useDepositEnabled';
-import { createDepositNavigationDetails } from '../Ramp/Deposit/routes/utils';
+import { useRampNavigation, RampMode } from '../Ramp/hooks/useRampNavigation';
 
 // Types
 import type {
@@ -52,6 +52,7 @@ const FundActionMenu = () => {
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
+  const { goToRamps } = useRampNavigation();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -152,7 +153,7 @@ const FundActionMenu = () => {
             region: rampGeodetectedRegion,
           },
           traceName: TraceName.LoadDepositExperience,
-          navigationAction: () => navigate(...createDepositNavigationDetails()),
+          navigationAction: () => goToRamps({ mode: RampMode.DEPOSIT }),
         },
         {
           type: 'buy',
@@ -215,6 +216,7 @@ const FundActionMenu = () => {
       navigate,
       customOnBuy,
       assetContext,
+      goToRamps,
     ],
   );
 

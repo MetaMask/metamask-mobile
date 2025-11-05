@@ -1,6 +1,5 @@
 import React, { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -31,7 +30,10 @@ import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { strings } from '../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
-import { createDepositNavigationDetails } from '../../../Ramp/Deposit/routes/utils';
+import {
+  useRampNavigation,
+  RampMode,
+} from '../../../Ramp/hooks/useRampNavigation';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 
@@ -39,14 +41,12 @@ export interface AddFundsBottomSheetProps {
   setOpenAddFundsBottomSheet: (open: boolean) => void;
   sheetRef: React.RefObject<BottomSheetRef>;
   priorityToken?: CardTokenAllowance;
-  navigate: NavigationProp<ParamListBase>['navigate'];
 }
 
 const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
   setOpenAddFundsBottomSheet,
   sheetRef,
   priorityToken,
-  navigate,
 }) => {
   const { isDepositEnabled } = useDepositEnabled();
   const theme = useTheme();
@@ -56,6 +56,7 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
   });
   const { trackEvent, createEventBuilder } = useMetrics();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
+  const { goToRamps } = useRampNavigation();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -73,7 +74,7 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
 
   const openDeposit = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigate(...createDepositNavigationDetails());
+      goToRamps({ mode: RampMode.DEPOSIT });
     });
     trackEvent(
       createEventBuilder(
@@ -99,7 +100,7 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
   }, [
     rampGeodetectedRegion,
     closeBottomSheetAndNavigate,
-    navigate,
+    goToRamps,
     trackEvent,
     createEventBuilder,
     priorityToken,
