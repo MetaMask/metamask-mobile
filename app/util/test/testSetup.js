@@ -472,25 +472,33 @@ jest.mock('../theme', () => ({
   useAppThemeFromContext: () => ({ ...mockTheme }),
 }));
 // Mock FeatureFlagOverrideContext to avoid async state updates
-jest.mock('../../contexts/FeatureFlagOverrideContext', () => ({
-  useFeatureFlagOverride: jest.fn(() => ({
-    featureFlags: {},
-    originalFlags: {},
-    getFeatureFlag: jest.fn(),
-    getFeatureFlagSnapshots: jest.fn(() => ({})),
-    featureFlagsList: [],
-    overrides: {},
-    setOverride: jest.fn(),
-    removeOverride: jest.fn(),
-    clearAllOverrides: jest.fn(),
-    hasOverride: jest.fn(),
-    getOverride: jest.fn(),
-    getAllOverrides: jest.fn(),
-    applyOverrides: jest.fn(),
-    getOverrideCount: jest.fn(),
-  })),
-  FeatureFlagOverrideProvider: ({ children }) => children,
-}));
+jest.mock('../../contexts/FeatureFlagOverrideContext', () => {
+  // Return a function that always creates a fresh mock object
+  // This ensures it works even after resetAllMocks() clears implementations
+  const useFeatureFlagOverride = () => {
+    const mockGetFeatureFlagSnapshots = jest.fn(() => ({ relatedFlags: [] }));
+    return {
+      featureFlags: {},
+      originalFlags: {},
+      getFeatureFlag: jest.fn(),
+      getFeatureFlagSnapshots: mockGetFeatureFlagSnapshots,
+      featureFlagsList: [],
+      overrides: {},
+      setOverride: jest.fn(),
+      removeOverride: jest.fn(),
+      clearAllOverrides: jest.fn(),
+      hasOverride: jest.fn(),
+      getOverride: jest.fn(),
+      getAllOverrides: jest.fn(),
+      applyOverrides: jest.fn(),
+      getOverrideCount: jest.fn(),
+    };
+  };
+  return {
+    useFeatureFlagOverride,
+    FeatureFlagOverrideProvider: ({ children }) => children,
+  };
+});
 
 global.segmentMockClient = null;
 
