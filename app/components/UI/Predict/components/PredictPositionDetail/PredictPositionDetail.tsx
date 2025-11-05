@@ -97,7 +97,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
           <Image
             source={{ uri: icon }}
             resizeMode="cover"
-            style={tw.style('w-12 h-12 rounded-md self-center')}
+            style={tw.style('w-10 h-10 rounded-lg self-center')}
           />
         )}
         <Box>
