@@ -29,7 +29,7 @@ import Row from '../../components/Row';
 import Quote from '../../components/Quote';
 import CustomAction from '../../components/CustomAction';
 import InfoAlert from '../../components/InfoAlert';
-import { getFiatOnRampAggNavbar } from '../../../../Navbar';
+import { getDepositNavbarOptions } from '../../../../Navbar';
 import {
   ButtonSize,
   ButtonVariants,
@@ -579,14 +579,14 @@ function Quotes() {
 
   useEffect(() => {
     navigation.setOptions(
-      getFiatOnRampAggNavbar(
+      getDepositNavbarOptions(
         navigation,
         { title: strings('fiat_on_ramp_aggregator.select_a_quote') },
-        theme.colors,
+        theme,
         handleCancelPress,
       ),
     );
-  }, [navigation, theme.colors, handleCancelPress]);
+  }, [navigation, theme, handleCancelPress]);
 
   useEffect(() => {
     if (isFetchingQuotes) return;
