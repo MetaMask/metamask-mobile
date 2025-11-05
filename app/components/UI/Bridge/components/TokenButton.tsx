@@ -53,9 +53,6 @@ const createStyles = (params: StylesParams) => {
       color: theme.colors.text.default,
       fontSize: 24,
     },
-    networkBadge: {
-      borderColor: theme.colors.background.muted,
-    },
   });
 };
 
@@ -84,7 +81,6 @@ export const TokenButton: React.FC<TokenProps> = ({
               variant={BadgeVariant.Network}
               imageSource={networkImageSource}
               name={networkName}
-              style={styles.networkBadge}
             />
           }
         >
