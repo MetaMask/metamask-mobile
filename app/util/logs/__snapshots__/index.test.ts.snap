@@ -472,10 +472,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "isPushEnabled": true,
         "isUpdatingFCMToken": false,
       },
-      "PPOMController": {
-        "storageMetadata": [],
-        "versionInfo": [],
-      },
       "PermissionController": {
         "subjects": {},
       },
@@ -1221,10 +1217,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "fcmToken": "",
         "isPushEnabled": true,
         "isUpdatingFCMToken": false,
-      },
-      "PPOMController": {
-        "storageMetadata": [],
-        "versionInfo": [],
       },
       "PermissionController": {
         "subjects": {},

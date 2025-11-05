@@ -35,7 +35,6 @@ import RewardsReferralCodeTag from '../../../Rewards/components/RewardsReferralC
 import {
   formatPerpsFiat,
   parseCurrencyString,
-  PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import MetaMaskLogo from '../../../../../images/branding/metamask-name.png';
@@ -60,6 +59,7 @@ import {
   PerpsHeroCardViewSelectorsIDs,
   getPerpsHeroCardViewSelector,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { useReferralDetails } from '../../../Rewards/hooks/useReferralDetails';
 
 // To add a new card, add the image to the array.
 const CARD_IMAGES: { image: ImageSourcePropType; id: number; name: string }[] =
@@ -86,6 +86,9 @@ const PerpsHeroCardView: React.FC = () => {
   const { position, marketPrice } = params;
 
   const rewardsReferralCode = useSelector(selectReferralCode);
+
+  // Fetch referral details to ensure code is available for display
+  useReferralDetails();
 
   const { track } = usePerpsEventTracking();
 
@@ -232,7 +235,7 @@ const PerpsHeroCardView: React.FC = () => {
                   variant={TextVariant.BodySMMedium}
                 >
                   {formatPerpsFiat(data.entryPrice, {
-                    ranges: PRICE_RANGES_MINIMAL_VIEW,
+                    ranges: PRICE_RANGES_UNIVERSAL,
                   })}
                 </Text>
               </View>
