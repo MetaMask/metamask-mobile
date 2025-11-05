@@ -2,6 +2,10 @@ import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { debounce } from 'lodash';
 import { CaipChainId } from '@metamask/utils';
 import { PopularToken } from './usePopularTokens';
+import {
+  BRIDGE_DEV_API_BASE_URL,
+  BRIDGE_PROD_API_BASE_URL,
+} from '@metamask/bridge-controller';
 
 interface SearchTokensResponse {
   data: PopularToken[];
@@ -90,7 +94,7 @@ export const useSearchTokens = ({
         }
 
         const response = await fetch(
-          'https://bridge.dev-api.cx.metamask.io/getTokens/search',
+          `${process.env.BRIDGE_USE_DEV_APIS === 'true' ? BRIDGE_DEV_API_BASE_URL : BRIDGE_PROD_API_BASE_URL}/getTokens/search`,
           {
             method: 'POST',
             headers: {
