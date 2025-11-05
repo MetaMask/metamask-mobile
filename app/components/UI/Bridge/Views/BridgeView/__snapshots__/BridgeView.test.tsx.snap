@@ -575,7 +575,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#3c4d9d0f",
+                                                    "borderColor": "#ffffff",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
@@ -2234,7 +2234,7 @@ exports[`BridgeView renders 1`] = `
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#3c4d9d0f",
+                                                    "borderColor": "#ffffff",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,

@@ -263,5 +263,212 @@ describe('verifySignature', () => {
         'https://example.com:8080/deep/path?a=1&b=2&c=3',
       );
     });
+
+    describe('with sig_params', () => {
+      it('includes only parameters listed in sig_params for verification', async () => {
+        const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+          'base64',
+        );
+        const url = new URL(
+          `https://example.com?param1=value1&param2=value2&param3=value3&sig_params=param1,param2&sig=${validSignature}`,
+        );
+
+        mockSubtle.verify.mockResolvedValue(true);
+
+        const result = await verifyDeeplinkSignature(url);
+
+        expect(result).toBe(VALID);
+        const verifyCall = mockSubtle.verify.mock.calls[0];
+        const dataBuffer = verifyCall[3] as Uint8Array; // data is 4th param ([3])
+        const canonicalUrl = new TextDecoder().decode(dataBuffer);
+
+        // Should include param1, param2, and sig_params itself, but NOT param3
+        expect(canonicalUrl).toBe(
+          'https://example.com/?param1=value1&param2=value2&sig_params=param1%2Cparam2',
+        );
+      });
+
+      it('includes sig_params itself in canonical URL for verification', async () => {
+        const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+          'base64',
+        );
+        const url = new URL(
+          `https://example.com?channel=someValue&sig_params=channel&sig=${validSignature}`,
+        );
+
+        mockSubtle.verify.mockResolvedValue(true);
+
+        const result = await verifyDeeplinkSignature(url);
+
+        expect(result).toBe(VALID);
+        const verifyCall = mockSubtle.verify.mock.calls[0];
+        const dataBuffer = verifyCall[3] as Uint8Array; // 4th param ([3]) is data
+        const canonicalUrl = new TextDecoder().decode(dataBuffer);
+
+        // Should include both channel AND sig_params
+        expect(canonicalUrl).toBe(
+          'https://example.com/?channel=someValue&sig_params=channel',
+        );
+      });
+
+      it('handles empty sig_params correctly (legacy behavior)', async () => {
+        const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+          'base64',
+        );
+        const url = new URL(
+          `https://example.com?param1=value1&sig_params=&sig=${validSignature}`,
+        );
+
+        mockSubtle.verify.mockResolvedValue(true);
+
+        const result = await verifyDeeplinkSignature(url);
+
+        expect(result).toBe(VALID);
+        const verifyCall = mockSubtle.verify.mock.calls[0];
+        const dataBuffer = verifyCall[3] as Uint8Array;
+        const canonicalUrl = new TextDecoder().decode(dataBuffer);
+
+        // Should only include sig_params itself (empty value)
+        expect(canonicalUrl).toBe('https://example.com/?sig_params=');
+      });
+
+      it('ignores parameters not listed in sig_params', async () => {
+        const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+          'base64',
+        );
+        const url = new URL(
+          `https://example.com?keep=yes&ignore1=no&ignore2=no&sig_params=keep&sig=${validSignature}`,
+        );
+
+        mockSubtle.verify.mockResolvedValue(true);
+
+        const result = await verifyDeeplinkSignature(url);
+
+        expect(result).toBe(VALID);
+        const verifyCall = mockSubtle.verify.mock.calls[0];
+        const dataBuffer = verifyCall[3] as Uint8Array;
+        const canonicalUrl = new TextDecoder().decode(dataBuffer);
+
+        // Should only include 'keep' and sig_params
+        expect(canonicalUrl).toBe(
+          'https://example.com/?keep=yes&sig_params=keep',
+        );
+      });
+
+      it('handles multiple parameters in sig_params with proper sorting', async () => {
+        const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+          'base64',
+        );
+        const url = new URL(
+          `https://example.com?zebra=last&alpha=first&middle=center&sig_params=zebra,alpha,middle&sig=${validSignature}`,
+        );
+
+        mockSubtle.verify.mockResolvedValue(true);
+
+        const result = await verifyDeeplinkSignature(url);
+
+        expect(result).toBe(VALID);
+        const verifyCall = mockSubtle.verify.mock.calls[0];
+        const dataBuffer = verifyCall[3] as Uint8Array;
+        const canonicalUrl = new TextDecoder().decode(dataBuffer);
+
+        // Should be alphabetically sorted
+        expect(canonicalUrl).toBe(
+          'https://example.com/?alpha=first&middle=center&sig_params=zebra%2Calpha%2Cmiddle&zebra=last',
+        );
+      });
+
+      it('handles missing parameters referenced in sig_params gracefully', async () => {
+        const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+          'base64',
+        );
+        const url = new URL(
+          `https://example.com?param1=value1&sig_params=param1,param2,param3&sig=${validSignature}`,
+        );
+
+        mockSubtle.verify.mockResolvedValue(true);
+
+        const result = await verifyDeeplinkSignature(url);
+
+        expect(result).toBe(VALID);
+        const verifyCall = mockSubtle.verify.mock.calls[0];
+        const dataBuffer = verifyCall[3] as Uint8Array;
+        const canonicalUrl = new TextDecoder().decode(dataBuffer);
+
+        // Should only include param1 (exists) and sig_params, not param2 or param3
+        expect(canonicalUrl).toBe(
+          'https://example.com/?param1=value1&sig_params=param1%2Cparam2%2Cparam3',
+        );
+      });
+
+      it('preserves backward compatibility for URLs without sig_params', async () => {
+        const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+          'base64',
+        );
+        const url = new URL(
+          `https://example.com?param1=value1&param2=value2&sig=${validSignature}`,
+        );
+
+        mockSubtle.verify.mockResolvedValue(true);
+
+        const result = await verifyDeeplinkSignature(url);
+
+        expect(result).toBe(VALID);
+        const verifyCall = mockSubtle.verify.mock.calls[0];
+        const dataBuffer = verifyCall[3] as Uint8Array;
+        const canonicalUrl = new TextDecoder().decode(dataBuffer);
+
+        // Should include all params except sig (old behavior)
+        expect(canonicalUrl).toBe(
+          'https://example.com/?param1=value1&param2=value2',
+        );
+      });
+
+      it('handles parameters with special characters in sig_params', async () => {
+        const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+          'base64',
+        );
+        const url = new URL(
+          `https://example.com?param%20name=value%20here&other=test&sig_params=param%20name&sig=${validSignature}`,
+        );
+
+        mockSubtle.verify.mockResolvedValue(true);
+
+        const result = await verifyDeeplinkSignature(url);
+
+        expect(result).toBe(VALID);
+        const verifyCall = mockSubtle.verify.mock.calls[0];
+        const dataBuffer = verifyCall[3] as Uint8Array;
+        const canonicalUrl = new TextDecoder().decode(dataBuffer);
+
+        // Should handle URL encoding properly
+        expect(canonicalUrl).toBe(
+          'https://example.com/?param+name=value+here&sig_params=param+name',
+        );
+      });
+
+      it('handles sig_params with trailing commas', async () => {
+        const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+          'base64',
+        );
+        const url = new URL(
+          `https://example.com?param1=value1&param2=value2&sig_params=param1,param2,&sig=${validSignature}`,
+        );
+
+        mockSubtle.verify.mockResolvedValue(true);
+
+        const result = await verifyDeeplinkSignature(url);
+
+        expect(result).toBe(VALID);
+        const verifyCall = mockSubtle.verify.mock.calls[0];
+        const dataBuffer = verifyCall[3] as Uint8Array;
+        const canonicalUrl = new TextDecoder().decode(dataBuffer);
+
+        // empty string from trailing comma should be removed
+        expect(canonicalUrl).toBe(
+          'https://example.com/?param1=value1&param2=value2&sig_params=param1%2Cparam2%2C',
+        );
+      });
+    });
   });
 });

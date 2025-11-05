@@ -14,7 +14,8 @@ import {
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Linking } from 'react-native';
+import { InteractionManager, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 
 // Internal dependencies.
@@ -40,6 +41,7 @@ const PredictUnavailable = forwardRef<
   const sheetRef = useRef<BottomSheetRef>(null);
   const [isVisible, setIsVisible] = useState(false);
   const tw = useTailwind();
+  const navigation = useNavigation();
 
   const handleSheetClosed = useCallback(() => {
     setIsVisible(false);
@@ -66,9 +68,17 @@ const PredictUnavailable = forwardRef<
     handleClose();
   };
 
-  const handlePolymarketTermsPress = () => {
-    Linking.openURL('https://polymarket.com/tos');
-  };
+  const handlePolymarketTermsPress = useCallback(() => {
+    InteractionManager.runAfterInteractions(() => {
+      navigation.navigate('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: 'https://polymarket.com/tos',
+          title: strings('predict.unavailable.webview_title'),
+        },
+      });
+    });
+  }, [navigation]);
 
   useImperativeHandle(
     ref,
@@ -111,23 +121,28 @@ const PredictUnavailable = forwardRef<
         </Text>
       </BottomSheetHeader>
 
-      <Box
-        alignItems={BoxAlignItems.Start}
-        justifyContent={BoxJustifyContent.Start}
-        twClassName="px-6 py-4"
+      <TouchableOpacity
+        onPress={handlePolymarketTermsPress}
+        testID="polymarket-terms-link"
+        activeOpacity={0.8}
       >
-        <Text variant={TextVariant.BodyMd} twClassName="text-default">
-          {strings('predict.unavailable.description')}{' '}
-          <Text
-            variant={TextVariant.BodyMd}
-            onPress={handlePolymarketTermsPress}
-            twClassName="text-primary text-primary-default"
-          >
-            {strings('predict.unavailable.link')}
+        <Box
+          alignItems={BoxAlignItems.Start}
+          justifyContent={BoxJustifyContent.Start}
+          twClassName="px-6 py-4"
+        >
+          <Text variant={TextVariant.BodyMd} twClassName="text-default">
+            {strings('predict.unavailable.description')}{' '}
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-primary text-primary-default"
+            >
+              {strings('predict.unavailable.link')}
+            </Text>
+            .
           </Text>
-          .
-        </Text>
-      </Box>
+        </Box>
+      </TouchableOpacity>
 
       <BottomSheetFooter
         buttonPropsArray={[

@@ -110,10 +110,6 @@ export const sentryStateMask = {
       NftController: {
         [AllProperties]: false,
       },
-      PPOMController: {
-        storageMetadata: [],
-        versionInfo: [],
-      },
       PermissionController: {
         [AllProperties]: false,
       },

@@ -6,11 +6,11 @@ import {
   StyleProp,
   TextInput,
   View,
-  ViewStyle,
   NativeSyntheticEvent,
   TextInputFocusEventData,
   TouchableWithoutFeedback,
   TextInputSelectionChangeEventData,
+  TextStyle,
 } from 'react-native';
 
 // External dependencies.
@@ -32,7 +32,7 @@ import Device from '../../../util/device';
 const TextField = React.forwardRef<
   TextInput,
   TextFieldProps & {
-    inputStyle?: StyleProp<ViewStyle>;
+    inputStyle?: StyleProp<TextStyle>;
     onInputFocus?: () => void;
   }
 >(

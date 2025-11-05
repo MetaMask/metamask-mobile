@@ -4,7 +4,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { PredictNavigationParamList } from '../types/navigation';
-import { usePredictEligibility } from './usePredictEligibility';
 import { usePredictTrading } from './usePredictTrading';
 import { createSelector } from 'reselect';
 import { RootState } from '../../../../reducers';
@@ -27,9 +26,6 @@ export const usePredictWithdraw = ({
   const { navigateToConfirmation } = useConfirmNavigation();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { isEligible } = usePredictEligibility({
-    providerId,
-  });
   const { toastRef } = useContext(ToastContext);
 
   const selectWithdrawTransaction = createSelector(
@@ -40,13 +36,6 @@ export const usePredictWithdraw = ({
   const withdrawTransaction = useSelector(selectWithdrawTransaction);
 
   const withdraw = useCallback(async () => {
-    if (!isEligible) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
-      });
-      return;
-    }
-
     try {
       navigateToConfirmation({
         stack: Routes.PREDICT.ROOT,
@@ -79,7 +68,6 @@ export const usePredictWithdraw = ({
       console.error('Failed to proceed with withdraw:', err);
     }
   }, [
-    isEligible,
     navigateToConfirmation,
     navigation,
     prepareWithdraw,

@@ -135,6 +135,14 @@ jest.mock('../../utils/format', () => ({
       ? '0%'
       : `${value > 0 ? '+' : ''}${Math.abs(value).toFixed(2)}%`,
   ),
+  formatAddress: jest.fn(
+    (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`,
+  ),
+  estimateLineCount: jest.fn((text?: string) => {
+    if (!text) return 1;
+    // Simple mock implementation - returns 1 for short text, 2 for longer
+    return text.length > 50 ? 2 : 1;
+  }),
 }));
 
 jest.mock('../../hooks/usePredictMarket', () => ({

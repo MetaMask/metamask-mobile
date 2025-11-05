@@ -50,6 +50,15 @@ class OnBoardingScreen {
       await AppwrightGestures.tap(this.createNewWalletButton); // Use static tapElement method with retry logic
     }
   }
+
+  async isScreenTitleVisible() {
+    if (!this._device) {
+      await expect(this.createNewWalletButton).toBeDisplayed();
+    } else {
+      const element = await this.createNewWalletButton;
+      await appwrightExpect(element).toBeVisible({ timeout: 30000 });
+    }
+  }
 }
 
 export default new OnBoardingScreen();

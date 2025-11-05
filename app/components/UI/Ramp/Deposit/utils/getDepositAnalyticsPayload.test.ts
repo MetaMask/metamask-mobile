@@ -40,6 +40,8 @@ describe('getDepositAnalyticsPayload', () => {
       country: 'US',
       chain_id: 'eip155:1',
       currency_destination: MOCK_USDC_TOKEN.assetId,
+      currency_destination_symbol: 'USDC',
+      currency_destination_network: 'Ethereum',
       currency_source: 'USD',
     });
   });
@@ -72,6 +74,8 @@ describe('getDepositAnalyticsPayload', () => {
       country: 'US',
       chain_id: 'eip155:1',
       currency_destination: MOCK_USDC_TOKEN.assetId,
+      currency_destination_symbol: 'USDC',
+      currency_destination_network: 'Ethereum',
       currency_source: 'USD',
       error_message: 'Payment failed',
     });
@@ -101,6 +105,8 @@ describe('getDepositAnalyticsPayload', () => {
       country: 'US',
       chain_id: 'eip155:1',
       currency_destination: MOCK_USDC_TOKEN.assetId,
+      currency_destination_symbol: 'USDC',
+      currency_destination_network: 'Ethereum',
       currency_source: 'USD',
       error_message: 'transaction_failed',
     });
@@ -138,6 +144,8 @@ describe('getDepositAnalyticsPayload', () => {
       country: 'US',
       chain_id: 'eip155:1',
       currency_destination: MOCK_USDC_TOKEN.assetId,
+      currency_destination_symbol: 'USDC',
+      currency_destination_network: 'Ethereum',
       currency_source: 'USD',
     });
   });
@@ -232,6 +240,8 @@ describe('getDepositAnalyticsPayload', () => {
       country: 'US',
       chain_id: 'eip155:1',
       currency_destination: MOCK_USDC_TOKEN.assetId,
+      currency_destination_symbol: 'USDC',
+      currency_destination_network: 'Ethereum',
       currency_source: 'USD',
     });
   });
@@ -263,6 +273,8 @@ describe('getDepositAnalyticsPayload', () => {
       country: 'US',
       chain_id: 'eip155:1',
       currency_destination: MOCK_USDC_TOKEN.assetId,
+      currency_destination_symbol: 'USDC',
+      currency_destination_network: 'Ethereum',
       currency_source: 'USD',
     });
   });
@@ -294,6 +306,8 @@ describe('getDepositAnalyticsPayload', () => {
       country: '',
       chain_id: 'eip155:1',
       currency_destination: MOCK_USDC_TOKEN.assetId,
+      currency_destination_network: 'Ethereum',
+      currency_destination_symbol: 'USDC',
       currency_source: 'USD',
     });
   });

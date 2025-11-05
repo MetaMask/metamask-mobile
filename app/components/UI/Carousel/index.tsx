@@ -148,6 +148,9 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
 
   const isAnimating = useRef(false);
 
+  // Ref to track if we're mid-animation on the last card
+  const dismissingLastCardRef = useRef(false);
+
   // Animation hooks
   const transitionToNextCard = useTransitionToNextCard({
     currentCardOpacity,
@@ -236,8 +239,15 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     const regular = orderByCardPlacement(regularContentfulSlides.map(patch));
     slides = [...priority, ...regular];
 
-    // Always add empty card as the last card
-    if (slides.length > 0) {
+    // Check if there are any non-dismissed slides (or if we're in the final dismissal flow)
+    const hasNonDismissedSlides = slides.some(
+      (s) => !dismissedBanners.includes(s.id),
+    );
+    const shouldAddEmpty =
+      hasNonDismissedSlides || dismissingLastCardRef.current;
+
+    // Add empty card only if there are non-dismissed slides or during dismissal animation
+    if (shouldAddEmpty && slides.length > 0) {
       const emptyCard: CarouselSlide = {
         id: `empty-card-${Date.now()}`,
         title: '',
@@ -258,6 +268,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     isZeroBalance,
     priorityContentfulSlides,
     regularContentfulSlides,
+    dismissedBanners,
   ]);
 
   const visibleSlides = useMemo(() => {
@@ -276,6 +287,15 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
 
       return !dismissedBanners.includes(slide.id);
     });
+
+    // If we're in the middle of dismissing the last card,
+    // keep the empty card in visibleSlides so the animation completes
+    if (dismissingLastCardRef.current && filtered.length === 0) {
+      // Re-add the empty card so the animation completes
+      const emptyCards = slidesConfig.filter((s) => s.variableName === 'empty');
+      return emptyCards.length > 0 ? emptyCards : [];
+    }
+
     return filtered.slice(0, MAX_CAROUSEL_SLIDES);
   }, [
     slidesConfig,
@@ -408,30 +428,53 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       isAnimating.current = true;
       setIsTransitioning(true);
 
+      // Check if next card is the empty card (last non-empty slide being dismissed)
+      const isNextCardEmpty = nextSlide?.variableName === 'empty';
+
+      // Set flag to keep empty card visible during dismissal animation
+      if (isNextCardEmpty) {
+        dismissingLastCardRef.current = true;
+      }
+
       try {
         await transitionToNextCard.executeTransition('nextCard');
 
-        // After animation, dismiss banner and reset
+        // After animation, dismiss banner immediately so Redux knows it's gone
         dispatch(dismissBanner(slideId));
 
-        // Set up new next card if there will be one
+        // Set up animations based on what's next
         requestAnimationFrame(() => {
-          if (safeActiveSlideIndex < visibleSlides.length - 2) {
-            nextCardOpacity.setValue(0.7);
+          if (isNextCardEmpty) {
+            // Empty card is now current - set it to full visibility
+            currentCardOpacity.setValue(1);
+            currentCardScale.setValue(1);
+            currentCardTranslateY.setValue(0);
+
+            // No next card after empty
+            nextCardOpacity.setValue(0);
             nextCardScale.setValue(0.96);
             nextCardTranslateY.setValue(8);
-            nextCardBgOpacity.setValue(1);
-          }
+            nextCardBgOpacity.setValue(0);
+          } else {
+            // Regular transition - set up new next card if there will be one
+            if (safeActiveSlideIndex < visibleSlides.length - 2) {
+              nextCardOpacity.setValue(0.7);
+              nextCardScale.setValue(0.96);
+              nextCardTranslateY.setValue(8);
+              nextCardBgOpacity.setValue(1);
+            }
 
-          currentCardOpacity.setValue(1);
-          currentCardScale.setValue(1);
-          currentCardTranslateY.setValue(0);
+            currentCardOpacity.setValue(1);
+            currentCardScale.setValue(1);
+            currentCardTranslateY.setValue(0);
+          }
 
           setIsTransitioning(false);
           isAnimating.current = false;
         });
       } catch (error) {
         console.error('Transition to next card failed:', error);
+        dismissingLastCardRef.current = false;
         setIsTransitioning(false);
         isAnimating.current = false;
       }
@@ -441,6 +484,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       dispatch,
       safeActiveSlideIndex,
       visibleSlides.length,
+      nextSlide,
       currentCardOpacity,
       currentCardScale,
       currentCardTranslateY,
@@ -459,6 +503,12 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     try {
       // Trigger empty state component (fold-up and remove carousel)
       await transitionToEmpty.executeTransition(() => {
+        // Reset the flag here to indicate that the last card has finished dismissing.
+        // This must happen inside the transition callback to ensure the animation and
+        // state are synchronized. If this flag were not reset at this point, future
+        // transitions to the empty state would be blocked, causing the carousel to get
+        // stuck and preventing further dismissals or animations.
+        dismissingLastCardRef.current = false;
         onEmptyState?.();
         setIsCarouselVisible(false);
       });
@@ -466,6 +516,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       isAnimating.current = false;
     } catch (error) {
       console.error('Transition to empty failed:', error);
+      dismissingLastCardRef.current = false;
       isAnimating.current = false;
     }
   }, [transitionToEmpty, onEmptyState]);
@@ -505,7 +556,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
           nextCardBgOpacity={nextCardBgOpacity}
           onSlideClick={handleSlideClick}
           onTransitionToNextCard={() => handleTransitionToNextCard(slide.id)}
-          onTransitionToEmpty={() => handleTransitionToEmpty()}
         />
       );
     },
