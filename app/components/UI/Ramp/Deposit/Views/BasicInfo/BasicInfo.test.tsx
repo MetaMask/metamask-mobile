@@ -373,4 +373,178 @@ describe('BasicInfo Component', () => {
     render(BasicInfo);
     expect(screen.toJSON()).toMatchSnapshot();
   });
+
+  describe('when phone already registered error occurs', () => {
+    const mockLogoutFromProvider = jest.fn();
+
+    beforeEach(() => {
+      mockLogoutFromProvider.mockResolvedValue(undefined);
+      mockUseDepositSDK.mockReturnValue({
+        selectedRegion: mockSelectedRegion,
+        logoutFromProvider: mockLogoutFromProvider,
+      });
+    });
+
+    afterEach(() => {
+      mockLogoutFromProvider.mockClear();
+    });
+
+    it('displays logout button when error contains "2020"', async () => {
+      const error2020 = new Error('Error 2020: Phone already registered');
+      mockPostKycForm.mockRejectedValueOnce(error2020);
+
+      render(BasicInfo);
+
+      fireEvent.changeText(screen.getByTestId('first-name-input'), 'John');
+      fireEvent.changeText(screen.getByTestId('last-name-input'), 'Smith');
+      fireEvent.changeText(
+        screen.getByTestId('deposit-phone-field-test-id'),
+        '234567890',
+      );
+      fireEvent.changeText(
+        screen.getByTestId('date-of-birth-input'),
+        '01/01/1990',
+      );
+
+      await act(async () => {
+        fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+      });
+
+      const logoutButton = screen.getByTestId('basic-info-logout-button');
+      expect(logoutButton).toBeOnTheScreen();
+    });
+
+    it('displays logout button when error message indicates phone already registered', async () => {
+      const phoneError = new Error(
+        'This phone number is already registered. It has been used by an account created with d***@***.com. Login with this email to continue.',
+      );
+      mockPostKycForm.mockRejectedValueOnce(phoneError);
+
+      render(BasicInfo);
+
+      fireEvent.changeText(screen.getByTestId('first-name-input'), 'John');
+      fireEvent.changeText(screen.getByTestId('last-name-input'), 'Smith');
+      fireEvent.changeText(
+        screen.getByTestId('deposit-phone-field-test-id'),
+        '234567890',
+      );
+      fireEvent.changeText(
+        screen.getByTestId('date-of-birth-input'),
+        '01/01/1990',
+      );
+
+      await act(async () => {
+        fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+      });
+
+      const logoutButton = screen.getByTestId('basic-info-logout-button');
+      expect(logoutButton).toBeOnTheScreen();
+    });
+
+    it('does not display logout button for generic errors', async () => {
+      const genericError = new Error('Network error');
+      mockPostKycForm.mockRejectedValueOnce(genericError);
+
+      render(BasicInfo);
+
+      fireEvent.changeText(screen.getByTestId('first-name-input'), 'John');
+      fireEvent.changeText(screen.getByTestId('last-name-input'), 'Smith');
+      fireEvent.changeText(
+        screen.getByTestId('deposit-phone-field-test-id'),
+        '234567890',
+      );
+      fireEvent.changeText(
+        screen.getByTestId('date-of-birth-input'),
+        '01/01/1990',
+      );
+
+      await act(async () => {
+        fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+      });
+
+      await screen.findByText('Network error');
+      expect(
+        screen.queryByTestId('basic-info-logout-button'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('calls logoutFromProvider and navigates to EnterEmail on logout click', async () => {
+      const error2020 = new Error('Error 2020');
+      mockPostKycForm.mockRejectedValueOnce(error2020);
+
+      render(BasicInfo);
+
+      fireEvent.changeText(screen.getByTestId('first-name-input'), 'John');
+      fireEvent.changeText(screen.getByTestId('last-name-input'), 'Smith');
+      fireEvent.changeText(
+        screen.getByTestId('deposit-phone-field-test-id'),
+        '234567890',
+      );
+      fireEvent.changeText(
+        screen.getByTestId('date-of-birth-input'),
+        '01/01/1990',
+      );
+
+      await act(async () => {
+        fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+      });
+
+      const logoutButton = await screen.findByTestId(
+        'basic-info-logout-button',
+      );
+
+      await act(async () => {
+        fireEvent.press(logoutButton);
+      });
+
+      expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.ENTER_EMAIL, {});
+    });
+
+    it('handles logout error gracefully', async () => {
+      const mockLoggerError = jest.spyOn(Logger, 'error');
+      const logoutError = new Error('Logout failed');
+      mockLogoutFromProvider.mockRejectedValueOnce(logoutError);
+
+      const error2020 = new Error('Error 2020');
+      mockPostKycForm.mockRejectedValueOnce(error2020);
+
+      render(BasicInfo);
+
+      fireEvent.changeText(screen.getByTestId('first-name-input'), 'John');
+      fireEvent.changeText(screen.getByTestId('last-name-input'), 'Smith');
+      fireEvent.changeText(
+        screen.getByTestId('deposit-phone-field-test-id'),
+        '234567890',
+      );
+      fireEvent.changeText(
+        screen.getByTestId('date-of-birth-input'),
+        '01/01/1990',
+      );
+
+      await act(async () => {
+        fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+      });
+
+      const logoutButton = await screen.findByTestId(
+        'basic-info-logout-button',
+      );
+
+      await act(async () => {
+        fireEvent.press(logoutButton);
+      });
+
+      expect(mockLogoutFromProvider).toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        logoutError,
+        'Error logging out from BasicInfo error banner',
+      );
+
+      // Error stays visible
+      expect(screen.getByText('Error 2020')).toBeOnTheScreen();
+
+      mockLoggerError.mockRestore();
+    });
+  });
 });
