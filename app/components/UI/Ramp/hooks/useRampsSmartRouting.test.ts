@@ -4,7 +4,7 @@ import useRampsSmartRouting, {
 } from './useRampsSmartRouting';
 import {
   FiatOrder,
-  RampRoutingType,
+  UnifiedRampRoutingType,
 } from '../../../../reducers/fiatOrders/types';
 import {
   FIAT_ORDER_PROVIDERS,
@@ -140,7 +140,7 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() =>
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: RampRoutingType.UNSUPPORTED,
+          payload: UnifiedRampRoutingType.UNSUPPORTED,
         }),
       );
     });
@@ -164,7 +164,7 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() =>
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: RampRoutingType.UNSUPPORTED,
+          payload: UnifiedRampRoutingType.UNSUPPORTED,
         }),
       );
     });
@@ -182,7 +182,7 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() =>
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: RampRoutingType.AGGREGATOR,
+          payload: UnifiedRampRoutingType.AGGREGATOR,
         }),
       );
     });
@@ -206,7 +206,7 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() =>
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: RampRoutingType.AGGREGATOR,
+          payload: UnifiedRampRoutingType.AGGREGATOR,
         }),
       );
     });
@@ -224,12 +224,12 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() =>
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: RampRoutingType.DEPOSIT,
+          payload: UnifiedRampRoutingType.DEPOSIT,
         }),
       );
     });
 
-    it('routes to UNSUPPORTED when geolocation is not detected', async () => {
+    it('routes to ERROR when geolocation is not detected', async () => {
       mockDetectedGeolocation = undefined;
       mockOrders = [];
 
@@ -238,12 +238,14 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() =>
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: RampRoutingType.UNSUPPORTED,
+          payload: UnifiedRampRoutingType.ERROR,
         }),
       );
+
+      expect(mockFetch).not.toHaveBeenCalled();
     });
 
-    it('routes to UNSUPPORTED when API fetch fails', async () => {
+    it('routes to ERROR when API fetch fails', async () => {
       mockFetch.mockRejectedValue(new Error('Network error'));
       mockOrders = [];
 
@@ -252,7 +254,7 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() =>
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: RampRoutingType.UNSUPPORTED,
+          payload: UnifiedRampRoutingType.ERROR,
         }),
       );
     });
@@ -272,7 +274,7 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() =>
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: RampRoutingType.DEPOSIT,
+          payload: UnifiedRampRoutingType.DEPOSIT,
         }),
       );
     });
@@ -301,7 +303,7 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() =>
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: RampRoutingType.DEPOSIT,
+          payload: UnifiedRampRoutingType.DEPOSIT,
         }),
       );
     });
@@ -330,7 +332,7 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() =>
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: RampRoutingType.DEPOSIT,
+          payload: UnifiedRampRoutingType.DEPOSIT,
         }),
       );
     });
@@ -354,7 +356,7 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() =>
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: RampRoutingType.DEPOSIT,
+          payload: UnifiedRampRoutingType.DEPOSIT,
         }),
       );
     });
@@ -385,7 +387,7 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() =>
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: RampRoutingType.DEPOSIT,
+          payload: UnifiedRampRoutingType.DEPOSIT,
         }),
       );
     });
@@ -409,7 +411,7 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() =>
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: RampRoutingType.DEPOSIT,
+          payload: UnifiedRampRoutingType.DEPOSIT,
         }),
       );
     });
@@ -443,7 +445,7 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() =>
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: RampRoutingType.DEPOSIT,
+          payload: UnifiedRampRoutingType.DEPOSIT,
         }),
       );
     });
@@ -474,7 +476,7 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() =>
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: RampRoutingType.AGGREGATOR,
+          payload: UnifiedRampRoutingType.AGGREGATOR,
         }),
       );
     });
@@ -498,7 +500,7 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() =>
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: RampRoutingType.AGGREGATOR,
+          payload: UnifiedRampRoutingType.AGGREGATOR,
         }),
       );
     });
@@ -522,7 +524,7 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() =>
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: RampRoutingType.AGGREGATOR,
+          payload: UnifiedRampRoutingType.AGGREGATOR,
         }),
       );
     });
@@ -546,7 +548,7 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() =>
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: RampRoutingType.AGGREGATOR,
+          payload: UnifiedRampRoutingType.AGGREGATOR,
         }),
       );
     });
@@ -582,7 +584,7 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() =>
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: RampRoutingType.AGGREGATOR,
+          payload: UnifiedRampRoutingType.AGGREGATOR,
         }),
       );
     });
@@ -616,7 +618,7 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() =>
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: RampRoutingType.DEPOSIT,
+          payload: UnifiedRampRoutingType.DEPOSIT,
         }),
       );
     });
@@ -651,7 +653,7 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() => {
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: RampRoutingType.DEPOSIT,
+          payload: UnifiedRampRoutingType.DEPOSIT,
         });
       });
 
@@ -669,7 +671,7 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() => {
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: RampRoutingType.AGGREGATOR,
+          payload: UnifiedRampRoutingType.AGGREGATOR,
         });
       });
     });
@@ -687,7 +689,7 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() => {
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: RampRoutingType.AGGREGATOR,
+          payload: UnifiedRampRoutingType.AGGREGATOR,
         });
       });
 
@@ -704,7 +706,7 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() => {
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: RampRoutingType.DEPOSIT,
+          payload: UnifiedRampRoutingType.DEPOSIT,
         });
       });
     });
@@ -775,7 +777,7 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() =>
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: RampRoutingType.DEPOSIT,
+          payload: UnifiedRampRoutingType.DEPOSIT,
         }),
       );
     });
@@ -799,7 +801,7 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() =>
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: RampRoutingType.DEPOSIT,
+          payload: UnifiedRampRoutingType.DEPOSIT,
         }),
       );
     });

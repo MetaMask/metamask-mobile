@@ -106,7 +106,7 @@ export interface FiatOrdersState {
   authenticationUrls: string[];
   activationKeys: ActivationKey[];
   detectedGeolocation?: string;
-  rampRoutingDecision: RampRoutingType | null;
+  rampRoutingDecision: UnifiedRampRoutingType | null;
 }
 
 export const ACTIONS = {
@@ -173,8 +173,9 @@ export enum RampType {
   SELL = 'sell',
 }
 
-export enum RampRoutingType {
+export enum UnifiedRampRoutingType {
   DEPOSIT = 'DEPOSIT',
   AGGREGATOR = 'AGGREGATOR',
   UNSUPPORTED = 'UNSUPPORTED',
+  ERROR = 'ERROR',
 }

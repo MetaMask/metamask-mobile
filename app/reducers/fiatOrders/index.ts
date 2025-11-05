@@ -24,7 +24,7 @@ import type { RootState } from '../';
 import { getDecimalChainId } from '../../util/networks';
 
 export type { FiatOrder } from './types';
-export { RampRoutingType } from './types';
+export { UnifiedRampRoutingType } from './types';
 
 /** Action Creators */
 

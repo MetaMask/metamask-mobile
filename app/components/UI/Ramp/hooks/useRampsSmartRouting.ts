@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   setRampRoutingDecision,
-  RampRoutingType,
+  UnifiedRampRoutingType,
   getDetectedGeolocation,
 } from '../../../../reducers/fiatOrders';
 import type { RootState } from '../../../../reducers';
@@ -16,6 +16,7 @@ export enum RampRegionSupport {
   DEPOSIT = 'DEPOSIT',
   AGGREGATOR = 'AGGREGATOR',
   UNSUPPORTED = 'UNSUPPORTED',
+  ERROR = 'ERROR',
 }
 
 export interface RampEligibilityAPIResponse {
@@ -29,84 +30,58 @@ export default function useRampsSmartRouting() {
   const dispatch = useDispatch();
   const orders = useSelector((state: RootState) => state.fiatOrders.orders);
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
-  const [rampRegionSupport, setRampRegionSupport] =
-    useState<RampRegionSupport | null>(null);
 
   useEffect(() => {
     if (!unifiedV1Enabled) {
       return;
     }
 
-    const fetchRampEligibility = async () => {
+    const initializeRampRoutingDecision = async () => {
       if (!rampGeodetectedRegion) {
-        setRampRegionSupport(RampRegionSupport.UNSUPPORTED);
+        dispatch(setRampRoutingDecision(UnifiedRampRoutingType.ERROR));
         return;
       }
 
       try {
-        // TODO: Remove this once the API is ready and use the actual API route instead
-        // https://consensyssoftware.atlassian.net/browse/TRAM-2807
         const response = await fetch(
           `/endpoint-coming-soon?region=${rampGeodetectedRegion}`,
         );
-        const data: RampEligibilityAPIResponse = await response.json();
+        const eligibility: RampEligibilityAPIResponse = await response.json();
 
-        if (!data.global) {
-          setRampRegionSupport(RampRegionSupport.UNSUPPORTED);
-        } else if (!data.deposit) {
-          setRampRegionSupport(RampRegionSupport.AGGREGATOR);
+        if (!eligibility.global) {
+          dispatch(setRampRoutingDecision(UnifiedRampRoutingType.UNSUPPORTED));
+          return;
+        }
+
+        if (!eligibility.deposit) {
+          dispatch(setRampRoutingDecision(UnifiedRampRoutingType.AGGREGATOR));
+          return;
+        }
+
+        const completedOrders = orders.filter(
+          (order) => order.state === FIAT_ORDER_STATES.COMPLETED,
+        );
+
+        if (completedOrders.length === 0) {
+          dispatch(setRampRoutingDecision(UnifiedRampRoutingType.DEPOSIT));
+          return;
+        }
+
+        const sortedOrders = [...completedOrders].sort(
+          (a, b) => b.createdAt - a.createdAt,
+        );
+        const lastCompletedOrder = sortedOrders[0];
+
+        if (lastCompletedOrder.provider === FIAT_ORDER_PROVIDERS.TRANSAK) {
+          dispatch(setRampRoutingDecision(UnifiedRampRoutingType.DEPOSIT));
         } else {
-          setRampRegionSupport(RampRegionSupport.DEPOSIT);
+          dispatch(setRampRoutingDecision(UnifiedRampRoutingType.AGGREGATOR));
         }
       } catch (error) {
-        setRampRegionSupport(RampRegionSupport.UNSUPPORTED);
+        dispatch(setRampRoutingDecision(UnifiedRampRoutingType.ERROR));
       }
     };
 
-    fetchRampEligibility();
-  }, [rampGeodetectedRegion, unifiedV1Enabled]);
-
-  const determineRoutingDecision = useCallback(() => {
-    if (rampRegionSupport === null) {
-      return;
-    }
-
-    if (rampRegionSupport === RampRegionSupport.UNSUPPORTED) {
-      dispatch(setRampRoutingDecision(RampRoutingType.UNSUPPORTED));
-      return;
-    }
-
-    if (rampRegionSupport === RampRegionSupport.AGGREGATOR) {
-      dispatch(setRampRoutingDecision(RampRoutingType.AGGREGATOR));
-      return;
-    }
-
-    const completedOrders = orders.filter(
-      (order) => order.state === FIAT_ORDER_STATES.COMPLETED,
-    );
-
-    if (completedOrders.length === 0) {
-      dispatch(setRampRoutingDecision(RampRoutingType.DEPOSIT));
-      return;
-    }
-
-    const sortedOrders = [...completedOrders].sort(
-      (a, b) => b.createdAt - a.createdAt,
-    );
-    const lastCompletedOrder = sortedOrders[0];
-
-    if (lastCompletedOrder.provider === FIAT_ORDER_PROVIDERS.TRANSAK) {
-      dispatch(setRampRoutingDecision(RampRoutingType.DEPOSIT));
-    } else {
-      dispatch(setRampRoutingDecision(RampRoutingType.AGGREGATOR));
-    }
-  }, [dispatch, orders, rampRegionSupport]);
-
-  useEffect(() => {
-    if (!unifiedV1Enabled) {
-      return;
-    }
-
-    determineRoutingDecision();
-  }, [determineRoutingDecision, unifiedV1Enabled]);
+    initializeRampRoutingDecision();
+  }, [rampGeodetectedRegion, orders, unifiedV1Enabled, dispatch]);
 }
