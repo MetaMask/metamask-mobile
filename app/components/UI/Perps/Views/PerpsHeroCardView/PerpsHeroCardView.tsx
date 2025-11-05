@@ -59,6 +59,7 @@ import {
   PerpsHeroCardViewSelectorsIDs,
   getPerpsHeroCardViewSelector,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { useReferralDetails } from '../../../Rewards/hooks/useReferralDetails';
 
 // To add a new card, add the image to the array.
 const CARD_IMAGES: { image: ImageSourcePropType; id: number; name: string }[] =
@@ -85,6 +86,9 @@ const PerpsHeroCardView: React.FC = () => {
   const { position, marketPrice } = params;
 
   const rewardsReferralCode = useSelector(selectReferralCode);
+
+  // Fetch referral details to ensure code is available for display
+  useReferralDetails();
 
   const { track } = usePerpsEventTracking();
 
