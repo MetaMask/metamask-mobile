@@ -2,8 +2,8 @@ import {
   selectPerpsEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
   selectPerpsEquityEnabledFlag,
-  selectPerpsEnabledMarkets,
-  selectPerpsBlockedMarkets,
+  selectPerpsAllowlistMarkets,
+  selectPerpsBlocklistMarkets,
   selectHip3ConfigVersion,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
@@ -561,15 +561,15 @@ describe('Perps Feature Flag Selectors', () => {
     });
   });
 
-  describe('selectPerpsEnabledMarkets', () => {
+  describe('selectPerpsAllowlistMarkets', () => {
     it('returns empty array when local env variable is not set', () => {
-      delete process.env.MM_PERPS_HIP3_ENABLED_MARKETS;
-      const result = selectPerpsEnabledMarkets(mockedEmptyFlagsState);
+      delete process.env.MM_PERPS_HIP3_ALLOWLIST_MARKETS;
+      const result = selectPerpsAllowlistMarkets(mockedEmptyFlagsState);
       expect(result).toEqual([]);
     });
 
     it('parses local env variable as comma-separated list', () => {
-      process.env.MM_PERPS_HIP3_ENABLED_MARKETS = 'BTC,ETH,xyz:TSLA';
+      process.env.MM_PERPS_HIP3_ALLOWLIST_MARKETS = 'BTC,ETH,xyz:TSLA';
       const freshState = {
         engine: {
           backgroundState: {
@@ -580,18 +580,18 @@ describe('Perps Feature Flag Selectors', () => {
           },
         },
       };
-      const result = selectPerpsEnabledMarkets(freshState);
+      const result = selectPerpsAllowlistMarkets(freshState);
       expect(result).toEqual(['BTC', 'ETH', 'xyz:TSLA']);
     });
 
     it('returns empty array when local env variable is empty string', () => {
-      process.env.MM_PERPS_HIP3_ENABLED_MARKETS = '';
-      const result = selectPerpsEnabledMarkets(mockedEmptyFlagsState);
+      process.env.MM_PERPS_HIP3_ALLOWLIST_MARKETS = '';
+      const result = selectPerpsAllowlistMarkets(mockedEmptyFlagsState);
       expect(result).toEqual([]);
     });
 
     it('trims whitespace from comma-separated values', () => {
-      process.env.MM_PERPS_HIP3_ENABLED_MARKETS =
+      process.env.MM_PERPS_HIP3_ALLOWLIST_MARKETS =
         '  BTC  ,  ETH  ,  xyz:TSLA  ';
       const freshState = {
         engine: {
@@ -603,66 +603,66 @@ describe('Perps Feature Flag Selectors', () => {
           },
         },
       };
-      const result = selectPerpsEnabledMarkets(freshState);
+      const result = selectPerpsAllowlistMarkets(freshState);
       expect(result).toEqual(['BTC', 'ETH', 'xyz:TSLA']);
     });
 
     it('returns remote flag when valid comma-separated string', () => {
-      process.env.MM_PERPS_HIP3_ENABLED_MARKETS = 'BTC';
+      process.env.MM_PERPS_HIP3_ALLOWLIST_MARKETS = 'BTC';
       const stateWithRemoteFlag = {
         engine: {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                perpsEnabledMarkets: 'ETH,SOL,xyz:AAPL',
+                perpsAllowlistMarkets: 'ETH,SOL,xyz:AAPL',
               },
               cacheTimestamp: 0,
             },
           },
         },
       };
-      const result = selectPerpsEnabledMarkets(stateWithRemoteFlag);
+      const result = selectPerpsAllowlistMarkets(stateWithRemoteFlag);
       expect(result).toEqual(['ETH', 'SOL', 'xyz:AAPL']);
     });
 
     it('returns empty array when remote flag is empty string', () => {
-      process.env.MM_PERPS_HIP3_ENABLED_MARKETS = 'BTC';
+      process.env.MM_PERPS_HIP3_ALLOWLIST_MARKETS = 'BTC';
       const stateWithEmptyRemoteFlag = {
         engine: {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                perpsEnabledMarkets: '',
+                perpsAllowlistMarkets: '',
               },
               cacheTimestamp: 0,
             },
           },
         },
       };
-      const result = selectPerpsEnabledMarkets(stateWithEmptyRemoteFlag);
+      const result = selectPerpsAllowlistMarkets(stateWithEmptyRemoteFlag);
       expect(result).toEqual([]); // Remote empty string returns [] (discovery mode)
     });
 
     it('falls back to local flag when remote flag is invalid type', () => {
-      process.env.MM_PERPS_HIP3_ENABLED_MARKETS = 'BTC,ETH';
+      process.env.MM_PERPS_HIP3_ALLOWLIST_MARKETS = 'BTC,ETH';
       const stateWithInvalidRemoteFlag = {
         engine: {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                perpsEnabledMarkets: 123, // Invalid type
+                perpsAllowlistMarkets: 123, // Invalid type
               },
               cacheTimestamp: 0,
             },
           },
         },
       };
-      const result = selectPerpsEnabledMarkets(stateWithInvalidRemoteFlag);
+      const result = selectPerpsAllowlistMarkets(stateWithInvalidRemoteFlag);
       expect(result).toEqual(['BTC', 'ETH']);
     });
 
     it('handles wildcard patterns correctly', () => {
-      process.env.MM_PERPS_HIP3_ENABLED_MARKETS = 'xyz:*,abc:TSLA';
+      process.env.MM_PERPS_HIP3_ALLOWLIST_MARKETS = 'xyz:*,abc:TSLA';
       const freshState = {
         engine: {
           backgroundState: {
@@ -673,20 +673,20 @@ describe('Perps Feature Flag Selectors', () => {
           },
         },
       };
-      const result = selectPerpsEnabledMarkets(freshState);
+      const result = selectPerpsAllowlistMarkets(freshState);
       expect(result).toEqual(['xyz:*', 'abc:TSLA']);
     });
   });
 
-  describe('selectPerpsBlockedMarkets', () => {
+  describe('selectPerpsBlocklistMarkets', () => {
     it('returns empty array when local env variable is not set', () => {
-      delete process.env.MM_PERPS_HIP3_BLOCKED_MARKETS;
-      const result = selectPerpsBlockedMarkets(mockedEmptyFlagsState);
+      delete process.env.MM_PERPS_HIP3_BLOCKLIST_MARKETS;
+      const result = selectPerpsBlocklistMarkets(mockedEmptyFlagsState);
       expect(result).toEqual([]);
     });
 
     it('parses local env variable as comma-separated list', () => {
-      process.env.MM_PERPS_HIP3_BLOCKED_MARKETS = 'xyz:TSLA,BTC';
+      process.env.MM_PERPS_HIP3_BLOCKLIST_MARKETS = 'xyz:TSLA,BTC';
       const freshState = {
         engine: {
           backgroundState: {
@@ -697,18 +697,18 @@ describe('Perps Feature Flag Selectors', () => {
           },
         },
       };
-      const result = selectPerpsBlockedMarkets(freshState);
+      const result = selectPerpsBlocklistMarkets(freshState);
       expect(result).toEqual(['xyz:TSLA', 'BTC']);
     });
 
     it('returns empty array when local env variable is empty string', () => {
-      process.env.MM_PERPS_HIP3_BLOCKED_MARKETS = '';
-      const result = selectPerpsBlockedMarkets(mockedEmptyFlagsState);
+      process.env.MM_PERPS_HIP3_BLOCKLIST_MARKETS = '';
+      const result = selectPerpsBlocklistMarkets(mockedEmptyFlagsState);
       expect(result).toEqual([]);
     });
 
     it('trims whitespace from comma-separated values', () => {
-      process.env.MM_PERPS_HIP3_BLOCKED_MARKETS = '  BTC  ,  ETH  ';
+      process.env.MM_PERPS_HIP3_BLOCKLIST_MARKETS = '  BTC  ,  ETH  ';
       const freshState = {
         engine: {
           backgroundState: {
@@ -719,66 +719,66 @@ describe('Perps Feature Flag Selectors', () => {
           },
         },
       };
-      const result = selectPerpsBlockedMarkets(freshState);
+      const result = selectPerpsBlocklistMarkets(freshState);
       expect(result).toEqual(['BTC', 'ETH']);
     });
 
     it('returns remote flag when valid comma-separated string', () => {
-      process.env.MM_PERPS_HIP3_BLOCKED_MARKETS = 'BTC';
+      process.env.MM_PERPS_HIP3_BLOCKLIST_MARKETS = 'BTC';
       const stateWithRemoteFlag = {
         engine: {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                perpsBlockedMarkets: 'xyz:TSLA,xyz:AAPL',
+                perpsBlocklistMarkets: 'xyz:TSLA,xyz:AAPL',
               },
               cacheTimestamp: 0,
             },
           },
         },
       };
-      const result = selectPerpsBlockedMarkets(stateWithRemoteFlag);
+      const result = selectPerpsBlocklistMarkets(stateWithRemoteFlag);
       expect(result).toEqual(['xyz:TSLA', 'xyz:AAPL']);
     });
 
     it('returns empty array when remote flag is empty string', () => {
-      process.env.MM_PERPS_HIP3_BLOCKED_MARKETS = 'BTC';
+      process.env.MM_PERPS_HIP3_BLOCKLIST_MARKETS = 'BTC';
       const stateWithEmptyRemoteFlag = {
         engine: {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                perpsBlockedMarkets: '',
+                perpsBlocklistMarkets: '',
               },
               cacheTimestamp: 0,
             },
           },
         },
       };
-      const result = selectPerpsBlockedMarkets(stateWithEmptyRemoteFlag);
+      const result = selectPerpsBlocklistMarkets(stateWithEmptyRemoteFlag);
       expect(result).toEqual([]); // Remote empty string returns [] (no blocking)
     });
 
     it('falls back to local flag when remote flag is invalid type', () => {
-      process.env.MM_PERPS_HIP3_BLOCKED_MARKETS = 'xyz:*';
+      process.env.MM_PERPS_HIP3_BLOCKLIST_MARKETS = 'xyz:*';
       const stateWithInvalidRemoteFlag = {
         engine: {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                perpsBlockedMarkets: { invalid: 'object' }, // Invalid type
+                perpsBlocklistMarkets: { invalid: 'object' }, // Invalid type
               },
               cacheTimestamp: 0,
             },
           },
         },
       };
-      const result = selectPerpsBlockedMarkets(stateWithInvalidRemoteFlag);
+      const result = selectPerpsBlocklistMarkets(stateWithInvalidRemoteFlag);
       expect(result).toEqual(['xyz:*']);
     });
 
     it('handles wildcard patterns correctly', () => {
-      process.env.MM_PERPS_HIP3_BLOCKED_MARKETS = 'xyz:*';
+      process.env.MM_PERPS_HIP3_BLOCKLIST_MARKETS = 'xyz:*';
       const freshState = {
         engine: {
           backgroundState: {
@@ -789,7 +789,7 @@ describe('Perps Feature Flag Selectors', () => {
           },
         },
       };
-      const result = selectPerpsBlockedMarkets(freshState);
+      const result = selectPerpsBlocklistMarkets(freshState);
       expect(result).toEqual(['xyz:*']);
     });
   });

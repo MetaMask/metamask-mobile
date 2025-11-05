@@ -498,7 +498,7 @@ describe('marketUtils', () => {
         expect(shouldIncludeMarket('SOL', null, true, [], blocked)).toBe(true);
       });
 
-      it('blocks all HIP-3 markets when equityEnabled is false', () => {
+      it('blocks all HIP-3 markets when hip3Enabled is false', () => {
         const enabled = [{ pattern: 'xyz:*', matcher: /^xyz:/ }];
         expect(shouldIncludeMarket('xyz:TSLA', 'xyz', false, enabled, [])).toBe(
           false,

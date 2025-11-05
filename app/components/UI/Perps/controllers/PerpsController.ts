@@ -644,8 +644,8 @@ export class PerpsController extends BaseController<
 
   // Store HIP-3 configuration (mutable for runtime updates from remote flags)
   private hip3Enabled: boolean;
-  private hip3EnabledMarkets: string[];
-  private hip3BlockedMarkets: string[];
+  private hip3AllowlistMarkets: string[];
+  private hip3BlocklistMarkets: string[];
   private hip3ConfigSource: 'remote' | 'fallback' = 'fallback';
 
   constructor({
@@ -662,11 +662,11 @@ export class PerpsController extends BaseController<
 
     // Set HIP-3 fallback configuration from client (will be updated if remote flags available)
     this.hip3Enabled = clientConfig.fallbackHip3Enabled ?? false;
-    this.hip3EnabledMarkets = [
-      ...(clientConfig.fallbackHip3EnabledMarkets ?? []),
+    this.hip3AllowlistMarkets = [
+      ...(clientConfig.fallbackHip3AllowlistMarkets ?? []),
     ];
-    this.hip3BlockedMarkets = [
-      ...(clientConfig.fallbackHip3BlockedMarkets ?? []),
+    this.hip3BlocklistMarkets = [
+      ...(clientConfig.fallbackHip3BlocklistMarkets ?? []),
     ];
 
     // Immediately set the fallback region list since RemoteFeatureFlagController is empty by default and takes a moment to populate.
@@ -784,12 +784,12 @@ export class PerpsController extends BaseController<
       willUse: validatedEquity !== undefined ? 'remote' : 'fallback',
     });
 
-    // Extract and validate remote HIP-3 enabled markets (whitelist)
-    let validatedEnabledMarkets: string[] | undefined;
-    if (hasProperty(remoteFlags, 'perpsEnabledMarkets')) {
-      const remoteMarkets = remoteFlags.perpsEnabledMarkets;
+    // Extract and validate remote HIP-3 allowlist markets (allowlist)
+    let validatedAllowlistMarkets: string[] | undefined;
+    if (hasProperty(remoteFlags, 'perpsAllowlistMarkets')) {
+      const remoteMarkets = remoteFlags.perpsAllowlistMarkets;
 
-      DevLogger.log('PerpsController: HIP-3 enabledMarkets validation', {
+      DevLogger.log('PerpsController: HIP-3 allowlistMarkets validation', {
         remoteMarkets,
         type: typeof remoteMarkets,
         isArray: Array.isArray(remoteMarkets),
@@ -800,15 +800,15 @@ export class PerpsController extends BaseController<
         const parsed = parseCommaSeparatedString(remoteMarkets);
 
         if (parsed.length > 0) {
-          validatedEnabledMarkets = parsed;
+          validatedAllowlistMarkets = parsed;
           DevLogger.log(
-            'PerpsController: HIP-3 enabledMarkets validated from string',
-            { validatedEnabledMarkets },
+            'PerpsController: HIP-3 allowlistMarkets validated from string',
+            { validatedAllowlistMarkets },
           );
         } else {
           DevLogger.log(
-            'PerpsController: HIP-3 enabledMarkets string was empty after parsing',
-            { fallbackValue: this.hip3EnabledMarkets },
+            'PerpsController: HIP-3 allowlistMarkets string was empty after parsing',
+            { fallbackValue: this.hip3AllowlistMarkets },
           );
         }
       } else if (
@@ -818,33 +818,33 @@ export class PerpsController extends BaseController<
         )
       ) {
         // Fallback: Validate array of non-empty strings (in case format changes)
-        validatedEnabledMarkets = (remoteMarkets as string[])
+        validatedAllowlistMarkets = (remoteMarkets as string[])
           .map((s) => s.trim())
           .filter((s) => s.length > 0);
 
         DevLogger.log(
-          'PerpsController: HIP-3 enabledMarkets validated from array',
-          { validatedEnabledMarkets },
+          'PerpsController: HIP-3 allowlistMarkets validated from array',
+          { validatedAllowlistMarkets },
         );
       } else {
         DevLogger.log(
-          'PerpsController: HIP-3 enabledMarkets validation FAILED - falling back to local config',
+          'PerpsController: HIP-3 allowlistMarkets validation FAILED - falling back to local config',
           {
             reason: Array.isArray(remoteMarkets)
               ? 'Array contains non-string or empty values'
               : 'Invalid type (expected string or array)',
-            fallbackValue: this.hip3EnabledMarkets,
+            fallbackValue: this.hip3AllowlistMarkets,
           },
         );
       }
     }
 
-    // Extract and validate remote HIP-3 blocked markets (blacklist)
-    let validatedBlockedMarkets: string[] | undefined;
-    if (hasProperty(remoteFlags, 'perpsBlockedMarkets')) {
-      const remoteBlocked = remoteFlags.perpsBlockedMarkets;
+    // Extract and validate remote HIP-3 blocklist markets (blocklist)
+    let validatedBlocklistMarkets: string[] | undefined;
+    if (hasProperty(remoteFlags, 'perpsBlocklistMarkets')) {
+      const remoteBlocked = remoteFlags.perpsBlocklistMarkets;
 
-      DevLogger.log('PerpsController: HIP-3 blockedMarkets validation', {
+      DevLogger.log('PerpsController: HIP-3 blocklistMarkets validation', {
         remoteBlocked,
         type: typeof remoteBlocked,
         isArray: Array.isArray(remoteBlocked),
@@ -855,15 +855,15 @@ export class PerpsController extends BaseController<
         const parsed = parseCommaSeparatedString(remoteBlocked);
 
         if (parsed.length > 0) {
-          validatedBlockedMarkets = parsed;
+          validatedBlocklistMarkets = parsed;
           DevLogger.log(
-            'PerpsController: HIP-3 blockedMarkets validated from string',
-            { validatedBlockedMarkets },
+            'PerpsController: HIP-3 blocklistMarkets validated from string',
+            { validatedBlocklistMarkets },
           );
         } else {
           DevLogger.log(
-            'PerpsController: HIP-3 blockedMarkets string was empty after parsing',
-            { fallbackValue: this.hip3BlockedMarkets },
+            'PerpsController: HIP-3 blocklistMarkets string was empty after parsing',
+            { fallbackValue: this.hip3BlocklistMarkets },
           );
         }
       } else if (
@@ -873,22 +873,22 @@ export class PerpsController extends BaseController<
         )
       ) {
         // Fallback: Validate array of non-empty strings (in case format changes)
-        validatedBlockedMarkets = (remoteBlocked as string[])
+        validatedBlocklistMarkets = (remoteBlocked as string[])
           .map((s) => s.trim())
           .filter((s) => s.length > 0);
 
         DevLogger.log(
-          'PerpsController: HIP-3 blockedMarkets validated from array',
-          { validatedBlockedMarkets },
+          'PerpsController: HIP-3 blocklistMarkets validated from array',
+          { validatedBlocklistMarkets },
         );
       } else {
         DevLogger.log(
-          'PerpsController: HIP-3 blockedMarkets validation FAILED - falling back to local config',
+          'PerpsController: HIP-3 blocklistMarkets validation FAILED - falling back to local config',
           {
             reason: Array.isArray(remoteBlocked)
               ? 'Array contains non-string or empty values'
               : 'Invalid type (expected string or array)',
-            fallbackValue: this.hip3BlockedMarkets,
+            fallbackValue: this.hip3BlocklistMarkets,
           },
         );
       }
@@ -897,28 +897,28 @@ export class PerpsController extends BaseController<
     // Detect changes (only if we have valid remote values)
     const equityChanged =
       validatedEquity !== undefined && validatedEquity !== this.hip3Enabled;
-    const enabledMarketsChanged =
-      validatedEnabledMarkets !== undefined &&
-      JSON.stringify([...validatedEnabledMarkets].sort()) !==
-        JSON.stringify([...this.hip3EnabledMarkets].sort());
-    const blockedMarketsChanged =
-      validatedBlockedMarkets !== undefined &&
-      JSON.stringify([...validatedBlockedMarkets].sort()) !==
-        JSON.stringify([...this.hip3BlockedMarkets].sort());
+    const allowlistMarketsChanged =
+      validatedAllowlistMarkets !== undefined &&
+      JSON.stringify([...validatedAllowlistMarkets].sort()) !==
+        JSON.stringify([...this.hip3AllowlistMarkets].sort());
+    const blocklistMarketsChanged =
+      validatedBlocklistMarkets !== undefined &&
+      JSON.stringify([...validatedBlocklistMarkets].sort()) !==
+        JSON.stringify([...this.hip3BlocklistMarkets].sort());
 
-    if (equityChanged || enabledMarketsChanged || blockedMarketsChanged) {
+    if (equityChanged || allowlistMarketsChanged || blocklistMarketsChanged) {
       DevLogger.log(
         'PerpsController: HIP-3 config changed via remote feature flags',
         {
           equityChanged,
-          enabledMarketsChanged,
-          blockedMarketsChanged,
+          allowlistMarketsChanged,
+          blocklistMarketsChanged,
           oldEquity: this.hip3Enabled,
           newEquity: validatedEquity,
-          oldEnabledMarkets: this.hip3EnabledMarkets,
-          newEnabledMarkets: validatedEnabledMarkets,
-          oldBlockedMarkets: this.hip3BlockedMarkets,
-          newBlockedMarkets: validatedBlockedMarkets,
+          oldAllowlistMarkets: this.hip3AllowlistMarkets,
+          newAllowlistMarkets: validatedAllowlistMarkets,
+          oldBlocklistMarkets: this.hip3BlocklistMarkets,
+          newBlocklistMarkets: validatedBlocklistMarkets,
           source: 'remote',
         },
       );
@@ -927,11 +927,11 @@ export class PerpsController extends BaseController<
       if (validatedEquity !== undefined) {
         this.hip3Enabled = validatedEquity;
       }
-      if (validatedEnabledMarkets !== undefined) {
-        this.hip3EnabledMarkets = [...validatedEnabledMarkets];
+      if (validatedAllowlistMarkets !== undefined) {
+        this.hip3AllowlistMarkets = [...validatedAllowlistMarkets];
       }
-      if (validatedBlockedMarkets !== undefined) {
-        this.hip3BlockedMarkets = [...validatedBlockedMarkets];
+      if (validatedBlocklistMarkets !== undefined) {
+        this.hip3BlocklistMarkets = [...validatedBlocklistMarkets];
       }
       this.hip3ConfigSource = 'remote';
 
@@ -946,8 +946,8 @@ export class PerpsController extends BaseController<
         {
           newVersion,
           newHip3Enabled: this.hip3Enabled,
-          newHip3EnabledMarkets: this.hip3EnabledMarkets,
-          newHip3BlockedMarkets: this.hip3BlockedMarkets,
+          newHip3AllowlistMarkets: this.hip3AllowlistMarkets,
+          newHip3BlocklistMarkets: this.hip3BlocklistMarkets,
         },
       );
 
@@ -1201,8 +1201,8 @@ export class PerpsController extends BaseController<
       'PerpsController: Creating provider with HIP-3 configuration',
       {
         hip3Enabled: this.hip3Enabled,
-        hip3EnabledMarkets: this.hip3EnabledMarkets,
-        hip3BlockedMarkets: this.hip3BlockedMarkets,
+        hip3AllowlistMarkets: this.hip3AllowlistMarkets,
+        hip3BlocklistMarkets: this.hip3BlocklistMarkets,
         hip3ConfigSource: this.hip3ConfigSource,
         isTestnet: this.state.isTestnet,
       },
@@ -1212,9 +1212,9 @@ export class PerpsController extends BaseController<
       'hyperliquid',
       new HyperLiquidProvider({
         isTestnet: this.state.isTestnet,
-        equityEnabled: this.hip3Enabled,
-        enabledMarkets: this.hip3EnabledMarkets,
-        blockedMarkets: this.hip3BlockedMarkets,
+        hip3Enabled: this.hip3Enabled,
+        allowlistMarkets: this.hip3AllowlistMarkets,
+        blocklistMarkets: this.hip3BlocklistMarkets,
       }),
     );
 

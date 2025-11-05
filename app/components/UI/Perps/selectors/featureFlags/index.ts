@@ -64,7 +64,7 @@ export const selectPerpsEquityEnabledFlag = createSelector(
 );
 
 /**
- * Selector for HIP-3 market whitelist
+ * Selector for HIP-3 market allowlist
  * Controls which specific markets are shown to users
  *
  * Only applies when perpsEquityEnabled === true
@@ -72,28 +72,28 @@ export const selectPerpsEquityEnabledFlag = createSelector(
  * Supports wildcards: "xyz:*" (all xyz markets), "xyz" (shorthand for "xyz:*")
  * Supports specific markets: "xyz:XYZ100", "BTC" (main DEX)
  *
- * @returns string[] - Empty array = enable all markets (discovery mode), non-empty = whitelist
+ * @returns string[] - Empty array = enable all markets (discovery mode), non-empty = allowlist
  */
-export const selectPerpsEnabledMarkets = createSelector(
+export const selectPerpsAllowlistMarkets = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
     // Parse local fallback (comma-separated list or empty string)
-    const localFallback = process.env.MM_PERPS_HIP3_ENABLED_MARKETS
-      ? process.env.MM_PERPS_HIP3_ENABLED_MARKETS.split(',')
+    const localFallback = process.env.MM_PERPS_HIP3_ALLOWLIST_MARKETS
+      ? process.env.MM_PERPS_HIP3_ALLOWLIST_MARKETS.split(',')
           .map((s) => s.trim())
           .filter((s) => s.length > 0)
       : [];
 
-    if (!hasProperty(remoteFeatureFlags, 'perpsEnabledMarkets')) {
+    if (!hasProperty(remoteFeatureFlags, 'perpsAllowlistMarkets')) {
       return localFallback;
     }
 
-    const enabledMarkets = remoteFeatureFlags.perpsEnabledMarkets;
+    const allowlistMarkets = remoteFeatureFlags.perpsAllowlistMarkets;
 
     // LaunchDarkly always returns comma-separated strings for list values
-    if (typeof enabledMarkets === 'string') {
+    if (typeof allowlistMarkets === 'string') {
       // Remote empty string intentionally returns [] (discovery mode = allow all)
-      return parseCommaSeparatedString(enabledMarkets);
+      return parseCommaSeparatedString(allowlistMarkets);
     }
 
     // Invalid format - use fallback
@@ -102,7 +102,7 @@ export const selectPerpsEnabledMarkets = createSelector(
 );
 
 /**
- * Selector for HIP-3 market blacklist
+ * Selector for HIP-3 market blocklist
  * Controls which specific markets are blocked from being shown
  *
  * Always applied regardless of perpsEquityEnabled state
@@ -110,28 +110,28 @@ export const selectPerpsEnabledMarkets = createSelector(
  * Supports wildcards: "xyz:*" (block all xyz markets), "xyz" (shorthand for "xyz:*")
  * Supports specific markets: "xyz:XYZ100", "BTC" (main DEX)
  *
- * @returns string[] - Empty array = no blocking, non-empty = blacklist
+ * @returns string[] - Empty array = no blocking, non-empty = blocklist
  */
-export const selectPerpsBlockedMarkets = createSelector(
+export const selectPerpsBlocklistMarkets = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
     // Parse local fallback (comma-separated list or empty string)
-    const localFallback = process.env.MM_PERPS_HIP3_BLOCKED_MARKETS
-      ? process.env.MM_PERPS_HIP3_BLOCKED_MARKETS.split(',')
+    const localFallback = process.env.MM_PERPS_HIP3_BLOCKLIST_MARKETS
+      ? process.env.MM_PERPS_HIP3_BLOCKLIST_MARKETS.split(',')
           .map((s) => s.trim())
           .filter((s) => s.length > 0)
       : [];
 
-    if (!hasProperty(remoteFeatureFlags, 'perpsBlockedMarkets')) {
+    if (!hasProperty(remoteFeatureFlags, 'perpsBlocklistMarkets')) {
       return localFallback;
     }
 
-    const blockedMarkets = remoteFeatureFlags.perpsBlockedMarkets;
+    const blocklistMarkets = remoteFeatureFlags.perpsBlocklistMarkets;
 
     // LaunchDarkly always returns comma-separated strings for list values
-    if (typeof blockedMarkets === 'string') {
+    if (typeof blocklistMarkets === 'string') {
       // Remote empty string intentionally returns [] (block nothing)
-      return parseCommaSeparatedString(blockedMarkets);
+      return parseCommaSeparatedString(blocklistMarkets);
     }
 
     // Invalid format - use fallback
@@ -146,5 +146,7 @@ export const selectPerpsBlockedMarkets = createSelector(
  * @param state - Redux root state
  * @returns number - Version increments when HIP-3 config changes
  */
-export const selectHip3ConfigVersion = (state: RootState): number =>
-  state?.engine?.backgroundState?.PerpsController?.hip3ConfigVersion ?? 0;
+export const selectHip3ConfigVersion = createSelector(
+  (state: RootState) => state?.engine?.backgroundState?.PerpsController,
+  (perpsController) => perpsController?.hip3ConfigVersion ?? 0,
+);

@@ -248,7 +248,7 @@ describe('HyperLiquidSubscriptionService', () => {
     service = new HyperLiquidSubscriptionService(
       mockClientService,
       mockWalletService,
-      true, // equityEnabled - test expects webData3
+      true, // hip3Enabled - test expects webData3
     );
   });
 
@@ -2066,7 +2066,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const hip3Service = new HyperLiquidSubscriptionService(
         mockClientService,
         mockWalletService,
-        true, // equityEnabled
+        true, // hip3Enabled
         ['dex1', 'dex2'], // enabledDexs
       );
 
@@ -2077,7 +2077,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const service = new HyperLiquidSubscriptionService(
         mockClientService,
         mockWalletService,
-        false, // equityEnabled
+        false, // hip3Enabled
         [],
       );
 

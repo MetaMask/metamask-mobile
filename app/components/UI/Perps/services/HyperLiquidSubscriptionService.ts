@@ -48,10 +48,10 @@ export class HyperLiquidSubscriptionService {
   private readonly walletService: HyperLiquidWalletService;
 
   // HIP-3 feature flag support
-  private equityEnabled: boolean;
+  private hip3Enabled: boolean;
   private enabledDexs: string[]; // DEX identification (maps webData3 indices to DEX names)
-  private enabledMarkets: string[]; // Market filtering (whitelist)
-  private blockedMarkets: string[]; // Market filtering (blacklist)
+  private allowlistMarkets: string[]; // Market filtering (allowlist)
+  private blocklistMarkets: string[]; // Market filtering (blocklist)
   private discoveredDexNames: string[] = []; // DEX order for mapping webData3 perpDexStates indices
 
   // Subscriber collections
@@ -149,17 +149,17 @@ export class HyperLiquidSubscriptionService {
   constructor(
     clientService: HyperLiquidClientService,
     walletService: HyperLiquidWalletService,
-    equityEnabled?: boolean,
+    hip3Enabled?: boolean,
     enabledDexs?: string[],
-    enabledMarkets?: string[],
-    blockedMarkets?: string[],
+    allowlistMarkets?: string[],
+    blocklistMarkets?: string[],
   ) {
     this.clientService = clientService;
     this.walletService = walletService;
-    this.equityEnabled = equityEnabled ?? false;
+    this.hip3Enabled = hip3Enabled ?? false;
     this.enabledDexs = enabledDexs ?? [];
-    this.enabledMarkets = enabledMarkets ?? [];
-    this.blockedMarkets = blockedMarkets ?? [];
+    this.allowlistMarkets = allowlistMarkets ?? [];
+    this.blocklistMarkets = blocklistMarkets ?? [];
   }
 
   /**
@@ -201,7 +201,7 @@ export class HyperLiquidSubscriptionService {
     if (dex === null) {
       return true; // Main DEX always enabled
     }
-    if (!this.equityEnabled) {
+    if (!this.hip3Enabled) {
       return false; // HIP-3 disabled entirely
     }
     return this.enabledDexs.includes(dex);
@@ -213,31 +213,31 @@ export class HyperLiquidSubscriptionService {
    * Note: Market filtering is NOT applied in subscription service - only in Provider
    */
   public async updateFeatureFlags(
-    equityEnabled: boolean,
+    hip3Enabled: boolean,
     enabledDexs: string[],
-    enabledMarkets: string[],
-    blockedMarkets: string[],
+    allowlistMarkets: string[],
+    blocklistMarkets: string[],
   ): Promise<void> {
     const previousEnabledDexs = [...this.enabledDexs];
-    const previousEnabledMarkets = [...this.enabledMarkets];
-    const previousBlockedMarkets = [...this.blockedMarkets];
-    const previousEquityEnabled = this.equityEnabled;
+    const previousAllowlistMarkets = [...this.allowlistMarkets];
+    const previousBlocklistMarkets = [...this.blocklistMarkets];
+    const previousHip3Enabled = this.hip3Enabled;
 
-    this.equityEnabled = equityEnabled;
+    this.hip3Enabled = hip3Enabled;
     this.enabledDexs = enabledDexs;
-    this.enabledMarkets = enabledMarkets;
-    this.blockedMarkets = blockedMarkets;
+    this.allowlistMarkets = allowlistMarkets;
+    this.blocklistMarkets = blocklistMarkets;
     this.discoveredDexNames = enabledDexs; // Store DEX order for webData3 index mapping
 
     DevLogger.log('Feature flags updated:', {
-      previousEquityEnabled,
-      equityEnabled,
+      previousHip3Enabled,
+      hip3Enabled,
       previousEnabledDexs,
       enabledDexs,
-      previousEnabledMarkets,
-      enabledMarkets,
-      previousBlockedMarkets,
-      blockedMarkets,
+      previousAllowlistMarkets,
+      allowlistMarkets,
+      previousBlocklistMarkets,
+      blocklistMarkets,
     });
 
     // If equity was just enabled or new DEXs were added
@@ -245,7 +245,7 @@ export class HyperLiquidSubscriptionService {
       (dex) => !previousEnabledDexs.includes(dex),
     );
     if (
-      (!previousEquityEnabled && equityEnabled && enabledDexs.length > 0) ||
+      (!previousHip3Enabled && hip3Enabled && enabledDexs.length > 0) ||
       newDexs.length > 0
     ) {
       DevLogger.log('Establishing subscriptions for new DEXs:', newDexs);
@@ -717,7 +717,7 @@ export class HyperLiquidSubscriptionService {
 
     return new Promise<void>((resolve, reject) => {
       // Choose channel based on HIP-3 master switch
-      if (!this.equityEnabled) {
+      if (!this.hip3Enabled) {
         // HIP-3 disabled: Use webData2 (main DEX only)
         subscriptionClient
           .webData2({ user: userAddress }, (data: WsWebData2Event) => {

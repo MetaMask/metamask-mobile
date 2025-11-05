@@ -146,7 +146,7 @@ export const matchesMarketPattern = (
  *
  * @param symbol - Market symbol (e.g., "BTC", "xyz:TSLA")
  * @param dex - DEX identifier (null for main DEX, "xyz" for HIP-3 DEX)
- * @param equityEnabled - Master switch for HIP-3 markets (false = block all HIP-3)
+ * @param hip3Enabled - Master switch for HIP-3 markets (false = block all HIP-3)
  * @param compiledEnabledPatterns - Pre-compiled whitelist patterns (empty = allow all)
  * @param compiledBlockedPatterns - Pre-compiled blacklist patterns (empty = block none)
  * @returns true if market should be shown to users
@@ -171,7 +171,7 @@ export const matchesMarketPattern = (
 export const shouldIncludeMarket = (
   symbol: string,
   dex: string | null,
-  equityEnabled: boolean,
+  hip3Enabled: boolean,
   compiledEnabledPatterns: CompiledMarketPattern[],
   compiledBlockedPatterns: CompiledMarketPattern[],
 ): boolean => {
@@ -181,7 +181,7 @@ export const shouldIncludeMarket = (
   }
 
   // Enforce HIP-3 master switch: if disabled, block ALL HIP-3 markets
-  if (!equityEnabled) {
+  if (!hip3Enabled) {
     return false;
   }
 

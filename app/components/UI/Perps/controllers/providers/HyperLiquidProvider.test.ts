@@ -386,9 +386,9 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toContain('Init failed');
     });
 
-    it('initializes with HIP-3 disabled when equityEnabled is false', async () => {
+    it('initializes with HIP-3 disabled when hip3Enabled is false', async () => {
       const disabledProvider = new HyperLiquidProvider({
-        equityEnabled: false,
+        hip3Enabled: false,
       });
 
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
@@ -5335,7 +5335,7 @@ describe('HyperLiquidProvider', () => {
         .mockReturnValue(mockInfoClientWithDexs);
 
       // Create a provider instance with equity enabled for this specific test
-      const testProvider = new HyperLiquidProvider({ equityEnabled: true });
+      const testProvider = new HyperLiquidProvider({ hip3Enabled: true });
 
       // Override the private cachedValidatedDexs to simulate already validated state
       // This avoids the complex initialization flow
@@ -5356,7 +5356,7 @@ describe('HyperLiquidProvider', () => {
     it('returns empty array when equity disabled', async () => {
       // Arrange
       const disabledProvider = new HyperLiquidProvider({
-        equityEnabled: false,
+        hip3Enabled: false,
       });
 
       // Act
@@ -5368,7 +5368,7 @@ describe('HyperLiquidProvider', () => {
 
     it('returns empty array when perpDexs returns invalid data', async () => {
       // Arrange
-      const hip3Provider = new HyperLiquidProvider({ equityEnabled: true });
+      const hip3Provider = new HyperLiquidProvider({ hip3Enabled: true });
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
           perpDexs: jest.fn().mockResolvedValue(null),

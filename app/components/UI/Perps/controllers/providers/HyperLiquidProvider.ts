@@ -166,16 +166,16 @@ export class HyperLiquidProvider implements IPerpsProvider {
   >();
 
   // Pre-compiled patterns for fast filtering
-  private compiledEnabledPatterns: CompiledMarketPattern[] = [];
-  private compiledBlockedPatterns: CompiledMarketPattern[] = [];
+  private compiledAllowlistPatterns: CompiledMarketPattern[] = [];
+  private compiledBlocklistPatterns: CompiledMarketPattern[] = [];
 
   // Fee discount context for MetaMask reward discounts (in basis points)
   private userFeeDiscountBips?: number;
 
   // Feature flag configuration for HIP-3 market filtering
-  private equityEnabled: boolean;
-  private enabledMarkets: string[];
-  private blockedMarkets: string[];
+  private hip3Enabled: boolean;
+  private allowlistMarkets: string[];
+  private blocklistMarkets: string[];
   private useDexAbstraction: boolean;
 
   // Cache for validated DEXs to avoid redundant perpDexs() API calls
@@ -199,18 +199,18 @@ export class HyperLiquidProvider implements IPerpsProvider {
   constructor(
     options: {
       isTestnet?: boolean;
-      equityEnabled?: boolean;
-      enabledMarkets?: string[];
-      blockedMarkets?: string[];
+      hip3Enabled?: boolean;
+      allowlistMarkets?: string[];
+      blocklistMarkets?: string[];
       useDexAbstraction?: boolean;
     } = {},
   ) {
     const isTestnet = options.isTestnet || false;
 
     // Dev-friendly defaults: Enable all markets by default for easier testing (discovery mode)
-    this.equityEnabled = options.equityEnabled ?? __DEV__;
-    this.enabledMarkets = options.enabledMarkets ?? [];
-    this.blockedMarkets = options.blockedMarkets ?? [];
+    this.hip3Enabled = options.hip3Enabled ?? __DEV__;
+    this.allowlistMarkets = options.allowlistMarkets ?? [];
+    this.blocklistMarkets = options.blocklistMarkets ?? [];
 
     // Attempt native balance abstraction, fallback to programmatic transfer if unsupported
     this.useDexAbstraction = options.useDexAbstraction ?? true;
@@ -221,21 +221,21 @@ export class HyperLiquidProvider implements IPerpsProvider {
     this.subscriptionService = new HyperLiquidSubscriptionService(
       this.clientService,
       this.walletService,
-      this.equityEnabled,
+      this.hip3Enabled,
       [], // enabledDexs - will be populated after DEX discovery in buildAssetMapping
-      this.enabledMarkets,
-      this.blockedMarkets,
+      this.allowlistMarkets,
+      this.blocklistMarkets,
     );
 
     // NOTE: Clients are NOT initialized here - they'll be initialized lazily
     // when first needed. This avoids accessing Engine.context before it's ready.
 
     // Pre-compile filter patterns for performance
-    this.compiledEnabledPatterns = this.enabledMarkets.map((pattern) => ({
+    this.compiledAllowlistPatterns = this.allowlistMarkets.map((pattern) => ({
       pattern,
       matcher: compileMarketPattern(pattern),
     }));
-    this.compiledBlockedPatterns = this.blockedMarkets.map((pattern) => ({
+    this.compiledBlocklistPatterns = this.blocklistMarkets.map((pattern) => ({
       pattern,
       matcher: compileMarketPattern(pattern),
     }));
@@ -245,9 +245,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
       hasBatchCancel: typeof this.cancelOrders === 'function',
       hasBatchClose: typeof this.closePositions === 'function',
       protocolId: this.protocolId,
-      equityEnabled: this.equityEnabled,
-      enabledMarkets: this.enabledMarkets,
-      blockedMarkets: this.blockedMarkets,
+      hip3Enabled: this.hip3Enabled,
+      allowlistMarkets: this.allowlistMarkets,
+      blocklistMarkets: this.blocklistMarkets,
       isTestnet,
     });
   }
@@ -342,9 +342,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
     // Build asset mapping on first call only (flags are immutable)
     if (this.coinToAssetId.size === 0) {
       DevLogger.log('HyperLiquidProvider: Building asset mapping', {
-        equityEnabled: this.equityEnabled,
-        enabledMarkets: this.enabledMarkets,
-        blockedMarkets: this.blockedMarkets,
+        hip3Enabled: this.hip3Enabled,
+        allowlistMarkets: this.allowlistMarkets,
+        blocklistMarkets: this.blocklistMarkets,
       });
       await this.buildAssetMapping();
     }
@@ -354,8 +354,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Get all available DEXs without whitelist filtering
-   * Used when skipWhitelist=true in getMarkets()
+   * Get all available DEXs without allowlist filtering
+   * Used when skipFilters=true in getMarkets()
    * @returns Array of all DEX names (null for main DEX, strings for HIP-3 DEXs)
    */
   private async getAllAvailableDexs(): Promise<(string | null)[]> {
@@ -399,14 +399,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Get validated list of DEXs to use based on feature flags and whitelist
+   * Get validated list of DEXs to use based on feature flags and allowlist
    * Implements Step 3b from HIP-3-IMPLEMENTATION.md (lines 108-134)
    *
    * Logic Flow:
-   * 1. If equityEnabled === false → Return [null] (main DEX only)
+   * 1. If hip3Enabled === false → Return [null] (main DEX only)
    * 2. Fetch available DEXs via SDK: infoClient.perpDexs()
    * 3. If enabledDexs is empty [] → Return [null, ...allDiscoveredDexs] (auto-discover)
-   * 4. Else filter enabledDexs against available DEXs → Return [null, ...validatedDexs] (whitelist)
+   * 4. Else filter enabledDexs against available DEXs → Return [null, ...validatedDexs] (allowlist)
    *
    * Invalid DEX names are silently filtered with DevLogger warning.
    *
@@ -419,10 +419,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
     }
 
     // Kill switch: HIP-3 disabled, return main DEX only
-    if (!this.equityEnabled) {
-      DevLogger.log(
-        'HyperLiquidProvider: HIP-3 disabled via equityEnabled flag',
-      );
+    if (!this.hip3Enabled) {
+      DevLogger.log('HyperLiquidProvider: HIP-3 disabled via hip3Enabled flag');
       this.cachedAllPerpDexs = [null];
       this.cachedValidatedDexs = [null];
       return this.cachedValidatedDexs;
@@ -569,9 +567,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
             shouldIncludeMarket(
               market.name,
               dex,
-              this.equityEnabled,
-              this.compiledEnabledPatterns,
-              this.compiledBlockedPatterns,
+              this.hip3Enabled,
+              this.compiledAllowlistPatterns,
+              this.compiledBlocklistPatterns,
             ),
           );
 
@@ -631,7 +629,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   private async buildAssetMapping(): Promise<void> {
     const infoClient = this.clientService.getInfoClient();
 
-    // Get feature-flag-validated DEXs to map (respects equityEnabled and enabledDexs)
+    // Get feature-flag-validated DEXs to map (respects hip3Enabled and enabledDexs)
     const dexsToMap = await this.getValidatedDexs();
 
     // Use cached perpDexs array (populated by getValidatedDexs)
@@ -645,9 +643,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
     DevLogger.log('HyperLiquidProvider: Starting asset mapping rebuild', {
       dexs: dexsToMap,
       previousMapSize: this.coinToAssetId.size,
-      equityEnabled: this.equityEnabled,
-      enabledMarkets: this.enabledMarkets,
-      blockedMarkets: this.blockedMarkets,
+      hip3Enabled: this.hip3Enabled,
+      allowlistMarkets: this.allowlistMarkets,
+      blocklistMarkets: this.blocklistMarkets,
       timestamp: new Date().toISOString(),
     });
 
@@ -656,10 +654,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
     const enabledDexs = dexsToMap.filter((dex): dex is string => dex !== null);
 
     await this.subscriptionService.updateFeatureFlags(
-      this.equityEnabled,
+      this.hip3Enabled,
       enabledDexs,
-      this.enabledMarkets,
-      this.blockedMarkets,
+      this.allowlistMarkets,
+      this.blocklistMarkets,
     );
 
     // Clear market cache when rebuilding asset mapping (feature flags changed)
@@ -1503,9 +1501,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
         totalAssetsInMap: this.coinToAssetId.size,
         hip3AssetsCount: hip3Keys.length,
         hip3AssetsSample: hip3Keys.slice(0, 10),
-        equityEnabled: this.equityEnabled,
-        enabledMarkets: this.enabledMarkets,
-        blockedMarkets: this.blockedMarkets,
+        hip3Enabled: this.hip3Enabled,
+        allowlistMarkets: this.allowlistMarkets,
+        blocklistMarkets: this.blocklistMarkets,
       });
 
       // Ensure builder fee approval and referral code are set before placing any order
@@ -3452,7 +3450,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       }
 
       // Path 2: Multi-DEX aggregation - fetch from all enabled DEXs
-      if (!params?.dex && this.equityEnabled) {
+      if (!params?.dex && this.hip3Enabled) {
         // Determine which DEXs to query based on skipFilters flag
         const dexsToQuery = params?.skipFilters
           ? await this.getAllAvailableDexs()
@@ -3515,7 +3513,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     try {
       await this.ensureReady();
 
-      if (!this.equityEnabled) {
+      if (!this.hip3Enabled) {
         DevLogger.log('HIP-3 disabled, no DEXs available');
         return [];
       }
@@ -3649,9 +3647,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
                 shouldIncludeMarket(
                   asset.name,
                   result.dex,
-                  this.equityEnabled,
-                  this.compiledEnabledPatterns,
-                  this.compiledBlockedPatterns,
+                  this.hip3Enabled,
+                  this.compiledAllowlistPatterns,
+                  this.compiledBlocklistPatterns,
                 ),
               );
 
