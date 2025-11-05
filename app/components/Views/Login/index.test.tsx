@@ -136,7 +136,7 @@ jest.mock('../../../core/BackupVault', () => ({
 }));
 
 // Mock animation components
-jest.mock('../Onboarding/OnboardingAnimation', () => {
+jest.mock('../../UI/OnboardingAnimation', () => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
   const React = require('react');
   // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
@@ -165,7 +165,7 @@ jest.mock('../Onboarding/OnboardingAnimation', () => {
   };
 });
 
-jest.mock('../Onboarding/FoxAnimation', () => {
+jest.mock('../../UI/FoxAnimation', () => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
   const React = require('react');
   // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports

@@ -4,9 +4,45 @@ jest.mock('../../../util/Logger', () => ({
   log: jest.fn(),
 }));
 
-// Mock animation components - using existing mocks
-jest.mock('./FoxAnimation');
-jest.mock('./OnboardingAnimation');
+// Mock animation components - using explicit inline mocks
+jest.mock('../../UI/FoxAnimation', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+  const React = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+  const { View } = require('react-native');
+
+  return {
+    __esModule: true,
+    default: () => <View testID="fox-animation" />,
+  };
+});
+
+jest.mock('../../UI/OnboardingAnimation', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+  const React = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+  const { View } = require('react-native');
+
+  return {
+    __esModule: true,
+    default: ({
+      children,
+      startOnboardingAnimation,
+      setStartFoxAnimation,
+    }: {
+      children: React.ReactNode;
+      startOnboardingAnimation: boolean;
+      setStartFoxAnimation: (value: boolean) => void;
+    }) => {
+      // Call immediately and synchronously
+      if (startOnboardingAnimation && setStartFoxAnimation) {
+        setStartFoxAnimation(true);
+      }
+
+      return <View testID="onboarding-animation-mock">{children}</View>;
+    },
+  };
+});
 
 import React from 'react';
 import {

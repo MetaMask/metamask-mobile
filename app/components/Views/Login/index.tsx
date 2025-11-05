@@ -114,8 +114,8 @@ import { usePromptSeedlessRelogin } from '../../hooks/SeedlessHooks';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { SuccessErrorSheetParams } from '../SuccessErrorSheet/interface';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import FoxAnimation from '../Onboarding/FoxAnimation';
-import OnboardingAnimation from '../Onboarding/OnboardingAnimation';
+import FoxAnimation from '../../UI/FoxAnimation';
+import OnboardingAnimation from '../../UI/OnboardingAnimation';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 
