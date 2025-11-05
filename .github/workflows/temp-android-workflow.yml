@@ -185,6 +185,9 @@ jobs:
           export NODE_OPTIONS="--max-old-space-size=8192"
           cp android/gradle.properties.github android/gradle.properties
           yarn build:android:main:e2e
+          
+          echo "🏗 Building Android Test APK..."
+          cd android && ./gradlew assembleProdReleaseAndroidTest -PreactNativeArchitectures=x86_64
         shell: bash
         env:
           IS_TEST: true
@@ -218,6 +221,17 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
+      - name: Build Test APK if missing (after cache restore)
+        if: ${{ steps.apk-cache-restore.outputs.cache-hit == 'true' }}
+        run: |
+          if [ ! -f "${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk" ]; then
+            echo "⚠️ Test APK missing from cache, building it now..."
+            cd android && ./gradlew assembleProdReleaseAndroidTest -PreactNativeArchitectures=x86_64
+            echo "✅ Test APK built"
+          else
+            echo "✅ Test APK exists in cache"
+          fi
+
       - name: Verify APKs were built
         run: |
           echo "🔍 Verifying APKs exist..."
@@ -232,11 +246,13 @@ jobs:
             echo "✅ Main APK exists"
           else
             echo "❌ Main APK missing!"
+            exit 1
           fi
           if [ -f "${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk" ]; then
             echo "✅ Test APK exists"
           else
             echo "❌ Test APK missing!"
+            exit 1
           fi
 
       - name: Repack APK with JS updates using @expo/repack-app
