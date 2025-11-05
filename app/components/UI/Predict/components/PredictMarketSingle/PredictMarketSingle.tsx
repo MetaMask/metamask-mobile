@@ -32,6 +32,96 @@ import {
 import { PredictEventValues } from '../../constants/eventNames';
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketSingle.styles';
+
+interface SemiCircleYesPercentageProps {
+  percentage: number;
+  size?: number;
+  compensateCaps?: boolean;
+  startAngle?: number;
+}
+
+const SemiCircleYesPercentage = ({
+  percentage,
+  size = 40,
+  compensateCaps = true,
+  startAngle = 180,
+}: SemiCircleYesPercentageProps) => {
+  const { theme } = useStyles(() => ({}), {});
+  const tw = useTailwind();
+  const radius = size / 2;
+  const strokeWidth = 4;
+
+  const fullCircumference = 2 * Math.PI * (radius - strokeWidth / 2);
+  const semiCircumference = fullCircumference / 2;
+
+  let progress = Math.min(Math.max(percentage, 0), 100) / 100;
+
+  if (compensateCaps && progress > 0) {
+    const capCompensation = strokeWidth / radius;
+    const adjustment = capCompensation / Math.PI / 2;
+    progress = Math.min(progress, 1 - adjustment);
+  }
+
+  const backgroundDasharray = `${semiCircumference} ${fullCircumference}`;
+  const progressDasharray = `${
+    semiCircumference * progress
+  } ${fullCircumference}`;
+
+  return (
+    <Box
+      twClassName="relative items-center justify-end"
+      style={{ width: size, height: size / 2 }}
+    >
+      <Svg width={size} height={size / 2} style={tw.style('absolute')}>
+        <Defs>
+          <LinearGradient
+            id="progressGradient"
+            x1="0%"
+            y1="0%"
+            x2="100%"
+            y2="0%"
+          >
+            <Stop offset="0%" stopColor={theme.colors.success.default} />
+            <Stop offset="100%" stopColor={theme.colors.success.default} />
+          </LinearGradient>
+        </Defs>
+
+        {/* Background semi-circle */}
+        <Circle
+          cx={radius}
+          cy={radius}
+          r={radius - strokeWidth / 2}
+          stroke={theme.colors.border.muted}
+          strokeWidth={strokeWidth}
+          fill="transparent"
+          strokeDasharray={backgroundDasharray}
+          transform={`rotate(${startAngle} ${radius} ${radius})`}
+        />
+
+        {/* Progress arc */}
+        <Circle
+          cx={radius}
+          cy={radius}
+          r={radius - strokeWidth / 2}
+          stroke="url(#progressGradient)"
+          strokeWidth={strokeWidth}
+          fill="transparent"
+          strokeDasharray={progressDasharray}
+          transform={`rotate(${startAngle} ${radius} ${radius})`}
+          strokeLinecap="round"
+        />
+      </Svg>
+      <Text
+        variant={TextVariant.BodyMDMedium}
+        color={TextColor.Success}
+        style={tw.style('-mb-1.5')}
+      >
+        {percentage}%
+      </Text>
+    </Box>
+  );
+};
+
 interface PredictMarketSingleProps {
   market: PredictMarketType;
   testID?: string;
@@ -90,94 +180,6 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
     );
   };
 
-  interface SemiCircleYesPercentageProps {
-    percentage: number;
-    size?: number;
-    compensateCaps?: boolean;
-    startAngle?: number;
-  }
-
-  const SemiCircleYesPercentage = ({
-    percentage,
-    size = 40,
-    compensateCaps = true,
-    startAngle = 180,
-  }: SemiCircleYesPercentageProps) => {
-    const { theme } = useStyles(() => ({}), {});
-    const radius = size / 2;
-    const strokeWidth = 4;
-
-    const fullCircumference = 2 * Math.PI * (radius - strokeWidth / 2);
-    const semiCircumference = fullCircumference / 2;
-
-    let progress = Math.min(Math.max(percentage, 0), 100) / 100;
-
-    if (compensateCaps && progress > 0) {
-      const capCompensation = strokeWidth / radius;
-      const adjustment = capCompensation / Math.PI / 2;
-      progress = Math.min(progress, 1 - adjustment);
-    }
-
-    const backgroundDasharray = `${semiCircumference} ${fullCircumference}`;
-    const progressDasharray = `${
-      semiCircumference * progress
-    } ${fullCircumference}`;
-
-    return (
-      <Box
-        twClassName="relative items-center justify-end"
-        style={{ width: size, height: size / 2 }}
-      >
-        <Svg width={size} height={size / 2} style={tw.style('absolute')}>
-          <Defs>
-            <LinearGradient
-              id="progressGradient"
-              x1="0%"
-              y1="0%"
-              x2="100%"
-              y2="0%"
-            >
-              <Stop offset="0%" stopColor={theme.colors.success.default} />
-              <Stop offset="100%" stopColor={theme.colors.success.default} />
-            </LinearGradient>
-          </Defs>
-
-          {/* Background semi-circle */}
-          <Circle
-            cx={radius}
-            cy={radius}
-            r={radius - strokeWidth / 2}
-            stroke={theme.colors.border.muted}
-            strokeWidth={strokeWidth}
-            fill="transparent"
-            strokeDasharray={backgroundDasharray}
-            transform={`rotate(${startAngle} ${radius} ${radius})`}
-          />
-
-          {/* Progress arc */}
-          <Circle
-            cx={radius}
-            cy={radius}
-            r={radius - strokeWidth / 2}
-            stroke="url(#progressGradient)"
-            strokeWidth={strokeWidth}
-            fill="transparent"
-            strokeDasharray={progressDasharray}
-            transform={`rotate(${startAngle} ${radius} ${radius})`}
-            strokeLinecap="round"
-          />
-        </Svg>
-        <Text
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Success}
-          style={tw.style('-mb-1.5')}
-        >
-          {percentage}%
-        </Text>
-      </Box>
-    );
-  };
-
   return (
     <TouchableOpacity
       testID={testID}
@@ -187,6 +189,8 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
           params: {
             marketId: market.id,
             entryPoint,
+            title: market.title,
+            image: getImageUrl(),
           },
         });
       }}
@@ -198,7 +202,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             alignItems={BoxAlignItems.Center}
             twClassName="flex-1 gap-3"
           >
-            <Box twClassName="w-12 h-12 rounded-lg bg-muted overflow-hidden">
+            <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
               {getImageUrl() ? (
                 <Image
                   source={{ uri: getImageUrl() }}

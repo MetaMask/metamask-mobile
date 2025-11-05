@@ -23,16 +23,7 @@ export const goToImportSrp = async () => {
 };
 
 export const inputSrp = async (mnemonic: string) => {
-  const mnemonicArray = mnemonic.split(' ');
-  const numberOfWords = mnemonicArray.length;
-
-  if (numberOfWords === 24) {
-    await ImportSrpView.selectNWordSrp(numberOfWords);
-  }
-
-  for (const [index, word] of mnemonicArray.entries()) {
-    await ImportSrpView.enterSrpWord(index + 1, word);
-  }
+  await ImportSrpView.enterSrp(mnemonic);
 };
 
 export const completeSrpQuiz = async (expectedSrp: string) => {

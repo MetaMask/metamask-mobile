@@ -44,10 +44,6 @@
     "tokensChainsCache": {},
     "preventPollingOnNetworkRestart": false
   },
-  "PPOMController": {
-    "storageMetadata": [],
-    "versionInfo": []
-  },
   "CurrencyRateController": {
     "currentCurrency": "usd",
     "currencyRates": {
@@ -63,7 +59,12 @@
   },
   "NetworkController": {
     "selectedNetworkClientId": "mainnet",
-    "networksMetadata": { "mainnet": { "status": "unknown", "EIPS": {} } },
+    "networksMetadata": {
+      "mainnet": {
+        "status": "unknown",
+        "EIPS": {}
+      }
+    },
     "networkConfigurationsByChainId": {
       "0x1": {
         "blockExplorerUrls": [],
@@ -482,15 +483,21 @@
   "PerpsController": {
     "activeProvider": "hyperliquid",
     "isTestnet": false,
+    "initializationState": "uninitialized",
+    "initializationError": null,
+    "initializationAttempts": 0,
     "connectionStatus": "disconnected",
     "positions": [],
     "accountState": null,
     "pendingOrders": [],
     "depositInProgress": false,
+    "depositRequests": {},
     "lastDepositTransactionId": null,
     "lastDepositResult": null,
-    "lastWithdrawResult": null,
     "withdrawInProgress": false,
+    "withdrawalRequests": {},
+    "withdrawalProgress": {},
+    "lastWithdrawResult": null,
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "isEligible": false,
@@ -502,6 +509,10 @@
       "testnet": false,
       "mainnet": false
     },
+    "watchlistMarkets": [],
+    "tradeConfigurations": {},
+    "marketFilterPreferences": {},
+    "hip3ConfigVersion": 0,
     "perpsBalances": {}
   },
   "RemoteFeatureFlagController": {
@@ -727,7 +738,10 @@
     "eligibility": {},
     "lastError": null,
     "lastUpdateTimestamp": 0,
+    "balances": {},
+    "claimablePositions": {},
     "pendingDeposits": {},
-    "isOnboarded": {}
+    "withdrawTransaction": null,
+    "accountMeta": {}
   }
 }
