@@ -190,6 +190,11 @@ export class BackgroundBridge extends EventEmitter {
     );
 
     Engine.controllerMessenger.subscribe(
+      'AccountsController:selectedAccountChange',
+      this.sendStateUpdate,
+    );
+
+    Engine.controllerMessenger.subscribe(
       'PreferencesController:stateChange',
       this.sendStateUpdate,
     );
@@ -492,6 +497,10 @@ export class BackgroundBridge extends EventEmitter {
     );
     controllerMessenger.tryUnsubscribe(
       'PreferencesController:stateChange',
+      this.sendStateUpdate,
+    );
+    controllerMessenger.tryUnsubscribe(
+      'AccountsController:selectedAccountChange',
       this.sendStateUpdate,
     );
 
