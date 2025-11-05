@@ -33,7 +33,7 @@ import { View, ActivityIndicator, Alert } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
 const Stack = createStackNavigator();
 
-const KYCModalavigationOptions = ({
+export const KYCModalNavigationOptions = ({
   navigation,
 }: {
   navigation: NavigationProp<ParamListBase>;
@@ -202,7 +202,7 @@ const OnboardingNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.WEBVIEW}
         component={KYCWebview}
-        options={KYCModalavigationOptions}
+        options={KYCModalNavigationOptions}
       />
     </Stack.Navigator>
   );
