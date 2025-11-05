@@ -24,7 +24,7 @@ describe('MetricsEventBuilder', () => {
 
   it('creates a tracking event from new ITrackingEvent type', () => {
     const event = MetricsEventBuilder.createEventBuilder(mockEvent)
-      .addProperties({ trackingProp: 'trackingValue' })
+      .addProperties({ trackingProp: 'trackingValue', relatedFlags: [] })
       .addSensitiveProperties({ sensitiveProp: 'sensitiveValue' })
       .setSaveDataRecording(false)
       .build();
@@ -51,7 +51,7 @@ describe('MetricsEventBuilder', () => {
    */
 
   it('adds properties', () => {
-    const newProps: JsonMap = { newProp: 'newValue' };
+    const newProps: JsonMap = { newProp: 'newValue', relatedFlags: [] };
 
     const event = MetricsEventBuilder.createEventBuilder(mockEvent)
       .addProperties(newProps)
@@ -83,6 +83,7 @@ describe('MetricsEventBuilder', () => {
   it('compares events', () => {
     const newProps: JsonMap = {
       newProp: 'newValue',
+      relatedFlags: [],
     };
 
     const event = MetricsEventBuilder.createEventBuilder(mockLegacyEvent)
@@ -107,13 +108,13 @@ describe('MetricsEventBuilder', () => {
       .addProperties({ newProp: 'newValue' })
       .removeProperties(['newProp'])
       .build();
-    expect(event.properties).toEqual({});
+    expect(event.properties).toEqual({ relatedFlags: [] });
 
     const rebuiltEvent = MetricsEventBuilder.createEventBuilder(event)
       .addProperties({ newProp: 'newValue' })
       .removeProperties(['newProp'])
       .build();
-    expect(rebuiltEvent.properties).toEqual({});
+    expect(rebuiltEvent.properties).toEqual({ relatedFlags: [] });
   });
 
   it('removes sensitive properties', () => {

@@ -188,6 +188,7 @@ describe('DeFiPositionsListItem', () => {
         .addProperties({
           chain_id: chainId,
           protocol_id: protocolId,
+          relatedFlags: [],
         })
         .build(),
     );

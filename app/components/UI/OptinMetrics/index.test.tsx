@@ -131,6 +131,7 @@ describe('OptinMetrics', () => {
               has_marketing_consent: false,
               is_metrics_opted_in: true,
               location: 'onboarding_metametrics',
+              relatedFlags: [],
               updated_after_onboarding: false,
             })
             .build(),
@@ -163,6 +164,7 @@ describe('OptinMetrics', () => {
               has_marketing_consent: true,
               is_metrics_opted_in: true,
               location: 'onboarding_metametrics',
+              relatedFlags: [],
               updated_after_onboarding: false,
             })
             .build(),

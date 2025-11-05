@@ -12,7 +12,9 @@ import { IUseMetricsHook } from './useMetrics.types';
 import { useFeatureFlagOverride } from '../../../contexts/FeatureFlagOverrideContext';
 
 jest.mock('../../../core/Analytics/MetaMetrics');
-jest.mock('../../../contexts/FeatureFlagOverrideContext');
+jest.mock('../../../contexts/FeatureFlagOverrideContext', () => ({
+  useFeatureFlagOverride: jest.fn(),
+}));
 
 // allows runAfterInteractions to return immediately
 jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
@@ -67,14 +69,12 @@ class MockEventDataBuilder extends MetricsEventBuilder {
 }
 
 const mockGetFeatureFlagSnapshots = jest.fn();
-const mockUseFeatureFlagOverride =
-  useFeatureFlagOverride as jest.MockedFunction<typeof useFeatureFlagOverride>;
 
 describe('useMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetFeatureFlagSnapshots.mockReturnValue({});
-    mockUseFeatureFlagOverride.mockReturnValue({
+    (useFeatureFlagOverride as jest.Mock).mockReturnValue({
       getFeatureFlagSnapshots: mockGetFeatureFlagSnapshots,
       featureFlags: {},
       originalFlags: {},
@@ -89,7 +89,7 @@ describe('useMetrics', () => {
       getAllOverrides: jest.fn(),
       applyOverrides: jest.fn(),
       getOverrideCount: jest.fn(),
-    } as ReturnType<typeof useFeatureFlagOverride>);
+    });
     jest
       .spyOn(MetricsEventBuilder, 'createEventBuilder')
       .mockImplementation((event) => MockEventDataBuilder.getMockEvent(event));

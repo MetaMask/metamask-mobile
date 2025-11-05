@@ -142,7 +142,11 @@ describe('ProtectYourWalletModal', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Wallet Security Reminder Engaged',
-          properties: { source: 'Modal', wallet_protection_required: false },
+          properties: {
+            source: 'Modal',
+            wallet_protection_required: false,
+            relatedFlags: [],
+          },
           saveDataRecording: true,
           sensitiveProperties: {},
         }),
@@ -176,7 +180,11 @@ describe('ProtectYourWalletModal', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Wallet Security Reminder Engaged',
-          properties: { source: 'Modal', wallet_protection_required: false },
+          properties: {
+            source: 'Modal',
+            wallet_protection_required: false,
+            relatedFlags: [],
+          },
           saveDataRecording: true,
           sensitiveProperties: {},
         }),

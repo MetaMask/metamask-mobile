@@ -164,6 +164,7 @@ describe('useHandleOptInClick', () => {
         .addProperties({
           action_type: 'completed',
           is_profile_syncing_enabled: true,
+          relatedFlags: [],
         })
         .build(),
     );
@@ -222,6 +223,7 @@ describe('useHandleOptInCancel', () => {
         .addProperties({
           action_type: 'dismissed',
           is_profile_syncing_enabled: true,
+          relatedFlags: [],
         })
         .build(),
     );

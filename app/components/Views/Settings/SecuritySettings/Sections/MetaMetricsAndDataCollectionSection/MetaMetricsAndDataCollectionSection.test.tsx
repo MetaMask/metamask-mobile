@@ -309,6 +309,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
                 is_metrics_opted_in: true,
                 updated_after_onboarding: true,
                 location: 'settings',
+                relatedFlags: [],
               })
               .build(),
           );
@@ -525,6 +526,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
                 .addProperties({
                   is_metrics_opted_in: true,
                   location: 'settings',
+                  relatedFlags: [],
                   updated_after_onboarding: true,
                 })
                 .build(),
@@ -547,6 +549,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
               .addProperties({
                 has_marketing_consent: true,
                 location: 'settings',
+                relatedFlags: [],
                 updated_after_onboarding: true,
               })
               .build(),
@@ -605,6 +608,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
               .addProperties({
                 has_marketing_consent: false,
                 location: 'settings',
+                relatedFlags: [],
                 updated_after_onboarding: true,
               })
               .build(),

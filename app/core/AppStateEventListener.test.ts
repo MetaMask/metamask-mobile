@@ -92,6 +92,7 @@ describe('AppStateEventListener', () => {
       MetaMetricsEvents.APP_OPENED,
     )
       .addProperties({
+        relatedFlags: [],
         attributionId: 'test123',
         utm_source: 'source',
         utm_medium: 'medium',

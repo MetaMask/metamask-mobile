@@ -31,7 +31,10 @@ const trackEventMock = jest.fn();
 
 (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
   trackEvent: trackEventMock,
-  createEventBuilder: MetricsEventBuilder.createEventBuilder,
+  createEventBuilder: (event) =>
+    MetricsEventBuilder.createEventBuilder(event).addProperties({
+      relatedFlags: [],
+    }),
   enable: jest.fn(),
   addTraitsToUser: jest.fn(),
   createDataDeletionTask: jest.fn(),
@@ -97,6 +100,7 @@ describe('BlockExplorerFooter', () => {
           notification_type: props.notification.type,
           chain_id: props.notification.chain_id,
           clicked_item: 'block_explorer',
+          relatedFlags: [],
         })
         .build(),
     );
