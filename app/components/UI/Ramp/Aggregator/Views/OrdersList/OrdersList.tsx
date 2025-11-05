@@ -93,21 +93,24 @@ function OrdersList() {
     </TouchableHighlight>
   );
 
-  const renderFilterTab = (filter: filterType, label: string) => {
-    const isActive = currentFilter === filter;
+  const renderFilterTab = useCallback(
+    (filter: filterType, label: string) => {
+      const isActive = currentFilter === filter;
 
-    return (
-      <ButtonFilter
-        key={filter}
-        onPress={() => setCurrentFilter(filter)}
-        isActive={isActive}
-        size={ButtonBaseSize.Md}
-        accessibilityLabel={label}
-      >
-        {label}
-      </ButtonFilter>
-    );
-  };
+      return (
+        <ButtonFilter
+          key={filter}
+          onPress={() => setCurrentFilter(filter)}
+          isActive={isActive}
+          size={ButtonBaseSize.Md}
+          accessibilityLabel={label}
+        >
+          {label}
+        </ButtonFilter>
+      );
+    },
+    [currentFilter],
+  );
 
   return (
     <FlatList

@@ -222,10 +222,17 @@ const ActivityView = () => {
     [navigation, colors, selectedAddress, openAccountSelector, showBackButton],
   );
 
-  // Calculate if Perps tab is currently active
-  // Perps is the last tab, so its index depends on what other tabs are shown
-  const perpsTabIndex = 2;
-  const predictTabIndex = 3;
+  // Calculate dynamic tab indices based on which tabs are enabled
+  // Tab order: Transactions (0), Orders (1), Perps (conditional), Predict (conditional)
+  // Perps comes after Transactions (0) and Orders (1)
+  const perpsTabIndex = useMemo(() => 2, []);
+
+  // Predict comes after Transactions (0), Orders (1), and optionally Perps
+  const predictTabIndex = useMemo(
+    () => (isPerpsEnabled ? 3 : 2),
+    [isPerpsEnabled],
+  );
+
   const isPerpsTabActive = isPerpsEnabled && activeTabIndex === perpsTabIndex;
   const isPredictTabActive =
     isPredictEnabled && activeTabIndex === predictTabIndex;
@@ -238,15 +245,15 @@ const ActivityView = () => {
         navigation.setParams({ redirectToOrders: false });
         tabViewRef.current?.goToTabIndex(orderTabNumber);
       } else if (isPerpsEnabled && params.redirectToPerpsTransactions) {
-        const perpsTabNumber = isPerpsEnabled ? 2 : 1;
         navigation.setParams({ redirectToPerpsTransactions: false });
-        tabViewRef.current?.goToTabIndex(perpsTabNumber);
+        tabViewRef.current?.goToTabIndex(perpsTabIndex);
       }
     }, [
       navigation,
       params.redirectToOrders,
       isPerpsEnabled,
       params.redirectToPerpsTransactions,
+      perpsTabIndex,
     ]),
   );
 
