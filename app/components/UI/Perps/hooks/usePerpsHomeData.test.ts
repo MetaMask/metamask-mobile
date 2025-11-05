@@ -458,7 +458,7 @@ describe('usePerpsHomeData', () => {
       );
 
       expect(result.current.recentActivity).toHaveLength(1);
-      expect(result.current.recentActivity[0].symbol).toBe('ETH');
+      expect(result.current.recentActivity[0].asset).toBe('ETH');
     });
 
     it('filters watchlist markets by symbol or name', () => {
