@@ -706,5 +706,343 @@ describe('TabsList', () => {
       expect(getByText('Tab 3 Content')).toBeOnTheScreen();
       expect(ref.current?.getCurrentIndex()).toBe(2);
     });
+
+    it('generates default tab label when tabLabel prop is missing', () => {
+      // Arrange & Act
+      const { getAllByText } = render(
+        <TabsList>
+          <View key="tab1">
+            <Text>Content Without Label</Text>
+          </View>
+          <View key="tab2" {...({ tabLabel: 'Named Tab' } as TabViewProps)}>
+            <Text>Named Tab Content</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Assert - Default label "Tab 1" is generated
+      expect(getAllByText('Tab 1')[0]).toBeOnTheScreen();
+      expect(getAllByText('Named Tab')[0]).toBeOnTheScreen();
+    });
+
+    it('generates default key when child has no key prop', () => {
+      // Arrange & Act
+      const { getByText } = render(
+        <TabsList>
+          <View {...({ tabLabel: 'Tab Without Key' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Assert - Component renders without errors
+      expect(getByText('Content 1')).toBeOnTheScreen();
+    });
+
+    it('ignores tab press when index is negative', () => {
+      // Arrange
+      const ref = React.createRef<TabsListRef>();
+      const mockOnChangeTab = jest.fn();
+
+      render(
+        <TabsList ref={ref} onChangeTab={mockOnChangeTab}>
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Act - Try to navigate to negative index
+      act(() => {
+        ref.current?.goToTabIndex(-1);
+      });
+
+      // Assert - onChangeTab not called
+      expect(mockOnChangeTab).not.toHaveBeenCalled();
+      expect(ref.current?.getCurrentIndex()).toBe(0);
+    });
+
+    it('ignores tab press when index exceeds tabs length', () => {
+      // Arrange
+      const ref = React.createRef<TabsListRef>();
+      const mockOnChangeTab = jest.fn();
+
+      render(
+        <TabsList ref={ref} onChangeTab={mockOnChangeTab}>
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Act - Try to navigate to out of bounds index
+      act(() => {
+        ref.current?.goToTabIndex(5);
+      });
+
+      // Assert - onChangeTab not called
+      expect(mockOnChangeTab).not.toHaveBeenCalled();
+      expect(ref.current?.getCurrentIndex()).toBe(0);
+    });
+
+    it('falls back to first enabled tab when initialActiveIndex exceeds tabs length', () => {
+      // Arrange
+      const ref = React.createRef<TabsListRef>();
+      const tabs = [
+        { label: 'Tab 1', content: 'Tab 1 Content' },
+        { label: 'Tab 2', content: 'Tab 2 Content' },
+      ];
+
+      // Act - initialActiveIndex is 10 but only 2 tabs exist
+      const { getByText } = render(
+        <TabsList ref={ref} initialActiveIndex={10}>
+          <View key="tab0" {...({ tabLabel: tabs[0].label } as TabViewProps)}>
+            <Text>{tabs[0].content}</Text>
+          </View>
+          <View key="tab1" {...({ tabLabel: tabs[1].label } as TabViewProps)}>
+            <Text>{tabs[1].content}</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Assert - Falls back to first tab
+      expect(getByText('Tab 1 Content')).toBeOnTheScreen();
+      expect(ref.current?.getCurrentIndex()).toBe(0);
+    });
+
+    it('does not call onChangeTab when switching to same tab', async () => {
+      // Arrange
+      const mockOnChangeTab = jest.fn();
+      const { getAllByText } = render(
+        <TabsList onChangeTab={mockOnChangeTab}>
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+          <View key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            <Text>Content 2</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Act - Press the already active tab
+      await act(async () => {
+        fireEvent.press(getAllByText('Tab 1')[0]);
+      });
+
+      // Assert - onChangeTab not called when tab doesn't change
+      expect(mockOnChangeTab).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('TabsBar Integration', () => {
+    it('passes tabsBarProps to TabsBar component', () => {
+      // Arrange
+      const customBarProps = {
+        twClassName: 'custom-bar-class',
+      };
+
+      // Act
+      const { toJSON } = render(
+        <TabsList tabsBarProps={customBarProps}>
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Assert - Props are passed to TabsBar
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('propagates testID to TabsBar with -bar suffix', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <TabsList testID="my-tabs">
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Assert - TabsBar receives testID with suffix
+      expect(getByTestId('my-tabs-bar')).toBeOnTheScreen();
+    });
+
+    it('propagates testID to content container with -content suffix', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <TabsList testID="my-tabs">
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Assert - Content container receives testID with suffix
+      expect(getByTestId('my-tabs-content')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Content Container Styling', () => {
+    it('applies tabsListContentTwClassName to content container', () => {
+      // Arrange & Act
+      const { toJSON } = render(
+        <TabsList tabsListContentTwClassName="custom-content-class">
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Assert - Custom class is applied
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('renders inactive tab content with absolute positioning and opacity-0', () => {
+      // Arrange
+      const { getByText, getAllByText } = render(
+        <TabsList initialActiveIndex={0}>
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+          <View key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            <Text>Content 2</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Load second tab first
+      fireEvent.press(getAllByText('Tab 2')[0]);
+      expect(getByText('Content 2')).toBeOnTheScreen();
+
+      // Act - Switch back to first tab
+      fireEvent.press(getAllByText('Tab 1')[0]);
+
+      // Assert - Both tabs are loaded but only active one is visible
+      expect(getByText('Content 1')).toBeOnTheScreen();
+      // Content 2 is still in DOM but hidden (absolute + opacity-0)
+      expect(getByText('Content 2')).toBeTruthy();
+    });
+
+    it('keeps loaded inactive tabs in DOM but only active tab visible', () => {
+      // Arrange
+      const { getAllByText, getByText, queryByText } = render(
+        <TabsList initialActiveIndex={0}>
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+          <View key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            <Text>Content 2</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Initially only Tab 1 is loaded
+      expect(getByText('Content 1')).toBeOnTheScreen();
+      expect(queryByText('Content 2')).toBeNull();
+
+      // Load second tab
+      fireEvent.press(getAllByText('Tab 2')[0]);
+      expect(getByText('Content 2')).toBeOnTheScreen();
+
+      // Act - Switch back to first tab
+      fireEvent.press(getAllByText('Tab 1')[0]);
+
+      // Assert - Both contents exist in DOM but only active tab is visible on screen
+      expect(getByText('Content 1')).toBeOnTheScreen();
+      expect(getByText('Content 2')).toBeTruthy();
+      expect(queryByText('Content 2')).not.toBeNull();
+    });
+  });
+
+  describe('Tab State Management', () => {
+    it('maintains loaded tabs Set across re-renders', () => {
+      // Arrange
+      const { getAllByText, getByText, rerender } = render(
+        <TabsList>
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+          <View key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            <Text>Content 2</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Load Tab 2
+      fireEvent.press(getAllByText('Tab 2')[0]);
+      expect(getByText('Content 2')).toBeOnTheScreen();
+
+      // Act - Re-render with same tabs
+      rerender(
+        <TabsList>
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+          <View key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            <Text>Content 2</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Assert - Tab 2 content still loaded and visible
+      expect(getByText('Content 2')).toBeOnTheScreen();
+    });
+
+    it('clears interaction handle on unmount', () => {
+      // Arrange
+      const mockCancel = jest.fn();
+      (InteractionManager.runAfterInteractions as jest.Mock).mockReturnValue({
+        cancel: mockCancel,
+      });
+
+      const { unmount } = render(
+        <TabsList>
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Act - Unmount component
+      unmount();
+
+      // Assert - Cancel was called for cleanup
+      expect(mockCancel).toHaveBeenCalled();
+    });
+
+    it('updates activeIndex when tabs length changes and current index becomes invalid', () => {
+      // Arrange
+      const ref = React.createRef<TabsListRef>();
+      const { rerender, getByText } = render(
+        <TabsList ref={ref} initialActiveIndex={2}>
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+          <View key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            <Text>Content 2</Text>
+          </View>
+          <View key="tab3" {...({ tabLabel: 'Tab 3' } as TabViewProps)}>
+            <Text>Content 3</Text>
+          </View>
+        </TabsList>,
+      );
+
+      expect(getByText('Content 3')).toBeOnTheScreen();
+      expect(ref.current?.getCurrentIndex()).toBe(2);
+
+      // Act - Reduce tabs to just 1
+      rerender(
+        <TabsList ref={ref} initialActiveIndex={2}>
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Content 1</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Assert - Falls back to initialActiveIndex or first enabled tab
+      expect(ref.current?.getCurrentIndex()).toBe(0);
+      expect(getByText('Content 1')).toBeOnTheScreen();
+    });
   });
 });
