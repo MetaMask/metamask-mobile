@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { isEqual } from 'lodash';
+import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
@@ -9,6 +10,7 @@ import {
 } from '../constants/chartConfig';
 import type { PriceUpdate } from '../controllers/types';
 import type { CandleData, CandleStick } from '../types/perps-types';
+import { selectPerpsInitializationState } from '../selectors/perpsController';
 
 interface UsePerpsPositionDataProps {
   coin: string;
@@ -27,6 +29,9 @@ export const usePerpsPositionData = ({
   const [liveCandle, setLiveCandle] = useState<CandleStick | null>(null);
   const [hasHistoricalData, setHasHistoricalData] = useState(false);
   const prevMergedDataRef = useRef<CandleData | null>(null);
+
+  const initializationState = useSelector(selectPerpsInitializationState);
+  const isControllerInitialized = initializationState === 'initialized';
 
   // Helper function to get the current candle's start time based on interval
   const getCurrentCandleStartTime = useCallback(
@@ -101,8 +106,14 @@ export const usePerpsPositionData = ({
     }
   }, [coin]);
 
-  // Load historical candles
   useEffect(() => {
+    if (!isControllerInitialized) {
+      DevLogger.log(
+        'usePerpsPositionData: Waiting for controller initialization before loading historical data',
+      );
+      return;
+    }
+
     setIsLoadingHistory(true);
     setHasHistoricalData(false);
     const loadHistoricalData = async () => {
@@ -131,19 +142,28 @@ export const usePerpsPositionData = ({
     };
 
     loadHistoricalData();
-  }, [fetchHistoricalCandles]);
+  }, [fetchHistoricalCandles, isControllerInitialized]);
 
-  // Subscribe to price updates for 24-hour data
   useEffect(() => {
+    if (!isControllerInitialized) {
+      return;
+    }
+
     const unsubscribe = subscribeToPriceUpdates();
 
     return () => {
       unsubscribe();
     };
-  }, [subscribeToPriceUpdates]);
+  }, [subscribeToPriceUpdates, isControllerInitialized]);
 
-  // Periodically refresh candle data to get new completed candles
   useEffect(() => {
+    if (!isControllerInitialized) {
+      DevLogger.log(
+        'usePerpsPositionData: Deferring interval setup until controller is initialized',
+      );
+      return;
+    }
+
     // Only set up refresh if we have initial data and not loading
     if (!candleData || isLoadingHistory) return;
 
@@ -202,7 +222,13 @@ export const usePerpsPositionData = ({
       clearInterval(intervalId);
       DevLogger.log('Cleared candle refresh interval');
     };
-  }, [candleData, isLoadingHistory, selectedInterval, fetchHistoricalCandles]);
+  }, [
+    candleData,
+    isLoadingHistory,
+    selectedInterval,
+    fetchHistoricalCandles,
+    isControllerInitialized,
+  ]);
 
   // Build live candle from price updates
   useEffect(() => {

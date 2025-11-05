@@ -68,6 +68,12 @@ const selectPerpsMarketFilterPreferences = createSelector(
   (perpsControllerState) => selectMarketFilterPreferences(perpsControllerState),
 );
 
+const selectPerpsInitializationState = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState) =>
+    perpsControllerState?.initializationState || 'uninitialized',
+);
+
 // Factory function to create selector for specific market
 export const createSelectIsWatchlistMarket = (symbol: string) =>
   createSelector(selectPerpsControllerState, (perpsControllerState) =>
@@ -84,4 +90,5 @@ export {
   selectIsFirstTimePerpsUser,
   selectPerpsWatchlistMarkets,
   selectPerpsMarketFilterPreferences,
+  selectPerpsInitializationState,
 };
