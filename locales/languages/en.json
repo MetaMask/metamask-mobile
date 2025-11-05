@@ -1095,8 +1095,7 @@
         "limit_price_must_be_set_before_configuring_tpsl": "Limit price must be set before configuring TP/SL",
         "only_hyperliquid_usdc": "Only USDC on Hyperliquid is currently supported for payment",
         "limit_price_far_warning": "Limit price is far from current market price",
-        "oi_cap_reached": "Open Interest Cap Reached",
-        "oi_cap_description": "This market is at capacity. New positions cannot be opened until open interest decreases."
+        "oi_cap_reached": "Open interest cap reached. New positions cannot be opened at this time."
       },
       "error": {
         "placement_failed": "Order placement failed",
@@ -1409,8 +1408,6 @@
       "expect_more_volatility": "Expect more volatility outside of regular market hours",
       "after_hours_trading_banner": "After-hours trading",
       "pay_attention_to_volatility": "Pay attention to volatility and slippage",
-      "oi_cap_warning": "Market At Capacity",
-      "oi_cap_description": "This market has reached its open interest cap. New positions cannot be opened at this time.",
       "badge": {
         "experimental": "EXPERIMENTAL",
         "equity": "STOCK",
