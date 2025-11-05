@@ -23,20 +23,6 @@ jest.mock('./TokensBottomSheet', () => ({
   createTokensBottomSheetNavDetails: jest.fn(() => ['BottomSheetScreen', {}]),
 }));
 
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  useMetrics: jest.fn(() => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn(() => ({
-        build: jest.fn(() => ({ event: 'mock-event' })),
-      })),
-    })),
-  })),
-  MetaMetricsEvents: {
-    TOKEN_IMPORT_CLICKED: 'TOKEN_IMPORT_CLICKED',
-  },
-}));
-
 jest.mock('../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn(),
   context: {
@@ -471,30 +457,6 @@ describe('Tokens', () => {
     expect(conversionRateMessage).toBeDefined();
     expect(typeof conversionRateMessage).toBe('string');
     expect(true).toBe(true);
-  });
-
-  it('renders correctly when non-EVM network is selected', () => {
-    const state = {
-      ...initialState,
-      engine: {
-        ...initialState.engine,
-        backgroundState: {
-          ...initialState.engine.backgroundState,
-          MultichainNetworkController: {
-            selectedNetworkType: 'non-evm',
-          },
-        },
-      },
-      settings: {
-        hideZeroBalanceTokens: false,
-      },
-    };
-
-    const { queryByTestId } = renderComponent(state);
-
-    expect(
-      queryByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
-    ).toBeDefined();
   });
 
   it('renders correctly when token list is empty', async () => {

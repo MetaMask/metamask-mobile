@@ -11,51 +11,6 @@ import {
 import { TokenI } from '../../UI/Tokens/types';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    TokensController: {
-      ignoreTokens: jest.fn(() => Promise.resolve()),
-    },
-    NetworkController: {
-      findNetworkClientIdByChainId: jest.fn(() => 'test-network'),
-      getNetworkClientById: jest.fn(() => ({
-        configuration: {
-          chainId: '0x1',
-          rpcUrl: 'https://mainnet.example.com',
-          ticker: 'ETH',
-          type: 'mainnet',
-        },
-      })),
-      state: {
-        providerConfig: {
-          chainId: '0x1',
-          type: 'mainnet',
-        },
-        networkConfigurations: {
-          '0x1': {
-            chainId: '0x1',
-            rpcEndpoints: [{ url: 'https://mainnet.example.com' }],
-            defaultRpcEndpointIndex: 0,
-          },
-        },
-      },
-    },
-    TokenDetectionController: {
-      detectTokens: jest.fn(() => Promise.resolve()),
-    },
-    AccountTrackerController: {
-      refresh: jest.fn(() => Promise.resolve()),
-    },
-    CurrencyRateController: {
-      updateExchangeRate: jest.fn(() => Promise.resolve()),
-    },
-    TokenRatesController: {
-      updateExchangeRatesByChainId: jest.fn(() => Promise.resolve()),
-    },
-  },
-  getTotalEvmFiatAccountBalance: jest.fn(),
-}));
-
 jest.mock('../../../selectors/networkController', () => ({
   selectEvmChainId: jest.fn(() => '1'),
   selectProviderConfig: jest.fn(() => ({})),
@@ -96,12 +51,30 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: jest.fn(() => ({ bottom: 10 })),
 }));
 
+// Mock InteractionManager.runAfterInteractions to execute callbacks immediately
+const mockRunAfterInteractions = jest.fn((callback) => {
+  // Execute the callback immediately for testing
+  const result = callback();
+  const promise =
+    result && typeof result.then === 'function' ? result : Promise.resolve();
+
+  return {
+    then: (onfulfilled?: (value: unknown) => unknown) =>
+      promise.then(onfulfilled),
+    done: (
+      onfulfilled?: (value: unknown) => unknown,
+      onrejected?: (reason: unknown) => unknown,
+    ) => promise.then(onfulfilled, onrejected),
+    cancel: jest.fn(),
+  };
+});
+
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
   return {
     ...RN,
     InteractionManager: {
-      runAfterInteractions: jest.fn((callback) => callback()),
+      runAfterInteractions: mockRunAfterInteractions,
     },
   };
 });
@@ -124,14 +97,23 @@ jest.mock('../../../components/UI/Swaps/utils/useBlockExplorer', () =>
   })),
 );
 
+const mockSelectInternalAccountByScope = jest.fn();
 jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
-  selectSelectedInternalAccountByScope: jest.fn(() => jest.fn(() => null)),
+  selectSelectedInternalAccountByScope: jest.fn(
+    () => mockSelectInternalAccountByScope,
+  ),
+}));
+
+const mockIsNonEvmChainId = jest.fn();
+jest.mock('../../../core/Multichain/utils', () => ({
+  ...jest.requireActual('../../../core/Multichain/utils'),
+  isNonEvmChainId: (chainId: string) => mockIsNonEvmChainId(chainId),
 }));
 
 jest.mock('../../../core/Engine', () => ({
   context: {
     TokensController: {
-      ignoreTokens: jest.fn(),
+      ignoreTokens: jest.fn(() => Promise.resolve()),
     },
     MultichainAssetsController: {
       ignoreAssets: jest.fn(() => Promise.resolve()),
@@ -146,6 +128,7 @@ jest.mock('../../../core/Engine', () => ({
       },
     },
   },
+  getTotalEvmFiatAccountBalance: jest.fn(),
 }));
 
 jest.mock('../../../core/NotificationManager', () => ({
@@ -210,7 +193,20 @@ describe('AssetOptions Component', () => {
 
   beforeEach(() => {
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
+    mockIsNonEvmChainId.mockReturnValue(false);
+    mockSelectInternalAccountByScope.mockReturnValue(null);
     (useSelector as jest.Mock).mockImplementation((selector) => {
+      // Return mock function for selectSelectedInternalAccountByScope selector
+      // Check multiple ways to identify the selector since reselect creates new function references
+      const selectorStr = selector.toString();
+      const selectorName = selector.name || '';
+      if (
+        selectorStr.includes('selectSelectedInternalAccountByScope') ||
+        selectorName === 'selectSelectedInternalAccountByScope' ||
+        selectorStr.includes('selectedInternalAccountByScope')
+      ) {
+        return mockSelectInternalAccountByScope;
+      }
       if (selector.name === 'selectEvmChainId') return '1';
       if (selector.name === 'selectProviderConfig') return {};
       if (selector.name === 'selectTokenList')
@@ -424,5 +420,29 @@ describe('AssetOptions Component', () => {
         mockNetworkConfigurations['0x1'].rpcEndpoints[0],
       );
     });
+  });
+
+  it('displays Remove token option for non-EVM chains', () => {
+    const mockNonEvmChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+    const mockNonEvmAddress =
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+
+    mockIsNonEvmChainId.mockReturnValue(true);
+
+    const { getByText } = render(
+      <AssetOptions
+        route={{
+          params: {
+            address: mockNonEvmAddress,
+            chainId: mockNonEvmChainId,
+            isNativeCurrency: false,
+            asset: mockAsset as unknown as TokenI,
+          },
+        }}
+      />,
+    );
+
+    // Remove token option should be visible for non-EVM chains (this is a change from before)
+    expect(getByText('Remove token')).toBeOnTheScreen();
   });
 });

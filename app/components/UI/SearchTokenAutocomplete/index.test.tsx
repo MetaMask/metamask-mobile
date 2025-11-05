@@ -7,6 +7,8 @@ import SearchTokenAutocomplete from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
 import { BridgeToken } from '../Bridge/types';
+import Engine from '../../../core/Engine';
+import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 
 const mockAllTokens: BridgeToken[] = [
   {
@@ -37,16 +39,13 @@ const mockInitialState = {
   },
 };
 
-const mockAddTokens = jest.fn();
-const mockAddAssets = jest.fn();
-
 jest.mock('../../../core/Engine', () => ({
   context: {
     TokensController: {
-      addTokens: mockAddTokens,
+      addTokens: jest.fn().mockResolvedValue(undefined),
     },
     MultichainAssetsController: {
-      addAssets: mockAddAssets,
+      addAssets: jest.fn().mockResolvedValue(undefined),
     },
     NetworkController: {
       state: {
@@ -95,6 +94,22 @@ jest.mock('react-native', () => {
   };
 });
 
+const mockIsNonEvmChainId = jest.fn();
+
+jest.mock('../../../core/Multichain/utils', () => ({
+  ...jest.requireActual('../../../core/Multichain/utils'),
+  isNonEvmChainId: (chainId: string) => mockIsNonEvmChainId(chainId),
+}));
+
+const mockSelectInternalAccountByScope = jest.fn();
+
+jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
+  ...jest.requireActual('../../../selectors/multichainAccounts/accounts'),
+  selectSelectedInternalAccountByScope: jest.fn(
+    () => mockSelectInternalAccountByScope,
+  ),
+}));
+
 describe('SearchTokenAutocomplete', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -102,6 +117,15 @@ describe('SearchTokenAutocomplete', () => {
       addProperties: mockAddProperties,
     });
     mockBuild.mockReturnValue({ event: 'mock-event' });
+    mockIsNonEvmChainId.mockReturnValue(false);
+    mockSelectInternalAccountByScope.mockReturnValue(null);
+    // Reset mocks to return resolved promises
+    (Engine.context.TokensController.addTokens as jest.Mock).mockResolvedValue(
+      undefined,
+    );
+    (
+      Engine.context.MultichainAssetsController.addAssets as jest.Mock
+    ).mockResolvedValue(undefined);
   });
 
   it('renders correctly with selected chain', () => {
@@ -408,5 +432,165 @@ describe('SearchTokenAutocomplete', () => {
 
     expect(mockCreateEventBuilder).toHaveBeenCalled();
     expect(mockTrackEvent).toHaveBeenCalled();
+  });
+
+  it('sets searchResults to allTokens when searchQuery is empty', () => {
+    const mockNavigation = {
+      push: jest.fn(),
+      navigate: jest.fn(),
+    };
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <SearchTokenAutocomplete
+        navigation={mockNavigation}
+        tabLabel={''}
+        selectedChainId={'0x1'}
+        allTokens={mockAllTokens}
+      />,
+      { state: mockInitialState },
+    );
+
+    const assetSearch = getByTestId(ImportTokenViewSelectorsIDs.SEARCH_BAR);
+
+    // When search query is empty, should show all tokens
+    fireEvent(assetSearch, 'onSearch', {
+      results: [],
+      searchQuery: '',
+    });
+
+    // Should display all tokens from allTokens
+    expect(getByText('TEST')).toBeOnTheScreen();
+    expect(getByText('USDC')).toBeOnTheScreen();
+  });
+
+  it('calls TokensController.addTokens for EVM chains', async () => {
+    const mockNavigation = {
+      push: jest.fn(),
+      navigate: jest.fn(),
+    };
+
+    mockIsNonEvmChainId.mockReturnValue(false);
+
+    const { getByTestId } = renderWithProvider(
+      <SearchTokenAutocomplete
+        navigation={mockNavigation}
+        tabLabel={''}
+        selectedChainId={'0x1'}
+        allTokens={mockAllTokens}
+      />,
+      { state: mockInitialState },
+    );
+
+    const mockAsset = {
+      address: '0x123',
+      symbol: 'TEST',
+      name: 'Test Token',
+      decimals: 18,
+      chainId: '0x1',
+    };
+
+    const assetSearch = getByTestId(ImportTokenViewSelectorsIDs.SEARCH_BAR);
+
+    fireEvent(assetSearch, 'onSearch', {
+      results: [mockAsset],
+      searchQuery: 'TEST',
+    });
+
+    const selectAssetButton = getByTestId(
+      ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT,
+    );
+    fireEvent.press(selectAssetButton);
+
+    const addTokenButton = getByTestId(ImportTokenViewSelectorsIDs.NEXT_BUTTON);
+    fireEvent.press(addTokenButton);
+
+    // Navigate to confirm screen first
+    expect(mockNavigation.push).toHaveBeenCalled();
+
+    // Simulate calling addTokenList from the confirm screen
+    const [, params] = mockNavigation.push.mock.calls[0];
+    await params.addTokenList();
+
+    // Should call addTokens for EVM chain
+    expect(mockIsNonEvmChainId).toHaveBeenCalledWith('0x1');
+    expect(Engine.context.TokensController.addTokens).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({ address: '0x123' })]),
+      'mainnet',
+    );
+    expect(
+      Engine.context.MultichainAssetsController.addAssets,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('calls MultichainAssetsController.addAssets for non-EVM chains', async () => {
+    const mockNavigation = {
+      push: jest.fn(),
+      navigate: jest.fn(),
+    };
+
+    const mockNonEvmAccount = {
+      id: 'non-evm-account-id',
+      address: 'non-evm-address',
+    };
+
+    mockIsNonEvmChainId.mockReturnValue(true);
+    mockSelectInternalAccountByScope.mockReturnValue(mockNonEvmAccount);
+
+    const { getByTestId } = renderWithProvider(
+      <SearchTokenAutocomplete
+        navigation={mockNavigation}
+        tabLabel={''}
+        selectedChainId={
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as
+            | `0x${string}`
+            | SupportedCaipChainId
+            | null
+        }
+        allTokens={mockAllTokens}
+      />,
+      { state: mockInitialState },
+    );
+
+    const mockAsset = {
+      address: 'solana-address-123',
+      symbol: 'SOL',
+      name: 'Solana',
+      decimals: 9,
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    };
+
+    const assetSearch = getByTestId(ImportTokenViewSelectorsIDs.SEARCH_BAR);
+
+    fireEvent(assetSearch, 'onSearch', {
+      results: [mockAsset],
+      searchQuery: 'SOL',
+    });
+
+    const selectAssetButton = getByTestId(
+      ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT,
+    );
+    fireEvent.press(selectAssetButton);
+
+    const addTokenButton = getByTestId(ImportTokenViewSelectorsIDs.NEXT_BUTTON);
+    fireEvent.press(addTokenButton);
+
+    // Navigate to confirm screen first
+    expect(mockNavigation.push).toHaveBeenCalled();
+
+    // Simulate calling addTokenList from the confirm screen
+    const [, params] = mockNavigation.push.mock.calls[0];
+    await params.addTokenList();
+
+    // Should call MultichainAssetsController.addAssets for non-EVM
+    expect(mockIsNonEvmChainId).toHaveBeenCalledWith(
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    );
+    expect(mockSelectInternalAccountByScope).toHaveBeenCalledWith(
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    );
+    expect(
+      Engine.context.MultichainAssetsController.addAssets,
+    ).toHaveBeenCalledWith(['solana-address-123'], 'non-evm-account-id');
+    expect(Engine.context.TokensController.addTokens).not.toHaveBeenCalled();
   });
 });

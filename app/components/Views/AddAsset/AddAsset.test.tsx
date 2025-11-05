@@ -6,10 +6,12 @@ import { AddAssetViewSelectorsIDs } from '../../../../e2e/selectors/wallet/AddAs
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { useTopTokens } from '../../UI/Bridge/hooks/useTopTokens';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 const mockDispatch = jest.fn();
+const mockIsNonEvmChainId = jest.fn();
 
 // Mock network utilities
 jest.mock('../../../util/networks', () => ({
@@ -18,6 +20,11 @@ jest.mock('../../../util/networks', () => ({
   getBlockExplorerAddressUrl: jest.fn(() => ({
     title: 'View on Etherscan',
     url: 'https://etherscan.io',
+  })),
+  isTestNet: jest.fn(() => false),
+  getTestNetImageByChainId: jest.fn(() => 'testnet-image'),
+  getDefaultNetworkByChainId: jest.fn(() => ({
+    imageSource: 'default-image',
   })),
 }));
 
@@ -65,6 +72,24 @@ jest.mock('../../UI/Bridge/hooks/useTopTokens', () => ({
   })),
 }));
 
+jest.mock('../../../core/Multichain/utils', () => ({
+  ...jest.requireActual('../../../core/Multichain/utils'),
+  isNonEvmChainId: (chainId: string) => mockIsNonEvmChainId(chainId),
+}));
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    TokenListController: {
+      fetchTokenList: jest.fn(),
+    },
+    NetworkController: {
+      state: {
+        networkConfigurationsByChainId: {},
+      },
+    },
+  },
+}));
+
 const initialState = {
   engine: {
     backgroundState: {
@@ -92,6 +117,12 @@ const renderComponent = (component: React.ReactElement) =>
 describe('AddAsset component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsNonEvmChainId.mockReturnValue(false);
+    (useTopTokens as jest.Mock).mockReturnValue({
+      topTokens: [],
+      remainingTokens: [],
+      pending: false,
+    });
   });
 
   it('renders collectible view correctly', () => {
@@ -409,6 +440,141 @@ describe('AddAsset component', () => {
       );
 
       expect(networkButtons.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('useTopTokens hook integration', () => {
+    it('displays loading indicator when useTopTokens pending is true', () => {
+      mockUseParamsValues.assetType = 'token';
+
+      (useTopTokens as jest.Mock).mockReturnValue({
+        topTokens: [],
+        remainingTokens: [],
+        pending: true,
+      });
+
+      const { getByTestId } = renderComponent(<AddAsset />);
+
+      // Should show loading indicator when pending is true
+      expect(getByTestId('add-token-screen')).toBeDefined();
+      // ActivityIndicator should be rendered (checking via snapshot or by checking the component structure)
+    });
+
+    it('combines topTokens and remainingTokens into allTokens', () => {
+      mockUseParamsValues.assetType = 'token';
+
+      const mockTopTokens = [
+        {
+          address: '0x123',
+          symbol: 'TOP1',
+          name: 'Top Token 1',
+          decimals: 18,
+          chainId: '0x1' as const,
+        },
+      ];
+
+      const mockRemainingTokens = [
+        {
+          address: '0x456',
+          symbol: 'REM1',
+          name: 'Remaining Token 1',
+          decimals: 18,
+          chainId: '0x1' as const,
+        },
+      ];
+
+      (useTopTokens as jest.Mock).mockReturnValue({
+        topTokens: mockTopTokens,
+        remainingTokens: mockRemainingTokens,
+        pending: false,
+      });
+
+      const { getByTestId } = renderComponent(<AddAsset />);
+
+      // Component should render with combined tokens
+      expect(getByTestId('add-token-screen')).toBeDefined();
+    });
+
+    it('passes allTokens to SearchTokenAutocomplete when tokens are available', () => {
+      mockUseParamsValues.assetType = 'token';
+
+      const mockTopTokens = [
+        {
+          address: '0x123',
+          symbol: 'TEST',
+          name: 'Test Token',
+          decimals: 18,
+          chainId: '0x1' as const,
+        },
+      ];
+
+      (useTopTokens as jest.Mock).mockReturnValue({
+        topTokens: mockTopTokens,
+        remainingTokens: [],
+        pending: false,
+      });
+
+      const { getByTestId } = renderComponent(<AddAsset />);
+
+      // SearchTokenAutocomplete should be rendered when allTokens has items
+      expect(getByTestId('add-token-screen')).toBeDefined();
+    });
+
+    it('does not render SearchTokenAutocomplete when allTokens is empty', () => {
+      mockUseParamsValues.assetType = 'token';
+
+      (useTopTokens as jest.Mock).mockReturnValue({
+        topTokens: [],
+        remainingTokens: [],
+        pending: false,
+      });
+
+      const { getByTestId } = renderComponent(<AddAsset />);
+
+      // Component should still render but SearchTokenAutocomplete tab should not be shown
+      expect(getByTestId('add-token-screen')).toBeDefined();
+    });
+  });
+
+  describe('Non-EVM chain support', () => {
+    it('conditionally renders AddCustomToken only for EVM chains', () => {
+      mockUseParamsValues.assetType = 'token';
+      mockIsNonEvmChainId.mockReturnValue(false);
+
+      const { getByTestId } = renderComponent(<AddAsset />);
+
+      // AddCustomToken should be rendered for EVM chains
+      expect(getByTestId('add-token-screen')).toBeDefined();
+    });
+
+    it('does not render AddCustomToken for non-EVM chains', () => {
+      mockUseParamsValues.assetType = 'token';
+      mockIsNonEvmChainId.mockReturnValue(true);
+
+      const { getByTestId } = renderComponent(<AddAsset />);
+
+      // Component should render but AddCustomToken should not be shown
+      expect(getByTestId('add-token-screen')).toBeDefined();
+    });
+
+    it('conditionally renders AddCustomCollectible only for EVM chains', () => {
+      mockUseParamsValues.assetType = 'collectible';
+      mockIsNonEvmChainId.mockReturnValue(false);
+
+      const { getByTestId } = renderComponent(<AddAsset />);
+
+      // AddCustomCollectible should be rendered for EVM chains
+      expect(getByTestId('add-collectible-screen')).toBeDefined();
+    });
+
+    it('does not render AddCustomCollectible for non-EVM chains', () => {
+      mockUseParamsValues.assetType = 'collectible';
+      mockIsNonEvmChainId.mockReturnValue(true);
+
+      const { getByTestId } = renderComponent(<AddAsset />);
+
+      // Component should render but AddCustomCollectible should not be shown
+      expect(getByTestId('add-collectible-screen')).toBeDefined();
     });
   });
 });

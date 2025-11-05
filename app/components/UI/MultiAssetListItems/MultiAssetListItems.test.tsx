@@ -90,7 +90,7 @@ describe('MultiAssetListItems', () => {
 
     expect(
       getByText("We couldn't find any tokens with that name."),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('renders search results correctly', () => {
@@ -109,7 +109,91 @@ describe('MultiAssetListItems', () => {
       />,
     );
 
-    expect(getByText('Tether USD')).toBeTruthy();
-    expect(getByText('USDT')).toBeTruthy();
+    expect(getByText('Tether USD')).toBeOnTheScreen();
+    expect(getByText('USDT')).toBeOnTheScreen();
+  });
+
+  it('renders AssetIcon when asset has image property', () => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectProviderConfig) return mockProviderConfig;
+    });
+
+    const { getByText } = render(
+      <MultiAssetListItems
+        searchResults={mockSearchResults}
+        handleSelectAsset={() => ({})}
+        selectedAsset={[]}
+        searchQuery=""
+        chainId="1"
+        networkName="Ethereum"
+      />,
+    );
+
+    // Asset should render with name and symbol when image exists
+    expect(getByText('Tether USD')).toBeOnTheScreen();
+    expect(getByText('USDT')).toBeOnTheScreen();
+  });
+
+  it('does not render AssetIcon when asset image is missing', () => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectProviderConfig) return mockProviderConfig;
+    });
+
+    const assetWithoutImage = [
+      {
+        address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        symbol: 'USDT',
+        name: 'Tether USD',
+        decimals: 6,
+        chainId: '0x1' as const,
+      },
+    ];
+
+    const { getByText } = render(
+      <MultiAssetListItems
+        searchResults={assetWithoutImage}
+        handleSelectAsset={() => ({})}
+        selectedAsset={[]}
+        searchQuery=""
+        chainId="1"
+        networkName="Ethereum"
+      />,
+    );
+
+    // Asset should still render with name and symbol even without image
+    expect(getByText('Tether USD')).toBeOnTheScreen();
+    expect(getByText('USDT')).toBeOnTheScreen();
+  });
+
+  it('renders all search results with FlashList', () => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectProviderConfig) return mockProviderConfig;
+    });
+
+    const manyResults = Array.from({ length: 10 }, (_, i) => ({
+      address: `0x${i.toString().padStart(40, '0')}`,
+      symbol: `TOKEN${i}`,
+      name: `Token ${i}`,
+      image: `https://example.com/token${i}.png`,
+      decimals: 18,
+      chainId: '0x1' as const,
+    }));
+
+    const { getByText } = render(
+      <MultiAssetListItems
+        searchResults={manyResults}
+        handleSelectAsset={() => ({})}
+        selectedAsset={[]}
+        searchQuery=""
+        chainId="1"
+        networkName="Ethereum"
+      />,
+    );
+
+    // Should render all 10 items, not just first 6
+    expect(getByText('Token 0')).toBeOnTheScreen();
+    expect(getByText('Token 9')).toBeOnTheScreen();
+    expect(getByText('TOKEN0')).toBeOnTheScreen();
+    expect(getByText('TOKEN9')).toBeOnTheScreen();
   });
 });
