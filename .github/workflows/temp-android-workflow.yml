@@ -1,0 +1,223 @@
+# Temporary Android E2E workflow - builds and runs tests on temp-bitrise-runners
+# This workflow runs automatically on every PR for testing on alternative runners
+
+name: Temp Android E2E Workflow
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build-and-test-android:
+    name: Temp Android E2E - Build & Test
+    runs-on: ${{ fromJSON('{"group":"temp-bitrise-runners"}') }}
+    env:
+      GRADLE_USER_HOME: /home/admin/_work/.gradle
+      CACHE_GENERATION: v1
+      METAMASK_ENVIRONMENT: qa
+      METAMASK_BUILD_TYPE: main
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PLATFORM: android
+      TEST_SUITE_TAG: 'SmokeAccounts'
+      CHANGED_FILES: ''
+      GITHUB_CI: 'true'
+      SPLIT_NUMBER: 1
+      TOTAL_SPLITS: 1
+      RAMP_INTERNAL_BUILD: 'true'
+      BRIDGE_USE_DEV_APIS: 'true'
+      MM_SECURITY_ALERTS_API_ENABLED: 'true'
+      MM_NOTIFICATIONS_UI_ENABLED: 'true'
+      SEEDLESS_ONBOARDING_ENABLED: 'true'
+      MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
+
+    steps:
+      # ============================
+      # BUILD PHASE
+      # ============================
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'merge_group' && github.event.merge_group.head_sha || github.event.pull_request.head.sha || github.sha }}
+          clean: true
+          fetch-depth: 0
+
+      - name: Verify Android SDK
+        run: |
+          echo "🔍 Verifying Android SDK configuration..."
+          echo "ANDROID_HOME: ${ANDROID_HOME}"
+          echo "ANDROID_SDK_ROOT: ${ANDROID_SDK_ROOT}"
+          echo ""
+          echo "Android SDK packages:"
+          ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --list_installed || true
+          echo ""
+          echo "✅ Android SDK ready"
+
+      - name: Configure Android Signing Certificates
+        uses: MetaMask/github-tools/.github/actions/configure-keystore@0259e8a920318b02a8860e178d79796eaa08de02
+        with:
+          aws-role-to-assume: ${{ secrets.BUILD_SIGNER_QA_ROLE }}
+          aws-region: 'us-east-2'
+          platform: 'android'
+          target: 'qa'
+
+      - name: Setup Java
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.18.0'
+
+      - name: Setup Yarn with Corepack
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08
+        with:
+          timeout_minutes: 15
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: corepack enable && corepack prepare yarn@3.8.7 --activate
+
+      - name: Install JavaScript dependencies
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08
+        with:
+          timeout_minutes: 15
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+
+      - name: Setup project dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            echo "🚀 Setting up project..."
+            yarn setup:github-ci --no-build-ios
+
+      - name: Determine target paths and Artifact Names
+        id: determine-target-paths
+        run: |
+          {
+            echo "apk-target-path=android/app/build/outputs/apk/prod/release"
+            echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/prod/release"
+            echo "aab-target-path=android/app/build/outputs/bundle/prodRelease"
+            echo "artifact_name=app-prod-release"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Cache Gradle dependencies
+        uses: cirruslabs/cache@v4
+        env:
+          GRADLE_CACHE_VERSION: 1
+        with:
+          path: |
+            ~/_work/.gradle/caches
+            ~/_work/.gradle/wrapper
+          key: gradle-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
+      - name: Build Android E2E APKs
+        run: |
+          echo "🏗 Building Android E2E APKs..."
+          export NODE_OPTIONS="--max-old-space-size=8192"
+          cp android/gradle.properties.github android/gradle.properties
+          yarn build:android:main:e2e
+        shell: bash
+        env:
+          IS_TEST: true
+          E2E: 'true'
+          IGNORE_BOXLOGS_DEVELOPMENT: true
+          CI: 'true'
+          NODE_OPTIONS: '--max-old-space-size=8192'
+          FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
+          FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
+          SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+          SEGMENT_WRITE_KEY_FLASK: ${{ secrets.SEGMENT_WRITE_KEY_FLASK }}
+          SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+          SEGMENT_PROXY_URL_FLASK: ${{ secrets.SEGMENT_PROXY_URL_FLASK }}
+          SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+          SEGMENT_DELETE_API_SOURCE_ID_FLASK: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_FLASK }}
+          SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
+          SEGMENT_REGULATIONS_ENDPOINT_FLASK: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_FLASK }}
+          MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
+          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+          MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
+          FLASK_IOS_GOOGLE_CLIENT_ID_PROD: ${{ secrets.FLASK_IOS_GOOGLE_CLIENT_ID_PROD }}
+          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
+          FLASK_IOS_GOOGLE_REDIRECT_URI_PROD: ${{ secrets.FLASK_IOS_GOOGLE_REDIRECT_URI_PROD }}
+          MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
+          FLASK_ANDROID_APPLE_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_APPLE_CLIENT_ID_PROD }}
+          MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
+          FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD }}
+          MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
+          FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD }}
+          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+
+
+      # ============================
+      # TEST PHASE
+      # ============================
+      - name: 🧪 Run E2E tests
+        timeout-minutes: 30
+        run: |
+          echo "Running Temp Android E2E tests"
+          echo "Running split 1 of 1"
+          echo "Using TEST_SUITE_TAG: SmokeAccounts"
+
+          # Always use the splitting script (handles both split and non-split cases)
+          node .github/scripts/e2e-split-tags-shards.mjs
+        env:
+          JOB_NAME: temp-android-e2e
+          RUN_ID: ${{ github.run_id }}
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          MM_TEST_WALLET_SRP: ${{ secrets.MM_TEST_WALLET_SRP }}
+          MM_SOLANA_E2E_TEST_SRP: ${{ secrets.MM_SOLANA_E2E_TEST_SRP }}
+
+      - name: Merge Detox JUnit reports
+        if: always()
+        continue-on-error: true
+        run: |
+          echo "📊 Merging Detox JUnit XML reports..."
+
+          # Install xml2js for XML parsing (lightweight, no full yarn install needed)
+          mkdir -p temp-deps && cd temp-deps
+          npm init -y > /dev/null 2>&1
+          npm install xml2js@0.6.2 --no-audit --no-fund --silent
+
+          # Copy node_modules to workspace for script usage
+          cp -r node_modules ${{ github.workspace }}/
+          cd ${{ github.workspace }}
+
+          # Run merge script
+          node .github/scripts/e2e-merge-detox-junit-reports.mjs
+
+          # Clean up temporary node_modules
+          rm -rf node_modules temp-deps
+
+      - name: Upload JUnit XML results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-e2e-temp-android-junit-results
+          path: e2e/reports/
+          retention-days: 7
+
+      - name: Upload Screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-e2e-temp-android-screenshots
+          path: e2e/artifacts/
+          retention-days: 7
+
