@@ -21,6 +21,11 @@ import Logger from '../../../../util/Logger';
 // Mock the HyperLiquidProvider
 jest.mock('./providers/HyperLiquidProvider');
 
+// Mock wait utility to speed up retry tests
+jest.mock('../utils/wait', () => ({
+  wait: jest.fn().mockResolvedValue(undefined),
+}));
+
 // Mock stream manager
 const mockStreamManager = {
   positions: { pause: jest.fn(), resume: jest.fn() },
@@ -109,6 +114,14 @@ describe('PerpsController', () => {
   let controller: PerpsController;
   let mockProvider: jest.Mocked<HyperLiquidProvider>;
 
+  // Helper to mark controller as initialized for tests
+  const markControllerAsInitialized = () => {
+    (controller as any).isInitialized = true;
+    (controller as any).update((state: any) => {
+      state.initializationState = 'initialized';
+    });
+  };
+
   beforeEach(() => {
     // Create a fresh mock provider for each test
     mockProvider = createMockHyperLiquidProvider();
@@ -151,17 +164,20 @@ describe('PerpsController', () => {
   });
 
   describe('constructor', () => {
-    it('should initialize with default state', () => {
-      expect(controller.state).toEqual(getDefaultPerpsControllerState());
+    it('initializes with default state', () => {
+      // Constructor no longer auto-starts initialization (moved to Engine.ts)
       expect(controller.state.activeProvider).toBe('hyperliquid');
       expect(controller.state.positions).toEqual([]);
       expect(controller.state.accountState).toBeNull();
       expect(controller.state.connectionStatus).toBe('disconnected');
+      expect(controller.state.initializationState).toBe('uninitialized'); // Waits for explicit initialization
+      expect(controller.state.initializationError).toBeNull();
+      expect(controller.state.initializationAttempts).toBe(0); // Not started yet
       expect(controller.state.isEligible).toBe(false);
       expect(controller.state.isTestnet).toBe(false); // Default to mainnet
     });
 
-    it('should read current RemoteFeatureFlagController state during construction', () => {
+    it('reads current RemoteFeatureFlagController state during construction', () => {
       // Given: A mock messenger that tracks calls
       const mockCall = jest.fn().mockImplementation((action: string) => {
         if (action === 'RemoteFeatureFlagController:getState') {
@@ -374,6 +390,296 @@ describe('PerpsController', () => {
     });
   });
 
+  describe('refreshHip3ConfigOnFeatureFlagChange', () => {
+    describe('allowlist parsing', () => {
+      it('parses comma-separated allowlist string from LaunchDarkly', () => {
+        // Arrange
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3AllowlistMarkets: 'BTC-USD,ETH-USD,SOL-USD',
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect((controller as any).hip3AllowlistMarkets).toEqual([
+          'BTC-USD',
+          'ETH-USD',
+          'SOL-USD',
+        ]);
+      });
+
+      it('parses allowlist array format', () => {
+        // Arrange
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3AllowlistMarkets: ['BTC-USD', 'ETH-USD'],
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect((controller as any).hip3AllowlistMarkets).toEqual([
+          'BTC-USD',
+          'ETH-USD',
+        ]);
+      });
+
+      it('trims whitespace from allowlist array items', () => {
+        // Arrange
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3AllowlistMarkets: ['  BTC-USD  ', ' ETH-USD'],
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect((controller as any).hip3AllowlistMarkets).toEqual([
+          'BTC-USD',
+          'ETH-USD',
+        ]);
+      });
+
+      it('falls back to local config when allowlist format is invalid (non-string array)', () => {
+        // Arrange
+        const initialAllowlist = ['LOCAL-BTC'];
+        (controller as any).hip3AllowlistMarkets = initialAllowlist;
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3AllowlistMarkets: [123, null, 'BTC-USD'],
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect((controller as any).hip3AllowlistMarkets).toEqual(
+          initialAllowlist,
+        );
+      });
+
+      it('falls back to local config when allowlist format is invalid (empty string array)', () => {
+        // Arrange
+        const initialAllowlist = ['LOCAL-ETH'];
+        (controller as any).hip3AllowlistMarkets = initialAllowlist;
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3AllowlistMarkets: ['BTC-USD', '', 'ETH-USD'],
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect((controller as any).hip3AllowlistMarkets).toEqual(
+          initialAllowlist,
+        );
+      });
+
+      it('falls back to local config when allowlist is empty string after parsing', () => {
+        // Arrange
+        const initialAllowlist = ['LOCAL-SOL'];
+        (controller as any).hip3AllowlistMarkets = initialAllowlist;
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3AllowlistMarkets: '',
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect((controller as any).hip3AllowlistMarkets).toEqual(
+          initialAllowlist,
+        );
+      });
+    });
+
+    describe('blocklist parsing', () => {
+      it('parses comma-separated blocklist string from LaunchDarkly', () => {
+        // Arrange
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3BlocklistMarkets: 'SCAM-USD,FAKE-USD',
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect((controller as any).hip3BlocklistMarkets).toEqual([
+          'SCAM-USD',
+          'FAKE-USD',
+        ]);
+      });
+
+      it('parses blocklist array format', () => {
+        // Arrange
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3BlocklistMarkets: ['SCAM-USD', 'FAKE-USD'],
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect((controller as any).hip3BlocklistMarkets).toEqual([
+          'SCAM-USD',
+          'FAKE-USD',
+        ]);
+      });
+
+      it('trims whitespace from blocklist array items', () => {
+        // Arrange
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3BlocklistMarkets: ['  SCAM-USD  ', ' FAKE-USD'],
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect((controller as any).hip3BlocklistMarkets).toEqual([
+          'SCAM-USD',
+          'FAKE-USD',
+        ]);
+      });
+
+      it('falls back to local config when blocklist format is invalid (non-string array)', () => {
+        // Arrange
+        const initialBlocklist = ['LOCAL-SCAM'];
+        (controller as any).hip3BlocklistMarkets = initialBlocklist;
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3BlocklistMarkets: [456, null, 'SCAM-USD'],
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect((controller as any).hip3BlocklistMarkets).toEqual(
+          initialBlocklist,
+        );
+      });
+
+      it('falls back to local config when blocklist format is invalid (empty string array)', () => {
+        // Arrange
+        const initialBlocklist = ['LOCAL-FAKE'];
+        (controller as any).hip3BlocklistMarkets = initialBlocklist;
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3BlocklistMarkets: ['SCAM-USD', '', 'FAKE-USD'],
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect((controller as any).hip3BlocklistMarkets).toEqual(
+          initialBlocklist,
+        );
+      });
+
+      it('falls back to local config when blocklist is empty string after parsing', () => {
+        // Arrange
+        const initialBlocklist = ['LOCAL-BAD'];
+        (controller as any).hip3BlocklistMarkets = initialBlocklist;
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3BlocklistMarkets: '',
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect((controller as any).hip3BlocklistMarkets).toEqual(
+          initialBlocklist,
+        );
+      });
+    });
+
+    describe('config change detection', () => {
+      it('increments hip3ConfigVersion when allowlist changes', () => {
+        // Arrange
+        const initialVersion = controller.state.hip3ConfigVersion;
+        (controller as any).hip3AllowlistMarkets = ['BTC-USD'];
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3AllowlistMarkets: 'ETH-USD,SOL-USD',
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect(controller.state.hip3ConfigVersion).toBe(initialVersion + 1);
+        expect((controller as any).hip3AllowlistMarkets).toEqual([
+          'ETH-USD',
+          'SOL-USD',
+        ]);
+      });
+
+      it('increments hip3ConfigVersion when blocklist changes', () => {
+        // Arrange
+        const initialVersion = controller.state.hip3ConfigVersion;
+        (controller as any).hip3BlocklistMarkets = ['OLD-SCAM'];
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3BlocklistMarkets: 'NEW-SCAM,NEW-FAKE',
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect(controller.state.hip3ConfigVersion).toBe(initialVersion + 1);
+        expect((controller as any).hip3BlocklistMarkets).toEqual([
+          'NEW-SCAM',
+          'NEW-FAKE',
+        ]);
+      });
+
+      it('does not increment version when config stays the same', () => {
+        // Arrange
+        const initialVersion = controller.state.hip3ConfigVersion;
+        (controller as any).hip3AllowlistMarkets = ['BTC-USD', 'ETH-USD'];
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3AllowlistMarkets: 'ETH-USD,BTC-USD', // Same, just different order
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect(controller.state.hip3ConfigVersion).toBe(initialVersion);
+      });
+    });
+  });
+
   describe('getActiveProvider', () => {
     it('should throw error when not initialized', () => {
       // Mock the controller as not initialized
@@ -385,7 +691,7 @@ describe('PerpsController', () => {
     });
 
     it('should return provider when initialized', () => {
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
 
       const provider = controller.getActiveProvider();
@@ -393,9 +699,9 @@ describe('PerpsController', () => {
     });
   });
 
-  describe('initializeProviders', () => {
+  describe('init', () => {
     it('should initialize providers successfully', async () => {
-      await controller.initializeProviders();
+      await controller.init();
 
       expect((controller as any).isInitialized).toBe(true);
       expect((controller as any).providers.has('hyperliquid')).toBe(true);
@@ -403,13 +709,76 @@ describe('PerpsController', () => {
 
     it('should handle initialization when already initialized', async () => {
       // First initialization
-      await controller.initializeProviders();
+      await controller.init();
       expect((controller as any).isInitialized).toBe(true);
 
       // Second initialization should not throw
-      await controller.initializeProviders();
+      await controller.init();
       expect((controller as any).isInitialized).toBe(true);
     });
+
+    it('allows retry after all initialization attempts fail', async () => {
+      // Set up mock to throw errors BEFORE creating controller
+      const networkError = new Error('Network error');
+      (
+        HyperLiquidProvider as jest.MockedClass<typeof HyperLiquidProvider>
+      ).mockImplementation(() => {
+        throw networkError;
+      });
+
+      // Create new controller with failing provider mock
+      const mockCall = jest.fn().mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return {
+            remoteFeatureFlags: {
+              perpsPerpTradingGeoBlockedCountriesV2: {
+                blockedRegions: [],
+              },
+            },
+          };
+        }
+        return undefined;
+      });
+
+      const testController = new PerpsController({
+        messenger: {
+          call: mockCall,
+          publish: jest.fn(),
+          subscribe: jest.fn(),
+          registerActionHandler: jest.fn(),
+          registerEventHandler: jest.fn(),
+          registerInitialEventPayload: jest.fn(),
+        } as unknown as any,
+        state: getDefaultPerpsControllerState(),
+      });
+
+      // Explicitly start initialization (no longer auto-starts in constructor)
+      testController.init().catch(() => {
+        // Expected to fail - error is stored in state
+      });
+
+      // Wait for initialization to complete (retries happen instantly due to mocked wait())
+      // Small delay allows async promise chain to resolve
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Verify failure state
+      expect(testController.state.initializationState).toBe('failed');
+      expect(testController.state.initializationError).toBe('Network error');
+      expect((testController as any).isInitialized).toBe(false);
+
+      // Network recovers - provider succeeds on next attempt
+      (
+        HyperLiquidProvider as jest.MockedClass<typeof HyperLiquidProvider>
+      ).mockImplementation(() => mockProvider);
+
+      // User retries initialization (e.g., via network switch)
+      await testController.init();
+
+      // Verify initialization succeeds (not cached failure)
+      expect(testController.state.initializationState).toBe('initialized');
+      expect(testController.state.initializationError).toBeNull();
+      expect((testController as any).isInitialized).toBe(true);
+    }); // Fast execution with mocked wait()
   });
 
   describe('getPositions', () => {
@@ -436,7 +805,7 @@ describe('PerpsController', () => {
         },
       ];
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getPositions.mockResolvedValue(mockPositions);
 
@@ -449,7 +818,7 @@ describe('PerpsController', () => {
     it('should handle getPositions error', async () => {
       const errorMessage = 'Network error';
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getPositions.mockRejectedValue(new Error(errorMessage));
 
@@ -468,7 +837,7 @@ describe('PerpsController', () => {
         totalBalance: '1600',
       };
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getAccountState.mockResolvedValue(mockAccountState);
 
@@ -495,7 +864,7 @@ describe('PerpsController', () => {
         averagePrice: '50000',
       };
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
 
@@ -515,7 +884,7 @@ describe('PerpsController', () => {
 
       const errorMessage = 'Order placement failed';
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.placeOrder.mockRejectedValue(new Error(errorMessage));
 
@@ -541,7 +910,7 @@ describe('PerpsController', () => {
           averagePrice: '50000',
         };
 
-        (controller as any).isInitialized = true;
+        markControllerAsInitialized();
         (controller as any).providers = new Map([
           ['hyperliquid', mockProvider],
         ]);
@@ -572,7 +941,7 @@ describe('PerpsController', () => {
 
         const mockError = new Error('Order placement failed');
 
-        (controller as any).isInitialized = true;
+        markControllerAsInitialized();
         (controller as any).providers = new Map([
           ['hyperliquid', mockProvider],
         ]);
@@ -608,7 +977,7 @@ describe('PerpsController', () => {
           averagePrice: '50000',
         };
 
-        (controller as any).isInitialized = true;
+        markControllerAsInitialized();
         (controller as any).providers = new Map([
           ['hyperliquid', mockProvider],
         ]);
@@ -645,7 +1014,7 @@ describe('PerpsController', () => {
         },
       ];
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getMarkets.mockResolvedValue(mockMarkets);
 
@@ -668,7 +1037,7 @@ describe('PerpsController', () => {
         orderId: 'order-123',
       };
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.cancelOrder.mockResolvedValue(mockCancelResult);
 
@@ -681,7 +1050,7 @@ describe('PerpsController', () => {
 
   describe('cancelOrders', () => {
     beforeEach(() => {
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       (controller as any).isCancelingOrders = false;
       jest.clearAllMocks();
@@ -818,7 +1187,7 @@ describe('PerpsController', () => {
         averagePrice: '50000',
       };
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.closePosition.mockResolvedValue(mockCloseResult);
 
@@ -843,7 +1212,7 @@ describe('PerpsController', () => {
           averagePrice: '50000',
         };
 
-        (controller as any).isInitialized = true;
+        markControllerAsInitialized();
         (controller as any).providers = new Map([
           ['hyperliquid', mockProvider],
         ]);
@@ -873,7 +1242,7 @@ describe('PerpsController', () => {
 
         const mockError = new Error('Close position failed');
 
-        (controller as any).isInitialized = true;
+        markControllerAsInitialized();
         (controller as any).providers = new Map([
           ['hyperliquid', mockProvider],
         ]);
@@ -908,7 +1277,7 @@ describe('PerpsController', () => {
           averagePrice: '50000',
         };
 
-        (controller as any).isInitialized = true;
+        markControllerAsInitialized();
         (controller as any).providers = new Map([
           ['hyperliquid', mockProvider],
         ]);
@@ -930,7 +1299,7 @@ describe('PerpsController', () => {
 
   describe('closePositions', () => {
     beforeEach(() => {
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
     });
 
@@ -1017,7 +1386,7 @@ describe('PerpsController', () => {
         isValid: true,
       };
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.validateOrder.mockResolvedValue(mockValidationResult);
 
@@ -1045,7 +1414,7 @@ describe('PerpsController', () => {
         },
       ];
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getOrderFills.mockResolvedValue(mockOrderFills);
 
@@ -1074,7 +1443,7 @@ describe('PerpsController', () => {
         },
       ];
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getOrders.mockResolvedValue(mockOrders);
 
@@ -1093,7 +1462,7 @@ describe('PerpsController', () => {
         callback: jest.fn(),
       };
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.subscribeToPrices.mockReturnValue(mockUnsubscribe);
 
@@ -1111,7 +1480,7 @@ describe('PerpsController', () => {
         callback: jest.fn(),
       };
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.subscribeToPositions.mockReturnValue(mockUnsubscribe);
 
@@ -1138,7 +1507,7 @@ describe('PerpsController', () => {
         withdrawalId: 'withdrawal-123',
       };
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.withdraw.mockResolvedValue(mockWithdrawResult);
 
@@ -1162,7 +1531,7 @@ describe('PerpsController', () => {
 
       const mockLiquidationPrice = '45000';
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.calculateLiquidationPrice.mockResolvedValue(
         mockLiquidationPrice,
@@ -1183,7 +1552,7 @@ describe('PerpsController', () => {
       const asset = 'BTC';
       const mockMaxLeverage = 50;
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getMaxLeverage.mockResolvedValue(mockMaxLeverage);
 
@@ -1210,7 +1579,7 @@ describe('PerpsController', () => {
         },
       ];
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getWithdrawalRoutes.mockReturnValue(mockRoutes);
 
@@ -1227,7 +1596,7 @@ describe('PerpsController', () => {
       const mockUrl =
         'https://app.hyperliquid.xyz/explorer/address/0x1234567890123456789012345678901234567890';
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getBlockExplorerUrl.mockReturnValue(mockUrl);
 
@@ -1242,7 +1611,7 @@ describe('PerpsController', () => {
     it('should handle provider errors gracefully', async () => {
       const errorMessage = 'Provider connection failed';
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getPositions.mockRejectedValue(new Error(errorMessage));
 
@@ -1253,7 +1622,7 @@ describe('PerpsController', () => {
     it('should handle network errors', async () => {
       const errorMessage = 'Network timeout';
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getAccountState.mockRejectedValue(new Error(errorMessage));
 
@@ -1286,7 +1655,7 @@ describe('PerpsController', () => {
         },
       ];
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getPositions.mockResolvedValue(mockPositions);
 
@@ -1300,7 +1669,7 @@ describe('PerpsController', () => {
     it('should handle errors without updating state', async () => {
       const errorMessage = 'Failed to fetch positions';
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getPositions.mockRejectedValue(new Error(errorMessage));
 
@@ -1311,7 +1680,7 @@ describe('PerpsController', () => {
 
   describe('connection management', () => {
     it('should handle disconnection', async () => {
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.disconnect.mockResolvedValue({ success: true });
 
@@ -1345,7 +1714,7 @@ describe('PerpsController', () => {
         },
       ];
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getFunding.mockResolvedValue(mockFunding);
 
@@ -1372,7 +1741,7 @@ describe('PerpsController', () => {
         },
       ];
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getOrderFills.mockResolvedValue(mockOrderFills);
 
@@ -1402,7 +1771,7 @@ describe('PerpsController', () => {
         updatedOrder: editParams.newOrder,
       };
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.editOrder.mockResolvedValue(mockEditResult);
 
@@ -1426,7 +1795,7 @@ describe('PerpsController', () => {
 
       const errorMessage = 'Order edit failed';
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.editOrder.mockRejectedValue(new Error(errorMessage));
 
@@ -1444,7 +1813,7 @@ describe('PerpsController', () => {
         callback: jest.fn(),
       };
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.subscribeToOrderFills.mockReturnValue(mockUnsubscribe);
 
@@ -1460,7 +1829,7 @@ describe('PerpsController', () => {
         positionThrottleMs: 2000,
       };
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.setLiveDataConfig.mockReturnValue(undefined);
 
@@ -1476,7 +1845,7 @@ describe('PerpsController', () => {
         callback: jest.fn(),
       };
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.subscribeToPrices.mockReturnValue(mockUnsubscribe);
 
@@ -1531,7 +1900,7 @@ describe('PerpsController', () => {
         },
       ];
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.getWithdrawalRoutes.mockReturnValue(mockRoutes);
 
@@ -1631,7 +2000,7 @@ describe('PerpsController', () => {
         callback: jest.fn(),
       };
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.subscribeToOrders.mockReturnValue(mockUnsubscribe);
 
@@ -1647,7 +2016,7 @@ describe('PerpsController', () => {
         callback: jest.fn(),
       };
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.subscribeToAccount.mockReturnValue(mockUnsubscribe);
 
@@ -1671,7 +2040,7 @@ describe('PerpsController', () => {
         errors: [],
       };
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.validateClosePosition.mockResolvedValue(
         mockValidationResult,
@@ -1697,7 +2066,7 @@ describe('PerpsController', () => {
         errors: [],
       };
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.validateWithdrawal.mockResolvedValue(mockValidationResult);
 
@@ -1723,7 +2092,7 @@ describe('PerpsController', () => {
         positionId: 'pos-123',
       };
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.updatePositionTPSL.mockResolvedValue(mockUpdateResult);
 
@@ -1748,7 +2117,7 @@ describe('PerpsController', () => {
           positionId: 'pos-123',
         };
 
-        (controller as any).isInitialized = true;
+        markControllerAsInitialized();
         (controller as any).providers = new Map([
           ['hyperliquid', mockProvider],
         ]);
@@ -1780,7 +2149,7 @@ describe('PerpsController', () => {
 
         const mockError = new Error('TP/SL update failed');
 
-        (controller as any).isInitialized = true;
+        markControllerAsInitialized();
         (controller as any).providers = new Map([
           ['hyperliquid', mockProvider],
         ]);
@@ -1813,7 +2182,7 @@ describe('PerpsController', () => {
           positionId: 'pos-123',
         };
 
-        (controller as any).isInitialized = true;
+        markControllerAsInitialized();
         (controller as any).providers = new Map([
           ['hyperliquid', mockProvider],
         ]);
@@ -1844,7 +2213,7 @@ describe('PerpsController', () => {
 
       const mockMargin = 2500;
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.calculateMaintenanceMargin.mockResolvedValue(mockMargin);
 
@@ -1877,7 +2246,7 @@ describe('PerpsController', () => {
         metamaskFeeRate: 0.0002,
       };
 
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
       mockProvider.calculateFees.mockResolvedValue(mockFees);
 
@@ -1893,7 +2262,7 @@ describe('PerpsController', () => {
       // Mock fetch globally
       global.fetch = jest.fn();
       // Initialize controller
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
     });
 
@@ -1930,6 +2299,9 @@ describe('PerpsController', () => {
 
       // Initialize providers for testnet controller
       (testnetController as any).isInitialized = true;
+      (testnetController as any).update((state: any) => {
+        state.initializationState = 'initialized';
+      });
       (testnetController as any).providers = new Map([
         ['hyperliquid', mockProvider],
       ]);
@@ -1955,7 +2327,7 @@ describe('PerpsController', () => {
     });
 
     it('handles data lake reporting errors gracefully', async () => {
-      (controller as any).isInitialized = true;
+      markControllerAsInitialized();
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
 
       mockProvider.placeOrder.mockResolvedValue({

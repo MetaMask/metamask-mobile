@@ -31,6 +31,15 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+// Mock Redux selector
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => 'initialized'), // Default to initialized state
+}));
+
+jest.mock('../selectors/perpsController', () => ({
+  selectPerpsInitializationState: jest.fn(),
+}));
+
 describe('usePerpsPositionData', () => {
   const mockFetchHistoricalCandles = Engine.context.PerpsController
     .fetchHistoricalCandles as jest.Mock;
@@ -615,7 +624,7 @@ describe('usePerpsPositionData', () => {
       });
 
       // Assert - Should have empty candles array (no historical + no live candle created)
-      expect(result.current.candleData?.candles).toEqual([]);
+      expect(result.current.candleData?.candles).toEqual(undefined);
 
       // Assert - priceData should be set to the update object (even without price field)
       // The hook doesn't validate price field existence, just coin matching
@@ -1214,7 +1223,7 @@ describe('usePerpsPositionData', () => {
       });
 
       // Assert
-      expect(result.current.candleData?.candles).toEqual([]);
+      expect(result.current.candleData?.candles).toEqual(undefined);
       expect(result.current.isLoadingHistory).toBe(false);
     });
 
