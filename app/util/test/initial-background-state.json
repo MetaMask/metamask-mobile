@@ -742,6 +742,6 @@
     "claimablePositions": {},
     "pendingDeposits": {},
     "withdrawTransaction": null,
-    "isOnboarded": {}
+    "accountMeta": {}
   }
 }
