@@ -265,6 +265,7 @@ enum EVENT_NAME {
   RAMPS_BUTTON_CLICKED = 'Ramps Button Clicked',
   RAMPS_DEPOSIT_CASH_BUTTON_CLICKED = 'Ramps Deposit Cash Button Clicked',
   RAMPS_PAYMENT_METHOD_SELECTED = 'Ramps Payment Method Selected',
+  RAMPS_TOKEN_SELECTOR_CLICKED = 'Ramps Token Selector Clicked',
   RAMPS_TOKEN_SELECTED = 'Ramps Token Selected',
   RAMPS_REGION_SELECTED = 'Ramps Region Selected',
   RAMPS_ORDER_PROPOSED = 'Ramps Order Proposed',
@@ -583,6 +584,7 @@ enum EVENT_NAME {
   PREDICT_MARKET_DETAILS_OPENED = 'Predict Market Details Opened',
   PREDICT_POSITION_VIEWED = 'Predict Position Viewed',
   PREDICT_ACTIVITY_VIEWED = 'Predict Activity Viewed',
+  PREDICT_FEED_VIEWED = 'Predict Feed Viewed',
 
   // Share
   SHARE_ACTION = 'Share Action',
@@ -936,6 +938,9 @@ const events = {
   ),
   RAMPS_PAYMENT_METHOD_SELECTED: generateOpt(
     EVENT_NAME.RAMPS_PAYMENT_METHOD_SELECTED,
+  ),
+  RAMPS_TOKEN_SELECTOR_CLICKED: generateOpt(
+    EVENT_NAME.RAMPS_TOKEN_SELECTOR_CLICKED,
   ),
   RAMPS_TOKEN_SELECTED: generateOpt(EVENT_NAME.RAMPS_TOKEN_SELECTED),
   RAMPS_REGION_SELECTED: generateOpt(EVENT_NAME.RAMPS_REGION_SELECTED),
@@ -1464,6 +1469,7 @@ const events = {
   ),
   PREDICT_POSITION_VIEWED: generateOpt(EVENT_NAME.PREDICT_POSITION_VIEWED),
   PREDICT_ACTIVITY_VIEWED: generateOpt(EVENT_NAME.PREDICT_ACTIVITY_VIEWED),
+  PREDICT_FEED_VIEWED: generateOpt(EVENT_NAME.PREDICT_FEED_VIEWED),
 
   // Share
   SHARE_ACTION: generateOpt(EVENT_NAME.SHARE_ACTION),
