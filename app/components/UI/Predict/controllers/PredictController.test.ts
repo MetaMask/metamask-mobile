@@ -1648,10 +1648,9 @@ describe('PredictController', () => {
             balance: '100',
           },
         ]);
-        const MockEngine = jest.requireMock('../../../../core/Engine');
-        MockEngine.context.NetworkController.findNetworkClientIdByChainId = jest
-          .fn()
-          .mockReturnValue(undefined);
+        const MockedEngine = jest.requireMock('../../../../core/Engine');
+        MockedEngine.context.NetworkController.findNetworkClientIdByChainId =
+          jest.fn().mockReturnValue(undefined);
 
         mockPolymarketProvider.prepareClaim = jest
           .fn()
@@ -1682,10 +1681,9 @@ describe('PredictController', () => {
           .fn()
           .mockResolvedValue(mockClaim);
 
-        const MockEngine = jest.requireMock('../../../../core/Engine');
-        MockEngine.context.NetworkController.findNetworkClientIdByChainId = jest
-          .fn()
-          .mockReturnValue('mainnet');
+        const MockedEngine = jest.requireMock('../../../../core/Engine');
+        MockedEngine.context.NetworkController.findNetworkClientIdByChainId =
+          jest.fn().mockReturnValue('mainnet');
 
         (addTransactionBatch as jest.Mock).mockResolvedValue({});
         await controller.getPositions({ claimable: true });
@@ -1779,10 +1777,9 @@ describe('PredictController', () => {
           .fn()
           .mockResolvedValue(mockClaim);
 
-        const MockEngine = jest.requireMock('../../../../core/Engine');
-        MockEngine.context.NetworkController.findNetworkClientIdByChainId = jest
-          .fn()
-          .mockReturnValue('mainnet');
+        const MockedEngine = jest.requireMock('../../../../core/Engine');
+        MockedEngine.context.NetworkController.findNetworkClientIdByChainId =
+          jest.fn().mockReturnValue('mainnet');
 
         (addTransactionBatch as jest.Mock).mockResolvedValue({
           batchId: mockBatchId,

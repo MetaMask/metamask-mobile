@@ -146,8 +146,7 @@ const PredictBuyPreview = () => {
       providerId: outcome.providerId,
       sharePrice: outcomeToken?.price,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [analyticsProperties, outcome.providerId, outcomeToken?.price]);
 
   const toWin = preview?.minAmountReceived ?? 0;
   const isRateLimited = preview?.rateLimited ?? false;

@@ -125,8 +125,7 @@ export const useUnrealizedPnL = (
     if (loadOnMount) {
       loadUnrealizedPnL();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadOnMount]);
+  }, [loadOnMount, loadUnrealizedPnL]);
 
   // Refresh unrealized P&L when screen comes into focus if enabled
   useFocusEffect(

@@ -45,23 +45,6 @@ export const usePredictPriceHistory = (
   const [errors, setErrors] = useState<(string | null)[]>([]);
 
   const isMountedRef = useRef(true);
-  useEffect(
-    () => () => {
-      isMountedRef.current = false;
-    },
-    [],
-  );
-
-  useEffect(() => {
-    if (!enabled && isMountedRef.current) {
-      setPriceHistories([]);
-      setErrors([]);
-      setIsFetching(false);
-    }
-  }, [enabled]);
-
-  // Create a stable string representation for the dependency array
-  const marketIdsKey = marketIds?.join(',') ?? '';
 
   const fetchPriceHistories = useCallback(async () => {
     if (!enabled) {
@@ -185,8 +168,7 @@ export const usePredictPriceHistory = (
         setIsFetching(false);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, marketIdsKey, fidelity, interval, providerId]);
+  }, [enabled, marketIds, fidelity, interval, providerId]);
 
   useEffect(() => {
     fetchPriceHistories();

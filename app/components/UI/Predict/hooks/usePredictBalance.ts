@@ -146,8 +146,12 @@ export function usePredictBalance(
         setIsRefreshing(false);
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [getBalance, selectedInternalAccountAddress, providerId],
+    [
+      getBalance,
+      selectedInternalAccountAddress,
+      providerId,
+      ensurePolygonNetworkExists,
+    ],
   );
 
   // Load balance on mount if enabled
