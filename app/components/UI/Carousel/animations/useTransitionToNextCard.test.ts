@@ -66,14 +66,6 @@ jest.mock('react-native', () => {
   };
 });
 
-jest.mock('./animationTimings', () => ({
-  ANIMATION_TIMINGS: {
-    CARD_EXIT_DURATION: 300,
-    CARD_ENTER_DELAY: 100,
-    CARD_ENTER_DURATION: 250,
-  },
-}));
-
 describe('useTransitionToNextCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();

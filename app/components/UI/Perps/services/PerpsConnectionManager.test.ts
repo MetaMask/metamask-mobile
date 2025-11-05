@@ -51,6 +51,7 @@ const mockStreamManagerInstance = {
   account: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   marketData: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   prices: { clearCache: jest.fn(), prewarm: jest.fn(async () => jest.fn()) },
+  oiCaps: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
 };
 
 jest.mock('../providers/PerpsStreamManager', () => ({
@@ -147,6 +148,17 @@ describe('PerpsConnectionManager', () => {
 
     // Clear store callbacks array for test isolation
     storeCallbacks.length = 0;
+
+    // Mock Redux state with proper structure for selectors
+    (store.getState as jest.Mock).mockReturnValue({
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            hip3ConfigVersion: 0,
+          },
+        },
+      },
+    });
 
     // Clear StreamManager mock calls
     mockStreamManagerInstance.positions.clearCache.mockClear();
@@ -595,7 +607,7 @@ describe('PerpsConnectionManager', () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(mockDevLogger.log).toHaveBeenCalledWith(
-        expect.stringContaining('Account or network change detected'),
+        expect.stringContaining('State change detected'),
         expect.objectContaining({
           accountChanged: true,
           networkChanged: false,
@@ -630,7 +642,7 @@ describe('PerpsConnectionManager', () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(mockDevLogger.log).toHaveBeenCalledWith(
-        expect.stringContaining('Account or network change detected'),
+        expect.stringContaining('State change detected'),
         expect.objectContaining({
           accountChanged: false,
           networkChanged: true,
@@ -666,7 +678,7 @@ describe('PerpsConnectionManager', () => {
 
         // Should still log account change detection during grace period
         expect(mockDevLogger.log).toHaveBeenCalledWith(
-          expect.stringContaining('Account or network change detected'),
+          expect.stringContaining('State change detected'),
           expect.any(Object),
         );
       }
