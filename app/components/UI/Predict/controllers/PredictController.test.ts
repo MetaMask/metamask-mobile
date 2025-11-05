@@ -1727,8 +1727,8 @@ describe('PredictController', () => {
             balance: '100',
           },
         ]);
-        const Engine = jest.requireMock('../../../../core/Engine');
-        Engine.context.NetworkController.findNetworkClientIdByChainId = jest
+        const MockEngine = jest.requireMock('../../../../core/Engine');
+        MockEngine.context.NetworkController.findNetworkClientIdByChainId = jest
           .fn()
           .mockReturnValue(undefined);
 
@@ -1761,8 +1761,8 @@ describe('PredictController', () => {
           .fn()
           .mockResolvedValue(mockClaim);
 
-        const Engine = jest.requireMock('../../../../core/Engine');
-        Engine.context.NetworkController.findNetworkClientIdByChainId = jest
+        const MockEngine = jest.requireMock('../../../../core/Engine');
+        MockEngine.context.NetworkController.findNetworkClientIdByChainId = jest
           .fn()
           .mockReturnValue('mainnet');
 
@@ -1858,8 +1858,8 @@ describe('PredictController', () => {
           .fn()
           .mockResolvedValue(mockClaim);
 
-        const Engine = jest.requireMock('../../../../core/Engine');
-        Engine.context.NetworkController.findNetworkClientIdByChainId = jest
+        const MockEngine = jest.requireMock('../../../../core/Engine');
+        MockEngine.context.NetworkController.findNetworkClientIdByChainId = jest
           .fn()
           .mockReturnValue('mainnet');
 

@@ -28,8 +28,9 @@ export function usePredictBottomSheet(params?: UsePredictBottomSheetParams) {
   }, [onDismiss]);
 
   const handleSheetClosed = useCallback(() => {
-    closeSheet();
-  }, [closeSheet]);
+    setIsVisible(false);
+    onDismiss?.();
+  }, [onDismiss]);
 
   const getRefHandlers = useCallback(
     (): PredictBottomSheetRef => ({
