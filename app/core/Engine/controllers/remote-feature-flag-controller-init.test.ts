@@ -10,6 +10,11 @@ import {
 } from '../messengers/remote-feature-flag-controller-messenger';
 import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
 import { buildControllerInitRequestMock } from '../utils/test-utils';
+import Logger from '../../../util/Logger';
+
+jest.mock('../../../util/Logger', () => ({
+  log: jest.fn(),
+}));
 
 jest.mock('@metamask/remote-feature-flag-controller', () => ({
   ...jest.requireActual('@metamask/remote-feature-flag-controller'),
@@ -45,9 +50,8 @@ describe('remoteFeatureFlagControllerInit', () => {
   });
 
   it('initializes the controller', () => {
-    const { controller } = remoteFeatureFlagControllerInit(
-      getInitRequestMock(),
-    );
+    const { controller } =
+      remoteFeatureFlagControllerInit(getInitRequestMock());
 
     expect(controller).toBeInstanceOf(Object);
   });
@@ -99,5 +103,36 @@ describe('remoteFeatureFlagControllerInit', () => {
     expect(
       controllerMock.mock.results[0].value.updateRemoteFeatureFlags,
     ).not.toHaveBeenCalled();
+  });
+
+  it('logs success message when feature flags update successfully', async () => {
+    const initRequestMock = getInitRequestMock();
+
+    remoteFeatureFlagControllerInit(initRequestMock);
+
+    await new Promise(process.nextTick);
+
+    expect(Logger.log).toHaveBeenCalledWith('Feature flags updated');
+  });
+
+  it('logs error message when feature flags update fails', async () => {
+    const initRequestMock = getInitRequestMock();
+    const mockError = new Error('Network error');
+    const controllerMock = jest.mocked(RemoteFeatureFlagController);
+    controllerMock.mockImplementationOnce(
+      () =>
+        ({
+          updateRemoteFeatureFlags: jest.fn().mockRejectedValue(mockError),
+        }) as unknown as RemoteFeatureFlagController,
+    );
+
+    remoteFeatureFlagControllerInit(initRequestMock);
+
+    await new Promise(process.nextTick);
+
+    expect(Logger.log).toHaveBeenCalledWith(
+      'Feature flags update failed: ',
+      mockError,
+    );
   });
 });

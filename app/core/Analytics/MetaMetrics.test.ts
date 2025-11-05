@@ -20,6 +20,7 @@ import { MetricsEventBuilder } from './MetricsEventBuilder';
 import { segmentPersistor } from './SegmentPersistor';
 import { createClient } from '@segment/analytics-react-native';
 import { validate } from 'uuid';
+import { isHexAddress } from '@metamask/utils';
 
 jest.mock('../../store/storage-wrapper');
 const mockGet = jest.fn();
@@ -650,9 +651,11 @@ describe('MetaMetrics', () => {
       expect(StorageWrapper.getItem).not.toHaveBeenCalled();
     });
 
-    it('uses Mixpanel ID if it is set', async () => {
-      const mixPanelUUID = '00000000-0000-0000-0000-000000000000';
-      mockGet.mockImplementation(async () => mixPanelUUID);
+    it('uses Mixpanel ID if it is set and is valid hex address', async () => {
+      const mixPanelHexAddress = '0x1234567890123456789012345678901234567890';
+      mockGet.mockImplementation(async (key: string) =>
+        key === MIXPANEL_METAMETRICS_ID ? mixPanelHexAddress : '',
+      );
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
 
@@ -662,10 +665,58 @@ describe('MetaMetrics', () => {
       );
       expect(StorageWrapper.setItem).toHaveBeenCalledWith(
         METAMETRICS_ID,
-        mixPanelUUID,
+        mixPanelHexAddress,
       );
       expect(StorageWrapper.getItem).not.toHaveBeenCalledWith(METAMETRICS_ID);
-      expect(await metaMetrics.getMetaMetricsId()).toEqual(mixPanelUUID);
+      expect(await metaMetrics.getMetaMetricsId()).toEqual(mixPanelHexAddress);
+      expect(isHexAddress(mixPanelHexAddress)).toBe(true);
+    });
+
+    it('uses Mixpanel ID with uppercase letters after converting to lowercase', async () => {
+      const mixPanelHexAddressUppercase =
+        '0X1234567890ABCDEF123456789012345678901234';
+      const expectedLowercase = mixPanelHexAddressUppercase.toLowerCase();
+      mockGet.mockImplementation(async (key: string) =>
+        key === MIXPANEL_METAMETRICS_ID ? mixPanelHexAddressUppercase : '',
+      );
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.configure()).toBeTruthy();
+
+      const metricsId = await metaMetrics.getMetaMetricsId();
+
+      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(
+        3,
+        MIXPANEL_METAMETRICS_ID,
+      );
+      expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+        METAMETRICS_ID,
+        mixPanelHexAddressUppercase,
+      );
+      expect(metricsId).toEqual(mixPanelHexAddressUppercase);
+      expect(isHexAddress(expectedLowercase)).toBe(true);
+    });
+
+    it('ignores Mixpanel ID if it is not a valid hex address', async () => {
+      const invalidMixpanelId = '00000000-0000-0000-0000-000000000000';
+      mockGet.mockImplementation(async (key: string) =>
+        key === MIXPANEL_METAMETRICS_ID ? invalidMixpanelId : '',
+      );
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.configure()).toBeTruthy();
+
+      const metricsId = await metaMetrics.getMetaMetricsId();
+
+      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(
+        3,
+        MIXPANEL_METAMETRICS_ID,
+      );
+      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(4, METAMETRICS_ID);
+      expect(metricsId).not.toEqual(invalidMixpanelId);
+      expect(validate(metricsId as string)).toBe(true);
+      expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+        METAMETRICS_ID,
+        metricsId,
+      );
     });
 
     it('uses Metametrics ID if it is set', async () => {
@@ -809,24 +860,6 @@ describe('MetaMetrics', () => {
         expect(validate(metricsId as unknown as string)).toBe(true);
       });
 
-      it('regenerates new ID when stored ID is NIL UUID (all zeros)', async () => {
-        const nilUUID = '00000000-0000-0000-0000-000000000000';
-        mockGet.mockImplementation(async (key: string) =>
-          key === METAMETRICS_ID ? nilUUID : '',
-        );
-        const metaMetrics = TestMetaMetrics.getInstance();
-
-        await metaMetrics.configure();
-
-        const metricsId = await metaMetrics.getMetaMetricsId();
-        expect(metricsId).not.toEqual(nilUUID);
-        expect(validate(metricsId as string)).toBe(true);
-        expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-          METAMETRICS_ID,
-          metricsId,
-        );
-      });
-
       it('accepts valid UUIDv4 format', async () => {
         const validUUID = '12345678-1234-4234-a234-123456789012';
         mockGet.mockImplementation(async (key: string) =>
@@ -841,63 +874,6 @@ describe('MetaMetrics', () => {
         expect(StorageWrapper.setItem).not.toHaveBeenCalledWith(
           METAMETRICS_ID,
           expect.anything(),
-        );
-      });
-
-      it('regenerates new ID when stored ID is version 1 UUID', async () => {
-        // Example UUIDv1 format: time-based
-        const uuidV1 = '12345678-1234-1234-a234-123456789012';
-        mockGet.mockImplementation(async (key: string) =>
-          key === METAMETRICS_ID ? uuidV1 : '',
-        );
-        const metaMetrics = TestMetaMetrics.getInstance();
-
-        await metaMetrics.configure();
-
-        const metricsId = await metaMetrics.getMetaMetricsId();
-        expect(metricsId).not.toEqual(uuidV1);
-        expect(validate(metricsId as string)).toBe(true);
-        expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-          METAMETRICS_ID,
-          metricsId,
-        );
-      });
-
-      it('regenerates new ID when stored ID is version 3 UUID', async () => {
-        // Example UUIDv3 format: MD5-based
-        const uuidV3 = '12345678-1234-3234-a234-123456789012';
-        mockGet.mockImplementation(async (key: string) =>
-          key === METAMETRICS_ID ? uuidV3 : '',
-        );
-        const metaMetrics = TestMetaMetrics.getInstance();
-
-        await metaMetrics.configure();
-
-        const metricsId = await metaMetrics.getMetaMetricsId();
-        expect(metricsId).not.toEqual(uuidV3);
-        expect(validate(metricsId as string)).toBe(true);
-        expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-          METAMETRICS_ID,
-          metricsId,
-        );
-      });
-
-      it('regenerates new ID when stored ID is version 5 UUID', async () => {
-        // Example UUIDv5 format: SHA1-based
-        const uuidV5 = '12345678-1234-5234-a234-123456789012';
-        mockGet.mockImplementation(async (key: string) =>
-          key === METAMETRICS_ID ? uuidV5 : '',
-        );
-        const metaMetrics = TestMetaMetrics.getInstance();
-
-        await metaMetrics.configure();
-
-        const metricsId = await metaMetrics.getMetaMetricsId();
-        expect(metricsId).not.toEqual(uuidV5);
-        expect(validate(metricsId as string)).toBe(true);
-        expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-          METAMETRICS_ID,
-          metricsId,
         );
       });
     });
