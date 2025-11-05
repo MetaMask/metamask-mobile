@@ -47,8 +47,8 @@ import { strings } from '../../../../../../locales/i18n';
 import { DEPOSIT_NETWORKS_BY_CHAIN_ID } from '../../Deposit/constants/networks';
 import { useTheme } from '../../../../../util/theme';
 
-// ====== CRYPTOCURRENCIES ======
-
+// TODO: Fetch these tokens from the API new enpoint for top 25 with supported status
+//https://consensyssoftware.atlassian.net/browse/TRAM-2816
 export const MOCK_USDC_TOKEN: DepositCryptoCurrency = {
   assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
   chainId: 'eip155:1',
@@ -140,7 +140,8 @@ function TokenSelection() {
   );
 
   const handleSelectAssetIdCallback = useCallback((_assetId: string) => {
-    // TODO: Handle token selection
+    // TODO: Handle token by routing to the appropriate agg or deposit screen with asset id as param and pre-select it
+    // https://consensyssoftware.atlassian.net/browse/TRAM-2795
   }, []);
 
   const scrollToTop = useCallback(() => {
@@ -179,6 +180,8 @@ function TokenSelection() {
           accessibilityRole="button"
           accessible
         >
+          {/*TODO: disable token if not supported
+          https://consensyssoftware.atlassian.net/browse/TRAM-2816 */}
           <ListItemColumn widthType={WidthType.Auto}>
             <BadgeWrapper
               badgePosition={BadgePosition.BottomRight}

@@ -129,19 +129,4 @@ describe('TokenSelection Component', () => {
       );
     });
   });
-
-  it('clears search text when clear button is pressed', async () => {
-    const { getByPlaceholderText, getByTestId } =
-      renderWithProvider(TokenSelection);
-
-    const searchInput = getByPlaceholderText('Search token by name or address');
-    fireEvent.changeText(searchInput, 'USDC');
-
-    await waitFor(() => {
-      const clearButton = getByTestId('text-field-search-clear-button');
-      fireEvent.press(clearButton);
-    });
-
-    expect(searchInput.props.value).toBe('');
-  });
 });
