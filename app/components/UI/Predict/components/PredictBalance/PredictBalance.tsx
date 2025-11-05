@@ -78,7 +78,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
       () => {
         withdraw();
       },
-      { checkBalance: true },
+      { checkBalance: true, skipEligibilityCheck: true },
     );
   }, [withdraw, executeGuardedAction]);
 
