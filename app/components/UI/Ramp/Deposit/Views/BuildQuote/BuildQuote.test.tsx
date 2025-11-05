@@ -395,6 +395,26 @@ describe('BuildQuote Component', () => {
       );
     });
 
+    it('tracks RAMPS_TOKEN_SELECTOR_CLICKED event with undefined currency_destination_network when selectedCryptoCurrency is null', () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedCryptoCurrency: null,
+        }),
+      );
+
+      render(BuildQuote);
+
+      const tokenButton = screen.getByText('mUSD');
+      fireEvent.press(tokenButton);
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_TOKEN_SELECTOR_CLICKED',
+        expect.objectContaining({
+          currency_destination_network: undefined,
+        }),
+      );
+    });
+
     it('does not open token modal when crypto currencies error occurs', () => {
       jest
         .mocked(useCryptoCurrencies)

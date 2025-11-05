@@ -447,7 +447,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={27}
+              handlerTag={28}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -2321,7 +2321,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={29}
+              handlerTag={30}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4195,7 +4195,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={31}
+              handlerTag={32}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -6069,7 +6069,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={19}
+              handlerTag={20}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -7882,7 +7882,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={18}
+              handlerTag={19}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -24339,7 +24339,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={17}
+              handlerTag={18}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -26150,7 +26150,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={16}
+              handlerTag={17}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -28054,7 +28054,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={20}
+              handlerTag={21}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}

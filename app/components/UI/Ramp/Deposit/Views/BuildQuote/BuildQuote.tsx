@@ -420,7 +420,7 @@ const BuildQuote = () => {
 
     trackEvent('RAMPS_TOKEN_SELECTOR_CLICKED', {
       ramp_type: 'DEPOSIT',
-      region: selectedRegion?.isoCode || '',
+      region: selectedRegion?.isoCode,
       location: 'build_quote',
       chain_id: selectedCryptoCurrency?.chainId,
       currency_destination: selectedCryptoCurrency?.assetId,

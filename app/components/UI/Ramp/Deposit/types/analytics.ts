@@ -231,7 +231,7 @@ interface RampsTokenSelectorClicked {
   quote_session_id?: string;
   ramp_type: 'DEPOSIT';
   user_id?: string;
-  region: string;
+  region?: string;
   location: string;
   chain_id?: string;
   currency_destination?: string;
