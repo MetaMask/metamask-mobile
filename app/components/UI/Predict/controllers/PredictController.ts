@@ -963,6 +963,55 @@ export class PredictController extends BaseController<
     );
   }
 
+  /**
+   * Track when user views the predict feed
+   * Tracks session-based feed interactions with unique session IDs
+   * @param sessionId - Unique session identifier
+   * @param feedTab - Current active feed tab
+   * @param numPagesViewed - Number of pages viewed in session
+   * @param sessionTime - Time spent in feed (seconds)
+   * @param entryPoint - How user entered the feed
+   * @param isSessionEnd - Whether this is the final event for the session
+   * @public
+   */
+  public trackFeedViewed({
+    sessionId,
+    feedTab,
+    numPagesViewed,
+    sessionTime,
+    entryPoint,
+    isSessionEnd = false,
+  }: {
+    sessionId: string;
+    feedTab: string;
+    numPagesViewed: number;
+    sessionTime: number;
+    entryPoint?: string;
+    isSessionEnd?: boolean;
+  }): void {
+    const analyticsProperties = {
+      [PredictEventProperties.SESSION_ID]: sessionId,
+      [PredictEventProperties.PREDICT_FEED_TAB]: feedTab,
+      [PredictEventProperties.NUM_FEED_PAGES_VIEWED_IN_SESSION]: numPagesViewed,
+      [PredictEventProperties.SESSION_TIME_IN_FEED]: sessionTime,
+      [PredictEventProperties.IS_SESSION_END]: isSessionEnd,
+      ...(entryPoint && { [PredictEventProperties.ENTRY_POINT]: entryPoint }),
+    };
+
+    DevLogger.log('📊 [Analytics] PREDICT_FEED_VIEWED', {
+      analyticsProperties,
+      isSessionEnd,
+    });
+
+    MetaMetrics.getInstance().trackEvent(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PREDICT_FEED_VIEWED,
+      )
+        .addProperties(analyticsProperties)
+        .build(),
+    );
+  }
+
   async previewOrder(params: PreviewOrderParams): Promise<OrderPreview> {
     try {
       const provider = this.providers.get(params.providerId);
