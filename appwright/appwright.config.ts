@@ -101,33 +101,5 @@ export default defineConfig({
         expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
       },
     },
-    {
-      name: 'android-predict-bs',
-      testMatch: '**/tests/performance/predict/**/*.spec.js',
-      use: {
-        platform: Platform.ANDROID,
-        device: {
-          provider: 'browserstack',
-          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra',
-          osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0',
-        },
-        buildPath: process.env.BROWSERSTACK_ANDROID_CLEAN_APP_URL,
-        expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
-      },
-    },
-    {
-      name: 'ios-predict-bs',
-      testMatch: '**/tests/performance/predict/**/*.spec.js',
-      use: {
-        platform: Platform.IOS,
-        device: {
-          provider: 'browserstack',
-          name: process.env.BROWSERSTACK_DEVICE || 'iPhone 14 Pro Max',
-          osVersion: process.env.BROWSERSTACK_OS_VERSION || '16.0',
-        },
-        buildPath: process.env.BROWSERSTACK_IOS_CLEAN_APP_URL,
-        expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
-      },
-    },
   ],
 });
