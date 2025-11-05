@@ -59,6 +59,14 @@ const createStyles = (params: {
         ? colors.background.muted
         : colors.background.default,
     },
+    selectedIndicator: {
+      marginLeft: -12, // The width of the indicator is 4px, so we need to offset by 12px to align with the cell
+      marginRight: 8,
+      width: 4,
+      height: 56, // Cell height (68px) - 4px
+      borderRadius: 8,
+      backgroundColor: theme.colors.primary.default,
+    },
     accountCellWrapper: {
       flex: 1,
     },
