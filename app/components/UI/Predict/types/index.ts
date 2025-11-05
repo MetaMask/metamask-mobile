@@ -93,7 +93,8 @@ export type PredictMarket = {
   image: string;
   status: 'open' | 'closed' | 'resolved';
   recurrence: Recurrence;
-  categories: PredictCategory[];
+  category: PredictCategory;
+  tags: string[];
   outcomes: PredictOutcome[];
   liquidity: number;
   volume: number;
@@ -240,6 +241,11 @@ export type PredictPosition = {
   avgPrice: number;
   endDate: string;
   negRisk?: boolean;
+};
+
+export type PredictBalance = {
+  balance: number;
+  validUntil: number;
 };
 
 export interface ClaimParams {

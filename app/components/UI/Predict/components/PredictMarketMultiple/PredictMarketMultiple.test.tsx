@@ -39,7 +39,8 @@ const mockMarket: PredictMarket = {
   image: 'https://example.com/bitcoin.png',
   status: 'open',
   recurrence: Recurrence.NONE,
-  categories: ['crypto'],
+  category: 'crypto',
+  tags: [],
   outcomes: [
     {
       id: 'outcome-1',
@@ -291,6 +292,9 @@ describe('PredictMarketMultiple', () => {
       screen: Routes.PREDICT.MARKET_DETAILS,
       params: {
         marketId: mockMarket.id,
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+        title: mockMarket.title,
+        image: mockMarket.image,
       },
     });
   });

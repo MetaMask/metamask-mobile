@@ -6,10 +6,9 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     maxLeverage: {
-      backgroundColor: theme.colors.background.section,
-      paddingVertical: 1,
-      paddingHorizontal: 4,
-      borderRadius: 4,
+      backgroundColor: theme.colors.background.muted,
+      paddingHorizontal: 6,
+      borderRadius: 6,
     },
   });
 };

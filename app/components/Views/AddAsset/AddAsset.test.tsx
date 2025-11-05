@@ -54,8 +54,7 @@ jest.mock('../../../util/navigation/navUtils', () => ({
 jest.mock(
   '@tommasini/react-native-scrollable-tab-view',
   () =>
-    ({ children }: { children: React.ReactNode }) =>
-      <>{children}</>,
+    ({ children }: { children: React.ReactNode }) => <>{children}</>,
 );
 
 const initialState = {

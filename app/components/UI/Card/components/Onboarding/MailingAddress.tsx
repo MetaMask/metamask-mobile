@@ -11,6 +11,7 @@ import OnboardingStep from './OnboardingStep';
 import { AddressFields } from './PhysicalAddress';
 import {
   resetOnboardingState,
+  selectConsentSetId,
   selectOnboardingId,
   selectSelectedCountry,
   setIsAuthenticatedCard,
@@ -20,12 +21,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import useRegisterMailingAddress from '../../hooks/useRegisterMailingAddress';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { CardError } from '../../types';
+import useRegisterUserConsent from '../../hooks/useRegisterUserConsent';
 import { storeCardBaanxToken } from '../../util/cardTokenVault';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import { extractTokenExpiration } from '../../util/extractTokenExpiration';
 import { useCardSDK } from '../../sdk';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 
 const MailingAddress = () => {
   const navigation = useNavigation();
@@ -33,7 +35,10 @@ const MailingAddress = () => {
   const { setUser } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
   const selectedCountry = useSelector(selectSelectedCountry);
+  const consentSetId = useSelector(selectConsentSetId);
   const { trackEvent, createEventBuilder } = useMetrics();
+
+  const { linkUserToConsent } = useRegisterUserConsent();
 
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
@@ -43,9 +48,9 @@ const MailingAddress = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
-          page: OnboardingScreens.MAILING_ADDRESS,
+          screen: CardScreens.MAILING_ADDRESS,
         })
         .build(),
     );
@@ -133,9 +138,9 @@ const MailingAddress = () => {
 
     try {
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
-            action: OnboardingActions.MAILING_ADDRESS_BUTTON_CLICKED,
+            action: CardActions.MAILING_ADDRESS_BUTTON,
           })
           .build(),
       );
@@ -152,7 +157,7 @@ const MailingAddress = () => {
         setUser(updatedUser);
       }
 
-      if (accessToken) {
+      if (accessToken && updatedUser?.id) {
         // Store the access token for immediate authentication
         const location = mapCountryToLocation(selectedCountry);
         const accessTokenExpiresIn = extractTokenExpiration(accessToken);
@@ -167,6 +172,12 @@ const MailingAddress = () => {
           // Update Redux state to reflect authentication
           dispatch(setIsAuthenticatedCard(true));
           dispatch(setUserCardLocation(location));
+        }
+
+        // Step 10: Link consent to user (complete audit trail)
+        // This should only happen if we have a consentSetId from the PhysicalAddress step
+        if (consentSetId) {
+          await linkUserToConsent(consentSetId, updatedUser.id);
         }
 
         // Registration complete

@@ -75,7 +75,8 @@ const mockMarket: PredictMarketType = {
   image: 'https://example.com/bitcoin.png',
   status: 'open',
   recurrence: Recurrence.NONE,
-  categories: ['crypto'],
+  category: 'crypto',
+  tags: [],
   outcomes: [mockOutcome],
   liquidity: 1000000,
   volume: 1000000,
@@ -306,6 +307,9 @@ describe('PredictMarketSingle', () => {
       screen: Routes.PREDICT.MARKET_DETAILS,
       params: {
         marketId: mockMarket.id,
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+        title: mockMarket.title,
+        image: mockMarket.image,
       },
     });
   });

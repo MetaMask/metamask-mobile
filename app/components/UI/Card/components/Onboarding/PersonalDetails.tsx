@@ -31,7 +31,7 @@ import {
 import { CardError } from '../../types';
 import { useCardSDK } from '../../sdk';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 
 const PersonalDetails = () => {
   const navigation = useNavigation();
@@ -56,9 +56,28 @@ const PersonalDetails = () => {
     if (userData) {
       setFirstName(userData.firstName || '');
       setLastName(userData.lastName || '');
-      setDateOfBirth(
-        userData.dateOfBirth ? formatDateOfBirth(userData.dateOfBirth) : '',
-      );
+      // userData.dateOfBirth is in ISO 8601 format, parse it to local timezone
+      if (userData.dateOfBirth && typeof userData.dateOfBirth === 'string') {
+        // Parse the date components: YYYY-MM-DD
+        const dateMatch = userData.dateOfBirth.match(
+          /^(\d{4})-(\d{2})-(\d{2})/,
+        );
+        if (dateMatch) {
+          const [, year, month, day] = dateMatch;
+          // Create date in local timezone (month is 0-indexed)
+          const date = new Date(
+            parseInt(year, 10),
+            parseInt(month, 10) - 1,
+            parseInt(day, 10),
+          );
+          const timestamp = date.getTime();
+          setDateOfBirth(timestamp.toString());
+        } else {
+          setDateOfBirth('');
+        }
+      } else {
+        setDateOfBirth('');
+      }
       setNationality(userData.countryOfResidence || '');
       setSSN(userData.ssn || '');
     }
@@ -160,9 +179,10 @@ const PersonalDetails = () => {
 
     try {
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
-            action: OnboardingActions.PERSONAL_DETAILS_BUTTON_CLICKED,
+            action: CardActions.PERSONAL_DETAILS_BUTTON,
+            country_of_residence: selectedCountry,
           })
           .build(),
       );
@@ -195,9 +215,9 @@ const PersonalDetails = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
-          page: OnboardingScreens.PERSONAL_DETAILS,
+          screen: CardScreens.PERSONAL_DETAILS,
         })
         .build(),
     );

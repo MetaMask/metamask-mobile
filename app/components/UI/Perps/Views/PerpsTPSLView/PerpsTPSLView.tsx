@@ -354,7 +354,13 @@ const PerpsTPSLView: React.FC = () => {
 
     setIsUpdating(true);
     try {
-      await onConfirm(parseTakeProfitPrice, parseStopLossPrice);
+      // Pass tracking data to avoid duplicate position fetch in controller
+      const trackingData = {
+        direction: actualDirection,
+        source: 'tp_sl_view',
+        positionSize: position?.size ? Math.abs(parseFloat(position.size)) : 0,
+      };
+      await onConfirm(parseTakeProfitPrice, parseStopLossPrice, trackingData);
       navigation.goBack();
     } finally {
       setIsUpdating(false);
@@ -366,10 +372,27 @@ const PerpsTPSLView: React.FC = () => {
     onConfirm,
     dismissKeypad,
     navigation,
+    actualDirection,
+    position,
   ]);
 
   const confirmDisabled = !hasChanges || !isValid || isUpdating;
   const inputsDisabled = isUpdating;
+
+  // Wrapper handlers to dismiss keyboard before clearing
+  const handleTakeProfitClear = useCallback(() => {
+    if (focusedInput) {
+      dismissKeypad();
+    }
+    handleTakeProfitOff();
+  }, [focusedInput, dismissKeypad, handleTakeProfitOff]);
+
+  const handleStopLossClear = useCallback(() => {
+    if (focusedInput) {
+      dismissKeypad();
+    }
+    handleStopLossOff();
+  }, [focusedInput, dismissKeypad, handleStopLossOff]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -381,7 +404,7 @@ const PerpsTPSLView: React.FC = () => {
             iconColor={IconColor.Default}
             size={ButtonIconSizes.Md}
             onPress={handleBack}
-            testID="back-button"
+            testID={PerpsTPSLViewSelectorsIDs.BACK_BUTTON}
           />
         </View>
         <View style={styles.headerTitleContainer}>
@@ -470,8 +493,8 @@ const PerpsTPSLView: React.FC = () => {
               </Text>
               {Boolean(takeProfitPrice) && (
                 <TouchableOpacity
-                  onPress={handleTakeProfitOff}
-                  disabled={inputsDisabled || !!focusedInput}
+                  onPress={handleTakeProfitClear}
+                  disabled={inputsDisabled}
                 >
                   <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
                     {strings('perps.tpsl.clear')}
@@ -640,8 +663,8 @@ const PerpsTPSLView: React.FC = () => {
               </Text>
               {Boolean(stopLossPrice) && (
                 <TouchableOpacity
-                  onPress={handleStopLossOff}
-                  disabled={inputsDisabled || !!focusedInput}
+                  onPress={handleStopLossClear}
+                  disabled={inputsDisabled}
                 >
                   <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
                     {strings('perps.tpsl.clear')}

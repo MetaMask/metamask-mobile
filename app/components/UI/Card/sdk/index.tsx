@@ -17,13 +17,11 @@ import { useCardholderCheck } from '../hooks/useCardholderCheck';
 import { useCardAuthenticationVerification } from '../hooks/useCardAuthenticationVerification';
 import { removeCardBaanxToken } from '../util/cardTokenVault';
 import {
-  setAuthenticatedPriorityToken,
-  setAuthenticatedPriorityTokenLastFetched,
-  setIsAuthenticatedCard,
   selectUserCardLocation,
-  setUserCardLocation,
   selectOnboardingId,
   resetOnboardingState,
+  resetAuthenticatedData,
+  clearAllCache,
 } from '../../../../core/redux/slices/card';
 import { UserResponse } from '../types';
 
@@ -64,10 +62,7 @@ export const CardSDKProvider = ({
   const [user, setUser] = useState<UserResponse | null>(null);
 
   const removeAuthenticatedData = useCallback(() => {
-    dispatch(setIsAuthenticatedCard(false));
-    dispatch(setAuthenticatedPriorityTokenLastFetched(null));
-    dispatch(setAuthenticatedPriorityToken(null));
-    dispatch(setUserCardLocation(null));
+    dispatch(resetAuthenticatedData());
   }, [dispatch]);
 
   // Initialize CardSDK when feature flag is enabled
@@ -116,6 +111,9 @@ export const CardSDKProvider = ({
     await removeCardBaanxToken();
     removeAuthenticatedData();
 
+    // Clear all cached data (card details, priority tokens, etc.)
+    dispatch(clearAllCache());
+
     // reset onboarding state
     dispatch(resetOnboardingState());
 
@@ -154,12 +152,11 @@ export const useCardSDK = () => {
  * Higher-order component that wraps a component with CardSDKProvider.
  */
 export const withCardSDK =
-  (Component: React.ComponentType) => (props: Record<string, unknown>) =>
-    (
-      <CardSDKProvider>
-        <Component {...props} />
-      </CardSDKProvider>
-    );
+  (Component: React.ComponentType) => (props: Record<string, unknown>) => (
+    <CardSDKProvider>
+      <Component {...props} />
+    </CardSDKProvider>
+  );
 
 /**
  * Component that performs cardholder verification.

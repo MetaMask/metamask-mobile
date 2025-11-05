@@ -205,6 +205,7 @@ const BridgeView = () => {
   });
 
   const isSubmitDisabled =
+    isLoading ||
     hasInsufficientBalance ||
     isSubmittingTx ||
     (isHardwareAddress && isSolanaSourced) ||
@@ -430,28 +431,7 @@ const BridgeView = () => {
               description={blockaidError}
             />
           )}
-          <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {hasFee
-                ? strings('bridge.fee_disclaimer', {
-                    feePercentage,
-                  })
-                : !hasFee && isNoFeeDestinationAsset
-                ? strings('bridge.no_mm_fee_disclaimer', {
-                    destTokenSymbol: destToken?.symbol,
-                  })
-                : ''}
-              {approval
-                ? ` ${strings('bridge.approval_needed', approval)}`
-                : ''}{' '}
-            </Text>
-            {approval && (
-              <ApprovalTooltip
-                amount={approval.amount}
-                symbol={approval.symbol}
-              />
-            )}
-          </Box>
+
           {!shouldDisplayKeypad && (
             <Button
               variant={ButtonVariants.Primary}
@@ -463,6 +443,28 @@ const BridgeView = () => {
               isDisabled={submitDisabled}
             />
           )}
+          <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center}>
+            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              {hasFee
+                ? strings('bridge.fee_disclaimer', {
+                    feePercentage,
+                  })
+                : !hasFee && isNoFeeDestinationAsset
+                  ? strings('bridge.no_mm_fee_disclaimer', {
+                      destTokenSymbol: destToken?.symbol,
+                    })
+                  : ''}
+              {approval
+                ? ` ${strings('bridge.approval_needed', approval)}`
+                : ''}{' '}
+            </Text>
+            {approval && (
+              <ApprovalTooltip
+                amount={approval.amount}
+                symbol={approval.symbol}
+              />
+            )}
+          </Box>
         </Box>
       )
     );

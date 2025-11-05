@@ -26,6 +26,7 @@ jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => {
 import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
+  PredictPosition,
   PredictPositionStatus,
   PredictPriceHistoryInterval,
   Recurrence,
@@ -687,6 +688,35 @@ describe('PolymarketProvider', () => {
       originalFetch;
   });
 
+  // Helper function to create a mock PredictPosition
+  function createMockPosition(
+    overrides?: Partial<PredictPosition>,
+  ): PredictPosition {
+    return {
+      id: 'position-1',
+      providerId: 'polymarket',
+      marketId: 'market-1',
+      outcomeId: 'outcome-1',
+      outcome: 'Yes',
+      outcomeTokenId: 'token-1',
+      currentValue: 100,
+      title: 'Test Market',
+      icon: 'https://example.com/icon.png',
+      amount: 10,
+      price: 0.5,
+      status: PredictPositionStatus.OPEN,
+      size: 10,
+      outcomeIndex: 0,
+      percentPnl: 0,
+      cashPnl: 0,
+      claimable: false,
+      initialValue: 100,
+      avgPrice: 0.5,
+      endDate: '2025-12-31T23:59:59Z',
+      ...overrides,
+    };
+  }
+
   // Helper function to create a mock OrderPreview
   function createMockOrderPreview(
     overrides?: Partial<OrderPreview>,
@@ -977,7 +1007,7 @@ describe('PolymarketProvider', () => {
 
       // Assert
       expect(result.success).toBe(false);
-      expect(result.error).toBe('Failed to get safe address');
+      expect(result.error).toBe('Maker address not found');
     });
 
     it('fetches account state when not cached during placeOrder', async () => {
@@ -1956,7 +1986,7 @@ describe('PolymarketProvider', () => {
       ).rejects.toThrow('Failed to fetch unrealized P&L');
     });
 
-    it('throws error when API returns empty array', async () => {
+    it('returns undefined when API returns empty array', async () => {
       const provider = createProvider();
 
       (globalThis.fetch as jest.Mock).mockResolvedValue({
@@ -1964,11 +1994,11 @@ describe('PolymarketProvider', () => {
         json: jest.fn().mockResolvedValue([]),
       });
 
-      await expect(
-        provider.getUnrealizedPnL({
-          address: '0x1234567890123456789012345678901234567890',
-        }),
-      ).rejects.toThrow('No unrealized P&L data found');
+      const result = await provider.getUnrealizedPnL({
+        address: '0x1234567890123456789012345678901234567890',
+      });
+
+      expect(result).toBeUndefined();
     });
 
     it('throws error when API returns non-array response', async () => {
@@ -3207,6 +3237,636 @@ describe('PolymarketProvider', () => {
       const result = await provider.getActivity({ address: '0xuser' });
       expect(spy).toHaveBeenCalled();
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('optimistic position updates', () => {
+    let originalFetch: typeof fetch | undefined;
+
+    beforeEach(() => {
+      originalFetch = globalThis.fetch as typeof fetch | undefined;
+      jest.clearAllMocks();
+    });
+
+    afterEach(() => {
+      (globalThis as unknown as { fetch: typeof fetch | undefined }).fetch =
+        originalFetch;
+    });
+
+    describe('confirmClaim', () => {
+      it('adds claimed positions to recently sold list', async () => {
+        // Arrange
+        const provider = createProvider();
+        const mockAddress = '0x1234567890123456789012345678901234567890';
+        const mockSigner = {
+          address: mockAddress,
+          signTypedMessage: jest.fn(),
+          signPersonalMessage: jest.fn(),
+        };
+        const mockPositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 100,
+            cashPnl: 50,
+          }),
+          createMockPosition({
+            id: 'position-2',
+            status: PredictPositionStatus.WON,
+            currentValue: 200,
+            cashPnl: 100,
+          }),
+        ];
+
+        // Mock fetch for getPositions
+        (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
+          .fn()
+          .mockResolvedValue({
+            ok: true,
+            json: jest.fn().mockResolvedValue([
+              {
+                id: 'position-1',
+                market: 'market-1',
+                size: '10',
+                value: '100',
+              },
+              {
+                id: 'position-2',
+                market: 'market-1',
+                size: '20',
+                value: '200',
+              },
+            ]),
+          });
+
+        mockComputeProxyAddress.mockReturnValue('0xproxy');
+        mockParsePolymarketPositions.mockResolvedValue([
+          {
+            id: 'position-1',
+            marketId: 'market-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 100,
+            cashPnl: 50,
+          },
+          {
+            id: 'position-2',
+            marketId: 'market-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 200,
+            cashPnl: 100,
+          },
+        ]);
+
+        // Act
+        provider.confirmClaim({ positions: mockPositions, signer: mockSigner });
+
+        // Assert - subsequent getPositions should filter out claimed positions
+        const result = await provider.getPositions({ address: mockAddress });
+        expect(result).toHaveLength(0);
+      });
+
+      it('handles single position claim', async () => {
+        // Arrange
+        const provider = createProvider();
+        const mockAddress = '0x1234567890123456789012345678901234567890';
+        const mockSigner = {
+          address: mockAddress,
+          signTypedMessage: jest.fn(),
+          signPersonalMessage: jest.fn(),
+        };
+        const mockPosition = createMockPosition({
+          id: 'position-1',
+          status: PredictPositionStatus.WON,
+          currentValue: 100,
+          cashPnl: 50,
+        });
+
+        (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
+          .fn()
+          .mockResolvedValue({
+            ok: true,
+            json: jest.fn().mockResolvedValue([
+              {
+                id: 'position-1',
+                market: 'market-1',
+                size: '10',
+                value: '100',
+              },
+            ]),
+          });
+
+        mockComputeProxyAddress.mockReturnValue('0xproxy');
+        mockParsePolymarketPositions.mockResolvedValue([
+          {
+            id: 'position-1',
+            marketId: 'market-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 100,
+            cashPnl: 50,
+          },
+        ]);
+
+        // Act
+        provider.confirmClaim({
+          positions: [mockPosition],
+          signer: mockSigner,
+        });
+
+        // Assert
+        const result = await provider.getPositions({ address: mockAddress });
+        expect(result).toHaveLength(0);
+      });
+    });
+
+    describe('getPositions with recently sold filtering', () => {
+      it('filters out recently sold positions when calling getPositions', async () => {
+        // Arrange
+        const provider = createProvider();
+        const mockAddress = '0x1234567890123456789012345678901234567890';
+        const mockSigner = {
+          address: mockAddress,
+          signTypedMessage: jest.fn(),
+          signPersonalMessage: jest.fn(),
+        };
+
+        // First, mark position-2 as sold
+        provider.confirmClaim({
+          positions: [
+            createMockPosition({
+              id: 'position-2',
+              status: PredictPositionStatus.OPEN,
+              currentValue: 0,
+              cashPnl: 0,
+            }),
+          ],
+          signer: mockSigner,
+        });
+
+        // Mock fetch to return 3 positions
+        (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
+          .fn()
+          .mockResolvedValue({
+            ok: true,
+            json: jest.fn().mockResolvedValue([
+              {
+                id: 'position-1',
+                market: 'market-1',
+                size: '10',
+                value: '100',
+              },
+              {
+                id: 'position-2',
+                market: 'market-1',
+                size: '20',
+                value: '200',
+              },
+              {
+                id: 'position-3',
+                market: 'market-1',
+                size: '30',
+                value: '300',
+              },
+            ]),
+          });
+
+        mockComputeProxyAddress.mockReturnValue('0xproxy');
+        mockParsePolymarketPositions.mockResolvedValue([
+          {
+            id: 'position-1',
+            marketId: 'market-1',
+            providerId: 'polymarket',
+          },
+          {
+            id: 'position-2',
+            marketId: 'market-1',
+            providerId: 'polymarket',
+          },
+          {
+            id: 'position-3',
+            marketId: 'market-1',
+            providerId: 'polymarket',
+          },
+        ]);
+
+        // Act
+        const result = await provider.getPositions({ address: mockAddress });
+
+        // Assert - should return only 2 positions (position-2 filtered out)
+        expect(result).toHaveLength(2);
+        expect(result).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ id: 'position-1' }),
+            expect.objectContaining({ id: 'position-3' }),
+          ]),
+        );
+        expect(result).not.toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ id: 'position-2' }),
+          ]),
+        );
+      });
+
+      it('cleans up sold positions older than 5 minutes when adding new positions', async () => {
+        // Arrange
+        const provider = createProvider();
+        const mockAddress = '0x1234567890123456789012345678901234567890';
+        const mockSigner = {
+          address: mockAddress,
+          signTypedMessage: jest.fn(),
+          signPersonalMessage: jest.fn(),
+        };
+
+        // Save the original Date.now
+        const realDateNow = Date.now.bind(global.Date);
+        const sixMinutesAgo = realDateNow() - 6 * 60 * 1000;
+
+        // Mock Date.now to return 6 minutes ago for the first confirmClaim
+        const dateNowStub = jest.fn();
+        global.Date.now = dateNowStub;
+        dateNowStub.mockReturnValueOnce(sixMinutesAgo);
+
+        // Mark a position as sold 6 minutes ago
+        provider.confirmClaim({
+          positions: [
+            createMockPosition({
+              id: 'old-position',
+              status: PredictPositionStatus.OPEN,
+              currentValue: 0,
+              cashPnl: 0,
+            }),
+          ],
+          signer: mockSigner,
+        });
+
+        // Now make Date.now return current time
+        dateNowStub.mockImplementation(realDateNow);
+
+        // Add a new position (this should trigger cleanup of old positions)
+        provider.confirmClaim({
+          positions: [
+            createMockPosition({
+              id: 'new-sold-position',
+              status: PredictPositionStatus.OPEN,
+              currentValue: 0,
+              cashPnl: 0,
+            }),
+          ],
+          signer: mockSigner,
+        });
+
+        // Mock fetch to return positions
+        (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
+          .fn()
+          .mockResolvedValue({
+            ok: true,
+            json: jest.fn().mockResolvedValue([
+              {
+                id: 'old-position',
+                market: 'market-1',
+                size: '10',
+                value: '100',
+              },
+              {
+                id: 'new-sold-position',
+                market: 'market-1',
+                size: '15',
+                value: '150',
+              },
+              {
+                id: 'visible-position',
+                market: 'market-1',
+                size: '20',
+                value: '200',
+              },
+            ]),
+          });
+
+        mockComputeProxyAddress.mockReturnValue('0xproxy');
+        mockParsePolymarketPositions.mockResolvedValue([
+          {
+            id: 'old-position',
+            marketId: 'market-1',
+            providerId: 'polymarket',
+          },
+          {
+            id: 'new-sold-position',
+            marketId: 'market-1',
+            providerId: 'polymarket',
+          },
+          {
+            id: 'visible-position',
+            marketId: 'market-1',
+            providerId: 'polymarket',
+          },
+        ]);
+
+        // Act
+        const result = await provider.getPositions({ address: mockAddress });
+
+        // Assert - old position should NOT be filtered (cleaned up), new-sold-position SHOULD be filtered
+        expect(result).toHaveLength(2);
+        expect(result).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ id: 'old-position' }),
+            expect.objectContaining({ id: 'visible-position' }),
+          ]),
+        );
+        expect(result).not.toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ id: 'new-sold-position' }),
+          ]),
+        );
+
+        // Cleanup
+        global.Date.now = realDateNow;
+      });
+
+      it('tracks multiple sold positions for same address', async () => {
+        // Arrange
+        const provider = createProvider();
+        const mockAddress = '0x1234567890123456789012345678901234567890';
+        const mockSigner = {
+          address: mockAddress,
+          signTypedMessage: jest.fn(),
+          signPersonalMessage: jest.fn(),
+        };
+
+        // Mark 3 positions as sold
+        provider.confirmClaim({
+          positions: [
+            createMockPosition({
+              id: 'position-1',
+              status: PredictPositionStatus.OPEN,
+              currentValue: 0,
+              cashPnl: 0,
+            }),
+            createMockPosition({
+              id: 'position-2',
+              status: PredictPositionStatus.OPEN,
+              currentValue: 0,
+              cashPnl: 0,
+            }),
+            createMockPosition({
+              id: 'position-3',
+              status: PredictPositionStatus.OPEN,
+              currentValue: 0,
+              cashPnl: 0,
+            }),
+          ],
+          signer: mockSigner,
+        });
+
+        (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
+          .fn()
+          .mockResolvedValue({
+            ok: true,
+            json: jest.fn().mockResolvedValue([
+              { id: 'position-1', market: 'market-1' },
+              { id: 'position-2', market: 'market-1' },
+              { id: 'position-3', market: 'market-1' },
+              { id: 'position-4', market: 'market-1' },
+            ]),
+          });
+
+        mockComputeProxyAddress.mockReturnValue('0xproxy');
+        mockParsePolymarketPositions.mockResolvedValue([
+          { id: 'position-1', marketId: 'market-1', providerId: 'polymarket' },
+          { id: 'position-2', marketId: 'market-1', providerId: 'polymarket' },
+          { id: 'position-3', marketId: 'market-1', providerId: 'polymarket' },
+          { id: 'position-4', marketId: 'market-1', providerId: 'polymarket' },
+        ]);
+
+        // Act
+        const result = await provider.getPositions({ address: mockAddress });
+
+        // Assert - only position-4 should remain
+        expect(result).toHaveLength(1);
+        expect(result[0]).toMatchObject({ id: 'position-4' });
+      });
+
+      it('handles multiple addresses independently', async () => {
+        // Arrange
+        const provider = createProvider();
+        const addressA = '0x1111111111111111111111111111111111111111';
+        const addressB = '0x2222222222222222222222222222222222222222';
+
+        // Mark position-1 as sold for address A
+        provider.confirmClaim({
+          positions: [
+            createMockPosition({
+              id: 'position-1',
+              status: PredictPositionStatus.OPEN,
+              currentValue: 0,
+              cashPnl: 0,
+            }),
+          ],
+          signer: {
+            address: addressA,
+            signTypedMessage: jest.fn(),
+            signPersonalMessage: jest.fn(),
+          },
+        });
+
+        // Mark position-2 as sold for address B
+        provider.confirmClaim({
+          positions: [
+            createMockPosition({
+              id: 'position-2',
+              status: PredictPositionStatus.OPEN,
+              currentValue: 0,
+              cashPnl: 0,
+            }),
+          ],
+          signer: {
+            address: addressB,
+            signTypedMessage: jest.fn(),
+            signPersonalMessage: jest.fn(),
+          },
+        });
+
+        // Mock fetch for address A
+        (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
+          .fn()
+          .mockResolvedValue({
+            ok: true,
+            json: jest.fn().mockResolvedValue([
+              { id: 'position-1', market: 'market-1' },
+              { id: 'position-2', market: 'market-1' },
+            ]),
+          });
+
+        mockComputeProxyAddress.mockReturnValue('0xproxy');
+        mockParsePolymarketPositions.mockResolvedValue([
+          { id: 'position-1', marketId: 'market-1', providerId: 'polymarket' },
+          { id: 'position-2', marketId: 'market-1', providerId: 'polymarket' },
+        ]);
+
+        // Act - get positions for address A
+        const resultA = await provider.getPositions({ address: addressA });
+
+        // Assert - only position-2 should be returned (position-1 filtered for addressA)
+        expect(resultA).toHaveLength(1);
+        expect(resultA[0]).toMatchObject({ id: 'position-2' });
+      });
+
+      it('returns all positions when no positions are marked as sold', async () => {
+        // Arrange
+        const provider = createProvider();
+        const mockAddress = '0x1234567890123456789012345678901234567890';
+
+        (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
+          .fn()
+          .mockResolvedValue({
+            ok: true,
+            json: jest.fn().mockResolvedValue([
+              { id: 'position-1', market: 'market-1' },
+              { id: 'position-2', market: 'market-1' },
+              { id: 'position-3', market: 'market-1' },
+              { id: 'position-4', market: 'market-1' },
+              { id: 'position-5', market: 'market-1' },
+            ]),
+          });
+
+        mockComputeProxyAddress.mockReturnValue('0xproxy');
+        mockParsePolymarketPositions.mockResolvedValue([
+          { id: 'position-1', marketId: 'market-1', providerId: 'polymarket' },
+          { id: 'position-2', marketId: 'market-1', providerId: 'polymarket' },
+          { id: 'position-3', marketId: 'market-1', providerId: 'polymarket' },
+          { id: 'position-4', marketId: 'market-1', providerId: 'polymarket' },
+          { id: 'position-5', marketId: 'market-1', providerId: 'polymarket' },
+        ]);
+
+        // Act
+        const result = await provider.getPositions({ address: mockAddress });
+
+        // Assert
+        expect(result).toHaveLength(5);
+      });
+
+      it('handles empty sold positions list gracefully', async () => {
+        // Arrange
+        const provider = createProvider();
+        const mockAddress = '0x1234567890123456789012345678901234567890';
+
+        (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
+          .fn()
+          .mockResolvedValue({
+            ok: true,
+            json: jest
+              .fn()
+              .mockResolvedValue([{ id: 'position-1', market: 'market-1' }]),
+          });
+
+        mockComputeProxyAddress.mockReturnValue('0xproxy');
+        mockParsePolymarketPositions.mockResolvedValue([
+          { id: 'position-1', marketId: 'market-1', providerId: 'polymarket' },
+        ]);
+
+        // Act
+        const result = await provider.getPositions({ address: mockAddress });
+
+        // Assert - no errors, returns all positions
+        expect(result).toHaveLength(1);
+        expect(result[0]).toMatchObject({ id: 'position-1' });
+      });
+    });
+
+    describe('placeOrder with optimistic sold tracking', () => {
+      it('adds position to sold list when selling', async () => {
+        // Arrange
+        const { provider, mockSigner } = setupPlaceOrderTest();
+        const preview = createMockOrderPreview({
+          side: Side.SELL,
+          outcomeTokenId: 'token-123',
+          positionId: 'token-123', // positionId is required for tracking sold positions
+        });
+        const orderParams = {
+          signer: mockSigner,
+          providerId: 'polymarket',
+          preview,
+        };
+
+        // Act
+        await provider.placeOrder(orderParams);
+
+        // Assert - subsequent getPositions should filter out the sold position
+        (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
+          .fn()
+          .mockResolvedValue({
+            ok: true,
+            json: jest
+              .fn()
+              .mockResolvedValue([{ id: 'token-123', market: 'market-1' }]),
+          });
+
+        mockComputeProxyAddress.mockReturnValue('0xproxy');
+        mockParsePolymarketPositions.mockResolvedValue([
+          { id: 'token-123', marketId: 'market-1', providerId: 'polymarket' },
+        ]);
+
+        const positions = await provider.getPositions({
+          address: mockSigner.address,
+        });
+        expect(positions).toHaveLength(0);
+      });
+
+      it('does not add to sold list when buying', async () => {
+        // Arrange
+        const { provider, mockSigner } = setupPlaceOrderTest();
+        const preview = createMockOrderPreview({
+          side: Side.BUY,
+          outcomeTokenId: 'token-456',
+        });
+        const orderParams = {
+          signer: mockSigner,
+          providerId: 'polymarket',
+          preview,
+        };
+
+        // Act
+        await provider.placeOrder(orderParams);
+
+        // Assert - getPositions should not filter anything
+        (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
+          .fn()
+          .mockResolvedValue({
+            ok: true,
+            json: jest
+              .fn()
+              .mockResolvedValue([{ id: 'token-456', market: 'market-1' }]),
+          });
+
+        mockComputeProxyAddress.mockReturnValue('0xproxy');
+        mockParsePolymarketPositions.mockResolvedValue([
+          { id: 'token-456', marketId: 'market-1', providerId: 'polymarket' },
+        ]);
+
+        const positions = await provider.getPositions({
+          address: mockSigner.address,
+        });
+        expect(positions).toHaveLength(1);
+        expect(positions[0]).toMatchObject({ id: 'token-456' });
+      });
+    });
+  });
+
+  describe('provider interface properties', () => {
+    it('exposes chainId property with value 137', () => {
+      const provider = new PolymarketProvider();
+
+      expect(provider.chainId).toBe(137);
+    });
+
+    it('exposes name property with value Polymarket', () => {
+      const provider = new PolymarketProvider();
+
+      expect(provider.name).toBe('Polymarket');
+    });
+
+    it('exposes providerId property with value polymarket', () => {
+      const provider = new PolymarketProvider();
+
+      expect(provider.providerId).toBe('polymarket');
     });
   });
 });

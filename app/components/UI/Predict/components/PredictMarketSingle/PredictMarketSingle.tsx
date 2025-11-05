@@ -168,9 +168,9 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
           />
         </Svg>
         <Text
-          variant={TextVariant.HeadingSM}
+          variant={TextVariant.BodyMDMedium}
           color={TextColor.Success}
-          style={tw.style('-mb-1')}
+          style={tw.style('-mb-1.5')}
         >
           {percentage}%
         </Text>
@@ -186,6 +186,9 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
           screen: Routes.PREDICT.MARKET_DETAILS,
           params: {
             marketId: market.id,
+            entryPoint,
+            title: market.title,
+            image: getImageUrl(),
           },
         });
       }}
@@ -197,7 +200,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             alignItems={BoxAlignItems.Center}
             twClassName="flex-1 gap-3"
           >
-            <Box twClassName="w-12 h-12 rounded-lg bg-muted overflow-hidden">
+            <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
               {getImageUrl() ? (
                 <Image
                   source={{ uri: getImageUrl() }}
@@ -209,9 +212,10 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
               )}
             </Box>
             <Text
-              variant={TextVariant.HeadingMD}
+              variant={TextVariant.BodyMDMedium}
               color={TextColor.Default}
               style={tw.style('flex-1 font-medium')}
+              numberOfLines={2}
             >
               {getTitle()}
             </Text>

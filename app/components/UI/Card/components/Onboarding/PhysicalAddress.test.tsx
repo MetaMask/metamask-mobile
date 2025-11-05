@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
@@ -24,6 +24,34 @@ jest.mock('../../hooks/useRegistrationSettings');
 // Mock SDK
 jest.mock('../../sdk', () => ({
   useCardSDK: jest.fn(),
+}));
+
+// Mock useMetrics
+jest.mock('../../../../hooks/useMetrics', () => ({
+  useMetrics: jest.fn(() => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn(),
+    })),
+  })),
+  MetaMetricsEvents: {
+    CARD_VIEWED: 'card_viewed',
+    CARD_BUTTON_CLICKED: 'card_button_clicked',
+  },
+}));
+
+// Mock utility functions
+jest.mock('../../util/cardTokenVault', () => ({
+  storeCardBaanxToken: jest.fn().mockResolvedValue({ success: true }),
+}));
+
+jest.mock('../../util/mapCountryToLocation', () => ({
+  mapCountryToLocation: jest.fn(() => 'us'),
+}));
+
+jest.mock('../../util/extractTokenExpiration', () => ({
+  extractTokenExpiration: jest.fn(() => 3600000),
 }));
 
 // Mock OnboardingStep component
@@ -310,7 +338,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Enter ZIP code',
       'card.card_onboarding.physical_address.same_mailing_address_label':
         'Use same address for mailing',
-      'card.card_onboarding.physical_address.electronic_consent_label':
+      'card.card_onboarding.physical_address.electronic_consent':
         'I consent to electronic communications',
       'card.card_onboarding.continue_button': 'Continue',
     };
@@ -322,6 +350,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
+  useDispatch: jest.fn(),
 }));
 
 // Create test store
@@ -402,7 +431,8 @@ describe('PhysicalAddress Component', () => {
 
     // Mock useRegisterUserConsent
     mockUseRegisterUserConsent.mockReturnValue({
-      registerUserConsent: jest.fn(),
+      createOnboardingConsent: jest.fn(),
+      linkUserToConsent: jest.fn(),
       isLoading: false,
       isSuccess: false,
       isError: false,
@@ -450,6 +480,7 @@ describe('PhysicalAddress Component', () => {
             termsAndConditions: '',
             accountOpeningDisclosure: '',
             noticeOfPrivacy: '',
+            eSignConsentDisclosure: '',
           },
           intl: { termsAndConditions: '', rightToInformation: '' },
         },
@@ -483,8 +514,8 @@ describe('PhysicalAddress Component', () => {
       logoutFromProvider: jest.fn(),
     });
 
-    // Mock useSelector
-    const { useSelector } = jest.requireMock('react-redux');
+    // Mock useSelector and useDispatch
+    const { useSelector, useDispatch } = jest.requireMock('react-redux');
     useSelector.mockImplementation((selector: any) =>
       selector({
         card: {
@@ -499,6 +530,7 @@ describe('PhysicalAddress Component', () => {
         },
       }),
     );
+    useDispatch.mockReturnValue(jest.fn());
   });
 
   describe('Initial Render', () => {
@@ -668,7 +700,7 @@ describe('PhysicalAddress Component', () => {
       expect(status.props.children).toBe('unchecked');
     });
 
-    it('handles electronic consent checkbox toggle', () => {
+    it('handles electronic consent checkbox toggle for US users', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <PhysicalAddress />
@@ -686,6 +718,63 @@ describe('PhysicalAddress Component', () => {
 
       fireEvent.press(checkbox);
       expect(status.props.children).toBe('checked');
+    });
+
+    it('shows electronic consent checkbox for US users', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      // Electronic consent checkbox should be visible for US users
+      expect(
+        getByTestId('physical-address-electronic-consent-checkbox'),
+      ).toBeTruthy();
+    });
+
+    it('hides electronic consent checkbox for international users', () => {
+      // Create store with international country
+      const intlStore = createTestStore({
+        onboarding: {
+          selectedCountry: 'CA', // Canada as international
+          onboardingId: 'test-id',
+          contactVerificationId: 'contact-id',
+          user: {
+            id: 'user-id',
+            email: 'test@example.com',
+          },
+        },
+        userCardLocation: 'intl',
+      });
+
+      // Mock useSelector for international users
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation((selector: any) =>
+        selector({
+          card: {
+            onboarding: {
+              selectedCountry: 'CA',
+              onboardingId: 'test-id',
+              user: {
+                id: 'user-id',
+                email: 'test@example.com',
+              },
+            },
+          },
+        }),
+      );
+
+      const { queryByTestId } = render(
+        <Provider store={intlStore}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      // Electronic consent checkbox should not be visible for international users
+      expect(
+        queryByTestId('physical-address-electronic-consent-checkbox'),
+      ).toBeNull();
     });
   });
 
@@ -713,9 +802,18 @@ describe('PhysicalAddress Component', () => {
       fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
       fireEvent.press(getByTestId('state-select'));
+
+      // Check all required checkboxes for US users
       fireEvent.press(
         getByTestId('physical-address-electronic-consent-checkbox'),
       );
+      fireEvent.press(
+        getByTestId('physical-address-account-opening-disclosure-checkbox'),
+      );
+      fireEvent.press(
+        getByTestId('physical-address-terms-and-conditions-checkbox'),
+      );
+      fireEvent.press(getByTestId('physical-address-privacy-policy-checkbox'));
 
       // Wait for state updates
       await new Promise((resolve) => setTimeout(resolve, 50));
@@ -745,16 +843,19 @@ describe('PhysicalAddress Component', () => {
 
   describe('Navigation', () => {
     it('navigates to mailing address when same address is not checked', async () => {
+      const mockCreateOnboardingConsent = jest
+        .fn()
+        .mockResolvedValue('consent-set-123');
+      const mockLinkUserToConsent = jest.fn().mockResolvedValue(undefined);
       const mockRegisterAddress = jest.fn().mockResolvedValue({
-        accessToken: null, // No access token to avoid navigation to complete
+        accessToken: null,
         user: { id: 'user-id' },
       });
-      const mockRegisterUserConsent = jest.fn().mockResolvedValue({});
 
       mockUseRegisterPhysicalAddress.mockReturnValue({
         registerAddress: mockRegisterAddress,
         isLoading: false,
-        isSuccess: true,
+        isSuccess: false,
         isError: false,
         error: null,
         clearError: jest.fn(),
@@ -762,9 +863,10 @@ describe('PhysicalAddress Component', () => {
       });
 
       mockUseRegisterUserConsent.mockReturnValue({
-        registerUserConsent: mockRegisterUserConsent,
+        createOnboardingConsent: mockCreateOnboardingConsent,
+        linkUserToConsent: mockLinkUserToConsent,
         isLoading: false,
-        isSuccess: true,
+        isSuccess: false,
         isError: false,
         error: null,
         consentSetId: null,
@@ -778,69 +880,76 @@ describe('PhysicalAddress Component', () => {
         </Provider>,
       );
 
-      // Fill form fields
       fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
       fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
-
-      // For US users, state is required - press the select to choose first option (CA)
       fireEvent.press(getByTestId('state-select'));
 
-      // Wait for state update
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      // Toggle electronic consent (required)
       fireEvent.press(
         getByTestId('physical-address-electronic-consent-checkbox'),
       );
+      fireEvent.press(
+        getByTestId('physical-address-account-opening-disclosure-checkbox'),
+      );
+      fireEvent.press(
+        getByTestId('physical-address-terms-and-conditions-checkbox'),
+      );
+      fireEvent.press(getByTestId('physical-address-privacy-policy-checkbox'));
 
-      // Toggle same mailing address to false (it starts as true)
       fireEvent.press(
         getByTestId('physical-address-same-mailing-address-checkbox'),
       );
 
-      // Wait for all state updates
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      // Press the continue button
-      const button = getByTestId('physical-address-continue-button');
-      fireEvent.press(button);
-
-      // Wait for async operations to complete
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Should call register functions first
-      expect(mockRegisterAddress).toHaveBeenCalledWith({
-        onboardingId: 'test-id',
-        addressLine1: '123 Main St',
-        addressLine2: '',
-        city: 'San Francisco',
-        usState: 'CA',
-        zip: '12345',
-        isSameMailingAddress: false,
+      await waitFor(() => {
+        const button = getByTestId('physical-address-continue-button');
+        expect(button.props.disabled).toBe(false);
       });
-      expect(mockRegisterUserConsent).toHaveBeenCalledWith(
-        'test-id',
-        'user-id',
-      );
 
-      // Then navigate to mailing address (no accessToken returned)
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.CARD.ONBOARDING.MAILING_ADDRESS,
-      );
+      const button = getByTestId('physical-address-continue-button');
+
+      await act(async () => {
+        fireEvent.press(button);
+      });
+
+      await waitFor(() => {
+        expect(mockCreateOnboardingConsent).toHaveBeenCalledWith('test-id');
+      });
+
+      await waitFor(() => {
+        expect(mockRegisterAddress).toHaveBeenCalledWith({
+          onboardingId: 'test-id',
+          addressLine1: '123 Main St',
+          addressLine2: '',
+          city: 'San Francisco',
+          usState: 'CA',
+          zip: '12345',
+          isSameMailingAddress: false,
+        });
+      });
+
+      expect(mockLinkUserToConsent).not.toHaveBeenCalled();
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.CARD.ONBOARDING.MAILING_ADDRESS,
+        );
+      });
     });
 
     it('navigates to complete when same address is checked and access token is present', async () => {
+      const mockCreateOnboardingConsent = jest
+        .fn()
+        .mockResolvedValue('consent-set-123');
+      const mockLinkUserToConsent = jest.fn().mockResolvedValue(undefined);
       const mockRegisterAddress = jest.fn().mockResolvedValue({
         accessToken: 'test-token',
         user: { id: 'user-id' },
       });
-      const mockRegisterUserConsent = jest.fn().mockResolvedValue({});
 
       mockUseRegisterPhysicalAddress.mockReturnValue({
         registerAddress: mockRegisterAddress,
         isLoading: false,
-        isSuccess: true,
+        isSuccess: false,
         isError: false,
         error: null,
         clearError: jest.fn(),
@@ -848,9 +957,10 @@ describe('PhysicalAddress Component', () => {
       });
 
       mockUseRegisterUserConsent.mockReturnValue({
-        registerUserConsent: mockRegisterUserConsent,
+        createOnboardingConsent: mockCreateOnboardingConsent,
+        linkUserToConsent: mockLinkUserToConsent,
         isLoading: false,
-        isSuccess: true,
+        isSuccess: false,
         isError: false,
         error: null,
         consentSetId: null,
@@ -864,34 +974,39 @@ describe('PhysicalAddress Component', () => {
         </Provider>,
       );
 
-      // Fill form fields
       fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
       fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
-
-      // For US users, state is required - press the select to choose first option (CA)
       fireEvent.press(getByTestId('state-select'));
 
-      // Wait for state update
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      // Toggle electronic consent (required)
       fireEvent.press(
         getByTestId('physical-address-electronic-consent-checkbox'),
       );
+      fireEvent.press(
+        getByTestId('physical-address-account-opening-disclosure-checkbox'),
+      );
+      fireEvent.press(
+        getByTestId('physical-address-terms-and-conditions-checkbox'),
+      );
+      fireEvent.press(getByTestId('physical-address-privacy-policy-checkbox'));
 
-      // Keep same mailing address as true (default)
+      await waitFor(() => {
+        const button = getByTestId('physical-address-continue-button');
+        expect(button.props.disabled).toBe(false);
+      });
 
-      // Wait for all state updates
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      // Check if button is disabled and handle accordingly
       const button = getByTestId('physical-address-continue-button');
-      if (button.props.disabled) {
-        // Button is disabled, so handleContinue won't be called
-        // This is a workaround since the button is disabled
-        await mockRegisterUserConsent('test-id', 'user-id');
-        await mockRegisterAddress({
+
+      await act(async () => {
+        fireEvent.press(button);
+      });
+
+      await waitFor(() => {
+        expect(mockCreateOnboardingConsent).toHaveBeenCalledWith('test-id');
+      });
+
+      await waitFor(() => {
+        expect(mockRegisterAddress).toHaveBeenCalledWith({
           onboardingId: 'test-id',
           addressLine1: '123 Main St',
           addressLine2: '',
@@ -900,30 +1015,20 @@ describe('PhysicalAddress Component', () => {
           zip: '12345',
           isSameMailingAddress: true,
         });
-        mockNavigate(Routes.CARD.ONBOARDING.COMPLETE);
-      } else {
-        // Press the continue button normally
-        fireEvent.press(button);
-        // Wait for async operations to complete
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      }
-
-      expect(mockRegisterUserConsent).toHaveBeenCalledWith(
-        'test-id',
-        'user-id',
-      );
-      expect(mockRegisterAddress).toHaveBeenCalledWith({
-        onboardingId: 'test-id',
-        addressLine1: '123 Main St',
-        addressLine2: '',
-        city: 'San Francisco',
-        usState: 'CA',
-        zip: '12345',
-        isSameMailingAddress: true,
       });
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.CARD.ONBOARDING.COMPLETE,
-      );
+
+      await waitFor(() => {
+        expect(mockLinkUserToConsent).toHaveBeenCalledWith(
+          'consent-set-123',
+          'user-id',
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.CARD.ONBOARDING.COMPLETE,
+        );
+      });
     });
   });
 
@@ -948,9 +1053,10 @@ describe('PhysicalAddress Component', () => {
       expect(getByText('Registration failed')).toBeTruthy();
     });
 
-    it('displays user consent error when present', () => {
+    it('displays consent error when present', () => {
       mockUseRegisterUserConsent.mockReturnValue({
-        registerUserConsent: jest.fn(),
+        createOnboardingConsent: jest.fn(),
+        linkUserToConsent: jest.fn(),
         isLoading: false,
         isSuccess: false,
         isError: true,
@@ -994,7 +1100,8 @@ describe('PhysicalAddress Component', () => {
 
     it('disables button during consent loading', () => {
       mockUseRegisterUserConsent.mockReturnValue({
-        registerUserConsent: jest.fn(),
+        createOnboardingConsent: jest.fn(),
+        linkUserToConsent: jest.fn(),
         isLoading: true,
         isSuccess: false,
         isError: false,

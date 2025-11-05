@@ -4,8 +4,10 @@ import { captureException } from '@sentry/react-native';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import type { PredictPosition } from '../types';
 import { usePredictTrading } from './usePredictTrading';
+import { usePredictNetworkManagement } from './usePredictNetworkManagement';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { selectPredictClaimablePositionsByAddress } from '../selectors/predictController';
 
 interface UsePredictPositionsOptions {
   /**
@@ -64,14 +66,20 @@ export function usePredictPositions(
   } = options;
 
   const { getPositions } = usePredictTrading();
+  const { ensurePolygonNetworkExists } = usePredictNetworkManagement();
 
   const [positions, setPositions] = useState<PredictPosition[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const selectedInternalAccountAddress = useSelector(
-    selectSelectedInternalAccountAddress,
+  const selectedInternalAccountAddress =
+    useSelector(selectSelectedInternalAccountAddress) ?? '0x0';
+
+  const claimablePositions = useSelector(
+    selectPredictClaimablePositionsByAddress({
+      address: selectedInternalAccountAddress,
+    }),
   );
 
   const loadPositions = useCallback(
@@ -86,6 +94,18 @@ export function usePredictPositions(
           setPositions([]);
         }
         setError(null);
+
+        // Ensure Polygon network exists before fetching positions
+        try {
+          await ensurePolygonNetworkExists();
+        } catch (networkError) {
+          // Error already logged to Sentry in usePredictNetworkManagement
+          DevLogger.log(
+            'usePredictPositions: Failed to ensure Polygon network exists',
+            networkError,
+          );
+          // Continue with positions fetch - network might already exist
+        }
 
         // Get positions from Predict controller
         const positionsData = await getPositions({
@@ -134,6 +154,7 @@ export function usePredictPositions(
         setIsRefreshing(false);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       getPositions,
       selectedInternalAccountAddress,
@@ -181,7 +202,10 @@ export function usePredictPositions(
   }, [autoRefreshTimeout]);
 
   return {
-    positions,
+    // Get claimable positions from controller state if claimable is true.
+    // This will ensure that we can refresh claimable positions when the user
+    // performs a claim operation.
+    positions: claimable ? [...claimablePositions] : positions,
     isLoading,
     isRefreshing,
     error,
