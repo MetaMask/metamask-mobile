@@ -16,7 +16,7 @@ describe('SrpInputGrid', () => {
     seedPhrase: [''],
     onSeedPhraseChange: mockOnSeedPhraseChange,
     onError: mockOnError,
-    testIDPrefix: ImportSRPIDs.SEED_PHRASE_INPUT_ID,
+    testIdPrefix: ImportSRPIDs.SEED_PHRASE_INPUT_ID,
     placeholderText: 'Enter your Secret Recovery Phrase',
   };
 

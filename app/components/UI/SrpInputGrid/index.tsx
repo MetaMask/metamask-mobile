@@ -51,7 +51,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       onSeedPhraseChange,
       onError,
       externalError = '',
-      testIDPrefix,
+      testIdPrefix,
       placeholderText,
       uniqueId = uuidv4(),
       disabled = false,
@@ -105,7 +105,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
             const isEndWithSpace = text.at(-1) === SPACE_CHAR;
             const splitArray = text
               .trim()
-              .split(' ')
+              .split(SPACE_CHAR)
               .filter((word) => word.trim() !== '');
 
             if (splitArray.length === 0) {
@@ -130,7 +130,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
             const hasReachedMax = normalizedWords.length >= maxAllowed;
             const isCompleteAndValid =
               SRP_LENGTHS.includes(normalizedWords.length) &&
-              isValidMnemonic(normalizedWords.join(' '));
+              isValidMnemonic(normalizedWords.join(SPACE_CHAR));
 
             let nextSeedPhraseState = normalizedWords;
             if (
@@ -205,7 +205,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
         const text = formatSeedPhraseToSingleLine(seedPhraseText);
         const trimmedText = text.trim();
         const updatedTrimmedText = trimmedText
-          .split(' ')
+          .split(SPACE_CHAR)
           .filter((word) => word !== '');
 
         if (SRP_LENGTHS.includes(updatedTrimmedText.length)) {
@@ -265,7 +265,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     const handleEnterKeyPress = useCallback(
       (index: number) => {
         handleSeedPhraseChangeAtIndexRef.current(
-          `${seedPhrase[index]} `,
+          `${seedPhrase[index]}${SPACE_CHAR}`,
           index,
         );
       },
@@ -379,7 +379,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                   showSoftInputOnFocus
                   isError={errorWordIndexes[index]}
                   autoCapitalize="none"
-                  testID={`${testIDPrefix}_${index}`}
+                  testID={`${testIdPrefix}_${index}`}
                   keyboardType="default"
                   autoCorrect={false}
                   textContentType="oneTimeCode"
@@ -417,7 +417,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                 textAlignVertical="top"
                 showSoftInputOnFocus
                 autoCapitalize="none"
-                testID={testIDPrefix}
+                testID={testIdPrefix}
                 keyboardType="default"
                 autoCorrect={false}
                 textContentType="oneTimeCode"

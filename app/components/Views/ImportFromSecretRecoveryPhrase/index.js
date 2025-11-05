@@ -295,7 +295,7 @@ const ImportFromSecretRecoveryPhrase = ({
     const phrase = seedPhrase
       .map((item) => item.trim())
       .filter((item) => item !== '')
-      .join(' ');
+      .join(SPACE_CHAR);
     const seedPhraseLength = seedPhrase.length;
     if (!SRP_LENGTHS.includes(seedPhraseLength)) {
       toastRef?.current?.showToast({
@@ -355,7 +355,9 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const onPressImport = async () => {
     // Trim each word before joining for processing
-    const trimmedSeedPhrase = seedPhrase.map((item) => item.trim()).join(' ');
+    const trimmedSeedPhrase = seedPhrase
+      .map((item) => item.trim())
+      .join(SPACE_CHAR);
     const vaultSeed = await parseVaultValue(password, trimmedSeedPhrase);
     const parsedSeed = parseSeedPhrase(vaultSeed || trimmedSeedPhrase);
 
@@ -562,7 +564,7 @@ const ImportFromSecretRecoveryPhrase = ({
                 onSeedPhraseChange={setSeedPhrase}
                 onError={setError}
                 externalError={error}
-                testIDPrefix={ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}
+                testIdPrefix={ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}
                 placeholderText={strings('import_from_seed.srp_placeholder')}
                 uniqueId={uniqueId}
               />

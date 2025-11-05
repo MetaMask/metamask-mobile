@@ -13,7 +13,7 @@ export const checkValidSeedWord = (text: string): boolean =>
  * Calculate trimmed seed phrase length (non-empty words)
  */
 export const getTrimmedSeedPhraseLength = (seedPhrase: string[]): number =>
-  seedPhrase.filter((word) => word !== '').length;
+  seedPhrase.filter((word) => word.trim() !== '').length;
 
 /**
  * Check if SRP continue button should be disabled

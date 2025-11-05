@@ -42,7 +42,7 @@ import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Logger from '../../../util/Logger';
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid, { SrpInputGridRef } from '../../UI/SrpInputGrid';
-import { isSRPLengthValid } from '../../../util/srp/srpInputUtils';
+import { isSRPLengthValid, SPACE_CHAR } from '../../../util/srp/srpInputUtils';
 import {
   validateSRP,
   validateCompleteness,
@@ -178,7 +178,7 @@ const ImportNewSecretRecoveryPhrase = () => {
     const phrase = seedPhrase
       .map((item) => item.trim())
       .filter((item) => item !== '')
-      .join(' ');
+      .join(SPACE_CHAR);
 
     setError('');
 
@@ -294,7 +294,7 @@ const ImportNewSecretRecoveryPhrase = () => {
             onSeedPhraseChange={setSeedPhrase}
             onError={setError}
             externalError={error}
-            testIDPrefix={ImportSRPIDs.SEED_PHRASE_INPUT_ID}
+            testIdPrefix={ImportSRPIDs.SEED_PHRASE_INPUT_ID}
             placeholderText={strings(
               'import_new_secret_recovery_phrase.textarea_placeholder',
             )}

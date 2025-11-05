@@ -27,7 +27,7 @@ export interface SrpInputGridProps {
   /**
    * Prefix for test IDs (e.g., 'seed-phrase-input' or 'import-from-seed-input')
    */
-  testIDPrefix: string;
+  testIdPrefix: string;
 
   /**
    * Placeholder text for the first input (textarea mode)
