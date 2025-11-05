@@ -899,12 +899,20 @@ export class PerpsController extends BaseController<
       validatedEquity !== undefined && validatedEquity !== this.hip3Enabled;
     const allowlistMarketsChanged =
       validatedAllowlistMarkets !== undefined &&
-      JSON.stringify([...validatedAllowlistMarkets].sort()) !==
-        JSON.stringify([...this.hip3AllowlistMarkets].sort());
+      JSON.stringify(
+        [...validatedAllowlistMarkets].sort((a, b) => a.localeCompare(b)),
+      ) !==
+        JSON.stringify(
+          [...this.hip3AllowlistMarkets].sort((a, b) => a.localeCompare(b)),
+        );
     const blocklistMarketsChanged =
       validatedBlocklistMarkets !== undefined &&
-      JSON.stringify([...validatedBlocklistMarkets].sort()) !==
-        JSON.stringify([...this.hip3BlocklistMarkets].sort());
+      JSON.stringify(
+        [...validatedBlocklistMarkets].sort((a, b) => a.localeCompare(b)),
+      ) !==
+        JSON.stringify(
+          [...this.hip3BlocklistMarkets].sort((a, b) => a.localeCompare(b)),
+        );
 
     if (equityChanged || allowlistMarketsChanged || blocklistMarketsChanged) {
       DevLogger.log(

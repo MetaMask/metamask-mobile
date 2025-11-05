@@ -834,8 +834,7 @@ export class HyperLiquidSubscriptionService {
                 return; // Skip this DEX - not enabled in our configuration
               }
 
-              const currentDexName =
-                dexIdentifier === null ? '' : dexIdentifier; // null -> '' for Map keys
+              const currentDexName = dexIdentifier ?? ''; // null -> '' for Map keys
 
               // Extract and process positions for this DEX
               const positions = dexState.clearinghouseState.assetPositions
@@ -890,8 +889,7 @@ export class HyperLiquidSubscriptionService {
                 return; // Skip this DEX - not enabled in our configuration
               }
 
-              const currentDexName =
-                dexIdentifier === null ? '' : dexIdentifier;
+              const currentDexName = dexIdentifier ?? '';
               const oiCaps = dexState.perpsAtOpenInterestCap || [];
 
               // Add DEX prefix for HIP-3 symbols (e.g., "xyz:TSLA")
