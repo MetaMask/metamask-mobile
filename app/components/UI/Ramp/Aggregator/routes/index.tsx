@@ -15,6 +15,7 @@ import { colors } from '../../../../../styles/common';
 import IncompatibleAccountTokenModal from '../components/IncompatibleAccountTokenModal';
 import RegionSelectorModal from '../components/RegionSelectorModal';
 import UnsupportedRegionModal from '../components/UnsupportedRegionModal';
+import RampsBottomSheetModal from '../../components/RampsBottomSheetModal';
 
 const Stack = createStackNavigator();
 const ModalsStack = createStackNavigator();
@@ -81,6 +82,10 @@ const RampModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.UNSUPPORTED_REGION}
       component={UnsupportedRegionModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.BOTTOM_SHEET_MODAL}
+      component={RampsBottomSheetModal}
     />
   </ModalsStack.Navigator>
 );
