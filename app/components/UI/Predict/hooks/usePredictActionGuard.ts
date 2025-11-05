@@ -12,7 +12,6 @@ interface UsePredictActionGuardOptions {
 
 interface ExecuteGuardedActionOptions {
   checkBalance?: boolean;
-  skipEligibilityCheck?: boolean;
 }
 
 interface UsePredictActionGuardResult {
@@ -36,9 +35,9 @@ export const usePredictActionGuard = ({
       action: () => void | Promise<void>,
       options: ExecuteGuardedActionOptions = {},
     ) => {
-      const { checkBalance = false, skipEligibilityCheck = false } = options;
+      const { checkBalance = false } = options;
 
-      if (!skipEligibilityCheck && !isEligible) {
+      if (!isEligible) {
         navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
           screen: Routes.PREDICT.MODALS.UNAVAILABLE,
         });
