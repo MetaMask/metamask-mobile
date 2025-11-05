@@ -33,7 +33,7 @@ import {
   ISegmentClient,
   ITrackingEvent,
 } from './MetaMetrics.types';
-import { v4 as uuidv4, validate } from 'uuid';
+import { v4 as uuidv4, validate, version } from 'uuid';
 import { Config } from '@segment/analytics-react-native/lib/typescript/src/types';
 import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
 import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
@@ -306,11 +306,16 @@ class MetaMetrics implements IMetaMetrics {
     }
 
     // look for a new Metametics ID and use it or generate a new one
-    const metametricsId: string | undefined =
-      await StorageWrapper.getItem(METAMETRICS_ID);
+    const metametricsId: string | undefined = await StorageWrapper.getItem(
+      METAMETRICS_ID,
+    );
 
     // This catches '""', 'null', 'undefined', and other corruptions
-    if (!metametricsId || !validate(metametricsId)) {
+    if (
+      !metametricsId ||
+      !validate(metametricsId) ||
+      version(metametricsId) !== 4
+    ) {
       if (metametricsId) {
         // Log corruption for monitoring
         Logger.log(
@@ -883,7 +888,7 @@ class MetaMetrics implements IMetaMetrics {
    *
    * @returns the current MetaMetrics ID
    */
-  getMetaMetricsId = async (): Promise<string | undefined> =>
+  getMetaMetricsId = async (): Promise<string> =>
     this.metametricsId ?? (await this.#getMetaMetricsId());
 }
 

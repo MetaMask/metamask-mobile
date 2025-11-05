@@ -851,8 +851,9 @@ export type ControllerInitRequest<
 
   /**
    * The MetaMetrics ID to use for tracking.
+   * This is always provided at runtime and should not be undefined.
    */
-  metaMetricsId?: string;
+  metaMetricsId: string;
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   /**
@@ -917,7 +918,7 @@ export interface InitModularizedControllersFunctionRequest {
   existingControllersByName?: Partial<ControllerByName>;
   getGlobalChainId: () => Hex;
   getState: () => RootState;
-  metaMetricsId?: string;
+  metaMetricsId: string;
   initialKeyringState?: KeyringControllerState | null;
   qrKeyringScanner: QrKeyringDeferredPromiseBridge;
   codefiTokenApiV2: CodefiTokenPricesServiceV2;
