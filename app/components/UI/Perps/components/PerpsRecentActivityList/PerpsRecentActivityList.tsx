@@ -66,38 +66,44 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   }, []);
 
   const renderItem = useCallback(
-    ({ item }: { item: PerpsTransaction }) => (
-      <TouchableOpacity
-        style={styles.activityItem}
-        onPress={() => handleTransactionPress(item)}
-        activeOpacity={0.7}
-      >
-        <View style={styles.leftSection}>
-          <View style={styles.iconContainer}>
-            <PerpsTokenLogo
-              symbol={item.asset}
-              size={iconSize}
-              recyclingKey={`${item.asset}-${item.id}`}
-            />
-          </View>
-          <View style={styles.activityInfo}>
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Default}
-              style={styles.activityType}
-            >
-              {item.title}
-            </Text>
-            {!!item.subtitle && (
-              <Text variant={TextVariant.BodySM} style={styles.activityAmount}>
-                {item.subtitle}
+    (props: { item: PerpsTransaction }) => {
+      const { item } = props;
+      return (
+        <TouchableOpacity
+          style={styles.activityItem}
+          onPress={() => handleTransactionPress(item)}
+          activeOpacity={0.7}
+        >
+          <View style={styles.leftSection}>
+            <View style={styles.iconContainer}>
+              <PerpsTokenLogo
+                symbol={item.asset}
+                size={iconSize}
+                recyclingKey={`${item.asset}-${item.id}`}
+              />
+            </View>
+            <View style={styles.activityInfo}>
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Default}
+                style={styles.activityType}
+              >
+                {item.title}
               </Text>
-            )}
+              {!!item.subtitle && (
+                <Text
+                  variant={TextVariant.BodySM}
+                  style={styles.activityAmount}
+                >
+                  {item.subtitle}
+                </Text>
+              )}
+            </View>
           </View>
-        </View>
-        <View style={styles.rightSection}>{renderRightContent(item)}</View>
-      </TouchableOpacity>
-    ),
+          <View style={styles.rightSection}>{renderRightContent(item)}</View>
+        </TouchableOpacity>
+      );
+    },
     [styles, handleTransactionPress, iconSize, renderRightContent],
   );
 
