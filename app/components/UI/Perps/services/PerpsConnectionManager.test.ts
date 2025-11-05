@@ -1,3 +1,8 @@
+// Mock wait utility to avoid delays in tests
+jest.mock('../utils/wait', () => ({
+  wait: jest.fn().mockResolvedValue(undefined),
+}));
+
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../core/Engine', () => ({
   context: {

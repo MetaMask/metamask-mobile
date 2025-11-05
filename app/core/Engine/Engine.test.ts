@@ -263,9 +263,9 @@ describe('Engine', () => {
           testnet: [],
         },
         hip3ConfigVersion: 0,
-        initializationState: InitializationState.INITIALIZING,
+        initializationState: InitializationState.UNINITIALIZED,
         initializationError: null,
-        initializationAttempts: 1,
+        initializationAttempts: 0,
       },
     };
 

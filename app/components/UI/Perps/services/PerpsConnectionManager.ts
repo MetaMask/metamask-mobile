@@ -22,10 +22,7 @@ import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import type { ReconnectOptions } from '../types/perps-types';
 import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
 import { ensureError } from '../utils/perpsErrorHandler';
-
-// simple wait utility
-const wait = (ms: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms));
+import { wait } from '../utils/wait';
 
 /**
  * Singleton manager for Perps connection state
