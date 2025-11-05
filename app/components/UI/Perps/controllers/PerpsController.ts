@@ -1207,9 +1207,7 @@ export class PerpsController extends BaseController<
       return this.initializationPromise;
     }
 
-    this.initializationPromise = this.performInitialization().catch((error) => {
-      Logger.error(error, this.getErrorContext('init'));
-    });
+    this.initializationPromise = this.performInitialization();
     return this.initializationPromise;
   }
 
