@@ -11,7 +11,6 @@ import { Side, type Result } from '../types';
 import { usePredictTrading } from './usePredictTrading';
 import { strings } from '../../../../../locales/i18n';
 import { formatPrice } from '../utils/format';
-import { usePredictBalance } from './usePredictBalance';
 import { ensureError, parseErrorMessage } from '../utils/predictErrorHandler';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 
@@ -43,7 +42,6 @@ export function usePredictPlaceOrder(
 ): UsePredictPlaceOrderReturn {
   const { onError, onComplete } = options;
   const { placeOrder: controllerPlaceOrder } = usePredictTrading();
-  const { loadBalance } = usePredictBalance();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>();
@@ -110,8 +108,6 @@ export function usePredictPlaceOrder(
           );
         }
 
-        await loadBalance({ isRefresh: true });
-
         DevLogger.log('usePredictPlaceOrder: Order placed successfully');
       } catch (err) {
         const parsedErrorMessage = parseErrorMessage({
@@ -152,7 +148,6 @@ export function usePredictPlaceOrder(
     [
       controllerPlaceOrder,
       onComplete,
-      loadBalance,
       showCashedOutToast,
       showOrderPlacedToast,
       onError,
