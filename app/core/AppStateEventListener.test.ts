@@ -76,6 +76,7 @@ describe('AppStateEventListener', () => {
       .mockReturnValue({} as unknown as ReduxStore);
     const mockAttribution = {
       attributionId: 'test123',
+      relatedFlags: [],
       utm_source: 'source',
       utm_medium: 'medium',
       utm_campaign: 'campaign',
@@ -92,8 +93,8 @@ describe('AppStateEventListener', () => {
       MetaMetricsEvents.APP_OPENED,
     )
       .addProperties({
-        relatedFlags: [],
         attributionId: 'test123',
+        relatedFlags: [],
         utm_source: 'source',
         utm_medium: 'medium',
         utm_campaign: 'campaign',
