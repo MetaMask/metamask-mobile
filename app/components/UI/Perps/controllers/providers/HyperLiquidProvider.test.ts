@@ -1,5 +1,6 @@
 import type { CaipAssetId, Hex } from '@metamask/utils';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../../util/Logger';
 import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
@@ -261,6 +262,9 @@ const createMockExchangeClient = (overrides: Record<string, unknown> = {}) => ({
     status: 'ok',
   }),
   sendAsset: jest.fn().mockResolvedValue({
+    status: 'ok',
+  }),
+  agentEnableDexAbstraction: jest.fn().mockResolvedValue({
     status: 'ok',
   }),
   ...overrides,
@@ -5645,6 +5649,303 @@ describe('HyperLiquidProvider', () => {
           requiredAmount: 500,
         });
         expect(result).toBeNull();
+      });
+    });
+
+    describe('getAllAvailableDexs', () => {
+      interface ProviderWithDexMethods {
+        getAllAvailableDexs(): Promise<(string | null)[]>;
+        cachedAllPerpDexs: ({ name: string; url: string } | null)[] | null;
+      }
+
+      let testableProvider: ProviderWithDexMethods;
+
+      beforeEach(() => {
+        testableProvider = provider as unknown as ProviderWithDexMethods;
+        // Reset cache
+        testableProvider.cachedAllPerpDexs = null;
+      });
+
+      it('returns cached DEX list when cache is populated', async () => {
+        // Arrange
+        testableProvider.cachedAllPerpDexs = [
+          null,
+          { name: 'dex1', url: 'https://dex1.example' },
+          { name: 'dex2', url: 'https://dex2.example' },
+        ];
+
+        // Act
+        const result = await testableProvider.getAllAvailableDexs();
+
+        // Assert
+        expect(result).toEqual([null, 'dex1', 'dex2']);
+        expect(mockClientService.getInfoClient).not.toHaveBeenCalled();
+      });
+
+      it('fetches DEX list from API when cache is empty', async () => {
+        // Arrange
+        const mockDexs = [
+          null,
+          { name: 'dex1', url: 'https://dex1.example' },
+          { name: 'dex2', url: 'https://dex2.example' },
+        ];
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            perpDexs: jest.fn().mockResolvedValue(mockDexs),
+          }),
+        );
+
+        // Act
+        const result = await testableProvider.getAllAvailableDexs();
+
+        // Assert
+        expect(result).toEqual([null, 'dex1', 'dex2']);
+        expect(testableProvider.cachedAllPerpDexs).toEqual(mockDexs);
+        expect(mockClientService.getInfoClient).toHaveBeenCalledTimes(1);
+      });
+
+      it('returns fallback when API returns null', async () => {
+        // Arrange
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            perpDexs: jest.fn().mockResolvedValue(null),
+          }),
+        );
+
+        // Act
+        const result = await testableProvider.getAllAvailableDexs();
+
+        // Assert
+        expect(result).toEqual([null]);
+        expect(testableProvider.cachedAllPerpDexs).toBeNull();
+      });
+
+      it('returns fallback when API returns non-array', async () => {
+        // Arrange
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            perpDexs: jest.fn().mockResolvedValue({ invalid: 'data' }),
+          }),
+        );
+
+        // Act
+        const result = await testableProvider.getAllAvailableDexs();
+
+        // Assert
+        expect(result).toEqual([null]);
+        expect(testableProvider.cachedAllPerpDexs).toBeNull();
+      });
+
+      it('returns fallback and logs error when API throws', async () => {
+        // Arrange
+        const mockError = new Error('Network error');
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            perpDexs: jest.fn().mockRejectedValue(mockError),
+          }),
+        );
+        const mockLoggerError = jest.spyOn(Logger, 'error');
+
+        // Act
+        const result = await testableProvider.getAllAvailableDexs();
+
+        // Assert
+        expect(result).toEqual([null]);
+        expect(testableProvider.cachedAllPerpDexs).toBeNull();
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          mockError,
+          expect.objectContaining({
+            context: expect.objectContaining({
+              name: 'HyperLiquidProvider',
+              data: expect.objectContaining({
+                method: 'getAllAvailableDexs',
+              }),
+            }),
+          }),
+        );
+      });
+
+      it('filters out null entries from cached DEX list', async () => {
+        // Arrange
+        testableProvider.cachedAllPerpDexs = [
+          null,
+          { name: 'dex1', url: 'https://dex1.example' },
+          null,
+          { name: 'dex2', url: 'https://dex2.example' },
+        ];
+
+        // Act
+        const result = await testableProvider.getAllAvailableDexs();
+
+        // Assert
+        expect(result).toEqual([null, 'dex1', 'dex2']);
+      });
+
+      it('returns only main DEX when cached list contains only null', async () => {
+        // Arrange
+        testableProvider.cachedAllPerpDexs = [null];
+
+        // Act
+        const result = await testableProvider.getAllAvailableDexs();
+
+        // Assert
+        expect(result).toEqual([null]);
+      });
+    });
+
+    describe('ensureDexAbstractionEnabled', () => {
+      interface ProviderWithDexAbstraction {
+        ensureDexAbstractionEnabled(): Promise<void>;
+        useDexAbstraction: boolean;
+      }
+
+      let testableProvider: ProviderWithDexAbstraction;
+
+      beforeEach(() => {
+        testableProvider = provider as unknown as ProviderWithDexAbstraction;
+        testableProvider.useDexAbstraction = true;
+      });
+
+      it('returns early when feature is disabled', async () => {
+        // Arrange
+        testableProvider.useDexAbstraction = false;
+
+        // Act
+        await testableProvider.ensureDexAbstractionEnabled();
+
+        // Assert
+        expect(mockClientService.getInfoClient).not.toHaveBeenCalled();
+        expect(
+          mockWalletService.getUserAddressWithDefault,
+        ).not.toHaveBeenCalled();
+      });
+
+      it('returns early when DEX abstraction is already enabled', async () => {
+        // Arrange
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            userDexAbstraction: jest.fn().mockResolvedValue(true),
+          }),
+        );
+        mockWalletService.getUserAddressWithDefault = jest
+          .fn()
+          .mockResolvedValue('0xUserAddress');
+
+        // Act
+        await testableProvider.ensureDexAbstractionEnabled();
+
+        // Assert
+        expect(mockClientService.getExchangeClient).not.toHaveBeenCalled();
+      });
+
+      it('enables DEX abstraction when not yet enabled', async () => {
+        // Arrange
+        const mockExchangeClient = createMockExchangeClient();
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            userDexAbstraction: jest.fn().mockResolvedValue(false),
+          }),
+        );
+        mockClientService.getExchangeClient = jest
+          .fn()
+          .mockReturnValue(mockExchangeClient);
+        mockWalletService.getUserAddressWithDefault = jest
+          .fn()
+          .mockResolvedValue('0xUserAddress');
+
+        // Act
+        await testableProvider.ensureDexAbstractionEnabled();
+
+        // Assert
+        expect(
+          mockExchangeClient.agentEnableDexAbstraction,
+        ).toHaveBeenCalledTimes(1);
+      });
+
+      it('enables DEX abstraction when status is null', async () => {
+        // Arrange
+        const mockExchangeClient = createMockExchangeClient();
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            userDexAbstraction: jest.fn().mockResolvedValue(null),
+          }),
+        );
+        mockClientService.getExchangeClient = jest
+          .fn()
+          .mockReturnValue(mockExchangeClient);
+        mockWalletService.getUserAddressWithDefault = jest
+          .fn()
+          .mockResolvedValue('0xUserAddress');
+
+        // Act
+        await testableProvider.ensureDexAbstractionEnabled();
+
+        // Assert
+        expect(
+          mockExchangeClient.agentEnableDexAbstraction,
+        ).toHaveBeenCalledTimes(1);
+      });
+
+      it('logs error but does not throw when enable fails', async () => {
+        // Arrange
+        const mockError = new Error('Enable failed');
+        const mockExchangeClient = createMockExchangeClient();
+        mockExchangeClient.agentEnableDexAbstraction = jest
+          .fn()
+          .mockRejectedValue(mockError);
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            userDexAbstraction: jest.fn().mockResolvedValue(false),
+          }),
+        );
+        mockClientService.getExchangeClient = jest
+          .fn()
+          .mockReturnValue(mockExchangeClient);
+        mockWalletService.getUserAddressWithDefault = jest
+          .fn()
+          .mockResolvedValue('0xUserAddress');
+        const mockLoggerError = jest.spyOn(Logger, 'error');
+
+        // Act
+        await testableProvider.ensureDexAbstractionEnabled();
+
+        // Assert
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          mockError,
+          expect.objectContaining({
+            context: expect.objectContaining({
+              name: 'HyperLiquidProvider',
+              data: expect.objectContaining({
+                method: 'ensureDexAbstractionEnabled',
+              }),
+            }),
+          }),
+        );
+      });
+
+      it('logs error when user address fetch fails', async () => {
+        // Arrange
+        const mockError = new Error('Address fetch failed');
+        mockWalletService.getUserAddressWithDefault = jest
+          .fn()
+          .mockRejectedValue(mockError);
+        const mockLoggerError = jest.spyOn(Logger, 'error');
+
+        // Act
+        await testableProvider.ensureDexAbstractionEnabled();
+
+        // Assert
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          mockError,
+          expect.objectContaining({
+            context: expect.objectContaining({
+              name: 'HyperLiquidProvider',
+              data: expect.objectContaining({
+                method: 'ensureDexAbstractionEnabled',
+              }),
+            }),
+          }),
+        );
       });
     });
   });
