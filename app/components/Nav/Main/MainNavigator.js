@@ -59,6 +59,8 @@ import RampRoutes from '../../UI/Ramp/Aggregator/routes';
 import { RampType } from '../../UI/Ramp/Aggregator/types';
 import RampSettings from '../../UI/Ramp/Aggregator/Views/Settings';
 import RampActivationKeyForm from '../../UI/Ramp/Aggregator/Views/Settings/ActivationKeyForm';
+import RampTokenSelection from '../../UI/Ramp/components/TokenSelection';
+import useRampsUnifiedV1Enabled from '../../UI/Ramp/hooks/useRampsUnifiedV1Enabled';
 
 import DepositOrderDetails from '../../UI/Ramp/Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import DepositRoutes from '../../UI/Ramp/Deposit/routes';
@@ -894,6 +896,7 @@ const MainNavigator = () => {
     selectSendRedesignFlags,
   );
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
+  const isRampsUnifiedV1Enabled = useRampsUnifiedV1Enabled();
 
   return (
     <Stack.Navigator
@@ -1000,6 +1003,12 @@ const MainNavigator = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
+      {isRampsUnifiedV1Enabled && (
+        <Stack.Screen
+          name={Routes.RAMP.TOKEN_SELECTION}
+          component={RampTokenSelection}
+        />
+      )}
       <Stack.Screen name={Routes.RAMP.BUY}>
         {() => <RampRoutes rampType={RampType.BUY} />}
       </Stack.Screen>
