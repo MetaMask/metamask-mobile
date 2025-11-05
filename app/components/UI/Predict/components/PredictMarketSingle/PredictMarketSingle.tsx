@@ -187,6 +187,8 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
           params: {
             marketId: market.id,
             entryPoint,
+            title: market.title,
+            image: getImageUrl(),
           },
         });
       }}
@@ -198,7 +200,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             alignItems={BoxAlignItems.Center}
             twClassName="flex-1 gap-3"
           >
-            <Box twClassName="w-12 h-12 rounded-lg bg-muted overflow-hidden">
+            <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
               {getImageUrl() ? (
                 <Image
                   source={{ uri: getImageUrl() }}

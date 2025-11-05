@@ -54,6 +54,7 @@ import {
   ClaimParams,
   GetPriceHistoryParams,
   PredictActivity,
+  PredictBalance,
   PredictClaim,
   PredictClaimStatus,
   PredictMarket,
@@ -81,7 +82,7 @@ export type PredictControllerState = {
   lastUpdateTimestamp: number;
 
   // Account balances
-  balances: { [providerId: string]: { [address: string]: number } };
+  balances: { [providerId: string]: { [address: string]: PredictBalance } };
 
   // Claim management
   claimablePositions: { [address: string]: PredictPosition[] };
@@ -370,6 +371,29 @@ export class PredictController extends BaseController<
       signPersonalMessage: (_params: PersonalMessageParams) =>
         KeyringController.signPersonalMessage(_params),
     };
+  }
+
+  private async invalidateQueryCache(chainId: number) {
+    const { NetworkController } = Engine.context;
+    const networkClientId = NetworkController.findNetworkClientIdByChainId(
+      numberToHex(chainId),
+    );
+    const networkClient =
+      NetworkController.getNetworkClientById(networkClientId);
+    try {
+      await networkClient.blockTracker.checkForLatestBlock();
+    } catch (error) {
+      DevLogger.log('PredictController: Error invalidating query cache', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('invalidateQueryCache', {
+          chainId,
+        }),
+      );
+    }
   }
 
   /**
@@ -982,6 +1006,9 @@ export class PredictController extends BaseController<
         sharePrice,
       });
 
+      // Invalidate query cache (to avoid nonce issues)
+      await this.invalidateQueryCache(provider.chainId);
+
       const result = await provider.placeOrder({ ...params, signer });
 
       // Track Predict Action Completed or Failed
@@ -990,6 +1017,8 @@ export class PredictController extends BaseController<
       if (result.success) {
         const { id: orderId, spentAmount, receivedAmount } = result.response;
 
+        const cachedBalance =
+          this.state.balances[providerId]?.[signer.address]?.balance ?? 0;
         let realAmountUsd = amountUsd;
         let realSharePrice = sharePrice;
         try {
@@ -997,10 +1026,30 @@ export class PredictController extends BaseController<
             realAmountUsd = parseFloat(spentAmount);
             realSharePrice =
               parseFloat(spentAmount) / parseFloat(receivedAmount);
+
+            // Optimistically update balance
+            this.update((state) => {
+              state.balances[providerId] = state.balances[providerId] || {};
+              state.balances[providerId][signer.address] = {
+                balance: cachedBalance - realAmountUsd,
+                // valid for 5 seconds (since it takes some time to reflect balance on-chain)
+                validUntil: Date.now() + 5000,
+              };
+            });
           } else {
             realAmountUsd = parseFloat(receivedAmount);
             realSharePrice =
               parseFloat(receivedAmount) / parseFloat(spentAmount);
+
+            // Optimistically update balance
+            this.update((state) => {
+              state.balances[providerId] = state.balances[providerId] || {};
+              state.balances[providerId][signer.address] = {
+                balance: cachedBalance + realAmountUsd,
+                // valid for 5 seconds (since it takes some time to reflect balance on-chain)
+                validUntil: Date.now() + 5000,
+              };
+            });
           }
         } catch (_e) {
           // If we can't get real share price, continue without it
@@ -1424,14 +1473,28 @@ export class PredictController extends BaseController<
       const { AccountsController } = Engine.context;
       const selectedAddress = AccountsController.getSelectedAccount().address;
       const address = params.address ?? selectedAddress;
+
+      const cachedBalance = this.state.balances[params.providerId]?.[address];
+      if (cachedBalance && cachedBalance.validUntil > Date.now()) {
+        return cachedBalance.balance;
+      }
+
+      // Invalidate query cache
+      await this.invalidateQueryCache(provider.chainId);
+
       const balance = await provider.getBalance({
         ...params,
         address,
       });
+
       this.update((state) => {
         state.balances[params.providerId] = {
           ...state.balances[params.providerId],
-          [address]: balance,
+          [address]: {
+            balance,
+            // valid for 1 second
+            validUntil: Date.now() + 1000,
+          },
         };
       });
       return balance;
