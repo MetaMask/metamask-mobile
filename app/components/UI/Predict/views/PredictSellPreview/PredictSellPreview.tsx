@@ -90,6 +90,7 @@ const PredictSellPreview = () => {
     outcomeTokenId: position.outcomeTokenId,
     side: Side.SELL,
     size: position.amount,
+    positionId: position.id,
     autoRefreshTimeout: 1000,
   });
 

@@ -80,6 +80,7 @@ describe('usePerpsMarketStats', () => {
       priceData: null,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
+      hasHistoricalData: true,
     });
 
     // Act: Render the hook with a symbol
@@ -104,6 +105,7 @@ describe('usePerpsMarketStats', () => {
       priceData: null,
       isLoadingHistory: true,
       refreshCandleData: jest.fn(),
+      hasHistoricalData: false,
     });
 
     // Act: Render the hook
@@ -122,6 +124,7 @@ describe('usePerpsMarketStats', () => {
       priceData: null,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
+      hasHistoricalData: false,
     });
 
     // Act: Render the hook
@@ -158,6 +161,7 @@ describe('usePerpsMarketStats', () => {
       priceData: null,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
+      hasHistoricalData: true,
     });
 
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
@@ -185,6 +189,7 @@ describe('usePerpsMarketStats', () => {
       priceData: null,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
+      hasHistoricalData: true,
     });
 
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
