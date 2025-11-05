@@ -43,14 +43,14 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
   );
 
   if (isTron && isTrxStakingEnabled) {
-    if (isStakedTrxAsset && hasStakedTrxPositions) {
+    if (hasStakedTrxPositions && isStakedTrxAsset) {
       // sTRX row: show Unstake + Stake more
       return (
         <TronStakingButtons asset={asset} showUnstake hasStakedPositions />
       );
     }
 
-    if (!hasStakedTrxPositions) {
+    if (!hasStakedTrxPositions && !isStakedTrxAsset) {
       // TRX native row: show CTA + single Stake button
       return (
         <>

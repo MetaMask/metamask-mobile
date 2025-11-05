@@ -190,6 +190,11 @@ const selectEarnTokens = createDeepEqualSelector(
       const isStakingOutputToken =
         token.isETH && token.isStaked && isStakingSupportedChain;
 
+      const stakingAprForChain = token.isETH
+        ? pooledStakingVaultAprForChain
+        : // TODO: Comeback after we have a TRX APR value
+          '0';
+
       const isEarnToken = isStakingToken || isLendingToken;
       const isEarnOutputToken = isStakingOutputToken || isLendingOutputToken;
 
@@ -266,15 +271,11 @@ const selectEarnTokens = createDeepEqualSelector(
       // TODO: we could add direct validator staking as an additional earn experience
 
       if (isStakingToken || isStakingOutputToken) {
-        const aprForExperience = token.isETH
-          ? pooledStakingVaultAprForChain
-          : // TODO: Comeback after we have a TRX APR value
-            '0';
         experiences.push({
           type: EARN_EXPERIENCES.POOLED_STAKING,
-          apr: aprForExperience,
+          apr: stakingAprForChain,
           ...getEstimatedAnnualRewards(
-            aprForExperience,
+            stakingAprForChain,
             assetBalanceFiatNumber,
             tokenBalanceMinimalUnit.toString(),
             currentCurrency,
