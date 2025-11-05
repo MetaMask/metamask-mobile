@@ -44,6 +44,7 @@ import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid, { SrpInputGridRef } from '../../UI/SrpInputGrid';
 import { isSRPLengthValid } from '../../../util/srp/srpInputUtils';
 import { isValidMnemonic } from '../../../util/validators';
+import { validateSRP, validateWords } from './validation';
 
 /**
  * View that's displayed when the user is trying to import a new secret recovery phrase
@@ -174,9 +175,37 @@ const ImportNewSecretRecoveryPhrase = () => {
       .filter((item) => item !== '')
       .join(' ');
 
-    // Validate the mnemonic checksum before proceeding
+    setError('');
+    const filledWords = seedPhrase.filter((word) => word.trim() !== '');
+    if (filledWords.some((word) => word === '')) {
+      setError(
+        strings(
+          'import_new_secret_recovery_phrase.error_number_of_words_error_message',
+        ),
+      );
+      return;
+    }
+
+    if (phrase !== phrase.toLowerCase()) {
+      setError(
+        strings(
+          'import_new_secret_recovery_phrase.error_srp_is_case_sensitive',
+        ),
+      );
+      return;
+    }
+
+    const invalidWords = Array(seedPhrase.length).fill(false);
+    let validationResult = validateSRP(seedPhrase, invalidWords);
+    validationResult = validateWords(validationResult);
+
+    if (validationResult.error) {
+      setError(validationResult.error);
+      return;
+    }
+
     if (!isValidMnemonic(phrase)) {
-      setError(strings('import_from_seed.invalid_seed_phrase'));
+      setError(strings('import_new_secret_recovery_phrase.error_invalid_srp'));
       return;
     }
 

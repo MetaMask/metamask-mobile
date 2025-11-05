@@ -86,16 +86,12 @@ jest.mock('../../hooks/useMetrics', () => {
   };
 });
 
-// Enable fake timers
-jest.useFakeTimers();
-
 describe('ImportFromSecretRecoveryPhrase', () => {
   afterEach(() => {
-    jest.clearAllTimers();
+    jest.clearAllMocks();
   });
 
   beforeEach(() => {
-    jest.clearAllTimers();
     jest.clearAllMocks();
   });
 
@@ -298,10 +294,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       await act(async () => {
         fireEvent.changeText(input, 'say ');
-      });
-
-      await act(async () => {
-        jest.runAllTimers();
       });
 
       await waitFor(() => {
@@ -537,11 +529,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       // Enter invalid mnemonic
       await act(async () => {
         fireEvent.changeText(input, invalidMnemonic);
-      });
-
-      // Run all timers to execute validation setTimeout (for programmatic multi-word input)
-      act(() => {
-        jest.runAllTimers();
       });
 
       await waitFor(() => {

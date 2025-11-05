@@ -134,16 +134,12 @@ const initialState = {
   },
 };
 
-// Enable fake timers
-jest.useFakeTimers();
-
 describe('ImportNewSecretRecoveryPhrase', () => {
   afterEach(() => {
-    jest.clearAllTimers();
+    jest.clearAllMocks();
   });
 
   beforeEach(() => {
-    jest.clearAllTimers();
     jest.clearAllMocks();
     mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
     mockGetString.mockResolvedValue('');
@@ -231,7 +227,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     await act(async () => {
       await fireEvent.press(pasteButton);
-      jest.runAllTimers();
     });
 
     await waitFor(() => {
@@ -268,7 +263,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     await act(async () => {
       await fireEvent.press(pasteButton);
-      jest.runAllTimers();
     });
 
     await waitFor(() => {
@@ -337,7 +331,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     await act(async () => {
       await fireEvent.press(pasteButton);
-      jest.runAllTimers();
     });
 
     await waitFor(() => {
@@ -360,7 +353,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     await act(async () => {
       await fireEvent.press(pasteButton);
-      jest.runAllTimers();
     });
 
     await waitFor(() => {
@@ -394,7 +386,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     await act(async () => {
       await fireEvent.press(pasteButton);
-      jest.runAllTimers();
     });
 
     await waitFor(() => {
@@ -435,7 +426,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     await act(async () => {
       await fireEvent.press(pasteButton);
-      jest.runAllTimers();
     });
 
     await waitFor(() => {
@@ -477,7 +467,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     await act(async () => {
       await fireEvent.press(pasteButton);
-      jest.runAllTimers();
     });
 
     await waitFor(() => {
@@ -669,7 +658,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await act(async () => {
         await fireEvent.press(pasteButton);
-        jest.runAllTimers();
       });
 
       await waitFor(() => {
@@ -745,7 +733,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await act(async () => {
         await fireEvent.changeText(textareaInput, 'word1 word2 word3 word4');
-        jest.runAllTimers();
       });
 
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
@@ -765,7 +752,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await act(async () => {
         await fireEvent.changeText(textareaInput, '');
-        jest.runAllTimers();
       });
 
       expect(textareaInput.props.value).toBe('');
@@ -784,7 +770,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await act(async () => {
         await fireEvent.changeText(textareaInput, 'word1    word2   word3');
-        jest.runAllTimers();
       });
 
       await waitFor(() => {
@@ -814,7 +799,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await act(async () => {
         await fireEvent.press(pasteButton);
-        jest.runAllTimers();
       });
 
       await waitFor(() => {
@@ -829,7 +813,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
         await fireEvent(input2, 'onKeyPress', {
           nativeEvent: { key: 'Backspace' },
         });
-        jest.runAllTimers();
       });
 
       await waitFor(() => {
@@ -855,7 +838,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await act(async () => {
         await fireEvent.press(pasteButton);
-        jest.runAllTimers();
       });
 
       await waitFor(() => {
@@ -868,7 +850,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await act(async () => {
         await fireEvent(input1, 'onSubmitEditing');
-        jest.runAllTimers();
       });
 
       await waitFor(() => {
@@ -893,7 +874,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await act(async () => {
         await fireEvent.press(pasteButton);
-        jest.runAllTimers();
       });
 
       await waitFor(() => {
@@ -906,7 +886,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await act(async () => {
         await fireEvent.changeText(input1, 'word2a');
-        jest.runAllTimers();
       });
 
       await waitFor(() => {
@@ -932,7 +911,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await act(async () => {
         await fireEvent.press(pasteButton);
-        jest.runAllTimers();
       });
 
       await waitFor(() => {
@@ -950,7 +928,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await act(async () => {
         await fireEvent.changeText(input0, 'invalidword123');
-        jest.runAllTimers();
       });
 
       await act(async () => {
@@ -983,7 +960,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await act(async () => {
         await fireEvent.press(pasteButton);
-        jest.runAllTimers();
       });
 
       await waitFor(() => {
@@ -996,7 +972,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await act(async () => {
         await fireEvent.changeText(input1, '   ');
-        jest.runAllTimers();
       });
 
       await waitFor(() => {
@@ -1136,7 +1111,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await act(async () => {
         onScanSuccess({ seed: valid12WordMnemonic }, undefined);
-        jest.runAllTimers();
       });
 
       await waitFor(() => {
@@ -1180,7 +1154,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await act(async () => {
         onScanSuccess({}, valid12WordMnemonic);
-        jest.runAllTimers();
       });
 
       await waitFor(() => {
