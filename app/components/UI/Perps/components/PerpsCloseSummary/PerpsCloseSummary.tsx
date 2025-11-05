@@ -230,24 +230,6 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
             <Text variant={TextVariant.BodyMD}>--</Text>
           )}
         </View>
-        <View style={styles.summaryValue}>
-          {isLoadingFees ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator
-                size="small"
-                color={theme.colors.icon.alternative}
-              />
-            </View>
-          ) : (
-            <PerpsFeesDisplay
-              feeDiscountPercentage={feeDiscountPercentage}
-              formatFeeText={`-${formatPerpsFiat(totalFees, {
-                ranges: PRICE_RANGES_MINIMAL_VIEW,
-              })}`}
-              variant={TextVariant.BodyMD}
-            />
-          )}
-        </View>
       </View>
 
       {/* You'll receive */}
