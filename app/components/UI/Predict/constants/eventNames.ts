@@ -19,9 +19,14 @@ export const PredictEventProperties = {
   VOLUME: 'volume',
   FAILURE_REASON: 'failure_reason',
 
+  // Trade specific
+  MARKET_TYPE: 'market_type',
+  OUTCOME: 'outcome',
+
   // Sensitive properties
   AMOUNT_USD: 'amount_usd',
   SHARE_PRICE: 'share_price',
+  PNL: 'pnl', // profit% or loss% - sell only
   ORDER_ID: 'order_id',
   USER_ADDRESS: 'user_address',
 
@@ -62,6 +67,10 @@ export const PredictEventValues = {
   TRANSACTION_TYPE: {
     MM_PREDICT_BUY: 'mm_predict_buy',
     MM_PREDICT_SELL: 'mm_predict_sell',
+  },
+  MARKET_TYPE: {
+    BINARY: 'binary',
+    MULTI_OUTCOME: 'multi-outcome',
   },
   MARKET_DETAILS_TAB: {
     ABOUT: 'about',
