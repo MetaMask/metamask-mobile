@@ -32,8 +32,6 @@ import {
 } from '../../Tokens/constants';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import SkeletonText from '../../Ramp/Aggregator/components/SkeletonText';
-import parseAmount from '../../Ramp/Aggregator/utils/parseAmount';
 import { useSelector } from 'react-redux';
 import { selectNoFeeAssets } from '../../../../core/redux/slices/bridge';
 import { strings } from '../../../../../locales/i18n';
@@ -44,6 +42,7 @@ import TagBase, {
 import Tag from '../../../../component-library/components/Tags/Tag';
 import { RootState } from '../../../../reducers';
 import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
+import parseAmount from '../../../../util/parseAmount';
 
 const createStyles = ({
   theme,
@@ -82,6 +81,9 @@ const createStyles = ({
     },
     skeleton: {
       width: 50,
+      padding: 8,
+      borderRadius: 30,
+      backgroundColor: theme.colors.background.alternative,
     },
     secondaryBalance: {
       color: theme.colors.text.alternative,
@@ -237,14 +239,14 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             {balance &&
               (balance === TOKEN_BALANCE_LOADING ||
               balance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
-                <SkeletonText thin style={styles.skeleton} />
+                <View style={styles.skeleton} />
               ) : (
                 <Text variant={TextVariant.BodyLGMedium}>{balance}</Text>
               ))}
             {secondaryBalance ? (
               secondaryBalance === TOKEN_BALANCE_LOADING ||
               secondaryBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
-                <SkeletonText thin style={styles.skeleton} />
+                <View style={styles.skeleton} />
               ) : (
                 <Text
                   variant={TextVariant.BodyMD}

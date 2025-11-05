@@ -53,4 +53,5 @@ export const ALLOWLISTED_URLS = [
   'https://acl.execution.metamask.io/latest/registry.json',
   'https://acl.execution.metamask.io/latest/signature.json',
   'https://signature-insights.api.cx.metamask.io/v1/signature?chainId=0x1',
+  'https://price.api.cx.metamask.io/v1/exchange-rates?baseCurrency=usd',
 ];

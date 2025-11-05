@@ -75,6 +75,7 @@ export const WalletViewSelectorsIDs = {
   DEFI_POSITIONS_CONTAINER: 'defi-positions-container',
   DEFI_POSITIONS_NETWORK_FILTER: 'defi-positions-network-filter',
   DEFI_POSITIONS_LIST: 'defi-positions-list',
+  DEFI_POSITIONS_SCROLL_VIEW: 'defi-positions-scroll-view',
   DEFI_POSITIONS_DETAILS_CONTAINER: 'defi-positions-details-container',
   // Wallet-specific action buttons to avoid conflicts with TokenOverview
   WALLET_BUY_BUTTON: 'wallet-buy-button',
