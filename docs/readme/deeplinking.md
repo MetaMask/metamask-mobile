@@ -17,6 +17,22 @@ Please note that custom `metamask://...` schemed links are being phased out in f
 
 ## Overview
 
+### In-app Support:
+
+- UI element link routing
+- In-app-browser web view selection
+- QR code scanning
+
+### External Support:
+
+- External app link selection
+- External browser website link selection
+- External camera QR code link scan
+
+### ⚠️ Does not support:
+
+- Pasting link into external browser
+
 MetaMask Mobile supports multiple deeplink protocols to enable various app interactions:
 
 - **Universal Links** (iOS) / **App Links** (Android): `https://link.metamask.io/*`
@@ -65,6 +81,15 @@ Links with valid signature but unsupported action in current app version:
 
 - **User Experience**: Shows modal with "This page is not supported in current version" message
 - **Examples**: New feature not yet available in user's app version
+
+## Link Formats
+
+| Type   | Format                                                                         | Example                                                              |
+| ------ | ------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
+| Public | `https://link.metamask.io/{action}?{params}`                                   | `https://link.metamask.io/swap?chainId=1`                            |
+| Signed | `https://link.metamask.io/{action}?{params}&sig_params={list}&sig={signature}` | `https://link.metamask.io/swap?chainId=1&sig_params=chainId&sig=XXX` |
+| Test   | `https://link-test.metamask.io/{action}?{params}`                              | `https://link-test.metamask.io/swap`                                 |
+| Legacy | `metamask://{action}?{params}`                                                 | `metamask://wc?uri=wc:123...`                                        |
 
 ## How Link Processing Works
 
@@ -744,16 +769,7 @@ describe('Dynamic signature verification', () => {
 });
 ```
 
-## Quick Reference
-
-### Link Formats
-
-| Type   | Format                                                                         | Example                                                              |
-| ------ | ------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
-| Public | `https://link.metamask.io/{action}?{params}`                                   | `https://link.metamask.io/swap?chainId=1`                            |
-| Signed | `https://link.metamask.io/{action}?{params}&sig_params={list}&sig={signature}` | `https://link.metamask.io/swap?chainId=1&sig_params=chainId&sig=XXX` |
-| Test   | `https://link-test.metamask.io/{action}?{params}`                              | `https://link-test.metamask.io/swap`                                 |
-| Legacy | `metamask://{action}?{params}`                                                 | `metamask://wc?uri=wc:123...`                                        |
+## Quick Reference |
 
 ### Verification Results
 
