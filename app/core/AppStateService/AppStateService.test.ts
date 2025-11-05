@@ -19,7 +19,7 @@ jest.mock('react-native-background-timer', () => ({
   }),
 }));
 
-jest.mock('../../../util/Logger', () => ({
+jest.mock('../../util/Logger', () => ({
   log: jest.fn(),
   error: jest.fn(),
 }));
