@@ -570,14 +570,14 @@ class FixtureBuilder {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
                 enableMultichainAccounts: {
-                  enabled: false,
-                  featureVersion: null,
-                  minimumVersion: null,
+                  enabled: true,
+                  featureVersion: '1',
+                  minimumVersion: '7.53.0',
                 },
                 enableMultichainAccountsState2: {
-                  enabled: false,
-                  featureVersion: null,
-                  minimumVersion: null,
+                  enabled: true,
+                  featureVersion: '2',
+                  minimumVersion: '7.46.0',
                 },
               },
             },
