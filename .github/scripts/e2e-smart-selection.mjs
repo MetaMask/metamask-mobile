@@ -114,8 +114,8 @@ async function main() {
       tagCount: parsedResult.selectedTags?.length || 0,
       riskLevel: parsedResult.riskLevel || '',
       tagDisplay: parsedResult.selectedTags?.join(', ') || '',
-      reasoning: parsedResult.reasoning || 'AI analysis completed',
-      confidence: parsedResult.confidence || 75
+      reasoning: parsedResult.reasoning || '',
+      confidence: parsedResult.confidence || ''
     };
 
     console.log(`🧪 Selected E2E tags: ${analysis.tagDisplay}`);
