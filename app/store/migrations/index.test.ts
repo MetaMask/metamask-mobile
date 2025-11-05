@@ -202,13 +202,13 @@ describe('Critical Error Handling', () => {
       );
 
       const testMigrationList = {
-        107: (state: unknown) => state, // Migration > 105 triggers inflation logic
+        109: (state: unknown) => state, // Migration > 108 triggers inflation logic
       };
 
       const asyncMigrations = asyncifyMigrations(testMigrationList);
 
       // Act & Assert
-      await expect(asyncMigrations['107'](initialState)).rejects.toThrow(
+      await expect(asyncMigrations['109'](initialState)).rejects.toThrow(
         'Critical: Failed to load controller data for migration. Cannot continue safely as migrations may corrupt data without complete state. App will restart to attempt recovery. Error: Error: Storage access failed',
       );
 
@@ -270,14 +270,14 @@ describe('Critical Error Handling', () => {
       });
 
       const testMigrationList = {
-        106: (state: unknown) => state, // This will trigger deflation after migration
+        108: (state: unknown) => state, // This will trigger deflation after migration
       };
 
       const asyncMigrations = asyncifyMigrations(testMigrationList);
 
       // Act & Assert
       await expect(
-        asyncMigrations['106'](stateWithControllers),
+        asyncMigrations['108'](stateWithControllers),
       ).rejects.toThrow(
         "Critical: Migration failed for controller 'TestController'. Cannot continue with partial migration as this would corrupt user data. App will restart to attempt recovery. Error: Error: Disk full",
       );
@@ -314,13 +314,13 @@ describe('Critical Error Handling', () => {
       mockedControllerStorage.setItem.mockResolvedValue();
 
       const testMigrationList = {
-        106: (state: unknown) => ({ ...(state as object), migrated: true }),
+        108: (state: unknown) => ({ ...(state as object), migrated: true }),
       };
 
       const asyncMigrations = asyncifyMigrations(testMigrationList);
 
       // Act
-      const result = (await asyncMigrations['106'](
+      const result = (await asyncMigrations['108'](
         stateWithControllers,
       )) as Record<string, unknown>;
 
@@ -354,14 +354,14 @@ describe('Critical Error Handling', () => {
       mockedControllerStorage.setItem.mockRejectedValue(catastrophicError);
 
       const testMigrationList = {
-        106: (state: unknown) => state,
+        108: (state: unknown) => state,
       };
 
       const asyncMigrations = asyncifyMigrations(testMigrationList);
 
       // Act & Assert
       await expect(
-        asyncMigrations['106'](stateWithControllers),
+        asyncMigrations['108'](stateWithControllers),
       ).rejects.toThrow(
         "Critical: Migration failed for controller 'TestController'. Cannot continue with partial migration as this would corrupt user data. App will restart to attempt recovery. Error: Error: File system corrupted",
       );
@@ -376,22 +376,22 @@ describe('Critical Error Handling', () => {
   });
 
   describe('Migration flow integration', () => {
-    it('does not trigger inflation/deflation for migrations <= 104', async () => {
+    it('does not trigger inflation/deflation for migrations <= 103', async () => {
       // Arrange
       const testMigrationList = {
-        104: (state: unknown) => ({
+        103: (state: unknown) => ({
           ...(state as object),
-          test: 'migration104',
+          test: 'migration103',
         }),
       };
 
       const asyncMigrations = asyncifyMigrations(testMigrationList);
 
       // Act
-      const result = await asyncMigrations['104'](initialState);
+      const result = await asyncMigrations['103'](initialState);
 
       // Assert
-      expect((result as Record<string, unknown>).test).toEqual('migration104');
+      expect((result as Record<string, unknown>).test).toEqual('migration103');
       expect(
         mockedControllerStorage.getAllPersistedState,
       ).not.toHaveBeenCalled();
@@ -410,28 +410,28 @@ describe('Critical Error Handling', () => {
       } as PersistedState;
 
       const testMigrationList = {
-        104: (state: unknown) => ({ ...(state as object), step104: true }),
-        105: (state: unknown) => ({ ...(state as object), step105: true }),
-        106: (state: unknown) => ({ ...(state as object), step106: true }),
-        107: (state: unknown) => ({ ...(state as object), step107: true }),
+        108: (state: unknown) => ({ ...(state as object), step108: true }),
+        109: (state: unknown) => ({ ...(state as object), step109: true }),
+        110: (state: unknown) => ({ ...(state as object), step110: true }),
+        111: (state: unknown) => ({ ...(state as object), step111: true }),
       };
 
       const asyncMigrations = asyncifyMigrations(testMigrationList);
 
       // Act - Run migrations in sequence
       let state = stateWithoutControllers;
-      state = (await asyncMigrations['104'](state)) as PersistedState;
-      state = (await asyncMigrations['105'](state)) as PersistedState;
-      state = (await asyncMigrations['106'](state)) as PersistedState;
-      const finalState = await asyncMigrations['107'](state);
+      state = (await asyncMigrations['108'](state)) as PersistedState;
+      state = (await asyncMigrations['109'](state)) as PersistedState;
+      state = (await asyncMigrations['110'](state)) as PersistedState;
+      const finalState = await asyncMigrations['111'](state);
 
       // Assert
-      expect((finalState as Record<string, unknown>).step104).toBe(true);
-      expect((finalState as Record<string, unknown>).step105).toBe(true);
-      expect((finalState as Record<string, unknown>).step106).toBe(true);
-      expect((finalState as Record<string, unknown>).step107).toBe(true);
+      expect((finalState as Record<string, unknown>).step108).toBe(true);
+      expect((finalState as Record<string, unknown>).step109).toBe(true);
+      expect((finalState as Record<string, unknown>).step110).toBe(true);
+      expect((finalState as Record<string, unknown>).step111).toBe(true);
 
-      // Inflation should only be called once for migration 107 (> 105)
+      // Inflation should only be called once for migration 109 (> 108)
       expect(
         mockedControllerStorage.getAllPersistedState,
       ).toHaveBeenCalledTimes(1);

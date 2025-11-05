@@ -3,12 +3,12 @@ import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
 
 /**
- * Migration 104: Reset PhishingController urlScanCache
+ * Migration 107: Reset PhishingController urlScanCache
  *
  * This migration resets only the urlScanCache object in the PhishingController state
  */
 const migration = (state: unknown): unknown => {
-  const migrationVersion = 104;
+  const migrationVersion = 107;
 
   if (!ensureValidState(state, migrationVersion)) {
     return state;
@@ -21,7 +21,7 @@ const migration = (state: unknown): unknown => {
     ) {
       captureException(
         new Error(
-          `Migration 104: Invalid PhishingController state: '${JSON.stringify(
+          `Migration 107: Invalid PhishingController state: '${JSON.stringify(
             state.engine.backgroundState.PhishingController,
           )}'`,
         ),
@@ -36,7 +36,7 @@ const migration = (state: unknown): unknown => {
   } catch (error) {
     captureException(
       new Error(
-        `Migration 104: cleaning PhishingController state failed with error: ${error}`,
+        `Migration 107: cleaning PhishingController state failed with error: ${error}`,
       ),
     );
     return state;

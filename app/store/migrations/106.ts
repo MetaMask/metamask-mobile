@@ -1,40 +1,41 @@
-import { captureException } from '@sentry/react-native';
-import { MMKV } from 'react-native-mmkv';
+import { hasProperty, isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
-
-const migrationVersion = 106;
+import { captureException } from '@sentry/react-native';
 
 /**
- * Migration 106: Clean up PPOM MMKV storage after removing PPOM local execution
+ * Migration 106: Remove RatesController state
  *
- * This migration removes any lingering PPOM data stored in MMKV storage
- * when the PPOM controller is removed from the codebase.
+ * This migration removes the entire RatesController from backgroundState
+ * as it's no longer used (functionality moved to MultichainAssetsRatesController)
  */
-export default function migrate(state: unknown) {
+const migration = (state: unknown): unknown => {
+  const migrationVersion = 106;
+
   if (!ensureValidState(state, migrationVersion)) {
     return state;
   }
 
   try {
-    const ppomStorageId = 'PPOMDB';
+    const backgroundState = state?.engine?.backgroundState;
 
-    // Create MMKV instance with the same ID that was used by PPOM
-    const ppomStorage = new MMKV({ id: ppomStorageId });
-
-    // Get all keys from the PPOM storage
-    const allKeys = ppomStorage.getAllKeys();
-
-    if (allKeys.length > 0) {
-      // Clear all data from PPOM storage
-      ppomStorage.clearAll();
+    if (!backgroundState) {
+      return state;
     }
+
+    if (
+      hasProperty(backgroundState, 'RatesController') &&
+      isObject(backgroundState.RatesController)
+    ) {
+      delete backgroundState.RatesController;
+    }
+
+    return state;
   } catch (error) {
     captureException(
-      new Error(
-        `Migration ${migrationVersion}: Failed to clean up PPOM storage: ${error}`,
-      ),
+      new Error(`Migration ${migrationVersion} failed: ${error}`),
     );
+    return state;
   }
+};
 
-  return state;
-}
+export default migration;
