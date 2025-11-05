@@ -17,6 +17,9 @@ import {
   PerpsOrderTransactionStatus,
   PerpsOrderTransactionStatusType,
 } from '../../types/transactionHistory';
+import type { CaipAccountId } from '@metamask/utils';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
+import { selectChainId } from '../../../../../selectors/networkController';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -100,7 +103,7 @@ const mockTransactions = [
     fundingAmount: {
       isPositive: false,
       fee: '-$25.00',
-      feeNumber: -25.0,
+      feeNumber: -25,
       rate: '0.0001',
     },
   },
@@ -595,5 +598,218 @@ describe('PerpsTransactionsView', () => {
     ];
 
     expect(testTransactions).toHaveLength(6);
+  });
+
+  describe('accountId handling', () => {
+    const mockSelectedAddress = '0x1234567890123456789012345678901234567890';
+    const mockChainId = '0xa4b1'; // 42161 in hex (Arbitrum)
+    const expectedAccountId =
+      'eip155:42161:0x1234567890123456789012345678901234567890' as CaipAccountId;
+
+    beforeEach(() => {
+      // Reset mocks
+      mockUsePerpsTransactionHistory.mockClear();
+    });
+
+    it('should compute and pass accountId when address and chainId are available', async () => {
+      // Mock useSelector to return the expected values
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockUseSelector = jest.mocked(useSelector);
+
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSelectedInternalAccountFormattedAddress) {
+          return mockSelectedAddress;
+        }
+        if (selector === selectChainId) {
+          return mockChainId;
+        }
+        return undefined;
+      });
+
+      renderWithProvider(<PerpsTransactionsView />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() => {
+        expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
+      });
+
+      // Verify accountId was passed to the hook
+      const callArgs = mockUsePerpsTransactionHistory.mock.calls[0][0];
+      expect(callArgs).toMatchObject({
+        skipInitialFetch: false,
+        accountId: expectedAccountId,
+      });
+    });
+
+    it('should pass undefined accountId when address is missing', async () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockUseSelector = jest.mocked(useSelector);
+
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSelectedInternalAccountFormattedAddress) {
+          return undefined; // No address
+        }
+        if (selector === selectChainId) {
+          return mockChainId;
+        }
+        return undefined;
+      });
+
+      renderWithProvider(<PerpsTransactionsView />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() => {
+        expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
+      });
+
+      const callArgs = mockUsePerpsTransactionHistory.mock.calls[0][0];
+      expect(callArgs).toMatchObject({
+        skipInitialFetch: false,
+        accountId: undefined,
+      });
+    });
+
+    it('should pass undefined accountId when chainId is missing', async () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockUseSelector = jest.mocked(useSelector);
+
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSelectedInternalAccountFormattedAddress) {
+          return mockSelectedAddress;
+        }
+        if (selector === selectChainId) {
+          return undefined; // No chainId
+        }
+        return undefined;
+      });
+
+      renderWithProvider(<PerpsTransactionsView />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() => {
+        expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
+      });
+
+      const callArgs = mockUsePerpsTransactionHistory.mock.calls[0][0];
+      expect(callArgs).toMatchObject({
+        skipInitialFetch: false,
+        accountId: undefined,
+      });
+    });
+
+    it('should update accountId when address changes', async () => {
+      const firstAddress = '0x1234567890123456789012345678901234567890';
+      const secondAddress = '0x9876543210987654321098765432109876543210';
+      const firstAccountId =
+        'eip155:42161:0x1234567890123456789012345678901234567890' as CaipAccountId;
+      const secondAccountId =
+        'eip155:42161:0x9876543210987654321098765432109876543210' as CaipAccountId;
+
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockUseSelector = jest.mocked(useSelector);
+
+      let currentAddress = firstAddress;
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSelectedInternalAccountFormattedAddress) {
+          return currentAddress;
+        }
+        if (selector === selectChainId) {
+          return mockChainId;
+        }
+        return undefined;
+      });
+
+      const { rerender } = renderWithProvider(<PerpsTransactionsView />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() => {
+        expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
+      });
+
+      // Verify first accountId was used
+      expect(mockUsePerpsTransactionHistory).toHaveBeenCalledWith(
+        expect.objectContaining({
+          accountId: firstAccountId,
+        }),
+      );
+
+      // Change address
+      currentAddress = secondAddress;
+      mockUsePerpsTransactionHistory.mockClear();
+
+      // Rerender to trigger useEffect
+      rerender(<PerpsTransactionsView />);
+
+      await waitFor(() => {
+        expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
+      });
+
+      // Verify second accountId was used
+      expect(mockUsePerpsTransactionHistory).toHaveBeenCalledWith(
+        expect.objectContaining({
+          accountId: secondAccountId,
+        }),
+      );
+    });
+
+    it('should update accountId when chainId changes', async () => {
+      const firstChainId = '0xa4b1'; // Arbitrum (42161)
+      const secondChainId = '0x1'; // Ethereum mainnet (1)
+      const firstAccountId =
+        'eip155:42161:0x1234567890123456789012345678901234567890' as CaipAccountId;
+      const secondAccountId =
+        'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId;
+
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockUseSelector = jest.mocked(useSelector);
+
+      let currentChainId = firstChainId;
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSelectedInternalAccountFormattedAddress) {
+          return mockSelectedAddress;
+        }
+        if (selector === selectChainId) {
+          return currentChainId;
+        }
+        return undefined;
+      });
+
+      const { rerender } = renderWithProvider(<PerpsTransactionsView />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() => {
+        expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
+      });
+
+      // Verify first accountId was used
+      expect(mockUsePerpsTransactionHistory).toHaveBeenCalledWith(
+        expect.objectContaining({
+          accountId: firstAccountId,
+        }),
+      );
+
+      // Change chainId
+      currentChainId = secondChainId;
+      mockUsePerpsTransactionHistory.mockClear();
+
+      // Rerender to trigger useEffect
+      rerender(<PerpsTransactionsView />);
+
+      await waitFor(() => {
+        expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
+      });
+
+      // Verify second accountId was used
+      expect(mockUsePerpsTransactionHistory).toHaveBeenCalledWith(
+        expect.objectContaining({
+          accountId: secondAccountId,
+        }),
+      );
+    });
   });
 });
