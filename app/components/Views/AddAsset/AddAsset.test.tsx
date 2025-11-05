@@ -57,6 +57,14 @@ jest.mock(
     ({ children }: { children: React.ReactNode }) => <>{children}</>,
 );
 
+jest.mock('../../UI/Bridge/hooks/useTopTokens', () => ({
+  useTopTokens: jest.fn(() => ({
+    topTokens: [],
+    remainingTokens: [],
+    pending: false,
+  })),
+}));
+
 const initialState = {
   engine: {
     backgroundState: {

@@ -38,7 +38,6 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
             style={styles.checkbox}
             isChecked={isSelected}
             isDisabled={isDisabled}
-            {...(onPress && { onPress })}
           />
         </View>
         {children}

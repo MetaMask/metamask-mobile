@@ -96,6 +96,16 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: jest.fn(() => ({ bottom: 10 })),
 }));
 
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  return {
+    ...RN,
+    InteractionManager: {
+      runAfterInteractions: jest.fn((callback) => callback()),
+    },
+  };
+});
+
 jest.mock('../../../component-library/hooks', () => ({
   useStyles: () => ({ styles: {} }),
 }));
@@ -114,13 +124,26 @@ jest.mock('../../../components/UI/Swaps/utils/useBlockExplorer', () =>
   })),
 );
 
+jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(() => jest.fn(() => null)),
+}));
+
 jest.mock('../../../core/Engine', () => ({
   context: {
     TokensController: {
       ignoreTokens: jest.fn(),
     },
+    MultichainAssetsController: {
+      ignoreAssets: jest.fn(() => Promise.resolve()),
+      state: {
+        assetsMetadata: {},
+      },
+    },
     NetworkController: {
       findNetworkClientIdByChainId: jest.fn(() => 'test-network'),
+      state: {
+        networkConfigurationsByChainId: {},
+      },
     },
   },
 }));

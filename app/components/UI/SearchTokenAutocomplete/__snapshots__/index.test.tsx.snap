@@ -550,7 +550,6 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                                         >
                                           <TouchableOpacity
                                             disabled={false}
-                                            onPress={[Function]}
                                             style={
                                               {
                                                 "alignItems": "center",
@@ -793,7 +792,6 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                                         >
                                           <TouchableOpacity
                                             disabled={false}
-                                            onPress={[Function]}
                                             style={
                                               {
                                                 "alignItems": "center",

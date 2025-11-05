@@ -64,77 +64,7 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
             }
             testID="badge-wrapper-badge"
           >
-            <View>
-              <View
-                placeholderStyle={
-                  {
-                    "backgroundColor": "#f3f5f9",
-                  }
-                }
-                useNativeDriver={true}
-              >
-                <View
-                  address="0xdac17f958d2ee523a2206206994597c13d831ec7"
-                  fadeIn={true}
-                  placeholderStyle={
-                    {
-                      "backgroundColor": "#f3f5f9",
-                    }
-                  }
-                  source={
-                    {
-                      "uri": "https://example.com/usdt.png",
-                    }
-                  }
-                  style={
-                    [
-                      {
-                        "borderRadius": 25,
-                        "height": 50,
-                        "overflow": "hidden",
-                        "width": 50,
-                      },
-                      {
-                        "height": 32,
-                        "width": 32,
-                      },
-                    ]
-                  }
-                />
-                <View
-                  collapsable={false}
-                  style={
-                    {
-                      "bottom": 0,
-                      "left": 0,
-                      "opacity": 1,
-                      "position": "absolute",
-                      "right": 0,
-                      "top": 0,
-                    }
-                  }
-                >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 25,
-                          "height": 32,
-                          "overflow": "hidden",
-                          "width": 32,
-                        },
-                        {
-                          "backgroundColor": "#eee",
-                        },
-                        {
-                          "backgroundColor": "#f3f5f9",
-                        },
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
+            <View />
             <View
               style={
                 {

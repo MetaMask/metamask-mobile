@@ -9,7 +9,7 @@ import { ListItemProps } from '../../List/ListItem/ListItem.types';
  */
 export interface ListItemMultiSelectProps
   extends TouchableOpacityProps,
-    Omit<ListItemProps, 'style' | 'hitSlop' | 'onPress'> {
+    Omit<ListItemProps, 'style' | 'hitSlop'> {
   /**
    * Optional prop to determine if the item is selected.
    */
@@ -18,8 +18,6 @@ export interface ListItemMultiSelectProps
    * Optional prop to determine if the item is disabled.
    */
   isDisabled?: boolean;
-
-  onPress?: () => void;
 }
 
 /**
