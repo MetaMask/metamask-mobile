@@ -243,6 +243,11 @@ export type PredictPosition = {
   negRisk?: boolean;
 };
 
+export type PredictBalance = {
+  balance: number;
+  validUntil: number;
+};
+
 export interface ClaimParams {
   providerId: string;
 }
