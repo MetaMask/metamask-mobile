@@ -399,6 +399,13 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       await fireEvent.press(importButton);
     });
 
+    // Check that the import function was called with the correct parameters
+    expect(mockImportNewSecretRecoveryPhrase).toHaveBeenCalledWith(
+      valid24WordMnemonic,
+      undefined,
+      expect.any(Function),
+    );
+
     expect(mockTrackEvent).toHaveBeenCalledWith(
       MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,

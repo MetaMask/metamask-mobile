@@ -43,8 +43,13 @@ import Logger from '../../../util/Logger';
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid, { SrpInputGridRef } from '../../UI/SrpInputGrid';
 import { isSRPLengthValid } from '../../../util/srp/srpInputUtils';
-import { isValidMnemonic } from '../../../util/validators';
-import { validateSRP, validateWords } from './validation';
+import {
+  validateSRP,
+  validateCompleteness,
+  validateCase,
+  validateWords,
+  validateMnemonic,
+} from './validation';
 
 /**
  * View that's displayed when the user is trying to import a new secret recovery phrase
@@ -176,40 +181,19 @@ const ImportNewSecretRecoveryPhrase = () => {
       .join(' ');
 
     setError('');
-    const filledWords = seedPhrase.filter((word) => word.trim() !== '');
-    if (filledWords.some((word) => word === '')) {
-      setError(
-        strings(
-          'import_new_secret_recovery_phrase.error_number_of_words_error_message',
-        ),
-      );
-      return;
-    }
-
-    if (phrase !== phrase.toLowerCase()) {
-      setError(
-        strings(
-          'import_new_secret_recovery_phrase.error_srp_is_case_sensitive',
-        ),
-      );
-      return;
-    }
 
     const invalidWords = Array(seedPhrase.length).fill(false);
     let validationResult = validateSRP(seedPhrase, invalidWords);
+    validationResult = validateCompleteness(validationResult, seedPhrase);
+    validationResult = validateCase(validationResult, phrase);
     validationResult = validateWords(validationResult);
+    validationResult = validateMnemonic(validationResult, phrase);
 
     if (validationResult.error) {
       setError(validationResult.error);
       return;
     }
 
-    if (!isValidMnemonic(phrase)) {
-      setError(strings('import_new_secret_recovery_phrase.error_invalid_srp'));
-      return;
-    }
-
-    setError('');
     setLoading(true);
     try {
       // check if seedless pwd is outdated skip cache before importing SRP

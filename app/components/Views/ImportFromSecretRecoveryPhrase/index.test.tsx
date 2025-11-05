@@ -293,7 +293,24 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       await act(async () => {
-        fireEvent.changeText(input, 'say ');
+        fireEvent.changeText(input, 'say');
+      });
+
+      // Wait for the first grid input to be created
+      await waitFor(() => {
+        const firstGridInput = getByTestId(
+          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
+        );
+        expect(firstGridInput).toBeOnTheScreen();
+      });
+
+      // Get the first grid input
+      const firstGridInput = getByTestId(
+        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
+      );
+
+      await act(async () => {
+        fireEvent(firstGridInput, 'onSubmitEditing');
       });
 
       await waitFor(() => {
