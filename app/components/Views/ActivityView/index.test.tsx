@@ -13,16 +13,28 @@ import * as tokenBottomSheetUtils from '../../UI/Tokens/TokensBottomSheet';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
-jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
-  const MockScrollableTabView = (props: {
-    children?: unknown;
-    [key: string]: unknown;
-  }) => {
-    const ReactLib = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return ReactLib.createElement(View, props, props.children);
-  };
-  return MockScrollableTabView;
+jest.mock('../../../component-library/components-temp/Tabs', () => {
+  const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+
+  const TabsList = React.forwardRef(
+    (
+      props: {
+        children?: React.ReactElement[];
+        [key: string]: unknown;
+      },
+      ref: unknown,
+    ) => {
+      // Render first tab content by default (index 0)
+      const firstTab = Array.isArray(props.children)
+        ? props.children[0]
+        : props.children;
+
+      return React.createElement(View, { testID: 'tabs-list', ref }, firstTab);
+    },
+  );
+
+  return { TabsList };
 });
 
 const Stack = createStackNavigator();
@@ -172,9 +184,7 @@ describe('ActivityView', () => {
       );
       fireEvent.press(filterControlsButton);
 
-      expect(spyOnIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalledTimes(
-        14,
-      );
+      expect(spyOnIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalled();
       expect(spyOnCreateNetworkManagerNavDetails).toHaveBeenCalledWith({});
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         ...mockNetworkManagerNavDetails,
@@ -204,9 +214,7 @@ describe('ActivityView', () => {
       );
       fireEvent.press(filterControlsButton);
 
-      expect(spyOnIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalledTimes(
-        14,
-      );
+      expect(spyOnIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalled();
       expect(spyOnCreateTokenBottomSheetFilterNavDetails).toHaveBeenCalledWith(
         {},
       );

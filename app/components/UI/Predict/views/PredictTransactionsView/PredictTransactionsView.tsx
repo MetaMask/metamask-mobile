@@ -1,12 +1,13 @@
 import React, { useMemo, useEffect } from 'react';
 import { ActivityIndicator, FlatList } from 'react-native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import PredictActivity from '../../components/PredictActivity/PredictActivity';
 import { PredictActivityType, type PredictActivityItem } from '../../types';
 import { usePredictActivity } from '../../hooks/usePredictActivity';
 import { formatCents } from '../../utils/format';
 import { strings } from '../../../../../../locales/i18n';
+import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import Engine from '../../../../../core/Engine';
 import { PredictEventValues } from '../../constants/eventNames';
 
@@ -114,13 +115,10 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
           <ActivityIndicator size="small" testID="activity-indicator" />
         </Box>
       ) : items.length === 0 ? (
-        <Box twClassName="px-4">
-          <Text
-            variant={TextVariant.BodySm}
-            twClassName="text-alternative py-2"
-          >
-            {strings('predict.transactions.no_transactions')}
-          </Text>
+        <Box twClassName="items-center justify-center py-10">
+          <TabEmptyState
+            description={strings('predict.transactions.no_transactions')}
+          />
         </Box>
       ) : (
         // TODO: Improve loading state, pagination, consider FlashList for better performance, pull down to refresh, etc.

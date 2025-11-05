@@ -21,8 +21,10 @@ exports[`Asset Fund Button Visibility should hide fund button when neither depos
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
@@ -61,8 +63,10 @@ exports[`Asset Fund Button Visibility should show fund button for non-ETH tokens
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
@@ -101,8 +105,10 @@ exports[`Asset Fund Button Visibility should show fund button for non-ETH tokens
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
@@ -141,8 +147,10 @@ exports[`Asset Fund Button Visibility should show fund button when both deposit 
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
@@ -181,8 +189,10 @@ exports[`Asset Fund Button Visibility should show fund button when only deposit 
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
@@ -221,8 +231,10 @@ exports[`Asset Fund Button Visibility should show fund button when only ramp is 
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
@@ -1942,34 +1954,48 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "flex": 1,
                                     "justifyContent": "center",
-                                    "padding": 20,
+                                    "paddingVertical": 40,
+                                    "width": "100%",
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "0": {
-                                        "color": "#b7bbc8",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 20,
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "display": "flex",
+                                        "flexDirection": "column",
+                                        "gap": 12,
+                                        "justifyContent": "center",
+                                        "maxWidth": 256,
                                       },
-                                      "1": {
-                                        "color": "#121314",
-                                      },
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  You have no transactions!
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    You have no transactions!
+                                  </Text>
+                                </View>
                               </View>
                               <View>
                                 <View>
@@ -3716,34 +3742,48 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "flex": 1,
                                     "justifyContent": "center",
-                                    "padding": 20,
+                                    "paddingVertical": 40,
+                                    "width": "100%",
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "0": {
-                                        "color": "#b7bbc8",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 20,
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "display": "flex",
+                                        "flexDirection": "column",
+                                        "gap": 12,
+                                        "justifyContent": "center",
+                                        "maxWidth": 256,
                                       },
-                                      "1": {
-                                        "color": "#121314",
-                                      },
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  You have no transactions!
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    You have no transactions!
+                                  </Text>
+                                </View>
                               </View>
                               <View>
                                 <View>
@@ -5531,34 +5571,48 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "flex": 1,
                                     "justifyContent": "center",
-                                    "padding": 20,
+                                    "paddingVertical": 40,
+                                    "width": "100%",
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "0": {
-                                        "color": "#b7bbc8",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 20,
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "display": "flex",
+                                        "flexDirection": "column",
+                                        "gap": 12,
+                                        "justifyContent": "center",
+                                        "maxWidth": 256,
                                       },
-                                      "1": {
-                                        "color": "#121314",
-                                      },
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  You have no transactions!
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    You have no transactions!
+                                  </Text>
+                                </View>
                               </View>
                               <View>
                                 <View>
@@ -7305,34 +7359,48 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "flex": 1,
                                     "justifyContent": "center",
-                                    "padding": 20,
+                                    "paddingVertical": 40,
+                                    "width": "100%",
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "0": {
-                                        "color": "#b7bbc8",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 20,
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "display": "flex",
+                                        "flexDirection": "column",
+                                        "gap": 12,
+                                        "justifyContent": "center",
+                                        "maxWidth": 256,
                                       },
-                                      "1": {
-                                        "color": "#121314",
-                                      },
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  You have no transactions!
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    You have no transactions!
+                                  </Text>
+                                </View>
                               </View>
                               <View>
                                 <View>
@@ -9079,34 +9147,48 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "flex": 1,
                                     "justifyContent": "center",
-                                    "padding": 20,
+                                    "paddingVertical": 40,
+                                    "width": "100%",
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "0": {
-                                        "color": "#b7bbc8",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 20,
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "display": "flex",
+                                        "flexDirection": "column",
+                                        "gap": 12,
+                                        "justifyContent": "center",
+                                        "maxWidth": 256,
                                       },
-                                      "1": {
-                                        "color": "#121314",
-                                      },
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  You have no transactions!
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    You have no transactions!
+                                  </Text>
+                                </View>
                               </View>
                               <View>
                                 <View>
@@ -10894,34 +10976,48 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "flex": 1,
                                     "justifyContent": "center",
-                                    "padding": 20,
+                                    "paddingVertical": 40,
+                                    "width": "100%",
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "0": {
-                                        "color": "#b7bbc8",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 20,
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "display": "flex",
+                                        "flexDirection": "column",
+                                        "gap": 12,
+                                        "justifyContent": "center",
+                                        "maxWidth": 256,
                                       },
-                                      "1": {
-                                        "color": "#121314",
-                                      },
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  You have no transactions!
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    You have no transactions!
+                                  </Text>
+                                </View>
                               </View>
                               <View>
                                 <View>
@@ -11467,8 +11563,10 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
                           style={
                             {
                               "alignItems": "center",
+                              "backgroundColor": "#ffffff",
                               "justifyContent": "center",
-                              "paddingBottom": 24,
+                              "paddingVertical": 40,
+                              "width": "100%",
                             }
                           }
                         >
@@ -13198,34 +13296,48 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "flex": 1,
                                     "justifyContent": "center",
-                                    "padding": 20,
+                                    "paddingVertical": 40,
+                                    "width": "100%",
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "0": {
-                                        "color": "#b7bbc8",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 20,
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "display": "flex",
+                                        "flexDirection": "column",
+                                        "gap": 12,
+                                        "justifyContent": "center",
+                                        "maxWidth": 256,
                                       },
-                                      "1": {
-                                        "color": "#121314",
-                                      },
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  You have no transactions!
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    You have no transactions!
+                                  </Text>
+                                </View>
                               </View>
                               <View>
                                 <View>
@@ -14972,34 +15084,48 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "flex": 1,
                                     "justifyContent": "center",
-                                    "padding": 20,
+                                    "paddingVertical": 40,
+                                    "width": "100%",
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "0": {
-                                        "color": "#b7bbc8",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 20,
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "display": "flex",
+                                        "flexDirection": "column",
+                                        "gap": 12,
+                                        "justifyContent": "center",
+                                        "maxWidth": 256,
                                       },
-                                      "1": {
-                                        "color": "#121314",
-                                      },
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  You have no transactions!
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    You have no transactions!
+                                  </Text>
+                                </View>
                               </View>
                               <View>
                                 <View>
@@ -15545,8 +15671,10 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
                           style={
                             {
                               "alignItems": "center",
+                              "backgroundColor": "#ffffff",
                               "justifyContent": "center",
-                              "paddingBottom": 24,
+                              "paddingVertical": 40,
+                              "width": "100%",
                             }
                           }
                         >
@@ -15595,8 +15723,10 @@ exports[`Asset should display swaps button if the asset is allowed 1`] = `
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
@@ -15635,8 +15765,10 @@ exports[`Asset should not display swaps button if the asset is not allowed 1`] =
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >
@@ -15675,8 +15807,10 @@ exports[`Asset should render correctly 1`] = `
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "justifyContent": "center",
-          "paddingBottom": 24,
+          "paddingVertical": 40,
+          "width": "100%",
         }
       }
     >

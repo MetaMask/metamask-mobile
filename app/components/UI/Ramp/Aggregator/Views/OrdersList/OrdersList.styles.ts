@@ -3,15 +3,10 @@ import { Colors } from '../../../../../../util/theme/models';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
-    filters: {
-      flexDirection: 'row',
-      columnGap: 8,
+    emptyContainer: {
+      width: '100%',
       alignItems: 'center',
-      marginVertical: 16,
-      marginHorizontal: 24,
-    },
-    emptyMessage: {
-      textAlign: 'center',
+      paddingVertical: 40,
     },
     row: {
       borderBottomWidth: StyleSheet.hairlineWidth,
