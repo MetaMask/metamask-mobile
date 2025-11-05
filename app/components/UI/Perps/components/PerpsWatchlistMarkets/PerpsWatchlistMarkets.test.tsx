@@ -60,6 +60,18 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
+// Mock Perps hooks
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLivePositions: () => ({
+    positions: [],
+    isInitialLoading: false,
+  }),
+  usePerpsLiveOrders: () => ({
+    orders: [],
+    isInitialLoading: false,
+  }),
+}));
+
 describe('PerpsWatchlistMarkets', () => {
   const mockNavigate = jest.fn();
   const mockMarkets: PerpsMarketData[] = [
@@ -146,7 +158,10 @@ describe('PerpsWatchlistMarkets', () => {
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market: mockMarkets[0] },
+        params: {
+          market: mockMarkets[0],
+          initialTab: undefined,
+        },
       });
     });
 
@@ -159,7 +174,10 @@ describe('PerpsWatchlistMarkets', () => {
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market: mockMarkets[1] },
+        params: {
+          market: mockMarkets[1],
+          initialTab: undefined,
+        },
       });
     });
   });
