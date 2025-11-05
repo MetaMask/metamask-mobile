@@ -121,7 +121,7 @@ describe('usePerpsCloseAllCalculations', () => {
       expect(result.current.receiveAmount).toBe(0);
       expect(result.current.totalEstimatedPoints).toBe(0);
       expect(result.current.avgFeeDiscountPercentage).toBe(0);
-      expect(result.current.avgBonusBips).toBe(0);
+      expect(result.current.avgBonusBips).toBeUndefined(); // undefined when no positions
       expect(result.current.avgMetamaskFeeRate).toBe(0);
       expect(result.current.avgProtocolFeeRate).toBe(0);
       expect(result.current.isLoading).toBe(false);

@@ -317,15 +317,25 @@ export function usePerpsCloseAllCalculations({
                   ? baseFees.metamaskFeeAmount * discountMultiplier
                   : undefined;
 
-              // Recalculate total fee with discount applied only if both values are defined
+              // Recalculate total fee amount and rate with discount applied
               const adjustedTotalFee =
                 baseFees.protocolFeeAmount !== undefined &&
                 adjustedMetamaskFeeAmount !== undefined
                   ? baseFees.protocolFeeAmount + adjustedMetamaskFeeAmount
                   : undefined;
 
+              // Adjust total fee rate by subtracting the discount from MetaMask component
+              const adjustedTotalFeeRate =
+                baseFees.feeRate !== undefined &&
+                baseFees.metamaskFeeRate !== undefined &&
+                adjustedMetamaskFeeRate !== undefined
+                  ? baseFees.feeRate -
+                    (baseFees.metamaskFeeRate - adjustedMetamaskFeeRate)
+                  : undefined;
+
               const fees = {
                 ...baseFees,
+                feeRate: adjustedTotalFeeRate,
                 metamaskFeeRate: adjustedMetamaskFeeRate,
                 metamaskFeeAmount: adjustedMetamaskFeeAmount,
                 feeAmount: adjustedTotalFee,
