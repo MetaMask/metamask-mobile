@@ -143,9 +143,7 @@ export const usePerpsPositionData = ({
     };
 
     loadHistoricalData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchHistoricalCandles, initializationState]);
-  // isControllerInitialized is derived from initializationState, coin is in fetchHistoricalCandles
+  }, [fetchHistoricalCandles, initializationState, isControllerInitialized]);
 
   // Subscribe to price updates for 24-hour data
   useEffect(() => {
@@ -158,9 +156,7 @@ export const usePerpsPositionData = ({
     return () => {
       unsubscribe();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subscribeToPriceUpdates, initializationState]);
-  // isControllerInitialized is derived from initializationState, coin is in subscribeToPriceUpdates
+  }, [subscribeToPriceUpdates, initializationState, isControllerInitialized]);
 
   // Periodically refresh candle data to get new completed candles
   useEffect(() => {
@@ -229,15 +225,14 @@ export const usePerpsPositionData = ({
       clearInterval(intervalId);
       DevLogger.log('Cleared candle refresh interval');
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     candleData,
     isLoadingHistory,
     selectedInterval,
     fetchHistoricalCandles,
     initializationState,
+    isControllerInitialized,
   ]);
-  // isControllerInitialized is derived from initializationState
 
   // Build live candle from price updates
   useEffect(() => {
