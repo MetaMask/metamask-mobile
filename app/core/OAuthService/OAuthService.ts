@@ -158,13 +158,18 @@ export class OAuthService {
       (error.code === OAuthErrorType.UserCancelled ||
         error.code === OAuthErrorType.UserDismissed);
 
+    let isRehydration: 'true' | 'false' | 'unknown' = 'unknown';
+    if (this.localState.isRehydration !== undefined) {
+      isRehydration = this.localState.isRehydration ? 'true' : 'false';
+    }
+
     MetaMetrics.getInstance().trackEvent(
       MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.SOCIAL_LOGIN_FAILED,
       )
         .addProperties({
           account_type: `default_${authConnection}`,
-          is_rehydration: this.localState.isRehydration ?? false,
+          is_rehydration: isRehydration,
           failure_type: isUserCancelled ? 'user_cancelled' : 'error',
           error_category: errorCategory,
         })
