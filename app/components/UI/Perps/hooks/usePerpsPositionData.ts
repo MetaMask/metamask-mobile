@@ -25,6 +25,7 @@ export const usePerpsPositionData = ({
   const [priceData, setPriceData] = useState<PriceUpdate | null>(null);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [liveCandle, setLiveCandle] = useState<CandleStick | null>(null);
+  const [hasHistoricalData, setHasHistoricalData] = useState(false);
   const prevMergedDataRef = useRef<CandleData | null>(null);
 
   // Helper function to get the current candle's start time based on interval
@@ -103,18 +104,27 @@ export const usePerpsPositionData = ({
   // Load historical candles
   useEffect(() => {
     setIsLoadingHistory(true);
+    setHasHistoricalData(false);
     const loadHistoricalData = async () => {
       try {
         const historicalData = await fetchHistoricalCandles();
-        setCandleData((prev) => {
-          // Prevent re-render if data is identical
-          if (isEqual(prev, historicalData)) {
-            return prev;
-          }
-          return historicalData;
-        });
+        // Only set data and flag if we received valid data
+        if (historicalData && historicalData.candles?.length > 0) {
+          setCandleData((prev) => {
+            // Prevent re-render if data is identical
+            if (isEqual(prev, historicalData)) {
+              return prev;
+            }
+            return historicalData;
+          });
+          setHasHistoricalData(true);
+        } else {
+          // No valid data received
+          setHasHistoricalData(false);
+        }
       } catch (err) {
         console.error('Error loading historical candles:', err);
+        setHasHistoricalData(false);
       } finally {
         setIsLoadingHistory(false);
       }
@@ -241,7 +251,10 @@ export const usePerpsPositionData = ({
 
   // Merge historical candles with live candle for chart display
   const candleDataWithLive = useMemo(() => {
-    if (!candleData || !liveCandle) return candleData;
+    // Don't return any data until we have successfully loaded historical candles
+    if (!hasHistoricalData || !candleData) return null;
+
+    if (!liveCandle) return candleData;
 
     // Check if live candle already exists in historical data
     const existingCandleIndex = candleData.candles.findIndex(
@@ -270,21 +283,29 @@ export const usePerpsPositionData = ({
 
     prevMergedDataRef.current = mergedData;
     return mergedData;
-  }, [candleData, liveCandle]);
+  }, [candleData, liveCandle, hasHistoricalData]);
 
   const refreshCandleData = useCallback(async () => {
     setIsLoadingHistory(true);
     try {
       const historicalData = await fetchHistoricalCandles();
-      setCandleData((prev) => {
-        // Prevent re-render if data is identical
-        if (isEqual(prev, historicalData)) {
-          return prev;
-        }
-        return historicalData;
-      });
+
+      if (historicalData && historicalData.candles?.length > 0) {
+        setCandleData((prev) => {
+          // Prevent re-render if data is identical
+          if (isEqual(prev, historicalData)) {
+            return prev;
+          }
+          return historicalData;
+        });
+        setHasHistoricalData(true);
+      } else {
+        // No valid data received on refresh
+        setHasHistoricalData(false);
+      }
     } catch (err) {
       console.error('Error refreshing candle data:', err);
+      setHasHistoricalData(false);
     } finally {
       setIsLoadingHistory(false);
     }
@@ -295,5 +316,6 @@ export const usePerpsPositionData = ({
     priceData,
     isLoadingHistory,
     refreshCandleData,
+    hasHistoricalData,
   };
 };

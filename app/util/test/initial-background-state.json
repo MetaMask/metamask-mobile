@@ -44,10 +44,6 @@
     "tokensChainsCache": {},
     "preventPollingOnNetworkRestart": false
   },
-  "PPOMController": {
-    "storageMetadata": [],
-    "versionInfo": []
-  },
   "CurrencyRateController": {
     "currentCurrency": "usd",
     "currencyRates": {
@@ -63,7 +59,12 @@
   },
   "NetworkController": {
     "selectedNetworkClientId": "mainnet",
-    "networksMetadata": { "mainnet": { "status": "unknown", "EIPS": {} } },
+    "networksMetadata": {
+      "mainnet": {
+        "status": "unknown",
+        "EIPS": {}
+      }
+    },
     "networkConfigurationsByChainId": {
       "0x1": {
         "blockExplorerUrls": [],
@@ -727,7 +728,10 @@
     "eligibility": {},
     "lastError": null,
     "lastUpdateTimestamp": 0,
+    "balances": {},
+    "claimablePositions": {},
     "pendingDeposits": {},
+    "withdrawTransaction": null,
     "isOnboarded": {}
   }
 }
