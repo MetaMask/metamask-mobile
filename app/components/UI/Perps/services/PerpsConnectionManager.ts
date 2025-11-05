@@ -437,7 +437,7 @@ class PerpsConnectionManagerClass {
 
         // Stage 1: Initialize providers
         const initStart = performance.now();
-        await Engine.context.PerpsController.initializeProviders();
+        await Engine.context.PerpsController.init();
         this.isInitialized = true;
         setMeasurement(
           PerpsMeasurementName.PERPS_PROVIDER_INIT,
@@ -610,7 +610,7 @@ class PerpsConnectionManagerClass {
       this.clearConnectionTimeout();
 
       // Clear all pending promises to cancel in-flight operations
-      // Note: Actual disconnect happens in performReconnection → Controller.initializeProviders → performInitialization
+      // Note: Actual disconnect happens in performReconnection → Controller.init → performInitialization
       this.isConnecting = false;
       this.initPromise = null;
       this.pendingReconnectPromise = null;
@@ -696,7 +696,7 @@ class PerpsConnectionManagerClass {
 
       // Stage 2: Force the controller to reinitialize with new context
       const reinitStart = performance.now();
-      await Engine.context.PerpsController.initializeProviders();
+      await Engine.context.PerpsController.init();
       setMeasurement(
         PerpsMeasurementName.PERPS_CONTROLLER_REINIT,
         performance.now() - reinitStart,

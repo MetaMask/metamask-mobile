@@ -464,6 +464,8 @@ export class Engine {
     notificationServicesController.init();
     ///: END:ONLY_INCLUDE_IF
 
+    perpsController.init();
+
     this.context = {
       KeyringController: this.keyringController,
       AccountTreeController: accountTreeController,

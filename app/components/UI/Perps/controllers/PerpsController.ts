@@ -739,10 +739,6 @@ export class PerpsController extends BaseController<
     );
 
     this.providers = new Map();
-
-    this.initializeProviders().catch((error) => {
-      Logger.error(ensureError(error), this.getErrorContext('constructor'));
-    });
   }
 
   private setBlockedRegionList(list: string[], source: 'remote' | 'fallback') {
@@ -1202,7 +1198,7 @@ export class PerpsController extends BaseController<
    * Must be called before using any other methods
    * Prevents double initialization with promise caching
    */
-  async initializeProviders(): Promise<void> {
+  async init(): Promise<void> {
     if (this.isInitialized) {
       return;
     }
@@ -1211,7 +1207,9 @@ export class PerpsController extends BaseController<
       return this.initializationPromise;
     }
 
-    this.initializationPromise = this.performInitialization();
+    this.initializationPromise = this.performInitialization().catch((error) => {
+      Logger.error(error, this.getErrorContext('init'));
+    });
     return this.initializationPromise;
   }
 
@@ -3851,7 +3849,7 @@ export class PerpsController extends BaseController<
       // Reset initialization state and reinitialize provider with new testnet setting
       this.isInitialized = false;
       this.initializationPromise = null;
-      await this.initializeProviders();
+      await this.init();
 
       DevLogger.log('PerpsController: Network toggle completed', {
         newNetwork,

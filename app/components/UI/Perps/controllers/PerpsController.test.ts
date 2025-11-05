@@ -165,14 +165,14 @@ describe('PerpsController', () => {
 
   describe('constructor', () => {
     it('initializes with default state', () => {
-      // Constructor immediately starts and completes initialization (wait() is mocked)
+      // Constructor no longer auto-starts initialization (moved to Engine.ts)
       expect(controller.state.activeProvider).toBe('hyperliquid');
       expect(controller.state.positions).toEqual([]);
       expect(controller.state.accountState).toBeNull();
       expect(controller.state.connectionStatus).toBe('disconnected');
-      expect(controller.state.initializationState).toBe('initialized'); // Completes instantly with mocked wait()
+      expect(controller.state.initializationState).toBe('uninitialized'); // Waits for explicit initialization
       expect(controller.state.initializationError).toBeNull();
-      expect(controller.state.initializationAttempts).toBe(1); // First attempt succeeded
+      expect(controller.state.initializationAttempts).toBe(0); // Not started yet
       expect(controller.state.isEligible).toBe(false);
       expect(controller.state.isTestnet).toBe(false); // Default to mainnet
     });
@@ -699,9 +699,9 @@ describe('PerpsController', () => {
     });
   });
 
-  describe('initializeProviders', () => {
+  describe('init', () => {
     it('should initialize providers successfully', async () => {
-      await controller.initializeProviders();
+      await controller.init();
 
       expect((controller as any).isInitialized).toBe(true);
       expect((controller as any).providers.has('hyperliquid')).toBe(true);
@@ -709,11 +709,11 @@ describe('PerpsController', () => {
 
     it('should handle initialization when already initialized', async () => {
       // First initialization
-      await controller.initializeProviders();
+      await controller.init();
       expect((controller as any).isInitialized).toBe(true);
 
       // Second initialization should not throw
-      await controller.initializeProviders();
+      await controller.init();
       expect((controller as any).isInitialized).toBe(true);
     });
 
@@ -752,6 +752,11 @@ describe('PerpsController', () => {
         state: getDefaultPerpsControllerState(),
       });
 
+      // Explicitly start initialization (no longer auto-starts in constructor)
+      testController.init().catch(() => {
+        // Expected to fail - error is stored in state
+      });
+
       // Wait for initialization to complete (retries happen instantly due to mocked wait())
       // Small delay allows async promise chain to resolve
       await new Promise((resolve) => setTimeout(resolve, 50));
@@ -767,7 +772,7 @@ describe('PerpsController', () => {
       ).mockImplementation(() => mockProvider);
 
       // User retries initialization (e.g., via network switch)
-      await testController.initializeProviders();
+      await testController.init();
 
       // Verify initialization succeeds (not cached failure)
       expect(testController.state.initializationState).toBe('initialized');
