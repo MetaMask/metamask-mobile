@@ -32,7 +32,6 @@ import { CardError } from '../../types';
 import { useCardSDK } from '../../sdk';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
-import Logger from '../../../../../util/Logger';
 
 const PersonalDetails = () => {
   const navigation = useNavigation();
@@ -55,7 +54,6 @@ const PersonalDetails = () => {
   // If user data is available, set the state values
   useEffect(() => {
     if (userData) {
-      Logger.log('userData.dateOfBirth', userData.dateOfBirth);
       setFirstName(userData.firstName || '');
       setLastName(userData.lastName || '');
       // userData.dateOfBirth is in ISO 8601 format, parse it to local timezone
@@ -73,15 +71,12 @@ const PersonalDetails = () => {
             parseInt(day, 10),
           );
           const timestamp = date.getTime();
-          Logger.log('userData.dateOfBirth timestamp', timestamp.toString());
           setDateOfBirth(timestamp.toString());
         } else {
-          Logger.log('Invalid date format, setting empty');
           setDateOfBirth('');
         }
       } else {
         setDateOfBirth('');
-        Logger.log('userData.dateOfBirth timestamp', 'empty');
       }
       setNationality(userData.countryOfResidence || '');
       setSSN(userData.ssn || '');
