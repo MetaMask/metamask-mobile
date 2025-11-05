@@ -151,16 +151,17 @@ describe('PerpsController', () => {
   });
 
   describe('constructor', () => {
-    it('should initialize with default state', () => {
+    it('initializes with default state', () => {
       expect(controller.state).toEqual(getDefaultPerpsControllerState());
       expect(controller.state.activeProvider).toBe('hyperliquid');
       expect(controller.state.positions).toEqual([]);
       expect(controller.state.accountState).toBeNull();
       expect(controller.state.connectionStatus).toBe('disconnected');
       expect(controller.state.isEligible).toBe(false);
+      expect(controller.state.isTestnet).toBe(false); // Default to mainnet
     });
 
-    it('should read current RemoteFeatureFlagController state during construction', () => {
+    it('reads current RemoteFeatureFlagController state during construction', () => {
       // Given: A mock messenger that tracks calls
       const mockCall = jest.fn().mockImplementation((action: string) => {
         if (action === 'RemoteFeatureFlagController:getState') {
@@ -370,6 +371,296 @@ describe('PerpsController', () => {
       );
 
       mockLoggerError.mockRestore();
+    });
+  });
+
+  describe('refreshHip3ConfigOnFeatureFlagChange', () => {
+    describe('allowlist parsing', () => {
+      it('parses comma-separated allowlist string from LaunchDarkly', () => {
+        // Arrange
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3AllowlistMarkets: 'BTC-USD,ETH-USD,SOL-USD',
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect((controller as any).hip3AllowlistMarkets).toEqual([
+          'BTC-USD',
+          'ETH-USD',
+          'SOL-USD',
+        ]);
+      });
+
+      it('parses allowlist array format', () => {
+        // Arrange
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3AllowlistMarkets: ['BTC-USD', 'ETH-USD'],
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect((controller as any).hip3AllowlistMarkets).toEqual([
+          'BTC-USD',
+          'ETH-USD',
+        ]);
+      });
+
+      it('trims whitespace from allowlist array items', () => {
+        // Arrange
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3AllowlistMarkets: ['  BTC-USD  ', ' ETH-USD'],
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect((controller as any).hip3AllowlistMarkets).toEqual([
+          'BTC-USD',
+          'ETH-USD',
+        ]);
+      });
+
+      it('falls back to local config when allowlist format is invalid (non-string array)', () => {
+        // Arrange
+        const initialAllowlist = ['LOCAL-BTC'];
+        (controller as any).hip3AllowlistMarkets = initialAllowlist;
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3AllowlistMarkets: [123, null, 'BTC-USD'],
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect((controller as any).hip3AllowlistMarkets).toEqual(
+          initialAllowlist,
+        );
+      });
+
+      it('falls back to local config when allowlist format is invalid (empty string array)', () => {
+        // Arrange
+        const initialAllowlist = ['LOCAL-ETH'];
+        (controller as any).hip3AllowlistMarkets = initialAllowlist;
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3AllowlistMarkets: ['BTC-USD', '', 'ETH-USD'],
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect((controller as any).hip3AllowlistMarkets).toEqual(
+          initialAllowlist,
+        );
+      });
+
+      it('falls back to local config when allowlist is empty string after parsing', () => {
+        // Arrange
+        const initialAllowlist = ['LOCAL-SOL'];
+        (controller as any).hip3AllowlistMarkets = initialAllowlist;
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3AllowlistMarkets: '',
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect((controller as any).hip3AllowlistMarkets).toEqual(
+          initialAllowlist,
+        );
+      });
+    });
+
+    describe('blocklist parsing', () => {
+      it('parses comma-separated blocklist string from LaunchDarkly', () => {
+        // Arrange
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3BlocklistMarkets: 'SCAM-USD,FAKE-USD',
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect((controller as any).hip3BlocklistMarkets).toEqual([
+          'SCAM-USD',
+          'FAKE-USD',
+        ]);
+      });
+
+      it('parses blocklist array format', () => {
+        // Arrange
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3BlocklistMarkets: ['SCAM-USD', 'FAKE-USD'],
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect((controller as any).hip3BlocklistMarkets).toEqual([
+          'SCAM-USD',
+          'FAKE-USD',
+        ]);
+      });
+
+      it('trims whitespace from blocklist array items', () => {
+        // Arrange
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3BlocklistMarkets: ['  SCAM-USD  ', ' FAKE-USD'],
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect((controller as any).hip3BlocklistMarkets).toEqual([
+          'SCAM-USD',
+          'FAKE-USD',
+        ]);
+      });
+
+      it('falls back to local config when blocklist format is invalid (non-string array)', () => {
+        // Arrange
+        const initialBlocklist = ['LOCAL-SCAM'];
+        (controller as any).hip3BlocklistMarkets = initialBlocklist;
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3BlocklistMarkets: [456, null, 'SCAM-USD'],
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect((controller as any).hip3BlocklistMarkets).toEqual(
+          initialBlocklist,
+        );
+      });
+
+      it('falls back to local config when blocklist format is invalid (empty string array)', () => {
+        // Arrange
+        const initialBlocklist = ['LOCAL-FAKE'];
+        (controller as any).hip3BlocklistMarkets = initialBlocklist;
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3BlocklistMarkets: ['SCAM-USD', '', 'FAKE-USD'],
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect((controller as any).hip3BlocklistMarkets).toEqual(
+          initialBlocklist,
+        );
+      });
+
+      it('falls back to local config when blocklist is empty string after parsing', () => {
+        // Arrange
+        const initialBlocklist = ['LOCAL-BAD'];
+        (controller as any).hip3BlocklistMarkets = initialBlocklist;
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3BlocklistMarkets: '',
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect((controller as any).hip3BlocklistMarkets).toEqual(
+          initialBlocklist,
+        );
+      });
+    });
+
+    describe('config change detection', () => {
+      it('increments hip3ConfigVersion when allowlist changes', () => {
+        // Arrange
+        const initialVersion = controller.state.hip3ConfigVersion;
+        (controller as any).hip3AllowlistMarkets = ['BTC-USD'];
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3AllowlistMarkets: 'ETH-USD,SOL-USD',
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect(controller.state.hip3ConfigVersion).toBe(initialVersion + 1);
+        expect((controller as any).hip3AllowlistMarkets).toEqual([
+          'ETH-USD',
+          'SOL-USD',
+        ]);
+      });
+
+      it('increments hip3ConfigVersion when blocklist changes', () => {
+        // Arrange
+        const initialVersion = controller.state.hip3ConfigVersion;
+        (controller as any).hip3BlocklistMarkets = ['OLD-SCAM'];
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3BlocklistMarkets: 'NEW-SCAM,NEW-FAKE',
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect(controller.state.hip3ConfigVersion).toBe(initialVersion + 1);
+        expect((controller as any).hip3BlocklistMarkets).toEqual([
+          'NEW-SCAM',
+          'NEW-FAKE',
+        ]);
+      });
+
+      it('does not increment version when config stays the same', () => {
+        // Arrange
+        const initialVersion = controller.state.hip3ConfigVersion;
+        (controller as any).hip3AllowlistMarkets = ['BTC-USD', 'ETH-USD'];
+        const remoteFlags = {
+          remoteFeatureFlags: {
+            perpsHip3AllowlistMarkets: 'ETH-USD,BTC-USD', // Same, just different order
+          },
+        };
+
+        // Act
+        (controller as any).refreshHip3ConfigOnFeatureFlagChange(remoteFlags);
+
+        // Assert
+        expect(controller.state.hip3ConfigVersion).toBe(initialVersion);
+      });
     });
   });
 
@@ -1859,9 +2150,10 @@ describe('PerpsController', () => {
   describe('fee calculations', () => {
     it('should calculate fees', async () => {
       const feeParams = {
-        coin: 'BTC',
-        size: '0.1',
         orderType: 'market' as const,
+        isMaker: false,
+        amount: '100000',
+        coin: 'BTC',
       };
 
       const mockFees = {

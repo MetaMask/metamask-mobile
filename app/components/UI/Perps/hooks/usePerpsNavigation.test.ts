@@ -75,7 +75,10 @@ describe('usePerpsNavigation', () => {
 
       result.current.navigateToActivity();
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ACTIVITY, {
+        redirectToPerpsTransactions: true,
+        showBackButton: true,
+      });
     });
 
     it('navigates to settings when rewards disabled', () => {

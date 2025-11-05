@@ -36,8 +36,6 @@ export interface CardToken {
   decimals: number | null;
   symbol: string | null;
   name: string | null;
-  delegationContract?: string | null;
-  stagingTokenAddress?: string | null; // Used in staging environment for actual on-chain token address
 }
 
 // Card token data interface
@@ -56,6 +54,8 @@ export interface AuthenticatedCardTokenAllowanceData {
   availableBalance?: string;
   walletAddress?: string;
   priority?: number; // Lower number = higher priority (1 is highest)
+  delegationContract?: string | null;
+  stagingTokenAddress?: string | null; // Used in staging environment for actual on-chain token address
 }
 
 export type CardTokenAllowance = {

@@ -257,6 +257,8 @@ const Routes = {
     CLOSE_POSITION: 'PerpsClosePosition',
     HIP3_DEBUG: 'PerpsHIP3Debug',
     TPSL: 'PerpsTPSL',
+    PNL_HERO_CARD: 'PerpsPnlHeroCard',
+    ACTIVITY: 'PerpsActivity', // Stack-based activity view for proper back navigation
     MODALS: {
       ROOT: 'PerpsModals',
       QUOTE_EXPIRED_MODAL: 'PerpsQuoteExpiredModal',
