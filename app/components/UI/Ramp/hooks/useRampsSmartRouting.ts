@@ -11,6 +11,7 @@ import {
   FIAT_ORDER_STATES,
 } from '../../../../constants/on-ramp';
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
+import Logger from '../../../../util/Logger';
 
 export enum RampRegionSupport {
   DEPOSIT = 'DEPOSIT',
@@ -43,6 +44,8 @@ export default function useRampsSmartRouting() {
       }
 
       try {
+        // TODO: Replace with actual API endpoint when it's available
+        // https://consensyssoftware.atlassian.net/browse/TRAM-2807
         const response = await fetch(
           `/endpoint-coming-soon?region=${rampGeodetectedRegion}`,
         );
@@ -67,10 +70,9 @@ export default function useRampsSmartRouting() {
           return;
         }
 
-        const sortedOrders = [...completedOrders].sort(
+        const [lastCompletedOrder] = completedOrders.sort(
           (a, b) => b.createdAt - a.createdAt,
         );
-        const lastCompletedOrder = sortedOrders[0];
 
         if (lastCompletedOrder.provider === FIAT_ORDER_PROVIDERS.TRANSAK) {
           dispatch(setRampRoutingDecision(UnifiedRampRoutingType.DEPOSIT));
@@ -78,6 +80,7 @@ export default function useRampsSmartRouting() {
           dispatch(setRampRoutingDecision(UnifiedRampRoutingType.AGGREGATOR));
         }
       } catch (error) {
+        Logger.error(error as Error);
         dispatch(setRampRoutingDecision(UnifiedRampRoutingType.ERROR));
       }
     };
