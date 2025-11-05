@@ -18,22 +18,22 @@ export interface CloseAllCalculationsResult {
   totalMargin: number;
   /** Total unrealized P&L across all positions */
   totalPnl: number;
-  /** Total fees for closing all positions */
-  totalFees: number;
+  /** Total fees for closing all positions (undefined when unavailable) */
+  totalFees: number | undefined;
   /** Amount user will receive after closing all positions */
   receiveAmount: number;
-  /** Aggregated estimated points for closing all positions */
-  totalEstimatedPoints: number;
-  /** Average fee discount percentage across all positions */
-  avgFeeDiscountPercentage: number;
+  /** Aggregated estimated points for closing all positions (undefined when unavailable) */
+  totalEstimatedPoints: number | undefined;
+  /** Average fee discount percentage across all positions (undefined when unavailable) */
+  avgFeeDiscountPercentage: number | undefined;
   /** Average bonus multiplier in basis points (undefined when unavailable) */
   avgBonusBips: number | undefined;
-  /** Average MetaMask fee rate across all positions (as decimal, e.g. 0.01 for 1%) */
-  avgMetamaskFeeRate: number;
-  /** Average protocol fee rate across all positions (as decimal, e.g. 0.00045 for 0.045%) */
-  avgProtocolFeeRate: number;
-  /** Average original MetaMask fee rate before discounts (as decimal) */
-  avgOriginalMetamaskFeeRate: number;
+  /** Average MetaMask fee rate across all positions (undefined when unavailable) */
+  avgMetamaskFeeRate: number | undefined;
+  /** Average protocol fee rate across all positions (undefined when unavailable) */
+  avgProtocolFeeRate: number | undefined;
+  /** Average original MetaMask fee rate before discounts (undefined when unavailable) */
+  avgOriginalMetamaskFeeRate: number | undefined;
   /** Whether initial calculation is still loading (shows spinner) */
   isLoading: boolean;
   /** Whether background refresh is in progress (shows subtle indicator, keeps stale data visible) */
@@ -470,13 +470,13 @@ export function usePerpsCloseAllCalculations({
   const aggregatedResults = useMemo(() => {
     if (perPositionResults.length === 0) {
       return {
-        totalFees: 0,
-        totalEstimatedPoints: 0,
-        avgFeeDiscountPercentage: 0,
+        totalFees: undefined,
+        totalEstimatedPoints: undefined,
+        avgFeeDiscountPercentage: undefined,
         avgBonusBips: undefined,
-        avgMetamaskFeeRate: 0,
-        avgProtocolFeeRate: 0,
-        avgOriginalMetamaskFeeRate: 0,
+        avgMetamaskFeeRate: undefined,
+        avgProtocolFeeRate: undefined,
+        avgOriginalMetamaskFeeRate: undefined,
         shouldShowRewards: false,
       };
     }
@@ -491,9 +491,9 @@ export function usePerpsCloseAllCalculations({
     // All positions share the same batchPoints object, so use first result directly
     // Summing would incorrectly multiply by number of positions (e.g., 300 points × 3 positions = 900)
     const totalEstimatedPoints =
-      perPositionResults.length > 0
-        ? (perPositionResults[0].points?.pointsEstimate ?? 0)
-        : 0;
+      perPositionResults.length > 0 && perPositionResults[0].points
+        ? perPositionResults[0].points.pointsEstimate
+        : undefined;
 
     // Calculate weighted averages based on fee amounts
     let weightedMetamaskFeeRate = 0;
@@ -514,23 +514,26 @@ export function usePerpsCloseAllCalculations({
     });
 
     const avgMetamaskFeeRate =
-      totalWeight > 0 ? weightedMetamaskFeeRate / totalWeight : 0;
+      totalWeight > 0 ? weightedMetamaskFeeRate / totalWeight : undefined;
     const avgProtocolFeeRate =
-      totalWeight > 0 ? weightedProtocolFeeRate / totalWeight : 0;
+      totalWeight > 0 ? weightedProtocolFeeRate / totalWeight : undefined;
 
     // Calculate original MetaMask fee rate (before discount was applied)
     // The discount is applied as: discounted_rate = original_rate * (1 - discount_bips/10000)
     // Therefore: original_rate = discounted_rate / (1 - discount_bips/10000)
     // Guard against 100% discount (10000 bips) causing division by zero
     const avgOriginalMetamaskFeeRate =
-      feeDiscountBips > 0 && feeDiscountBips < 10000 && avgMetamaskFeeRate > 0
+      feeDiscountBips > 0 &&
+      feeDiscountBips < 10000 &&
+      avgMetamaskFeeRate !== undefined &&
+      avgMetamaskFeeRate > 0
         ? avgMetamaskFeeRate / (1 - feeDiscountBips / 10000)
         : avgMetamaskFeeRate;
 
     // Convert discount from basis points to percentage for display
     // e.g., 6500 bips = 65%
     const avgFeeDiscountPercentage =
-      feeDiscountBips > 0 ? feeDiscountBips / 100 : 0;
+      feeDiscountBips > 0 ? feeDiscountBips / 100 : undefined;
 
     // Batch API returns average bonusBips already calculated by backend
     // All positions share the same batchPoints object, so use first result directly
@@ -559,7 +562,10 @@ export function usePerpsCloseAllCalculations({
 
   // Calculate final receive amount
   const receiveAmount = useMemo(
-    () => totalMargin - aggregatedResults.totalFees,
+    () =>
+      aggregatedResults.totalFees !== undefined
+        ? totalMargin - aggregatedResults.totalFees
+        : totalMargin,
     [totalMargin, aggregatedResults.totalFees],
   );
 

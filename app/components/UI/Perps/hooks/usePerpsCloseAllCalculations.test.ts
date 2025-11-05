@@ -117,13 +117,13 @@ describe('usePerpsCloseAllCalculations', () => {
       // Assert
       expect(result.current.totalMargin).toBe(0);
       expect(result.current.totalPnl).toBe(0);
-      expect(result.current.totalFees).toBe(0);
+      expect(result.current.totalFees).toBeUndefined();
       expect(result.current.receiveAmount).toBe(0);
-      expect(result.current.totalEstimatedPoints).toBe(0);
-      expect(result.current.avgFeeDiscountPercentage).toBe(0);
-      expect(result.current.avgBonusBips).toBeUndefined(); // undefined when no positions
-      expect(result.current.avgMetamaskFeeRate).toBe(0);
-      expect(result.current.avgProtocolFeeRate).toBe(0);
+      expect(result.current.totalEstimatedPoints).toBeUndefined();
+      expect(result.current.avgFeeDiscountPercentage).toBeUndefined();
+      expect(result.current.avgBonusBips).toBeUndefined();
+      expect(result.current.avgMetamaskFeeRate).toBeUndefined();
+      expect(result.current.avgProtocolFeeRate).toBeUndefined();
       expect(result.current.isLoading).toBe(false);
       expect(result.current.hasError).toBe(false);
       expect(result.current.shouldShowRewards).toBe(false);
@@ -464,9 +464,9 @@ describe('usePerpsCloseAllCalculations', () => {
       // Assert
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-      // Should continue with 0% discount on error
+      // Should continue with no discount on error (undefined means 0% in this case)
       expect(result.current.totalFees).toBe(275);
-      expect(result.current.avgFeeDiscountPercentage).toBe(0);
+      expect(result.current.avgFeeDiscountPercentage).toBeUndefined();
       expect(result.current.hasError).toBe(false); // Don't fail entire calculation
     });
 
@@ -630,7 +630,7 @@ describe('usePerpsCloseAllCalculations', () => {
       });
       expect(result.current.hasError).toBe(false); // Points error doesn't fail calculation
       expect(result.current.totalFees).toBeGreaterThan(0); // Fees still calculated
-      expect(result.current.totalEstimatedPoints).toBe(0); // No points
+      expect(result.current.totalEstimatedPoints).toBeUndefined(); // No points when API fails
       expect(result.current.shouldShowRewards).toBe(false);
     });
 
@@ -734,7 +734,7 @@ describe('usePerpsCloseAllCalculations', () => {
       expect(result.current.avgProtocolFeeRate).toBeCloseTo(0.00108, 5);
     });
 
-    it('returns zero average rates for empty positions', () => {
+    it('returns undefined average rates for empty positions', () => {
       // Arrange
       const positions: Position[] = [];
       const priceData = {};
@@ -745,8 +745,8 @@ describe('usePerpsCloseAllCalculations', () => {
       );
 
       // Assert
-      expect(result.current.avgMetamaskFeeRate).toBe(0);
-      expect(result.current.avgProtocolFeeRate).toBe(0);
+      expect(result.current.avgMetamaskFeeRate).toBeUndefined();
+      expect(result.current.avgProtocolFeeRate).toBeUndefined();
     });
   });
 
