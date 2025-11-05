@@ -353,6 +353,7 @@ type RequiredControllers = Omit<
   | 'ErrorReportingService'
   | 'MultichainRouter'
   | 'PPOMController'
+  | 'RatesController'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
 >;
@@ -365,6 +366,7 @@ type OptionalControllers = Pick<
   | 'ErrorReportingService'
   | 'MultichainRouter'
   | 'PPOMController'
+  | 'RatesController'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
 >;

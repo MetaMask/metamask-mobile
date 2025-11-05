@@ -517,6 +517,7 @@ export class Engine {
       MultichainAssetsRatesController: multichainAssetsRatesController,
       MultichainTransactionsController: multichainTransactionsController,
       MultichainAccountService: multichainAccountService,
+      RatesController: ratesController,
       ///: END:ONLY_INCLUDE_IF
       TokenSearchDiscoveryDataController: tokenSearchDiscoveryDataController,
       MultichainNetworkController: multichainNetworkController,
