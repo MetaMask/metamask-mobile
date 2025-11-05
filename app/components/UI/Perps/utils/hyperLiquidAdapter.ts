@@ -7,6 +7,7 @@ import type {
   SDKOrderParams,
 } from '../types/hyperliquid-types';
 import { Hex, isHexString } from '@metamask/utils';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import type {
   AccountState,
   MarketInfo,
@@ -219,6 +220,25 @@ export function adaptOrderFromSDK(
 export function adaptMarketFromSDK(
   sdkMarket: MetaResponse['universe'][number],
 ): MarketInfo {
+  // Debug logging for market data adaptation
+  DevLogger.log('[MarketData] adaptMarketFromSDK', {
+    asset: sdkMarket.name,
+    szDecimals: sdkMarket.szDecimals,
+    maxLeverage: sdkMarket.maxLeverage,
+    marginTableId: sdkMarket.marginTableId,
+    onlyIsolated: sdkMarket.onlyIsolated,
+    isDelisted: sdkMarket.isDelisted,
+  });
+
+  // Special tracking for ASTER to detect szDecimals changes
+  if (sdkMarket.name === 'ASTER' || sdkMarket.name.includes('ASTER')) {
+    DevLogger.log('[MarketData] ⚠️ ASTER szDecimals', {
+      szDecimals: sdkMarket.szDecimals,
+      fullMarketData: sdkMarket,
+      callStack: new Error().stack?.split('\n').slice(2, 5),
+    });
+  }
+
   return {
     name: sdkMarket.name,
     szDecimals: sdkMarket.szDecimals,
@@ -429,8 +449,29 @@ export function formatHyperLiquidSize(params: {
 
   if (isNaN(num)) return '0';
 
-  // Use asset-specific decimal precision and remove trailing zeros
-  return num.toFixed(szDecimals).replace(/\.?0+$/, '');
+  // For zero decimals (ASTER, etc.), return integer without decimal processing
+  if (szDecimals === 0) {
+    const result = Math.floor(num).toString();
+    DevLogger.log('[Order Debug] formatHyperLiquidSize:', {
+      inputSize: size,
+      szDecimals,
+      parsedNum: num,
+      finalResult: result,
+      note: 'Integer formatting (szDecimals=0)',
+    });
+    return result;
+  }
+
+  // For decimals, use toFixed and remove trailing zeros AFTER decimal point
+  const result = num.toFixed(szDecimals).replace(/\.?0+$/, '');
+  DevLogger.log('[Order Debug] formatHyperLiquidSize:', {
+    inputSize: size,
+    szDecimals,
+    parsedNum: num,
+    fixedResult: num.toFixed(szDecimals),
+    finalResult: result,
+  });
+  return result;
 }
 
 /**

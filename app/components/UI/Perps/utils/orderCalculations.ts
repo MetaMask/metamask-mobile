@@ -1,3 +1,5 @@
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+
 interface PositionSizeParams {
   amount: string;
   price: number;
@@ -20,6 +22,13 @@ interface MaxAllowedAmountParams {
  * Calculate position size based on USD amount and asset price
  * @param params - Amount in USD, current asset price, and optional decimal precision
  * @returns Position size formatted to the asset's decimal precision
+ *
+ * Uses precise rounding to ensure notional value meets minimum order requirements
+ * while avoiding unnecessary overshooting (e.g., $10 → $13). Algorithm:
+ * 1. Start with Math.round() for natural rounding
+ * 2. Check if resulting notional < target
+ * 3. Add exactly ONE minimum increment if needed
+ * This prevents UI flickering and keeps orders as close to target value as possible.
  */
 export function calculatePositionSize(params: PositionSizeParams): string {
   const { amount, price, szDecimals = 6 } = params;
@@ -31,9 +40,30 @@ export function calculatePositionSize(params: PositionSizeParams): string {
 
   const positionSize = amountNum / price;
   const multiplier = Math.pow(10, szDecimals);
-  const rounded = Math.floor(positionSize * multiplier) / multiplier;
 
-  return rounded.toFixed(szDecimals);
+  // Start with natural rounding (closest value)
+  let rounded = Math.round(positionSize * multiplier) / multiplier;
+
+  // Check if notional value meets the target
+  const notionalValue = rounded * price;
+  const epsilon = 0.0001; // Small epsilon for floating-point precision
+
+  // Only add ONE minimum increment if notional is below target
+  if (notionalValue < amountNum - epsilon) {
+    rounded = (Math.floor(positionSize * multiplier) + 1) / multiplier;
+  }
+
+  const result = rounded.toFixed(szDecimals);
+  DevLogger.log('[Order Debug] calculatePositionSize result:', {
+    inputAmount: amount,
+    inputPrice: price,
+    szDecimals,
+    calculatedPositionSize: positionSize,
+    roundedPositionSize: rounded,
+    finalResult: result,
+    notionalValue: rounded * price,
+  });
+  return result;
 }
 
 /**
@@ -128,24 +158,9 @@ export function findOptimalAmount(params: OptimalAmountParams): string {
     szDecimals,
   });
 
-  // Position size for $1 USD
-  const dollarPositionSize = 1 / price;
-  // get the position increment base
-  // but at times wwe will need to skip by a few increments
-  let positionIncrement = 10 ** -szDecimals;
-  let dollarBasedPositionIncrement = (
-    Math.round(dollarPositionSize * multiplier) / multiplier
-  ).toFixed(szDecimals);
-
-  if (parseFloat(dollarBasedPositionIncrement) === 0) {
-    dollarBasedPositionIncrement = (
-      (dollarPositionSize * multiplier) /
-      multiplier
-    ).toFixed(szDecimals);
-  }
-  if (parseFloat(dollarBasedPositionIncrement) > positionIncrement) {
-    positionIncrement = parseFloat(dollarBasedPositionIncrement);
-  }
+  // Always use minimum decimal increment for precise adjustments
+  // This allows exact minimum order values (e.g., $10.00) without jumping to next dollar
+  const positionIncrement = 10 ** -szDecimals;
 
   if (highestAmount > maxAllowedAmount) {
     const decrementedPositionSize =
@@ -181,6 +196,29 @@ export function findOptimalAmount(params: OptimalAmountParams): string {
       price,
       szDecimals,
     });
+  }
+
+  // For orders near minimum, ensure notional value after conversion stays >= minimum
+  // This accounts for rounding during coin conversion
+  if (
+    highestAmount >= minAllowedAmount &&
+    highestAmount <= minAllowedAmount + 2
+  ) {
+    // Calculate what the actual notional will be after coin conversion
+    const testPositionSize = parseFloat(
+      calculatePositionSize({
+        amount: highestAmount.toString(),
+        price,
+        szDecimals,
+      }),
+    );
+    const actualNotional = testPositionSize * price;
+
+    // If conversion causes us to drop below minimum, add buffer
+    // Use 15% buffer to account for price volatility and rounding
+    if (actualNotional < minAllowedAmount) {
+      highestAmount = Math.ceil(minAllowedAmount * 1.15);
+    }
   }
 
   return highestAmount.toString();

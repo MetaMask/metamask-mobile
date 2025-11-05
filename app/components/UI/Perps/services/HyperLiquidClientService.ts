@@ -54,6 +54,8 @@ export class HyperLiquidClientService {
 
   /**
    * Initialize all HyperLiquid SDK clients
+   * The WebSocket transport is created and connection is managed by the SDK
+   * @param wallet - Wallet adapter for signing
    */
   public initialize(wallet: {
     signTypedData: (params: {
@@ -86,9 +88,11 @@ export class HyperLiquidClientService {
         transport: this.transport,
       });
 
+      // WebSocket connection is handled by the SDK's transport
+      // The SDK manages connection state internally with automatic reconnection
       this.connectionState = WebSocketConnectionState.CONNECTED;
 
-      DevLogger.log('HyperLiquid SDK clients initialized', {
+      DevLogger.log('HyperLiquid SDK clients initialized and connected', {
         testnet: this.isTestnet,
         endpoint: getWebSocketEndpoint(this.isTestnet),
         timestamp: new Date().toISOString(),
@@ -125,7 +129,7 @@ export class HyperLiquidClientService {
   /**
    * Toggle testnet mode and reinitialize clients
    */
-  public async toggleTestnet(wallet: {
+  public toggleTestnet(wallet: {
     signTypedData: (params: {
       domain: {
         name: string;
@@ -140,7 +144,7 @@ export class HyperLiquidClientService {
       message: Record<string, unknown>;
     }) => Promise<Hex>;
     getChainId?: () => Promise<number>;
-  }): Promise<HyperLiquidNetwork> {
+  }): HyperLiquidNetwork {
     this.isTestnet = !this.isTestnet;
     this.initialize(wallet);
     return this.isTestnet ? 'testnet' : 'mainnet';

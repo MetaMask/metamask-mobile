@@ -28,6 +28,24 @@ export const usePerpsMarketData = (asset: string) => {
       const markets = await getMarkets({ symbols: [asset] });
       const assetMarket = markets.find((market) => market.name === asset);
 
+      // Track market data received from hook
+      DevLogger.log('[MarketData] usePerpsMarketData received data', {
+        asset,
+        marketsCount: markets.length,
+        found: !!assetMarket,
+        szDecimals: assetMarket?.szDecimals,
+        timestamp: Date.now(),
+      });
+
+      // Special ASTER tracking
+      if (assetMarket && (asset === 'ASTER' || asset.includes('ASTER'))) {
+        DevLogger.log('[MarketData] ⚠️ ASTER in usePerpsMarketData', {
+          szDecimals: assetMarket.szDecimals,
+          fullMarketData: assetMarket,
+          timestamp: Date.now(),
+        });
+      }
+
       if (assetMarket === undefined) {
         setError(`Asset ${asset} is not tradable`);
         setMarketData(null);

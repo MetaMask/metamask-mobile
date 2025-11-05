@@ -46,6 +46,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { TraceName } from '../../../../../util/trace';
 import Keypad from '../../../../Base/Keypad';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
@@ -169,6 +170,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const hasShownSubmittedToastRef = useRef(false);
   const orderStartTimeRef = useRef<number>(0);
   const inputMethodRef = useRef<InputMethod>('default');
+  const hasOptimizedOnBlurRef = useRef(false);
 
   const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
 
@@ -190,6 +192,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
     handlePercentageAmount,
     handleMaxAmount,
     maxPossibleAmount,
+    isOptimizing,
   } = usePerpsOrderContext();
 
   /**
@@ -550,6 +553,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
     existingPosition?.leverage?.value;
 
   // Order validation using new hook
+  // Skip validation while user is actively typing in keypad to prevent:
+  // - Unnecessary computation on every keystroke
+  // - UI error flashing during intermediate invalid states
+  // - Protocol API calls before final value is entered
   const orderValidation = usePerpsOrderValidation({
     orderForm,
     positionSize,
@@ -557,6 +564,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
     availableBalance,
     marginRequired: marginRequired || '0',
     existingPositionLeverage: existingPositionLeverageForValidation,
+    minimumOrderAmount,
+    skipValidation: isInputFocused,
   });
 
   // Filter out specific validation error(s) from display (similar to ClosePositionView pattern)
@@ -647,11 +656,12 @@ const PerpsOrderViewContentBase: React.FC = () => {
     setIsInputFocused(false);
   };
 
-  // Clamp amount to the maximum allowed once the keypad/input is dismissed
-  // Mirrors the PerpsClosePositionView behavior where, after leaving input,
-  // values are normalized to valid limits.
+  // Optimize amount when input loses focus (runs ONCE per blur session)
+  // Prevents infinite loop from WebSocket price updates triggering repeated optimizations
   useEffect(() => {
-    if (!isInputFocused) {
+    if (!isInputFocused && !hasOptimizedOnBlurRef.current) {
+      hasOptimizedOnBlurRef.current = true;
+
       const currentAmount = parseFloat(orderForm.amount || '0');
 
       // If user-entered amount exceeds the max purchasable with current balance/leverage,
@@ -659,18 +669,23 @@ const PerpsOrderViewContentBase: React.FC = () => {
       if (currentAmount > maxPossibleAmount) {
         setAmount(String(maxPossibleAmount));
       }
-      optimizeOrderAmount(assetData.price, marketData?.szDecimals);
+      // Only optimize for percentage/slider/max buttons, NOT manual keypad entry
+      // Keypad input represents user's exact intent and should not be modified
+      if (inputMethodRef.current !== 'keypad') {
+        optimizeOrderAmount(assetData.price, marketData?.szDecimals);
+      }
     }
+    // Only run when focus changes, NOT on price/leverage/balance updates
+    // This prevents the infinite loop (10→11→12→13...) caused by WebSocket price updates
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    isInputFocused,
-    availableBalance,
-    orderForm.leverage,
-    setAmount,
-    optimizeOrderAmount,
-    assetData.price,
-    marketData?.szDecimals,
-  ]);
+  }, [isInputFocused]);
+
+  // Reset optimization flag when input regains focus
+  useEffect(() => {
+    if (isInputFocused) {
+      hasOptimizedOnBlurRef.current = false;
+    }
+  }, [isInputFocused]);
 
   const handlePlaceOrder = useCallback(async () => {
     if (isSubmittingRef.current) {
@@ -786,6 +801,14 @@ const PerpsOrderViewContentBase: React.FC = () => {
           stopLossPrice: orderForm.stopLossPrice,
         });
       } else {
+        DevLogger.log('[Order Debug] PerpsOrderView creating order:', {
+          coin: orderForm.asset,
+          orderFormAmount: orderForm.amount,
+          calculatedPositionSize: positionSize,
+          assetPrice: assetData.price,
+          szDecimals: marketData?.szDecimals,
+          orderParams,
+        });
         await executeOrder(orderParams);
       }
     } finally {
@@ -797,6 +820,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
     orderValidation.errors,
     track,
     orderForm.asset,
+    orderForm.amount,
     orderForm.direction,
     orderForm.type,
     orderForm.leverage,
@@ -805,6 +829,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
     orderForm.stopLossPrice,
     positionSize,
     assetData.price,
+    marketData?.szDecimals,
     navigation,
     navigationMarketData,
     existingPosition,
@@ -890,6 +915,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
           tokenAmount={positionSize}
           tokenSymbol={getPerpsDisplaySymbol(orderForm.asset)}
           hasError={availableBalance > 0 && !!filteredErrors.length}
+          isLoading={isOptimizing}
         />
 
         {/* Amount Slider - Hide when keypad is active */}
@@ -1124,53 +1150,54 @@ const PerpsOrderViewContentBase: React.FC = () => {
             <PerpsFeesDisplay
               feeDiscountPercentage={rewardsState.feeDiscountPercentage}
               formatFeeText={
-                hasValidAmount
-                  ? formatPerpsFiat(estimatedFees, {
+                !hasValidAmount || feeResults.isLoadingMetamaskFee
+                  ? PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY
+                  : formatPerpsFiat(estimatedFees, {
                       ranges: PRICE_RANGES_MINIMAL_VIEW,
                     })
-                  : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY
               }
               variant={TextVariant.BodySM}
             />
           </View>
 
           {/* Rewards Points Estimation */}
-          {rewardsState.shouldShowRewardsRow && (
-            <View style={styles.infoRow}>
-              <View style={styles.detailLeft}>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {strings('perps.estimated_points')}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => handleTooltipPress('points')}
-                  style={styles.infoIcon}
-                >
-                  <Icon
-                    name={IconName.Info}
-                    size={IconSize.Sm}
-                    color={IconColor.Alternative}
+          {rewardsState.shouldShowRewardsRow &&
+            rewardsState.estimatedPoints !== undefined && (
+              <View style={styles.infoRow}>
+                <View style={styles.detailLeft}>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                  >
+                    {strings('perps.estimated_points')}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => handleTooltipPress('points')}
+                    style={styles.infoIcon}
+                  >
+                    <Icon
+                      name={IconName.Info}
+                      size={IconSize.Sm}
+                      color={IconColor.Alternative}
+                    />
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.pointsRightContainer}>
+                  <RewardsAnimations
+                    value={rewardsState.estimatedPoints}
+                    bonusBips={rewardsState.bonusBips}
+                    shouldShow={rewardsState.shouldShowRewardsRow}
+                    infoOnPress={() =>
+                      openTooltipModal(
+                        strings('perps.points_error'),
+                        strings('perps.points_error_content'),
+                      )
+                    }
+                    state={rewardAnimationState}
                   />
-                </TouchableOpacity>
+                </View>
               </View>
-              <View style={styles.pointsRightContainer}>
-                <RewardsAnimations
-                  value={rewardsState.estimatedPoints ?? 0}
-                  bonusBips={rewardsState.bonusBips}
-                  shouldShow={rewardsState.shouldShowRewardsRow}
-                  infoOnPress={() =>
-                    openTooltipModal(
-                      strings('perps.points_error'),
-                      strings('perps.points_error_content'),
-                    )
-                  }
-                  state={rewardAnimationState}
-                />
-              </View>
-            </View>
-          )}
+            )}
         </View>
       </ScrollView>
       {/* Keypad Section - Show when input is focused */}
@@ -1253,6 +1280,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
             isFullWidth
             size={ButtonSizeRNDesignSystem.Lg}
             isDisabled={
+              !marketData ||
               !orderValidation.isValid ||
               isPlacingOrder ||
               doesStopLossRiskLiquidation ||

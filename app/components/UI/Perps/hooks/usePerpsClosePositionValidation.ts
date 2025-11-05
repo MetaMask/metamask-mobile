@@ -19,6 +19,7 @@ interface UsePerpsClosePositionValidationParams {
   remainingPositionValue: number; // Value remaining after close (kept for interface completeness)
   receiveAmount: number; // Amount user will receive after fees
   isPartialClose: boolean;
+  skipValidation?: boolean;
 }
 
 interface ValidationResult {
@@ -107,6 +108,7 @@ export function usePerpsClosePositionValidation(
     receiveAmount,
     isPartialClose,
     positionValue,
+    skipValidation = false,
   } = params;
 
   const { validateClosePosition } = usePerpsTrading();
@@ -235,6 +237,18 @@ export function usePerpsClosePositionValidation(
   ]);
 
   useEffect(() => {
+    // Skip validation entirely during active input (e.g., when keypad is open)
+    // This prevents unnecessary computation and UI error flashing while user types
+    if (skipValidation) {
+      setValidation({
+        errors: [],
+        warnings: [],
+        isValid: true, // Allow all inputs during typing
+        isValidating: false,
+      });
+      return;
+    }
+
     // Skip validation if critical data is missing
     if (!coin || currentPrice === 0) {
       setValidation({
@@ -247,7 +261,7 @@ export function usePerpsClosePositionValidation(
     }
 
     performValidation();
-  }, [performValidation, coin, currentPrice]);
+  }, [performValidation, coin, currentPrice, skipValidation]);
 
   return validation;
 }

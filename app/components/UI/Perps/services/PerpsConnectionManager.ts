@@ -945,6 +945,41 @@ class PerpsConnectionManagerClass {
   isCurrentlyConnecting(): boolean {
     return this.isConnecting;
   }
+
+  /**
+   * Wait for connection to complete
+   * Returns immediately if already connected, waits for pending operations otherwise
+   * Throws if connection is in error state
+   * @throws {Error} If connection has failed
+   */
+  async waitForConnection(): Promise<void> {
+    // Already connected - return immediately
+    if (this.isConnected && this.isInitialized && !this.error) {
+      return;
+    }
+
+    // Error state - throw
+    if (this.error) {
+      throw new Error(`Connection failed: ${this.error}`);
+    }
+
+    // Wait for ongoing reconnection
+    if (this.pendingReconnectPromise) {
+      await this.pendingReconnectPromise;
+      return;
+    }
+
+    // Wait for ongoing connection
+    if (this.initPromise) {
+      await this.initPromise;
+      return;
+    }
+
+    // Not connected and no pending operations - caller should call connect()
+    throw new Error(
+      'Not connected and no connection in progress. Call connect() first.',
+    );
+  }
 }
 
 export const PerpsConnectionManager = PerpsConnectionManagerClass.getInstance();

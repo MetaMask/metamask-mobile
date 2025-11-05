@@ -42,6 +42,7 @@ export interface UsePerpsOrderFormReturn {
   handleMinAmount: () => void;
   optimizeOrderAmount: (price: number, szDecimals?: number) => void;
   maxPossibleAmount: number;
+  isOptimizing: boolean;
 }
 
 /**
@@ -76,8 +77,9 @@ export function usePerpsOrderForm(
     [positions, initialAsset],
   );
 
-  // Get saved trade configuration for this asset (user preference for new positions)
-  const savedConfig = usePerpsSelector((state) =>
+  // Get saved leverage for this asset (user preference for new positions)
+  // Returns primitive number to prevent unnecessary re-renders from object references
+  const savedLeverage = usePerpsSelector((state) =>
     selectTradeConfiguration(state, initialAsset),
   );
 
@@ -96,7 +98,7 @@ export function usePerpsOrderForm(
   const defaultLeverage =
     initialLeverage ||
     existingPositionLeverage ||
-    savedConfig?.leverage ||
+    savedLeverage ||
     TRADING_DEFAULTS.leverage;
 
   // Use memoized calculation for initial amount to ensure it updates when dependencies change
@@ -154,6 +156,9 @@ export function usePerpsOrderForm(
     type: initialType,
   });
 
+  // Track if order amount is being optimized (for skeleton UI)
+  const [isOptimizing, setIsOptimizing] = useState(false);
+
   // Calculate the maximum possible amount based on available balance and current leverage
   const maxPossibleAmount = useMemo(
     () =>
@@ -174,8 +179,11 @@ export function usePerpsOrderForm(
   // Optimize order amount to get the optimal USD value for the position size
   const optimizeOrderAmount = useMemo(() => {
     const optimizeFunction = (price: number, szDecimals?: number) => {
+      setIsOptimizing(true);
+
       setOrderForm((prev) => {
         if (!prev.amount || Number.parseFloat(prev.amount) === 0) {
+          setIsOptimizing(false);
           return prev;
         }
 
@@ -194,12 +202,14 @@ export function usePerpsOrderForm(
           optimizedAmount !== prev.amount &&
           optimizedAmountNum <= maxPossibleAmount
         ) {
+          setIsOptimizing(false);
           return {
             ...prev,
             amount: optimizedAmount,
           };
         }
 
+        setIsOptimizing(false);
         return prev;
       });
     };
@@ -348,5 +358,6 @@ export function usePerpsOrderForm(
     handleMinAmount,
     optimizeOrderAmount,
     maxPossibleAmount,
+    isOptimizing,
   };
 }

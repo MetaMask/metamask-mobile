@@ -208,10 +208,6 @@ export const usePerpsMarkets = (
               cacheHit: timeToData < 100,
             });
             isFirstUpdate = false;
-          } else {
-            DevLogger.log('Perps: Market data updated', {
-              marketCount: marketData.length,
-            });
           }
         } else if (marketData) {
           // Empty array

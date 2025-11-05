@@ -237,6 +237,10 @@ const PerpsClosePositionView: React.FC = () => {
   const isPartialClose = closePercentage < 100;
 
   // Use the validation hook
+  // Skip validation while user is actively typing in keypad to prevent:
+  // - Unnecessary computation on every keystroke
+  // - UI error flashing during intermediate invalid states
+  // - Protocol API calls before final value is entered
   const validationResult = usePerpsClosePositionValidation({
     coin: position.coin,
     closePercentage,
@@ -251,6 +255,7 @@ const PerpsClosePositionView: React.FC = () => {
     remainingPositionValue,
     receiveAmount,
     isPartialClose,
+    skipValidation: isInputFocused,
   });
 
   const { handleClosePosition, isClosing } = usePerpsClosePosition();

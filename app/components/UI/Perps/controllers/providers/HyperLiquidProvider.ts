@@ -171,6 +171,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
   // Cache for USDC token ID from spot metadata
   private cachedUsdcTokenId?: string;
 
+  // Cache for referral status to avoid checking on every order
+  private referralCache: {
+    isSet: boolean;
+    checkedAt: number;
+  } | null = null;
+  private readonly REFERRAL_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+
   // Error mappings from HyperLiquid API errors to standardized PERPS_ERROR_CODES
   private readonly ERROR_MAPPINGS = {
     'isolated position does not have sufficient margin available to decrease leverage':
@@ -236,7 +243,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     // Only set flag AFTER successful initialization
     this.clientsInitialized = true;
 
-    DevLogger.log('[HyperLiquidProvider] Clients initialized lazily');
+    DevLogger.log('[HyperLiquidProvider] Clients initialized');
   }
 
   /**
@@ -299,7 +306,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * since HIP-3 configuration is immutable after construction
    */
   private async ensureReady(): Promise<void> {
-    // Lazy initialization: ensure clients are created (safe after Engine.context is ready)
+    // Lazy initialization: ensure clients are created
     this.ensureClientsInitialized();
 
     // Verify clients are properly initialized
@@ -1363,6 +1370,25 @@ export class HyperLiquidProvider implements IPerpsProvider {
         );
       }
 
+      // Track market data used at order placement time
+      DevLogger.log('[MarketData] placeOrder assetInfo', {
+        coin: params.coin,
+        szDecimals: assetInfo.szDecimals,
+        maxLeverage: assetInfo.maxLeverage,
+        dex: dexName || 'main',
+        timestamp: Date.now(),
+      });
+
+      // Special ASTER tracking
+      if (params.coin === 'ASTER' || params.coin.includes('ASTER')) {
+        DevLogger.log('[MarketData] ⚠️ ASTER in placeOrder', {
+          szDecimals: assetInfo.szDecimals,
+          fullAssetInfo: assetInfo,
+          orderParams: params,
+          timestamp: Date.now(),
+        });
+      }
+
       // Use provided current price or fetch if not provided
       let currentPrice: number;
       if (params.currentPrice && params.currentPrice > 0) {
@@ -1410,6 +1436,20 @@ export class HyperLiquidProvider implements IPerpsProvider {
         price: orderPrice,
         szDecimals: assetInfo.szDecimals,
       });
+
+      DevLogger.log(
+        '[Order Debug] HyperLiquidProvider placeOrder formatting:',
+        {
+          coin: params.coin,
+          inputSize: params.size,
+          orderType: params.orderType,
+          formattedSize,
+          formattedPrice,
+          assetSzDecimals: assetInfo.szDecimals,
+          currentPrice,
+          calculatedNotional: parseFloat(formattedSize) * currentPrice,
+        },
+      );
 
       // Get the asset ID for this DEX
       // Each DEX has its own universe with indices starting from 0
@@ -1630,17 +1670,18 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // The exchange client handles all DEXs through a single instance
       const exchangeClient = this.clientService.getExchangeClient();
 
-      DevLogger.log(
-        'HyperLiquidProvider: Submitting order via asset ID routing',
-        {
-          coin: params.coin,
-          assetId: orders[0].a,
-          orderCount: orders.length,
-          mainOrder: orders[0],
-          dexName: dexName || 'main',
-          isHip3: !!dexName,
-        },
-      );
+      DevLogger.log('[Order Debug] HyperLiquidProvider submitting to SDK:', {
+        coin: params.coin,
+        assetId: orders[0].a,
+        orderCount: orders.length,
+        mainOrderSize: orders[0].s,
+        mainOrderPrice: orders[0].p,
+        mainOrderIsBuy: orders[0].b,
+        szDecimals: assetInfo.szDecimals,
+        dexName: dexName || 'main',
+        isHip3: !!dexName,
+        fullMainOrder: orders[0],
+      });
 
       try {
         const result = await exchangeClient.order({
@@ -3267,19 +3308,65 @@ export class HyperLiquidProvider implements IPerpsProvider {
             const meta = await infoClient.meta(
               dexParam ? { dex: dexParam } : undefined,
             );
-            return (
-              meta.universe?.map((asset) => adaptMarketFromSDK(asset)) || []
+
+            // Track market data API response
+            DevLogger.log('[MarketData] getMarkets Path 1 (symbol filter)', {
+              dex: dex || 'main',
+              requestedSymbols: symbolsByDex.get(dex),
+              universeSize: meta.universe?.length ?? 0,
+              hasUniverse: !!meta.universe,
+              isArray: Array.isArray(meta.universe),
+            });
+
+            // Defensive validation - throw error to trigger retry on empty/invalid universe
+            if (!meta.universe || !Array.isArray(meta.universe)) {
+              const errorMsg = `Invalid universe data for DEX ${
+                dex || 'main'
+              } (Path 1) - API returned empty or invalid data`;
+              DevLogger.log(`HyperLiquidProvider: ${errorMsg}`, {
+                hasUniverse: !!meta.universe,
+                isArray: Array.isArray(meta.universe),
+                requestedSymbols: symbolsByDex.get(dex),
+                note: 'Throwing error to prevent downstream "not tradeable" messages',
+              });
+              throw new Error(errorMsg);
+            }
+
+            // Special ASTER tracking
+            const asterAsset = meta.universe.find(
+              (asset) => asset.name === 'ASTER' || asset.name.includes('ASTER'),
             );
+            if (asterAsset) {
+              DevLogger.log('[MarketData] ⚠️ ASTER in getMarkets Path 1', {
+                szDecimals: asterAsset.szDecimals,
+                dex: dex || 'main',
+                requestedSymbols: symbolsByDex.get(dex),
+              });
+            }
+
+            // Filter BEFORE adapting to avoid processing all 219 markets
+            const requestedSymbols = symbolsByDex.get(dex) || [];
+            const filteredAssets = meta.universe.filter((asset) =>
+              requestedSymbols.some(
+                (symbol) => asset.name.toLowerCase() === symbol.toLowerCase(),
+              ),
+            );
+
+            DevLogger.log('[MarketData] Path 1 filter optimization', {
+              dex: dex || 'main',
+              totalAssets: meta.universe.length,
+              requestedSymbols: requestedSymbols.length,
+              filteredAssets: filteredAssets.length,
+              note: 'Filtered before adapting to improve performance',
+            });
+
+            return filteredAssets.map((asset) => adaptMarketFromSDK(asset));
           }),
         );
 
-        // Combine and filter by requested symbols
+        // Combine all markets (already filtered per DEX)
         const allMarkets = marketArrays.flat();
-        return allMarkets.filter((market) =>
-          params.symbols?.some(
-            (symbol) => market.name.toLowerCase() === symbol.toLowerCase(),
-          ),
-        );
+        return allMarkets;
       }
 
       // Path 2: Multi-DEX aggregation - fetch from all enabled DEXs
@@ -3302,6 +3389,15 @@ export class HyperLiquidProvider implements IPerpsProvider {
                 const meta = await infoClient.meta(
                   dexParam ? { dex: dexParam } : undefined,
                 );
+
+                // Track market data API response
+                DevLogger.log('[MarketData] getMarkets Path 2 (multi-DEX)', {
+                  dex: dex || 'main',
+                  universeSize: meta.universe?.length ?? 0,
+                  hasUniverse: !!meta.universe,
+                  isArray: Array.isArray(meta.universe),
+                });
+
                 if (!meta.universe || !Array.isArray(meta.universe)) {
                   DevLogger.log(
                     `HyperLiquidProvider: Invalid universe data for DEX ${
@@ -3310,6 +3406,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
                   );
                   return [];
                 }
+
+                // Special ASTER tracking
+                const asterAsset = meta.universe.find(
+                  (asset) =>
+                    asset.name === 'ASTER' || asset.name.includes('ASTER'),
+                );
+                if (asterAsset) {
+                  DevLogger.log('[MarketData] ⚠️ ASTER in getMarkets Path 2', {
+                    szDecimals: asterAsset.szDecimals,
+                    dex: dex || 'main',
+                  });
+                }
+
                 return meta.universe.map((asset) => adaptMarketFromSDK(asset));
               } catch (error) {
                 Logger.error(
@@ -3336,14 +3445,35 @@ export class HyperLiquidProvider implements IPerpsProvider {
         params?.dex !== undefined ? { dex: params.dex } : undefined,
       );
 
+      // Track market data API response
+      DevLogger.log('[MarketData] getMarkets Path 3 (single DEX)', {
+        dex: params?.dex || 'main',
+        universeSize: meta.universe?.length ?? 0,
+        hasUniverse: !!meta.universe,
+        isArray: Array.isArray(meta.universe),
+      });
+
       if (!meta.universe || !Array.isArray(meta.universe)) {
-        DevLogger.log(
-          `HyperLiquidProvider: Invalid universe data for DEX ${
-            params?.dex || 'main'
-          }`,
-          { hasUniverse: !!meta.universe },
-        );
-        return [];
+        const errorMsg = `Invalid universe data for DEX ${
+          params?.dex || 'main'
+        } (Path 3) - API returned empty or invalid data`;
+        DevLogger.log(`HyperLiquidProvider: ${errorMsg}`, {
+          hasUniverse: !!meta.universe,
+          isArray: Array.isArray(meta.universe),
+          note: 'Throwing error to prevent downstream "not tradeable" messages',
+        });
+        throw new Error(errorMsg);
+      }
+
+      // Special ASTER tracking
+      const asterAsset = meta.universe.find(
+        (asset) => asset.name === 'ASTER' || asset.name.includes('ASTER'),
+      );
+      if (asterAsset) {
+        DevLogger.log('[MarketData] ⚠️ ASTER in getMarkets Path 3', {
+          szDecimals: asterAsset.szDecimals,
+          dex: params?.dex || 'main',
+        });
       }
 
       return meta.universe.map((asset) => adaptMarketFromSDK(asset));
@@ -4892,7 +5022,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
         });
         const result = await this.setReferralCode();
         if (result === true) {
-          DevLogger.log('Referral code set', {
+          // Update cache after successful set
+          this.referralCache = { isSet: true, checkedAt: Date.now() };
+          DevLogger.log('✅ Referral code set and cached', {
             network,
             referralCode: expectedReferralCode,
           });
@@ -4949,6 +5081,24 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * @returns Promise resolving to true if referral is set, false otherwise
    */
   private async checkReferralSet(): Promise<boolean> {
+    const now = Date.now();
+
+    // Check cache first - avoid API call if recently checked
+    if (
+      this.referralCache &&
+      now - this.referralCache.checkedAt < this.REFERRAL_CACHE_TTL_MS
+    ) {
+      const cacheAgeSeconds = Math.round(
+        (now - this.referralCache.checkedAt) / 1000,
+      );
+      DevLogger.log('Using cached referral status', {
+        address: await this.walletService.getUserAddressWithDefault(),
+        cacheAge: `${cacheAgeSeconds}s`,
+        isSet: this.referralCache.isSet,
+      });
+      return this.referralCache.isSet;
+    }
+
     try {
       const infoClient = this.clientService.getInfoClient();
       const userAddress = await this.walletService.getUserAddressWithDefault();
@@ -4963,10 +5113,30 @@ export class HyperLiquidProvider implements IPerpsProvider {
         referralData,
       });
 
-      return !!referralData?.referredBy?.code;
+      const isSet = !!referralData?.referredBy?.code;
+
+      // Update cache on successful check
+      this.referralCache = { isSet, checkedAt: now };
+
+      return isSet;
     } catch (error) {
       DevLogger.log('Error checking referral status:', error);
-      // do not throw here, return false as we can try to set it again
+
+      // On rate limit (429) or other errors, use stale cache if available
+      if (this.referralCache) {
+        const staleCacheAgeSeconds = Math.round(
+          (now - this.referralCache.checkedAt) / 1000,
+        );
+        DevLogger.log('⚠️ API error - using stale referral cache', {
+          error: error instanceof Error ? error.message : String(error),
+          staleAge: `${staleCacheAgeSeconds}s`,
+          cachedValue: this.referralCache.isSet,
+        });
+        return this.referralCache.isSet;
+      }
+
+      // No cache available and API failed - assume not set to trigger setting
+      DevLogger.log('⚠️ No referral cache available, assuming not set');
       return false;
     }
   }
@@ -4987,16 +5157,30 @@ export class HyperLiquidProvider implements IPerpsProvider {
         network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
       });
 
-      // set the referral code
+      // Set the referral code
       const result = await exchangeClient.setReferrer({
         code: referralCode,
       });
+
+      // Defensive: Validate response structure before accessing properties
+      if (!result || typeof result !== 'object') {
+        DevLogger.log('⚠️ Referral: Invalid response structure', {
+          result,
+          resultType: typeof result,
+        });
+        return false;
+      }
 
       DevLogger.log('Referral code set result:', result);
 
       return result?.status === 'ok';
     } catch (error) {
-      console.error(errorMessage, error);
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('setReferralCode', {
+          note: 'SDK setReferrer() call failed - may be rate limited or malformed response',
+        }),
+      );
       throw new Error(errorMessage);
     }
   }

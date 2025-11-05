@@ -20,6 +20,7 @@ jest.mock('../../../../../locales/i18n', () => ({
     const translations: Record<string, string> = {
       'perps.order.validation.existing_position': `Existing position for ${values?.asset}`,
       'perps.order.validation.insufficient_balance': `Insufficient balance: need ${values?.required}, have ${values?.available}`,
+      'perps.order.validation.minimum_order_value': `Order value ($${values?.current}) is below minimum ($${values?.minimum})`,
       'perps.order.validation.high_leverage_warning': 'High leverage warning',
       'perps.order.validation.limit_price_required': 'Limit price required',
       'perps.order.validation.error': 'Validation error',
@@ -61,6 +62,7 @@ describe('usePerpsOrderValidation', () => {
     assetPrice: 50000,
     availableBalance: 1000,
     marginRequired: '10.00',
+    minimumOrderAmount: 10,
   };
 
   describe('protocol validation', () => {

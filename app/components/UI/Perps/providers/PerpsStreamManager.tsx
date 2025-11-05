@@ -1052,11 +1052,12 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         cacheExpired: cacheAge > this.CACHE_DURATION,
         cacheDurationMs: this.CACHE_DURATION,
       });
-      // Don't await - just trigger the fetch and handle errors
       this.fetchMarketData().catch((error) => {
         Logger.error(
           error instanceof Error ? error : new Error(String(error)),
-          'PerpsStreamManager: Failed to fetch market data',
+          {
+            context: 'PerpsStreamManager.fetchMarketData',
+          },
         );
       });
     } else {
@@ -1146,6 +1147,23 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
 
   protected getClearedData(): PerpsMarketData[] {
     return [];
+  }
+
+  /**
+   * Check if market data cache is initialized
+   * @returns true if cache has data, false otherwise
+   */
+  public isCacheInitialized(): boolean {
+    const cached = this.cache.get('markets');
+    return !!cached && cached.length > 0;
+  }
+
+  /**
+   * Get cached market data (public accessor)
+   * @returns Cached markets or null if not initialized
+   */
+  public getCachedMarkets(): PerpsMarketData[] | null {
+    return this.getCachedData();
   }
 
   /**

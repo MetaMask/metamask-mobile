@@ -17,6 +17,8 @@ interface UsePerpsOrderValidationParams {
   availableBalance: number;
   marginRequired: string;
   existingPositionLeverage?: number;
+  minimumOrderAmount: number;
+  skipValidation?: boolean;
 }
 
 interface ValidationResult {
@@ -47,6 +49,8 @@ export function usePerpsOrderValidation(
     availableBalance,
     marginRequired,
     existingPositionLeverage,
+    minimumOrderAmount,
+    skipValidation = false,
   } = params;
 
   const { validateOrder } = usePerpsTrading();
@@ -83,6 +87,17 @@ export function usePerpsOrderValidation(
         strings('perps.order.validation.insufficient_balance', {
           required: marginRequired,
           available: availableBalance.toString(),
+        }),
+      );
+    }
+
+    // Notional value validation (immediate)
+    // Check if the actual order value (positionSize * price) meets the minimum
+    const notionalValue = parseFloat(positionSize) * assetPrice;
+    if (notionalValue > 0 && notionalValue < minimumOrderAmount) {
+      immediateErrors.push(
+        strings('perps.order.validation.minimum_amount', {
+          amount: minimumOrderAmount.toFixed(2),
         }),
       );
     }
@@ -154,10 +169,23 @@ export function usePerpsOrderValidation(
     availableBalance,
     marginRequired,
     existingPositionLeverage,
+    minimumOrderAmount,
     validateOrder,
   ]);
 
   useEffect(() => {
+    // Skip validation entirely during active input (e.g., when keypad is open)
+    // This prevents unnecessary computation and UI error flashing while user types
+    if (skipValidation) {
+      setValidation({
+        errors: EMPTY_ERRORS,
+        warnings: EMPTY_WARNINGS,
+        isValid: true, // Allow all inputs during typing
+        isValidating: false,
+      });
+      return;
+    }
+
     // Skip validation if critical data is missing
     if (!positionSize || assetPrice === 0) {
       setValidation((prev) => ({
@@ -186,7 +214,7 @@ export function usePerpsOrderValidation(
         clearTimeout(validationTimerRef.current);
       }
     };
-  }, [performValidation, positionSize, assetPrice]);
+  }, [performValidation, positionSize, assetPrice, skipValidation]);
 
   // Return validation with stable array references
   return {

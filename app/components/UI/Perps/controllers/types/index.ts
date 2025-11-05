@@ -549,6 +549,7 @@ export interface GetAvailableDexsParams {
 export interface GetMarketsParams {
   symbols?: string[]; // Optional symbol filter (e.g., ['BTC', 'xyz:XYZ100'])
   dex?: string; // HyperLiquid HIP-3: DEX name (empty string '' or undefined for main DEX). Other protocols: ignored.
+  skipCache?: boolean; // Optional: bypass REST cache and force API call (default: false)
 }
 
 export interface SubscribePricesParams {
