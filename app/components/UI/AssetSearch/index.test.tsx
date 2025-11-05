@@ -60,13 +60,22 @@ const initialState = {
 };
 
 describe('AssetSearch', () => {
-  it('renders correctly with selected chain', () => {
+  const mockAllTokens = [
+    {
+      address: '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f',
+      symbol: 'SNX',
+      decimals: 18,
+      chainId: '0x1' as const,
+    },
+  ];
+
+  it('renders correctly with allTokens', () => {
     const { toJSON } = renderWithProvider(
       <AssetSearch
         onSearch={jest.fn}
         onFocus={jest.fn}
         onBlur={jest.fn}
-        selectedChainId={'0x1'}
+        allTokens={mockAllTokens}
       />,
       { state: initialState },
     );
@@ -81,7 +90,7 @@ describe('AssetSearch', () => {
         onSearch={onSearch}
         onFocus={jest.fn}
         onBlur={jest.fn}
-        selectedChainId={'0x1'}
+        allTokens={mockAllTokens}
       />,
       { state: initialState },
     );
@@ -94,13 +103,13 @@ describe('AssetSearch', () => {
     expect(onSearch).toHaveBeenCalled();
   });
 
-  it('renders with null selectedChainId', () => {
+  it('renders with empty allTokens array', () => {
     const { toJSON } = renderWithProvider(
       <AssetSearch
         onSearch={jest.fn}
         onFocus={jest.fn}
         onBlur={jest.fn}
-        selectedChainId={null}
+        allTokens={[]}
       />,
       { state: initialState },
     );

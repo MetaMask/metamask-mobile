@@ -13,8 +13,9 @@ const mockSearchResults = [
     address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
     symbol: 'USDT',
     name: 'Tether USD',
-    iconUrl: 'https://example.com/usdt.png',
-    chainId: '0x1',
+    image: 'https://example.com/usdt.png',
+    decimals: 6,
+    chainId: '0x1' as const,
   },
 ];
 
@@ -23,7 +24,9 @@ const mockSelectedAsset = [
     address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
     symbol: 'USDT',
     name: 'Tether USD',
-    iconUrl: 'https://example.com/usdt.png',
+    image: 'https://example.com/usdt.png',
+    decimals: 6,
+    chainId: '0x1' as const,
   },
 ];
 
