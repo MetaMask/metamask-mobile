@@ -591,6 +591,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     return status.isOpen ? 'market_hours' : 'after_hours_trading';
   })();
 
+  // Determine risk disclaimer source and HIP type based on market
+  const riskDisclaimerParams = useMemo(() => {
+    const isHip3 = !!market?.marketSource;
+    return {
+      source: isHip3 ? market.marketSource : 'Hyperliquid',
+    };
+  }, [market?.marketSource]);
+
   // Determine if any action buttons will be visible
   const hasLongShortButtons = useMemo(
     () => !isLoadingPosition && !hasZeroBalance,
@@ -693,12 +701,19 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             />
           </View>
 
-          {/* Market Hours Banner */}
-          <PerpsMarketHoursBanner
-            marketType={market?.marketType}
-            onInfoPress={handleMarketHoursInfoPress}
-            testID={PerpsMarketDetailsViewSelectorsIDs.MARKET_HOURS_BANNER}
-          />
+          {/* OI Cap Warning - Shows when market is at capacity */}
+          {market?.symbol && isAtOICap && (
+            <PerpsOICapWarning symbol={market.symbol} variant="banner" />
+          )}
+
+          {/* Market Hours Banner - Hidden when OI cap warning is showing */}
+          {!isAtOICap && (
+            <PerpsMarketHoursBanner
+              marketType={market?.marketType}
+              onInfoPress={handleMarketHoursInfoPress}
+              testID={PerpsMarketDetailsViewSelectorsIDs.MARKET_HOURS_BANNER}
+            />
+          )}
 
           {/* Market Tabs Section */}
           <View style={styles.tabsSection}>
@@ -727,13 +742,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               variant={TextVariant.BodyXS}
               color={TextColor.Alternative}
             >
-              {strings('perps.risk_disclaimer')}{' '}
+              {strings('perps.risk_disclaimer', riskDisclaimerParams)}{' '}
               <Text
                 variant={TextVariant.BodyXS}
                 color={TextColor.Alternative}
                 onPress={handleTradingViewPress}
               >
-                Trading View.
+                TradingView.
               </Text>
             </Text>
           </View>
@@ -741,7 +756,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       </View>
 
       {/* Fixed Actions Footer */}
-      {(hasAddFundsButton || hasLongShortButtons) && (
+      {(hasAddFundsButton || (hasLongShortButtons && !isAtOICap)) && (
         <View style={styles.actionsFooter}>
           {hasAddFundsButton && (
             <View style={styles.singleActionContainer}>
@@ -759,41 +774,34 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             </View>
           )}
 
-          {hasLongShortButtons && (
-            <>
-              {/* OI Cap Warning - Shows when market is at capacity */}
-              {market?.symbol && (
-                <PerpsOICapWarning symbol={market.symbol} variant="inline" />
-              )}
-
-              <View style={styles.actionsContainer}>
-                <View style={styles.actionButtonWrapper}>
-                  <ButtonSemantic
-                    severity={ButtonSemanticSeverity.Success}
-                    onPress={handleLongPress}
-                    isFullWidth
-                    size={ButtonSizeRNDesignSystem.Lg}
-                    isDisabled={isAtOICap}
-                    testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
-                  >
-                    {strings('perps.market.long')}
-                  </ButtonSemantic>
-                </View>
-
-                <View style={styles.actionButtonWrapper}>
-                  <ButtonSemantic
-                    severity={ButtonSemanticSeverity.Danger}
-                    onPress={handleShortPress}
-                    isFullWidth
-                    size={ButtonSizeRNDesignSystem.Lg}
-                    isDisabled={isAtOICap}
-                    testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
-                  >
-                    {strings('perps.market.short')}
-                  </ButtonSemantic>
-                </View>
+          {hasLongShortButtons && !isAtOICap && (
+            <View style={styles.actionsContainer}>
+              <View style={styles.actionButtonWrapper}>
+                <ButtonSemantic
+                  severity={ButtonSemanticSeverity.Success}
+                  onPress={handleLongPress}
+                  isFullWidth
+                  size={ButtonSizeRNDesignSystem.Lg}
+                  isDisabled={isAtOICap}
+                  testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
+                >
+                  {strings('perps.market.long')}
+                </ButtonSemantic>
               </View>
-            </>
+
+              <View style={styles.actionButtonWrapper}>
+                <ButtonSemantic
+                  severity={ButtonSemanticSeverity.Danger}
+                  onPress={handleShortPress}
+                  isFullWidth
+                  size={ButtonSizeRNDesignSystem.Lg}
+                  isDisabled={isAtOICap}
+                  testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
+                >
+                  {strings('perps.market.short')}
+                </ButtonSemantic>
+              </View>
+            </View>
           )}
         </View>
       )}
