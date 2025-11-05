@@ -30,6 +30,17 @@ export interface TronStakeResult {
   errors?: string[];
 }
 
+export interface TronUnstakeParams {
+  value: string;
+  accountId: string;
+  assetId: CaipAssetType;
+}
+
+export interface TronUnstakeResult {
+  valid: boolean;
+  errors?: string[];
+}
+
 export type FeeType = string;
 
 export interface ComputeFeeParams {
@@ -91,4 +102,37 @@ export async function computeTronFee(
       params,
     },
   })) as ComputeFeeResult;
+}
+
+export async function validateTronUnstakeAmount(
+  fromAccount: InternalAccount,
+  params: TronUnstakeParams,
+): Promise<TronUnstakeResult> {
+
+  console.log('validateTronUnstakeAmount 0', fromAccount.metadata?.snap?.id, params);
+
+  return (await handleSnapRequest(controllerMessenger, {
+    snapId: fromAccount.metadata?.snap?.id as SnapId,
+    origin: 'metamask',
+    handler: HandlerType.OnClientRequest,
+    request: {
+      method: 'onUnstakeAmountInput',
+      params,
+    },
+  })) as TronUnstakeResult;
+}
+
+export async function confirmTronUnstake(
+  fromAccount: InternalAccount,
+  params: TronUnstakeParams,
+): Promise<TronUnstakeResult> {
+  return (await handleSnapRequest(controllerMessenger, {
+    snapId: fromAccount.metadata?.snap?.id as SnapId,
+    origin: 'metamask',
+    handler: HandlerType.OnClientRequest,
+    request: {
+      method: 'confirmUnstake',
+      params,
+    },
+  })) as TronUnstakeResult;
 }
