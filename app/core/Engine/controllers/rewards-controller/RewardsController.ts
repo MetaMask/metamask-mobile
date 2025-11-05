@@ -669,18 +669,36 @@ export class RewardsController extends BaseController<
         const sortedAccounts = sortAccounts(accounts);
 
         // Try silent auth on each account until one succeeds
+        let successAccount: InternalAccount | null = null;
         for (const account of sortedAccounts) {
           try {
             const subscriptionId = await this.performSilentAuth(
               account,
-              true,
+              false,
               true,
             );
-            if (subscriptionId) {
-              break; // Stop on first success
+            if (subscriptionId && !successAccount) {
+              successAccount = account;
             }
           } catch {
             // Continue to next account
+          }
+        }
+
+        // Set the active account to the first successful account or the first account in the sorted accounts array
+        const activeAccountCandidate: InternalAccount =
+          successAccount || sortedAccounts[0];
+        if (activeAccountCandidate) {
+          const caipAccount = this.convertInternalAccountToCaipAccountId(
+            activeAccountCandidate,
+          );
+          if (caipAccount) {
+            const accountState = this.#getAccountState(caipAccount);
+            if (accountState) {
+              this.update((state: RewardsControllerState) => {
+                state.activeAccount = accountState;
+              });
+            }
           }
         }
       }

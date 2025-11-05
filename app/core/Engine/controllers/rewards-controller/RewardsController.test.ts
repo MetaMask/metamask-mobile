@@ -4960,7 +4960,11 @@ describe('RewardsController', () => {
       mockMessenger.call.mockReturnValueOnce([mockAccount1, mockAccount2]);
 
       // Spy on performSilentAuth to verify later
-      const performSilentAuthSpy = jest.spyOn(controller, 'performSilentAuth');
+      // Mock it to return null on first call (fail) so it continues to second account
+      const performSilentAuthSpy = jest
+        .spyOn(controller, 'performSilentAuth')
+        .mockResolvedValueOnce(null) // First account fails
+        .mockResolvedValueOnce('subscription-id-123'); // Second account succeeds
 
       // Act
       await controller.handleAuthenticationTrigger('test-reason');
@@ -4969,8 +4973,83 @@ describe('RewardsController', () => {
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'AccountTreeController:getAccountsFromSelectedAccountGroup',
       );
-      // Verify that performSilentAuth was called twice
+      // Verify that performSilentAuth was called twice (first fails, second succeeds)
       expect(performSilentAuthSpy).toHaveBeenCalledTimes(2);
+      // Verify that it stops after the second account succeeds
+      expect(performSilentAuthSpy).toHaveBeenCalledWith(
+        mockAccount1,
+        false,
+        true,
+      );
+      expect(performSilentAuthSpy).toHaveBeenCalledWith(
+        mockAccount2,
+        false,
+        true,
+      );
+
+      // Clean up spy
+      performSilentAuthSpy.mockRestore();
+    });
+
+    it('should try all accounts even after first success and track first successful account', async () => {
+      // Arrange
+      const mockAccount1 = {
+        address: '0x1111111111111111',
+        type: 'eip155:eoa' as const,
+        id: 'test-id-1',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account 1',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      const mockAccount2 = {
+        address: '0x2222222222222222',
+        type: 'eip155:eoa' as const,
+        id: 'test-id-2',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account 2',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      mockMessenger.call.mockReturnValueOnce([mockAccount1, mockAccount2]);
+
+      // Spy on performSilentAuth to verify it continues after first success
+      const performSilentAuthSpy = jest
+        .spyOn(controller, 'performSilentAuth')
+        .mockResolvedValueOnce('subscription-id-123') // First account succeeds
+        .mockResolvedValueOnce('subscription-id-456'); // Second account also succeeds
+
+      // Act
+      await controller.handleAuthenticationTrigger('test-reason');
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      );
+      // Verify that performSilentAuth was called for both accounts (continues after first success)
+      expect(performSilentAuthSpy).toHaveBeenCalledTimes(2);
+      // Verify that it was called with the first account
+      expect(performSilentAuthSpy).toHaveBeenCalledWith(
+        mockAccount1,
+        false,
+        true,
+      );
+      // Verify that it was also called with the second account
+      expect(performSilentAuthSpy).toHaveBeenCalledWith(
+        mockAccount2,
+        false,
+        true,
+      );
 
       // Clean up spy
       performSilentAuthSpy.mockRestore();
@@ -5035,6 +5114,110 @@ describe('RewardsController', () => {
       ).toBeDefined();
     });
 
+    it('should set activeAccount to first account when all accounts fail authentication', async () => {
+      // Arrange
+      const mockAccount1 = {
+        address: '0x1111111111111111',
+        type: 'eip155:eoa' as const,
+        id: 'test-id-1',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account 1',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      const mockAccount2 = {
+        address: '0x2222222222222222',
+        type: 'eip155:eoa' as const,
+        id: 'test-id-2',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account 2',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      const caipAccount1 = 'eip155:1:0x1111111111111111' as CaipAccountId;
+      const caipAccount2 = 'eip155:1:0x2222222222222222' as CaipAccountId;
+
+      // Create account states so they can be set as activeAccount
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {
+            [caipAccount1]: {
+              account: caipAccount1,
+              hasOptedIn: false,
+              subscriptionId: null,
+              perpsFeeDiscount: null,
+              lastPerpsDiscountRateFetched: null,
+            },
+            [caipAccount2]: {
+              account: caipAccount2,
+              hasOptedIn: false,
+              subscriptionId: null,
+              perpsFeeDiscount: null,
+              lastPerpsDiscountRateFetched: null,
+            },
+          },
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+          pointsEvents: {},
+        },
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockReturnValueOnce([mockAccount1, mockAccount2]);
+
+      // Mock performSilentAuth to return null for both accounts (both fail)
+      const performSilentAuthSpy = jest
+        .spyOn(controller, 'performSilentAuth')
+        .mockResolvedValueOnce(null) // First account fails
+        .mockResolvedValueOnce(null); // Second account fails
+
+      // Mock convertInternalAccountToCaipAccountId to return valid CAIP IDs
+      const convertSpy = jest
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
+        .mockImplementation((account: InternalAccount) => {
+          if (account.address === mockAccount1.address) {
+            return caipAccount1;
+          }
+          if (account.address === mockAccount2.address) {
+            return caipAccount2;
+          }
+          return null;
+        });
+
+      // Act - should not throw
+      await controller.handleAuthenticationTrigger('test-reason');
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      );
+      // Verify that performSilentAuth was called for both accounts
+      expect(performSilentAuthSpy).toHaveBeenCalledTimes(2);
+      // Verify that activeAccount is set to the first account (fallback behavior)
+      expect(controller.state.activeAccount).toBeDefined();
+      expect(controller.state.activeAccount?.account).toBe(caipAccount1);
+
+      // Clean up spies
+      performSilentAuthSpy.mockRestore();
+      convertSpy.mockRestore();
+    });
+
     it('should not throw error when single account fails authentication', async () => {
       // Arrange
       const mockAccount = {
@@ -5066,6 +5249,9 @@ describe('RewardsController', () => {
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'AccountTreeController:getAccountsFromSelectedAccountGroup',
       );
+      // Verify that activeAccount is set to the first account even when auth fails
+      expect(controller.state.activeAccount).toBeDefined();
+      expect(controller.state.activeAccount?.account).toBeDefined();
     });
 
     it('should handle "Engine does not exist" errors silently', async () => {
