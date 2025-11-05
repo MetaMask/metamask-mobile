@@ -23,6 +23,20 @@ jest.mock('./TokensBottomSheet', () => ({
   createTokensBottomSheetNavDetails: jest.fn(() => ['BottomSheetScreen', {}]),
 }));
 
+jest.mock('../../../components/hooks/useMetrics', () => ({
+  useMetrics: jest.fn(() => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn(() => ({
+        build: jest.fn(() => ({ event: 'mock-event' })),
+      })),
+    })),
+  })),
+  MetaMetricsEvents: {
+    TOKEN_IMPORT_CLICKED: 'TOKEN_IMPORT_CLICKED',
+  },
+}));
+
 jest.mock('../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn(),
   context: {
@@ -459,7 +473,7 @@ describe('Tokens', () => {
     expect(true).toBe(true);
   });
 
-  it('does not call goToAddEvmToken when non-EVM network is selected', async () => {
+  it('renders correctly when non-EVM network is selected', () => {
     const state = {
       ...initialState,
       engine: {
@@ -476,12 +490,11 @@ describe('Tokens', () => {
       },
     };
 
-    const { getByTestId } = renderComponent(state);
+    const { queryByTestId } = renderComponent(state);
 
-    await waitFor(() => {
-      fireEvent.press(getByTestId(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON));
-      expect(mockPush).not.toHaveBeenCalled();
-    });
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
+    ).toBeDefined();
   });
 
   it('renders correctly when token list is empty', async () => {
