@@ -13,14 +13,26 @@ import { createDepositNavigationDetails } from '../Deposit/routes/utils';
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
 
 export enum RampMode {
-  AGGREGATOR = 'aggregator',
-  DEPOSIT = 'deposit',
+  AGGREGATOR = 'AGGREGATOR',
+  DEPOSIT = 'DEPOSIT',
 }
 
 interface AggregatorParams {
   intent?: RampIntent;
   rampType?: AggregatorRampType;
 }
+
+interface AggregatorGoToRampsParams {
+  mode: RampMode.AGGREGATOR;
+  params?: AggregatorParams;
+}
+
+interface DepositGoToRampsParams {
+  mode: RampMode.DEPOSIT;
+  params?: DepositNavigationParams;
+}
+
+type GoToRampsParams = AggregatorGoToRampsParams | DepositGoToRampsParams;
 
 /**
  * Hook that returns a function to navigate to the appropriate ramp flow.
@@ -33,19 +45,16 @@ export const useRampNavigation = () => {
   const isRampsUnifiedV1Enabled = useRampsUnifiedV1Enabled();
 
   const goToRamps = useCallback(
-    (mode: RampMode, params?: AggregatorParams | DepositNavigationParams) => {
+    ({ mode, params }: GoToRampsParams) => {
       if (isRampsUnifiedV1Enabled) {
         // TODO: Implement smart routing hook
         return;
       }
 
       if (mode === RampMode.DEPOSIT) {
-        navigation.navigate(
-          ...createDepositNavigationDetails(params as DepositNavigationParams),
-        );
+        navigation.navigate(...createDepositNavigationDetails(params));
       } else {
-        const { intent, rampType = AggregatorRampType.BUY } = (params ||
-          {}) as AggregatorParams;
+        const { intent, rampType = AggregatorRampType.BUY } = params || {};
 
         if (rampType === AggregatorRampType.BUY) {
           navigation.navigate(...createBuyNavigationDetails(intent));
