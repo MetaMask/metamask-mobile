@@ -570,6 +570,7 @@ class Onboarding extends PureComponent {
       const loginHandler = createLoginHandler(Platform.OS, provider);
       const result = await OAuthLoginService.handleOAuthLogin(
         loginHandler,
+        !createWallet,
       ).catch((error) => {
         this.props.unsetLoading();
         this.handleLoginError(error, provider);

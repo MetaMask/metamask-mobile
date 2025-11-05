@@ -735,6 +735,7 @@ describe('Onboarding', () => {
       expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'google');
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockGoogleHandler',
+        false,
       );
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
@@ -785,6 +786,7 @@ describe('Onboarding', () => {
       expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockGoogleHandler',
+        false,
       );
       // On Android, should navigate directly to ChoosePassword, not SocialLoginSuccessNewUser
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -838,6 +840,7 @@ describe('Onboarding', () => {
       expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'apple');
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockAppleHandler',
+        false,
       );
       // On iOS with Apple login, should navigate to SocialLoginSuccessNewUser
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -888,6 +891,7 @@ describe('Onboarding', () => {
       expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'apple');
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockAppleHandler',
+        true,
       );
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,

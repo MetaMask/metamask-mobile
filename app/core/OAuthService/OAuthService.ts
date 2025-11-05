@@ -20,6 +20,9 @@ import {
 import { OAuthError, OAuthErrorType } from './error';
 import { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
 import { Platform } from 'react-native';
+import { MetaMetrics } from '../Analytics';
+import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 
 export interface MarketingOptInRequest {
   opt_in_status: boolean;
@@ -48,6 +51,7 @@ interface OAuthServiceLocalState {
   loginInProgress: boolean;
   oauthLoginSuccess: boolean;
   oauthLoginError: string | null;
+  isRehydration?: boolean;
 }
 export class OAuthService {
   public localState: OAuthServiceLocalState;
@@ -140,8 +144,37 @@ export class OAuthService {
     }
   };
 
+  #trackSocialLoginFailure = ({
+    authConnection,
+    errorCategory,
+    error,
+  }: {
+    authConnection: AuthConnection;
+    errorCategory: 'provider_login' | 'get_auth_tokens' | 'seedless_auth';
+    error: unknown;
+  }) => {
+    const isUserCancelled =
+      error instanceof OAuthError &&
+      (error.code === OAuthErrorType.UserCancelled ||
+        error.code === OAuthErrorType.UserDismissed);
+
+    MetaMetrics.getInstance().trackEvent(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.SOCIAL_LOGIN_FAILED,
+      )
+        .addProperties({
+          account_type: `default_${authConnection}`,
+          is_rehydration: this.localState.isRehydration ?? false,
+          failure_type: isUserCancelled ? 'user_cancelled' : 'error',
+          error_category: errorCategory,
+        })
+        .build(),
+    );
+  };
+
   handleOAuthLogin = async (
     loginHandler: BaseLoginHandler,
+    isRehydration: boolean,
   ): Promise<HandleOAuthLoginResult> => {
     const web3AuthNetwork = this.config.web3AuthNetwork;
 
@@ -151,6 +184,7 @@ export class OAuthService {
         OAuthErrorType.LoginInProgress,
       );
     }
+    this.updateLocalState({ isRehydration });
     this.#dispatchLogin();
 
     try {
@@ -173,6 +207,12 @@ export class OAuthService {
           tags: { errorMessage },
         });
         endTrace({ name: TraceName.OnboardingOAuthProviderLoginError });
+
+        this.#trackSocialLoginFailure({
+          authConnection: loginHandler.authConnection,
+          errorCategory: 'provider_login',
+          error,
+        });
 
         throw error;
       } finally {
@@ -208,6 +248,12 @@ export class OAuthService {
           });
           endTrace({
             name: TraceName.OnboardingOAuthBYOAServerGetAuthTokensError,
+          });
+
+          this.#trackSocialLoginFailure({
+            authConnection,
+            errorCategory: 'get_auth_tokens',
+            error,
           });
 
           throw error;
@@ -255,6 +301,12 @@ export class OAuthService {
           });
           endTrace({
             name: TraceName.OnboardingOAuthSeedlessAuthenticateError,
+          });
+
+          this.#trackSocialLoginFailure({
+            authConnection,
+            errorCategory: 'seedless_auth',
+            error,
           });
 
           throw error;
