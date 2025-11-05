@@ -31,6 +31,8 @@ interface RampsTokenSelected {
   region: string;
   chain_id: string;
   currency_destination: string;
+  currency_destination_symbol?: string;
+  currency_destination_network?: string;
   currency_source: string;
   is_authenticated: boolean;
 }
@@ -53,6 +55,8 @@ interface RampsOrderProposed {
   region: string;
   chain_id: string;
   currency_destination: string;
+  currency_destination_symbol?: string;
+  currency_destination_network?: string;
   currency_source: string;
   is_authenticated: boolean;
 }
@@ -71,6 +75,8 @@ interface RampsOrderSelected {
   region: string;
   chain_id: string;
   currency_destination: string;
+  currency_destination_symbol?: string;
+  currency_destination_network?: string;
   currency_source: string;
 }
 
@@ -84,6 +90,8 @@ interface RampsOrderFailed {
   region: string;
   chain_id: string;
   currency_destination: string;
+  currency_destination_symbol?: string;
+  currency_destination_network?: string;
   currency_source: string;
   error_message: string;
   is_authenticated: boolean;
@@ -154,6 +162,8 @@ interface RampsTransactionConfirmed {
   country: string;
   chain_id: string;
   currency_destination: string;
+  currency_destination_symbol?: string;
+  currency_destination_network?: string;
   currency_source: string;
 }
 
@@ -171,6 +181,8 @@ interface RampsTransactionCompleted {
   country: string;
   chain_id: string;
   currency_destination: string;
+  currency_destination_symbol?: string;
+  currency_destination_network?: string;
   currency_source: string;
 }
 
@@ -188,6 +200,8 @@ interface RampsTransactionFailed {
   country: string;
   chain_id: string;
   currency_destination: string;
+  currency_destination_symbol?: string;
+  currency_destination_network?: string;
   currency_source: string;
   error_message: string;
 }
@@ -227,6 +241,12 @@ interface RampsTokenSelectorClicked {
   is_authenticated: boolean;
 }
 
+interface RampsUserDetailsFetched {
+  logged_in: boolean;
+  region: string;
+  location: string;
+}
+
 export interface AnalyticsEvents {
   RAMPS_BUTTON_CLICKED: RampsButtonClicked;
   RAMPS_DEPOSIT_CASH_BUTTON_CLICKED: RampsDepositCashButtonClicked;
@@ -250,4 +270,5 @@ export interface AnalyticsEvents {
   RAMPS_TRANSACTION_FAILED: RampsTransactionFailed;
   RAMPS_KYC_APPLICATION_FAILED: RampsKycApplicationFailed;
   RAMPS_KYC_APPLICATION_APPROVED: RampsKycApplicationApproved;
+  RAMPS_USER_DETAILS_FETCHED: RampsUserDetailsFetched;
 }
