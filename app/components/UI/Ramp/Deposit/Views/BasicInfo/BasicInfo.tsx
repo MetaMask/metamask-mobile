@@ -25,6 +25,7 @@ import {
   createEnterAddressNavDetails,
 } from '../EnterAddress/EnterAddress';
 import { createSsnInfoModalNavigationDetails } from '../Modals/SsnInfoModal';
+import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { useDepositSDK } from '../../sdk';
 import { VALIDATION_REGEX } from '../../constants/constants';
@@ -65,12 +66,17 @@ export interface BasicInfoFormData {
   ssn?: string;
 }
 
+const isPhoneAlreadyRegisteredError = (errorMessage: string): boolean => (
+    errorMessage.includes('2020') ||
+    errorMessage.toLowerCase().includes('phone number is already registered')
+  );
+
 const BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
   const { quote, previousFormData } = useParams<BasicInfoParams>();
-  const { selectedRegion } = useDepositSDK();
+  const { selectedRegion, logoutFromProvider } = useDepositSDK();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -251,6 +257,21 @@ const BasicInfo = (): JSX.Element => {
     trackEvent,
   ]);
 
+  const handleLogout = useCallback(async () => {
+    try {
+      await logoutFromProvider(false); // false = no server invalidation needed
+
+      // Navigate back to email entry screen
+      navigation.navigate(...createEnterEmailNavDetails({}));
+    } catch (logoutError) {
+      Logger.error(
+        logoutError as Error,
+        'Error logging out from BasicInfo error banner',
+      );
+      // Keep error visible if logout fails
+    }
+  }, [logoutFromProvider, navigation]);
+
   const focusNextField = useCallback(
     (nextRef: React.RefObject<TextInput>) => () => {
       nextRef.current?.focus();
@@ -298,6 +319,17 @@ const BasicInfo = (): JSX.Element => {
                 <BannerAlert
                   description={error}
                   severity={BannerAlertSeverity.Error}
+                  actionButtonProps={
+                    isPhoneAlreadyRegisteredError(error)
+                      ? {
+                          variant: ButtonVariants.Link,
+                          label: strings('deposit.configuration_modal.log_out'),
+                          labelTextVariant: TextVariant.BodySM,
+                          onPress: handleLogout,
+                          testID: 'basic-info-logout-button',
+                        }
+                      : undefined
+                  }
                 />
               </View>
             )}
