@@ -40,18 +40,17 @@ function setGithubOutputs(key, value) {
   }
 }
 
-function appendGithubSummary(content) {
-  if (!env.GITHUB_STEP_SUMMARY) return;
-  appendFileSync(env.GITHUB_STEP_SUMMARY, content + '\n');
-}
+// function appendGithubSummary(content) {
+//   if (!env.GITHUB_STEP_SUMMARY) return;
+//   appendFileSync(env.GITHUB_STEP_SUMMARY, content + '\n');
+// }
 
 
 function generateAnalysisSummary(analysis) {
-  const { tagDisplay, tagCount, riskLevel, confidence, reasoning, testFileBreakdown } = analysis;
+  const { tagDisplay, tagCount, riskLevel, confidence, reasoning } = analysis;
 
   let summary = '';
 
-  // Add summary details
   if (tagCount === 0) {
     summary += '- **Selected E2E tags**: None (no tests recommended)\n';
   } else {
@@ -64,19 +63,6 @@ function generateAnalysisSummary(analysis) {
   summary += '\n<details>\n';
   summary += '<summary>click to see 🤖 AI reasoning details</summary>\n\n';
   summary += `${reasoning}\n`;
-
-  // Add test file breakdown if available
-  if (testFileBreakdown && testFileBreakdown.length > 0) {
-    const breakdown = testFileBreakdown
-      .map(item => `  - ${item.tag}: ${item.fileCount} files → ${item.recommendedSplits} splits`)
-      .join('\n');
-
-    if (breakdown) {
-      summary += '\n### 📊 Test File Breakdown\n';
-      summary += `${breakdown}\n`;
-    }
-  }
-
   summary += '\n</details>\n';
 
   return summary;
@@ -86,48 +72,32 @@ function generatePRComment(summaryContent) {
   if (!env.PR_NUMBER) {
     return;
   }
-
-  console.log(`📝 Generating PR comment body file: ${env.PR_COMMENT_FILE}`);
-
   // Write just the body content - action will add title, footer, and marker
   writeFileSync(env.PR_COMMENT_FILE, summaryContent, 'utf8');
   console.log(`✅ PR comment body written to ${env.PR_COMMENT_FILE}`);
-
-  // Set output for the action to know the file location
-  setGithubOutputs('pr_comment_file', env.PR_COMMENT_FILE);
 }
 
 function setGitHubOutputs(analysis) {
-  const { tags, tagDisplay, riskLevel, reasoning, confidence, testFileBreakdown } = analysis;
-
-  // Set outputs for GitHub Actions
+  const { tags, tagDisplay, riskLevel, reasoning, confidence } = analysis;
   setGithubOutputs('ai_e2e_test_tags', tags);
   setGithubOutputs('ai_tags_display', tagDisplay);
   setGithubOutputs('ai_risk_level', riskLevel);
   setGithubOutputs('ai_reasoning', reasoning);
   setGithubOutputs('ai_confidence', confidence);
-
-  // Handle multi-line breakdown content
-  if (testFileBreakdown) {
-    const breakdown = testFileBreakdown
-      .map(item => `  - ${item.tag}: ${item.fileCount} files → ${item.recommendedSplits} splits`)
-      .join('\n');
-    setGithubOutputs('breakdown', breakdown);
-  }
 }
 
 async function main() {
   try {
-    console.log('🤖 Starting AI analysis...');
-
     if (!env.PR_NUMBER) {
       console.log('⏭️ Skipping AI analysis - only runs on PRs');
       return;
     }
 
+    console.log('🤖 Starting AI analysis...');
     // Build command - use --pr flag for better analysis (agent will fetch diffs from GitHub)
     const baseCmd = `node -r esbuild-register e2e/scripts/ai-e2e-tags-selector.ts --output json --pr ${env.PR_NUMBER}`;
     const result = execCommand(baseCmd, { silent: true });
+    console.log('AI analysis completed\n');
 
     // Validate JSON output
     let parsedResult;
@@ -138,9 +108,6 @@ async function main() {
       console.error(`Raw output: ${result}`);
       process.exit(1);
     }
-
-    console.log('📊 AI analysis completed.');
-
     // Parse results
     const analysis = {
       tags: parsedResult.selectedTags?.join('|') || '',
@@ -148,27 +115,18 @@ async function main() {
       riskLevel: parsedResult.riskLevel || '',
       tagDisplay: parsedResult.selectedTags?.join(', ') || '',
       reasoning: parsedResult.reasoning || 'AI analysis completed',
-      confidence: parsedResult.confidence || 75,
-      testFileBreakdown: parsedResult.testFileBreakdown || [],
+      confidence: parsedResult.confidence || 75
     };
 
-    console.log(`✅ Selected E2E test tags: ${analysis.tagDisplay}`);
-    console.log(`📈 Risk level: ${analysis.riskLevel}`);
-    console.log(`🔢 Tag count: ${analysis.tagCount}`);
+    console.log(`🧪 Selected E2E tags: ${analysis.tagDisplay}`);
+    console.log(`📈 Risk Level: ${analysis.riskLevel}`);
+    console.log(`🔢 AI Confidence: ${analysis.confidence}`);
 
-    // Set GitHub Actions outputs
     setGitHubOutputs(analysis);
 
-    // Generate analysis summary (body content only)
     const summaryContent = generateAnalysisSummary(analysis);
-
-    // Write to step summary (with title for step summary)
-    appendGithubSummary('## 🔍 Smart E2E Test Selection\n' + summaryContent);
-
-    // Generate PR comment file if PR number is available
+    // appendGithubSummary('## 🔍 Smart E2E Test Selection\n' + summaryContent);
     generatePRComment(summaryContent);
-
-    console.log('✅ AI analysis script completed successfully');
 
   } catch (error) {
     console.error('❌ Error running AI analysis:', error.message || error);

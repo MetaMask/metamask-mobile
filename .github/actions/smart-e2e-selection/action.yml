@@ -163,13 +163,13 @@ runs:
           All E2E tests pre-selected."
           
         else
-          # Read analysis results from file
-          PR_COMMENT_FILE="${{ steps.ai-analysis.outputs.pr_comment_file }}"
-          if [ ! -f "$PR_COMMENT_FILE" ]; then
-            echo "⚠️ PR comment file not found: $PR_COMMENT_FILE"
-            exit 0
+          # Read analysis results from the file specified in env
+          if [ -f "$PR_COMMENT_FILE" ]; then
+            COMMENT_BODY=$(cat "$PR_COMMENT_FILE")
+          else
+            echo "⚠️ PR comment file not found: $PR_COMMENT_FILE - using default message"
+            COMMENT_BODY="AI analysis completed but results file was not generated."
           fi
-          COMMENT_BODY=$(cat "$PR_COMMENT_FILE")
         fi
 
         # Build and post comment
