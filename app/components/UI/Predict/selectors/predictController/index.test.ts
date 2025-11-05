@@ -7,8 +7,8 @@ import {
   selectPredictWinPnl,
   selectPredictBalances,
   selectPredictBalanceByAddress,
-  selectPredictIsAgreementAccepted,
-  selectPredictIsAgreementAcceptedByAddress,
+  selectPredictAccountMeta,
+  selectPredictAccountMetaByAddress,
 } from './index';
 import { PredictPosition, PredictPositionStatus } from '../../types';
 
@@ -24,7 +24,7 @@ describe('Predict Controller Selectors', () => {
               lastUpdateTimestamp: 0,
               claimTransaction: null,
               depositTransaction: null,
-              isOnboarded: {},
+              accountMeta: {},
             },
           },
         },
@@ -897,14 +897,20 @@ describe('Predict Controller Selectors', () => {
     });
   });
 
-  describe('selectPredictIsAgreementAccepted', () => {
-    it('returns agreement accepted object when it exists', () => {
-      const isAgreementAccepted = {
+  describe('selectPredictAccountMeta', () => {
+    it('returns account meta object when it exists', () => {
+      const accountMeta = {
         polymarket: {
-          '0x123': true,
+          '0x123': {
+            isOnboarded: true,
+            acceptedToS: true,
+          },
         },
         kalshi: {
-          '0xabc': false,
+          '0xabc': {
+            isOnboarded: false,
+            acceptedToS: false,
+          },
         },
       };
 
@@ -912,31 +918,31 @@ describe('Predict Controller Selectors', () => {
         engine: {
           backgroundState: {
             PredictController: {
-              isAgreementAccepted,
+              accountMeta,
             },
           },
         },
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selectPredictIsAgreementAccepted(mockState as any);
+      const result = selectPredictAccountMeta(mockState as any);
 
-      expect(result).toEqual(isAgreementAccepted);
+      expect(result).toEqual(accountMeta);
     });
 
-    it('returns empty object when isAgreementAccepted does not exist', () => {
+    it('returns empty object when accountMeta does not exist', () => {
       const mockState = {
         engine: {
           backgroundState: {
             PredictController: {
-              isAgreementAccepted: {},
+              accountMeta: {},
             },
           },
         },
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selectPredictIsAgreementAccepted(mockState as any);
+      const result = selectPredictAccountMeta(mockState as any);
 
       expect(result).toEqual({});
     });
@@ -951,19 +957,28 @@ describe('Predict Controller Selectors', () => {
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selectPredictIsAgreementAccepted(mockState as any);
+      const result = selectPredictAccountMeta(mockState as any);
 
       expect(result).toEqual({});
     });
 
-    it('returns multiple provider agreements', () => {
-      const isAgreementAccepted = {
+    it('returns multiple provider account metadata', () => {
+      const accountMeta = {
         polymarket: {
-          '0x123': true,
-          '0x456': false,
+          '0x123': {
+            isOnboarded: true,
+            acceptedToS: true,
+          },
+          '0x456': {
+            isOnboarded: false,
+            acceptedToS: false,
+          },
         },
         kalshi: {
-          '0xabc': true,
+          '0xabc': {
+            isOnboarded: true,
+            acceptedToS: true,
+          },
         },
       };
 
@@ -971,24 +986,27 @@ describe('Predict Controller Selectors', () => {
         engine: {
           backgroundState: {
             PredictController: {
-              isAgreementAccepted,
+              accountMeta,
             },
           },
         },
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selectPredictIsAgreementAccepted(mockState as any);
+      const result = selectPredictAccountMeta(mockState as any);
 
-      expect(result).toEqual(isAgreementAccepted);
+      expect(result).toEqual(accountMeta);
     });
   });
 
-  describe('selectPredictIsAgreementAcceptedByAddress', () => {
-    it('returns true when agreement is accepted for provider and address', () => {
-      const isAgreementAccepted = {
+  describe('selectPredictAccountMetaByAddress', () => {
+    it('returns account meta when it exists for provider and address', () => {
+      const accountMeta = {
         polymarket: {
-          '0x123': true,
+          '0x123': {
+            isOnboarded: true,
+            acceptedToS: true,
+          },
         },
       };
 
@@ -996,26 +1014,29 @@ describe('Predict Controller Selectors', () => {
         engine: {
           backgroundState: {
             PredictController: {
-              isAgreementAccepted,
+              accountMeta,
             },
           },
         },
       };
 
-      const selector = selectPredictIsAgreementAcceptedByAddress({
+      const selector = selectPredictAccountMetaByAddress({
         providerId: 'polymarket',
         address: '0x123',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = selector(mockState as any);
 
-      expect(result).toBe(true);
+      expect(result).toEqual({ isOnboarded: true, acceptedToS: true });
     });
 
-    it('returns false when agreement is not accepted for provider and address', () => {
-      const isAgreementAccepted = {
+    it('returns account meta with false values when not onboarded or accepted', () => {
+      const accountMeta = {
         polymarket: {
-          '0x123': false,
+          '0x123': {
+            isOnboarded: false,
+            acceptedToS: false,
+          },
         },
       };
 
@@ -1023,26 +1044,29 @@ describe('Predict Controller Selectors', () => {
         engine: {
           backgroundState: {
             PredictController: {
-              isAgreementAccepted,
+              accountMeta,
             },
           },
         },
       };
 
-      const selector = selectPredictIsAgreementAcceptedByAddress({
+      const selector = selectPredictAccountMetaByAddress({
         providerId: 'polymarket',
         address: '0x123',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = selector(mockState as any);
 
-      expect(result).toBe(false);
+      expect(result).toEqual({ isOnboarded: false, acceptedToS: false });
     });
 
-    it('returns false when provider does not exist', () => {
-      const isAgreementAccepted = {
+    it('returns empty object when provider does not exist', () => {
+      const accountMeta = {
         polymarket: {
-          '0x123': true,
+          '0x123': {
+            isOnboarded: true,
+            acceptedToS: true,
+          },
         },
       };
 
@@ -1050,26 +1074,29 @@ describe('Predict Controller Selectors', () => {
         engine: {
           backgroundState: {
             PredictController: {
-              isAgreementAccepted,
+              accountMeta,
             },
           },
         },
       };
 
-      const selector = selectPredictIsAgreementAcceptedByAddress({
+      const selector = selectPredictAccountMetaByAddress({
         providerId: 'kalshi',
         address: '0x123',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = selector(mockState as any);
 
-      expect(result).toBe(false);
+      expect(result).toEqual({});
     });
 
-    it('returns false when address does not exist for provider', () => {
-      const isAgreementAccepted = {
+    it('returns empty object when address does not exist for provider', () => {
+      const accountMeta = {
         polymarket: {
-          '0x123': true,
+          '0x123': {
+            isOnboarded: true,
+            acceptedToS: true,
+          },
         },
       };
 
@@ -1077,23 +1104,23 @@ describe('Predict Controller Selectors', () => {
         engine: {
           backgroundState: {
             PredictController: {
-              isAgreementAccepted,
+              accountMeta,
             },
           },
         },
       };
 
-      const selector = selectPredictIsAgreementAcceptedByAddress({
+      const selector = selectPredictAccountMetaByAddress({
         providerId: 'polymarket',
         address: '0xNonExistent',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = selector(mockState as any);
 
-      expect(result).toBe(false);
+      expect(result).toEqual({});
     });
 
-    it('returns false when PredictController state is undefined', () => {
+    it('returns empty object when PredictController state is undefined', () => {
       const mockState = {
         engine: {
           backgroundState: {
@@ -1102,25 +1129,37 @@ describe('Predict Controller Selectors', () => {
         },
       };
 
-      const selector = selectPredictIsAgreementAcceptedByAddress({
+      const selector = selectPredictAccountMetaByAddress({
         providerId: 'polymarket',
         address: '0x123',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = selector(mockState as any);
 
-      expect(result).toBe(false);
+      expect(result).toEqual({});
     });
 
     it('returns correct value for different provider and address combinations', () => {
-      const isAgreementAccepted = {
+      const accountMeta = {
         polymarket: {
-          '0x123': true,
-          '0x456': false,
+          '0x123': {
+            isOnboarded: true,
+            acceptedToS: true,
+          },
+          '0x456': {
+            isOnboarded: false,
+            acceptedToS: false,
+          },
         },
         kalshi: {
-          '0xabc': true,
-          '0xdef': false,
+          '0xabc': {
+            isOnboarded: true,
+            acceptedToS: true,
+          },
+          '0xdef': {
+            isOnboarded: false,
+            acceptedToS: false,
+          },
         },
       };
 
@@ -1128,34 +1167,37 @@ describe('Predict Controller Selectors', () => {
         engine: {
           backgroundState: {
             PredictController: {
-              isAgreementAccepted,
+              accountMeta,
             },
           },
         },
       };
 
-      const selector1 = selectPredictIsAgreementAcceptedByAddress({
+      const selector1 = selectPredictAccountMetaByAddress({
         providerId: 'polymarket',
         address: '0x456',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result1 = selector1(mockState as any);
 
-      const selector2 = selectPredictIsAgreementAcceptedByAddress({
+      const selector2 = selectPredictAccountMetaByAddress({
         providerId: 'kalshi',
         address: '0xabc',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result2 = selector2(mockState as any);
 
-      expect(result1).toBe(false);
-      expect(result2).toBe(true);
+      expect(result1).toEqual({ isOnboarded: false, acceptedToS: false });
+      expect(result2).toEqual({ isOnboarded: true, acceptedToS: true });
     });
 
-    it('returns false when agreement is explicitly set to false', () => {
-      const isAgreementAccepted = {
+    it('returns account meta with partial onboarding', () => {
+      const accountMeta = {
         polymarket: {
-          '0x123': false,
+          '0x123': {
+            isOnboarded: true,
+            acceptedToS: false,
+          },
         },
       };
 
@@ -1163,41 +1205,41 @@ describe('Predict Controller Selectors', () => {
         engine: {
           backgroundState: {
             PredictController: {
-              isAgreementAccepted,
+              accountMeta,
             },
           },
         },
       };
 
-      const selector = selectPredictIsAgreementAcceptedByAddress({
+      const selector = selectPredictAccountMetaByAddress({
         providerId: 'polymarket',
         address: '0x123',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = selector(mockState as any);
 
-      expect(result).toBe(false);
+      expect(result).toEqual({ isOnboarded: true, acceptedToS: false });
     });
 
-    it('handles empty isAgreementAccepted object', () => {
+    it('returns empty object when accountMeta object is empty', () => {
       const mockState = {
         engine: {
           backgroundState: {
             PredictController: {
-              isAgreementAccepted: {},
+              accountMeta: {},
             },
           },
         },
       };
 
-      const selector = selectPredictIsAgreementAcceptedByAddress({
+      const selector = selectPredictAccountMetaByAddress({
         providerId: 'polymarket',
         address: '0x123',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = selector(mockState as any);
 
-      expect(result).toBe(false);
+      expect(result).toEqual({});
     });
   });
 });

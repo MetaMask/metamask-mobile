@@ -89,8 +89,11 @@ jest.mock('../../hooks/usePredictPlaceOrder', () => ({
 }));
 
 // Mock usePredictAgreement hook
-const mockAcceptAgreement = jest.fn();
 let mockIsAgreementAccepted = true; // Default to true to not break existing tests
+const mockAcceptAgreement = jest.fn(() => {
+  // When acceptAgreement is called, update the mock value
+  mockIsAgreementAccepted = true;
+});
 
 jest.mock('../../hooks/usePredictAgreement', () => ({
   usePredictAgreement: () => ({
@@ -131,7 +134,13 @@ jest.mock('../../components/PredictConsentSheet', () => {
           onOpenBottomSheet: jest.fn(),
           onCloseBottomSheet: jest.fn(),
         };
-        mockConsentSheetOnAgree = onAgree || null;
+        // Wrap onAgree to call acceptAgreement first, just like the real component
+        mockConsentSheetOnAgree = onAgree
+          ? () => {
+              mockAcceptAgreement();
+              onAgree();
+            }
+          : null;
         mockConsentSheetProviderId = providerId;
 
         ReactActual.useImperativeHandle(ref, () => mockConsentSheetRef);
@@ -726,16 +735,39 @@ describe('PredictSellPreview', () => {
         response: { transactionHash: '0xabc123' },
       };
 
-      renderWithProvider(<PredictSellPreview />, {
-        state: initialState,
-      });
+      const { getByTestId, rerender } = renderWithProvider(
+        <PredictSellPreview />,
+        {
+          state: initialState,
+        },
+      );
+
+      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
+
+      // Press cash out button to open consent sheet
+      await fireEvent.press(cashOutButton);
+
+      // Should open consent sheet
+      expect(mockConsentSheetRef?.onOpenBottomSheet).toHaveBeenCalled();
 
       // Simulate user agreeing to consent
+      // The mock consent sheet will call acceptAgreement() which updates mockIsAgreementAccepted to true
       if (mockConsentSheetOnAgree) {
         await mockConsentSheetOnAgree();
       }
 
-      // Should place order after consent
+      // Force a re-render to get the updated isAgreementAccepted value
+      rerender(<PredictSellPreview />);
+
+      // Should have called acceptAgreement
+      expect(mockAcceptAgreement).toHaveBeenCalled();
+
+      // Press cash out button again now that agreement is accepted
+      await fireEvent.press(
+        getByTestId('predict-sell-preview-cash-out-button'),
+      );
+
+      // Should place order
       expect(mockPlaceOrder).toHaveBeenCalledWith({
         providerId: 'polymarket',
         analyticsProperties: expect.objectContaining({

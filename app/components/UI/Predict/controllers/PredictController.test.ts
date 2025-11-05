@@ -293,7 +293,7 @@ describe('PredictController', () => {
       withController(({ controller }) => {
         expect(controller.state).toEqual(getDefaultPredictControllerState());
         expect(controller.state.eligibility).toEqual({});
-        expect(controller.state.isAgreementAccepted).toEqual({});
+        expect(controller.state.accountMeta).toEqual({});
       });
     });
 
@@ -1372,11 +1372,20 @@ describe('PredictController', () => {
     it('handles complex state updates', () => {
       withController(({ controller }) => {
         controller.updateStateForTesting((state) => {
-          state.isOnboarded = { '0x123': true };
+          state.accountMeta = {
+            polymarket: {
+              '0x123': {
+                isOnboarded: true,
+                acceptedToS: false,
+              },
+            },
+          };
           state.lastError = null;
         });
 
-        expect(controller.state.isOnboarded['0x123']).toBe(true);
+        expect(
+          controller.state.accountMeta.polymarket['0x123'].isOnboarded,
+        ).toBe(true);
         expect(controller.state.lastError).toBeNull();
       });
     });
@@ -4445,9 +4454,10 @@ describe('PredictController', () => {
         });
 
         expect(result).toBe(true);
-        expect(controller.state.isAgreementAccepted[providerId][address]).toBe(
-          true,
-        );
+        expect(controller.state.accountMeta[providerId][address]).toEqual({
+          isOnboarded: false,
+          acceptedToS: true,
+        });
       });
     });
 
@@ -4456,16 +4466,19 @@ describe('PredictController', () => {
         const providerId = 'polymarket';
         const address = '0x1234567890123456789012345678901234567890';
 
-        expect(controller.state.isAgreementAccepted).toEqual({});
+        expect(controller.state.accountMeta).toEqual({});
 
         controller.acceptAgreement({
           providerId,
           address,
         });
 
-        expect(controller.state.isAgreementAccepted).toEqual({
+        expect(controller.state.accountMeta).toEqual({
           [providerId]: {
-            [address]: true,
+            [address]: {
+              isOnboarded: false,
+              acceptedToS: true,
+            },
           },
         });
       });
@@ -4482,9 +4495,10 @@ describe('PredictController', () => {
           address: address1,
         });
 
-        expect(controller.state.isAgreementAccepted[providerId][address1]).toBe(
-          true,
-        );
+        expect(controller.state.accountMeta[providerId][address1]).toEqual({
+          isOnboarded: false,
+          acceptedToS: true,
+        });
 
         controller.acceptAgreement({
           providerId,
@@ -4493,11 +4507,12 @@ describe('PredictController', () => {
 
         // Note: Current implementation replaces the entire address object
         expect(
-          controller.state.isAgreementAccepted[providerId][address1],
+          controller.state.accountMeta[providerId][address1],
         ).toBeUndefined();
-        expect(controller.state.isAgreementAccepted[providerId][address2]).toBe(
-          true,
-        );
+        expect(controller.state.accountMeta[providerId][address2]).toEqual({
+          isOnboarded: false,
+          acceptedToS: true,
+        });
       });
     });
 
@@ -4524,12 +4539,14 @@ describe('PredictController', () => {
           address,
         });
 
-        expect(controller.state.isAgreementAccepted[provider1][address]).toBe(
-          true,
-        );
-        expect(controller.state.isAgreementAccepted[provider2][address]).toBe(
-          true,
-        );
+        expect(controller.state.accountMeta[provider1][address]).toEqual({
+          isOnboarded: false,
+          acceptedToS: true,
+        });
+        expect(controller.state.accountMeta[provider2][address]).toEqual({
+          isOnboarded: false,
+          acceptedToS: true,
+        });
       });
     });
 
@@ -4545,9 +4562,7 @@ describe('PredictController', () => {
           }),
         ).toThrow('Provider not available');
 
-        expect(
-          controller.state.isAgreementAccepted[providerId],
-        ).toBeUndefined();
+        expect(controller.state.accountMeta[providerId]).toBeUndefined();
       });
     });
 
@@ -4561,9 +4576,10 @@ describe('PredictController', () => {
           address,
         });
 
-        expect(controller.state.isAgreementAccepted[providerId][address]).toBe(
-          true,
-        );
+        expect(controller.state.accountMeta[providerId][address]).toEqual({
+          isOnboarded: false,
+          acceptedToS: true,
+        });
 
         // Accept again
         const result = controller.acceptAgreement({
@@ -4572,9 +4588,10 @@ describe('PredictController', () => {
         });
 
         expect(result).toBe(true);
-        expect(controller.state.isAgreementAccepted[providerId][address]).toBe(
-          true,
-        );
+        expect(controller.state.accountMeta[providerId][address]).toEqual({
+          isOnboarded: false,
+          acceptedToS: true,
+        });
       });
     });
 
@@ -4620,11 +4637,12 @@ describe('PredictController', () => {
           address: address1,
         });
 
-        expect(controller.state.isAgreementAccepted[providerId][address1]).toBe(
-          true,
-        );
+        expect(controller.state.accountMeta[providerId][address1]).toEqual({
+          isOnboarded: false,
+          acceptedToS: true,
+        });
         expect(
-          controller.state.isAgreementAccepted[providerId][address2],
+          controller.state.accountMeta[providerId][address2],
         ).toBeUndefined();
 
         controller.acceptAgreement({
@@ -4634,11 +4652,12 @@ describe('PredictController', () => {
 
         // Note: Current implementation replaces the entire address object
         expect(
-          controller.state.isAgreementAccepted[providerId][address1],
+          controller.state.accountMeta[providerId][address1],
         ).toBeUndefined();
-        expect(controller.state.isAgreementAccepted[providerId][address2]).toBe(
-          true,
-        );
+        expect(controller.state.accountMeta[providerId][address2]).toEqual({
+          isOnboarded: false,
+          acceptedToS: true,
+        });
       });
     });
 

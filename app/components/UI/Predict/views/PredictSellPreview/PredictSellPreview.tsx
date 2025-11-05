@@ -5,7 +5,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { ActivityIndicator, Image, View } from 'react-native';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
@@ -121,7 +121,7 @@ const PredictSellPreview = () => {
 
   const signal = useMemo(() => (cashPnl >= 0 ? '+' : '-'), [cashPnl]);
 
-  const onCashOut = async () => {
+  const onCashOut = useCallback(async () => {
     if (!preview) return;
 
     // Check if user has accepted the agreement
@@ -135,18 +135,13 @@ const PredictSellPreview = () => {
       analyticsProperties,
       preview,
     });
-  };
-
-  const handleConsentAgree = async () => {
-    // After consent is accepted, place the order
-    if (!preview) return;
-
-    await placeOrder({
-      providerId: position.providerId,
-      analyticsProperties,
-      preview,
-    });
-  };
+  }, [
+    preview,
+    isAgreementAccepted,
+    placeOrder,
+    analyticsProperties,
+    position.providerId,
+  ]);
 
   const renderCashOutButton = () => {
     if (isLoading) {
@@ -259,7 +254,7 @@ const PredictSellPreview = () => {
       <PredictConsentSheet
         ref={consentSheetRef}
         providerId={position.providerId}
-        onAgree={handleConsentAgree}
+        onAgree={onCashOut}
       />
     </SafeAreaView>
   );

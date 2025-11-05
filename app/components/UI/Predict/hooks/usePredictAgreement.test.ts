@@ -28,11 +28,11 @@ describe('usePredictAgreement', () => {
 
     // Default mock implementation
     mockUseSelector.mockImplementation(() => {
-      // First call returns the address, second call returns agreement status
+      // First call returns the address, second call returns account meta
       if (mockUseSelector.mock.calls.length === 1) {
         return mockAddress;
       }
-      return false;
+      return { isOnboarded: false, acceptedToS: false };
     });
   });
 
@@ -44,7 +44,7 @@ describe('usePredictAgreement', () => {
     it('returns false when agreement is not accepted', () => {
       mockUseSelector
         .mockReturnValueOnce(mockAddress)
-        .mockReturnValueOnce(false);
+        .mockReturnValueOnce({ isOnboarded: false, acceptedToS: false });
 
       const { result } = renderHook(() =>
         usePredictAgreement({ providerId: mockProviderId }),
@@ -56,7 +56,7 @@ describe('usePredictAgreement', () => {
     it('returns true when agreement is accepted', () => {
       mockUseSelector
         .mockReturnValueOnce(mockAddress)
-        .mockReturnValueOnce(true);
+        .mockReturnValueOnce({ isOnboarded: false, acceptedToS: true });
 
       const { result } = renderHook(() =>
         usePredictAgreement({ providerId: mockProviderId }),
@@ -66,7 +66,9 @@ describe('usePredictAgreement', () => {
     });
 
     it('returns false when no address is selected', () => {
-      mockUseSelector.mockReturnValueOnce(null).mockReturnValueOnce(false);
+      mockUseSelector
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce({ isOnboarded: false, acceptedToS: false });
 
       const { result } = renderHook(() =>
         usePredictAgreement({ providerId: mockProviderId }),
@@ -79,7 +81,7 @@ describe('usePredictAgreement', () => {
       const customProviderId = 'custom-provider';
       mockUseSelector
         .mockReturnValueOnce(mockAddress)
-        .mockReturnValueOnce(false);
+        .mockReturnValueOnce({ isOnboarded: false, acceptedToS: false });
 
       renderHook(() => usePredictAgreement({ providerId: customProviderId }));
 
@@ -92,7 +94,7 @@ describe('usePredictAgreement', () => {
     it('calls controller acceptAgreement with correct parameters', () => {
       mockUseSelector
         .mockReturnValueOnce(mockAddress)
-        .mockReturnValueOnce(false);
+        .mockReturnValueOnce({ isOnboarded: false, acceptedToS: false });
       mockAcceptAgreement.mockReturnValue(true);
 
       const { result } = renderHook(() =>
@@ -112,7 +114,7 @@ describe('usePredictAgreement', () => {
     it('returns true when agreement is accepted successfully', () => {
       mockUseSelector
         .mockReturnValueOnce(mockAddress)
-        .mockReturnValueOnce(false);
+        .mockReturnValueOnce({ isOnboarded: false, acceptedToS: false });
       mockAcceptAgreement.mockReturnValue(true);
 
       const { result } = renderHook(() =>
@@ -128,7 +130,9 @@ describe('usePredictAgreement', () => {
     });
 
     it('returns false when no address is selected', () => {
-      mockUseSelector.mockReturnValueOnce(null).mockReturnValueOnce(false);
+      mockUseSelector
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce({ isOnboarded: false, acceptedToS: false });
 
       const { result } = renderHook(() =>
         usePredictAgreement({ providerId: mockProviderId }),
@@ -144,7 +148,9 @@ describe('usePredictAgreement', () => {
     });
 
     it('returns false when address is empty string', () => {
-      mockUseSelector.mockReturnValueOnce('').mockReturnValueOnce(false);
+      mockUseSelector
+        .mockReturnValueOnce('')
+        .mockReturnValueOnce({ isOnboarded: false, acceptedToS: false });
 
       const { result } = renderHook(() =>
         usePredictAgreement({ providerId: mockProviderId }),
@@ -163,7 +169,7 @@ describe('usePredictAgreement', () => {
       const customProviderId = 'custom-provider';
       mockUseSelector
         .mockReturnValueOnce(mockAddress)
-        .mockReturnValueOnce(false);
+        .mockReturnValueOnce({ isOnboarded: false, acceptedToS: false });
       mockAcceptAgreement.mockReturnValue(true);
 
       const { result } = renderHook(() =>
@@ -183,7 +189,7 @@ describe('usePredictAgreement', () => {
     it('returns value from controller acceptAgreement', () => {
       mockUseSelector
         .mockReturnValueOnce(mockAddress)
-        .mockReturnValueOnce(false);
+        .mockReturnValueOnce({ isOnboarded: false, acceptedToS: false });
       mockAcceptAgreement.mockReturnValue(false);
 
       const { result } = renderHook(() =>
@@ -203,7 +209,7 @@ describe('usePredictAgreement', () => {
     it('returns stable acceptAgreement function reference', () => {
       mockUseSelector
         .mockReturnValueOnce(mockAddress)
-        .mockReturnValueOnce(false);
+        .mockReturnValueOnce({ isOnboarded: false, acceptedToS: false });
 
       const { result, rerender } = renderHook(() =>
         usePredictAgreement({ providerId: mockProviderId }),
@@ -214,7 +220,7 @@ describe('usePredictAgreement', () => {
       // Mock for rerender
       mockUseSelector
         .mockReturnValueOnce(mockAddress)
-        .mockReturnValueOnce(false);
+        .mockReturnValueOnce({ isOnboarded: false, acceptedToS: false });
       rerender({ providerId: mockProviderId });
 
       expect(result.current.acceptAgreement).toBe(initialAcceptAgreement);
@@ -223,7 +229,7 @@ describe('usePredictAgreement', () => {
     it('updates acceptAgreement when providerId changes', () => {
       mockUseSelector
         .mockReturnValueOnce(mockAddress)
-        .mockReturnValueOnce(false);
+        .mockReturnValueOnce({ isOnboarded: false, acceptedToS: false });
 
       const { result, rerender } = renderHook(
         ({ providerId }) => usePredictAgreement({ providerId }),
@@ -235,7 +241,7 @@ describe('usePredictAgreement', () => {
       // Mock for rerender with different providerId
       mockUseSelector
         .mockReturnValueOnce(mockAddress)
-        .mockReturnValueOnce(false);
+        .mockReturnValueOnce({ isOnboarded: false, acceptedToS: false });
       rerender({ providerId: mockProviderId });
 
       expect(result.current.acceptAgreement).not.toBe(initialAcceptAgreement);
@@ -244,7 +250,7 @@ describe('usePredictAgreement', () => {
     it('updates acceptAgreement when address changes', () => {
       mockUseSelector
         .mockReturnValueOnce(mockAddress)
-        .mockReturnValueOnce(false);
+        .mockReturnValueOnce({ isOnboarded: false, acceptedToS: false });
 
       const { result, rerender } = renderHook(() =>
         usePredictAgreement({ providerId: mockProviderId }),
@@ -256,7 +262,7 @@ describe('usePredictAgreement', () => {
       const newAddress = '0x9876543210987654321098765432109876543210';
       mockUseSelector
         .mockReturnValueOnce(newAddress)
-        .mockReturnValueOnce(false);
+        .mockReturnValueOnce({ isOnboarded: false, acceptedToS: false });
       rerender({ providerId: mockProviderId });
 
       expect(result.current.acceptAgreement).not.toBe(initialAcceptAgreement);
@@ -267,7 +273,7 @@ describe('usePredictAgreement', () => {
     it('handles multiple accept calls correctly', () => {
       mockUseSelector
         .mockReturnValueOnce(mockAddress)
-        .mockReturnValueOnce(false);
+        .mockReturnValueOnce({ isOnboarded: false, acceptedToS: false });
       mockAcceptAgreement.mockReturnValue(true);
 
       const { result } = renderHook(() =>
@@ -286,7 +292,7 @@ describe('usePredictAgreement', () => {
     it('uses updated address for subsequent calls', () => {
       mockUseSelector
         .mockReturnValueOnce(mockAddress)
-        .mockReturnValueOnce(false);
+        .mockReturnValueOnce({ isOnboarded: false, acceptedToS: false });
       mockAcceptAgreement.mockReturnValue(true);
 
       const { result, rerender } = renderHook(() =>
@@ -306,7 +312,7 @@ describe('usePredictAgreement', () => {
       const newAddress = '0xNewAddress1234567890123456789012345678';
       mockUseSelector
         .mockReturnValueOnce(newAddress)
-        .mockReturnValueOnce(false);
+        .mockReturnValueOnce({ isOnboarded: false, acceptedToS: false });
       rerender({ providerId: mockProviderId });
 
       act(() => {
@@ -322,7 +328,9 @@ describe('usePredictAgreement', () => {
 
   describe('edge cases', () => {
     it('handles undefined address', () => {
-      mockUseSelector.mockReturnValueOnce(undefined).mockReturnValueOnce(false);
+      mockUseSelector
+        .mockReturnValueOnce(undefined)
+        .mockReturnValueOnce({ isOnboarded: false, acceptedToS: false });
 
       const { result } = renderHook(() =>
         usePredictAgreement({ providerId: mockProviderId }),
@@ -340,7 +348,7 @@ describe('usePredictAgreement', () => {
     it('handles controller throwing error', () => {
       mockUseSelector
         .mockReturnValueOnce(mockAddress)
-        .mockReturnValueOnce(false);
+        .mockReturnValueOnce({ isOnboarded: false, acceptedToS: false });
       mockAcceptAgreement.mockImplementation(() => {
         throw new Error('Controller error');
       });
@@ -359,7 +367,7 @@ describe('usePredictAgreement', () => {
     it('handles empty providerId', () => {
       mockUseSelector
         .mockReturnValueOnce(mockAddress)
-        .mockReturnValueOnce(false);
+        .mockReturnValueOnce({ isOnboarded: false, acceptedToS: false });
       mockAcceptAgreement.mockReturnValue(true);
 
       const { result } = renderHook(() =>
@@ -381,7 +389,7 @@ describe('usePredictAgreement', () => {
     it('returns object with correct properties', () => {
       mockUseSelector
         .mockReturnValueOnce(mockAddress)
-        .mockReturnValueOnce(false);
+        .mockReturnValueOnce({ isOnboarded: false, acceptedToS: false });
 
       const { result } = renderHook(() =>
         usePredictAgreement({ providerId: mockProviderId }),
@@ -396,7 +404,7 @@ describe('usePredictAgreement', () => {
     it('returns exactly two properties', () => {
       mockUseSelector
         .mockReturnValueOnce(mockAddress)
-        .mockReturnValueOnce(false);
+        .mockReturnValueOnce({ isOnboarded: false, acceptedToS: false });
 
       const { result } = renderHook(() =>
         usePredictAgreement({ providerId: mockProviderId }),

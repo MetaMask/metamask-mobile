@@ -54,6 +54,7 @@ import {
   AcceptAgreementParams,
   ClaimParams,
   GetPriceHistoryParams,
+  PredictAccountMeta,
   PredictActivity,
   PredictBalance,
   PredictClaim,
@@ -96,12 +97,9 @@ export type PredictControllerState = {
   withdrawTransaction: PredictWithdraw | null;
 
   // Persisted data
-  // --------------
-  // Setup
-  isOnboarded: { [address: string]: boolean };
-
-  // Aggreement management
-  isAgreementAccepted: { [providerId: string]: { [address: string]: boolean } };
+  accountMeta: {
+    [providerId: string]: { [address: string]: PredictAccountMeta };
+  };
 };
 
 /**
@@ -115,8 +113,7 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   claimablePositions: {},
   pendingDeposits: {},
   withdrawTransaction: null,
-  isOnboarded: {},
-  isAgreementAccepted: {},
+  accountMeta: {},
 });
 
 /**
@@ -165,17 +162,11 @@ const metadata: StateMetadata<PredictControllerState> = {
     includeInStateLogs: false,
     usedInUi: false,
   },
-  isOnboarded: {
+  accountMeta: {
     persist: true,
     includeInDebugSnapshot: false,
     includeInStateLogs: false,
-    usedInUi: false,
-  },
-  isAgreementAccepted: {
-    persist: true,
-    includeInDebugSnapshot: false,
-    includeInStateLogs: false,
-    usedInUi: false,
+    usedInUi: true,
   },
 };
 
@@ -1728,8 +1719,18 @@ export class PredictController extends BaseController<
         throw new Error('Provider not available');
       }
       this.update((state) => {
-        state.isAgreementAccepted[params.providerId] = {
-          [params.address]: true,
+        const accountMeta = state.accountMeta[params.providerId]?.[
+          params.address
+        ] || {
+          isOnboarded: false,
+          acceptedToS: false,
+        };
+
+        state.accountMeta[params.providerId] = {
+          [params.address]: {
+            ...accountMeta,
+            acceptedToS: true,
+          },
         };
       });
       return true;

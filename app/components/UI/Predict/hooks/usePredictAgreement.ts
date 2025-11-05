@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
-import { selectPredictIsAgreementAcceptedByAddress } from '../selectors/predictController';
+import { selectPredictAccountMetaByAddress } from '../selectors/predictController';
 import { AcceptAgreementParams } from '../types';
 
 interface UsePredictAgreementParams {
@@ -29,11 +29,11 @@ export function usePredictAgreement(
   );
 
   const isAgreementAccepted = useSelector(
-    selectPredictIsAgreementAcceptedByAddress({
+    selectPredictAccountMetaByAddress({
       providerId,
       address: selectedInternalAccountAddress || '',
     }),
-  );
+  )?.acceptedToS;
 
   const acceptAgreement = useCallback(() => {
     if (!selectedInternalAccountAddress) {

@@ -732,7 +732,6 @@
     "claimablePositions": {},
     "pendingDeposits": {},
     "withdrawTransaction": null,
-    "isOnboarded": {},
-    "isAgreementAccepted": {}
+    "accountMeta": {}
   }
 }

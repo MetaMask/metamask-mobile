@@ -16,7 +16,13 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+  useCallback,
+} from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -171,7 +177,7 @@ const PredictBuyPreview = () => {
     }
   }, [dispatch, result]);
 
-  const onPlaceBet = async () => {
+  const onPlaceBet = useCallback(async () => {
     if (!preview || hasInsufficientFunds || isBelowMinimum) return;
 
     // Check if user has accepted the agreement
@@ -185,18 +191,15 @@ const PredictBuyPreview = () => {
       analyticsProperties,
       preview,
     });
-  };
-
-  const handleConsentAgree = async () => {
-    // After consent is accepted, place the order
-    if (!preview || hasInsufficientFunds || isBelowMinimum) return;
-
-    await placeOrder({
-      providerId: outcome.providerId,
-      analyticsProperties,
-      preview,
-    });
-  };
+  }, [
+    preview,
+    hasInsufficientFunds,
+    isBelowMinimum,
+    isAgreementAccepted,
+    placeOrder,
+    outcome.providerId,
+    analyticsProperties,
+  ]);
 
   const renderHeader = () => (
     <Box
@@ -464,7 +467,7 @@ const PredictBuyPreview = () => {
       <PredictConsentSheet
         ref={consentSheetRef}
         providerId={outcome.providerId}
-        onAgree={handleConsentAgree}
+        onAgree={onPlaceBet}
       />
     </SafeAreaView>
   );
