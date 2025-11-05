@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, fireEvent, waitFor } from '@testing-library/react-native';
+import { screen, fireEvent, waitFor, act } from '@testing-library/react-native';
 import {
   NavigationProp,
   ParamListBase,
@@ -135,12 +135,21 @@ jest.mock('../../utils/format', () => ({
       ? '0%'
       : `${value > 0 ? '+' : ''}${Math.abs(value).toFixed(2)}%`,
   ),
+  formatAddress: jest.fn(
+    (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`,
+  ),
+  estimateLineCount: jest.fn((text?: string) => {
+    if (!text) return 1;
+    // Simple mock implementation - returns 1 for short text, 2 for longer
+    return text.length > 50 ? 2 : 1;
+  }),
 }));
 
 jest.mock('../../hooks/usePredictMarket', () => ({
   usePredictMarket: jest.fn(() => ({
     market: null,
     isFetching: false,
+    refetch: jest.fn(),
   })),
 }));
 
@@ -149,6 +158,7 @@ jest.mock('../../hooks/usePredictPriceHistory', () => ({
     priceHistories: [],
     isFetching: false,
     errors: [],
+    refetch: jest.fn(),
   })),
 }));
 
@@ -480,6 +490,7 @@ function setupPredictMarketDetailsTest(
   usePredictMarket.mockReturnValue({
     market: mockMarket,
     isFetching: false,
+    refetch: jest.fn(),
     ...hookOverrides.market,
   });
 
@@ -990,6 +1001,55 @@ describe('PredictMarketDetails', () => {
           outcomeToken: singleOutcomeMarket.outcomes[0].tokens[1],
           entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
         },
+      });
+    });
+  });
+
+  describe('Pull to Refresh', () => {
+    it('attaches a themed RefreshControl to the scroll view', () => {
+      setupPredictMarketDetailsTest();
+
+      const scrollView = screen.getByTestId(
+        'predict-market-details-scrollable-tab-view',
+      );
+      const refreshControlProps = scrollView.props.refreshControl.props;
+
+      expect(scrollView.props.refreshControl).toBeDefined();
+      expect(refreshControlProps.tintColor).toBeTruthy();
+      expect(refreshControlProps.colors).toEqual([
+        refreshControlProps.tintColor,
+      ]);
+      expect(refreshControlProps.refreshing).toBe(false);
+    });
+
+    it('triggers market, price history, and positions refresh', async () => {
+      const mockRefetchMarket = jest.fn(() => Promise.resolve());
+      const mockRefetchPriceHistory = jest.fn(() => Promise.resolve());
+      const mockLoadPositions = jest.fn(() => Promise.resolve());
+
+      setupPredictMarketDetailsTest(
+        {},
+        {},
+        {
+          market: { refetch: mockRefetchMarket },
+          priceHistory: { refetch: mockRefetchPriceHistory },
+          positions: { loadPositions: mockLoadPositions },
+        },
+      );
+
+      const scrollView = screen.getByTestId(
+        'predict-market-details-scrollable-tab-view',
+      );
+
+      await act(async () => {
+        await scrollView.props.refreshControl.props.onRefresh();
+      });
+
+      await waitFor(() => {
+        expect(mockRefetchMarket).toHaveBeenCalledTimes(1);
+        expect(mockRefetchPriceHistory).toHaveBeenCalledTimes(1);
+        expect(mockLoadPositions).toHaveBeenCalledTimes(1);
+        expect(mockLoadPositions).toHaveBeenCalledWith({ isRefresh: true });
       });
     });
   });

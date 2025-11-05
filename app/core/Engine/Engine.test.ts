@@ -226,7 +226,7 @@ describe('Engine', () => {
         lastError: null,
         lastUpdateTimestamp: 0,
         balances: {},
-        claimablePositions: [],
+        claimablePositions: {},
         pendingDeposits: {},
         withdrawTransaction: null,
         isOnboarded: {},
@@ -261,6 +261,7 @@ describe('Engine', () => {
           mainnet: [],
           testnet: [],
         },
+        hip3ConfigVersion: 0,
       },
     };
 
