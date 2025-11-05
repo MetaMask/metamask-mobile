@@ -695,20 +695,21 @@ const HomeTabs = () => {
         component={TransactionsHome}
         layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
-      {isRewardsEnabled && (
+      {isRewardsEnabled ? (
         <Tab.Screen
           name={Routes.REWARDS_VIEW}
           options={options.rewards}
           component={RewardsHome}
           layout={({ children }) => UnmountOnBlurComponent(children)}
         />
+      ) : (
+        <Tab.Screen
+          name={Routes.SETTINGS_VIEW}
+          options={options.settings}
+          component={SettingsFlow}
+          layout={({ children }) => UnmountOnBlurComponent(children)}
+        />
       )}
-      <Tab.Screen
-        name={Routes.SETTINGS_VIEW}
-        options={options.settings}
-        component={SettingsFlow}
-        layout={({ children }) => UnmountOnBlurComponent(children)}
-      />
     </Tab.Navigator>
   );
 };
