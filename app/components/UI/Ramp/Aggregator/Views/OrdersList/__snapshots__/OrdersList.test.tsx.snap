@@ -31,48 +31,30 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         horizontal={true}
         showsHorizontalScrollIndicator={false}
       >
-        <Memo(Pressable)
+        <ButtonFilter
           accessibilityLabel="All"
-          accessibilityRole="button"
+          isActive={false}
           onPress={[Function]}
-          style={[Function]}
+          size="md"
         >
-          <Text
-            fontWeight="500"
-            twClassName="text-default"
-            variant="body-md"
-          >
-            All
-          </Text>
-        </Memo(Pressable)>
-        <Memo(Pressable)
+          All
+        </ButtonFilter>
+        <ButtonFilter
           accessibilityLabel="Purchased"
-          accessibilityRole="button"
+          isActive={true}
           onPress={[Function]}
-          style={[Function]}
+          size="md"
         >
-          <Text
-            fontWeight="500"
-            twClassName="text-icon-inverse"
-            variant="body-md"
-          >
-            Purchased
-          </Text>
-        </Memo(Pressable)>
-        <Memo(Pressable)
+          Purchased
+        </ButtonFilter>
+        <ButtonFilter
           accessibilityLabel="Sold"
-          accessibilityRole="button"
+          isActive={false}
           onPress={[Function]}
-          style={[Function]}
+          size="md"
         >
-          <Text
-            fontWeight="500"
-            twClassName="text-default"
-            variant="body-md"
-          >
-            Sold
-          </Text>
-        </Memo(Pressable)>
+          Sold
+        </ButtonFilter>
       </ForwardRef>
     </Box>
   }
@@ -244,193 +226,520 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         >
           <View>
             <View
-              accessibilityLabel="All"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
-              accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
               style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
-                  "borderRadius": 12,
-                  "height": 40,
-                  "justifyContent": "center",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
+                [
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  },
+                ]
               }
             >
-              <Text
-                accessibilityRole="text"
+              <View
+                accessibilityLabel="All"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
                     {
-                      "color": "#121314",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "flexDirection": "row",
+                      "height": 40,
+                      "justifyContent": "center",
+                      "minWidth": 80,
+                      "opacity": 1,
+                      "overflow": "hidden",
+                      "paddingLeft": 16,
+                      "paddingRight": 16,
+                      "width": "auto",
                     },
-                    undefined,
+                    [
+                      {
+                        "backgroundColor": "#3c4d9d0f",
+                      },
+                      undefined,
+                    ],
                   ]
                 }
               >
-                All
-              </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "bottom": 0,
+                      "display": "flex",
+                      "justifyContent": "center",
+                      "left": 0,
+                      "opacity": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                  testID="spinner-container"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "columnGap": 8,
+                          "flexDirection": "row",
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="spinner"
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "transform": [
+                              {
+                                "rotate": "0deg",
+                              },
+                            ],
+                          },
+                        ]
+                      }
+                      testID="spinner-animated-view"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Loading"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 20,
+                              "width": 20,
+                            },
+                            undefined,
+                          ]
+                        }
+                        testID="spinner-icon"
+                      />
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "columnGap": 8,
+                      "flexDirection": "row",
+                      "justifyContent": "center",
+                      "opacity": 1,
+                    }
+                  }
+                  testID="content-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "flexGrow": 0,
+                          "flexShrink": 1,
+                          "flexWrap": "wrap",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textAlign": "center",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    All
+                  </Text>
+                </View>
+              </View>
             </View>
             <View
-              accessibilityLabel="Purchased"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
-              accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
               style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#121314",
-                  "borderRadius": 12,
-                  "height": 40,
-                  "justifyContent": "center",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
+                [
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  },
+                ]
               }
             >
-              <Text
-                accessibilityRole="text"
+              <View
+                accessibilityLabel="Purchased"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
                     {
-                      "color": "#ffffff",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "flexDirection": "row",
+                      "height": 40,
+                      "justifyContent": "center",
+                      "minWidth": 80,
+                      "opacity": 1,
+                      "overflow": "hidden",
+                      "paddingLeft": 16,
+                      "paddingRight": 16,
+                      "width": "auto",
                     },
-                    undefined,
+                    [
+                      {
+                        "backgroundColor": "#121314",
+                      },
+                      undefined,
+                    ],
                   ]
                 }
               >
-                Purchased
-              </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "bottom": 0,
+                      "display": "flex",
+                      "justifyContent": "center",
+                      "left": 0,
+                      "opacity": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                  testID="spinner-container"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "columnGap": 8,
+                          "flexDirection": "row",
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="spinner"
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "transform": [
+                              {
+                                "rotate": "0deg",
+                              },
+                            ],
+                          },
+                        ]
+                      }
+                      testID="spinner-animated-view"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Loading"
+                        style={
+                          [
+                            {
+                              "color": "#ffffff",
+                              "height": 20,
+                              "width": 20,
+                            },
+                            undefined,
+                          ]
+                        }
+                        testID="spinner-icon"
+                      />
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "columnGap": 8,
+                      "flexDirection": "row",
+                      "justifyContent": "center",
+                      "opacity": 1,
+                    }
+                  }
+                  testID="content-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      [
+                        {
+                          "color": "#ffffff",
+                          "flexGrow": 0,
+                          "flexShrink": 1,
+                          "flexWrap": "wrap",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textAlign": "center",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    Purchased
+                  </Text>
+                </View>
+              </View>
             </View>
             <View
-              accessibilityLabel="Sold"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
-              accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
               style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
-                  "borderRadius": 12,
-                  "height": 40,
-                  "justifyContent": "center",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
+                [
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  },
+                ]
               }
             >
-              <Text
-                accessibilityRole="text"
+              <View
+                accessibilityLabel="Sold"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
                     {
-                      "color": "#121314",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "flexDirection": "row",
+                      "height": 40,
+                      "justifyContent": "center",
+                      "minWidth": 80,
+                      "opacity": 1,
+                      "overflow": "hidden",
+                      "paddingLeft": 16,
+                      "paddingRight": 16,
+                      "width": "auto",
                     },
-                    undefined,
+                    [
+                      {
+                        "backgroundColor": "#3c4d9d0f",
+                      },
+                      undefined,
+                    ],
                   ]
                 }
               >
-                Sold
-              </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "bottom": 0,
+                      "display": "flex",
+                      "justifyContent": "center",
+                      "left": 0,
+                      "opacity": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                  testID="spinner-container"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "columnGap": 8,
+                          "flexDirection": "row",
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="spinner"
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "transform": [
+                              {
+                                "rotate": "0deg",
+                              },
+                            ],
+                          },
+                        ]
+                      }
+                      testID="spinner-animated-view"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Loading"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 20,
+                              "width": 20,
+                            },
+                            undefined,
+                          ]
+                        }
+                        testID="spinner-icon"
+                      />
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "columnGap": 8,
+                      "flexDirection": "row",
+                      "justifyContent": "center",
+                      "opacity": 1,
+                    }
+                  }
+                  testID="content-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "flexGrow": 0,
+                          "flexShrink": 1,
+                          "flexWrap": "wrap",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textAlign": "center",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    Sold
+                  </Text>
+                </View>
+              </View>
             </View>
           </View>
         </RCTScrollView>
@@ -1801,48 +2110,30 @@ exports[`OrdersList renders correctly 1`] = `
         horizontal={true}
         showsHorizontalScrollIndicator={false}
       >
-        <Memo(Pressable)
+        <ButtonFilter
           accessibilityLabel="All"
-          accessibilityRole="button"
+          isActive={true}
           onPress={[Function]}
-          style={[Function]}
+          size="md"
         >
-          <Text
-            fontWeight="500"
-            twClassName="text-icon-inverse"
-            variant="body-md"
-          >
-            All
-          </Text>
-        </Memo(Pressable)>
-        <Memo(Pressable)
+          All
+        </ButtonFilter>
+        <ButtonFilter
           accessibilityLabel="Purchased"
-          accessibilityRole="button"
+          isActive={false}
           onPress={[Function]}
-          style={[Function]}
+          size="md"
         >
-          <Text
-            fontWeight="500"
-            twClassName="text-default"
-            variant="body-md"
-          >
-            Purchased
-          </Text>
-        </Memo(Pressable)>
-        <Memo(Pressable)
+          Purchased
+        </ButtonFilter>
+        <ButtonFilter
           accessibilityLabel="Sold"
-          accessibilityRole="button"
+          isActive={false}
           onPress={[Function]}
-          style={[Function]}
+          size="md"
         >
-          <Text
-            fontWeight="500"
-            twClassName="text-default"
-            variant="body-md"
-          >
-            Sold
-          </Text>
-        </Memo(Pressable)>
+          Sold
+        </ButtonFilter>
       </ForwardRef>
     </Box>
   }
@@ -2037,193 +2328,520 @@ exports[`OrdersList renders correctly 1`] = `
         >
           <View>
             <View
-              accessibilityLabel="All"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
-              accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
               style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#121314",
-                  "borderRadius": 12,
-                  "height": 40,
-                  "justifyContent": "center",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
+                [
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  },
+                ]
               }
             >
-              <Text
-                accessibilityRole="text"
+              <View
+                accessibilityLabel="All"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
                     {
-                      "color": "#ffffff",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "flexDirection": "row",
+                      "height": 40,
+                      "justifyContent": "center",
+                      "minWidth": 80,
+                      "opacity": 1,
+                      "overflow": "hidden",
+                      "paddingLeft": 16,
+                      "paddingRight": 16,
+                      "width": "auto",
                     },
-                    undefined,
+                    [
+                      {
+                        "backgroundColor": "#121314",
+                      },
+                      undefined,
+                    ],
                   ]
                 }
               >
-                All
-              </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "bottom": 0,
+                      "display": "flex",
+                      "justifyContent": "center",
+                      "left": 0,
+                      "opacity": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                  testID="spinner-container"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "columnGap": 8,
+                          "flexDirection": "row",
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="spinner"
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "transform": [
+                              {
+                                "rotate": "0deg",
+                              },
+                            ],
+                          },
+                        ]
+                      }
+                      testID="spinner-animated-view"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Loading"
+                        style={
+                          [
+                            {
+                              "color": "#ffffff",
+                              "height": 20,
+                              "width": 20,
+                            },
+                            undefined,
+                          ]
+                        }
+                        testID="spinner-icon"
+                      />
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "columnGap": 8,
+                      "flexDirection": "row",
+                      "justifyContent": "center",
+                      "opacity": 1,
+                    }
+                  }
+                  testID="content-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      [
+                        {
+                          "color": "#ffffff",
+                          "flexGrow": 0,
+                          "flexShrink": 1,
+                          "flexWrap": "wrap",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textAlign": "center",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    All
+                  </Text>
+                </View>
+              </View>
             </View>
             <View
-              accessibilityLabel="Purchased"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
-              accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
               style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
-                  "borderRadius": 12,
-                  "height": 40,
-                  "justifyContent": "center",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
+                [
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  },
+                ]
               }
             >
-              <Text
-                accessibilityRole="text"
+              <View
+                accessibilityLabel="Purchased"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
                     {
-                      "color": "#121314",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "flexDirection": "row",
+                      "height": 40,
+                      "justifyContent": "center",
+                      "minWidth": 80,
+                      "opacity": 1,
+                      "overflow": "hidden",
+                      "paddingLeft": 16,
+                      "paddingRight": 16,
+                      "width": "auto",
                     },
-                    undefined,
+                    [
+                      {
+                        "backgroundColor": "#3c4d9d0f",
+                      },
+                      undefined,
+                    ],
                   ]
                 }
               >
-                Purchased
-              </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "bottom": 0,
+                      "display": "flex",
+                      "justifyContent": "center",
+                      "left": 0,
+                      "opacity": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                  testID="spinner-container"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "columnGap": 8,
+                          "flexDirection": "row",
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="spinner"
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "transform": [
+                              {
+                                "rotate": "0deg",
+                              },
+                            ],
+                          },
+                        ]
+                      }
+                      testID="spinner-animated-view"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Loading"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 20,
+                              "width": 20,
+                            },
+                            undefined,
+                          ]
+                        }
+                        testID="spinner-icon"
+                      />
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "columnGap": 8,
+                      "flexDirection": "row",
+                      "justifyContent": "center",
+                      "opacity": 1,
+                    }
+                  }
+                  testID="content-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "flexGrow": 0,
+                          "flexShrink": 1,
+                          "flexWrap": "wrap",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textAlign": "center",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    Purchased
+                  </Text>
+                </View>
+              </View>
             </View>
             <View
-              accessibilityLabel="Sold"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
-              accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
               style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
-                  "borderRadius": 12,
-                  "height": 40,
-                  "justifyContent": "center",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
+                [
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  },
+                ]
               }
             >
-              <Text
-                accessibilityRole="text"
+              <View
+                accessibilityLabel="Sold"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
                     {
-                      "color": "#121314",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "flexDirection": "row",
+                      "height": 40,
+                      "justifyContent": "center",
+                      "minWidth": 80,
+                      "opacity": 1,
+                      "overflow": "hidden",
+                      "paddingLeft": 16,
+                      "paddingRight": 16,
+                      "width": "auto",
                     },
-                    undefined,
+                    [
+                      {
+                        "backgroundColor": "#3c4d9d0f",
+                      },
+                      undefined,
+                    ],
                   ]
                 }
               >
-                Sold
-              </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "bottom": 0,
+                      "display": "flex",
+                      "justifyContent": "center",
+                      "left": 0,
+                      "opacity": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                  testID="spinner-container"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "columnGap": 8,
+                          "flexDirection": "row",
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="spinner"
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "transform": [
+                              {
+                                "rotate": "0deg",
+                              },
+                            ],
+                          },
+                        ]
+                      }
+                      testID="spinner-animated-view"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Loading"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 20,
+                              "width": 20,
+                            },
+                            undefined,
+                          ]
+                        }
+                        testID="spinner-icon"
+                      />
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "columnGap": 8,
+                      "flexDirection": "row",
+                      "justifyContent": "center",
+                      "opacity": 1,
+                    }
+                  }
+                  testID="content-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "flexGrow": 0,
+                          "flexShrink": 1,
+                          "flexWrap": "wrap",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textAlign": "center",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    Sold
+                  </Text>
+                </View>
+              </View>
             </View>
           </View>
         </RCTScrollView>
@@ -3860,48 +4478,30 @@ exports[`OrdersList renders empty buy message 1`] = `
         horizontal={true}
         showsHorizontalScrollIndicator={false}
       >
-        <Memo(Pressable)
+        <ButtonFilter
           accessibilityLabel="All"
-          accessibilityRole="button"
+          isActive={false}
           onPress={[Function]}
-          style={[Function]}
+          size="md"
         >
-          <Text
-            fontWeight="500"
-            twClassName="text-default"
-            variant="body-md"
-          >
-            All
-          </Text>
-        </Memo(Pressable)>
-        <Memo(Pressable)
+          All
+        </ButtonFilter>
+        <ButtonFilter
           accessibilityLabel="Purchased"
-          accessibilityRole="button"
+          isActive={true}
           onPress={[Function]}
-          style={[Function]}
+          size="md"
         >
-          <Text
-            fontWeight="500"
-            twClassName="text-icon-inverse"
-            variant="body-md"
-          >
-            Purchased
-          </Text>
-        </Memo(Pressable)>
-        <Memo(Pressable)
+          Purchased
+        </ButtonFilter>
+        <ButtonFilter
           accessibilityLabel="Sold"
-          accessibilityRole="button"
+          isActive={false}
           onPress={[Function]}
-          style={[Function]}
+          size="md"
         >
-          <Text
-            fontWeight="500"
-            twClassName="text-default"
-            variant="body-md"
-          >
-            Sold
-          </Text>
-        </Memo(Pressable)>
+          Sold
+        </ButtonFilter>
       </ForwardRef>
     </Box>
   }
@@ -3957,193 +4557,520 @@ exports[`OrdersList renders empty buy message 1`] = `
         >
           <View>
             <View
-              accessibilityLabel="All"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
-              accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
               style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
-                  "borderRadius": 12,
-                  "height": 40,
-                  "justifyContent": "center",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
+                [
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  },
+                ]
               }
             >
-              <Text
-                accessibilityRole="text"
+              <View
+                accessibilityLabel="All"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
                     {
-                      "color": "#121314",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "flexDirection": "row",
+                      "height": 40,
+                      "justifyContent": "center",
+                      "minWidth": 80,
+                      "opacity": 1,
+                      "overflow": "hidden",
+                      "paddingLeft": 16,
+                      "paddingRight": 16,
+                      "width": "auto",
                     },
-                    undefined,
+                    [
+                      {
+                        "backgroundColor": "#3c4d9d0f",
+                      },
+                      undefined,
+                    ],
                   ]
                 }
               >
-                All
-              </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "bottom": 0,
+                      "display": "flex",
+                      "justifyContent": "center",
+                      "left": 0,
+                      "opacity": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                  testID="spinner-container"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "columnGap": 8,
+                          "flexDirection": "row",
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="spinner"
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "transform": [
+                              {
+                                "rotate": "0deg",
+                              },
+                            ],
+                          },
+                        ]
+                      }
+                      testID="spinner-animated-view"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Loading"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 20,
+                              "width": 20,
+                            },
+                            undefined,
+                          ]
+                        }
+                        testID="spinner-icon"
+                      />
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "columnGap": 8,
+                      "flexDirection": "row",
+                      "justifyContent": "center",
+                      "opacity": 1,
+                    }
+                  }
+                  testID="content-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "flexGrow": 0,
+                          "flexShrink": 1,
+                          "flexWrap": "wrap",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textAlign": "center",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    All
+                  </Text>
+                </View>
+              </View>
             </View>
             <View
-              accessibilityLabel="Purchased"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
-              accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
               style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#121314",
-                  "borderRadius": 12,
-                  "height": 40,
-                  "justifyContent": "center",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
+                [
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  },
+                ]
               }
             >
-              <Text
-                accessibilityRole="text"
+              <View
+                accessibilityLabel="Purchased"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
                     {
-                      "color": "#ffffff",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "flexDirection": "row",
+                      "height": 40,
+                      "justifyContent": "center",
+                      "minWidth": 80,
+                      "opacity": 1,
+                      "overflow": "hidden",
+                      "paddingLeft": 16,
+                      "paddingRight": 16,
+                      "width": "auto",
                     },
-                    undefined,
+                    [
+                      {
+                        "backgroundColor": "#121314",
+                      },
+                      undefined,
+                    ],
                   ]
                 }
               >
-                Purchased
-              </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "bottom": 0,
+                      "display": "flex",
+                      "justifyContent": "center",
+                      "left": 0,
+                      "opacity": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                  testID="spinner-container"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "columnGap": 8,
+                          "flexDirection": "row",
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="spinner"
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "transform": [
+                              {
+                                "rotate": "0deg",
+                              },
+                            ],
+                          },
+                        ]
+                      }
+                      testID="spinner-animated-view"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Loading"
+                        style={
+                          [
+                            {
+                              "color": "#ffffff",
+                              "height": 20,
+                              "width": 20,
+                            },
+                            undefined,
+                          ]
+                        }
+                        testID="spinner-icon"
+                      />
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "columnGap": 8,
+                      "flexDirection": "row",
+                      "justifyContent": "center",
+                      "opacity": 1,
+                    }
+                  }
+                  testID="content-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      [
+                        {
+                          "color": "#ffffff",
+                          "flexGrow": 0,
+                          "flexShrink": 1,
+                          "flexWrap": "wrap",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textAlign": "center",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    Purchased
+                  </Text>
+                </View>
+              </View>
             </View>
             <View
-              accessibilityLabel="Sold"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
-              accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
               style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
-                  "borderRadius": 12,
-                  "height": 40,
-                  "justifyContent": "center",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
+                [
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  },
+                ]
               }
             >
-              <Text
-                accessibilityRole="text"
+              <View
+                accessibilityLabel="Sold"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
                     {
-                      "color": "#121314",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "flexDirection": "row",
+                      "height": 40,
+                      "justifyContent": "center",
+                      "minWidth": 80,
+                      "opacity": 1,
+                      "overflow": "hidden",
+                      "paddingLeft": 16,
+                      "paddingRight": 16,
+                      "width": "auto",
                     },
-                    undefined,
+                    [
+                      {
+                        "backgroundColor": "#3c4d9d0f",
+                      },
+                      undefined,
+                    ],
                   ]
                 }
               >
-                Sold
-              </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "bottom": 0,
+                      "display": "flex",
+                      "justifyContent": "center",
+                      "left": 0,
+                      "opacity": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                  testID="spinner-container"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "columnGap": 8,
+                          "flexDirection": "row",
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="spinner"
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "transform": [
+                              {
+                                "rotate": "0deg",
+                              },
+                            ],
+                          },
+                        ]
+                      }
+                      testID="spinner-animated-view"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Loading"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 20,
+                              "width": 20,
+                            },
+                            undefined,
+                          ]
+                        }
+                        testID="spinner-icon"
+                      />
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "columnGap": 8,
+                      "flexDirection": "row",
+                      "justifyContent": "center",
+                      "opacity": 1,
+                    }
+                  }
+                  testID="content-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "flexGrow": 0,
+                          "flexShrink": 1,
+                          "flexWrap": "wrap",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textAlign": "center",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    Sold
+                  </Text>
+                </View>
+              </View>
             </View>
           </View>
         </RCTScrollView>
@@ -4231,48 +5158,30 @@ exports[`OrdersList renders empty sell message 1`] = `
         horizontal={true}
         showsHorizontalScrollIndicator={false}
       >
-        <Memo(Pressable)
+        <ButtonFilter
           accessibilityLabel="All"
-          accessibilityRole="button"
+          isActive={false}
           onPress={[Function]}
-          style={[Function]}
+          size="md"
         >
-          <Text
-            fontWeight="500"
-            twClassName="text-default"
-            variant="body-md"
-          >
-            All
-          </Text>
-        </Memo(Pressable)>
-        <Memo(Pressable)
+          All
+        </ButtonFilter>
+        <ButtonFilter
           accessibilityLabel="Purchased"
-          accessibilityRole="button"
+          isActive={false}
           onPress={[Function]}
-          style={[Function]}
+          size="md"
         >
-          <Text
-            fontWeight="500"
-            twClassName="text-default"
-            variant="body-md"
-          >
-            Purchased
-          </Text>
-        </Memo(Pressable)>
-        <Memo(Pressable)
+          Purchased
+        </ButtonFilter>
+        <ButtonFilter
           accessibilityLabel="Sold"
-          accessibilityRole="button"
+          isActive={true}
           onPress={[Function]}
-          style={[Function]}
+          size="md"
         >
-          <Text
-            fontWeight="500"
-            twClassName="text-icon-inverse"
-            variant="body-md"
-          >
-            Sold
-          </Text>
-        </Memo(Pressable)>
+          Sold
+        </ButtonFilter>
       </ForwardRef>
     </Box>
   }
@@ -4328,193 +5237,520 @@ exports[`OrdersList renders empty sell message 1`] = `
         >
           <View>
             <View
-              accessibilityLabel="All"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
-              accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
               style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
-                  "borderRadius": 12,
-                  "height": 40,
-                  "justifyContent": "center",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
+                [
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  },
+                ]
               }
             >
-              <Text
-                accessibilityRole="text"
+              <View
+                accessibilityLabel="All"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
                     {
-                      "color": "#121314",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "flexDirection": "row",
+                      "height": 40,
+                      "justifyContent": "center",
+                      "minWidth": 80,
+                      "opacity": 1,
+                      "overflow": "hidden",
+                      "paddingLeft": 16,
+                      "paddingRight": 16,
+                      "width": "auto",
                     },
-                    undefined,
+                    [
+                      {
+                        "backgroundColor": "#3c4d9d0f",
+                      },
+                      undefined,
+                    ],
                   ]
                 }
               >
-                All
-              </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "bottom": 0,
+                      "display": "flex",
+                      "justifyContent": "center",
+                      "left": 0,
+                      "opacity": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                  testID="spinner-container"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "columnGap": 8,
+                          "flexDirection": "row",
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="spinner"
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "transform": [
+                              {
+                                "rotate": "0deg",
+                              },
+                            ],
+                          },
+                        ]
+                      }
+                      testID="spinner-animated-view"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Loading"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 20,
+                              "width": 20,
+                            },
+                            undefined,
+                          ]
+                        }
+                        testID="spinner-icon"
+                      />
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "columnGap": 8,
+                      "flexDirection": "row",
+                      "justifyContent": "center",
+                      "opacity": 1,
+                    }
+                  }
+                  testID="content-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "flexGrow": 0,
+                          "flexShrink": 1,
+                          "flexWrap": "wrap",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textAlign": "center",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    All
+                  </Text>
+                </View>
+              </View>
             </View>
             <View
-              accessibilityLabel="Purchased"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
-              accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
               style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
-                  "borderRadius": 12,
-                  "height": 40,
-                  "justifyContent": "center",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
+                [
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  },
+                ]
               }
             >
-              <Text
-                accessibilityRole="text"
+              <View
+                accessibilityLabel="Purchased"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
                     {
-                      "color": "#121314",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "flexDirection": "row",
+                      "height": 40,
+                      "justifyContent": "center",
+                      "minWidth": 80,
+                      "opacity": 1,
+                      "overflow": "hidden",
+                      "paddingLeft": 16,
+                      "paddingRight": 16,
+                      "width": "auto",
                     },
-                    undefined,
+                    [
+                      {
+                        "backgroundColor": "#3c4d9d0f",
+                      },
+                      undefined,
+                    ],
                   ]
                 }
               >
-                Purchased
-              </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "bottom": 0,
+                      "display": "flex",
+                      "justifyContent": "center",
+                      "left": 0,
+                      "opacity": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                  testID="spinner-container"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "columnGap": 8,
+                          "flexDirection": "row",
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="spinner"
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "transform": [
+                              {
+                                "rotate": "0deg",
+                              },
+                            ],
+                          },
+                        ]
+                      }
+                      testID="spinner-animated-view"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Loading"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 20,
+                              "width": 20,
+                            },
+                            undefined,
+                          ]
+                        }
+                        testID="spinner-icon"
+                      />
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "columnGap": 8,
+                      "flexDirection": "row",
+                      "justifyContent": "center",
+                      "opacity": 1,
+                    }
+                  }
+                  testID="content-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "flexGrow": 0,
+                          "flexShrink": 1,
+                          "flexWrap": "wrap",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textAlign": "center",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    Purchased
+                  </Text>
+                </View>
+              </View>
             </View>
             <View
-              accessibilityLabel="Sold"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
-              accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
               style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#121314",
-                  "borderRadius": 12,
-                  "height": 40,
-                  "justifyContent": "center",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
+                [
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  },
+                ]
               }
             >
-              <Text
-                accessibilityRole="text"
+              <View
+                accessibilityLabel="Sold"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
                     {
-                      "color": "#ffffff",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "flexDirection": "row",
+                      "height": 40,
+                      "justifyContent": "center",
+                      "minWidth": 80,
+                      "opacity": 1,
+                      "overflow": "hidden",
+                      "paddingLeft": 16,
+                      "paddingRight": 16,
+                      "width": "auto",
                     },
-                    undefined,
+                    [
+                      {
+                        "backgroundColor": "#121314",
+                      },
+                      undefined,
+                    ],
                   ]
                 }
               >
-                Sold
-              </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "bottom": 0,
+                      "display": "flex",
+                      "justifyContent": "center",
+                      "left": 0,
+                      "opacity": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                  testID="spinner-container"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "columnGap": 8,
+                          "flexDirection": "row",
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="spinner"
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "transform": [
+                              {
+                                "rotate": "0deg",
+                              },
+                            ],
+                          },
+                        ]
+                      }
+                      testID="spinner-animated-view"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Loading"
+                        style={
+                          [
+                            {
+                              "color": "#ffffff",
+                              "height": 20,
+                              "width": 20,
+                            },
+                            undefined,
+                          ]
+                        }
+                        testID="spinner-icon"
+                      />
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "columnGap": 8,
+                      "flexDirection": "row",
+                      "justifyContent": "center",
+                      "opacity": 1,
+                    }
+                  }
+                  testID="content-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      [
+                        {
+                          "color": "#ffffff",
+                          "flexGrow": 0,
+                          "flexShrink": 1,
+                          "flexWrap": "wrap",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textAlign": "center",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    Sold
+                  </Text>
+                </View>
+              </View>
             </View>
           </View>
         </RCTScrollView>
@@ -4602,48 +5838,30 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
         horizontal={true}
         showsHorizontalScrollIndicator={false}
       >
-        <Memo(Pressable)
+        <ButtonFilter
           accessibilityLabel="All"
-          accessibilityRole="button"
+          isActive={false}
           onPress={[Function]}
-          style={[Function]}
+          size="md"
         >
-          <Text
-            fontWeight="500"
-            twClassName="text-default"
-            variant="body-md"
-          >
-            All
-          </Text>
-        </Memo(Pressable)>
-        <Memo(Pressable)
+          All
+        </ButtonFilter>
+        <ButtonFilter
           accessibilityLabel="Purchased"
-          accessibilityRole="button"
+          isActive={false}
           onPress={[Function]}
-          style={[Function]}
+          size="md"
         >
-          <Text
-            fontWeight="500"
-            twClassName="text-default"
-            variant="body-md"
-          >
-            Purchased
-          </Text>
-        </Memo(Pressable)>
-        <Memo(Pressable)
+          Purchased
+        </ButtonFilter>
+        <ButtonFilter
           accessibilityLabel="Sold"
-          accessibilityRole="button"
+          isActive={true}
           onPress={[Function]}
-          style={[Function]}
+          size="md"
         >
-          <Text
-            fontWeight="500"
-            twClassName="text-icon-inverse"
-            variant="body-md"
-          >
-            Sold
-          </Text>
-        </Memo(Pressable)>
+          Sold
+        </ButtonFilter>
       </ForwardRef>
     </Box>
   }
@@ -4725,193 +5943,520 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
         >
           <View>
             <View
-              accessibilityLabel="All"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
-              accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
               style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
-                  "borderRadius": 12,
-                  "height": 40,
-                  "justifyContent": "center",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
+                [
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  },
+                ]
               }
             >
-              <Text
-                accessibilityRole="text"
+              <View
+                accessibilityLabel="All"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
                     {
-                      "color": "#121314",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "flexDirection": "row",
+                      "height": 40,
+                      "justifyContent": "center",
+                      "minWidth": 80,
+                      "opacity": 1,
+                      "overflow": "hidden",
+                      "paddingLeft": 16,
+                      "paddingRight": 16,
+                      "width": "auto",
                     },
-                    undefined,
+                    [
+                      {
+                        "backgroundColor": "#3c4d9d0f",
+                      },
+                      undefined,
+                    ],
                   ]
                 }
               >
-                All
-              </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "bottom": 0,
+                      "display": "flex",
+                      "justifyContent": "center",
+                      "left": 0,
+                      "opacity": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                  testID="spinner-container"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "columnGap": 8,
+                          "flexDirection": "row",
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="spinner"
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "transform": [
+                              {
+                                "rotate": "0deg",
+                              },
+                            ],
+                          },
+                        ]
+                      }
+                      testID="spinner-animated-view"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Loading"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 20,
+                              "width": 20,
+                            },
+                            undefined,
+                          ]
+                        }
+                        testID="spinner-icon"
+                      />
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "columnGap": 8,
+                      "flexDirection": "row",
+                      "justifyContent": "center",
+                      "opacity": 1,
+                    }
+                  }
+                  testID="content-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "flexGrow": 0,
+                          "flexShrink": 1,
+                          "flexWrap": "wrap",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textAlign": "center",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    All
+                  </Text>
+                </View>
+              </View>
             </View>
             <View
-              accessibilityLabel="Purchased"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
-              accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
               style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
-                  "borderRadius": 12,
-                  "height": 40,
-                  "justifyContent": "center",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
+                [
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  },
+                ]
               }
             >
-              <Text
-                accessibilityRole="text"
+              <View
+                accessibilityLabel="Purchased"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
                     {
-                      "color": "#121314",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "flexDirection": "row",
+                      "height": 40,
+                      "justifyContent": "center",
+                      "minWidth": 80,
+                      "opacity": 1,
+                      "overflow": "hidden",
+                      "paddingLeft": 16,
+                      "paddingRight": 16,
+                      "width": "auto",
                     },
-                    undefined,
+                    [
+                      {
+                        "backgroundColor": "#3c4d9d0f",
+                      },
+                      undefined,
+                    ],
                   ]
                 }
               >
-                Purchased
-              </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "bottom": 0,
+                      "display": "flex",
+                      "justifyContent": "center",
+                      "left": 0,
+                      "opacity": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                  testID="spinner-container"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "columnGap": 8,
+                          "flexDirection": "row",
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="spinner"
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "transform": [
+                              {
+                                "rotate": "0deg",
+                              },
+                            ],
+                          },
+                        ]
+                      }
+                      testID="spinner-animated-view"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Loading"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 20,
+                              "width": 20,
+                            },
+                            undefined,
+                          ]
+                        }
+                        testID="spinner-icon"
+                      />
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "columnGap": 8,
+                      "flexDirection": "row",
+                      "justifyContent": "center",
+                      "opacity": 1,
+                    }
+                  }
+                  testID="content-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "flexGrow": 0,
+                          "flexShrink": 1,
+                          "flexWrap": "wrap",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textAlign": "center",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    Purchased
+                  </Text>
+                </View>
+              </View>
             </View>
             <View
-              accessibilityLabel="Sold"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
-              accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
               style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#121314",
-                  "borderRadius": 12,
-                  "height": 40,
-                  "justifyContent": "center",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
+                [
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  },
+                ]
               }
             >
-              <Text
-                accessibilityRole="text"
+              <View
+                accessibilityLabel="Sold"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
                     {
-                      "color": "#ffffff",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "flexDirection": "row",
+                      "height": 40,
+                      "justifyContent": "center",
+                      "minWidth": 80,
+                      "opacity": 1,
+                      "overflow": "hidden",
+                      "paddingLeft": 16,
+                      "paddingRight": 16,
+                      "width": "auto",
                     },
-                    undefined,
+                    [
+                      {
+                        "backgroundColor": "#121314",
+                      },
+                      undefined,
+                    ],
                   ]
                 }
               >
-                Sold
-              </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "bottom": 0,
+                      "display": "flex",
+                      "justifyContent": "center",
+                      "left": 0,
+                      "opacity": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                  testID="spinner-container"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "columnGap": 8,
+                          "flexDirection": "row",
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="spinner"
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "transform": [
+                              {
+                                "rotate": "0deg",
+                              },
+                            ],
+                          },
+                        ]
+                      }
+                      testID="spinner-animated-view"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Loading"
+                        style={
+                          [
+                            {
+                              "color": "#ffffff",
+                              "height": 20,
+                              "width": 20,
+                            },
+                            undefined,
+                          ]
+                        }
+                        testID="spinner-icon"
+                      />
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "columnGap": 8,
+                      "flexDirection": "row",
+                      "justifyContent": "center",
+                      "opacity": 1,
+                    }
+                  }
+                  testID="content-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      [
+                        {
+                          "color": "#ffffff",
+                          "flexGrow": 0,
+                          "flexShrink": 1,
+                          "flexWrap": "wrap",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textAlign": "center",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    Sold
+                  </Text>
+                </View>
+              </View>
             </View>
           </View>
         </RCTScrollView>
@@ -5218,48 +6763,30 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
         horizontal={true}
         showsHorizontalScrollIndicator={false}
       >
-        <Memo(Pressable)
+        <ButtonFilter
           accessibilityLabel="All"
-          accessibilityRole="button"
+          isActive={false}
           onPress={[Function]}
-          style={[Function]}
+          size="md"
         >
-          <Text
-            fontWeight="500"
-            twClassName="text-default"
-            variant="body-md"
-          >
-            All
-          </Text>
-        </Memo(Pressable)>
-        <Memo(Pressable)
+          All
+        </ButtonFilter>
+        <ButtonFilter
           accessibilityLabel="Purchased"
-          accessibilityRole="button"
+          isActive={false}
           onPress={[Function]}
-          style={[Function]}
+          size="md"
         >
-          <Text
-            fontWeight="500"
-            twClassName="text-default"
-            variant="body-md"
-          >
-            Purchased
-          </Text>
-        </Memo(Pressable)>
-        <Memo(Pressable)
+          Purchased
+        </ButtonFilter>
+        <ButtonFilter
           accessibilityLabel="Sold"
-          accessibilityRole="button"
+          isActive={true}
           onPress={[Function]}
-          style={[Function]}
+          size="md"
         >
-          <Text
-            fontWeight="500"
-            twClassName="text-icon-inverse"
-            variant="body-md"
-          >
-            Sold
-          </Text>
-        </Memo(Pressable)>
+          Sold
+        </ButtonFilter>
       </ForwardRef>
     </Box>
   }
@@ -5341,193 +6868,520 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
         >
           <View>
             <View
-              accessibilityLabel="All"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
-              accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
               style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
-                  "borderRadius": 12,
-                  "height": 40,
-                  "justifyContent": "center",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
+                [
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  },
+                ]
               }
             >
-              <Text
-                accessibilityRole="text"
+              <View
+                accessibilityLabel="All"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
                     {
-                      "color": "#121314",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "flexDirection": "row",
+                      "height": 40,
+                      "justifyContent": "center",
+                      "minWidth": 80,
+                      "opacity": 1,
+                      "overflow": "hidden",
+                      "paddingLeft": 16,
+                      "paddingRight": 16,
+                      "width": "auto",
                     },
-                    undefined,
+                    [
+                      {
+                        "backgroundColor": "#3c4d9d0f",
+                      },
+                      undefined,
+                    ],
                   ]
                 }
               >
-                All
-              </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "bottom": 0,
+                      "display": "flex",
+                      "justifyContent": "center",
+                      "left": 0,
+                      "opacity": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                  testID="spinner-container"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "columnGap": 8,
+                          "flexDirection": "row",
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="spinner"
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "transform": [
+                              {
+                                "rotate": "0deg",
+                              },
+                            ],
+                          },
+                        ]
+                      }
+                      testID="spinner-animated-view"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Loading"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 20,
+                              "width": 20,
+                            },
+                            undefined,
+                          ]
+                        }
+                        testID="spinner-icon"
+                      />
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "columnGap": 8,
+                      "flexDirection": "row",
+                      "justifyContent": "center",
+                      "opacity": 1,
+                    }
+                  }
+                  testID="content-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "flexGrow": 0,
+                          "flexShrink": 1,
+                          "flexWrap": "wrap",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textAlign": "center",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    All
+                  </Text>
+                </View>
+              </View>
             </View>
             <View
-              accessibilityLabel="Purchased"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
-              accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
               style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
-                  "borderRadius": 12,
-                  "height": 40,
-                  "justifyContent": "center",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
+                [
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  },
+                ]
               }
             >
-              <Text
-                accessibilityRole="text"
+              <View
+                accessibilityLabel="Purchased"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
                     {
-                      "color": "#121314",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "flexDirection": "row",
+                      "height": 40,
+                      "justifyContent": "center",
+                      "minWidth": 80,
+                      "opacity": 1,
+                      "overflow": "hidden",
+                      "paddingLeft": 16,
+                      "paddingRight": 16,
+                      "width": "auto",
                     },
-                    undefined,
+                    [
+                      {
+                        "backgroundColor": "#3c4d9d0f",
+                      },
+                      undefined,
+                    ],
                   ]
                 }
               >
-                Purchased
-              </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "bottom": 0,
+                      "display": "flex",
+                      "justifyContent": "center",
+                      "left": 0,
+                      "opacity": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                  testID="spinner-container"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "columnGap": 8,
+                          "flexDirection": "row",
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="spinner"
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "transform": [
+                              {
+                                "rotate": "0deg",
+                              },
+                            ],
+                          },
+                        ]
+                      }
+                      testID="spinner-animated-view"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Loading"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 20,
+                              "width": 20,
+                            },
+                            undefined,
+                          ]
+                        }
+                        testID="spinner-icon"
+                      />
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "columnGap": 8,
+                      "flexDirection": "row",
+                      "justifyContent": "center",
+                      "opacity": 1,
+                    }
+                  }
+                  testID="content-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "flexGrow": 0,
+                          "flexShrink": 1,
+                          "flexWrap": "wrap",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textAlign": "center",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    Purchased
+                  </Text>
+                </View>
+              </View>
             </View>
             <View
-              accessibilityLabel="Sold"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
-              accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
               style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#121314",
-                  "borderRadius": 12,
-                  "height": 40,
-                  "justifyContent": "center",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
+                [
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  },
+                ]
               }
             >
-              <Text
-                accessibilityRole="text"
+              <View
+                accessibilityLabel="Sold"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
                     {
-                      "color": "#ffffff",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "flexDirection": "row",
+                      "height": 40,
+                      "justifyContent": "center",
+                      "minWidth": 80,
+                      "opacity": 1,
+                      "overflow": "hidden",
+                      "paddingLeft": 16,
+                      "paddingRight": 16,
+                      "width": "auto",
                     },
-                    undefined,
+                    [
+                      {
+                        "backgroundColor": "#121314",
+                      },
+                      undefined,
+                    ],
                   ]
                 }
               >
-                Sold
-              </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "bottom": 0,
+                      "display": "flex",
+                      "justifyContent": "center",
+                      "left": 0,
+                      "opacity": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                  testID="spinner-container"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "columnGap": 8,
+                          "flexDirection": "row",
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="spinner"
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "transform": [
+                              {
+                                "rotate": "0deg",
+                              },
+                            ],
+                          },
+                        ]
+                      }
+                      testID="spinner-animated-view"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Loading"
+                        style={
+                          [
+                            {
+                              "color": "#ffffff",
+                              "height": 20,
+                              "width": 20,
+                            },
+                            undefined,
+                          ]
+                        }
+                        testID="spinner-icon"
+                      />
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "columnGap": 8,
+                      "flexDirection": "row",
+                      "justifyContent": "center",
+                      "opacity": 1,
+                    }
+                  }
+                  testID="content-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      [
+                        {
+                          "color": "#ffffff",
+                          "flexGrow": 0,
+                          "flexShrink": 1,
+                          "flexWrap": "wrap",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textAlign": "center",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    Sold
+                  </Text>
+                </View>
+              </View>
             </View>
           </View>
         </RCTScrollView>
@@ -5834,48 +7688,30 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         horizontal={true}
         showsHorizontalScrollIndicator={false}
       >
-        <Memo(Pressable)
+        <ButtonFilter
           accessibilityLabel="All"
-          accessibilityRole="button"
+          isActive={true}
           onPress={[Function]}
-          style={[Function]}
+          size="md"
         >
-          <Text
-            fontWeight="500"
-            twClassName="text-icon-inverse"
-            variant="body-md"
-          >
-            All
-          </Text>
-        </Memo(Pressable)>
-        <Memo(Pressable)
+          All
+        </ButtonFilter>
+        <ButtonFilter
           accessibilityLabel="Purchased"
-          accessibilityRole="button"
+          isActive={false}
           onPress={[Function]}
-          style={[Function]}
+          size="md"
         >
-          <Text
-            fontWeight="500"
-            twClassName="text-default"
-            variant="body-md"
-          >
-            Purchased
-          </Text>
-        </Memo(Pressable)>
-        <Memo(Pressable)
+          Purchased
+        </ButtonFilter>
+        <ButtonFilter
           accessibilityLabel="Sold"
-          accessibilityRole="button"
+          isActive={false}
           onPress={[Function]}
-          style={[Function]}
+          size="md"
         >
-          <Text
-            fontWeight="500"
-            twClassName="text-default"
-            variant="body-md"
-          >
-            Sold
-          </Text>
-        </Memo(Pressable)>
+          Sold
+        </ButtonFilter>
       </ForwardRef>
     </Box>
   }
@@ -6070,193 +7906,520 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         >
           <View>
             <View
-              accessibilityLabel="All"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
-              accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
               style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#121314",
-                  "borderRadius": 12,
-                  "height": 40,
-                  "justifyContent": "center",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
+                [
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  },
+                ]
               }
             >
-              <Text
-                accessibilityRole="text"
+              <View
+                accessibilityLabel="All"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
                     {
-                      "color": "#ffffff",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "flexDirection": "row",
+                      "height": 40,
+                      "justifyContent": "center",
+                      "minWidth": 80,
+                      "opacity": 1,
+                      "overflow": "hidden",
+                      "paddingLeft": 16,
+                      "paddingRight": 16,
+                      "width": "auto",
                     },
-                    undefined,
+                    [
+                      {
+                        "backgroundColor": "#121314",
+                      },
+                      undefined,
+                    ],
                   ]
                 }
               >
-                All
-              </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "bottom": 0,
+                      "display": "flex",
+                      "justifyContent": "center",
+                      "left": 0,
+                      "opacity": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                  testID="spinner-container"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "columnGap": 8,
+                          "flexDirection": "row",
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="spinner"
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "transform": [
+                              {
+                                "rotate": "0deg",
+                              },
+                            ],
+                          },
+                        ]
+                      }
+                      testID="spinner-animated-view"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Loading"
+                        style={
+                          [
+                            {
+                              "color": "#ffffff",
+                              "height": 20,
+                              "width": 20,
+                            },
+                            undefined,
+                          ]
+                        }
+                        testID="spinner-icon"
+                      />
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "columnGap": 8,
+                      "flexDirection": "row",
+                      "justifyContent": "center",
+                      "opacity": 1,
+                    }
+                  }
+                  testID="content-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      [
+                        {
+                          "color": "#ffffff",
+                          "flexGrow": 0,
+                          "flexShrink": 1,
+                          "flexWrap": "wrap",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textAlign": "center",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    All
+                  </Text>
+                </View>
+              </View>
             </View>
             <View
-              accessibilityLabel="Purchased"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
-              accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
               style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
-                  "borderRadius": 12,
-                  "height": 40,
-                  "justifyContent": "center",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
+                [
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  },
+                ]
               }
             >
-              <Text
-                accessibilityRole="text"
+              <View
+                accessibilityLabel="Purchased"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
                     {
-                      "color": "#121314",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "flexDirection": "row",
+                      "height": 40,
+                      "justifyContent": "center",
+                      "minWidth": 80,
+                      "opacity": 1,
+                      "overflow": "hidden",
+                      "paddingLeft": 16,
+                      "paddingRight": 16,
+                      "width": "auto",
                     },
-                    undefined,
+                    [
+                      {
+                        "backgroundColor": "#3c4d9d0f",
+                      },
+                      undefined,
+                    ],
                   ]
                 }
               >
-                Purchased
-              </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "bottom": 0,
+                      "display": "flex",
+                      "justifyContent": "center",
+                      "left": 0,
+                      "opacity": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                  testID="spinner-container"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "columnGap": 8,
+                          "flexDirection": "row",
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="spinner"
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "transform": [
+                              {
+                                "rotate": "0deg",
+                              },
+                            ],
+                          },
+                        ]
+                      }
+                      testID="spinner-animated-view"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Loading"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 20,
+                              "width": 20,
+                            },
+                            undefined,
+                          ]
+                        }
+                        testID="spinner-icon"
+                      />
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "columnGap": 8,
+                      "flexDirection": "row",
+                      "justifyContent": "center",
+                      "opacity": 1,
+                    }
+                  }
+                  testID="content-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "flexGrow": 0,
+                          "flexShrink": 1,
+                          "flexWrap": "wrap",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textAlign": "center",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    Purchased
+                  </Text>
+                </View>
+              </View>
             </View>
             <View
-              accessibilityLabel="Sold"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
-              accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
               style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
-                  "borderRadius": 12,
-                  "height": 40,
-                  "justifyContent": "center",
-                  "paddingLeft": 16,
-                  "paddingRight": 16,
-                }
+                [
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  },
+                ]
               }
             >
-              <Text
-                accessibilityRole="text"
+              <View
+                accessibilityLabel="Sold"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
                     {
-                      "color": "#121314",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 12,
+                      "flexDirection": "row",
+                      "height": 40,
+                      "justifyContent": "center",
+                      "minWidth": 80,
+                      "opacity": 1,
+                      "overflow": "hidden",
+                      "paddingLeft": 16,
+                      "paddingRight": 16,
+                      "width": "auto",
                     },
-                    undefined,
+                    [
+                      {
+                        "backgroundColor": "#3c4d9d0f",
+                      },
+                      undefined,
+                    ],
                   ]
                 }
               >
-                Sold
-              </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "bottom": 0,
+                      "display": "flex",
+                      "justifyContent": "center",
+                      "left": 0,
+                      "opacity": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                  testID="spinner-container"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "columnGap": 8,
+                          "flexDirection": "row",
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="spinner"
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "transform": [
+                              {
+                                "rotate": "0deg",
+                              },
+                            ],
+                          },
+                        ]
+                      }
+                      testID="spinner-animated-view"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="Loading"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 20,
+                              "width": 20,
+                            },
+                            undefined,
+                          ]
+                        }
+                        testID="spinner-icon"
+                      />
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "columnGap": 8,
+                      "flexDirection": "row",
+                      "justifyContent": "center",
+                      "opacity": 1,
+                    }
+                  }
+                  testID="content-container"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "flexGrow": 0,
+                          "flexShrink": 1,
+                          "flexWrap": "wrap",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 16,
+                          "fontWeight": 400,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textAlign": "center",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    Sold
+                  </Text>
+                </View>
+              </View>
             </View>
           </View>
         </RCTScrollView>

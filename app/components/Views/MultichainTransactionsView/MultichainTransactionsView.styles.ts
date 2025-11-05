@@ -1,7 +1,6 @@
 import { StyleSheet } from 'react-native';
-import { ThemeColors } from '@metamask/design-tokens';
 
-const createStyles = (colors: ThemeColors) =>
+const createStyles = () =>
   StyleSheet.create({
     wrapper: {
       flex: 1,
