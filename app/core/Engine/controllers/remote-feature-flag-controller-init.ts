@@ -53,7 +53,7 @@ export const remoteFeatureFlagControllerInit: ControllerInitFunction<
       .then(() => {
         Logger.log('Feature flags updated');
       })
-      .catch((error) => Logger.log(error));
+      .catch((error) => Logger.log('Feature flags update failed: ', error));
   }
 
   return {
