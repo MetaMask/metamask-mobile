@@ -99,6 +99,11 @@ export function usePerpsCloseAllCalculations({
   const priceDataRef = useRef(priceData);
   priceDataRef.current = priceData;
 
+  // Lifecycle refs for cleanup and race condition prevention
+  const isComponentMountedRef = useRef(true);
+  const discountFetchCounterRef = useRef(0);
+  const calculationCounterRef = useRef(0);
+
   // State for per-position calculations
   const [perPositionResults, setPerPositionResults] = useState<
     PerPositionResult[]
@@ -139,6 +144,11 @@ export function usePerpsCloseAllCalculations({
   // Fetch account-level fee discount (applies uniformly to all positions)
   // Freeze mechanism prevents refetching when only positions change
   useEffect(() => {
+    // Increment counter to invalidate any in-flight requests
+    const currentFetchId = ++discountFetchCounterRef.current;
+    // Reset freeze when account changes (allow refetch for new account)
+    hasValidDiscountRef.current = false;
+
     async function fetchFeeDiscount() {
       // Skip if already have valid discount for this account (freeze guard)
       if (hasValidDiscountRef.current) {
@@ -146,8 +156,14 @@ export function usePerpsCloseAllCalculations({
       }
 
       if (!selectedAddress || !currentChainId) {
-        setFeeDiscountBips(0);
-        hasValidDiscountRef.current = false;
+        // Only update state if this is still the latest fetch and component is mounted
+        if (
+          discountFetchCounterRef.current === currentFetchId &&
+          isComponentMountedRef.current
+        ) {
+          setFeeDiscountBips(0);
+          hasValidDiscountRef.current = false;
+        }
         return;
       }
 
@@ -157,8 +173,14 @@ export function usePerpsCloseAllCalculations({
           currentChainId,
         );
         if (!caipAccountId) {
-          setFeeDiscountBips(0);
-          hasValidDiscountRef.current = false;
+          // Only update state if this is still the latest fetch and component is mounted
+          if (
+            discountFetchCounterRef.current === currentFetchId &&
+            isComponentMountedRef.current
+          ) {
+            setFeeDiscountBips(0);
+            hasValidDiscountRef.current = false;
+          }
           return;
         }
 
@@ -166,17 +188,28 @@ export function usePerpsCloseAllCalculations({
           await Engine.context.RewardsController.getPerpsDiscountForAccount(
             caipAccountId,
           );
-        setFeeDiscountBips(discountBips);
-        hasValidDiscountRef.current = true;
+
+        // Only update state if this is still the latest fetch and component is mounted
+        if (
+          discountFetchCounterRef.current === currentFetchId &&
+          isComponentMountedRef.current
+        ) {
+          setFeeDiscountBips(discountBips);
+          hasValidDiscountRef.current = true;
+        }
       } catch (error) {
         console.warn('Failed to fetch fee discount:', error);
-        setFeeDiscountBips(0);
-        hasValidDiscountRef.current = false;
+        // Only update state if this is still the latest fetch and component is mounted
+        if (
+          discountFetchCounterRef.current === currentFetchId &&
+          isComponentMountedRef.current
+        ) {
+          setFeeDiscountBips(0);
+          hasValidDiscountRef.current = false;
+        }
       }
     }
 
-    // Reset freeze when account changes (allow refetch for new account)
-    hasValidDiscountRef.current = false;
     fetchFeeDiscount().catch((error) => {
       console.error('Unhandled error in fetchFeeDiscount:', error);
     });
@@ -185,6 +218,8 @@ export function usePerpsCloseAllCalculations({
   // Per-position fee and rewards calculation
   // This ensures accurate coin-specific rewards calculation
   useEffect(() => {
+    // Increment counter to invalidate any in-flight calculations
+    const currentCalculationId = ++calculationCounterRef.current;
     // Reset freeze when meaningful inputs change (not price updates)
     // This MUST happen synchronously at effect start, before async function runs
     // Allows recalculation for: new positions, account switch, or discount arrival
@@ -198,22 +233,41 @@ export function usePerpsCloseAllCalculations({
       }
 
       if (positions.length === 0) {
-        setPerPositionResults([]);
-        setHasCalculationError(false);
+        // Only update state if this is still the latest calculation and component is mounted
+        if (
+          calculationCounterRef.current === currentCalculationId &&
+          isComponentMountedRef.current
+        ) {
+          setPerPositionResults([]);
+          setHasCalculationError(false);
+        }
         return;
       }
 
       if (!selectedAddress || !currentChainId) {
-        setHasCalculationError(true);
-        setFeeDiscountBips(0);
+        // Only update state if this is still the latest calculation and component is mounted
+        if (
+          calculationCounterRef.current === currentCalculationId &&
+          isComponentMountedRef.current
+        ) {
+          setHasCalculationError(true);
+          setFeeDiscountBips(0);
+        }
         return;
       }
 
       // Determine if this is initial load or background refresh
       const isInitialLoad = perPositionResults.length === 0;
-      setIsCalculating(isInitialLoad);
-      setIsFetchingInBackground(!isInitialLoad);
-      setHasCalculationError(false);
+
+      // Only update state if this is still the latest calculation and component is mounted
+      if (
+        calculationCounterRef.current === currentCalculationId &&
+        isComponentMountedRef.current
+      ) {
+        setIsCalculating(isInitialLoad);
+        setIsFetchingInBackground(!isInitialLoad);
+        setHasCalculationError(false);
+      }
 
       try {
         // Convert address to CAIP format for rewards API
@@ -334,29 +388,53 @@ export function usePerpsCloseAllCalculations({
           error: result.error,
         }));
 
-        setPerPositionResults(results);
-
         // Check if any calculation had errors
         const hasErrors = results.some((r) => r.error);
-        setHasCalculationError(hasErrors);
 
-        // Freeze results after successful calculation to prevent WebSocket price updates
-        // from triggering expensive points API calls. Reset happens on position/account/discount change.
-        if (!hasErrors && results.length > 0) {
-          hasValidResultsRef.current = true;
+        // Only update state if this is still the latest calculation and component is mounted
+        if (
+          calculationCounterRef.current === currentCalculationId &&
+          isComponentMountedRef.current
+        ) {
+          setPerPositionResults(results);
+          setHasCalculationError(hasErrors);
+
+          // Freeze results after successful calculation to prevent WebSocket price updates
+          // from triggering expensive points API calls. Reset happens on position/account/discount change.
+          if (!hasErrors && results.length > 0) {
+            hasValidResultsRef.current = true;
+          }
         }
       } catch (error) {
         console.error('Failed to calculate per-position fees:', error);
-        setHasCalculationError(true);
+        // Only update state if this is still the latest calculation and component is mounted
+        if (
+          calculationCounterRef.current === currentCalculationId &&
+          isComponentMountedRef.current
+        ) {
+          setHasCalculationError(true);
+        }
       } finally {
-        setIsCalculating(false);
-        setIsFetchingInBackground(false);
+        // Only update state if this is still the latest calculation and component is mounted
+        if (
+          calculationCounterRef.current === currentCalculationId &&
+          isComponentMountedRef.current
+        ) {
+          setIsCalculating(false);
+          setIsFetchingInBackground(false);
+        }
       }
     }
 
     calculatePerPosition().catch((error) => {
       console.error('Unhandled error in calculatePerPosition:', error);
-      setHasCalculationError(true);
+      // Only update state if this is still the latest calculation and component is mounted
+      if (
+        calculationCounterRef.current === currentCalculationId &&
+        isComponentMountedRef.current
+      ) {
+        setHasCalculationError(true);
+      }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [positions, selectedAddress, currentChainId, feeDiscountBips]);
@@ -365,6 +443,14 @@ export function usePerpsCloseAllCalculations({
   // - selectedAddress/currentChainId: Recalculate on account switch
   // - feeDiscountBips: Recalculate when discount arrives from async fetch (happens once)
   // Price updates (priceDataRef) do NOT trigger recalculation due to freeze mechanism (line 177)
+
+  // Cleanup effect to prevent state updates after component unmounts
+  useEffect(
+    () => () => {
+      isComponentMountedRef.current = false;
+    },
+    [],
+  );
 
   // Aggregate results from per-position calculations
   const aggregatedResults = useMemo(() => {
