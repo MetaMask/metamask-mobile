@@ -56,9 +56,28 @@ const PersonalDetails = () => {
     if (userData) {
       setFirstName(userData.firstName || '');
       setLastName(userData.lastName || '');
-      setDateOfBirth(
-        userData.dateOfBirth ? formatDateOfBirth(userData.dateOfBirth) : '',
-      );
+      // userData.dateOfBirth is in ISO 8601 format, parse it to local timezone
+      if (userData.dateOfBirth && typeof userData.dateOfBirth === 'string') {
+        // Parse the date components: YYYY-MM-DD
+        const dateMatch = userData.dateOfBirth.match(
+          /^(\d{4})-(\d{2})-(\d{2})/,
+        );
+        if (dateMatch) {
+          const [, year, month, day] = dateMatch;
+          // Create date in local timezone (month is 0-indexed)
+          const date = new Date(
+            parseInt(year, 10),
+            parseInt(month, 10) - 1,
+            parseInt(day, 10),
+          );
+          const timestamp = date.getTime();
+          setDateOfBirth(timestamp.toString());
+        } else {
+          setDateOfBirth('');
+        }
+      } else {
+        setDateOfBirth('');
+      }
       setNationality(userData.countryOfResidence || '');
       setSSN(userData.ssn || '');
     }

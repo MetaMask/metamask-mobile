@@ -74,13 +74,8 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
   }, [deposit, executeGuardedAction]);
 
   const handleWithdraw = useCallback(() => {
-    executeGuardedAction(
-      () => {
-        withdraw();
-      },
-      { checkBalance: true },
-    );
-  }, [withdraw, executeGuardedAction]);
+    withdraw();
+  }, [withdraw]);
 
   if (isLoading) {
     return (
