@@ -7,7 +7,7 @@ import type {
   Position,
 } from '../controllers/types';
 import type { PerpsTransaction } from '../types/transactionHistory';
-import { sortMarkets } from '../utils/sortMarkets';
+import { sortMarkets, type SortField } from '../utils/sortMarkets';
 import { FillType } from '../components/PerpsTransactionItem/PerpsTransactionItem';
 
 // Type for markets with volumeNumber (returned by usePerpsMarkets)
