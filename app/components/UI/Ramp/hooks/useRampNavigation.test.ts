@@ -67,7 +67,7 @@ describe('useRampNavigation', () => {
 
       const { result } = renderHook(() => useRampNavigation());
 
-      result.current.goToRamps(RampMode.AGGREGATOR);
+      result.current.goToRamps({ mode: RampMode.AGGREGATOR });
 
       expect(mockCreateBuyNavigationDetails).toHaveBeenCalledWith(undefined);
       expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
@@ -81,8 +81,11 @@ describe('useRampNavigation', () => {
 
       const { result } = renderHook(() => useRampNavigation());
 
-      result.current.goToRamps(RampMode.AGGREGATOR, {
-        rampType: AggregatorRampType.BUY,
+      result.current.goToRamps({
+        mode: RampMode.AGGREGATOR,
+        params: {
+          rampType: AggregatorRampType.BUY,
+        },
       });
 
       expect(mockCreateBuyNavigationDetails).toHaveBeenCalledWith(undefined);
@@ -96,8 +99,11 @@ describe('useRampNavigation', () => {
 
       const { result } = renderHook(() => useRampNavigation());
 
-      result.current.goToRamps(RampMode.AGGREGATOR, {
-        rampType: AggregatorRampType.SELL,
+      result.current.goToRamps({
+        mode: RampMode.AGGREGATOR,
+        params: {
+          rampType: AggregatorRampType.SELL,
+        },
       });
 
       expect(mockCreateSellNavigationDetails).toHaveBeenCalledWith(undefined);
@@ -112,9 +118,12 @@ describe('useRampNavigation', () => {
 
       const { result } = renderHook(() => useRampNavigation());
 
-      result.current.goToRamps(RampMode.AGGREGATOR, {
-        intent,
-        rampType: AggregatorRampType.BUY,
+      result.current.goToRamps({
+        mode: RampMode.AGGREGATOR,
+        params: {
+          intent,
+          rampType: AggregatorRampType.BUY,
+        },
       });
 
       expect(mockCreateBuyNavigationDetails).toHaveBeenCalledWith(intent);
@@ -128,9 +137,12 @@ describe('useRampNavigation', () => {
 
       const { result } = renderHook(() => useRampNavigation());
 
-      result.current.goToRamps(RampMode.AGGREGATOR, {
-        intent,
-        rampType: AggregatorRampType.SELL,
+      result.current.goToRamps({
+        mode: RampMode.AGGREGATOR,
+        params: {
+          intent,
+          rampType: AggregatorRampType.SELL,
+        },
       });
 
       expect(mockCreateSellNavigationDetails).toHaveBeenCalledWith(intent);
@@ -145,7 +157,7 @@ describe('useRampNavigation', () => {
 
       const { result } = renderHook(() => useRampNavigation());
 
-      result.current.goToRamps(RampMode.DEPOSIT);
+      result.current.goToRamps({ mode: RampMode.DEPOSIT });
 
       expect(mockCreateDepositNavigationDetails).toHaveBeenCalledWith(
         undefined,
@@ -162,7 +174,7 @@ describe('useRampNavigation', () => {
 
       const { result } = renderHook(() => useRampNavigation());
 
-      result.current.goToRamps(RampMode.DEPOSIT, params);
+      result.current.goToRamps({ mode: RampMode.DEPOSIT, params });
 
       expect(mockCreateDepositNavigationDetails).toHaveBeenCalledWith(params);
       expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
@@ -178,7 +190,7 @@ describe('useRampNavigation', () => {
     it('returns early without navigating for AGGREGATOR mode', () => {
       const { result } = renderHook(() => useRampNavigation());
 
-      result.current.goToRamps(RampMode.AGGREGATOR);
+      result.current.goToRamps({ mode: RampMode.AGGREGATOR });
 
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockCreateBuyNavigationDetails).not.toHaveBeenCalled();
@@ -189,8 +201,11 @@ describe('useRampNavigation', () => {
     it('returns early without navigating for AGGREGATOR mode with BUY type', () => {
       const { result } = renderHook(() => useRampNavigation());
 
-      result.current.goToRamps(RampMode.AGGREGATOR, {
-        rampType: AggregatorRampType.BUY,
+      result.current.goToRamps({
+        mode: RampMode.AGGREGATOR,
+        params: {
+          rampType: AggregatorRampType.BUY,
+        },
       });
 
       expect(mockNavigate).not.toHaveBeenCalled();
@@ -200,8 +215,11 @@ describe('useRampNavigation', () => {
     it('returns early without navigating for AGGREGATOR mode with SELL type', () => {
       const { result } = renderHook(() => useRampNavigation());
 
-      result.current.goToRamps(RampMode.AGGREGATOR, {
-        rampType: AggregatorRampType.SELL,
+      result.current.goToRamps({
+        mode: RampMode.AGGREGATOR,
+        params: {
+          rampType: AggregatorRampType.SELL,
+        },
       });
 
       expect(mockNavigate).not.toHaveBeenCalled();
@@ -211,7 +229,7 @@ describe('useRampNavigation', () => {
     it('returns early without navigating for DEPOSIT mode', () => {
       const { result } = renderHook(() => useRampNavigation());
 
-      result.current.goToRamps(RampMode.DEPOSIT);
+      result.current.goToRamps({ mode: RampMode.DEPOSIT });
 
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
@@ -221,7 +239,7 @@ describe('useRampNavigation', () => {
       const params = { assetId: 'eip155:1/erc20:0x123', amount: '100' };
       const { result } = renderHook(() => useRampNavigation());
 
-      result.current.goToRamps(RampMode.DEPOSIT, params);
+      result.current.goToRamps({ mode: RampMode.DEPOSIT, params });
 
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
