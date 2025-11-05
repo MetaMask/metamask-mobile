@@ -23,11 +23,14 @@ const styleSheet = () =>
       width: '100%',
       flex: 5,
     },
+    positionImageContainer: {
+      paddingTop: 4,
+    },
     positionImage: {
       width: 40,
       height: 40,
       borderRadius: 100,
-      alignSelf: 'center',
+      alignSelf: 'flex-start',
     },
     positionPnl: {
       flexDirection: 'column',
