@@ -92,7 +92,6 @@ export default class PortManager {
 
     logger.debug(`Getting available port for resource: ${resourceId}`);
 
-    // Check if resource already has a port allocated
     const existingPort = this.resourceToPort.get(resourceId);
     if (existingPort) {
       logger.debug(
@@ -177,15 +176,6 @@ export default class PortManager {
     }
   }
 
-  public releaseResource(resourceId: string): void {
-    const port = this.resourceToPort.get(resourceId);
-    if (port !== undefined) {
-      this.releasePort(port);
-    } else {
-      logger.debug(`No port allocated for resource: ${resourceId}`);
-    }
-  }
-
   public releaseAll(): void {
     const count = this.allocatedPorts.size;
     if (count > 0) {
@@ -205,14 +195,6 @@ export default class PortManager {
     return this.resourceToPort.get(resourceId);
   }
 
-  public getAllocatedPorts(): ReadonlyMap<number, AllocatedPort> {
-    return this.allocatedPorts;
-  }
-
-  public getPortAllocation(port: number): AllocatedPort | undefined {
-    return this.allocatedPorts.get(port);
-  }
-
   private isBrowserStack(): boolean {
     return process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
   }
@@ -225,7 +207,6 @@ export default class PortManager {
         if (err.code === 'EADDRINUSE') {
           resolve(false);
         } else {
-          // Other errors also mean the port is not available
           logger.debug(`Error checking port ${port}: ${err.message}`);
           resolve(false);
         }

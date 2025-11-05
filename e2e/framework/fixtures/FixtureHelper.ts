@@ -1,8 +1,12 @@
 /* eslint-disable no-unsafe-finally */
 /* eslint-disable import/no-nodejs-modules */
 import FixtureServer from './FixtureServer';
-import { AnvilManager, Hardfork } from '../../seeder/anvil-manager';
-import Ganache from '../../../app/util/test/ganache';
+import {
+  AnvilManager,
+  Hardfork,
+  DEFAULT_ANVIL_PORT,
+} from '../../seeder/anvil-manager';
+import Ganache, { DEFAULT_GANACHE_PORT } from '../../../app/util/test/ganache';
 import GanacheSeeder from '../../../app/util/test/ganache-seeder';
 import axios from 'axios';
 import {
@@ -40,7 +44,7 @@ import ContractAddressRegistry from '../../../app/util/test/contract-address-reg
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
 import { mockNotificationServices } from '../../specs/notifications/utils/mocks';
-import { ResourceId } from '../PortManager';
+import PortManager, { ResourceId } from '../PortManager';
 import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
 import CommandQueueServer from './CommandQueueServer';
 import DappServer from '../DappServer';
@@ -274,15 +278,6 @@ async function handleDappCleanup(
 }
 
 /**
- * Loads a fixture into the fixture server.
- *
- * @param {FixtureServer} fixtureServer - An instance of the FixtureServer class responsible for loading fixtures.
- * @param {Object} options - An object containing the fixture to load.
- * @param {Object} [options.fixture] - The fixture data to load. If not provided, a default fixture is created.
- * @returns {Promise<void>} - A promise that resolves once the fixture is successfully loaded.
- * @throws {Error} - Throws an error if the fixture fails to load or if the fixture server is not properly set up.
- */
-/**
  * Updates RPC URLs in the fixture to use actual allocated ports from PortManager.
  * This ensures that if Anvil/Ganache got a different port than the default,
  * the fixture will have the correct URL.
@@ -290,12 +285,14 @@ async function handleDappCleanup(
  * @param state - The fixture state to update
  * @returns The updated fixture state
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function updateRpcUrlsWithAllocatedPorts(state: any): any {
-  const actualAnvilPort = AnvilPort();
-  const actualGanachePort = getGanachePort();
+function updateRpcUrlsWithAllocatedPorts(
+  state: FixtureBuilder['fixture'],
+): FixtureBuilder {
+  const portManager = PortManager.getInstance();
 
-  // Update NetworkController network configurations
+  const actualAnvilPort = portManager.getPortForResource(ResourceId.ANVIL);
+  const actualGanachePort = portManager.getPortForResource(ResourceId.GANACHE);
+
   const networkConfigs =
     state.state?.engine?.backgroundState?.NetworkController
       ?.networkConfigurationsByChainId;
@@ -305,22 +302,18 @@ function updateRpcUrlsWithAllocatedPorts(state: any): any {
       if (config.rpcEndpoints) {
         for (const endpoint of config.rpcEndpoints) {
           if (endpoint.url) {
-            // Replace default Anvil port (8545) with actual allocated port
-            endpoint.url = endpoint.url.replace(
-              /:8545(\/|$)/,
-              `:${actualAnvilPort}$1`,
-            );
-            // Replace default Ganache port with actual allocated port
-            endpoint.url = endpoint.url.replace(
-              /localhost:(\d+)/,
-              (_match: string, port: string) => {
-                // If it's a localhost URL with a port, check if it's the default and replace
-                if (port === '8545' || port === actualGanachePort.toString()) {
-                  return `localhost:${actualAnvilPort}`;
-                }
-                return `localhost:${port}`;
-              },
-            );
+            if (actualAnvilPort !== undefined) {
+              endpoint.url = endpoint.url.replace(
+                new RegExp(`:${DEFAULT_ANVIL_PORT}(\\/|$)`),
+                `:${actualAnvilPort}$1`,
+              );
+            }
+            if (actualGanachePort !== undefined) {
+              endpoint.url = endpoint.url.replace(
+                new RegExp(`:${DEFAULT_GANACHE_PORT}(\\/|$)`),
+                `:${actualGanachePort}$1`,
+              );
+            }
           }
         }
       }
@@ -330,6 +323,13 @@ function updateRpcUrlsWithAllocatedPorts(state: any): any {
   return state;
 }
 
+/**
+ * Loads a fixture into the fixture server.
+ *
+ * @param fixtureServer - An instance of the FixtureServer class responsible for loading fixtures.
+ * @param options - An object containing the fixture to load.
+ * @param options.fixture - The fixture data to load. If not provided, a default fixture is created.
+ */
 export const loadFixture = async (
   fixtureServer: FixtureServer,
   { fixture }: { fixture: FixtureBuilder },
@@ -341,7 +341,7 @@ export const loadFixture = async (
   // Update RPC URLs with actual allocated ports from PortManager
   state = updateRpcUrlsWithAllocatedPorts(state);
 
-  await fixtureServer.loadJsonState(state, null);
+  fixtureServer.loadJsonState(state, null);
   // Checks if state is loaded
   logger.debug(
     `Loading fixture into fixture server: ${fixtureServer.getServerUrl}`,
@@ -402,10 +402,8 @@ export const createMockAPIServer = async (
  * Executes a test suite with fixtures by setting up a fixture server, loading a specified fixture,
  * and running the test suite. After the test suite execution, it stops the fixture server.
  *
- * @param {WithFixturesOptions} options - The specific options for the test suite to run with.
- * @param {TestSuiteFunction} testSuite - The test suite function to execute after setting up the fixture.
- * @returns {Promise<void>} - A promise that resolves once the test suite completes.
- * @throws {Error} - Throws an error if an exception occurs during the test suite execution.
+ * @param options - The specific options for the test suite to run with.
+ * @param testSuite - The test suite function to execute after setting up the fixture.
  */
 export async function withFixtures(
   options: WithFixturesOptions,
