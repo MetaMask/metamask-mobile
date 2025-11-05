@@ -61,6 +61,7 @@ const createStyles = (colors) =>
       width: '100%',
       flexDirection: 'row',
       justifyContent: 'flex-start',
+      marginLeft: 3,
     },
     accountName: {
       maxWidth: Device.isMediumDevice() ? '35%' : '45%',
@@ -86,6 +87,7 @@ const createStyles = (colors) =>
       fontSize: 14,
       alignSelf: 'flex-start',
       color: colors.text.default,
+      marginLeft: 3,
     },
     balanceTextSmall: {
       fontSize: 12,
@@ -170,7 +172,8 @@ class AccountInfoCard extends PureComponent {
     const balance = `${renderFromWei(weiBalance)} ${getTicker(ticker)}`;
 
     const account = getInternalAccountByAddress(fromAddress);
-    const accountGroup = account ? accountToGroupMap[account.id] : undefined;
+    const accountGroup =
+      account && accountToGroupMap ? accountToGroupMap[account.id] : undefined;
 
     const accountLabel =
       accountGroup?.metadata?.name ||
@@ -236,18 +239,20 @@ class AccountInfoCard extends PureComponent {
               {address}
             </Text>
           </View>
-          <Text
-            numberOfLines={1}
-            style={[
-              styles.balanceText,
-              accountLabelTag ? styles.balanceTextSmall : undefined,
-            ]}
-          >
-            {strings('signature_request.balance_title')}{' '}
-            {dollarBalance !== undefined
-              ? `${dollarBalance} (${balance})`
-              : balance}
-          </Text>
+          <View style={styles.accountNameAndAddress}>
+            <Text
+              numberOfLines={1}
+              style={[
+                styles.balanceText,
+                accountLabelTag ? styles.balanceTextSmall : undefined,
+              ]}
+            >
+              {strings('signature_request.balance_title')}{' '}
+              {dollarBalance !== undefined
+                ? `${dollarBalance} (${balance})`
+                : balance}
+            </Text>
+          </View>
         </View>
         {accountLabelTag && (
           <View style={styles.tag}>
