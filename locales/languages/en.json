@@ -1095,8 +1095,7 @@
         "limit_price_must_be_set_before_configuring_tpsl": "Limit price must be set before configuring TP/SL",
         "only_hyperliquid_usdc": "Only USDC on Hyperliquid is currently supported for payment",
         "limit_price_far_warning": "Limit price is far from current market price",
-        "oi_cap_reached": "Open Interest Cap Reached",
-        "oi_cap_description": "This market is at capacity. New positions cannot be opened until open interest decreases."
+        "oi_cap_reached": "Open interest cap reached. New positions cannot be opened at this time."
       },
       "error": {
         "placement_failed": "Order placement failed",
@@ -1409,8 +1408,6 @@
       "expect_more_volatility": "Expect more volatility outside of regular market hours",
       "after_hours_trading_banner": "After-hours trading",
       "pay_attention_to_volatility": "Pay attention to volatility and slippage",
-      "oi_cap_warning": "Market At Capacity",
-      "oi_cap_description": "This market has reached its open interest cap. New positions cannot be opened at this time.",
       "badge": {
         "experimental": "EXPERIMENTAL",
         "equity": "STOCK",
@@ -1786,6 +1783,8 @@
     },
     "outcomes_singular": "outcome",
     "outcomes_plural": "outcomes",
+    "outcome_winner": "Winner",
+    "outcome_loser": "Loser",
     "resolved_outcomes": "Resolved outcomes",
     "category": {
       "trending": "Trending",
@@ -1808,6 +1807,7 @@
       "title": "Unavailable in your region",
       "description": "Predictions aren't available in your region due to legal restrictions.",
       "link": "See Polymarket terms",
+      "webview_title": "Polymarket Terms",
       "button": "Got it"
     },
     "deposit": {
@@ -2956,6 +2956,8 @@
     "deposit_description": "Low-fee bank or card transfer",
     "buy": "Buy",
     "buy_description": "Good for buying a specific token",
+    "buy_unified": "Buy",
+    "buy_unified_description": "Buy crypto with cash",
     "sell": "Withdraw",
     "sell_description": "Sell crypto for cash"
   },
@@ -3010,7 +3012,7 @@
     "send_description": "Send crypto to any account",
     "receive_description": "Receive crypto",
     "earn_description": "Earn rewards on your tokens",
-    "perps_description": "Trade perp contracts",
+    "perps_description": "Trade perps contracts",
     "predict_description": "Trade on real-world events",
     "chart_time_period": {
       "1d": "Today",
@@ -5780,13 +5782,13 @@
     "apply": "Apply",
     "slippage": "Slippage",
     "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here.",
-    "network_fee": "Network Fee",
+    "network_fee": "Network fee",
     "included": "Included",
     "estimated_time": "Estimated Time",
     "quote": "Quote",
     "rate": "Rate",
     "quote_details": "Quote Details",
-    "price_impact": "Price Impact",
+    "price_impact": "Price impact",
     "time": "Time",
     "quote_info_content": "The best rate we found from providers, including provider fees and a 0.875% MetaMask fee.",
     "quote_info_title": "Rate",
@@ -5830,7 +5832,7 @@
     "approval_needed": "Approves token for swap.",
     "approval_tooltip_title": "Grant exact access",
     "approval_tooltip_content": "You are allowing access to the specified amount, {{amount}} {{symbol}}. The contract will not access any additional funds.",
-    "minimum_received": "Minimum Received",
+    "minimum_received": "Minimum received",
     "minimum_received_tooltip_title": "Minimum Received",
     "minimum_received_tooltip_content": "The minimum amount you'll receive if the price changes while your transaction is processing, based on your slippage tolerance. This is an estimate from our liquidity providers. Final amounts may differ.",
     "verified_token": "Verified token",

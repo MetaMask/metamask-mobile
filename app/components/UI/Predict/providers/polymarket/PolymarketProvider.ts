@@ -100,6 +100,8 @@ interface RecentlySoldPosition {
 
 export class PolymarketProvider implements PredictProvider {
   readonly providerId = POLYMARKET_PROVIDER_ID;
+  readonly name = 'Polymarket';
+  readonly chainId = POLYGON_MAINNET_CHAIN_ID;
 
   #apiKeysByAddress: Map<string, ApiKeyCreds> = new Map();
   #accountStateByAddress: Map<string, AccountState> = new Map();

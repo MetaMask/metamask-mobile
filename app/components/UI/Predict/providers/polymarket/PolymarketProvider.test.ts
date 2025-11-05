@@ -3849,4 +3849,24 @@ describe('PolymarketProvider', () => {
       });
     });
   });
+
+  describe('provider interface properties', () => {
+    it('exposes chainId property with value 137', () => {
+      const provider = new PolymarketProvider();
+
+      expect(provider.chainId).toBe(137);
+    });
+
+    it('exposes name property with value Polymarket', () => {
+      const provider = new PolymarketProvider();
+
+      expect(provider.name).toBe('Polymarket');
+    });
+
+    it('exposes providerId property with value polymarket', () => {
+      const provider = new PolymarketProvider();
+
+      expect(provider.providerId).toBe('polymarket');
+    });
+  });
 });

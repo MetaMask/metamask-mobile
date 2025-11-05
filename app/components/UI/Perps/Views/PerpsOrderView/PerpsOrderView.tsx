@@ -1219,8 +1219,12 @@ const PerpsOrderViewContentBase: React.FC = () => {
           />
         </View>
       )}
-      {/* Fixed Place Order Button - Hide when keypad is active */}
-      {!isInputFocused && (
+      {/* OI Cap Warning - Shows when market is at capacity */}
+      {!isInputFocused && isAtOICap && (
+        <PerpsOICapWarning symbol={orderForm.asset} variant="banner" />
+      )}
+      {/* Fixed Place Order Button - Hide when keypad is active or at OI cap */}
+      {!isInputFocused && !isAtOICap && (
         <View style={fixedBottomContainerStyle}>
           {filteredErrors.length > 0 &&
             !isLoadingMarketData &&
@@ -1238,9 +1242,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
                 ))}
               </View>
             )}
-
-          {/* OI Cap Warning - Only shows when market is at capacity */}
-          <PerpsOICapWarning symbol={orderForm.asset} variant="inline" />
 
           <ButtonSemantic
             severity={
