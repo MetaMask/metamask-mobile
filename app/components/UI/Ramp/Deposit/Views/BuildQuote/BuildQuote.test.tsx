@@ -388,7 +388,7 @@ describe('BuildQuote Component', () => {
           chain_id: MOCK_USDC_TOKEN.chainId,
           currency_destination: MOCK_USDC_TOKEN.assetId,
           currency_destination_symbol: MOCK_USDC_TOKEN.symbol,
-          currency_destination_network: 'Ethereum Mainnet',
+          currency_destination_network: 'Ethereum',
           currency_source: MOCK_US_REGION.currency,
           is_authenticated: false,
         },
