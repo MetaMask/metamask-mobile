@@ -77,16 +77,12 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
 
     // Refs to track timeouts
     const validateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const backspaceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Cleanup timeouts on unmount
     useEffect(
       () => () => {
         if (validateTimeoutRef.current) {
           clearTimeout(validateTimeoutRef.current);
-        }
-        if (backspaceTimeoutRef.current) {
-          clearTimeout(backspaceTimeoutRef.current);
         }
       },
       [],
@@ -279,15 +275,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
               }
               setNextSeedPhraseInputFocusedIndex(index - 1);
             }
-
-            if (backspaceTimeoutRef.current) {
-              clearTimeout(backspaceTimeoutRef.current);
-            }
-
-            backspaceTimeoutRef.current = setTimeout(() => {
-              onSeedPhraseChange(index === 0 ? [''] : [...newData]);
-              backspaceTimeoutRef.current = null;
-            }, 0);
+            onSeedPhraseChange([...newData]);
           }
         }
       },
