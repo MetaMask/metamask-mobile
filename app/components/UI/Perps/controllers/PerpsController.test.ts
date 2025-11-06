@@ -1073,6 +1073,142 @@ describe('PerpsController', () => {
       expect(result.success).toBe(true);
     });
 
+    it('excludes TP/SL orders when cancelAll is true', async () => {
+      const mockOrders = [
+        createMockOrder({
+          orderId: 'order-1',
+          symbol: 'BTC',
+          detailedOrderType: 'Limit',
+        }),
+        createMockOrder({
+          orderId: 'order-2',
+          symbol: 'ETH',
+          detailedOrderType: 'Take Profit Limit',
+        }),
+        createMockOrder({
+          orderId: 'order-3',
+          symbol: 'SOL',
+          detailedOrderType: 'Stop Market',
+        }),
+        createMockOrder({
+          orderId: 'order-4',
+          symbol: 'BTC',
+          detailedOrderType: 'Limit',
+        }),
+      ];
+      mockProvider.getOpenOrders.mockResolvedValue(mockOrders);
+      mockProvider.cancelOrder.mockResolvedValue({ success: true });
+
+      const result = await controller.cancelOrders({ cancelAll: true });
+
+      expect(mockProvider.cancelOrder).toHaveBeenCalledTimes(2);
+      expect(mockProvider.cancelOrder).toHaveBeenCalledWith({
+        coin: 'BTC',
+        orderId: 'order-1',
+      });
+      expect(mockProvider.cancelOrder).toHaveBeenCalledWith({
+        coin: 'BTC',
+        orderId: 'order-4',
+      });
+      expect(mockProvider.cancelOrder).not.toHaveBeenCalledWith({
+        coin: 'ETH',
+        orderId: 'order-2',
+      });
+      expect(mockProvider.cancelOrder).not.toHaveBeenCalledWith({
+        coin: 'SOL',
+        orderId: 'order-3',
+      });
+      expect(result.successCount).toBe(2);
+      expect(result.failureCount).toBe(0);
+    });
+
+    it('cancels all regular orders and excludes all TP/SL types', async () => {
+      const mockOrders = [
+        createMockOrder({
+          orderId: 'order-1',
+          symbol: 'BTC',
+          detailedOrderType: 'Limit',
+        }),
+        createMockOrder({
+          orderId: 'order-2',
+          symbol: 'ETH',
+          detailedOrderType: 'Take Profit Limit',
+        }),
+        createMockOrder({
+          orderId: 'order-3',
+          symbol: 'SOL',
+          detailedOrderType: 'Take Profit Market',
+        }),
+        createMockOrder({
+          orderId: 'order-4',
+          symbol: 'AVAX',
+          detailedOrderType: 'Stop Limit',
+        }),
+        createMockOrder({
+          orderId: 'order-5',
+          symbol: 'MATIC',
+          detailedOrderType: 'Stop Market',
+        }),
+        createMockOrder({
+          orderId: 'order-6',
+          symbol: 'DOT',
+          detailedOrderType: 'Market',
+        }),
+      ];
+      mockProvider.getOpenOrders.mockResolvedValue(mockOrders);
+      mockProvider.cancelOrder.mockResolvedValue({ success: true });
+
+      const result = await controller.cancelOrders({ cancelAll: true });
+
+      expect(mockProvider.cancelOrder).toHaveBeenCalledTimes(2);
+      expect(mockProvider.cancelOrder).toHaveBeenCalledWith({
+        coin: 'BTC',
+        orderId: 'order-1',
+      });
+      expect(mockProvider.cancelOrder).toHaveBeenCalledWith({
+        coin: 'DOT',
+        orderId: 'order-6',
+      });
+      expect(result.successCount).toBe(2);
+    });
+
+    it('allows canceling TP/SL orders when specified by orderId', async () => {
+      const mockOrders = [
+        createMockOrder({
+          orderId: 'order-1',
+          symbol: 'BTC',
+          detailedOrderType: 'Limit',
+        }),
+        createMockOrder({
+          orderId: 'order-2',
+          symbol: 'ETH',
+          detailedOrderType: 'Take Profit Limit',
+        }),
+        createMockOrder({
+          orderId: 'order-3',
+          symbol: 'SOL',
+          detailedOrderType: 'Stop Market',
+        }),
+      ];
+      mockProvider.getOpenOrders.mockResolvedValue(mockOrders);
+      mockProvider.cancelOrder.mockResolvedValue({ success: true });
+
+      const result = await controller.cancelOrders({
+        orderIds: ['order-2', 'order-3'],
+      });
+
+      expect(mockProvider.cancelOrder).toHaveBeenCalledTimes(2);
+      expect(mockProvider.cancelOrder).toHaveBeenCalledWith({
+        coin: 'ETH',
+        orderId: 'order-2',
+      });
+      expect(mockProvider.cancelOrder).toHaveBeenCalledWith({
+        coin: 'SOL',
+        orderId: 'order-3',
+      });
+      expect(result.successCount).toBe(2);
+    });
+
     it('cancels specific order IDs when provided', async () => {
       const mockOrders = [
         createMockOrder({ orderId: 'order-1', symbol: 'BTC' }),

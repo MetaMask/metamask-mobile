@@ -23,6 +23,7 @@ import { v4 as uuidv4 } from 'uuid';
 import Engine from '../../../../core/Engine';
 import { generateDepositId } from '../utils/idUtils';
 import { USDC_SYMBOL } from '../constants/hyperLiquidConfig';
+import { isTPSLOrder } from '../constants/orderTypes';
 import {
   LastTransactionResult,
   TransactionStatus,
@@ -1928,8 +1929,10 @@ export class PerpsController extends BaseController<
         // Filter orders based on params
         let ordersToCancel = orders;
         if (params.cancelAll || (!params.coins && !params.orderIds)) {
-          // Cancel all orders
-          ordersToCancel = orders;
+          // Cancel all orders (excluding TP/SL orders for positions)
+          ordersToCancel = orders.filter(
+            (o) => !isTPSLOrder(o.detailedOrderType),
+          );
         } else if (params.orderIds && params.orderIds.length > 0) {
           // Cancel specific order IDs
           ordersToCancel = orders.filter((o) =>
