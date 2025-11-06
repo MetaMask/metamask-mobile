@@ -211,6 +211,35 @@ export interface GetPriceHistoryParams {
   interval?: PredictPriceHistoryInterval;
 }
 
+/**
+ * Parameters for fetching prices from CLOB /prices endpoint
+ */
+export interface BookParams {
+  token_id: string;
+  side: Side;
+}
+
+export interface GetPricesParams {
+  bookParams: BookParams[];
+  providerId?: string;
+}
+
+/**
+ * Response from /prices endpoint
+ * Maps token_id -> { BUY?: "0.512", SELL?: "0.488" }
+ */
+export type PricesResponse = Record<string, Partial<Record<Side, string>>>;
+
+/**
+ * Parsed prices map with numeric values
+ */
+export interface ParsedPricesMap {
+  [tokenId: string]: {
+    BUY?: number;
+    SELL?: number;
+  };
+}
+
 export enum PredictPositionStatus {
   OPEN = 'open',
   REDEEMABLE = 'redeemable',

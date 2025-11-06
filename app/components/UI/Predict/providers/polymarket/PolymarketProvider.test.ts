@@ -2390,6 +2390,274 @@ describe('PolymarketProvider', () => {
     });
   });
 
+  describe('getPrices', () => {
+    beforeEach(() => {
+      global.fetch = jest.fn();
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('get prices successfully', async () => {
+      const provider = createProvider();
+      const mockPricesData = {
+        'token-1': { BUY: '0.65' },
+        'token-2': { BUY: '0.35' },
+      };
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockPricesData),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getPrices({
+        bookParams: [
+          { token_id: 'token-1', side: 'BUY' },
+          { token_id: 'token-2', side: 'BUY' },
+        ],
+      });
+
+      expect(result).toEqual({
+        'token-1': { BUY: 0.65 },
+        'token-2': { BUY: 0.35 },
+      });
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://clob.polymarket.com/prices',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify([
+            { token_id: 'token-1', side: 'BUY' },
+            { token_id: 'token-2', side: 'BUY' },
+          ]),
+        },
+      );
+    });
+
+    it('convert string prices to numbers correctly', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          'token-1': { BUY: '0.123456' },
+          'token-2': { SELL: '0.987654' },
+        }),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getPrices({
+        bookParams: [{ token_id: 'token-1', side: 'BUY' }],
+      });
+
+      expect(result['token-1'].BUY).toBe(0.123456);
+      expect(result['token-2'].SELL).toBe(0.987654);
+    });
+
+    it('handle multiple sides for same token', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          'token-1': { BUY: '0.65', SELL: '0.64' },
+        }),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getPrices({
+        bookParams: [
+          { token_id: 'token-1', side: 'BUY' },
+          { token_id: 'token-1', side: 'SELL' },
+        ],
+      });
+
+      expect(result['token-1'].BUY).toBe(0.65);
+      expect(result['token-1'].SELL).toBe(0.64);
+    });
+
+    it('throw error when bookParams is empty', async () => {
+      const provider = createProvider();
+
+      await expect(
+        provider.getPrices({
+          bookParams: [],
+        }),
+      ).rejects.toThrow(
+        'bookParams parameter is required and must not be empty',
+      );
+    });
+
+    it('return empty object when response is not ok', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request',
+        text: jest.fn().mockResolvedValue('Bad Request'),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getPrices({
+        bookParams: [{ token_id: 'token-1', side: 'BUY' }],
+      });
+
+      expect(result).toEqual({});
+    });
+
+    it('return empty object when fetch fails', async () => {
+      const provider = createProvider();
+      (global.fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
+
+      const result = await provider.getPrices({
+        bookParams: [{ token_id: 'token-1', side: 'BUY' }],
+      });
+
+      expect(result).toEqual({});
+    });
+
+    it('return empty object when invalid JSON response', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockRejectedValue(new Error('Invalid JSON')),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getPrices({
+        bookParams: [{ token_id: 'token-1', side: 'BUY' }],
+      });
+
+      expect(result).toEqual({});
+    });
+
+    it('handle non-numeric price values', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          'token-1': { BUY: '0.65' },
+          'token-2': { BUY: 'invalid' },
+          'token-3': { BUY: '0.35' },
+        }),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getPrices({
+        bookParams: [
+          { token_id: 'token-1', side: 'BUY' },
+          { token_id: 'token-2', side: 'BUY' },
+          { token_id: 'token-3', side: 'BUY' },
+        ],
+      });
+
+      expect(result['token-1'].BUY).toBe(0.65);
+      expect(result['token-2'].BUY).toBeNaN();
+      expect(result['token-3'].BUY).toBe(0.35);
+    });
+
+    it('handle null or undefined prices', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          'token-1': { BUY: '0.65' },
+          'token-2': { BUY: null },
+          'token-3': {},
+        }),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getPrices({
+        bookParams: [
+          { token_id: 'token-1', side: 'BUY' },
+          { token_id: 'token-2', side: 'BUY' },
+          { token_id: 'token-3', side: 'BUY' },
+        ],
+      });
+
+      expect(result['token-1'].BUY).toBe(0.65);
+      expect(result['token-2']).toEqual({});
+      expect(result['token-3']).toEqual({});
+    });
+
+    it('return empty object when response body is null', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(null),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getPrices({
+        bookParams: [{ token_id: 'token-1', side: 'BUY' }],
+      });
+
+      expect(result).toEqual({});
+    });
+
+    it('handle BUY side correctly', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          'token-1': { BUY: '0.65' },
+        }),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getPrices({
+        bookParams: [{ token_id: 'token-1', side: 'BUY' }],
+      });
+
+      expect(result['token-1']).toHaveProperty('BUY');
+      expect(result['token-1'].BUY).toBe(0.65);
+    });
+
+    it('handle SELL side correctly', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          'token-1': { SELL: '0.64' },
+        }),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getPrices({
+        bookParams: [{ token_id: 'token-1', side: 'SELL' }],
+      });
+
+      expect(result['token-1']).toHaveProperty('SELL');
+      expect(result['token-1'].SELL).toBe(0.64);
+    });
+
+    it('handle multiple tokens with different sides', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          'token-1': { BUY: '0.65' },
+          'token-2': { SELL: '0.64' },
+          'token-3': { BUY: '0.35' },
+        }),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getPrices({
+        bookParams: [
+          { token_id: 'token-1', side: 'BUY' },
+          { token_id: 'token-2', side: 'SELL' },
+          { token_id: 'token-3', side: 'BUY' },
+        ],
+      });
+
+      expect(result['token-1'].BUY).toBe(0.65);
+      expect(result['token-2'].SELL).toBe(0.64);
+      expect(result['token-3'].BUY).toBe(0.35);
+    });
+  });
+
   describe('prepareDeposit', () => {
     const mockSigner = {
       address: '0x123',

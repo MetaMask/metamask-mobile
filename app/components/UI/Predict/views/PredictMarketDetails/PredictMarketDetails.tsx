@@ -49,11 +49,14 @@ import PredictDetailsChart, {
 import PredictPositionDetail from '../../components/PredictPositionDetail';
 import { usePredictMarket } from '../../hooks/usePredictMarket';
 import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
+import { usePredictPrices } from '../../hooks/usePredictPrices';
 import {
+  BookParams,
   PredictPriceHistoryInterval,
   PredictMarketStatus,
   PredictOutcome,
   PredictOutcomeToken,
+  Side,
 } from '../../types';
 import PredictMarketOutcome from '../../components/PredictMarketOutcome';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
@@ -305,7 +308,73 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     }
   };
 
+  // Real-time price updates for open outcomes
+  const closedOutcomes = useMemo(
+    () =>
+      market?.outcomes?.filter((outcome) => outcome.status === 'closed') ?? [],
+    [market?.outcomes],
+  );
+  const openOutcomesBase = useMemo(
+    () =>
+      market?.outcomes?.filter((outcome) => outcome.status === 'open') ?? [],
+    [market?.outcomes],
+  );
+
+  // extract token IDs from open outcomes for price fetching
+  const openOutcomeTokenIds = useMemo(() => {
+    const tokenIds: string[] = [];
+    openOutcomesBase.forEach((outcome) => {
+      outcome.tokens.forEach((token) => {
+        if (token.id) {
+          tokenIds.push(token.id);
+        }
+      });
+    });
+    return tokenIds;
+  }, [openOutcomesBase]);
+
+  // build book params for fetching prices
+  const bookParams: BookParams[] = useMemo(() => openOutcomeTokenIds.map((tokenId) => ({
+      token_id: tokenId,
+      side: Side.SELL,
+    })), [openOutcomeTokenIds]);
+
+  // fetch real-time prices once after market loads
+  const { prices } = usePredictPrices({
+    bookParams,
+    providerId,
+    enabled: !isMarketFetching && openOutcomeTokenIds.length > 0,
+  });
+
+  // create open outcomes with updated prices from real-time data
+  const openOutcomes = useMemo(() => {
+    if (!Object.keys(prices).length) {
+      return openOutcomesBase;
+    }
+
+    return openOutcomesBase.map((outcome) => ({
+      ...outcome,
+      tokens: outcome.tokens.map((token) => {
+        const realTimePrice = prices[token.id]?.SELL;
+        return {
+          ...token,
+          // use real-time (CLOB) price if available, otherwise keep existing price
+          price: realTimePrice ?? token.price,
+        };
+      }),
+    }));
+  }, [openOutcomesBase, prices]);
+
   const getYesPercentage = (): number => {
+    // Use real-time price if available from open outcomes
+    const firstOpenOutcome = openOutcomes[0];
+    const firstTokenPrice = firstOpenOutcome?.tokens?.[0]?.price;
+
+    if (typeof firstTokenPrice === 'number') {
+      return Math.round(firstTokenPrice * 100);
+    }
+
+    // Fallback to original market data
     const firstOutcomePrice = market?.outcomes?.[0]?.tokens?.[0]?.price;
     if (typeof firstOutcomePrice === 'number') {
       return Math.round(firstOutcomePrice * 100);
@@ -316,11 +385,13 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const handleBuyPress = (token: PredictOutcomeToken) => {
     executeGuardedAction(
       () => {
+        // Use open outcomes with updated prices if available
+        const firstOpenOutcome = openOutcomes[0];
         navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
           screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
           params: {
             market,
-            outcome: market?.outcomes?.[0],
+            outcome: firstOpenOutcome ?? market?.outcomes?.[0],
             outcomeToken: token,
             entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
           },
@@ -748,17 +819,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   // see if there are any positions with positive percentPnl
   const hasPositivePnl = positions.some((position) => position.percentPnl > 0);
 
-  const closedOutcomes = useMemo(
-    () =>
-      market?.outcomes?.filter((outcome) => outcome.status === 'closed') ?? [],
-    [market?.outcomes],
-  );
-  const openOutcomes = useMemo(
-    () =>
-      market?.outcomes?.filter((outcome) => outcome.status === 'open') ?? [],
-    [market?.outcomes],
-  );
-
   const renderActionButtons = () => (
     <>
       {(() => {
@@ -783,6 +843,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           market?.status === PredictMarketStatus.OPEN &&
           singleOutcomeMarket
         ) {
+          // use openOutcomes for real-time (CLOB) prices
+          const firstOpenOutcome = openOutcomes[0];
           return (
             <Box
               flexDirection={BoxFlexDirection.Row}
@@ -801,7 +863,12 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                     {getYesPercentage()}¢
                   </Text>
                 }
-                onPress={() => handleBuyPress(market?.outcomes[0].tokens[0])}
+                onPress={() =>
+                  handleBuyPress(
+                    firstOpenOutcome?.tokens[0] ??
+                      market?.outcomes[0].tokens[0],
+                  )
+                }
               />
               <Button
                 variant={ButtonVariants.Secondary}
@@ -814,7 +881,12 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                     {100 - getYesPercentage()}¢
                   </Text>
                 }
-                onPress={() => handleBuyPress(market?.outcomes[0].tokens[1])}
+                onPress={() =>
+                  handleBuyPress(
+                    firstOpenOutcome?.tokens[1] ??
+                      market?.outcomes[0].tokens[1],
+                  )
+                }
               />
             </Box>
           );
@@ -996,18 +1068,22 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             </Box>
           ) : (
             <Box>
-              {market?.outcomes?.map((outcome, index) => (
-                <PredictMarketOutcome
-                  key={
-                    outcome?.id ??
-                    outcome?.tokens?.[0]?.id ??
-                    outcome?.title ??
-                    `outcome-${index}`
-                  }
-                  market={market}
-                  outcome={outcome}
-                />
-              ))}
+              {market &&
+                (market.status === PredictMarketStatus.OPEN
+                  ? openOutcomes
+                  : (market.outcomes ?? [])
+                ).map((outcome, index) => (
+                  <PredictMarketOutcome
+                    key={
+                      outcome?.id ??
+                      outcome?.tokens?.[0]?.id ??
+                      outcome?.title ??
+                      `outcome-${index}`
+                    }
+                    market={market}
+                    outcome={outcome}
+                  />
+                ))}
             </Box>
           )}
         </Box>

@@ -768,6 +768,179 @@ describe('PredictController', () => {
     });
   });
 
+  describe('getPrices', () => {
+    const mockPrices = {
+      'token-1': { BUY: 0.65, SELL: 0.64 },
+      'token-2': { BUY: 0.35, SELL: 0.34 },
+    };
+
+    it('get prices successfully with single provider', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPrices = jest
+          .fn()
+          .mockResolvedValue(mockPrices);
+
+        const result = await controller.getPrices({
+          bookParams: [
+            { token_id: 'token-1', side: 'BUY' as const },
+            { token_id: 'token-2', side: 'BUY' as const },
+          ],
+          providerId: 'polymarket',
+        });
+
+        expect(result).toEqual(mockPrices);
+        expect(controller.state.lastError).toBeNull();
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+        expect(mockPolymarketProvider.getPrices).toHaveBeenCalledWith({
+          bookParams: [
+            { token_id: 'token-1', side: 'BUY' },
+            { token_id: 'token-2', side: 'BUY' },
+          ],
+          providerId: 'polymarket',
+        });
+      });
+    });
+
+    it('default to polymarket provider when providerId is not specified', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPrices = jest
+          .fn()
+          .mockResolvedValue(mockPrices);
+
+        const result = await controller.getPrices({
+          bookParams: [{ token_id: 'token-1', side: 'BUY' as const }],
+        });
+
+        expect(result).toEqual(mockPrices);
+        expect(mockPolymarketProvider.getPrices).toHaveBeenCalled();
+      });
+    });
+
+    it('handle empty bookParams array', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPrices = jest.fn().mockResolvedValue({});
+
+        const result = await controller.getPrices({
+          bookParams: [],
+        });
+
+        expect(result).toEqual({});
+        expect(controller.state.lastError).toBeNull();
+      });
+    });
+
+    it('handle prices with only BUY side', async () => {
+      const mockBuyPrices = {
+        'token-1': { BUY: 0.65 },
+        'token-2': { BUY: 0.35 },
+      };
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPrices = jest
+          .fn()
+          .mockResolvedValue(mockBuyPrices);
+
+        const result = await controller.getPrices({
+          bookParams: [
+            { token_id: 'token-1', side: 'BUY' as const },
+            { token_id: 'token-2', side: 'BUY' as const },
+          ],
+        });
+
+        expect(result).toEqual(mockBuyPrices);
+      });
+    });
+
+    it('handle prices with only SELL side', async () => {
+      const mockSellPrices = {
+        'token-1': { SELL: 0.64 },
+        'token-2': { SELL: 0.34 },
+      };
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPrices = jest
+          .fn()
+          .mockResolvedValue(mockSellPrices);
+
+        const result = await controller.getPrices({
+          bookParams: [
+            { token_id: 'token-1', side: 'SELL' as const },
+            { token_id: 'token-2', side: 'SELL' as const },
+          ],
+        });
+
+        expect(result).toEqual(mockSellPrices);
+      });
+    });
+
+    it('throw error when provider is not available', async () => {
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.getPrices({
+            bookParams: [{ token_id: 'token-1', side: 'BUY' as const }],
+            providerId: 'nonexistent',
+          }),
+        ).rejects.toThrow('Provider not available');
+
+        expect(controller.state.lastError).toBe('Provider not available');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('handle error when getPrices throws', async () => {
+      await withController(async ({ controller }) => {
+        const errorMessage = 'Failed to fetch prices';
+        mockPolymarketProvider.getPrices = jest
+          .fn()
+          .mockRejectedValue(new Error(errorMessage));
+
+        await expect(
+          controller.getPrices({
+            bookParams: [{ token_id: 'token-1', side: 'BUY' as const }],
+          }),
+        ).rejects.toThrow(errorMessage);
+
+        expect(controller.state.lastError).toBe(errorMessage);
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('handle non-Error objects thrown by getPrices', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPrices = jest
+          .fn()
+          .mockRejectedValue('String error');
+
+        await expect(
+          controller.getPrices({
+            bookParams: [{ token_id: 'token-1', side: 'BUY' as const }],
+          }),
+        ).rejects.toBe('String error');
+
+        expect(controller.state.lastError).toBe('PREDICT_UNKNOWN_ERROR');
+      });
+    });
+
+    it('clear previous errors on successful call', async () => {
+      await withController(async ({ controller }) => {
+        // First, set an error state
+        controller.updateStateForTesting((state) => {
+          state.lastError = 'Previous error';
+        });
+
+        mockPolymarketProvider.getPrices = jest
+          .fn()
+          .mockResolvedValue(mockPrices);
+
+        await controller.getPrices({
+          bookParams: [{ token_id: 'token-1', side: 'BUY' as const }],
+        });
+
+        expect(controller.state.lastError).toBeNull();
+      });
+    });
+  });
+
   describe('placeOrder', () => {
     it('place order successfully via provider', async () => {
       const mockResult = {

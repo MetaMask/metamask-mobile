@@ -13,11 +13,14 @@ import {
 } from '../../../../../util/transactions';
 import {
   GetPriceHistoryParams,
+  GetPricesParams,
+  ParsedPricesMap,
   PredictActivity,
   PredictCategory,
   PredictMarket,
   PredictPosition,
   PredictPriceHistoryPoint,
+  PricesResponse,
   Side,
   UnrealizedPnL,
 } from '../../types';
@@ -293,6 +296,72 @@ export class PolymarketProvider implements PredictProvider {
     }
   }
 
+  /**
+   * Get current prices for multiple tokens from CLOB /prices endpoint
+   *
+   * Fetches BUY (best ask) and SELL (best bid) prices for outcome tokens.
+   * BUY = what you'd pay to buy
+   * SELL = what you'd receive to sell
+   *
+   * @param params - Array of book parameters (token_id + side)
+   * @returns Parsed prices map with numeric values
+   */
+  public async getPrices({
+    bookParams,
+  }: GetPricesParams): Promise<ParsedPricesMap> {
+    if (!bookParams || bookParams.length === 0) {
+      throw new Error('bookParams parameter is required and must not be empty');
+    }
+
+    try {
+      const { CLOB_ENDPOINT } = getPolymarketEndpoints();
+
+      const response = await fetch(`${CLOB_ENDPOINT}/prices`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(bookParams),
+      });
+
+      if (!response.ok) {
+        const responseText = await response.text();
+        throw new Error(
+          `POST /prices failed: ${response.status} ${responseText}`,
+        );
+      }
+
+      const data = (await response.json()) as PricesResponse;
+
+      // Parse the response - convert price strings to numbers
+      const parsedPrices: ParsedPricesMap = {};
+      for (const [tokenId, sides] of Object.entries(data)) {
+        parsedPrices[tokenId] = {};
+        if (sides.BUY != null) {
+          parsedPrices[tokenId].BUY = Number(sides.BUY);
+        }
+        if (sides.SELL != null) {
+          parsedPrices[tokenId].SELL = Number(sides.SELL);
+        }
+      }
+
+      return parsedPrices;
+    } catch (error) {
+      DevLogger.log('Error getting prices via Polymarket API:', error);
+
+      // Log to Sentry - this error is swallowed (returns {}) so controller won't see it
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('getPrices', {
+          bookParamsCount: bookParams.length,
+          tokenIds: bookParams.map((bp) => bp.token_id).join(','),
+        }),
+      );
+
+      return {};
+    }
+  }
+
   private addRecentlySoldPositions({
     address,
     positionIds,
@@ -389,7 +458,6 @@ export class PolymarketProvider implements PredictProvider {
         (await this.getAccountState({ ownerAddress: address })).address;
 
       const queryParams = new URLSearchParams({
-        // user: '0x33a90b4f8a9cccfe19059b0954e3f052d93efc00',
         user: predictAddress,
       });
 

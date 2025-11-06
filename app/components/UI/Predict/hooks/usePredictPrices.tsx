@@ -1,0 +1,165 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import { PREDICT_CONSTANTS } from '../constants/errors';
+import { ensureError } from '../utils/predictErrorHandler';
+import { BookParams, ParsedPricesMap, Side } from '../types';
+
+export interface UsePredictPricesOptions {
+  bookParams: BookParams[];
+  providerId?: string;
+  enabled?: boolean;
+  /**
+   * optional polling interval in milliseconds.
+   * if provided, prices will be refetched at this interval.
+   */
+  pollingInterval?: number;
+}
+
+export interface UsePredictPricesResult {
+  prices: ParsedPricesMap;
+  isFetching: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
+
+/**
+ * Hook to fetch and manage current prices for multiple tokens
+ */
+export const usePredictPrices = (
+  options: UsePredictPricesOptions,
+): UsePredictPricesResult => {
+  const {
+    bookParams = [],
+    providerId = 'polymarket',
+    enabled = true,
+    pollingInterval,
+  } = options;
+
+  const [prices, setPrices] = useState<ParsedPricesMap>({});
+  const [isFetching, setIsFetching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const isMountedRef = useRef(true);
+  const pollingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(
+    () => () => {
+      isMountedRef.current = false;
+      if (pollingTimeoutRef.current) {
+        clearTimeout(pollingTimeoutRef.current);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!enabled && isMountedRef.current) {
+      setPrices({});
+      setError(null);
+      setIsFetching(false);
+      if (pollingTimeoutRef.current) {
+        clearTimeout(pollingTimeoutRef.current);
+      }
+    }
+  }, [enabled]);
+
+  const bookParamsKey = JSON.stringify(bookParams);
+
+  const fetchPrices = useCallback(async () => {
+    if (!enabled) {
+      return;
+    }
+
+    if (!bookParams?.length) {
+      if (isMountedRef.current) {
+        setPrices({});
+        setError(null);
+        setIsFetching(false);
+      }
+      return;
+    }
+
+    if (isMountedRef.current) {
+      setIsFetching(true);
+      setError(null);
+    }
+
+    try {
+      if (!Engine || !Engine.context) {
+        throw new Error('Engine not initialized');
+      }
+
+      const controller = Engine.context.PredictController;
+      if (!controller) {
+        throw new Error('Predict controller not available');
+      }
+
+      const fetchedPrices = await controller.getPrices({
+        bookParams,
+        providerId,
+      });
+
+      if (isMountedRef.current) {
+        setPrices(fetchedPrices);
+        setError(null);
+      }
+
+      // set up next poll if polling is enabled
+      if (pollingInterval && isMountedRef.current) {
+        pollingTimeoutRef.current = setTimeout(() => {
+          fetchPrices();
+        }, pollingInterval);
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to fetch prices';
+
+      DevLogger.log('usePredictPrices: Error fetching prices', err);
+
+      Logger.error(ensureError(err), {
+        tags: {
+          feature: PREDICT_CONSTANTS.FEATURE_NAME,
+          component: 'usePredictPrices',
+        },
+        context: {
+          name: 'usePredictPrices',
+          data: {
+            method: 'loadPrices',
+            action: 'prices_load',
+            operation: 'data_fetching',
+            bookParamsCount: bookParams.length,
+            providerId,
+          },
+        },
+      });
+
+      if (isMountedRef.current) {
+        setError(errorMessage);
+        setPrices({});
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setIsFetching(false);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, bookParamsKey, providerId, pollingInterval]);
+
+  useEffect(() => {
+    if (pollingTimeoutRef.current) {
+      clearTimeout(pollingTimeoutRef.current);
+    }
+    fetchPrices();
+  }, [fetchPrices]);
+
+  return {
+    prices,
+    isFetching,
+    error,
+    refetch: fetchPrices,
+  };
+};
+
+export { Side };
