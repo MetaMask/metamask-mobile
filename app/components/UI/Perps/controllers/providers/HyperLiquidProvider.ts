@@ -2417,10 +2417,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       await this.ensureReady();
 
-      await Promise.all([
-        this.ensureBuilderFeeApproval(),
-        this.ensureReferralSet(),
-      ]);
+      // Builder fee approval and referral are set once during ensureReady initialization
 
       // Get current price for the asset
       const infoClient = this.clientService.getInfoClient();
