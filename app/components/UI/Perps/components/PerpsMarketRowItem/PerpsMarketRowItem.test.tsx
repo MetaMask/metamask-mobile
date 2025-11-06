@@ -552,6 +552,11 @@ describe('PerpsMarketRowItem', () => {
   });
 
   describe('Funding Rate Display', () => {
+    beforeEach(() => {
+      // Reset mock to return no live prices for these tests
+      mockUsePerpsLivePrices.mockReturnValue({});
+    });
+
     it('displays funding rate when displayMetric is fundingRate', () => {
       const marketWithFundingRate: PerpsMarketData = {
         ...mockMarketData,
@@ -717,6 +722,7 @@ describe('PerpsMarketRowItem', () => {
     });
 
     it('handles very small funding rates correctly', () => {
+      mockUsePerpsLivePrices.mockReturnValue({});
       const marketWithSmallFundingRate: PerpsMarketData = {
         ...mockMarketData,
         fundingRate: 0.000001, // 0.0001% when formatted
@@ -734,6 +740,7 @@ describe('PerpsMarketRowItem', () => {
     });
 
     it('handles large funding rates correctly', () => {
+      mockUsePerpsLivePrices.mockReturnValue({});
       const marketWithLargeFundingRate: PerpsMarketData = {
         ...mockMarketData,
         fundingRate: 0.1575, // 15.75% when formatted
@@ -751,6 +758,7 @@ describe('PerpsMarketRowItem', () => {
     });
 
     it('uses formatFundingRate utility for consistent formatting', () => {
+      mockUsePerpsLivePrices.mockReturnValue({});
       const marketWithFundingRate: PerpsMarketData = {
         ...mockMarketData,
         fundingRate: 0.0125, // 1.25% when formatted
