@@ -1176,85 +1176,33 @@ export function getWalletNavbarOptions(
 }
 
 /**
- * Function that returns the navigation options containing title and network indicator
+ * Function that returns the navigation options for the Import Asset screen
  *
- * @param {string} title - Title in string format
- * @param {boolean} translate - Boolean that specifies if the title needs translation
  * @param {Object} navigation - Navigation object required to push new views
- * @param {Object} themeColors - Colors from theme
- * @param {boolean} disableNetwork - Boolean that determines if network is accessible from navbar
- * @param {Function} onClose - Onclose navbar function
- * @returns {Object} - Corresponding navbar options containing headerTitle and headerTitle
+ * @param {string} title - Title in string format
+ * @returns {Object} - Corresponding navbar options
  */
-export function getImportTokenNavbarOptions(
-  title,
-  translate,
-  navigation,
-  themeColors,
-  disableNetwork = false,
-  contentOffset = 0,
-  onClose = undefined,
-) {
+export function getImportTokenNavbarOptions(navigation, title, onPress) {
   const innerStyles = StyleSheet.create({
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-    headerShadow: {
-      elevation: 2,
-      shadowColor: themeColors.background.primary,
-      shadowOpacity: contentOffset < 20 ? contentOffset / 100 : 0.2,
-      shadowOffset: { height: 4, width: 0 },
-      shadowRadius: 8,
-    },
-    headerIcon: {
-      color: themeColors.primary.default,
-    },
-    title: {
-      textAlign: 'center',
-      fontWeight: 'bold',
+    headerLeft: {
+      marginHorizontal: 8,
     },
   });
   return {
+    headerTitleAlign: 'center',
     headerTitle: () => (
-      <NavbarTitle
-        disableNetwork={disableNetwork}
-        showSelectedNetwork={false}
-        translate={translate}
-      >
-        {title}
-      </NavbarTitle>
+      <MorphText variant={TextVariant.BodyMDBold}>{title}</MorphText>
     ),
-    headerRight: () => (
-      // eslint-disable-next-line react/jsx-no-bind
-      <TouchableOpacity
-        style={styles.backButton}
-        testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
-      >
+    headerLeft: () => (
+      <View style={innerStyles.headerLeft}>
         <ButtonIcon
-          iconName={IconName.Close}
-          iconColor={IconColor.Default}
-          size={ButtonIconSize.Lg}
-          onPress={
-            onClose
-              ? () => onClose()
-              : () =>
-                  navigation.navigate(Routes.WALLET.HOME, {
-                    screen: Routes.WALLET.TAB_STACK_FLOW,
-                    params: {
-                      screen: Routes.WALLET_VIEW,
-                    },
-                  })
-          }
+          iconName={IconName.ArrowLeft}
+          size={ButtonIconSize.Md}
+          iconProps={{ color: MMDSIconColor.IconDefault }}
+          onPress={onPress ?? (() => navigation.goBack())}
         />
-      </TouchableOpacity>
+      </View>
     ),
-    headerLeft: null,
-    headerStyle: [
-      innerStyles.headerStyle,
-      contentOffset && innerStyles.headerShadow,
-    ],
   };
 }
 
