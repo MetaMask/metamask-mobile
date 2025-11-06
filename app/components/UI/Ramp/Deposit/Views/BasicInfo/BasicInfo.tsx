@@ -75,6 +75,7 @@ const BasicInfo = (): JSX.Element => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPhoneRegisteredError, setIsPhoneRegisteredError] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState<string>('');
 
   const firstNameInputRef = useRef<TextInput>(null);
   const lastNameInputRef = useRef<TextInput>(null);
@@ -200,6 +201,7 @@ const BasicInfo = (): JSX.Element => {
     // Clear any previous errors when retrying
     setError(null);
     setIsPhoneRegisteredError(false);
+    setRegisteredEmail('');
 
     trackEvent('RAMPS_BASIC_INFO_ENTERED', {
       region: selectedRegion?.isoCode || '',
@@ -247,6 +249,7 @@ const BasicInfo = (): JSX.Element => {
           /[\w*]+@[\w*]+(?:\.[\w*]+)*/,
         );
         const email = emailMatch ? emailMatch[0] : '';
+        setRegisteredEmail(email);
         errorMessage = email
           ? strings('deposit.basic_info.phone_already_registered', { email })
           : errorWithCode.error.message;
@@ -304,6 +307,7 @@ const BasicInfo = (): JSX.Element => {
       (value: string) => {
         setError(null);
         setIsPhoneRegisteredError(false);
+        setRegisteredEmail('');
         const currentValue = formData[field] || '';
         const isAutofill = value.length - currentValue.length > 1;
 
@@ -341,10 +345,15 @@ const BasicInfo = (): JSX.Element => {
                   description={error}
                   severity={BannerAlertSeverity.Error}
                   actionButtonProps={
-                    isPhoneRegisteredError
+                    isPhoneRegisteredError && registeredEmail
                       ? {
                           variant: ButtonVariants.Link,
-                          label: strings('deposit.configuration_modal.log_out'),
+                          label: strings(
+                            'deposit.basic_info.login_with_email',
+                            {
+                              email: registeredEmail,
+                            },
+                          ),
                           labelTextVariant: TextVariant.BodySM,
                           onPress: handleLogout,
                           testID: 'basic-info-logout-button',

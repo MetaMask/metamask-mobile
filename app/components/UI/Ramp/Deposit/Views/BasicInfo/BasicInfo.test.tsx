@@ -425,10 +425,14 @@ describe('BasicInfo Component', () => {
         'This phone number is already in use by k****@pedalsup.com. Log in using this email to continue.',
       );
 
+      // Verify logout button with correct label is displayed
       const logoutButton = await screen.findByTestId(
         'basic-info-logout-button',
       );
       expect(logoutButton).toBeOnTheScreen();
+      expect(
+        screen.getByText('Login with k****@pedalsup.com'),
+      ).toBeOnTheScreen();
     });
 
     it('displays formatted error message for errorCode 2020', async () => {
@@ -465,10 +469,14 @@ describe('BasicInfo Component', () => {
         'This phone number is already in use by k****@pedalsup.com. Log in using this email to continue.',
       );
 
+      // Verify logout button with correct label is displayed
       const logoutButton = await screen.findByTestId(
         'basic-info-logout-button',
       );
       expect(logoutButton).toBeOnTheScreen();
+      expect(
+        screen.getByText('Login with k****@pedalsup.com'),
+      ).toBeOnTheScreen();
     });
 
     it('does not display logout button for generic errors', async () => {
