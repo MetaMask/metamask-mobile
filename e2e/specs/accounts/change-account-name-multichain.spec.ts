@@ -94,7 +94,6 @@ describe(
             .withImportedAccountKeyringController()
             .build(),
           restartDevice: true,
-          testSpecificMock,
         },
         async () => {
           await loginToApp();
