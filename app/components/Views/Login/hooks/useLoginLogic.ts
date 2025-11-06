@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo, useCallback } from 'react';
 import { Alert } from 'react-native';
-import { useNavigation , ParamListBase } from '@react-navigation/native';
+import { useNavigation, ParamListBase } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
 import { captureException } from '@sentry/react-native';
