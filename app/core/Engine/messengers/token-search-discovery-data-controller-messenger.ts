@@ -1,27 +1,28 @@
-import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
-import { TokenSearchDiscoveryDataControllerMessenger } from '@metamask/assets-controllers';
-import { RootMessenger } from '../types';
+import { ControllerGetStateAction, Messenger } from '@metamask/base-controller';
+import { CurrencyRateController } from '@metamask/assets-controllers';
 
+type AllowedActions = ControllerGetStateAction<
+  'CurrencyRateController',
+  CurrencyRateController['state']
+>;
+
+export type TokenSearchDiscoveryDataControllerMessenger = ReturnType<
+  typeof getTokenSearchDiscoveryDataControllerMessenger
+>;
+
+/**
+ * Get a messenger restricted to the actions and events that the
+ * token search discovery data controller is allowed to handle.
+ *
+ * @param messenger - The controller messenger to restrict.
+ * @returns The restricted controller messenger.
+ */
 export function getTokenSearchDiscoveryDataControllerMessenger(
-  rootMessenger: RootMessenger,
-): TokenSearchDiscoveryDataControllerMessenger {
-  const messenger = new Messenger<
-    'TokenSearchDiscoveryDataController',
-    MessengerActions<TokenSearchDiscoveryDataControllerMessenger>,
-    MessengerEvents<TokenSearchDiscoveryDataControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'TokenSearchDiscoveryDataController',
-    parent: rootMessenger,
+  messenger: Messenger<AllowedActions, never>,
+) {
+  return messenger.getRestricted({
+    name: 'TokenSearchDiscoveryDataController',
+    allowedActions: ['CurrencyRateController:getState'],
+    allowedEvents: [],
   });
-  rootMessenger.delegate({
-    actions: ['CurrencyRateController:getState'],
-    events: [],
-    messenger,
-  });
-  return messenger;
 }

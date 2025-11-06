@@ -1,8 +1,6 @@
 import { ControllerInitFunction } from '../types';
-import {
-  PhishingController,
-  type PhishingControllerMessenger,
-} from '@metamask/phishing-controller';
+import { PhishingController } from '@metamask/phishing-controller';
+import { PhishingControllerMessenger } from '../messengers/phishing-controller-messenger';
 import { isProductSafetyDappScanningEnabled } from '../../../util/phishingDetection';
 
 /**

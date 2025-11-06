@@ -12,7 +12,6 @@ import React, {
   useRef,
 } from 'react';
 import { ScrollView, View, RefreshControl, Linking } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -30,8 +29,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
-  PerpsTutorialSelectorsIDs,
-  PerpsMarketTabsSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsMarketHeader from '../../components/PerpsMarketHeader';
 import type {
@@ -56,9 +53,7 @@ import {
   usePerpsConnection,
   usePerpsTrading,
   usePerpsNetworkManagement,
-  usePerpsNavigation,
 } from '../../hooks';
-import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import {
   usePerpsDataMonitor,
   type DataMonitorParams,
@@ -67,11 +62,7 @@ import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsLiveOrders, usePerpsLiveAccount } from '../../hooks/stream';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
 import type { PerpsTabId } from '../../components/PerpsMarketTabs/PerpsMarketTabs.types';
-import PerpsOICapWarning from '../../components/PerpsOICapWarning';
 import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
-import PerpsNavigationCard, {
-  type NavigationItem,
-} from '../../components/PerpsNavigationCard/PerpsNavigationCard';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
 import TradingViewChart, {
   type TradingViewChartRef,
@@ -80,21 +71,12 @@ import PerpsCandlePeriodSelector from '../../components/PerpsCandlePeriodSelecto
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
 import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
-import {
-  selectPerpsEligibility,
-  createSelectIsWatchlistMarket,
-} from '../../selectors/perpsController';
-import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
-import { getMarketHoursStatus } from '../../utils/marketHours';
+import { selectPerpsEligibility } from '../../selectors/perpsController';
+import { useSelector } from 'react-redux';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
 } from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
-import Engine from '../../../../../core/Engine';
-import { setPerpsChartPreferredCandlePeriod } from '../../../../../actions/settings';
-import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
-
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
   initialTab?: PerpsTabId;
@@ -104,58 +86,16 @@ interface MarketDetailsRouteParams {
 }
 
 const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
-  // Use centralized navigation hook for all Perps navigation
-  const {
-    navigateToHome,
-    navigateToActivity,
-    navigateToOrder,
-    navigateToTutorial,
-    navigateBack,
-    canGoBack,
-  } = usePerpsNavigation();
-
-  // Keep direct navigation for configuration methods (setOptions, setParams)
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
   const { market, initialTab, monitoringIntent, source } = route.params || {};
   const { track } = usePerpsEventTracking();
-  const dispatch = useDispatch();
 
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
-  const [isMarketHoursModalVisible, setIsMarketHoursModalVisible] =
-    useState(false);
 
   const isEligible = useSelector(selectPerpsEligibility);
-
-  // Check if current market is in watchlist
-  const selectIsWatchlist = useMemo(
-    () => createSelectIsWatchlistMarket(market?.symbol || ''),
-    [market?.symbol],
-  );
-  const isWatchlistFromRedux = useSelector(selectIsWatchlist);
-
-  // Optimistic local state for instant UI feedback
-  const [optimisticWatchlist, setOptimisticWatchlist] = useState<
-    boolean | null
-  >(null);
-  const isWatchlist = optimisticWatchlist ?? isWatchlistFromRedux;
-
-  // Reset optimistic state when market changes
-  useEffect(() => {
-    setOptimisticWatchlist(null);
-  }, [market?.symbol]);
-
-  // Clear optimistic state once Redux has caught up
-  useEffect(() => {
-    if (
-      optimisticWatchlist !== null &&
-      optimisticWatchlist === isWatchlistFromRedux
-    ) {
-      setOptimisticWatchlist(null);
-    }
-  }, [isWatchlistFromRedux, optimisticWatchlist]);
 
   // Set navigation header with proper back button
   useEffect(() => {
@@ -166,10 +106,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     }
   }, [navigation, market]);
 
-  // Get persisted candle period preference from Redux store
-  const selectedCandlePeriod = useSelector(
-    selectPerpsChartPreferredCandlePeriod,
-  );
+  const [selectedCandlePeriod, setSelectedCandlePeriod] =
+    useState<CandlePeriod>(CandlePeriod.THREE_MINUTES);
   const [visibleCandleCount, setVisibleCandleCount] = useState<number>(45);
   const [isMoreCandlePeriodsVisible, setIsMoreCandlePeriodsVisible] =
     useState(false);
@@ -186,9 +124,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   usePerpsConnection();
   const { depositWithConfirmation } = usePerpsTrading();
   const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
-
-  // Check if market is at open interest cap
-  const { isAtCap: isAtOICap } = usePerpsOICap(market?.symbol);
 
   // Programmatic tab control state for data-driven navigation
   const [programmaticActiveTab, setProgrammaticActiveTab] = useState<
@@ -228,7 +163,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     enabled: !!(monitoringIntent && market && monitoringIntent.asset),
   });
   // Get real-time open orders via WebSocket
-  const { orders: ordersData } = usePerpsLiveOrders({});
+  const ordersData = usePerpsLiveOrders({});
   // Filter orders for the current market
   const openOrders = useMemo(() => {
     if (!ordersData?.length || !market?.symbol) return [];
@@ -255,22 +190,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     [openOrders],
   );
 
-  const orderChildOrderIds = useMemo(
-    () =>
-      openOrders
-        .filter((order) => order.takeProfitOrderId || order.stopLossOrderId)
-        .reduce((acc, order) => {
-          if (order.takeProfitOrderId) {
-            acc.push(order.takeProfitOrderId);
-          }
-          if (order.stopLossOrderId) {
-            acc.push(order.stopLossOrderId);
-          }
-          return acc;
-        }, [] as string[]),
-    [openOrders],
-  );
-
   // Determine which TP/SL lines to show on the chart
   const selectedOrderTPSL = useMemo(() => {
     // Find the active TP order
@@ -280,10 +199,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     // Only use default TP if no TP has ever been explicitly selected
     if (!activeTPOrder && activeTPOrderId === null) {
       activeTPOrder = ordersWithTPSL.find((order) => {
+        if (order.takeProfitPrice) return true;
         if (
           order.isTrigger &&
-          order.detailedOrderType?.toLowerCase().includes('take profit') &&
-          !orderChildOrderIds.includes(order.orderId)
+          order.detailedOrderType?.toLowerCase().includes('take profit')
         )
           return true;
         return false;
@@ -297,10 +216,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     // Only use default SL if no SL has ever been explicitly selected
     if (!activeSLOrder && activeSLOrderId === null) {
       activeSLOrder = ordersWithTPSL.find((order) => {
+        if (order.stopLossPrice) return true;
         if (
           order.isTrigger &&
-          order.detailedOrderType?.toLowerCase().includes('stop') &&
-          !orderChildOrderIds.includes(order.orderId)
+          order.detailedOrderType?.toLowerCase().includes('stop')
         )
           return true;
         return false;
@@ -314,7 +233,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       activeSLOrderId: activeSLOrder?.orderId,
     };
     return result;
-  }, [ordersWithTPSL, activeTPOrderId, activeSLOrderId, orderChildOrderIds]);
+  }, [ordersWithTPSL, activeTPOrderId, activeSLOrderId]);
 
   const hasZeroBalance = useMemo(
     () => parseFloat(account?.availableBalance || '0') === 0,
@@ -324,7 +243,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Get comprehensive market statistics
   const marketStats = usePerpsMarketStats(market?.symbol || '');
 
-  const { candleData, isLoadingHistory, refreshCandleData, hasHistoricalData } =
+  const { candleData, isLoadingHistory, refreshCandleData } =
     usePerpsPositionData({
       coin: market?.symbol || '',
       selectedDuration: TimeDuration.YEAR_TO_DATE,
@@ -337,29 +256,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       asset: market?.symbol || '',
       loadOnMount: true,
     });
-
-  // Compute TP/SL lines for the chart based on existing position and selected orders
-  const tpslLines = useMemo(() => {
-    if (existingPosition) {
-      return {
-        entryPrice: existingPosition.entryPrice,
-        takeProfitPrice:
-          selectedOrderTPSL.takeProfitPrice || existingPosition.takeProfitPrice,
-        stopLossPrice:
-          selectedOrderTPSL.stopLossPrice || existingPosition.stopLossPrice,
-        liquidationPrice: existingPosition.liquidationPrice || undefined,
-      };
-    }
-
-    if (selectedOrderTPSL.takeProfitPrice || selectedOrderTPSL.stopLossPrice) {
-      return {
-        takeProfitPrice: selectedOrderTPSL.takeProfitPrice,
-        stopLossPrice: selectedOrderTPSL.stopLossPrice,
-      };
-    }
-
-    return undefined;
-  }, [existingPosition, selectedOrderTPSL]);
 
   // Track Perps asset screen load performance with simplified API
   usePerpsMeasurement({
@@ -398,8 +294,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   const handleCandlePeriodChange = useCallback(
     (newPeriod: CandlePeriod) => {
-      // Persist the preference to Redux store
-      dispatch(setPerpsChartPreferredCandlePeriod(newPeriod));
+      setSelectedCandlePeriod(newPeriod);
 
       // Track chart interaction
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -412,7 +307,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       // Zoom to latest candle when period changes
       chartRef.current?.zoomToLatestCandle(visibleCandleCount);
     },
-    [market, track, visibleCandleCount, dispatch],
+    [market, track, visibleCandleCount],
   );
 
   const handleMorePress = useCallback(() => {
@@ -428,6 +323,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
     try {
       // Reset chart to default state (like initial navigation)
+      setSelectedCandlePeriod(CandlePeriod.THREE_MINUTES);
       setVisibleCandleCount(45);
 
       // Reset chart view to default position
@@ -494,38 +390,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const isNotificationsEnabled = isNotificationsFeatureEnabled();
 
   const handleBackPress = () => {
-    if (canGoBack) {
-      navigateBack();
+    if (navigation.canGoBack()) {
+      navigation.goBack();
     } else {
       // Fallback to markets list if no previous screen
-      navigateToHome(source);
+      navigation.navigate(Routes.PERPS.MARKETS, { source });
     }
   };
-
-  const handleWatchlistPress = useCallback(() => {
-    if (!market?.symbol) return;
-
-    // Optimistic update - instant UI feedback
-    const newWatchlistState = !isWatchlist;
-    setOptimisticWatchlist(newWatchlistState);
-
-    // Actual state update
-    const controller = Engine.context.PerpsController;
-    controller.toggleWatchlistMarket(market.symbol);
-
-    // Track watchlist toggle event
-    const watchlistCount = controller.getWatchlistMarkets().length;
-
-    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PerpsEventProperties.INTERACTION_TYPE]: 'watchlist_toggled',
-      [PerpsEventProperties.ACTION_TYPE]: newWatchlistState
-        ? 'add_to_watchlist'
-        : 'remove_from_watchlist',
-      [PerpsEventProperties.ASSET]: market.symbol,
-      [PerpsEventProperties.SOURCE]: 'asset_details',
-      watchlist_count: watchlistCount,
-    });
-  }, [market, isWatchlist, track]);
 
   const handleLongPress = () => {
     if (!isEligible) {
@@ -533,7 +404,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       return;
     }
 
-    navigateToOrder({
+    navigation.navigate(Routes.PERPS.ORDER, {
       direction: 'long',
       asset: market.symbol,
     });
@@ -545,7 +416,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       return;
     }
 
-    navigateToOrder({
+    navigation.navigate(Routes.PERPS.ORDER, {
       direction: 'short',
       asset: market.symbol,
     });
@@ -581,24 +452,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     });
   }, []);
 
-  const handleMarketHoursInfoPress = useCallback(() => {
-    setIsMarketHoursModalVisible(true);
-  }, []);
-
-  // Determine market hours content key based on current status - recalculated on each render to stay current
-  const marketHoursContentKey = (() => {
-    const status = getMarketHoursStatus();
-    return status.isOpen ? 'market_hours' : 'after_hours_trading';
-  })();
-
-  // Determine risk disclaimer source and HIP type based on market
-  const riskDisclaimerParams = useMemo(() => {
-    const isHip3 = !!market?.marketSource;
-    return {
-      source: isHip3 ? market.marketSource : 'Hyperliquid',
-    };
-  }, [market?.marketSource]);
-
   // Determine if any action buttons will be visible
   const hasLongShortButtons = useMemo(
     () => !isLoadingPosition && !hasZeroBalance,
@@ -610,25 +463,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     [hasZeroBalance, isLoadingPosition],
   );
 
-  // Define navigation items for the card
-  const navigationItems: NavigationItem[] = useMemo(
-    () => [
-      {
-        label: strings('perps.tutorial.card.title'),
-        onPress: () => navigateToTutorial(),
-        testID: PerpsTutorialSelectorsIDs.TUTORIAL_CARD,
-      },
-      {
-        label: strings('perps.market.go_to_activity'),
-        onPress: () => navigateToActivity(),
-        testID: PerpsMarketTabsSelectorsIDs.ACTIVITY_LINK,
-      },
-    ],
-    [navigateToTutorial, navigateToActivity],
-  );
-
   // Simplified styles - no complex calculations needed
-  const { styles } = useStyles(createStyles, {});
+  const { styles, theme } = useStyles(createStyles, {});
 
   if (!market) {
     return (
@@ -655,8 +491,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         <PerpsMarketHeader
           market={market}
           onBackPress={handleBackPress}
-          onFavoritePress={handleWatchlistPress}
-          isFavorite={isWatchlist}
+          onActivityPress={() =>
+            navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+              screen: Routes.TRANSACTIONS_VIEW,
+              params: { redirectToPerpsTransactions: true },
+            })
+          }
           testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
         />
       </View>
@@ -669,27 +509,44 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           showsVerticalScrollIndicator={false}
           testID={PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={theme.colors.icon.default}
+              colors={[theme.colors.icon.default]} // Android
+            />
           }
         >
           {/* TradingView Chart Section */}
           <View style={[styles.section, styles.chartSection]}>
-            {hasHistoricalData ? (
-              <TradingViewChart
-                ref={chartRef}
-                candleData={candleData}
-                height={350}
-                visibleCandleCount={visibleCandleCount}
-                tpslLines={tpslLines}
-                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
-              />
-            ) : (
-              <Skeleton
-                height={350}
-                width="100%"
-                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`}
-              />
-            )}
+            <TradingViewChart
+              ref={chartRef}
+              candleData={candleData}
+              height={350}
+              visibleCandleCount={visibleCandleCount}
+              tpslLines={
+                existingPosition
+                  ? {
+                      entryPrice: existingPosition.entryPrice,
+                      takeProfitPrice:
+                        selectedOrderTPSL.takeProfitPrice ||
+                        existingPosition.takeProfitPrice,
+                      stopLossPrice:
+                        selectedOrderTPSL.stopLossPrice ||
+                        existingPosition.stopLossPrice,
+                      liquidationPrice:
+                        existingPosition.liquidationPrice || undefined,
+                    }
+                  : selectedOrderTPSL.takeProfitPrice ||
+                    selectedOrderTPSL.stopLossPrice
+                  ? {
+                      takeProfitPrice: selectedOrderTPSL.takeProfitPrice,
+                      stopLossPrice: selectedOrderTPSL.stopLossPrice,
+                    }
+                  : undefined
+              }
+              testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
+            />
 
             {/* Candle Period Selector */}
             <PerpsCandlePeriodSelector
@@ -700,24 +557,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             />
           </View>
 
-          {/* OI Cap Warning - Shows when market is at capacity */}
-          {market?.symbol && isAtOICap && (
-            <PerpsOICapWarning symbol={market.symbol} variant="banner" />
-          )}
-
-          {/* Market Hours Banner - Hidden when OI cap warning is showing */}
-          {!isAtOICap && (
-            <PerpsMarketHoursBanner
-              marketType={market?.marketType}
-              onInfoPress={handleMarketHoursInfoPress}
-              testID={PerpsMarketDetailsViewSelectorsIDs.MARKET_HOURS_BANNER}
-            />
-          )}
-
           {/* Market Tabs Section */}
-          <View style={styles.tabsSection}>
+          <View style={styles.section}>
             <PerpsMarketTabs
               symbol={market?.symbol || ''}
+              marketStats={marketStats}
+              position={existingPosition}
+              isLoadingPosition={isLoadingPosition}
+              unfilledOrders={openOrders}
               initialTab={initialTab}
               activeTabId={programmaticActiveTab || undefined}
               nextFundingTime={market?.nextFundingTime}
@@ -729,11 +576,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             />
           </View>
 
-          {/* Navigation Card Section */}
-          <View style={styles.section}>
-            <PerpsNavigationCard items={navigationItems} />
-          </View>
-
           {/* Risk Disclaimer Section */}
           <View style={styles.section}>
             <Text
@@ -741,13 +583,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               variant={TextVariant.BodyXS}
               color={TextColor.Alternative}
             >
-              {strings('perps.risk_disclaimer', riskDisclaimerParams)}{' '}
+              {strings('perps.risk_disclaimer')}{' '}
               <Text
                 variant={TextVariant.BodyXS}
                 color={TextColor.Alternative}
                 onPress={handleTradingViewPress}
               >
-                TradingView.
+                Trading View.
               </Text>
             </Text>
           </View>
@@ -755,7 +597,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       </View>
 
       {/* Fixed Actions Footer */}
-      {(hasAddFundsButton || (hasLongShortButtons && !isAtOICap)) && (
+      {(hasAddFundsButton || hasLongShortButtons) && (
         <View style={styles.actionsFooter}>
           {hasAddFundsButton && (
             <View style={styles.singleActionContainer}>
@@ -773,7 +615,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             </View>
           )}
 
-          {hasLongShortButtons && !isAtOICap && (
+          {hasLongShortButtons && (
             <View style={styles.actionsContainer}>
               <View style={styles.actionButtonWrapper}>
                 <ButtonSemantic
@@ -781,7 +623,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                   onPress={handleLongPress}
                   isFullWidth
                   size={ButtonSizeRNDesignSystem.Lg}
-                  isDisabled={isAtOICap}
                   testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
                 >
                   {strings('perps.market.long')}
@@ -794,7 +635,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                   onPress={handleShortPress}
                   isFullWidth
                   size={ButtonSizeRNDesignSystem.Lg}
-                  isDisabled={isAtOICap}
                   testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
                 >
                   {strings('perps.market.short')}
@@ -824,18 +664,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           contentKey={'geo_block'}
           testID={
             PerpsMarketDetailsViewSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP
-          }
-        />
-      )}
-
-      {/* Market Hours Bottom Sheet */}
-      {isMarketHoursModalVisible && (
-        <PerpsBottomSheetTooltip
-          isVisible
-          onClose={() => setIsMarketHoursModalVisible(false)}
-          contentKey={marketHoursContentKey}
-          testID={
-            PerpsMarketDetailsViewSelectorsIDs.MARKET_HOURS_BOTTOM_SHEET_TOOLTIP
           }
         />
       )}

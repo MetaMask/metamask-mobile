@@ -1,22 +1,15 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import React from 'react';
-import {
-  usePerpsLivePositions,
-  enrichPositionsWithLivePnL,
-} from './usePerpsLivePositions';
-import type { Position, PriceUpdate } from '../../controllers/types';
+import { usePerpsLivePositions } from './index';
+import type { Position } from '../../controllers/types';
 
 // Mock the stream provider
-const mockPositionsSubscribe = jest.fn();
-const mockPricesSubscribe = jest.fn();
+const mockSubscribe = jest.fn();
 
 jest.mock('../../providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => ({
     positions: {
-      subscribe: mockPositionsSubscribe,
-    },
-    prices: {
-      subscribe: mockPricesSubscribe,
+      subscribe: mockSubscribe,
     },
   })),
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
@@ -60,86 +53,39 @@ describe('usePerpsLivePositions', () => {
     it('subscribes to positions on mount with specified throttle', () => {
       // Arrange
       const throttleMs = 3000;
-      mockPositionsSubscribe.mockReturnValue(jest.fn());
-      mockPricesSubscribe.mockReturnValue(jest.fn());
+      mockSubscribe.mockReturnValue(jest.fn());
 
       // Act
       renderHook(() => usePerpsLivePositions({ throttleMs }));
 
       // Assert
-      expect(mockPositionsSubscribe).toHaveBeenCalledWith({
+      expect(mockSubscribe).toHaveBeenCalledWith({
         callback: expect.any(Function),
         throttleMs,
       });
     });
 
-    it('does NOT subscribe to prices by default (useLivePnl: false)', () => {
+    it('unsubscribes on unmount to prevent memory leaks', () => {
       // Arrange
-      mockPositionsSubscribe.mockReturnValue(jest.fn());
-      mockPricesSubscribe.mockReturnValue(jest.fn());
-
-      // Act
-      renderHook(() => usePerpsLivePositions());
-
-      // Assert - prices should NOT be subscribed
-      expect(mockPricesSubscribe).not.toHaveBeenCalled();
-    });
-
-    it('subscribes to prices only when useLivePnl: true', () => {
-      // Arrange
-      mockPositionsSubscribe.mockReturnValue(jest.fn());
-      mockPricesSubscribe.mockReturnValue(jest.fn());
-
-      // Act
-      renderHook(() => usePerpsLivePositions({ useLivePnl: true }));
-
-      // Assert
-      expect(mockPricesSubscribe).toHaveBeenCalledWith({
-        callback: expect.any(Function),
-        throttleMs: 0,
-      });
-    });
-
-    it('unsubscribes from positions on unmount', () => {
-      // Arrange
-      const mockPositionsUnsubscribe = jest.fn();
-      mockPositionsSubscribe.mockReturnValue(mockPositionsUnsubscribe);
+      const mockUnsubscribe = jest.fn();
+      mockSubscribe.mockReturnValue(mockUnsubscribe);
 
       // Act
       const { unmount } = renderHook(() => usePerpsLivePositions());
       unmount();
 
       // Assert
-      expect(mockPositionsUnsubscribe).toHaveBeenCalled();
-    });
-
-    it('unsubscribes from positions and prices on unmount when useLivePnl: true', () => {
-      // Arrange
-      const mockPositionsUnsubscribe = jest.fn();
-      const mockPricesUnsubscribe = jest.fn();
-      mockPositionsSubscribe.mockReturnValue(mockPositionsUnsubscribe);
-      mockPricesSubscribe.mockReturnValue(mockPricesUnsubscribe);
-
-      // Act
-      const { unmount } = renderHook(() =>
-        usePerpsLivePositions({ useLivePnl: true }),
-      );
-      unmount();
-
-      // Assert
-      expect(mockPositionsUnsubscribe).toHaveBeenCalled();
-      expect(mockPricesUnsubscribe).toHaveBeenCalled();
+      expect(mockUnsubscribe).toHaveBeenCalled();
     });
   });
 
   describe('Position Updates', () => {
     it('updates positions and clears loading state when data arrives', async () => {
       let capturedCallback: (positions: Position[]) => void = jest.fn();
-      mockPositionsSubscribe.mockImplementation((params) => {
+      mockSubscribe.mockImplementation((params) => {
         capturedCallback = params.callback;
         return jest.fn();
       });
-      mockPricesSubscribe.mockReturnValue(jest.fn());
 
       const { result } = renderHook(() => usePerpsLivePositions());
 
@@ -169,14 +115,13 @@ describe('usePerpsLivePositions', () => {
 
     it('uses no throttling by default for instant position updates', () => {
       // Arrange
-      mockPositionsSubscribe.mockReturnValue(jest.fn());
-      mockPricesSubscribe.mockReturnValue(jest.fn());
+      mockSubscribe.mockReturnValue(jest.fn());
 
       // Act
       renderHook(() => usePerpsLivePositions());
 
-      // Assert
-      expect(mockPositionsSubscribe).toHaveBeenCalledWith({
+      // Assert - No throttle means instant updates
+      expect(mockSubscribe).toHaveBeenCalledWith({
         callback: expect.any(Function),
         throttleMs: 0,
       });
@@ -185,9 +130,8 @@ describe('usePerpsLivePositions', () => {
     it('resubscribes when throttle value changes', () => {
       const mockUnsubscribe1 = jest.fn();
       const mockUnsubscribe2 = jest.fn();
-      mockPricesSubscribe.mockReturnValue(jest.fn());
 
-      mockPositionsSubscribe
+      mockSubscribe
         .mockReturnValueOnce(mockUnsubscribe1)
         .mockReturnValueOnce(mockUnsubscribe2);
 
@@ -198,7 +142,7 @@ describe('usePerpsLivePositions', () => {
         },
       );
 
-      expect(mockPositionsSubscribe).toHaveBeenCalledWith({
+      expect(mockSubscribe).toHaveBeenCalledWith({
         callback: expect.any(Function),
         throttleMs: 0,
       });
@@ -206,9 +150,9 @@ describe('usePerpsLivePositions', () => {
       // Change throttle
       rerender({ throttleMs: 2000 });
 
-      // Verify old subscription cleaned up and new one created
+      // Should resubscribe with new throttle
       expect(mockUnsubscribe1).toHaveBeenCalled();
-      expect(mockPositionsSubscribe).toHaveBeenCalledWith({
+      expect(mockSubscribe).toHaveBeenCalledWith({
         callback: expect.any(Function),
         throttleMs: 2000,
       });
@@ -216,11 +160,10 @@ describe('usePerpsLivePositions', () => {
 
     it('handles empty positions array without unnecessary re-renders', async () => {
       let capturedCallback: (positions: Position[]) => void = jest.fn();
-      mockPositionsSubscribe.mockImplementation((params) => {
+      mockSubscribe.mockImplementation((params) => {
         capturedCallback = params.callback;
         return jest.fn();
       });
-      mockPricesSubscribe.mockReturnValue(jest.fn());
 
       const { result } = renderHook(() => usePerpsLivePositions());
 
@@ -239,20 +182,19 @@ describe('usePerpsLivePositions', () => {
     it('handles null updates gracefully by maintaining loading state', async () => {
       // Arrange
       let capturedCallback: (positions: Position[] | null) => void = jest.fn();
-      mockPositionsSubscribe.mockImplementation((params) => {
+      mockSubscribe.mockImplementation((params) => {
         capturedCallback = params.callback;
         return jest.fn();
       });
-      mockPricesSubscribe.mockReturnValue(jest.fn());
 
       const { result } = renderHook(() => usePerpsLivePositions());
 
-      // Act
+      // Act - Send null update (indicates no cached data yet)
       act(() => {
         capturedCallback(null);
       });
 
-      // Assert
+      // Assert - Should maintain loading state when null is received
       expect(result.current).toEqual({
         positions: [],
         isInitialLoading: true,
@@ -262,27 +204,28 @@ describe('usePerpsLivePositions', () => {
     it('transitions from loading to loaded when receiving valid positions after null', async () => {
       // Arrange
       let capturedCallback: (positions: Position[] | null) => void = jest.fn();
-      mockPositionsSubscribe.mockImplementation((params) => {
+      mockSubscribe.mockImplementation((params) => {
         capturedCallback = params.callback;
         return jest.fn();
       });
-      mockPricesSubscribe.mockReturnValue(jest.fn());
 
       const { result } = renderHook(() => usePerpsLivePositions());
       const validPositions: Position[] = [mockPosition];
 
-      // Act
+      // Act - First send null, then valid positions
       act(() => {
         capturedCallback(null);
       });
 
+      // Assert - Still loading after null
       expect(result.current.isInitialLoading).toBe(true);
 
+      // Act - Send valid positions
       act(() => {
         capturedCallback(validPositions);
       });
 
-      // Assert
+      // Assert - Should be loaded with positions
       await waitFor(() => {
         expect(result.current).toEqual({
           positions: validPositions,
@@ -293,14 +236,14 @@ describe('usePerpsLivePositions', () => {
 
     it('replaces entire positions array on each update', async () => {
       let capturedCallback: (positions: Position[]) => void = jest.fn();
-      mockPositionsSubscribe.mockImplementation((params) => {
+      mockSubscribe.mockImplementation((params) => {
         capturedCallback = params.callback;
         return jest.fn();
       });
-      mockPricesSubscribe.mockReturnValue(jest.fn());
 
       const { result } = renderHook(() => usePerpsLivePositions());
 
+      // First update
       const firstPositions: Position[] = [mockPosition];
       act(() => {
         capturedCallback(firstPositions);
@@ -313,6 +256,7 @@ describe('usePerpsLivePositions', () => {
         });
       });
 
+      // Second update with different positions
       const secondPositions: Position[] = [
         { ...mockPosition, coin: 'ETH-PERP', size: '5.0' },
         { ...mockPosition, coin: 'SOL-PERP', size: '20.0' },
@@ -330,417 +274,41 @@ describe('usePerpsLivePositions', () => {
         expect(result.current.positions).not.toContain(mockPosition);
       });
     });
-  });
 
-  describe('Live PnL Calculations', () => {
-    it('recalculates PnL when price updates arrive', async () => {
-      let positionsCallback: (positions: Position[]) => void = jest.fn();
-      let pricesCallback: (prices: Record<string, PriceUpdate>) => void =
-        jest.fn();
-
-      mockPositionsSubscribe.mockImplementation((params) => {
-        positionsCallback = params.callback;
+    it('updates position values when PnL or other fields change', async () => {
+      let capturedCallback: (positions: Position[]) => void = jest.fn();
+      mockSubscribe.mockImplementation((params) => {
+        capturedCallback = params.callback;
         return jest.fn();
       });
 
-      mockPricesSubscribe.mockImplementation((params) => {
-        pricesCallback = params.callback;
-        return jest.fn();
-      });
+      const { result } = renderHook(() => usePerpsLivePositions());
 
-      const { result } = renderHook(() =>
-        usePerpsLivePositions({ useLivePnl: true }),
-      );
-
-      const position: Position = {
-        ...mockPosition,
-        entryPrice: '50000',
-        size: '1.0',
-        marginUsed: '5000',
-      };
-
+      // Initial position
+      const initialPosition: Position = { ...mockPosition };
       act(() => {
-        positionsCallback([position]);
-      });
-
-      const priceUpdate: Record<string, PriceUpdate> = {
-        'BTC-PERP': {
-          coin: 'BTC-PERP',
-          price: '52000',
-          markPrice: '52000',
-          timestamp: Date.now(),
-        },
-      };
-
-      act(() => {
-        pricesCallback(priceUpdate);
+        capturedCallback([initialPosition]);
       });
 
       await waitFor(() => {
-        const updatedPosition = result.current.positions[0];
-        expect(updatedPosition.unrealizedPnl).toBe('2000');
-        expect(updatedPosition.returnOnEquity).toBe('0.4');
-      });
-    });
-
-    it('uses mark price over mid price when available', async () => {
-      let positionsCallback: (positions: Position[]) => void = jest.fn();
-      let pricesCallback: (prices: Record<string, PriceUpdate>) => void =
-        jest.fn();
-
-      mockPositionsSubscribe.mockImplementation((params) => {
-        positionsCallback = params.callback;
-        return jest.fn();
+        expect(result.current.positions[0].unrealizedPnl).toBe('1000');
       });
 
-      mockPricesSubscribe.mockImplementation((params) => {
-        pricesCallback = params.callback;
-        return jest.fn();
-      });
-
-      const { result } = renderHook(() =>
-        usePerpsLivePositions({ useLivePnl: true }),
-      );
-
-      const position: Position = {
+      // Update with changed PnL
+      const updatedPosition: Position = {
         ...mockPosition,
-        entryPrice: '50000',
-        size: '1.0',
-        marginUsed: '10000',
+        unrealizedPnl: '2000',
+        positionValue: '52000',
       };
 
       act(() => {
-        positionsCallback([position]);
-      });
-
-      const priceUpdate: Record<string, PriceUpdate> = {
-        'BTC-PERP': {
-          coin: 'BTC-PERP',
-          price: '51000',
-          markPrice: '51500',
-          timestamp: Date.now(),
-        },
-      };
-
-      act(() => {
-        pricesCallback(priceUpdate);
+        capturedCallback([updatedPosition]);
       });
 
       await waitFor(() => {
-        const updatedPosition = result.current.positions[0];
-        expect(updatedPosition.unrealizedPnl).toBe('1500');
+        expect(result.current.positions[0].unrealizedPnl).toBe('2000');
+        expect(result.current.positions[0].positionValue).toBe('52000');
       });
-    });
-
-    it('falls back to mid price when mark price is unavailable', async () => {
-      let positionsCallback: (positions: Position[]) => void = jest.fn();
-      let pricesCallback: (prices: Record<string, PriceUpdate>) => void =
-        jest.fn();
-
-      mockPositionsSubscribe.mockImplementation((params) => {
-        positionsCallback = params.callback;
-        return jest.fn();
-      });
-
-      mockPricesSubscribe.mockImplementation((params) => {
-        pricesCallback = params.callback;
-        return jest.fn();
-      });
-
-      const { result } = renderHook(() =>
-        usePerpsLivePositions({ useLivePnl: true }),
-      );
-
-      const position: Position = {
-        ...mockPosition,
-        entryPrice: '50000',
-        size: '1.0',
-        marginUsed: '10000',
-      };
-
-      act(() => {
-        positionsCallback([position]);
-      });
-
-      const priceUpdate: Record<string, PriceUpdate> = {
-        'BTC-PERP': {
-          coin: 'BTC-PERP',
-          price: '51000',
-          timestamp: Date.now(),
-        },
-      };
-
-      act(() => {
-        pricesCallback(priceUpdate);
-      });
-
-      await waitFor(() => {
-        const updatedPosition = result.current.positions[0];
-        expect(updatedPosition.unrealizedPnl).toBe('1000');
-      });
-    });
-
-    it('handles short positions with negative size', async () => {
-      let positionsCallback: (positions: Position[]) => void = jest.fn();
-      let pricesCallback: (prices: Record<string, PriceUpdate>) => void =
-        jest.fn();
-
-      mockPositionsSubscribe.mockImplementation((params) => {
-        positionsCallback = params.callback;
-        return jest.fn();
-      });
-
-      mockPricesSubscribe.mockImplementation((params) => {
-        pricesCallback = params.callback;
-        return jest.fn();
-      });
-
-      const { result } = renderHook(() =>
-        usePerpsLivePositions({ useLivePnl: true }),
-      );
-
-      const shortPosition: Position = {
-        ...mockPosition,
-        entryPrice: '50000',
-        size: '-1.0',
-        marginUsed: '5000',
-      };
-
-      act(() => {
-        positionsCallback([shortPosition]);
-      });
-
-      const priceUpdate: Record<string, PriceUpdate> = {
-        'BTC-PERP': {
-          coin: 'BTC-PERP',
-          price: '48000',
-          markPrice: '48000',
-          timestamp: Date.now(),
-        },
-      };
-
-      act(() => {
-        pricesCallback(priceUpdate);
-      });
-
-      await waitFor(() => {
-        const updatedPosition = result.current.positions[0];
-        expect(updatedPosition.unrealizedPnl).toBe('2000');
-        expect(updatedPosition.returnOnEquity).toBe('0.4');
-      });
-    });
-
-    it('preserves original PnL when price data is unavailable for coin', async () => {
-      let positionsCallback: (positions: Position[]) => void = jest.fn();
-      let pricesCallback: (prices: Record<string, PriceUpdate>) => void =
-        jest.fn();
-
-      mockPositionsSubscribe.mockImplementation((params) => {
-        positionsCallback = params.callback;
-        return jest.fn();
-      });
-
-      mockPricesSubscribe.mockImplementation((params) => {
-        pricesCallback = params.callback;
-        return jest.fn();
-      });
-
-      const { result } = renderHook(() =>
-        usePerpsLivePositions({ useLivePnl: true }),
-      );
-
-      const position: Position = {
-        ...mockPosition,
-        coin: 'BTC-PERP',
-        unrealizedPnl: '1000',
-        returnOnEquity: '0.2',
-      };
-
-      act(() => {
-        positionsCallback([position]);
-      });
-
-      const priceUpdate: Record<string, PriceUpdate> = {
-        'ETH-PERP': {
-          coin: 'ETH-PERP',
-          price: '3000',
-          timestamp: Date.now(),
-        },
-      };
-
-      act(() => {
-        pricesCallback(priceUpdate);
-      });
-
-      await waitFor(() => {
-        const updatedPosition = result.current.positions[0];
-        expect(updatedPosition.unrealizedPnl).toBe('1000');
-        expect(updatedPosition.returnOnEquity).toBe('0.2');
-      });
-    });
-
-    it('preserves original PnL when price data is empty', async () => {
-      let positionsCallback: (positions: Position[]) => void = jest.fn();
-      let pricesCallback: (prices: Record<string, PriceUpdate>) => void =
-        jest.fn();
-
-      mockPositionsSubscribe.mockImplementation((params) => {
-        positionsCallback = params.callback;
-        return jest.fn();
-      });
-
-      mockPricesSubscribe.mockImplementation((params) => {
-        pricesCallback = params.callback;
-        return jest.fn();
-      });
-
-      const { result } = renderHook(() =>
-        usePerpsLivePositions({ useLivePnl: true }),
-      );
-
-      const position: Position = {
-        ...mockPosition,
-        unrealizedPnl: '1000',
-        returnOnEquity: '0.2',
-      };
-
-      act(() => {
-        positionsCallback([position]);
-      });
-
-      act(() => {
-        pricesCallback({});
-      });
-
-      await waitFor(() => {
-        const updatedPosition = result.current.positions[0];
-        expect(updatedPosition.unrealizedPnl).toBe('1000');
-        expect(updatedPosition.returnOnEquity).toBe('0.2');
-      });
-    });
-  });
-
-  describe('enrichPositionsWithLivePnL', () => {
-    const basePriceData: Record<string, PriceUpdate> = {
-      'BTC-PERP': {
-        coin: 'BTC-PERP',
-        price: '52000',
-        markPrice: '52000',
-        timestamp: Date.now(),
-      },
-    };
-
-    it('calculates PnL using mark price and size', () => {
-      const positions: Position[] = [
-        {
-          ...mockPosition,
-          entryPrice: '50000',
-          size: '1.0',
-          marginUsed: '5000',
-        },
-      ];
-
-      const enriched = enrichPositionsWithLivePnL(positions, basePriceData);
-
-      expect(enriched[0].unrealizedPnl).toBe('2000');
-      expect(enriched[0].returnOnEquity).toBe('0.4');
-    });
-
-    it('returns positions unchanged when price data is empty', () => {
-      const positions: Position[] = [mockPosition];
-
-      const enriched = enrichPositionsWithLivePnL(positions, {});
-
-      expect(enriched).toBe(positions);
-    });
-
-    it('returns position unchanged when price for coin is missing', () => {
-      const position: Position = {
-        ...mockPosition,
-        coin: 'ETH-PERP',
-        unrealizedPnl: '500',
-      };
-
-      const enriched = enrichPositionsWithLivePnL([position], basePriceData);
-
-      expect(enriched[0]).toEqual(position);
-    });
-
-    it('returns position unchanged when mark price is invalid', () => {
-      const position: Position = {
-        ...mockPosition,
-        unrealizedPnl: '500',
-      };
-
-      const invalidPriceData: Record<string, PriceUpdate> = {
-        'BTC-PERP': {
-          coin: 'BTC-PERP',
-          price: '0',
-          timestamp: Date.now(),
-        },
-      };
-
-      const enriched = enrichPositionsWithLivePnL([position], invalidPriceData);
-
-      expect(enriched[0]).toEqual(position);
-    });
-
-    it('returns position unchanged when entry price is NaN', () => {
-      const position: Position = {
-        ...mockPosition,
-        entryPrice: 'invalid',
-        unrealizedPnl: '500',
-      };
-
-      const enriched = enrichPositionsWithLivePnL([position], basePriceData);
-
-      expect(enriched[0]).toEqual(position);
-    });
-
-    it('returns position unchanged when size is NaN', () => {
-      const position: Position = {
-        ...mockPosition,
-        size: 'invalid',
-        unrealizedPnl: '500',
-      };
-
-      const enriched = enrichPositionsWithLivePnL([position], basePriceData);
-
-      expect(enriched[0]).toEqual(position);
-    });
-
-    it('returns position unchanged when margin is NaN', () => {
-      const position: Position = {
-        ...mockPosition,
-        marginUsed: 'invalid',
-        unrealizedPnl: '500',
-      };
-
-      const enriched = enrichPositionsWithLivePnL([position], basePriceData);
-
-      expect(enriched[0]).toEqual(position);
-    });
-
-    it('handles multiple positions with mixed price availability', () => {
-      const positions: Position[] = [
-        {
-          ...mockPosition,
-          coin: 'BTC-PERP',
-          entryPrice: '50000',
-          size: '1.0',
-          marginUsed: '5000',
-        },
-        {
-          ...mockPosition,
-          coin: 'ETH-PERP',
-          unrealizedPnl: '300',
-        },
-      ];
-
-      const enriched = enrichPositionsWithLivePnL(positions, basePriceData);
-
-      expect(enriched[0].unrealizedPnl).toBe('2000');
-      expect(enriched[1].unrealizedPnl).toBe('300');
     });
   });
 });

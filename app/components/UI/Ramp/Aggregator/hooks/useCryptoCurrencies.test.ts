@@ -100,6 +100,7 @@ describe('useCryptoCurrencies', () => {
     expect(useSDKMethod).toHaveBeenCalledWith(
       'getCryptoCurrencies',
       'test-region-id',
+      [],
       'test-fiat-currency-id',
     );
   });
@@ -122,6 +123,7 @@ describe('useCryptoCurrencies', () => {
     expect(useSDKMethod).toHaveBeenCalledWith(
       'getSellCryptoCurrencies',
       'test-region-id',
+      [],
       'test-fiat-currency-id',
     );
   });

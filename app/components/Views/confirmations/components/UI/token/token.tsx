@@ -13,6 +13,7 @@ import { BigNumber } from 'bignumber.js';
 import { KeyringAccountType } from '@metamask/keyring-api';
 
 import I18n from '../../../../../../../locales/i18n';
+import { accountTypeLabel } from '../../../constants/network';
 import NetworkAssetLogo from '../../../../../../components/UI/NetworkAssetLogo';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import BadgeWrapper from '../../../../../../component-library/components/Badges/BadgeWrapper';
@@ -22,7 +23,6 @@ import { BadgePosition } from '../../../../../../component-library/components/Ba
 import { AccountTypeLabel } from '../account-type-label';
 import { AssetType } from '../../../types/token';
 import { formatAmount } from '../../../../../../components/UI/SimulationDetails/formatAmount';
-import { ACCOUNT_TYPE_LABELS } from '../../../../../../constants/account-type-labels';
 
 interface TokenProps {
   asset: AssetType;
@@ -36,8 +36,7 @@ export function Token({ asset, onPress }: TokenProps) {
     onPress(asset);
   }, [asset, onPress]);
 
-  const typeLabel =
-    ACCOUNT_TYPE_LABELS[asset.accountType as KeyringAccountType];
+  const typeLabel = accountTypeLabel[asset.accountType as KeyringAccountType];
 
   return (
     <Pressable

@@ -53,7 +53,7 @@ export default class Ganache {
     return balanceFormatted;
   }
 
-  async stop() {
+  async quit() {
     if (!this._server) {
       throw new Error('Server not running yet');
     }

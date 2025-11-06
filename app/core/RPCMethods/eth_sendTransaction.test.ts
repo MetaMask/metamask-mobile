@@ -23,6 +23,9 @@ jest.mock('../../core/Engine', () => ({
         securityAlertsEnabled: true,
       },
     },
+    PPOMController: {
+      usePPOM: jest.fn(),
+    },
     NetworkController: {
       getNetworkClientById: () => ({
         configuration: {

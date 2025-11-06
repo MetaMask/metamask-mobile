@@ -1,10 +1,10 @@
 import { useCallback, useState } from 'react';
-import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import type { OrderResult, Position, TrackingData } from '../controllers/types';
+import type { Position, OrderResult, TrackingData } from '../controllers/types';
+import { usePerpsTrading } from './usePerpsTrading';
+import { strings } from '../../../../../locales/i18n';
 import { handlePerpsError } from '../utils/perpsErrorHandler';
 import usePerpsToasts from './usePerpsToasts';
-import { usePerpsTrading } from './usePerpsTrading';
 
 interface UsePerpsClosePositionOptions {
   onSuccess?: (result: OrderResult) => void;
@@ -26,7 +26,6 @@ export const usePerpsClosePosition = (
       orderType: 'market' | 'limit' = 'market',
       limitPrice?: string,
       trackingData?: TrackingData,
-      marketPrice?: string, // Used for PnL toast to lock in the market price at time of closing
     ) => {
       try {
         setIsClosing(true);
@@ -38,7 +37,7 @@ export const usePerpsClosePosition = (
           orderType,
           limitPrice,
         });
-        const isLong = Number.parseFloat(position.size) >= 0;
+        const isLong = parseFloat(position.size) >= 0;
         const direction = isLong
           ? strings('perps.market.long')
           : strings('perps.market.short');
@@ -110,19 +109,15 @@ export const usePerpsClosePosition = (
             // Market closed full position
             if (isFullClose) {
               showToast(
-                PerpsToastOptions.positionManagement.closePosition.marketClose.full.closeFullPositionSuccess(
-                  position,
-                  marketPrice,
-                ),
+                PerpsToastOptions.positionManagement.closePosition.marketClose
+                  .full.closeFullPositionSuccess,
               );
             }
             // Market closed partial position
             else {
               showToast(
-                PerpsToastOptions.positionManagement.closePosition.marketClose.partial.closePartialPositionSuccess(
-                  position,
-                  marketPrice,
-                ),
+                PerpsToastOptions.positionManagement.closePosition.marketClose
+                  .partial.closePartialPositionSuccess,
               );
             }
           }

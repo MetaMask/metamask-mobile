@@ -1,11 +1,7 @@
 // Third party dependencies.
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import {
-  ParamListBase,
-  TabNavigationState,
-  NavigationHelpers,
-} from '@react-navigation/native';
+import { ParamListBase, TabNavigationState } from '@react-navigation/native';
 
 // External dependencies
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -13,43 +9,17 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 
 // Internal dependencies
 import TabBar from './TabBar';
-import { TabBarIconKey, ExtendedBottomTabDescriptor } from './TabBar.types';
+import { TabBarIconKey } from './TabBar.types';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectAssetsTrendingTokensEnabled } from '../../../../selectors/featureFlagController/assetsTrendingTokens';
-
-// Minimal descriptor interface for tests - only includes what TabBar component uses
-interface TestTabDescriptor {
-  options: {
-    tabBarIconKey: TabBarIconKey;
-    rootScreenName: string;
-    callback?: () => void;
-  };
-}
-
-interface TestDescriptors {
-  [key: string]: TestTabDescriptor;
-}
 
 // Force rewards feature flag to be enabled for this test file
 jest.mock('../../../../selectors/featureFlagController/rewards', () => ({
   selectRewardsEnabledFlag: () => true,
 }));
 
-// Mock trending tokens feature flag selector
-jest.mock('../../../../selectors/featureFlagController/assetsTrendingTokens');
-
-// Mock the navigation object with proper typing
-const navigation: NavigationHelpers<ParamListBase> = {
+// Mock the navigation object.
+const navigation = {
   navigate: jest.fn(),
-  goBack: jest.fn(),
-  reset: jest.fn(),
-  setParams: jest.fn(),
-  dispatch: jest.fn(),
-  isFocused: jest.fn(),
-  canGoBack: jest.fn(),
-  dangerouslyGetParent: jest.fn(),
-  dangerouslyGetState: jest.fn(),
-  emit: jest.fn(),
 };
 
 const mockInitialState = {
@@ -84,7 +54,7 @@ describe('TabBar', () => {
       { key: '5', name: 'Tab 5' },
     ],
   };
-  const descriptors: TestDescriptors = {
+  const descriptors = {
     '1': {
       options: {
         tabBarIconKey: TabBarIconKey.Wallet,
@@ -121,8 +91,12 @@ describe('TabBar', () => {
     const { toJSON } = renderWithProvider(
       <TabBar
         state={state as TabNavigationState<ParamListBase>}
-        descriptors={descriptors as Record<string, ExtendedBottomTabDescriptor>}
-        navigation={navigation}
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        descriptors={descriptors as any}
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        navigation={navigation as any}
       />,
       { state: mockInitialState },
     );
@@ -133,8 +107,12 @@ describe('TabBar', () => {
     const { getByTestId } = renderWithProvider(
       <TabBar
         state={state as TabNavigationState<ParamListBase>}
-        descriptors={descriptors as Record<string, ExtendedBottomTabDescriptor>}
-        navigation={navigation}
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        descriptors={descriptors as any}
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        navigation={navigation as any}
       />,
       { state: mockInitialState },
     );
@@ -174,12 +152,11 @@ describe('TabBar', () => {
       index: 0,
       routes: [{ key: '1', name: 'Tab 1' }],
     };
-    const rewardsDescriptors: TestDescriptors = {
+    const rewardsDescriptors = {
       '1': {
         options: {
           tabBarIconKey: TabBarIconKey.Rewards,
           rootScreenName: Routes.REWARDS_VIEW,
-          callback: () => ({}),
         },
       },
     };
@@ -187,77 +164,17 @@ describe('TabBar', () => {
     const { getByTestId } = renderWithProvider(
       <TabBar
         state={rewardsState as TabNavigationState<ParamListBase>}
-        descriptors={
-          rewardsDescriptors as Record<string, ExtendedBottomTabDescriptor>
-        }
-        navigation={navigation}
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        descriptors={rewardsDescriptors as any}
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        navigation={navigation as any}
       />,
       { state: mockInitialState },
     );
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Rewards}`));
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
-  });
-
-  it('navigates to trending when trending tab is pressed', () => {
-    jest.mocked(selectAssetsTrendingTokensEnabled).mockReturnValue(true);
-
-    const trendingState = {
-      index: 0,
-      routes: [{ key: '1', name: 'Tab 1' }],
-    };
-    const trendingDescriptors: TestDescriptors = {
-      '1': {
-        options: {
-          tabBarIconKey: TabBarIconKey.Trending,
-          rootScreenName: Routes.TRENDING_VIEW,
-        },
-      },
-    };
-
-    const { getByTestId } = renderWithProvider(
-      <TabBar
-        state={trendingState as TabNavigationState<ParamListBase>}
-        descriptors={
-          trendingDescriptors as Record<string, ExtendedBottomTabDescriptor>
-        }
-        navigation={navigation}
-      />,
-      { state: mockInitialState },
-    );
-
-    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Trending}`));
-    expect(navigation.navigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
-  });
-
-  it('does not navigate to trending when trending feature flag is disabled', () => {
-    jest.mocked(selectAssetsTrendingTokensEnabled).mockReturnValue(false);
-
-    const trendingState = {
-      index: 0,
-      routes: [{ key: '1', name: 'Tab 1' }],
-    };
-    const trendingDescriptors: TestDescriptors = {
-      '1': {
-        options: {
-          tabBarIconKey: TabBarIconKey.Trending,
-          rootScreenName: Routes.TRENDING_VIEW,
-        },
-      },
-    };
-
-    const { getByTestId } = renderWithProvider(
-      <TabBar
-        state={trendingState as TabNavigationState<ParamListBase>}
-        descriptors={
-          trendingDescriptors as Record<string, ExtendedBottomTabDescriptor>
-        }
-        navigation={navigation}
-      />,
-      { state: mockInitialState },
-    );
-
-    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Trending}`));
-    expect(navigation.navigate).not.toHaveBeenCalledWith(Routes.TRENDING_VIEW);
   });
 });

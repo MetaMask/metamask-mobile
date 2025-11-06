@@ -19,10 +19,8 @@ import useRegisterPhysicalAddress from '../../hooks/useRegisterPhysicalAddress';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   resetOnboardingState,
-  selectConsentSetId,
   selectOnboardingId,
   selectSelectedCountry,
-  setConsentSetId,
   setIsAuthenticatedCard,
   setUserCardLocation,
 } from '../../../../../core/redux/slices/card';
@@ -204,7 +202,6 @@ const PhysicalAddress = () => {
   const { user, setUser } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
   const selectedCountry = useSelector(selectSelectedCountry);
-  const existingConsentSetId = useSelector(selectConsentSetId);
   const { trackEvent, createEventBuilder } = useMetrics();
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
@@ -260,12 +257,11 @@ const PhysicalAddress = () => {
   } = useRegisterPhysicalAddress();
 
   const {
-    createOnboardingConsent,
-    linkUserToConsent,
-    isLoading: consentLoading,
-    isError: consentIsError,
-    error: consentError,
-    reset: resetConsent,
+    registerUserConsent,
+    isLoading: registerUserConsentLoading,
+    isError: registerUserConsentIsError,
+    error: registerUserConsentError,
+    reset: resetRegisterUserConsent,
   } = useRegisterUserConsent();
 
   const handleSameMailingAddressToggle = useCallback(() => {
@@ -274,10 +270,10 @@ const PhysicalAddress = () => {
   }, [isSameMailingAddress, resetRegisterAddress]);
 
   const handleElectronicConsentToggle = useCallback(() => {
-    resetConsent();
+    resetRegisterUserConsent();
     resetRegisterAddress();
     setElectronicConsent(!electronicConsent);
-  }, [electronicConsent, resetRegisterAddress, resetConsent]);
+  }, [electronicConsent, resetRegisterAddress, resetRegisterUserConsent]);
 
   const openESignConsentDisclosureUS = useCallback(() => {
     if (eSignConsentDisclosureUSUrl) {
@@ -287,10 +283,14 @@ const PhysicalAddress = () => {
   }, [eSignConsentDisclosureUSUrl, electronicConsent]);
 
   const handleAccountOpeningDisclosureToggle = useCallback(() => {
-    resetConsent();
+    resetRegisterUserConsent();
     resetRegisterAddress();
     setAccountOpeningDisclosure(!accountOpeningDisclosure);
-  }, [accountOpeningDisclosure, resetRegisterAddress, resetConsent]);
+  }, [
+    accountOpeningDisclosure,
+    resetRegisterAddress,
+    resetRegisterUserConsent,
+  ]);
 
   const openAccountOpeningDisclosureUS = useCallback(() => {
     if (accountOpeningDisclosureUSUrl) {
@@ -300,10 +300,10 @@ const PhysicalAddress = () => {
   }, [accountOpeningDisclosureUSUrl, accountOpeningDisclosure]);
 
   const handleRightToInformationToggle = useCallback(() => {
-    resetConsent();
+    resetRegisterUserConsent();
     resetRegisterAddress();
     setRightToInformation(!rightToInformation);
-  }, [rightToInformation, resetRegisterAddress, resetConsent]);
+  }, [rightToInformation, resetRegisterAddress, resetRegisterUserConsent]);
 
   const openRightToInformationIntl = useCallback(() => {
     if (rightToInformationIntlUrl) {
@@ -313,10 +313,10 @@ const PhysicalAddress = () => {
   }, [rightToInformationIntlUrl, rightToInformation]);
 
   const handleTermsAndConditionsToggle = useCallback(() => {
-    resetConsent();
+    resetRegisterUserConsent();
     resetRegisterAddress();
     setTermsAndConditions(!termsAndConditions);
-  }, [termsAndConditions, resetRegisterAddress, resetConsent]);
+  }, [termsAndConditions, resetRegisterAddress, resetRegisterUserConsent]);
 
   const openTermsAndConditionsIntl = useCallback(() => {
     if (termsAndConditionsIntlUrl) {
@@ -333,10 +333,10 @@ const PhysicalAddress = () => {
   }, [termsAndConditionsUSUrl, termsAndConditions]);
 
   const handlePrivacyPolicyToggle = useCallback(() => {
-    resetConsent();
+    resetRegisterUserConsent();
     resetRegisterAddress();
     setPrivacyPolicy(!privacyPolicy);
-  }, [privacyPolicy, resetRegisterAddress, resetConsent]);
+  }, [privacyPolicy, resetRegisterAddress, resetRegisterUserConsent]);
 
   const openPrivacyPolicyUS = useCallback(() => {
     if (privacyPolicyUSUrl) {
@@ -389,8 +389,8 @@ const PhysicalAddress = () => {
     () =>
       registerLoading ||
       registerIsError ||
-      consentLoading ||
-      consentIsError ||
+      registerUserConsentLoading ||
+      registerUserConsentIsError ||
       !onboardingId ||
       !user?.id ||
       !addressLine1 ||
@@ -408,8 +408,8 @@ const PhysicalAddress = () => {
     [
       registerLoading,
       registerIsError,
-      consentLoading,
-      consentIsError,
+      registerUserConsentLoading,
+      registerUserConsentIsError,
       onboardingId,
       user?.id,
       addressLine1,
@@ -451,16 +451,6 @@ const PhysicalAddress = () => {
           })
           .build(),
       );
-
-      // Step 7: Create consent record (get consentSetId for later linking)
-      // Only create consent if it doesn't already exist to avoid server errors
-      let consentSetId = existingConsentSetId;
-      if (!consentSetId) {
-        consentSetId = await createOnboardingConsent(onboardingId);
-        dispatch(setConsentSetId(consentSetId));
-      }
-
-      // Step 8: Register physical address
       const { accessToken, user: updatedUser } = await registerAddress({
         onboardingId,
         addressLine1,
@@ -470,13 +460,13 @@ const PhysicalAddress = () => {
         zip: zipCode,
         isSameMailingAddress,
       });
+      await registerUserConsent(onboardingId, user.id);
 
       if (updatedUser) {
         setUser(updatedUser);
       }
 
-      // If registration is complete (accessToken received), link consent to user
-      if (accessToken && updatedUser?.id) {
+      if (accessToken) {
         // Store the access token for immediate authentication
         const location = mapCountryToLocation(selectedCountry);
         const accessTokenExpiresIn = extractTokenExpiration(accessToken);
@@ -493,16 +483,10 @@ const PhysicalAddress = () => {
           dispatch(setUserCardLocation(location));
         }
 
-        // Step 10: Link consent to user (complete audit trail)
-        await linkUserToConsent(consentSetId, updatedUser.id);
-
-        // Navigate to completion screen
         navigation.navigate(Routes.CARD.ONBOARDING.COMPLETE);
-        return;
       }
 
       // When isSameMailingAddress = false AND countryOfResidence = "US"
-      // The registration is not yet complete, proceed to mailing address
       if (!isSameMailingAddress && selectedCountry === 'US') {
         navigation.navigate(Routes.CARD.ONBOARDING.MAILING_ADDRESS);
       }
@@ -518,6 +502,7 @@ const PhysicalAddress = () => {
         navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);
         return;
       }
+      // Allow error message to display
     }
   };
 
@@ -746,13 +731,13 @@ const PhysicalAddress = () => {
         >
           {registerError}
         </Text>
-      ) : consentIsError ? (
+      ) : registerUserConsentIsError ? (
         <Text
           variant={TextVariant.BodySm}
-          testID="physical-address-consent-error"
+          testID="physical-address-register-user-consent-error"
           twClassName="text-error-default"
         >
-          {consentError}
+          {registerUserConsentError}
         </Text>
       ) : null}
     </Box>

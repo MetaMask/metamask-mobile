@@ -5,12 +5,11 @@ import {
   defaultState,
   Controller as NotificationServicesPushController,
 } from '@metamask/notification-services-controller/push-services';
-import { ExtendedMessenger } from '../../../ExtendedMessenger';
+import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 import { createNotificationServicesPushController } from './create-notification-services-push-controller';
 // eslint-disable-next-line import/no-namespace
 import * as PushUtilsModule from './push-utils';
 import { getNotificationServicesPushControllerMessenger } from '../../messengers/notifications/notification-services-push-controller-messenger';
-import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/notification-services-controller/push-services');
 
@@ -37,9 +36,7 @@ describe('Notification Services Controller', () => {
   };
 
   const arrange = () => {
-    const globalMessenger = new ExtendedMessenger<MockAnyNamespace>({
-      namespace: MOCK_ANY_NAMESPACE,
-    });
+    const globalMessenger = new ExtendedControllerMessenger();
     const messenger: NotificationServicesPushControllerMessenger =
       getNotificationServicesPushControllerMessenger(globalMessenger);
 

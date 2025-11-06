@@ -147,25 +147,6 @@ describe('getTransactionTypeValue', () => {
       'unknown',
     );
   });
-
-  it.each([
-    ['predict_claim', TransactionType.predictClaim],
-    ['predict_deposit', TransactionType.predictDeposit],
-    ['predict_withdraw', TransactionType.predictWithdraw],
-  ])('returns %s if nested transaction type is %s', (expected, nestedType) => {
-    const mockTransactionMeta = {
-      type: TransactionType.simpleSend,
-      nestedTransactions: [
-        {
-          type: nestedType,
-        },
-      ],
-    } as TransactionMeta;
-
-    expect(
-      getTransactionTypeValue(mockTransactionMeta.type, mockTransactionMeta),
-    ).toBe(expected);
-  });
 });
 
 describe('generateRPCProperties', () => {
@@ -237,7 +218,7 @@ describe('generateDefaultTransactionMetrics', () => {
         confirmationMetrics: {
           metricsById: mockMetricsById,
         },
-      }) as unknown as RootState,
+      } as unknown as RootState),
   );
 
   const mockEventHandlerRequest: Partial<TransactionEventHandlerRequest> = {
@@ -538,7 +519,7 @@ describe('generateDefaultTransactionMetrics', () => {
               confirmationMetrics: {
                 metricsById: { [upgradeAccountConfirmation.id]: {} },
               },
-            }) as RootState,
+            } as RootState),
         } as TransactionEventHandlerRequest,
       );
       expect(metrics.properties).toStrictEqual({
@@ -574,7 +555,7 @@ describe('generateDefaultTransactionMetrics', () => {
               confirmationMetrics: {
                 metricsById: { [upgradeOnlyAccountConfirmation.id]: {} },
               },
-            }) as RootState,
+            } as RootState),
         } as TransactionEventHandlerRequest,
       );
       expect(metrics.properties).toStrictEqual({
@@ -612,7 +593,7 @@ describe('generateDefaultTransactionMetrics', () => {
               confirmationMetrics: {
                 metricsById: { [upgradeOnlyAccountConfirmation.id]: {} },
               },
-            }) as RootState,
+            } as RootState),
         } as TransactionEventHandlerRequest,
       );
       expect(metrics.properties).toStrictEqual({
@@ -645,7 +626,7 @@ describe('generateDefaultTransactionMetrics', () => {
               confirmationMetrics: {
                 metricsById: { [batchApprovalConfirmation.id]: {} },
               },
-            }) as RootState,
+            } as RootState),
         } as TransactionEventHandlerRequest,
       );
       expect(metrics.properties).toStrictEqual({

@@ -136,7 +136,7 @@ const WalletActions = () => {
         navigate(Routes.PERPS.TUTORIAL);
       } else {
         navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.PERPS_HOME,
+          screen: Routes.PERPS.MARKETS,
           params: { source: PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON },
         });
       }
@@ -145,8 +145,14 @@ const WalletActions = () => {
 
   const onPredict = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigate(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_LIST,
+      navigate(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.PREDICT.ROOT,
+          params: {
+            screen: Routes.PREDICT.MARKET_LIST,
+          },
+        },
       });
     });
   }, [closeBottomSheetAndNavigate, navigate]);

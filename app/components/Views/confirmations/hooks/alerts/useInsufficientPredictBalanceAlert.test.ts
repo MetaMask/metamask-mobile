@@ -10,11 +10,9 @@ import {
 } from '@metamask/transaction-controller';
 import { useTokenAmount } from '../useTokenAmount';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../useTokenAmount');
-jest.mock('../../../../UI/Predict/hooks/usePredictBalance');
 
 function runHook({ pendingAmount }: { pendingAmount?: string } = {}) {
   return renderHookWithProvider(() =>
@@ -24,7 +22,6 @@ function runHook({ pendingAmount }: { pendingAmount?: string } = {}) {
 
 describe('useInsufficientPredictBalanceAlert', () => {
   const useTokenAmountMock = jest.mocked(useTokenAmount);
-  const usePredictBalanceMock = jest.mocked(usePredictBalance);
 
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
@@ -41,7 +38,6 @@ describe('useInsufficientPredictBalanceAlert', () => {
     } as unknown as TransactionMeta);
 
     useTokenAmountMock.mockReturnValue({} as ReturnType<typeof useTokenAmount>);
-    usePredictBalanceMock.mockReturnValue({ balance: 1233.99 } as never);
   });
 
   it('returns alert if predict balance less than pending amount', () => {
@@ -59,7 +55,7 @@ describe('useInsufficientPredictBalanceAlert', () => {
   });
 
   it('returns alert if predict balance less than token amount', () => {
-    useTokenAmountMock.mockReturnValue({ amountPrecise: '1234' } as ReturnType<
+    useTokenAmountMock.mockReturnValue({ usdValue: '1234' } as ReturnType<
       typeof useTokenAmount
     >);
 
@@ -77,9 +73,9 @@ describe('useInsufficientPredictBalanceAlert', () => {
   });
 
   it('returns no alert if predict balance is greater than token amount', () => {
-    useTokenAmountMock.mockReturnValue({
-      amountPrecise: '1233.98',
-    } as ReturnType<typeof useTokenAmount>);
+    useTokenAmountMock.mockReturnValue({ usdValue: '1232' } as ReturnType<
+      typeof useTokenAmount
+    >);
 
     const { result } = runHook();
 
@@ -87,7 +83,7 @@ describe('useInsufficientPredictBalanceAlert', () => {
   });
 
   it('returns no alert if predict balance is greater than pending amount', () => {
-    const { result } = runHook({ pendingAmount: '1233.98' });
+    const { result } = runHook({ pendingAmount: '1232' });
 
     expect(result.current).toStrictEqual([]);
   });
@@ -100,7 +96,7 @@ describe('useInsufficientPredictBalanceAlert', () => {
       type: TransactionType.simpleSend,
     } as unknown as TransactionMeta);
 
-    useTokenAmountMock.mockReturnValue({ amountPrecise: '1234' } as ReturnType<
+    useTokenAmountMock.mockReturnValue({ usdValue: '1234' } as ReturnType<
       typeof useTokenAmount
     >);
 

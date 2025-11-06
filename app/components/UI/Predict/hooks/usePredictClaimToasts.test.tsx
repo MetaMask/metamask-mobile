@@ -59,7 +59,7 @@ jest.mock('../../../../util/theme', () => ({
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
-      confirmClaim: jest.fn(),
+      clearClaimTransaction: jest.fn(),
     },
   },
   controllerMessenger: {
@@ -78,9 +78,7 @@ let mockState: any = {
   engine: {
     backgroundState: {
       PredictController: {
-        claimablePositions: {
-          [mockAccountAddress]: [],
-        },
+        claimablePositions: [],
       },
       AccountsController: {
         internalAccounts: {
@@ -132,6 +130,9 @@ describe('usePredictClaimToasts', () => {
     jest.clearAllMocks();
     mockToastRef.current.showToast.mockClear();
     mockClaim.mockClear();
+    (
+      Engine.context.PredictController.clearClaimTransaction as jest.Mock
+    ).mockClear();
 
     // Capture the subscribe callback
     mockSubscribeCallback = null;
@@ -146,44 +147,22 @@ describe('usePredictClaimToasts', () => {
       engine: {
         backgroundState: {
           PredictController: {
-            claimablePositions: {
-              [mockAccountAddress]: [
-                {
-                  id: '1',
-                  status: PredictPositionStatus.WON,
-                  currentValue: 100,
-                },
-                {
-                  id: '2',
-                  status: PredictPositionStatus.WON,
-                  currentValue: 50,
-                },
-              ],
-            },
-          },
-          AccountsController: {
-            internalAccounts: {
-              selectedAccount: mockAccountId,
-              accounts: {
-                [mockAccountId]: {
-                  id: mockAccountId,
-                  address: mockAccountAddress,
-                  name: 'Test Account',
-                  type: 'eip155:eoa',
-                  metadata: {
-                    lastSelected: 0,
-                  },
-                },
+            claimablePositions: [
+              {
+                id: '1',
+                status: PredictPositionStatus.WON,
+                currentValue: 100,
               },
-            },
+              {
+                id: '2',
+                status: PredictPositionStatus.WON,
+                currentValue: 50,
+              },
+            ],
           },
         },
       },
     };
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
   });
 
   describe('initialization', () => {
@@ -231,6 +210,9 @@ describe('usePredictClaimToasts', () => {
       });
 
       // Assert
+      expect(
+        Engine.context.PredictController.clearClaimTransaction,
+      ).not.toHaveBeenCalled();
       expect(mockToastRef.current.showToast).not.toHaveBeenCalled();
     });
 
@@ -303,6 +285,9 @@ describe('usePredictClaimToasts', () => {
       });
 
       // Assert
+      expect(
+        Engine.context.PredictController.clearClaimTransaction,
+      ).toHaveBeenCalled();
       expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
         expect.objectContaining({
           variant: expect.anything(),
@@ -332,6 +317,9 @@ describe('usePredictClaimToasts', () => {
       });
 
       // Assert
+      expect(
+        Engine.context.PredictController.clearClaimTransaction,
+      ).toHaveBeenCalled();
       expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
         expect.objectContaining({
           variant: expect.anything(),
@@ -344,6 +332,46 @@ describe('usePredictClaimToasts', () => {
           }),
         }),
       );
+    });
+
+    it('clears claim transaction when transaction is confirmed', async () => {
+      // Arrange
+      renderHook(() => usePredictClaimToasts(), { wrapper });
+
+      // Act
+      await act(async () => {
+        mockSubscribeCallback?.({
+          transactionMeta: {
+            status: TransactionStatus.confirmed,
+            nestedTransactions: [{ type: TransactionType.predictClaim }],
+          },
+        });
+      });
+
+      // Assert
+      expect(
+        Engine.context.PredictController.clearClaimTransaction,
+      ).toHaveBeenCalled();
+    });
+
+    it('clears claim transaction when transaction fails', async () => {
+      // Arrange
+      renderHook(() => usePredictClaimToasts(), { wrapper });
+
+      // Act
+      await act(async () => {
+        mockSubscribeCallback?.({
+          transactionMeta: {
+            status: TransactionStatus.failed,
+            nestedTransactions: [{ type: TransactionType.predictClaim }],
+          },
+        });
+      });
+
+      // Assert
+      expect(
+        Engine.context.PredictController.clearClaimTransaction,
+      ).toHaveBeenCalled();
     });
   });
 
@@ -429,25 +457,7 @@ describe('usePredictClaimToasts', () => {
         engine: {
           backgroundState: {
             PredictController: {
-              claimablePositions: {
-                [mockAccountAddress]: [],
-              },
-            },
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: mockAccountId,
-                accounts: {
-                  [mockAccountId]: {
-                    id: mockAccountId,
-                    address: mockAccountAddress,
-                    name: 'Test Account',
-                    type: 'eip155:eoa',
-                    metadata: {
-                      lastSelected: 0,
-                    },
-                  },
-                },
-              },
+              claimablePositions: [],
             },
           },
         },
@@ -474,41 +484,23 @@ describe('usePredictClaimToasts', () => {
         engine: {
           backgroundState: {
             PredictController: {
-              claimablePositions: {
-                [mockAccountAddress]: [
-                  {
-                    id: '1',
-                    status: PredictPositionStatus.WON,
-                    currentValue: 100,
-                  },
-                  {
-                    id: '2',
-                    status: PredictPositionStatus.LOST,
-                    currentValue: 50,
-                  },
-                  {
-                    id: '3',
-                    status: PredictPositionStatus.LOST,
-                    currentValue: 75,
-                  },
-                ],
-              },
-            },
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: mockAccountId,
-                accounts: {
-                  [mockAccountId]: {
-                    id: mockAccountId,
-                    address: mockAccountAddress,
-                    name: 'Test Account',
-                    type: 'eip155:eoa',
-                    metadata: {
-                      lastSelected: 0,
-                    },
-                  },
+              claimablePositions: [
+                {
+                  id: '1',
+                  status: PredictPositionStatus.WON,
+                  currentValue: 100,
                 },
-              },
+                {
+                  id: '2',
+                  status: PredictPositionStatus.LOST,
+                  currentValue: 50,
+                },
+                {
+                  id: '3',
+                  status: PredictPositionStatus.LOST,
+                  currentValue: 75,
+                },
+              ],
             },
           },
         },

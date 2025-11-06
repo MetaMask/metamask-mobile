@@ -1,11 +1,23 @@
 import { DeFiPositionsControllerMessenger } from '@metamask/assets-controllers';
 import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
+  AccountsControllerAccountAddedEvent,
+  AccountsControllerListAccountsAction,
+} from '@metamask/accounts-controller';
+import {
+  KeyringControllerLockEvent,
+  KeyringControllerUnlockEvent,
+} from '@metamask/keyring-controller';
+import { TransactionControllerTransactionConfirmedEvent } from '@metamask/transaction-controller';
+import { Messenger } from '@metamask/base-controller';
 import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
-import { RootMessenger } from '../../types';
+
+type Actions = AccountsControllerListAccountsAction;
+
+type Events =
+  | KeyringControllerUnlockEvent
+  | KeyringControllerLockEvent
+  | TransactionControllerTransactionConfirmedEvent
+  | AccountsControllerAccountAddedEvent;
 
 /**
  * Get a restricted messenger for the DeFiPositionsController.
@@ -14,48 +26,32 @@ import { RootMessenger } from '../../types';
  * @returns The restricted messenger.
  */
 export function getDeFiPositionsControllerMessenger(
-  rootMessenger: RootMessenger,
+  messenger: Messenger<Actions, Events>,
 ): DeFiPositionsControllerMessenger {
-  const messenger = new Messenger<
-    'DeFiPositionsController',
-    MessengerActions<DeFiPositionsControllerMessenger>,
-    MessengerEvents<DeFiPositionsControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'DeFiPositionsController',
-    parent: rootMessenger,
-  });
-  rootMessenger.delegate({
-    actions: ['AccountTreeController:getAccountsFromSelectedAccountGroup'],
-    events: [
+  return messenger.getRestricted({
+    name: 'DeFiPositionsController',
+    allowedActions: ['AccountsController:listAccounts'],
+    allowedEvents: [
+      'KeyringController:unlock',
       'KeyringController:lock',
       'TransactionController:transactionConfirmed',
-      'AccountTreeController:selectedAccountGroupChange',
+      'AccountsController:accountAdded',
     ],
-    messenger,
   });
-  return messenger;
 }
+
+type InitActions = RemoteFeatureFlagControllerGetStateAction;
 
 export type DeFiPositionsControllerInitMessenger = ReturnType<
   typeof getDeFiPositionsControllerInitMessenger
 >;
 
 export function getDeFiPositionsControllerInitMessenger(
-  rootMessenger: RootMessenger,
+  messenger: Messenger<InitActions, never>,
 ) {
-  const messenger = new Messenger<
-    'DeFiPositionsControllerInit',
-    RemoteFeatureFlagControllerGetStateAction,
-    never,
-    RootMessenger
-  >({
-    namespace: 'DeFiPositionsControllerInit',
-    parent: rootMessenger,
+  return messenger.getRestricted({
+    name: 'DeFiPositionsControllerInit',
+    allowedEvents: [],
+    allowedActions: ['RemoteFeatureFlagController:getState'],
   });
-  rootMessenger.delegate({
-    actions: ['RemoteFeatureFlagController:getState'],
-    messenger,
-  });
-  return messenger;
 }

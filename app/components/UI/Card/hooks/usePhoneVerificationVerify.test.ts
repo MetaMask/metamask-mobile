@@ -95,8 +95,9 @@ describe('usePhoneVerificationVerify', () => {
 
       let response: RegisterUserResponse | undefined;
       await act(async () => {
-        response =
-          await result.current.verifyPhoneVerification(mockVerifyRequest);
+        response = await result.current.verifyPhoneVerification(
+          mockVerifyRequest,
+        );
       });
 
       expect(mockPhoneVerificationVerify).toHaveBeenCalledWith({

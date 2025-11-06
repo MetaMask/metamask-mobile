@@ -1,22 +1,19 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedMessenger } from '../../ExtendedMessenger';
-import { getAddressBookControllerMessenger } from '../messengers/address-book-controller-messenger';
+import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
+import {
+  getAddressBookControllerMessenger,
+  type AddressBookControllerMessenger,
+} from '../messengers/address-book-controller-messenger';
 import { ControllerInitRequest } from '../types';
 import { addressBookControllerInit } from './address-book-controller-init';
-import {
-  AddressBookController,
-  type AddressBookControllerMessenger,
-} from '@metamask/address-book-controller';
-import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { AddressBookController } from '@metamask/address-book-controller';
 
 jest.mock('@metamask/address-book-controller');
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<AddressBookControllerMessenger>
 > {
-  const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
+  const baseMessenger = new ExtendedControllerMessenger<never, never>();
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

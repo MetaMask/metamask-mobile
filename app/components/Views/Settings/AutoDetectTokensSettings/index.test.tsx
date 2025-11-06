@@ -88,7 +88,8 @@ describe('AssetSettings', () => {
     });
 
     it('toggles token detection on', () => {
-      initialState.engine.backgroundState.PreferencesController.useTokenDetection = false;
+      initialState.engine.backgroundState.PreferencesController.useTokenDetection =
+        false;
       const { getByTestId } = renderWithProvider(<AssetSettings />, {
         state: initialState,
       });

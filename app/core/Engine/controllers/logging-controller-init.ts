@@ -1,8 +1,6 @@
 import { ControllerInitFunction } from '../types';
-import {
-  LoggingController,
-  LoggingControllerMessenger,
-} from '@metamask/logging-controller';
+import { LoggingController } from '@metamask/logging-controller';
+import { LoggingControllerMessenger } from '../messengers/logging-controller-messenger';
 
 /**
  * Initialize the logging controller.

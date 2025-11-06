@@ -12,9 +12,6 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import Icon, {
   IconColor,
   IconName,
@@ -33,11 +30,7 @@ import type {
   Position,
   TPSLTrackingData,
 } from '../../controllers/types';
-import {
-  usePerpsLivePrices,
-  usePerpsMarkets,
-  usePerpsTPSLUpdate,
-} from '../../hooks';
+import { usePerpsMarkets, usePerpsTPSLUpdate } from '../../hooks';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import {
   formatPerpsFiat,
@@ -46,7 +39,6 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import { PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import PerpsTokenLogo from '../PerpsTokenLogo';
@@ -98,8 +90,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const absoluteSize = Math.abs(parseFloat(position.size));
 
   const { markets, error, isLoading } = usePerpsMarkets();
-
-  const livePrices = usePerpsLivePrices({ symbols: [position.coin] });
 
   const marketData = useMemo(
     () => markets.find((market) => market.symbol === position.coin),
@@ -186,13 +176,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     setIsTPSLCountWarningVisible,
   ]);
 
-  const handleSharePress = () => {
-    navigation.navigate(Routes.PERPS.PNL_HERO_CARD, {
-      position,
-      marketPrice: livePrices[position.coin]?.price,
-    });
-  };
-
   const handleTpslCountPress = useCallback(async () => {
     if (isLoading || error) {
       DevLogger.log(
@@ -218,20 +201,21 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const isNearZeroFunding = Math.abs(fundingSinceOpen) < 0.005; // Threshold: |value| < $0.005 -> display $0.00
 
   // Keep original color logic: exact zero = neutral, positive = cost (Error), negative = payment (Success)
-  let fundingColorFromValue = TextColor.Default;
-  if (fundingSinceOpen > 0) {
-    fundingColorFromValue = TextColor.Error;
-  } else if (fundingSinceOpen < 0) {
-    fundingColorFromValue = TextColor.Success;
-  }
-  const fundingColor = isNearZeroFunding
-    ? TextColor.Default
-    : fundingColorFromValue;
+  const fundingColorForZero = TextColor.Default;
+  const fundingColorForPositive = TextColor.Error;
+  const fundingColorForNegative = TextColor.Success;
 
-  const fundingSignPrefix = fundingSinceOpen >= 0 ? '-' : '+';
+  let fundingColor = fundingColorForNegative; // default for negative values
+  if (isNearZeroFunding || fundingSinceOpen === 0) {
+    fundingColor = fundingColorForZero;
+  } else if (fundingSinceOpen > 0) {
+    fundingColor = fundingColorForPositive;
+  }
+
+  const fundingSign = fundingSinceOpen >= 0 ? '-' : '+';
   const fundingDisplay = isNearZeroFunding
     ? '$0.00'
-    : `${fundingSignPrefix}${formatPerpsFiat(Math.abs(fundingSinceOpen), {
+    : `${fundingSign}${formatPerpsFiat(Math.abs(fundingSinceOpen), {
         ranges: PRICE_RANGES_MINIMAL_VIEW,
       })}`;
 
@@ -358,8 +342,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           <View style={styles.headerLeft}>
             <View style={styles.headerRow}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {getPerpsDisplaySymbol(position.coin)} {position.leverage.value}
-                x{' '}
+                {position.coin} {position.leverage.value}x{' '}
                 <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {direction === 'long'
                     ? strings('perps.market.long_lowercase')
@@ -369,8 +352,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             </View>
             <View style={styles.headerRow}>
               <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-                {formatPositionSize(absoluteSize.toString())}{' '}
-                {getPerpsDisplaySymbol(position.coin)}
+                {formatPositionSize(absoluteSize.toString())} {position.coin}
               </Text>
             </View>
           </View>
@@ -506,6 +488,15 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
               width={ButtonWidthTypes.Auto}
+              label={strings('perps.position.card.edit_tpsl')}
+              onPress={handleEditTPSL}
+              style={styles.footerButton}
+              testID={PerpsPositionCardSelectorsIDs.EDIT_BUTTON}
+            />
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Md}
+              width={ButtonWidthTypes.Auto}
               label={
                 <Text
                   variant={TextVariant.BodyMDMedium}
@@ -519,23 +510,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               onPress={handleClosePress}
               style={styles.footerButton}
               testID={PerpsPositionCardSelectorsIDs.CLOSE_BUTTON}
-            />
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Md}
-              width={ButtonWidthTypes.Auto}
-              label={strings('perps.position.card.edit_tpsl')}
-              onPress={handleEditTPSL}
-              style={styles.footerButton}
-              testID={PerpsPositionCardSelectorsIDs.EDIT_BUTTON}
-            />
-            <ButtonIcon
-              size={ButtonIconSizes.Md}
-              iconName={IconName.Share}
-              iconColor={IconColor.Default}
-              onPress={handleSharePress}
-              style={styles.shareButton}
-              testID={PerpsPositionCardSelectorsIDs.SHARE_BUTTON}
             />
           </View>
         )}

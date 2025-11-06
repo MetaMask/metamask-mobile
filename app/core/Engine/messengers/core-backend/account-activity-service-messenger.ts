@@ -1,35 +1,22 @@
 import { AccountActivityServiceMessenger } from '@metamask/core-backend';
-import { RootExtendedMessenger, RootMessenger } from '../../types';
-import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
+import { BaseControllerMessenger } from '../../types';
 
 /**
- * Get a messenger for the Account Activity service. This is scoped to the
+ * Get a restricted messenger for the Account Activity service. This is scoped to the
  * actions and events that the Account Activity service is allowed to handle.
  *
- * @param rootExtendedMessenger - The root extended messenger.
- * @returns The AccountActivityServiceMessenger.
+ * @param messenger - The main controller messenger.
+ * @returns The restricted messenger.
  */
 export function getAccountActivityServiceMessenger(
-  rootExtendedMessenger: RootExtendedMessenger,
+  messenger: BaseControllerMessenger,
 ): AccountActivityServiceMessenger {
-  const messenger = new Messenger<
-    'AccountActivityService',
-    MessengerActions<AccountActivityServiceMessenger>,
-    MessengerEvents<AccountActivityServiceMessenger>,
-    RootMessenger
-  >({
-    namespace: 'AccountActivityService',
-    parent: rootExtendedMessenger,
-  });
-  rootExtendedMessenger.delegate({
-    actions: [
+  return messenger.getRestricted({
+    name: 'AccountActivityService',
+    allowedActions: [
       'AccountsController:getSelectedAccount',
       'BackendWebSocketService:connect',
-      'BackendWebSocketService:forceReconnection',
+      'BackendWebSocketService:disconnect',
       'BackendWebSocketService:subscribe',
       'BackendWebSocketService:getConnectionInfo',
       'BackendWebSocketService:channelHasSubscription',
@@ -38,11 +25,9 @@ export function getAccountActivityServiceMessenger(
       'BackendWebSocketService:addChannelCallback',
       'BackendWebSocketService:removeChannelCallback',
     ],
-    events: [
+    allowedEvents: [
       'AccountsController:selectedAccountChange',
       'BackendWebSocketService:connectionStateChanged',
     ],
-    messenger,
   });
-  return messenger;
 }

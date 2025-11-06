@@ -1,9 +1,9 @@
 import { ControllerInitFunction } from '../types';
+import { MultichainRouter } from '@metamask/snaps-controllers';
 import {
-  MultichainRouter,
-  type MultichainRouterMessenger,
-} from '@metamask/snaps-controllers';
-import { MultichainRouterInitMessenger } from '../messengers/multichain-router-messenger';
+  MultichainRouterInitMessenger,
+  MultichainRouterMessenger,
+} from '../messengers/multichain-router-messenger';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
@@ -54,6 +54,7 @@ export const multichainRouterInit: ControllerInitFunction<
   };
 
   const controller = new MultichainRouter({
+    // @ts-expect-error: Type for messenger seems to be incorrect.
     messenger: controllerMessenger,
 
     // @ts-expect-error: Type for `withSnapKeyring` is different.

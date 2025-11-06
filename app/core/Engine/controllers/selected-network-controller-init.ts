@@ -1,8 +1,6 @@
 import { ControllerInitFunction } from '../types';
-import {
-  SelectedNetworkController,
-  type SelectedNetworkControllerMessenger,
-} from '@metamask/selected-network-controller';
+import { SelectedNetworkController } from '@metamask/selected-network-controller';
+import { SelectedNetworkControllerMessenger } from '../messengers/selected-network-controller-messenger';
 import DomainProxyMap from '../../../lib/DomainProxyMap/DomainProxyMap';
 
 /**

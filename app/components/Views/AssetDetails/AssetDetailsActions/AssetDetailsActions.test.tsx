@@ -15,19 +15,11 @@ import { selectIsSwapsEnabled } from '../../../../core/redux/slices/bridge';
 
 // Mock the navigation hook
 const mockNavigate = jest.fn();
-const mockAddListener = jest.fn(() => jest.fn()); // Returns unsubscribe function
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
-    useNavigation: jest.fn(() => ({
-      navigate: mockNavigate,
-      addListener: mockAddListener,
-    })),
-    useFocusEffect: jest.fn((callback) => {
-      // Call the callback immediately to simulate focus
-      callback();
-    }),
+    useNavigation: jest.fn(() => ({ navigate: mockNavigate })),
   };
 });
 
@@ -96,7 +88,6 @@ describe('AssetDetailsActions', () => {
   afterEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
-    mockAddListener.mockClear();
     mockTrackEvent.mockClear();
     mockCreateEventBuilder.mockClear();
     jest.mocked(selectIsSwapsEnabled).mockReset();

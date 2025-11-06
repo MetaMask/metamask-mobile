@@ -27,7 +27,6 @@ import cardReducer, {
   setOnboardingId,
   setSelectedCountry,
   setContactVerificationId,
-  setConsentSetId,
   resetOnboardingState,
   setCacheData,
   clearCacheData,
@@ -35,7 +34,6 @@ import cardReducer, {
   selectOnboardingId,
   selectSelectedCountry,
   selectContactVerificationId,
-  selectConsentSetId,
 } from '.';
 import {
   CardTokenAllowance,
@@ -136,7 +134,6 @@ const CARD_STATE_MOCK: CardSliceState = {
     onboardingId: null,
     selectedCountry: null,
     contactVerificationId: null,
-    consentSetId: null,
   },
   cache: {
     data: {},
@@ -160,7 +157,6 @@ const EMPTY_CARD_STATE_MOCK: CardSliceState = {
     onboardingId: null,
     selectedCountry: null,
     contactVerificationId: null,
-    consentSetId: null,
   },
   cache: {
     data: {},
@@ -419,28 +415,6 @@ describe('Card Selectors', () => {
         );
       });
     });
-
-    describe('selectConsentSetId', () => {
-      it('should return null by default from initial state', () => {
-        const mockRootState = { card: initialState } as unknown as RootState;
-        expect(selectConsentSetId(mockRootState)).toBe(null);
-      });
-
-      it('should return the consent set ID when set', () => {
-        const consentSetId = 'consent-789';
-        const stateWithConsentSetId: CardSliceState = {
-          ...initialState,
-          onboarding: {
-            ...initialState.onboarding,
-            consentSetId,
-          },
-        };
-        const mockRootState = {
-          card: stateWithConsentSetId,
-        } as unknown as RootState;
-        expect(selectConsentSetId(mockRootState)).toBe(consentSetId);
-      });
-    });
   });
 });
 
@@ -552,7 +526,6 @@ describe('Card Reducer', () => {
           onboardingId: null,
           selectedCountry: null,
           contactVerificationId: null,
-          consentSetId: null,
         },
         cache: {
           data: {},
@@ -599,7 +572,6 @@ describe('Card Reducer', () => {
           // ensure other parts of state untouched
           expect(state.onboarding.selectedCountry).toBe(null);
           expect(state.onboarding.contactVerificationId).toBe(null);
-          expect(state.onboarding.consentSetId).toBe(null);
         });
 
         it('should update onboardingId when previously set', () => {
@@ -636,7 +608,6 @@ describe('Card Reducer', () => {
           // ensure other parts of state untouched
           expect(state.onboarding.onboardingId).toBe(null);
           expect(state.onboarding.contactVerificationId).toBe(null);
-          expect(state.onboarding.consentSetId).toBe(null);
         });
 
         it('should update selectedCountry when previously set', () => {
@@ -676,7 +647,6 @@ describe('Card Reducer', () => {
           // ensure other parts of state untouched
           expect(state.onboarding.onboardingId).toBe(null);
           expect(state.onboarding.selectedCountry).toBe(null);
-          expect(state.onboarding.consentSetId).toBe(null);
         });
 
         it('should update contactVerificationId when previously set', () => {
@@ -710,46 +680,6 @@ describe('Card Reducer', () => {
         });
       });
 
-      describe('setConsentSetId', () => {
-        it('should set consentSetId', () => {
-          const consentSetId = 'consent-123';
-          const state = cardReducer(
-            initialState,
-            setConsentSetId(consentSetId),
-          );
-          expect(state.onboarding.consentSetId).toBe(consentSetId);
-          // ensure other parts of state untouched
-          expect(state.onboarding.onboardingId).toBe(null);
-          expect(state.onboarding.selectedCountry).toBe(null);
-          expect(state.onboarding.contactVerificationId).toBe(null);
-        });
-
-        it('should update consentSetId when previously set', () => {
-          const current: CardSliceState = {
-            ...initialState,
-            onboarding: {
-              ...initialState.onboarding,
-              consentSetId: 'old-consent',
-            },
-          };
-          const newConsentSetId = 'new-consent-456';
-          const state = cardReducer(current, setConsentSetId(newConsentSetId));
-          expect(state.onboarding.consentSetId).toBe(newConsentSetId);
-        });
-
-        it('should set consentSetId to null', () => {
-          const current: CardSliceState = {
-            ...initialState,
-            onboarding: {
-              ...initialState.onboarding,
-              consentSetId: 'existing-consent',
-            },
-          };
-          const state = cardReducer(current, setConsentSetId(null));
-          expect(state.onboarding.consentSetId).toBe(null);
-        });
-      });
-
       describe('resetOnboardingState', () => {
         it('should reset all onboarding state to initial values', () => {
           const current: CardSliceState = {
@@ -758,7 +688,6 @@ describe('Card Reducer', () => {
               onboardingId: 'test-id',
               selectedCountry: 'US',
               contactVerificationId: 'verification-123',
-              consentSetId: 'consent-456',
             },
           };
           const state = cardReducer(current, resetOnboardingState());
@@ -766,7 +695,6 @@ describe('Card Reducer', () => {
             onboardingId: null,
             selectedCountry: null,
             contactVerificationId: null,
-            consentSetId: null,
           });
           // ensure other parts of state untouched
           expect(state.cardholderAccounts).toEqual(current.cardholderAccounts);
@@ -779,7 +707,6 @@ describe('Card Reducer', () => {
             onboardingId: null,
             selectedCountry: null,
             contactVerificationId: null,
-            consentSetId: null,
           });
         });
       });

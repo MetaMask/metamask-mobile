@@ -306,8 +306,9 @@ class MetaMetrics implements IMetaMetrics {
     }
 
     // look for a new Metametics ID and use it or generate a new one
-    const metametricsId: string | undefined =
-      await StorageWrapper.getItem(METAMETRICS_ID);
+    const metametricsId: string | undefined = await StorageWrapper.getItem(
+      METAMETRICS_ID,
+    );
 
     // This catches '""', 'null', 'undefined', and other corruptions
     if (

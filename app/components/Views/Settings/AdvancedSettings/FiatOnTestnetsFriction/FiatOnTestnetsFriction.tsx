@@ -43,9 +43,7 @@ const FiatOnTestnetsFriction = () => {
         </Text>
         <Text style={styles.descriptionText}>
           <Text>
-            {strings(
-              'app_settings.show_fiat_on_testnets_modal_description',
-            )}{' '}
+            {strings('app_settings.show_fiat_on_testnets_modal_description')}{' '}
           </Text>
           <Text
             primary

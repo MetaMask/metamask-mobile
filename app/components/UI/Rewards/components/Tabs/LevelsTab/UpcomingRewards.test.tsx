@@ -34,6 +34,10 @@ jest.mock('../../../../../../reducers/rewards/selectors', () => ({
   selectSeasonStartDate: jest.fn(),
 }));
 
+jest.mock('../../../../../../selectors/rewards', () => ({
+  selectRewardsActiveAccountAddress: jest.fn(),
+}));
+
 // Mock RewardsErrorBanner
 jest.mock('../../RewardsErrorBanner', () => {
   const ReactActual = jest.requireActual('react');
@@ -106,6 +110,8 @@ import {
   selectSeasonStartDate,
 } from '../../../../../../reducers/rewards/selectors';
 
+import { selectRewardsActiveAccountAddress } from '../../../../../../selectors/rewards';
+
 const mockSelectSeasonTiers = selectSeasonTiers as jest.MockedFunction<
   typeof selectSeasonTiers
 >;
@@ -123,6 +129,10 @@ const mockSelectSeasonStatusError =
 const mockSelectSeasonStartDate = selectSeasonStartDate as jest.MockedFunction<
   typeof selectSeasonStartDate
 >;
+const mockSelectRewardsActiveAccountAddress =
+  selectRewardsActiveAccountAddress as jest.MockedFunction<
+    typeof selectRewardsActiveAccountAddress
+  >;
 
 // Mock theme
 jest.mock('../../../../../../util/theme', () => ({
@@ -232,6 +242,7 @@ describe('UpcomingRewards', () => {
     mockSelectSeasonStatusLoading.mockReturnValue(false);
     mockSelectSeasonStatusError.mockReturnValue('');
     mockSelectSeasonStartDate.mockReturnValue(new Date('2024-01-01'));
+    mockSelectRewardsActiveAccountAddress.mockReturnValue('0x123');
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSeasonTiers)
         return [mockCurrentTier, mockSeasonTier];
@@ -239,6 +250,7 @@ describe('UpcomingRewards', () => {
       if (selector === selectSeasonStatusLoading) return false;
       if (selector === selectSeasonStatusError) return false;
       if (selector === selectSeasonStartDate) return new Date('2024-01-01');
+      if (selector === selectRewardsActiveAccountAddress) return '0x123';
       return [];
     });
   });

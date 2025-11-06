@@ -31,8 +31,6 @@ interface RampsTokenSelected {
   region: string;
   chain_id: string;
   currency_destination: string;
-  currency_destination_symbol?: string;
-  currency_destination_network?: string;
   currency_source: string;
   is_authenticated: boolean;
 }
@@ -55,8 +53,6 @@ interface RampsOrderProposed {
   region: string;
   chain_id: string;
   currency_destination: string;
-  currency_destination_symbol?: string;
-  currency_destination_network?: string;
   currency_source: string;
   is_authenticated: boolean;
 }
@@ -75,8 +71,6 @@ interface RampsOrderSelected {
   region: string;
   chain_id: string;
   currency_destination: string;
-  currency_destination_symbol?: string;
-  currency_destination_network?: string;
   currency_source: string;
 }
 
@@ -90,8 +84,6 @@ interface RampsOrderFailed {
   region: string;
   chain_id: string;
   currency_destination: string;
-  currency_destination_symbol?: string;
-  currency_destination_network?: string;
   currency_source: string;
   error_message: string;
   is_authenticated: boolean;
@@ -162,8 +154,6 @@ interface RampsTransactionConfirmed {
   country: string;
   chain_id: string;
   currency_destination: string;
-  currency_destination_symbol?: string;
-  currency_destination_network?: string;
   currency_source: string;
 }
 
@@ -181,8 +171,6 @@ interface RampsTransactionCompleted {
   country: string;
   chain_id: string;
   currency_destination: string;
-  currency_destination_symbol?: string;
-  currency_destination_network?: string;
   currency_source: string;
 }
 
@@ -200,8 +188,6 @@ interface RampsTransactionFailed {
   country: string;
   chain_id: string;
   currency_destination: string;
-  currency_destination_symbol?: string;
-  currency_destination_network?: string;
   currency_source: string;
   error_message: string;
 }
@@ -227,32 +213,11 @@ interface RampsPaymentMethodAdded {
   payment_method_id: string;
 }
 
-interface RampsTokenSelectorClicked {
-  quote_session_id?: string;
-  ramp_type: 'DEPOSIT';
-  user_id?: string;
-  region?: string;
-  location: string;
-  chain_id?: string;
-  currency_destination?: string;
-  currency_destination_symbol?: string;
-  currency_destination_network?: string;
-  currency_source?: string;
-  is_authenticated: boolean;
-}
-
-interface RampsUserDetailsFetched {
-  logged_in: boolean;
-  region: string;
-  location: string;
-}
-
 export interface AnalyticsEvents {
   RAMPS_BUTTON_CLICKED: RampsButtonClicked;
   RAMPS_DEPOSIT_CASH_BUTTON_CLICKED: RampsDepositCashButtonClicked;
   RAMPS_PAYMENT_METHOD_SELECTED: RampsPaymentMethodSelected;
   RAMPS_PAYMENT_METHOD_ADDED: RampsPaymentMethodAdded;
-  RAMPS_TOKEN_SELECTOR_CLICKED: RampsTokenSelectorClicked;
   RAMPS_TOKEN_SELECTED: RampsTokenSelected;
   RAMPS_REGION_SELECTED: RampsRegionSelected;
   RAMPS_ORDER_PROPOSED: RampsOrderProposed;
@@ -270,5 +235,4 @@ export interface AnalyticsEvents {
   RAMPS_TRANSACTION_FAILED: RampsTransactionFailed;
   RAMPS_KYC_APPLICATION_FAILED: RampsKycApplicationFailed;
   RAMPS_KYC_APPLICATION_APPROVED: RampsKycApplicationApproved;
-  RAMPS_USER_DETAILS_FETCHED: RampsUserDetailsFetched;
 }

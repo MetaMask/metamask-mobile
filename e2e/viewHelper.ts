@@ -5,14 +5,16 @@ import NetworkEducationModal from './pages/Network/NetworkEducationModal';
 import NetworkListModal from './pages/Network/NetworkListModal';
 import NetworkView from './pages/Settings/NetworksView';
 import OnboardingView from './pages/Onboarding/OnboardingView';
+import SettingsView from './pages/Settings/SettingsView';
 import WalletView from './pages/wallet/WalletView';
 import Accounts from '../wdio/helpers/Accounts';
 import SkipAccountSecurityModal from './pages/Onboarding/SkipAccountSecurityModal';
 import ProtectYourWalletModal from './pages/Onboarding/ProtectYourWalletModal';
 import CreatePasswordView from './pages/Onboarding/CreatePasswordView';
-import ManualBackupStep1View from './pages/Onboarding/ManualBackupStep1View';
+import ProtectYourWalletView from './pages/Onboarding/ProtectYourWalletView';
 import OnboardingSuccessView from './pages/Onboarding/OnboardingSuccessView';
 import TermsOfUseModal from './pages/Onboarding/TermsOfUseModal';
+import TabBarComponent from './pages/wallet/TabBarComponent';
 import LoginView from './pages/wallet/LoginView';
 import { getGanachePort } from './framework/fixtures/FixtureUtils';
 import Assertions from './framework/Assertions';
@@ -233,11 +235,18 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
 
-  // Check that we are on the Manual Backup Step 1 screen
-  await Assertions.expectElementToBeVisible(ManualBackupStep1View.container, {
-    description: 'Manual Backup Step 1 View should be visible',
+  // Check that we are on the Secure your wallet screen
+  await Assertions.expectElementToBeVisible(ProtectYourWalletView.container, {
+    description: 'Protect Your Wallet View should be visible',
   });
-  await ManualBackupStep1View.tapOnRemindMeLaterButton();
+  await ProtectYourWalletView.tapOnRemindMeLaterButton();
+
+  // This should be removed once we implement mockAll
+  await device.disableSynchronization();
+  await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+  await SkipAccountSecurityModal.tapSkipButton();
+  // This should be removed once we implement mockAll
+  await device.enableSynchronization();
 
   await Assertions.expectElementToBeVisible(MetaMetricsOptIn.container, {
     description: 'MetaMetrics Opt-In should be visible',
@@ -267,9 +276,8 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
  * @returns {Promise<void>} Resolves when the Localhost network is added to the user's network list.
  */
 export const addLocalhostNetwork = async () => {
-  // Access network list from wallet view (network switcher)
-  await WalletView.tapNetworksButtonOnNavBar();
-
+  await TabBarComponent.tapSettings();
+  await SettingsView.tapNetworks();
   await Assertions.expectElementToBeVisible(NetworkView.networkContainer, {
     description: 'Network Container should be visible',
   });

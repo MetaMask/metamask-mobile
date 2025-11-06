@@ -1,9 +1,10 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedMessenger } from '../../ExtendedMessenger';
+import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
 import {
   getNetworkControllerInitMessenger,
   getNetworkControllerMessenger,
   NetworkControllerInitMessenger,
+  type NetworkControllerMessenger,
 } from '../messengers/network-controller-messenger';
 import { ControllerInitRequest } from '../types';
 import {
@@ -14,21 +15,16 @@ import {
 import {
   getDefaultNetworkControllerState,
   NetworkController,
-  NetworkControllerMessenger,
 } from '@metamask/network-controller';
 import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
-import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/network-controller');
 
 function getInitRequestMock(
-  baseMessenger: ExtendedMessenger<
-    MockAnyNamespace,
+  baseMessenger: ExtendedControllerMessenger<
     never,
     never
-  > = new ExtendedMessenger<MockAnyNamespace, never, never>({
-    namespace: MOCK_ANY_NAMESPACE,
-  }),
+  > = new ExtendedControllerMessenger<never, never>(),
 ): jest.Mocked<
   ControllerInitRequest<
     NetworkControllerMessenger,
@@ -87,13 +83,10 @@ describe('networkControllerInit', () => {
   });
 
   it('enables RPC failover when initialized with the `walletFrameworkRpcFailoverEnabled` feature flag enabled', () => {
-    const baseMessenger = new ExtendedMessenger<
-      MockAnyNamespace,
+    const baseMessenger = new ExtendedControllerMessenger<
       RemoteFeatureFlagControllerGetStateAction,
       never
-    >({
-      namespace: MOCK_ANY_NAMESPACE,
-    });
+    >();
 
     const initRequest = getInitRequestMock(baseMessenger);
 
@@ -118,13 +111,10 @@ describe('networkControllerInit', () => {
   });
 
   it('disables RPC failover when initialized with the `walletFrameworkRpcFailoverEnabled` feature flag disabled', () => {
-    const baseMessenger = new ExtendedMessenger<
-      MockAnyNamespace,
+    const baseMessenger = new ExtendedControllerMessenger<
       RemoteFeatureFlagControllerGetStateAction,
       never
-    >({
-      namespace: MOCK_ANY_NAMESPACE,
-    });
+    >();
 
     const initRequest = getInitRequestMock(baseMessenger);
 
@@ -149,11 +139,7 @@ describe('networkControllerInit', () => {
   });
 
   it('enables RPC failover when the `walletFrameworkRpcFailoverEnabled` feature flag is enabled on state change', () => {
-    const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>(
-      {
-        namespace: MOCK_ANY_NAMESPACE,
-      },
-    );
+    const baseMessenger = new ExtendedControllerMessenger<never, never>();
     const initRequest = getInitRequestMock(baseMessenger);
     networkControllerInit(initRequest);
 
@@ -172,11 +158,7 @@ describe('networkControllerInit', () => {
   });
 
   it('disables RPC failover when the `walletFrameworkRpcFailoverEnabled` feature flag is disabled on state change', () => {
-    const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>(
-      {
-        namespace: MOCK_ANY_NAMESPACE,
-      },
-    );
+    const baseMessenger = new ExtendedControllerMessenger<never, never>();
     const initRequest = getInitRequestMock(baseMessenger);
     networkControllerInit(initRequest);
 

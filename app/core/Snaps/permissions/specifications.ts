@@ -3,8 +3,10 @@ import {
   buildSnapRestrictedMethodSpecifications,
 } from '@metamask/snaps-rpc-methods';
 import { keyringSnapPermissionsBuilder } from '../../SnapKeyring/keyringSnapsPermissions';
-import { ControllerGetStateAction } from '@metamask/base-controller';
-import { Messenger } from '@metamask/messenger';
+import {
+  ControllerGetStateAction,
+  RestrictedMessenger,
+} from '@metamask/base-controller';
 import {
   ClearSnapState,
   CreateInterface,
@@ -73,10 +75,12 @@ interface SnapPermissionSpecificationsHooks {
 }
 
 export const getSnapPermissionSpecifications = (
-  messenger: Messenger<
-    'SnapPermissionSpecificationsMessenger',
+  messenger: RestrictedMessenger<
+    never,
     SnapPermissionSpecificationsActions,
-    SnapPermissionSpecificationsEvents
+    SnapPermissionSpecificationsEvents,
+    SnapPermissionSpecificationsActions['type'],
+    SnapPermissionSpecificationsEvents['type']
   >,
   { addNewKeyring }: SnapPermissionSpecificationsHooks,
 ) => {

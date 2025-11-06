@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Engine from '../../../../core/Engine';
-import Logger from '../../../../util/Logger';
-import { PREDICT_CONSTANTS } from '../constants/errors';
-import { ensureError } from '../utils/predictErrorHandler';
 import { PredictMarket } from '../types';
 
 export interface UsePredictMarketOptions {
@@ -86,24 +83,6 @@ export const usePredictMarket = (
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to fetch market';
-
-      // Capture exception with market loading context
-      Logger.error(ensureError(err), {
-        tags: {
-          feature: PREDICT_CONSTANTS.FEATURE_NAME,
-          component: 'usePredictMarket',
-        },
-        context: {
-          name: 'usePredictMarket',
-          data: {
-            method: 'loadMarket',
-            action: 'market_load',
-            operation: 'data_fetching',
-            marketId: id,
-            providerId,
-          },
-        },
-      });
 
       if (isMountedRef.current) {
         setError(errorMessage);

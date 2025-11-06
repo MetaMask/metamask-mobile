@@ -7,7 +7,7 @@ import { useGetPriorityCardToken } from './useGetPriorityCardToken';
 import { useIsCardholder } from './useIsCardholder';
 import useGetCardExternalWalletDetails from './useGetCardExternalWalletDetails';
 import useGetDelegationSettings from './useGetDelegationSettings';
-import { CardTokenAllowance, CardWarning } from '../types';
+import { CardTokenAllowance } from '../types';
 
 /**
  * Hook to load card data.
@@ -128,13 +128,10 @@ const useLoadCardData = () => {
   ]);
 
   // Combined warning (only from priority token and card details)
-  // Priority: NoCard warning always takes precedence because the user must provision a card before delegating
-  const warning = useMemo(() => {
-    if (cardDetailsWarning === CardWarning.NoCard) {
-      return cardDetailsWarning;
-    }
-    return priorityTokenWarning || cardDetailsWarning;
-  }, [priorityTokenWarning, cardDetailsWarning]);
+  const warning = useMemo(
+    () => priorityTokenWarning || cardDetailsWarning,
+    [priorityTokenWarning, cardDetailsWarning],
+  );
 
   // Manual fetch function to refresh all data
   const fetchAllData = useMemo(

@@ -7,33 +7,20 @@ class ImportSrpView {
     return Matchers.getElementByID(ImportSRPIDs.CONTAINER);
   }
 
-  get title(): DetoxElement {
-    return Matchers.getElementByID(ImportSRPIDs.SCREEN_TITLE_ID);
-  }
-
   get importButton(): DetoxElement {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(ImportSRPIDs.IMPORT_BUTTON)
       : Matchers.getElementByLabel(ImportSRPIDs.IMPORT_BUTTON);
   }
 
-  get textareaInput(): DetoxElement {
-    return Matchers.getElementByID(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
+  get dropdown(): DetoxElement {
+    return Matchers.getElementByID(ImportSRPIDs.SRP_SELECTION_DROPDOWN);
   }
 
-  seedPhraseInput(index: number): DetoxElement {
-    if (index !== 0) {
-      return Matchers.getElementByID(
-        `${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_${index}`,
-      );
-    }
-    return Matchers.getElementByID(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
-  }
-
-  async tapTitle() {
-    await Gestures.tap(this.title, {
-      elemDescription: 'Import SRP screen title',
-    });
+  inputOfIndex(srpIndex: number): DetoxElement {
+    return Matchers.getElementByID(
+      ImportSRPIDs.SRP_INPUT_WORD_NUMBER + `-${String(srpIndex)}`,
+    );
   }
 
   async tapImportButton() {
@@ -41,23 +28,30 @@ class ImportSrpView {
       elemDescription: 'Import button',
     });
   }
+  async enterSrpWord(srpIndex: number, word: string): Promise<void> {
+    const inputElement = this.inputOfIndex(srpIndex);
+    const elemDescription = `SRP word input at index ${srpIndex}`;
 
-  async enterSrp(mnemonic: string): Promise<void> {
     if (device.getPlatform() === 'ios') {
-      const srpArray = mnemonic.split(' ');
-      for (const [i, word] of srpArray.entries()) {
-        await Gestures.typeText(this.seedPhraseInput(i), `${word} `, {
-          elemDescription: 'Import SRP Secret Recovery Phrase Input Box',
-          hideKeyboard: i === srpArray.length - 1,
-        });
-      }
-      await this.tapTitle();
+      await Gestures.typeText(inputElement, word, {
+        elemDescription,
+        hideKeyboard: true,
+      });
     } else {
-      await Gestures.replaceText(this.textareaInput, mnemonic, {
-        elemDescription: 'SRP textarea input',
-        checkVisibility: false,
+      // For Android, we use replaceText to avoid autocomplete issue
+      await Gestures.replaceText(inputElement, word, {
+        elemDescription,
       });
     }
+  }
+
+  async selectNWordSrp(numberOfWords: number) {
+    await Gestures.waitAndTap(this.dropdown);
+    await Gestures.waitAndTap(
+      Matchers.getElementByLabel(
+        `I have a ${String(numberOfWords)} word phrase`,
+      ),
+    );
   }
 }
 

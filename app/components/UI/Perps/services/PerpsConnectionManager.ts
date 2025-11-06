@@ -17,12 +17,14 @@ import Logger from '../../../../util/Logger';
 import { PERPS_CONSTANTS, PERFORMANCE_CONFIG } from '../constants/perpsConfig';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import { selectPerpsNetwork } from '../selectors/perpsController';
-import { selectHip3ConfigVersion } from '../selectors/featureFlags';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import type { ReconnectOptions } from '../types/perps-types';
 import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
 import { ensureError } from '../utils/perpsErrorHandler';
-import { wait } from '../utils/wait';
+
+// simple wait utility
+const wait = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * Singleton manager for Perps connection state
@@ -44,7 +46,6 @@ class PerpsConnectionManagerClass {
   private unsubscribeFromStore: (() => void) | null = null;
   private previousAddress: string | undefined;
   private previousPerpsNetwork: 'mainnet' | 'testnet' | undefined;
-  private previousHip3Version: number = 0;
   private gracePeriodTimer: number | null = null;
   private isInGracePeriod = false;
   private pendingReconnectPromise: Promise<void> | null = null;
@@ -70,7 +71,6 @@ class PerpsConnectionManagerClass {
       selectSelectedInternalAccountByScope(state)('eip155:1');
     this.previousAddress = selectedEvmAccount?.address;
     this.previousPerpsNetwork = selectPerpsNetwork(state);
-    this.previousHip3Version = selectHip3ConfigVersion(state);
 
     // Subscribe to Redux store changes
     this.unsubscribeFromStore = store.subscribe(() => {
@@ -79,7 +79,6 @@ class PerpsConnectionManagerClass {
         selectSelectedInternalAccountByScope(currentState)('eip155:1');
       const currentAddress = currentEvmAccount?.address;
       const currentPerpsNetwork = selectPerpsNetwork(currentState);
-      const currentHip3Version = selectHip3ConfigVersion(currentState);
 
       const hasAccountChanged =
         this.previousAddress !== undefined &&
@@ -87,38 +86,23 @@ class PerpsConnectionManagerClass {
       const hasPerpsNetworkChanged =
         this.previousPerpsNetwork !== undefined &&
         this.previousPerpsNetwork !== currentPerpsNetwork;
-      const hasHip3Changed = this.previousHip3Version !== currentHip3Version;
 
-      // If account, network, or HIP-3 config changed and we're connected, trigger reconnection
-      if (
-        (hasAccountChanged || hasPerpsNetworkChanged || hasHip3Changed) &&
-        this.isConnected
-      ) {
+      // If account or network changed and we're connected, trigger reconnection
+      if ((hasAccountChanged || hasPerpsNetworkChanged) && this.isConnected) {
         DevLogger.log(
-          hasHip3Changed
-            ? '[DEX:WHITELIST] PerpsConnectionManager: HIP-3 config version CHANGED - triggering reconnection'
-            : 'PerpsConnectionManager: State change detected',
+          'PerpsConnectionManager: Account or network change detected',
           {
             accountChanged: hasAccountChanged,
             networkChanged: hasPerpsNetworkChanged,
-            hip3Changed: hasHip3Changed,
             previousAddress: this.previousAddress,
             currentAddress,
             previousNetwork: this.previousPerpsNetwork,
             currentNetwork: currentPerpsNetwork,
-            previousHip3Version: this.previousHip3Version,
-            currentHip3Version,
           },
         );
 
         // Immediately clear ALL cached data to prevent old account data from showing
         const streamManager = getStreamManagerInstance();
-
-        if (hasHip3Changed) {
-          DevLogger.log(
-            '[DEX:WHITELIST] PerpsConnectionManager: Clearing ALL caches due to HIP-3 config change',
-          );
-        }
 
         // Clear caches immediately - this disconnects old WebSockets and sets accountAddress to null
         streamManager.positions.clearCache();
@@ -126,7 +110,6 @@ class PerpsConnectionManagerClass {
         streamManager.account.clearCache();
         streamManager.prices.clearCache();
         streamManager.marketData.clearCache();
-        streamManager.oiCaps.clearCache();
 
         // Force the controller to reconnect with new account
         // This ensures proper WebSocket reconnection at the controller level
@@ -141,7 +124,6 @@ class PerpsConnectionManagerClass {
       // Update tracked values
       this.previousAddress = currentAddress;
       this.previousPerpsNetwork = currentPerpsNetwork;
-      this.previousHip3Version = currentHip3Version;
     });
 
     DevLogger.log('PerpsConnectionManager: State monitoring set up');
@@ -156,7 +138,6 @@ class PerpsConnectionManagerClass {
       this.unsubscribeFromStore = null;
       this.previousAddress = undefined;
       this.previousPerpsNetwork = undefined;
-      this.previousHip3Version = 0;
       DevLogger.log('PerpsConnectionManager: State monitoring cleaned up');
     }
   }
@@ -279,6 +260,9 @@ class PerpsConnectionManagerClass {
             // Clean up preloaded subscriptions
             this.cleanupPreloadedSubscriptions();
 
+            // Clean up state monitoring when leaving Perps
+            this.cleanupStateMonitoring();
+
             // Reset state before disconnecting to prevent race conditions
             this.isConnected = false;
             this.isInitialized = false;
@@ -302,6 +286,9 @@ class PerpsConnectionManagerClass {
         })();
 
         await this.disconnectPromise;
+      } else {
+        // Even if not connected, clean up monitoring when leaving Perps
+        this.cleanupStateMonitoring();
       }
     } else {
       DevLogger.log(
@@ -434,7 +421,7 @@ class PerpsConnectionManagerClass {
 
         // Stage 1: Initialize providers
         const initStart = performance.now();
-        await Engine.context.PerpsController.init();
+        await Engine.context.PerpsController.initializeProviders();
         this.isInitialized = true;
         setMeasurement(
           PerpsMeasurementName.PERPS_PROVIDER_INIT,
@@ -607,7 +594,7 @@ class PerpsConnectionManagerClass {
       this.clearConnectionTimeout();
 
       // Clear all pending promises to cancel in-flight operations
-      // Note: Actual disconnect happens in performReconnection → Controller.init → performInitialization
+      // Note: Actual disconnect happens in performReconnection → Controller.initializeProviders → performInitialization
       this.isConnecting = false;
       this.initPromise = null;
       this.pendingReconnectPromise = null;
@@ -676,7 +663,6 @@ class PerpsConnectionManagerClass {
       streamManager.orders.clearCache();
       streamManager.account.clearCache();
       streamManager.marketData.clearCache();
-      streamManager.oiCaps.clearCache();
       setMeasurement(
         PerpsMeasurementName.PERPS_RECONNECTION_CLEANUP,
         performance.now() - cleanupStart,
@@ -693,7 +679,7 @@ class PerpsConnectionManagerClass {
 
       // Stage 2: Force the controller to reinitialize with new context
       const reinitStart = performance.now();
-      await Engine.context.PerpsController.init();
+      await Engine.context.PerpsController.initializeProviders();
       setMeasurement(
         PerpsMeasurementName.PERPS_CONTROLLER_REINIT,
         performance.now() - reinitStart,
@@ -833,6 +819,9 @@ class PerpsConnectionManagerClass {
           'PerpsConnectionManager: Starting grace period before disconnection',
         );
         this.scheduleGracePeriodDisconnection();
+      } else {
+        // Even if not connected, clean up monitoring when leaving Perps
+        this.cleanupStateMonitoring();
       }
     }
   }
@@ -868,7 +857,6 @@ class PerpsConnectionManagerClass {
       const orderCleanup = streamManager.orders.prewarm();
       const accountCleanup = streamManager.account.prewarm();
       const marketDataCleanup = streamManager.marketData.prewarm();
-      const oiCapCleanup = streamManager.oiCaps.prewarm();
 
       // Portfolio balance updates are now handled by usePerpsPortfolioBalance via usePerpsLiveAccount
 
@@ -881,7 +869,6 @@ class PerpsConnectionManagerClass {
         orderCleanup,
         accountCleanup,
         marketDataCleanup,
-        oiCapCleanup,
         priceCleanup,
       );
 

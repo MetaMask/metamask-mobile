@@ -48,9 +48,6 @@ import { getGasFeeControllerMessenger } from './gas-fee-controller-messenger/gas
 import { getSignatureControllerMessenger } from './signature-controller-messenger';
 import { getSeedlessOnboardingControllerMessenger } from './seedless-onboarding-controller-messenger';
 import { getApprovalControllerMessenger } from './approval-controller-messenger';
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFeature/controllers/sample-petnames-controller-messenger';
-///: END:ONLY_INCLUDE_IF
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
 import { getPredictControllerMessenger } from './predict-controller-messenger';
 import { getBridgeControllerMessenger } from './bridge-controller-messenger';
@@ -110,6 +107,10 @@ import {
   getDelegationControllerMessenger,
 } from './delegation/delegation-controller-messenger';
 import { getRemoteFeatureFlagControllerMessenger } from './remote-feature-flag-controller-messenger';
+import {
+  getPPOMControllerInitMessenger,
+  getPPOMControllerMessenger,
+} from './ppom-controller-messenger';
 import { getErrorReportingServiceMessenger } from './error-reporting-service-messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
@@ -295,12 +296,6 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getSeedlessOnboardingControllerMessenger,
     getInitMessenger: noop,
   },
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  SamplePetnamesController: {
-    getMessenger: getSamplePetnamesControllerMessenger,
-    getInitMessenger: noop,
-  },
-  ///: END:ONLY_INCLUDE_IF
   SelectedNetworkController: {
     getMessenger: getSelectedNetworkControllerMessenger,
     getInitMessenger: noop,
@@ -340,6 +335,10 @@ export const CONTROLLER_MESSENGERS = {
   PhishingController: {
     getMessenger: getPhishingControllerMessenger,
     getInitMessenger: noop,
+  },
+  PPOMController: {
+    getMessenger: getPPOMControllerMessenger,
+    getInitMessenger: getPPOMControllerInitMessenger,
   },
   RemoteFeatureFlagController: {
     getMessenger: getRemoteFeatureFlagControllerMessenger,

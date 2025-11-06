@@ -1,6 +1,7 @@
 import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleDappUrl from './handleDappUrl';
+import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 import handleUniversalLink from './handleUniversalLink';
 import connectWithWC from './connectWithWC';
 import parseDeeplink from './parseDeeplink';
@@ -10,6 +11,7 @@ jest.mock('../../../util/Logger');
 jest.mock('../DeeplinkManager');
 jest.mock('../../SDKConnect/utils/DevLogger');
 jest.mock('./handleDappUrl');
+jest.mock('./handleMetaMaskDeeplink');
 jest.mock('./handleUniversalLink');
 jest.mock('./connectWithWC');
 jest.mock('../../../../locales/i18n', () => ({
@@ -40,6 +42,11 @@ describe('parseDeeplink', () => {
   const mockHandleDappProtocol = handleDappUrl as jest.MockedFunction<
     typeof handleDappUrl
   >;
+
+  const mockHandleMetaMaskProtocol =
+    handleMetaMaskDeeplink as jest.MockedFunction<
+      typeof handleMetaMaskDeeplink
+    >;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -152,10 +159,9 @@ describe('parseDeeplink', () => {
     });
   });
 
-  it('should call handleUniversalLinks for METAMASK protocol', async () => {
+  it('should call handleMetaMaskProtocol for METAMASK protocol', async () => {
     const url = 'metamask://example.com';
-    const expectedMappedUrl = 'https://link.metamask.io/example.com';
-    const { urlObj } = extractURLParams(expectedMappedUrl);
+    const { params } = extractURLParams(url);
 
     await parseDeeplink({
       deeplinkManager: instance,
@@ -165,13 +171,13 @@ describe('parseDeeplink', () => {
       onHandled: mockOnHandled,
     });
 
-    expect(mockHandleUniversalLinks).toHaveBeenCalledWith({
+    expect(mockHandleMetaMaskProtocol).toHaveBeenCalledWith({
       instance,
       handled: expect.any(Function),
-      urlObj,
-      browserCallBack: mockBrowserCallBack,
-      url: expectedMappedUrl,
-      source: 'testOrigin',
+      wcURL: url,
+      origin: 'testOrigin',
+      params,
+      url,
     });
   });
 

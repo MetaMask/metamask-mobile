@@ -33,8 +33,6 @@ import stateHasOrder from './utils/stateHasOrder';
 import Routes from '../../../constants/navigation/Routes';
 import getOrderAnalyticsPayload from './utils/getOrderAnalyticsPayload';
 import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
-import useDetectGeolocation from './hooks/useDetectGeolocation';
-import useRampsSmartRouting from './hooks/useRampsSmartRouting';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 
@@ -83,8 +81,9 @@ async function processCustomOrderId(
     dispatchThunk: (thunk: ThunkAction) => void;
   },
 ) {
-  const [customOrderId, fiatOrderResponse] =
-    await processCustomOrderIdData(customOrderIdData);
+  const [customOrderId, fiatOrderResponse] = await processCustomOrderIdData(
+    customOrderIdData,
+  );
 
   if (fiatOrderResponse) {
     const fiatOrder = aggregatorOrderToFiatOrder(fiatOrderResponse);
@@ -118,8 +117,6 @@ const styles = StyleSheet.create({
 
 function FiatOrders() {
   useFetchRampNetworks();
-  useDetectGeolocation();
-  useRampsSmartRouting();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
   const navigation = useNavigation();

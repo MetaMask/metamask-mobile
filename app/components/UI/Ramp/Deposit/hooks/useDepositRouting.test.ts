@@ -33,12 +33,7 @@ let mockGeneratePaymentUrl = jest.fn().mockResolvedValue('https://payment.url');
 let mockGetOrder = jest.fn().mockResolvedValue({
   id: 'order-id',
   walletAddress: '0x123',
-  cryptoCurrency: {
-    assetId: 'USDC',
-    symbol: 'USDC',
-    name: 'USD Coin',
-    chainId: 'eip155:1',
-  },
+  cryptoCurrency: 'USDC',
   network: { chainId: 'eip155:1', name: 'Ethereum' },
   fiatAmount: '100',
   cryptoAmount: '0.05',
@@ -661,25 +656,6 @@ describe('useDepositRouting', () => {
         previousFormData: mockPreviousFormData,
       });
     });
-
-    it('should navigate to KycProcessing when KYC is submitted', async () => {
-      const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-
-      mockGetKycRequirement = jest.fn().mockResolvedValue({
-        status: 'SUBMITTED',
-      });
-
-      const { result } = renderHook(() => useDepositRouting());
-
-      await expect(
-        result.current.routeAfterAuthentication(mockQuote),
-      ).resolves.not.toThrow();
-
-      verifyPopToBuildQuoteCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('KycProcessing', {
-        quote: mockQuote,
-      });
-    });
   });
 
   describe('Error handling', () => {
@@ -866,12 +842,7 @@ describe('useDepositRouting', () => {
       const testOrder = {
         id: 'order-id',
         walletAddress: '0x123',
-        cryptoCurrency: {
-          assetId: 'USDC',
-          symbol: 'USDC',
-          name: 'USD Coin',
-          chainId: 'eip155:1',
-        },
+        cryptoCurrency: { assetId: 'USDC' },
         network: { chainId: 'eip155:1', name: 'Ethereum' },
         fiatAmount: '100',
         cryptoAmount: '0.05',
@@ -916,8 +887,6 @@ describe('useDepositRouting', () => {
           country: 'US',
           chain_id: 'eip155:1',
           currency_destination: 'USDC',
-          currency_destination_symbol: 'USDC',
-          currency_destination_network: 'Ethereum',
           currency_source: 'USD',
         },
       );
@@ -1135,10 +1104,7 @@ describe('useDepositRouting', () => {
         result.current.routeAfterAuthentication(mockQuote),
       ).resolves.not.toThrow();
 
-      expect(mockTrackEvent).not.toHaveBeenCalledWith(
-        'RAMPS_KYC_STARTED',
-        expect.any(Object),
-      );
+      expect(mockTrackEvent).not.toHaveBeenCalled();
     });
   });
 

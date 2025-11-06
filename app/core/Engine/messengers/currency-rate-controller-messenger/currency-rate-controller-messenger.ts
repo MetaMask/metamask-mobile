@@ -1,10 +1,5 @@
-import { CurrencyRateMessenger } from '@metamask/assets-controllers';
-import { RootMessenger, RootExtendedMessenger } from '../../types';
-import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
+import { CurrencyRateMessenger } from '../../controllers/currency-rate-controller/currency-rate-controller-init';
+import { BaseControllerMessenger } from '../../types';
 
 /**
  * Get the CurrencyRateMessenger for the CurrencyRateController.
@@ -13,21 +8,11 @@ import {
  * @returns The CurrencyRateMessenger.
  */
 export function getCurrencyRateControllerMessenger(
-  rootExtendedMessenger: RootExtendedMessenger,
+  baseControllerMessenger: BaseControllerMessenger,
 ): CurrencyRateMessenger {
-  const messenger = new Messenger<
-    'CurrencyRateController',
-    MessengerActions<CurrencyRateMessenger>,
-    MessengerEvents<CurrencyRateMessenger>,
-    RootMessenger
-  >({
-    namespace: 'CurrencyRateController',
-    parent: rootExtendedMessenger,
+  return baseControllerMessenger.getRestricted({
+    name: 'CurrencyRateController',
+    allowedActions: ['NetworkController:getNetworkClientById'],
+    allowedEvents: [],
   });
-  rootExtendedMessenger.delegate({
-    actions: ['NetworkController:getNetworkClientById'],
-    events: [],
-    messenger,
-  });
-  return messenger;
 }

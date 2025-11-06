@@ -22,7 +22,6 @@ export enum TabBarIconKey {
   Activity = 'Activity',
   Setting = 'Setting',
   Rewards = 'Rewards',
-  Trending = 'Trending',
 }
 
 /**
@@ -32,7 +31,7 @@ export type IconByTabBarIconKey = {
   [key in TabBarIconKey]: IconName;
 };
 
-export interface ExtendedBottomTabDescriptor extends BottomTabDescriptor {
+interface ExtendedBottomTabDescriptor extends BottomTabDescriptor {
   options: BottomTabNavigationOptions & {
     tabBarIconKey: TabBarIconKey;
     callback: () => void;

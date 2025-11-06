@@ -42,7 +42,6 @@ const PerpsPositionsView: React.FC = () => {
   // Get real-time positions via WebSocket
   const { positions, isInitialLoading } = usePerpsLivePositions({
     throttleMs: 1000, // Update every second
-    useLivePnl: true, // Enable live PnL calculations for position display
   });
 
   const error = null;
@@ -139,7 +138,7 @@ const PerpsPositionsView: React.FC = () => {
           iconColor={IconColor.Default}
           size={ButtonIconSizes.Md}
           onPress={handleBackPress}
-          testID={PerpsPositionsViewSelectorsIDs.BACK_BUTTON}
+          testID="back-button"
         />
         <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
           {strings('perps.position.title')}

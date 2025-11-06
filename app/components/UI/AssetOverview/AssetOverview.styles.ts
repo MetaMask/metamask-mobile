@@ -36,7 +36,6 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'space-around',
       paddingHorizontal: 10,
       paddingTop: 20,
-      marginBottom: 16,
     },
     balanceButtons: {
       flexDirection: 'row',

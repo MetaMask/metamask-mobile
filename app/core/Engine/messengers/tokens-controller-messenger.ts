@@ -1,50 +1,75 @@
 import {
+  ControllerStateChangeEvent,
   Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
-import { NetworkControllerGetSelectedNetworkClientAction } from '@metamask/network-controller';
+} from '@metamask/base-controller';
+import { AddApprovalRequest } from '@metamask/approval-controller';
+import {
+  NetworkControllerGetNetworkClientByIdAction,
+  NetworkControllerGetSelectedNetworkClientAction,
+  NetworkControllerNetworkDidChangeEvent,
+  NetworkControllerStateChangeEvent,
+} from '@metamask/network-controller';
+import {
+  AccountsControllerGetAccountAction,
+  AccountsControllerGetSelectedAccountAction,
+  AccountsControllerListAccountsAction,
+  AccountsControllerSelectedEvmAccountChangeEvent,
+} from '@metamask/accounts-controller';
+import {
+  TokenListController,
+  TokensControllerStateChangeEvent,
+} from '@metamask/assets-controllers';
+import { KeyringControllerAccountRemovedEvent } from '@metamask/keyring-controller';
 
-import { TokensControllerMessenger } from '@metamask/assets-controllers';
-import { RootMessenger } from '../types';
+type AllowedActions =
+  | AddApprovalRequest
+  | NetworkControllerGetNetworkClientByIdAction
+  | AccountsControllerGetAccountAction
+  | AccountsControllerGetSelectedAccountAction
+  | AccountsControllerListAccountsAction;
+
+type AllowedEvents =
+  | AccountsControllerSelectedEvmAccountChangeEvent
+  | KeyringControllerAccountRemovedEvent
+  | NetworkControllerNetworkDidChangeEvent
+  | NetworkControllerStateChangeEvent
+  | TokensControllerStateChangeEvent
+  | ControllerStateChangeEvent<
+      'TokenListController',
+      TokenListController['state']
+    >;
+
+export type TokensControllerMessenger = ReturnType<
+  typeof getTokensControllerMessenger
+>;
 
 /**
- * Get the messenger for the tokens controller. This is scoped to the
+ * Get a messenger restricted to the actions and events that the
  * tokens controller is allowed to handle.
  *
- * @param rootMessenger - The root messenger.
- * @returns The TokensControllerMessenger.
+ * @param messenger - The controller messenger to restrict.
+ * @returns The restricted controller messenger.
  */
 export function getTokensControllerMessenger(
-  rootMessenger: RootMessenger,
-): TokensControllerMessenger {
-  const messenger = new Messenger<
-    'TokensController',
-    MessengerActions<TokensControllerMessenger>,
-    MessengerEvents<TokensControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'TokensController',
-    parent: rootMessenger,
-  });
-  rootMessenger.delegate({
-    actions: [
+  messenger: Messenger<AllowedActions, AllowedEvents>,
+) {
+  return messenger.getRestricted({
+    name: 'TokensController',
+    allowedActions: [
       'ApprovalController:addRequest',
       'NetworkController:getNetworkClientById',
       'AccountsController:getAccount',
       'AccountsController:getSelectedAccount',
       'AccountsController:listAccounts',
     ],
-    events: [
+    allowedEvents: [
       'NetworkController:networkDidChange',
       'NetworkController:stateChange',
       'TokenListController:stateChange',
       'AccountsController:selectedEvmAccountChange',
       'KeyringController:accountRemoved',
     ],
-    messenger,
   });
-  return messenger;
 }
 
 type AllowedInitializationActions =
@@ -57,27 +82,21 @@ export type TokensControllerInitMessenger = ReturnType<
 >;
 
 /**
- * Get the messenger for the tokens controller initialization. This is scoped to the
- * actions and events that the tokens controller is allowed to handle during
- * initialization.
+ * Get a messenger restricted to the initialization actions that the
+ * tokens controller is allowed to handle.
  *
- * @param rootMessenger - The root messenger.
- * @returns The TokensControllerInitMessenger.
+ * @param messenger - The controller messenger to restrict.
+ * @returns The restricted controller messenger.
  */
-export function getTokensControllerInitMessenger(rootMessenger: RootMessenger) {
-  const messenger = new Messenger<
-    'TokensControllerInit',
+export function getTokensControllerInitMessenger(
+  messenger: Messenger<
     AllowedInitializationActions,
-    AllowedInitializationEvents,
-    RootMessenger
-  >({
-    namespace: 'TokensControllerInit',
-    parent: rootMessenger,
+    AllowedInitializationEvents
+  >,
+) {
+  return messenger.getRestricted({
+    name: 'TokensControllerInit',
+    allowedActions: ['NetworkController:getSelectedNetworkClient'],
+    allowedEvents: [],
   });
-  rootMessenger.delegate({
-    actions: ['NetworkController:getSelectedNetworkClient'],
-    events: [],
-    messenger,
-  });
-  return messenger;
 }

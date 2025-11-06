@@ -9,11 +9,6 @@ class ActivitiesView {
   get title(): DetoxElement {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.TITLE);
   }
-  get predictionsTab(): DetoxElement {
-    return Matchers.getElementByText(
-      ActivitiesViewSelectorsText.PREDICTIONS_TAB,
-    );
-  }
 
   get container(): DetoxElement {
     return Matchers.getElementByID(ActivitiesViewSelectorsIDs.CONTAINER);
@@ -116,15 +111,6 @@ class ActivitiesView {
   }
   async tapOnTransactionItem(row: number): Promise<void> {
     await Gestures.waitAndTap(this.transactionItem(row));
-  }
-  async tapOnPredictionsTab(): Promise<void> {
-    await Gestures.waitAndTap(this.predictionsTab);
-  }
-  async tapPredictPosition(positionName: string): Promise<void> {
-    const el = Matchers.getElementByText(positionName);
-    await Gestures.waitAndTap(el, {
-      elemDescription: `Tapping Predict Position: ${positionName}`,
-    });
   }
 }
 

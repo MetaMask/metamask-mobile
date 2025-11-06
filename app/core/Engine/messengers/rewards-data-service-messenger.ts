@@ -1,29 +1,26 @@
-import {
-  Messenger,
-  type MessengerActions,
-  type MessengerEvents,
-} from '@metamask/messenger';
-import { RootMessenger } from '../types';
-import { RewardsDataServiceMessenger } from '../controllers/rewards-controller/services/rewards-data-service';
+import { Messenger } from '@metamask/base-controller';
+
+type AllowedActions = never;
+
+type AllowedEvents = never;
+
+export type RewardsDataServiceMessenger = ReturnType<
+  typeof getRewardsDataServiceMessenger
+>;
 
 /**
- * Get the messenger for the rewards data service. This is scoped to the
- * actions and events that the rewards data service is allowed to handle
+ * Get a messenger restricted to the actions and events that the
+ * rewards data service is allowed to handle.
  *
- * @param rootMessenger - The root messenger.
- * @returns The RewardsDataServiceMessenger.
+ * @param messenger - The controller messenger to restrict.
+ * @returns The restricted controller messenger.
  */
 export function getRewardsDataServiceMessenger(
-  rootMessenger: RootMessenger,
-): RewardsDataServiceMessenger {
-  const messenger = new Messenger<
-    'RewardsDataService',
-    MessengerActions<RewardsDataServiceMessenger>,
-    MessengerEvents<RewardsDataServiceMessenger>,
-    RootMessenger
-  >({
-    namespace: 'RewardsDataService',
-    parent: rootMessenger,
+  messenger: Messenger<AllowedActions, AllowedEvents>,
+) {
+  return messenger.getRestricted({
+    name: 'RewardsDataService',
+    allowedActions: [],
+    allowedEvents: [],
   });
-  return messenger;
 }

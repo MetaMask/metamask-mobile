@@ -89,7 +89,7 @@ export default function useBlockaidAlerts(): Alert[] {
         key: AlertKeys.Blockaid,
         content: (
           <BlockaidAlertContent
-            alertDetails={features as string[]}
+            alertDetails={features}
             securityAlertResponse={
               securityAlertResponse as SecurityAlertResponse
             }

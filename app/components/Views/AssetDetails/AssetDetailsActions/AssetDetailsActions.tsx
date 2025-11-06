@@ -1,6 +1,6 @@
-import React, { useRef, useCallback, useEffect } from 'react';
+import React from 'react';
 import { View } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import styleSheet from './AssetDetailsActions.styles';
 import { useStyles } from '../../../../component-library/hooks';
 import MainActionButton from '../../../../component-library/components-temp/MainActionButton';
@@ -59,27 +59,8 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   const isSwapsEnabled = useSelector((state: RootState) =>
     selectIsSwapsEnabled(state),
   );
-  const navigation = useNavigation();
-  const { navigate } = navigation;
+  const { navigate } = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
-
-  // Prevent rapid navigation clicks - locks all buttons during navigation
-  const navigationLockRef = useRef(false);
-
-  // Reset lock when screen comes into focus (handles return from navigation)
-  useFocusEffect(
-    useCallback(() => {
-      navigationLockRef.current = false;
-    }, []),
-  );
-
-  // Listen to navigation state changes to unlock when navigation completes or fails
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('state', () => {
-      navigationLockRef.current = false;
-    });
-    return unsubscribe;
-  }, [navigation]);
 
   // Check if FundActionMenu would be empty
   const { isDepositEnabled } = useDepositEnabled();
@@ -88,54 +69,26 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   // Button should be enabled if we have standard funding options OR a custom onBuy function
   const isBuyingAvailable = isBuyMenuAvailable || !!onBuy;
 
-  // Wrapper to prevent rapid navigation clicks
-  const withNavigationLock = useCallback((callback: () => void) => {
-    if (navigationLockRef.current) return;
-    navigationLockRef.current = true;
-    callback();
-  }, []);
-
-  const handleBuyPress = useCallback(() => {
-    withNavigationLock(() => {
-      // Track the home screen Buy button click
-      trackActionButtonClick(trackEvent, createEventBuilder, {
-        action_name: ActionButtonType.BUY,
-        action_position: ActionPosition.FIRST_POSITION,
-        button_label: strings('asset_overview.buy_button'),
-        location: ActionLocation.HOME,
-      });
-
-      // Navigate to FundActionMenu with both custom onBuy and asset context
-      // The menu will prioritize custom onBuy over standard funding options
-      // This allows custom funding flows even when deposit/ramp are unavailable
-      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.FUND_ACTION_MENU,
-        params: {
-          onBuy, // Custom buy function (takes priority if provided)
-          asset, // Asset context for standard funding flows
-        },
-      });
+  const handleBuyPress = () => {
+    // Track the home screen Buy button click
+    trackActionButtonClick(trackEvent, createEventBuilder, {
+      action_name: ActionButtonType.BUY,
+      action_position: ActionPosition.FIRST_POSITION,
+      button_label: strings('asset_overview.buy_button'),
+      location: ActionLocation.HOME,
     });
-  }, [
-    withNavigationLock,
-    trackEvent,
-    createEventBuilder,
-    navigate,
-    onBuy,
-    asset,
-  ]);
 
-  const handleSwapPress = useCallback(() => {
-    withNavigationLock(goToSwaps);
-  }, [withNavigationLock, goToSwaps]);
-
-  const handleSendPress = useCallback(() => {
-    withNavigationLock(onSend);
-  }, [withNavigationLock, onSend]);
-
-  const handleReceivePress = useCallback(() => {
-    withNavigationLock(onReceive);
-  }, [withNavigationLock, onReceive]);
+    // Navigate to FundActionMenu with both custom onBuy and asset context
+    // The menu will prioritize custom onBuy over standard funding options
+    // This allows custom funding flows even when deposit/ramp are unavailable
+    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.FUND_ACTION_MENU,
+      params: {
+        onBuy, // Custom buy function (takes priority if provided)
+        asset, // Asset context for standard funding flows
+      },
+    });
+  };
 
   return (
     <View style={styles.activitiesButton}>
@@ -155,7 +108,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           <MainActionButton
             iconName={IconName.SwapVertical}
             label={strings('asset_overview.swap')}
-            onPress={handleSwapPress}
+            onPress={() => goToSwaps()}
             isDisabled={!isSwapsEnabled}
             testID={swapButtonActionID}
           />
@@ -165,7 +118,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
         <MainActionButton
           iconName={IconName.Send}
           label={strings('asset_overview.send_button')}
-          onPress={handleSendPress}
+          onPress={onSend}
           isDisabled={!canSignTransactions}
           testID={sendButtonActionID}
         />
@@ -174,7 +127,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
         <MainActionButton
           iconName={IconName.Received}
           label={strings('asset_overview.receive_button')}
-          onPress={handleReceivePress}
+          onPress={onReceive}
           isDisabled={false}
           testID={receiveButtonActionID}
         />

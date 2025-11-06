@@ -1,8 +1,6 @@
 import { ControllerInitFunction } from '../types';
-import {
-  AssetsContractController,
-  type AssetsContractControllerMessenger,
-} from '@metamask/assets-controllers';
+import { AssetsContractController } from '@metamask/assets-controllers';
+import { AssetsContractControllerMessenger } from '../messengers/assets-contract-controller-messenger';
 import { getGlobalChainId } from '../../../util/networks/global-network';
 
 /**

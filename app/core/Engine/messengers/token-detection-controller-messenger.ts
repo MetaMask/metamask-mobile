@@ -1,35 +1,75 @@
+import { Messenger } from '@metamask/base-controller';
 import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
-import {
+  type KeyringControllerGetStateAction,
+  type KeyringControllerLockEvent,
+  type KeyringControllerUnlockEvent,
+} from '@metamask/keyring-controller';
+import type {
+  AccountsControllerGetAccountAction,
+  AccountsControllerGetSelectedAccountAction,
+  AccountsControllerSelectedEvmAccountChangeEvent,
+} from '@metamask/accounts-controller';
+import type {
+  NetworkControllerFindNetworkClientIdByChainIdAction,
+  NetworkControllerGetNetworkClientByIdAction,
+  NetworkControllerGetNetworkConfigurationByNetworkClientId,
+  NetworkControllerGetStateAction,
+  NetworkControllerNetworkDidChangeEvent,
+} from '@metamask/network-controller';
+import type {
   AssetsContractControllerGetBalancesInSingleCallAction,
-  TokenDetectionControllerMessenger,
+  GetTokenListState,
+  TokenListStateChange,
+  TokensControllerAddDetectedTokensAction,
+  TokensControllerAddTokensAction,
+  TokensControllerGetStateAction,
 } from '@metamask/assets-controllers';
-import { RootMessenger } from '../types';
+import type {
+  PreferencesControllerGetStateAction,
+  PreferencesControllerStateChangeEvent,
+} from '@metamask/preferences-controller';
+import type { TransactionControllerTransactionConfirmedEvent } from '@metamask/transaction-controller';
+
+export type AllowedActions =
+  | AccountsControllerGetSelectedAccountAction
+  | AccountsControllerGetAccountAction
+  | NetworkControllerGetNetworkClientByIdAction
+  | NetworkControllerGetNetworkConfigurationByNetworkClientId
+  | NetworkControllerGetStateAction
+  | GetTokenListState
+  | KeyringControllerGetStateAction
+  | PreferencesControllerGetStateAction
+  | TokensControllerGetStateAction
+  | TokensControllerAddDetectedTokensAction
+  | TokensControllerAddTokensAction
+  | NetworkControllerFindNetworkClientIdByChainIdAction;
+
+export type AllowedEvents =
+  | AccountsControllerSelectedEvmAccountChangeEvent
+  | NetworkControllerNetworkDidChangeEvent
+  | TokenListStateChange
+  | KeyringControllerLockEvent
+  | KeyringControllerUnlockEvent
+  | PreferencesControllerStateChangeEvent
+  | TransactionControllerTransactionConfirmedEvent;
+
+export type TokenDetectionControllerMessenger = ReturnType<
+  typeof getTokenDetectionControllerMessenger
+>;
 
 /**
- * Get the messenger for the token detection controller. This is scoped to the
+ * Get a messenger restricted to the actions and events that the
  * token detection controller is allowed to handle.
  *
- * @param rootMessenger - The root messenger.
- * @returns The TokenDetectionControllerMessenger.
+ * @param messenger - The controller messenger to restrict.
+ * @returns The restricted controller messenger.
  */
 export function getTokenDetectionControllerMessenger(
-  rootMessenger: RootMessenger,
-): TokenDetectionControllerMessenger {
-  const messenger = new Messenger<
-    'TokenDetectionController',
-    MessengerActions<TokenDetectionControllerMessenger>,
-    MessengerEvents<TokenDetectionControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'TokenDetectionController',
-    parent: rootMessenger,
-  });
-  rootMessenger.delegate({
-    actions: [
+  messenger: Messenger<AllowedActions, AllowedEvents>,
+) {
+  return messenger.getRestricted({
+    name: 'TokenDetectionController',
+    allowedActions: [
       'AccountsController:getSelectedAccount',
       'NetworkController:getNetworkClientById',
       'NetworkController:getNetworkConfigurationByNetworkClientId',
@@ -43,7 +83,7 @@ export function getTokenDetectionControllerMessenger(
       'TokensController:addTokens',
       'NetworkController:findNetworkClientIdByChainId',
     ],
-    events: [
+    allowedEvents: [
       'KeyringController:lock',
       'KeyringController:unlock',
       'PreferencesController:stateChange',
@@ -52,9 +92,7 @@ export function getTokenDetectionControllerMessenger(
       'AccountsController:selectedEvmAccountChange',
       'TransactionController:transactionConfirmed',
     ],
-    messenger,
   });
-  return messenger;
 }
 
 type AllowedInitializationActions =
@@ -67,29 +105,21 @@ export type TokenDetectionControllerInitMessenger = ReturnType<
 >;
 
 /**
- * Get the messenger for the token detection controller initialization. This is scoped to the
- * actions and events that the token detection controller is allowed to handle during
- * initialization.
+ * Get a messenger restricted to the initialization actions that the
+ * token detection controller is allowed to handle.
  *
- * @param rootMessenger - The root messenger.
- * @returns The TokenDetectionControllerInitMessenger.
+ * @param messenger - The controller messenger to restrict.
+ * @returns The restricted controller messenger.
  */
 export function getTokenDetectionControllerInitMessenger(
-  rootMessenger: RootMessenger,
-) {
-  const messenger = new Messenger<
-    'TokenDetectionControllerInit',
+  messenger: Messenger<
     AllowedInitializationActions,
-    AllowedInitializationEvents,
-    RootMessenger
-  >({
-    namespace: 'TokenDetectionControllerInit',
-    parent: rootMessenger,
+    AllowedInitializationEvents
+  >,
+) {
+  return messenger.getRestricted({
+    name: 'TokenDetectionControllerInit',
+    allowedActions: ['AssetsContractController:getBalancesInSingleCall'],
+    allowedEvents: [],
   });
-  rootMessenger.delegate({
-    actions: ['AssetsContractController:getBalancesInSingleCall'],
-    events: [],
-    messenger,
-  });
-  return messenger;
 }

@@ -60,48 +60,55 @@ describe('Settings', () => {
     jest.clearAllMocks();
   });
 
-  it('renders settings component with all sections', () => {
+  it('should render correctly', () => {
     const { toJSON } = renderWithProvider(<Settings />, {
       state: initialState,
     });
     expect(toJSON()).toMatchSnapshot();
   });
-  it('renders general settings button', () => {
+  it('should render general settings button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
     const generalSettings = getByTestId(SettingsViewSelectorsIDs.GENERAL);
     expect(generalSettings).toBeDefined();
   });
-  it('renders security settings button', () => {
+  it('should render security settings button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
     const securitySettings = getByTestId(SettingsViewSelectorsIDs.SECURITY);
     expect(securitySettings).toBeDefined();
   });
-  it('renders advanced settings button', () => {
+  it('should render advanced settings button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
     const advancedSettings = getByTestId(SettingsViewSelectorsIDs.ADVANCED);
     expect(advancedSettings).toBeDefined();
   });
-  it('renders contacts settings button', () => {
+  it('should render contacts settings button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
     const contactsSettings = getByTestId(SettingsViewSelectorsIDs.CONTACTS);
     expect(contactsSettings).toBeDefined();
   });
-  it('render feature request button', () => {
+  it('should render network settings button', () => {
+    const { getByTestId } = renderWithProvider(<Settings />, {
+      state: initialState,
+    });
+    const networksSettings = getByTestId(SettingsViewSelectorsIDs.NETWORKS);
+    expect(networksSettings).toBeDefined();
+  });
+  it('should render feature request button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
     const onRampSettings = getByTestId(SettingsViewSelectorsIDs.ON_RAMP);
     expect(onRampSettings).toBeDefined();
   });
-  it('renders experimental settings button', () => {
+  it('should render experimental settings button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
@@ -110,35 +117,35 @@ describe('Settings', () => {
     );
     expect(experimentalSettings).toBeDefined();
   });
-  it('renders about metamask button', () => {
+  it('should render about metamask button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
     const aboutMetamask = getByTestId(SettingsViewSelectorsIDs.ABOUT_METAMASK);
     expect(aboutMetamask).toBeDefined();
   });
-  it('renders request feature button', () => {
+  it('should render request feature button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
     const requestFeature = getByTestId(SettingsViewSelectorsIDs.REQUEST);
     expect(requestFeature).toBeDefined();
   });
-  it('renders contact support button', () => {
+  it('should render contact support button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
     const contactSupport = getByTestId(SettingsViewSelectorsIDs.CONTACT);
     expect(contactSupport).toBeDefined();
   });
-  it('renders lock button', () => {
+  it('should render lock button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
     const lock = getByTestId(SettingsViewSelectorsIDs.LOCK);
     expect(lock).toBeDefined();
   });
-  it('renders permissions settings button when enabled', () => {
+  it('should render permissions settings button when enabled', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
@@ -147,7 +154,7 @@ describe('Settings', () => {
     );
     expect(permissionsSettings).toBeDefined();
   });
-  it('renders backup and sync settings button and navigates to correct page on press', () => {
+  it('should render backup and sync settings button, and navigate to the correct page on press', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
@@ -160,7 +167,7 @@ describe('Settings', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS.BACKUP_AND_SYNC);
   });
 
-  it('calls Authentication.lockApp with correct parameters when onPressLock is called', async () => {
+  it('should call Authentication.lockApp with correct parameters when onPressLock is called', async () => {
     // Test the Authentication.lockApp function directly with the expected parameters
     await Authentication.lockApp({ reset: false, locked: false });
 

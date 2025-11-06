@@ -4,7 +4,6 @@ import { getRandomValues, randomUUID } from 'react-native-quick-crypto';
 import { LaunchArguments } from 'react-native-launch-arguments';
 import {
   FIXTURE_SERVER_PORT,
-  COMMAND_QUEUE_SERVER_PORT,
   isE2E,
   isTest,
   enableApiCallLogs,
@@ -52,9 +51,6 @@ if (isTest) {
   testConfig.fixtureServerPort = raw?.fixtureServerPort
     ? raw.fixtureServerPort
     : FIXTURE_SERVER_PORT;
-  testConfig.commandQueueServerPort = raw?.commandQueueServerPort
-    ? raw.commandQueueServerPort
-    : COMMAND_QUEUE_SERVER_PORT;
 }
 
 // Fix for https://github.com/facebook/react-native/issues/5667
@@ -131,24 +127,6 @@ if (typeof global.Promise.withResolvers === 'undefined') {
   };
 }
 
-// FinalizationRegistry polyfill for Hyperliquid SDK
-// The SDK uses this for automatic cleanup of request queues when they're garbage collected
-// In React Native, we provide a no-op implementation since the GC behavior differs
-if (typeof global.FinalizationRegistry === 'undefined') {
-  global.FinalizationRegistry = class FinalizationRegistry {
-    constructor(callback) {
-      this.callback = callback;
-    }
-    register() {
-      // No-op: React Native doesn't need GC-based cleanup
-      // Request queues are short-lived and will be cleaned up naturally
-    }
-    unregister() {
-      // No-op
-    }
-  };
-}
-
 // global.location = global.location || { port: 80 }
 const isDev = typeof __DEV__ === 'boolean' && __DEV__;
 Object.assign(process.env, { NODE_ENV: isDev ? 'development' : 'production' });
@@ -198,25 +176,6 @@ if (enableApiCallLogs || isTest) {
                 typeof url === 'string' &&
                 (url.startsWith('http://') || url.startsWith('https://'))
               ) {
-                // Bypass proxy for local command queue server (uses adb reverse on Android)
-                try {
-                  const parsed = new URL(url);
-                  const isLocalHost =
-                    parsed.hostname === 'localhost' ||
-                    parsed.hostname === '127.0.0.1';
-                  const isCommandQueue =
-                    isLocalHost &&
-                    parsed.port ===
-                      String(
-                        testConfig.commandQueueServerPort ||
-                          COMMAND_QUEUE_SERVER_PORT,
-                      );
-                  if (isCommandQueue) {
-                    return originalOpen.call(this, method, url, ...openArgs);
-                  }
-                } catch (e) {
-                  // ignore URL parse errors and continue to proxy
-                }
                 if (
                   !url.includes(`localhost:${mockServerPort}`) &&
                   !url.includes('/proxy')

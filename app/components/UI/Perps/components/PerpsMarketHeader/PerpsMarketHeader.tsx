@@ -15,7 +15,6 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import type { PerpsMarketData } from '../../controllers/types';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import { styleSheet } from './PerpsMarketHeader.styles';
@@ -25,8 +24,7 @@ interface PerpsMarketHeaderProps {
   market: PerpsMarketData;
   onBackPress?: () => void;
   onMorePress?: () => void;
-  onFavoritePress?: () => void;
-  isFavorite?: boolean;
+  onActivityPress?: () => void;
   testID?: string;
 }
 
@@ -34,18 +32,18 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
   market,
   onBackPress,
   onMorePress,
-  onFavoritePress,
-  isFavorite = false,
+  onActivityPress,
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
     <View style={styles.container} testID={testID}>
+      {/* Back Button */}
       {onBackPress && (
         <View style={styles.backButton}>
           <ButtonIcon
-            iconName={IconName.ArrowLeft}
+            iconName={IconName.Arrow2Left}
             iconColor={IconColor.Default}
             size={ButtonIconSizes.Md}
             onPress={onBackPress}
@@ -71,11 +69,11 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
             color={TextColor.Default}
             style={styles.assetName}
           >
-            {getPerpsDisplaySymbol(market.symbol)}-USD
+            {market.symbol}-USD
           </Text>
           <PerpsLeverage maxLeverage={market.maxLeverage} />
         </View>
-        <View style={styles.secondRow}>
+        <View style={styles.positionValueRow}>
           <LivePriceHeader
             symbol={market.symbol}
             fallbackPrice={market.price || '0'}
@@ -87,10 +85,10 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
       </View>
 
       {/* Right Action Button */}
-      {onFavoritePress ? (
-        <TouchableOpacity onPress={onFavoritePress} style={styles.moreButton}>
+      {onActivityPress ? (
+        <TouchableOpacity onPress={onActivityPress} style={styles.moreButton}>
           <Icon
-            name={isFavorite ? IconName.StarFilled : IconName.Star}
+            name={IconName.Activity}
             size={IconSize.Lg}
             color={IconColor.Default}
           />

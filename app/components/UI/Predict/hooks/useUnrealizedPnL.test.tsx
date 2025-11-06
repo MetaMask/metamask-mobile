@@ -59,10 +59,6 @@ describe('useUnrealizedPnL', () => {
     };
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('returns initial state when disabled', () => {
     const { result } = renderHook(() =>
       useUnrealizedPnL({ loadOnMount: false }),

@@ -4,11 +4,13 @@ import { Theme } from '../../../../../util/theme/models';
 export const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     container: {
+      paddingHorizontal: 16,
       paddingVertical: 24,
     },
     option: {
       paddingVertical: 16,
       paddingHorizontal: 16,
+      borderRadius: 12,
       marginBottom: 16,
     },
     optionSelected: {
