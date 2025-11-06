@@ -512,6 +512,29 @@ describe('PredictSellPreview', () => {
       expect(mockFormatPercentage).toHaveBeenCalledWith(-20);
     });
 
+    it('uses position price when preview sharePrice is undefined', () => {
+      mockPreview = {
+        marketId: 'market-1',
+        outcomeId: 'outcome-456',
+        outcomeTokenId: 'outcome-token-789',
+        timestamp: Date.now(),
+        side: 'SELL',
+        sharePrice: undefined as unknown as number,
+        maxAmountSpent: 100,
+        minAmountReceived: 60,
+        slippage: 0.005,
+        tickSize: 0.01,
+        minOrderSize: 1,
+        negRisk: false,
+      };
+
+      const { getByText } = renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      expect(getByText('At price: 50¢ per share')).toBeOnTheScreen();
+    });
+
     it('renders position icon with correct source', () => {
       renderWithProvider(<PredictSellPreview />, {
         state: initialState,
