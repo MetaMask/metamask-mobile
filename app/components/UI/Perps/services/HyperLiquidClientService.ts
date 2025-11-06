@@ -332,10 +332,16 @@ export class HyperLiquidClientService {
 
     let currentCandleData: CandleData | null = null;
     let wsUnsubscribe: (() => void) | null = null;
+    let isUnsubscribed = false;
 
     // 1. Fetch initial historical data
     this.fetchHistoricalCandles(coin, interval)
       .then((initialData) => {
+        // Don't proceed if already unsubscribed
+        if (isUnsubscribed) {
+          return;
+        }
+
         currentCandleData = initialData;
         if (currentCandleData) {
           callback(currentCandleData);
@@ -345,6 +351,11 @@ export class HyperLiquidClientService {
         const subscription = subscriptionClient.candle(
           { coin, interval },
           (candleEvent) => {
+            // Don't process events if already unsubscribed
+            if (isUnsubscribed) {
+              return;
+            }
+
             // Transform SDK CandleEvent to our Candle format
             const newCandle = {
               time: candleEvent.t,
@@ -391,6 +402,11 @@ export class HyperLiquidClientService {
         subscription
           .then((sub) => {
             wsUnsubscribe = () => sub.unsubscribe();
+            // If already unsubscribed while waiting, clean up immediately
+            if (isUnsubscribed && wsUnsubscribe) {
+              wsUnsubscribe();
+              wsUnsubscribe = null;
+            }
           })
           .catch((error) => {
             DevLogger.log('Error subscribing to candles:', error);
@@ -404,8 +420,10 @@ export class HyperLiquidClientService {
 
     // Return cleanup function
     return () => {
+      isUnsubscribed = true;
       if (wsUnsubscribe) {
         wsUnsubscribe();
+        wsUnsubscribe = null;
       }
     };
   }

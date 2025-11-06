@@ -330,7 +330,9 @@ describe('CandleStreamChannel', () => {
       const mockBtcUnsubscribe = jest.fn();
       const mockEthUnsubscribe = jest.fn();
 
-      mockSubscribeToCandles.mockImplementation(({ coin }) => coin === 'BTC' ? mockBtcUnsubscribe : mockEthUnsubscribe);
+      mockSubscribeToCandles.mockImplementation(({ coin }) =>
+        coin === 'BTC' ? mockBtcUnsubscribe : mockEthUnsubscribe,
+      );
 
       const btcUnsubscribe = channel.subscribe({
         coin: 'BTC',
@@ -642,7 +644,9 @@ describe('CandleStreamChannel', () => {
       const mockBtcUnsubscribe = jest.fn();
       const mockEthUnsubscribe = jest.fn();
 
-      mockSubscribeToCandles.mockImplementation(({ coin }) => coin === 'BTC' ? mockBtcUnsubscribe : mockEthUnsubscribe);
+      mockSubscribeToCandles.mockImplementation(({ coin }) =>
+        coin === 'BTC' ? mockBtcUnsubscribe : mockEthUnsubscribe,
+      );
 
       channel.subscribe({
         coin: 'BTC',

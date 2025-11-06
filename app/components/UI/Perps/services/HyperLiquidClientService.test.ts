@@ -988,24 +988,83 @@ describe('HyperLiquidClientService', () => {
       expect(mockWsUnsubscribe).toHaveBeenCalled();
     });
 
-    it('should handle unsubscribe before WebSocket established', () => {
-      // Arrange
-      mockInfoClient.candleSnapshot = jest
-        .fn()
-        // eslint-disable-next-line no-empty-function, @typescript-eslint/no-empty-function
-        .mockImplementation(() => new Promise(() => {})); // Never resolves
+    it('should handle unsubscribe before WebSocket established', async () => {
+      // Arrange - delay the promise resolution to simulate slow network
+      let resolveSnapshot: (value: any) => void = () => {
+        /* noop */
+      };
+      const delayedPromise = new Promise((resolve) => {
+        resolveSnapshot = resolve;
+      });
+
+      mockInfoClient.candleSnapshot = jest.fn().mockReturnValue(delayedPromise);
+
+      const mockCandleSubscription = jest.fn();
+      (mockSubscriptionClient as any).candle = mockCandleSubscription;
 
       const callback = jest.fn();
 
-      // Act
+      // Act - subscribe and immediately unsubscribe
       const unsubscribe = service.subscribeToCandles({
         coin: 'BTC',
         interval: '1h' as ValidCandleInterval,
         callback,
       });
 
-      // Call unsubscribe immediately
+      // Call unsubscribe immediately before WebSocket establishes
       expect(() => unsubscribe()).not.toThrow();
+
+      // Now resolve the snapshot to let the async chain continue
+      resolveSnapshot([]);
+
+      // Wait for async operations to complete
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Assert - WebSocket subscription should not be created because
+      // we already unsubscribed before the async chain completed
+      expect(mockCandleSubscription).not.toHaveBeenCalled();
+      expect(callback).not.toHaveBeenCalled(); // Callback should not be invoked after unsubscribe
+    });
+
+    it('should cleanup WebSocket when unsubscribed during subscription establishment', async () => {
+      // Arrange - fast snapshot, slow WebSocket subscription
+      mockInfoClient.candleSnapshot = jest.fn().mockResolvedValue([]);
+
+      let resolveWsSubscription: (value: any) => void = () => {
+        /* noop */
+      };
+      const delayedWsPromise = new Promise((resolve) => {
+        resolveWsSubscription = resolve;
+      });
+
+      const mockWsUnsubscribe = jest.fn();
+      (mockSubscriptionClient as any).candle = jest
+        .fn()
+        .mockReturnValue(delayedWsPromise);
+
+      const callback = jest.fn();
+
+      // Act - subscribe
+      const unsubscribe = service.subscribeToCandles({
+        coin: 'BTC',
+        interval: '1h' as ValidCandleInterval,
+        callback,
+      });
+
+      // Wait for snapshot to complete
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Unsubscribe while WebSocket is still being established
+      unsubscribe();
+
+      // Now resolve the WebSocket subscription
+      resolveWsSubscription({ unsubscribe: mockWsUnsubscribe });
+
+      // Wait for async cleanup to complete
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Assert - WebSocket should be cleaned up immediately after establishing
+      expect(mockWsUnsubscribe).toHaveBeenCalled();
     });
   });
 });
