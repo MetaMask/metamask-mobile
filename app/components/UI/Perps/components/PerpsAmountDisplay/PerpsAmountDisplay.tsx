@@ -13,6 +13,7 @@ import {
   formatPositionSize,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import createStyles from './PerpsAmountDisplay.styles';
 
 interface PerpsAmountDisplayProps {
@@ -47,6 +48,17 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  // Calculate display value - extracted from nested ternary for clarity
+  const displayValue = (() => {
+    if (showTokenAmount && tokenAmount && tokenSymbol) {
+      return `${formatPositionSize(tokenAmount)} ${tokenSymbol}`;
+    }
+    if (amount) {
+      return formatPerpsFiat(amount, { ranges: PRICE_RANGES_MINIMAL_VIEW });
+    }
+    return PERPS_CONSTANTS.ZERO_AMOUNT_DISPLAY;
+  })();
 
   useEffect(() => {
     if (isActive) {
@@ -102,11 +114,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
                 : styles.amountValueToken
             }
           >
-            {showTokenAmount && tokenAmount && tokenSymbol
-              ? `${formatPositionSize(tokenAmount)} ${tokenSymbol}`
-              : amount
-                ? formatPerpsFiat(amount, { ranges: PRICE_RANGES_MINIMAL_VIEW })
-                : '$0'}
+            {displayValue}
           </Text>
         )}
         {isActive && (
