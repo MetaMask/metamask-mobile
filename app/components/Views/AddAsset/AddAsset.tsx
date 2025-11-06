@@ -120,11 +120,11 @@ const AddAsset = () => {
         }}
         setOpenNetworkSelector={setOpenNetworkSelector}
         sheetRef={sheetRef}
-        displayEvmNetworksOnly={false}
+        displayEvmNetworksOnly={assetType !== 'token'}
       />
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [openNetworkSelector, networkConfigurations, selectedNetwork],
+    [openNetworkSelector, networkConfigurations, selectedNetwork, assetType],
   );
 
   const allTokens = useMemo(
