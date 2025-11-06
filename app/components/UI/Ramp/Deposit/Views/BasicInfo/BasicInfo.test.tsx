@@ -430,9 +430,7 @@ describe('BasicInfo Component', () => {
         'basic-info-logout-button',
       );
       expect(logoutButton).toBeOnTheScreen();
-      expect(
-        screen.getByText('Login with k****@pedalsup.com'),
-      ).toBeOnTheScreen();
+      expect(screen.getByText('Log in with email')).toBeOnTheScreen();
     });
 
     it('displays formatted error message for errorCode 2020', async () => {
@@ -474,9 +472,7 @@ describe('BasicInfo Component', () => {
         'basic-info-logout-button',
       );
       expect(logoutButton).toBeOnTheScreen();
-      expect(
-        screen.getByText('Login with k****@pedalsup.com'),
-      ).toBeOnTheScreen();
+      expect(screen.getByText('Log in with email')).toBeOnTheScreen();
     });
 
     it('does not display logout button for generic errors', async () => {
