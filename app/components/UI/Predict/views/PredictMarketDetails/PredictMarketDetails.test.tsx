@@ -16,6 +16,7 @@ jest.mock('../../../../../core/Engine', () => ({
   context: {
     PredictController: {
       trackMarketDetailsOpened: jest.fn(),
+      trackGeoBlockTriggered: jest.fn(),
     },
   },
 }));
@@ -606,7 +607,7 @@ describe('PredictMarketDetails', () => {
       expect(screen.getByText('12/31/2024')).toBeOnTheScreen();
     });
 
-    it('displays provider information', () => {
+    it('displays resolution details information', () => {
       setupPredictMarketDetailsTest();
 
       const aboutTab = screen.getByTestId(
@@ -615,23 +616,9 @@ describe('PredictMarketDetails', () => {
       fireEvent.press(aboutTab);
 
       expect(
-        screen.getByText('predict.market_details.powered_by'),
+        screen.getByText('predict.market_details.resolution_details'),
       ).toBeOnTheScreen();
-      expect(screen.getByText('polymarket')).toBeOnTheScreen();
-    });
-
-    it('displays resolver information', () => {
-      setupPredictMarketDetailsTest();
-
-      const aboutTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
-      );
-      fireEvent.press(aboutTab);
-
-      expect(
-        screen.getByText('predict.market_details.resolver'),
-      ).toBeOnTheScreen();
-      expect(screen.getByText('UMA')).toBeOnTheScreen();
+      expect(screen.getByText('Polymarket')).toBeOnTheScreen();
     });
   });
 
@@ -716,7 +703,7 @@ describe('PredictMarketDetails', () => {
         screen.getByText('predict.market_details.end_date'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText('predict.market_details.resolver'),
+        screen.getByText('predict.market_details.resolution_details'),
       ).toBeOnTheScreen();
     });
 
@@ -1069,6 +1056,7 @@ describe('PredictMarketDetails', () => {
         id: 'position-1',
         outcomeId: 'outcome-1',
         outcome: 'Yes',
+        title: 'Yes',
         size: 100,
         initialValue: 65,
         currentValue: 70,
@@ -1091,10 +1079,7 @@ describe('PredictMarketDetails', () => {
 
       expect(screen.getByText('predict.cash_out')).toBeOnTheScreen();
       expect(
-        screen.getByText('predict.market_details.amount_on_outcome'),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText('predict.market_details.outcome_at_price'),
+        screen.getByText('$65.00 on Yes • 65¢', { exact: false }),
       ).toBeOnTheScreen();
       expect(screen.getByText('+7.70%')).toBeOnTheScreen();
     });
@@ -1104,6 +1089,7 @@ describe('PredictMarketDetails', () => {
         id: 'position-1',
         outcomeId: 'outcome-1',
         outcome: 'Yes',
+        title: 'Yes',
         size: 100,
         initialValue: 65,
         currentValue: 60,
@@ -1238,6 +1224,7 @@ describe('PredictMarketDetails', () => {
         id: 'position-1',
         outcomeId: 'outcome-1',
         outcome: 'Yes',
+        title: 'Yes',
         size: 100,
         initialValue: 65,
         currentValue: 70,
@@ -1257,11 +1244,9 @@ describe('PredictMarketDetails', () => {
       );
       fireEvent.press(positionsTab);
 
+      expect(screen.getByText('Yes Option')).toBeOnTheScreen();
       expect(
-        screen.getByText('predict.market_details.amount_on_outcome'),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText('predict.market_details.outcome_at_price'),
+        screen.getByText('$65.00 on Yes • 65¢', { exact: false }),
       ).toBeOnTheScreen();
     });
 
@@ -1270,6 +1255,7 @@ describe('PredictMarketDetails', () => {
         id: 'position-1',
         outcomeId: 'outcome-1',
         outcome: 'Yes',
+        title: 'Yes',
         size: 100,
         initialValue: 65,
         currentValue: 70,
@@ -1289,11 +1275,9 @@ describe('PredictMarketDetails', () => {
       );
       fireEvent.press(positionsTab);
 
+      expect(screen.getByText('Yes')).toBeOnTheScreen();
       expect(
-        screen.getByText('predict.market_details.amount_on_outcome'),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText('predict.market_details.outcome_at_price'),
+        screen.getByText('$65.00 on Yes • 65¢', { exact: false }),
       ).toBeOnTheScreen();
     });
 
@@ -1302,6 +1286,7 @@ describe('PredictMarketDetails', () => {
         id: 'position-1',
         outcomeId: 'outcome-1',
         outcome: 'Yes',
+        title: 'Yes',
         size: 100,
         initialValue: 65,
         currentValue: 65,

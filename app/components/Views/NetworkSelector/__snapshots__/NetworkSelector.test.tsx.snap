@@ -323,23 +323,38 @@ exports[`Network Selector renders correctly 1`] = `
                         }
                       }
                     >
-                      <View
+                      <TouchableOpacity
+                        activeOpacity={1}
+                        disabled={false}
+                        onPress={[Function]}
                         style={
-                          [
-                            {
-                              "backgroundColor": "#3f434a66",
-                              "bottom": 0,
-                              "left": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
-                            },
-                            {
-                              "opacity": undefined,
-                            },
-                          ]
+                          {
+                            "bottom": 0,
+                            "left": 0,
+                            "position": "absolute",
+                            "right": 0,
+                            "top": 0,
+                          }
                         }
-                      />
+                      >
+                        <View
+                          style={
+                            [
+                              {
+                                "backgroundColor": "#3f434a66",
+                                "bottom": 0,
+                                "left": 0,
+                                "position": "absolute",
+                                "right": 0,
+                                "top": 0,
+                              },
+                              {
+                                "opacity": undefined,
+                              },
+                            ]
+                          }
+                        />
+                      </TouchableOpacity>
                       <View
                         collapsable={false}
                         enabled={true}
@@ -371,19 +386,6 @@ exports[`Network Selector renders correctly 1`] = `
                           ]
                         }
                       >
-                        <TouchableOpacity
-                          disabled={false}
-                          onPress={[Function]}
-                          style={
-                            {
-                              "bottom": 0,
-                              "left": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
-                            }
-                          }
-                        />
                         <View
                           style={
                             [
@@ -1836,23 +1838,38 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                         }
                       }
                     >
-                      <View
+                      <TouchableOpacity
+                        activeOpacity={1}
+                        disabled={false}
+                        onPress={[Function]}
                         style={
-                          [
-                            {
-                              "backgroundColor": "#3f434a66",
-                              "bottom": 0,
-                              "left": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
-                            },
-                            {
-                              "opacity": undefined,
-                            },
-                          ]
+                          {
+                            "bottom": 0,
+                            "left": 0,
+                            "position": "absolute",
+                            "right": 0,
+                            "top": 0,
+                          }
                         }
-                      />
+                      >
+                        <View
+                          style={
+                            [
+                              {
+                                "backgroundColor": "#3f434a66",
+                                "bottom": 0,
+                                "left": 0,
+                                "position": "absolute",
+                                "right": 0,
+                                "top": 0,
+                              },
+                              {
+                                "opacity": undefined,
+                              },
+                            ]
+                          }
+                        />
+                      </TouchableOpacity>
                       <View
                         collapsable={false}
                         enabled={true}
@@ -1884,19 +1901,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                           ]
                         }
                       >
-                        <TouchableOpacity
-                          disabled={false}
-                          onPress={[Function]}
-                          style={
-                            {
-                              "bottom": 0,
-                              "left": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
-                            }
-                          }
-                        />
                         <View
                           style={
                             [

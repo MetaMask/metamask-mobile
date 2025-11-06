@@ -1735,13 +1735,13 @@ describe('PolymarketProvider', () => {
     it('returns true when user is not geoblocked', async () => {
       const { provider } = setupIsEligibleTest();
       const mockResponse = {
-        json: jest.fn().mockResolvedValue({ blocked: false }),
+        json: jest.fn().mockResolvedValue({ blocked: false, country: 'PT' }),
       };
       globalThis.fetch = jest.fn().mockResolvedValue(mockResponse);
 
       const result = await provider.isEligible();
 
-      expect(result).toBe(true);
+      expect(result).toEqual({ isEligible: true, country: 'PT' });
       expect(globalThis.fetch).toHaveBeenCalledWith(
         'https://polymarket.com/api/geoblock',
       );
@@ -1750,13 +1750,13 @@ describe('PolymarketProvider', () => {
     it('returns false when user is geoblocked', async () => {
       const { provider } = setupIsEligibleTest();
       const mockResponse = {
-        json: jest.fn().mockResolvedValue({ blocked: true }),
+        json: jest.fn().mockResolvedValue({ blocked: true, country: 'US' }),
       };
       globalThis.fetch = jest.fn().mockResolvedValue(mockResponse);
 
       const result = await provider.isEligible();
 
-      expect(result).toBe(false);
+      expect(result).toEqual({ isEligible: false, country: 'US' });
       expect(globalThis.fetch).toHaveBeenCalledWith(
         'https://polymarket.com/api/geoblock',
       );
@@ -1771,7 +1771,7 @@ describe('PolymarketProvider', () => {
 
       const result = await provider.isEligible();
 
-      expect(result).toBe(false);
+      expect(result).toEqual({ isEligible: false });
       expect(globalThis.fetch).toHaveBeenCalledWith(
         'https://polymarket.com/api/geoblock',
       );
@@ -1786,7 +1786,7 @@ describe('PolymarketProvider', () => {
 
       const result = await provider.isEligible();
 
-      expect(result).toBe(false);
+      expect(result).toEqual({ isEligible: false });
       expect(globalThis.fetch).toHaveBeenCalledWith(
         'https://polymarket.com/api/geoblock',
       );
@@ -1800,7 +1800,7 @@ describe('PolymarketProvider', () => {
 
       const result = await provider.isEligible();
 
-      expect(result).toBe(false);
+      expect(result).toEqual({ isEligible: false });
       expect(globalThis.fetch).toHaveBeenCalledWith(
         'https://polymarket.com/api/geoblock',
       );
@@ -1815,7 +1815,7 @@ describe('PolymarketProvider', () => {
 
       const result = await provider.isEligible();
 
-      expect(result).toBe(false);
+      expect(result).toEqual({ isEligible: false });
       expect(globalThis.fetch).toHaveBeenCalledWith(
         'https://polymarket.com/api/geoblock',
       );
@@ -1827,7 +1827,7 @@ describe('PolymarketProvider', () => {
 
       const result = await provider.isEligible();
 
-      expect(result).toBe(false);
+      expect(result).toEqual({ isEligible: false });
     });
 
     it('returns false for malformed API response', async () => {
@@ -1839,7 +1839,7 @@ describe('PolymarketProvider', () => {
 
       const result = await provider.isEligible();
 
-      expect(result).toBe(false);
+      expect(result).toEqual({ isEligible: false });
     });
   });
 
