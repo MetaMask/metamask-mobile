@@ -1821,8 +1821,6 @@ export class RewardsController extends BaseController<
               throw error;
             }
           } else if (error instanceof SeasonNotFoundError) {
-            this.invalidateSubscriptionCache(subscriptionId);
-            this.invalidateAccountsAndSubscriptions();
             this.update((state: RewardsControllerState) => {
               state.seasons = {};
             });

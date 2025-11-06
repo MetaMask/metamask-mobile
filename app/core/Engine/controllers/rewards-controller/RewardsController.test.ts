@@ -4139,7 +4139,7 @@ describe('RewardsController', () => {
       );
     });
 
-    it('should handle SeasonNotFoundError by invalidating cache, clearing seasons, and rethrowing error', async () => {
+    it('should handle SeasonNotFoundError by clearing seasons and rethrowing error', async () => {
       // Arrange
       const seasonNotFoundError = new SeasonNotFoundError('Season not found');
       const localMockMessenger = {
@@ -4185,27 +4185,10 @@ describe('RewardsController', () => {
 
       localMockMessenger.call.mockRejectedValue(seasonNotFoundError);
 
-      const invalidateSubscriptionCacheSpy = jest.spyOn(
-        testableController,
-        'invalidateSubscriptionCache',
-      );
-      const invalidateAccountsAndSubscriptionsSpy = jest.spyOn(
-        testableController,
-        'invalidateAccountsAndSubscriptions',
-      );
-
       // Act & Assert
       await expect(
         testableController.getSeasonStatus(mockSubscriptionId, mockSeasonId),
       ).rejects.toThrow(seasonNotFoundError);
-
-      // Verify invalidateSubscriptionCache was called
-      expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
-        mockSubscriptionId,
-      );
-
-      // Verify invalidateAccountsAndSubscriptions was called
-      expect(invalidateAccountsAndSubscriptionsSpy).toHaveBeenCalled();
 
       // Verify seasons state was cleared
       expect(testableController.state.seasons).toEqual({});
