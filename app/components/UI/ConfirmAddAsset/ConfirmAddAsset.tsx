@@ -39,7 +39,17 @@ import { BridgeToken } from '../Bridge/types';
 import { toHex } from '../../../core/Delegation/utils';
 import { isNonEvmAddress } from '../../../core/Multichain/utils';
 
-const RenderBalance = (asset: BridgeToken) => {
+const RenderBalance = (
+  asset:
+    | BridgeToken
+    | {
+        symbol: string;
+        address: string;
+        iconUrl: string;
+        name: string;
+        decimals: number;
+      },
+) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -68,7 +78,16 @@ const RenderBalance = (asset: BridgeToken) => {
 
 const ConfirmAddAsset = () => {
   const { selectedAsset, networkName, addTokenList } = useParams<{
-    selectedAsset: BridgeToken[];
+    selectedAsset:
+      | BridgeToken[]
+      | {
+          symbol: string;
+          address: string;
+          iconUrl: string;
+          name: string;
+          decimals: number;
+          chainId: Hex;
+        }[];
     networkName: string;
     addTokenList: () => void;
   }>();
@@ -174,13 +193,23 @@ const ConfirmAddAsset = () => {
                   />
                 }
               >
-                {asset.image && (
-                  <AssetIcon
-                    address={asset.address}
-                    logo={asset.image}
-                    customStyle={styles.assetIcon}
-                  />
-                )}
+                {(() => {
+                  const icon =
+                    'image' in asset
+                      ? asset.image
+                      : 'iconUrl' in asset
+                        ? asset.iconUrl
+                        : undefined;
+                  return (
+                    icon && (
+                      <AssetIcon
+                        address={asset.address}
+                        logo={icon}
+                        customStyle={styles.assetIcon}
+                      />
+                    )
+                  );
+                })()}
               </BadgeWrapper>
             </View>
 

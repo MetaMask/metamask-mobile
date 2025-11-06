@@ -593,4 +593,260 @@ describe('SearchTokenAutocomplete', () => {
     ).toHaveBeenCalledWith(['solana-address-123'], 'non-evm-account-id');
     expect(Engine.context.TokensController.addTokens).not.toHaveBeenCalled();
   });
+
+  describe('Already Added Tokens Detection', () => {
+    it('identifies already added EVM tokens from TokensController', () => {
+      const stateWithAddedTokens = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            TokensController: {
+              allTokens: {
+                '0x1': {
+                  '0xaddress': [
+                    {
+                      address: '0x123',
+                      symbol: 'TEST',
+                      decimals: 18,
+                    },
+                  ],
+                },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: 'account1',
+                accounts: {
+                  account1: {
+                    address: '0xaddress',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const mockNavigation = {
+        push: jest.fn(),
+        navigate: jest.fn(),
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <SearchTokenAutocomplete
+          navigation={mockNavigation}
+          tabLabel={''}
+          selectedChainId={'0x1'}
+          allTokens={mockAllTokens}
+        />,
+        { state: stateWithAddedTokens },
+      );
+
+      const assetSearch = getByTestId(ImportTokenViewSelectorsIDs.SEARCH_BAR);
+
+      fireEvent(assetSearch, 'onSearch', {
+        results: mockAllTokens,
+        searchQuery: '',
+      });
+
+      const multiAssetList = getByTestId(
+        ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT,
+      ).parent;
+
+      expect(multiAssetList).toHaveProp('alreadyAddedTokens');
+    });
+
+    it('identifies already added non-EVM tokens from MultichainAssetsController', () => {
+      const mockNonEvmAccount = {
+        id: 'non-evm-account-id',
+        address: 'non-evm-address',
+      };
+
+      const stateWithMultichainAssets = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            MultichainAssetsController: {
+              accountsAssets: {
+                'non-evm-account-id': [
+                  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+                ],
+              },
+              assetsMetadata: {},
+              allIgnoredAssets: {},
+            },
+          },
+        },
+      };
+
+      mockIsNonEvmChainId.mockReturnValue(true);
+      mockSelectInternalAccountByScope.mockReturnValue(mockNonEvmAccount);
+
+      const mockNavigation = {
+        push: jest.fn(),
+        navigate: jest.fn(),
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <SearchTokenAutocomplete
+          navigation={mockNavigation}
+          tabLabel={''}
+          selectedChainId={
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as
+              | `0x${string}`
+              | SupportedCaipChainId
+              | null
+          }
+          allTokens={mockAllTokens}
+        />,
+        { state: stateWithMultichainAssets },
+      );
+
+      const assetSearch = getByTestId(ImportTokenViewSelectorsIDs.SEARCH_BAR);
+
+      fireEvent(assetSearch, 'onSearch', {
+        results: mockAllTokens,
+        searchQuery: '',
+      });
+
+      const multiAssetList = getByTestId(
+        ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT,
+      ).parent;
+
+      expect(multiAssetList).toHaveProp('alreadyAddedTokens');
+    });
+
+    it('creates empty Set when no tokens are added', () => {
+      const mockNavigation = {
+        push: jest.fn(),
+        navigate: jest.fn(),
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <SearchTokenAutocomplete
+          navigation={mockNavigation}
+          tabLabel={''}
+          selectedChainId={'0x1'}
+          allTokens={mockAllTokens}
+        />,
+        { state: mockInitialState },
+      );
+
+      const assetSearch = getByTestId(ImportTokenViewSelectorsIDs.SEARCH_BAR);
+
+      fireEvent(assetSearch, 'onSearch', {
+        results: mockAllTokens,
+        searchQuery: '',
+      });
+
+      const multiAssetList = getByTestId(
+        ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT,
+      ).parent;
+
+      const alreadyAddedTokens = multiAssetList.props.alreadyAddedTokens;
+
+      expect(alreadyAddedTokens).toBeInstanceOf(Set);
+      expect(alreadyAddedTokens.size).toBe(0);
+    });
+
+    it('handles null selectedChainId gracefully', () => {
+      const mockNavigation = {
+        push: jest.fn(),
+        navigate: jest.fn(),
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <SearchTokenAutocomplete
+          navigation={mockNavigation}
+          tabLabel={''}
+          selectedChainId={null}
+          allTokens={mockAllTokens}
+        />,
+        { state: mockInitialState },
+      );
+
+      const assetSearch = getByTestId(ImportTokenViewSelectorsIDs.SEARCH_BAR);
+
+      fireEvent(assetSearch, 'onSearch', {
+        results: mockAllTokens,
+        searchQuery: '',
+      });
+
+      const multiAssetList = getByTestId(
+        ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT,
+      ).parent;
+
+      const alreadyAddedTokens = multiAssetList.props.alreadyAddedTokens;
+
+      expect(alreadyAddedTokens).toBeInstanceOf(Set);
+      expect(alreadyAddedTokens.size).toBe(0);
+    });
+
+    it('normalizes addresses to lowercase in alreadyAddedTokens Set', () => {
+      const stateWithMixedCaseTokens = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            TokensController: {
+              allTokens: {
+                '0x1': {
+                  '0xaddress': [
+                    {
+                      address: '0xABC123',
+                      symbol: 'TEST',
+                      decimals: 18,
+                    },
+                  ],
+                },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: 'account1',
+                accounts: {
+                  account1: {
+                    address: '0xaddress',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const mockNavigation = {
+        push: jest.fn(),
+        navigate: jest.fn(),
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <SearchTokenAutocomplete
+          navigation={mockNavigation}
+          tabLabel={''}
+          selectedChainId={'0x1'}
+          allTokens={mockAllTokens}
+        />,
+        { state: stateWithMixedCaseTokens },
+      );
+
+      const assetSearch = getByTestId(ImportTokenViewSelectorsIDs.SEARCH_BAR);
+
+      fireEvent(assetSearch, 'onSearch', {
+        results: mockAllTokens,
+        searchQuery: '',
+      });
+
+      const multiAssetList = getByTestId(
+        ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT,
+      ).parent;
+
+      const alreadyAddedTokens = multiAssetList.props.alreadyAddedTokens;
+
+      expect(alreadyAddedTokens.has('0xabc123')).toBe(true);
+      expect(alreadyAddedTokens.has('0xABC123')).toBe(false);
+    });
+  });
 });

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -36,6 +36,9 @@ import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { BridgeToken } from '../Bridge/types';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
+import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
+import { selectMultichainAssets } from '../../../selectors/multichain/multichain';
+import { RootState } from '../../../reducers';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -116,6 +119,52 @@ const SearchTokenAutocomplete = ({
   const selectInternalAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
+
+  // Get already added EVM tokens for the selected chain
+  const addedEvmTokens = useSelector((state: RootState) =>
+    selectedChainId && !isNonEvmChainId(selectedChainId)
+      ? selectTokensByChainIdAndAddress(state, selectedChainId as Hex)
+      : {},
+  );
+
+  // Get already added non-EVM tokens
+  const multichainAssets = useSelector(selectMultichainAssets);
+
+  // Create a Set of already added token addresses for quick lookup
+  const alreadyAddedTokens = useMemo(() => {
+    const addresses = new Set<string>();
+
+    if (selectedChainId) {
+      if (isNonEvmChainId(selectedChainId)) {
+        // For non-EVM chains
+        const selectedNonEvmAccount = selectInternalAccountByScope(
+          selectedChainId as SupportedCaipChainId,
+        );
+        if (selectedNonEvmAccount?.id) {
+          const accountAssets =
+            multichainAssets?.[selectedNonEvmAccount.id] || [];
+          // accountAssets is an array of CAIP asset address strings
+          accountAssets.forEach((assetAddress: string) => {
+            // Extract the token address from CAIP format (e.g., "bip122:..." or "solana:...")
+            // The address is already the full identifier, just normalize it
+            addresses.add(assetAddress.toLowerCase());
+          });
+        }
+      } else {
+        // For EVM chains
+        Object.keys(addedEvmTokens).forEach((address) => {
+          addresses.add(address.toLowerCase());
+        });
+      }
+    }
+
+    return addresses;
+  }, [
+    selectedChainId,
+    addedEvmTokens,
+    multichainAssets,
+    selectInternalAccountByScope,
+  ]);
 
   const setFocusState = useCallback(
     (isFocused: boolean) => {
@@ -382,6 +431,7 @@ const SearchTokenAutocomplete = ({
           selectedAsset={selectedAssets}
           chainId={selectedChainId ?? ''}
           networkName={networkName}
+          alreadyAddedTokens={alreadyAddedTokens}
         />
       </View>
 

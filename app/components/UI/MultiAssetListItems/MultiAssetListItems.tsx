@@ -48,6 +48,10 @@ interface Props {
    * Name of the network
    */
   networkName?: string;
+  /**
+   * Set of already added token addresses (lowercase)
+   */
+  alreadyAddedTokens?: Set<string>;
 }
 
 const MultiAssetListItems = ({
@@ -56,6 +60,7 @@ const MultiAssetListItems = ({
   selectedAsset,
   searchQuery,
   networkName,
+  alreadyAddedTokens,
 }: Props) => {
   const { styles } = useStyles(stylesheet, {});
 
@@ -68,12 +73,18 @@ const MultiAssetListItems = ({
           (token) => token.address === address,
         );
         const isSelected = selectedAsset && isOnSelected;
+
+        // Check if token is already added
+        const isAlreadyAdded = alreadyAddedTokens?.has(address.toLowerCase());
+        const isDisabled = isAlreadyAdded;
+
         return (
           <ListItemMultiSelect
-            isSelected={isSelected}
+            isSelected={isSelected || isAlreadyAdded}
+            isDisabled={isDisabled}
             style={styles.base}
             key={`search-result-${index}`}
-            onPress={() => handleSelectAsset(item)}
+            onPress={() => !isDisabled && handleSelectAsset(item)}
             testID={ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT}
           >
             <View style={styles.Icon}>
