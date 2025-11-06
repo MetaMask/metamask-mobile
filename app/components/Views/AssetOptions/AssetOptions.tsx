@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useMemo, useRef } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View, InteractionManager } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
@@ -256,62 +256,66 @@ const AssetOptions = (props: Props) => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: 'AssetHideConfirmation',
       params: {
-        onConfirm: async () => {
+        onConfirm: () => {
           navigation.navigate('WalletView');
-          try {
-            let tokenSymbol;
-            if (isNonEvmChainId(networkId)) {
-              const selectedNonEvmAccount = selectInternalAccountByScope(
-                networkId as CaipChainId,
-              );
-              if (!selectedNonEvmAccount) {
-                Logger.log('AssetDetails: No account ID found');
-                return;
-              }
-              const { MultichainAssetsController } = Engine.context;
-              await MultichainAssetsController.ignoreAssets(
-                [address as CaipAssetType],
-                selectedNonEvmAccount.id,
-              );
-              tokenSymbol =
-                MultichainAssetsController.state.assetsMetadata[
-                  address as CaipAssetType
-                ]?.symbol || null;
-            } else {
-              const { TokensController, NetworkController } = Engine.context;
-
-              const networkClientId =
-                NetworkController.findNetworkClientIdByChainId(
-                  networkId as Hex,
+          InteractionManager.runAfterInteractions(async () => {
+            try {
+              let tokenSymbol;
+              if (isNonEvmChainId(networkId)) {
+                const selectedNonEvmAccount = selectInternalAccountByScope(
+                  networkId as CaipChainId,
                 );
-              await TokensController.ignoreTokens([address], networkClientId);
-              tokenSymbol = tokenList[address.toLowerCase()]?.symbol || null;
-            }
+                if (!selectedNonEvmAccount) {
+                  Logger.log('AssetDetails: No account ID found');
+                  return;
+                }
+                const { MultichainAssetsController } = Engine.context;
+                await MultichainAssetsController.ignoreAssets(
+                  [address as CaipAssetType],
+                  selectedNonEvmAccount.id,
+                );
+                tokenSymbol =
+                  MultichainAssetsController.state.assetsMetadata[
+                    address as CaipAssetType
+                  ]?.symbol || null;
+              } else {
+                const { TokensController, NetworkController } = Engine.context;
 
-            NotificationManager.showSimpleNotification({
-              status: `simple_notification`,
-              duration: 5000,
-              title: strings('wallet.token_toast.token_hidden_title'),
-              description: strings('wallet.token_toast.token_hidden_desc', {
-                tokenSymbol,
-              }),
-            });
-            trackEvent(
-              createEventBuilder(MetaMetricsEvents.TOKENS_HIDDEN)
-                .addProperties({
-                  location: 'token_details',
-                  token_standard: 'ERC20',
-                  asset_type: 'token',
-                  tokens: [
-                    `${tokenList[address.toLowerCase()]?.symbol} - ${address}`,
-                  ],
-                  chain_id: getDecimalChainId(chainId),
-                })
-                .build(),
-            );
-          } catch (err) {
-            Logger.log(err, 'AssetDetails: Failed to hide token!');
-          }
+                const networkClientId =
+                  NetworkController.findNetworkClientIdByChainId(
+                    networkId as Hex,
+                  );
+                await TokensController.ignoreTokens([address], networkClientId);
+                tokenSymbol = tokenList[address.toLowerCase()]?.symbol || null;
+              }
+
+              NotificationManager.showSimpleNotification({
+                status: `simple_notification`,
+                duration: 5000,
+                title: strings('wallet.token_toast.token_hidden_title'),
+                description: strings('wallet.token_toast.token_hidden_desc', {
+                  tokenSymbol,
+                }),
+              });
+              trackEvent(
+                createEventBuilder(MetaMetricsEvents.TOKENS_HIDDEN)
+                  .addProperties({
+                    location: 'token_details',
+                    token_standard: 'ERC20',
+                    asset_type: 'token',
+                    tokens: [
+                      `${
+                        tokenList[address.toLowerCase()]?.symbol
+                      } - ${address}`,
+                    ],
+                    chain_id: getDecimalChainId(chainId),
+                  })
+                  .build(),
+              );
+            } catch (err) {
+              Logger.log(err, 'AssetDetails: Failed to hide token!');
+            }
+          });
         },
       },
     });

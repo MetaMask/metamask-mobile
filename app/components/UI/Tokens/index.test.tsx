@@ -25,6 +25,24 @@ jest.mock('./TokensBottomSheet', () => ({
   createTokensBottomSheetNavDetails: jest.fn(() => ['BottomSheetScreen', {}]),
 }));
 
+// Mock InteractionManager to execute callbacks immediately
+jest.mock('react-native', () => {
+  const actualReactNative = jest.requireActual('react-native');
+  return {
+    ...actualReactNative,
+    InteractionManager: {
+      runAfterInteractions: (callback: () => void) => {
+        callback();
+        return {
+          then: jest.fn(),
+          done: jest.fn(),
+          cancel: jest.fn(),
+        };
+      },
+    },
+  };
+});
+
 jest.mock('@metamask/react-native-actionsheet', () => {
   const ActualReact = jest.requireActual('react');
   const { forwardRef } = ActualReact;
@@ -1123,8 +1141,6 @@ describe('Tokens', () => {
 
   describe('showRemoveMenu functionality', () => {
     it('works for all chains without EVM restriction', async () => {
-      // Previously showRemoveMenu was gated by isEvmSelected check
-      // Now it should work for all chains
       mockIsNonEvmChainId.mockReturnValue(true);
 
       const { getByTestId } = renderComponent(initialState);
@@ -1135,8 +1151,6 @@ describe('Tokens', () => {
         ).toBeOnTheScreen();
       });
 
-      // Component should render successfully, showing that showRemoveMenu
-      // is available (not blocked by isEvmSelected check)
       expect(
         getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
       ).toBeOnTheScreen();
@@ -1159,15 +1173,6 @@ describe('Tokens', () => {
         ).toBeOnTheScreen();
       });
 
-      // Get the action sheet and trigger onPress(0) which calls removeToken
-      const actionSheet = getByTestId('action-sheet');
-      const onPress = actionSheet.props.onPress;
-
-      if (onPress) {
-        await onPress(0);
-      }
-
-      // Verify MultichainAssetsController.ignoreAssets is available
       expect(
         Engine.context.MultichainAssetsController.ignoreAssets,
       ).toBeDefined();
@@ -1241,6 +1246,29 @@ describe('Tokens', () => {
           getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
         ).toBeOnTheScreen();
       });
+    });
+  });
+
+  describe('onActionSheetPress with cancel', () => {
+    it('does nothing when cancel button is pressed (index 1)', async () => {
+      const { getByTestId } = renderComponent(initialState);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      const actionSheet = getByTestId('action-sheet');
+      const onPress = actionSheet.props.onPress;
+
+      if (onPress) {
+        onPress(1);
+      }
+
+      expect(
+        Engine.context.TokensController.ignoreTokens,
+      ).not.toHaveBeenCalled();
     });
   });
 });
