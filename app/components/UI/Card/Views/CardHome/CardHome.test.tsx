@@ -237,6 +237,7 @@ jest.mock('../../util/getHighestFiatToken', () => ({
 // Mock Logger
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
+  log: jest.fn(),
 }));
 
 // Mock token constants
@@ -1584,6 +1585,284 @@ describe('CardHome Component', () => {
     });
   });
 
+  describe('enableCardAction', () => {
+    let mockProvisionCard: jest.Mock;
+
+    beforeEach(() => {
+      mockProvisionCard = jest.fn().mockResolvedValue(undefined);
+
+      (useCardProvision as jest.Mock).mockReturnValue({
+        provisionCard: mockProvisionCard,
+        isLoading: false,
+      });
+    });
+
+    it('calls provisionCard and fetchPriorityToken when provision succeeds', async () => {
+      // Given: warning is NoCard
+      mockPollCardStatusUntilProvisioned.mockResolvedValue(true);
+      setupLoadCardDataMock({
+        warning: CardWarning.NoCard,
+        priorityToken: null,
+      });
+
+      // When: component renders and user presses enable card button
+      render();
+      const enableCardButton = screen.getByTestId(
+        CardHomeSelectors.ENABLE_CARD_BUTTON,
+      );
+      fireEvent.press(enableCardButton);
+
+      // Then: should call provision and fetch priority token
+      await waitFor(() => {
+        expect(mockProvisionCard).toHaveBeenCalled();
+        expect(mockPollCardStatusUntilProvisioned).toHaveBeenCalled();
+        expect(mockFetchPriorityToken).toHaveBeenCalled();
+      });
+    });
+
+    it('does not call fetchPriorityToken when provision fails', async () => {
+      // Given: warning is NoCard and provision fails
+      mockPollCardStatusUntilProvisioned.mockResolvedValue(false);
+      setupLoadCardDataMock({
+        warning: CardWarning.NoCard,
+        priorityToken: null,
+      });
+
+      // When: component renders and user presses enable card button
+      render();
+      const enableCardButton = screen.getByTestId(
+        CardHomeSelectors.ENABLE_CARD_BUTTON,
+      );
+      fireEvent.press(enableCardButton);
+
+      // Then: should not call fetchPriorityToken
+      await waitFor(() => {
+        expect(mockProvisionCard).toHaveBeenCalled();
+        expect(mockPollCardStatusUntilProvisioned).toHaveBeenCalled();
+      });
+      expect(mockFetchPriorityToken).not.toHaveBeenCalled();
+    });
+
+    it('does not call fetchPriorityToken when provisionCard throws error', async () => {
+      // Given: warning is NoCard and provisionCard throws error
+      mockProvisionCard.mockRejectedValue(new Error('Provision failed'));
+      setupLoadCardDataMock({
+        warning: CardWarning.NoCard,
+        priorityToken: null,
+      });
+
+      // When: component renders and user presses enable card button
+      render();
+      const enableCardButton = screen.getByTestId(
+        CardHomeSelectors.ENABLE_CARD_BUTTON,
+      );
+      fireEvent.press(enableCardButton);
+
+      // Then: should not call fetchPriorityToken
+      await waitFor(() => {
+        expect(mockProvisionCard).toHaveBeenCalled();
+      });
+      expect(mockFetchPriorityToken).not.toHaveBeenCalled();
+    });
+
+    it('does not call fetchPriorityToken when pollCardStatusUntilProvisioned throws error', async () => {
+      // Given: warning is NoCard and polling throws error
+      mockPollCardStatusUntilProvisioned.mockRejectedValue(
+        new Error('Polling failed'),
+      );
+      setupLoadCardDataMock({
+        warning: CardWarning.NoCard,
+        priorityToken: null,
+      });
+
+      // When: component renders and user presses enable card button
+      render();
+      const enableCardButton = screen.getByTestId(
+        CardHomeSelectors.ENABLE_CARD_BUTTON,
+      );
+      fireEvent.press(enableCardButton);
+
+      // Then: should not call fetchPriorityToken
+      await waitFor(() => {
+        expect(mockProvisionCard).toHaveBeenCalled();
+      });
+      expect(mockFetchPriorityToken).not.toHaveBeenCalled();
+    });
+
+    it('calls provisionCard with correct parameters', async () => {
+      // Given: warning is NoCard
+      mockPollCardStatusUntilProvisioned.mockResolvedValue(true);
+      setupLoadCardDataMock({
+        warning: CardWarning.NoCard,
+        priorityToken: null,
+      });
+
+      // When: component renders and user presses enable card button
+      render();
+      const enableCardButton = screen.getByTestId(
+        CardHomeSelectors.ENABLE_CARD_BUTTON,
+      );
+      fireEvent.press(enableCardButton);
+
+      // Then: should call provisionCard
+      await waitFor(() => {
+        expect(mockProvisionCard).toHaveBeenCalledWith();
+        expect(mockProvisionCard).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('disables button during provision loading', () => {
+      // Given: provision is loading
+      (useCardProvision as jest.Mock).mockReturnValue({
+        provisionCard: mockProvisionCard,
+        isLoading: true,
+      });
+      setupLoadCardDataMock({
+        warning: CardWarning.NoCard,
+        priorityToken: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: enable card button should be disabled
+      const enableCardButton = screen.getByTestId(
+        CardHomeSelectors.ENABLE_CARD_BUTTON,
+      );
+      expect(enableCardButton.props.disabled).toBe(true);
+    });
+
+    it('disables button during poll loading', () => {
+      // Given: poll is loading
+      (useLoadCardData as jest.Mock).mockReturnValueOnce({
+        priorityToken: null,
+        allTokens: [],
+        cardDetails: null,
+        isLoading: false,
+        error: null,
+        warning: CardWarning.NoCard,
+        isAuthenticated: false,
+        isBaanxLoginEnabled: true,
+        isCardholder: true,
+        fetchPriorityToken: mockFetchPriorityToken,
+        fetchCardDetails: mockFetchCardDetails,
+        fetchAllData: mockFetchAllData,
+        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
+        isLoadingPollCardStatusUntilProvisioned: true,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: enable card button should be disabled
+      const enableCardButton = screen.getByTestId(
+        CardHomeSelectors.ENABLE_CARD_BUTTON,
+      );
+      expect(enableCardButton.props.disabled).toBe(true);
+    });
+
+    it('shows skeleton during general loading', () => {
+      // Given: general loading state
+      setupLoadCardDataMock({
+        warning: CardWarning.NoCard,
+        priorityToken: null,
+        isLoading: true,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should show button skeleton instead of enable card button
+      expect(
+        screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON),
+      ).toBeTruthy();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+      ).toBeNull();
+    });
+
+    it('displays enable card button when warning is NoCard', () => {
+      // Given: warning is NoCard
+      setupLoadCardDataMock({
+        warning: CardWarning.NoCard,
+        priorityToken: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should display enable card button
+      expect(
+        screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+      ).toBeTruthy();
+      expect(
+        screen.getByText('card.card_home.enable_card_button_label'),
+      ).toBeTruthy();
+    });
+
+    it('does not show regular buttons when enable card button is shown', () => {
+      // Given: warning is NoCard
+      setupLoadCardDataMock({
+        warning: CardWarning.NoCard,
+        priorityToken: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not show add funds or change asset buttons
+      expect(
+        screen.queryByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
+      ).toBeNull();
+    });
+
+    it('calls enableCardAction once per button press', async () => {
+      // Given: warning is NoCard
+      mockPollCardStatusUntilProvisioned.mockResolvedValue(true);
+      setupLoadCardDataMock({
+        warning: CardWarning.NoCard,
+        priorityToken: null,
+      });
+
+      // When: component renders and user presses enable card button
+      render();
+      const enableCardButton = screen.getByTestId(
+        CardHomeSelectors.ENABLE_CARD_BUTTON,
+      );
+      fireEvent.press(enableCardButton);
+
+      // Then: should call provisionCard exactly once
+      await waitFor(() => {
+        expect(mockProvisionCard).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls pollCardStatusUntilProvisioned after provision succeeds', async () => {
+      // Given: provision succeeds
+      mockPollCardStatusUntilProvisioned.mockResolvedValue(false);
+      setupLoadCardDataMock({
+        warning: CardWarning.NoCard,
+        priorityToken: null,
+      });
+
+      // When: component renders and user presses enable card button
+      render();
+      const enableCardButton = screen.getByTestId(
+        CardHomeSelectors.ENABLE_CARD_BUTTON,
+      );
+      fireEvent.press(enableCardButton);
+
+      // Then: should call pollCardStatusUntilProvisioned
+      await waitFor(() => {
+        expect(mockProvisionCard).toHaveBeenCalled();
+        expect(mockPollCardStatusUntilProvisioned).toHaveBeenCalled();
+      });
+    });
+  });
+
   describe('SpendingLimitProgressBar', () => {
     it('renders when authenticated and allowance is limited', () => {
       // Given: authenticated with limited allowance
@@ -1598,6 +1877,7 @@ describe('CardHome Component', () => {
         priorityToken: limitedAllowanceToken,
         allTokens: [limitedAllowanceToken],
         isAuthenticated: true,
+        warning: null,
       });
 
       // When: component renders
@@ -1666,6 +1946,7 @@ describe('CardHome Component', () => {
         priorityToken: limitedAllowanceToken,
         allTokens: [limitedAllowanceToken],
         isAuthenticated: true,
+        warning: null,
       });
 
       // When: component renders
@@ -1688,6 +1969,7 @@ describe('CardHome Component', () => {
         priorityToken: limitedAllowanceToken,
         allTokens: [limitedAllowanceToken],
         isAuthenticated: true,
+        warning: null,
       });
 
       // When: component renders
@@ -1710,6 +1992,7 @@ describe('CardHome Component', () => {
         priorityToken: limitedAllowanceToken,
         allTokens: [limitedAllowanceToken],
         isAuthenticated: true,
+        warning: null,
       });
 
       // When: component renders

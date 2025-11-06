@@ -1979,102 +1979,10 @@ export function getDepositNavbarOptions(
               navigation.dangerouslyGetParent()?.pop();
               onClose?.();
             }}
+            testID="deposit-close-navbar-button"
           />
         )
       : null,
-  };
-}
-
-export function getFiatOnRampAggNavbar(
-  navigation,
-  { title = '', showBack = true, showCancel = true, showNetwork = false } = {},
-  themeColors,
-  onCancel,
-) {
-  const innerStyles = StyleSheet.create({
-    headerButtonText: {
-      color: themeColors.primary.default,
-      fontSize: scale(11),
-      ...fontStyles.normal,
-    },
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-    headerTitleStyle: {
-      fontSize: 18,
-      ...fontStyles.normal,
-      color: themeColors.text.default,
-      ...(!showBack && { textAlign: 'center' }),
-    },
-  });
-
-  const leftActionText = strings('navigation.back');
-
-  const leftAction = () => navigation.pop();
-
-  const navigationCancelText = strings('navigation.cancel');
-
-  const disableNetwork = !showNetwork;
-  const showSelectedNetwork = showNetwork;
-
-  return {
-    headerTitle: () => (
-      <NavbarTitle
-        title={title}
-        disableNetwork={disableNetwork}
-        showSelectedNetwork={showSelectedNetwork}
-        translate={false}
-      />
-    ),
-    headerLeft: () => {
-      if (!showBack) return <View />;
-
-      return Device.isAndroid() ? (
-        <TouchableOpacity
-          onPress={leftAction}
-          style={styles.backButton}
-          accessibilityRole="button"
-          accessible
-        >
-          <IonicIcon
-            name={'arrow-back'}
-            size={24}
-            style={innerStyles.headerIcon}
-          />
-        </TouchableOpacity>
-      ) : (
-        <TouchableOpacity
-          onPress={leftAction}
-          style={styles.closeButton}
-          accessibilityRole="button"
-          accessible
-        >
-          <Text style={innerStyles.headerButtonText}>{leftActionText}</Text>
-        </TouchableOpacity>
-      );
-    },
-    headerRight: () => {
-      if (!showCancel) return <View />;
-      return (
-        <TouchableOpacity
-          onPress={() => {
-            navigation.dangerouslyGetParent()?.pop();
-            onCancel?.();
-          }}
-          style={styles.closeButton}
-          accessibilityRole="button"
-          accessible
-        >
-          <Text style={innerStyles.headerButtonText}>
-            {navigationCancelText}
-          </Text>
-        </TouchableOpacity>
-      );
-    },
-    headerStyle: innerStyles.headerStyle,
-    headerTitleStyle: innerStyles.headerTitleStyle,
   };
 }
 
