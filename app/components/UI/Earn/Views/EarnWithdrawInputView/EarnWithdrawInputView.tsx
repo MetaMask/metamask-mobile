@@ -553,7 +553,7 @@ const EarnWithdrawInputView = () => {
     if (isLoadingMaxSafeWithdrawalAmount) return;
 
     // We don't want to display the max safe withdrawal text if it isn't applicable.
-    if (maxRiskAwareWithdrawalAmount === receiptToken?.balanceMinimalUnit)
+    if (maxRiskAwareWithdrawalAmount === withdrawalToken?.balanceMinimalUnit)
       return;
 
     if (!maxRiskAwareWithdrawalAmount) {
@@ -562,19 +562,19 @@ const EarnWithdrawInputView = () => {
 
     return renderFromTokenMinimalUnit(
       maxRiskAwareWithdrawalAmount,
-      receiptToken?.decimals as number,
+      withdrawalToken?.decimals as number,
     );
   }, [
     isLoadingMaxSafeWithdrawalAmount,
     maxRiskAwareWithdrawalAmount,
-    receiptToken?.balanceMinimalUnit,
-    receiptToken?.decimals,
+    withdrawalToken?.balanceMinimalUnit,
+    withdrawalToken?.decimals,
   ]);
 
   const isWithdrawingMoreThanAvailableForLendingToken = useMemo(() => {
     // This check only applies to lending experience.
     if (
-      receiptToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING
+      withdrawalToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING
     ) {
       return false;
     }
@@ -588,7 +588,7 @@ const EarnWithdrawInputView = () => {
     );
   }, [
     amountTokenMinimalUnit,
-    receiptToken?.experience?.type,
+    withdrawalToken?.experience?.type,
     maxRiskAwareWithdrawalAmount,
   ]);
 
