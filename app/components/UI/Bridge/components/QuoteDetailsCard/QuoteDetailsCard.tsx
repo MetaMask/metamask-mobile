@@ -37,6 +37,7 @@ import RewardsAnimations, {
 import QuoteCountdownTimer from '../QuoteCountdownTimer';
 import QuoteDetailsRecipientKeyValueRow from '../QuoteDetailsRecipientKeyValueRow/QuoteDetailsRecipientKeyValueRow';
 import { toSentenceCase } from '../../../../../util/string';
+import { isNonEvmChainId } from '@metamask/bridge-controller';
 
 if (
   Platform.OS === 'android' &&
@@ -98,6 +99,18 @@ const QuoteDetailsCard: React.FC = () => {
     parseFloat(activeQuote?.minToTokenAmount?.amount || '0'),
   );
 
+  // Check if either source or destination is a non-EVM chain (e.g., Bitcoin)
+  const isToOrFromNonEvm =
+    (sourceToken?.chainId && isNonEvmChainId(sourceToken.chainId)) ||
+    (destToken?.chainId && isNonEvmChainId(destToken.chainId));
+
+  // Hide network fee row for non-EVM chains if fee is undefined or zero
+  // (e.g., Bitcoin with no gas fees when balance is too low to figure out UTXO)
+  const shouldShowNetworkFee =
+    !isToOrFromNonEvm ||
+    (activeQuote?.totalNetworkFee?.valueInCurrency &&
+      activeQuote.totalNetworkFee.valueInCurrency !== '0');
+
   return (
     <Box>
       <Box style={styles.container}>
@@ -135,53 +148,55 @@ const QuoteDetailsCard: React.FC = () => {
             ),
           }}
         />
-        {activeQuote?.quote.gasIncluded ? (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-          >
-            <Text variant={TextVariant.BodyMD}>
-              {toSentenceCase(strings('bridge.network_fee'))}
-            </Text>
+        {/* Network Fee - Hide if zero/undefined for non-EVM chains (e.g., Bitcoin with no gas.) */}
+        {shouldShowNetworkFee &&
+          (activeQuote?.quote.gasIncluded ? (
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              gap={2}
+              justifyContent={BoxJustifyContent.Between}
             >
-              <Text
-                variant={TextVariant.BodyMD}
-                style={styles.strikethroughText}
-              >
-                {networkFee}
-              </Text>
               <Text variant={TextVariant.BodyMD}>
-                {strings('bridge.included')}
+                {toSentenceCase(strings('bridge.network_fee'))}
               </Text>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={2}
+              >
+                <Text
+                  variant={TextVariant.BodyMD}
+                  style={styles.strikethroughText}
+                >
+                  {networkFee}
+                </Text>
+                <Text variant={TextVariant.BodyMD}>
+                  {strings('bridge.included')}
+                </Text>
+              </Box>
             </Box>
-          </Box>
-        ) : (
-          <KeyValueRow
-            field={{
-              label: {
-                text: toSentenceCase(strings('bridge.network_fee')),
-                variant: TextVariant.BodyMD,
-              },
-              tooltip: {
-                title: strings('bridge.network_fee_info_title'),
-                content: strings('bridge.network_fee_info_content'),
-                size: TooltipSizes.Sm,
-                iconName: IconName.Info,
-              },
-            }}
-            value={{
-              label: {
-                text: networkFee,
-                variant: TextVariant.BodyMD,
-              },
-            }}
-          />
-        )}
+          ) : (
+            <KeyValueRow
+              field={{
+                label: {
+                  text: toSentenceCase(strings('bridge.network_fee')),
+                  variant: TextVariant.BodyMD,
+                },
+                tooltip: {
+                  title: strings('bridge.network_fee_info_title'),
+                  content: strings('bridge.network_fee_info_content'),
+                  size: TooltipSizes.Sm,
+                  iconName: IconName.Info,
+                },
+              }}
+              value={{
+                label: {
+                  text: networkFee,
+                  variant: TextVariant.BodyMD,
+                },
+              }}
+            />
+          ))}
 
         <KeyValueRow
           field={{
