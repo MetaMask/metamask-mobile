@@ -19,6 +19,7 @@ import {
   ToastVariants,
 } from '../component-library/components/Toast';
 import { MinimumVersionFlagValue } from '../components/Views/FeatureFlagOverride/FeatureFlagOverride';
+import { selectBasicFunctionalityEnabled } from '../selectors/settings';
 
 interface FeatureFlagOverrides {
   [key: string]: unknown;
@@ -174,12 +175,14 @@ export const FeatureFlagOverrideProvider: React.FC<
   /**
    * get a specific feature flag value with overrides applied
    */
-  const getFeatureFlag = useCallback(
-    (key: string) => {
-      const flag = featureFlags[key];
-      if (!flag) {
-        return undefined;
-      }
+  const getFeatureFlag = useCallback((key: string) => {
+    if (!selectBasicFunctionalityEnabled) {
+      return false;
+    }
+    const flag = featureFlags[key];
+    if (!flag) {
+      return undefined;
+    }
 
       if (flag.type === 'boolean with minimumVersion') {
         return validateMinimumVersion(

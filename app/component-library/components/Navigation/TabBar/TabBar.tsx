@@ -27,14 +27,14 @@ import {
   LABEL_BY_TAB_BAR_ICON_KEY,
 } from './TabBar.constants';
 import { selectChainId } from '../../../../selectors/networkController';
-import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { selectAssetsTrendingTokensEnabled } from '../../../../selectors/featureFlagController/assetsTrendingTokens';
+import { useRewardsEnabled } from '../../../../components/hooks/FeatureFlags/useRewardsEnabled';
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const chainId = useSelector(selectChainId);
-  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
+  const isRewardsEnabled = useRewardsEnabled();
   const isAssetsTrendingTokensEnabled = useSelector(
     selectAssetsTrendingTokensEnabled,
   );
