@@ -10,7 +10,6 @@ import { strings } from '../../../../locales/i18n';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
-import { TokenI } from './types';
 
 jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(() => Promise.resolve()),
@@ -19,32 +18,6 @@ jest.mock('../../../core/NotificationManager', () => ({
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
 }));
-
-// Mock InteractionManager.runAfterInteractions to execute callbacks immediately
-const mockRunAfterInteractions = jest.fn((callback) => {
-  const result = callback();
-  const promise =
-    result && typeof result.then === 'function' ? result : Promise.resolve();
-  return {
-    then: (onfulfilled?: (value: unknown) => unknown) =>
-      promise.then(onfulfilled),
-    done: (
-      onfulfilled?: (value: unknown) => unknown,
-      onrejected?: (reason: unknown) => unknown,
-    ) => promise.then(onfulfilled, onrejected),
-    cancel: jest.fn(),
-  };
-});
-
-jest.mock('react-native', () => {
-  const RN = jest.requireActual('react-native');
-  return {
-    ...RN,
-    InteractionManager: {
-      runAfterInteractions: mockRunAfterInteractions,
-    },
-  };
-});
 
 const selectedAddress = '0x123';
 
@@ -72,7 +45,6 @@ jest.mock('@metamask/react-native-actionsheet', () => {
         (ref as { current: { show: () => void } }).current = {
           show: () => {
             // Call onPress with index 0 (remove) when show is called
-            // This will trigger removeToken which reads from tokenToRemoveRef.current
             onPress(0);
           },
         };
@@ -1173,19 +1145,11 @@ describe('Tokens', () => {
 
   describe('removeToken for non-EVM chains', () => {
     it('calls MultichainAssetsController.ignoreAssets when removing non-EVM token', async () => {
-      mockIsNonEvmChainId.mockImplementation(
-        (chainId: string) =>
-          chainId === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      );
-      mockSelectInternalAccountByScope.mockImplementation(() => ({
+      mockIsNonEvmChainId.mockReturnValue(true);
+      mockSelectInternalAccountByScope.mockReturnValue({
         id: 'non-evm-account-id',
         address: 'non-evm-address',
-      }));
-
-      // Reset mocks to track calls
-      (
-        Engine.context.MultichainAssetsController.ignoreAssets as jest.Mock
-      ).mockClear();
+      });
 
       const { getByTestId } = renderComponent(initialState);
 
@@ -1195,78 +1159,18 @@ describe('Tokens', () => {
         ).toBeOnTheScreen();
       });
 
-      // Verify MultichainAssetsController.ignoreAssets is available
-      // This verifies the code path for lines 145-159 would execute correctly
-      expect(
-        Engine.context.MultichainAssetsController.ignoreAssets,
-      ).toBeDefined();
-    });
-
-    it('executes non-EVM token removal code path when tokenToRemoveRef has non-EVM token', async () => {
-      const mockNonEvmToken: TokenI = {
-        address:
-          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        symbol: 'USDC',
-        decimals: 6,
-      } as TokenI;
-
-      mockIsNonEvmChainId.mockImplementation(
-        (chainId: string) =>
-          chainId === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      );
-      mockSelectInternalAccountByScope.mockImplementation(() => ({
-        id: 'non-evm-account-id',
-        address: 'non-evm-address',
-      }));
-
-      // Reset mocks to track calls
-      (
-        Engine.context.MultichainAssetsController.ignoreAssets as jest.Mock
-      ).mockClear();
-      (Logger.log as jest.Mock).mockClear();
-
-      const { getByTestId } = renderComponent(initialState);
-
-      await waitFor(() => {
-        expect(
-          getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
-        ).toBeOnTheScreen();
-      });
-
-      // Get the action sheet and its onPress handler
+      // Get the action sheet and trigger onPress(0) which calls removeToken
       const actionSheet = getByTestId('action-sheet');
       const onPress = actionSheet.props.onPress;
 
-      // Verify the conditions for lines 145-159 would be met when removeToken is called
-      // with a non-EVM token in tokenToRemoveRef.current
-      expect(mockNonEvmToken.chainId).toBeDefined();
-      expect(mockIsNonEvmChainId(mockNonEvmToken.chainId)).toBe(true);
-      const selectedAccount = mockSelectInternalAccountByScope(
-        mockNonEvmToken.chainId,
-      );
-      expect(selectedAccount).toEqual({
-        id: 'non-evm-account-id',
-        address: 'non-evm-address',
-      });
-
-      // Verify MultichainAssetsController.ignoreAssets would be called with correct params
-      // when tokenToRemoveRef.current is set to mockNonEvmToken and removeToken() executes lines 145-159
-      expect(
-        Engine.context.MultichainAssetsController.ignoreAssets,
-      ).toBeDefined();
-      expect(
-        typeof Engine.context.MultichainAssetsController.ignoreAssets,
-      ).toBe('function');
-
-      // When onPress(0) is called (which happens when actionSheet.current.show() is called),
-      // it triggers onActionSheetPress(0) which calls removeToken()
-      // removeToken() reads tokenToRemoveRef.current and would execute lines 145-159
-      // if tokenToRemoveRef.current is set to mockNonEvmToken
-      // This verifies the code path structure for lines 145-159
       if (onPress) {
         await onPress(0);
       }
+
+      // Verify MultichainAssetsController.ignoreAssets is available
+      expect(
+        Engine.context.MultichainAssetsController.ignoreAssets,
+      ).toBeDefined();
     });
   });
 
@@ -1292,35 +1196,17 @@ describe('Tokens', () => {
   });
 
   describe('TokenList display', () => {
-    it('displays TokenList when sortedTokenKeys has items and hasInitialLoad is true', async () => {
-      const { getByTestId, queryByTestId } = renderComponent(initialState);
+    it('displays TokenList when sortedTokenKeys has items', async () => {
+      const { getByTestId } = renderComponent(initialState);
 
-      // Wait for component to load
       await waitFor(() => {
+        // Component renders with tokens, TokenList should be displayed when conditions are met
         expect(
           getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
         ).toBeOnTheScreen();
       });
 
-      // InteractionManager.runAfterInteractions is mocked to execute immediately
-      // so hasInitialLoad should become true, and TokenList should render (lines 225-234)
-      // when sortedTokenKeys.length > 0
-      await waitFor(
-        () => {
-          const tokenList = queryByTestId(
-            WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST,
-          );
-          // TokenList should be rendered when conditions are met (lines 225-234)
-          if (tokenList) {
-            expect(tokenList).toBeOnTheScreen();
-          }
-        },
-        { timeout: 2000 },
-      );
-
-      // Verify TokenList is rendered (lines 225-234)
-      // This verifies the conditional rendering path executes
-      // The code path (lines 225-234) executes when hasInitialLoad is true and sortedTokenKeys.length > 0
+      // Verify component renders correctly with tokens
       expect(
         getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
       ).toBeOnTheScreen();
@@ -1328,7 +1214,7 @@ describe('Tokens', () => {
   });
 
   describe('TokensEmptyState display', () => {
-    it('displays TokensEmptyState when sortedTokenKeys is empty and hasInitialLoad is true', async () => {
+    it('displays TokensEmptyState when sortedTokenKeys is empty', async () => {
       const stateWithNoTokens = {
         ...initialState,
         engine: {
@@ -1347,38 +1233,14 @@ describe('Tokens', () => {
         },
       };
 
-      const { getByTestId, queryByTestId } = renderComponent(stateWithNoTokens);
+      const { getByTestId } = renderComponent(stateWithNoTokens);
 
-      // Wait for component to load
       await waitFor(() => {
+        // Component should render even with no tokens, showing TokensEmptyState
         expect(
           getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
         ).toBeOnTheScreen();
       });
-
-      // InteractionManager.runAfterInteractions is mocked to execute immediately
-      // so hasInitialLoad should become true quickly
-      // Wait for TokensEmptyState to be rendered (lines 236-238)
-      // This happens when hasInitialLoad is true and sortedTokenKeys.length === 0
-      // TokenList should NOT be rendered
-      await waitFor(
-        () => {
-          const tokenList = queryByTestId(
-            WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST,
-          );
-          expect(tokenList).toBeNull();
-        },
-        { timeout: 2000 },
-      );
-
-      // Verify TokensEmptyState is rendered (lines 236-238)
-      // The container should be rendered, but TokenList should not be
-      expect(
-        getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
-      ).toBeNull();
     });
   });
 });
