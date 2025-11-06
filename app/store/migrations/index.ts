@@ -107,6 +107,7 @@ import migration103 from './103';
 import migration104 from './104';
 import migration105 from './105';
 import migration106 from './106';
+import migration107 from './107';
 
 // Add migrations above this line
 import { ControllerStorage } from '../persistConfig';
@@ -230,6 +231,7 @@ export const migrationList: MigrationsList = {
   104: migration104,
   105: migration105,
   106: migration106,
+  107: migration107,
 };
 
 // Enable both synchronous and asynchronous migrations
@@ -245,8 +247,8 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
    * Loads controller data from individual filesystem storage back into engine.backgroundState
    * for migrations to process.
    *
-   * - Individual controller files are created automatically by EngineService.setupEnginePersistence()
-   * - Migrations 106+ still expect to work with the old engine.backgroundState format
+   * - Migration 104 moved controller data from redux-persist to individual files
+   * - Migrations 105+ still expect to work with the old engine.backgroundState format
    * - This function temporarily recreates the old format so migrations can run
    * - "unpacking" distributed files back into a single object
    *
@@ -317,6 +319,8 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
         unknown,
       ][];
 
+      // Save all controller states to individual storage
+      // CRITICAL: If ANY controller fails to save, crash the app immediately
       await Promise.all(
         entries.map(async ([controllerName, controllerState]) => {
           try {
@@ -325,6 +329,7 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
               JSON.stringify(controllerState),
             );
           } catch (error) {
+            // Log the error for debugging
             captureException(
               new Error(
                 `deflateToControllersAndStrip: Failed to save ${controllerName} to individual storage: ${String(
@@ -333,6 +338,8 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
               ),
             );
 
+            // CRASH immediately, don't allow partial migration success
+            // This ensures clean recovery and prevents state corruption
             throw new Error(
               `Critical: Migration failed for controller '${controllerName}'. ` +
                 `Cannot continue with partial migration as this would corrupt user data. ` +
@@ -342,6 +349,7 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
         }),
       );
 
+      // All controllers saved successfully, safe to strip engine state
       const { engine: _engine, ...rest } = s;
       return rest as unknown;
     } catch (error) {
@@ -353,6 +361,8 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
         ),
       );
 
+      // CRASH on any deflation error, don't return original state
+      // Returning original state would mean user continues with unmigrated data
       throw new Error(
         `Critical: deflateToControllersAndStrip failed completely. ` +
           `Cannot continue safely as this indicates severe migration system failure. ` +
@@ -368,12 +378,13 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
       ) => {
         let state = await incomingState;
 
-        if (!didInflate && Number(migrationNumber) > 106) {
+        if (!didInflate && Number(migrationNumber) > 104) {
           state = await inflateFromControllers(state);
           didInflate = true;
         }
+
         const migratedState = await migrationFunction(state);
-        if (Number(migrationNumber) === lastVersion && lastVersion >= 106) {
+        if (Number(migrationNumber) === lastVersion && lastVersion > 104) {
           const s2 = migratedState as StateWithEngine;
           const hasControllers = Boolean(
             s2.engine?.backgroundState &&
