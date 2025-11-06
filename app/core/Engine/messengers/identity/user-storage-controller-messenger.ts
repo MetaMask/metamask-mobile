@@ -1,32 +1,62 @@
+import { Messenger } from '@metamask/base-controller';
 import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
-import { UserStorageControllerMessenger } from '@metamask/profile-sync-controller/user-storage';
-import { RootMessenger } from '../../types';
+  type KeyringControllerGetStateAction,
+  type KeyringControllerLockEvent,
+  type KeyringControllerUnlockEvent,
+} from '@metamask/keyring-controller';
+import type { HandleSnapRequest } from '@metamask/snaps-controllers';
+import type {
+  AddressBookControllerActions,
+  AddressBookControllerContactDeletedEvent,
+  AddressBookControllerContactUpdatedEvent,
+  AddressBookControllerDeleteAction,
+  AddressBookControllerListAction,
+  AddressBookControllerSetAction,
+} from '@metamask/address-book-controller';
+import {
+  AuthenticationControllerIsSignedIn,
+  AuthenticationControllerGetBearerToken,
+  AuthenticationControllerGetSessionProfile,
+  AuthenticationControllerPerformSignIn,
+} from '@metamask/profile-sync-controller/auth';
+import { UserStorageControllerStateChangeEvent } from '@metamask/profile-sync-controller/user-storage';
+
+type AllowedActions =
+  | KeyringControllerGetStateAction
+  | HandleSnapRequest
+  | AuthenticationControllerGetBearerToken
+  | AuthenticationControllerGetSessionProfile
+  | AuthenticationControllerPerformSignIn
+  | AuthenticationControllerIsSignedIn
+  | AddressBookControllerListAction
+  | AddressBookControllerSetAction
+  | AddressBookControllerDeleteAction
+  | AddressBookControllerActions;
+
+type AllowedEvents =
+  | UserStorageControllerStateChangeEvent
+  | KeyringControllerLockEvent
+  | KeyringControllerUnlockEvent
+  | AddressBookControllerContactUpdatedEvent
+  | AddressBookControllerContactDeletedEvent;
+
+export type UserStorageControllerMessenger = ReturnType<
+  typeof getUserStorageControllerMessenger
+>;
 
 /**
- * Get a messenger for the user storage controller. This is scoped to the
+ * Get a messenger restricted to the actions and events that the
  * user storage controller is allowed to handle.
  *
- * @param rootMessenger - The root messenger.
- * @returns The UserStorageControllerMessenger.
+ * @param messenger - The controller messenger to restrict.
+ * @returns The restricted controller messenger.
  */
 export function getUserStorageControllerMessenger(
-  rootMessenger: RootMessenger,
-): UserStorageControllerMessenger {
-  const messenger = new Messenger<
-    'UserStorageController',
-    MessengerActions<UserStorageControllerMessenger>,
-    MessengerEvents<UserStorageControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'UserStorageController',
-    parent: rootMessenger,
-  });
-  rootMessenger.delegate({
-    actions: [
+  messenger: Messenger<AllowedActions, AllowedEvents>,
+) {
+  return messenger.getRestricted({
+    name: 'UserStorageController',
+    allowedActions: [
       'KeyringController:getState',
       'SnapController:handleRequest',
       'AuthenticationController:getBearerToken',
@@ -37,13 +67,11 @@ export function getUserStorageControllerMessenger(
       'AddressBookController:set',
       'AddressBookController:delete',
     ],
-    events: [
+    allowedEvents: [
       'KeyringController:lock',
       'KeyringController:unlock',
       'AddressBookController:contactUpdated',
       'AddressBookController:contactDeleted',
     ],
-    messenger,
   });
-  return messenger;
 }

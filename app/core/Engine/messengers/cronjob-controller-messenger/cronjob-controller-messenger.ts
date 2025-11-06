@@ -1,8 +1,5 @@
-import { RootExtendedMessenger, RootMessenger } from '../../types';
-import {
-  CronjobControllerMessenger,
-  GetAllSnaps,
-} from '@metamask/snaps-controllers';
+import { BaseControllerMessenger } from '../../types';
+import { CronjobControllerMessenger } from '@metamask/snaps-controllers';
 import {
   SnapControllerHandleRequestAction,
   SnapControllerSnapDisabledEvent,
@@ -12,44 +9,29 @@ import {
   SnapControllerSnapUpdatedEvent,
   SnapControllerGetAllSnapsAction,
 } from '../../controllers/snaps';
-import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
 
 /**
  * Get the CronjobControllerMessenger for the CronjobController.
  *
- * @param rootExtendedMessenger - The base controller messenger.
+ * @param baseControllerMessenger - The base controller messenger.
  * @returns The CronjobControllerMessenger.
  */
 export function getCronjobControllerMessenger(
-  rootExtendedMessenger: RootExtendedMessenger,
+  baseControllerMessenger: BaseControllerMessenger,
 ): CronjobControllerMessenger {
-  const messenger = new Messenger<
-    'CronjobController',
-    MessengerActions<CronjobControllerMessenger> | GetAllSnaps,
-    MessengerEvents<CronjobControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'CronjobController',
-    parent: rootExtendedMessenger,
-  });
-  rootExtendedMessenger.delegate({
-    actions: [
-      'PermissionController:getPermissions',
-      SnapControllerHandleRequestAction,
-      SnapControllerGetAllSnapsAction,
-    ],
-    events: [
+  return baseControllerMessenger.getRestricted({
+    name: 'CronjobController',
+    allowedEvents: [
       SnapControllerSnapInstalledEvent,
       SnapControllerSnapUpdatedEvent,
       SnapControllerSnapUninstalledEvent,
       SnapControllerSnapEnabledEvent,
       SnapControllerSnapDisabledEvent,
     ],
-    messenger,
+    allowedActions: [
+      `PermissionController:getPermissions`,
+      SnapControllerHandleRequestAction,
+      SnapControllerGetAllSnapsAction,
+    ],
   });
-  return messenger;
 }

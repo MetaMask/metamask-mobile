@@ -15,6 +15,8 @@ import {
 import StakingBalance from './StakingBalance';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { earnSelectors } from '../../../../../selectors/earnController';
+// eslint-disable-next-line import/no-namespace
+import * as networks from '../../../../../util/networks';
 import { mockNetworkState } from '../../../../../util/test/network';
 import {
   getMockEarnControllerState,
@@ -235,7 +237,8 @@ describe('StakingBalance', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should match the snapshot', () => {
+  it('should match the snapshot when portfolio view is enabled  ', () => {
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
     const { toJSON } = renderWithProvider(
       <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
       { state: mockInitialState },

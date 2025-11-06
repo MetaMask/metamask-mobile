@@ -8,7 +8,6 @@ import { useWatchedNFTNames } from './useWatchedNFTNames';
 import { useNftNames } from './useNftName';
 import { useAccountNames } from './useAccountNames';
 import { useAccountWalletNames } from './useAccountWalletNames';
-import { useSendFlowEnsResolutions } from '../../Views/confirmations/hooks/send/useSendFlowEnsResolutions';
 
 const UNKNOWN_ADDRESS_CHECKSUMMED =
   '0x299007B3F9E23B8d432D5f545F8a4a2B3E9A5B4e';
@@ -44,15 +43,6 @@ jest.mock('./useAccountWalletNames', () => ({
   useAccountWalletNames: jest.fn(),
 }));
 
-jest.mock(
-  '../../Views/confirmations/hooks/send/useSendFlowEnsResolutions',
-  () => ({
-    useSendFlowEnsResolutions: jest.fn(() => ({
-      getResolvedENSName: jest.fn(),
-    })),
-  }),
-);
-
 describe('useDisplayName', () => {
   const mockUseWatchedNFTNames = jest.mocked(useWatchedNFTNames);
   const mockUseFirstPartyContractNames = jest.mocked(
@@ -62,8 +52,6 @@ describe('useDisplayName', () => {
   const mockUseNFTNames = jest.mocked(useNftNames);
   const mockUseAccountNames = jest.mocked(useAccountNames);
   const mockUseAccountWalletNames = jest.mocked(useAccountWalletNames);
-  const mockUseSendFlowEnsResolutions = jest.mocked(useSendFlowEnsResolutions);
-  const mockGetResolvedENSName = jest.fn();
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -73,9 +61,6 @@ describe('useDisplayName', () => {
     mockUseNFTNames.mockReturnValue([]);
     mockUseAccountNames.mockReturnValue([]);
     mockUseAccountWalletNames.mockReturnValue([]);
-    mockUseSendFlowEnsResolutions.mockReturnValue({
-      getResolvedENSName: mockGetResolvedENSName,
-    } as unknown as ReturnType<typeof useSendFlowEnsResolutions>);
   });
 
   describe('unknown address', () => {
@@ -201,24 +186,6 @@ describe('useDisplayName', () => {
       expect(displayName).toEqual(
         expect.objectContaining({
           subtitle: KNOWN_ACCOUNT_WALLET_NAME,
-        }),
-      );
-    });
-
-    it('returns ENS name', () => {
-      mockUseSendFlowEnsResolutions.mockReturnValue({
-        getResolvedENSName: jest.fn().mockReturnValue('ensname.eth'),
-      } as unknown as ReturnType<typeof useSendFlowEnsResolutions>);
-
-      const displayName = useDisplayName({
-        type: NameType.EthereumAddress,
-        value: KNOWN_NFT_ADDRESS_CHECKSUMMED,
-        variation: CHAIN_IDS.MAINNET,
-      });
-
-      expect(displayName).toEqual(
-        expect.objectContaining({
-          name: 'ensname.eth',
         }),
       );
     });

@@ -41,9 +41,7 @@ const AdditionalVerification = () => {
 
   const { styles, theme } = useStyles(styleSheet, {});
 
-  const { navigateToKycWebview } = useDepositRouting({
-    screenLocation: 'AdditionalVerification Screen',
-  });
+  const { navigateToKycWebview } = useDepositRouting();
 
   React.useEffect(() => {
     navigation.setOptions(

@@ -1,33 +1,20 @@
 import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { ethers } from 'ethers';
 import {
-  TransactionStatus,
   TransactionType,
   WalletDevice,
 } from '@metamask/transaction-controller';
-import { SolScope } from '@metamask/keyring-api';
+import { CaipChainId, SolScope } from '@metamask/keyring-api';
 import Engine from '../../../../core/Engine';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import Logger from '../../../../util/Logger';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { useCardSDK } from '../sdk';
-import { CardNetwork, CardTokenAllowance } from '../types';
+import { CardNetwork } from '../types';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
 import { Hex } from '@metamask/utils';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
-import { ARBITRARY_ALLOWANCE } from '../constants';
-import { toTokenMinimalUnit } from '../../../../util/number';
-import AppConstants from '../../../../core/AppConstants';
-
-/**
- * Custom error class for user-initiated cancellations
- */
-export class UserCancelledError extends Error {
-  constructor(message = 'User cancelled the transaction') {
-    super(message);
-    this.name = 'UserCancelledError';
-  }
-}
 
 interface DelegationState {
   isLoading: boolean;
@@ -40,13 +27,26 @@ interface DelegationParams {
   network: CardNetwork;
 }
 
+interface PriorityToken {
+  address?: string | null;
+  symbol?: string | null;
+  decimals?: number | null;
+  caipChainId?: CaipChainId | null;
+  allowance?: string | null;
+  allowanceState?: string | null;
+  walletAddress?: string | null;
+  name?: string | null;
+  delegationContract?: string | null;
+  stagingTokenAddress?: string | null; // Used in staging environment for actual on-chain token address
+}
+
 /**
  * Hook to handle the complete delegation flow for spending limit increases
  * Flow: Token -> Signature -> Approval Transaction -> Completion
  *
  * Note: Currently only supports EVM chains (Linea)
  */
-export const useCardDelegation = (token?: CardTokenAllowance | null) => {
+export const useCardDelegation = (priorityToken?: PriorityToken | null) => {
   const { sdk } = useCardSDK();
   const { KeyringController, TransactionController, NetworkController } =
     Engine.context;
@@ -65,15 +65,12 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
   const generateSignatureMessage = useCallback(
     (address: string, nonce: string): string => {
       const now = new Date();
-      // Expiration time needs to be 30 secods
-      const expirationTime = new Date(now.getTime() + 30 * 1000);
-      const chainId = token?.caipChainId?.split(':')[1] ?? '59144';
-      const domain = AppConstants.MM_UNIVERSAL_LINK_HOST;
-      const uri = `https://${domain}`;
+      const expirationTime = new Date(now.getTime() + 30 * 60000); // 30 minutes
+      const chainId = priorityToken?.caipChainId?.split(':')[1] ?? '59144';
 
-      return `${domain} wants you to sign in with your Ethereum account:\n${address}\n\nProve address ownership\n\nURI: ${uri}\nVersion: 1\nChain ID: ${chainId}\nNonce: ${nonce}\nIssued At: ${now.toISOString()}\nExpiration Time: ${expirationTime.toISOString()}`;
+      return `MetaMask Mobile wants you to sign in with your Ethereum account:\n${address}\n\nProve address ownership\n\nURI: metamask://\nVersion: 1\nChain ID: ${chainId}\nNonce: ${nonce}\nIssued At: ${now.toISOString()}\nExpiration Time: ${expirationTime.toISOString()}`;
     },
-    [token],
+    [priorityToken?.caipChainId],
   );
 
   /**
@@ -85,115 +82,94 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
       address: string,
       signature: string,
       signatureMessage: string,
-      delegationJWTToken: string,
+      token: string,
     ) => {
-      if (!sdk || !token?.delegationContract) {
+      if (!sdk || !priorityToken?.delegationContract) {
         throw new Error('Missing token configuration');
       }
 
       // Check if we have a token address (either staging or regular)
-      if (!token?.stagingTokenAddress && !token?.address) {
+      if (!priorityToken?.stagingTokenAddress && !priorityToken?.address) {
         throw new Error('Missing token address');
       }
 
       const networkClientId = NetworkController.findNetworkClientIdByChainId(
-        safeFormatChainIdToHex(token.caipChainId ?? '') as Hex,
+        safeFormatChainIdToHex(priorityToken.caipChainId ?? '') as Hex,
       );
 
-      // Convert amount to minimal units based on token decimals
-      // params.amount is the human-readable token amount (e.g., "2199023255551")
-      // We need to convert it to minimal units (e.g., for 18 decimals: amount * 10^18)
-      const amountInMinimalUnits = toTokenMinimalUnit(
+      // Use standard decimals for the currency (e.g., 6 for USDC) for user input
+      // This ensures "5 USDC" means 5 actual USDC, not 5 * 10^18 wei
+      const userFacingDecimals = priorityToken.decimals || 6;
+
+      // Contract decimals might be different in staging (e.g., 18 for test USDC)
+      const contractDecimals = priorityToken.decimals || userFacingDecimals;
+
+      // Parse user input with standard decimals
+      const amountInStandardUnits = ethers.utils.parseUnits(
         params.amount,
-        token.decimals ?? 18,
-      ).toString();
+        userFacingDecimals,
+      );
+
+      // Convert to contract decimals if different
+      let amountForContract: ethers.BigNumber;
+      if (contractDecimals !== userFacingDecimals) {
+        // Convert from user-facing decimals to contract decimals
+        // e.g., 5 USDC (6 decimals) -> 5 * 10^18 (18 decimals for staging)
+        const decimalsDiff = contractDecimals - userFacingDecimals;
+        amountForContract = amountInStandardUnits.mul(
+          ethers.BigNumber.from(10).pow(decimalsDiff),
+        );
+      } else {
+        amountForContract = amountInStandardUnits;
+      }
 
       const transactionData = sdk.encodeApproveTransaction(
-        token.delegationContract,
-        amountInMinimalUnits,
+        priorityToken.delegationContract,
+        amountForContract.toString(),
       );
 
       // Use stagingTokenAddress if present (for staging environment),
       // otherwise use the regular address
-      const tokenAddress = token.stagingTokenAddress || token.address;
+      const tokenAddress =
+        priorityToken.stagingTokenAddress || priorityToken.address;
 
       if (!tokenAddress) {
         throw new Error('Token address not found');
       }
 
-      try {
-        const { result, transactionMeta: trxMeta } =
-          await TransactionController.addTransaction(
-            {
-              from: address,
-              to: tokenAddress,
-              data: transactionData,
-            },
-            {
-              networkClientId,
-              origin: TransactionTypes.MMM,
-              type: TransactionType.tokenMethodApprove,
-              deviceConfirmedOn: WalletDevice.MM_MOBILE,
-              requireApproval: true,
-            },
-          );
-        const actualTxHash = await result;
-        const { id: transactionId } = trxMeta;
+      const { result } = await TransactionController.addTransaction(
+        {
+          from: address,
+          to: tokenAddress,
+          data: transactionData,
+        },
+        {
+          networkClientId,
+          origin: TransactionTypes.MMM,
+          type: TransactionType.tokenMethodApprove,
+          deviceConfirmedOn: WalletDevice.MM_MOBILE,
+          requireApproval: true,
+        },
+      );
 
-        // Wait for transaction confirmation and completion
-        await new Promise<void>((resolve, reject) => {
-          Engine.controllerMessenger.subscribeOnceIf(
-            'TransactionController:transactionConfirmed',
-            async (transactionMeta) => {
-              if (transactionMeta.status === TransactionStatus.confirmed) {
-                Logger.log(
-                  'controllerMessenger::Transaction confirmed',
-                  transactionMeta.id,
-                  transactionId,
-                );
-                try {
-                  await sdk.completeEVMDelegation({
-                    address,
-                    network: params.network,
-                    currency: params.currency.toLowerCase(),
-                    amount: params.amount,
-                    txHash: actualTxHash,
-                    sigHash: signature,
-                    sigMessage: signatureMessage,
-                    token: delegationJWTToken,
-                  });
-                  resolve();
-                } catch (error) {
-                  Logger.error(
-                    error as Error,
-                    'Failed to complete EVM delegation',
-                  );
-                  reject(error);
-                }
-              }
-            },
-            (transactionMeta) => transactionMeta.id === transactionId,
-          );
-        });
+      const actualTxHash = await result;
 
-        return actualTxHash;
-      } catch (error) {
-        // Check if user denied/cancelled the transaction
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
-        const userCancelled =
-          errorMessage.includes('User denied') ||
-          errorMessage.includes('User rejected') ||
-          errorMessage.includes('User cancelled') ||
-          errorMessage.includes('User canceled');
+      // Wait 10 seconds for the transaction to be confirmed on the blockchain
+      // This ensures the backend can verify the transaction when we complete delegation
+      await new Promise((resolve) => setTimeout(resolve, 10000));
 
-        if (userCancelled) {
-          throw new UserCancelledError(errorMessage);
-        }
-        throw error;
-      }
+      await sdk.completeEVMDelegation({
+        address,
+        network: params.network,
+        currency: params.currency.toLowerCase(),
+        amount: params.amount,
+        txHash: actualTxHash,
+        sigHash: signature,
+        sigMessage: signatureMessage,
+        token,
+      });
     },
-    [sdk, token, TransactionController, NetworkController],
+    [sdk, priorityToken, TransactionController, NetworkController],
   );
 
   /**
@@ -207,20 +183,17 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
 
       setState({ isLoading: true, error: null });
 
-      const metricsProps = {
-        token_symbol: params.currency,
-        token_chain_id: params.network,
-        delegation_type:
-          parseFloat(params.amount) >= ARBITRARY_ALLOWANCE ? 'full' : 'limited',
-        delegation_amount: isNaN(Number(params.amount))
-          ? 0
-          : Number(params.amount),
-      };
-
       try {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.CARD_DELEGATION_PROCESS_STARTED)
-            .addProperties(metricsProps)
+            .addProperties({
+              token_symbol: params.currency,
+              token_chain_id: params.network,
+              delegation_type: params.amount === '0' ? 'full' : 'limited',
+              delegation_amount: isNaN(Number(params.amount))
+                ? 0
+                : Number(params.amount),
+            })
             .build(),
         );
         const userAccount = selectAccountByScope(
@@ -233,8 +206,10 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
         }
 
         // Step 1: Generate delegation token
-        const { token: delegationJWTToken, nonce } =
-          await sdk.generateDelegationToken(params.network, address);
+        const { token, nonce } = await sdk.generateDelegationToken(
+          params.network,
+          address,
+        );
 
         // Step 2: Generate and sign SIWE message
         const signatureMessage = generateSignatureMessage(address, nonce);
@@ -251,21 +226,35 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
           address,
           signature,
           signatureMessage,
-          delegationJWTToken,
+          token,
         );
 
         trackEvent(
           createEventBuilder(
             MetaMetricsEvents.CARD_DELEGATION_PROCESS_COMPLETED,
           )
-            .addProperties(metricsProps)
+            .addProperties({
+              token_symbol: params.currency,
+              token_chain_id: params.network,
+              delegation_type: params.amount === '0' ? 'full' : 'limited',
+              delegation_amount: isNaN(Number(params.amount))
+                ? 0
+                : Number(params.amount),
+            })
             .build(),
         );
         setState({ isLoading: false, error: null });
       } catch (error) {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.CARD_DELEGATION_PROCESS_FAILED)
-            .addProperties(metricsProps)
+            .addProperties({
+              token_symbol: params.currency,
+              token_chain_id: params.network,
+              delegation_type: params.amount === '0' ? 'full' : 'limited',
+              delegation_amount: isNaN(Number(params.amount))
+                ? 0
+                : Number(params.amount),
+            })
             .build(),
         );
         const errorMessage =

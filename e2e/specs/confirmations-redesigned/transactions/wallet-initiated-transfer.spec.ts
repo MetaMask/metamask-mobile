@@ -1,10 +1,7 @@
 import { SmokeConfirmationsRedesigned } from '../../../tags';
 import { loginToApp } from '../../../viewHelper';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import {
-  AnvilPort,
-  buildPermissions,
-} from '../../../framework/fixtures/FixtureUtils';
+import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
 import {
   SEND_ETH_SIMULATION_MOCK,
   SIMULATION_ENABLED_NETWORKS_MOCK,
@@ -25,8 +22,6 @@ import {
 } from '../../../api-mocking/helpers/mockHelpers';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
-import { LocalNode } from '../../../framework/types';
-import { AnvilManager } from '../../../seeder/anvil-manager';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 const AMOUNT = '1';
@@ -70,31 +65,15 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
   it('sends native asset', async () => {
     await withFixtures(
       {
-        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
-          const node = localNodes?.[0] as unknown as AnvilManager;
-          const rpcPort =
-            node instanceof AnvilManager
-              ? (node.getPort() ?? AnvilPort())
-              : undefined;
-
-          return new FixtureBuilder()
-            .withNetworkController({
-              providerConfig: {
-                chainId: '0x539',
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Local RPC',
-                ticker: 'ETH',
-              },
-            })
-            .withNetworkEnabledMap({
-              eip155: { '0x539': true },
-            })
-            .withPermissionControllerConnectedToTestDapp(
-              buildPermissions(['0x539']),
-            )
-            .build();
-        },
+        fixture: new FixtureBuilder()
+          .withGanacheNetwork()
+          .withNetworkEnabledMap({
+            eip155: { '0x539': true },
+          })
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions(['0x539']),
+          )
+          .build(),
         restartDevice: true,
         testSpecificMock,
       },

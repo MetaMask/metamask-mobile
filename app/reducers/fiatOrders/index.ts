@@ -134,11 +134,6 @@ export const removeFiatSellTxHash = (orderId: string) => ({
   payload: orderId,
 });
 
-export const setDetectedGeolocation = (geolocation: string | undefined) => ({
-  type: ACTIONS.FIAT_SET_DETECTED_GEOLOCATION,
-  payload: geolocation,
-});
-
 /**
  * Selectors
  */
@@ -303,11 +298,6 @@ export const networkShortNameSelector = createSelector(
   },
 );
 
-export const getDetectedGeolocation: (
-  state: RootState,
-) => string | undefined = (state: RootState) =>
-  state.fiatOrders.detectedGeolocation;
-
 export const initialState: FiatOrdersState = {
   orders: [],
   customOrderIds: [],
@@ -322,7 +312,6 @@ export const initialState: FiatOrdersState = {
   getStartedDeposit: false,
   authenticationUrls: [],
   activationKeys: [],
-  detectedGeolocation: undefined,
 };
 
 const findOrderIndex = (
@@ -609,12 +598,6 @@ const fiatOrderReducer: (
           },
           ...orders.slice(index + 1),
         ],
-      };
-    }
-    case ACTIONS.FIAT_SET_DETECTED_GEOLOCATION: {
-      return {
-        ...state,
-        detectedGeolocation: action.payload,
       };
     }
 

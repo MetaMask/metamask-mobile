@@ -8,11 +8,6 @@ import { selectSelectedInternalAccountAddress } from '../../../../selectors/acco
 
 // Mock dependencies
 jest.mock('./usePredictTrading');
-jest.mock('./usePredictNetworkManagement', () => ({
-  usePredictNetworkManagement: jest.fn(() => ({
-    ensurePolygonNetworkExists: jest.fn().mockResolvedValue(undefined),
-  })),
-}));
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
 }));
@@ -26,9 +21,6 @@ jest.mock('react-redux', () => ({
 }));
 jest.mock('../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountAddress: jest.fn(),
-}));
-jest.mock('../selectors/predictController', () => ({
-  selectPredictClaimablePositionsByAddress: jest.fn(),
 }));
 
 describe('usePredictPositions', () => {
@@ -47,8 +39,7 @@ describe('usePredictPositions', () => {
       if (selector === selectSelectedInternalAccountAddress) {
         return '0x1234567890123456789012345678901234567890';
       }
-      // Return empty array for claimable positions selector
-      return [];
+      return undefined;
     });
     (usePredictTrading as jest.Mock).mockReturnValue({
       getPositions: mockGetPositions,

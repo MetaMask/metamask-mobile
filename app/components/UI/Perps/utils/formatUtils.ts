@@ -472,7 +472,7 @@ export const formatPnl = (pnl: string | number): string => {
   const num = typeof pnl === 'string' ? parseFloat(pnl) : pnl;
 
   if (isNaN(num)) {
-    return PERPS_CONSTANTS.ZERO_AMOUNT_DETAILED_DISPLAY;
+    return '$0.00';
   }
 
   const formatted = getIntlNumberFormatter('en-US', {

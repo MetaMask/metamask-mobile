@@ -20,7 +20,12 @@ import { PerpsNavigationParamList } from '../../types/navigation';
 import PerpsTransactionItem from '../../components/PerpsTransactionItem';
 import PerpsTransactionsSkeleton from '../../components/PerpsTransactionsSkeleton';
 import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../../constants/transactionsHistoryConfig';
-import { usePerpsConnection, usePerpsTransactionHistory } from '../../hooks';
+import {
+  usePerpsConnection,
+  usePerpsFunding,
+  usePerpsOrderFills,
+  usePerpsOrders,
+} from '../../hooks';
 import {
   FilterTab,
   ListItem,
@@ -29,9 +34,15 @@ import {
   TransactionSection,
 } from '../../types/transactionHistory';
 import { formatDateSection } from '../../utils/formatUtils';
+import {
+  transformFillsToTransactions,
+  transformFundingToTransactions,
+  transformOrdersToTransactions,
+} from '../../utils/transactionTransforms';
 import { styleSheet } from './PerpsTransactionsView.styles';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { TraceName } from '../../../../../util/trace';
+import { getUserFundingsListTimePeriod } from '../../utils/transactionUtils';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -51,29 +62,51 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
 
   const { isConnected, isConnecting } = usePerpsConnection();
 
-  // Use single source of truth for all transaction data (includes deposits/withdrawals from user history)
+  // Use new hooks for data fetching
   const {
-    transactions: allTransactions,
-    isLoading: transactionsLoading,
-    refetch: refreshTransactions,
-  } = usePerpsTransactionHistory({
+    orderFills: fillsData,
+    isLoading: fillsLoading,
+    refresh: refreshFills,
+  } = usePerpsOrderFills({
+    skipInitialFetch: !isConnected,
+  });
+
+  const {
+    orders: ordersData,
+    isLoading: ordersLoading,
+    refresh: refreshOrders,
+  } = usePerpsOrders({
+    skipInitialFetch: !isConnected,
+  });
+
+  // Memoize the funding params to prevent infinite re-renders
+  const fundingParams = useMemo(
+    () => ({
+      startTime: getUserFundingsListTimePeriod(),
+    }),
+    [], // Empty dependency array since we want this to be stable
+  );
+
+  const {
+    funding: fundingData,
+    isLoading: fundingLoading,
+    refresh: refreshFunding,
+  } = usePerpsFunding({
+    params: fundingParams,
     skipInitialFetch: !isConnected,
   });
 
   // Helper function to group transactions by date
   const groupTransactionsByDate = useCallback(
     (transactions: PerpsTransaction[]): TransactionSection[] => {
-      const grouped = transactions.reduce(
-        (acc, transaction) => {
-          const dateKey = formatDateSection(transaction.timestamp);
-          if (!acc[dateKey]) {
-            acc[dateKey] = [];
-          }
-          acc[dateKey].push(transaction);
-          return acc;
-        },
-        {} as Record<string, PerpsTransaction[]>,
-      );
+      const grouped = transactions.reduce((acc, transaction) => {
+        const dateKey = formatDateSection(transaction.timestamp);
+        if (!acc[dateKey]) {
+          acc[dateKey] = [];
+        }
+        acc[dateKey].push(transaction);
+        return acc;
+      }, {} as Record<string, PerpsTransaction[]>);
 
       return Object.entries(grouped).map(([title, data]) => ({ title, data }));
     },
@@ -108,47 +141,63 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     return flattened;
   };
 
-  // Filter transactions by type from the single source of truth
+  // Create a map of orderId to order for fast lookup
+  const orderMap = useMemo(() => {
+    const map = new Map<string, (typeof ordersData)[0]>();
+    (ordersData || []).forEach((order) => {
+      map.set(order.orderId, order);
+    });
+    return map;
+  }, [ordersData]);
+
+  // Enrich fills with order data to determine TP/SL
+  const enrichedFills = useMemo(
+    () =>
+      (fillsData || []).map((fill) => {
+        const enrichedFill = { ...fill };
+
+        // Cross-reference with historical orders
+        const matchingOrder = orderMap.get(fill.orderId);
+        if (matchingOrder?.detailedOrderType) {
+          // Add the detailed order type to the fill
+          enrichedFill.detailedOrderType = matchingOrder.detailedOrderType;
+        }
+
+        return enrichedFill;
+      }),
+    [fillsData, orderMap],
+  );
+
+  // Transform raw data from hooks into transaction format
   const fillTransactions = useMemo(
-    () => allTransactions.filter((tx) => tx.type === 'trade'),
-    [allTransactions],
+    () => transformFillsToTransactions(enrichedFills),
+    [enrichedFills],
   );
 
   const orderTransactions = useMemo(
-    () => allTransactions.filter((tx) => tx.type === 'order'),
-    [allTransactions],
+    () => transformOrdersToTransactions(ordersData || []),
+    [ordersData],
   );
 
   const fundingTransactions = useMemo(
-    () => allTransactions.filter((tx) => tx.type === 'funding'),
-    [allTransactions],
-  );
-
-  const depositWithdrawalTransactions = useMemo(
-    () =>
-      allTransactions.filter(
-        (tx) => tx.type === 'deposit' || tx.type === 'withdrawal',
-      ),
-    [allTransactions],
+    () => transformFundingToTransactions(fundingData || []),
+    [fundingData],
   );
 
   // Memoized grouped transactions to avoid recalculation on every filter change
-  const allGroupedTransactions = useMemo(() => {
-    const grouped = {
+  const allGroupedTransactions = useMemo(
+    () => ({
       Trades: groupTransactionsByDate(fillTransactions),
       Orders: groupTransactionsByDate(orderTransactions),
       Funding: groupTransactionsByDate(fundingTransactions),
-      Deposits: groupTransactionsByDate(depositWithdrawalTransactions),
-    };
-
-    return grouped;
-  }, [
-    fillTransactions,
-    orderTransactions,
-    fundingTransactions,
-    depositWithdrawalTransactions,
-    groupTransactionsByDate,
-  ]);
+    }),
+    [
+      fillTransactions,
+      orderTransactions,
+      fundingTransactions,
+      groupTransactionsByDate,
+    ],
+  );
 
   // Memoized flat data for current filter - prevents re-flattening on every change
   const currentFlatListData = useMemo(() => {
@@ -169,14 +218,14 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     }
     setRefreshing(true);
     try {
-      // Refresh all transaction data from single source
-      await refreshTransactions();
+      // Refresh all data sources in parallel
+      await Promise.all([refreshFills(), refreshOrders(), refreshFunding()]);
     } catch (error) {
       console.warn('Failed to refresh transaction data:', error);
     } finally {
       setRefreshing(false);
     }
-  }, [isConnected, refreshTransactions]);
+  }, [isConnected, refreshFills, refreshOrders, refreshFunding]);
 
   // Initial loading is handled by the hooks themselves
 
@@ -184,8 +233,8 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     (tab: FilterTab, index: number) => {
       const isActive = activeFilter === tab;
 
-      // Convert tab to i18n key
-      const i18nKeys = ['trades', 'orders', 'funding', 'deposits'];
+      // Convert index to i18n key
+      const i18nKeys = ['trades', 'orders', 'funding'];
       const i18nKey = i18nKeys[index];
 
       const handleTabPress = () => {
@@ -330,7 +379,6 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       strings('perps.transactions.tabs.trades'),
       strings('perps.transactions.tabs.orders'),
       strings('perps.transactions.tabs.funding'),
-      strings('perps.transactions.tabs.deposits'),
     ],
     [],
   );
@@ -345,9 +393,9 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   // Determine if we should show loading skeleton
   const isInitialLoading = useMemo(
     () =>
-      // Show loading if we're connecting or if transaction data is loading
-      isConnecting || transactionsLoading,
-    [isConnecting, transactionsLoading],
+      // Show loading if we're connecting or if any data sources are loading
+      isConnecting || fillsLoading || ordersLoading || fundingLoading,
+    [isConnecting, fillsLoading, ordersLoading, fundingLoading],
   );
 
   // Track screen load performance - measures time until all data is loaded and UI is interactive
@@ -402,7 +450,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
           contentContainerStyle={styles.filterTabContainer}
           showsHorizontalScrollIndicator={false}
           pointerEvents="auto"
-          scrollEnabled
+          scrollEnabled={false}
         >
           {filterTabs.map(renderFilterTab)}
         </ScrollView>

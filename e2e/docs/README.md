@@ -193,6 +193,9 @@ new FixtureBuilder().build();
 // With popular networks
 new FixtureBuilder().withPopularNetworks().build();
 
+// With Ganache network
+new FixtureBuilder().withGanacheNetwork().build();
+
 // With connected test dapp
 new FixtureBuilder()
   .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))

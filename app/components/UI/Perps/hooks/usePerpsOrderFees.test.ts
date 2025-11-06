@@ -196,7 +196,6 @@ describe('usePerpsOrderFees', () => {
         orderType: 'market',
         isMaker: false,
         amount: '100000',
-        coin: 'ETH',
       });
       expect(result.current.protocolFeeRate).toBe(0.00045);
       expect(result.current.protocolFee).toBe(45); // 100000 * 0.00045
@@ -235,7 +234,6 @@ describe('usePerpsOrderFees', () => {
         orderType: 'limit',
         isMaker: true,
         amount: '100000',
-        coin: 'ETH',
       });
       expect(result.current.protocolFeeRate).toBe(0.00015);
       expect(result.current.protocolFee).toBeCloseTo(15, 10);
@@ -267,7 +265,6 @@ describe('usePerpsOrderFees', () => {
         orderType: 'limit',
         isMaker: false,
         amount: '100000',
-        coin: 'ETH',
       });
       expect(result.current.protocolFeeRate).toBe(0.00045);
       expect(result.current.protocolFee).toBe(45);
@@ -329,33 +326,6 @@ describe('usePerpsOrderFees', () => {
   });
 
   describe('Error handling', () => {
-    it('should handle undefined fee rates from provider', async () => {
-      mockCalculateFees.mockResolvedValue({
-        feeRate: 0.001,
-        feeAmount: 100,
-        metamaskFeeRate: undefined,
-        protocolFeeRate: undefined,
-      });
-
-      const { result } = renderHook(
-        () =>
-          usePerpsOrderFees({
-            orderType: 'market',
-            amount: '100000',
-          }),
-        { wrapper: createWrapper() },
-      );
-
-      await waitFor(() => {
-        expect(result.current.isLoadingMetamaskFee).toBe(false);
-      });
-
-      expect(result.current.metamaskFee).toBe(0);
-      expect(result.current.totalFee).toBe(0);
-      expect(result.current.metamaskFeeRate).toBeUndefined();
-      expect(result.current.protocolFeeRate).toBeUndefined();
-    });
-
     it('should fall back to default fee rate on error', async () => {
       mockCalculateFees.mockRejectedValue(new Error('Network error'));
 
@@ -830,7 +800,6 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'market',
         isMaker: false,
         amount: '100000',
-        coin: 'ETH',
       });
       expect(result.current.protocolFeeRate).toBe(0.00045);
     });
@@ -867,7 +836,6 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'limit',
         isMaker: false,
         amount: '100000',
-        coin: 'ETH',
       });
       expect(result.current.protocolFeeRate).toBe(0.00045);
     });
@@ -902,7 +870,6 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'limit',
         isMaker: false,
         amount: '100000',
-        coin: 'ETH',
       });
     });
 
@@ -936,7 +903,6 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'limit',
         isMaker: true,
         amount: '100000',
-        coin: 'ETH',
       });
       expect(result.current.protocolFeeRate).toBe(0.00015);
     });
@@ -973,7 +939,6 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'limit',
         isMaker: false,
         amount: '100000',
-        coin: 'ETH',
       });
       expect(result.current.protocolFeeRate).toBe(0.00045);
     });
@@ -1008,7 +973,6 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'limit',
         isMaker: false,
         amount: '100000',
-        coin: 'ETH',
       });
     });
 
@@ -1042,7 +1006,6 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'limit',
         isMaker: true,
         amount: '100000',
-        coin: 'ETH',
       });
       expect(result.current.protocolFeeRate).toBe(0.00015);
     });
@@ -1077,7 +1040,6 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'limit',
         isMaker: false,
         amount: '100000',
-        coin: 'ETH',
       });
     });
 
@@ -1111,7 +1073,6 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'limit',
         isMaker: false,
         amount: '100000',
-        coin: 'ETH',
       });
     });
 
@@ -1145,7 +1106,6 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'limit',
         isMaker: false,
         amount: '100000',
-        coin: 'ETH',
       });
     });
 
@@ -1179,7 +1139,6 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'limit',
         isMaker: false,
         amount: '100000',
-        coin: 'ETH',
       });
     });
 
@@ -1213,7 +1172,6 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'limit',
         isMaker: false,
         amount: '100000',
-        coin: 'ETH',
       });
     });
 
@@ -1246,7 +1204,6 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'limit',
         isMaker: false,
         amount: '100000',
-        coin: 'ETH',
       });
     });
   });
@@ -1280,7 +1237,6 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         orderType: 'limit',
         isMaker: false,
         amount: '100000',
-        coin: 'ETH',
       });
     });
   });

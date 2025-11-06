@@ -1,57 +1,40 @@
-import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
+import { AccountsControllerGetSelectedAccountAction } from '@metamask/accounts-controller';
+import { Messenger } from '@metamask/base-controller';
 import { type DelegationControllerMessenger } from '@metamask/delegation-controller';
+import { type KeyringControllerSignTypedMessageAction } from '@metamask/keyring-controller';
 import { TransactionControllerTransactionStatusUpdatedEvent } from '@metamask/transaction-controller';
-import { RootMessenger } from '../../types';
 
-const name = 'DelegationController' as const;
+export { type DelegationControllerMessenger } from '@metamask/delegation-controller';
 
 export type DelegationControllerInitMessenger = ReturnType<
   typeof getDelegationControllerInitMessenger
 >;
 
+type AllowedActions =
+  | KeyringControllerSignTypedMessageAction
+  | AccountsControllerGetSelectedAccountAction;
+
+type AllowedEvents = TransactionControllerTransactionStatusUpdatedEvent;
+
 export function getDelegationControllerMessenger(
-  rootMessenger: RootMessenger,
+  messenger: Messenger<AllowedActions, AllowedEvents>,
 ): DelegationControllerMessenger {
-  const messenger = new Messenger<
-    typeof name,
-    MessengerActions<DelegationControllerMessenger>,
-    MessengerEvents<DelegationControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: name,
-    parent: rootMessenger,
-  });
-  rootMessenger.delegate({
-    actions: [
+  return messenger.getRestricted({
+    name: 'DelegationController',
+    allowedActions: [
       'AccountsController:getSelectedAccount',
       'KeyringController:signTypedMessage',
     ],
-    events: [],
-    messenger,
+    allowedEvents: ['TransactionController:transactionStatusUpdated'],
   });
-  return messenger;
 }
 
 export function getDelegationControllerInitMessenger(
-  rootMessenger: RootMessenger,
+  messenger: Messenger<AllowedActions, AllowedEvents>,
 ) {
-  const messenger = new Messenger<
-    'DelegationControllerInit',
-    never,
-    TransactionControllerTransactionStatusUpdatedEvent,
-    RootMessenger
-  >({
-    namespace: 'DelegationControllerInit',
-    parent: rootMessenger,
+  return messenger.getRestricted({
+    name: 'DelegationControllerInit',
+    allowedEvents: ['TransactionController:transactionStatusUpdated'],
+    allowedActions: [],
   });
-  rootMessenger.delegate({
-    actions: [],
-    events: ['TransactionController:transactionStatusUpdated'],
-    messenger,
-  });
-  return messenger;
 }

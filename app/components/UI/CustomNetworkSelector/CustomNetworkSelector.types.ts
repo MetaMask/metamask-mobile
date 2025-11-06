@@ -10,11 +10,9 @@ export interface CustomNetworkItem {
   imageSource: ImageSourcePropType;
   caipChainId: CaipChainId;
   networkTypeOrRpcUrl?: string;
-  hasMultipleRpcs?: boolean;
 }
 
 export interface CustomNetworkSelectorProps {
   openModal: (networkMenuModal: NetworkMenuModalState) => void;
   dismissModal: () => void;
-  openRpcModal?: (params: { chainId: string; networkName: string }) => void;
 }

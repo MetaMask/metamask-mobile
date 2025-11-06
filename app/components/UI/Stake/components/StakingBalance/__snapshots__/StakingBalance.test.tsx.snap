@@ -11,6 +11,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
     style={
       {
         "alignItems": "center",
+        "flex": 1,
         "flexDirection": "row",
         "height": 64,
       }
@@ -792,7 +793,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
 </View>
 `;
 
-exports[`StakingBalance should match the snapshot 1`] = `
+exports[`StakingBalance should match the snapshot when portfolio view is enabled   1`] = `
 <View
   testID="staking-balance-container"
 >
@@ -803,6 +804,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
     style={
       {
         "alignItems": "center",
+        "flex": 1,
         "flexDirection": "row",
         "height": 64,
       }

@@ -49,6 +49,4 @@ export type PerpsTooltipContentKey =
   | 'tp_sl'
   | 'close_position_you_receive'
   | 'tpsl_count_warning'
-  | 'points'
-  | 'market_hours'
-  | 'after_hours_trading';
+  | 'points';

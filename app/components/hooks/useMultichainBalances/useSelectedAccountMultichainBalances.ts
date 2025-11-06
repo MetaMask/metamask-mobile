@@ -1,5 +1,8 @@
 import { useSelector } from 'react-redux';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
+import {
+  isPortfolioViewEnabled,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../util/networks';
 import {
   selectChainId,
   selectIsPopularNetwork,
@@ -85,6 +88,8 @@ const useSelectedAccountMultichainBalances =
     const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
     ///: END:ONLY_INCLUDE_IF
 
+    const isPortfolioEnabled = isPortfolioViewEnabled();
+
     const selectedAccountMultichainBalance = useMemo(() => {
       if (selectedInternalAccount && isOriginalNativeEvmTokenSymbol !== null) {
         const accountBalanceData = getAccountBalanceData(
@@ -111,7 +116,7 @@ const useSelectedAccountMultichainBalances =
           shouldShowAggregatedPercentage: getShouldShowAggregatedPercentage(
             chainId as SupportedCaipChainId,
           ),
-          isPortfolioViewEnabled: true,
+          isPortfolioVieEnabled: isPortfolioEnabled,
           aggregatedBalance: getAggregatedBalance(selectedInternalAccount),
           isLoadingAccount:
             accountBalanceData.totalNativeTokenBalance === undefined,
@@ -123,6 +128,7 @@ const useSelectedAccountMultichainBalances =
       chainId,
       currentCurrency,
       isOriginalNativeEvmTokenSymbol,
+      isPortfolioEnabled,
       totalFiatBalancesCrossEvmChain,
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       multichainAssets,

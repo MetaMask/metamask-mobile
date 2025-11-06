@@ -26,6 +26,9 @@ const styleSheet = () =>
     fundingCountdown: {
       marginLeft: 2,
     },
+    tutorialCardContainer: {
+      marginTop: 24,
+    },
   });
 
 export default styleSheet;

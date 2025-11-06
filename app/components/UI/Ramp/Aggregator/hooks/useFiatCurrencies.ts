@@ -5,6 +5,7 @@ import useSDKMethod from './useSDKMethod';
 export default function useFiatCurrencies() {
   const {
     selectedRegion,
+    selectedPaymentMethodId,
     selectedFiatCurrencyId,
     setSelectedFiatCurrencyId,
     isBuy,
@@ -20,6 +21,7 @@ export default function useFiatCurrencies() {
   ] = useSDKMethod(
     isBuy ? 'getDefaultFiatCurrency' : 'getDefaultSellFiatCurrency',
     selectedRegion?.id,
+    [],
   );
 
   const [
@@ -32,6 +34,7 @@ export default function useFiatCurrencies() {
   ] = useSDKMethod(
     isBuy ? 'getFiatCurrencies' : 'getSellFiatCurrencies',
     selectedRegion?.id,
+    selectedPaymentMethodId ? [selectedPaymentMethodId] : null,
   );
 
   /**
@@ -91,8 +94,8 @@ export default function useFiatCurrencies() {
     fiatCurrencies,
     queryGetFiatCurrencies,
     errorFiatCurrency: errorFiatCurrencies || errorDefaultFiatCurrency,
-    isFetchingFiatCurrency: isFetchingDefaultFiatCurrency,
-    isFetchingFiatCurrencies,
+    isFetchingFiatCurrency:
+      isFetchingFiatCurrencies || isFetchingDefaultFiatCurrency,
     currentFiatCurrency,
   };
 }

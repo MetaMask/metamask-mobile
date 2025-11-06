@@ -1,30 +1,11 @@
-import {
-  Messenger,
-  type MessengerActions,
-  type MessengerEvents,
-  MOCK_ANY_NAMESPACE,
-  type MockAnyNamespace,
-} from '@metamask/messenger';
-import { WebSocketServiceMessenger } from '@metamask/snaps-controllers';
+import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
 import { getWebSocketServiceMessenger } from './websocket-service-messenger';
 
-type RootMessenger = Messenger<
-  MockAnyNamespace,
-  MessengerActions<WebSocketServiceMessenger>,
-  MessengerEvents<WebSocketServiceMessenger>
->;
-
-const getRootMessenger = (): RootMessenger =>
-  new Messenger<MockAnyNamespace, never, never>({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
-
 describe('getWebSocketServiceMessenger', () => {
-  it('returns a messenger', () => {
-    const rootMessenger = getRootMessenger();
-    const websocketServiceMessenger =
-      getWebSocketServiceMessenger(rootMessenger);
+  it('returns a restricted controller messenger', () => {
+    const controllerMessenger = new Messenger<never, never>();
+    const messenger = getWebSocketServiceMessenger(controllerMessenger);
 
-    expect(websocketServiceMessenger).toBeInstanceOf(Messenger);
+    expect(messenger).toBeInstanceOf(RestrictedMessenger);
   });
 });

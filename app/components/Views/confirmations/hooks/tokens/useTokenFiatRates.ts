@@ -10,7 +10,7 @@ import { useMemo } from 'react';
 import { useDeepMemo } from '../useDeepMemo';
 import { toChecksumAddress } from '../../../../../util/address';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { ARBITRUM_USDC } from '../../constants/perps';
+import { ARBITRUM_USDC_ADDRESS } from '../../constants/perps';
 
 export interface TokenFiatRateRequest {
   address: Hex;
@@ -32,7 +32,7 @@ export function useTokenFiatRates(requests: TokenFiatRateRequest[]) {
 
         if (
           currency.toLowerCase() === 'usd' &&
-          address.toLowerCase() === ARBITRUM_USDC.address.toLowerCase() &&
+          address.toLowerCase() === ARBITRUM_USDC_ADDRESS.toLowerCase() &&
           chainId === CHAIN_IDS.ARBITRUM
         ) {
           return 1;
@@ -42,13 +42,8 @@ export function useTokenFiatRates(requests: TokenFiatRateRequest[]) {
         const token = chainTokens[toChecksumAddress(address)];
         const networkConfiguration = networkConfigurations[chainId];
 
-        const conversionRates =
-          currencyRates?.[networkConfiguration?.nativeCurrency];
-
         const conversionRate =
-          currency === 'usd'
-            ? conversionRates?.usdConversionRate
-            : conversionRates?.conversionRate;
+          currencyRates?.[networkConfiguration?.nativeCurrency]?.conversionRate;
 
         if (!conversionRate || !networkConfiguration) {
           return undefined;

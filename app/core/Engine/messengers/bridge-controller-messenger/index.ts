@@ -1,33 +1,21 @@
 import { BridgeControllerMessenger } from '@metamask/bridge-controller';
-import { RootExtendedMessenger, RootMessenger } from '../../types';
-import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
+import { BaseControllerMessenger } from '../../types';
 
 /**
  * Get the BridgeControllerMessenger for the BridgeController.
  *
- * @param rootExtendedMessenger - The base controller messenger.
+ * @param baseControllerMessenger - The base controller messenger.
  * @returns The BridgeControllerMessenger.
  */
 export function getBridgeControllerMessenger(
-  rootExtendedMessenger: RootExtendedMessenger,
+  baseControllerMessenger: BaseControllerMessenger,
 ): BridgeControllerMessenger {
-  const messenger = new Messenger<
-    'BridgeController',
-    MessengerActions<BridgeControllerMessenger>,
-    MessengerEvents<BridgeControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'BridgeController',
-    parent: rootExtendedMessenger,
-  });
-  rootExtendedMessenger.delegate({
-    actions: [
+  return baseControllerMessenger.getRestricted({
+    name: 'BridgeController',
+    allowedActions: [
       'AccountsController:getAccountByAddress',
       'SnapController:handleRequest',
+      'NetworkController:getState',
       'NetworkController:getNetworkClientById',
       'NetworkController:findNetworkClientIdByChainId',
       'TokenRatesController:getState',
@@ -35,8 +23,6 @@ export function getBridgeControllerMessenger(
       'CurrencyRateController:getState',
       'RemoteFeatureFlagController:getState',
     ],
-    events: [],
-    messenger,
+    allowedEvents: [],
   });
-  return messenger;
 }

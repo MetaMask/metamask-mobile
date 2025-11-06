@@ -2,7 +2,10 @@ import { useSelector } from 'react-redux';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { useMemo } from 'react';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
+import {
+  isPortfolioViewEnabled,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../util/networks';
 import {
   selectAllPopularNetworkConfigurations,
   selectEvmNetworkConfigurationsByChainId,
@@ -40,6 +43,7 @@ export function usePollingNetworks() {
   }, [networkConfigurations, selectedNetworkClientId]);
 
   const networkConfigs: NetworkConfiguration[] = useMemo(() => {
+    const portfolioViewEnabled = isPortfolioViewEnabled();
     const globalNetworkSelectorEnabled = isRemoveGlobalNetworkSelectorEnabled();
     const portfolioViewAllNetworksSelected =
       isAllNetworksSelected && isPopularNetwork;
@@ -49,8 +53,13 @@ export function usePollingNetworks() {
       return [];
     }
 
-    // GNS
-    if (globalNetworkSelectorEnabled) {
+    // Non-Portfolio View
+    if (!portfolioViewEnabled) {
+      return selectedNetworkConfig;
+    }
+
+    // Portfolio View and GNS
+    if (portfolioViewEnabled && globalNetworkSelectorEnabled) {
       // Filtered all EVM networks
       return (enabledEvmNetworks || [])
         .map((network) => {
@@ -60,13 +69,13 @@ export function usePollingNetworks() {
         .filter((c) => Boolean(c));
     }
 
-    // Enabled with single network view
-    if (!portfolioViewAllNetworksSelected) {
+    // Portfolio View enabled with single network view
+    if (portfolioViewEnabled && !portfolioViewAllNetworksSelected) {
       return selectedNetworkConfig;
     }
 
-    // Enabled with all networks
-    if (portfolioViewAllNetworksSelected) {
+    // Portfolio View enabled with all networks
+    if (portfolioViewEnabled && portfolioViewAllNetworksSelected) {
       return Object.values(networkConfigurationsPopularNetworks);
     }
 

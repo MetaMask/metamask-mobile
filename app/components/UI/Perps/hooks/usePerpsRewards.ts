@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
-import { DEVELOPMENT_CONFIG } from '../constants/perpsConfig';
 import { OrderFeesResult } from './usePerpsOrderFees';
+import { DEVELOPMENT_CONFIG } from '../constants/perpsConfig';
 
 interface UsePerpsRewardsParams {
   /** Result from usePerpsOrderFees hook containing rewards data */
@@ -53,7 +53,7 @@ export const usePerpsRewards = ({
   const shouldSimulateError = useMemo(
     () =>
       __DEV__ &&
-      Number.parseFloat(orderAmount) ===
+      parseFloat(orderAmount) ===
         DEVELOPMENT_CONFIG.SIMULATE_REWARDS_ERROR_AMOUNT,
     [orderAmount],
   );
@@ -62,7 +62,7 @@ export const usePerpsRewards = ({
   const shouldSimulateLoading = useMemo(
     () =>
       __DEV__ &&
-      Number.parseFloat(orderAmount) ===
+      parseFloat(orderAmount) ===
         DEVELOPMENT_CONFIG.SIMULATE_REWARDS_LOADING_AMOUNT,
     [orderAmount],
   );

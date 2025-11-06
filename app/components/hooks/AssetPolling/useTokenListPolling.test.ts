@@ -73,6 +73,8 @@ describe('useTokenListPolling', () => {
   } as unknown as RootState;
 
   it('Should poll by selected chain id, and stop polling on dismount', async () => {
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
+
     const { unmount } = renderHookWithProvider(() => useTokenListPolling(), {
       state,
     });
@@ -80,7 +82,10 @@ describe('useTokenListPolling', () => {
     const mockedTokenListController = jest.mocked(
       Engine.context.TokenListController,
     );
-    expect(mockedTokenListController.startPolling).toHaveBeenCalledTimes(2);
+    const calledAmount = networks.isPortfolioViewEnabled() ? 2 : 1;
+    expect(mockedTokenListController.startPolling).toHaveBeenCalledTimes(
+      calledAmount,
+    );
     expect(mockedTokenListController.startPolling).toHaveBeenCalledWith({
       chainId: selectedChainId,
     });
@@ -91,10 +96,11 @@ describe('useTokenListPolling', () => {
     unmount();
     expect(
       mockedTokenListController.stopPollingByPollingToken,
-    ).toHaveBeenCalledTimes(2);
+    ).toHaveBeenCalledTimes(calledAmount);
   });
 
-  it('Should poll all networks when global selector is enabled', async () => {
+  it('Should poll all networks when portfolio view is enabled and global selector is enabled', async () => {
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
     jest
       .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
       .mockReturnValue(false);
@@ -122,6 +128,7 @@ describe('useTokenListPolling', () => {
   });
 
   it('should poll only for current network if selected one is not popular', () => {
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
     jest
       .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
       .mockReturnValue(false);
@@ -182,6 +189,8 @@ describe('useTokenListPolling', () => {
   });
 
   it('Should not poll when evm is not selected', async () => {
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
+
     renderHookWithProvider(() => useTokenListPolling(), {
       state: {
         ...state,
@@ -205,6 +214,8 @@ describe('useTokenListPolling', () => {
   });
 
   it('polls with provided chain ids', () => {
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
+
     renderHookWithProvider(
       () => useTokenListPolling({ chainIds: ['0x1', '0x89'] }),
       {
@@ -226,7 +237,8 @@ describe('useTokenListPolling', () => {
   });
 
   describe('Feature flag scenarios', () => {
-    it('should poll enabled EVM networks when global network selector is removed', () => {
+    it('should poll enabled EVM networks when global network selector is removed and portfolio view is enabled', () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
       jest
         .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
         .mockReturnValue(true);
@@ -254,7 +266,30 @@ describe('useTokenListPolling', () => {
       ).toHaveBeenCalledTimes(2);
     });
 
+    it('should poll current chain when portfolio view is disabled', () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
+
+      const { unmount } = renderHookWithProvider(() => useTokenListPolling(), {
+        state,
+      });
+
+      const mockedTokenListController = jest.mocked(
+        Engine.context.TokenListController,
+      );
+
+      expect(mockedTokenListController.startPolling).toHaveBeenCalledTimes(1);
+      expect(mockedTokenListController.startPolling).toHaveBeenCalledWith({
+        chainId: selectedChainId,
+      });
+
+      unmount();
+      expect(
+        mockedTokenListController.stopPollingByPollingToken,
+      ).toHaveBeenCalledTimes(1);
+    });
+
     it('should poll popular networks when all networks selected and global selector enabled', () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
       jest
         .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
         .mockReturnValue(false);
@@ -336,6 +371,7 @@ describe('useTokenListPolling', () => {
     });
 
     it('should handle empty enabled networks gracefully', () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
       jest
         .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
         .mockReturnValue(true);

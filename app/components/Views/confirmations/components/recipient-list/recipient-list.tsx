@@ -126,17 +126,14 @@ function BIP44RecipientList({
 }) {
   const groupedData = useMemo(
     () =>
-      data.reduce(
-        (acc, recipient) => {
-          const walletName = recipient.walletName || 'Unknown Wallet';
-          if (!acc[walletName]) {
-            acc[walletName] = [];
-          }
-          acc[walletName].push(recipient);
-          return acc;
-        },
-        {} as Record<string, RecipientType[]>,
-      ),
+      data.reduce((acc, recipient) => {
+        const walletName = recipient.walletName || 'Unknown Wallet';
+        if (!acc[walletName]) {
+          acc[walletName] = [];
+        }
+        acc[walletName].push(recipient);
+        return acc;
+      }, {} as Record<string, RecipientType[]>),
     [data],
   );
 

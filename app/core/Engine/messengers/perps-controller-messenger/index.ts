@@ -1,42 +1,28 @@
 import { PerpsControllerMessenger } from '../../../../components/UI/Perps/controllers/PerpsController';
-import { RootExtendedMessenger, RootMessenger } from '../../types';
-import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
+import { BaseControllerMessenger } from '../../types';
 
 /**
  * Get the PerpsControllerMessenger for the PerpsController.
  *
- * @param rootExtendedMessenger - The root extended messenger.
+ * @param baseControllerMessenger - The base controller messenger.
  * @returns The PerpsControllerMessenger.
  */
 export function getPerpsControllerMessenger(
-  rootExtendedMessenger: RootExtendedMessenger,
+  baseControllerMessenger: BaseControllerMessenger,
 ): PerpsControllerMessenger {
-  const messenger = new Messenger<
-    'PerpsController',
-    MessengerActions<PerpsControllerMessenger>,
-    MessengerEvents<PerpsControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'PerpsController',
-    parent: rootExtendedMessenger,
-  });
-  rootExtendedMessenger.delegate({
-    actions: [
-      'NetworkController:getState',
-      'AuthenticationController:getBearerToken',
-      'RemoteFeatureFlagController:getState',
-    ],
-    events: [
+  return baseControllerMessenger.getRestricted({
+    name: 'PerpsController',
+    allowedEvents: [
       'TransactionController:transactionSubmitted',
       'TransactionController:transactionConfirmed',
       'TransactionController:transactionFailed',
       'RemoteFeatureFlagController:stateChange',
     ],
-    messenger,
+    allowedActions: [
+      'AccountsController:getSelectedAccount',
+      'NetworkController:getState',
+      'AuthenticationController:getBearerToken',
+      'RemoteFeatureFlagController:getState',
+    ],
   });
-  return messenger;
 }

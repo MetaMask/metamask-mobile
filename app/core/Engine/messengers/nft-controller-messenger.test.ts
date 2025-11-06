@@ -1,30 +1,11 @@
-import {
-  Messenger,
-  type MessengerActions,
-  type MessengerEvents,
-  MOCK_ANY_NAMESPACE,
-  type MockAnyNamespace,
-} from '@metamask/messenger';
-import { NftControllerMessenger } from '@metamask/assets-controllers';
+import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
 import { getNftControllerMessenger } from './nft-controller-messenger';
 
-type RootMessenger = Messenger<
-  MockAnyNamespace,
-  MessengerActions<NftControllerMessenger>,
-  MessengerEvents<NftControllerMessenger>
->;
-
-function getRootMessenger(): RootMessenger {
-  return new Messenger({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
-}
-
 describe('getNftControllerMessenger', () => {
-  it('returns a messenger', () => {
-    const rootMessenger: RootMessenger = getRootMessenger();
-    const nftControllerMessenger = getNftControllerMessenger(rootMessenger);
+  it('returns a restricted messenger', () => {
+    const messenger = new Messenger<never, never>();
+    const nftControllerMessenger = getNftControllerMessenger(messenger);
 
-    expect(nftControllerMessenger).toBeInstanceOf(Messenger);
+    expect(nftControllerMessenger).toBeInstanceOf(RestrictedMessenger);
   });
 });

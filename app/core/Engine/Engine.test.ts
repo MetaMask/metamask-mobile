@@ -158,8 +158,7 @@ describe('Engine', () => {
     const engine = Engine.init({});
     const newEngine = Engine.init({});
     expect(engine).toStrictEqual(newEngine);
-    // @ts-expect-error accessing protected property for testing
-    engine.keyringController.messenger.publish(
+    engine.controllerMessenger.publish(
       'KeyringController:stateChange',
       {
         vault: 'vault',
@@ -177,8 +176,7 @@ describe('Engine', () => {
     const engine = Engine.init({});
     const newEngine = Engine.init({});
     expect(engine).toStrictEqual(newEngine);
-    // @ts-expect-error accessing protected property for testing
-    engine.keyringController.messenger.publish(
+    engine.controllerMessenger.publish(
       'KeyringController:stateChange',
       {
         vault: undefined,
@@ -225,10 +223,9 @@ describe('Engine', () => {
         eligibility: {},
         lastError: null,
         lastUpdateTimestamp: 0,
-        balances: {},
-        claimablePositions: {},
-        pendingDeposits: {},
-        withdrawTransaction: null,
+        claimTransaction: null,
+        claimablePositions: [],
+        depositTransaction: null,
         isOnboarded: {},
       },
       GatorPermissionsController: {
@@ -242,26 +239,6 @@ describe('Engine', () => {
         gatorPermissionsProviderSnapId: 'npm:@metamask/gator-permissions-snap',
         isFetchingGatorPermissions: false,
         isGatorPermissionsEnabled: false,
-      },
-      PerpsController: {
-        ...backgroundState.PerpsController,
-        depositRequests: [],
-        withdrawalRequests: [],
-        withdrawalProgress: {
-          progress: 0,
-          lastUpdated: 0,
-          activeWithdrawalId: null,
-        },
-        marketFilterPreferences: 'volume',
-        tradeConfigurations: {
-          mainnet: {},
-          testnet: {},
-        },
-        watchlistMarkets: {
-          mainnet: [],
-          testnet: [],
-        },
-        hip3ConfigVersion: 0,
       },
     };
 
@@ -833,15 +810,7 @@ describe('Engine', () => {
         return { remove: jest.fn() };
       },
     );
-
-    const engine = Engine.init({
-      ...backgroundState,
-      KeyringController: {
-        ...backgroundState.KeyringController,
-        isUnlocked: true,
-      },
-    });
-
+    const engine = Engine.init(backgroundState);
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
     // Simulate app state change to active
@@ -860,15 +829,7 @@ describe('Engine', () => {
         return { remove: jest.fn() };
       },
     );
-
-    const engine = Engine.init({
-      ...backgroundState,
-      KeyringController: {
-        ...backgroundState.KeyringController,
-        isUnlocked: true,
-      },
-    });
-
+    const engine = Engine.init(backgroundState);
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
     // Simulate app state change to background
@@ -892,33 +853,6 @@ describe('Engine', () => {
 
     // Simulate app state change to inactive
     mockAppStateListener('inactive');
-
-    expect(messengerSpy).not.toHaveBeenCalledWith(
-      'SnapController:setClientActive',
-      expect.anything(),
-    );
-  });
-
-  it('does not call `SnapController:setClientActive` when the app is locked', () => {
-    (AppState.addEventListener as jest.Mock).mockImplementation(
-      (_, listener) => {
-        mockAppStateListener = listener;
-        return { remove: jest.fn() };
-      },
-    );
-
-    const engine = Engine.init({
-      ...backgroundState,
-      KeyringController: {
-        ...backgroundState.KeyringController,
-        isUnlocked: false,
-      },
-    });
-
-    const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
-
-    // Simulate app state change to active
-    mockAppStateListener('active');
 
     expect(messengerSpy).not.toHaveBeenCalledWith(
       'SnapController:setClientActive',

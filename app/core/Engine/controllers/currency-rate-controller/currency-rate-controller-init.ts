@@ -1,8 +1,11 @@
 import {
   CurrencyRateController,
-  CurrencyRateMessenger,
+  CurrencyRateControllerActions,
+  CurrencyRateControllerEvents,
 } from '@metamask/assets-controllers';
 import type { ControllerInitFunction } from '../../types';
+import { RestrictedMessenger } from '@metamask/base-controller';
+import type { NetworkControllerGetNetworkClientByIdAction } from '@metamask/network-controller';
 import { defaultCurrencyRateState } from './constants';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 
@@ -12,6 +15,15 @@ import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings'
  * @param request - The request object.
  * @returns The CurrencyRateController.
  */
+
+// TODO: Remove once the CurrencyRateMessenger is properly exported from module
+export type CurrencyRateMessenger = RestrictedMessenger<
+  'CurrencyRateController',
+  CurrencyRateControllerActions | NetworkControllerGetNetworkClientByIdAction,
+  CurrencyRateControllerEvents,
+  NetworkControllerGetNetworkClientByIdAction['type'],
+  never
+>;
 
 // Define the currency rate type based on usage
 interface CurrencyRateEntry {
@@ -24,8 +36,7 @@ export const currencyRateControllerInit: ControllerInitFunction<
   CurrencyRateController,
   CurrencyRateMessenger
 > = (request) => {
-  const { controllerMessenger, persistedState, getState, codefiTokenApiV2 } =
-    request;
+  const { controllerMessenger, persistedState, getState } = request;
 
   // Get the persisted state or use default state
   const persistedCurrencyRateState =
@@ -53,7 +64,6 @@ export const currencyRateControllerInit: ControllerInitFunction<
       currencyRates: normalizedCurrencyRates,
     },
     useExternalServices: () => selectBasicFunctionalityEnabled(getState()),
-    tokenPricesService: codefiTokenApiV2,
   });
 
   return { controller };

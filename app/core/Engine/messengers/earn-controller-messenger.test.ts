@@ -1,45 +1,24 @@
-import {
-  Messenger,
-  type MessengerActions,
-  type MessengerEvents,
-  MOCK_ANY_NAMESPACE,
-  type MockAnyNamespace,
-} from '@metamask/messenger';
+import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
 import {
   getEarnControllerMessenger,
   getEarnControllerInitMessenger,
-  EarnControllerInitMessenger,
 } from './earn-controller-messenger';
-import { EarnControllerMessenger } from '@metamask/earn-controller';
-
-type RootMessenger = Messenger<
-  MockAnyNamespace,
-  | MessengerActions<EarnControllerMessenger>
-  | MessengerActions<EarnControllerInitMessenger>,
-  MessengerEvents<EarnControllerMessenger>
->;
-
-function getRootMessenger(): RootMessenger {
-  return new Messenger({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
-}
 
 describe('getEarnControllerMessenger', () => {
-  it('returns a messenger', () => {
-    const rootMessenger: RootMessenger = getRootMessenger();
-    const earnControllerMessenger = getEarnControllerMessenger(rootMessenger);
+  it('returns a restricted messenger', () => {
+    const messenger = new Messenger<never, never>();
+    const earnControllerMessenger = getEarnControllerMessenger(messenger);
 
-    expect(earnControllerMessenger).toBeInstanceOf(Messenger);
+    expect(earnControllerMessenger).toBeInstanceOf(RestrictedMessenger);
   });
 });
 
 describe('getEarnControllerInitMessenger', () => {
-  it('returns a messenger', () => {
-    const rootMessenger: RootMessenger = getRootMessenger();
+  it('returns a restricted messenger', () => {
+    const messenger = new Messenger<never, never>();
     const earnControllerInitMessenger =
-      getEarnControllerInitMessenger(rootMessenger);
+      getEarnControllerInitMessenger(messenger);
 
-    expect(earnControllerInitMessenger).toBeInstanceOf(Messenger);
+    expect(earnControllerInitMessenger).toBeInstanceOf(RestrictedMessenger);
   });
 });

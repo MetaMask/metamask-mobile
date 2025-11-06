@@ -19,12 +19,9 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
+import { usePredictEligibility } from '../../hooks/usePredictEligibility';
 import Routes from '../../../../../constants/navigation/Routes';
-import {
-  PredictMarket as PredictMarketType,
-  PredictOutcomeToken,
-} from '../../types';
+import { PredictMarket as PredictMarketType } from '../../types';
 import {
   PredictNavigationParamList,
   PredictEntryPoint,
@@ -32,6 +29,7 @@ import {
 import { PredictEventValues } from '../../constants/eventNames';
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketSingle.styles';
+import { usePredictBalance } from '../../hooks/usePredictBalance';
 interface PredictMarketSingleProps {
   market: PredictMarketType;
   testID?: string;
@@ -49,10 +47,10 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
 
-  const { executeGuardedAction } = usePredictActionGuard({
+  const { isEligible } = usePredictEligibility({
     providerId: market.providerId,
-    navigation,
   });
+  const { hasNoBalance } = usePredictBalance();
 
   const getOutcomePrices = (): number[] =>
     outcome.tokens.map((token) => token.price);
@@ -73,21 +71,56 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
 
   const yesPercentage = getYesPercentage();
 
-  const handleBuy = (token: PredictOutcomeToken) => {
-    executeGuardedAction(
-      () => {
-        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-          params: {
-            market,
-            outcome,
-            outcomeToken: token,
-            entryPoint,
-          },
-        });
+  const handleYes = () => {
+    if (hasNoBalance) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+      });
+      return;
+    }
+
+    if (!isEligible) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+      });
+      return;
+    }
+
+    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+      params: {
+        market,
+        outcome,
+        outcomeToken: outcome.tokens[0],
+        entryPoint,
       },
-      { checkBalance: true },
-    );
+    });
+  };
+
+  const handleNo = () => {
+    if (hasNoBalance) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+      });
+      return;
+    }
+
+    if (!isEligible) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+      });
+      return;
+    }
+
+    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+      params: {
+        market,
+        outcome,
+        outcomeToken: outcome.tokens[1],
+        entryPoint,
+      },
+    });
   };
 
   interface SemiCircleYesPercentageProps {
@@ -168,9 +201,9 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
           />
         </Svg>
         <Text
-          variant={TextVariant.BodyMDMedium}
+          variant={TextVariant.HeadingSM}
           color={TextColor.Success}
-          style={tw.style('-mb-1.5')}
+          style={tw.style('-mb-1')}
         >
           {percentage}%
         </Text>
@@ -186,9 +219,6 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
           screen: Routes.PREDICT.MARKET_DETAILS,
           params: {
             marketId: market.id,
-            entryPoint,
-            title: market.title,
-            image: getImageUrl(),
           },
         });
       }}
@@ -200,7 +230,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             alignItems={BoxAlignItems.Center}
             twClassName="flex-1 gap-3"
           >
-            <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
+            <Box twClassName="w-12 h-12 rounded-lg bg-muted overflow-hidden">
               {getImageUrl() ? (
                 <Image
                   source={{ uri: getImageUrl() }}
@@ -212,10 +242,9 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
               )}
             </Box>
             <Text
-              variant={TextVariant.BodyMDMedium}
+              variant={TextVariant.HeadingMD}
               color={TextColor.Default}
               style={tw.style('flex-1 font-medium')}
-              numberOfLines={2}
             >
               {getTitle()}
             </Text>
@@ -234,7 +263,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
                 {strings('predict.buy_yes')}
               </Text>
             }
-            onPress={() => handleBuy(outcome.tokens[0])}
+            onPress={handleYes}
             style={styles.buttonYes}
           />
           <Button
@@ -246,7 +275,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
                 {strings('predict.buy_no')}
               </Text>
             }
-            onPress={() => handleBuy(outcome.tokens[1])}
+            onPress={handleNo}
             style={styles.buttonNo}
           />
         </View>

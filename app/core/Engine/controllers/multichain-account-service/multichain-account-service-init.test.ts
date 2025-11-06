@@ -1,24 +1,22 @@
 import {
   MultichainAccountService,
   AccountProviderWrapper,
-  MultichainAccountServiceMessenger,
 } from '@metamask/multichain-account-service';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ControllerInitRequest } from '../../types';
 import { multichainAccountServiceInit } from './multichain-account-service-init';
 import {
   MultichainAccountServiceInitMessenger,
+  MultichainAccountServiceMessenger,
   getMultichainAccountServiceMessenger,
   getMultichainAccountServiceInitMessenger,
+  Actions,
+  Events,
+  AllowedInitializationActions,
+  AllowedInitializationEvents,
 } from '../../messengers/multichain-account-service-messenger/multichain-account-service-messenger';
-import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-  MOCK_ANY_NAMESPACE,
-  MockAnyNamespace,
-} from '@metamask/messenger';
-import { ExtendedMessenger } from '../../../ExtendedMessenger';
+import { Messenger } from '@metamask/base-controller';
+import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 import { FeatureFlags } from '@metamask/remote-feature-flag-controller';
 
 jest.mock('@metamask/multichain-account-service');
@@ -26,17 +24,12 @@ jest.mock('@metamask/multichain-account-service');
 const mockRemoteFeatureFlagControllerGetState = jest.fn();
 
 type MockInitMessenger = Messenger<
-  MockAnyNamespace,
-  | MessengerActions<MultichainAccountServiceMessenger>
-  | MessengerActions<MultichainAccountServiceInitMessenger>,
-  | MessengerEvents<MultichainAccountServiceMessenger>
-  | MessengerEvents<MultichainAccountServiceInitMessenger>
+  Actions | AllowedInitializationActions,
+  Events | AllowedInitializationEvents
 >;
 
 function getBaseMessenger(): MockInitMessenger {
-  return new Messenger<MockAnyNamespace>({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
+  return new Messenger();
 }
 
 function getInitRequestMock({
@@ -65,9 +58,7 @@ function getInitRequestMock({
   const initMessenger = getMultichainAccountServiceInitMessenger(messenger);
 
   // Create extended messenger for the base mock
-  const extendedControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
+  const extendedControllerMessenger = new ExtendedControllerMessenger();
 
   // Build the base mock with extended messenger
   const baseMock = buildControllerInitRequestMock(extendedControllerMessenger);

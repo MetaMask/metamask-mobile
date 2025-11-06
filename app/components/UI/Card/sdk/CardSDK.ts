@@ -123,11 +123,12 @@ export class CardSDK {
     };
   }
 
-  private getEthersProvider() {
+  private async getEthersProvider() {
     // Default RPC URL for LINEA mainnet
     const provider = new ethers.providers.JsonRpcProvider(
       LINEA_DEFAULT_RPC_URL,
     );
+    await provider.ready;
 
     return provider;
   }
@@ -142,7 +143,7 @@ export class CardSDK {
       );
     }
 
-    const ethersProvider = this.getEthersProvider();
+    const ethersProvider = await this.getEthersProvider();
 
     return new ethers.Contract(
       balanceScannerAddress,
@@ -1034,6 +1035,7 @@ export class CardSDK {
 
       // Skip if not a valid EVM address (e.g., Solana addresses)
       if (!tokenAddress || !ethers.utils.isAddress(tokenAddress)) {
+        Logger.log('getTotalAllowance: Skipping non-EVM address', tokenAddress);
         return {
           address: tokenAddress,
           allowance: undefined,
@@ -2140,6 +2142,15 @@ export class CardSDK {
     }
   }
 
+  private mapAPINetworkToAssetChainId(network: CardNetwork): string {
+    switch (network) {
+      case 'solana':
+        return SOLANA_MAINNET.chainId;
+      default:
+        return LINEA_CHAIN_ID; // Asset only supports HEX chainId on EVM assets.
+    }
+  }
+
   private getFirstSupportedTokenOrNull(): CardToken | null {
     const lineaSupportedTokens = this.getSupportedTokensByChainId(
       this.lineaChainId,
@@ -2196,7 +2207,7 @@ export class CardSDK {
       ethers.utils.hexZeroPad(s.toLowerCase(), 32),
     );
     const spendersDeployedBlock = 2715910; // Block where the spenders were deployed
-    const ethersProvider = this.getEthersProvider();
+    const ethersProvider = await this.getEthersProvider();
 
     const logsPerToken = await Promise.all(
       nonZeroBalanceTokensAddresses.map((tokenAddress) =>

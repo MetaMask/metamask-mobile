@@ -1,24 +1,19 @@
-import {
-  ApprovalController,
-  ApprovalControllerMessenger,
-} from '@metamask/approval-controller';
+import { ApprovalController } from '@metamask/approval-controller';
 import { ApprovalType } from '@metamask/controller-utils';
 
-import { ExtendedMessenger } from '../../../ExtendedMessenger';
+import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import type { ApprovalControllerMessenger } from '../../messengers/approval-controller-messenger';
 import { ControllerInitRequest } from '../../types';
 import { ApprovalControllerInit } from './approval-controller-init';
 import { ApprovalTypes } from '../../../RPCMethods/RPCMethodMiddleware';
-import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/approval-controller');
 
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
 ): jest.Mocked<ControllerInitRequest<ApprovalControllerMessenger>> {
-  const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
+  const baseControllerMessenger = new ExtendedControllerMessenger();
   return {
     ...buildControllerInitRequestMock(baseControllerMessenger),
     controllerMessenger:

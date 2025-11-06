@@ -1,37 +1,32 @@
-import { TokenListControllerMessenger } from '@metamask/assets-controllers';
+import { Messenger } from '@metamask/base-controller';
 import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
-import { NetworkControllerStateChangeEvent } from '@metamask/network-controller';
-import { RootMessenger } from '../types';
+  NetworkControllerGetNetworkClientByIdAction,
+  NetworkControllerStateChangeEvent,
+} from '@metamask/network-controller';
+
+type AllowedActions = NetworkControllerGetNetworkClientByIdAction;
+
+type AllowedEvents = NetworkControllerStateChangeEvent;
+
+export type TokenListControllerMessenger = ReturnType<
+  typeof getTokenListControllerMessenger
+>;
 
 /**
- * Get the messenger for the tokenList controller. This is scoped to the
+ * Get a restricted messenger for the tokenList controller. This is scoped to the
  * actions and events that the tokenList controller is allowed to handle.
  *
- * @param rootMessenger - The root messenger.
- * @returns The TokenListControllerMessenger.
+ * @param messenger - The messenger to restrict.
+ * @returns The restricted messenger.
  */
 export function getTokenListControllerMessenger(
-  rootMessenger: RootMessenger,
-): TokenListControllerMessenger {
-  const messenger = new Messenger<
-    'TokenListController',
-    MessengerActions<TokenListControllerMessenger>,
-    MessengerEvents<TokenListControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'TokenListController',
-    parent: rootMessenger,
+  messenger: Messenger<AllowedActions, AllowedEvents>,
+) {
+  return messenger.getRestricted({
+    name: 'TokenListController',
+    allowedActions: ['NetworkController:getNetworkClientById'],
+    allowedEvents: ['NetworkController:stateChange'],
   });
-  rootMessenger.delegate({
-    actions: ['NetworkController:getNetworkClientById'],
-    events: ['NetworkController:stateChange'],
-    messenger,
-  });
-  return messenger;
 }
 
 type AllowedInitializationActions = never;
@@ -43,29 +38,22 @@ export type TokenListControllerInitMessenger = ReturnType<
 >;
 
 /**
- * Get the messenger for the tokenList controller initialization. This is scoped to the
+ * Get a restricted messenger for the tokenList controller. This is scoped to the
  * actions and events that the tokenList controller is allowed to handle during
  * initialization.
  *
- * @param rootMessenger - The root messenger.
- * @returns The TokenListControllerInitMessenger.
+ * @param messenger - The messenger to restrict.
+ * @returns The restricted messenger.
  */
 export function getTokenListControllerInitMessenger(
-  rootMessenger: RootMessenger,
-) {
-  const messenger = new Messenger<
-    'TokenListControllerInit',
+  messenger: Messenger<
     AllowedInitializationActions,
-    AllowedInitializationEvents,
-    RootMessenger
-  >({
-    namespace: 'TokenListControllerInit',
-    parent: rootMessenger,
+    AllowedInitializationEvents
+  >,
+) {
+  return messenger.getRestricted({
+    name: 'TokenListControllerInit',
+    allowedActions: [],
+    allowedEvents: ['NetworkController:stateChange'],
   });
-  rootMessenger.delegate({
-    actions: [],
-    events: ['NetworkController:stateChange'],
-    messenger,
-  });
-  return messenger;
 }

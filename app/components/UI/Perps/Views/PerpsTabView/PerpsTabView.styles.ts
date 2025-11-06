@@ -16,15 +16,17 @@ const styleSheet = (params: { theme: Theme }) => {
     content: {
       flex: 1,
     },
+    contentContainer: {
+      flexGrow: 1,
+    },
     sectionHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       marginBottom: 8,
-      paddingTop: 16,
     },
     sectionTitle: {
-      // Removed paddingTop - now on parent sectionHeader for consistent alignment
+      paddingTop: 16,
     },
     emptyContainer: {
       padding: 24,

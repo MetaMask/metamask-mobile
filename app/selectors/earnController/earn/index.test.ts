@@ -23,6 +23,8 @@ import { TokenI } from '../../../components/UI/Tokens/types';
 import { RootState } from '../../../reducers';
 import { EARN_EXPERIENCES } from '../../../components/UI/Earn/constants/experiences';
 import { EarnTokenDetails } from '../../../components/UI/Earn/types/lending.types';
+// eslint-disable-next-line import/no-namespace
+import * as networks from '../../../util/networks';
 import {
   internalAccount2,
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -244,10 +246,13 @@ describe('Earn Controller Selectors', () => {
         typeof selectStablecoinLendingEnabledFlag
       >
     ).mockReturnValue(true);
+
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
   });
 
   describe('selectEarnTokens', () => {
     it('returns pooled staking earn tokens data when no markets are present and pooled staking is disabled', () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
       (
         selectPooledStakingEnabledFlag as jest.MockedFunction<
           typeof selectPooledStakingEnabledFlag
@@ -364,6 +369,7 @@ describe('Earn Controller Selectors', () => {
     });
 
     it('sorts tokens by balance, placing zero balance tokens at the end', () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
       (
         selectPooledStakingEnabledFlag as jest.MockedFunction<
           typeof selectPooledStakingEnabledFlag

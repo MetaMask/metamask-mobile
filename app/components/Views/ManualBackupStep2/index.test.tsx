@@ -697,14 +697,26 @@ describe('ManualBackupStep2', () => {
       mockNavigation.mockRestore();
     });
 
-    it('shows header with back button for onboarding flow', () => {
-      const { mockSetOptions } = setupTest();
+    it('render header left button', () => {
+      const { mockGoBack, mockSetOptions } = setupTest();
 
       expect(mockSetOptions).toHaveBeenCalled();
       const setOptionsCall = mockSetOptions.mock.calls[0][0];
 
-      expect(setOptionsCall.headerShown).toBeUndefined();
-      expect(setOptionsCall.headerLeft).toBeDefined();
+      // Get the headerLeft function from the options
+      const headerLeftComponent = setOptionsCall.headerLeft();
+
+      // Verify the headerLeft component renders correctly
+      expect(headerLeftComponent).toBeTruthy();
+
+      // The headerLeft component should be a TouchableOpacity
+      expect(headerLeftComponent.type).toBe('TouchableOpacity');
+
+      // Simulate pressing the back button by calling onPress directly
+      headerLeftComponent.props.onPress();
+
+      // Verify that goBack was called
+      expect(mockGoBack).toHaveBeenCalled();
     });
   });
 });

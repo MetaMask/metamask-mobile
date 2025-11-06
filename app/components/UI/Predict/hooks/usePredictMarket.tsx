@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { captureException } from '@sentry/react-native';
 import Engine from '../../../../core/Engine';
 import { PredictMarket } from '../types';
 
@@ -84,21 +83,6 @@ export const usePredictMarket = (
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to fetch market';
-
-      // Capture exception with market loading context
-      captureException(err instanceof Error ? err : new Error(String(err)), {
-        tags: {
-          component: 'usePredictMarket',
-          action: 'market_load',
-          operation: 'data_fetching',
-        },
-        extra: {
-          marketContext: {
-            marketId: id,
-            providerId,
-          },
-        },
-      });
 
       if (isMountedRef.current) {
         setError(errorMessage);

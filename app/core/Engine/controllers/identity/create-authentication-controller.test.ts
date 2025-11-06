@@ -4,16 +4,9 @@ import {
   Controller as AuthenticationController,
   defaultState,
 } from '@metamask/profile-sync-controller/auth';
-import { ExtendedMessenger } from '../../../ExtendedMessenger';
+import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 import { createAuthenticationController } from './create-authentication-controller';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
-import {
-  type MessengerEvents,
-  MOCK_ANY_NAMESPACE,
-  type MessengerActions,
-  type MockAnyNamespace,
-  Messenger,
-} from '@metamask/messenger';
 
 jest.mock('@metamask/profile-sync-controller/auth');
 
@@ -21,40 +14,22 @@ describe('Authentication Controller', () => {
   beforeEach(() => jest.resetAllMocks());
 
   const arrange = () => {
-    const globalMessenger = new ExtendedMessenger<
-      MockAnyNamespace,
-      MessengerActions<AuthenticationControllerMessenger>,
-      MessengerEvents<AuthenticationControllerMessenger>
-    >({
-      namespace: MOCK_ANY_NAMESPACE,
-    });
-    const messenger: AuthenticationControllerMessenger = new ExtendedMessenger<
-      MockAnyNamespace,
-      MessengerActions<AuthenticationControllerMessenger>,
-      MessengerEvents<AuthenticationControllerMessenger>,
-      Messenger<
-        MockAnyNamespace,
-        MessengerActions<AuthenticationControllerMessenger>,
-        MessengerEvents<AuthenticationControllerMessenger>
-      >
-    >({
-      namespace: 'AuthenticationController',
-      parent: globalMessenger,
-    });
-    globalMessenger.delegate({
-      actions: [
-        // Keyring Controller Requests
-        'KeyringController:getState',
-        // Snap Controller Requests
-        'SnapController:handleRequest',
-      ],
-      events: [
-        // Keyring Controller Events
-        'KeyringController:lock',
-        'KeyringController:unlock',
-      ],
-      messenger,
-    });
+    const globalMessenger = new ExtendedControllerMessenger();
+    const messenger: AuthenticationControllerMessenger =
+      globalMessenger.getRestricted({
+        name: 'AuthenticationController',
+        allowedActions: [
+          // Keyring Controller Requests
+          'KeyringController:getState',
+          // Snap Controller Requests
+          'SnapController:handleRequest',
+        ],
+        allowedEvents: [
+          // Keyring Controller Events
+          'KeyringController:lock',
+          'KeyringController:unlock',
+        ],
+      });
     const metametrics = {
       agent: Platform.MOBILE as const,
       getMetaMetricsId: () => 'metametricsId',

@@ -22,9 +22,6 @@ import {
 import { confirmationsRedesignedFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import AddContactView from '../../pages/Settings/Contacts/AddContactView';
 import DeleteContactBottomSheet from '../../pages/Settings/Contacts/DeleteContactBottomSheet';
-import { LocalNode } from '../../framework/types';
-import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../seeder/anvil-manager';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
@@ -82,29 +79,13 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
   it('should add a contact via send flow and go to contacts view', async () => {
     await withFixtures(
       {
-        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
-          const node = localNodes?.[0] as unknown as AnvilManager;
-          const rpcPort =
-            node instanceof AnvilManager
-              ? (node.getPort() ?? AnvilPort())
-              : undefined;
-
-          return new FixtureBuilder()
-            .withNetworkController({
-              providerConfig: {
-                chainId: '0x539',
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Local RPC',
-                ticker: 'ETH',
-              },
-            })
-            .withNetworkEnabledMap({
-              eip155: { '0x539': true },
-            })
-            .withProfileSyncingDisabled()
-            .build();
-        },
+        fixture: new FixtureBuilder()
+          .withGanacheNetwork()
+          .withNetworkEnabledMap({
+            eip155: { '0x539': true },
+          })
+          .withProfileSyncingDisabled()
+          .build(),
         restartDevice: true,
         testSpecificMock,
       },
@@ -137,29 +118,13 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
   it('should show invalid address error message on send flow', async () => {
     await withFixtures(
       {
-        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
-          const node = localNodes?.[0] as unknown as AnvilManager;
-          const rpcPort =
-            node instanceof AnvilManager
-              ? (node.getPort() ?? AnvilPort())
-              : undefined;
-
-          return new FixtureBuilder()
-            .withNetworkController({
-              providerConfig: {
-                chainId: '0x539',
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Local RPC',
-                ticker: 'ETH',
-              },
-            })
-            .withNetworkEnabledMap({
-              eip155: { '0x539': true },
-            })
-            .withProfileSyncingDisabled()
-            .build();
-        },
+        fixture: new FixtureBuilder()
+          .withGanacheNetwork()
+          .withNetworkEnabledMap({
+            eip155: { '0x539': true },
+          })
+          .withProfileSyncingDisabled()
+          .build(),
         restartDevice: true,
         testSpecificMock,
       },
@@ -181,29 +146,13 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
     async () => {
       await withFixtures(
         {
-          fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
-            const node = localNodes?.[0] as unknown as AnvilManager;
-            const rpcPort =
-              node instanceof AnvilManager
-                ? (node.getPort() ?? AnvilPort())
-                : undefined;
-
-            return new FixtureBuilder()
-              .withNetworkController({
-                providerConfig: {
-                  chainId: '0x539',
-                  rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                  type: 'custom',
-                  nickname: 'Local RPC',
-                  ticker: 'ETH',
-                },
-              })
-              .withNetworkEnabledMap({
-                eip155: { '0x539': true },
-              })
-              .withProfileSyncingDisabled()
-              .build();
-          },
+          fixture: new FixtureBuilder()
+            .withGanacheNetwork()
+            .withNetworkEnabledMap({
+              eip155: { '0x539': true },
+            })
+            .withProfileSyncingDisabled()
+            .build(),
           testSpecificMock,
           restartDevice: true,
         },

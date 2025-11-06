@@ -1,17 +1,14 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedMessenger } from '../../ExtendedMessenger';
+import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
 import {
   getPermissionControllerMessenger,
   getPermissionControllerInitMessenger,
+  type PermissionControllerMessenger,
   PermissionControllerInitMessenger,
 } from '../messengers/permission-controller-messenger';
 import { ControllerInitRequest } from '../types';
 import { permissionControllerInit } from './permission-controller-init';
-import {
-  PermissionController,
-  PermissionControllerMessenger,
-} from '@metamask/permission-controller';
-import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { PermissionController } from '@metamask/permission-controller';
 
 jest.mock('@metamask/permission-controller');
 
@@ -21,9 +18,7 @@ function getInitRequestMock(): jest.Mocked<
     PermissionControllerInitMessenger
   >
 > {
-  const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
+  const baseMessenger = new ExtendedControllerMessenger<never, never>();
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

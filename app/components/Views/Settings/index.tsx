@@ -101,6 +101,10 @@ const Settings = () => {
     navigation.navigate('SecuritySettings');
   };
 
+  const onPressNetworks = () => {
+    navigation.navigate('NetworksSettings');
+  };
+
   const onPressOnRamp = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.ONRAMP_SETTINGS_CLICKED).build(),
@@ -130,9 +134,6 @@ const Settings = () => {
 
   const onPressDeveloperOptions = () => {
     navigation.navigate('DeveloperOptions');
-  };
-  const onPressFeatureFlagOverride = () => {
-    navigation.navigate(Routes.FEATURE_FLAG_OVERRIDE);
   };
 
   const goToManagePermissions = () => {
@@ -276,6 +277,12 @@ const Settings = () => {
             testID={SettingsViewSelectorsIDs.CONTACTS}
           />
         )}
+        <SettingsDrawer
+          title={strings('app_settings.networks_title')}
+          description={strings('app_settings.networks_desc')}
+          onPress={onPressNetworks}
+          testID={SettingsViewSelectorsIDs.NETWORKS}
+        />
         {
           ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
         }
@@ -327,15 +334,6 @@ const Settings = () => {
           <SettingsDrawer
             title={strings('app_settings.developer_options.title')}
             onPress={onPressDeveloperOptions}
-          />
-        )}
-        {process.env.NODE_ENV !== 'production' && (
-          <SettingsDrawer
-            title={strings('app_settings.feature_flag_override.title')}
-            description={strings(
-              'app_settings.feature_flag_override.description',
-            )}
-            onPress={onPressFeatureFlagOverride}
           />
         )}
         <SettingsDrawer

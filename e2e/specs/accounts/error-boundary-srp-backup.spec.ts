@@ -11,10 +11,7 @@ import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
 import ErrorBoundaryView from '../../pages/ErrorBoundaryView/ErrorBoundaryView';
-import {
-  AnvilPort,
-  buildPermissions,
-} from '../../framework/fixtures/FixtureUtils';
+import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { setupMockPostRequest } from '../../api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
 import {
@@ -22,8 +19,6 @@ import {
   SECURITY_ALERTS_REQUEST_BODY,
   securityAlertsUrl,
 } from '../../api-mocking/mock-responses/security-alerts-mock';
-import { LocalNode } from '../../framework/types';
-import { AnvilManager } from '../../seeder/anvil-manager';
 
 const PASSWORD = '123123123';
 
@@ -41,28 +36,12 @@ describe(RegressionAccounts('Error Boundary Screen'), () => {
             dappVariant: DappVariants.TEST_DAPP,
           },
         ],
-        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
-          const node = localNodes?.[0] as unknown as AnvilManager;
-          const rpcPort =
-            node instanceof AnvilManager
-              ? (node.getPort() ?? AnvilPort())
-              : undefined;
-
-          return new FixtureBuilder()
-            .withNetworkController({
-              providerConfig: {
-                chainId: '0x539',
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Local RPC',
-                ticker: 'ETH',
-              },
-            })
-            .withPermissionControllerConnectedToTestDapp(
-              buildPermissions(['0x539']),
-            )
-            .build();
-        },
+        fixture: new FixtureBuilder()
+          .withGanacheNetwork()
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions(['0x539']),
+          )
+          .build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
           await setupMockPostRequest(

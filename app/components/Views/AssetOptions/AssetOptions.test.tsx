@@ -3,6 +3,8 @@ import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import AssetOptions from './AssetOptions';
+// eslint-disable-next-line import/no-namespace
+import * as networks from '../../../util/networks';
 
 import {
   createProviderConfig,
@@ -228,7 +230,8 @@ describe('AssetOptions Component', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should match the snapshot', () => {
+  it('should match the snapshot when portfolio view is enabled  ', () => {
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
     const { toJSON } = render(
       <AssetOptions
         route={{
@@ -382,7 +385,9 @@ describe('AssetOptions Component', () => {
       });
     });
 
-    it('should use correct provider config', () => {
+    it('should use correct provider config when portfolio view is enabled', () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+
       render(
         <AssetOptions
           route={{

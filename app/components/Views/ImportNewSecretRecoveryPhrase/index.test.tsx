@@ -2,8 +2,13 @@ import { useContext } from 'react';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import ImportNewSecretRecoveryPhrase from './';
 import { ImportSRPIDs } from '../../../../e2e/selectors/MultiSRP/SRPImport.selectors';
-import Clipboard from '@react-native-clipboard/clipboard';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import ClipboardManager from '../../../core/ClipboardManager';
+import {
+  act,
+  fireEvent,
+  userEvent,
+  waitFor,
+} from '@testing-library/react-native';
 import messages from '../../../../locales/languages/en.json';
 import {
   MOCK_HD_ACCOUNTS,
@@ -22,29 +27,9 @@ import {
   ToastVariants,
 } from '../../../component-library/components/Toast';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import { Alert } from 'react-native';
-
-// Mock Keyboard to prevent Jest environment teardown errors
-jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => ({
-  dismiss: jest.fn(),
-  addListener: jest.fn(() => ({ remove: jest.fn() })),
-  removeListener: jest.fn(),
-}));
-
-jest.mock('react-native', () => {
-  const actualRN = jest.requireActual('react-native');
-  return {
-    ...actualRN,
-    Keyboard: {
-      ...actualRN.Keyboard,
-      dismiss: jest.fn(),
-    },
-  };
-});
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockSetOptions = jest.fn();
 const mockImportNewSecretRecoveryPhrase = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCheckIsSeedlessPasswordOutdated = jest.fn();
@@ -58,10 +43,6 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
-      setOptions: mockSetOptions,
-    }),
-    useRoute: () => ({
-      params: {},
     }),
   };
 });
@@ -80,7 +61,7 @@ jest.mock('../../../core', () => ({
   },
 }));
 
-jest.mock('@react-native-clipboard/clipboard', () => ({
+jest.mock('../../../core/ClipboardManager', () => ({
   getString: jest.fn(),
 }));
 
@@ -99,12 +80,6 @@ jest.mock('react', () => ({
   useContext: jest.fn(),
 }));
 
-jest.mock('../../hooks/useAccountsWithNetworkActivitySync', () => ({
-  useAccountsWithNetworkActivitySync: () => ({
-    fetchAccountsWithActivity: jest.fn(),
-  }),
-}));
-
 const valid12WordMnemonic =
   'lazy youth dentist air relief leave neither liquid belt aspect bone frame';
 
@@ -114,9 +89,9 @@ const valid24WordMnemonic =
 const invalidMnemonic =
   'aaaaa youth dentist air relief leave neither liquid belt aspect bone frame';
 
-const mockGetString = Clipboard.getString as jest.MockedFunction<
-  typeof Clipboard.getString
->;
+const mockPaste = jest
+  .spyOn(ClipboardManager, 'getString')
+  .mockResolvedValue(valid24WordMnemonic);
 
 const initialState = {
   engine: {
@@ -134,15 +109,28 @@ const initialState = {
   },
 };
 
-describe('ImportNewSecretRecoveryPhrase', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+const renderSRPImportComponentAndPasteSRP = async (srp: string) => {
+  mockPaste.mockResolvedValue(srp);
 
+  const render = renderScreen(
+    ImportNewSecretRecoveryPhrase,
+    { name: 'ImportNewSecretRecoveryPhrase' },
+    {
+      state: initialState,
+    },
+  );
+  const { getByTestId } = render;
+
+  const pasteButton = getByTestId(ImportSRPIDs.PASTE_BUTTON);
+  await userEvent.press(pasteButton);
+
+  return render;
+};
+
+describe('ImportNewSecretRecoveryPhrase', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
-    mockGetString.mockResolvedValue('');
 
     (useContext as jest.Mock).mockImplementation((context) => {
       if (context === ToastContext) {
@@ -164,7 +152,9 @@ describe('ImportNewSecretRecoveryPhrase', () => {
         _options: ImportNewSecretRecoveryPhraseOptions,
         callback?: (options: ImportNewSecretRecoveryPhraseReturnType) => void,
       ) => {
+        // Simulate the async callback behavior
         if (callback) {
+          // Use Promise.resolve().then() to ensure proper async execution
           Promise.resolve().then(() => {
             callback({
               address: '9fE6zKgca6K2EEa3yjbcq7zGMusUNqSQeWQNL2YDZ2Yi',
@@ -174,7 +164,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
         }
         return Promise.resolve({
           address: '9fE6zKgca6K2EEa3yjbcq7zGMusUNqSQeWQNL2YDZ2Yi',
-          discoveredAccountsCount: 0,
+          discoveredAccountsCount: 0, // Returns 0 immediately for multichain accounts state 2
         });
       },
     );
@@ -187,7 +177,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
   });
 
-  it('renders initial textarea input', () => {
+  it('imports valid manually entered 12-word SRP', async () => {
     const { getByTestId } = renderScreen(
       ImportNewSecretRecoveryPhrase,
       { name: 'ImportNewSecretRecoveryPhrase' },
@@ -196,49 +186,18 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       },
     );
 
-    const textareaInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
-    expect(textareaInput).toBeTruthy();
-  });
+    for (const [index, word] of valid12WordMnemonic.split(' ').entries()) {
+      const value = getByTestId(
+        `${ImportSRPIDs.SRP_INPUT_WORD_NUMBER}-${index + 1}`,
+      );
 
-  it('renders paste button text when SRP is empty', () => {
-    const { getByText } = renderScreen(
-      ImportNewSecretRecoveryPhrase,
-      { name: 'ImportNewSecretRecoveryPhrase' },
-      {
-        state: initialState,
-      },
-    );
-
-    expect(getByText(messages.import_from_seed.paste)).toBeTruthy();
-  });
-
-  it('imports valid pasted 12-word SRP', async () => {
-    mockGetString.mockResolvedValue(valid12WordMnemonic);
-
-    const { getByTestId, getByText } = renderScreen(
-      ImportNewSecretRecoveryPhrase,
-      { name: 'ImportNewSecretRecoveryPhrase' },
-      {
-        state: initialState,
-      },
-    );
-
-    const pasteButton = getByText(messages.import_from_seed.paste);
-
-    await act(async () => {
-      await fireEvent.press(pasteButton);
-    });
-
-    await waitFor(() => {
-      const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-      expect(importButton.props.disabled).toBe(false);
-    });
+      await fireEvent.changeText(value, word);
+    }
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
+    expect(importButton.props.disabled).toBe(false);
 
-    await act(async () => {
-      await fireEvent.press(importButton);
-    });
+    await fireEvent.press(importButton);
 
     expect(mockImportNewSecretRecoveryPhrase).toHaveBeenCalledWith(
       valid12WordMnemonic,
@@ -248,9 +207,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     expect(mockNavigate).toHaveBeenCalledWith('WalletView');
   });
 
-  it('imports valid pasted 24-word SRP', async () => {
-    mockGetString.mockResolvedValue(valid24WordMnemonic);
-
+  it('imports valid manually entered 24-word SRP', async () => {
     const { getByTestId, getByText } = renderScreen(
       ImportNewSecretRecoveryPhrase,
       { name: 'ImportNewSecretRecoveryPhrase' },
@@ -259,22 +216,26 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       },
     );
 
-    const pasteButton = getByText(messages.import_from_seed.paste);
+    const dropdown = getByTestId(ImportSRPIDs.SRP_SELECTION_DROPDOWN);
+    await fireEvent.press(dropdown);
 
-    await act(async () => {
-      await fireEvent.press(pasteButton);
-    });
+    const optionToSelect = getByText(
+      messages.import_new_secret_recovery_phrase['24_word_option'],
+    );
+    await fireEvent.press(optionToSelect);
 
-    await waitFor(() => {
-      const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-      expect(importButton.props.disabled).toBe(false);
-    });
+    for (const [index, word] of valid24WordMnemonic.split(' ').entries()) {
+      const value = getByTestId(
+        `${ImportSRPIDs.SRP_INPUT_WORD_NUMBER}-${index + 1}`,
+      );
+
+      await fireEvent.changeText(value, word);
+    }
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
+    expect(importButton.props.disabled).toBe(false);
 
-    await act(async () => {
-      await fireEvent.press(importButton);
-    });
+    await fireEvent.press(importButton);
 
     expect(mockImportNewSecretRecoveryPhrase).toHaveBeenCalledWith(
       valid24WordMnemonic,
@@ -284,127 +245,78 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     expect(mockNavigate).toHaveBeenCalledWith('WalletView');
   });
 
-  it('disables import button when SRP is empty', () => {
-    const { getByTestId } = renderScreen(
-      ImportNewSecretRecoveryPhrase,
-      { name: 'ImportNewSecretRecoveryPhrase' },
-      {
-        state: initialState,
-      },
+  it('imports valid pasted 12-word SRP', async () => {
+    const { getByTestId } = await renderSRPImportComponentAndPasteSRP(
+      valid24WordMnemonic,
     );
 
-    const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-    expect(importButton.props.disabled).toBe(true);
-  });
+    await act(() => {
+      for (const [index, word] of valid24WordMnemonic.split(' ').entries()) {
+        const value = getByTestId(
+          `${ImportSRPIDs.SRP_INPUT_WORD_NUMBER}-${index + 1}`,
+        );
 
-  it('disables import button when SRP length is invalid', async () => {
-    const { getByTestId } = renderScreen(
-      ImportNewSecretRecoveryPhrase,
-      { name: 'ImportNewSecretRecoveryPhrase' },
-      {
-        state: initialState,
-      },
-    );
-
-    const textareaInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
-
-    await act(async () => {
-      await fireEvent.changeText(textareaInput, 'word1 word2 word3');
+        expect(value.props.value).toBe(word);
+      }
     });
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-    expect(importButton.props.disabled).toBe(true);
-  });
+    await fireEvent.press(importButton);
 
-  it('shows clear button after pasting SRP', async () => {
-    mockGetString.mockResolvedValue(valid12WordMnemonic);
-
-    const { getByText } = renderScreen(
-      ImportNewSecretRecoveryPhrase,
-      { name: 'ImportNewSecretRecoveryPhrase' },
-      {
-        state: initialState,
-      },
-    );
-
-    const pasteButton = getByText(messages.import_from_seed.paste);
-
-    await act(async () => {
-      await fireEvent.press(pasteButton);
-    });
-
-    await waitFor(() => {
-      expect(getByText(messages.import_from_seed.clear_all)).toBeTruthy();
-    });
-  });
-
-  it('clears SRP when clear button is pressed', async () => {
-    mockGetString.mockResolvedValue(valid12WordMnemonic);
-
-    const { getByTestId, getByText } = renderScreen(
-      ImportNewSecretRecoveryPhrase,
-      { name: 'ImportNewSecretRecoveryPhrase' },
-      {
-        state: initialState,
-      },
-    );
-
-    const pasteButton = getByText(messages.import_from_seed.paste);
-
-    await act(async () => {
-      await fireEvent.press(pasteButton);
-    });
-
-    await waitFor(() => {
-      expect(getByText(messages.import_from_seed.clear_all)).toBeTruthy();
-    });
-
-    const clearButton = getByText(messages.import_from_seed.clear_all);
-
-    await act(async () => {
-      await fireEvent.press(clearButton);
-    });
-
-    await waitFor(() => {
-      const textareaInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
-      expect(textareaInput.props.value).toBe('');
-    });
-  });
-
-  it('tracks IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED event on successful import', async () => {
-    mockGetString.mockResolvedValue(valid24WordMnemonic);
-
-    const { getByTestId, getByText } = renderScreen(
-      ImportNewSecretRecoveryPhrase,
-      { name: 'ImportNewSecretRecoveryPhrase' },
-      {
-        state: initialState,
-      },
-    );
-
-    const pasteButton = getByText(messages.import_from_seed.paste);
-
-    await act(async () => {
-      await fireEvent.press(pasteButton);
-    });
-
-    await waitFor(() => {
-      const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-      expect(importButton.props.disabled).toBe(false);
-    });
-
-    const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-
-    await act(async () => {
-      await fireEvent.press(importButton);
-    });
-
-    // Check that the import function was called with the correct parameters
     expect(mockImportNewSecretRecoveryPhrase).toHaveBeenCalledWith(
       valid24WordMnemonic,
       undefined,
       expect.any(Function),
     );
+  });
+
+  it('imports valid pasted 24-word SRP', async () => {
+    const { getByTestId } = await renderSRPImportComponentAndPasteSRP(
+      valid24WordMnemonic,
+    );
+
+    await act(() => {
+      for (const [index, word] of valid24WordMnemonic.split(' ').entries()) {
+        const value = getByTestId(
+          `${ImportSRPIDs.SRP_INPUT_WORD_NUMBER}-${index + 1}`,
+        );
+
+        expect(value.props.value).toBe(word);
+      }
+    });
+
+    const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
+    await fireEvent.press(importButton);
+
+    expect(mockImportNewSecretRecoveryPhrase).toHaveBeenCalledWith(
+      valid24WordMnemonic,
+      undefined,
+      expect.any(Function),
+    );
+  });
+  it('imports valid SRP', async () => {
+    const { getByTestId } = await renderSRPImportComponentAndPasteSRP(
+      valid24WordMnemonic,
+    );
+
+    const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
+    await fireEvent.press(importButton);
+
+    expect(mockImportNewSecretRecoveryPhrase).toHaveBeenCalledWith(
+      valid24WordMnemonic,
+      undefined,
+      expect.any(Function),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith('WalletView');
+  });
+
+  it('tracks IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED event on successful import', async () => {
+    const { getByTestId } = await renderSRPImportComponentAndPasteSRP(
+      valid24WordMnemonic,
+    );
+
+    const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
+    await fireEvent.press(importButton);
 
     expect(mockTrackEvent).toHaveBeenCalledWith(
       MetricsEventBuilder.createEventBuilder(
@@ -417,34 +329,21 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     );
   });
 
-  it('tracks IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED event when multichain state 2 is enabled', async () => {
+  it('(state 2) - tracks IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED event on successful import', async () => {
     mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
-    mockGetString.mockResolvedValue(valid24WordMnemonic);
-
-    const { getByTestId, getByText } = renderScreen(
-      ImportNewSecretRecoveryPhrase,
-      { name: 'ImportNewSecretRecoveryPhrase' },
-      {
-        state: initialState,
-      },
+    const { getByTestId } = await renderSRPImportComponentAndPasteSRP(
+      valid24WordMnemonic,
     );
 
-    const pasteButton = getByText(messages.import_from_seed.paste);
-
-    await act(async () => {
-      await fireEvent.press(pasteButton);
-    });
-
-    await waitFor(() => {
-      const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-      expect(importButton.props.disabled).toBe(false);
-    });
-
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
+    await fireEvent.press(importButton);
 
-    await act(async () => {
-      await fireEvent.press(importButton);
-    });
+    // Check that the import function was called with the correct parameters
+    expect(mockImportNewSecretRecoveryPhrase).toHaveBeenCalledWith(
+      valid24WordMnemonic,
+      undefined,
+      expect.any(Function),
+    );
 
     await waitFor(() => {
       expect(mockTrackEvent).toHaveBeenCalledWith(
@@ -460,26 +359,9 @@ describe('ImportNewSecretRecoveryPhrase', () => {
   });
 
   it('displays success toast after successful SRP import', async () => {
-    mockGetString.mockResolvedValue(valid24WordMnemonic);
-
-    const { getByTestId, getByText } = renderScreen(
-      ImportNewSecretRecoveryPhrase,
-      { name: 'ImportNewSecretRecoveryPhrase' },
-      {
-        state: initialState,
-      },
+    const { getByTestId } = await renderSRPImportComponentAndPasteSRP(
+      valid24WordMnemonic,
     );
-
-    const pasteButton = getByText(messages.import_from_seed.paste);
-
-    await act(async () => {
-      await fireEvent.press(pasteButton);
-    });
-
-    await waitFor(() => {
-      const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-      expect(importButton.props.disabled).toBe(false);
-    });
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
 
@@ -504,716 +386,105 @@ describe('ImportNewSecretRecoveryPhrase', () => {
   });
 
   describe('errors', () => {
-    it('displays error for invalid word in pasted SRP', async () => {
-      mockGetString.mockResolvedValue(invalidMnemonic);
-
-      const { getByText } = renderScreen(
-        ImportNewSecretRecoveryPhrase,
-        { name: 'ImportNewSecretRecoveryPhrase' },
-        {
-          state: initialState,
-        },
+    it('displays single incorrect word', async () => {
+      const { getByText } = await renderSRPImportComponentAndPasteSRP(
+        invalidMnemonic,
       );
 
-      const pasteButton = getByText(messages.import_from_seed.paste);
-
-      await act(async () => {
-        await fireEvent.press(pasteButton);
-      });
-
-      await waitFor(() => {
-        expect(
-          getByText(messages.import_from_seed.spellcheck_error),
-        ).toBeTruthy();
-      });
+      expect(
+        getByText(
+          `${
+            messages.import_new_secret_recovery_phrase.error_srp_word_error_1
+          }${1}${
+            messages.import_new_secret_recovery_phrase.error_srp_word_error_2
+          }`,
+        ),
+      ).toBeTruthy();
     });
 
-    it('clears error when SRP is cleared', async () => {
-      mockGetString.mockResolvedValue(invalidMnemonic);
-
-      const { getByText, queryByText } = renderScreen(
-        ImportNewSecretRecoveryPhrase,
-        { name: 'ImportNewSecretRecoveryPhrase' },
-        {
-          state: initialState,
-        },
+    it('displays multiple incorrect words', async () => {
+      const { getByText } = await renderSRPImportComponentAndPasteSRP(
+        valid24WordMnemonic.replace('verb', 'asdf').replace('middle', 'sdfsdf'), // replace the first two word
       );
 
-      const pasteButton = getByText(messages.import_from_seed.paste);
-
-      await act(async () => {
-        await fireEvent.press(pasteButton);
-      });
-
-      await waitFor(() => {
-        expect(
-          getByText(messages.import_from_seed.spellcheck_error),
-        ).toBeTruthy();
-      });
-
-      const clearButton = getByText(messages.import_from_seed.clear_all);
-
-      await act(async () => {
-        await fireEvent.press(clearButton);
-      });
-
-      await waitFor(() => {
-        expect(
-          queryByText(messages.import_from_seed.spellcheck_error),
-        ).toBeNull();
-      });
+      expect(
+        getByText(
+          `${
+            messages.import_new_secret_recovery_phrase
+              .error_multiple_srp_word_error_1
+          }${1}${
+            messages.import_new_secret_recovery_phrase
+              .error_multiple_srp_word_error_2
+          }${2}${
+            messages.import_new_secret_recovery_phrase
+              .error_multiple_srp_word_error_3
+          }`,
+        ),
+      ).toBeTruthy();
     });
 
-    it('displays error when import fails with duplicate SRP', async () => {
-      const mockAlert = jest.spyOn(Alert, 'alert');
-      mockImportNewSecretRecoveryPhrase.mockRejectedValueOnce(
-        new Error('This mnemonic has already been imported.'),
-      );
-      mockGetString.mockResolvedValue(valid12WordMnemonic);
+    it('displays case sensitive error', async () => {
+      const { getByText, getByTestId } =
+        await renderSRPImportComponentAndPasteSRP(valid24WordMnemonic);
 
-      const { getByTestId, getByText } = renderScreen(
-        ImportNewSecretRecoveryPhrase,
-        { name: 'ImportNewSecretRecoveryPhrase' },
-        {
-          state: initialState,
-        },
-      );
+      const firstWord = getByTestId(`${ImportSRPIDs.SRP_INPUT_WORD_NUMBER}-1`);
+      fireEvent.changeText(firstWord, 'Verb');
 
-      const pasteButton = getByText(messages.import_from_seed.paste);
-
-      await act(async () => {
-        await fireEvent.press(pasteButton);
-      });
-
-      await waitFor(() => {
-        const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-        expect(importButton.props.disabled).toBe(false);
-      });
-
-      const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-
-      await act(async () => {
-        await fireEvent.press(importButton);
-      });
-
-      await waitFor(() => {
-        expect(mockAlert).toHaveBeenCalledWith(
-          messages.import_new_secret_recovery_phrase.error_duplicate_srp,
-        );
-      });
-
-      mockAlert.mockRestore();
+      expect(
+        getByText(
+          messages.import_new_secret_recovery_phrase
+            .error_srp_is_case_sensitive,
+        ),
+      ).toBeTruthy();
     });
 
-    it('displays generic error when import fails', async () => {
-      const mockAlert = jest.spyOn(Alert, 'alert');
-      mockImportNewSecretRecoveryPhrase.mockRejectedValueOnce(
-        new Error('Network error'),
-      );
-      mockGetString.mockResolvedValue(valid12WordMnemonic);
+    it('does not display error if SRP is empty', async () => {
+      const { getByTestId, queryByTestId } =
+        await renderSRPImportComponentAndPasteSRP(invalidMnemonic);
 
-      const { getByTestId, getByText } = renderScreen(
-        ImportNewSecretRecoveryPhrase,
-        { name: 'ImportNewSecretRecoveryPhrase' },
-        {
-          state: initialState,
-        },
-      );
+      const error = queryByTestId(ImportSRPIDs.SRP_ERROR);
 
-      const pasteButton = getByText(messages.import_from_seed.paste);
+      expect(error).toBeTruthy();
 
-      await act(async () => {
-        await fireEvent.press(pasteButton);
-      });
+      const clearButton = getByTestId(ImportSRPIDs.PASTE_BUTTON);
+      await fireEvent.press(clearButton);
 
-      await waitFor(() => {
-        const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-        expect(importButton.props.disabled).toBe(false);
-      });
+      const updatedError = queryByTestId(ImportSRPIDs.SRP_ERROR);
 
-      const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-
-      await act(async () => {
-        await fireEvent.press(importButton);
-      });
-
-      await waitFor(() => {
-        expect(mockAlert).toHaveBeenCalledWith(
-          messages.import_new_secret_recovery_phrase.error_title,
-          messages.import_new_secret_recovery_phrase.error_message,
-        );
-      });
-
-      mockAlert.mockRestore();
-    });
-  });
-
-  describe('seedless password check', () => {
-    it('stops import when seedless password is outdated', async () => {
-      mockCheckIsSeedlessPasswordOutdated.mockResolvedValueOnce(true);
-      mockGetString.mockResolvedValue(valid12WordMnemonic);
-
-      const { getByTestId, getByText } = renderScreen(
-        ImportNewSecretRecoveryPhrase,
-        { name: 'ImportNewSecretRecoveryPhrase' },
-        {
-          state: initialState,
-        },
-      );
-
-      const pasteButton = getByText(messages.import_from_seed.paste);
-
-      await act(async () => {
-        await fireEvent.press(pasteButton);
-      });
-
-      await waitFor(() => {
-        const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-        expect(importButton.props.disabled).toBe(false);
-      });
-
-      const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-
-      await act(async () => {
-        await fireEvent.press(importButton);
-      });
-
-      expect(mockImportNewSecretRecoveryPhrase).not.toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('QR scanner', () => {
-    it('fills SRP when QR scan returns seed data', async () => {
-      renderScreen(
-        ImportNewSecretRecoveryPhrase,
-        { name: 'ImportNewSecretRecoveryPhrase' },
-        {
-          state: initialState,
-        },
-      );
-
-      await waitFor(() => {
-        expect(mockSetOptions).toHaveBeenCalled();
-      });
-
-      const navigationCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === 'QRTabSwitcher',
-      );
-
-      expect(navigationCall).toBeUndefined();
-
-      const setOptionsCall = mockSetOptions.mock.calls[0];
-      expect(setOptionsCall).toBeDefined();
+      expect(updatedError).toBeNull();
     });
 
-    it('shows alert when QR scan returns no seed', async () => {
-      const mockAlert = jest.spyOn(Alert, 'alert');
+    it('does not display error if SRP is cleared manually', async () => {
+      const { getByTestId, queryByTestId } =
+        await renderSRPImportComponentAndPasteSRP(invalidMnemonic);
 
-      renderScreen(
-        ImportNewSecretRecoveryPhrase,
-        { name: 'ImportNewSecretRecoveryPhrase' },
-        {
-          state: initialState,
-        },
-      );
+      const error = queryByTestId(ImportSRPIDs.SRP_ERROR);
 
-      await waitFor(() => {
-        expect(mockSetOptions).toHaveBeenCalled();
-      });
+      expect(error).toBeTruthy();
 
-      mockAlert.mockRestore();
-    });
-  });
+      const firstWord = getByTestId(`${ImportSRPIDs.SRP_INPUT_WORD_NUMBER}-1`);
+      fireEvent.changeText(firstWord, 'lazy');
 
-  describe('partial SRP input', () => {
-    it('keeps import button disabled for incomplete SRP', async () => {
-      const { getByTestId } = renderScreen(
-        ImportNewSecretRecoveryPhrase,
-        { name: 'ImportNewSecretRecoveryPhrase' },
-        {
-          state: initialState,
-        },
-      );
+      const updatedError = queryByTestId(ImportSRPIDs.SRP_ERROR);
 
-      const textareaInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
-
-      await act(async () => {
-        await fireEvent.changeText(textareaInput, 'word1 word2 word3 word4');
-      });
-
-      const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-      expect(importButton.props.disabled).toBe(true);
+      expect(updatedError).toBeNull();
     });
 
-    it('handles empty string in textarea', async () => {
-      const { getByTestId } = renderScreen(
-        ImportNewSecretRecoveryPhrase,
-        { name: 'ImportNewSecretRecoveryPhrase' },
-        {
-          state: initialState,
-        },
-      );
+    it('displays errors only if all the words are entered', async () => {
+      const { getByTestId, queryByTestId } =
+        await renderSRPImportComponentAndPasteSRP('');
 
-      const textareaInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
+      let error = queryByTestId(ImportSRPIDs.SRP_ERROR);
 
-      await act(async () => {
-        await fireEvent.changeText(textareaInput, '');
-      });
+      expect(error).toBeNull();
 
-      expect(textareaInput.props.value).toBe('');
-    });
+      mockPaste.mockResolvedValue(invalidMnemonic);
+      const pasteButton = getByTestId(ImportSRPIDs.PASTE_BUTTON);
+      await userEvent.press(pasteButton);
 
-    it('normalizes multiple spaces between words', async () => {
-      const { getByTestId } = renderScreen(
-        ImportNewSecretRecoveryPhrase,
-        { name: 'ImportNewSecretRecoveryPhrase' },
-        {
-          state: initialState,
-        },
-      );
+      error = queryByTestId(ImportSRPIDs.SRP_ERROR);
 
-      const textareaInput = getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
-
-      await act(async () => {
-        await fireEvent.changeText(textareaInput, 'word1    word2   word3');
-      });
-
-      await waitFor(() => {
-        const input0 = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
-        const input1 = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`);
-        const input2 = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_2`);
-        expect(input0.props.value).toBe('word1');
-        expect(input1.props.value).toBe('word2');
-        expect(input2.props.value).toBe('word3');
-      });
-    });
-  });
-
-  describe('grid mode interactions', () => {
-    it('removes input when backspace is pressed on empty field', async () => {
-      mockGetString.mockResolvedValue('word1 word2 word3');
-
-      const { getByTestId, getByText } = renderScreen(
-        ImportNewSecretRecoveryPhrase,
-        { name: 'ImportNewSecretRecoveryPhrase' },
-        {
-          state: initialState,
-        },
-      );
-
-      const pasteButton = getByText(messages.import_from_seed.paste);
-
-      await act(async () => {
-        await fireEvent.press(pasteButton);
-      });
-
-      await waitFor(() => {
-        expect(
-          getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_2`),
-        ).toBeTruthy();
-      });
-
-      const input2 = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_2`);
-
-      await act(async () => {
-        await fireEvent(input2, 'onKeyPress', {
-          nativeEvent: { key: 'Backspace' },
-        });
-      });
-
-      await waitFor(() => {
-        const inputs = [0, 1].map((i) =>
-          getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_${i}`),
-        );
-        expect(inputs.length).toBe(2);
-      });
-    });
-
-    it('adds space when enter key is pressed in grid input', async () => {
-      mockGetString.mockResolvedValue('word1 word2');
-
-      const { getByTestId, getByText } = renderScreen(
-        ImportNewSecretRecoveryPhrase,
-        { name: 'ImportNewSecretRecoveryPhrase' },
-        {
-          state: initialState,
-        },
-      );
-
-      const pasteButton = getByText(messages.import_from_seed.paste);
-
-      await act(async () => {
-        await fireEvent.press(pasteButton);
-      });
-
-      await waitFor(() => {
-        expect(
-          getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`),
-        ).toBeTruthy();
-      });
-
-      const input1 = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`);
-
-      await act(async () => {
-        await fireEvent(input1, 'onSubmitEditing');
-      });
-
-      await waitFor(() => {
-        expect(
-          getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_2`),
-        ).toBeTruthy();
-      });
-    });
-
-    it('updates single character in grid input without space', async () => {
-      mockGetString.mockResolvedValue('word1 word2 word3');
-
-      const { getByTestId, getByText } = renderScreen(
-        ImportNewSecretRecoveryPhrase,
-        { name: 'ImportNewSecretRecoveryPhrase' },
-        {
-          state: initialState,
-        },
-      );
-
-      const pasteButton = getByText(messages.import_from_seed.paste);
-
-      await act(async () => {
-        await fireEvent.press(pasteButton);
-      });
-
-      await waitFor(() => {
-        expect(
-          getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`),
-        ).toBeTruthy();
-      });
-
-      const input1 = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`);
-
-      await act(async () => {
-        await fireEvent.changeText(input1, 'word2a');
-      });
-
-      await waitFor(() => {
-        const updatedInput = getByTestId(
-          `${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`,
-        );
-        expect(updatedInput.props.value).toBe('word2a');
-      });
-    });
-
-    it('validates word on focus change', async () => {
-      mockGetString.mockResolvedValue('word1 word2 word3');
-
-      const { getByTestId, getByText, queryByText } = renderScreen(
-        ImportNewSecretRecoveryPhrase,
-        { name: 'ImportNewSecretRecoveryPhrase' },
-        {
-          state: initialState,
-        },
-      );
-
-      const pasteButton = getByText(messages.import_from_seed.paste);
-
-      await act(async () => {
-        await fireEvent.press(pasteButton);
-      });
-
-      await waitFor(() => {
-        expect(
-          getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`),
-        ).toBeTruthy();
-      });
-
-      const input0 = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
-      const input1 = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`);
-
-      await act(async () => {
-        await fireEvent(input0, 'onFocus');
-      });
-
-      await act(async () => {
-        await fireEvent.changeText(input0, 'invalidword123');
-      });
-
-      await act(async () => {
-        await fireEvent(input0, 'onBlur');
-      });
-
-      await act(async () => {
-        await fireEvent(input1, 'onFocus');
-      });
-
-      await waitFor(() => {
-        expect(
-          queryByText(messages.import_from_seed.spellcheck_error),
-        ).toBeTruthy();
-      });
-    });
-
-    it('handles empty split array when pasting only spaces', async () => {
-      mockGetString.mockResolvedValue('word1 word2');
-
-      const { getByTestId, getByText } = renderScreen(
-        ImportNewSecretRecoveryPhrase,
-        { name: 'ImportNewSecretRecoveryPhrase' },
-        {
-          state: initialState,
-        },
-      );
-
-      const pasteButton = getByText(messages.import_from_seed.paste);
-
-      await act(async () => {
-        await fireEvent.press(pasteButton);
-      });
-
-      await waitFor(() => {
-        expect(
-          getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`),
-        ).toBeTruthy();
-      });
-
-      const input1 = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`);
-
-      await act(async () => {
-        await fireEvent.changeText(input1, '   ');
-      });
-
-      await waitFor(() => {
-        const updatedInput = getByTestId(
-          `${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`,
-        );
-        expect(updatedInput.props.value).toBe('');
-      });
-    });
-  });
-
-  describe('navigation', () => {
-    it('navigates back when back button is pressed', async () => {
-      renderScreen(
-        ImportNewSecretRecoveryPhrase,
-        { name: 'ImportNewSecretRecoveryPhrase' },
-        {
-          state: initialState,
-        },
-      );
-
-      await waitFor(() => {
-        expect(mockSetOptions).toHaveBeenCalled();
-      });
-
-      const setOptionsCall = mockSetOptions.mock.calls[0][0];
-      const headerLeft = setOptionsCall.headerLeft;
-
-      const { getByTestId } = renderScreen(
-        () => headerLeft(),
-        { name: 'HeaderLeft' },
-        { state: initialState },
-      );
-
-      const backButton = getByTestId(ImportSRPIDs.BACK);
-
-      await act(async () => {
-        await fireEvent.press(backButton);
-      });
-
-      expect(mockGoBack).toHaveBeenCalled();
-    });
-
-    it('opens QR scanner when QR button is pressed', async () => {
-      renderScreen(
-        ImportNewSecretRecoveryPhrase,
-        { name: 'ImportNewSecretRecoveryPhrase' },
-        {
-          state: initialState,
-        },
-      );
-
-      await waitFor(() => {
-        expect(mockSetOptions).toHaveBeenCalled();
-      });
-
-      const setOptionsCall = mockSetOptions.mock.calls[0][0];
-      const headerRight = setOptionsCall.headerRight;
-
-      const { getByTestId } = renderScreen(
-        () => headerRight(),
-        { name: 'HeaderRight' },
-        { state: initialState },
-      );
-
-      const qrButton = getByTestId('qr-code-button');
-
-      await act(async () => {
-        await fireEvent.press(qrButton);
-      });
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'QRTabSwitcher',
-        expect.objectContaining({
-          initialScreen: 0,
-          disableTabber: true,
-        }),
-      );
-    });
-
-    it('navigates to SRP info modal when info icon is pressed', async () => {
-      const { getByTestId } = renderScreen(
-        ImportNewSecretRecoveryPhrase,
-        { name: 'ImportNewSecretRecoveryPhrase' },
-        {
-          state: initialState,
-        },
-      );
-
-      await waitFor(() => {
-        expect(mockSetOptions).toHaveBeenCalled();
-      });
-
-      const infoIcon = getByTestId('info-icon');
-
-      await act(async () => {
-        await fireEvent.press(infoIcon);
-      });
-
-      expect(mockNavigate).toHaveBeenCalledWith('SeedphraseModal');
-    });
-  });
-
-  describe('QR scan callbacks', () => {
-    it('fills SRP when QR scan returns seed in data object', async () => {
-      const { getByTestId } = renderScreen(
-        ImportNewSecretRecoveryPhrase,
-        { name: 'ImportNewSecretRecoveryPhrase' },
-        {
-          state: initialState,
-        },
-      );
-
-      await waitFor(() => {
-        expect(mockSetOptions).toHaveBeenCalled();
-      });
-
-      const setOptionsCall = mockSetOptions.mock.calls[0][0];
-      const headerRight = setOptionsCall.headerRight;
-
-      const { getByTestId: getHeaderButton } = renderScreen(
-        () => headerRight(),
-        { name: 'HeaderRight' },
-        { state: initialState },
-      );
-
-      const qrButton = getHeaderButton('qr-code-button');
-
-      await act(async () => {
-        await fireEvent.press(qrButton);
-      });
-
-      const navigateCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === 'QRTabSwitcher',
-      );
-      const onScanSuccess = navigateCall[1].onScanSuccess;
-
-      await act(async () => {
-        onScanSuccess({ seed: valid12WordMnemonic }, undefined);
-      });
-
-      await waitFor(() => {
-        const input0 = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
-        expect(input0.props.value).toBe('lazy');
-      });
-    });
-
-    it('fills SRP when QR scan returns seed in content parameter', async () => {
-      const { getByTestId } = renderScreen(
-        ImportNewSecretRecoveryPhrase,
-        { name: 'ImportNewSecretRecoveryPhrase' },
-        {
-          state: initialState,
-        },
-      );
-
-      await waitFor(() => {
-        expect(mockSetOptions).toHaveBeenCalled();
-      });
-
-      const setOptionsCall = mockSetOptions.mock.calls[0][0];
-      const headerRight = setOptionsCall.headerRight;
-
-      const { getByTestId: getHeaderButton } = renderScreen(
-        () => headerRight(),
-        { name: 'HeaderRight' },
-        { state: initialState },
-      );
-
-      const qrButton = getHeaderButton('qr-code-button');
-
-      await act(async () => {
-        await fireEvent.press(qrButton);
-      });
-
-      const navigateCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === 'QRTabSwitcher',
-      );
-      const onScanSuccess = navigateCall[1].onScanSuccess;
-
-      await act(async () => {
-        onScanSuccess({}, valid12WordMnemonic);
-      });
-
-      await waitFor(() => {
-        const input0 = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
-        expect(input0.props.value).toBe('lazy');
-      });
-    });
-
-    it('shows alert when QR scan returns no seed data', async () => {
-      const mockAlert = jest.spyOn(Alert, 'alert');
-
-      renderScreen(
-        ImportNewSecretRecoveryPhrase,
-        { name: 'ImportNewSecretRecoveryPhrase' },
-        {
-          state: initialState,
-        },
-      );
-
-      await waitFor(() => {
-        expect(mockSetOptions).toHaveBeenCalled();
-      });
-
-      const setOptionsCall = mockSetOptions.mock.calls[0][0];
-      const headerRight = setOptionsCall.headerRight;
-
-      const { getByTestId } = renderScreen(
-        () => headerRight(),
-        { name: 'HeaderRight' },
-        { state: initialState },
-      );
-
-      const qrButton = getByTestId('qr-code-button');
-
-      await act(async () => {
-        await fireEvent.press(qrButton);
-      });
-
-      const navigateCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === 'QRTabSwitcher',
-      );
-      const onScanSuccess = navigateCall[1].onScanSuccess;
-
-      await act(async () => {
-        onScanSuccess({}, undefined);
-      });
-
-      expect(mockAlert).toHaveBeenCalledWith(
-        'Invalid QR Code',
-        'The QR code does not contain a valid Secret Recovery Phrase',
-      );
-
-      mockAlert.mockRestore();
+      expect(error).toBeTruthy();
     });
   });
 });

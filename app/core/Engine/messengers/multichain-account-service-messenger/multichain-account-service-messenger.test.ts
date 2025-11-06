@@ -1,30 +1,14 @@
-import {
-  Messenger,
-  type MessengerActions,
-  type MessengerEvents,
-  MOCK_ANY_NAMESPACE,
-  type MockAnyNamespace,
-} from '@metamask/messenger';
-import type { MultichainAccountServiceMessenger } from '@metamask/multichain-account-service';
+import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
 import { getMultichainAccountServiceMessenger } from './multichain-account-service-messenger';
 
-type RootMessenger = Messenger<
-  MockAnyNamespace,
-  MessengerActions<MultichainAccountServiceMessenger>,
-  MessengerEvents<MultichainAccountServiceMessenger>
->;
-
-const getRootMessenger = (): RootMessenger =>
-  new Messenger<MockAnyNamespace, never, never>({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
-
 describe('getMultichainAccountServiceMessenger', () => {
-  it('returns a messenger', () => {
-    const rootMessenger = getRootMessenger();
+  it('returns a restricted messenger', () => {
+    const messenger = new Messenger<never, never>();
     const multichainAccountServiceMessenger =
-      getMultichainAccountServiceMessenger(rootMessenger);
+      getMultichainAccountServiceMessenger(messenger);
 
-    expect(multichainAccountServiceMessenger).toBeInstanceOf(Messenger);
+    expect(multichainAccountServiceMessenger).toBeInstanceOf(
+      RestrictedMessenger,
+    );
   });
 });

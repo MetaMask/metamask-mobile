@@ -10,6 +10,7 @@ import { createSelector } from 'reselect';
 
 import I18n from '../../../locales/i18n';
 import { TokenI } from '../../components/UI/Tokens/types';
+import { sortAssets } from '../../components/UI/Tokens/util';
 import { RootState } from '../../reducers';
 import { formatWithThreshold } from '../../util/assets';
 import { selectEvmNetworkConfigurationsByChainId } from '../networkController';
@@ -22,11 +23,6 @@ import {
   selectCurrentCurrency,
 } from '../currencyRateController';
 import { selectAccountsByChainId } from '../accountTrackerController';
-import {
-  TRON_RESOURCE_SYMBOLS_SET,
-  TronResourceSymbol,
-} from '../../core/Multichain/constants';
-import { sortAssetsWithPriority } from '../../components/UI/Tokens/util/sortAssetsWithPriority';
 
 export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   (state: RootState) => {
@@ -49,7 +45,6 @@ export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
     let multichainState = {
       accountsAssets: {},
       assetsMetadata: {},
-      allIgnoredAssets: {},
       balances: {},
       conversionRates: {},
     };
@@ -202,12 +197,10 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
       .filter(([networkId, _]) => enabledNetworks.includes(networkId))
       .flatMap(([_, chainAssets]) => chainAssets)
       .filter((asset) => {
-        // We need to filter out Tron resources from this list
+        // We need to filter out Tron energy and bandwidth from this list
         if (
           asset.chainId?.includes('tron:') &&
-          TRON_RESOURCE_SYMBOLS_SET.has(
-            asset.symbol?.toLowerCase() as TronResourceSymbol,
-          )
+          (asset.name === 'Energy' || asset.name === 'Bandwidth')
         ) {
           return false;
         }
@@ -235,7 +228,7 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
     // Current sorting options
     // {"key": "name", "order": "asc", "sortCallback": "alphaNumeric"}
     // {"key": "tokenFiatAmount", "order": "dsc", "sortCallback": "stringNumeric"}
-    const tokensSorted = sortAssetsWithPriority(
+    const tokensSorted = sortAssets(
       assets.map((asset) => ({
         ...asset,
         tokenFiatAmount: asset.fiat?.balance.toString(),
@@ -349,23 +342,3 @@ function assetToToken(
     accountType: asset.accountType,
   };
 }
-
-// This is used to select Tron resources (Energy & Bandwidth)
-export const selectTronResourcesBySelectedAccountGroup =
-  createDeepEqualSelector(
-    [selectAssetsBySelectedAccountGroup, selectEnabledNetworks],
-    (bip44Assets, enabledNetworks) => {
-      const assets = Object.entries(bip44Assets)
-        .filter(([networkId, _]) => enabledNetworks.includes(networkId))
-        .flatMap(([_, chainAssets]) => chainAssets)
-        .filter(
-          (asset) =>
-            asset.chainId?.includes('tron:') &&
-            TRON_RESOURCE_SYMBOLS_SET.has(
-              asset.symbol?.toLowerCase() as TronResourceSymbol,
-            ),
-        );
-
-      return assets;
-    },
-  );

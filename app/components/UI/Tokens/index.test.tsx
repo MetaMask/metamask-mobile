@@ -13,10 +13,6 @@ jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(() => Promise.resolve()),
 }));
 
-jest.mock('react-native-device-info', () => ({
-  getVersion: jest.fn().mockReturnValue('1.0.0'),
-}));
-
 const selectedAddress = '0x123';
 
 jest.mock('./TokensBottomSheet', () => ({
@@ -133,7 +129,7 @@ const initialState = {
       NetworkController: {
         networkConfigurationsByChainId: {
           '0x1': {
-            chainId: '0x1' as const,
+            chainId: '0x1',
             name: 'Ethereum Mainnet',
             nativeCurrency: 'ETH',
             rpcEndpoints: [{ networkClientId: '0x1' }],
@@ -195,9 +191,9 @@ const initialState = {
         tokenBalances: {
           [selectedAddress]: {
             '0x1': {
-              '0x00': '0x2386F26FC10000' as const,
-              '0x01': '0xDE0B6B3A7640000' as const,
-              '0x02': '0x0' as const,
+              '0x00': '0x2386F26FC10000',
+              '0x01': '0xDE0B6B3A7640000',
+              '0x02': '0x0',
             },
           },
         },
@@ -319,11 +315,11 @@ jest.mock(
 const Stack = createStackNavigator();
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const renderComponent = (state: any = {}, isFullView: boolean = false) =>
+const renderComponent = (state: any = {}) =>
   renderWithProvider(
     <Stack.Navigator>
-      <Stack.Screen name="Tokens" options={{}}>
-        {() => <Tokens isFullView={isFullView} />}
+      <Stack.Screen name="Amount" options={{}}>
+        {() => <Tokens />}
       </Stack.Screen>
     </Stack.Navigator>,
     { state },
@@ -336,7 +332,7 @@ describe('Tokens', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly', () => {
+  it('should render correctly', () => {
     const { queryByText } = renderComponent(initialState);
     const tokensTabText = queryByText('Tokens');
     const nftsTabText = queryByText('NFTs');
@@ -344,15 +340,7 @@ describe('Tokens', () => {
     expect(nftsTabText).toBeDefined();
   });
 
-  it('renders correctly with isFullView prop', () => {
-    const { queryByText } = renderComponent(initialState, true);
-    const tokensTabText = queryByText('Tokens');
-    const nftsTabText = queryByText('NFTs');
-    expect(tokensTabText).toBeDefined();
-    expect(nftsTabText).toBeDefined();
-  });
-
-  it('hides zero balance tokens when setting is on', async () => {
+  it('should hide zero balance tokens when setting is on', async () => {
     const { queryByTestId } = renderComponent(initialState);
 
     expect(queryByTestId('asset-ETH')).toBeDefined();
@@ -360,7 +348,7 @@ describe('Tokens', () => {
     expect(queryByTestId('asset-LINK')).toBeNull();
   });
 
-  it('shows all balance tokens when hideZeroBalanceTokens setting is off', async () => {
+  it('should show all balance tokens when hideZeroBalanceTokens setting is off', async () => {
     const { queryByTestId } = renderComponent({
       ...initialState,
       settings: {
@@ -374,7 +362,7 @@ describe('Tokens', () => {
     expect(queryByTestId('asset-LINK')).toBeDefined();
   });
 
-  it('shows all balance with capitalized tickers', async () => {
+  it('should show all balance with capitalized tickers', async () => {
     const { queryByTestId } = renderComponent(initialState);
 
     expect(queryByTestId('asset-ETH')).toBeDefined();
@@ -422,7 +410,7 @@ describe('Tokens', () => {
     expect(true).toBe(true);
   });
 
-  it('displays unable to find conversion rate', async () => {
+  it('should display unable to find conversion rate', async () => {
     const testState = {
       ...initialState,
       engine: {
@@ -516,7 +504,7 @@ describe('Tokens', () => {
   });
 
   describe('Portfolio View', () => {
-    it('handles network filtering correctly', () => {
+    it('should handle network filtering correctly', () => {
       const multiNetworkState = {
         ...initialState,
         engine: {
@@ -597,7 +585,7 @@ describe('Tokens', () => {
 
     describe('When hideZeroBalance is enabled', () => {
       describe('When currentNetwork is selected', () => {
-        it('shows zero balance native token and hides zero balance ERC20 token', () => {
+        it('should show zero balance native token and hide zero balance ERC20 token', () => {
           const stateWithZeroBalances = {
             ...initialState,
             settings: {
@@ -678,7 +666,7 @@ describe('Tokens', () => {
       });
 
       describe('When allNetworks is selected', () => {
-        it('hides zero balance ERC20 tokens and native tokens', () => {
+        it('should hide zero balance ERC20 tokens and native tokens', () => {
           const stateWithZeroBalances = {
             ...initialState,
             settings: {
@@ -790,7 +778,7 @@ describe('Tokens', () => {
     });
 
     describe('When hideZeroBalance is disabled', () => {
-      it('shows zero balance native and ERC20 tokens', () => {
+      it('should show zero balance native and ERC20 tokens', () => {
         const stateWithZeroBalances = {
           ...initialState,
           settings: {
@@ -899,97 +887,6 @@ describe('Tokens', () => {
         expect(queryByText('NON_ZERO_ERC20_2')).toBeDefined();
         expect(queryByText('NON_ZERO_ERC20_3')).toBeDefined();
       });
-    });
-  });
-
-  describe('Homepage Redesign V1 Features', () => {
-    it('renders tokens container when homepage redesign is enabled', async () => {
-      const { getByTestId, queryByTestId } = renderComponent({
-        ...initialState,
-        engine: {
-          ...initialState.engine,
-          backgroundState: {
-            ...initialState.engine.backgroundState,
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                homepageRedesignV1: {
-                  enabled: true,
-                  minimumVersion: '1.0.0',
-                },
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      });
-
-      expect(
-        getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
-      ).toBeOnTheScreen();
-      await waitFor(() => expect(queryByTestId('asset-ETH')).toBeDefined());
-    });
-
-    it('renders all tokens when isFullView is true regardless of homepage redesign', async () => {
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <Stack.Navigator>
-          <Stack.Screen name="Amount">
-            {() => <Tokens isFullView />}
-          </Stack.Screen>
-        </Stack.Navigator>,
-        {
-          state: {
-            ...initialState,
-            engine: {
-              ...initialState.engine,
-              backgroundState: {
-                ...initialState.engine.backgroundState,
-                RemoteFeatureFlagController: {
-                  remoteFeatureFlags: {
-                    homepageRedesignV1: {
-                      enabled: true,
-                      minimumVersion: '1.0.0',
-                    },
-                  },
-                  cacheTimestamp: 0,
-                },
-              },
-            },
-          },
-        },
-      );
-
-      expect(
-        getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
-      ).toBeOnTheScreen();
-      await waitFor(() => expect(queryByTestId('asset-ETH')).toBeDefined());
-    });
-  });
-
-  describe('Multichain Accounts State 2', () => {
-    it('renders tokens when multichain accounts state 2 is enabled', async () => {
-      const { getByTestId, queryByTestId } = renderComponent({
-        ...initialState,
-        engine: {
-          ...initialState.engine,
-          backgroundState: {
-            ...initialState.engine.backgroundState,
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                multichainAccountsState2: {
-                  enabled: true,
-                  minimumVersion: '1.0.0',
-                },
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      });
-
-      expect(
-        getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
-      ).toBeOnTheScreen();
-      await waitFor(() => expect(queryByTestId('asset-ETH')).toBeDefined());
     });
   });
 });

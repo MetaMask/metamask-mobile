@@ -68,7 +68,6 @@ const mockOrder: DeepPartial<FiatOrder> = {
       decimals: 18,
       name: 'Ethereum',
       symbol: 'ETH',
-      network: { shortName: 'ETH' },
     },
     provider: {
       name: 'Test Provider',
@@ -250,8 +249,6 @@ describe('OrderDetails', () => {
         {
           "chain_id_destination": "1",
           "currency_destination": "ETH",
-          "currency_destination_network": "ETH",
-          "currency_destination_symbol": "ETH",
           "currency_source": "USD",
           "order_type": "BUY",
           "payment_method_id": "test-payment-method-id",
@@ -275,8 +272,6 @@ describe('OrderDetails', () => {
           "chain_id_source": "1",
           "currency_destination": "USD",
           "currency_source": "ETH",
-          "currency_source_network": "ETH",
-          "currency_source_symbol": "ETH",
           "order_type": "SELL",
           "payment_method_id": "test-payment-method-id",
           "provider_offramp": "Test Provider",

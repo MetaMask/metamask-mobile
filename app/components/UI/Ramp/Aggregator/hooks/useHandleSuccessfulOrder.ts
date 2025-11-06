@@ -15,7 +15,6 @@ import { getNotificationDetails } from '../utils';
 import stateHasOrder from '../../utils/stateHasOrder';
 import useAnalytics from '../../hooks/useAnalytics';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useAggregatorOrderNetworkName } from './useAggregatorOrderNetworkName';
 
 function useHandleSuccessfulOrder() {
   const navigation = useNavigation();
@@ -23,7 +22,6 @@ function useHandleSuccessfulOrder() {
   const dispatchThunk = useThunkDispatch();
   const trackEvent = useAnalytics();
   const accountsByChainId = useSelector(selectAccountsByChainId);
-  const getAggregatorOrderNetworkName = useAggregatorOrderNetworkName();
 
   const handleDispatchUserWalletProtection = useCallback(() => {
     dispatch(protectWalletModalVisible());
@@ -64,11 +62,6 @@ function useHandleSuccessfulOrder() {
             chain_id_source: (order?.data as Order)?.cryptoCurrency?.network
               ?.chainId,
             currency_source: (order?.data as Order)?.cryptoCurrency?.symbol,
-            currency_source_symbol: (order?.data as Order)?.cryptoCurrency
-              ?.symbol,
-            currency_source_network: getAggregatorOrderNetworkName(
-              order?.data as Order,
-            ),
             currency_destination: (order?.data as Order)?.fiatCurrency?.symbol,
           });
           navigation.navigate(Routes.TRANSACTIONS_VIEW, {
@@ -110,11 +103,6 @@ function useHandleSuccessfulOrder() {
             currency_source: (order?.data as Order)?.fiatCurrency?.symbol,
             currency_destination: (order?.data as Order)?.cryptoCurrency
               ?.symbol,
-            currency_destination_symbol: (order?.data as Order)?.cryptoCurrency
-              ?.symbol,
-            currency_destination_network: getAggregatorOrderNetworkName(
-              order?.data as Order,
-            ),
           });
         }
       });
@@ -125,7 +113,6 @@ function useHandleSuccessfulOrder() {
       navigation,
       trackEvent,
       accountsByChainId,
-      getAggregatorOrderNetworkName,
     ],
   );
 

@@ -131,10 +131,9 @@ describe('useBridgeQuoteData', () => {
       quoteFetchError: null,
       isNoQuotesAvailable: false,
       isExpired: false,
-      shouldShowPriceImpactWarning: false,
       willRefresh: false,
       blockaidError: null,
-      quotesLoadingStatus: null,
+      shouldShowPriceImpactWarning: false,
     });
   });
 
@@ -215,7 +214,6 @@ describe('useBridgeQuoteData', () => {
       willRefresh: false,
       blockaidError: null,
       shouldShowPriceImpactWarning: false,
-      quotesLoadingStatus: RequestStatus.FETCHED,
     });
   });
 
@@ -250,11 +248,10 @@ describe('useBridgeQuoteData', () => {
       isLoading: false,
       quoteFetchError: null,
       isNoQuotesAvailable: false,
-      shouldShowPriceImpactWarning: false,
       isExpired: true,
       willRefresh: false,
       blockaidError: null,
-      quotesLoadingStatus: null,
+      shouldShowPriceImpactWarning: false,
     });
   });
 
@@ -286,10 +283,9 @@ describe('useBridgeQuoteData', () => {
       quoteFetchError: null,
       isNoQuotesAvailable: false,
       isExpired: false,
-      shouldShowPriceImpactWarning: false,
       willRefresh: false,
       blockaidError: null,
-      quotesLoadingStatus: RequestStatus.LOADING,
+      shouldShowPriceImpactWarning: false,
     });
   });
 
@@ -318,14 +314,13 @@ describe('useBridgeQuoteData', () => {
       bestQuote: null,
       destTokenAmount: undefined,
       formattedQuoteData: undefined,
-      shouldShowPriceImpactWarning: false,
       isLoading: false,
       quoteFetchError: error,
       isNoQuotesAvailable: false,
       isExpired: false,
       willRefresh: false,
       blockaidError: null,
-      quotesLoadingStatus: null,
+      shouldShowPriceImpactWarning: false,
     });
   });
 
@@ -656,7 +651,6 @@ describe('useBridgeQuoteData', () => {
 
     expect(mockValidateBridgeTx).toHaveBeenCalledWith({
       quoteResponse: mockQuote,
-      signal: expect.any(AbortSignal),
     });
   });
 

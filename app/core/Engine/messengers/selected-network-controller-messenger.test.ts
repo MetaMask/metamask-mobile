@@ -1,30 +1,14 @@
-import {
-  Messenger,
-  type MessengerActions,
-  type MessengerEvents,
-  MOCK_ANY_NAMESPACE,
-  type MockAnyNamespace,
-} from '@metamask/messenger';
+import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
 import { getSelectedNetworkControllerMessenger } from './selected-network-controller-messenger';
-import { SelectedNetworkControllerMessenger } from '@metamask/selected-network-controller';
-
-type RootMessenger = Messenger<
-  MockAnyNamespace,
-  MessengerActions<SelectedNetworkControllerMessenger>,
-  MessengerEvents<SelectedNetworkControllerMessenger>
->;
-
-const getRootMessenger = (): RootMessenger =>
-  new Messenger({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
 
 describe('getSelectedNetworkControllerMessenger', () => {
-  it('returns a messenger', () => {
-    const messenger = getRootMessenger();
+  it('returns a restricted messenger', () => {
+    const messenger = new Messenger<never, never>();
     const selectedNetworkControllerMessenger =
       getSelectedNetworkControllerMessenger(messenger);
 
-    expect(selectedNetworkControllerMessenger).toBeInstanceOf(Messenger);
+    expect(selectedNetworkControllerMessenger).toBeInstanceOf(
+      RestrictedMessenger,
+    );
   });
 });

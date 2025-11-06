@@ -26,23 +26,21 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // External dependencies.
 import Avatar, { AvatarSize, AvatarVariant } from '../Avatars/Avatar';
-import Text, { TextColor, TextVariant } from '../Texts/Text';
+import Text, { TextVariant } from '../Texts/Text';
 import Button, { ButtonVariants } from '../Buttons/Button';
 
 // Internal dependencies.
 import {
-  ToastDescriptionOptions,
   ToastLabelOptions,
   ToastLinkButtonOptions,
   ToastOptions,
   ToastRef,
   ToastVariants,
 } from './Toast.types';
-import styleSheet from './Toast.styles';
+import styles from './Toast.styles';
 import { ToastSelectorsIDs } from '../../../../e2e/selectors/wallet/ToastModal.selectors';
 import { ButtonProps } from '../Buttons/Button/Button.types';
 import { TAB_BAR_HEIGHT } from '../Navigation/TabBar/TabBar.constants';
-import { useStyles } from '../../hooks';
 
 const visibilityDuration = 2750;
 const animationDuration = 250;
@@ -50,7 +48,6 @@ const bottomPadding = 16;
 const screenHeight = Dimensions.get('window').height;
 
 const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
-  const { styles } = useStyles(styleSheet, {});
   const [toastOptions, setToastOptions] = useState<ToastOptions | undefined>(
     undefined,
   );
@@ -145,25 +142,13 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     </Text>
   );
 
-  const renderDescription = (descriptionOptions?: ToastDescriptionOptions) =>
-    descriptionOptions && (
-      <Text
-        variant={TextVariant.BodySM}
-        color={TextColor.Alternative}
-        style={styles.description}
-      >
-        {descriptionOptions.description}
-      </Text>
-    );
-
-  const renderActionButton = (linkButtonOptions?: ToastLinkButtonOptions) =>
+  const renderButtonLink = (linkButtonOptions?: ToastLinkButtonOptions) =>
     linkButtonOptions && (
       <Button
-        variant={ButtonVariants.Secondary}
+        variant={ButtonVariants.Link}
         onPress={linkButtonOptions.onPress}
         labelTextVariant={TextVariant.BodyMD}
         label={linkButtonOptions.label}
-        style={styles.actionButton}
       />
     );
 
@@ -237,7 +222,6 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const renderToastContent = (options: ToastOptions) => {
     const {
       labelOptions,
-      descriptionOptions,
       linkButtonOptions,
       closeButtonOptions,
       startAccessory,
@@ -254,8 +238,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           testID={ToastSelectorsIDs.CONTAINER}
         >
           {renderLabel(labelOptions)}
-          {renderDescription(descriptionOptions)}
-          {renderActionButton(linkButtonOptions)}
+          {renderButtonLink(linkButtonOptions)}
         </View>
         {closeButtonOptions ? renderCloseButton(closeButtonOptions) : null}
       </>

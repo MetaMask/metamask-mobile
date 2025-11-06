@@ -5,7 +5,7 @@ import { merge } from 'lodash';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
 import { MetaMetrics } from '../../../../Analytics';
-import { RootExtendedMessenger } from '../../../types';
+import { BaseControllerMessenger } from '../../../types';
 import {
   generateDefaultTransactionMetrics,
   generateEvent,
@@ -147,7 +147,7 @@ export async function handleTransactionFinalizedEventForMetrics(
           smartTransactionsController,
           transactionMeta,
           true,
-          initMessenger as unknown as RootExtendedMessenger,
+          initMessenger as unknown as BaseControllerMessenger,
         );
         smartTransactionProperties = {
           properties: smartMetrics,
