@@ -1022,8 +1022,8 @@ describe('PredictController', () => {
 
         await controller.refreshEligibility();
 
-        expect(controller.state.eligibility.polymarket).toBe(true);
-        expect(controller.state.geoBlockData.polymarket).toEqual({
+        expect(controller.state.eligibility.polymarket).toEqual({
+          eligible: true,
           country: 'PT',
         });
         expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
@@ -1039,7 +1039,10 @@ describe('PredictController', () => {
 
         await controller.refreshEligibility();
 
-        expect(controller.state.eligibility.polymarket).toBe(false);
+        expect(controller.state.eligibility.polymarket).toEqual({
+          eligible: false,
+          country: undefined,
+        });
         expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
       });
     });
@@ -1050,7 +1053,10 @@ describe('PredictController', () => {
 
         await controller.refreshEligibility();
 
-        expect(controller.state.eligibility.polymarket).toBe(false);
+        expect(controller.state.eligibility.polymarket).toEqual({
+          eligible: false,
+          country: undefined,
+        });
       });
     });
 
@@ -1079,8 +1085,14 @@ describe('PredictController', () => {
 
         await controller.refreshEligibility();
 
-        expect(controller.state.eligibility.polymarket).toBe(true);
-        expect(controller.state.eligibility['second-provider']).toBe(false);
+        expect(controller.state.eligibility.polymarket).toEqual({
+          eligible: true,
+          country: 'PT',
+        });
+        expect(controller.state.eligibility['second-provider']).toEqual({
+          eligible: false,
+          country: 'US',
+        });
         expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
         expect(mockSecondProvider.isEligible).toHaveBeenCalled();
       });

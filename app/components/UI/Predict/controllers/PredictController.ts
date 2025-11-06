@@ -77,9 +77,11 @@ import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictControllerState = {
   // Eligibility (Geo-Blocking) per Provider
-  eligibility: { [key: string]: boolean };
-  geoBlockData: {
-    [key: string]: { country?: string };
+  eligibility: {
+    [key: string]: {
+      eligible: boolean;
+      country?: string;
+    };
   };
 
   // Error handling
@@ -110,7 +112,6 @@ export type PredictControllerState = {
  */
 export const getDefaultPredictControllerState = (): PredictControllerState => ({
   eligibility: {},
-  geoBlockData: {},
   lastError: null,
   lastUpdateTimestamp: 0,
   balances: {},
@@ -125,12 +126,6 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
  */
 const metadata: StateMetadata<PredictControllerState> = {
   eligibility: {
-    persist: false,
-    includeInDebugSnapshot: false,
-    includeInStateLogs: false,
-    usedInUi: false,
-  },
-  geoBlockData: {
     persist: false,
     includeInDebugSnapshot: false,
     includeInStateLogs: false,
@@ -194,13 +189,13 @@ export type PredictControllerEvents = ControllerStateChangeEvent<
 export type PredictControllerActions =
   | ControllerGetStateAction<'PredictController', PredictControllerState>
   | {
-    type: 'PredictController:refreshEligibility';
-    handler: PredictController['refreshEligibility'];
-  }
+      type: 'PredictController:refreshEligibility';
+      handler: PredictController['refreshEligibility'];
+    }
   | {
-    type: 'PredictController:placeOrder';
-    handler: PredictController['placeOrder'];
-  };
+      type: 'PredictController:placeOrder';
+      handler: PredictController['placeOrder'];
+    };
 
 /**
  * External actions the PredictController can call
@@ -983,9 +978,9 @@ export class PredictController extends BaseController<
     providerId: string;
     attemptedAction: string;
   }): void {
-    const geoData = this.state.geoBlockData[providerId];
+    const eligibilityData = this.state.eligibility[providerId];
     const analyticsProperties = {
-      [PredictEventProperties.COUNTRY]: geoData?.country,
+      [PredictEventProperties.COUNTRY]: eligibilityData?.country,
       [PredictEventProperties.ATTEMPTED_ACTION]: attemptedAction,
     };
 
@@ -1001,7 +996,6 @@ export class PredictController extends BaseController<
         .build(),
     );
   }
-
 
   /**
    * Track when user views the predict feed
@@ -1385,15 +1379,18 @@ export class PredictController extends BaseController<
       try {
         const geoBlockResponse = await provider.isEligible();
         this.update((state) => {
-          state.eligibility[providerId] = geoBlockResponse.isEligible;
-          state.geoBlockData[providerId] = {
+          state.eligibility[providerId] = {
+            eligible: geoBlockResponse.isEligible,
             country: geoBlockResponse.country,
           };
         });
       } catch (error) {
         // Default to false in case of error
         this.update((state) => {
-          state.eligibility[providerId] = false;
+          state.eligibility[providerId] = {
+            eligible: false,
+            country: undefined,
+          };
         });
         DevLogger.log('PredictController: Eligibility refresh failed', {
           error:
@@ -1708,8 +1705,8 @@ export class PredictController extends BaseController<
     transactionMeta: TransactionMeta;
   }): Promise<
     | {
-      updateTransaction?: (transaction: TransactionMeta) => void;
-    }
+        updateTransaction?: (transaction: TransactionMeta) => void;
+      }
     | undefined
   > {
     if (!this.state.withdrawTransaction) {
