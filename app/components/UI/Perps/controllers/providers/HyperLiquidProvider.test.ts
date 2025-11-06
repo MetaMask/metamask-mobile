@@ -191,8 +191,9 @@ const createMockInfoClient = (overrides: Record<string, unknown> = {}) => ({
       stage: 'ready',
       data: { code: 'MMCSI' },
     },
+    referredBy: { code: 'MMCSI' }, // Default: user already has referral set
   }),
-  maxBuilderFee: jest.fn().mockResolvedValue(1),
+  maxBuilderFee: jest.fn().mockResolvedValue(1), // Default: builder fee already approved (>= 0.001)
   userFees: jest.fn().mockResolvedValue({
     feeSchedule: {
       cross: '0.00030',
@@ -2616,7 +2617,7 @@ describe('HyperLiquidProvider', () => {
         const result = await provider.updatePositionTPSL(updateParams);
 
         expect(result.success).toBe(false);
-        expect(result.error).toContain('Failed to fetch market metadata');
+        expect(result.error).toContain('Invalid meta response');
       });
 
       it('should handle meta response without universe property', async () => {
@@ -2634,7 +2635,7 @@ describe('HyperLiquidProvider', () => {
         const result = await provider.updatePositionTPSL(updateParams);
 
         expect(result.success).toBe(false);
-        expect(result.error).toContain('Failed to fetch market metadata');
+        expect(result.error).toContain('Invalid meta response');
       });
     });
 
@@ -4197,7 +4198,7 @@ describe('HyperLiquidProvider', () => {
       });
     });
 
-    it('should include builder fee and referral setup in order placement', async () => {
+    it('should include builder fee and referral setup during initialization', async () => {
       // Mock builder fee not approved to trigger approval call
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         maxBuilderFee: jest
@@ -4266,7 +4267,10 @@ describe('HyperLiquidProvider', () => {
 
       expect(result.success).toBe(true);
 
-      // Verify builder fee approval was called
+      // Wait for fire-and-forget referral setup to complete
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Verify builder fee approval was called during initialization
       expect(
         mockClientService.getExchangeClient().approveBuilderFee,
       ).toHaveBeenCalledWith({
@@ -4274,7 +4278,7 @@ describe('HyperLiquidProvider', () => {
         maxFeeRate: expect.stringContaining('%'),
       });
 
-      // Verify referral code was set
+      // Verify referral code was set during initialization (fire-and-forget)
       expect(
         mockClientService.getExchangeClient().setReferrer,
       ).toHaveBeenCalledWith({
@@ -4450,13 +4454,14 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toContain('Builder fee approval failed');
     });
 
-    it('should handle referral code setup failure', async () => {
+    it('should handle referral code setup failure (non-blocking)', async () => {
       // Mock builder fee already approved
       mockClientService.getInfoClient = jest
         .fn()
         .mockReturnValue(createMockInfoClient());
 
       // Mock referral code setup to fail
+      // With non-blocking referral setup, this should NOT block the order
       mockClientService.getExchangeClient = jest.fn().mockReturnValue({
         approveBuilderFee: jest.fn().mockResolvedValue({
           status: 'ok',
@@ -4483,8 +4488,9 @@ describe('HyperLiquidProvider', () => {
 
       const result = await provider.placeOrder(orderParams);
 
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('Error ensuring referral code is set');
+      // Referral failure should NOT block trading (non-blocking behavior)
+      expect(result.success).toBe(true);
+      expect(result.orderId).toBe('123');
     });
 
     it('should skip referral setup when referral code is not ready', async () => {
@@ -4621,6 +4627,18 @@ describe('HyperLiquidProvider', () => {
             statusTimestamp: 1640995400000,
           },
         ]),
+        referral: jest.fn().mockResolvedValue({
+          referrerState: { stage: 'ready', data: { code: 'MMCSI' } },
+          referredBy: { code: 'MMCSI' },
+        }),
+        maxBuilderFee: jest.fn().mockResolvedValue(1),
+        meta: jest.fn().mockResolvedValue({
+          universe: [
+            { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
+            { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
+          ],
+        }),
+        perpDexs: jest.fn().mockResolvedValue([null]),
       });
 
       const result = await provider.getOrders();
@@ -4761,6 +4779,11 @@ describe('HyperLiquidProvider', () => {
           universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
         }),
         perpDexs: jest.fn().mockResolvedValue([null]),
+        referral: jest.fn().mockResolvedValue({
+          referrerState: { stage: 'ready', data: { code: 'MMCSI' } },
+          referredBy: { code: 'MMCSI' },
+        }),
+        maxBuilderFee: jest.fn().mockResolvedValue(1),
       });
 
       // Mock getValidatedDexs to return main DEX
@@ -5004,6 +5027,11 @@ describe('HyperLiquidProvider', () => {
           universe: [{ name: 'ETH', szDecimals: 4, maxLeverage: 25 }],
         }),
         perpDexs: jest.fn().mockResolvedValue([null]),
+        referral: jest.fn().mockResolvedValue({
+          referrerState: { stage: 'ready', data: { code: 'MMCSI' } },
+          referredBy: { code: 'MMCSI' },
+        }),
+        maxBuilderFee: jest.fn().mockResolvedValue(1),
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       jest.spyOn(provider as any, 'getValidatedDexs').mockResolvedValue([null]);
@@ -5089,6 +5117,11 @@ describe('HyperLiquidProvider', () => {
         perpDexs: jest
           .fn()
           .mockResolvedValue([null, { name: 'xyz', url: 'https://xyz.com' }]),
+        referral: jest.fn().mockResolvedValue({
+          referrerState: { stage: 'ready', data: { code: 'MMCSI' } },
+          referredBy: { code: 'MMCSI' },
+        }),
+        maxBuilderFee: jest.fn().mockResolvedValue(1),
       });
       const getValidatedDexsSpy = jest.spyOn(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -4,6 +4,13 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+// Mock keyring-api to avoid import issues with definePattern
+jest.mock('@metamask/keyring-api', () => ({
+  isEvmAccountType: jest.fn(
+    (accountType: string) => accountType === 'eip155:eoa',
+  ),
+}));
+
 // Mock keyring controller to avoid import issues
 enum SignTypedDataVersion {
   V1 = 'V1',
@@ -85,7 +92,7 @@ jest.mock('../../../../core/Engine', () => {
     getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
       {
         address: '0x1234567890123456789012345678901234567890',
-        type: 'eip155:1',
+        type: 'eip155:eoa',
       },
     ]),
   };

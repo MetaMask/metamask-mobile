@@ -168,6 +168,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
   // Cache for raw meta responses (shared across methods to avoid redundant API calls)
   private cachedMetaByDex = new Map<string, MetaResponse>();
 
+  // Session cache for referral state (cleared on disconnect/reconnect)
+  // Key: `network:userAddress`, Value: true if referral is set
+  private referralCheckCache = new Map<string, boolean>();
+
+  // Session cache for builder fee approval state (cleared on disconnect/reconnect)
+  // Key: `network:userAddress`, Value: true if builder fee is approved
+  private builderFeeCheckCache = new Map<string, boolean>();
+
   // Pre-compiled patterns for fast filtering
   private compiledAllowlistPatterns: CompiledMarketPattern[] = [];
   private compiledBlocklistPatterns: CompiledMarketPattern[] = [];
@@ -354,6 +362,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
     // Attempt to enable native balance abstraction
     await this.ensureDexAbstractionEnabled();
+
+    // Set up builder fee approval (blocking, required for trading)
+    // This happens once per session and is cached until disconnect/reconnect
+    await this.ensureBuilderFeeApproval();
+
+    // Set up referral code (non-blocking, fire-and-forget)
+    // This happens once per session and is cached until disconnect/reconnect
+    this.ensureReferralSet().catch((error) => {
+      DevLogger.log(
+        '[ensureReady] Referral setup failed (non-blocking)',
+        error,
+      );
+    });
   }
 
   /**
@@ -519,6 +540,48 @@ export class HyperLiquidProvider implements IPerpsProvider {
     }
 
     return isValid;
+  }
+
+  /**
+   * Get cached meta response for a DEX, fetching from API if not cached
+   * This helper consolidates cache logic to avoid redundant API calls across the provider
+   * @param dexName - DEX name (null for main DEX)
+   * @returns MetaResponse with universe data
+   * @throws Error if API returns invalid data
+   */
+  private async getCachedMeta(dexName: string | null): Promise<MetaResponse> {
+    const dexKey = dexName || 'main';
+    let meta = this.cachedMetaByDex.get(dexKey);
+
+    if (!meta) {
+      // Cache miss - fetch from API
+      const infoClient = this.clientService.getInfoClient();
+      meta = await infoClient.meta({ dex: dexName ?? '' });
+
+      // Defensive validation before caching
+      if (!meta?.universe || !Array.isArray(meta.universe)) {
+        throw new Error(
+          `Invalid meta response for DEX ${
+            dexName || 'main'
+          }: universe is ${meta?.universe ? 'not an array' : 'missing'}`,
+        );
+      }
+
+      // Store raw meta response for reuse
+      this.cachedMetaByDex.set(dexKey, meta);
+
+      DevLogger.log('[getCachedMeta] Fetched and cached meta response', {
+        dex: dexKey,
+        universeSize: meta.universe.length,
+      });
+    } else {
+      DevLogger.log('[getCachedMeta] Using cached meta response', {
+        dex: dexKey,
+        universeSize: meta.universe.length,
+      });
+    }
+
+    return meta;
   }
 
   /**
@@ -743,6 +806,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
           return;
         }
 
+        // Populate cachedMetaByDex to warm cache for subsequent operations
+        const dexKey = dex || 'main';
+        this.cachedMetaByDex.set(dexKey, meta);
+        DevLogger.log(`[buildAssetMapping] Cached meta for DEX ${dexKey}`, {
+          universeSize: meta.universe.length,
+        });
+
         // Find perpDexIndex for this DEX in the perpDexs array
         // Main DEX (dex=null) is at index 0
         // HIP-3 DEXs are at indices 1, 2, 3, etc.
@@ -951,16 +1021,39 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Ensure builder fee approval before placing orders
+   * Ensure builder fee is approved for MetaMask
+   * Called once during initialization (ensureReady) to set up builder fee for the session
+   * Uses session cache to avoid redundant API calls until disconnect/reconnect
+   *
+   * Note: This is network-specific - testnet and mainnet have separate builder fee states
    */
   private async ensureBuilderFeeApproval(): Promise<void> {
+    const isTestnet = this.clientService.isTestnetMode();
+    const network = isTestnet ? 'testnet' : 'mainnet';
+    const builderAddress = this.getBuilderAddress(isTestnet);
+    const userAddress = await this.walletService.getUserAddressWithDefault();
+
+    // Check session cache first to avoid redundant API calls
+    const cacheKey = `${network}:${userAddress}`;
+    const cached = this.builderFeeCheckCache.get(cacheKey);
+
+    if (cached !== undefined) {
+      DevLogger.log('[ensureBuilderFeeApproval] Using session cache', {
+        network,
+        isApproved: cached,
+      });
+      if (cached) {
+        return; // Already approved this session, skip
+      }
+    }
+
     const { isApproved, requiredDecimal } = await this.checkBuilderFeeStatus();
-    const builderAddress = this.getBuilderAddress(
-      this.clientService.isTestnetMode(),
-    );
+
+    // Update session cache
+    this.builderFeeCheckCache.set(cacheKey, isApproved);
 
     if (!isApproved) {
-      DevLogger.log('Builder fee approval required', {
+      DevLogger.log('[ensureBuilderFeeApproval] Approval required', {
         builder: builderAddress,
         currentApproval: isApproved,
         requiredDecimal,
@@ -977,19 +1070,24 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Verify approval was successful
       const afterApprovalDecimal = await this.checkBuilderFeeApproval();
 
-      // this throw will block the order from being placed
-      // this should ideally never happen
       if (
         afterApprovalDecimal === null ||
         afterApprovalDecimal < requiredDecimal
       ) {
-        throw new Error('Builder fee approval failed or insufficient');
+        throw new Error('Builder fee approval verification failed');
       }
 
-      DevLogger.log('Builder fee approval successful', {
+      // Update cache to reflect successful approval
+      this.builderFeeCheckCache.set(cacheKey, true);
+
+      DevLogger.log('[ensureBuilderFeeApproval] Approval successful', {
         builder: builderAddress,
         approvedDecimal: afterApprovalDecimal,
         maxFeeRate,
+      });
+    } else {
+      DevLogger.log('[ensureBuilderFeeApproval] Already approved', {
+        network,
       });
     }
   }
@@ -1543,18 +1641,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
         blocklistMarkets: this.blocklistMarkets,
       });
 
-      // Ensure builder fee approval and referral code are set before placing any order
-      await Promise.all([
-        this.ensureBuilderFeeApproval(),
-        this.ensureReferralSet(),
-      ]);
+      // Builder fee approval and referral are set once during ensureReady initialization
 
       // Extract DEX name for API calls (main DEX = null)
       const { dex: dexName } = parseAssetName(params.coin);
 
-      // Get asset info from the correct DEX
+      // Get asset info from the correct DEX (using cache)
       const infoClient = this.clientService.getInfoClient();
-      const meta = await infoClient.meta({ dex: dexName ?? '' });
+      const meta = await this.getCachedMeta(dexName);
 
       if (!meta.universe || !Array.isArray(meta.universe)) {
         throw new Error(
@@ -1923,9 +2017,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Extract DEX name for API calls (main DEX = null)
       const { dex: dexName } = parseAssetName(params.newOrder.coin);
 
-      // Get asset info and prices
+      // Get asset info and prices (using cache for meta)
       const infoClient = this.clientService.getInfoClient();
-      const meta = await infoClient.meta({ dex: dexName ?? '' });
+      const meta = await this.getCachedMeta(dexName);
       const mids = await infoClient.allMids({ dex: dexName ?? '' });
 
       if (!meta.universe || !Array.isArray(meta.universe)) {
@@ -2205,6 +2299,25 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const exchangeClient = this.clientService.getExchangeClient();
       const infoClient = this.clientService.getInfoClient();
 
+      // Pre-fetch meta for all unique DEXs to avoid N API calls in loop
+      const uniqueDexs = [
+        ...new Set(
+          positionsToClose.map((p) => parseAssetName(p.coin).dex || 'main'),
+        ),
+      ];
+      const metaByDex = new Map<string, MetaResponse>();
+
+      DevLogger.log('[closePositions] Pre-fetching meta for unique DEXs', {
+        dexCount: uniqueDexs.length,
+        dexs: uniqueDexs,
+      });
+
+      for (const dexKey of uniqueDexs) {
+        const dexName = dexKey === 'main' ? null : dexKey;
+        const meta = await this.getCachedMeta(dexName);
+        metaByDex.set(dexKey, meta);
+      }
+
       // Track HIP-3 positions and freed margins for post-close transfers
       const hip3Transfers: {
         sourceDex: string;
@@ -2219,10 +2332,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
         const { dex: dexName } = parseAssetName(position.coin);
         const isHip3Position = position.coin.includes(':');
 
-        // Get asset info for formatting
-        const meta = await infoClient.meta({ dex: dexName ?? '' });
-        if (!meta.universe || !Array.isArray(meta.universe)) {
-          throw new Error(`Invalid universe data for ${position.coin}`);
+        // Get cached meta (pre-fetched before loop)
+        const dexKey = dexName || 'main';
+        const meta = metaByDex.get(dexKey);
+        if (!meta?.universe || !Array.isArray(meta.universe)) {
+          throw new Error(
+            `Invalid universe data for ${position.coin} (DEX: ${dexKey})`,
+          );
         }
 
         const assetInfo = meta.universe.find(
@@ -2422,10 +2538,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       await this.ensureReady();
 
-      await Promise.all([
-        this.ensureBuilderFeeApproval(),
-        this.ensureReferralSet(),
-      ]);
+      // Builder fee approval and referral are set once during ensureReady initialization
 
       // Get current price for the asset
       const infoClient = this.clientService.getInfoClient();
@@ -2484,8 +2597,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
         DevLogger.log('Cancel result:', cancelResult);
       }
 
-      // Get asset info (dexName already extracted above)
-      const meta = await infoClient.meta({ dex: dexName ?? '' });
+      // Get asset info from cache (dexName already extracted above)
+      const meta = await this.getCachedMeta(dexName);
 
       // Check if meta is an error response (string) or doesn't have universe property
       if (
@@ -3675,6 +3788,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
     dexDataResults.forEach((result) => {
       if (result.success && result.meta?.universe) {
+        // Populate cachedMetaByDex to warm cache for subsequent operations
+        const dexKey = result.dex || 'main';
+        this.cachedMetaByDex.set(dexKey, result.meta);
+        DevLogger.log('[getMarketDataWithPrices] Cached meta for DEX', {
+          dex: dexKey,
+          universeSize: result.meta.universe.length,
+        });
+
         // Apply market filtering for HIP-3 DEXs only (main DEX returns all markets)
         const marketsFromDex = result.meta.universe;
         const filteredMarkets =
@@ -4954,6 +5075,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Clear fee cache
       this.clearFeeCache();
 
+      // Clear session caches on disconnect
+      this.referralCheckCache.clear();
+      this.builderFeeCheckCache.clear();
+
       // Disconnect client service
       await this.clientService.disconnect();
 
@@ -5075,13 +5200,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
   /**
    * Ensure user has a MetaMask referral code set
-   * If user doesn't have a referral set, set MetaMask as referrer
-   * This is called before every order to maximize referral capture
+   * Called once during initialization (ensureReady) to set up referral for the session
+   * Uses session cache to avoid redundant API calls until disconnect/reconnect
    *
    * Note: This is network-specific - testnet and mainnet have separate referral states
+   * Note: Non-blocking - failures are logged but don't prevent trading
    */
   private async ensureReferralSet(): Promise<void> {
-    const errorMessage = 'Error ensuring referral code is set';
     try {
       const isTestnet = this.clientService.isTestnetMode();
       const network = isTestnet ? 'testnet' : 'mainnet';
@@ -5091,39 +5216,77 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       if (userAddress.toLowerCase() === referrerAddress.toLowerCase()) {
         // if the user is the builder, we don't need to set a referral code
+        DevLogger.log('[ensureReferralSet] User is builder, skipping', {
+          network,
+        });
         return;
+      }
+
+      // Check session cache first to avoid redundant API calls
+      const cacheKey = `${network}:${userAddress}`;
+      const cached = this.referralCheckCache.get(cacheKey);
+
+      if (cached !== undefined) {
+        DevLogger.log('[ensureReferralSet] Using session cache', {
+          network,
+          hasReferral: cached,
+        });
+        if (cached) {
+          return; // Already has referral set this session, skip
+        }
       }
 
       const isReady = await this.isReferralCodeReady();
       if (!isReady) {
-        // if the referrer code is not ready, we can't set the referral code on the user
-        // so we just return and the error will be logged
-        // we may want to block this completely, but for now we just log the error
-        // as the referrer may need to address an issue first and we may not want to completely
-        // block orders for this
+        DevLogger.log(
+          '[ensureReferralSet] Builder referral not ready yet, skipping',
+          { network },
+        );
         return;
       }
+
       // Check if user already has a referral set on this network
       const hasReferral = await this.checkReferralSet();
 
+      // Update session cache regardless of result
+      this.referralCheckCache.set(cacheKey, hasReferral);
+
       if (!hasReferral) {
-        DevLogger.log('No referral set - setting MetaMask as referrer', {
-          network,
-          referralCode: expectedReferralCode,
-        });
+        DevLogger.log(
+          '[ensureReferralSet] No referral set - setting MetaMask',
+          {
+            network,
+            referralCode: expectedReferralCode,
+          },
+        );
         const result = await this.setReferralCode();
         if (result === true) {
-          DevLogger.log('Referral code set', {
+          DevLogger.log('[ensureReferralSet] Referral code set successfully', {
             network,
             referralCode: expectedReferralCode,
           });
+          // Update cache to reflect successful set
+          this.referralCheckCache.set(cacheKey, true);
         } else {
-          throw new Error('Failed to set referral code');
+          DevLogger.log(
+            '[ensureReferralSet] Failed to set referral code (non-blocking)',
+            { network },
+          );
         }
+      } else {
+        DevLogger.log('[ensureReferralSet] User already has referral set', {
+          network,
+        });
       }
     } catch (error) {
-      console.error(errorMessage, error);
-      throw new Error(errorMessage);
+      // Non-blocking: Log error but don't throw
+      // This prevents referral issues from blocking trading
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('ensureReferralSet', {
+          note: 'Referral setup failed (non-blocking)',
+        }),
+      );
     }
   }
 

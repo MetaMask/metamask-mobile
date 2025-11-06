@@ -345,10 +345,11 @@ describe('HyperLiquidClientService', () => {
       service.initialize(mockWallet);
 
       expect(DevLogger.log).toHaveBeenCalledWith(
-        'HyperLiquid SDK clients initialized',
+        'HyperLiquid SDK clients initialized and connected',
         expect.objectContaining({
           testnet: false,
           endpoint: 'wss://api.hyperliquid.xyz/ws',
+          connectionState: 'connected',
           timestamp: expect.any(String),
         }),
       );

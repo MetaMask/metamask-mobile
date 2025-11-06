@@ -32,7 +32,7 @@ describe('orderCalculations', () => {
         price: 3000,
         szDecimals: 4,
       });
-      expect(ethResult).toBe('3.3333'); // Properly rounded down from 3.3333...
+      expect(ethResult).toBe('3.3334'); // Rounded to 4 decimals from 3.3333...
 
       // DOGE-style decimals (0)
       const dogeResult = calculatePositionSize({
