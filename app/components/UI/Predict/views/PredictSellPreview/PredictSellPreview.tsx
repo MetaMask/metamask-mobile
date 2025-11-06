@@ -115,12 +115,9 @@ const PredictSellPreview = () => {
       amountUsd: position?.amount,
       pnl: position?.percentPnl, // PnL as percentage for sell orders
     });
-  }, [
-    analyticsProperties,
-    position.providerId,
-    position?.price,
-    position?.amount,
-  ]);
+    // eslint-disable-next-line react-compiler/react-compiler
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (result?.success) {
