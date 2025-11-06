@@ -75,7 +75,7 @@ export function usePerpsABTest<
 
   // Check if variant exists in config
   const variant = test.variants[variantName as keyof V];
-  const isEnabled = !!launchDarklyVariant; // Enabled if LaunchDarkly returns a variant
+  const isEnabled = !!(localOverride || launchDarklyVariant);
 
   if (!variant) {
     // Variant not found - fall back to first variant
