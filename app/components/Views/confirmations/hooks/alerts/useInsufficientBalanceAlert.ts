@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { Hex, add0x } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   addHexes,
@@ -10,7 +9,11 @@ import {
 } from '../../../../../util/conversions';
 import { strings } from '../../../../../../locales/i18n';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import { createBuyNavigationDetails } from '../../../../UI/Ramp/Aggregator/routes/utils';
+import {
+  useRampNavigation,
+  RampMode,
+} from '../../../../UI/Ramp/hooks/useRampNavigation';
+import { RampType as AggregatorRampType } from '../../../../UI/Ramp/Aggregator/types';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
@@ -27,7 +30,7 @@ export const useInsufficientBalanceAlert = ({
 }: {
   ignoreGasFeeToken?: boolean;
 } = {}): Alert[] => {
-  const navigation = useNavigation();
+  const { goToRamps } = useRampNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const { balanceWeiInHex } = useAccountNativeBalance(
@@ -82,7 +85,10 @@ export const useInsufficientBalanceAlert = ({
             nativeCurrency,
           }),
           callback: () => {
-            navigation.navigate(...createBuyNavigationDetails());
+            goToRamps({
+              mode: RampMode.AGGREGATOR,
+              params: { rampType: AggregatorRampType.BUY },
+            });
             onReject(undefined, true);
           },
         },
@@ -101,10 +107,10 @@ export const useInsufficientBalanceAlert = ({
     balanceWeiInHex,
     ignoreGasFeeToken,
     isTransactionValueUpdating,
-    navigation,
     networkConfigurations,
     onReject,
     payToken,
     transactionMetadata,
+    goToRamps,
   ]);
 };
