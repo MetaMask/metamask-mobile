@@ -143,6 +143,7 @@ const EarnInputView = () => {
       const experiences = [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }];
       return {
         ...token,
+        isETH: false,
         balanceMinimalUnit: '0',
         balanceFormatted: token.balance ?? '0',
         balanceFiat: token.balanceFiat ?? '0',
