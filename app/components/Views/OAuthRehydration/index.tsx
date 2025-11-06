@@ -2,13 +2,16 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   SafeAreaView,
+  Image,
   BackHandler,
   TouchableOpacity,
   TextInput,
   Platform,
 } from 'react-native';
-import { colors as importedColors } from '../../../styles/common';
-import StorageWrapper from '../../../store/storage-wrapper';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button, {
   ButtonSize,
@@ -24,10 +27,8 @@ import {
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 import { BiometryButton } from '../../UI/BiometryButton';
-import { OPTIN_META_METRICS_UI_SEEN } from '../../../constants/storage';
 import Routes from '../../../constants/navigation/Routes';
 import ErrorBoundary from '../ErrorBoundary';
-import { Authentication } from '../../../core';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
 import { downloadStateLogs } from '../../../util/logs';
@@ -48,6 +49,7 @@ import stylesheet from './styles';
 import ReduxService from '../../../core/redux';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
+import OAuthService from '../../../core/OAuthService/OAuthService';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import {
   IMetaMetricsEvent,
@@ -56,52 +58,46 @@ import {
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { useMetrics } from '../../hooks/useMetrics';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import FoxAnimation from '../../UI/FoxAnimation';
-import OnboardingAnimation from '../../UI/OnboardingAnimation';
-import { useLoginLogic } from './hooks/useLoginLogic';
-import { useAuthPreferences } from './hooks/useAuthPreferences';
-import { usePasswordOutdated } from './hooks/usePasswordOutdated';
-import { LoginPasswordField } from './components/LoginPasswordField';
-import { LoginErrorMessage } from './components/LoginErrorMessage';
+import FOX_LOGO from '../../../images/branding/fox.png';
+import METAMASK_NAME from '../../../images/branding/metamask-name.png';
+import { useLoginLogic } from '../Login/hooks/useLoginLogic';
+import { useAuthPreferences } from '../Login/hooks/useAuthPreferences';
+import { usePasswordOutdated } from '../Login/hooks/usePasswordOutdated';
+import { LoginPasswordField } from '../Login/components/LoginPasswordField';
+import { LoginErrorMessage } from '../Login/components/LoginErrorMessage';
 
 const EmptyRecordConstant = {};
 
-interface LoginRouteParams {
+interface OAuthRehydrationRouteParams {
   locked: boolean;
+  oauthLoginSuccess: boolean;
   onboardingTraceCtx?: TraceContext;
 }
 
-interface LoginProps {
+interface OAuthRehydrationProps {
   saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
 }
 
-/**
- * View where returning users can authenticate
- */
-const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
+const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
+  saveOnboardingEvent,
+}) => {
   const { isEnabled: isMetricsEnabled } = useMetrics();
 
   const fieldRef = useRef<TextInput>(null);
 
   const [password, setPassword] = useState('');
-  const [startOnboardingAnimation, setStartOnboardingAnimation] =
-    useState(false);
-  const [startFoxAnimation, setStartFoxAnimation] = useState<
-    false | 'Start' | 'Loader'
-  >(false);
+  const [errorToThrow, setErrorToThrow] = useState<Error | null>(null);
+  const [rehydrationFailedAttempts, setRehydrationFailedAttempts] = useState(0);
 
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
-  const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
+  const route =
+    useRoute<RouteProp<{ params: OAuthRehydrationRouteParams }, 'params'>>();
   const {
     styles,
     theme: { colors, themeAppearance },
   } = useStyles(stylesheet, EmptyRecordConstant);
 
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
-
-  const setStartFoxAnimationCallback = () => {
-    setStartFoxAnimation('Start');
-  };
 
   const track = (
     event: IMetaMetricsEvent,
@@ -132,30 +128,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     navigation.replace(Routes.ONBOARDING.HOME_NAV);
   };
 
-  const checkMetricsUISeen = async (): Promise<void> => {
-    const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
-      OPTIN_META_METRICS_UI_SEEN,
-    );
-
-    if (!isOptinMetaMetricsUISeen && !isMetricsEnabled()) {
-      navigation.reset({
-        routes: [
-          {
-            name: Routes.ONBOARDING.ROOT_NAV,
-            params: {
-              screen: Routes.ONBOARDING.NAV,
-              params: {
-                screen: Routes.ONBOARDING.OPTIN_METRICS,
-              },
-            },
-          },
-        ],
-      });
-    } else {
-      navigateToHome();
-    }
-  };
-
   const {
     onLogin,
     tryBiometric,
@@ -165,21 +137,24 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     disabledInput,
     isSeedlessPasswordOutdated,
   } = useLoginLogic({
-    isOAuthRehydration: false,
+    isOAuthRehydration: true,
     password,
     biometryChoice,
     rememberMe,
+    rehydrationFailedAttempts,
+    setRehydrationFailedAttempts,
     saveOnboardingEvent,
-    onLoginSuccess: checkMetricsUISeen,
+    onLoginSuccess: navigateToHome,
     passwordLoginAttemptTraceCtxRef,
     onboardingTraceCtx: route.params?.onboardingTraceCtx,
     setBiometryChoice,
+    setErrorToThrow,
   });
 
   usePasswordOutdated(setError);
 
   const handleBackPress = () => {
-    Authentication.lockApp();
+    navigation.goBack();
     return false;
   };
 
@@ -190,10 +165,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     });
     track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
     BackHandler.addEventListener('hardwareBackPress', handleBackPress);
-
-    setTimeout(() => {
-      setStartOnboardingAnimation(true);
-    }, 100);
 
     return () => {
       BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
@@ -212,17 +183,16 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     }
   }, [route.params?.onboardingTraceCtx]);
 
-  const toggleWarningModal = () => {
-    track(MetaMetricsEvents.FORGOT_PASSWORD_CLICKED, {});
-
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.DELETE_WALLET,
+  const handleUseOtherMethod = () => {
+    track(MetaMetricsEvents.USE_DIFFERENT_LOGIN_METHOD_CLICKED, {
+      account_type: 'social',
     });
+    navigation.goBack();
+    OAuthService.resetOauthState();
   };
 
   const handleDownloadStateLogs = () => {
     const fullState = ReduxService.store.getState();
-
     track(MetaMetricsEvents.LOGIN_DOWNLOAD_LOGS, {});
     downloadStateLogs(fullState, false);
   };
@@ -234,6 +204,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     hasBiometricCredentials &&
     !route?.params?.locked
   );
+
+  const ThrowErrorIfNeeded = () => {
+    if (errorToThrow) {
+      throw errorToThrow;
+    }
+    return null;
+  };
 
   const handlePasswordChange = (newPassword: string) => {
     setPassword(newPassword);
@@ -262,31 +239,52 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const shouldRenderBiometricLogin = biometryType;
 
   return (
-    <ErrorBoundary navigation={navigation} view="Login">
-      <SafeAreaView
-        style={[
-          styles.mainWrapper,
-          {
-            backgroundColor:
-              themeAppearance === 'dark'
-                ? importedColors.gettingStartedTextColor
-                : importedColors.gettingStartedPageBackgroundColorLightMode,
-          },
-        ]}
-      >
+    <ErrorBoundary
+      navigation={navigation}
+      view="OAuthRehydration"
+      useOnboardingErrorHandling={!!errorToThrow && !isMetricsEnabled()}
+    >
+      <ThrowErrorIfNeeded />
+      <SafeAreaView style={styles.mainWrapper}>
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
           resetScrollToCoords={{ x: 0, y: 0 }}
           style={styles.wrapper}
           contentContainerStyle={styles.scrollContentContainer}
-          extraScrollHeight={Platform.OS === 'android' ? 50 : 0}
+          extraScrollHeight={Platform.OS === 'android' ? -200 : 0}
           enableResetScrollToCoords={false}
         >
           <View testID={LoginViewSelectors.CONTAINER} style={styles.container}>
-            <OnboardingAnimation
-              startOnboardingAnimation={startOnboardingAnimation}
-              setStartFoxAnimation={setStartFoxAnimationCallback}
-            >
+            <View style={styles.oauthContentWrapper}>
+              <Image
+                source={METAMASK_NAME}
+                style={styles.metamaskName}
+                resizeMode="contain"
+                resizeMethod={'auto'}
+              />
+
+              <TouchableOpacity
+                style={styles.foxWrapper}
+                delayLongPress={10 * 1000}
+                onLongPress={handleDownloadStateLogs}
+                activeOpacity={1}
+              >
+                <Image
+                  source={FOX_LOGO}
+                  style={styles.image}
+                  resizeMethod={'auto'}
+                />
+              </TouchableOpacity>
+
+              <Text
+                variant={TextVariant.DisplayMD}
+                color={TextColor.Default}
+                style={styles.title}
+                testID={LoginViewSelectors.TITLE_ID}
+              >
+                {strings('login.title')}
+              </Text>
+
               <View style={styles.field}>
                 <LoginPasswordField
                   password={password}
@@ -305,7 +303,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                   themeAppearance={themeAppearance}
                   colors={colors}
                   testID={LoginViewSelectors.PASSWORD_INPUT}
-                  style={styles.textField}
                 />
               </View>
 
@@ -315,7 +312,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 style={styles.helperTextContainer}
               />
 
-              <View style={styles.ctaWrapper} pointerEvents="box-none">
+              <View style={styles.ctaWrapperRehydration}>
                 <LoginOptionsSwitch
                   shouldRenderBiometricOption={shouldRenderBiometricLogin}
                   biometryChoiceState={biometryChoice}
@@ -334,32 +331,26 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                   testID={LoginViewSelectors.LOGIN_BUTTON_ID}
                   loading={finalLoading}
                 />
-
-                <Button
-                  style={styles.goBack}
-                  variant={ButtonVariants.Link}
-                  onPress={toggleWarningModal}
-                  testID={LoginViewSelectors.RESET_WALLET}
-                  label={strings('login.forgot_password')}
-                  isDisabled={finalLoading}
-                  size={ButtonSize.Lg}
-                />
               </View>
-            </OnboardingAnimation>
+
+              <View style={styles.footer}>
+                <TouchableOpacity
+                  onPress={handleUseOtherMethod}
+                  disabled={finalLoading}
+                  testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
+                >
+                  <Text
+                    variant={TextVariant.BodyLGMedium}
+                    color={TextColor.Default}
+                  >
+                    {strings('login.other_methods')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
         </KeyboardAwareScrollView>
         <FadeOutOverlay />
-        <TouchableOpacity
-          style={styles.foxAnimationWrapper}
-          delayLongPress={10 * 1000} // 10 seconds
-          onLongPress={handleDownloadStateLogs}
-          activeOpacity={1}
-        >
-          <FoxAnimation
-            hasFooter={false}
-            trigger={startFoxAnimation || undefined}
-          />
-        </TouchableOpacity>
       </SafeAreaView>
     </ErrorBoundary>
   );
@@ -370,4 +361,4 @@ const mapDispatchToProps = (dispatch: Dispatch<OnboardingActionTypes>) => ({
     dispatch(saveEvent(eventArgs)),
 });
 
-export default connect(null, mapDispatchToProps)(Login);
+export default connect(null, mapDispatchToProps)(OAuthRehydration);
