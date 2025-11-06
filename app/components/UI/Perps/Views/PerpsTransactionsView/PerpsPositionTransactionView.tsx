@@ -55,6 +55,9 @@ const PerpsPositionTransactionView: React.FC = () => {
     ),
   );
 
+  const smallFeeThreshold = 0.01;
+  const smallFeeLabel = '< $0.01';
+
   if (!transaction) {
     // Handle missing transaction data
     return (
@@ -115,9 +118,9 @@ const PerpsPositionTransactionView: React.FC = () => {
     transaction.fill?.fee !== undefined &&
       transaction.fill?.fee !== null && {
         label: strings('perps.transactions.position.fees'),
-        value: BigNumber(transaction.fill.fee).isGreaterThan(0.01)
+        value: BigNumber(transaction.fill.fee).isGreaterThan(smallFeeThreshold)
           ? formatPerpsFiat(transaction.fill.fee)
-          : `$${transaction.fill.fee}`,
+          : smallFeeLabel,
         textColor: TextColor.Default,
       },
   ].filter(Boolean);
