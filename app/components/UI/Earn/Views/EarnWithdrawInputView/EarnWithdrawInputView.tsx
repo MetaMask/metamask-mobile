@@ -222,7 +222,7 @@ const EarnWithdrawInputView = () => {
 
     getAaveV3MaxRiskAwareWithdrawalAmount(
       selectedAccount.address,
-      withdrawalToken as EarnTokenDetails,
+      withdrawalToken,
     )
       .then((maxAmount) => {
         setMaxRiskAwareWithdrawalAmount(maxAmount);
@@ -404,7 +404,7 @@ const EarnWithdrawInputView = () => {
       await calculateAaveV3HealthFactorAfterWithdrawal(
         selectedAccount.address,
         amountTokenMinimalUnit.toString(),
-        withdrawalToken as EarnTokenDetails,
+        withdrawalToken,
       );
 
     setIsSubmittingStakeWithdrawalTransaction(true);
