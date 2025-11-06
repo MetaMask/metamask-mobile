@@ -24,7 +24,6 @@ interface CardSDKPrivateAccess {
   userCardLocation: string;
   enableLogs: boolean;
   mapAPINetworkToCaipChainId: (network: string) => string;
-  mapAPINetworkToAssetChainId: (network: string) => string;
   getFirstSupportedTokenOrNull: () => CardToken | null;
   findSupportedTokenByAddress: (address: string) => CardToken | null;
   mapSupportedTokenToCardToken: (token: SupportedToken) => CardToken;
@@ -730,9 +729,8 @@ describe('CardSDK', () => {
         cardFeatureFlag: emptyTokensCardFeatureFlag,
       });
 
-      const result = await emptyTokensCardSDK.getSupportedTokensAllowances(
-        testAddress,
-      );
+      const result =
+        await emptyTokensCardSDK.getSupportedTokensAllowances(testAddress);
       expect(result).toEqual([]);
     });
 
@@ -962,9 +960,8 @@ describe('CardSDK', () => {
         json: jest.fn().mockResolvedValue(mockResponse),
       });
 
-      const result = await cardSDK.initiateCardProviderAuthentication(
-        mockQueryParams,
-      );
+      const result =
+        await cardSDK.initiateCardProviderAuthentication(mockQueryParams);
 
       expect(result).toEqual(mockResponse);
       expect(global.fetch).toHaveBeenCalledWith(
@@ -2720,22 +2717,6 @@ describe('CardSDK', () => {
           cardSDK as unknown as CardSDKPrivateAccess
         ).mapAPINetworkToCaipChainId('solana');
         expect(result).toBe('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp');
-      });
-    });
-
-    describe('mapAPINetworkToAssetChainId', () => {
-      it('maps linea network to correct asset chain ID', () => {
-        const result = (
-          cardSDK as unknown as CardSDKPrivateAccess
-        ).mapAPINetworkToAssetChainId('linea');
-        expect(result).toBe('0xe708'); // LINEA_CHAIN_ID is in hex format
-      });
-
-      it('maps solana network to correct asset chain ID', () => {
-        const result = (
-          cardSDK as unknown as CardSDKPrivateAccess
-        ).mapAPINetworkToAssetChainId('solana');
-        expect(result).toBe('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'); // Full CAIP chain ID
       });
     });
 

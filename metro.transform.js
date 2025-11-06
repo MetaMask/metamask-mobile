@@ -41,6 +41,7 @@ const betaFeatureSet = new Set([
   'multi-srp',
   'solana',
   'bitcoin',
+  'tron',
 ]);
 const flaskFeatureSet = new Set([
   'flask',

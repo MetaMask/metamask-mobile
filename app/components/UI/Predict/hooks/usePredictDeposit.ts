@@ -1,18 +1,20 @@
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { captureException } from '@sentry/react-native';
 import { useCallback, useContext } from 'react';
 import { useSelector } from 'react-redux';
-import { createSelector } from 'reselect';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import Routes from '../../../../constants/navigation/Routes';
-import { RootState } from '../../../../reducers';
+import Logger from '../../../../util/Logger';
+import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
+import { PREDICT_CONSTANTS } from '../constants/errors';
+import { selectPredictPendingDepositByAddress } from '../selectors/predictController';
 import { PredictNavigationParamList } from '../types/navigation';
+import { ensureError } from '../utils/predictErrorHandler';
 import { usePredictTrading } from './usePredictTrading';
 
 interface UsePredictDepositParams {
@@ -28,14 +30,18 @@ export const usePredictDeposit = ({
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
 
-  const { deposit: depositWithConfirmation } = usePredictTrading();
-
-  const selectDepositTransaction = createSelector(
-    (state: RootState) => state.engine.backgroundState.PredictController,
-    (predictState) => predictState.depositTransaction,
+  const selectedInternalAccountAddress = useSelector(
+    selectSelectedInternalAccountAddress,
   );
 
-  const depositTransaction = useSelector(selectDepositTransaction);
+  const { deposit: depositWithConfirmation } = usePredictTrading();
+
+  const isDepositPending = useSelector(
+    selectPredictPendingDepositByAddress({
+      providerId,
+      address: selectedInternalAccountAddress ?? '',
+    }),
+  );
 
   const deposit = useCallback(async () => {
     try {
@@ -49,15 +55,18 @@ export const usePredictDeposit = ({
       }).catch((err) => {
         console.error('Failed to initialize deposit:', err);
 
-        // Capture exception with deposit initialization context
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        // Log error with deposit initialization context
+        Logger.error(ensureError(err), {
           tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
             component: 'usePredictDeposit',
-            action: 'deposit_initialization',
-            operation: 'financial_operations',
           },
-          extra: {
-            depositContext: {
+          context: {
+            name: 'usePredictDeposit',
+            data: {
+              method: 'deposit',
+              action: 'deposit_initialization',
+              operation: 'financial_operations',
               providerId,
             },
           },
@@ -107,15 +116,18 @@ export const usePredictDeposit = ({
         },
       });
 
-      // Capture exception with deposit navigation context
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      // Log error with deposit navigation context
+      Logger.error(ensureError(err), {
         tags: {
+          feature: PREDICT_CONSTANTS.FEATURE_NAME,
           component: 'usePredictDeposit',
-          action: 'deposit_navigation',
-          operation: 'financial_operations',
         },
-        extra: {
-          depositContext: {
+        context: {
+          name: 'usePredictDeposit',
+          data: {
+            method: 'deposit',
+            action: 'deposit_navigation',
+            operation: 'financial_operations',
             providerId,
           },
         },
@@ -133,6 +145,6 @@ export const usePredictDeposit = ({
 
   return {
     deposit,
-    status: depositTransaction?.status,
+    isDepositPending,
   };
 };

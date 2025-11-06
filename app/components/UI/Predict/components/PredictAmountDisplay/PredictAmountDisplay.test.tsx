@@ -1,5 +1,5 @@
+import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
 import { PerpsAmountDisplaySelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PredictAmountDisplay from './PredictAmountDisplay';
 
@@ -186,6 +186,216 @@ describe('PredictAmountDisplay', () => {
       const { getByText } = render(<PredictAmountDisplay amount={amount} />);
 
       expect(getByText('$0.01')).toBeOnTheScreen();
+    });
+
+    it('handles undefined amount', () => {
+      const { getByText } = render(
+        <PredictAmountDisplay amount={undefined as unknown as string} />,
+      );
+
+      expect(getByText('$0')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Font Size Adjustments', () => {
+    it('applies largest font size for short amounts up to 8 characters', () => {
+      const amount = '1234.5';
+
+      const { getByTestId } = render(<PredictAmountDisplay amount={amount} />);
+      const amountText = getByTestId(
+        PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL,
+      );
+
+      expect(amountText.props.style).toEqual(
+        expect.objectContaining({
+          fontSize: 60,
+          lineHeight: 70,
+        }),
+      );
+    });
+
+    it('applies medium-large font size for amounts with 9-10 characters', () => {
+      const amount = '12345.67';
+
+      const { getByTestId } = render(<PredictAmountDisplay amount={amount} />);
+      const amountText = getByTestId(
+        PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL,
+      );
+
+      expect(amountText.props.style).toEqual(
+        expect.objectContaining({
+          fontSize: 48,
+          lineHeight: 58,
+        }),
+      );
+    });
+
+    it('applies medium font size for amounts with 11-12 characters', () => {
+      const amount = '123456.789';
+
+      const { getByTestId } = render(<PredictAmountDisplay amount={amount} />);
+      const amountText = getByTestId(
+        PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL,
+      );
+
+      expect(amountText.props.style).toEqual(
+        expect.objectContaining({
+          fontSize: 32,
+          lineHeight: 42,
+        }),
+      );
+    });
+
+    it('applies small-medium font size for amounts with 13-14 characters', () => {
+      const amount = '1234567.8901';
+
+      const { getByTestId } = render(<PredictAmountDisplay amount={amount} />);
+      const amountText = getByTestId(
+        PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL,
+      );
+
+      expect(amountText.props.style).toEqual(
+        expect.objectContaining({
+          fontSize: 24,
+          lineHeight: 34,
+        }),
+      );
+    });
+
+    it('applies small font size for amounts with 15-18 characters', () => {
+      const amount = '1234567890.1234';
+
+      const { getByTestId } = render(<PredictAmountDisplay amount={amount} />);
+      const amountText = getByTestId(
+        PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL,
+      );
+
+      expect(amountText.props.style).toEqual(
+        expect.objectContaining({
+          fontSize: 18,
+          lineHeight: 28,
+        }),
+      );
+    });
+
+    it('applies smallest font size for amounts with more than 18 characters', () => {
+      const amount = '12345678901234567.89';
+
+      const { getByTestId } = render(<PredictAmountDisplay amount={amount} />);
+      const amountText = getByTestId(
+        PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL,
+      );
+
+      expect(amountText.props.style).toEqual(
+        expect.objectContaining({
+          fontSize: 12,
+          lineHeight: 22,
+        }),
+      );
+    });
+  });
+
+  describe('Animation Behavior', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('starts cursor animation when isActive becomes true', () => {
+      const amount = '1000';
+      const { getByTestId, rerender } = render(
+        <PredictAmountDisplay amount={amount} isActive={false} />,
+      );
+
+      rerender(<PredictAmountDisplay amount={amount} isActive />);
+
+      expect(getByTestId('cursor')).toBeOnTheScreen();
+    });
+
+    it('stops cursor animation when isActive becomes false', () => {
+      const amount = '1000';
+      const { queryByTestId, rerender } = render(
+        <PredictAmountDisplay amount={amount} isActive />,
+      );
+
+      rerender(<PredictAmountDisplay amount={amount} isActive={false} />);
+
+      expect(queryByTestId('cursor')).toBeNull();
+    });
+
+    it('renders cursor with correct animation styles when active', () => {
+      const amount = '1000';
+
+      const { getByTestId } = render(
+        <PredictAmountDisplay amount={amount} isActive />,
+      );
+      const cursor = getByTestId('cursor');
+
+      expect(cursor.props.style).toEqual(
+        expect.objectContaining({
+          backgroundColor: expect.any(String),
+          opacity: expect.any(Number),
+        }),
+      );
+    });
+  });
+
+  describe('Component Composition', () => {
+    it('allows pressing when onPress is provided', () => {
+      const onPressMock = jest.fn();
+      const amount = '1000';
+
+      const { getByTestId } = render(
+        <PredictAmountDisplay amount={amount} onPress={onPressMock} />,
+      );
+      const container = getByTestId(PerpsAmountDisplaySelectorsIDs.CONTAINER);
+      fireEvent.press(container);
+
+      expect(onPressMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders correctly when onPress is not provided', () => {
+      const amount = '1000';
+
+      const { getByTestId } = render(<PredictAmountDisplay amount={amount} />);
+      const container = getByTestId(PerpsAmountDisplaySelectorsIDs.CONTAINER);
+
+      expect(container).toBeOnTheScreen();
+    });
+  });
+
+  describe('Combined States', () => {
+    it('displays cursor and error color together when both isActive and hasError are true', () => {
+      const amount = '1000';
+
+      const { getByTestId } = render(
+        <PredictAmountDisplay amount={amount} isActive hasError />,
+      );
+
+      expect(getByTestId('cursor')).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+      ).toBeOnTheScreen();
+    });
+
+    it('handles onPress with isActive and hasError simultaneously', () => {
+      const onPressMock = jest.fn();
+      const amount = '1000';
+
+      const { getByText } = render(
+        <PredictAmountDisplay
+          amount={amount}
+          onPress={onPressMock}
+          isActive
+          hasError
+        />,
+      );
+      fireEvent.press(getByText('$1000'));
+
+      expect(onPressMock).toHaveBeenCalledTimes(1);
     });
   });
 });

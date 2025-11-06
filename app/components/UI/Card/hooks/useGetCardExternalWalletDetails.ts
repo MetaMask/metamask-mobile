@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useCardSDK } from '../sdk';
 import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
@@ -12,6 +12,21 @@ import Logger from '../../../../util/Logger';
 import { isZero } from '../../../../util/lodash';
 import { ARBITRARY_ALLOWANCE } from '../constants';
 import { useWrapWithCache } from './useWrapWithCache';
+
+/**
+ * Determines the allowance state based on the allowance value
+ * @param allowanceFloat - Parsed allowance value
+ * @returns AllowanceState enum value
+ */
+const determineAllowanceState = (allowanceFloat: number): AllowanceState => {
+  if (allowanceFloat === 0) {
+    return AllowanceState.NotEnabled;
+  }
+  if (allowanceFloat < ARBITRARY_ALLOWANCE) {
+    return AllowanceState.Limited;
+  }
+  return AllowanceState.Enabled;
+};
 
 /**
  * Maps a CardExternalWalletDetail to CardTokenAllowance format
@@ -35,12 +50,7 @@ export const mapCardExternalWalletDetailToCardTokenAllowance = (
     );
     const balanceFloat = parseFloat(cardExternalWalletDetail.balance || '0');
 
-    const allowanceState =
-      allowanceFloat === 0
-        ? AllowanceState.NotEnabled
-        : allowanceFloat < ARBITRARY_ALLOWANCE
-        ? AllowanceState.Limited
-        : AllowanceState.Enabled;
+    const allowanceState = determineAllowanceState(allowanceFloat);
     const availableBalance = Math.min(balanceFloat, allowanceFloat);
 
     // Find totalAllowance by matching the token address
@@ -61,7 +71,7 @@ export const mapCardExternalWalletDetailToCardTokenAllowance = (
       walletAddress: cardExternalWalletDetail.walletAddress,
       caipChainId: cardExternalWalletDetail.caipChainId,
       allowanceState,
-      totalAllowance,
+      totalAllowance: totalAllowance?.allowance,
       allowance: allowanceFloat.toString(),
       availableBalance: availableBalance.toString(),
       delegationContract: cardExternalWalletDetail.delegationContractAddress,
@@ -139,7 +149,31 @@ const useGetCardExternalWalletDetails = (
           detail.tokenDetails.address,
       );
 
-      const totalAllowances = await sdk.getTotalAllowance(lineaEvmTokens);
+      // Add timeout to prevent hanging indefinitely
+      const getTotalAllowanceWithTimeout = Promise.race([
+        sdk.getTotalAllowance(lineaEvmTokens),
+        new Promise<{ address: string; allowance: string | undefined }[]>(
+          (_, reject) =>
+            setTimeout(
+              () => reject(new Error('getTotalAllowance timeout')),
+              10000,
+            ),
+        ),
+      ]);
+
+      let totalAllowances: { address: string; allowance: string | undefined }[];
+      try {
+        totalAllowances = await getTotalAllowanceWithTimeout;
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'fetchCardExternalWalletDetails: getTotalAllowance failed or timed out, using empty array',
+        );
+        // If getTotalAllowance fails or times out, use empty array
+        // This allows Solana tokens to still be returned
+        totalAllowances = [];
+      }
+
       const mappedWalletDetails =
         mapCardExternalWalletDetailToCardTokenAllowance(
           cardExternalWalletDetails,
@@ -169,11 +203,26 @@ const useGetCardExternalWalletDetails = (
     }
   }, [sdk, isAuthenticated, delegationSettings]);
 
-  return useWrapWithCache(
+  const cacheResult = useWrapWithCache(
     'card-external-wallet-details',
     fetchCardExternalWalletDetails,
-    { cacheDuration: 60 * 1000 }, // 60 seconds cache (matches authenticated mode in useGetPriorityCardToken)
+    {
+      cacheDuration: 60 * 1000, // 60 seconds cache (matches authenticated mode in useGetPriorityCardToken)
+      fetchOnMount: false, // Disable auto-fetch, we'll manually control it below
+    },
   );
+
+  const { data, isLoading, fetchData } = cacheResult;
+
+  // Manually trigger fetch when all prerequisites are ready
+  // This avoids the race condition where SDK isn't available on first render
+  useEffect(() => {
+    if (sdk && isAuthenticated && delegationSettings && !isLoading && !data) {
+      fetchData();
+    }
+  }, [sdk, isAuthenticated, delegationSettings, isLoading, data, fetchData]);
+
+  return cacheResult;
 };
 
 export default useGetCardExternalWalletDetails;

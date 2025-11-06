@@ -36,6 +36,7 @@ import RewardsAnimations, {
 } from '../../../Rewards/components/RewardPointsAnimation';
 import QuoteCountdownTimer from '../QuoteCountdownTimer';
 import QuoteDetailsRecipientKeyValueRow from '../QuoteDetailsRecipientKeyValueRow/QuoteDetailsRecipientKeyValueRow';
+import { toSentenceCase } from '../../../../../util/string';
 
 if (
   Platform.OS === 'android' &&
@@ -108,7 +109,7 @@ const QuoteDetailsCard: React.FC = () => {
                 alignItems={BoxAlignItems.Center}
                 gap={1}
               >
-                <Text variant={TextVariant.BodyMDMedium}>
+                <Text variant={TextVariant.BodyMD}>
                   {strings('bridge.rate')}
                 </Text>
                 <QuoteCountdownTimer />
@@ -140,13 +141,13 @@ const QuoteDetailsCard: React.FC = () => {
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
           >
-            <Text variant={TextVariant.BodyMDMedium}>
-              {strings('bridge.network_fee')}
+            <Text variant={TextVariant.BodyMD}>
+              {toSentenceCase(strings('bridge.network_fee'))}
             </Text>
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              gap={8}
+              gap={2}
             >
               <Text
                 variant={TextVariant.BodyMD}
@@ -163,8 +164,8 @@ const QuoteDetailsCard: React.FC = () => {
           <KeyValueRow
             field={{
               label: {
-                text: strings('bridge.network_fee'),
-                variant: TextVariant.BodyMDMedium,
+                text: toSentenceCase(strings('bridge.network_fee')),
+                variant: TextVariant.BodyMD,
               },
               tooltip: {
                 title: strings('bridge.network_fee_info_title'),
@@ -186,7 +187,7 @@ const QuoteDetailsCard: React.FC = () => {
           field={{
             label: {
               text: strings('bridge.slippage'),
-              variant: TextVariant.BodyMDMedium,
+              variant: TextVariant.BodyMD,
             },
             tooltip: {
               title: strings('bridge.slippage_info_title'),
@@ -203,12 +204,12 @@ const QuoteDetailsCard: React.FC = () => {
                 testID="edit-slippage-button"
                 style={styles.slippageButton}
               >
-                <Text variant={TextVariant.BodyMD}>{slippage}</Text>
                 <Icon
                   name={IconName.Edit}
                   size={IconSize.Sm}
-                  color={IconColor.Muted}
+                  color={IconColor.Alternative}
                 />
+                <Text variant={TextVariant.BodyMD}>{slippage}</Text>
               </TouchableOpacity>
             ),
           }}
@@ -218,8 +219,8 @@ const QuoteDetailsCard: React.FC = () => {
           <KeyValueRow
             field={{
               label: {
-                text: strings('bridge.minimum_received'),
-                variant: TextVariant.BodyMDMedium,
+                text: toSentenceCase(strings('bridge.minimum_received')),
+                variant: TextVariant.BodyMD,
               },
               tooltip: {
                 title: strings('bridge.minimum_received_tooltip_title'),
@@ -241,8 +242,8 @@ const QuoteDetailsCard: React.FC = () => {
           <KeyValueRow
             field={{
               label: {
-                text: strings('bridge.price_impact'),
-                variant: TextVariant.BodyMDMedium,
+                text: toSentenceCase(strings('bridge.price_impact')),
+                variant: TextVariant.BodyMD,
               },
               tooltip: {
                 title: strings('bridge.price_impact_info_title'),
@@ -272,8 +273,8 @@ const QuoteDetailsCard: React.FC = () => {
           <KeyValueRow
             field={{
               label: {
-                text: strings('bridge.points'),
-                variant: TextVariant.BodyMDMedium,
+                text: toSentenceCase(strings('bridge.points')),
+                variant: TextVariant.BodyMD,
               },
               tooltip: {
                 title: strings('bridge.points_tooltip'),
@@ -298,8 +299,8 @@ const QuoteDetailsCard: React.FC = () => {
                       isRewardsLoading
                         ? RewardAnimationState.Loading
                         : hasRewardsError
-                        ? RewardAnimationState.ErrorState
-                        : RewardAnimationState.Idle
+                          ? RewardAnimationState.ErrorState
+                          : RewardAnimationState.Idle
                     }
                   />
                 </Box>

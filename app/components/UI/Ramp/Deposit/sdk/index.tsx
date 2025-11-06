@@ -286,9 +286,8 @@ export const useDepositSDK = () => {
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const withDepositSDK = (Component: React.FC) => (props: any) =>
-  (
-    <DepositSDKProvider>
-      <Component {...props} />
-    </DepositSDKProvider>
-  );
+export const withDepositSDK = (Component: React.FC) => (props: any) => (
+  <DepositSDKProvider>
+    <Component {...props} />
+  </DepositSDKProvider>
+);
