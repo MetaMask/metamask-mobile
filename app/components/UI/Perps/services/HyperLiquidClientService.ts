@@ -410,12 +410,12 @@ export class HyperLiquidClientService {
           })
           .catch((error) => {
             DevLogger.log('Error subscribing to candles:', error);
-            throw error;
+            // Don't throw - would create unhandled rejection since function already returned
           });
       })
       .catch((error) => {
         DevLogger.log('Error fetching initial candle data:', error);
-        throw error;
+        // Don't throw - would create unhandled rejection since function already returned
       });
 
     // Return cleanup function
