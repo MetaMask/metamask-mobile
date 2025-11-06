@@ -1,8 +1,6 @@
 import { ControllerInitFunction } from '../types';
-import {
-  TokenRatesController,
-  type TokenRatesControllerMessenger,
-} from '@metamask/assets-controllers';
+import { TokenRatesController } from '@metamask/assets-controllers';
+import { TokenRatesControllerMessenger } from '../messengers/token-rates-controller-messenger';
 import { Duration, inMilliseconds } from '@metamask/utils';
 
 /**

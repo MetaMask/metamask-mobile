@@ -1,39 +1,30 @@
-import {
-  IconColor as ReactNativeDsIconColor,
-  IconSize as ReactNativeDsIconSize,
-  Text,
-  TextVariant,
-  TextColor,
-} from '@metamask/design-system-react-native';
-import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
-import { useNavigation } from '@react-navigation/native';
-import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
 import React, { useCallback, useContext, useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { strings } from '../../../../../locales/i18n';
-import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import {
   ToastOptions,
   ToastVariants,
 } from '../../../../component-library/components/Toast/Toast.types';
-import Routes from '../../../../constants/navigation/Routes';
-import { capitalize } from '../../../../util/general';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useAppThemeFromContext } from '../../../../util/theme';
-import { OrderDirection } from '../types/perps-types';
-import { formatPerpsFiat } from '../utils/formatUtils';
+import { strings } from '../../../../../locales/i18n';
+import { capitalize } from '../../../../util/general';
+import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
+import { useNavigation } from '@react-navigation/native';
+import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
+import Routes from '../../../../constants/navigation/Routes';
 import { handlePerpsError } from '../utils/perpsErrorHandler';
+import { OrderDirection } from '../types/perps-types';
 import { formatDurationForDisplay } from '../utils/time';
-import { Position } from '../controllers/types';
+import { formatPerpsFiat } from '../utils/formatUtils';
+import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
+import {
+  IconSize as ReactNativeDsIconSize,
+  IconColor as ReactNativeDsIconColor,
+} from '@metamask/design-system-react-native';
+import { View, StyleSheet } from 'react-native';
 
-export type PerpsToastOptions = Omit<ToastOptions, 'labelOptions'> & {
+export type PerpsToastOptions = ToastOptions & {
   hapticsType: NotificationFeedbackType;
-  // Overwriting ToastOptions.labelOptions to also support ReactNode since this works.
-  labelOptions?: {
-    label: string | React.ReactNode;
-    isBold?: boolean;
-  }[];
 };
 
 export interface PerpsToastOptionsConfig {
@@ -108,10 +99,7 @@ export interface PerpsToastOptionsConfig {
             amount: string,
             assetSymbol: string,
           ) => PerpsToastOptions;
-          closeFullPositionSuccess: (
-            position: Position,
-            marketPrice?: string,
-          ) => PerpsToastOptions;
+          closeFullPositionSuccess: PerpsToastOptions;
           closeFullPositionFailed: PerpsToastOptions;
         };
         partial: {
@@ -120,10 +108,7 @@ export interface PerpsToastOptionsConfig {
             amount: string,
             assetSymbol: string,
           ) => PerpsToastOptions;
-          closePartialPositionSuccess: (
-            position: Position,
-            marketPrice?: string,
-          ) => PerpsToastOptions;
+          closePartialPositionSuccess: PerpsToastOptions;
           closePartialPositionFailed: PerpsToastOptions;
         };
       };
@@ -163,18 +148,9 @@ export interface PerpsToastOptionsConfig {
       };
     };
   };
-  contentSharing: {
-    pnlHeroCard: {
-      shareSuccess: PerpsToastOptions;
-      shareFailed: PerpsToastOptions;
-    };
-  };
 }
 
-const getPerpsToastLabels = (
-  primary: string | React.ReactNode,
-  secondary?: string | React.ReactNode,
-) => {
+const getPerpsToastLabels = (primary: string, secondary?: string) => {
   const labels = [
     {
       label: primary,
@@ -266,6 +242,14 @@ const usePerpsToasts = (): {
     [theme],
   );
 
+  const showToast = useCallback(
+    (config: PerpsToastOptions) => {
+      toastRef?.current?.showToast(config);
+      notificationAsync(config.hapticsType);
+    },
+    [toastRef],
+  );
+
   const navigationHandlers = useMemo(
     () => ({
       goToPerpsTab: () => {
@@ -284,46 +268,8 @@ const usePerpsToasts = (): {
           });
         }, 100);
       },
-      goToPnlHeroCard: (position: Position, marketPrice?: string) => {
-        toastRef?.current?.closeToast();
-        navigation.navigate(Routes.PERPS.PNL_HERO_CARD, {
-          position,
-          marketPrice,
-        });
-      },
     }),
     [navigation, toastRef],
-  );
-
-  const perpsToastButtonOptions = useMemo(
-    () => ({
-      pnlHeroCardShareButton: (
-        position: Position,
-        marketPrice?: string,
-      ): ToastOptions['closeButtonOptions'] => ({
-        label: strings('perps.pnl_hero_card.share_button'),
-        onPress: () =>
-          navigationHandlers.goToPnlHeroCard(position, marketPrice),
-        variant: ButtonVariants.Link,
-      }),
-      goToActivityButton: (
-        transactionId: string,
-      ): ToastOptions['closeButtonOptions'] => ({
-        label: strings('perps.deposit.track'),
-        onPress: () => navigationHandlers.goToActivity(transactionId),
-        variant: ButtonVariants.Link,
-      }),
-    }),
-    [navigationHandlers],
-  );
-
-  const showToast = useCallback(
-    (config: PerpsToastOptions) => {
-      const { hapticsType, ...toastOptions } = config;
-      toastRef?.current?.showToast(toastOptions as ToastOptions);
-      notificationAsync(hapticsType);
-    },
-    [toastRef],
   );
 
   // Centralized toast options for Perp
@@ -371,8 +317,11 @@ const usePerpsToasts = (): {
             let closeButtonOptions;
 
             if (processingTimeInSeconds) {
-              closeButtonOptions =
-                perpsToastButtonOptions.goToActivityButton(transactionId);
+              closeButtonOptions = {
+                label: strings('perps.deposit.track'),
+                onPress: () => navigationHandlers.goToActivity(transactionId),
+                variant: ButtonVariants.Link,
+              };
             }
 
             return {
@@ -405,7 +354,7 @@ const usePerpsToasts = (): {
               strings('perps.withdrawal.success_toast'),
               strings('perps.withdrawal.success_toast_description', {
                 amount: amount
-                  ? (Number.parseFloat(amount) - 1).toFixed(2)
+                  ? (parseFloat(amount) - 1).toFixed(2)
                   : undefined,
                 symbol: assetSymbol,
                 networkName: 'Arbitrum',
@@ -581,7 +530,7 @@ const usePerpsToasts = (): {
               labels.push(
                 strings('perps.order.order_placement_subtitle', {
                   direction,
-                  amount: Math.abs(Number.parseFloat(amount)),
+                  amount: Math.abs(parseFloat(amount)),
                   assetSymbol,
                 }),
               );
@@ -621,7 +570,7 @@ const usePerpsToasts = (): {
                     'perps.close_position.closing_position_subtitle',
                     {
                       direction,
-                      amount: Math.abs(Number.parseFloat(amount)),
+                      amount: Math.abs(parseFloat(amount)),
                       assetSymbol,
                     },
                   );
@@ -635,42 +584,12 @@ const usePerpsToasts = (): {
                   ),
                 };
               },
-              closeFullPositionSuccess: (
-                position: Position,
-                marketPrice?: string,
-              ) => {
-                const roeValue =
-                  Number.parseFloat(position.returnOnEquity) * 100;
-
-                return {
-                  ...perpsBaseToastOptions.success,
-                  closeButtonOptions:
-                    perpsToastButtonOptions.pnlHeroCardShareButton(
-                      position,
-                      marketPrice,
-                    ),
-                  labelOptions: getPerpsToastLabels(
-                    strings('perps.close_position.position_closed'),
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.OverlayInverse}
-                    >
-                      {strings('perps.close_position.your_pnl_is')}
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        style={{
-                          color:
-                            roeValue >= 0
-                              ? theme.colors.success.default
-                              : theme.colors.error.default,
-                        }}
-                      >
-                        {' '}
-                        {`${roeValue.toFixed(1)}%`}
-                      </Text>
-                    </Text>,
-                  ),
-                };
+              closeFullPositionSuccess: {
+                ...perpsBaseToastOptions.success,
+                labelOptions: getPerpsToastLabels(
+                  strings('perps.close_position.position_closed'),
+                  strings('perps.close_position.funds_are_available_to_trade'),
+                ),
               },
               closeFullPositionFailed: {
                 ...perpsBaseToastOptions.error,
@@ -695,7 +614,7 @@ const usePerpsToasts = (): {
                     'perps.close_position.closing_position_subtitle',
                     {
                       direction,
-                      amount: Math.abs(Number.parseFloat(amount)),
+                      amount: Math.abs(parseFloat(amount)),
                       assetSymbol,
                     },
                   );
@@ -709,42 +628,12 @@ const usePerpsToasts = (): {
                   ),
                 };
               },
-              closePartialPositionSuccess: (
-                position: Position,
-                marketPrice?: string,
-              ) => {
-                const roeValue =
-                  Number.parseFloat(position.returnOnEquity) * 100;
-
-                return {
-                  ...perpsBaseToastOptions.success,
-                  closeButtonOptions:
-                    perpsToastButtonOptions.pnlHeroCardShareButton(
-                      position,
-                      marketPrice,
-                    ),
-                  labelOptions: getPerpsToastLabels(
-                    strings('perps.close_position.position_partially_closed'),
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.OverlayInverse}
-                    >
-                      {strings('perps.close_position.your_pnl_is')}
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        style={{
-                          color:
-                            roeValue >= 0
-                              ? theme.colors.success.default
-                              : theme.colors.error.default,
-                        }}
-                      >
-                        {' '}
-                        {`${roeValue.toFixed(1)}%`}
-                      </Text>
-                    </Text>,
-                  ),
-                };
+              closePartialPositionSuccess: {
+                ...perpsBaseToastOptions.success,
+                labelOptions: getPerpsToastLabels(
+                  strings('perps.close_position.position_partially_closed'),
+                  strings('perps.close_position.funds_are_available_to_trade'),
+                ),
               },
               closePartialPositionFailed: {
                 ...perpsBaseToastOptions.error,
@@ -769,7 +658,7 @@ const usePerpsToasts = (): {
                   strings('perps.close_position.position_close_order_placed'),
                   strings('perps.close_position.closing_position_subtitle', {
                     direction,
-                    amount: Math.abs(Number.parseFloat(amount)),
+                    amount: Math.abs(parseFloat(amount)),
                     assetSymbol,
                   }),
                 ),
@@ -786,7 +675,7 @@ const usePerpsToasts = (): {
                   strings('perps.close_position.partial_close_submitted'),
                   strings('perps.close_position.closing_position_subtitle', {
                     direction,
-                    amount: Math.abs(Number.parseFloat(amount)),
+                    amount: Math.abs(parseFloat(amount)),
                     assetSymbol,
                   }),
                 ),
@@ -867,22 +756,6 @@ const usePerpsToasts = (): {
           },
         },
       },
-      contentSharing: {
-        pnlHeroCard: {
-          shareSuccess: {
-            ...perpsBaseToastOptions.success,
-            labelOptions: getPerpsToastLabels(
-              strings('perps.pnl_hero_card.export_success'),
-            ),
-          },
-          shareFailed: {
-            ...perpsBaseToastOptions.error,
-            labelOptions: getPerpsToastLabels(
-              strings('perps.pnl_hero_card.share_failed'),
-            ),
-          },
-        },
-      },
     }),
     [
       navigationHandlers,
@@ -890,9 +763,6 @@ const usePerpsToasts = (): {
       perpsBaseToastOptions.inProgress,
       perpsBaseToastOptions.info,
       perpsBaseToastOptions.success,
-      perpsToastButtonOptions,
-      theme.colors.error.default,
-      theme.colors.success.default,
     ],
   );
 

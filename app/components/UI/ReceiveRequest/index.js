@@ -28,10 +28,7 @@ import { selectChainId } from '../../../selectors/networkController';
 import { isNetworkRampSupported } from '../Ramp/Aggregator/utils';
 import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import {
-  getDetectedGeolocation,
-  getRampNetworks,
-} from '../../../reducers/fiatOrders';
+import { getRampNetworks } from '../../../reducers/fiatOrders';
 import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Receive/RequestPaymentModal.selectors';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { getDecimalChainId } from '../../../util/networks';
@@ -106,10 +103,6 @@ class ReceiveRequest extends PureComponent {
      * Boolean that indicates if the evm network is selected
      */
     isEvmNetworkSelected: PropTypes.bool,
-    /**
-     * Geodetected region for ramp
-     */
-    rampGeodetectedRegion: PropTypes.string,
   };
 
   state = {
@@ -160,7 +153,6 @@ class ReceiveRequest extends PureComponent {
             text: 'Buy Native Token',
             location: 'Receive Modal',
             chain_id_destination: getDecimalChainId(this.props.chainId),
-            region: this.props.rampGeodetectedRegion,
           })
           .build(),
       );
@@ -259,7 +251,6 @@ const mapStateToProps = (state) => ({
     getRampNetworks(state),
   ),
   isEvmNetworkSelected: selectIsEvmNetworkSelected(state),
-  rampGeodetectedRegion: getDetectedGeolocation(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

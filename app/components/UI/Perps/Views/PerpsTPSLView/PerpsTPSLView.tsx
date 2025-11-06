@@ -404,7 +404,7 @@ const PerpsTPSLView: React.FC = () => {
             iconColor={IconColor.Default}
             size={ButtonIconSizes.Md}
             onPress={handleBack}
-            testID={PerpsTPSLViewSelectorsIDs.BACK_BUTTON}
+            testID="back-button"
           />
         </View>
         <View style={styles.headerTitleContainer}>

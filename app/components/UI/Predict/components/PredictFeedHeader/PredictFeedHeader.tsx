@@ -6,7 +6,6 @@ import {
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { Pressable } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import Icon, {
   IconName,
   IconSize,
@@ -15,7 +14,6 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
-import Routes from '../../../../../constants/navigation/Routes';
 import SearchBox from '../SearchBox';
 
 interface PredictFeedHeaderProps {
@@ -32,20 +30,6 @@ const PredictFeedHeader: React.FC<PredictFeedHeaderProps> = ({
   onSearch,
 }) => {
   const { colors } = useTheme();
-  const navigation = useNavigation();
-
-  const handleBackPress = () => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-    } else {
-      navigation.navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
-    }
-  };
 
   return (
     <>
@@ -54,23 +38,9 @@ const PredictFeedHeader: React.FC<PredictFeedHeaderProps> = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="w-full pt-2 pb-4 px-4"
-          style={{ backgroundColor: colors.background.default }}
+          twClassName="w-full py-2"
         >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-3"
-          >
-            <Pressable testID="back-button" onPress={handleBackPress}>
-              <Icon
-                name={IconName.ArrowLeft}
-                size={IconSize.Lg}
-                color={colors.text.default}
-              />
-            </Pressable>
-            <Text variant={TextVariant.HeadingLG}>Predictions</Text>
-          </Box>
+          <Text variant={TextVariant.HeadingLG}>Predictions</Text>
           <Pressable testID="search-toggle-button" onPress={onSearchToggle}>
             <Icon
               name={IconName.Search}

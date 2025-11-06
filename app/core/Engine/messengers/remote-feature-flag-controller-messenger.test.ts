@@ -1,31 +1,14 @@
-import {
-  Messenger,
-  type MessengerActions,
-  type MessengerEvents,
-  MOCK_ANY_NAMESPACE,
-  type MockAnyNamespace,
-} from '@metamask/messenger';
+import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
 import { getRemoteFeatureFlagControllerMessenger } from './remote-feature-flag-controller-messenger';
-import { RemoteFeatureFlagControllerMessenger } from '@metamask/remote-feature-flag-controller';
-
-type RootMessenger = Messenger<
-  MockAnyNamespace,
-  MessengerActions<RemoteFeatureFlagControllerMessenger>,
-  MessengerEvents<RemoteFeatureFlagControllerMessenger>
->;
-
-function getRootMessenger(): RootMessenger {
-  return new Messenger({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
-}
 
 describe('getRemoteFeatureFlagControllerMessenger', () => {
-  it('returns a messenger', () => {
-    const rootMessenger: RootMessenger = getRootMessenger();
+  it('returns a restricted messenger', () => {
+    const messenger = new Messenger<never, never>();
     const remoteFeatureFlagControllerMessenger =
-      getRemoteFeatureFlagControllerMessenger(rootMessenger);
+      getRemoteFeatureFlagControllerMessenger(messenger);
 
-    expect(remoteFeatureFlagControllerMessenger).toBeInstanceOf(Messenger);
+    expect(remoteFeatureFlagControllerMessenger).toBeInstanceOf(
+      RestrictedMessenger,
+    );
   });
 });

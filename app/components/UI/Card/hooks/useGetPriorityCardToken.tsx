@@ -61,8 +61,9 @@ const fetchAllowances = async (
       name: TraceName.Card,
       op: TraceOperation.CardGetSupportedTokensAllowances,
     });
-    const supportedTokensAllowances =
-      await sdk.getSupportedTokensAllowances(selectedAddress);
+    const supportedTokensAllowances = await sdk.getSupportedTokensAllowances(
+      selectedAddress,
+    );
 
     const supportedTokens = sdk.getSupportedTokensByChainId(sdk.lineaChainId);
 
@@ -445,6 +446,7 @@ export const useGetPriorityCardToken = (
           externalWalletDetailsData.priorityWalletDetail
         ) {
           priorityWalletDetail = externalWalletDetailsData.priorityWalletDetail;
+          Logger.log('priorityWalletDetail', priorityWalletDetail);
         }
 
         const warning = !priorityWalletDetail
@@ -630,7 +632,7 @@ export const useGetPriorityCardToken = (
   return {
     fetchPriorityToken,
     priorityToken,
-    allTokensWithAllowances,
+    allTokensWithAllowances, // For asset selection in unauthenticated mode
     isLoading: isLoadingFinal,
     error: state.error,
     warning: state.warning,

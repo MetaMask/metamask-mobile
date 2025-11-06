@@ -5,7 +5,6 @@ const createStyles = () =>
     // custom network styles
     container: {
       flex: 1,
-      paddingVertical: 12,
     },
     scrollContentContainer: {
       paddingBottom: 100,

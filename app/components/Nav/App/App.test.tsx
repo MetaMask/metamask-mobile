@@ -74,6 +74,8 @@ jest.mock('../../hooks/useMetrics/useMetrics', () => ({
   }),
 }));
 
+jest.mock('../../../lib/ppom/PPOMView', () => ({ PPOMView: () => null }));
+
 jest.mock('react-native-branch', () => ({
   subscribe: jest.fn(),
   getLatestReferringParams: jest.fn(),

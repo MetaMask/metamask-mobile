@@ -319,6 +319,7 @@ exports[`CardAssetItem Component handles test network correctly 1`] = `
                       style={
                         {
                           "alignItems": "center",
+                          "flex": 1,
                           "flexDirection": "row",
                           "height": 64,
                         }
@@ -851,6 +852,7 @@ exports[`CardAssetItem Component renders non-native token and matches snapshot 1
                       style={
                         {
                           "alignItems": "center",
+                          "flex": 1,
                           "flexDirection": "row",
                           "height": 64,
                         }
@@ -1327,6 +1329,7 @@ exports[`CardAssetItem Component renders with all props and matches snapshot 1`]
                       style={
                         {
                           "alignItems": "center",
+                          "flex": 1,
                           "flexDirection": "row",
                           "height": 64,
                         }
@@ -1798,6 +1801,7 @@ exports[`CardAssetItem Component renders with privacy mode enabled and matches s
                       style={
                         {
                           "alignItems": "center",
+                          "flex": 1,
                           "flexDirection": "row",
                           "height": 64,
                         }
@@ -2269,6 +2273,7 @@ exports[`CardAssetItem Component renders with required props and matches snapsho
                       style={
                         {
                           "alignItems": "center",
+                          "flex": 1,
                           "flexDirection": "row",
                           "height": 64,
                         }

@@ -35,7 +35,6 @@ import {
   createBuyNavigationDetails,
   createSellNavigationDetails,
 } from '../../routes/utils';
-import { useAggregatorOrderNetworkName } from '../../hooks/useAggregatorOrderNetworkName';
 
 interface OrderDetailsParams {
   orderId?: string;
@@ -59,7 +58,6 @@ const OrderDetails = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
-  const getAggregatorOrderNetworkName = useAggregatorOrderNetworkName();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isRefreshingInterval, setIsRefreshingInterval] = useState(false);
@@ -117,10 +115,6 @@ const OrderDetails = () => {
         trackEvent('ONRAMP_PURCHASE_DETAILS_VIEWED', {
           ...payload,
           currency_destination: cryptocurrency,
-          currency_destination_symbol: cryptocurrency,
-          currency_destination_network: getAggregatorOrderNetworkName(
-            data as Order,
-          ),
           currency_source: currency,
           provider_onramp: providerName,
           chain_id_destination: network,
@@ -129,8 +123,6 @@ const OrderDetails = () => {
         trackEvent('OFFRAMP_PURCHASE_DETAILS_VIEWED', {
           ...payload,
           currency_source: cryptocurrency,
-          currency_source_symbol: cryptocurrency,
-          currency_source_network: getAggregatorOrderNetworkName(data as Order),
           currency_destination: currency,
           provider_offramp: providerName,
           chain_id_source: network,

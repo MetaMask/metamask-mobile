@@ -42,6 +42,7 @@ const styleSheet = (params: { theme: Theme }) => {
       top: -13,
       left: -16,
       elevation: 4,
+      borderWidth: 4,
       borderColor: colors.icon.default,
     },
     percentageRow: {
@@ -103,7 +104,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     percentageText: {
       marginTop: 8,
-      color: colors.text.alternative,
+      color: colors.text.muted,
       fontSize: 14,
       fontWeight: '500',
     },

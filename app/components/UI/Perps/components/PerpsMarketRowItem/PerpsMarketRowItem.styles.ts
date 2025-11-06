@@ -1,12 +1,18 @@
 import { StyleSheet } from 'react-native';
+import { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = () =>
-  StyleSheet.create({
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { colors } = theme;
+
+  return StyleSheet.create({
     container: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingVertical: 6,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      backgroundColor: colors.background.default,
     },
     perpIcon: {
       marginRight: 16,
@@ -24,10 +30,7 @@ const styleSheet = () =>
       alignItems: 'center',
       gap: 8,
     },
-    secondRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
+    tokenVolume: {
       marginTop: 2,
     },
     rightSection: {
@@ -44,5 +47,6 @@ const styleSheet = () =>
       marginTop: 2,
     },
   });
+};
 
 export default styleSheet;

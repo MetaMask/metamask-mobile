@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
-import { getAssetIconUrl } from '../utils/marketUtils';
+import { useEffect, useState, useMemo } from 'react';
+// import { useTheme } from '../../../../util/theme'; // Available for future dark mode support
+import { HYPERLIQUID_ASSET_ICONS_BASE_URL } from '../constants/hyperLiquidConfig';
 import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
 
 // Cache for validated asset URLs to prevent repeated HEAD requests
@@ -18,7 +19,7 @@ export const usePerpsAssetMetadata = (assetSymbol: string | undefined) => {
     // For now, we use the same SVG for both themes
     // In the future, we could add logic here to use different URLs based on theme
     // e.g., `${base}${symbol}_${isDarkMode ? 'dark' : 'light'}.svg`
-    return getAssetIconUrl(assetSymbol);
+    return `${HYPERLIQUID_ASSET_ICONS_BASE_URL}${assetSymbol.toUpperCase()}.svg`;
   }, [assetSymbol]);
 
   useEffect(() => {

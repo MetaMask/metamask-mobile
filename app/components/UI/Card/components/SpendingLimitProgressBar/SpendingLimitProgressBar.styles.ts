@@ -1,18 +1,12 @@
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../../../util/theme/models';
 
-const createStyles = (theme: Theme) =>
+const createStyles = () =>
   StyleSheet.create({
     container: {
       gap: 8,
       width: '100%',
       paddingBottom: 16,
-      paddingHorizontal: 16,
-    },
-    divider: {
-      height: 1,
-      backgroundColor: theme.colors.border.muted,
-      width: '100%',
+      paddingTop: 12,
     },
     textContainer: {
       flexDirection: 'row',

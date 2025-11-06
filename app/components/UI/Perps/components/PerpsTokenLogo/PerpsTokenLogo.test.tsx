@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, act } from '@testing-library/react-native';
+import { render, waitFor, act } from '@testing-library/react-native';
 import { Image } from 'expo-image';
 import PerpsTokenLogo from './PerpsTokenLogo';
 
@@ -13,8 +13,31 @@ jest.mock('../../../../../util/theme', () => ({
   }),
 }));
 
-// Note: Avatar component is no longer used in PerpsTokenLogo
-// The component now uses a simple text-based fallback instead
+// Store mocked components in variables to avoid require() in tests
+let mockAvatar: jest.Mock;
+
+jest.mock('../../../../../component-library/components/Avatars/Avatar', () => {
+  /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
+  const ReactModule = require('react');
+  const { View: ViewComponent } = require('react-native');
+  /* eslint-enable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
+  mockAvatar = jest.fn(({ name, testID }) =>
+    ReactModule.createElement(ViewComponent, {
+      testID: testID || `avatar-${name}`,
+    }),
+  );
+  return {
+    __esModule: true,
+    default: mockAvatar,
+    AvatarSize: {
+      Md: 'Md',
+      Lg: 'Lg',
+    },
+    AvatarVariant: {
+      Token: 'Token',
+    },
+  };
+});
 
 describe('PerpsTokenLogo', () => {
   beforeEach(() => {
@@ -69,15 +92,19 @@ describe('PerpsTokenLogo', () => {
     );
   });
 
-  it('shows text fallback when no symbol is provided', () => {
-    const { getByTestId } = render(
-      <PerpsTokenLogo symbol="" testID="no-symbol" />,
-    );
+  it('shows Avatar fallback when no symbol is provided', async () => {
+    render(<PerpsTokenLogo symbol="" testID="no-symbol" />);
 
-    // Should render text fallback immediately since empty symbol triggers fallback
-    const container = getByTestId('no-symbol');
-    expect(container).toBeTruthy();
-    // Empty symbol results in empty fallback text
+    // Should render Avatar fallback immediately since empty symbol triggers hasError
+    await waitFor(() => {
+      expect(mockAvatar).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: '',
+          variant: 'Token',
+        }),
+        expect.anything(),
+      );
+    });
   });
 
   it('renders Image component with correct URI', () => {
@@ -97,9 +124,9 @@ describe('PerpsTokenLogo', () => {
     );
   });
 
-  it('handles image error by showing text fallback', async () => {
+  it('handles image error by showing Avatar fallback', async () => {
     // Arrange
-    const { UNSAFE_getByType, getByTestId } = render(
+    const { UNSAFE_getByType, rerender } = render(
       <PerpsTokenLogo symbol="FAIL" testID="image-error" />,
     );
 
@@ -110,55 +137,54 @@ describe('PerpsTokenLogo', () => {
       image.props.onError();
     });
 
-    // Assert - Should show text fallback after error
-    const container = getByTestId('image-error');
-    expect(container).toBeTruthy();
-    // Text fallback should show "FA" for "FAIL"
+    // Force re-render to see the fallback
+    rerender(<PerpsTokenLogo symbol="FAIL" testID="image-error" />);
+
+    // Assert
+    await waitFor(() => {
+      expect(mockAvatar).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'FAIL',
+          variant: 'Token',
+        }),
+        expect.anything(),
+      );
+    });
   });
 
-  it('correctly applies size prop to container', () => {
-    // Test size 32
-    const { rerender, getByTestId } = render(
+  it('correctly determines avatar size based on numeric size prop', () => {
+    // Test size 32 -> AvatarSize.Md
+    const { rerender } = render(
       <PerpsTokenLogo symbol="" size={32} testID="size-32" />,
     );
 
-    const container32 = getByTestId('size-32');
-    expect(container32.props.style).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          width: 32,
-          height: 32,
-          borderRadius: 16,
-        }),
-      ]),
+    expect(mockAvatar).toHaveBeenCalledWith(
+      expect.objectContaining({
+        size: 'Md',
+      }),
+      expect.anything(),
     );
 
-    // Test size 40
+    // Test size 40 -> AvatarSize.Lg
+    mockAvatar.mockClear();
     rerender(<PerpsTokenLogo symbol="" size={40} testID="size-40" />);
 
-    const container40 = getByTestId('size-40');
-    expect(container40.props.style).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          width: 40,
-          height: 40,
-          borderRadius: 20,
-        }),
-      ]),
+    expect(mockAvatar).toHaveBeenCalledWith(
+      expect.objectContaining({
+        size: 'Lg',
+      }),
+      expect.anything(),
     );
 
-    // Test size 24
+    // Test other size -> AvatarSize.Md (default)
+    mockAvatar.mockClear();
     rerender(<PerpsTokenLogo symbol="" size={24} testID="size-24" />);
 
-    const container24 = getByTestId('size-24');
-    expect(container24.props.style).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          width: 24,
-          height: 24,
-          borderRadius: 12,
-        }),
-      ]),
+    expect(mockAvatar).toHaveBeenCalledWith(
+      expect.objectContaining({
+        size: 'Md',
+      }),
+      expect.anything(),
     );
   });
 

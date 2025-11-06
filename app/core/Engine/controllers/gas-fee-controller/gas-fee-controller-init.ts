@@ -1,7 +1,4 @@
-import {
-  GasFeeController,
-  type GasFeeMessenger,
-} from '@metamask/gas-fee-controller';
+import { GasFeeController } from '@metamask/gas-fee-controller';
 import { swapsUtils } from '@metamask/swaps-controller';
 
 import type {
@@ -12,6 +9,7 @@ import AppConstants from '../../../AppConstants';
 import Logger from '../../../../util/Logger';
 import { addHexPrefix } from '../../../../util/number';
 import { isMainnetByChainId } from '../../../../util/networks';
+import { type GasFeeControllerMessenger } from '../../messengers/gas-fee-controller-messenger/gas-fee-controller-messenger';
 
 const LEGACY_GAS_API_ENDPOINT =
   'https://gas.api.cx.metamask.io/networks/<chain_id>/gasPrices';
@@ -20,7 +18,7 @@ const EIP1559_API_ENDPOINT =
 
 export const GasFeeControllerInit: ControllerInitFunction<
   GasFeeController,
-  GasFeeMessenger
+  GasFeeControllerMessenger
 > = (request) => {
   const { controllerMessenger, getGlobalChainId } = request;
 
@@ -54,7 +52,9 @@ export const GasFeeControllerInit: ControllerInitFunction<
   }
 };
 
-function getControllers(request: ControllerInitRequest<GasFeeMessenger>) {
+function getControllers(
+  request: ControllerInitRequest<GasFeeControllerMessenger>,
+) {
   return {
     networkController: request.getController('NetworkController'),
   };

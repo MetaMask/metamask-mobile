@@ -1,26 +1,24 @@
-import { RootExtendedMessenger } from '../../types';
+import { BaseControllerMessenger } from '../../types';
 import { getNotificationServicesControllerMessenger } from './notification-services-controller-messenger';
-import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 
 describe('getNotificationServicesControllerMessenger', () => {
   const arrangeMocks = () => {
-    const baseMessenger: RootExtendedMessenger =
-      new ExtendedMessenger<MockAnyNamespace>({
-        namespace: MOCK_ANY_NAMESPACE,
-      });
-    const mockDelegate = jest.spyOn(baseMessenger, 'delegate');
-    return { baseMessenger, mockDelegate };
+    const baseMessenger: BaseControllerMessenger =
+      new ExtendedControllerMessenger();
+    const mockGetRestricted = jest.spyOn(baseMessenger, 'getRestricted');
+    return { baseMessenger, mockGetRestricted };
   };
 
-  it('returns a delegated messenger with the correct configuration', () => {
-    const { baseMessenger, mockDelegate } = arrangeMocks();
+  it('returns a restricted messenger with the correct configuration', () => {
+    const { baseMessenger, mockGetRestricted } = arrangeMocks();
 
-    const delegatedMessenger =
+    const restrictedMessenger =
       getNotificationServicesControllerMessenger(baseMessenger);
 
-    expect(mockDelegate).toHaveBeenCalledWith({
-      actions: [
+    expect(mockGetRestricted).toHaveBeenCalledWith({
+      name: 'NotificationServicesController',
+      allowedActions: [
         // Keyring Actions
         'KeyringController:getState',
         // Auth Actions
@@ -32,7 +30,7 @@ describe('getNotificationServicesControllerMessenger', () => {
         'NotificationServicesPushController:disablePushNotifications',
         'NotificationServicesPushController:subscribeToPushNotifications',
       ],
-      events: [
+      allowedEvents: [
         // Keyring Events
         'KeyringController:stateChange',
         'KeyringController:lock',
@@ -41,9 +39,8 @@ describe('getNotificationServicesControllerMessenger', () => {
         'NotificationServicesPushController:onNewNotifications',
         'NotificationServicesPushController:stateChange',
       ],
-      messenger: delegatedMessenger,
     });
 
-    expect(delegatedMessenger).toBeDefined();
+    expect(restrictedMessenger).toBeDefined();
   });
 });

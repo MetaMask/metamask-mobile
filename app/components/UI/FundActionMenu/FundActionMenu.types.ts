@@ -18,7 +18,7 @@ export type FundActionMenuRouteProp = RouteProp<
 >;
 
 export interface ActionConfig {
-  type: 'deposit' | 'buy' | 'sell' | 'buy-unified';
+  type: 'deposit' | 'buy' | 'sell';
   label: string;
   description: string;
   iconName: IconName;

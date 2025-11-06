@@ -1,18 +1,12 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { StyleSheet, Linking } from 'react-native';
-import PerpsTransactionItem, { FillType } from './PerpsTransactionItem';
+import { StyleSheet } from 'react-native';
+import PerpsTransactionItem from './PerpsTransactionItem';
 import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import {
   PerpsOrderTransactionStatus,
   PerpsOrderTransactionStatusType,
 } from '../../types/transactionHistory';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
-import { PERPS_SUPPORT_ARTICLES_URLS } from '../../constants/perpsConfig';
 
 // Mock Redux selector
 jest.mock('react-redux', () => ({
@@ -40,7 +34,6 @@ jest.mock('../../../../../component-library/base-components/TagBase', () => ({
   TagSeverity: {
     Default: 'default',
     Danger: 'danger',
-    Info: 'info',
   },
   TagShape: {
     Pill: 'pill',
@@ -52,7 +45,6 @@ jest.mock('../PerpsTokenLogo', () => ({
   __esModule: true,
   default: ({ size, testID }: { size: number; testID?: string }) => {
     const { View } = jest.requireActual('react-native');
-
     return (
       <View
         testID={testID || 'perps-token-logo'}
@@ -65,16 +57,6 @@ jest.mock('../PerpsTokenLogo', () => ({
 // Mock localization
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
-}));
-
-// Mock Linking
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(() => Promise.resolve()),
-}));
-
-// Mock usePerpsEventTracking
-jest.mock('../../hooks', () => ({
-  usePerpsEventTracking: jest.fn(),
 }));
 
 const mockColors = {
@@ -153,14 +135,15 @@ const mockTransaction = {
     feeToken: 'USDC',
     action: 'Opened',
     dir: 'long',
-    fillType: FillType.Standard,
+    isLiquidation: false,
+    isTakeProfit: false,
+    isStopLoss: false,
   },
 };
 
 describe('PerpsTransactionItem', () => {
   const mockOnPress = jest.fn();
   const mockRenderRightContent = jest.fn().mockReturnValue('Right Content');
-  const mockTrack = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -173,15 +156,9 @@ describe('PerpsTransactionItem', () => {
     useSelector.mockReturnValue(() => ({
       address: '0x123',
     }));
-
-    // Mock usePerpsEventTracking hook
-    const { usePerpsEventTracking } = jest.requireMock('../../hooks');
-    usePerpsEventTracking.mockReturnValue({
-      track: mockTrack,
-    });
   });
 
-  it('renders transaction item with correct content', () => {
+  it('should render transaction item with correct content', () => {
     const { getByText, getByTestId } = render(
       <PerpsTransactionItem
         item={mockTransaction}
@@ -407,7 +384,9 @@ describe('PerpsTransactionItem', () => {
         ...mockTransaction,
         fill: {
           ...mockTransaction.fill,
-          fillType: FillType.TakeProfit,
+          isTakeProfit: true,
+          isStopLoss: false,
+          isLiquidation: false,
         },
       };
 
@@ -429,7 +408,9 @@ describe('PerpsTransactionItem', () => {
         ...mockTransaction,
         fill: {
           ...mockTransaction.fill,
-          fillType: FillType.StopLoss,
+          isTakeProfit: false,
+          isStopLoss: true,
+          isLiquidation: false,
         },
       };
 
@@ -467,12 +448,14 @@ describe('PerpsTransactionItem', () => {
           fee: '5.00',
           feeToken: 'USDC',
           action: 'Closed',
+          isLiquidation: true,
+          isTakeProfit: false,
+          isStopLoss: false,
           liquidation: {
             liquidatedUser: '0x123',
             markPx: '44900',
             method: 'market',
           },
-          fillType: FillType.Liquidation,
         },
       };
 
@@ -489,79 +472,14 @@ describe('PerpsTransactionItem', () => {
       expect(getByTestId('tag-base-danger')).toBeTruthy();
     });
 
-    it('should display auto deleveraging badge for auto deleveraging fills', () => {
-      const adlTransaction = {
-        ...mockTransaction,
-        fill: {
-          ...mockTransaction.fill,
-          fillType: FillType.AutoDeleveraging,
-        },
-      };
-
-      const { getByText, getByTestId } = render(
-        <PerpsTransactionItem
-          item={adlTransaction}
-          styles={mockStyles}
-          onPress={mockOnPress}
-          renderRightContent={mockRenderRightContent}
-        />,
-      );
-
-      expect(
-        getByText('perps.transactions.order.auto_deleveraging'),
-      ).toBeTruthy();
-      expect(getByTestId('tag-base-info')).toBeTruthy();
-    });
-
-    it('tracks event and opens support URL when ADL tag is pressed', () => {
-      const adlTransaction = {
-        ...mockTransaction,
-        asset: 'BTC',
-        timestamp: 1234567890000,
-        fill: {
-          ...mockTransaction.fill,
-          fillType: FillType.AutoDeleveraging,
-        },
-      };
-
-      const { getByText } = render(
-        <PerpsTransactionItem
-          item={adlTransaction}
-          styles={mockStyles}
-          onPress={mockOnPress}
-          renderRightContent={mockRenderRightContent}
-        />,
-      );
-
-      const adlTag = getByText('perps.transactions.order.auto_deleveraging');
-      fireEvent.press(adlTag);
-
-      expect(Linking.openURL).toHaveBeenCalledWith(
-        PERPS_SUPPORT_ARTICLES_URLS.ADL_URL,
-      );
-      expect(mockTrack).toHaveBeenCalledWith(
-        MetaMetricsEvents.PERPS_UI_INTERACTION,
-        {
-          [PerpsEventProperties.INTERACTION_TYPE]:
-            PerpsEventValues.INTERACTION_TYPE.TAP,
-          [PerpsEventProperties.SCREEN_NAME]:
-            PerpsEventValues.SCREEN_NAME.PERPS_ACTIVITY_HISTORY,
-          [PerpsEventProperties.TAB_NAME]:
-            PerpsEventValues.PERPS_HISTORY_TABS.TRADES,
-          [PerpsEventProperties.ACTION_TYPE]:
-            PerpsEventValues.ACTION_TYPE.ADL_LEARN_MORE,
-          [PerpsEventProperties.ASSET]: 'BTC',
-          [PerpsEventProperties.ORDER_TIMESTAMP]: 1234567890000,
-        },
-      );
-    });
-
     it('should not display badge for regular fills', () => {
       const regularTransaction = {
         ...mockTransaction,
         fill: {
           ...mockTransaction.fill,
-          fillType: FillType.Standard,
+          isTakeProfit: false,
+          isStopLoss: false,
+          isLiquidation: false,
         },
       };
 
@@ -585,7 +503,9 @@ describe('PerpsTransactionItem', () => {
         ...mockTransaction,
         fill: {
           ...mockTransaction.fill,
-          fillType: FillType.Liquidation,
+          isTakeProfit: false,
+          isStopLoss: false,
+          isLiquidation: true,
           liquidation: {
             liquidatedUser: '0x456', // Different user
             markPx: '44900',

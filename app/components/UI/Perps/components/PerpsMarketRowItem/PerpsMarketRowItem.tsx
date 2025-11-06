@@ -6,16 +6,9 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import {
-  PERPS_CONSTANTS,
-  HOME_SCREEN_CONFIG,
-} from '../../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import type { PerpsMarketData } from '../../controllers/types';
 import { usePerpsLivePrices } from '../../hooks/stream';
-import {
-  getPerpsDisplaySymbol,
-  getMarketBadgeType,
-} from '../../utils/marketUtils';
 import {
   formatPercentage,
   formatPerpsFiat,
@@ -23,19 +16,12 @@ import {
   formatVolume,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import PerpsBadge from '../PerpsBadge';
 import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsMarketRowItem.styles';
 import { PerpsMarketRowItemProps } from './PerpsMarketRowItem.types';
 
-const PerpsMarketRowItem = ({
-  market,
-  onPress,
-  iconSize = HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE,
-  displayMetric = 'volume',
-  showBadge = true,
-}: PerpsMarketRowItemProps) => {
+const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   // Subscribe to live prices for just this symbol
@@ -48,7 +34,6 @@ const PerpsMarketRowItem = ({
   const displayMarket = useMemo(() => {
     const livePrice = livePrices[market.symbol];
     if (!livePrice) {
-      // No live price available, use existing formatted price from market data
       return market;
     }
 
@@ -98,12 +83,9 @@ const PerpsMarketRowItem = ({
         updatedMarket.volume = formatVolume(volume);
       } else {
         // Only show $0 if volume is truly 0
-        updatedMarket.volume = PERPS_CONSTANTS.ZERO_AMOUNT_DETAILED_DISPLAY;
+        updatedMarket.volume = '$0.00';
       }
-    } else if (
-      !market.volume ||
-      market.volume === PERPS_CONSTANTS.ZERO_AMOUNT_DISPLAY
-    ) {
+    } else if (!market.volume || market.volume === '$0') {
       // Fallback: ensure volume field always has a value
       updatedMarket.volume = PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
     }
@@ -115,33 +97,7 @@ const PerpsMarketRowItem = ({
     onPress?.(displayMarket);
   };
 
-  // Helper to get display value based on selected metric
-  const getDisplayValue = useMemo(() => {
-    switch (displayMetric) {
-      case 'priceChange':
-        return displayMarket.change24hPercent;
-      case 'openInterest':
-        return (
-          displayMarket.openInterest || PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
-        );
-      case 'fundingRate':
-        // Format funding rate as percentage (e.g., 0.0001 → 0.0100%)
-        if (
-          displayMarket.fundingRate !== undefined &&
-          displayMarket.fundingRate !== null
-        ) {
-          return `${(displayMarket.fundingRate * 100).toFixed(4)}%`;
-        }
-        return '0.0000%';
-      case 'volume':
-      default:
-        return displayMarket.volume;
-    }
-  }, [displayMetric, displayMarket]);
-
   const isPositiveChange = !displayMarket.change24h.startsWith('-');
-
-  const badgeType = getMarketBadgeType(displayMarket);
 
   return (
     <TouchableOpacity
@@ -153,7 +109,7 @@ const PerpsMarketRowItem = ({
         <View style={styles.perpIcon}>
           <PerpsTokenLogo
             symbol={displayMarket.symbol}
-            size={iconSize}
+            size={32}
             recyclingKey={displayMarket.symbol}
             testID={getPerpsMarketRowItemSelector.tokenLogo(
               displayMarket.symbol,
@@ -164,23 +120,17 @@ const PerpsMarketRowItem = ({
         <View style={styles.tokenInfo}>
           <View style={styles.tokenHeader}>
             <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-              {getPerpsDisplaySymbol(displayMarket.symbol)}
+              {displayMarket.symbol}
             </Text>
             <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
           </View>
-          <View style={styles.secondRow}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {getDisplayValue}
-            </Text>
-            {showBadge && badgeType && (
-              <PerpsBadge
-                type={badgeType}
-                testID={getPerpsMarketRowItemSelector.badge(
-                  displayMarket.symbol,
-                )}
-              />
-            )}
-          </View>
+          <Text
+            variant={TextVariant.BodySM}
+            color={TextColor.Alternative}
+            style={styles.tokenVolume}
+          >
+            {displayMarket.volume}
+          </Text>
         </View>
       </View>
 

@@ -14,3 +14,6 @@ scripts
 .prettierignore
 locales
 .storybook/storybook.requires.js
+/ppom
+app/lib/ppom/ppom.html.js
+/app/lib/ppom/blockaid-version.js

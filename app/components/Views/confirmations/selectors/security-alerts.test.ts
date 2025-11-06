@@ -1,5 +1,5 @@
+import { RootState } from '../../../../reducers';
 import { securityAlertResponse } from '../../../../util/test/confirm-data-helpers';
-import initialRootState from '../../../../util/test/initial-root-state';
 import { selectSignatureSecurityAlertResponse } from './security-alerts';
 
 describe('Security Alert Selectors', () => {
@@ -7,18 +7,17 @@ describe('Security Alert Selectors', () => {
     it('returns signature security alert response from the state', () => {
       expect(
         selectSignatureSecurityAlertResponse({
-          ...initialRootState,
           signatureRequest: {
             securityAlertResponse,
           },
-        }),
+        } as RootState),
       ).toEqual({ securityAlertResponse });
     });
 
     it('returns undefined if security alert response not present', () => {
-      expect(selectSignatureSecurityAlertResponse(initialRootState)).toEqual({
-        securityAlertResponse: undefined,
-      });
+      expect(
+        selectSignatureSecurityAlertResponse({} as unknown as RootState),
+      ).toEqual(undefined);
     });
   });
 });

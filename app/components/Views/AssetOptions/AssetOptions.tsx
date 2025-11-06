@@ -17,6 +17,7 @@ import {
   createProviderConfig,
   selectEvmChainId,
   selectEvmNetworkConfigurationsByChainId,
+  selectProviderConfig,
 } from '../../../selectors/networkController';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import styleSheet from './AssetOptions.styles';
@@ -27,6 +28,7 @@ import AppConstants from '../../../core/AppConstants';
 import {
   findBlockExplorerForNonEvmChainId,
   getDecimalChainId,
+  isPortfolioViewEnabled,
 } from '../../../util/networks';
 import { isPortfolioUrl } from '../../../util/url';
 import { BrowserTab, TokenI } from '../../../components/UI/Tokens/types';
@@ -98,6 +100,7 @@ const AssetOptions = (props: Props) => {
   const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation();
   const modalRef = useRef<ReusableModalRef>(null);
+  const providerConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
@@ -121,17 +124,22 @@ const AssetOptions = (props: Props) => {
       tokenNetworkConfig?.rpcEndpoints?.[
         tokenNetworkConfig?.defaultRpcEndpointIndex
       ];
-    const providerConfigToken = createProviderConfig(
-      tokenNetworkConfig,
-      tokenRpcEndpoint,
-    );
+    let providerConfigToken;
+    if (isPortfolioViewEnabled()) {
+      providerConfigToken = createProviderConfig(
+        tokenNetworkConfig,
+        tokenRpcEndpoint,
+      );
+    } else {
+      providerConfigToken = providerConfig;
+    }
 
     const providerConfigTokenExplorerToken = providerConfigToken;
 
     return {
       providerConfigTokenExplorer: providerConfigTokenExplorerToken,
     };
-  }, [networkId, networkConfigurations]);
+  }, [networkId, networkConfigurations, providerConfig]);
 
   const explorer = useBlockExplorer(
     networkConfigurations,
@@ -258,9 +266,13 @@ const AssetOptions = (props: Props) => {
             try {
               const { NetworkController } = Engine.context;
 
+              const chainIdToUse = isPortfolioViewEnabled()
+                ? networkId
+                : chainId;
+
               const networkClientId =
                 NetworkController.findNetworkClientIdByChainId(
-                  networkId as Hex,
+                  chainIdToUse as Hex,
                 );
 
               // Extract the actual token address from CAIP format only for non-EVM chains

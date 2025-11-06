@@ -202,8 +202,6 @@ function Quotes() {
         ...payload,
         currency_source: params.fiatCurrency?.symbol,
         currency_destination: params.asset?.symbol,
-        currency_destination_symbol: params.asset?.symbol,
-        currency_destination_network: params.asset?.network?.shortName,
         chain_id_destination: chainId,
       });
     } else {
@@ -211,8 +209,6 @@ function Quotes() {
         ...payload,
         currency_destination: params.fiatCurrency?.symbol,
         currency_source: params.asset?.symbol,
-        currency_source_symbol: params.asset?.symbol,
-        currency_source_network: params.asset?.network?.shortName,
         chain_id_source: chainId,
       });
     }
@@ -250,21 +246,16 @@ function Quotes() {
         chain_id_destination: chainId,
         currency_source: params.fiatCurrency?.symbol,
         currency_destination: params.asset?.symbol,
-        currency_destination_symbol: params.asset?.symbol,
-        currency_destination_network: params.asset?.network?.shortName,
       });
     } else {
       trackEvent('OFFRAMP_QUOTES_EXPANDED', {
         ...payload,
         chain_id_source: chainId,
         currency_source: params.asset?.symbol,
-        currency_source_symbol: params.asset?.symbol,
-        currency_source_network: params.asset?.network?.shortName,
         currency_destination: params.fiatCurrency?.symbol,
       });
     }
   }, [
-    params.asset?.network?.shortName,
     appConfig.POLLING_CYCLES,
     quotesByPriceWithoutError,
     isBuy,
@@ -334,8 +325,6 @@ function Quotes() {
               ...payload,
               currency_source: currentFiatCurrency?.symbol as string,
               currency_destination: selectedAsset?.symbol as string,
-              currency_destination_symbol: selectedAsset?.symbol as string,
-              currency_destination_network: selectedAsset?.network?.shortName,
               provider_onramp: provider.name,
               chain_id_destination: chainId,
             });
@@ -344,8 +333,6 @@ function Quotes() {
               ...payload,
               currency_destination: currentFiatCurrency?.symbol as string,
               currency_source: selectedAsset?.symbol as string,
-              currency_source_symbol: selectedAsset?.symbol as string,
-              currency_source_network: selectedAsset?.network?.shortName,
               provider_offramp: provider.name,
               chain_id_source: chainId,
             });
@@ -365,8 +352,9 @@ function Quotes() {
         );
 
         if (buyAction.browser === ProviderBuyFeatureBrowserEnum.AppBrowser) {
-          const { url, orderId: customOrderId } =
-            await buyAction.createWidget(callbackBaseUrl);
+          const { url, orderId: customOrderId } = await buyAction.createWidget(
+            callbackBaseUrl,
+          );
 
           navigation.navigate(
             ...createCheckoutNavDetails({
@@ -449,8 +437,6 @@ function Quotes() {
               ...payload,
               currency_source: params.fiatCurrency?.symbol,
               currency_destination: params.asset?.symbol,
-              currency_destination_symbol: params.asset?.symbol,
-              currency_destination_network: params.asset?.network?.shortName,
               provider_onramp: quote.provider.name,
               crypto_out: quote.amountOut ?? 0,
               chain_id_destination: chainId,
@@ -460,8 +446,6 @@ function Quotes() {
               ...payload,
               currency_destination: params.fiatCurrency?.symbol,
               currency_source: params.asset?.symbol,
-              currency_source_symbol: params.asset?.symbol,
-              currency_source_network: params.asset?.network?.shortName,
               provider_offramp: quote.provider.name,
               fiat_out: quote.amountOut ?? 0,
               chain_id_source: chainId,
@@ -488,8 +472,9 @@ function Quotes() {
         } else if (
           buyAction.browser === ProviderBuyFeatureBrowserEnum.AppBrowser
         ) {
-          const { url, orderId: customOrderId } =
-            await buyAction.createWidget(callbackBaseUrl);
+          const { url, orderId: customOrderId } = await buyAction.createWidget(
+            callbackBaseUrl,
+          );
           navigation.navigate(
             ...createCheckoutNavDetails({
               provider: quote.provider,
@@ -509,7 +494,6 @@ function Quotes() {
       }
     },
     [
-      params.asset?.network?.shortName,
       appConfig.POLLING_CYCLES,
       pollingCyclesLeft,
       quotesByPriceWithoutError.length,
@@ -675,8 +659,6 @@ function Quotes() {
               ...payload,
               currency_source: params.fiatCurrency?.symbol,
               currency_destination: params.asset?.symbol,
-              currency_destination_symbol: params.asset?.symbol,
-              currency_destination_network: params.asset?.network?.shortName,
               average_crypto_out: averageOut,
               chain_id_destination: chainId,
               provider_onramp_list: providerList,
@@ -690,8 +672,6 @@ function Quotes() {
               ...payload,
               currency_destination: params.fiatCurrency?.symbol,
               currency_source: params.asset?.symbol,
-              currency_source_symbol: params.asset?.symbol,
-              currency_source_network: params.asset?.network?.shortName,
               average_fiat_out: averageOut,
               chain_id_source: chainId,
               provider_offramp_list: providerList,
@@ -719,8 +699,6 @@ function Quotes() {
               ...payload,
               currency_source: params.fiatCurrency?.symbol,
               currency_destination: params.asset?.symbol,
-              currency_destination_symbol: params.asset?.symbol,
-              currency_destination_network: params.asset?.network?.shortName,
               provider_onramp: quoteError.provider.name,
               chain_id_destination: chainId,
             });
@@ -729,8 +707,6 @@ function Quotes() {
               ...payload,
               currency_destination: params.fiatCurrency?.symbol,
               currency_source: params.asset?.symbol,
-              currency_source_symbol: params.asset?.symbol,
-              currency_source_network: params.asset?.network?.shortName,
               provider_offramp: quoteError.provider.name,
               chain_id_source: chainId,
             });

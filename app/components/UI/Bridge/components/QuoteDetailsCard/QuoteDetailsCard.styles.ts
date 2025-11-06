@@ -5,11 +5,14 @@ const createStyles = ({ colors }: Theme) =>
   StyleSheet.create({
     container: {
       backgroundColor: colors.background.default,
+      borderWidth: 1,
+      borderRadius: 8,
+      borderColor: colors.border.muted,
       overflow: 'hidden',
-      paddingTop: 12,
-      paddingBottom: 16,
+      paddingVertical: 12,
       paddingHorizontal: 16,
       gap: 12,
+      marginBottom: 12,
     },
     gradientContainer: {
       position: 'absolute',

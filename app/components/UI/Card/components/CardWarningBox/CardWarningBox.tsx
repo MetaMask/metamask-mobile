@@ -107,7 +107,7 @@ const CardWarningBox = ({
             <Button
               variant={ButtonVariants.Secondary}
               onPress={onDismiss}
-              label={strings('card.card_spending_limit.dismiss')}
+              label={strings('card.card_home.warnings.dismiss_button_label')}
               testID="dismiss-button"
             />
           )}

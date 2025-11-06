@@ -98,8 +98,6 @@ Please follow the [native development guide](../../README.md#native-development)
 # Build the app for testing
 yarn test:e2e:ios:debug:build
 yarn test:e2e:android:debug:build
-
-# These commands are hardcoded to build for `main` build type and `e2e` environment based on the .detoxrc.js file
 ```
 
 ### Use Expo prebuilds (recommended)
@@ -162,10 +160,7 @@ You can use prebuilt app files instead of building the app locally.
 ```bash
 # Firstly, make sure the build watcher is running in a dedicated terminal for the logs
 # and the emulators are up and running
-# Ensure METAMASK_BUILD_TYPE is set to `main` and METAMASK_ENVIRONMENT is set to `e2e` in .js.env
-source .e2e.env   # Ensure .js.env is sourced
-yarn watch:clean  # First time or after dependency changes
-yarn watch        # Subsequent runs
+source .e2e.env && yarn watch:clean
 
 # Run all Tests
 source .e2e.env && yarn test:e2e:ios:debug:run
@@ -200,10 +195,12 @@ Ensure you have completed the [Local environment setup](#local-environment-setup
 
 ```bash
 # Start Metro bundler for Flask development
-# Ensure METAMASK_BUILD_TYPE is set to `flask` and METAMASK_ENVIRONMENT is set to `e2e` in .js.env
-source .e2e.env   # Ensure .js.env is sourced
-yarn watch:clean  # First time or after dependency changes
-yarn watch        # Subsequent runs
+yarn watch:flask:clean  # First time or after dependency changes
+yarn watch:flask        # Subsequent runs
+
+# In a separate terminal, build and install Flask app
+yarn start:ios:e2e:flask     # iOS
+yarn start:android:e2e:flask # Android
 ```
 
 **Build for E2E Testing:**
@@ -220,7 +217,6 @@ yarn test:e2e:android:flask:build
 # Run all Flask E2E tests
 yarn test:e2e:ios:flask:run
 yarn test:e2e:android:flask:run
-# These commands are hardcoded to build for `flask` build type and `e2e` environment based on the .detoxrc.js file
 
 # Run specific Flask test
 yarn test:e2e:ios:flask:run e2e/specs/snaps/test-snap-jsx.spec.ts
@@ -287,10 +283,10 @@ export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-production}
 
 ```bash
 # Clean previous builds
-yarn watch:clean
+yarn watch:flask:clean
 
 # Rebuild Flask app
-yarn test:e2e:android:flask:build  # or iOS
+yarn start:android:e2e:flask  # or iOS
 ```
 
 #### 3. Metro Bundler Not Running ⚠️
@@ -301,10 +297,10 @@ yarn test:e2e:android:flask:build  # or iOS
 
 ```bash
 # Terminal 1: Start Metro bundler
-yarn watch:clean
+yarn watch:flask:clean
 
-# Terminal 2: Reinstall and run Flask app
-yarn test:e2e:android:flask:run
+# Terminal 2: Build and run Flask app
+yarn start:android:e2e:flask
 ```
 
 ### Flask vs Main Build Differences
@@ -324,20 +320,20 @@ yarn test:e2e:android:flask:run
 
 1. Check if `.js.env` has hardcoded `METAMASK_BUILD_TYPE` or `METAMASK_ENVIRONMENT` - remove them
 2. Verify `BRIDGE_USE_DEV_APIS=true` is set during build
-3. Rebuild the app with `yarn test:e2e:*:flask:build`
+3. Rebuild the app with `yarn start:*:e2e:flask`
 4. Verify Flask build by checking app icon/splash screen
 
 **Metro bundler shows wrong `METAMASK_BUILD_TYPE`:**
 
 1. Stop Metro bundler (Ctrl+C)
-2. Clean bundler cache: `yarn watch:clean`
-3. Restart Metro bundler: `yarn watch`
+2. Clean bundler cache: `yarn watch:flask:clean`
+3. Restart Metro bundler: `yarn watch:flask`
 
 **App crashes or shows blank screen:**
 
 1. Ensure emulator/simulator is running before building
 2. Check Metro bundler logs for JavaScript errors
-3. Try clean build: `yarn watch:clean && yarn test:e2e:*:flask:build`
+3. Try clean build: `yarn watch:flask:clean && yarn start:*:e2e:flask`
 
 **Tests timeout waiting for elements:**
 

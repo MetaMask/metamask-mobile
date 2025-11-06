@@ -1,29 +1,14 @@
-import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-  MOCK_ANY_NAMESPACE,
-  type MockAnyNamespace,
-} from '@metamask/messenger';
-import { SmartTransactionsControllerMessenger } from '@metamask/smart-transactions-controller';
+import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
 import { getSmartTransactionsControllerMessenger } from './smart-transactions-controller-messenger';
 
-type RootMessenger = Messenger<
-  MockAnyNamespace,
-  MessengerActions<SmartTransactionsControllerMessenger>,
-  MessengerEvents<SmartTransactionsControllerMessenger>
->;
-
-const getRootMessenger = (): RootMessenger =>
-  new Messenger({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
 describe('getSmartTransactionsControllerMessenger', () => {
-  it('returns a messenger', () => {
-    const messenger = getRootMessenger();
+  it('returns a restricted messenger', () => {
+    const messenger = new Messenger<never, never>();
     const smartTransactionsControllerMessenger =
       getSmartTransactionsControllerMessenger(messenger);
 
-    expect(smartTransactionsControllerMessenger).toBeInstanceOf(Messenger);
+    expect(smartTransactionsControllerMessenger).toBeInstanceOf(
+      RestrictedMessenger,
+    );
   });
 });

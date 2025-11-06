@@ -1,31 +1,12 @@
-import {
-  Messenger,
-  type MessengerActions,
-  type MessengerEvents,
-  MOCK_ANY_NAMESPACE,
-  type MockAnyNamespace,
-} from '@metamask/messenger';
+import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
-import { PhishingControllerMessenger } from '@metamask/phishing-controller';
-
-type RootMessenger = Messenger<
-  MockAnyNamespace,
-  MessengerActions<PhishingControllerMessenger>,
-  MessengerEvents<PhishingControllerMessenger>
->;
-
-function getRootMessenger(): RootMessenger {
-  return new Messenger({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
-}
 
 describe('getPhishingControllerMessenger', () => {
-  it('returns a messenger', () => {
-    const rootMessenger: RootMessenger = getRootMessenger();
+  it('returns a restricted messenger', () => {
+    const messenger = new Messenger<never, never>();
     const phishingControllerMessenger =
-      getPhishingControllerMessenger(rootMessenger);
+      getPhishingControllerMessenger(messenger);
 
-    expect(phishingControllerMessenger).toBeInstanceOf(Messenger);
+    expect(phishingControllerMessenger).toBeInstanceOf(RestrictedMessenger);
   });
 });

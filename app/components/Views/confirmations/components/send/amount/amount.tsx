@@ -48,7 +48,7 @@ export const Amount = () => {
   const isNFT = asset?.standard === TokenStandard.ERC1155;
   const assetSymbol = isNFT
     ? undefined
-    : ((asset as AssetType)?.ticker ?? (asset as AssetType)?.symbol);
+    : (asset as AssetType)?.ticker ?? (asset as AssetType)?.symbol;
   const assetDisplaySymbol = assetSymbol ?? (isNFT ? 'NFT' : '');
   const { styles } = useStyles(styleSheet, {
     contentLength: amount.length + assetDisplaySymbol.length,

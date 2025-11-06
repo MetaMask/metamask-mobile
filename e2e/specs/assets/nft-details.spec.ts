@@ -8,13 +8,8 @@ import WalletView from '../../pages/wallet/WalletView';
 import ImportNFTView from '../../pages/wallet/ImportNFTFlow/ImportNFTView';
 import Assertions from '../../framework/Assertions';
 import enContent from '../../../locales/languages/en.json';
-import {
-  AnvilPort,
-  buildPermissions,
-} from '../../framework/fixtures/FixtureUtils';
+import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../framework/Constants';
-import { LocalNode } from '../../framework/types';
-import { AnvilManager } from '../../seeder/anvil-manager';
 
 describe.skip(RegressionAssets('NFT Details page'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
@@ -27,28 +22,12 @@ describe.skip(RegressionAssets('NFT Details page'), () => {
   it('show nft details', async () => {
     await withFixtures(
       {
-        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
-          const node = localNodes?.[0] as unknown as AnvilManager;
-          const rpcPort =
-            node instanceof AnvilManager
-              ? (node.getPort() ?? AnvilPort())
-              : undefined;
-
-          return new FixtureBuilder()
-            .withNetworkController({
-              providerConfig: {
-                chainId: '0x539',
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Local RPC',
-                ticker: 'ETH',
-              },
-            })
-            .withPermissionControllerConnectedToTestDapp(
-              buildPermissions(['0x539']),
-            )
-            .build();
-        },
+        fixture: new FixtureBuilder()
+          .withGanacheNetwork()
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions(['0x539']),
+          )
+          .build(),
         dapps: [
           {
             dappVariant: DappVariants.TEST_DAPP,
@@ -58,8 +37,9 @@ describe.skip(RegressionAssets('NFT Details page'), () => {
         smartContracts: [NFT_CONTRACT],
       },
       async ({ contractRegistry }) => {
-        const nftsAddress =
-          await contractRegistry?.getContractAddress(NFT_CONTRACT);
+        const nftsAddress = await contractRegistry?.getContractAddress(
+          NFT_CONTRACT,
+        );
 
         await loginToApp();
 

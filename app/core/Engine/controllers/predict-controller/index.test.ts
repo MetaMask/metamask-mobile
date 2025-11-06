@@ -1,4 +1,4 @@
-import { ExtendedMessenger } from '../../../ExtendedMessenger';
+import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ControllerInitRequest } from '../../types';
 import {
@@ -7,7 +7,6 @@ import {
   PredictControllerState,
 } from '../../../../components/UI/Predict/controllers/PredictController';
 import { predictControllerInit } from '.';
-import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock(
   '../../../../components/UI/Predict/controllers/PredictController',
@@ -33,9 +32,7 @@ describe('predict controller init', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
-    const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
-      namespace: MOCK_ANY_NAMESPACE,
-    });
+    const baseControllerMessenger = new ExtendedControllerMessenger();
     // Create controller init request mock
     initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
   });
@@ -66,10 +63,9 @@ describe('predict controller init', () => {
       eligibility: {},
       lastError: null,
       lastUpdateTimestamp: Date.now(),
-      balances: {},
-      claimablePositions: {},
-      pendingDeposits: {},
-      withdrawTransaction: null,
+      claimTransaction: null,
+      claimablePositions: [],
+      depositTransaction: null,
       isOnboarded: {},
     };
 

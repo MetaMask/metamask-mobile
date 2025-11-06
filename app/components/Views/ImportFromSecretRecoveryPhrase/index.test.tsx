@@ -86,12 +86,16 @@ jest.mock('../../hooks/useMetrics', () => {
   };
 });
 
+// Enable fake timers
+jest.useFakeTimers();
+
 describe('ImportFromSecretRecoveryPhrase', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.clearAllTimers();
   });
 
   beforeEach(() => {
+    jest.clearAllTimers();
     jest.clearAllMocks();
   });
 
@@ -292,25 +296,13 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         strings('import_from_seed.srp_placeholder'),
       );
 
-      await act(async () => {
-        fireEvent.changeText(input, 'say');
-      });
-
-      // Wait for the first grid input to be created
-      await waitFor(() => {
-        const firstGridInput = getByTestId(
-          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
-        );
-        expect(firstGridInput).toBeOnTheScreen();
-      });
-
-      // Get the first grid input
-      const firstGridInput = getByTestId(
-        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
-      );
+      fireEvent.changeText(input, 'say');
 
       await act(async () => {
-        fireEvent(firstGridInput, 'onSubmitEditing');
+        fireEvent(input, 'onSubmitEditing', {
+          nativeEvent: { key: 'Enter' },
+          index: 0,
+        });
       });
 
       await waitFor(() => {

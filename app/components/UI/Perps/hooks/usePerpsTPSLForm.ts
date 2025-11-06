@@ -1,13 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 // formatPrice import removed - using raw values for input state
-import { strings } from '../../../../../locales/i18n';
-import { regex } from '../../../../util/regex';
-import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
-import type { Position } from '../controllers/types';
-import { formatPerpsFiat, PRICE_RANGES_UNIVERSAL } from '../utils/formatUtils';
-import { calculatePositionSize } from '../utils/orderCalculations';
-import { calculateExpectedPnL } from '../utils/pnlCalculations';
 import {
   calculatePriceForRoE,
   calculateRoEForPrice,
@@ -23,6 +16,13 @@ import {
   sanitizePercentageInput,
   validateTPSLPrices,
 } from '../utils/tpslValidation';
+import type { Position } from '../controllers/types';
+import { formatPerpsFiat, PRICE_RANGES_UNIVERSAL } from '../utils/formatUtils';
+import { regex } from '../../../../util/regex';
+import { strings } from '../../../../../locales/i18n';
+import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
+import { calculateExpectedPnL } from '../utils/pnlCalculations';
+import { calculatePositionSize } from '../utils/orderCalculations';
 import { usePerpsOrderFees } from './usePerpsOrderFees';
 
 interface UsePerpsTPSLFormParams {
@@ -167,18 +167,18 @@ export function usePerpsTPSLForm(
   // Calculate derived values
   const currentPrice =
     initialCurrentPrice ||
-    (position?.entryPrice ? Number.parseFloat(position.entryPrice) : 0);
+    (position?.entryPrice ? parseFloat(position.entryPrice) : 0);
 
   let actualDirection: 'long' | 'short';
   if (position) {
-    actualDirection = Number.parseFloat(position.size) > 0 ? 'long' : 'short';
+    actualDirection = parseFloat(position.size) > 0 ? 'long' : 'short';
   } else {
     actualDirection = direction || 'long';
   }
 
   const leverage = position?.leverage?.value || propLeverage;
   const entryPrice = position?.entryPrice
-    ? Number.parseFloat(position.entryPrice)
+    ? parseFloat(position.entryPrice)
     : propEntryPrice || currentPrice;
 
   // Reset form state when bottom sheet becomes visible with new initial values
@@ -386,11 +386,11 @@ export function usePerpsTPSLForm(
       // Update price based on RoE percentage only if price field is not focused
       if (
         finalValue &&
-        !Number.isNaN(Number.parseFloat(finalValue.replace(' ', ''))) &&
+        !isNaN(parseFloat(finalValue.replace(' ', ''))) &&
         leverage &&
         !tpPriceInputFocused
       ) {
-        const roeValue = Number.parseFloat(finalValue.replace(' ', ''));
+        const roeValue = parseFloat(finalValue.replace(' ', ''));
         const price = calculatePriceForRoE(roeValue, true, {
           currentPrice,
           direction: actualDirection,
@@ -486,11 +486,11 @@ export function usePerpsTPSLForm(
       // Update price based on RoE percentage only if price field is not focused
       if (
         finalValue &&
-        !Number.isNaN(Number.parseFloat(finalValue.replace(' ', ''))) &&
+        !isNaN(parseFloat(finalValue.replace(' ', ''))) &&
         leverage &&
         !slPriceInputFocused
       ) {
-        const roeValue = Number.parseFloat(finalValue.replace(' ', ''));
+        const roeValue = parseFloat(finalValue.replace(' ', ''));
         const price = calculatePriceForRoE(roeValue, false, {
           currentPrice,
           direction: actualDirection,
@@ -529,7 +529,7 @@ export function usePerpsTPSLForm(
     if (
       takeProfitPrice &&
       leverage &&
-      !Number.isNaN(Number.parseFloat(takeProfitPrice)) &&
+      !isNaN(parseFloat(takeProfitPrice)) &&
       ((entryPrice && entryPrice > 0) || (currentPrice && currentPrice > 0))
     ) {
       const roePercent = calculateRoEForPrice(
@@ -582,9 +582,9 @@ export function usePerpsTPSLForm(
     if (
       takeProfitPercentage &&
       leverage &&
-      !Number.isNaN(Number.parseFloat(takeProfitPercentage.replace(' ', '')))
+      !isNaN(parseFloat(takeProfitPercentage.replace(' ', '')))
     ) {
-      const roeValue = Number.parseFloat(takeProfitPercentage.replace(' ', ''));
+      const roeValue = parseFloat(takeProfitPercentage.replace(' ', ''));
       const price = calculatePriceForRoE(roeValue, true, {
         currentPrice,
         direction: actualDirection,
@@ -614,7 +614,7 @@ export function usePerpsTPSLForm(
     if (
       stopLossPrice &&
       leverage &&
-      !Number.isNaN(Number.parseFloat(stopLossPrice)) &&
+      !isNaN(parseFloat(stopLossPrice)) &&
       ((entryPrice && entryPrice > 0) || (currentPrice && currentPrice > 0))
     ) {
       const roePercent = calculateRoEForPrice(
@@ -667,9 +667,9 @@ export function usePerpsTPSLForm(
     if (
       stopLossPercentage &&
       leverage &&
-      !Number.isNaN(Number.parseFloat(stopLossPercentage.replace(' ', '')))
+      !isNaN(parseFloat(stopLossPercentage.replace(' ', '')))
     ) {
-      const roeValue = Number.parseFloat(stopLossPercentage.replace(' ', '')); // Negative for loss
+      const roeValue = parseFloat(stopLossPercentage.replace(' ', '')); // Negative for loss
       const price = calculatePriceForRoE(roeValue, false, {
         currentPrice,
         direction: actualDirection,
@@ -707,7 +707,7 @@ export function usePerpsTPSLForm(
       });
 
       // Only set values if we got a valid price
-      if (price && price !== '' && Number.parseFloat(price) > 0) {
+      if (price && price !== '' && parseFloat(price) > 0) {
         const priceString = price.toString();
         const formattedPriceString = formatPerpsFiat(priceString, {
           ranges: PRICE_RANGES_UNIVERSAL,
@@ -760,7 +760,7 @@ export function usePerpsTPSLForm(
       });
 
       // Only set values if we got a valid price
-      if (price && price !== '' && Number.parseFloat(price) > 0) {
+      if (price && price !== '' && parseFloat(price) > 0) {
         const priceString = price.toString();
         const formattedPriceString = formatPerpsFiat(priceString, {
           ranges: PRICE_RANGES_UNIVERSAL,
@@ -887,7 +887,7 @@ export function usePerpsTPSLForm(
   let positionSizeForPnL = 0;
   if (position) {
     // Keep the sign from the position (positive for long, negative for short)
-    positionSizeForPnL = Number.parseFloat(position.size || '0');
+    positionSizeForPnL = parseFloat(position.size || '0');
   } else if (
     amount &&
     entryPrice &&
@@ -895,7 +895,7 @@ export function usePerpsTPSLForm(
     szDecimals !== undefined
   ) {
     // calculatePositionSize returns unsigned value, apply direction sign
-    const unsignedSize = Number.parseFloat(
+    const unsignedSize = parseFloat(
       calculatePositionSize({
         amount,
         price: entryPrice,
@@ -911,9 +911,7 @@ export function usePerpsTPSLForm(
   // Notional value must be positive for fee calculation (use abs for short positions)
   const tpNotionalValue =
     takeProfitPrice && positionSizeForPnL !== 0
-      ? (
-          Number.parseFloat(takeProfitPrice) * Math.abs(positionSizeForPnL)
-        ).toFixed(2)
+      ? (parseFloat(takeProfitPrice) * Math.abs(positionSizeForPnL)).toFixed(2)
       : '0';
 
   const tpClosingFees = usePerpsOrderFees({
@@ -926,7 +924,7 @@ export function usePerpsTPSLForm(
   const expectedTakeProfitPnL =
     takeProfitPrice && positionSizeForPnL !== 0 && entryPrice && entryPrice > 0
       ? calculateExpectedPnL({
-          triggerPrice: Number.parseFloat(takeProfitPrice),
+          triggerPrice: parseFloat(takeProfitPrice),
           entryPrice,
           size: positionSizeForPnL,
           closingFee: tpClosingFees.totalFee,
@@ -937,9 +935,7 @@ export function usePerpsTPSLForm(
   // Notional value must be positive for fee calculation (use abs for short positions)
   const slNotionalValue =
     stopLossPrice && positionSizeForPnL !== 0
-      ? (
-          Number.parseFloat(stopLossPrice) * Math.abs(positionSizeForPnL)
-        ).toFixed(2)
+      ? (parseFloat(stopLossPrice) * Math.abs(positionSizeForPnL)).toFixed(2)
       : '0';
 
   const slClosingFees = usePerpsOrderFees({
@@ -952,7 +948,7 @@ export function usePerpsTPSLForm(
   const expectedStopLossPnL =
     stopLossPrice && positionSizeForPnL !== 0 && entryPrice && entryPrice > 0
       ? calculateExpectedPnL({
-          triggerPrice: Number.parseFloat(stopLossPrice),
+          triggerPrice: parseFloat(stopLossPrice),
           entryPrice,
           size: positionSizeForPnL,
           closingFee: slClosingFees.totalFee,

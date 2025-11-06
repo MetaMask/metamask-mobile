@@ -10,7 +10,7 @@ const useLimits = () => {
     isBuy,
   } = useRampSDK();
 
-  const [{ data: limits, isFetching }, queryGetLimits] = useSDKMethod(
+  const [{ data: limits }] = useSDKMethod(
     isBuy ? 'getLimits' : 'getSellLimits',
     selectedRegion?.id,
     selectedPaymentMethodId ? [selectedPaymentMethodId] : null,
@@ -29,11 +29,9 @@ const useLimits = () => {
 
   return {
     limits,
-    isFetching,
     isAmountBelowMinimum,
     isAmountAboveMaximum,
     isAmountValid,
-    queryGetLimits,
   };
 };
 

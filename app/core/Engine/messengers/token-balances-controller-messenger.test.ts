@@ -1,46 +1,29 @@
-import {
-  Messenger,
-  type MessengerActions,
-  type MessengerEvents,
-  type MockAnyNamespace,
-  MOCK_ANY_NAMESPACE,
-} from '@metamask/messenger';
-import { TokenBalancesControllerMessenger } from '@metamask/assets-controllers';
+import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
 import {
   getTokenBalancesControllerMessenger,
   getTokenBalancesControllerInitMessenger,
-  TokenBalancesControllerInitMessenger,
 } from './token-balances-controller-messenger';
 
-type RootMessenger = Messenger<
-  MockAnyNamespace,
-  | MessengerActions<TokenBalancesControllerMessenger>
-  | MessengerActions<TokenBalancesControllerInitMessenger>,
-  | MessengerEvents<TokenBalancesControllerMessenger>
-  | MessengerEvents<TokenBalancesControllerInitMessenger>
->;
-
-const getRootMessenger = (): RootMessenger =>
-  new Messenger({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
-
 describe('getTokenBalancesControllerMessenger', () => {
-  it('returns a messenger', () => {
-    const messenger = getRootMessenger();
+  it('returns a restricted messenger', () => {
+    const messenger = new Messenger<never, never>();
     const tokenBalancesControllerMessenger =
       getTokenBalancesControllerMessenger(messenger);
 
-    expect(tokenBalancesControllerMessenger).toBeInstanceOf(Messenger);
+    expect(tokenBalancesControllerMessenger).toBeInstanceOf(
+      RestrictedMessenger,
+    );
   });
 });
 
 describe('getTokenBalancesControllerInitMessenger', () => {
-  it('returns a messenger', () => {
-    const messenger = getRootMessenger();
+  it('returns a restricted messenger', () => {
+    const messenger = new Messenger<never, never>();
     const tokenBalancesControllerInitMessenger =
       getTokenBalancesControllerInitMessenger(messenger);
 
-    expect(tokenBalancesControllerInitMessenger).toBeInstanceOf(Messenger);
+    expect(tokenBalancesControllerInitMessenger).toBeInstanceOf(
+      RestrictedMessenger,
+    );
   });
 });

@@ -132,19 +132,6 @@ export function calculateCloseValue(params: CloseValueParams): number {
 }
 
 /**
- * Formats a USD value for close amount display with proper decimal places
- * Uses the centralized USD_DECIMAL_PLACES configuration
- * @param value - Raw USD value to format
- * @returns Formatted string with configured decimal places
- */
-export function formatCloseAmountUSD(value: number): string {
-  if (isNaN(value) || value < 0) {
-    return '0';
-  }
-  return value.toFixed(CLOSE_POSITION_CONFIG.USD_DECIMAL_PLACES);
-}
-
-/**
  * Calculate percentage from token amount
  * @param tokenAmount - Amount in token units
  * @param totalPositionSize - Total position size in token units

@@ -94,10 +94,7 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
     jest.useFakeTimers();
 
     // Default mock implementations
-    mockUsePerpsLiveOrders.mockReturnValue({
-      orders: [],
-      isInitialLoading: false,
-    });
+    mockUsePerpsLiveOrders.mockReturnValue([]);
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
       isInitialLoading: false,
@@ -306,10 +303,7 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       const onDataDetected = jest.fn();
 
       // Start with no orders
-      mockUsePerpsLiveOrders.mockReturnValue({
-        orders: [],
-        isInitialLoading: false,
-      });
+      mockUsePerpsLiveOrders.mockReturnValue([]);
 
       const { rerender } = renderHook(() =>
         usePerpsDataMonitor({
@@ -322,10 +316,7 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       );
 
       // Add new BTC order to trigger detection
-      mockUsePerpsLiveOrders.mockReturnValue({
-        orders: [mockBTCOrder],
-        isInitialLoading: false,
-      });
+      mockUsePerpsLiveOrders.mockReturnValue([mockBTCOrder]);
       rerender({});
 
       expect(onDataDetected).toHaveBeenCalledWith({
@@ -359,10 +350,7 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       const onDataDetected = jest.fn();
 
       // Start with no orders
-      mockUsePerpsLiveOrders.mockReturnValue({
-        orders: [],
-        isInitialLoading: false,
-      });
+      mockUsePerpsLiveOrders.mockReturnValue([]);
 
       const { rerender } = renderHook(() =>
         usePerpsDataMonitor({
@@ -375,10 +363,7 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       );
 
       // Add new BTC order
-      mockUsePerpsLiveOrders.mockReturnValue({
-        orders: [mockBTCOrder],
-        isInitialLoading: false,
-      });
+      mockUsePerpsLiveOrders.mockReturnValue([mockBTCOrder]);
       rerender({});
 
       expect(onDataDetected).toHaveBeenCalledWith({
@@ -392,10 +377,7 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       const onDataDetected = jest.fn();
 
       // Start with no orders
-      mockUsePerpsLiveOrders.mockReturnValue({
-        orders: [],
-        isInitialLoading: false,
-      });
+      mockUsePerpsLiveOrders.mockReturnValue([]);
 
       const { rerender } = renderHook(() =>
         usePerpsDataMonitor({
@@ -408,10 +390,7 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       );
 
       // Add ETH order (different asset)
-      mockUsePerpsLiveOrders.mockReturnValue({
-        orders: [mockETHOrder],
-        isInitialLoading: false,
-      });
+      mockUsePerpsLiveOrders.mockReturnValue([mockETHOrder]);
       rerender({});
 
       expect(onDataDetected).not.toHaveBeenCalled();
@@ -421,10 +400,7 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       const onDataDetected = jest.fn();
 
       // Start with no orders
-      mockUsePerpsLiveOrders.mockReturnValue({
-        orders: [],
-        isInitialLoading: false,
-      });
+      mockUsePerpsLiveOrders.mockReturnValue([]);
 
       const { result, rerender } = renderHook(() =>
         usePerpsDataMonitor({
@@ -439,10 +415,7 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       expect(result.current).toBeUndefined();
 
       // Add new BTC order
-      mockUsePerpsLiveOrders.mockReturnValue({
-        orders: [mockBTCOrder],
-        isInitialLoading: false,
-      });
+      mockUsePerpsLiveOrders.mockReturnValue([mockBTCOrder]);
       rerender({});
 
       expect(result.current).toBeUndefined();
@@ -590,10 +563,7 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       const onDataDetected = jest.fn();
 
       // Start with no data
-      mockUsePerpsLiveOrders.mockReturnValue({
-        orders: [],
-        isInitialLoading: false,
-      });
+      mockUsePerpsLiveOrders.mockReturnValue([]);
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
@@ -609,10 +579,7 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       );
 
       // Add new BTC order - should detect since we're monitoring both
-      mockUsePerpsLiveOrders.mockReturnValue({
-        orders: [mockBTCOrder],
-        isInitialLoading: false,
-      });
+      mockUsePerpsLiveOrders.mockReturnValue([mockBTCOrder]);
       rerender({});
 
       expect(onDataDetected).toHaveBeenCalledWith({
@@ -626,10 +593,7 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       const onDataDetected = jest.fn();
 
       // Start with no data
-      mockUsePerpsLiveOrders.mockReturnValue({
-        orders: [],
-        isInitialLoading: false,
-      });
+      mockUsePerpsLiveOrders.mockReturnValue([]);
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
@@ -646,10 +610,7 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       );
 
       // Add new BTC order
-      mockUsePerpsLiveOrders.mockReturnValue({
-        orders: [mockBTCOrder],
-        isInitialLoading: false,
-      });
+      mockUsePerpsLiveOrders.mockReturnValue([mockBTCOrder]);
       rerender({});
 
       expect(onDataDetected).toHaveBeenCalledWith({
@@ -663,10 +624,7 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       const onDataDetected = jest.fn();
 
       // Start with no data
-      mockUsePerpsLiveOrders.mockReturnValue({
-        orders: [],
-        isInitialLoading: false,
-      });
+      mockUsePerpsLiveOrders.mockReturnValue([]);
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
@@ -700,10 +658,7 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       const onDataDetected = jest.fn();
 
       // Start with no data
-      mockUsePerpsLiveOrders.mockReturnValue({
-        orders: [],
-        isInitialLoading: false,
-      });
+      mockUsePerpsLiveOrders.mockReturnValue([]);
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
@@ -720,10 +675,7 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
       );
 
       // Add both orders and positions simultaneously
-      mockUsePerpsLiveOrders.mockReturnValue({
-        orders: [mockBTCOrder],
-        isInitialLoading: false,
-      });
+      mockUsePerpsLiveOrders.mockReturnValue([mockBTCOrder]);
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockBTCPosition],
         isInitialLoading: false,
@@ -824,14 +776,13 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
   });
 
   describe('loading states', () => {
-    it('triggers monitoring after loading completes', () => {
+    it('does not trigger monitoring while orders are loading', () => {
       const onDataDetected = jest.fn();
 
       // Orders are loading (undefined)
-      mockUsePerpsLiveOrders.mockReturnValue({
-        orders: [],
-        isInitialLoading: true,
-      });
+      mockUsePerpsLiveOrders.mockReturnValue(
+        undefined as Position[] | undefined,
+      );
 
       const { rerender } = renderHook(() =>
         usePerpsDataMonitor({
@@ -843,19 +794,11 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
         }),
       );
 
-      // Loading completes with order - should trigger detection
-      mockUsePerpsLiveOrders.mockReturnValue({
-        orders: [mockBTCOrder],
-        isInitialLoading: false,
-      });
+      // Try to add order while loading
+      mockUsePerpsLiveOrders.mockReturnValue([mockBTCOrder]);
       rerender({});
 
-      // Should detect the order since monitoring was enabled and order appeared
-      expect(onDataDetected).toHaveBeenCalledWith({
-        asset: 'BTC',
-        detectedData: 'orders',
-        reason: 'new_orders_detected',
-      });
+      expect(onDataDetected).not.toHaveBeenCalled();
     });
 
     it('does not trigger monitoring while positions are loading', () => {
@@ -913,10 +856,9 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
     it('handles undefined orders gracefully', () => {
       const onDataDetected = jest.fn();
 
-      mockUsePerpsLiveOrders.mockReturnValue({
-        orders: [],
-        isInitialLoading: true,
-      });
+      mockUsePerpsLiveOrders.mockReturnValue(
+        undefined as Position[] | undefined,
+      );
 
       expect(() => {
         renderHook(() =>

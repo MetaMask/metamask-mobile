@@ -3,7 +3,6 @@ import {
   validateCloseAmountLimits,
   formatCloseAmountDisplay,
   calculateCloseValue,
-  formatCloseAmountUSD,
   calculatePercentageFromTokenAmount,
   calculatePercentageFromUSDAmount,
   getPositionDirection,
@@ -149,68 +148,6 @@ describe('Position Calculations Utils', () => {
       });
 
       expect(result).toBe(0);
-    });
-  });
-
-  describe('formatCloseAmountUSD', () => {
-    it('formats USD value with 2 decimal places', () => {
-      const result = formatCloseAmountUSD(1234.56);
-
-      expect(result).toBe('1234.56');
-    });
-
-    it('formats whole numbers with 2 decimal places', () => {
-      const result = formatCloseAmountUSD(500);
-
-      expect(result).toBe('500.00');
-    });
-
-    it('rounds to 2 decimal places for values with more decimals', () => {
-      const result = formatCloseAmountUSD(123.456789);
-
-      expect(result).toBe('123.46');
-    });
-
-    it('formats zero as string with 2 decimal places', () => {
-      const result = formatCloseAmountUSD(0);
-
-      expect(result).toBe('0.00');
-    });
-
-    it('returns "0" for negative values', () => {
-      const result = formatCloseAmountUSD(-100);
-
-      expect(result).toBe('0');
-    });
-
-    it('returns "0" for NaN values', () => {
-      const result = formatCloseAmountUSD(NaN);
-
-      expect(result).toBe('0');
-    });
-
-    it('formats very small positive values correctly', () => {
-      const result = formatCloseAmountUSD(0.01);
-
-      expect(result).toBe('0.01');
-    });
-
-    it('formats large values correctly', () => {
-      const result = formatCloseAmountUSD(1234567.89);
-
-      expect(result).toBe('1234567.89');
-    });
-
-    it('rounds down for values ending in .xx4', () => {
-      const result = formatCloseAmountUSD(10.004);
-
-      expect(result).toBe('10.00');
-    });
-
-    it('rounds up for values ending in .xx5', () => {
-      const result = formatCloseAmountUSD(10.005);
-
-      expect(result).toBe('10.01');
     });
   });
 

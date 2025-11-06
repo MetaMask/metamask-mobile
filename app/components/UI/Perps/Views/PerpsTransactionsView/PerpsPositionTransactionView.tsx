@@ -32,7 +32,6 @@ import {
 import {
   formatPerpsFiat,
   formatTransactionDate,
-  PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsPositionTransactionView.styles';
 
@@ -104,9 +103,7 @@ const PerpsPositionTransactionView: React.FC = () => {
           transaction.fill?.action === 'Closed'
             ? strings('perps.transactions.position.close_price')
             : strings('perps.transactions.position.entry_price'),
-        value: formatPerpsFiat(transaction.fill.entryPrice, {
-          ranges: PRICE_RANGES_UNIVERSAL,
-        }),
+        value: formatPerpsFiat(transaction.fill.entryPrice),
       },
   ].filter(Boolean);
 
@@ -215,17 +212,15 @@ const PerpsPositionTransactionView: React.FC = () => {
             )}
           </View>
 
-          <View style={styles.buttonsContainer}>
-            {/* Block explorer button */}
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-              label={strings('perps.transactions.view_on_explorer')}
-              onPress={handleViewOnBlockExplorer}
-              style={styles.blockExplorerButton}
-            />
-          </View>
+          {/* Block explorer button */}
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            label={strings('perps.transactions.view_on_explorer')}
+            onPress={handleViewOnBlockExplorer}
+            style={styles.blockExplorerButton}
+          />
         </View>
       </ScrollView>
     </ScreenView>

@@ -243,4 +243,5 @@ If you're still experiencing issues after following this guide, ask for help in 
 ## Related Documentation
 
 - [Analytics Module README](../../app/core/Analytics/README.md)
+- [Testing Guide](testing.md)
 - [Environment Setup](environment.md)

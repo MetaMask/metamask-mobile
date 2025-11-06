@@ -7,7 +7,11 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';
 import enContent from '../../../locales/languages/en.json';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { loadFixture } from '../../framework/fixtures/FixtureHelper';
+import {
+  loadFixture,
+  startFixtureServer,
+  stopFixtureServer,
+} from '../../framework/fixtures/FixtureHelper';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../framework/fixtures/FixtureServer';
@@ -40,7 +44,7 @@ describe(RegressionConfirmations('Send ETH'), () => {
       //   },
       // })
       .build();
-    await fixtureServer.start();
+    await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await device.launchApp({
       permissions: { notifications: 'YES' },
@@ -50,7 +54,7 @@ describe(RegressionConfirmations('Send ETH'), () => {
   });
 
   afterAll(async () => {
-    await fixtureServer.stop();
+    await stopFixtureServer(fixtureServer);
   });
 
   it('should send ETH to a contact from inside the wallet', async () => {

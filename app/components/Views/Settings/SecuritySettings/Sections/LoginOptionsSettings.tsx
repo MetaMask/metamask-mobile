@@ -40,8 +40,9 @@ const LoginOptionsSettings = ({
       const previouslyDisabled = await StorageWrapper.getItem(
         BIOMETRY_CHOICE_DISABLED,
       );
-      const passcodePreviouslyDisabled =
-        await StorageWrapper.getItem(PASSCODE_DISABLED);
+      const passcodePreviouslyDisabled = await StorageWrapper.getItem(
+        PASSCODE_DISABLED,
+      );
       if (
         authType.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC ||
         authType.currentAuthType === AUTHENTICATION_TYPE.PASSCODE

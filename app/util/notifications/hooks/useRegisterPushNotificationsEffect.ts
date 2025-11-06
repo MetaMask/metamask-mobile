@@ -1,5 +1,6 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { INotification } from '@metamask/notification-services-controller/notification-services';
+import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import NotificationsService from '../services/NotificationService';
 import { PressActionId } from '../types';
@@ -29,6 +30,12 @@ function clickPushNotification(
   notification: INotification,
   navigation: NavigationProp<NavigationParams>,
 ) {
+  // Publish Click Event
+  Engine.controllerMessenger.publish(
+    'NotificationServicesPushController:pushNotificationClicked',
+    notification,
+  );
+
   // Navigate
   navigation.navigate(Routes.NOTIFICATIONS.DETAILS, {
     notification,

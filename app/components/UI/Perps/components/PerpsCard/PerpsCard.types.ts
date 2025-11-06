@@ -6,5 +6,4 @@ export interface PerpsCardProps {
   onPress?: () => void;
   testID?: string;
   source?: string;
-  iconSize?: number;
 }

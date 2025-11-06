@@ -1,10 +1,5 @@
-import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
 import { PredictControllerMessenger } from '../../../../components/UI/Predict/controllers/PredictController';
-import { RootExtendedMessenger, RootMessenger } from '../../types';
+import { BaseControllerMessenger } from '../../types';
 
 /**
  * Get the PredictControllerMessenger for the PredictController.
@@ -13,30 +8,19 @@ import { RootExtendedMessenger, RootMessenger } from '../../types';
  * @returns The PredictControllerMessenger.
  */
 export function getPredictControllerMessenger(
-  rootExtendedMessenger: RootExtendedMessenger,
+  baseControllerMessenger: BaseControllerMessenger,
 ): PredictControllerMessenger {
-  const messenger = new Messenger<
-    'PredictController',
-    MessengerActions<PredictControllerMessenger>,
-    MessengerEvents<PredictControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'PredictController',
-    parent: rootExtendedMessenger,
-  });
-  rootExtendedMessenger.delegate({
-    actions: [
-      'AccountsController:getSelectedAccount',
-      'NetworkController:getState',
-      'TransactionController:estimateGas',
-    ],
-    events: [
+  return baseControllerMessenger.getRestricted({
+    name: 'PredictController',
+    allowedEvents: [
       'TransactionController:transactionSubmitted',
       'TransactionController:transactionConfirmed',
       'TransactionController:transactionFailed',
       'TransactionController:transactionRejected',
     ],
-    messenger,
+    allowedActions: [
+      'AccountsController:getSelectedAccount',
+      'NetworkController:getState',
+    ],
   });
-  return messenger;
 }

@@ -8,15 +8,9 @@ import {
   findOptimalAmount,
   getMaxAllowedAmount as getMaxAllowedAmountUtils,
 } from '../utils/orderCalculations';
-import {
-  usePerpsLiveAccount,
-  usePerpsLivePositions,
-  usePerpsLivePrices,
-} from './stream';
+import { usePerpsLiveAccount, usePerpsLivePrices } from './stream';
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsNetwork } from './usePerpsNetwork';
-import { selectTradeConfiguration } from '../controllers/selectors';
-import { usePerpsSelector } from './usePerpsSelector';
 
 interface UsePerpsOrderFormParams {
   initialAsset?: string;
@@ -61,7 +55,6 @@ export function usePerpsOrderForm(
 
   const currentNetwork = usePerpsNetwork();
   const { account } = usePerpsLiveAccount();
-  const { positions } = usePerpsLivePositions();
   const prices = usePerpsLivePrices({
     symbols: [initialAsset],
     throttleMs: 1000,
@@ -69,20 +62,8 @@ export function usePerpsOrderForm(
   const currentPrice = prices[initialAsset];
   const { marketData } = usePerpsMarketData(initialAsset);
 
-  // Get existing position leverage for this asset (protocol constraint)
-  // Positions load asynchronously via WebSocket, so this may be undefined initially
-  const existingPositionLeverage = useMemo(
-    () => positions.find((p) => p.coin === initialAsset)?.leverage?.value,
-    [positions, initialAsset],
-  );
-
-  // Get saved trade configuration for this asset (user preference for new positions)
-  const savedConfig = usePerpsSelector((state) =>
-    selectTradeConfiguration(state, initialAsset),
-  );
-
   // Get available balance from live account data
-  const availableBalance = Number.parseFloat(
+  const availableBalance = parseFloat(
     account?.availableBalance?.toString() || '0',
   );
 
@@ -92,12 +73,8 @@ export function usePerpsOrderForm(
       ? TRADING_DEFAULTS.amount.mainnet
       : TRADING_DEFAULTS.amount.testnet;
 
-  // Priority: navigation param > existing position leverage > saved config > default (3x)
-  const defaultLeverage =
-    initialLeverage ||
-    existingPositionLeverage ||
-    savedConfig?.leverage ||
-    TRADING_DEFAULTS.leverage;
+  // Calculate the maximum possible amount based on available balance and leverage
+  const defaultLeverage = initialLeverage || TRADING_DEFAULTS.leverage;
 
   // Use memoized calculation for initial amount to ensure it updates when dependencies change
   const initialAmountValue = useMemo(() => {
@@ -108,8 +85,9 @@ export function usePerpsOrderForm(
 
     const tempMaxAmount = getMaxAllowedAmountUtils({
       availableBalance,
-      assetPrice: Number.parseFloat(currentPrice.price),
-      assetSzDecimals: marketData?.szDecimals ?? 6,
+      assetPrice: parseFloat(currentPrice.price),
+      assetSzDecimals:
+        marketData?.szDecimals !== undefined ? marketData?.szDecimals : 6,
       leverage: defaultLeverage, // Use default leverage for initial calculation
     });
 
@@ -119,8 +97,9 @@ export function usePerpsOrderForm(
         (tempMaxAmount < defaultAmount
           ? tempMaxAmount.toString()
           : defaultAmount.toString()),
-      price: Number.parseFloat(currentPrice.price),
-      szDecimals: marketData?.szDecimals ?? 6,
+      price: parseFloat(currentPrice.price),
+      szDecimals:
+        marketData?.szDecimals !== undefined ? marketData?.szDecimals : 6,
       maxAllowedAmount: tempMaxAmount,
       minAllowedAmount: defaultAmount,
     });
@@ -135,7 +114,7 @@ export function usePerpsOrderForm(
 
   // Calculate initial balance percentage
   const initialMarginRequired =
-    Number.parseFloat(initialAmountValue) / defaultLeverage;
+    parseFloat(initialAmountValue) / defaultLeverage;
   const initialBalancePercent =
     availableBalance > 0
       ? Math.min((initialMarginRequired / availableBalance) * 100, 100)
@@ -159,8 +138,9 @@ export function usePerpsOrderForm(
     () =>
       getMaxAllowedAmountUtils({
         availableBalance,
-        assetPrice: Number.parseFloat(currentPrice?.price) || 0,
-        assetSzDecimals: marketData?.szDecimals ?? 6,
+        assetPrice: parseFloat(currentPrice?.price) || 0,
+        assetSzDecimals:
+          marketData?.szDecimals !== undefined ? marketData?.szDecimals : 6,
         leverage: orderForm.leverage, // Use current leverage instead of default
       }),
     [
@@ -175,7 +155,7 @@ export function usePerpsOrderForm(
   const optimizeOrderAmount = useMemo(() => {
     const optimizeFunction = (price: number, szDecimals?: number) => {
       setOrderForm((prev) => {
-        if (!prev.amount || Number.parseFloat(prev.amount) === 0) {
+        if (!prev.amount || parseFloat(prev.amount) === 0) {
           return prev;
         }
 
@@ -187,7 +167,7 @@ export function usePerpsOrderForm(
           minAllowedAmount: defaultAmount,
         });
 
-        const optimizedAmountNum = Number.parseFloat(optimizedAmount);
+        const optimizedAmountNum = parseFloat(optimizedAmount);
 
         // Only update if the optimized amount is different
         if (
@@ -224,26 +204,6 @@ export function usePerpsOrderForm(
       hasSetInitialAmount.current = true;
     }
   }, [initialAmountValue]);
-
-  // Sync leverage from existing position when it loads asynchronously
-  // This handles the case where positions haven't loaded yet when form initializes
-  const hasSyncedLeverage = useRef(false);
-  useEffect(() => {
-    // Only update if:
-    // 1. Haven't synced yet (avoid fighting with user input)
-    // 2. No explicit initialLeverage was provided (respect navigation params)
-    // 3. existingPositionLeverage loaded (was undefined, now has value)
-    // 4. Current leverage would cause protocol violation (< existing)
-    if (
-      !hasSyncedLeverage.current &&
-      !initialLeverage &&
-      existingPositionLeverage &&
-      orderForm.leverage < existingPositionLeverage
-    ) {
-      setOrderForm((prev) => ({ ...prev, leverage: existingPositionLeverage }));
-      hasSyncedLeverage.current = true;
-    }
-  }, [existingPositionLeverage, initialLeverage, orderForm.leverage]);
 
   // Update entire form
   const updateOrderForm = (updates: Partial<OrderFormState>) => {

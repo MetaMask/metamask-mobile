@@ -1,5 +1,11 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { TextInput, View, StyleSheet, TextStyle } from 'react-native';
+import {
+  TextInput,
+  View,
+  StyleSheet,
+  TextStyle,
+  DimensionValue,
+} from 'react-native';
 import { Hex } from '@metamask/utils';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -17,6 +23,7 @@ import Icon, {
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
+import { selectChainId } from '../../../selectors/networkController';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -48,7 +55,6 @@ const createStyles = (colors: any) =>
     textInput: {
       ...fontStyles.normal,
       color: colors.text.default,
-      flex: 1,
     } as TextStyle,
     icon: {
       paddingLeft: 20,
@@ -98,33 +104,50 @@ interface Props {
   onBlur: () => void;
 
   /**
-   * The selected network chain ID
+   * Whether all networks are enabled
    */
-  selectedChainId: Hex | null;
+  allNetworksEnabled: boolean;
 }
 
 // eslint-disable-next-line react/display-name
-const AssetSearch = ({ onSearch, onFocus, onBlur, selectedChainId }: Props) => {
+const AssetSearch = ({
+  onSearch,
+  onFocus,
+  onBlur,
+  allNetworksEnabled,
+}: Props) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [inputDimensions, setInputDimensions] = useState<DimensionValue>('85%');
   const [isFocus, setIsFocus] = useState(false);
+  const chainId = useSelector(selectChainId);
   const tokenListForAllChains = useSelector(selectERC20TokensByChain);
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
   const tokenList = useMemo(() => {
-    // If no network is selected, return empty list
-    if (!selectedChainId) {
-      return [];
+    if (allNetworksEnabled) {
+      return Object.entries(tokenListForAllChains).flatMap(
+        ([networkId, { data }]) =>
+          Object.values(data).map((item) => ({
+            ...item,
+            chainId: networkId,
+          })),
+      );
     }
 
-    // Use the selected network's tokens
     return Object.values(
-      tokenListForAllChains?.[selectedChainId]?.data ?? [],
+      tokenListForAllChains?.[chainId as Hex]?.data ?? [],
     ).map((item) => ({
       ...item,
-      chainId: selectedChainId,
+      chainId: chainId as Hex,
     }));
-  }, [selectedChainId, tokenListForAllChains]);
+  }, [allNetworksEnabled, tokenListForAllChains, chainId]);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setInputDimensions('86%');
+    }, 100);
+  }, []);
 
   // Update fuse list
   useEffect(() => {
@@ -150,7 +173,7 @@ const AssetSearch = ({ onSearch, onFocus, onBlur, selectedChainId }: Props) => {
     setSearchQuery('');
     handleSearch('');
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedChainId]);
+  }, [allNetworksEnabled]);
 
   return (
     <View
@@ -163,7 +186,10 @@ const AssetSearch = ({ onSearch, onFocus, onBlur, selectedChainId }: Props) => {
 
       <View style={styles.input}>
         <TextInput
-          style={styles.textInput}
+          style={[
+            styles.textInput,
+            { height: inputDimensions, width: inputDimensions },
+          ]}
           value={searchQuery}
           onFocus={() => {
             onFocus();

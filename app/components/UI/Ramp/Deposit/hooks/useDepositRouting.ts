@@ -30,7 +30,6 @@ import { AddressFormData } from '../Views/EnterAddress/EnterAddress';
 import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useDepositUser } from './useDepositUser';
-import { useDepositOrderNetworkName } from './useDepositOrderNetworkName';
 
 class LimitExceededError extends Error {
   constructor(message: string) {
@@ -39,12 +38,7 @@ class LimitExceededError extends Error {
   }
 }
 
-interface UseDepositRoutingConfig {
-  screenLocation: string;
-}
-
-export const useDepositRouting = (config?: UseDepositRoutingConfig) => {
-  const { screenLocation = '' } = config || {};
+export const useDepositRouting = () => {
   const navigation = useNavigation();
   const handleNewOrder = useHandleNewOrder();
   const {
@@ -55,14 +49,7 @@ export const useDepositRouting = (config?: UseDepositRoutingConfig) => {
   } = useDepositSDK();
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
-
-  const getDepositOrderNetworkName = useDepositOrderNetworkName();
-
-  const { fetchUserDetails } = useDepositUser({
-    screenLocation,
-    shouldTrackFetch: true,
-    fetchOnMount: false,
-  });
+  const { fetchUserDetails } = useDepositUser();
 
   const [, getKycRequirement] = useDepositSdkMethod({
     method: 'getKycRequirement',
@@ -322,10 +309,8 @@ export const useDepositRouting = (config?: UseDepositRoutingConfig) => {
                 total_fee: Number(order.totalFeesFiat),
                 payment_method_id: order.paymentMethod.id,
                 country: selectedRegion?.isoCode || '',
-                chain_id: order.network?.chainId || '',
+                chain_id: order.network.chainId,
                 currency_destination: order.cryptoCurrency.assetId || '',
-                currency_destination_symbol: order.cryptoCurrency.symbol,
-                currency_destination_network: getDepositOrderNetworkName(order),
                 currency_source: order.fiatCurrency,
               });
             } catch (error) {
@@ -348,7 +333,6 @@ export const useDepositRouting = (config?: UseDepositRoutingConfig) => {
       navigateToOrderProcessingCallback,
       selectedRegion?.isoCode,
       trackEvent,
-      getDepositOrderNetworkName,
     ],
   );
 
@@ -544,11 +528,6 @@ export const useDepositRouting = (config?: UseDepositRoutingConfig) => {
             }
 
             // If no additional forms are required, route to KYC processing
-            navigateToKycProcessingCallback({ quote });
-            return;
-          }
-
-          case 'SUBMITTED': {
             navigateToKycProcessingCallback({ quote });
             return;
           }

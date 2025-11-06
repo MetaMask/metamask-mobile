@@ -1,45 +1,49 @@
+import { Messenger } from '@metamask/base-controller';
 import {
-  Messenger,
-  type MessengerActions,
-  type MessengerEvents,
-} from '@metamask/messenger';
-import { CronjobControllerMessenger } from '@metamask/snaps-controllers';
-import { RootMessenger } from '../../types';
+  SnapInstalled,
+  SnapUpdated,
+  SnapDisabled,
+  SnapEnabled,
+  SnapUninstalled,
+  HandleSnapRequest,
+} from '@metamask/snaps-controllers';
+import { GetPermissions } from '@metamask/permission-controller';
 
-export { type CronjobControllerMessenger };
+type Actions = GetPermissions | HandleSnapRequest;
+
+type Events =
+  | SnapInstalled
+  | SnapUpdated
+  | SnapUninstalled
+  | SnapEnabled
+  | SnapDisabled;
+
+export type CronjobControllerMessenger = ReturnType<
+  typeof getCronjobControllerMessenger
+>;
 
 /**
- * Get a messenger for the cronjob controller. This is scoped to the
+ * Get a restricted messenger for the cronjob controller. This is scoped to the
  * actions and events that the cronjob controller is allowed to handle.
  *
- * @param rootMessenger - The root messenger.
- * @returns The CronjobControllerMessenger.
+ * @param messenger - The controller messenger to restrict.
+ * @returns The restricted controller messenger.
  */
 export function getCronjobControllerMessenger(
-  rootMessenger: RootMessenger,
-): CronjobControllerMessenger {
-  const messenger = new Messenger<
-    'CronjobController',
-    MessengerActions<CronjobControllerMessenger>,
-    MessengerEvents<CronjobControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'CronjobController',
-    parent: rootMessenger,
-  });
-  rootMessenger.delegate({
-    actions: [
-      'PermissionController:getPermissions',
-      'SnapController:handleRequest',
-    ],
-    events: [
+  messenger: Messenger<Actions, Events>,
+) {
+  return messenger.getRestricted({
+    name: 'CronjobController',
+    allowedEvents: [
       'SnapController:snapInstalled',
       'SnapController:snapUpdated',
       'SnapController:snapUninstalled',
       'SnapController:snapEnabled',
       'SnapController:snapDisabled',
     ],
-    messenger,
+    allowedActions: [
+      `PermissionController:getPermissions`,
+      'SnapController:handleRequest',
+    ],
   });
-  return messenger;
 }

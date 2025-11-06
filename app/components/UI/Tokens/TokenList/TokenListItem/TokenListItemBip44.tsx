@@ -1,3 +1,4 @@
+import { BtcAccountType, KeyringAccountType } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
@@ -38,9 +39,15 @@ import SensitiveText, {
 } from '../../../../../component-library/components/Texts/SensitiveText';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
-import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-labels';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
+
+export const accountTypeLabel: Partial<Record<KeyringAccountType, string>> = {
+  [BtcAccountType.P2pkh]: 'Legacy',
+  [BtcAccountType.P2sh]: 'Nested SegWit',
+  [BtcAccountType.P2wpkh]: 'Native SegWit',
+  [BtcAccountType.P2tr]: 'Taproot',
+};
 
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
@@ -163,7 +170,7 @@ export const TokenListItemBip44 = React.memo(
     }
 
     const label = asset.accountType
-      ? ACCOUNT_TYPE_LABELS[asset.accountType]
+      ? accountTypeLabel[asset.accountType]
       : undefined;
 
     return (

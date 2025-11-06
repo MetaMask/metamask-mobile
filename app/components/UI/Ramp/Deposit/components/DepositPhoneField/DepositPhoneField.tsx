@@ -1,4 +1,4 @@
-import React, { useCallback, forwardRef, useState } from 'react';
+import React, { useCallback, forwardRef } from 'react';
 import { TouchableOpacity, StyleSheet, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
@@ -47,17 +47,14 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
   ) => {
     const { styles } = useStyles(styleSheet, {});
     const { selectedRegion } = useDepositSDK();
-
-    const [phoneRegion, setPhoneRegion] = useState(selectedRegion);
-
     const navigation = useNavigation();
-    const template = phoneRegion?.phone?.template ?? '(XXX) XXX-XXXX';
+    const template = selectedRegion?.phone?.template ?? '(XXX) XXX-XXXX';
 
-    const rawDigits = phoneRegion?.phone?.prefix
+    const rawDigits = selectedRegion?.phone?.prefix
       ? value
           .replace(/\D/g, '')
           .replace(
-            new RegExp(`^${phoneRegion.phone.prefix.replace(/\D/g, '')}`),
+            new RegExp(`^${selectedRegion.phone.prefix.replace(/\D/g, '')}`),
             '',
           )
       : value.replace(/\D/g, '');
@@ -67,28 +64,23 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
       (text: string) => {
         const digits = text.replace(/\D/g, '');
 
-        if (phoneRegion?.phone?.prefix) {
-          const fullNumber = phoneRegion.phone.prefix + digits;
+        if (selectedRegion?.phone?.prefix) {
+          const fullNumber = selectedRegion.phone.prefix + digits;
           onChangeText(fullNumber);
         } else {
           onChangeText(digits);
         }
       },
-      [onChangeText, phoneRegion],
+      [onChangeText, selectedRegion],
     );
 
     const handleFlagPress = useCallback(() => {
       navigation.navigate(
         ...createRegionSelectorModalNavigationDetails({
           regions,
-          onRegionSelect: setPhoneRegion,
-          selectedRegion: phoneRegion,
-          allRegionsSelectable: true,
-          updateGlobalRegion: false,
-          trackSelection: false,
         }),
       );
-    }, [navigation, regions, setPhoneRegion, phoneRegion]);
+    }, [navigation, regions]);
 
     const countryPrefixAccessory = (
       <TouchableOpacity
@@ -97,9 +89,9 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
         accessible
         style={styles.countryPrefix}
       >
-        <Text style={styles.countryFlag}>{phoneRegion?.flag ?? '🌍'}</Text>
+        <Text style={styles.countryFlag}>{selectedRegion?.flag ?? '🌍'}</Text>
         <Text style={styles.countryCallingCode}>
-          {phoneRegion?.phone?.prefix ??
+          {selectedRegion?.phone?.prefix ??
             strings('deposit.basic_info.select_region')}
         </Text>
       </TouchableOpacity>
@@ -112,7 +104,7 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
         value={formattedValue}
         onChangeText={handleChangeText}
         placeholder={
-          phoneRegion?.phone?.placeholder ??
+          selectedRegion?.phone?.placeholder ??
           strings('deposit.basic_info.enter_phone_number')
         }
         keyboardType="phone-pad"

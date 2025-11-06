@@ -1,8 +1,6 @@
 import { ControllerInitFunction } from '../types';
-import {
-  RewardsDataService,
-  type RewardsDataServiceMessenger,
-} from './rewards-controller/services';
+import { RewardsDataServiceMessenger } from '../messengers/rewards-data-service-messenger';
+import { RewardsDataService } from './rewards-controller/services';
 import I18n from '../../../../locales/i18n';
 
 /**

@@ -12,7 +12,7 @@ const styleSheet = () =>
     positionContainer: {
       flexDirection: 'row',
       alignItems: 'flex-start',
-      paddingBottom: 16,
+      padding: 8,
       gap: 16,
       width: '100%',
     },
@@ -27,6 +27,8 @@ const styleSheet = () =>
       justifyContent: 'flex-start',
       alignItems: 'flex-start',
       flex: 1,
+      gap: 4,
+      paddingRight: 8, // Add some space from the PnL container
     },
     pnlContainer: {
       position: 'absolute',
@@ -43,8 +45,8 @@ const styleSheet = () =>
       marginRight: 80, // Reserve space for PnL text
     },
     positionImage: {
-      width: 40,
-      height: 40,
+      width: 44,
+      height: 44,
       borderRadius: 100,
       alignSelf: 'center',
     },
@@ -52,6 +54,7 @@ const styleSheet = () =>
       flexDirection: 'column',
       justifyContent: 'flex-end',
       alignItems: 'flex-end',
+      gap: 4,
       width: '100%',
       flex: 1,
     },

@@ -4,12 +4,13 @@ import {
   type Hex,
   isValidHexAddress,
 } from '@metamask/utils';
+import { store } from '../../../../store';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import Engine from '../../../../core/Engine';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { getChainId } from '../constants/hyperLiquidConfig';
 import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
 
 /**
  * Service for MetaMask wallet integration with HyperLiquid SDK
@@ -27,7 +28,6 @@ export class HyperLiquidWalletService {
    * Required by @nktkas/hyperliquid SDK for signing transactions
    */
   public createWalletAdapter(): {
-    address: Hex;
     signTypedData: (params: {
       domain: {
         name: string;
@@ -43,17 +43,7 @@ export class HyperLiquidWalletService {
     }) => Promise<Hex>;
     getChainId?: () => Promise<number>;
   } {
-    // Get current EVM account using the standardized utility
-    const evmAccount = getEvmAccountFromSelectedAccountGroup();
-
-    if (!evmAccount?.address) {
-      throw new Error(strings('perps.errors.noAccountSelected'));
-    }
-
-    const address = evmAccount.address as Hex;
-
     return {
-      address,
       signTypedData: async (params: {
         domain: {
           name: string;
@@ -67,7 +57,16 @@ export class HyperLiquidWalletService {
         primaryType: string;
         message: Record<string, unknown>;
       }): Promise<Hex> => {
-        // Use address from outer scope (already validated when adapter was created)
+        const selectedEvmAccount = selectSelectedInternalAccountByScope(
+          store.getState(),
+        )('eip155:1');
+
+        if (!selectedEvmAccount?.address) {
+          throw new Error(strings('perps.errors.noAccountSelected'));
+        }
+
+        const address = selectedEvmAccount.address;
+
         // Construct EIP-712 typed data
         const typedData = {
           domain: params.domain,
@@ -100,17 +99,19 @@ export class HyperLiquidWalletService {
   }
 
   /**
-   * Get current account ID using the standardized account utility
+   * Get current account ID from Redux store
    */
   public async getCurrentAccountId(): Promise<CaipAccountId> {
-    const evmAccount = getEvmAccountFromSelectedAccountGroup();
+    const selectedEvmAccount = selectSelectedInternalAccountByScope(
+      store.getState(),
+    )('eip155:1');
 
-    if (!evmAccount?.address) {
+    if (!selectedEvmAccount?.address) {
       throw new Error(strings('perps.errors.noAccountSelected'));
     }
 
     const chainId = getChainId(this.isTestnet);
-    const caipAccountId: CaipAccountId = `eip155:${chainId}:${evmAccount.address}`;
+    const caipAccountId: CaipAccountId = `eip155:${chainId}:${selectedEvmAccount.address}`;
 
     return caipAccountId;
   }

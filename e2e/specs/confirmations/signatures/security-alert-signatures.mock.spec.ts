@@ -34,6 +34,7 @@ const typedSignRequestBody = {
     ],
     '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
   ],
+  origin: getTestDappLocalUrl(),
 };
 
 describe(SmokeConfirmationsRedesigned('Security Alert API - Signature'), () => {
@@ -80,7 +81,7 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Signature'), () => {
       await setupMockPostRequest(
         mockServer,
         securityAlertsUrl('0xaa36a7'),
-        { ...typedSignRequestBody, origin: getTestDappLocalUrl() },
+        typedSignRequestBody,
         SECURITY_ALERTS_BENIGN_RESPONSE,
         {
           statusCode: 201,
@@ -112,7 +113,7 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Signature'), () => {
       await setupMockPostRequest(
         mockServer,
         'https://security-alerts.api.cx.metamask.io/validate/0xaa36a7',
-        { ...typedSignRequestBody, origin: getTestDappLocalUrl() },
+        typedSignRequestBody,
         {
           block: 20733277,
           result_type: 'Malicious',
@@ -161,7 +162,7 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Signature'), () => {
       await setupMockPostRequest(
         mockServer,
         'https://security-alerts.api.cx.metamask.io/validate/0xaa36a7',
-        { ...typedSignRequestBody, origin: getTestDappLocalUrl() },
+        typedSignRequestBody,
         {
           error: 'Internal Server Error',
           message: 'An unexpected error occurred on the server.',

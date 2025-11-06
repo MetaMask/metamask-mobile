@@ -74,16 +74,13 @@ export function useEVMNfts(): Nft[] {
       }
 
       if (missingCollectionNfts.length > 0) {
-        const groupedByChain = missingCollectionNfts.reduce(
-          (acc, nft) => {
-            if (!acc[nft.chainId]) {
-              acc[nft.chainId] = [];
-            }
-            acc[nft.chainId].push(nft);
-            return acc;
-          },
-          {} as Record<string, typeof missingCollectionNfts>,
-        );
+        const groupedByChain = missingCollectionNfts.reduce((acc, nft) => {
+          if (!acc[nft.chainId]) {
+            acc[nft.chainId] = [];
+          }
+          acc[nft.chainId].push(nft);
+          return acc;
+        }, {} as Record<string, typeof missingCollectionNfts>);
 
         for (const [chainId, nfts] of Object.entries(groupedByChain)) {
           const typedNfts = nfts as typeof missingCollectionNfts;

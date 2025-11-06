@@ -60,14 +60,9 @@ jest.mock('../../../../core/redux/slices/card', () => ({
   selectUserCardLocation: jest.fn(),
   setUserCardLocation: jest.fn(),
   selectOnboardingId: jest.fn(),
-  resetOnboardingState: jest.fn(() => ({
-    type: 'card/resetOnboardingState',
-  })),
+  resetOnboardingState: jest.fn(),
   resetAuthenticatedData: jest.fn(() => ({
     type: 'card/resetAuthenticatedData',
-  })),
-  clearAllCache: jest.fn(() => ({
-    type: 'card/clearAllCache',
   })),
 }));
 

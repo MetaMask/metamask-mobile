@@ -17,7 +17,6 @@ class FooterActions {
     await Gestures.waitAndTap(this.confirmButton, {
       elemDescription: 'Confirm button',
       delay: 1800,
-      waitForElementToDisappear: device.getPlatform() === 'android',
     });
   }
 

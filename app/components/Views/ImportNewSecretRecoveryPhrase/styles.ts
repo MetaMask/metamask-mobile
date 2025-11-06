@@ -8,49 +8,68 @@ const createStyles = (colors: Colors) =>
   StyleSheet.create({
     mainWrapper: {
       flex: 1,
+      paddingHorizontal: 16,
       backgroundColor: colors.background.default,
+    },
+    topOverlay: {
+      flex: 1,
     },
     wrapper: {
       flexGrow: 1,
-      paddingHorizontal: 16,
     },
-    headerButton: {
-      paddingHorizontal: 16,
+    content: {
+      alignItems: 'flex-start',
     },
     title: {
-      marginTop: 0,
-      marginBottom: 0,
-    },
-    contentContainer: {
-      marginTop: 6,
-    },
-    subtitleContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-      marginBottom: 16,
-    },
-    textareaContainer: {
-      width: '100%',
-      marginBottom: 0,
-    },
-    textarea: {
-      minHeight: 180,
-      padding: 16,
-      borderWidth: 1,
-      borderColor: colors.border.muted,
-      borderRadius: 8,
-      fontSize: 16,
-      lineHeight: 24,
+      fontSize: 32,
+      marginTop: 20,
+      marginBottom: 40,
       color: colors.text.default,
-      backgroundColor: colors.background.default,
+      justifyContent: 'center',
+      textAlign: 'left',
       ...fontStyles.normal,
     },
-    textareaError: {
-      borderColor: colors.error.default,
+    grid: {
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      flexWrap: 'wrap',
+      gap: 8,
     },
-    errorBanner: {
-      marginTop: 16,
+    gridCell: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      width: '30%',
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
+    },
+    gridCellPrefix: {
+      color: colors.text.alternative,
+    },
+    input: {
+      width: '100%',
+    },
+    subheading: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 16,
+    },
+    options: {
+      display: 'flex',
+      flexGrow: 1,
+      marginLeft: -15,
+    },
+    footer: {
+      display: 'flex',
+      width: '100%',
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
     },
     footerText: {
       display: 'flex',
@@ -81,8 +100,10 @@ const createStyles = (colors: Colors) =>
       color: colors.icon.alternative,
     },
     buttonWrapper: {
-      width: '100%',
-      marginTop: 24,
+      flex: 1,
+      justifyContent: 'flex-end',
+      marginBottom: 16,
+      backgroundColor: colors.background.default,
     },
     button: {
       marginBottom: Device.isIphoneX() ? 20 : 0,
@@ -98,12 +119,6 @@ const createStyles = (colors: Colors) =>
     },
     navbarLeftButton: {
       alignSelf: 'flex-start',
-      paddingTop: 20,
-      paddingBottom: 10,
-      marginTop: Device.isIphoneX() ? 40 : 20,
-    },
-    navbarRightButton: {
-      alignSelf: 'flex-end',
       paddingTop: 20,
       paddingBottom: 10,
       marginTop: Device.isIphoneX() ? 40 : 20,

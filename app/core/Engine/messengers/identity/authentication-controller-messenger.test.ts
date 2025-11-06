@@ -1,30 +1,14 @@
-import {
-  Messenger,
-  type MessengerActions,
-  type MessengerEvents,
-  MOCK_ANY_NAMESPACE,
-  type MockAnyNamespace,
-} from '@metamask/messenger';
-import type { AuthenticationControllerMessenger } from '@metamask/profile-sync-controller/auth';
+import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
 import { getAuthenticationControllerMessenger } from './authentication-controller-messenger';
 
-type RootMessenger = Messenger<
-  MockAnyNamespace,
-  MessengerActions<AuthenticationControllerMessenger>,
-  MessengerEvents<AuthenticationControllerMessenger>
->;
-
-const getRootMessenger = (): RootMessenger =>
-  new Messenger<MockAnyNamespace, never, never>({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
-
 describe('getAuthenticationControllerMessenger', () => {
-  it('returns a messenger', () => {
-    const rootMessenger = getRootMessenger();
-    const authenticationControllerMessenger =
-      getAuthenticationControllerMessenger(rootMessenger);
+  it('returns a restricted messenger', () => {
+    const messenger = new Messenger<never, never>();
+    const AuthenticationControllerMessenger =
+      getAuthenticationControllerMessenger(messenger);
 
-    expect(authenticationControllerMessenger).toBeInstanceOf(Messenger);
+    expect(AuthenticationControllerMessenger).toBeInstanceOf(
+      RestrictedMessenger,
+    );
   });
 });

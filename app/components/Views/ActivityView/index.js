@@ -18,13 +18,7 @@ import Avatar, {
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconName,
-  IconColor,
-} from '../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 import TextComponent, {
   getFontFamily,
   TextVariant,
@@ -75,19 +69,6 @@ const createStyles = (params) => {
   const { colors } = theme;
   return StyleSheet.create({
     wrapper: {
-      flex: 1,
-    },
-    headerWithBackButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      backgroundColor: colors.background.default,
-    },
-    headerBackButton: {
-      marginRight: 12,
-    },
-    headerTitleContainer: {
       flex: 1,
     },
     controlButtonOuterWrapper: {
@@ -218,35 +199,21 @@ const ActivityView = () => {
     }
   };
 
-  const handleBackPress = useCallback(() => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-    }
-  }, [navigation]);
-
-  const showBackButton = params.showBackButton || false;
-
   useEffect(
     () => {
       const title = 'activity_view.title';
-      if (!showBackButton) {
-        navigation.setOptions(
-          getTransactionsNavbarOptions(
-            title,
-            colors,
-            navigation,
-            selectedAddress,
-            openAccountSelector,
-          ),
-        );
-      } else {
-        navigation.setOptions({
-          headerShown: false,
-        });
-      }
+      navigation.setOptions(
+        getTransactionsNavbarOptions(
+          title,
+          colors,
+          navigation,
+          selectedAddress,
+          openAccountSelector,
+        ),
+      );
     },
     /* eslint-disable-next-line */
-    [navigation, colors, selectedAddress, openAccountSelector, showBackButton],
+    [navigation, colors, selectedAddress, openAccountSelector],
   );
 
   const renderTabBar = () => <TabBar />;
@@ -295,30 +262,11 @@ const ActivityView = () => {
 
   return (
     <ErrorBoundary navigation={navigation} view="ActivityView">
-      {showBackButton ? (
-        <View style={[styles.headerWithBackButton, { marginTop: insets.top }]}>
-          <View style={styles.headerBackButton}>
-            <ButtonIcon
-              iconName={IconName.ArrowLeft}
-              iconColor={IconColor.Default}
-              size={ButtonIconSizes.Md}
-              onPress={handleBackPress}
-              testID="activity-view-back-button"
-            />
-          </View>
-          <View style={styles.headerTitleContainer}>
-            <TextComponent variant={TextVariant.HeadingMD}>
-              {strings('transactions_view.title')}
-            </TextComponent>
-          </View>
-        </View>
-      ) : (
-        <View style={[styles.header, { marginTop: insets.top }]}>
-          <Text style={styles.title} variant={TextVariant.HeadingSM}>
-            {strings('transactions_view.title')}
-          </Text>
-        </View>
-      )}
+      <View style={[styles.header, { marginTop: insets.top }]}>
+        <Text style={styles.title} variant={TextVariant.HeadingSM}>
+          {strings('transactions_view.title')}
+        </Text>
+      </View>
       <View style={styles.wrapper}>
         {!(isPerpsTabActive || isOrdersTabActive || isPredictTabActive) && (
           <View style={styles.controlButtonOuterWrapper}>
@@ -343,8 +291,8 @@ const ActivityView = () => {
                       >
                         {enabledNetworks.length > 1
                           ? strings('wallet.popular_networks')
-                          : (currentNetworkName ??
-                            strings('wallet.current_network'))}
+                          : currentNetworkName ??
+                            strings('wallet.current_network')}
                       </TextComponent>
                     </View>
                   ) : (
@@ -355,7 +303,7 @@ const ActivityView = () => {
                     >
                       {isAllNetworks && isAllPopularEVMNetworks && isEvmSelected
                         ? strings('wallet.popular_networks')
-                        : (networkName ?? strings('wallet.current_network'))}
+                        : networkName ?? strings('wallet.current_network')}
                     </TextComponent>
                   )}
                 </>
@@ -414,7 +362,6 @@ const ActivityView = () => {
           {isPredictEnabled && (
             <PredictTransactionsView
               tabLabel={strings('predict.transactions.title')}
-              isVisible={isPredictTabActive}
             />
           )}
         </ScrollableTabView>

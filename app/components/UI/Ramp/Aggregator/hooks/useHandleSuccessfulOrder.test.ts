@@ -56,7 +56,6 @@ describe('useHandleSuccessfulOrder', () => {
         cryptoCurrency: {
           network: {
             chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-            shortName: 'Solana',
           },
           symbol: 'USDC',
         },
@@ -81,8 +80,6 @@ describe('useHandleSuccessfulOrder', () => {
       provider_offramp: 'TestProvider',
       chain_id_source: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       currency_source: 'USDC',
-      currency_source_symbol: 'USDC',
-      currency_source_network: 'Solana',
       currency_destination: 'USD',
     });
   });
@@ -98,7 +95,6 @@ describe('useHandleSuccessfulOrder', () => {
         cryptoCurrency: {
           network: {
             chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-            shortName: 'Solana',
           },
           symbol: 'USDC',
         },
@@ -123,8 +119,6 @@ describe('useHandleSuccessfulOrder', () => {
       provider_onramp: 'TestProvider',
       chain_id_destination: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       currency_destination: 'USDC',
-      currency_destination_symbol: 'USDC',
-      currency_destination_network: 'Solana',
       currency_source: 'USD',
       has_zero_currency_destination_balance: false,
     });

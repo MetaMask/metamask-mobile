@@ -1,8 +1,6 @@
 import { ControllerInitFunction } from '../types';
-import {
-  ErrorReportingService,
-  ErrorReportingServiceMessenger,
-} from '@metamask/error-reporting-service';
+import { ErrorReportingService } from '@metamask/error-reporting-service';
+import { ErrorReportingServiceMessenger } from '../messengers/error-reporting-service-messenger';
 import { captureException } from '@sentry/react-native';
 
 /**

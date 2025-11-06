@@ -102,6 +102,7 @@ const mockApprovalRequestData = {
 describe('SwitchChainApproval', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
     jest
       .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
       .mockReturnValue(false);
@@ -150,7 +151,8 @@ describe('SwitchChainApproval', () => {
     });
   });
 
-  it('sets token network filter', () => {
+  it('sets token network filter when portfolio view is enabled', () => {
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
     mockApprovalRequest({
       type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
       requestData: mockApprovalRequestData,
@@ -166,10 +168,11 @@ describe('SwitchChainApproval', () => {
     });
   });
 
-  it('calls selectNetwork when remove global network selector are enabled', () => {
+  it('calls selectNetwork when both portfolio view and remove global network selector are enabled', () => {
     jest
       .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
       .mockReturnValue(true);
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
 
     mockApprovalRequest({
       type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
@@ -192,6 +195,7 @@ describe('SwitchChainApproval', () => {
     jest
       .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
       .mockReturnValue(false);
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
 
     mockApprovalRequest({
       type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,

@@ -16,6 +16,7 @@ import Networks, {
   isPrivateConnection,
   getAllNetworks,
   getIsNetworkOnboarded,
+  isPortfolioViewEnabled,
   isValidNetworkName,
   getDecimalChainId,
   isWhitelistedSymbol,
@@ -596,8 +597,8 @@ export class NetworkSettings extends PureComponent {
     isCustomMainnet
       ? navigation.navigate('OptinMetrics')
       : shouldNetworkSwitchPopToWallet
-        ? navigation.navigate('WalletView')
-        : navigation.goBack();
+      ? navigation.navigate('WalletView')
+      : navigation.goBack();
   };
 
   /**
@@ -670,16 +671,18 @@ export class NetworkSettings extends PureComponent {
     }
 
     // Set tokenNetworkFilter
-    const { PreferencesController } = Engine.context;
-    if (!isAllNetworks) {
-      PreferencesController.setTokenNetworkFilter({
-        [chainId]: true,
-      });
-    } else {
-      PreferencesController.setTokenNetworkFilter({
-        ...tokenNetworkFilter,
-        [chainId]: true,
-      });
+    if (isPortfolioViewEnabled()) {
+      const { PreferencesController } = Engine.context;
+      if (!isAllNetworks) {
+        PreferencesController.setTokenNetworkFilter({
+          [chainId]: true,
+        });
+      } else {
+        PreferencesController.setTokenNetworkFilter({
+          ...tokenNetworkFilter,
+          [chainId]: true,
+        });
+      }
     }
 
     if (isRemoveGlobalNetworkSelectorEnabled()) {
@@ -899,8 +902,8 @@ export class NetworkSettings extends PureComponent {
     const symbol = networkConfigurationSymbol
       ? networkConfigurationSymbol
       : chainToMatch
-        ? (chainToMatch?.nativeCurrency?.symbol ?? null)
-        : (networkList?.nativeCurrency?.symbol ?? null);
+      ? chainToMatch?.nativeCurrency?.symbol ?? null
+      : networkList?.nativeCurrency?.symbol ?? null;
 
     const symbolToUse =
       symbol?.toLowerCase() === ticker?.toLowerCase() ? undefined : symbol;

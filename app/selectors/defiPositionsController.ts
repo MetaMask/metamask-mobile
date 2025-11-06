@@ -3,72 +3,51 @@ import { DeFiPositionsControllerState } from '@metamask/assets-controllers';
 import { NetworkEnablementControllerState } from '@metamask/network-enablement-controller';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
+import { selectLastSelectedEvmAccount } from './accountsController';
 import { selectEnabledNetworksByNamespace } from './networkEnablementController';
-import { selectSelectedInternalAccountByScope } from './multichainAccounts/accounts';
-import { EVM_SCOPE } from '../components/UI/Earn/constants/networks';
-
-const NO_DATA: NonNullable<
-  DeFiPositionsControllerState['allDeFiPositions'][string]
-> = {};
 
 const selectDeFiPositionsControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.DeFiPositionsController;
 
-/**
- * @deprecated This selector is deprecated and will be removed in a future release.
- * Use selectDefiPositionsByEnabledNetworks instead.
- */
 export const selectDeFiPositionsByAddress = createDeepEqualSelector(
   selectDeFiPositionsControllerState,
-  selectSelectedInternalAccountByScope,
+  selectLastSelectedEvmAccount,
   (
     defiPositionsControllerState: DeFiPositionsControllerState,
-    selectedInternalAccountByScope: ReturnType<
-      typeof selectSelectedInternalAccountByScope
-    >,
-  ): DeFiPositionsControllerState['allDeFiPositions'][string] | undefined => {
-    const selectedEvmAccount = selectedInternalAccountByScope(EVM_SCOPE);
-
-    if (!selectedEvmAccount) {
-      return NO_DATA;
-    }
-
-    return defiPositionsControllerState?.allDeFiPositions[
-      selectedEvmAccount.address
-    ];
-  },
+    _eoaAccounts: ReturnType<typeof selectLastSelectedEvmAccount>,
+  ): DeFiPositionsControllerState['allDeFiPositions'][string] | undefined =>
+    defiPositionsControllerState?.allDeFiPositions[
+      _eoaAccounts?.address as Hex
+    ],
 );
 
 export const selectDefiPositionsByEnabledNetworks = createDeepEqualSelector(
   selectDeFiPositionsControllerState,
-  selectSelectedInternalAccountByScope,
+  selectLastSelectedEvmAccount,
   selectEnabledNetworksByNamespace,
   (
     defiPositionsControllerState: DeFiPositionsControllerState,
-    selectedInternalAccountByScope: ReturnType<
-      typeof selectSelectedInternalAccountByScope
-    >,
+    _eoaAccounts: ReturnType<typeof selectLastSelectedEvmAccount>,
     enabledNetworks: NetworkEnablementControllerState['enabledNetworkMap'],
   ): DeFiPositionsControllerState['allDeFiPositions'][string] | undefined => {
-    const selectedEvmAccount = selectedInternalAccountByScope(EVM_SCOPE);
-    if (!selectedEvmAccount) {
-      return NO_DATA;
+    if (!_eoaAccounts) {
+      return {};
     }
 
     const defiPositionByAddress =
-      defiPositionsControllerState?.allDeFiPositions[
-        selectedEvmAccount.address
-      ];
+      defiPositionsControllerState.allDeFiPositions[
+        _eoaAccounts?.address as Hex
+      ] ?? {};
 
-    if (defiPositionByAddress == null) {
-      return defiPositionByAddress;
+    if (Object.keys(defiPositionByAddress).length === 0) {
+      return {};
     }
 
     const defiPositionByEnabledNetworks =
       enabledNetworks[KnownCaipNamespace.Eip155];
 
     if (!defiPositionByEnabledNetworks) {
-      return NO_DATA;
+      return {};
     }
 
     const enabledChainIdsSet = new Set(
@@ -78,7 +57,7 @@ export const selectDefiPositionsByEnabledNetworks = createDeepEqualSelector(
     );
 
     if (enabledChainIdsSet.size === 0) {
-      return NO_DATA;
+      return {};
     }
 
     const filteredDefiPositionByAddress = Object.keys(defiPositionByAddress)

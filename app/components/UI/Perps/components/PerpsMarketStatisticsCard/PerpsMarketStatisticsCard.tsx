@@ -18,6 +18,7 @@ import FundingCountdown from '../FundingCountdown';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { formatFundingRate } from '../../utils/formatUtils';
 import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
+import PerpsTutorialCard from '../PerpsTutorialCard/PerpsTutorialCard';
 
 const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   symbol,
@@ -178,6 +179,9 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             />
           </View>
         </View>
+      </View>
+      <View style={styles.tutorialCardContainer}>
+        <PerpsTutorialCard />
       </View>
     </View>
   );

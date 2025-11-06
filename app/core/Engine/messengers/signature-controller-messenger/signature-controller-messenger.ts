@@ -1,25 +1,35 @@
+import { Messenger } from '@metamask/base-controller';
+import type { AccountsControllerGetStateAction } from '@metamask/accounts-controller';
+import type { AddApprovalRequest } from '@metamask/approval-controller';
+import type { AddLog } from '@metamask/logging-controller';
 import {
-  Messenger,
-  type MessengerActions,
-  type MessengerEvents,
-} from '@metamask/messenger';
-import { SignatureControllerMessenger } from '@metamask/signature-controller';
-import { RootMessenger } from '../../types';
+  KeyringControllerSignMessageAction,
+  KeyringControllerSignPersonalMessageAction,
+  KeyringControllerSignTypedMessageAction,
+} from '@metamask/keyring-controller';
+import { NetworkControllerGetNetworkClientByIdAction } from '@metamask/network-controller';
+
+import type { SignatureControllerMessenger } from '@metamask/signature-controller';
+import { GatorPermissionsControllerDecodePermissionFromPermissionContextForOriginAction } from '@metamask/gator-permissions-controller';
+
+type MessengerActions =
+  | AccountsControllerGetStateAction
+  | AddApprovalRequest
+  | AddLog
+  | NetworkControllerGetNetworkClientByIdAction
+  | KeyringControllerSignMessageAction
+  | KeyringControllerSignPersonalMessageAction
+  | KeyringControllerSignTypedMessageAction
+  | GatorPermissionsControllerDecodePermissionFromPermissionContextForOriginAction;
+
+type MessengerEvents = never;
 
 export function getSignatureControllerMessenger(
-  rootMessenger: RootMessenger,
+  messenger: Messenger<MessengerActions, MessengerEvents>,
 ): SignatureControllerMessenger {
-  const messenger = new Messenger<
-    'SignatureController',
-    MessengerActions<SignatureControllerMessenger>,
-    MessengerEvents<SignatureControllerMessenger>,
-    RootMessenger
-  >({
-    namespace: 'SignatureController',
-    parent: rootMessenger,
-  });
-  rootMessenger.delegate({
-    actions: [
+  return messenger.getRestricted({
+    name: 'SignatureController',
+    allowedActions: [
       'AccountsController:getState',
       'ApprovalController:addRequest',
       'LoggingController:add',
@@ -29,8 +39,6 @@ export function getSignatureControllerMessenger(
       'KeyringController:signTypedMessage',
       'GatorPermissionsController:decodePermissionFromPermissionContextForOrigin',
     ],
-    events: [],
-    messenger,
+    allowedEvents: [],
   });
-  return messenger;
 }

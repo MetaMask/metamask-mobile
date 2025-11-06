@@ -94,11 +94,11 @@ describe('hyperLiquidOrderBookProcessor', () => {
     });
 
     it('returns early when levels data is missing', () => {
-      const data = {
+      const data: L2BookResponse = {
         coin: 'BTC',
         time: Date.now(),
-        levels: undefined,
-      } as unknown as L2BookResponse;
+        levels: undefined as unknown as L2BookResponse['levels'],
+      };
 
       const params: ProcessL2BookDataParams = {
         symbol: 'BTC',
