@@ -405,6 +405,7 @@ describe('Transaction Controller Init', () => {
         expect(Delegation7702PublishHookMock).toHaveBeenCalledWith({
           isAtomicBatchSupported: expect.any(Function),
           messenger: expect.any(Object),
+          getNextNonce: expect.any(Function),
         });
         expect(mockDelegation7702Hook).toHaveBeenCalled();
         expect(result).toEqual({ transactionHash: '0xde702' });
