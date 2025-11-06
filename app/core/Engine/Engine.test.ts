@@ -61,18 +61,6 @@ jest.mock('../../util/phishingDetection', () => ({
   getPhishingTestResult: jest.fn().mockReturnValue({ result: true }),
 }));
 
-jest.mock('@metamask/assets-controllers', () => {
-  const actualControllers = jest.requireActual('@metamask/assets-controllers');
-  // Mock the RatesController start method since it takes a while to run and causes timeouts in tests
-  class MockRatesController extends actualControllers.RatesController {
-    start = jest.fn().mockImplementation(() => Promise.resolve());
-  }
-  return {
-    ...actualControllers,
-    RatesController: MockRatesController,
-  };
-});
-
 jest.mock('@metamask/remote-feature-flag-controller', () => ({
   ...jest.requireActual('@metamask/remote-feature-flag-controller'),
   ClientConfigApiService: jest.fn().mockReturnValue({
