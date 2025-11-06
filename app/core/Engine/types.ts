@@ -729,7 +729,6 @@ export type ControllersToInitialize =
   | 'MultichainRouter'
   | 'MultichainTransactionsController'
   | 'MultichainAccountService'
-  | 'RatesController'
   | 'SnapKeyringBuilder'
   ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
