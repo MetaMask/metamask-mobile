@@ -3,6 +3,7 @@ import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagCo
 import {
   VersionGatedFeatureFlag,
   validatedVersionGatedFeatureFlag,
+  isVersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
 import type { RootState } from '../../../../../reducers';
 
@@ -63,28 +64,26 @@ export const selectPerpsButtonColorTestVariant = createSelector(
       return null;
     }
 
-    // Check if it's a version-gated flag with variant
-    if (
-      typeof remoteFlag === 'object' &&
-      remoteFlag !== null &&
-      'enabled' in remoteFlag
-    ) {
-      const versionGatedFlag = remoteFlag as VersionGatedFeatureFlag & {
-        variant?: string;
-      };
-
-      // Validate version gating
-      if (!validatedVersionGatedFeatureFlag(versionGatedFlag)) {
-        return null;
-      }
-
-      // Return variant if present
-      return versionGatedFlag.variant || null;
-    }
-
     // Direct string variant (simpler LaunchDarkly config)
     if (typeof remoteFlag === 'string') {
       return remoteFlag;
+    }
+
+    // Check if it's a version-gated flag with variant
+    if (isVersionGatedFeatureFlag(remoteFlag)) {
+      // Validate version gating (enabled and version check)
+      const isValid = validatedVersionGatedFeatureFlag(remoteFlag);
+
+      if (!isValid) {
+        return null;
+      }
+
+      // Safely access variant property if it exists
+      if ('variant' in remoteFlag && typeof remoteFlag.variant === 'string') {
+        return remoteFlag.variant;
+      }
+
+      return null;
     }
 
     return null;
