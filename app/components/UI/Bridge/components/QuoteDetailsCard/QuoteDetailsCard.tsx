@@ -34,6 +34,7 @@ import { useRewards } from '../../hooks/useRewards';
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../Rewards/components/RewardPointsAnimation';
+import QuoteCountdownTimer from '../QuoteCountdownTimer';
 import QuoteDetailsRecipientKeyValueRow from '../QuoteDetailsRecipientKeyValueRow/QuoteDetailsRecipientKeyValueRow';
 
 if (
@@ -50,7 +51,7 @@ const QuoteDetailsCard: React.FC = () => {
 
   const locale = I18n.locale;
   const intlNumberFormatter = getIntlNumberFormatter(locale, {
-    maximumFractionDigits: 6,
+    maximumSignificantDigits: 8,
   });
 
   const {
@@ -101,14 +102,23 @@ const QuoteDetailsCard: React.FC = () => {
       <Box style={styles.container}>
         <KeyValueRow
           field={{
-            label: {
-              text: strings('bridge.rate'),
-              variant: TextVariant.BodyMDMedium,
-            },
+            label: (
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={1}
+              >
+                <Text variant={TextVariant.BodyMD}>
+                  {strings('bridge.rate')}
+                </Text>
+                <QuoteCountdownTimer />
+              </Box>
+            ),
             tooltip: {
               title: strings('bridge.quote_info_title'),
               content: strings('bridge.quote_info_content'),
               size: TooltipSizes.Sm,
+              iconName: IconName.Info,
             },
           }}
           value={{
@@ -130,7 +140,7 @@ const QuoteDetailsCard: React.FC = () => {
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
           >
-            <Text variant={TextVariant.BodyMDMedium}>
+            <Text variant={TextVariant.BodyMD}>
               {strings('bridge.network_fee')}
             </Text>
             <Box
@@ -154,12 +164,13 @@ const QuoteDetailsCard: React.FC = () => {
             field={{
               label: {
                 text: strings('bridge.network_fee'),
-                variant: TextVariant.BodyMDMedium,
+                variant: TextVariant.BodyMD,
               },
               tooltip: {
                 title: strings('bridge.network_fee_info_title'),
                 content: strings('bridge.network_fee_info_content'),
                 size: TooltipSizes.Sm,
+                iconName: IconName.Info,
               },
             }}
             value={{
@@ -171,43 +182,17 @@ const QuoteDetailsCard: React.FC = () => {
           />
         )}
 
-        {priceImpact && (
-          <KeyValueRow
-            field={{
-              label: {
-                text: strings('bridge.price_impact'),
-                variant: TextVariant.BodyMDMedium,
-              },
-              tooltip: {
-                title: strings('bridge.price_impact_info_title'),
-                content: gasIncluded
-                  ? strings('bridge.price_impact_info_gasless_description')
-                  : strings('bridge.price_impact_info_description'),
-                size: TooltipSizes.Sm,
-              },
-            }}
-            value={{
-              label: {
-                text: priceImpact,
-                variant: TextVariant.BodyMD,
-                color: shouldShowPriceImpactWarning
-                  ? TextColor.Error
-                  : undefined,
-              },
-            }}
-          />
-        )}
-
         <KeyValueRow
           field={{
             label: {
               text: strings('bridge.slippage'),
-              variant: TextVariant.BodyMDMedium,
+              variant: TextVariant.BodyMD,
             },
             tooltip: {
               title: strings('bridge.slippage_info_title'),
               content: strings('bridge.slippage_info_description'),
               size: TooltipSizes.Sm,
+              iconName: IconName.Info,
             },
           }}
           value={{
@@ -234,18 +219,47 @@ const QuoteDetailsCard: React.FC = () => {
             field={{
               label: {
                 text: strings('bridge.minimum_received'),
-                variant: TextVariant.BodyMDMedium,
+                variant: TextVariant.BodyMD,
               },
               tooltip: {
                 title: strings('bridge.minimum_received_tooltip_title'),
                 content: strings('bridge.minimum_received_tooltip_content'),
                 size: TooltipSizes.Sm,
+                iconName: IconName.Info,
               },
             }}
             value={{
               label: {
                 text: `${formattedMinToTokenAmount} ${destToken?.symbol}`,
                 variant: TextVariant.BodyMD,
+              },
+            }}
+          />
+        )}
+
+        {priceImpact && (
+          <KeyValueRow
+            field={{
+              label: {
+                text: strings('bridge.price_impact'),
+                variant: TextVariant.BodyMD,
+              },
+              tooltip: {
+                title: strings('bridge.price_impact_info_title'),
+                content: gasIncluded
+                  ? strings('bridge.price_impact_info_gasless_description')
+                  : strings('bridge.price_impact_info_description'),
+                size: TooltipSizes.Sm,
+                iconName: IconName.Info,
+              },
+            }}
+            value={{
+              label: {
+                text: priceImpact,
+                variant: TextVariant.BodyMD,
+                color: shouldShowPriceImpactWarning
+                  ? TextColor.Error
+                  : undefined,
               },
             }}
           />
@@ -259,7 +273,7 @@ const QuoteDetailsCard: React.FC = () => {
             field={{
               label: {
                 text: strings('bridge.points'),
-                variant: TextVariant.BodyMDMedium,
+                variant: TextVariant.BodyMD,
               },
               tooltip: {
                 title: strings('bridge.points_tooltip'),
@@ -267,6 +281,7 @@ const QuoteDetailsCard: React.FC = () => {
                   'bridge.points_tooltip_content_1',
                 )}\n\n${strings('bridge.points_tooltip_content_2')}`,
                 size: TooltipSizes.Sm,
+                iconName: IconName.Info,
               },
             }}
             value={{
@@ -283,8 +298,8 @@ const QuoteDetailsCard: React.FC = () => {
                       isRewardsLoading
                         ? RewardAnimationState.Loading
                         : hasRewardsError
-                        ? RewardAnimationState.ErrorState
-                        : RewardAnimationState.Idle
+                          ? RewardAnimationState.ErrorState
+                          : RewardAnimationState.Idle
                     }
                   />
                 </Box>
@@ -294,6 +309,7 @@ const QuoteDetailsCard: React.FC = () => {
                   title: strings('bridge.points_error'),
                   content: strings('bridge.points_error_content'),
                   size: TooltipSizes.Sm,
+                  iconName: IconName.Info,
                 },
               }),
             }}

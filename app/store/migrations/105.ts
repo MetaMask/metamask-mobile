@@ -3,10 +3,9 @@ import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
 
 /**
- * Migration 105: Remove RatesController state
+ * Migration 105: Reset PhishingController urlScanCache
  *
- * This migration removes the entire RatesController from backgroundState
- * as it's no longer used (functionality moved to MultichainAssetsRatesController)
+ * This migration resets only the urlScanCache object in the PhishingController state
  */
 const migration = (state: unknown): unknown => {
   const migrationVersion = 105;
@@ -16,23 +15,29 @@ const migration = (state: unknown): unknown => {
   }
 
   try {
-    const backgroundState = state?.engine?.backgroundState;
-
-    if (!backgroundState) {
+    if (
+      !hasProperty(state.engine.backgroundState, 'PhishingController') ||
+      !isObject(state.engine.backgroundState.PhishingController)
+    ) {
+      captureException(
+        new Error(
+          `Migration 105: Invalid PhishingController state: '${JSON.stringify(
+            state.engine.backgroundState.PhishingController,
+          )}'`,
+        ),
+      );
       return state;
     }
 
-    if (
-      hasProperty(backgroundState, 'RatesController') &&
-      isObject(backgroundState.RatesController)
-    ) {
-      delete backgroundState.RatesController;
-    }
+    // Only reset the urlScanCache field to an empty object
+    state.engine.backgroundState.PhishingController.urlScanCache = {};
 
     return state;
   } catch (error) {
     captureException(
-      new Error(`Migration ${migrationVersion} failed: ${error}`),
+      new Error(
+        `Migration 105: cleaning PhishingController state failed with error: ${error}`,
+      ),
     );
     return state;
   }

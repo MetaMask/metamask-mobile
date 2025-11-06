@@ -419,7 +419,6 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 40,
-                                            "fontWeight": "400",
                                             "height": 50,
                                             "letterSpacing": 0,
                                             "lineHeight": 50,
@@ -576,7 +575,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#3c4d9d0f",
+                                                    "borderColor": "#ffffff",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
@@ -803,7 +802,6 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 40,
-                                            "fontWeight": "400",
                                             "height": 50,
                                             "letterSpacing": 0,
                                             "lineHeight": 50,
@@ -901,7 +899,6 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                       {
                                         "flex": 1,
                                         "justifyContent": "flex-start",
-                                        "paddingBottom": 12,
                                       },
                                     ]
                                   }
@@ -911,11 +908,707 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                       [
                                         {},
                                         {
-                                          "paddingHorizontal": 24,
+                                          "flex": 1,
+                                          "justifyContent": "flex-end",
+                                          "paddingBottom": 8,
                                         },
                                       ]
                                     }
-                                  />
+                                  >
+                                    <View
+                                      style={
+                                        [
+                                          {
+                                            "display": "flex",
+                                            "gap": 12,
+                                          },
+                                          {
+                                            "paddingHorizontal": 24,
+                                          },
+                                        ]
+                                      }
+                                    >
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "display": "flex",
+                                              "flexDirection": "row",
+                                              "gap": 12,
+                                              "justifyContent": "space-between",
+                                            },
+                                            undefined,
+                                          ]
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "display": "flex",
+                                                "flexBasis": "0%",
+                                                "flexGrow": 1,
+                                                "flexShrink": 1,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <TouchableOpacity
+                                            accessibilityRole="button"
+                                            accessible={true}
+                                            onPress={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "borderRadius": 12,
+                                                  "height": 48,
+                                                  "justifyContent": "center",
+                                                  "paddingHorizontal": 16,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                          >
+                                            <Text
+                                              accessibilityRole="none"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Bold",
+                                                    "fontSize": 32,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 40,
+                                                    "textAlign": "center",
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              1
+                                            </Text>
+                                          </TouchableOpacity>
+                                        </View>
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "display": "flex",
+                                                "flexBasis": "0%",
+                                                "flexGrow": 1,
+                                                "flexShrink": 1,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <TouchableOpacity
+                                            accessibilityRole="button"
+                                            accessible={true}
+                                            onPress={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "borderRadius": 12,
+                                                  "height": 48,
+                                                  "justifyContent": "center",
+                                                  "paddingHorizontal": 16,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                          >
+                                            <Text
+                                              accessibilityRole="none"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Bold",
+                                                    "fontSize": 32,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 40,
+                                                    "textAlign": "center",
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              2
+                                            </Text>
+                                          </TouchableOpacity>
+                                        </View>
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "display": "flex",
+                                                "flexBasis": "0%",
+                                                "flexGrow": 1,
+                                                "flexShrink": 1,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <TouchableOpacity
+                                            accessibilityRole="button"
+                                            accessible={true}
+                                            onPress={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "borderRadius": 12,
+                                                  "height": 48,
+                                                  "justifyContent": "center",
+                                                  "paddingHorizontal": 16,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                          >
+                                            <Text
+                                              accessibilityRole="none"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Bold",
+                                                    "fontSize": 32,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 40,
+                                                    "textAlign": "center",
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              3
+                                            </Text>
+                                          </TouchableOpacity>
+                                        </View>
+                                      </View>
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "display": "flex",
+                                              "flexDirection": "row",
+                                              "gap": 12,
+                                              "justifyContent": "space-between",
+                                            },
+                                            undefined,
+                                          ]
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "display": "flex",
+                                                "flexBasis": "0%",
+                                                "flexGrow": 1,
+                                                "flexShrink": 1,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <TouchableOpacity
+                                            accessibilityRole="button"
+                                            accessible={true}
+                                            onPress={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "borderRadius": 12,
+                                                  "height": 48,
+                                                  "justifyContent": "center",
+                                                  "paddingHorizontal": 16,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                          >
+                                            <Text
+                                              accessibilityRole="none"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Bold",
+                                                    "fontSize": 32,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 40,
+                                                    "textAlign": "center",
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              4
+                                            </Text>
+                                          </TouchableOpacity>
+                                        </View>
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "display": "flex",
+                                                "flexBasis": "0%",
+                                                "flexGrow": 1,
+                                                "flexShrink": 1,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <TouchableOpacity
+                                            accessibilityRole="button"
+                                            accessible={true}
+                                            onPress={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "borderRadius": 12,
+                                                  "height": 48,
+                                                  "justifyContent": "center",
+                                                  "paddingHorizontal": 16,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                          >
+                                            <Text
+                                              accessibilityRole="none"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Bold",
+                                                    "fontSize": 32,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 40,
+                                                    "textAlign": "center",
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              5
+                                            </Text>
+                                          </TouchableOpacity>
+                                        </View>
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "display": "flex",
+                                                "flexBasis": "0%",
+                                                "flexGrow": 1,
+                                                "flexShrink": 1,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <TouchableOpacity
+                                            accessibilityRole="button"
+                                            accessible={true}
+                                            onPress={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "borderRadius": 12,
+                                                  "height": 48,
+                                                  "justifyContent": "center",
+                                                  "paddingHorizontal": 16,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                          >
+                                            <Text
+                                              accessibilityRole="none"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Bold",
+                                                    "fontSize": 32,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 40,
+                                                    "textAlign": "center",
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              6
+                                            </Text>
+                                          </TouchableOpacity>
+                                        </View>
+                                      </View>
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "display": "flex",
+                                              "flexDirection": "row",
+                                              "gap": 12,
+                                              "justifyContent": "space-between",
+                                            },
+                                            undefined,
+                                          ]
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "display": "flex",
+                                                "flexBasis": "0%",
+                                                "flexGrow": 1,
+                                                "flexShrink": 1,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <TouchableOpacity
+                                            accessibilityRole="button"
+                                            accessible={true}
+                                            onPress={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "borderRadius": 12,
+                                                  "height": 48,
+                                                  "justifyContent": "center",
+                                                  "paddingHorizontal": 16,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                          >
+                                            <Text
+                                              accessibilityRole="none"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Bold",
+                                                    "fontSize": 32,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 40,
+                                                    "textAlign": "center",
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              7
+                                            </Text>
+                                          </TouchableOpacity>
+                                        </View>
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "display": "flex",
+                                                "flexBasis": "0%",
+                                                "flexGrow": 1,
+                                                "flexShrink": 1,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <TouchableOpacity
+                                            accessibilityRole="button"
+                                            accessible={true}
+                                            onPress={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "borderRadius": 12,
+                                                  "height": 48,
+                                                  "justifyContent": "center",
+                                                  "paddingHorizontal": 16,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                          >
+                                            <Text
+                                              accessibilityRole="none"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Bold",
+                                                    "fontSize": 32,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 40,
+                                                    "textAlign": "center",
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              8
+                                            </Text>
+                                          </TouchableOpacity>
+                                        </View>
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "display": "flex",
+                                                "flexBasis": "0%",
+                                                "flexGrow": 1,
+                                                "flexShrink": 1,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <TouchableOpacity
+                                            accessibilityRole="button"
+                                            accessible={true}
+                                            onPress={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "borderRadius": 12,
+                                                  "height": 48,
+                                                  "justifyContent": "center",
+                                                  "paddingHorizontal": 16,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                          >
+                                            <Text
+                                              accessibilityRole="none"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Bold",
+                                                    "fontSize": 32,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 40,
+                                                    "textAlign": "center",
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              9
+                                            </Text>
+                                          </TouchableOpacity>
+                                        </View>
+                                      </View>
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "display": "flex",
+                                              "flexDirection": "row",
+                                              "gap": 12,
+                                              "justifyContent": "space-between",
+                                            },
+                                            undefined,
+                                          ]
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "display": "flex",
+                                                "flexBasis": "0%",
+                                                "flexGrow": 1,
+                                                "flexShrink": 1,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <TouchableOpacity
+                                            accessibilityRole="button"
+                                            accessible={true}
+                                            onPress={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "borderRadius": 12,
+                                                  "height": 48,
+                                                  "justifyContent": "center",
+                                                  "paddingHorizontal": 16,
+                                                },
+                                                {
+                                                  "backgroundColor": "transparent",
+                                                },
+                                              ]
+                                            }
+                                          >
+                                            <Text
+                                              accessibilityRole="none"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Bold",
+                                                    "fontSize": 32,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 40,
+                                                    "textAlign": "center",
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              .
+                                            </Text>
+                                          </TouchableOpacity>
+                                        </View>
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "display": "flex",
+                                                "flexBasis": "0%",
+                                                "flexGrow": 1,
+                                                "flexShrink": 1,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <TouchableOpacity
+                                            accessibilityRole="button"
+                                            accessible={true}
+                                            onPress={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "borderRadius": 12,
+                                                  "height": 48,
+                                                  "justifyContent": "center",
+                                                  "paddingHorizontal": 16,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                          >
+                                            <Text
+                                              accessibilityRole="none"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Bold",
+                                                    "fontSize": 32,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 40,
+                                                    "textAlign": "center",
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              0
+                                            </Text>
+                                          </TouchableOpacity>
+                                        </View>
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "display": "flex",
+                                                "flexBasis": "0%",
+                                                "flexGrow": 1,
+                                                "flexShrink": 1,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <TouchableOpacity
+                                            accessibilityRole="button"
+                                            accessible={true}
+                                            delayLongPress={500}
+                                            onLongPress={[Function]}
+                                            onPress={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "borderRadius": 12,
+                                                  "height": 48,
+                                                  "justifyContent": "center",
+                                                  "paddingHorizontal": 16,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                            testID="keypad-delete-button"
+                                          >
+                                            <SvgMock
+                                              fill="currentColor"
+                                              name="Backspace"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "height": 32,
+                                                    "width": 32,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </TouchableOpacity>
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </View>
                                 </View>
                               </View>
                             </RCTScrollView>
@@ -930,7 +1623,6 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                     "justifyContent": "center",
                                     "paddingBottom": 24,
                                     "paddingHorizontal": 16,
-                                    "paddingTop": 12,
                                     "width": "100%",
                                   },
                                 ]
@@ -1386,7 +2078,6 @@ exports[`BridgeView renders 1`] = `
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 40,
-                                            "fontWeight": "400",
                                             "height": 50,
                                             "letterSpacing": 0,
                                             "lineHeight": 50,
@@ -1543,7 +2234,7 @@ exports[`BridgeView renders 1`] = `
                                                   {
                                                     "alignItems": "center",
                                                     "backgroundColor": "#ffffff",
-                                                    "borderColor": "#3c4d9d0f",
+                                                    "borderColor": "#ffffff",
                                                     "borderRadius": 8,
                                                     "borderWidth": 2,
                                                     "height": 32,
@@ -1770,7 +2461,6 @@ exports[`BridgeView renders 1`] = `
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 40,
-                                            "fontWeight": "400",
                                             "height": 50,
                                             "letterSpacing": 0,
                                             "lineHeight": 50,
@@ -1868,7 +2558,6 @@ exports[`BridgeView renders 1`] = `
                                       {
                                         "flex": 1,
                                         "justifyContent": "flex-start",
-                                        "paddingBottom": 12,
                                       },
                                     ]
                                   }
@@ -1878,11 +2567,707 @@ exports[`BridgeView renders 1`] = `
                                       [
                                         {},
                                         {
-                                          "paddingHorizontal": 24,
+                                          "flex": 1,
+                                          "justifyContent": "flex-end",
+                                          "paddingBottom": 8,
                                         },
                                       ]
                                     }
-                                  />
+                                  >
+                                    <View
+                                      style={
+                                        [
+                                          {
+                                            "display": "flex",
+                                            "gap": 12,
+                                          },
+                                          {
+                                            "paddingHorizontal": 24,
+                                          },
+                                        ]
+                                      }
+                                    >
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "display": "flex",
+                                              "flexDirection": "row",
+                                              "gap": 12,
+                                              "justifyContent": "space-between",
+                                            },
+                                            undefined,
+                                          ]
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "display": "flex",
+                                                "flexBasis": "0%",
+                                                "flexGrow": 1,
+                                                "flexShrink": 1,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <TouchableOpacity
+                                            accessibilityRole="button"
+                                            accessible={true}
+                                            onPress={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "borderRadius": 12,
+                                                  "height": 48,
+                                                  "justifyContent": "center",
+                                                  "paddingHorizontal": 16,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                          >
+                                            <Text
+                                              accessibilityRole="none"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Bold",
+                                                    "fontSize": 32,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 40,
+                                                    "textAlign": "center",
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              1
+                                            </Text>
+                                          </TouchableOpacity>
+                                        </View>
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "display": "flex",
+                                                "flexBasis": "0%",
+                                                "flexGrow": 1,
+                                                "flexShrink": 1,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <TouchableOpacity
+                                            accessibilityRole="button"
+                                            accessible={true}
+                                            onPress={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "borderRadius": 12,
+                                                  "height": 48,
+                                                  "justifyContent": "center",
+                                                  "paddingHorizontal": 16,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                          >
+                                            <Text
+                                              accessibilityRole="none"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Bold",
+                                                    "fontSize": 32,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 40,
+                                                    "textAlign": "center",
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              2
+                                            </Text>
+                                          </TouchableOpacity>
+                                        </View>
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "display": "flex",
+                                                "flexBasis": "0%",
+                                                "flexGrow": 1,
+                                                "flexShrink": 1,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <TouchableOpacity
+                                            accessibilityRole="button"
+                                            accessible={true}
+                                            onPress={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "borderRadius": 12,
+                                                  "height": 48,
+                                                  "justifyContent": "center",
+                                                  "paddingHorizontal": 16,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                          >
+                                            <Text
+                                              accessibilityRole="none"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Bold",
+                                                    "fontSize": 32,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 40,
+                                                    "textAlign": "center",
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              3
+                                            </Text>
+                                          </TouchableOpacity>
+                                        </View>
+                                      </View>
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "display": "flex",
+                                              "flexDirection": "row",
+                                              "gap": 12,
+                                              "justifyContent": "space-between",
+                                            },
+                                            undefined,
+                                          ]
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "display": "flex",
+                                                "flexBasis": "0%",
+                                                "flexGrow": 1,
+                                                "flexShrink": 1,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <TouchableOpacity
+                                            accessibilityRole="button"
+                                            accessible={true}
+                                            onPress={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "borderRadius": 12,
+                                                  "height": 48,
+                                                  "justifyContent": "center",
+                                                  "paddingHorizontal": 16,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                          >
+                                            <Text
+                                              accessibilityRole="none"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Bold",
+                                                    "fontSize": 32,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 40,
+                                                    "textAlign": "center",
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              4
+                                            </Text>
+                                          </TouchableOpacity>
+                                        </View>
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "display": "flex",
+                                                "flexBasis": "0%",
+                                                "flexGrow": 1,
+                                                "flexShrink": 1,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <TouchableOpacity
+                                            accessibilityRole="button"
+                                            accessible={true}
+                                            onPress={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "borderRadius": 12,
+                                                  "height": 48,
+                                                  "justifyContent": "center",
+                                                  "paddingHorizontal": 16,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                          >
+                                            <Text
+                                              accessibilityRole="none"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Bold",
+                                                    "fontSize": 32,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 40,
+                                                    "textAlign": "center",
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              5
+                                            </Text>
+                                          </TouchableOpacity>
+                                        </View>
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "display": "flex",
+                                                "flexBasis": "0%",
+                                                "flexGrow": 1,
+                                                "flexShrink": 1,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <TouchableOpacity
+                                            accessibilityRole="button"
+                                            accessible={true}
+                                            onPress={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "borderRadius": 12,
+                                                  "height": 48,
+                                                  "justifyContent": "center",
+                                                  "paddingHorizontal": 16,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                          >
+                                            <Text
+                                              accessibilityRole="none"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Bold",
+                                                    "fontSize": 32,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 40,
+                                                    "textAlign": "center",
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              6
+                                            </Text>
+                                          </TouchableOpacity>
+                                        </View>
+                                      </View>
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "display": "flex",
+                                              "flexDirection": "row",
+                                              "gap": 12,
+                                              "justifyContent": "space-between",
+                                            },
+                                            undefined,
+                                          ]
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "display": "flex",
+                                                "flexBasis": "0%",
+                                                "flexGrow": 1,
+                                                "flexShrink": 1,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <TouchableOpacity
+                                            accessibilityRole="button"
+                                            accessible={true}
+                                            onPress={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "borderRadius": 12,
+                                                  "height": 48,
+                                                  "justifyContent": "center",
+                                                  "paddingHorizontal": 16,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                          >
+                                            <Text
+                                              accessibilityRole="none"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Bold",
+                                                    "fontSize": 32,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 40,
+                                                    "textAlign": "center",
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              7
+                                            </Text>
+                                          </TouchableOpacity>
+                                        </View>
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "display": "flex",
+                                                "flexBasis": "0%",
+                                                "flexGrow": 1,
+                                                "flexShrink": 1,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <TouchableOpacity
+                                            accessibilityRole="button"
+                                            accessible={true}
+                                            onPress={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "borderRadius": 12,
+                                                  "height": 48,
+                                                  "justifyContent": "center",
+                                                  "paddingHorizontal": 16,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                          >
+                                            <Text
+                                              accessibilityRole="none"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Bold",
+                                                    "fontSize": 32,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 40,
+                                                    "textAlign": "center",
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              8
+                                            </Text>
+                                          </TouchableOpacity>
+                                        </View>
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "display": "flex",
+                                                "flexBasis": "0%",
+                                                "flexGrow": 1,
+                                                "flexShrink": 1,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <TouchableOpacity
+                                            accessibilityRole="button"
+                                            accessible={true}
+                                            onPress={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "borderRadius": 12,
+                                                  "height": 48,
+                                                  "justifyContent": "center",
+                                                  "paddingHorizontal": 16,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                          >
+                                            <Text
+                                              accessibilityRole="none"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Bold",
+                                                    "fontSize": 32,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 40,
+                                                    "textAlign": "center",
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              9
+                                            </Text>
+                                          </TouchableOpacity>
+                                        </View>
+                                      </View>
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "display": "flex",
+                                              "flexDirection": "row",
+                                              "gap": 12,
+                                              "justifyContent": "space-between",
+                                            },
+                                            undefined,
+                                          ]
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "display": "flex",
+                                                "flexBasis": "0%",
+                                                "flexGrow": 1,
+                                                "flexShrink": 1,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <TouchableOpacity
+                                            accessibilityRole="button"
+                                            accessible={true}
+                                            onPress={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "borderRadius": 12,
+                                                  "height": 48,
+                                                  "justifyContent": "center",
+                                                  "paddingHorizontal": 16,
+                                                },
+                                                {
+                                                  "backgroundColor": "transparent",
+                                                },
+                                              ]
+                                            }
+                                          >
+                                            <Text
+                                              accessibilityRole="none"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Bold",
+                                                    "fontSize": 32,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 40,
+                                                    "textAlign": "center",
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              .
+                                            </Text>
+                                          </TouchableOpacity>
+                                        </View>
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "display": "flex",
+                                                "flexBasis": "0%",
+                                                "flexGrow": 1,
+                                                "flexShrink": 1,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <TouchableOpacity
+                                            accessibilityRole="button"
+                                            accessible={true}
+                                            onPress={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "borderRadius": 12,
+                                                  "height": 48,
+                                                  "justifyContent": "center",
+                                                  "paddingHorizontal": 16,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                          >
+                                            <Text
+                                              accessibilityRole="none"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Bold",
+                                                    "fontSize": 32,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 40,
+                                                    "textAlign": "center",
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              0
+                                            </Text>
+                                          </TouchableOpacity>
+                                        </View>
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "display": "flex",
+                                                "flexBasis": "0%",
+                                                "flexGrow": 1,
+                                                "flexShrink": 1,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          <TouchableOpacity
+                                            accessibilityRole="button"
+                                            accessible={true}
+                                            delayLongPress={500}
+                                            onLongPress={[Function]}
+                                            onPress={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "borderRadius": 12,
+                                                  "height": 48,
+                                                  "justifyContent": "center",
+                                                  "paddingHorizontal": 16,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                            testID="keypad-delete-button"
+                                          >
+                                            <SvgMock
+                                              fill="currentColor"
+                                              name="Backspace"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "height": 32,
+                                                    "width": 32,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </TouchableOpacity>
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </View>
                                 </View>
                               </View>
                             </RCTScrollView>
@@ -1897,7 +3282,6 @@ exports[`BridgeView renders 1`] = `
                                     "justifyContent": "center",
                                     "paddingBottom": 24,
                                     "paddingHorizontal": 16,
-                                    "paddingTop": 12,
                                     "width": "100%",
                                   },
                                 ]

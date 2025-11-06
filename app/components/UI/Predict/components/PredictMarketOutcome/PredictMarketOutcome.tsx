@@ -35,7 +35,7 @@ import {
 import { PredictEventValues } from '../../constants/eventNames';
 import { formatPercentage, formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketOutcome.styles';
-import { usePredictBalance } from '../../hooks/usePredictBalance';
+import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 interface PredictMarketOutcomeProps {
   market: PredictMarket;
   outcome: PredictOutcomeType;
@@ -56,7 +56,10 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
 
-  const { hasNoBalance } = usePredictBalance();
+  const { executeGuardedAction } = usePredictActionGuard({
+    providerId: market.providerId,
+    navigation,
+  });
 
   const getOutcomePrices = (): number[] =>
     outcome.tokens.map((token) => token.price);
@@ -80,42 +83,21 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
 
   const getVolumeDisplay = (): string => formatVolume(outcome.volume ?? 0);
 
-  const handleYes = () => {
-    if (hasNoBalance) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      });
-      return;
-    }
-
-    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-      params: {
-        market,
-        outcome,
-        outcomeToken: outcome.tokens[0],
-        entryPoint,
+  const handleBuy = (token: PredictOutcomeToken) => {
+    executeGuardedAction(
+      () => {
+        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+          params: {
+            market,
+            outcome,
+            outcomeToken: token,
+            entryPoint,
+          },
+        });
       },
-    });
-  };
-
-  const handleNo = () => {
-    if (hasNoBalance) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      });
-      return;
-    }
-
-    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-      params: {
-        market,
-        outcome,
-        outcomeToken: outcome.tokens[1],
-        entryPoint,
-      },
-    });
+      { checkBalance: true },
+    );
   };
 
   return (
@@ -126,7 +108,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
           alignItems={BoxAlignItems.Center}
           twClassName="flex-1 gap-3"
         >
-          <Box twClassName="w-12 h-12 rounded-lg bg-muted overflow-hidden">
+          <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
             {getImageUrl() ? (
               <Image
                 source={{ uri: getImageUrl() }}
@@ -150,15 +132,6 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
               >
                 {getTitle()}
               </Text>
-              {isClosed && outcomeToken && outcomeToken.price === 1 && (
-                <Text
-                  variant={TextVariant.BodyXS}
-                  color={TextColor.Success}
-                  style={tw.style('bg-success-muted px-1 py-0.5 rounded-sm')}
-                >
-                  Winner
-                </Text>
-              )}
             </Box>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               ${getVolumeDisplay()} {strings('predict.volume_abbreviated')}
@@ -166,19 +139,42 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
           </View>
           <Text>
             {isClosed && outcomeToken ? (
-              <Icon
-                name={
-                  outcomeToken.price === 1
-                    ? IconName.CheckBold
-                    : IconName.CircleX
-                }
-                size={IconSize.Md}
-                color={
-                  outcomeToken.price === 1 ? TextColor.Success : TextColor.Muted
-                }
-              />
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                twClassName="gap-1"
+              >
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  color={
+                    outcomeToken.price === 1
+                      ? TextColor.Default
+                      : TextColor.Alternative
+                  }
+                >
+                  {outcomeToken.price === 1
+                    ? strings('predict.outcome_winner')
+                    : strings('predict.outcome_loser')}
+                </Text>
+                {outcomeToken.price === 1 && (
+                  <Icon
+                    name={IconName.Confirmation}
+                    size={IconSize.Md}
+                    color={
+                      outcomeToken.price === 1
+                        ? TextColor.Success
+                        : TextColor.Muted
+                    }
+                  />
+                )}
+              </Box>
             ) : (
-              <Text>{getYesPercentage()}</Text>
+              <Text
+                style={tw.style('text-[20px] font-medium')}
+                color={TextColor.Default}
+              >
+                {getYesPercentage()}
+              </Text>
             )}
           </Text>
         </Box>
@@ -191,11 +187,11 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text style={tw.style('font-medium')} color={TextColor.Success}>
-                {strings('predict.buy_yes')} •{' '}
+                {outcome.tokens[0].title} •{' '}
                 {(outcome.tokens[0].price * 100).toFixed(2)}¢
               </Text>
             }
-            onPress={handleYes}
+            onPress={() => handleBuy(outcome.tokens[0])}
             style={styles.buttonYes}
           />
           <Button
@@ -204,11 +200,11 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text style={tw.style('font-medium')} color={TextColor.Error}>
-                {strings('predict.buy_no')} •{' '}
+                {outcome.tokens[1].title} •{' '}
                 {(outcome.tokens[1].price * 100).toFixed(2)}¢
               </Text>
             }
-            onPress={handleNo}
+            onPress={() => handleBuy(outcome.tokens[1])}
             style={styles.buttonNo}
           />
         </View>

@@ -136,3 +136,22 @@ export const PRICE_API_CURRENCIES = [
   'try',
   'zar',
 ];
+
+// Tron resource asset symbols
+export const TRON_RESOURCE = {
+  ENERGY: 'energy',
+  BANDWIDTH: 'bandwidth',
+  MAX_ENERGY: 'max-energy',
+  MAX_BANDWIDTH: 'max-bandwidth',
+  STRX_ENERGY: 'strx-energy',
+  STRX_BANDWIDTH: 'strx-bandwidth',
+} as const;
+
+export type TronResourceSymbol =
+  (typeof TRON_RESOURCE)[keyof typeof TRON_RESOURCE];
+
+export const TRON_RESOURCE_SYMBOLS = Object.values(
+  TRON_RESOURCE,
+) as readonly TronResourceSymbol[];
+export const TRON_RESOURCE_SYMBOLS_SET: ReadonlySet<TronResourceSymbol> =
+  new Set(TRON_RESOURCE_SYMBOLS);

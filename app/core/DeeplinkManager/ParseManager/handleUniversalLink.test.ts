@@ -10,7 +10,9 @@ import extractURLParams from './extractURLParams';
 import handleUniversalLink from './handleUniversalLink';
 import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
 import { DeepLinkModalLinkType } from '../../../components/UI/DeepLinkModal';
+import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 
+jest.mock('./handleMetaMaskDeeplink');
 jest.mock('../../../core/SDKConnect/handlers/handleDeeplink');
 jest.mock('../../../core/AppConstants');
 jest.mock('../../../core/SDKConnect/SDKConnect');
@@ -57,6 +59,10 @@ describe('handleUniversalLinks', () => {
   const mockBindAndroidSDK = jest.fn();
 
   const mockHandleDeeplink = handleDeeplink as jest.Mock;
+  const mockHandleMetaMaskDeeplink =
+    handleMetaMaskDeeplink as jest.MockedFunction<
+      typeof handleMetaMaskDeeplink
+    >;
   const mockSDKConnectGetInstance = SDKConnect.getInstance as jest.Mock;
   const mockWC2ManagerGetInstance = WC2Manager.getInstance as jest.Mock;
 
@@ -117,6 +123,42 @@ describe('handleUniversalLinks', () => {
     });
 
     url = 'https://metamask.app.link';
+  });
+
+  describe('SDK Actions', () => {
+    const testCases = [
+      { action: ACTIONS.ANDROID_SDK },
+      { action: ACTIONS.CONNECT },
+      { action: ACTIONS.MMSDK },
+    ] as const;
+
+    it.each(testCases)(
+      'calls handleMetaMaskDeeplink when deeplink is $url',
+      async ({ action }) => {
+        const url = `https://link.metamask.io/${action}`;
+        const expectedMappedUrl = `metamask://${action}`;
+        const { urlObj, params } = extractURLParams(expectedMappedUrl);
+        const wcURL = params?.uri || urlObj.href;
+
+        await handleUniversalLink({
+          instance,
+          handled,
+          urlObj,
+          browserCallBack: mockBrowserCallBack,
+          url,
+          source: 'origin',
+        });
+
+        expect(mockHandleMetaMaskDeeplink).toHaveBeenCalledWith({
+          instance,
+          handled,
+          wcURL,
+          origin: 'origin',
+          params,
+          url: expectedMappedUrl,
+        });
+      },
+    );
   });
 
   describe('ACTIONS.BUY_CRYPTO', () => {

@@ -75,7 +75,8 @@ const mockMarket: PredictMarketType = {
   image: 'https://example.com/bitcoin.png',
   status: 'open',
   recurrence: Recurrence.NONE,
-  categories: ['crypto'],
+  category: 'crypto',
+  tags: [],
   outcomes: [mockOutcome],
   liquidity: 1000000,
   volume: 1000000,
@@ -306,6 +307,9 @@ describe('PredictMarketSingle', () => {
       screen: Routes.PREDICT.MARKET_DETAILS,
       params: {
         marketId: mockMarket.id,
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+        title: mockMarket.title,
+        image: mockMarket.image,
       },
     });
   });
@@ -337,6 +341,60 @@ describe('PredictMarketSingle', () => {
     fireEvent.press(yesButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictAddFundsSheet',
+    });
+  });
+
+  it('checks eligibility before balance for Yes button', () => {
+    // Mock user is not eligible AND has no balance
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: false,
+      refreshEligibility: jest.fn(),
+    });
+    mockUsePredictBalance.mockReturnValue({
+      hasNoBalance: true,
+    });
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketSingle market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const yesButton = getByText('Yes');
+    fireEvent.press(yesButton);
+
+    // Should navigate to unavailable (not add funds sheet)
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictAddFundsSheet',
+    });
+  });
+
+  it('checks eligibility before balance for No button', () => {
+    // Mock user is not eligible AND has no balance
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: false,
+      refreshEligibility: jest.fn(),
+    });
+    mockUsePredictBalance.mockReturnValue({
+      hasNoBalance: true,
+    });
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketSingle market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const noButton = getByText('No');
+    fireEvent.press(noButton);
+
+    // Should navigate to unavailable (not add funds sheet)
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith('PredictModals', {
       screen: 'PredictAddFundsSheet',
     });
   });

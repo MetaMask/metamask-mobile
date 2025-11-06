@@ -34,12 +34,36 @@ function getKeyData() {
 function canonicalize(url: URL): string {
   const params = new URLSearchParams(url.searchParams);
 
-  params.delete('sig');
+  const canonicalParams = new URLSearchParams();
 
+  // If sig_params is present, only include the
+  // parameters listed in it for sig verification
+  if (params.has('sig_params')) {
+    const stringifiedSigParams = params.get('sig_params') || '';
+
+    // Filter to only valid, existing params with non-null values
+    stringifiedSigParams.split(',').forEach((paramName) => {
+      if (!paramName) return; // Skip empty strings
+
+      const value = params.get(paramName); // can be string or null
+      if (value !== null) {
+        // remove null
+        canonicalParams.set(paramName, value);
+      }
+    });
+
+    canonicalParams.set('sig_params', stringifiedSigParams);
+    canonicalParams.sort();
+
+    const queryString = canonicalParams.toString();
+    return url.origin + url.pathname + (queryString ? `?${queryString}` : '');
+  }
+
+  // Fallback to old behavior for URLs without sig_params
+  params.delete('sig');
   params.sort();
 
   const queryString = params.toString();
-
   const fullUrl =
     url.origin + url.pathname + (queryString ? `?${queryString}` : '');
 

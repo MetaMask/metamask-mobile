@@ -27,8 +27,8 @@ jest.mock('../../components/PredictFeedHeader', () => {
 jest.mock('../../components/PredictBalance', () => {
   const { View, Text } = jest.requireActual('react-native');
   return {
-    PredictBalance: jest.fn(() => (
-      <View testID="predict-balance-mock">
+    PredictBalance: jest.fn(({ onLayout }) => (
+      <View testID="predict-balance-mock" onLayout={() => onLayout?.(100)}>
         <Text>Balance Component</Text>
       </View>
     )),
@@ -68,8 +68,70 @@ jest.mock('../../../../../util/theme', () => ({
   }),
 }));
 
+jest.mock('react-native-safe-area-context', () => ({
+  SafeAreaView: jest.requireActual('react-native').View,
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+}));
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useRoute: jest.fn(() => ({
+    params: {
+      entryPoint: 'homepage_new_prediction',
+    },
+  })),
+  useFocusEffect: jest.fn((callback) => callback()),
+}));
+
+jest.mock('react-native-reanimated', () => {
+  const View = jest.requireActual('react-native').View;
+  return {
+    default: {
+      View,
+    },
+    useAnimatedStyle: jest.fn(() => ({})),
+    useSharedValue: jest.fn((val) => ({ value: val })),
+  };
+});
+
+jest.mock('../../services/PredictFeedSessionManager', () => {
+  const mockInstance = {
+    startSession: jest.fn(),
+    endSession: jest.fn(),
+    trackPageView: jest.fn(),
+    trackTabChange: jest.fn(),
+    enableAppStateListener: jest.fn(),
+    disableAppStateListener: jest.fn(),
+  };
+
+  return {
+    __esModule: true,
+    default: {
+      getInstance: jest.fn(() => mockInstance),
+    },
+  };
+});
+
+jest.mock('../../hooks/useSharedScrollCoordinator', () => ({
+  useSharedScrollCoordinator: jest.fn(() => ({
+    balanceCardOffset: { value: 0 },
+    balanceCardHeight: { value: 0 },
+    setBalanceCardHeight: jest.fn(),
+    setCurrentCategory: jest.fn(),
+    getTabScrollPosition: jest.fn(() => 0),
+    setTabScrollPosition: jest.fn(),
+    getScrollHandler: jest.fn(),
+    isBalanceCardHidden: jest.fn(() => false),
+    updateBalanceCardHiddenState: jest.fn(),
+  })),
+}));
+
 describe('PredictFeed', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 

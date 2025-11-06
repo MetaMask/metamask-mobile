@@ -69,6 +69,20 @@ export interface PerpsNavigationParamList extends ParamListBase {
 
   PerpsMarketListView: {
     source?: string;
+    variant?: 'full' | 'minimal';
+    title?: string;
+    showBalanceActions?: boolean;
+    showBottomNav?: boolean;
+    defaultSearchVisible?: boolean;
+    showWatchlistOnly?: boolean;
+    defaultMarketTypeFilter?:
+      | 'crypto'
+      | 'equity'
+      | 'commodity'
+      | 'forex'
+      | 'all'
+      | 'stocks_and_commodities';
+    fromHome?: boolean;
   };
 
   PerpsMarketDetails: {
@@ -135,6 +149,29 @@ export interface PerpsNavigationParamList extends ParamListBase {
       stopLossPrice?: string,
       trackingData?: TPSLTrackingData,
     ) => Promise<void>;
+  };
+
+  // PnL Hero Card screen
+  PerpsPnlHeroCard: {
+    position: Position;
+    marketPrice?: string;
+  };
+
+  // Activity view - Stack-based for proper back navigation
+  // Uses the same redirect params as the tab-based TRANSACTIONS_VIEW
+  PerpsActivity: {
+    /**
+     * Redirect to Perps transactions tab
+     */
+    redirectToPerpsTransactions?: boolean;
+    /**
+     * Redirect to Orders tab
+     */
+    redirectToOrders?: boolean;
+    /**
+     * Show back button in header for stack navigation
+     */
+    showBackButton?: boolean;
   };
 
   // Root perps view
