@@ -308,6 +308,101 @@ export class HyperLiquidClientService {
   }
 
   /**
+   * Subscribe to candle updates via WebSocket
+   * @param coin - The coin symbol (e.g., "BTC", "ETH")
+   * @param interval - The interval (e.g., "1m", "5m", "15m", etc.)
+   * @param callback - Function called with updated candle data
+   * @returns Cleanup function to unsubscribe
+   */
+  public subscribeToCandles({
+    coin,
+    interval,
+    callback,
+  }: {
+    coin: string;
+    interval: ValidCandleInterval;
+    callback: (data: CandleData) => void;
+  }): () => void {
+    this.ensureInitialized();
+
+    const subscriptionClient = this.getSubscriptionClient();
+    if (!subscriptionClient) {
+      throw new Error(strings('perps.errors.subscriptionClientNotAvailable'));
+    }
+
+    let currentCandleData: CandleData | null = null;
+    let wsUnsubscribe: (() => void) | null = null;
+
+    // 1. Fetch initial historical data
+    this.fetchHistoricalCandles(coin, interval)
+      .then((initialData) => {
+        currentCandleData = initialData;
+        if (currentCandleData) {
+          callback(currentCandleData);
+        }
+
+        // 2. Subscribe to WebSocket for new candles
+        const subscription = subscriptionClient.candle(
+          { coin, interval },
+          (candleEvent) => {
+            // Transform SDK CandleEvent to our Candle format
+            const newCandle = {
+              time: candleEvent.t,
+              open: candleEvent.o.toString(),
+              high: candleEvent.h.toString(),
+              low: candleEvent.l.toString(),
+              close: candleEvent.c.toString(),
+              volume: candleEvent.v.toString(),
+            };
+
+            if (!currentCandleData) {
+              currentCandleData = {
+                coin,
+                interval,
+                candles: [newCandle],
+              };
+            } else {
+              // Check if this is an update to the last candle or a new candle
+              const candles = currentCandleData.candles;
+              const lastCandle = candles[candles.length - 1];
+
+              if (lastCandle && lastCandle.time === newCandle.time) {
+                // Update existing candle (live candle update)
+                candles[candles.length - 1] = newCandle;
+              } else {
+                // New candle (completed candle)
+                candles.push(newCandle);
+              }
+            }
+
+            callback(currentCandleData);
+          },
+        );
+
+        // Store cleanup function
+        subscription
+          .then((sub) => {
+            wsUnsubscribe = () => sub.unsubscribe();
+          })
+          .catch((error) => {
+            DevLogger.log('Error subscribing to candles:', error);
+            throw error;
+          });
+      })
+      .catch((error) => {
+        DevLogger.log('Error fetching initial candle data:', error);
+        throw error;
+      });
+
+    // Return cleanup function
+    return () => {
+      if (wsUnsubscribe) {
+        wsUnsubscribe();
+      }
+    };
+  }
+
+  /**
    * Convert interval string to milliseconds
    */
   private getIntervalMilliseconds(interval: CandlePeriod): number {

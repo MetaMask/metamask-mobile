@@ -10,7 +10,7 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../utils/formatUtils';
 import { calculate24hHighLow } from '../utils/marketUtils';
-import { usePerpsPositionData } from './usePerpsPositionData';
+import { usePerpsLiveCandles } from './stream/usePerpsLiveCandles';
 
 interface MarketStats {
   high24h: string;
@@ -41,11 +41,12 @@ export const usePerpsMarketStats = (
   const [marketData, setMarketData] = useState<MarketDataUpdate>({});
   const [initialPrice, setInitialPrice] = useState<number | undefined>();
 
-  // Get candlestick data for 24h high/low calculation
-  const { candleData, refreshCandleData } = usePerpsPositionData({
+  // Get candlestick data for 24h high/low calculation via WebSocket streaming
+  const { candleData } = usePerpsLiveCandles({
     coin: symbol,
-    selectedInterval: CandlePeriod.ONE_HOUR, // Use 1h candles for 24h calculation
-    selectedDuration: TimeDuration.ONE_DAY,
+    interval: CandlePeriod.ONE_HOUR, // Use 1h candles for 24h calculation
+    duration: TimeDuration.ONE_DAY,
+    throttleMs: 1000,
   });
 
   // Subscribe to market data updates (funding, open interest, volume)
@@ -141,12 +142,11 @@ export const usePerpsMarketStats = (
     };
   }, [candleData, marketData, initialPrice]);
 
-  // Refresh function to reload market data
+  // Refresh function - no-op since WebSocket provides real-time updates
   const refresh = useCallback(async () => {
-    // Refresh candle data for updated 24h high/low
-    await refreshCandleData();
-    // Market data (funding, volume, etc.) will update via WebSocket subscriptions
-  }, [refreshCandleData]);
+    // WebSocket streaming automatically provides real-time updates
+    // No manual refresh needed - data is always current
+  }, []);
 
   // Memoize the final return object to prevent unnecessary re-renders
   return useMemo(

@@ -23,6 +23,7 @@ import { PERFORMANCE_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
+import { CandleStreamChannel } from './channels/CandleStreamChannel';
 
 // Generic subscription parameters
 interface StreamSubscription<T> {
@@ -1199,6 +1200,7 @@ export class PerpsStreamManager {
   public readonly marketData = new MarketDataChannel();
   public readonly oiCaps = new OICapStreamChannel();
   public readonly topOfBook = new TopOfBookStreamChannel();
+  public readonly candles = new CandleStreamChannel();
 
   // Future channels can be added here:
   // public readonly funding = new FundingStreamChannel();

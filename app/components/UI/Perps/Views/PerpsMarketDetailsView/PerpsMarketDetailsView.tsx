@@ -38,7 +38,7 @@ import type {
   PerpsMarketData,
   PerpsNavigationParamList,
 } from '../../controllers/types';
-import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
+import { usePerpsLiveCandles } from '../../hooks/stream/usePerpsLiveCandles';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
 import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
@@ -324,12 +324,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Get comprehensive market statistics
   const marketStats = usePerpsMarketStats(market?.symbol || '');
 
-  const { candleData, isLoadingHistory, refreshCandleData, hasHistoricalData } =
-    usePerpsPositionData({
-      coin: market?.symbol || '',
-      selectedDuration: TimeDuration.YEAR_TO_DATE,
-      selectedInterval: selectedCandlePeriod,
-    });
+  const {
+    candleData,
+    isLoading: isLoadingHistory,
+    hasHistoricalData,
+  } = usePerpsLiveCandles({
+    coin: market?.symbol || '',
+    interval: selectedCandlePeriod,
+    duration: TimeDuration.YEAR_TO_DATE,
+    throttleMs: 1000,
+  });
 
   // Check if user has an existing position for this market
   const { isLoading: isLoadingPosition, existingPosition } =
@@ -433,15 +437,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       // Reset chart view to default position
       chartRef.current?.resetToDefault();
 
-      if (candleData) {
-        await refreshCandleData();
-      }
+      // WebSocket streaming provides real-time data - no manual refresh needed
+      // Just reset the UI state and the chart will update automatically
     } catch (error) {
-      console.error('Failed to refresh candle data:', error);
+      console.error('Failed to refresh chart state:', error);
     } finally {
       setRefreshing(false);
     }
-  }, [candleData, refreshCandleData]);
+  }, []);
 
   // Handle order selection for chart integration
   const handleOrderSelect = useCallback(

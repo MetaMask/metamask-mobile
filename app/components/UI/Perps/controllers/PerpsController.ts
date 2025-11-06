@@ -4008,6 +4008,32 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Subscribe to live candle updates
+   */
+  subscribeToCandles(params: {
+    coin: string;
+    interval: CandlePeriod;
+    callback: (data: CandleData) => void;
+  }): () => void {
+    try {
+      const provider = this.getActiveProvider();
+      return provider.clientService.subscribeToCandles(params);
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('subscribeToCandles', {
+          coin: params.coin,
+          interval: params.interval,
+        }),
+      );
+      // Return a no-op unsubscribe function
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
+  }
+
+  /**
    * Subscribe to open interest cap updates
    * Zero additional network overhead - data comes from existing webData3 subscription
    */
