@@ -632,7 +632,7 @@
       "no_tokens_found": "No tokens match \"{{searchString}}\""
     },
     "networks_filter_bar": {
-      "all_networks": "All networks"
+      "all_networks": "All"
     },
     "networks_filter_selector": {
       "select_network": "Select network",

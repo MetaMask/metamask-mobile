@@ -12,8 +12,7 @@ import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 
-import NetworksFilterBar from '../../Deposit/components/NetworksFilterBar';
-import NetworksFilterSelector from '../../Deposit/components/NetworksFilterSelector/NetworksFilterSelector';
+import TokenNetworkFilterBar from '../TokenNetworkFilterBar';
 
 import Text, {
   TextVariant,
@@ -46,7 +45,7 @@ import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 import { strings } from '../../../../../../locales/i18n';
 import { DEPOSIT_NETWORKS_BY_CHAIN_ID } from '../../Deposit/constants/networks';
 import { useTheme } from '../../../../../util/theme';
-import { MOCK_CRYPTOCURRENCIES } from '../../Deposit/testUtils/constants';
+import { MOCK_CRYPTOCURRENCIES } from '../../Deposit/constants/mockCryptoCurrencies';
 // TODO: Fetch these tokens from the API new enpoint for top 25 with supported status
 //https://consensyssoftware.atlassian.net/browse/TRAM-2816
 
@@ -61,7 +60,6 @@ function TokenSelection() {
   const [networkFilter, setNetworkFilter] = useState<CaipChainId[] | null>(
     null,
   );
-  const [isEditingNetworkFilter, setIsEditingNetworkFilter] = useState(false);
   const { styles } = useStyles(styleSheet, {});
 
   const { colors } = useTheme();
@@ -186,9 +184,7 @@ function TokenSelection() {
       headerLeft: () => null,
       headerTitle: () => (
         <Text variant={TextVariant.HeadingMD}>
-          {isEditingNetworkFilter
-            ? strings('deposit.networks_filter_selector.select_network')
-            : strings('deposit.token_modal.select_token')}
+          {strings('deposit.token_modal.select_token')}
         </Text>
       ),
       headerRight: () => (
@@ -206,52 +202,38 @@ function TokenSelection() {
         elevation: 0,
       },
     });
-  }, [navigation, isEditingNetworkFilter, theme.colors.background.default]);
+  }, [navigation, theme.colors.background.default]);
 
   return (
     <SafeAreaView edges={['left', 'right', 'bottom']} style={styles.container}>
-      {isEditingNetworkFilter ? (
-        <NetworksFilterSelector
+      <View style={styles.filterBarContainer}>
+        <TokenNetworkFilterBar
           networks={uniqueNetworks}
           networkFilter={networkFilter}
           setNetworkFilter={setNetworkFilter}
-          setIsEditingNetworkFilter={setIsEditingNetworkFilter}
         />
-      ) : (
-        <>
-          <View style={styles.filterBarContainer}>
-            <NetworksFilterBar
-              networks={uniqueNetworks}
-              networkFilter={networkFilter}
-              setNetworkFilter={setNetworkFilter}
-              setIsEditingNetworkFilter={setIsEditingNetworkFilter}
-            />
-          </View>
-          <View style={styles.searchContainer}>
-            <TextFieldSearch
-              value={searchString}
-              showClearButton={searchString.length > 0}
-              onPressClearButton={clearSearchText}
-              onFocus={scrollToTop}
-              onChangeText={handleSearchTextChange}
-              placeholder={strings(
-                'deposit.token_modal.search_by_name_or_address',
-              )}
-            />
-          </View>
-          <FlatList
-            style={styles.list}
-            ref={listRef}
-            data={searchTokenResults}
-            renderItem={renderToken}
-            extraData={selectedCryptoAssetId}
-            keyExtractor={(item) => item.assetId}
-            ListEmptyComponent={renderEmptyList}
-            keyboardDismissMode="on-drag"
-            keyboardShouldPersistTaps="always"
-          />
-        </>
-      )}
+      </View>
+      <View style={styles.searchContainer}>
+        <TextFieldSearch
+          value={searchString}
+          showClearButton={searchString.length > 0}
+          onPressClearButton={clearSearchText}
+          onFocus={scrollToTop}
+          onChangeText={handleSearchTextChange}
+          placeholder={strings('deposit.token_modal.search_by_name_or_address')}
+        />
+      </View>
+      <FlatList
+        style={styles.list}
+        ref={listRef}
+        data={searchTokenResults}
+        renderItem={renderToken}
+        extraData={selectedCryptoAssetId}
+        keyExtractor={(item) => item.assetId}
+        ListEmptyComponent={renderEmptyList}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="always"
+      />
     </SafeAreaView>
   );
 }
