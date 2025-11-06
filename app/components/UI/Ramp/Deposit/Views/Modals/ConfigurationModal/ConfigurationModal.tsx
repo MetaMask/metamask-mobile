@@ -90,7 +90,9 @@ function ConfigurationModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={handleClosePress}>Settings</BottomSheetHeader>
+      <BottomSheetHeader onClose={handleClosePress}>
+        {strings('deposit.configuration_modal.title')}
+      </BottomSheetHeader>
       <MenuItem
         iconName={IconName.Clock}
         title={strings('deposit.configuration_modal.view_order_history')}

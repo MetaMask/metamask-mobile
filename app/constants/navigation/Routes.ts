@@ -25,6 +25,7 @@ const Routes = {
       REGION_SELECTOR: 'RampRegionSelectorModal',
       UNSUPPORTED_REGION: 'RampUnsupportedRegionModal',
       PAYMENT_METHOD_SELECTOR: 'RampPaymentMethodSelectorModal',
+      SETTINGS: 'RampSettingsModal',
     },
   },
   DEPOSIT: {
