@@ -35,6 +35,7 @@ export interface TronUnstakeValidateParams {
   value: string;
   accountId: string;
   assetId: CaipAssetType;
+  options: { purpose: TronResourceType.ENERGY | TronResourceType.BANDWIDTH };
 }
 
 export interface TronUnstakeConfirmParams {
@@ -134,6 +135,9 @@ export async function confirmTronUnstake(
   fromAccount: InternalAccount,
   params: TronUnstakeConfirmParams,
 ): Promise<TronUnstakeResult> {
+
+  console.log('confirmTronUnstake 0', fromAccount.metadata?.snap?.id, params);
+
   return (await handleSnapRequest(controllerMessenger, {
     snapId: fromAccount.metadata?.snap?.id as SnapId,
     origin: 'metamask',

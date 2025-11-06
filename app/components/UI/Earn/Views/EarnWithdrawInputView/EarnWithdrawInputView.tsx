@@ -825,7 +825,11 @@ const EarnWithdrawInputView = () => {
           handleKeypadChange(data);
           ///: BEGIN:ONLY_INCLUDE_IF(tron)
           if (isTrxStakingEnabled && isTronAsset && !isFiat) {
-            tronValidateUnstake?.(String((data as { value: string }).value), String(token.chainId));
+            tronValidateUnstake?.(
+              String((data as { value: string }).value),
+              resourceType as TronResourceType,
+              String(token.chainId),
+            );
           }
           ///: END:ONLY_INCLUDE_IF
         }}
@@ -844,13 +848,15 @@ const EarnWithdrawInputView = () => {
           variant={ButtonVariants.Primary}
           loading={isSubmittingStakeWithdrawalTransaction}
           isDisabled={
-            isWithdrawingMoreThanAvailableForLendingToken ||
-            isOverMaximum.isOverMaximumToken ||
-            isOverMaximum.isOverMaximumEth ||
-            !isNonZeroAmount ||
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            (isTronAsset ? isTronUnstakeValidating : false) ||
+            (isTronAsset
+              ? !isNonZeroAmount
+              :
             ///: END:ONLY_INCLUDE_IF
+              isWithdrawingMoreThanAvailableForLendingToken ||
+              isOverMaximum.isOverMaximumToken ||
+              isOverMaximum.isOverMaximumEth ||
+              !isNonZeroAmount) ||
             isSubmittingStakeWithdrawalTransaction
           }
           width={ButtonWidthTypes.Full}

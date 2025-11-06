@@ -15,7 +15,11 @@ type Purpose = TronResourceType.ENERGY | TronResourceType.BANDWIDTH;
 interface UseTronUnstakeReturn {
   validating: boolean;
   errors?: string[];
-  validate: (amount: string, chainId: string) => Promise<TronUnstakeResult | null>;
+  validate: (
+    amount: string,
+    purpose: Purpose,
+    chainId: string,
+  ) => Promise<TronUnstakeResult | null>;
   confirm: (
     amount: string,
     purpose: Purpose,
@@ -32,7 +36,7 @@ const useTronUnstake = (): UseTronUnstakeReturn => {
   const [errors, setErrors] = useState<string[] | undefined>(undefined);
 
   const validate = useCallback<UseTronUnstakeReturn['validate']>(
-    async (amount: string, chainId: string) => {
+    async (amount: string, purpose: Purpose, chainId: string) => {
       if (!selectedTronAccount?.id || !chainId) return null;
 
       setValidating(true);
@@ -45,6 +49,7 @@ const useTronUnstake = (): UseTronUnstakeReturn => {
         value: amount,
         accountId: selectedTronAccount.id,
         assetId,
+        options: { purpose: purpose.toUpperCase() as TronResourceType },
       });
       console.log('useTronUnstake - validation 1', validation);
 
