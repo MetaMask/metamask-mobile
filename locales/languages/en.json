@@ -1747,6 +1747,7 @@
       "end_date": "End date",
       "resolver": "Resolver",
       "powered_by": "Powered by",
+      "resolution_details": "Resolution details",
       "yes": "Yes",
       "no": "No",
       "on": "on",
