@@ -187,8 +187,13 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
+<<<<<<< Updated upstream
         versionName "7.58.0"
         versionCode 2948
+=======
+        versionName "7.59.0"
+        versionCode 2818
+>>>>>>> Stashed changes
         testBuildType System.getProperty('testBuildType', 'debug')
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders.MM_BRANCH_KEY_TEST = "$System.env.MM_BRANCH_KEY_TEST"
