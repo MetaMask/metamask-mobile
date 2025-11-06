@@ -250,20 +250,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [shouldOpenLimitPrice, setShouldOpenLimitPrice] = useState(false);
-  const [isOptimizingAmount, setIsOptimizingAmount] = useState(false);
-
-  // Wrapper for optimizeOrderAmount that tracks loading state
-  const handleOptimizeOrderAmount = async (
-    price: number,
-    szDecimals?: number,
-  ) => {
-    setIsOptimizingAmount(true);
-    try {
-      optimizeOrderAmount(price, szDecimals);
-    } finally {
-      setIsOptimizingAmount(false);
-    }
-  };
 
   // Handle opening limit price modal after order type modal closes
   useEffect(() => {
@@ -649,7 +635,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const handlePercentagePress = (percentage: number) => {
     inputMethodRef.current = 'percentage';
     handlePercentageAmount(percentage);
-    handleOptimizeOrderAmount(assetData.price, marketData?.szDecimals);
+    optimizeOrderAmount(assetData.price, marketData?.szDecimals);
   };
 
   const handleMaxPress = () => {
@@ -673,7 +659,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
       if (currentAmount > maxPossibleAmount) {
         setAmount(String(maxPossibleAmount));
       }
-      handleOptimizeOrderAmount(assetData.price, marketData?.szDecimals);
+      optimizeOrderAmount(assetData.price, marketData?.szDecimals);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -904,7 +890,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
           tokenAmount={positionSize}
           tokenSymbol={getPerpsDisplaySymbol(orderForm.asset)}
           hasError={availableBalance > 0 && !!filteredErrors.length}
-          isLoading={isLoadingAccount || isOptimizingAmount}
+          isLoading={isLoadingAccount}
         />
 
         {/* Amount Slider - Hide when keypad is active */}
