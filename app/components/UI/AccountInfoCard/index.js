@@ -62,7 +62,7 @@ const createStyles = (colors) =>
       width: '100%',
       flexDirection: 'row',
       justifyContent: 'flex-start',
-      marginLeft: 3,
+      marginLeft: 8,
     },
     accountName: {
       maxWidth: Device.isMediumDevice() ? '35%' : '45%',
@@ -88,7 +88,7 @@ const createStyles = (colors) =>
       fontSize: 14,
       alignSelf: 'flex-start',
       color: colors.text.default,
-      marginLeft: 3,
+      marginLeft: 8,
     },
     balanceTextSmall: {
       fontSize: 12,
