@@ -1920,7 +1920,8 @@
       "preview_no_order_match_buy": "No order match found for buy",
       "preview_no_order_match_sell": "No order match found for sell",
       "claim_failed": "Failed to claim",
-      "unknown_error": "An unknown error occurred"
+      "unknown_error": "An unknown error occurred",
+      "order_not_fully_filled": "Low liquidity. Order not fully filled."
     }
   },
   "receive": {

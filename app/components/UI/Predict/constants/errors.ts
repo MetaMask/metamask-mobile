@@ -12,6 +12,7 @@ export const PREDICT_CONSTANTS = {
 } as const;
 
 export const PREDICT_ERROR_CODES = {
+  ORDER_NOT_FULLY_FILLED: 'PREDICT_ORDER_NOT_FULLY_FILLED',
   PREVIEW_NO_ORDER_BOOK: 'PREDICT_PREVIEW_NO_ORDER_BOOK',
   PREVIEW_NO_ORDER_MATCH_BUY: 'PREDICT_PREVIEW_NO_ORDER_MATCH_BUY',
   PREVIEW_NO_ORDER_MATCH_SELL: 'PREDICT_PREVIEW_NO_ORDER_MATCH_SELL',
@@ -50,5 +51,8 @@ export const getPredictErrorMessages = () =>
     ),
     [PREDICT_ERROR_CODES.UNKNOWN_ERROR]: strings(
       'predict.error_messages.unknown_error',
+    ),
+    [PREDICT_ERROR_CODES.ORDER_NOT_FULLY_FILLED]: strings(
+      'predict.error_messages.order_not_fully_filled',
     ),
   }) as const;

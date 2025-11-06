@@ -41,7 +41,7 @@ import {
   PreviewOrderParams,
   Signer,
 } from '../types';
-import { PREDICT_CONSTANTS } from '../../constants/errors';
+import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
 import {
   BUY_ORDER_RATE_LIMIT_MS,
   FEE_COLLECTOR_ADDRESS,
@@ -603,6 +603,10 @@ export class PolymarketProvider implements PredictProvider {
       });
 
       if (!response) {
+        if (error?.includes(`order couldn't be fully fille`)) {
+          throw new Error(PREDICT_ERROR_CODES.ORDER_NOT_FULLY_FILLED);
+        }
+
         return {
           success,
           error,
