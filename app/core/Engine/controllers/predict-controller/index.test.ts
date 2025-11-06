@@ -64,7 +64,6 @@ describe('predict controller init', () => {
   it('controller state should be initial state when initial state is passed in', () => {
     const initialPredictControllerState: PredictControllerState = {
       eligibility: {},
-      geoBlockData: {},
       lastError: null,
       lastUpdateTimestamp: Date.now(),
       balances: {},

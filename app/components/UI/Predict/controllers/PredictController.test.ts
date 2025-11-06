@@ -299,12 +299,14 @@ describe('PredictController', () => {
 
     it('initializes with custom state', () => {
       const customState: Partial<PredictControllerState> = {
-        eligibility: { polymarket: false },
+        eligibility: { polymarket: { eligible: false, country: undefined } },
       };
 
       withController(
         ({ controller }) => {
-          expect(controller.state.eligibility).toEqual({ polymarket: false });
+          expect(controller.state.eligibility).toEqual({
+            polymarket: { eligible: false, country: undefined },
+          });
         },
         { state: customState },
       );
@@ -1304,11 +1306,13 @@ describe('PredictController', () => {
     it('update state using provided updater function', () => {
       withController(({ controller }) => {
         controller.updateStateForTesting((state) => {
-          state.eligibility = { polymarket: false };
+          state.eligibility = {
+            polymarket: { eligible: false, country: undefined },
+          };
           state.lastError = 'Test error';
         });
         expect(controller.state.eligibility).toEqual({
-          polymarket: false,
+          polymarket: { eligible: false, country: undefined },
         });
         expect(controller.state.lastError).toBe('Test error');
       });
@@ -3503,7 +3507,9 @@ describe('PredictController', () => {
             transactionId: 'tx-789',
             amount: 200,
           };
-          state.eligibility = { polymarket: true };
+          state.eligibility = {
+            polymarket: { eligible: true, country: 'PT' },
+          };
           state.lastError = 'Some error';
         });
 
@@ -4555,7 +4561,9 @@ describe('PredictController', () => {
     it('does not affect other state properties when accepting agreement', () => {
       withController(({ controller }) => {
         controller.updateStateForTesting((state) => {
-          state.eligibility = { polymarket: true };
+          state.eligibility = {
+            polymarket: { eligible: true, country: 'PT' },
+          };
           state.lastError = 'Previous error';
         });
 
