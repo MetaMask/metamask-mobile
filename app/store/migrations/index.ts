@@ -312,6 +312,10 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
     try {
       const s = state as StateWithEngine;
       const migratedControllers = s.engine?.backgroundState || {};
+      
+      // TODO: Remove this test throw
+      throw new Error('TEST: deflateToControllersAndStrip error handling');
+      
       const entries = Object.entries(migratedControllers) as [
         string,
         unknown,
