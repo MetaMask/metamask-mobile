@@ -644,10 +644,12 @@
       "title": "Options",
       "view_order_history": "View order history",
       "contact_support": "Contact support",
-      "log_out": "Log out",
+      "log_out": "Log out of Transak",
       "logged_out_success": "Successfully logged out",
       "error_sdk_not_initialized": "SDK not initialized",
-      "logged_out_error": "Error logging out"
+      "logged_out_error": "Error logging out",
+      "more_ways_to_buy": "More ways to buy",
+      "more_ways_to_buy_description": "Use a different payment provider"
     },
     "region_modal": {
       "select_a_region": "Select a region",

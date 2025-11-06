@@ -2,8 +2,8 @@ import { StyleSheet } from 'react-native';
 
 const styleSheet = () =>
   StyleSheet.create({
-    container: {
-      paddingTop: 6,
+    listItem: {
+      paddingVertical: 8,
     },
   });
 
