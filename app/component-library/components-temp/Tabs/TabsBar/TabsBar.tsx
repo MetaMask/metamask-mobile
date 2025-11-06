@@ -10,11 +10,7 @@ import { Animated, ScrollView, LayoutChangeEvent } from 'react-native';
 
 // External dependencies.
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  BoxFlexDirection,
-  BoxAlignItems,
-} from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
 import Tab from '../Tab';
@@ -261,37 +257,31 @@ const TabsBar: React.FC<TabsBarProps> = ({
         showsHorizontalScrollIndicator={false}
         scrollEnabled={scrollEnabled}
         style={tw.style('flex-grow-0')}
-        contentContainerStyle={tw.style('flex-row px-4')}
+        contentContainerStyle={tw.style('flex-row px-4 gap-6 relative')}
         scrollsToTop={false}
         onContentSizeChange={handleContentSizeChange}
       >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="relative gap-6"
-        >
-          {tabs.map((tab, index) => (
-            <Tab
-              key={tab.key}
-              label={tab.label}
-              isActive={index === activeIndex}
-              isDisabled={tab.isDisabled}
-              onPress={() => handleTabPress(index)}
-              onLayout={(layoutEvent) => handleTabLayout(index, layoutEvent)}
-              testID={`${testID}-tab-${index}`}
-            />
-          ))}
+        {tabs.map((tab, index) => (
+          <Tab
+            key={tab.key}
+            label={tab.label}
+            isActive={index === activeIndex}
+            isDisabled={tab.isDisabled}
+            onPress={() => handleTabPress(index)}
+            onLayout={(layoutEvent) => handleTabLayout(index, layoutEvent)}
+            testID={`${testID}-tab-${index}`}
+          />
+        ))}
 
-          {/* Animated underline for scrollable tabs */}
-          {activeIndex >= 0 && isInitialized && (
-            <Animated.View
-              style={tw.style('absolute bottom-0 h-0.5 bg-icon-default', {
-                width: underlineWidthAnimated,
-                transform: [{ translateX: underlineAnimated }],
-              })}
-            />
-          )}
-        </Box>
+        {/* Animated underline for scrollable tabs */}
+        {activeIndex >= 0 && isInitialized && (
+          <Animated.View
+            style={tw.style('absolute bottom-0 h-0.5 bg-icon-default', {
+              width: underlineWidthAnimated,
+              transform: [{ translateX: underlineAnimated }],
+            })}
+          />
+        )}
       </ScrollView>
     </Box>
   );
