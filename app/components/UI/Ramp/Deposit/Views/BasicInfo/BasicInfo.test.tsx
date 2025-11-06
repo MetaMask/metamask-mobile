@@ -389,8 +389,15 @@ describe('BasicInfo Component', () => {
       mockLogoutFromProvider.mockClear();
     });
 
-    it('displays logout button when error contains "2020"', async () => {
-      const error2020 = new Error('Error 2020: Phone already registered');
+    it('displays logout button when error has errorCode 2020', async () => {
+      // Mock Transak API error structure: { error: { errorCode: 2020, message: "..." } }
+      const error2020 = Object.assign(new Error('API Error'), {
+        error: {
+          errorCode: 2020,
+          message:
+            'This phone number is already registered. It has been used by an account created with k****@pedalsup.com. Login with this email to continue.',
+        },
+      });
       mockPostKycForm.mockRejectedValueOnce(error2020);
 
       render(BasicInfo);
@@ -414,11 +421,16 @@ describe('BasicInfo Component', () => {
       expect(logoutButton).toBeOnTheScreen();
     });
 
-    it('displays logout button when error message indicates phone already registered', async () => {
-      const phoneError = new Error(
-        'This phone number is already registered. It has been used by an account created with d***@***.com. Login with this email to continue.',
-      );
-      mockPostKycForm.mockRejectedValueOnce(phoneError);
+    it('displays formatted error message for errorCode 2020', async () => {
+      // Mock Transak API error structure with email in message
+      const error2020 = Object.assign(new Error('API Error'), {
+        error: {
+          errorCode: 2020,
+          message:
+            'This phone number is already registered. It has been used by an account created with k****@pedalsup.com. Login with this email to continue.',
+        },
+      });
+      mockPostKycForm.mockRejectedValueOnce(error2020);
 
       render(BasicInfo);
 
@@ -436,6 +448,13 @@ describe('BasicInfo Component', () => {
       await act(async () => {
         fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
       });
+
+      // Verify formatted error message is displayed
+      expect(
+        screen.getByText(
+          'This phone number is already in use by k****@pedalsup.com. Log in using this email to continue.',
+        ),
+      ).toBeOnTheScreen();
 
       const logoutButton = screen.getByTestId('basic-info-logout-button');
       expect(logoutButton).toBeOnTheScreen();
@@ -469,7 +488,13 @@ describe('BasicInfo Component', () => {
     });
 
     it('calls logoutFromProvider and navigates to EnterEmail on logout click', async () => {
-      const error2020 = new Error('Error 2020');
+      const error2020 = Object.assign(new Error('API Error'), {
+        error: {
+          errorCode: 2020,
+          message:
+            'This phone number is already registered. It has been used by an account created with test@gmail.com. Login with this email to continue.',
+        },
+      });
       mockPostKycForm.mockRejectedValueOnce(error2020);
 
       render(BasicInfo);
@@ -506,7 +531,13 @@ describe('BasicInfo Component', () => {
       const logoutError = new Error('Logout failed');
       mockLogoutFromProvider.mockRejectedValueOnce(logoutError);
 
-      const error2020 = new Error('Error 2020');
+      const error2020 = Object.assign(new Error('API Error'), {
+        error: {
+          errorCode: 2020,
+          message:
+            'This phone number is already registered. It has been used by an account created with d***@example.com. Login with this email to continue.',
+        },
+      });
       mockPostKycForm.mockRejectedValueOnce(error2020);
 
       render(BasicInfo);
@@ -542,7 +573,11 @@ describe('BasicInfo Component', () => {
       );
 
       // Error stays visible
-      expect(screen.getByText('Error 2020')).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          'This phone number is already in use by d***@example.com. Log in using this email to continue.',
+        ),
+      ).toBeOnTheScreen();
 
       mockLoggerError.mockRestore();
     });
