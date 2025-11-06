@@ -362,9 +362,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
     // This happens once per session and is cached until disconnect/reconnect
     await this.ensureBuilderFeeApproval();
 
-    // Set up referral code (blocking to ensure attribution, but non-critical)
-    // Errors logged to Sentry, will retry naturally on next session
-    // See ensureReferralSet() - handles all errors internally, never throws
+    // Set up referral code (blocks initialization to ensure attribution attempt)
+    // Non-throwing: errors caught internally, logged to Sentry, retry next session
+    // User can trade immediately after init even if referral setup failed
     await this.ensureReferralSet();
   }
 
@@ -940,6 +940,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Called once during initialization (ensureReady) to set up builder fee for the session
    * Uses session cache to avoid redundant API calls until disconnect/reconnect
    *
+   * Cache semantics: Only caches successful approvals (never caches "not approved" state)
+   * This allows detection of external approvals between retries while avoiding redundant checks
+   *
    * Note: This is network-specific - testnet and mainnet have separate builder fee states
    */
   private async ensureBuilderFeeApproval(): Promise<void> {
@@ -949,23 +952,18 @@ export class HyperLiquidProvider implements IPerpsProvider {
     const userAddress = await this.walletService.getUserAddressWithDefault();
 
     // Check session cache first to avoid redundant API calls
+    // Cache only stores true (approval confirmed), never false
     const cacheKey = this.getCacheKey(network, userAddress);
     const cached = this.builderFeeCheckCache.get(cacheKey);
 
-    if (cached !== undefined) {
+    if (cached === true) {
       DevLogger.log('[ensureBuilderFeeApproval] Using session cache', {
         network,
-        isApproved: cached,
       });
-      if (cached) {
-        return; // Already approved this session, skip
-      }
+      return; // Already approved this session, skip
     }
 
     const { isApproved, requiredDecimal } = await this.checkBuilderFeeStatus();
-
-    // Update session cache
-    this.builderFeeCheckCache.set(cacheKey, isApproved);
 
     if (!isApproved) {
       DevLogger.log('[ensureBuilderFeeApproval] Approval required', {
@@ -1003,6 +1001,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
         maxFeeRate,
       });
     } else {
+      // User already has approval (possibly from external approval or previous session)
+      // Cache success to avoid redundant checks
+      this.builderFeeCheckCache.set(cacheKey, true);
+
       DevLogger.log('[ensureBuilderFeeApproval] Already approved', {
         network,
       });
