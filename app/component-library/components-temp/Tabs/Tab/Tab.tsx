@@ -24,8 +24,17 @@ const Tab: React.FC<TabProps> = ({
 }) => {
   const tw = useTailwind();
   const scaleAnim = useRef(new Animated.Value(isActive ? 1 : 0)).current;
+  const isInitialMount = useRef(true);
 
   useEffect(() => {
+    // Skip animation on initial mount - just set the value
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      scaleAnim.setValue(isActive && !isDisabled ? 1 : 0);
+      return;
+    }
+
+    // Animate on subsequent changes
     Animated.timing(scaleAnim, {
       toValue: isActive && !isDisabled ? 1 : 0,
       duration: AnimationDuration.Fast,
