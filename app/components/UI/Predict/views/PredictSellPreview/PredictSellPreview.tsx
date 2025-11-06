@@ -5,7 +5,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React, { useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { ActivityIndicator, Image, View } from 'react-native';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
@@ -38,10 +38,15 @@ import {
   ButtonSize as ButtonSizeHero,
 } from '@metamask/design-system-react-native';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
+import PredictConsentSheet, {
+  type PredictConsentSheetRef,
+} from '../../components/PredictConsentSheet';
+import { usePredictAgreement } from '../../hooks/usePredictAgreement';
 
 const PredictSellPreview = () => {
   const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
+  const consentSheetRef = useRef<PredictConsentSheetRef>(null);
   const { goBack, dispatch } =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const route =
@@ -65,6 +70,13 @@ const PredictSellPreview = () => {
       liquidity: market?.liquidity,
       volume: outcome?.volume,
       sharePrice: position?.price,
+      // Market type: binary if 1 outcome group, multi-outcome otherwise
+      marketType:
+        market?.outcomes?.length === 1
+          ? PredictEventValues.MARKET_TYPE.BINARY
+          : PredictEventValues.MARKET_TYPE.MULTI_OUTCOME,
+      // Outcome: use actual outcome text (e.g., "Yes", "No", "Trump", "Biden", etc.)
+      outcome: position?.outcome?.toLowerCase(),
     }),
     [market, position, outcome, entryPoint],
   );
@@ -87,6 +99,10 @@ const PredictSellPreview = () => {
     autoRefreshTimeout: 1000,
   });
 
+  const { isAgreementAccepted } = usePredictAgreement({
+    providerId: position.providerId,
+  });
+
   // Track Predict Action Initiated when screen mounts
   useEffect(() => {
     const controller = Engine.context.PredictController;
@@ -97,7 +113,9 @@ const PredictSellPreview = () => {
       providerId: position.providerId,
       sharePrice: position?.price,
       amountUsd: position?.amount,
+      pnl: position?.percentPnl, // PnL as percentage for sell orders
     });
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -112,15 +130,27 @@ const PredictSellPreview = () => {
 
   const signal = useMemo(() => (cashPnl >= 0 ? '+' : '-'), [cashPnl]);
 
-  const onCashOut = async () => {
+  const onCashOut = useCallback(async () => {
     if (!preview) return;
-    // Implement cash out action here
+
+    // Check if user has accepted the agreement
+    if (!isAgreementAccepted) {
+      consentSheetRef.current?.onOpenBottomSheet();
+      return;
+    }
+
     await placeOrder({
       providerId: position.providerId,
       analyticsProperties,
       preview,
     });
-  };
+  }, [
+    preview,
+    isAgreementAccepted,
+    placeOrder,
+    analyticsProperties,
+    position.providerId,
+  ]);
 
   const renderCashOutButton = () => {
     if (isLoading) {
@@ -230,6 +260,11 @@ const PredictSellPreview = () => {
           </View>
         </View>
       </View>
+      <PredictConsentSheet
+        ref={consentSheetRef}
+        providerId={position.providerId}
+        onAgree={onCashOut}
+      />
     </SafeAreaView>
   );
 };

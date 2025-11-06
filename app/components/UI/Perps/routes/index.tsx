@@ -17,6 +17,7 @@ import PerpsCancelAllOrdersView from '../Views/PerpsCancelAllOrdersView/PerpsCan
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PerpsGTMModal from '../components/PerpsGTMModal';
+import PerpsTooltipView from '../Views/PerpsTooltipView/PerpsTooltipView';
 import PerpsTPSLView from '../Views/PerpsTPSLView/PerpsTPSLView';
 import PerpsHeroCardView from '../Views/PerpsHeroCardView';
 import ActivityView from '../../../Views/ActivityView';
@@ -64,6 +65,32 @@ const PerpsModalStack = () => (
           options={{
             title: strings('perps.cancel_all_modal.title'),
           }}
+        />
+      </ModalStack.Navigator>
+    </PerpsStreamProvider>
+  </PerpsConnectionProvider>
+);
+
+const PerpsClosePositionBottomSheetStack = () => (
+  <PerpsConnectionProvider isFullScreen>
+    <PerpsStreamProvider>
+      <ModalStack.Navigator
+        mode="modal"
+        screenOptions={{
+          headerShown: false,
+          cardStyle: {
+            backgroundColor: 'transparent',
+          },
+          cardStyleInterpolator: () => ({
+            overlayStyle: {
+              opacity: 0,
+            },
+          }),
+        }}
+      >
+        <ModalStack.Screen
+          name={Routes.PERPS.MODALS.TOOLTIP}
+          component={PerpsTooltipView}
         />
       </ModalStack.Navigator>
     </PerpsStreamProvider>
@@ -195,6 +222,21 @@ const PerpsScreenStack = () => (
           }}
         />
 
+        {/* Modal stack for ClosePosition bottom sheets (triggered bytooltip) */}
+        <Stack.Screen
+          name={Routes.PERPS.MODALS.CLOSE_POSITION_MODALS}
+          component={PerpsClosePositionBottomSheetStack}
+          options={{
+            headerShown: false,
+            cardStyle: {
+              backgroundColor: 'transparent',
+            },
+            animationEnabled: false,
+            // adding detachPreviousScreen to specific screen, rather than to the entire global stack
+            detachPreviousScreen: false,
+          }}
+        />
+
         {/* Modal stack for bottom sheet modals */}
         <Stack.Screen
           name={Routes.PERPS.MODALS.ROOT}
@@ -222,4 +264,4 @@ const PerpsScreenStack = () => (
 
 // Export the stack wrapped with provider
 export default PerpsScreenStack;
-export { PerpsModalStack };
+export { PerpsModalStack, PerpsClosePositionBottomSheetStack };
