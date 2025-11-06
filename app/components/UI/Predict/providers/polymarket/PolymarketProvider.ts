@@ -670,7 +670,8 @@ export class PolymarketProvider implements PredictProvider {
         safeAddress = computeProxyAddress(signer.address);
       } catch (error) {
         throw new Error(
-          `Failed to retrieve account state: ${error instanceof Error ? error.message : 'Unknown error'
+          `Failed to retrieve account state: ${
+            error instanceof Error ? error.message : 'Unknown error'
           }`,
         );
       }
@@ -689,7 +690,8 @@ export class PolymarketProvider implements PredictProvider {
         });
       } catch (error) {
         throw new Error(
-          `Failed to generate claim transaction: ${error instanceof Error ? error.message : 'Unknown error'
+          `Failed to generate claim transaction: ${
+            error instanceof Error ? error.message : 'Unknown error'
           }`,
         );
       }
@@ -714,7 +716,6 @@ export class PolymarketProvider implements PredictProvider {
       throw error;
     }
   }
-
 
   public confirmClaim({
     positions,
@@ -869,7 +870,8 @@ export class PolymarketProvider implements PredictProvider {
         address = cachedAddress?.address ?? computeProxyAddress(ownerAddress);
       } catch (error) {
         throw new Error(
-          `Failed to compute safe address: ${error instanceof Error ? error.message : 'Unknown error'
+          `Failed to compute safe address: ${
+            error instanceof Error ? error.message : 'Unknown error'
           }`,
         );
       }
@@ -891,7 +893,8 @@ export class PolymarketProvider implements PredictProvider {
         ]);
       } catch (error) {
         throw new Error(
-          `Failed to check account state: ${error instanceof Error ? error.message : 'Unknown error'
+          `Failed to check account state: ${
+            error instanceof Error ? error.message : 'Unknown error'
           }`,
         );
       }

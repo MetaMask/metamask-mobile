@@ -45,7 +45,7 @@ export const PredictEventProperties = {
   // Geo-blocking specific
   COUNTRY: 'country',
   ATTEMPTED_ACTION: 'attempted_action',
-  
+
   // Feed session specific
   PREDICT_FEED_TAB: 'predict_feed_tab',
   NUM_FEED_PAGES_VIEWED_IN_SESSION: 'num_feed_pages_viewed_in_session',
