@@ -58,6 +58,9 @@
       }
     }
   },
+  "DelegationController": {
+    "delegations": {}
+  },
   "NetworkController": {
     "selectedNetworkClientId": "mainnet",
     "networksMetadata": { "mainnet": { "status": "unknown", "EIPS": {} } },
@@ -207,7 +210,9 @@
     "whitelist": [],
     "hotlistLastFetched": 0,
     "stalelistLastFetched": 0,
-    "urlScanCache": {}
+    "tokenScanCache": {},
+    "urlScanCache": {},
+    "whitelistPaths": {}
   },
   "PreferencesController": {
     "featureFlags": {},
@@ -466,20 +471,6 @@
   "MultichainBalancesController": {
     "balances": {}
   },
-  "RatesController": {
-    "cryptocurrencies": ["btc", "sol"],
-    "fiatCurrency": "usd",
-    "rates": {
-      "btc": {
-        "conversionDate": 0,
-        "conversionRate": 0
-      },
-      "sol": {
-        "conversionDate": 0,
-        "conversionRate": 0
-      }
-    }
-  },
   "MultichainNetworkController": {
     "isEvmSelected": true,
     "networksWithTransactionActivity": {},
@@ -647,11 +638,11 @@
     "subscriptions": {}
   },
   "PredictController": {
-    "activeOrders": {},
     "eligibility": {},
     "lastError": null,
     "lastUpdateTimestamp": 0,
-    "notifications": [],
-    "positions": []
+    "claimTransaction": null,
+    "depositTransaction": null,
+    "isOnboarded": {}
   }
 }

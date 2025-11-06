@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 // formatPrice import removed - using raw values for input state
 import {
@@ -17,12 +17,13 @@ import {
   validateTPSLPrices,
 } from '../utils/tpslValidation';
 import type { Position } from '../controllers/types';
-import {
-  formatPerpsFiat,
-  PRICE_RANGES_POSITION_VIEW,
-} from '../utils/formatUtils';
+import { formatPerpsFiat, PRICE_RANGES_UNIVERSAL } from '../utils/formatUtils';
 import { regex } from '../../../../util/regex';
 import { strings } from '../../../../../locales/i18n';
+import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
+import { calculateExpectedPnL } from '../utils/pnlCalculations';
+import { calculatePositionSize } from '../utils/orderCalculations';
+import { usePerpsOrderFees } from './usePerpsOrderFees';
 
 interface UsePerpsTPSLFormParams {
   asset: string;
@@ -36,6 +37,8 @@ interface UsePerpsTPSLFormParams {
   isVisible?: boolean;
   liquidationPrice?: string;
   orderType?: 'market' | 'limit';
+  amount?: string; // For new orders - USD amount to calculate position size
+  szDecimals?: number; // For new orders - asset decimal precision
 }
 
 interface TPSLFormState {
@@ -86,6 +89,8 @@ interface TPSLFormValidation {
 interface TPSLFormDisplay {
   formattedTakeProfitPercentage: string;
   formattedStopLossPercentage: string;
+  expectedTakeProfitPnL?: number;
+  expectedStopLossPnL?: number;
 }
 
 export interface UsePerpsTPSLFormReturn {
@@ -118,6 +123,8 @@ export function usePerpsTPSLForm(
     isVisible = false,
     liquidationPrice,
     orderType,
+    amount,
+    szDecimals,
   } = params;
 
   // Initialize form state with raw values (no currency formatting for inputs)
@@ -162,11 +169,12 @@ export function usePerpsTPSLForm(
     initialCurrentPrice ||
     (position?.entryPrice ? parseFloat(position.entryPrice) : 0);
 
-  const actualDirection = position
-    ? parseFloat(position.size) > 0
-      ? 'long'
-      : 'short'
-    : direction;
+  let actualDirection: 'long' | 'short';
+  if (position) {
+    actualDirection = parseFloat(position.size) > 0 ? 'long' : 'short';
+  } else {
+    actualDirection = direction || 'long';
+  }
 
   const leverage = position?.leverage?.value || propLeverage;
   const entryPrice = position?.entryPrice
@@ -315,8 +323,11 @@ export function usePerpsTPSLForm(
       // Prevent multiple decimal points
       const parts = sanitized.split('.');
       if (parts.length > 2) return;
-      // Allow erasing but prevent adding when there are more than 5 decimal places
-      if (parts[1]?.length > 5 && sanitized.length >= takeProfitPrice.length)
+      // Allow erasing but prevent adding when there are more than MAX_PRICE_DECIMALS decimal places
+      if (
+        parts[1]?.length > DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS &&
+        sanitized.length >= takeProfitPrice.length
+      )
         return;
 
       setTakeProfitPrice(sanitized);
@@ -360,7 +371,11 @@ export function usePerpsTPSLForm(
 
   const handleTakeProfitPercentageChange = useCallback(
     (text: string) => {
-      const finalValue = sanitizePercentageInput(text, takeProfitPercentage, 5);
+      const finalValue = sanitizePercentageInput(
+        text,
+        takeProfitPercentage,
+        DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS,
+      );
       if (finalValue === null) return; // Invalid input, don't update state
 
       setTakeProfitPercentage(finalValue);
@@ -407,8 +422,11 @@ export function usePerpsTPSLForm(
       // Prevent multiple decimal points
       const parts = sanitized.split('.');
       if (parts.length > 2) return;
-      // Allow erasing but prevent adding when there are more than 5 decimal places
-      if (parts[1]?.length > 5 && sanitized.length >= stopLossPrice.length)
+      // Allow erasing but prevent adding when there are more than MAX_PRICE_DECIMALS decimal places
+      if (
+        parts[1]?.length > DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS &&
+        sanitized.length >= stopLossPrice.length
+      )
         return;
 
       setStopLossPrice(sanitized);
@@ -453,7 +471,11 @@ export function usePerpsTPSLForm(
 
   const handleStopLossPercentageChange = useCallback(
     (text: string) => {
-      const finalValue = sanitizePercentageInput(text, stopLossPercentage, 5);
+      const finalValue = sanitizePercentageInput(
+        text,
+        stopLossPercentage,
+        DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS,
+      );
       if (finalValue === null) return; // Invalid input, don't update state
 
       setStopLossPercentage(finalValue);
@@ -688,7 +710,7 @@ export function usePerpsTPSLForm(
       if (price && price !== '' && parseFloat(price) > 0) {
         const priceString = price.toString();
         const formattedPriceString = formatPerpsFiat(priceString, {
-          ranges: PRICE_RANGES_POSITION_VIEW,
+          ranges: PRICE_RANGES_UNIVERSAL,
         });
         const sanitizedPriceString = formattedPriceString.replace(
           regex.nonNumber,
@@ -741,7 +763,7 @@ export function usePerpsTPSLForm(
       if (price && price !== '' && parseFloat(price) > 0) {
         const priceString = price.toString();
         const formattedPriceString = formatPerpsFiat(priceString, {
-          ranges: PRICE_RANGES_POSITION_VIEW,
+          ranges: PRICE_RANGES_UNIVERSAL,
         });
         const sanitizedPriceString = formattedPriceString.replace(
           regex.nonNumber,
@@ -781,13 +803,26 @@ export function usePerpsTPSLForm(
   }, []);
 
   // Validation logic
-  // Use entryPrice for validation (which is the limit price for limit orders, or current price for market orders)
-  // This ensures TP/SL are validated against the price where the order will execute
-  const referencePrice =
-    orderType === 'market' ? currentPrice : entryPrice || currentPrice;
+  // For existing positions, always validate against current price to allow setting TP/SL
+  // between entry and current price when position is at a loss
+  // For new orders, use entry price (limit price for limit orders, current price for market orders)
+  const { referencePrice, priceType } = useMemo(() => {
+    if (position) {
+      // Existing position: validate against current price
+      return { referencePrice: currentPrice, priceType: 'current' };
+    }
 
-  // Determine what type of price we're comparing against for error messages
-  const priceType = orderType === 'market' ? 'current' : 'entry';
+    if (orderType === 'market') {
+      // New market order: validate against current price
+      return { referencePrice: currentPrice, priceType: 'current' };
+    }
+
+    // New limit order: validate against entry price (limit price)
+    return {
+      referencePrice: entryPrice || currentPrice,
+      priceType: 'entry',
+    };
+  }, [position, currentPrice, orderType, entryPrice]);
 
   const isValid = validateTPSLPrices(takeProfitPrice, stopLossPrice, {
     currentPrice: referencePrice,
@@ -848,6 +883,78 @@ export function usePerpsTPSLForm(
     slPercentInputFocused,
   );
 
+  // Calculate position size for expected P&L calculations
+  let positionSizeForPnL = 0;
+  if (position) {
+    // Keep the sign from the position (positive for long, negative for short)
+    positionSizeForPnL = parseFloat(position.size || '0');
+  } else if (
+    amount &&
+    entryPrice &&
+    entryPrice > 0 &&
+    szDecimals !== undefined
+  ) {
+    // calculatePositionSize returns unsigned value, apply direction sign
+    const unsignedSize = parseFloat(
+      calculatePositionSize({
+        amount,
+        price: entryPrice,
+        szDecimals,
+      }),
+    );
+    positionSizeForPnL =
+      actualDirection === 'long' ? unsignedSize : -unsignedSize;
+  }
+
+  // Calculate expected P&L for Take Profit
+  // Use fee hook for accurate closing fees
+  // Notional value must be positive for fee calculation (use abs for short positions)
+  const tpNotionalValue =
+    takeProfitPrice && positionSizeForPnL !== 0
+      ? (parseFloat(takeProfitPrice) * Math.abs(positionSizeForPnL)).toFixed(2)
+      : '0';
+
+  const tpClosingFees = usePerpsOrderFees({
+    orderType: 'market',
+    amount: tpNotionalValue,
+    isClosing: true,
+    coin: asset,
+  });
+
+  const expectedTakeProfitPnL =
+    takeProfitPrice && positionSizeForPnL !== 0 && entryPrice && entryPrice > 0
+      ? calculateExpectedPnL({
+          triggerPrice: parseFloat(takeProfitPrice),
+          entryPrice,
+          size: positionSizeForPnL,
+          closingFee: tpClosingFees.totalFee,
+        })
+      : undefined;
+
+  // Calculate expected P&L for Stop Loss
+  // Notional value must be positive for fee calculation (use abs for short positions)
+  const slNotionalValue =
+    stopLossPrice && positionSizeForPnL !== 0
+      ? (parseFloat(stopLossPrice) * Math.abs(positionSizeForPnL)).toFixed(2)
+      : '0';
+
+  const slClosingFees = usePerpsOrderFees({
+    orderType: 'market',
+    amount: slNotionalValue,
+    isClosing: true,
+    coin: asset,
+  });
+
+  const expectedStopLossPnL =
+    stopLossPrice && positionSizeForPnL !== 0 && entryPrice && entryPrice > 0
+      ? calculateExpectedPnL({
+          triggerPrice: parseFloat(stopLossPrice),
+          entryPrice,
+          size: positionSizeForPnL,
+          closingFee: slClosingFees.totalFee,
+        })
+      : undefined;
+
   return {
     formState: {
       takeProfitPrice,
@@ -893,6 +1000,8 @@ export function usePerpsTPSLForm(
     display: {
       formattedTakeProfitPercentage,
       formattedStopLossPercentage,
+      expectedTakeProfitPnL,
+      expectedStopLossPnL,
     },
   };
 }

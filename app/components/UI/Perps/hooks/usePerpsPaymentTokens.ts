@@ -17,7 +17,7 @@ import {
   TRADING_DEFAULTS,
   USDC_ARBITRUM_MAINNET_ADDRESS,
 } from '../constants/hyperLiquidConfig';
-import type { PerpsToken } from '../types';
+import type { PerpsToken } from '../types/perps-types';
 
 /**
  * Hook to get all payment tokens for Perps, including:

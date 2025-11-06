@@ -1,4 +1,9 @@
-import { formatPercentage, formatPrice } from './format';
+import {
+  formatPercentage,
+  formatPrice,
+  formatAddress,
+  formatCurrencyValue,
+} from './format';
 
 // Mock the formatWithThreshold utility
 jest.mock('../../../../util/assets', () => ({
@@ -352,6 +357,230 @@ describe('format utils', () => {
         const result = formatPrice(input);
         expect(result).toBe(expected);
       });
+    });
+  });
+
+  describe('formatCurrencyValue', () => {
+    beforeEach(() => {
+      mockFormatWithThreshold.mockImplementation(
+        (value, _threshold, locale, options) =>
+          new Intl.NumberFormat(locale, options).format(Number(value)),
+      );
+    });
+
+    it.each([
+      [undefined, undefined],
+      [null, undefined],
+    ])('returns %s as %s', (input, expected) => {
+      const result = formatCurrencyValue(input as unknown as number);
+
+      expect(result).toBe(expected);
+    });
+
+    it.each([
+      [1234.56, '$1,234.56'],
+      [-789.1, '$789.10'],
+      [0, '$0.00'],
+    ])('formats %s without sign by default as %s', (input, expected) => {
+      const result = formatCurrencyValue(input);
+
+      expect(result).toBe(expected);
+    });
+
+    it.each([
+      [123.45, '+$123.45'],
+      [-123.45, '-$123.45'],
+      [0, '$0.00'],
+    ])('formats %s with sign when showSign=true as %s', (input, expected) => {
+      const result = formatCurrencyValue(input, { showSign: true });
+
+      expect(result).toBe(expected);
+    });
+
+    it('uses absolute value and 2 decimals for values >= 1000', () => {
+      const result = formatCurrencyValue(-1234.567);
+
+      expect(result).toBe('$1,234.57');
+      expect(mockFormatWithThreshold).toHaveBeenCalledWith(
+        1234.567,
+        1000,
+        'en-US',
+        {
+          style: 'currency',
+          currency: 'USD',
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        },
+      );
+    });
+
+    it('uses absolute value and 2 decimals for values < 1000', () => {
+      const result = formatCurrencyValue(-0.1234);
+
+      expect(result).toBe('$0.12');
+      expect(mockFormatWithThreshold).toHaveBeenCalledWith(
+        0.1234,
+        0.0001,
+        'en-US',
+        {
+          style: 'currency',
+          currency: 'USD',
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        },
+      );
+    });
+  });
+
+  describe('formatAddress', () => {
+    it('formats standard Ethereum address correctly', () => {
+      // Arrange
+      const address = '0x2F5e3684cb1F318ec51b00Edba38d79Ac2c0aA9d';
+
+      // Act
+      const result = formatAddress(address);
+
+      // Assert
+      expect(result).toBe('0x2F5...A9d');
+    });
+
+    it('formats address with different length correctly', () => {
+      // Arrange
+      const address = '0x1234567890abcdef1234567890abcdef12345678';
+
+      // Act
+      const result = formatAddress(address);
+
+      // Assert
+      expect(result).toBe('0x123...678');
+    });
+
+    it('returns N/A for undefined input', () => {
+      // Arrange & Act
+      const result = formatAddress(undefined);
+
+      // Assert
+      expect(result).toBe('N/A');
+    });
+
+    it('returns N/A for null input', () => {
+      // Arrange & Act
+      const result = formatAddress(null as unknown as string);
+
+      // Assert
+      expect(result).toBe('N/A');
+    });
+
+    it('returns N/A for empty string', () => {
+      // Arrange & Act
+      const result = formatAddress('');
+
+      // Assert
+      expect(result).toBe('N/A');
+    });
+
+    it('returns N/A for string shorter than 6 characters', () => {
+      // Arrange & Act
+      const result = formatAddress('0x123');
+
+      // Assert
+      expect(result).toBe('N/A');
+    });
+
+    it('returns N/A for string exactly 5 characters', () => {
+      // Arrange & Act
+      const result = formatAddress('0x123');
+
+      // Assert
+      expect(result).toBe('N/A');
+    });
+
+    it('formats minimum valid address (6 characters)', () => {
+      // Arrange
+      const address = '0x1234';
+
+      // Act
+      const result = formatAddress(address);
+
+      // Assert
+      expect(result).toBe('0x123...234');
+    });
+
+    it('formats 7-character address correctly', () => {
+      // Arrange
+      const address = '0x12345';
+
+      // Act
+      const result = formatAddress(address);
+
+      // Assert
+      expect(result).toBe('0x123...345');
+    });
+
+    it('formats very long address correctly', () => {
+      // Arrange
+      const address =
+        '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
+
+      // Act
+      const result = formatAddress(address);
+
+      // Assert
+      expect(result).toBe('0x123...def');
+    });
+
+    it('handles address with special characters', () => {
+      // Arrange
+      const address = '0xABCDEF1234567890abcdef1234567890abcdef12';
+
+      // Act
+      const result = formatAddress(address);
+
+      // Assert
+      expect(result).toBe('0xABC...f12');
+    });
+
+    it('handles address with mixed case', () => {
+      // Arrange
+      const address = '0xAbCdEf1234567890aBcDeF1234567890aBcDeF12';
+
+      // Act
+      const result = formatAddress(address);
+
+      // Assert
+      expect(result).toBe('0xAbC...F12');
+    });
+
+    it.each([
+      ['0x1234', '0x123...234'],
+      ['0x12345', '0x123...345'],
+      ['0x123456', '0x123...456'],
+      ['0x1234567', '0x123...567'],
+      ['0x12345678', '0x123...678'],
+      ['0x123456789', '0x123...789'],
+      ['0x1234567890', '0x123...890'],
+    ])('formats address %s as %s', (input, expected) => {
+      // Act
+      const result = formatAddress(input);
+
+      // Assert
+      expect(result).toBe(expected);
+    });
+
+    it.each([
+      [undefined, 'N/A'],
+      [null, 'N/A'],
+      ['', 'N/A'],
+      ['0x', 'N/A'],
+      ['0x1', 'N/A'],
+      ['0x12', 'N/A'],
+      ['0x123', 'N/A'],
+    ])('returns N/A for invalid input %s', (input, expected) => {
+      // Act
+      const result = formatAddress(input as unknown as string);
+
+      // Assert
+      expect(result).toBe(expected);
     });
   });
 });

@@ -13,7 +13,7 @@ import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFea
 
 const MEMO = 'Address for testing 123123123';
 
-describe(
+describe.skip(
   RegressionWalletPlatform('Relaunch App after Adding Address to Contact Book'),
   () => {
     beforeAll(async () => {

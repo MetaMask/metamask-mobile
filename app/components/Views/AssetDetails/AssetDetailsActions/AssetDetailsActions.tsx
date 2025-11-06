@@ -13,14 +13,19 @@ import { selectIsSwapsEnabled } from '../../../../core/redux/slices/bridge';
 import Routes from '../../../../constants/navigation/Routes';
 import useDepositEnabled from '../../../UI/Ramp/Deposit/hooks/useDepositEnabled';
 import { RootState } from '../../../../reducers';
+import { useMetrics } from '../../../../components/hooks/useMetrics';
+import {
+  trackActionButtonClick,
+  ActionButtonType,
+  ActionLocation,
+  ActionPosition,
+} from '../../../../util/analytics/actionButtonTracking';
 
 export interface AssetDetailsActionsProps {
   displayBuyButton: boolean | undefined;
   displaySwapsButton: boolean | undefined;
-  displayBridgeButton: boolean | undefined;
   onBuy?: () => void;
   goToSwaps: () => void;
-  goToBridge: () => void;
   onSend: () => void;
   onReceive: () => void;
   // Asset context for fund flow
@@ -32,7 +37,6 @@ export interface AssetDetailsActionsProps {
   // Optional custom action IDs to avoid test ID conflicts
   buyButtonActionID?: string;
   swapButtonActionID?: string;
-  bridgeButtonActionID?: string;
   sendButtonActionID?: string;
   receiveButtonActionID?: string;
 }
@@ -40,16 +44,13 @@ export interface AssetDetailsActionsProps {
 export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   displayBuyButton,
   displaySwapsButton,
-  displayBridgeButton,
   onBuy,
   goToSwaps,
-  goToBridge,
   onSend,
   onReceive,
   asset,
   buyButtonActionID = TokenOverviewSelectorsIDs.BUY_BUTTON,
   swapButtonActionID = TokenOverviewSelectorsIDs.SWAP_BUTTON,
-  bridgeButtonActionID = TokenOverviewSelectorsIDs.BRIDGE_BUTTON,
   sendButtonActionID = TokenOverviewSelectorsIDs.SEND_BUTTON,
   receiveButtonActionID = TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
 }) => {
@@ -59,6 +60,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
     selectIsSwapsEnabled(state),
   );
   const { navigate } = useNavigation();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   // Check if FundActionMenu would be empty
   const { isDepositEnabled } = useDepositEnabled();
@@ -68,6 +70,14 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   const isBuyingAvailable = isBuyMenuAvailable || !!onBuy;
 
   const handleBuyPress = () => {
+    // Track the home screen Buy button click
+    trackActionButtonClick(trackEvent, createEventBuilder, {
+      action_name: ActionButtonType.BUY,
+      action_position: ActionPosition.FIRST_POSITION,
+      button_label: strings('asset_overview.buy_button'),
+      location: ActionLocation.HOME,
+    });
+
     // Navigate to FundActionMenu with both custom onBuy and asset context
     // The menu will prioritize custom onBuy over standard funding options
     // This allows custom funding flows even when deposit/ramp are unavailable
@@ -104,17 +114,6 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           />
         </View>
       )}
-      {displayBridgeButton ? (
-        <View style={styles.buttonContainer}>
-          <MainActionButton
-            iconName={IconName.Bridge}
-            label={strings('asset_overview.bridge')}
-            onPress={goToBridge}
-            isDisabled={!canSignTransactions}
-            testID={bridgeButtonActionID}
-          />
-        </View>
-      ) : null}
       <View style={styles.buttonContainer}>
         <MainActionButton
           iconName={IconName.Send}

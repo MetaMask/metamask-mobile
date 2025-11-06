@@ -130,6 +130,10 @@ export const remoteFeatureMultichainAccountsAccountDetailsV2 = (
   },
 });
 
+export const remoteFeatureFlagPredictEnabled = (enabled = true) => ({
+  predictEnabled: enabled,
+});
+
 export const remoteFeatureFlagSendRedesignDisabled = {
   urlEndpoint:
     'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',

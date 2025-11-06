@@ -6,12 +6,12 @@ import { useSelector } from 'react-redux';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import { uniq } from 'lodash';
-import { TransactionType } from '@metamask/transaction-controller';
-import { PERPS_MINIMUM_DEPOSIT } from '../../constants/perps';
+import { TransactionMeta } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { useTransactionPayFiat } from './useTransactionPayFiat';
+import { getRequiredBalance } from '../../utils/transaction-pay';
+import { getNativeTokenAddress } from '../../utils/asset';
 
 export function useTransactionPayAvailableTokens() {
   const supportedChains = useSelector(selectEnabledSourceChains);
@@ -19,8 +19,10 @@ export function useTransactionPayAvailableTokens() {
   const requiredTokens = useTransactionRequiredTokens();
   const { convertFiat, formatFiat } = useTransactionPayFiat();
 
-  const { chainId: transactionChainId, type } =
-    useTransactionMetadataRequest() ?? {};
+  const transactionMeta =
+    useTransactionMetadataRequest() ?? ({} as TransactionMeta);
+
+  const { chainId: transactionChainId } = transactionMeta;
 
   const chainIds = useMemo(
     () => supportedChains.map((c) => c.chainId),
@@ -34,8 +36,7 @@ export function useTransactionPayAvailableTokens() {
     [requiredTokens],
   );
 
-  const minimumFiat =
-    type === TransactionType.perpsDeposit ? PERPS_MINIMUM_DEPOSIT : 0;
+  const minimumFiat = getRequiredBalance(transactionMeta);
 
   const isTokenAvailable = useCallback(
     (token: BridgeToken & { balanceUsd: number }) => {
@@ -67,9 +68,10 @@ export function useTransactionPayAvailableTokens() {
         return false;
       }
 
+      const nativeTokenAddress = getNativeTokenAddress(token.chainId as Hex);
+
       const nativeToken = allTokens.find(
-        (t) =>
-          t.address === NATIVE_TOKEN_ADDRESS && t.chainId === token.chainId,
+        (t) => t.address === nativeTokenAddress && t.chainId === token.chainId,
       );
 
       const hasNativeBalance = (nativeToken?.tokenFiatAmount ?? 0) > 0;

@@ -137,11 +137,10 @@ pipelines:
       build_android_rc_and_upload_sourcemaps:
         depends_on:
         - bump_version_code
-  #App launch times pipeline. Runs on browserstack
-  app_launch_times_and_expo_pipeline:
+  expo_dev_pipeline:
     stages:
       - create_build_qa_and_expo: {}
-      - app_launch_times_test_stage: {}
+      # - app_launch_times_test_stage: {}
   #Main expo pipeline
   expo_main_pipeline:
     stages:
@@ -359,8 +358,7 @@ stages:
       - run_network_expansion_swimlane_android_smoke: {}
       - run_wallet_platform_swimlane_ios_smoke: {}
       - run_wallet_platform_swimlane_android_smoke: {}
-      - run_tag_smoke_confirmations_ios: {}
-      - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_confirmations_redesigned_android: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_flask_build_tests_ios: {}
       - run_tag_flask_build_tests_android: {}
@@ -381,7 +379,6 @@ stages:
       # - run_network_expansion_swimlane_android_smoke: {}
       - run_wallet_platform_swimlane_ios_smoke: {}
       # - run_wallet_platform_swimlane_android_smoke: {}
-      - run_tag_smoke_confirmations_ios: {}
       # - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_identity_ios: {}
       # - run_tag_smoke_identity_android: {}
@@ -413,7 +410,6 @@ stages:
       - ios_run_regression_trade_tests: {}
       - ios_run_regression_network_abstraction_tests: {}
       - ios_run_regression_network_expansion_tests: {}
-      - ios_run_regression_identity_tests: {}
       - ios_run_regression_accounts_tests: {}
       - ios_run_regression_ux_tests: {}
       - ios_run_regression_assets_tests: {}
@@ -424,7 +420,6 @@ stages:
       - android_run_regression_network_expansion_tests: {}
       - android_run_regression_performance_tests: {}
       - android_run_regression_assets_tests: {}
-      - android_run_regression_identity_tests: {}
       - android_run_regression_accounts_tests: {}
       - android_run_regression_ux_tests: {}
   run_release_e2e_ios_android_stage:
@@ -434,7 +429,6 @@ stages:
       - ios_run_regression_trade_tests: {}
       - ios_run_regression_network_abstraction_tests: {}
       - ios_run_regression_network_expansion_tests: {}
-      - ios_run_regression_identity_tests: {}
       - ios_run_regression_accounts_tests: {}
       - ios_run_regression_ux_tests: {}
       - ios_run_regression_assets_tests: {}
@@ -445,7 +439,6 @@ stages:
       - android_run_regression_network_expansion_tests: {}
       - android_run_regression_performance_tests: {}
       - android_run_regression_assets_tests: {}
-      - android_run_regression_identity_tests: {}
       - android_run_regression_accounts_tests: {}
       - android_run_regression_ux_tests: {}
       - run_ios_api_specs: {}
@@ -457,8 +450,7 @@ stages:
       - run_network_abstraction_swimlane_android_smoke: {}
       - run_wallet_platform_swimlane_ios_smoke: {}
       - run_wallet_platform_swimlane_android_smoke: {}
-      - run_tag_smoke_confirmations_ios: {}
-      - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_confirmations_redesigned_android: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_upgrade_android: {}
       - run_android_app_launch_times_appium_test: {}
@@ -947,11 +939,6 @@ workflows:
       - TEST_SUITE_TAG: 'RegressionPerformance'
     after_run:
       - ios_e2e_test
-  ios_run_regression_identity_tests:
-    envs:
-      - TEST_SUITE_TAG: 'RegressionIdentity'
-    after_run:
-      - ios_e2e_test
   ios_run_regression_accounts_tests:
     envs:
       - TEST_SUITE_TAG: 'RegressionAccounts'
@@ -1026,15 +1013,6 @@ workflows:
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE_TAG: 'RegressionPerformance'
-    after_run:
-      - android_e2e_test
-  android_run_regression_identity_tests:
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
-    envs:
-      - TEST_SUITE_TAG: 'RegressionIdentity'
     after_run:
       - android_e2e_test
   android_run_regression_accounts_tests:
@@ -1259,18 +1237,13 @@ workflows:
   run_ios_api_specs:
     after_run:
       - ios_api_specs
-  run_tag_smoke_confirmations_ios:
-    envs:
-      - TEST_SUITE_TAG: 'SmokeConfirmations '
-    after_run:
-      - ios_e2e_test
-  run_tag_smoke_confirmations_android:
+  run_tag_smoke_confirmations_redesigned_android:
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_TAG: 'SmokeConfirmations '
+      - TEST_SUITE_TAG: 'SmokeConfirmationsRedesigned '
     after_run:
       - android_e2e_test
   run_tag_smoke_confirmations_redesigned_ios:
@@ -3728,12 +3701,6 @@ app:
       BRIDGE_USE_DEV_APIS: false
     - opts:
         is_expand: false
-      MM_BRIDGE_ENABLED: true
-    - opts:
-        is_expand: false
-      MM_UNIFIED_SWAPS_ENABLED: true
-    - opts:
-        is_expand: false
       MM_PERPS_ENABLED: true
     - opts:
         is_expand: false
@@ -3770,16 +3737,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.57.1
+      VERSION_NAME: 7.58.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 2833
+      VERSION_NUMBER: 2948
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.57.1
+      FLASK_VERSION_NAME: 7.58.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 2833
+      FLASK_VERSION_NUMBER: 2948
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -3800,7 +3767,7 @@ app:
       NODE_VERSION: 20.18.0
     - opts:
         is_expand: false
-      YARN_VERSION: 3.8.7
+      YARN_VERSION: 4.10.3
     - opts:
         is_expand: false
       COREPACK_VERSION: 0.28.0
@@ -3819,7 +3786,7 @@ trigger_map:
   # - push_branch: release/*
   #   pipeline: pr_rc_rwy_pipeline
   - push_branch: main
-    pipeline: app_launch_times_and_expo_pipeline
+    pipeline: expo_dev_pipeline
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
   - tag: 'v*.*.*'

@@ -8,6 +8,7 @@ export const PERPS_CONSTANTS = {
   WEBSOCKET_CLEANUP_DELAY: 1000, // 1 second
   BACKGROUND_DISCONNECT_DELAY: 20_000, // 20 seconds delay before disconnecting when app is backgrounded or when user exits perps UX
   CONNECTION_TIMEOUT_MS: 10_000, // 10 seconds timeout for connection and position loading states
+  DEFAULT_MONITORING_TIMEOUT_MS: 10_000, // 10 seconds default timeout for data monitoring operations
 
   // Connection timing constants
   CONNECTION_GRACE_PERIOD_MS: 20_000, // 20 seconds grace period before actual disconnection (same as BACKGROUND_DISCONNECT_DELAY for semantic clarity)
@@ -90,6 +91,10 @@ export const PERFORMANCE_CONFIG = {
   // This ensures navigation context is available when programmatically selecting tabs
   NAVIGATION_PARAMS_DELAY_MS: 200,
 
+  // Tab control reset delay (milliseconds)
+  // Delay to reset programmatic tab control after tab switching to prevent render loops
+  TAB_CONTROL_RESET_DELAY_MS: 500,
+
   // Market data cache duration (milliseconds)
   // How long to cache market list data before fetching fresh data
   MARKET_DATA_CACHE_DURATION_MS: 5 * 60 * 1000, // 5 minutes
@@ -149,6 +154,33 @@ export const LEVERAGE_SLIDER_CONFIG = {
 
 export const TP_SL_CONFIG = {
   USE_POSITION_BOUND_TPSL: true,
+} as const;
+
+/**
+ * TP/SL View UI configuration
+ * Controls the Take Profit / Stop Loss screen behavior and display options
+ */
+export const TP_SL_VIEW_CONFIG = {
+  // Quick percentage button presets for Take Profit (positive RoE percentages)
+  TAKE_PROFIT_ROE_PRESETS: [10, 25, 50, 100], // +10%, +25%, +50%, +100% RoE
+
+  // Quick percentage button presets for Stop Loss (negative RoE percentages)
+  STOP_LOSS_ROE_PRESETS: [-5, -10, -25, -50], // -5%, -10%, -25%, -50% RoE
+
+  // WebSocket price update throttle delay (milliseconds)
+  // Reduces re-renders by batching price updates in the TP/SL screen
+  PRICE_THROTTLE_MS: 1000,
+
+  // Maximum number of digits allowed in price/percentage input fields
+  // Prevents overflow and maintains reasonable input constraints
+  MAX_INPUT_DIGITS: 9,
+
+  // Keypad configuration for price inputs
+  // USD_PERPS is not a real currency - it's a custom configuration
+  // that allows 5 decimal places for crypto prices, overriding the
+  // default USD configuration which only allows 2 decimal places
+  KEYPAD_CURRENCY_CODE: 'USD_PERPS' as const,
+  KEYPAD_DECIMALS: 5,
 } as const;
 
 /**
@@ -229,6 +261,16 @@ export const FUNDING_RATE_CONFIG = {
   ZERO_DISPLAY: '0.0000%',
   // Multiplier to convert decimal funding rate to percentage
   PERCENTAGE_MULTIPLIER: 100,
+} as const;
+
+/**
+ * Decimal precision configuration
+ * Controls maximum decimal places for price and input validation
+ */
+export const DECIMAL_PRECISION_CONFIG = {
+  // Maximum decimal places for price input (matches Hyperliquid limit)
+  // Used in TP/SL forms, limit price inputs, and price validation
+  MAX_PRICE_DECIMALS: 6,
 } as const;
 
 export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';

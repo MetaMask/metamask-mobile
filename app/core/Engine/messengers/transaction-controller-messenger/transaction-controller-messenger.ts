@@ -12,7 +12,9 @@ import {
   NetworkControllerStateChangeEvent,
 } from '@metamask/network-controller';
 import {
+  TransactionControllerGetStateAction,
   TransactionControllerMessenger,
+  TransactionControllerStateChangeEvent,
   TransactionControllerTransactionApprovedEvent,
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionDroppedEvent,
@@ -25,25 +27,33 @@ import {
   SmartTransactionsControllerSmartTransactionEvent,
   SmartTransactionsControllerSmartTransactionConfirmationDoneEvent,
 } from '@metamask/smart-transactions-controller';
-import { KeyringControllerSignEip7702AuthorizationAction } from '@metamask/keyring-controller';
+import {
+  KeyringControllerSignEip7702AuthorizationAction,
+  KeyringControllerSignTypedMessageAction,
+} from '@metamask/keyring-controller';
 import {
   BridgeStatusControllerActions,
   BridgeStatusControllerEvents,
 } from '@metamask/bridge-status-controller';
+import { DelegationControllerSignDelegationAction } from '@metamask/delegation-controller';
 
 type MessengerActions =
   | AccountsControllerGetStateAction
   | AccountsControllerGetSelectedAccountAction
   | ApprovalControllerActions
   | BridgeStatusControllerActions
+  | DelegationControllerSignDelegationAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
   | KeyringControllerSignEip7702AuthorizationAction
+  | KeyringControllerSignTypedMessageAction
   | NetworkControllerGetEIP1559CompatibilityAction
   | NetworkControllerGetNetworkClientByIdAction
-  | RemoteFeatureFlagControllerGetStateAction;
+  | RemoteFeatureFlagControllerGetStateAction
+  | TransactionControllerGetStateAction;
 
 type MessengerEvents =
   | BridgeStatusControllerEvents
+  | TransactionControllerStateChangeEvent
   | TransactionControllerTransactionApprovedEvent
   | TransactionControllerTransactionConfirmedEvent
   | TransactionControllerTransactionDroppedEvent
@@ -84,6 +94,7 @@ export function getTransactionControllerInitMessenger(
     name: 'TransactionControllerInit',
     allowedEvents: [
       'BridgeStatusController:stateChange',
+      'TransactionController:stateChange',
       'TransactionController:transactionApproved',
       'TransactionController:transactionConfirmed',
       'TransactionController:transactionDropped',
@@ -99,8 +110,13 @@ export function getTransactionControllerInitMessenger(
       'ApprovalController:endFlow',
       'ApprovalController:startFlow',
       'ApprovalController:updateRequestState',
+      'BridgeStatusController:getState',
       'BridgeStatusController:submitTx',
+      'DelegationController:signDelegation',
       'NetworkController:getEIP1559Compatibility',
+      'KeyringController:signEip7702Authorization',
+      'KeyringController:signTypedMessage',
+      'TransactionController:getState',
     ],
   });
 }

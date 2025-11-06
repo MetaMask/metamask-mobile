@@ -1,11 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo } from 'react';
-import {
-  ScrollView,
-  View,
-  Linking,
-  TouchableOpacity,
-  Platform,
-} from 'react-native';
+import { ScrollView, View, Linking, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { RpcEndpointType } from '@metamask/network-controller';
 import Button, {
   ButtonSize,
@@ -196,19 +191,12 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
             <View style={styles.descriptionWrapper}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {isSocialLogin
-                  ? Platform.OS === 'ios'
-                    ? strings(
-                        'onboarding_success.import_description_social_login_ios',
-                        {
-                          authConnection: capitalize(authConnection) || '',
-                        },
-                      )
-                    : strings(
-                        'onboarding_success.import_description_social_login',
-                        {
-                          authConnection: capitalize(authConnection) || '',
-                        },
-                      )
+                  ? strings(
+                      'onboarding_success.import_description_social_login',
+                      {
+                        authConnection: capitalize(authConnection) || '',
+                      },
+                    )
                   : strings('onboarding_success.import_description')}
               </Text>
               {isSocialLogin ? (
@@ -216,13 +204,9 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
                   variant={TextVariant.BodyMD}
                   color={TextColor.Alternative}
                 >
-                  {Platform.OS === 'ios'
-                    ? strings(
-                        'onboarding_success.import_description_social_login_2_pin',
-                      )
-                    : strings(
-                        'onboarding_success.import_description_social_login_2',
-                      )}
+                  {strings(
+                    'onboarding_success.import_description_social_login_2',
+                  )}
                 </Text>
               ) : (
                 <Text
@@ -274,27 +258,29 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   );
 
   return (
-    <ScrollView
-      contentContainerStyle={[styles.root]}
-      testID={OnboardingSuccessSelectorIDs.CONTAINER_ID}
-    >
-      <View style={styles.contentContainer}>
-        <View style={styles.contentWrapper}>
-          {renderContent()}
-          {renderFooter()}
+    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.root}>
+      <ScrollView
+        contentContainerStyle={styles.root}
+        testID={OnboardingSuccessSelectorIDs.CONTAINER_ID}
+      >
+        <View style={styles.contentContainer}>
+          <View style={styles.contentWrapper}>
+            {renderContent()}
+            {renderFooter()}
+          </View>
+          <View style={styles.buttonWrapper}>
+            <Button
+              testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}
+              label={strings('onboarding_success.done')}
+              variant={ButtonVariants.Primary}
+              onPress={handleOnDone}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+            />
+          </View>
         </View>
-        <View style={styles.buttonWrapper}>
-          <Button
-            testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}
-            label={strings('onboarding_success.done')}
-            variant={ButtonVariants.Primary}
-            onPress={handleOnDone}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-          />
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 

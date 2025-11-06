@@ -13,6 +13,7 @@ describe(FlaskBuildTests('Get File Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
+        skipReactNativeReload: true,
       },
       async () => {
         await loginToApp();
@@ -28,6 +29,7 @@ describe(FlaskBuildTests('Get File Snap Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
+        skipReactNativeReload: true,
       },
       async () => {
         await TestSnaps.tapButton('sendGetFileTextButton');

@@ -61,18 +61,6 @@ jest.mock('../../util/phishingDetection', () => ({
   getPhishingTestResult: jest.fn().mockReturnValue({ result: true }),
 }));
 
-jest.mock('@metamask/assets-controllers', () => {
-  const actualControllers = jest.requireActual('@metamask/assets-controllers');
-  // Mock the RatesController start method since it takes a while to run and causes timeouts in tests
-  class MockRatesController extends actualControllers.RatesController {
-    start = jest.fn().mockImplementation(() => Promise.resolve());
-  }
-  return {
-    ...actualControllers,
-    RatesController: MockRatesController,
-  };
-});
-
 jest.mock('@metamask/remote-feature-flag-controller', () => ({
   ...jest.requireActual('@metamask/remote-feature-flag-controller'),
   ClientConfigApiService: jest.fn().mockReturnValue({
@@ -102,6 +90,7 @@ describe('Engine', () => {
     jest.restoreAllMocks();
     (backupVault as jest.Mock).mockReset();
     await Engine.destroyEngine();
+    await EngineClass.instance?.destroyEngineInstance();
   });
 
   it('should expose an API', () => {
@@ -132,7 +121,6 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('SelectedNetworkController');
     expect(engine.context).toHaveProperty('SnapInterfaceController');
     expect(engine.context).toHaveProperty('MultichainBalancesController');
-    expect(engine.context).toHaveProperty('RatesController');
     expect(engine.context).toHaveProperty('MultichainNetworkController');
     expect(engine.context).toHaveProperty('BridgeController');
     expect(engine.context).toHaveProperty('BridgeStatusController');
@@ -220,12 +208,13 @@ describe('Engine', () => {
         currentMigrationVersion,
       },
       PredictController: {
-        activeOrders: {},
         eligibility: {},
         lastError: null,
         lastUpdateTimestamp: 0,
-        notifications: [],
-        claimTransactions: {},
+        claimTransaction: null,
+        claimablePositions: [],
+        depositTransaction: null,
+        isOnboarded: {},
       },
       GatorPermissionsController: {
         gatorPermissionsMapSerialized: JSON.stringify({

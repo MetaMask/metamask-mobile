@@ -28,15 +28,13 @@ import {
   selectSourceAmount,
   selectDestToken,
   selectSourceToken,
-  selectBridgeFeatureFlags,
 } from '../../../../../core/redux/slices/bridge';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useRewards } from '../../hooks/useRewards';
-import { useRewardsIconAnimation } from '../../hooks/useRewardsIconAnimation';
-import Rive, { Alignment, Fit } from 'rive-react-native';
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
-const RewardsIconAnimation = require('../../../../../animations/rewards_icon_animations.riv');
+import RewardsAnimations, {
+  RewardAnimationState,
+} from '../../../Rewards/components/RewardPointsAnimation';
+import QuoteDetailsRecipientKeyValueRow from '../QuoteDetailsRecipientKeyValueRow/QuoteDetailsRecipientKeyValueRow';
 
 if (
   Platform.OS === 'android' &&
@@ -45,25 +43,25 @@ if (
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const QuoteDetailsCard = () => {
+const QuoteDetailsCard: React.FC = () => {
   const theme = useTheme();
   const navigation = useNavigation();
   const styles = createStyles(theme);
 
   const locale = I18n.locale;
   const intlNumberFormatter = getIntlNumberFormatter(locale, {
-    maximumFractionDigits: 3,
+    maximumFractionDigits: 6,
   });
 
   const {
     formattedQuoteData,
     activeQuote,
     isLoading: isQuoteLoading,
+    shouldShowPriceImpactWarning,
   } = useBridgeQuoteData();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
-  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const {
     estimatedPoints,
     isLoading: isRewardsLoading,
@@ -72,14 +70,6 @@ const QuoteDetailsCard = () => {
   } = useRewards({
     activeQuote,
     isQuoteLoading,
-  });
-
-  // Use custom hook for Rive animation logic
-  const { riveRef } = useRewardsIconAnimation({
-    isRewardsLoading,
-    estimatedPoints,
-    hasRewardsError,
-    shouldShowRewardsRow,
   });
 
   const handleSlippagePress = () => {
@@ -100,29 +90,11 @@ const QuoteDetailsCard = () => {
 
   const { networkFee, rate, priceImpact, slippage } = formattedQuoteData;
 
-  // Check if price impact warning should be shown
   const gasIncluded = !!activeQuote?.quote.gasIncluded;
-  const rawPriceImpact = activeQuote?.quote.priceData?.priceImpact;
-  const shouldShowPriceImpactWarning =
-    rawPriceImpact !== undefined &&
-    bridgeFeatureFlags?.priceImpactThreshold &&
-    ((gasIncluded &&
-      Number(rawPriceImpact) >=
-        bridgeFeatureFlags.priceImpactThreshold.gasless) ||
-      (!gasIncluded &&
-        Number(rawPriceImpact) >=
-          bridgeFeatureFlags.priceImpactThreshold.normal));
 
   const formattedMinToTokenAmount = intlNumberFormatter.format(
     parseFloat(activeQuote?.minToTokenAmount?.amount || '0'),
   );
-
-  let formattedEstimatedPoints = '';
-  if (hasRewardsError) {
-    formattedEstimatedPoints = strings('bridge.unable_to_load');
-  } else if (estimatedPoints !== null) {
-    formattedEstimatedPoints = intlNumberFormatter.format(estimatedPoints);
-  }
 
   return (
     <Box>
@@ -228,29 +200,10 @@ const QuoteDetailsCard = () => {
 
         <KeyValueRow
           field={{
-            label: (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={4}
-              >
-                <TouchableOpacity
-                  onPress={handleSlippagePress}
-                  activeOpacity={0.6}
-                  testID="edit-slippage-button"
-                  style={styles.slippageButton}
-                >
-                  <Text variant={TextVariant.BodyMDMedium}>
-                    {strings('bridge.slippage')}
-                  </Text>
-                  <Icon
-                    name={IconName.Edit}
-                    size={IconSize.Sm}
-                    color={IconColor.Muted}
-                  />
-                </TouchableOpacity>
-              </Box>
-            ),
+            label: {
+              text: strings('bridge.slippage'),
+              variant: TextVariant.BodyMDMedium,
+            },
             tooltip: {
               title: strings('bridge.slippage_info_title'),
               content: strings('bridge.slippage_info_description'),
@@ -258,10 +211,21 @@ const QuoteDetailsCard = () => {
             },
           }}
           value={{
-            label: {
-              text: slippage,
-              variant: TextVariant.BodyMD,
-            },
+            label: (
+              <TouchableOpacity
+                onPress={handleSlippagePress}
+                activeOpacity={0.6}
+                testID="edit-slippage-button"
+                style={styles.slippageButton}
+              >
+                <Text variant={TextVariant.BodyMD}>{slippage}</Text>
+                <Icon
+                  name={IconName.Edit}
+                  size={IconSize.Sm}
+                  color={IconColor.Muted}
+                />
+              </TouchableOpacity>
+            ),
           }}
         />
 
@@ -287,6 +251,8 @@ const QuoteDetailsCard = () => {
           />
         )}
 
+        <QuoteDetailsRecipientKeyValueRow />
+
         {/* Estimated Points */}
         {shouldShowRewardsRow && (
           <KeyValueRow
@@ -311,18 +277,16 @@ const QuoteDetailsCard = () => {
                   justifyContent={BoxJustifyContent.Center}
                   gap={1}
                 >
-                  <Rive
-                    ref={riveRef}
-                    source={RewardsIconAnimation}
-                    fit={Fit.FitHeight}
-                    alignment={Alignment.CenterRight}
-                    style={styles.riveIcon}
+                  <RewardsAnimations
+                    value={estimatedPoints ?? 0}
+                    state={
+                      isRewardsLoading
+                        ? RewardAnimationState.Loading
+                        : hasRewardsError
+                        ? RewardAnimationState.ErrorState
+                        : RewardAnimationState.Idle
+                    }
                   />
-                  {!isRewardsLoading && (
-                    <Text variant={TextVariant.BodyMD}>
-                      {formattedEstimatedPoints}
-                    </Text>
-                  )}
                 </Box>
               ),
               ...(hasRewardsError && {

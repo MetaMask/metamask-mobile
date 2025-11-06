@@ -13,6 +13,7 @@ import {
   defaultPerpsClosePositionValidationMock,
   defaultPerpsEventTrackingMock,
   defaultPerpsLivePricesMock,
+  defaultPerpsTopOfBookMock,
   defaultPerpsOrderFeesMock,
   defaultPerpsPositionMock,
   defaultPerpsRewardsMock,
@@ -51,6 +52,7 @@ jest.mock('../../hooks', () => ({
 
 jest.mock('../../hooks/stream', () => ({
   usePerpsLivePrices: jest.fn(),
+  usePerpsTopOfBook: jest.fn(),
 }));
 
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
@@ -111,28 +113,42 @@ jest.mocked(jest.requireMock('../../components/PerpsAmountDisplay')).default =
     );
 
 describe('PerpsClosePositionView', () => {
-  const useNavigationMock = jest.requireMock(
-    '@react-navigation/native',
-  ).useNavigation;
-  const useRouteMock = jest.requireMock('@react-navigation/native').useRoute;
-  const usePerpsLivePricesMock =
-    jest.requireMock('../../hooks/stream').usePerpsLivePrices;
-  const usePerpsOrderFeesMock =
-    jest.requireMock('../../hooks').usePerpsOrderFees;
-  const usePerpsClosePositionValidationMock =
-    jest.requireMock('../../hooks').usePerpsClosePositionValidation;
-  const usePerpsClosePositionMock =
-    jest.requireMock('../../hooks').usePerpsClosePosition;
-  const usePerpsEventTrackingMock = jest.requireMock(
-    '../../hooks/usePerpsEventTracking',
-  ).usePerpsEventTracking;
-  // usePerpsScreenTracking removed - migrated to usePerpsMeasurement
-  const useMinimumOrderAmountMock =
-    jest.requireMock('../../hooks').useMinimumOrderAmount;
-  const usePerpsMarketDataMock =
-    jest.requireMock('../../hooks').usePerpsMarketData;
-  const usePerpsToastsMock = jest.requireMock('../../hooks').usePerpsToasts;
-  const usePerpsRewardsMock = jest.requireMock('../../hooks').usePerpsRewards;
+  const useNavigationMock = jest.mocked(
+    jest.requireMock('@react-navigation/native').useNavigation,
+  );
+  const useRouteMock = jest.mocked(
+    jest.requireMock('@react-navigation/native').useRoute,
+  );
+  const usePerpsLivePricesMock = jest.mocked(
+    jest.requireMock('../../hooks/stream').usePerpsLivePrices,
+  );
+  const usePerpsTopOfBookMock = jest.mocked(
+    jest.requireMock('../../hooks/stream').usePerpsTopOfBook,
+  );
+  const usePerpsOrderFeesMock = jest.mocked(
+    jest.requireMock('../../hooks').usePerpsOrderFees,
+  );
+  const usePerpsClosePositionValidationMock = jest.mocked(
+    jest.requireMock('../../hooks').usePerpsClosePositionValidation,
+  );
+  const usePerpsClosePositionMock = jest.mocked(
+    jest.requireMock('../../hooks').usePerpsClosePosition,
+  );
+  const usePerpsEventTrackingMock = jest.mocked(
+    jest.requireMock('../../hooks/usePerpsEventTracking').usePerpsEventTracking,
+  );
+  const useMinimumOrderAmountMock = jest.mocked(
+    jest.requireMock('../../hooks').useMinimumOrderAmount,
+  );
+  const usePerpsMarketDataMock = jest.mocked(
+    jest.requireMock('../../hooks').usePerpsMarketData,
+  );
+  const usePerpsToastsMock = jest.mocked(
+    jest.requireMock('../../hooks').usePerpsToasts,
+  );
+  const usePerpsRewardsMock = jest.mocked(
+    jest.requireMock('../../hooks').usePerpsRewards,
+  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -151,6 +167,7 @@ describe('PerpsClosePositionView', () => {
 
     // Setup hook mocks with default values
     usePerpsLivePricesMock.mockReturnValue(defaultPerpsLivePricesMock);
+    usePerpsTopOfBookMock.mockReturnValue(defaultPerpsTopOfBookMock);
     usePerpsOrderFeesMock.mockReturnValue(defaultPerpsOrderFeesMock);
     usePerpsClosePositionValidationMock.mockReturnValue(
       defaultPerpsClosePositionValidationMock,
@@ -468,7 +485,8 @@ describe('PerpsClosePositionView', () => {
       );
       expect(receiveText).toBeDefined();
       // Look for 1000 in the display (margin + P&L - fees)
-      expect(getByText('$1,000.00')).toBeDefined();
+      // PRICE_RANGES_MINIMAL_VIEW: Fixed 2 decimals, trailing zeros removed
+      expect(getByText('$1,000')).toBeDefined();
     });
 
     it('calculates receive amount correctly for partial close percentages', () => {
@@ -2241,6 +2259,135 @@ describe('PerpsClosePositionView', () => {
             PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
           ),
         ).toBeDefined();
+      });
+    });
+  });
+
+  describe('Rewards Points Row', () => {
+    it('should render RewardsAnimations component when rewards are enabled', async () => {
+      // Arrange
+      usePerpsRewardsMock.mockReturnValue({
+        shouldShowRewardsRow: true,
+        estimatedPoints: 1000,
+        isLoading: false,
+        hasError: false,
+        bonusBips: 250,
+        feeDiscountPercentage: 15,
+        isRefresh: false,
+      });
+
+      // Act
+      const { getByText } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      // Assert
+      await waitFor(() => {
+        expect(getByText(strings('perps.estimated_points'))).toBeDefined();
+        expect(getByText('1,000')).toBeDefined();
+      });
+    });
+
+    it('should not render rewards row when shouldShowRewardsRow is false', async () => {
+      // Arrange
+      usePerpsRewardsMock.mockReturnValue({
+        shouldShowRewardsRow: false,
+        estimatedPoints: undefined,
+        isLoading: false,
+        hasError: false,
+        bonusBips: undefined,
+        feeDiscountPercentage: undefined,
+        isRefresh: false,
+      });
+
+      // Act
+      const { queryByText } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      // Assert
+      await waitFor(() => {
+        expect(queryByText(strings('perps.estimated_points'))).toBeNull();
+      });
+    });
+
+    it('should render RewardsAnimations in loading state', async () => {
+      // Arrange
+      usePerpsRewardsMock.mockReturnValue({
+        shouldShowRewardsRow: true,
+        estimatedPoints: 0,
+        isLoading: true,
+        hasError: false,
+        bonusBips: undefined,
+        feeDiscountPercentage: undefined,
+        isRefresh: false,
+      });
+
+      // Act
+      const { getByText } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      // Assert
+      await waitFor(() => {
+        expect(getByText(strings('perps.estimated_points'))).toBeDefined();
+      });
+    });
+
+    it('should render RewardsAnimations in error state', async () => {
+      // Arrange
+      usePerpsRewardsMock.mockReturnValue({
+        shouldShowRewardsRow: true,
+        estimatedPoints: 0,
+        isLoading: false,
+        hasError: true,
+        bonusBips: undefined,
+        feeDiscountPercentage: undefined,
+        isRefresh: false,
+      });
+
+      // Act
+      const { getByText } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      // Assert
+      await waitFor(() => {
+        expect(getByText(strings('perps.estimated_points'))).toBeDefined();
+      });
+    });
+
+    it('should render RewardsAnimations with bonus bips', async () => {
+      // Arrange
+      usePerpsRewardsMock.mockReturnValue({
+        shouldShowRewardsRow: true,
+        estimatedPoints: 2500,
+        isLoading: false,
+        hasError: false,
+        bonusBips: 500,
+        feeDiscountPercentage: 25,
+        isRefresh: false,
+      });
+
+      // Act
+      const { getByText } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      // Assert
+      await waitFor(() => {
+        expect(getByText(strings('perps.estimated_points'))).toBeDefined();
+        expect(getByText('2,500')).toBeDefined();
       });
     });
   });

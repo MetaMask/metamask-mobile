@@ -182,14 +182,14 @@ class SendFlow extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
 
     navigation.setOptions(
-      getSendFlowTitle(
-        'send.send_to',
+      getSendFlowTitle({
+        title: 'send.send_to',
         navigation,
         route,
-        colors,
+        themeColors: colors,
         resetTransaction,
-        null,
-      ),
+        transaction: null,
+      }),
     );
   };
 

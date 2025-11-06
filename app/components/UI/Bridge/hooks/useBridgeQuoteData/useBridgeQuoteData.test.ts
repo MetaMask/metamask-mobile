@@ -37,6 +37,13 @@ jest.mock('@metamask/bridge-controller', () => {
   return {
     ...actual,
     selectBridgeQuotes: jest.fn(),
+    selectBridgeFeatureFlags: jest.fn().mockImplementation(() => ({
+      minimumVersion: '7.58.0',
+      priceImpactThreshold: {
+        gasless: 0.4,
+        normal: 0.19,
+      },
+    })),
   };
 });
 
@@ -126,8 +133,52 @@ describe('useBridgeQuoteData', () => {
       isExpired: false,
       willRefresh: false,
       blockaidError: null,
+      shouldShowPriceImpactWarning: false,
     });
   });
+
+  it.each([
+    [true, false],
+    [false, true],
+  ])(
+    'returns shouldShowPriceImpactWarning=true when priceImpact exceeds threshold and gasIncluded=%s',
+    (gasIncluded, shouldShowPriceImpactWarning) => {
+      // Set up mock for this specific test
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementationOnce(
+        () => ({
+          recommendedQuote: {
+            ...mockQuoteWithMetadata,
+            quote: {
+              ...mockQuoteWithMetadata.quote,
+              priceData: { priceImpact: '0.20' },
+              gasIncluded,
+            },
+          },
+          alternativeQuotes: [],
+        }),
+      );
+
+      const bridgeControllerOverrides = {
+        quotesLoadingStatus: null,
+        quoteFetchError: null,
+      };
+
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides,
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+        state: testState,
+      });
+
+      expect(result.current.activeQuote?.quote.priceData?.priceImpact).toEqual(
+        '0.20',
+      );
+      expect(result.current.shouldShowPriceImpactWarning).toEqual(
+        shouldShowPriceImpactWarning,
+      );
+    },
+  );
 
   it('returns empty state when no quotes exist', () => {
     // Set up mock for this specific test
@@ -162,6 +213,7 @@ describe('useBridgeQuoteData', () => {
       isExpired: false,
       willRefresh: false,
       blockaidError: null,
+      shouldShowPriceImpactWarning: false,
     });
   });
 
@@ -199,6 +251,7 @@ describe('useBridgeQuoteData', () => {
       isExpired: true,
       willRefresh: false,
       blockaidError: null,
+      shouldShowPriceImpactWarning: false,
     });
   });
 
@@ -232,6 +285,7 @@ describe('useBridgeQuoteData', () => {
       isExpired: false,
       willRefresh: false,
       blockaidError: null,
+      shouldShowPriceImpactWarning: false,
     });
   });
 
@@ -266,6 +320,7 @@ describe('useBridgeQuoteData', () => {
       isExpired: false,
       willRefresh: false,
       blockaidError: null,
+      shouldShowPriceImpactWarning: false,
     });
   });
 

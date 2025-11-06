@@ -15,16 +15,21 @@ import {
   PredictCategory,
   PredictMarket as PredictMarketType,
 } from '../../types';
+import { PredictEntryPoint } from '../../types/navigation';
+import { PredictEventValues } from '../../constants/eventNames';
 import PredictMarket from '../PredictMarket';
+import { getPredictMarketListSelector } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 interface MarketListContentProps {
   q?: string;
   category: PredictCategory;
+  entryPoint?: PredictEntryPoint;
 }
 
 const MarketListContent: React.FC<MarketListContentProps> = ({
   category,
   q,
+  entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
@@ -42,10 +47,18 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const renderItem = useCallback(
-    ({ item }: { item: PredictMarketType }) => (
-      <PredictMarket key={item.id} market={item} />
+    ({ item, index }: { item: PredictMarketType; index: number }) => (
+      <PredictMarket
+        key={item.id}
+        market={item}
+        entryPoint={entryPoint}
+        testID={getPredictMarketListSelector.marketCardByCategory(
+          category,
+          index + 1,
+        )}
+      />
     ),
-    [],
+    [category, entryPoint],
   );
 
   const keyExtractor = useCallback((item: PredictMarketType) => item.id, []);
@@ -141,7 +154,10 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
 
   if (!marketData || marketData.length === 0) {
     return (
-      <Box style={styles.emptyContainer}>
+      <Box
+        testID={getPredictMarketListSelector.emptyState()}
+        style={styles.emptyContainer}
+      >
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           No {category} markets available
         </Text>

@@ -136,35 +136,90 @@ exports[`AssetOverview should render correctly 1`] = `
     <View
       style={
         {
-          "paddingHorizontal": 16,
-          "paddingTop": 10,
+          "height": 576.96,
+          "marginVertical": 10,
+          "paddingLeft": 0,
+          "paddingRight": 0,
+          "paddingTop": 0,
           "width": 750,
         }
       }
     >
       <View
-        onLayout={[Function]}
+        onMoveShouldSetResponder={[Function]}
+        onMoveShouldSetResponderCapture={[Function]}
+        onResponderEnd={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderReject={[Function]}
+        onResponderRelease={[Function]}
+        onResponderStart={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        onStartShouldSetResponderCapture={[Function]}
+        style={
+          {
+            "flex": 1,
+          }
+        }
       >
         <View
           style={
             {
-              "position": "relative",
+              "alignItems": "center",
+              "bottom": 0,
+              "justifyContent": "center",
+              "left": 0,
+              "padding": 96,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+              "zIndex": 1,
             }
           }
         >
           <View
+            onLayout={[Function]}
+          >
+            <View
+              style={
+                {
+                  "position": "relative",
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 6,
+                      "height": 586.96,
+                      "width": 718,
+                    },
+                    {
+                      "backgroundColor": "#f3f5f9",
+                      "overflow": "hidden",
+                    },
+                  ]
+                }
+              />
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        >
+          <View
+            onLayout={[Function]}
             style={
-              [
-                {
-                  "borderRadius": 6,
-                  "height": 586.96,
-                  "width": 718,
-                },
-                {
-                  "backgroundColor": "#f3f5f9",
-                  "overflow": "hidden",
-                },
-              ]
+              {
+                "flex": 1,
+              }
             }
           />
         </View>
@@ -367,9 +422,7 @@ exports[`AssetOverview should render correctly 1`] = `
         {
           "flexDirection": "row",
           "gap": 8,
-          "paddingBottom": 0,
           "paddingHorizontal": 16,
-          "paddingTop": 24,
           "width": "100%",
         }
       }
@@ -452,15 +505,15 @@ exports[`AssetOverview should render correctly 1`] = `
               <SvgMock
                 color="#686e7d"
                 fill="currentColor"
-                height={20}
+                height={24}
                 name="AttachMoney"
                 style={
                   {
-                    "height": 20,
-                    "width": 20,
+                    "height": 24,
+                    "width": 24,
                   }
                 }
-                width={20}
+                width={24}
               />
               <Text
                 accessibilityRole="text"
@@ -565,15 +618,15 @@ exports[`AssetOverview should render correctly 1`] = `
               <SvgMock
                 color="#686e7d"
                 fill="currentColor"
-                height={20}
+                height={24}
                 name="SwapVertical"
                 style={
                   {
-                    "height": 20,
-                    "width": 20,
+                    "height": 24,
+                    "width": 24,
                   }
                 }
-                width={20}
+                width={24}
               />
               <Text
                 accessibilityRole="text"
@@ -664,119 +717,6 @@ exports[`AssetOverview should render correctly 1`] = `
                 false,
               ]
             }
-            testID="token-bridge-button"
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "justifyContent": "center",
-                  "width": "100%",
-                }
-              }
-            >
-              <SvgMock
-                color="#686e7d"
-                fill="currentColor"
-                height={20}
-                name="Bridge"
-                style={
-                  {
-                    "height": 20,
-                    "width": 20,
-                  }
-                }
-                width={20}
-              />
-              <Text
-                accessibilityRole="text"
-                ellipsizeMode="tail"
-                numberOfLines={1}
-                style={
-                  {
-                    "color": "#121314",
-                    "flexShrink": 0,
-                    "fontFamily": "Geist Medium",
-                    "fontSize": 14,
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
-                    "marginTop": 2,
-                    "minWidth": 0,
-                    "textAlign": "center",
-                    "width": "100%",
-                  }
-                }
-              >
-                Bridge
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
-      <View
-        style={
-          {
-            "flex": 1,
-            "overflow": "hidden",
-          }
-        }
-      >
-        <View
-          collapsable={false}
-          style={
-            {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            }
-          }
-        >
-          <View
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": false,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
-              }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            onBlur={[Function]}
-            onClick={[Function]}
-            onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
-                  "borderRadius": 12,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "paddingHorizontal": 4,
-                  "paddingVertical": 16,
-                },
-                false,
-              ]
-            }
             testID="token-send-button"
           >
             <View
@@ -791,15 +731,15 @@ exports[`AssetOverview should render correctly 1`] = `
               <SvgMock
                 color="#686e7d"
                 fill="currentColor"
-                height={20}
+                height={24}
                 name="Send"
                 style={
                   {
-                    "height": 20,
-                    "width": 20,
+                    "height": 24,
+                    "width": 24,
                   }
                 }
-                width={20}
+                width={24}
               />
               <Text
                 accessibilityRole="text"
@@ -904,15 +844,15 @@ exports[`AssetOverview should render correctly 1`] = `
               <SvgMock
                 color="#686e7d"
                 fill="currentColor"
-                height={20}
+                height={24}
                 name="Received"
                 style={
                   {
-                    "height": 20,
-                    "width": 20,
+                    "height": 24,
+                    "width": 24,
                   }
                 }
-                width={20}
+                width={24}
               />
               <Text
                 accessibilityRole="text"
@@ -1322,35 +1262,90 @@ exports[`AssetOverview should render native balances even if there are no accoun
     <View
       style={
         {
-          "paddingHorizontal": 16,
-          "paddingTop": 10,
+          "height": 576.96,
+          "marginVertical": 10,
+          "paddingLeft": 0,
+          "paddingRight": 0,
+          "paddingTop": 0,
           "width": 750,
         }
       }
     >
       <View
-        onLayout={[Function]}
+        onMoveShouldSetResponder={[Function]}
+        onMoveShouldSetResponderCapture={[Function]}
+        onResponderEnd={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderReject={[Function]}
+        onResponderRelease={[Function]}
+        onResponderStart={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        onStartShouldSetResponderCapture={[Function]}
+        style={
+          {
+            "flex": 1,
+          }
+        }
       >
         <View
           style={
             {
-              "position": "relative",
+              "alignItems": "center",
+              "bottom": 0,
+              "justifyContent": "center",
+              "left": 0,
+              "padding": 96,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+              "zIndex": 1,
             }
           }
         >
           <View
+            onLayout={[Function]}
+          >
+            <View
+              style={
+                {
+                  "position": "relative",
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 6,
+                      "height": 586.96,
+                      "width": 718,
+                    },
+                    {
+                      "backgroundColor": "#f3f5f9",
+                      "overflow": "hidden",
+                    },
+                  ]
+                }
+              />
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        >
+          <View
+            onLayout={[Function]}
             style={
-              [
-                {
-                  "borderRadius": 6,
-                  "height": 586.96,
-                  "width": 718,
-                },
-                {
-                  "backgroundColor": "#f3f5f9",
-                  "overflow": "hidden",
-                },
-              ]
+              {
+                "flex": 1,
+              }
             }
           />
         </View>
@@ -1553,9 +1548,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
         {
           "flexDirection": "row",
           "gap": 8,
-          "paddingBottom": 0,
           "paddingHorizontal": 16,
-          "paddingTop": 24,
           "width": "100%",
         }
       }
@@ -1638,15 +1631,15 @@ exports[`AssetOverview should render native balances even if there are no accoun
               <SvgMock
                 color="#686e7d"
                 fill="currentColor"
-                height={20}
+                height={24}
                 name="AttachMoney"
                 style={
                   {
-                    "height": 20,
-                    "width": 20,
+                    "height": 24,
+                    "width": 24,
                   }
                 }
-                width={20}
+                width={24}
               />
               <Text
                 accessibilityRole="text"
@@ -1751,15 +1744,15 @@ exports[`AssetOverview should render native balances even if there are no accoun
               <SvgMock
                 color="#686e7d"
                 fill="currentColor"
-                height={20}
+                height={24}
                 name="SwapVertical"
                 style={
                   {
-                    "height": 20,
-                    "width": 20,
+                    "height": 24,
+                    "width": 24,
                   }
                 }
-                width={20}
+                width={24}
               />
               <Text
                 accessibilityRole="text"
@@ -1850,119 +1843,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 false,
               ]
             }
-            testID="token-bridge-button"
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "justifyContent": "center",
-                  "width": "100%",
-                }
-              }
-            >
-              <SvgMock
-                color="#686e7d"
-                fill="currentColor"
-                height={20}
-                name="Bridge"
-                style={
-                  {
-                    "height": 20,
-                    "width": 20,
-                  }
-                }
-                width={20}
-              />
-              <Text
-                accessibilityRole="text"
-                ellipsizeMode="tail"
-                numberOfLines={1}
-                style={
-                  {
-                    "color": "#121314",
-                    "flexShrink": 0,
-                    "fontFamily": "Geist Medium",
-                    "fontSize": 14,
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
-                    "marginTop": 2,
-                    "minWidth": 0,
-                    "textAlign": "center",
-                    "width": "100%",
-                  }
-                }
-              >
-                Bridge
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
-      <View
-        style={
-          {
-            "flex": 1,
-            "overflow": "hidden",
-          }
-        }
-      >
-        <View
-          collapsable={false}
-          style={
-            {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            }
-          }
-        >
-          <View
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": false,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
-              }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            onBlur={[Function]}
-            onClick={[Function]}
-            onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
-                  "borderRadius": 12,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "paddingHorizontal": 4,
-                  "paddingVertical": 16,
-                },
-                false,
-              ]
-            }
             testID="token-send-button"
           >
             <View
@@ -1977,15 +1857,15 @@ exports[`AssetOverview should render native balances even if there are no accoun
               <SvgMock
                 color="#686e7d"
                 fill="currentColor"
-                height={20}
+                height={24}
                 name="Send"
                 style={
                   {
-                    "height": 20,
-                    "width": 20,
+                    "height": 24,
+                    "width": 24,
                   }
                 }
-                width={20}
+                width={24}
               />
               <Text
                 accessibilityRole="text"
@@ -2090,15 +1970,15 @@ exports[`AssetOverview should render native balances even if there are no accoun
               <SvgMock
                 color="#686e7d"
                 fill="currentColor"
-                height={20}
+                height={24}
                 name="Received"
                 style={
                   {
-                    "height": 20,
-                    "width": 20,
+                    "height": 24,
+                    "width": 24,
                   }
                 }
-                width={20}
+                width={24}
               />
               <Text
                 accessibilityRole="text"
@@ -2773,9 +2653,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
         {
           "flexDirection": "row",
           "gap": 8,
-          "paddingBottom": 0,
           "paddingHorizontal": 16,
-          "paddingTop": 24,
           "width": "100%",
         }
       }
@@ -2858,15 +2736,15 @@ exports[`AssetOverview should render native balances when non evm network is sel
               <SvgMock
                 color="#686e7d"
                 fill="currentColor"
-                height={20}
+                height={24}
                 name="AttachMoney"
                 style={
                   {
-                    "height": 20,
-                    "width": 20,
+                    "height": 24,
+                    "width": 24,
                   }
                 }
-                width={20}
+                width={24}
               />
               <Text
                 accessibilityRole="text"
@@ -2971,15 +2849,15 @@ exports[`AssetOverview should render native balances when non evm network is sel
               <SvgMock
                 color="#686e7d"
                 fill="currentColor"
-                height={20}
+                height={24}
                 name="SwapVertical"
                 style={
                   {
-                    "height": 20,
-                    "width": 20,
+                    "height": 24,
+                    "width": 24,
                   }
                 }
-                width={20}
+                width={24}
               />
               <Text
                 accessibilityRole="text"
@@ -3070,119 +2948,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 false,
               ]
             }
-            testID="token-bridge-button"
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "justifyContent": "center",
-                  "width": "100%",
-                }
-              }
-            >
-              <SvgMock
-                color="#686e7d"
-                fill="currentColor"
-                height={20}
-                name="Bridge"
-                style={
-                  {
-                    "height": 20,
-                    "width": 20,
-                  }
-                }
-                width={20}
-              />
-              <Text
-                accessibilityRole="text"
-                ellipsizeMode="tail"
-                numberOfLines={1}
-                style={
-                  {
-                    "color": "#121314",
-                    "flexShrink": 0,
-                    "fontFamily": "Geist Medium",
-                    "fontSize": 14,
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
-                    "marginTop": 2,
-                    "minWidth": 0,
-                    "textAlign": "center",
-                    "width": "100%",
-                  }
-                }
-              >
-                Bridge
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
-      <View
-        style={
-          {
-            "flex": 1,
-            "overflow": "hidden",
-          }
-        }
-      >
-        <View
-          collapsable={false}
-          style={
-            {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            }
-          }
-        >
-          <View
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": false,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
-              }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            onBlur={[Function]}
-            onClick={[Function]}
-            onFocus={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
-                  "borderRadius": 12,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "paddingHorizontal": 4,
-                  "paddingVertical": 16,
-                },
-                false,
-              ]
-            }
             testID="token-send-button"
           >
             <View
@@ -3197,15 +2962,15 @@ exports[`AssetOverview should render native balances when non evm network is sel
               <SvgMock
                 color="#686e7d"
                 fill="currentColor"
-                height={20}
+                height={24}
                 name="Send"
                 style={
                   {
-                    "height": 20,
-                    "width": 20,
+                    "height": 24,
+                    "width": 24,
                   }
                 }
-                width={20}
+                width={24}
               />
               <Text
                 accessibilityRole="text"
@@ -3310,15 +3075,15 @@ exports[`AssetOverview should render native balances when non evm network is sel
               <SvgMock
                 color="#686e7d"
                 fill="currentColor"
-                height={20}
+                height={24}
                 name="Received"
                 style={
                   {
-                    "height": 20,
-                    "width": 20,
+                    "height": 24,
+                    "width": 24,
                   }
                 }
-                width={20}
+                width={24}
               />
               <Text
                 accessibilityRole="text"

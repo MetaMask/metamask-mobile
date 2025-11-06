@@ -52,6 +52,18 @@ export const DEFAULT_SOLANA_TEST_DAPP_PATH = path.join(
 );
 
 /**
+ * The schemes for the E2E deep links.
+ * @enum {string}
+ * @example
+ * {
+ *  E2EDeeplinkSchemes.PERPS,
+ * }
+ */
+export enum E2EDeeplinkSchemes {
+  PERPS = 'e2e://perps/',
+}
+
+/**
  * The variants of the dapp to load for test.
  * @enum {string}
  * @example

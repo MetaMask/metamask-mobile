@@ -6,6 +6,7 @@ import {
   Hex,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   CaipAssetType,
+  CaipChainId,
   isCaipAssetType,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/utils';
@@ -53,7 +54,14 @@ import { RootState } from '../../../reducers';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import {
+  trackActionButtonClick,
+  ActionButtonType,
+  ActionLocation,
+  ActionPosition,
+} from '../../../util/analytics/actionButtonTracking';
 import { selectSelectedAccountGroup } from '../../../selectors/multichainAccounts/accountTreeController';
+import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
@@ -87,7 +95,6 @@ interface AssetOverviewProps {
   asset: TokenI;
   displayBuyButton?: boolean;
   displaySwapsButton?: boolean;
-  displayBridgeButton?: boolean;
   networkName?: string;
 }
 
@@ -95,7 +102,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   asset,
   displayBuyButton,
   displaySwapsButton,
-  displayBridgeButton,
   networkName,
 }: AssetOverviewProps) => {
   // For non evm assets, the resultChainId is equal to the asset.chainId; while for evm assets; the resultChainId === "eip155:1" !== asset.chainId
@@ -106,6 +112,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const selectedInternalAccountAddress = selectedInternalAccount?.address;
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
+  const getAccountByScope = useSelector(selectSelectedInternalAccountByScope);
   const conversionRateByTicker = useSelector(selectCurrencyRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const accountsByChainId = useSelector(selectAccountsByChainId);
@@ -149,7 +156,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     vsCurrency: currentCurrency,
   });
 
-  const { goToBridge, goToSwaps, networkModal } = useSwapBridgeNavigation({
+  const { goToSwaps, networkModal } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TokenDetails,
     sourcePage: 'MainView',
     sourceToken: {
@@ -193,12 +200,26 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }, [selectedNetworkClientId]);
 
   const onReceive = () => {
+    trackActionButtonClick(trackEvent, createEventBuilder, {
+      action_name: ActionButtonType.RECEIVE,
+      action_position: ActionPosition.FOURTH_POSITION,
+      button_label: strings('asset_overview.receive_button'),
+      location: ActionLocation.ASSET_DETAILS,
+    });
+
+    const accountForChain =
+      isNonEvmAsset && asset.chainId
+        ? getAccountByScope(asset.chainId as CaipChainId)
+        : selectedInternalAccount;
+
+    const addressForChain = accountForChain?.address;
+
     // Show QR code for receiving this specific asset
-    if (selectedInternalAccountAddress && selectedAccountGroup && chainId) {
+    if (addressForChain && selectedAccountGroup && chainId) {
       navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
         screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
         params: {
-          address: selectedInternalAccountAddress,
+          address: addressForChain,
           networkName: networkName || 'Unknown Network',
           chainId,
           groupId: selectedAccountGroup.id,
@@ -210,15 +231,24 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           'AssetOverview::onReceive - Missing required data for navigation',
         ),
         {
-          hasAddress: !!selectedInternalAccountAddress,
+          hasAddress: !!addressForChain,
           hasAccountGroup: !!selectedAccountGroup,
           hasChainId: !!chainId,
+          isNonEvmAsset,
+          assetChainId: asset.chainId,
         },
       );
     }
   };
 
   const onSend = async () => {
+    trackActionButtonClick(trackEvent, createEventBuilder, {
+      action_name: ActionButtonType.SEND,
+      action_position: ActionPosition.THIRD_POSITION,
+      button_label: strings('asset_overview.send_button'),
+      location: ActionLocation.ASSET_DETAILS,
+    });
+
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     // Try non-EVM first, if handled, return early
     const wasHandledAsNonEvm = await sendNonEvmAsset(
@@ -259,11 +289,20 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     } else {
       dispatch(newAssetTransaction(asset));
     }
+
     navigateToSendPage(InitSendLocation.AssetOverview, asset);
   };
 
   const onBuy = () => {
     let assetId: string | undefined;
+
+    trackActionButtonClick(trackEvent, createEventBuilder, {
+      action_name: ActionButtonType.BUY,
+      action_position: ActionPosition.FIRST_POSITION,
+      button_label: strings('asset_overview.buy_button'),
+      location: ActionLocation.ASSET_DETAILS,
+    });
+
     try {
       if (isCaipAssetType(asset.address)) {
         assetId = asset.address;
@@ -282,6 +321,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         assetId,
       }),
     );
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
         .addProperties({
@@ -516,8 +556,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           <AssetDetailsActions
             displayBuyButton={displayBuyButton}
             displaySwapsButton={displaySwapsButton}
-            displayBridgeButton={displayBridgeButton}
-            goToBridge={goToBridge}
             goToSwaps={goToSwaps}
             onBuy={onBuy}
             onReceive={onReceive}

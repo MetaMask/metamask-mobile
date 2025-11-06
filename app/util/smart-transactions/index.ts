@@ -7,11 +7,11 @@ import {
   getIsSwapTransaction,
   getIsNativeTokenTransferred,
 } from '../transactions';
-import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import {
-  SmartTransaction,
-  Fees,
-} from '@metamask/smart-transactions-controller/dist/types';
+  SmartTransactionsController,
+  type SmartTransaction,
+  type Fees,
+} from '@metamask/smart-transactions-controller';
 import Engine, { type BaseControllerMessenger } from '../../core/Engine';
 import { isProduction } from '../environment';
 
@@ -121,13 +121,17 @@ export const getSmartTransactionMetricsProperties = async (
       controllerMessenger,
     );
   }
-  if (!smartTransaction?.statusMetadata) {
+  if (!smartTransaction) {
     return {};
+  }
+  if (!smartTransaction?.statusMetadata) {
+    return { is_smart_transaction: true };
   }
   const { timedOut, proxied } = smartTransaction.statusMetadata;
   return {
     smart_transaction_timed_out: timedOut,
     smart_transaction_proxied: proxied,
+    is_smart_transaction: true,
   };
 };
 

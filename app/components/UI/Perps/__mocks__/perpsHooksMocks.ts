@@ -11,6 +11,12 @@ export const defaultPerpsLivePricesMock = {
   BTC: { price: '45000.00', change24h: 1.2 },
 };
 
+export const defaultPerpsTopOfBookMock = {
+  bestBid: '2999.00',
+  bestAsk: '3001.00',
+  spread: '2.00',
+};
+
 export const defaultPerpsOrderFeesMock = {
   totalFee: 45,
   protocolFee: 45,
@@ -161,7 +167,7 @@ export const createPerpsHooksMocks = (overrides = {}) => ({
   usePerpsClosePosition: jest.fn(() => defaultPerpsClosePositionMock),
   usePerpsEventTracking: jest.fn(() => defaultPerpsEventTrackingMock),
   useMinimumOrderAmount: jest.fn(() => defaultMinimumOrderAmountMock),
-  usePerpsLiveAccount: jest.fn(() => defaultPerpsAccountMock),
+  usePerpsAccount: jest.fn(() => defaultPerpsAccountMock),
   usePerpsNetwork: jest.fn(() => defaultPerpsNetworkMock),
   usePerpsTrading: jest.fn(() => defaultPerpsTradingMock),
   usePerpsConnection: jest.fn(() => defaultPerpsConnectionMock),

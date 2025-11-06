@@ -111,6 +111,7 @@ const createStyles = (colors: Colors) =>
     },
     assetName: {
       flexDirection: 'row',
+      gap: 8,
     },
     percentageChange: {
       flexDirection: 'row',
@@ -129,11 +130,7 @@ const createStyles = (colors: Colors) =>
       marginLeft: 2,
     },
     portfolioBalance: {
-      flexDirection: 'row',
-      alignItems: 'center',
       marginHorizontal: 16,
-      justifyContent: 'space-between',
-      paddingTop: 24,
     },
     portfolioLink: { marginLeft: 8 },
     bottomModal: {

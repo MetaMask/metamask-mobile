@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, useMemo } from 'react';
 import Engine from '../../../../core/Engine';
 import type { PriceUpdate } from '../controllers/types';
-import type { CandleData, CandleStick } from '../types';
+import type { CandleData, CandleStick } from '../types/perps-types';
 import {
   calculateCandleCount,
   TimeDuration,

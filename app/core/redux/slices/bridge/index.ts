@@ -21,6 +21,7 @@ import {
   SortOrder,
   selectBridgeFeatureFlags as selectBridgeFeatureFlagsBase,
   DEFAULT_FEATURE_FLAG_CONFIG,
+  isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import {
   BridgeToken,
@@ -38,7 +39,6 @@ import {
 } from '../../../../selectors/accountsController';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
-import { isUnifiedSwapsEnvVarEnabled } from './utils/isUnifiedSwapsEnvVarEnabled';
 import { Bip44TokensForDefaultPairs } from '../../../../components/UI/Bridge/constants/default-swap-dest-tokens';
 
 export const selectBridgeControllerState = (state: RootState) =>
@@ -55,6 +55,7 @@ export interface BridgeState {
   slippage: string | undefined;
   isSubmittingTx: boolean;
   bridgeViewMode: BridgeViewMode | undefined;
+  isSelectingRecipient: boolean;
 }
 
 export const initialState: BridgeState = {
@@ -68,6 +69,7 @@ export const initialState: BridgeState = {
   slippage: '0.5',
   isSubmittingTx: false,
   bridgeViewMode: undefined,
+  isSelectingRecipient: false,
 };
 
 const name = 'bridge';
@@ -124,6 +126,9 @@ const slice = createSlice({
     },
     setIsSubmittingTx: (state, action: PayloadAction<boolean>) => {
       state.isSubmittingTx = action.payload;
+    },
+    setIsSelectingRecipient: (state, action: PayloadAction<boolean>) => {
+      state.isSelectingRecipient = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -212,12 +217,7 @@ export const selectBridgeFeatureFlags = createSelector(
       },
     });
 
-    if (
-      hasMinimumRequiredVersion(
-        featureFlags.minimumVersion,
-        process.env.MM_BRIDGE_ENABLED === 'true',
-      )
-    ) {
+    if (hasMinimumRequiredVersion(featureFlags.minimumVersion)) {
       return featureFlags;
     }
 
@@ -229,10 +229,16 @@ export const selectBridgeFeatureFlags = createSelector(
   },
 );
 
-export const selectIsBridgeEnabledSource = createSelector(
+/**
+ * Factory selector that returns a function to check if bridge is enabled for a source chain.
+ * Use this when you need to check multiple chain IDs or when the chain ID is determined after render.
+ * @example
+ * const getIsBridgeEnabledSource = useSelector(selectIsBridgeEnabledSourceFactory);
+ * const isBridgeEnabledSource = getIsBridgeEnabledSource(chainId);
+ */
+export const selectIsBridgeEnabledSourceFactory = createSelector(
   selectBridgeFeatureFlags,
-  (_: RootState, chainId: Hex | CaipChainId) => chainId,
-  (bridgeFeatureFlags, chainId) => {
+  (bridgeFeatureFlags) => (chainId: Hex | CaipChainId) => {
     const caipChainId = formatChainIdToCaip(chainId);
 
     return (
@@ -240,6 +246,12 @@ export const selectIsBridgeEnabledSource = createSelector(
       bridgeFeatureFlags.chains[caipChainId]?.isActiveSrc
     );
   },
+);
+
+export const selectIsBridgeEnabledSource = createSelector(
+  selectIsBridgeEnabledSourceFactory,
+  (_: RootState, chainId: Hex | CaipChainId) => chainId,
+  (getIsBridgeEnabledSource, chainId) => getIsBridgeEnabledSource(chainId),
 );
 
 export const selectIsBridgeEnabledDest = createSelector(
@@ -284,6 +296,9 @@ export const selectTopAssetsFromFeatureFlags = createSelector(
       : undefined,
 );
 
+/**
+ * TODO The MultichainNetworkConfiguration.chainId type is wrong. It can be both Hex or CaipChainId.
+ */
 export const selectEnabledSourceChains = createSelector(
   selectAllBridgeableNetworks,
   selectBridgeFeatureFlags,
@@ -394,17 +409,7 @@ export const selectIsSolanaSourced = createSelector(
   (sourceToken) => sourceToken?.chainId && isSolanaChainId(sourceToken.chainId),
 );
 
-export const selectIsEvmToSolana = createSelector(
-  selectSourceToken,
-  selectDestToken,
-  (sourceToken, destToken) =>
-    sourceToken?.chainId &&
-    !isSolanaChainId(sourceToken.chainId) &&
-    destToken?.chainId &&
-    isSolanaChainId(destToken.chainId),
-);
-
-export const selectIsSolanaToEvm = createSelector(
+export const selectIsSolanaToNonSolana = createSelector(
   selectSourceToken,
   selectDestToken,
   (sourceToken, destToken) =>
@@ -412,6 +417,37 @@ export const selectIsSolanaToEvm = createSelector(
     isSolanaChainId(sourceToken.chainId) &&
     destToken?.chainId &&
     !isSolanaChainId(destToken.chainId),
+);
+
+export const selectIsEvmToNonEvm = createSelector(
+  selectSourceToken,
+  selectDestToken,
+  (sourceToken, destToken) =>
+    sourceToken?.chainId &&
+    !isNonEvmChainId(sourceToken.chainId) &&
+    destToken?.chainId &&
+    isNonEvmChainId(destToken.chainId),
+);
+
+export const selectIsNonEvmToEvm = createSelector(
+  selectSourceToken,
+  selectDestToken,
+  (sourceToken, destToken) =>
+    sourceToken?.chainId &&
+    isNonEvmChainId(sourceToken.chainId) &&
+    destToken?.chainId &&
+    !isNonEvmChainId(destToken.chainId),
+);
+
+export const selectIsNonEvmNonEvmBridge = createSelector(
+  selectSourceToken,
+  selectDestToken,
+  (sourceToken, destToken) =>
+    sourceToken?.chainId &&
+    isNonEvmChainId(sourceToken.chainId) &&
+    destToken?.chainId &&
+    isNonEvmChainId(destToken.chainId) &&
+    sourceToken.chainId !== destToken.chainId,
 );
 
 export const selectIsSolanaSwap = createSelector(
@@ -424,10 +460,10 @@ export const selectIsSolanaSwap = createSelector(
     isSolanaChainId(destToken.chainId),
 );
 
-export const selectIsEvmSolanaBridge = createSelector(
-  selectIsEvmToSolana,
-  selectIsSolanaToEvm,
-  (isEvmToSolana, isSolanaToEvm) => isEvmToSolana || isSolanaToEvm,
+export const selectIsEvmNonEvmBridge = createSelector(
+  selectIsEvmToNonEvm,
+  selectIsNonEvmToEvm,
+  (isEvmToNonEvm, isNonEvmToEvm) => isEvmToNonEvm || isNonEvmToEvm,
 );
 
 export const selectIsBridge = createSelector(
@@ -459,19 +495,9 @@ export const selectIsSubmittingTx = createSelector(
   (bridgeState) => bridgeState.isSubmittingTx,
 );
 
-export const selectIsUnifiedSwapsEnabled = createSelector(
-  selectBridgeFeatureFlags,
-  selectChainId,
-  (bridgeFeatureFlags, chainId) => {
-    if (
-      isUnifiedSwapsEnvVarEnabled() &&
-      bridgeFeatureFlags.chains[formatChainIdToCaip(chainId)]
-        ?.isUnifiedUIEnabled
-    ) {
-      return true;
-    }
-    return false;
-  },
+export const selectIsSelectingRecipient = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.isSelectingRecipient,
 );
 
 export const selectIsGaslessSwapEnabled = createSelector(
@@ -539,4 +565,5 @@ export const {
   setDestAddress,
   setIsSubmittingTx,
   setBridgeViewMode,
+  setIsSelectingRecipient,
 } = actions;

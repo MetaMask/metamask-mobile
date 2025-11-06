@@ -231,7 +231,6 @@ jobs:
     name: 'AI E2E Analysis'
     runs-on: ubuntu-latest
     continue-on-error: true
-    needs: [needs_e2e_build]
     permissions:
       contents: read
       pull-requests: write
@@ -250,7 +249,6 @@ jobs:
         id: ai-analysis
         uses: ./.github/actions/ai-e2e-analysis
         with:
-          changed-files: ${{ needs.needs_e2e_build.outputs.changed_files }}
           event-name: ${{ github.event_name }}
           claude-api-key: ${{ secrets.E2E_CLAUDE_API_KEY }}
           github-token: ${{ github.token }}
@@ -266,6 +264,10 @@ jobs:
       id-token: write
     needs: [needs_e2e_build]
     uses: ./.github/workflows/build-android-e2e.yml
+    with:
+      build_type: 'main'
+      metamask_environment: 'e2e'
+      keystore_target: 'qa'
     secrets: inherit
 
   e2e-smoke-tests-android:
@@ -276,6 +278,37 @@ jobs:
       id-token: write
     needs: [needs_e2e_build, build-android-apks]
     uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
+    with:
+      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+    secrets: inherit
+
+  build-ios-apps:
+    name: 'Build iOS Apps'
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build]
+    uses: ./.github/workflows/build-ios-e2e.yml
+    secrets: inherit
+
+  ios-tests-ready:
+    name: 'iOS Tests Ready'
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
+    needs: [needs_e2e_build, build-ios-apps]
+    steps:
+      - name: iOS build complete
+        run: echo "Dummy step to better visualize the Android and iOS E2E tests in Github workflow graph"
+
+  e2e-smoke-tests-ios:
+    name: 'iOS E2E Smoke Tests'
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build, ios-tests-ready]
+    uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
     with:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
     secrets: inherit
@@ -485,6 +518,7 @@ jobs:
       - all-jobs-pass-merge-pr
       - needs_e2e_build
       - e2e-smoke-tests-android
+      - e2e-smoke-tests-ios
     steps:
       - run: |
           # Check if all non-E2E jobs passed
@@ -497,6 +531,10 @@ jobs:
           if [[ "${{ needs.needs_e2e_build.outputs.builds }}" == "true" ]]; then
             if [[ "${{ needs.e2e-smoke-tests-android.result }}" == "failure" ]]; then
               echo "Android E2E tests failed"
+              exit 1
+            fi
+            if [[ "${{ needs.e2e-smoke-tests-ios.result }}" == "failure" ]]; then
+              echo "iOS E2E tests failed"
               exit 1
             fi
           fi

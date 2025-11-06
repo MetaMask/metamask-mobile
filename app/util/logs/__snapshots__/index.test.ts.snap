@@ -67,6 +67,9 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         },
         "currentCurrency": "usd",
       },
+      "DelegationController": {
+        "delegations": {},
+      },
       "EarnController": {
         "lastUpdated": 0,
         "lending": {
@@ -470,23 +473,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "useSafeChainsListValidation": true,
         "useTokenDetection": true,
         "useTransactionSimulations": true,
-      },
-      "RatesController": {
-        "cryptocurrencies": [
-          "btc",
-          "sol",
-        ],
-        "fiatCurrency": "usd",
-        "rates": {
-          "btc": {
-            "conversionDate": 0,
-            "conversionRate": 0,
-          },
-          "sol": {
-            "conversionDate": 0,
-            "conversionRate": 0,
-          },
-        },
       },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
@@ -746,6 +732,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         },
         "currentCurrency": "usd",
       },
+      "DelegationController": {
+        "delegations": {},
+      },
       "EarnController": {
         "lastUpdated": 0,
         "lending": {
@@ -1149,23 +1138,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "useSafeChainsListValidation": true,
         "useTokenDetection": true,
         "useTransactionSimulations": true,
-      },
-      "RatesController": {
-        "cryptocurrencies": [
-          "btc",
-          "sol",
-        ],
-        "fiatCurrency": "usd",
-        "rates": {
-          "btc": {
-            "conversionDate": 0,
-            "conversionRate": 0,
-          },
-          "sol": {
-            "conversionDate": 0,
-            "conversionRate": 0,
-          },
-        },
       },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,

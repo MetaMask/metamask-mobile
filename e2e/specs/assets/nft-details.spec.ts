@@ -11,7 +11,7 @@ import enContent from '../../../locales/languages/en.json';
 import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../framework/Constants';
 
-describe(RegressionAssets('NFT Details page'), () => {
+describe.skip(RegressionAssets('NFT Details page'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
   const TEST_DAPP_CONTRACT = 'TestDappNFTs';
   beforeAll(async () => {

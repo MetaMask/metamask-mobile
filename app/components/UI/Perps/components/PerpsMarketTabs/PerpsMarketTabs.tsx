@@ -34,7 +34,7 @@ import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { Order } from '../../controllers/types';
 import { getOrderDirection } from '../../utils/orderUtils';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
-import { OrderDirection } from '../../types';
+import { OrderDirection } from '../../types/perps-types';
 
 const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   symbol,
@@ -43,6 +43,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   isLoadingPosition,
   unfilledOrders = [],
   onActiveTabChange,
+  activeTabId: externalActiveTabId,
   initialTab,
   nextFundingTime,
   fundingIntervalHours,
@@ -99,23 +100,23 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
       };
     });
 
-    // Sort with pre-computed metadata
-    return ordersWithMetadata
-      .sort((a, b) => {
-        // Primary sort: by detailedOrderType (alphabetical for consistent grouping)
-        if (a.orderType !== b.orderType) {
-          return a.orderType.localeCompare(b.orderType);
-        }
+    // Sort with pre-computed metadata (separate statement to satisfy SonarCloud)
+    const sortedMetadata = ordersWithMetadata.sort((a, b) => {
+      // Primary sort: by detailedOrderType (alphabetical for consistent grouping)
+      if (a.orderType !== b.orderType) {
+        return a.orderType.localeCompare(b.orderType);
+      }
 
-        // Secondary sort: by execution priority within same detailedOrderType
-        if (a.executionPriority !== b.executionPriority) {
-          return a.executionPriority - b.executionPriority;
-        }
+      // Secondary sort: by execution priority within same detailedOrderType
+      if (a.executionPriority !== b.executionPriority) {
+        return a.executionPriority - b.executionPriority;
+      }
 
-        // Final tiebreaker: order ID
-        return a.order.orderId.localeCompare(b.order.orderId);
-      })
-      .map((item) => item.order);
+      // Final tiebreaker: order ID
+      return a.order.orderId.localeCompare(b.order.orderId);
+    });
+
+    return sortedMetadata.map((item) => item.order);
   }, [marketStats.currentPrice, unfilledOrders, successfullyCancelledOrderIds]);
 
   // Clean up successfully cancelled orders when they're actually removed from unfilledOrders
@@ -152,12 +153,6 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   const tabs = React.useMemo(() => {
     const dynamicTabs = [];
 
-    // Always show statistics tab
-    dynamicTabs.push({
-      id: 'statistics',
-      label: strings('perps.market.statistics'),
-    });
-
     // Only show position tab if there's a position
     if (position) {
       dynamicTabs.push({
@@ -173,6 +168,12 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         label: strings('perps.market.orders'),
       });
     }
+
+    // Always show statistics tab
+    dynamicTabs.push({
+      id: 'statistics',
+      label: strings('perps.market.statistics'),
+    });
 
     return dynamicTabs;
   }, [position, unfilledOrders.length]);
@@ -255,6 +256,17 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
       onActiveTabChange?.(newTabId);
     }
   }, [tabs, activeTabId, onActiveTabChange]);
+
+  // Handle programmatic tab control from external activeTabId prop
+  useEffect(() => {
+    if (externalActiveTabId) {
+      const availableTabs = tabs.map((t) => t.id);
+      if (availableTabs.includes(externalActiveTabId)) {
+        setActiveTabId(externalActiveTabId as PerpsTabId);
+        onActiveTabChange?.(externalActiveTabId);
+      }
+    }
+  }, [externalActiveTabId, tabs, onActiveTabChange]);
 
   // Notify parent when tab changes
   const handleTabChange = useCallback(

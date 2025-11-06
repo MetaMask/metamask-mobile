@@ -32,7 +32,7 @@ const LoadingFooter: React.FC = () => (
   </Box>
 );
 
-const ItemSeparator: React.FC = () => <Box twClassName="h-6" />;
+const ItemSeparator: React.FC = () => <Box twClassName="h-2" />;
 
 const EmptyState: React.FC = () => {
   const dispatch = useDispatch();

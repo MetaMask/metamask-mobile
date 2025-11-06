@@ -1,4 +1,4 @@
-import type { CandleData, CandleStick } from '../types';
+import type { CandleData, CandleStick } from '../types/perps-types';
 
 interface FundingCountdownParams {
   /**

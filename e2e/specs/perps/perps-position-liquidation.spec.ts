@@ -10,7 +10,7 @@ import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arb
 import PerpsMarketDetailsView from '../../pages/Perps/PerpsMarketDetailsView';
 import PerpsView from '../../pages/Perps/PerpsView';
 import { createLogger, LogLevel } from '../../framework/logger';
-import PerpsE2E from '../../framework/PerpsE2E';
+import PerpsE2EModifiers from './helpers/perps-modifiers';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import { PerpsPositionsViewSelectorsIDs } from '../../selectors/Perps/Perps.selectors';
@@ -54,8 +54,8 @@ describe(RegressionTrade('Perps Position'), () => {
         await PerpsView.tapBackButtonMarketList();
 
         // add price change and liquidation -> not yet liquidated
-        await PerpsE2E.updateMarketPrice('BTC', '80000.00');
-        await PerpsE2E.triggerLiquidation('BTC');
+        await PerpsE2EModifiers.updateMarketPrice('BTC', '80000.00');
+        await PerpsE2EModifiers.triggerLiquidation('BTC');
         logger.info('🔥 E2E Mock: Liquidation triggered. Not yet liquidated');
 
         // Assertion 1: still have 2 positions (the default and the recently opened)
@@ -63,8 +63,8 @@ describe(RegressionTrade('Perps Position'), () => {
         await PerpsView.ensurePerpsTabPositionVisible('BTC', 3, 'long', 1);
 
         // add price change and force liquidation - BTC below 30k triggers default BTC liquidation
-        await PerpsE2E.updateMarketPrice('BTC', '30000.00');
-        await PerpsE2E.triggerLiquidation('BTC');
+        await PerpsE2EModifiers.updateMarketPrice('BTC', '30000.00');
+        await PerpsE2EModifiers.triggerLiquidation('BTC');
         logger.info('🔥 E2E Mock: Liquidation triggered. Liquidated');
 
         // Assertion 2: only BTC 3x is visible

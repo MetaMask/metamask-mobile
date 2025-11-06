@@ -5,8 +5,9 @@ import {
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback } from 'react';
-import { Alert, Image, View, TouchableOpacity } from 'react-native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import React from 'react';
+import { Image, TouchableOpacity, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -22,31 +23,37 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import { usePredictBuy } from '../../hooks/usePredictBuy';
+import { usePredictEligibility } from '../../hooks/usePredictEligibility';
+import Routes from '../../../../../constants/navigation/Routes';
 import { PredictMarket, PredictOutcome } from '../../types';
+import {
+  PredictNavigationParamList,
+  PredictEntryPoint,
+} from '../../types/navigation';
+import { PredictEventValues } from '../../constants/eventNames';
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketMultiple.styles';
-import Routes from '../../../../../constants/navigation/Routes';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { PredictNavigationParamList } from '../../types/navigation';
-
+import { usePredictBalance } from '../../hooks/usePredictBalance';
 interface PredictMarketMultipleProps {
   market: PredictMarket;
+  testID?: string;
+  entryPoint?: PredictEntryPoint;
 }
 
 const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   market,
+  testID,
+  entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
 }) => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
-  const { placeBuyOrder, reset, loading, currentOrderParams } = usePredictBuy({
-    onError: (error) => {
-      Alert.alert('Order failed', error);
-      reset();
-    },
+
+  const { isEligible } = usePredictEligibility({
+    providerId: market.providerId,
   });
+  const { hasNoBalance } = usePredictBalance();
 
   const getFirstOutcomePrice = (
     outcomePrices?: number[],
@@ -76,27 +83,55 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     return sum + volume;
   }, 0);
 
-  const isOutcomeTokenLoading = useCallback(
-    (outcomeTokenId: string) =>
-      currentOrderParams?.outcomeTokenId === outcomeTokenId && loading,
-    [currentOrderParams, loading],
-  );
-
   const handleYes = (outcome: PredictOutcome) => {
-    placeBuyOrder({
-      size: 1,
-      outcomeId: outcome.id,
-      outcomeTokenId: outcome.tokens[0].id,
-      market,
+    if (hasNoBalance) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+      });
+      return;
+    }
+
+    if (!isEligible) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+      });
+      return;
+    }
+
+    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+      params: {
+        market,
+        outcome,
+        outcomeToken: outcome.tokens[0],
+        entryPoint,
+      },
     });
   };
 
   const handleNo = (outcome: PredictOutcome) => {
-    placeBuyOrder({
-      size: 1,
-      outcomeId: outcome.id,
-      outcomeTokenId: outcome.tokens[1].id,
-      market,
+    if (hasNoBalance) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+      });
+      return;
+    }
+
+    if (!isEligible) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
+      });
+      return;
+    }
+
+    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+      params: {
+        market,
+        outcome,
+        outcomeToken: outcome.tokens[1],
+        entryPoint,
+      },
     });
   };
 
@@ -107,6 +142,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
 
   return (
     <TouchableOpacity
+      testID={testID}
       onPress={() => {
         navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
           screen: Routes.PREDICT.MARKET_DETAILS,
@@ -187,8 +223,6 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                     }
                     onPress={() => handleYes(outcome)}
                     style={styles.buttonYes}
-                    disabled={loading}
-                    loading={isOutcomeTokenLoading(outcome.tokens[0].id)}
                   />
                   <Button
                     variant={ButtonVariants.Secondary}
@@ -204,8 +238,6 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                     }
                     onPress={() => handleNo(outcome)}
                     style={styles.buttonNo}
-                    disabled={loading}
-                    loading={isOutcomeTokenLoading(outcome.tokens[1].id)}
                   />
                 </Box>
               </Box>

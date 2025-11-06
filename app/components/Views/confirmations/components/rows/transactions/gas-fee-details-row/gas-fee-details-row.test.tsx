@@ -33,6 +33,7 @@ jest.mock('../../../../hooks/gas/useGasFeeToken');
 jest.mock('../../../../hooks/gas/useIsGaslessSupported');
 jest.mock('../../../../hooks/alerts/useInsufficientBalanceAlert');
 jest.mock('../../../../../../hooks/useHideFiatForTestnet');
+jest.mock('../../../../hooks/tokens/useTokenWithBalance');
 
 const GAS_FEE_TOKEN_MOCK: ReturnType<typeof useSelectedGasFeeToken> = {
   amount: toHex(10000),
@@ -208,5 +209,22 @@ describe('GasFeesDetailsRow', () => {
 
     expect(getByText('0.0001')).toBeDefined();
     expect(getByText('ETH')).toBeDefined();
+  });
+
+  it(`shows 'Paid by MetaMask' when gas is sponsored`, async () => {
+    const clonedStakingDepositConfirmationState = cloneDeep(
+      stakingDepositConfirmationState,
+    );
+    clonedStakingDepositConfirmationState.engine.backgroundState.TransactionController.transactions[0].isGasFeeSponsored =
+      true;
+    const { getByText, queryByText } = renderWithProvider(
+      <GasFeesDetailsRow />,
+      {
+        state: clonedStakingDepositConfirmationState,
+      },
+    );
+
+    expect(getByText('Paid by MetaMask')).toBeDefined();
+    expect(queryByText('ETH')).toBeNull();
   });
 });

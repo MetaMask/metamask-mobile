@@ -39,6 +39,7 @@ const PredictNewButton: React.FC<PredictNewButtonProps> = () => {
 
   return (
     <Pressable
+      testID="predict-new-button"
       style={({ pressed }) =>
         tw.style('mx-3 mb-4 py-4 rounded-xl flex-row', pressed)
       }

@@ -4,8 +4,7 @@ import { ThemeColors } from '@metamask/design-tokens';
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     root: {
-      flexGrow: 1,
-      paddingBottom: 32,
+      flex: 1,
     },
     contentContainer: {
       flexDirection: 'column',

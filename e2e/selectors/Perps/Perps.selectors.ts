@@ -199,15 +199,15 @@ export const PerpsPositionDetailsViewSelectorsIDs = {
 };
 
 // ========================================
-// PERPS TPSL BOTTOM SHEET SELECTORS
+// PERPS TPSL VIEW SELECTORS
 // ========================================
 
-export const PerpsTPSLBottomSheetSelectorsIDs = {
+export const PerpsTPSLViewSelectorsIDs = {
   BOTTOM_SHEET: 'perps-tpsl-bottomsheet',
   SET_BUTTON: 'bottomsheetfooter-button',
 } as const;
 
-export const getPerpsTPSLBottomSheetSelector = {
+export const getPerpsTPSLViewSelector = {
   takeProfitPercentageButton: (percentage: number) =>
     `perps-tpsl-take-profit-percentage-button-${percentage}`,
   stopLossPercentageButton: (percentage: number) =>

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { useDepositSdkMethod } from './useDepositSdkMethod';
+import { useDepositUser } from './useDepositUser';
 import { NativeTransakUserDetails } from '@consensys/native-ramps-sdk';
 import { KycStatus } from '../constants';
 
@@ -27,13 +27,12 @@ const useUserDetailsPolling = (
   const pollCountRef = useRef<number>(0);
   const [pollingError, setPollingError] = useState<string | null>(null);
 
-  const [
-    { data: userDetails, error: sdkError, isFetching: loading },
+  const {
+    userDetails,
+    error: sdkError,
+    isFetching: loading,
     fetchUserDetails,
-  ] = useDepositSdkMethod({
-    method: 'getUserDetails',
-    onMount: false,
-  });
+  } = useDepositUser();
 
   const stopPolling = useCallback(() => {
     if (intervalRef.current) {

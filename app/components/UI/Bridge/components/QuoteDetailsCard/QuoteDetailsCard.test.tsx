@@ -27,13 +27,6 @@ jest.mock('rive-react-native', () => {
   };
 });
 
-// Mock useRewardsIconAnimation hook
-jest.mock('../../hooks/useRewardsIconAnimation', () => ({
-  useRewardsIconAnimation: jest.fn(() => ({
-    riveRef: { current: { fireState: jest.fn() } },
-  })),
-}));
-
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -102,6 +95,34 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
     name: 'Ethereum',
   }),
   selectSourceAmount: () => '1.0',
+  selectDestAddress: () => undefined,
+  selectIsSwap: () => false,
+}));
+
+// Mock multichain account selectors
+jest.mock(
+  '../../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectAccountToGroupMap: () => ({}),
+    selectAccountToWalletMap: () => ({}),
+    selectWalletsMap: () => ({}),
+    selectSelectedAccountGroupWithInternalAccountsAddresses: () => [],
+    selectAccountTreeControllerState: () => ({}),
+    selectAccountGroupWithInternalAccounts: () => [],
+    selectSelectedAccountGroupInternalAccounts: () => [],
+  }),
+);
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () => false,
+  }),
+);
+
+jest.mock('../../../../../selectors/accountsController', () => ({
+  ...jest.requireActual('../../../../../selectors/accountsController'),
+  selectInternalAccounts: () => [],
 }));
 
 // want to make the source token solana and dest token evm
@@ -456,20 +477,20 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { queryByText, getByText, getByTestId } = renderScreen(
+      const { getByText, getByTestId } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
 
-      // Then the rewards row should be shown but without points value
+      // Then the rewards row should be shown with the animation component
       await waitFor(() => {
         expect(getByText(strings('bridge.points'))).toBeOnTheScreen();
         expect(getByTestId('mock-rive-animation')).toBeOnTheScreen();
       });
 
-      // But no numeric value should be displayed
-      expect(queryByText(/^\d+$/)).toBeNull();
+      // RewardPointsAnimation component displays 0 when estimation fails
+      expect(getByText('0')).toBeOnTheScreen();
     });
 
     it('does not display rewards row when rewards feature is disabled', async () => {
@@ -574,19 +595,19 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { queryByText, getByText, getByTestId } = renderScreen(
+      const { getByText, getByTestId } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
 
-      // Then the rewards row should be shown but without points value
+      // Then the rewards row should be shown with animation component
       await waitFor(() => {
         expect(getByText(strings('bridge.points'))).toBeOnTheScreen();
         expect(getByTestId('mock-rive-animation')).toBeOnTheScreen();
       });
-      // Points value should not be displayed while loading
-      expect(queryByText(/^\d+$/)).toBeNull();
+      // RewardPointsAnimation shows 0 while loading (estimatedPoints is null, defaults to 0)
+      expect(getByText('0')).toBeOnTheScreen();
     });
 
     it('displays rewards row but no points when engine returns zero', async () => {
@@ -703,19 +724,19 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { queryByText, getByText, getByTestId } = renderScreen(
+      const { getByText, getByTestId } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
 
-      // Then rewards row should be shown but without points value
+      // Then rewards row should be shown with animation component
       await waitFor(() => {
         expect(getByText(strings('bridge.points'))).toBeOnTheScreen();
         expect(getByTestId('mock-rive-animation')).toBeOnTheScreen();
       });
-      // No numeric value should be displayed
-      expect(queryByText(/^\d+$/)).toBeNull();
+      // RewardPointsAnimation displays 0 when estimatedPoints is null (uses ?? 0 fallback)
+      expect(getByText('0')).toBeOnTheScreen();
     });
 
     it('handles quote loading state with rewards', async () => {
@@ -754,7 +775,7 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { queryByText, getByText } = renderScreen(
+      const { getByText } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
@@ -765,8 +786,8 @@ describe('QuoteDetailsCard', () => {
         expect(getByText(strings('bridge.points'))).toBeOnTheScreen();
       });
 
-      // But no points value should be displayed
-      expect(queryByText(/^\d+$/)).toBeNull();
+      // RewardPointsAnimation displays 0 while loading (estimatedPoints is null)
+      expect(getByText('0')).toBeOnTheScreen();
     });
   });
 });

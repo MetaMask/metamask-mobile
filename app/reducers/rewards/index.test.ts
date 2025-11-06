@@ -32,7 +32,7 @@ import {
   RewardClaimStatus,
   PointsEventDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
-import { CaipAccountId } from '@metamask/utils';
+import { AccountGroupId } from '@metamask/account-api';
 
 describe('rewardsReducer', () => {
   const initialState: RewardsState = {
@@ -1645,10 +1645,9 @@ describe('rewardsReducer', () => {
     describe('setHideCurrentAccountNotOptedInBanner', () => {
       it('should add new account banner entry when it does not exist', () => {
         // Arrange
-        const accountId: CaipAccountId =
-          'eip155:1:0x1234567890123456789012345678901234567890';
+        const accountGroupId: AccountGroupId = 'keyring:wallet1/1';
         const action = setHideCurrentAccountNotOptedInBanner({
-          accountId,
+          accountGroupId,
           hide: true,
         });
 
@@ -1658,26 +1657,25 @@ describe('rewardsReducer', () => {
         // Assert
         expect(state.hideCurrentAccountNotOptedInBanner).toHaveLength(1);
         expect(state.hideCurrentAccountNotOptedInBanner[0]).toEqual({
-          caipAccountId: accountId,
+          accountGroupId,
           hide: true,
         });
       });
 
       it('should update existing account banner entry', () => {
         // Arrange
-        const accountId: CaipAccountId =
-          'eip155:1:0x1234567890123456789012345678901234567890';
+        const accountGroupId: AccountGroupId = 'keyring:wallet1/1';
         const stateWithExistingEntry = {
           ...initialState,
           hideCurrentAccountNotOptedInBanner: [
             {
-              caipAccountId: accountId,
+              accountGroupId,
               hide: false,
             },
           ],
         };
         const action = setHideCurrentAccountNotOptedInBanner({
-          accountId,
+          accountGroupId,
           hide: true,
         });
 
@@ -1687,30 +1685,28 @@ describe('rewardsReducer', () => {
         // Assert
         expect(state.hideCurrentAccountNotOptedInBanner).toHaveLength(1);
         expect(state.hideCurrentAccountNotOptedInBanner[0]).toEqual({
-          caipAccountId: accountId,
+          accountGroupId,
           hide: true,
         });
       });
 
       it('should add multiple different account entries', () => {
         // Arrange
-        const accountId1: CaipAccountId =
-          'eip155:1:0x1111111111111111111111111111111111111111';
-        const accountId2: CaipAccountId =
-          'eip155:1:0x2222222222222222222222222222222222222222';
+        const accountGroupId1: AccountGroupId = 'keyring:wallet1/1';
+        const accountGroupId2: AccountGroupId = 'keyring:wallet2/2';
 
         let currentState = initialState;
 
         // Add first account
         const action1 = setHideCurrentAccountNotOptedInBanner({
-          accountId: accountId1,
+          accountGroupId: accountGroupId1,
           hide: true,
         });
         currentState = rewardsReducer(currentState, action1);
 
         // Add second account
         const action2 = setHideCurrentAccountNotOptedInBanner({
-          accountId: accountId2,
+          accountGroupId: accountGroupId2,
           hide: false,
         });
 
@@ -1720,36 +1716,34 @@ describe('rewardsReducer', () => {
         // Assert
         expect(state.hideCurrentAccountNotOptedInBanner).toHaveLength(2);
         expect(state.hideCurrentAccountNotOptedInBanner[0]).toEqual({
-          caipAccountId: accountId1,
+          accountGroupId: accountGroupId1,
           hide: true,
         });
         expect(state.hideCurrentAccountNotOptedInBanner[1]).toEqual({
-          caipAccountId: accountId2,
+          accountGroupId: accountGroupId2,
           hide: false,
         });
       });
 
       it('should update specific account without affecting others', () => {
         // Arrange
-        const accountId1: CaipAccountId =
-          'eip155:1:0x1111111111111111111111111111111111111111';
-        const accountId2: CaipAccountId =
-          'eip155:1:0x2222222222222222222222222222222222222222';
+        const accountGroupId1: AccountGroupId = 'keyring:wallet1/1';
+        const accountGroupId2: AccountGroupId = 'keyring:wallet2/2';
         const stateWithMultipleEntries = {
           ...initialState,
           hideCurrentAccountNotOptedInBanner: [
             {
-              caipAccountId: accountId1,
+              accountGroupId: accountGroupId1,
               hide: true,
             },
             {
-              caipAccountId: accountId2,
+              accountGroupId: accountGroupId2,
               hide: false,
             },
           ],
         };
         const action = setHideCurrentAccountNotOptedInBanner({
-          accountId: accountId1,
+          accountGroupId: accountGroupId1,
           hide: false,
         });
 
@@ -1759,11 +1753,11 @@ describe('rewardsReducer', () => {
         // Assert
         expect(state.hideCurrentAccountNotOptedInBanner).toHaveLength(2);
         expect(state.hideCurrentAccountNotOptedInBanner[0]).toEqual({
-          caipAccountId: accountId1,
+          accountGroupId: accountGroupId1,
           hide: false, // Updated
         });
         expect(state.hideCurrentAccountNotOptedInBanner[1]).toEqual({
-          caipAccountId: accountId2,
+          accountGroupId: accountGroupId2,
           hide: false, // Unchanged
         });
       });
@@ -1776,10 +1770,9 @@ describe('rewardsReducer', () => {
           referralCode: 'TEST123',
           hideUnlinkedAccountsBanner: true,
         };
-        const accountId: CaipAccountId =
-          'eip155:1:0x1234567890123456789012345678901234567890';
+        const accountGroupId: AccountGroupId = 'keyring:wallet1/1';
         const action = setHideCurrentAccountNotOptedInBanner({
-          accountId,
+          accountGroupId,
           hide: true,
         });
 
@@ -1856,8 +1849,7 @@ describe('rewardsReducer', () => {
           hideUnlinkedAccountsBanner: true,
           hideCurrentAccountNotOptedInBanner: [
             {
-              caipAccountId:
-                'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId,
+              accountGroupId: 'keyring:wallet1/1' as AccountGroupId,
               hide: true,
             },
           ],
@@ -1944,8 +1936,7 @@ describe('rewardsReducer', () => {
           hideUnlinkedAccountsBanner: true,
           hideCurrentAccountNotOptedInBanner: [
             {
-              caipAccountId:
-                'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId,
+              accountGroupId: 'keyring:wallet1/1' as AccountGroupId,
               hide: true,
             },
           ],
@@ -2082,8 +2073,7 @@ describe('rewardsReducer', () => {
           hideUnlinkedAccountsBanner: true,
           hideCurrentAccountNotOptedInBanner: [
             {
-              caipAccountId:
-                'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId,
+              accountGroupId: 'keyring:wallet1/1' as AccountGroupId,
               hide: true,
             },
           ],

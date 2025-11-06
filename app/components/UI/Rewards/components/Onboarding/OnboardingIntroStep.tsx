@@ -34,13 +34,13 @@ import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { isHardwareAccount } from '../../../../../util/address';
 import Engine from '../../../../../core/Engine';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import Device from '../../../../../util/device';
 import { REWARDS_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
 import storageWrapper from '../../../../../store/storage-wrapper';
-import Device from '../../../../../util/device';
 
 /**
  * OnboardingIntroStep Component
@@ -72,7 +72,9 @@ const OnboardingIntroStep: React.FC<{
   const optinAllowedForGeoLoading = useSelector(
     selectOptinAllowedForGeoLoading,
   );
-  const internalAccount = useSelector(selectSelectedInternalAccount);
+  const accountGroupAccounts = useSelector(
+    selectSelectedAccountGroupInternalAccounts,
+  );
   const optinAllowedForGeoError = useSelector(selectOptinAllowedForGeoError);
   const candidateSubscriptionId = useSelector(selectCandidateSubscriptionId);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
@@ -169,8 +171,12 @@ const OnboardingIntroStep: React.FC<{
       return;
     }
 
-    // Check for hardware account restrictions
-    if (internalAccount && isHardwareAccount(internalAccount?.address)) {
+    // Check for hardware account restrictions for default account associated with group.
+    if (
+      accountGroupAccounts.some((account) =>
+        isHardwareAccount(account?.address),
+      )
+    ) {
       showErrorModal(
         'rewards.onboarding.not_supported_hardware_account_title',
         'rewards.onboarding.not_supported_hardware_account_description',
@@ -178,14 +184,19 @@ const OnboardingIntroStep: React.FC<{
       return;
     }
 
-    // Check if account type is supported for opt-in
-    if (
-      internalAccount &&
-      !Engine.controllerMessenger.call(
-        'RewardsController:isOptInSupported',
-        internalAccount,
-      )
-    ) {
+    // Check if any account in the active account group is supported for opt-in
+    const hasAnySupportedAccount = accountGroupAccounts.some((account) => {
+      try {
+        return Engine.controllerMessenger.call(
+          'RewardsController:isOptInSupported',
+          account,
+        );
+      } catch {
+        return false;
+      }
+    });
+
+    if (!hasAnySupportedAccount) {
       showErrorModal(
         'rewards.onboarding.not_supported_account_type_title',
         'rewards.onboarding.not_supported_account_type_description',
@@ -206,7 +217,7 @@ const OnboardingIntroStep: React.FC<{
     showErrorModal,
     showRetryErrorModal,
     fetchGeoRewardsMetadata,
-    internalAccount,
+    accountGroupAccounts,
   ]);
 
   /**

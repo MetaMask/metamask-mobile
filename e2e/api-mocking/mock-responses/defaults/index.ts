@@ -21,6 +21,8 @@ import { DEFAULT_BRIDGE_API_MOCKS } from './bridge-api';
 import { DEFAULT_IPFS_GATEWAY_MOCKS } from './ipfs-api';
 import { DEFAULT_RPC_ENDPOINT_MOCKS } from './rpc-endpoints';
 import { POLYMARKET_API_MOCKS } from './polymarket-apis';
+import { INFURA_MOCKS } from '../infura-mocks';
+import { CHAINS_NETWORK_MOCK_RESPONSE } from '../chains-network-mocks';
 
 // Get auth mocks
 const authMocks = getAuthMocks();
@@ -42,6 +44,13 @@ export const DEFAULT_MOCKS = {
     ...(DEFAULT_BRIDGE_API_MOCKS.GET || []),
     ...(DEFAULT_IPFS_GATEWAY_MOCKS.GET || []),
     ...(POLYMARKET_API_MOCKS.GET || []),
+    ...(INFURA_MOCKS.GET || []),
+    // Chains Network Mock - Provides blockchain network data
+    {
+      urlEndpoint: 'https://chainid.network/chains.json',
+      responseCode: 200,
+      response: CHAINS_NETWORK_MOCK_RESPONSE,
+    },
     // Security Alerts Mock - Always responds with benign unless overridden by testSpecificMock
     {
       urlEndpoint:
@@ -255,12 +264,18 @@ export const DEFAULT_MOCKS = {
     ...(WALLETCONNECT_MOCKS.POST || []),
     ...(METAMETRICS_API_MOCKS.POST || []),
     ...(DEFAULT_RPC_ENDPOINT_MOCKS.POST || []),
+    ...(INFURA_MOCKS.POST || []),
     {
       urlEndpoint: 'https://api.mixpanel.com/track',
       responseCode: 200,
       response: {
         status: 1,
       },
+    },
+    {
+      urlEndpoint: 'https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io/',
+      responseCode: 200,
+      response: {},
     },
     {
       urlEndpoint:

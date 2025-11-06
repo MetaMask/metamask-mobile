@@ -570,7 +570,7 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                       <View
                         style={
                           {
-                            "paddingTop": 16,
+                            "paddingVertical": 16,
                           }
                         }
                       >
