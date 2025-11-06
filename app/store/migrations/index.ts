@@ -229,7 +229,7 @@ export const migrationList: MigrationsList = {
   103: migration103,
   104: migration104,
   105: migration105,
-  106: migration106
+  106: migration106,
 };
 
 // Enable both synchronous and asynchronous migrations
