@@ -440,14 +440,14 @@ describe('PredictSellPreview', () => {
 
   describe('rendering', () => {
     it('renders cash out screen with position details', () => {
-      const { getByText, queryByText } = renderWithProvider(
+      const { getAllByText, getByText, queryByText } = renderWithProvider(
         <PredictSellPreview />,
         {
           state: initialState,
         },
       );
 
-      expect(getByText('Cash Out')).toBeOnTheScreen();
+      expect(getAllByText('Cash out').length).toBeGreaterThan(0);
       expect(getByText('Will Bitcoin reach $150,000?')).toBeOnTheScreen();
       expect(getByText('$50.00 on Yes at 50¢')).toBeOnTheScreen();
 

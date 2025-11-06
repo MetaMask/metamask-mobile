@@ -199,7 +199,9 @@ const PredictSellPreview = () => {
   return (
     <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
       <BottomSheetHeader onClose={() => goBack()}>
-        <Text variant={TextVariant.HeadingMD}>Cash Out</Text>
+        <Text variant={TextVariant.HeadingMD}>
+          {strings('predict.cash_out')}
+        </Text>
       </BottomSheetHeader>
       <View
         testID={PredictCashOutSelectorsIDs.CONTAINER}
