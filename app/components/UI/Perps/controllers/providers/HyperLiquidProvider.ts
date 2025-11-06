@@ -362,14 +362,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
     // This happens once per session and is cached until disconnect/reconnect
     await this.ensureBuilderFeeApproval();
 
-    // Set up referral code (non-blocking, fire-and-forget)
-    // This happens once per session and is cached until disconnect/reconnect
-    this.ensureReferralSet().catch((error) => {
-      DevLogger.log(
-        '[ensureReady] Referral setup failed (non-blocking)',
-        error,
-      );
-    });
+    // Set up referral code (blocking to ensure attribution, but non-critical)
+    // Errors logged to Sentry, will retry naturally on next session
+    // See ensureReferralSet() - handles all errors internally, never throws
+    await this.ensureReferralSet();
   }
 
   /**
@@ -538,7 +534,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     // Defensive validation before caching
     if (!meta?.universe || !Array.isArray(meta.universe)) {
       throw new Error(
-        `Invalid meta response for DEX ${
+        `[HyperLiquidProvider] Invalid meta response for DEX ${
           dexName || 'main'
         }: universe is ${meta?.universe ? 'not an array' : 'missing'}`,
       );
@@ -554,6 +550,17 @@ export class HyperLiquidProvider implements IPerpsProvider {
     });
 
     return meta;
+  }
+
+  /**
+   * Generate session cache key for user-specific caches
+   * Format: "network:userAddress"
+   * @param network - 'mainnet' or 'testnet'
+   * @param userAddress - User's Ethereum address
+   * @returns Cache key for session-based caches
+   */
+  private getCacheKey(network: string, userAddress: string): string {
+    return `${network}:${userAddress}`;
   }
 
   /**
@@ -942,7 +949,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     const userAddress = await this.walletService.getUserAddressWithDefault();
 
     // Check session cache first to avoid redundant API calls
-    const cacheKey = `${network}:${userAddress}`;
+    const cacheKey = this.getCacheKey(network, userAddress);
     const cached = this.builderFeeCheckCache.get(cacheKey);
 
     if (cached !== undefined) {
@@ -982,7 +989,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
         afterApprovalDecimal === null ||
         afterApprovalDecimal < requiredDecimal
       ) {
-        throw new Error('Builder fee approval verification failed');
+        throw new Error(
+          '[HyperLiquidProvider] Builder fee approval verification failed',
+        );
       }
 
       // Update cache to reflect successful approval
@@ -1549,7 +1558,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         blocklistMarkets: this.blocklistMarkets,
       });
 
-      // Builder fee approval and referral are set once during ensureReady initialization
+      // See ensureReady() - builder fee and referral are session-cached
 
       // Extract DEX name for API calls (main DEX = null)
       const { dex: dexName } = parseAssetName(params.coin);
@@ -2417,7 +2426,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       await this.ensureReady();
 
-      // Builder fee approval and referral are set once during ensureReady initialization
+      // See ensureReady() - builder fee and referral are session-cached
 
       // Get current price for the asset
       const infoClient = this.clientService.getInfoClient();
@@ -4566,11 +4575,17 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const meta = await this.getCachedMeta({ dexName });
 
       // Check if meta and universe exist and is valid
+      // This should never happen since getCachedMeta validates, but defensive check
       if (!meta?.universe || !Array.isArray(meta.universe)) {
-        console.warn(
-          `Meta or universe not available for DEX ${
-            dexName || 'main'
-          }, using default max leverage`,
+        Logger.error(
+          new Error(
+            '[HyperLiquidProvider] Invalid meta response in getMaxLeverage',
+          ),
+          this.getErrorContext('getMaxLeverage', {
+            asset,
+            dexName: dexName || 'main',
+            note: 'Meta or universe not available, using default max leverage',
+          }),
         );
         return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
       }
@@ -5060,7 +5075,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Uses session cache to avoid redundant API calls until disconnect/reconnect
    *
    * Note: This is network-specific - testnet and mainnet have separate referral states
-   * Note: Non-blocking - failures are logged but don't prevent trading
+   * Note: Non-blocking - failures are logged to Sentry but don't prevent trading
+   * Note: Will automatically retry on next session if failed (cache cleared on disconnect)
    */
   private async ensureReferralSet(): Promise<void> {
     try {
@@ -5078,7 +5094,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       }
 
       // Check session cache first to avoid redundant API calls
-      const cacheKey = `${network}:${userAddress}`;
+      const cacheKey = this.getCacheKey(network, userAddress);
       const cached = this.referralCheckCache.get(cacheKey);
 
       if (cached !== undefined) {
@@ -5124,7 +5140,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
           this.referralCheckCache.set(cacheKey, true);
         } else {
           DevLogger.log(
-            '[ensureReferralSet] Failed to set referral code (non-blocking)',
+            '[ensureReferralSet] Failed to set referral code (will retry next session)',
             { network },
           );
         }
@@ -5134,12 +5150,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
         });
       }
     } catch (error) {
-      // Non-blocking: Log error but don't throw
-      // This prevents referral issues from blocking trading
+      // Non-blocking: Log to Sentry but don't throw
+      // Will retry automatically on next session (cache cleared on disconnect)
       Logger.error(
         ensureError(error),
         this.getErrorContext('ensureReferralSet', {
-          note: 'Referral setup failed (non-blocking)',
+          note: 'Referral setup failed (non-blocking, will retry next session)',
         }),
       );
     }
@@ -5150,7 +5166,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * @returns Promise resolving to true if referral code is ready
    */
   private async isReferralCodeReady(): Promise<boolean> {
-    const errorMessage = 'Error checking if referral code is ready';
     try {
       const infoClient = this.clientService.getInfoClient();
       const isTestnet = this.clientService.isTestnetMode();
@@ -5170,15 +5185,24 @@ export class HyperLiquidProvider implements IPerpsProvider {
         }
         return true;
       }
-      console.error('Referral code not ready', {
+
+      // Not ready yet - log as DevLogger since this is expected during setup phase
+      DevLogger.log('[isReferralCodeReady] Referral code not ready', {
         stage,
         code,
         referrerAddr,
-        referral,
       });
       return false;
     } catch (error) {
-      console.error(errorMessage, error);
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('isReferralCodeReady', {
+          code: this.getReferralCode(this.clientService.isTestnetMode()),
+          referrerAddress: this.getBuilderAddress(
+            this.clientService.isTestnetMode(),
+          ),
+        }),
+      );
       return false;
     }
   }
@@ -5204,7 +5228,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       return !!referralData?.referredBy?.code;
     } catch (error) {
-      DevLogger.log('Error checking referral status:', error);
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('checkReferralSet', {
+          note: 'Error checking referral status, will retry',
+        }),
+      );
       // do not throw here, return false as we can try to set it again
       return false;
     }
@@ -5214,14 +5243,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Set MetaMask as the user's referrer on HyperLiquid
    */
   private async setReferralCode(): Promise<boolean> {
-    const errorMessage = 'Error setting referral code';
     try {
       const exchangeClient = this.clientService.getExchangeClient();
       const referralCode = this.getReferralCode(
         this.clientService.isTestnetMode(),
       );
 
-      DevLogger.log('Setting referral code:', {
+      DevLogger.log('[setReferralCode] Setting referral code', {
         code: referralCode,
         network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
       });
@@ -5231,12 +5259,18 @@ export class HyperLiquidProvider implements IPerpsProvider {
         code: referralCode,
       });
 
-      DevLogger.log('Referral code set result:', result);
+      DevLogger.log('[setReferralCode] Referral code set result', result);
 
       return result?.status === 'ok';
     } catch (error) {
-      console.error(errorMessage, error);
-      throw new Error(errorMessage);
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('setReferralCode', {
+          code: this.getReferralCode(this.clientService.isTestnetMode()),
+        }),
+      );
+      // Rethrow to be caught by retry logic in ensureReferralSet
+      throw error;
     }
   }
 }
