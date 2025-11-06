@@ -38,6 +38,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
   const underlineWidthAnimated = useRef(new Animated.Value(0)).current;
   const tabLayouts = useRef<{ x: number; width: number }[]>([]);
   const currentAnimation = useRef<Animated.CompositeAnimation | null>(null);
+  const rafCallbackId = useRef<number | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [layoutsReady, setLayoutsReady] = useState(false);
   const activeIndexRef = useRef(activeIndex);
@@ -220,22 +221,23 @@ const TabsBar: React.FC<TabsBarProps> = ({
       );
 
       if (allLayoutsReady) {
-        // If this is the active tab and layout changed significantly, schedule re-animation
-        if (
-          index === activeIndexRef.current &&
-          hasSignificantChange &&
-          layoutsReady
-        ) {
-          // Use requestAnimationFrame to avoid layout thrashing
-          requestAnimationFrame(() => {
-            animateToTab(activeIndexRef.current);
-          });
-        }
-
         // Recalculate scroll detection on initial load OR when any layout changes significantly
         if (!layoutsReady || hasSignificantChange) {
           if (!layoutsReady) {
             setLayoutsReady(true);
+          }
+
+          // If layouts were already ready and any tab changed, re-animate the active tab
+          // This ensures re-animation triggers regardless of which tab's callback fires last
+          if (layoutsReady && hasSignificantChange) {
+            // Cancel any pending RAF to avoid multiple callbacks
+            if (rafCallbackId.current !== null) {
+              cancelAnimationFrame(rafCallbackId.current);
+            }
+            rafCallbackId.current = requestAnimationFrame(() => {
+              rafCallbackId.current = null;
+              animateToTab(activeIndexRef.current);
+            });
           }
 
           // Update scroll detection
@@ -261,6 +263,10 @@ const TabsBar: React.FC<TabsBarProps> = ({
       if (currentAnimation.current) {
         currentAnimation.current.stop();
         currentAnimation.current = null;
+      }
+      if (rafCallbackId.current !== null) {
+        cancelAnimationFrame(rafCallbackId.current);
+        rafCallbackId.current = null;
       }
     },
     [],
