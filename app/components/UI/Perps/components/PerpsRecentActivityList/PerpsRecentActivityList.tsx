@@ -7,26 +7,22 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import type {
-  OrderFill,
-  PerpsNavigationParamList,
-} from '../../controllers/types';
+import type { PerpsNavigationParamList } from '../../controllers/types';
 import type { PerpsTransaction } from '../../types/transactionHistory';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsRecentActivityList.styles';
-import { transformFillsToTransactions } from '../../utils/transactionTransforms';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
 
 interface PerpsRecentActivityListProps {
-  fills: OrderFill[];
+  transactions: PerpsTransaction[];
   isLoading?: boolean;
   iconSize?: number;
 }
 
 const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
-  fills,
+  transactions,
   isLoading,
   iconSize = HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE,
 }) => {
@@ -55,18 +51,23 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
     [navigation],
   );
 
-  // Transform fills to transactions for display
-  const transactions = transformFillsToTransactions(fills);
+  // Render right content for trades (only type shown)
+  const renderRightContent = useCallback((transaction: PerpsTransaction) => {
+    if (!transaction.fill) return null;
+
+    const pnlColor = transaction.fill.isPositive
+      ? TextColor.Success
+      : TextColor.Error;
+    return (
+      <Text variant={TextVariant.BodyMDMedium} color={pnlColor}>
+        {transaction.fill.amount}
+      </Text>
+    );
+  }, []);
 
   const renderItem = useCallback(
-    ({
-      item,
-    }: {
-      item: ReturnType<typeof transformFillsToTransactions>[0];
-    }) => {
-      const isPositive = item.fill?.isPositive ?? false;
-      const pnlColor = isPositive ? TextColor.Success : TextColor.Error;
-
+    (props: { item: PerpsTransaction }) => {
+      const { item } = props;
       return (
         <TouchableOpacity
           style={styles.activityItem}
@@ -99,17 +100,11 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
               )}
             </View>
           </View>
-          <View style={styles.rightSection}>
-            {item.fill && (
-              <Text variant={TextVariant.BodyMDMedium} color={pnlColor}>
-                {item.fill.amount}
-              </Text>
-            )}
-          </View>
+          <View style={styles.rightSection}>{renderRightContent(item)}</View>
         </TouchableOpacity>
       );
     },
-    [styles, handleTransactionPress, iconSize],
+    [styles, handleTransactionPress, iconSize, renderRightContent],
   );
 
   if (isLoading) {
@@ -125,7 +120,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
     );
   }
 
-  if (fills.length === 0) {
+  if (transactions.length === 0) {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
