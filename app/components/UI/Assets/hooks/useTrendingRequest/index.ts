@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useEffect, useState } from 'react';
+import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
 import { debounce } from 'lodash';
 import { CaipChainId } from '@metamask/utils';
 import {
@@ -37,6 +37,9 @@ export const useTrendingRequest = (options: {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
+  // Track the current request ID to prevent stale results from overwriting current ones
+  const requestIdRef = useRef(0);
+
   // Stabilize the chainIds array reference to prevent unnecessary re-memoization
   const stableChainIds = useStableArray(chainIds);
 
@@ -69,17 +72,28 @@ export const useTrendingRequest = (options: {
       return;
     }
 
+    // Increment request ID to mark this as the current request
+    const currentRequestId = ++requestIdRef.current;
     setIsLoading(true);
     setError(null);
 
     try {
       const trendingResults = await getTrendingTokens(memoizedOptions);
-      setResults(trendingResults || null);
+      // Only update state if this is still the current request
+      if (currentRequestId === requestIdRef.current) {
+        setResults(trendingResults || null);
+      }
     } catch (err) {
-      setError(err as Error);
-      setResults(null);
+      // Only update state if this is still the current request
+      if (currentRequestId === requestIdRef.current) {
+        setError(err as Error);
+        setResults(null);
+      }
     } finally {
-      setIsLoading(false);
+      // Only update loading state if this is still the current request
+      if (currentRequestId === requestIdRef.current) {
+        setIsLoading(false);
+      }
     }
   }, [memoizedOptions]);
 
@@ -88,18 +102,25 @@ export const useTrendingRequest = (options: {
     [fetchTrendingTokens],
   );
 
-  // Cleanup debounced function on unmount or when dependencies change
-  useEffect(
-    () => () => {
-      debouncedFetchTrendingTokens.cancel();
-    },
-    [debouncedFetchTrendingTokens],
-  );
-
   // Automatically trigger fetch when options change
+  // Cancel previous debounced function BEFORE triggering new one to prevent race conditions
   useEffect(() => {
+    // Cancel any pending debounced calls from previous render
+    debouncedFetchTrendingTokens.cancel();
+
+    // If chainIds is empty, don't trigger fetch
+    if (!memoizedOptions.chainIds.length) {
+      return;
+    }
+
+    // Trigger new fetch
     debouncedFetchTrendingTokens();
-  }, [debouncedFetchTrendingTokens]);
+
+    // Cleanup: cancel on unmount or when dependencies change
+    return () => {
+      debouncedFetchTrendingTokens.cancel();
+    };
+  }, [debouncedFetchTrendingTokens, memoizedOptions.chainIds.length]);
 
   return {
     results: results || [],

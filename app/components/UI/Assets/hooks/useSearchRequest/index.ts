@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useEffect, useState } from 'react';
+import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
 import { debounce } from 'lodash';
 import { CaipChainId } from '@metamask/utils';
 import { searchTokens } from '@metamask/assets-controllers';
@@ -21,6 +21,9 @@ export const useSearchRequest = (options: {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
+  // Track the current request ID to prevent stale results from overwriting current ones
+  const requestIdRef = useRef(0);
+
   // Stabilize the chainIds array reference to prevent unnecessary re-memoization
   const stableChainIds = useStableArray(chainIds);
 
@@ -41,6 +44,8 @@ export const useSearchRequest = (options: {
       return;
     }
 
+    // Increment request ID to mark this as the current request
+    const currentRequestId = ++requestIdRef.current;
     setIsLoading(true);
     setError(null);
 
@@ -52,12 +57,21 @@ export const useSearchRequest = (options: {
           limit: memoizedOptions.limit,
         },
       );
-      setResults(searchResults || null);
+      // Only update state if this is still the current request
+      if (currentRequestId === requestIdRef.current) {
+        setResults(searchResults || null);
+      }
     } catch (err) {
-      setError(err as Error);
-      setResults(null);
+      // Only update state if this is still the current request
+      if (currentRequestId === requestIdRef.current) {
+        setError(err as Error);
+        setResults(null);
+      }
     } finally {
-      setIsLoading(false);
+      // Only update loading state if this is still the current request
+      if (currentRequestId === requestIdRef.current) {
+        setIsLoading(false);
+      }
     }
   }, [memoizedOptions]);
 
@@ -67,17 +81,24 @@ export const useSearchRequest = (options: {
   );
 
   // Automatically trigger search when query changes
+  // Cancel previous debounced function BEFORE triggering new one to prevent race conditions
   useEffect(() => {
-    debouncedSearchTokensRequest();
-  }, [debouncedSearchTokensRequest]);
+    // Cancel any pending debounced calls from previous render
+    debouncedSearchTokensRequest.cancel();
 
-  // Cleanup debounced function on unmount or when dependencies change
-  useEffect(
-    () => () => {
+    // If query is empty, don't trigger search
+    if (!memoizedOptions.query) {
+      return;
+    }
+
+    // Trigger new search
+    debouncedSearchTokensRequest();
+
+    // Cleanup: cancel on unmount or when dependencies change
+    return () => {
       debouncedSearchTokensRequest.cancel();
-    },
-    [debouncedSearchTokensRequest],
-  );
+    };
+  }, [debouncedSearchTokensRequest, memoizedOptions.query]);
 
   return {
     results: results?.data || [],
