@@ -566,7 +566,7 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
           decimals: token.decimals,
           symbol: token.symbol,
           name: token.name,
-          allowanceState: AllowanceState.Enabled,
+          allowanceState: token.allowanceState,
           allowance: token.allowance || '0',
           availableBalance: token.availableBalance || '0',
           walletAddress: selectedWallet.walletAddress,
