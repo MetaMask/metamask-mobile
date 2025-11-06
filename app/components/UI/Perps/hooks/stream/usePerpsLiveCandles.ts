@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import type { CandleData } from '../../types/perps-types';
 import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 // Stable empty candle data reference to prevent re-renders
 const EMPTY_CANDLE_DATA: CandleData = {
@@ -65,11 +66,10 @@ export function usePerpsLiveCandles(
   const hasReceivedFirstUpdate = useRef(false);
 
   useEffect(() => {
-    // Reset state when coin or interval changes
-    if (!hasReceivedFirstUpdate.current) {
-      setIsLoading(true);
-      setError(null);
-    }
+    // Reset state immediately when coin or interval changes to prevent stale data
+    setCandleData(null);
+    setIsLoading(true);
+    setError(null);
     hasReceivedFirstUpdate.current = false;
 
     if (!coin) {
@@ -85,6 +85,23 @@ export function usePerpsLiveCandles(
         callback: (newCandleData) => {
           // null/undefined means no cached data yet, keep loading state
           if (newCandleData === null || newCandleData === undefined) {
+            return;
+          }
+
+          // DEFENSIVE: Validate incoming data matches current subscription
+          // This prevents race conditions when switching coins where old subscription
+          // might deliver data after new subscription starts
+          if (
+            newCandleData.coin !== coin ||
+            newCandleData.interval !== interval
+          ) {
+            DevLogger.log('usePerpsLiveCandles: REJECTED - Validation failed', {
+              reason: 'Coin or interval mismatch',
+              expectedCoin: coin,
+              receivedCoin: newCandleData.coin,
+              expectedInterval: interval,
+              receivedInterval: newCandleData.interval,
+            });
             return;
           }
 

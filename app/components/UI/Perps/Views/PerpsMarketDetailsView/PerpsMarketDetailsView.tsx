@@ -684,6 +684,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 height={350}
                 visibleCandleCount={visibleCandleCount}
                 tpslLines={tpslLines}
+                symbol={market?.symbol}
                 testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
               />
             ) : (

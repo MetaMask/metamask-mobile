@@ -2,10 +2,12 @@ import Engine from '../../../../../core/Engine';
 import type { CandleData } from '../../types/perps-types';
 import { CandlePeriod } from '../../constants/chartConfig';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 // Generic subscription parameters
 interface StreamSubscription<T> {
   id: string;
+  cacheKey: string; // Associated cacheKey (coin-interval) for filtering
   callback: (data: T) => void;
   throttleMs?: number;
   timer?: NodeJS.Timeout;
@@ -20,12 +22,17 @@ abstract class StreamChannel<T> {
   protected wsSubscriptions = new Map<string, () => void>();
   protected isPaused = false;
 
-  protected notifySubscribers(_cacheKey: string, updates: T) {
+  protected notifySubscribers(cacheKey: string, updates: T) {
     if (this.isPaused) {
       return;
     }
 
-    this.subscribers.forEach((subscriber) => {
+    // Filter subscribers to only those matching this cacheKey
+    const matchingSubscribers = Array.from(this.subscribers.values()).filter(
+      (sub) => sub.cacheKey === cacheKey,
+    );
+
+    matchingSubscribers.forEach((subscriber) => {
       // Check if this is the first update for this subscriber
       if (!subscriber.hasReceivedFirstUpdate) {
         subscriber.callback(updates);
@@ -113,6 +120,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
 
     const subscription: StreamSubscription<CandleData> = {
       id,
+      cacheKey, // Store cacheKey to filter subscribers by their subscription
       callback,
       throttleMs,
       hasReceivedFirstUpdate: false,
@@ -138,8 +146,19 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       }
       this.subscribers.delete(id);
 
-      // Disconnect if no subscribers for this coin+interval
-      if (this.subscribers.size === 0) {
+      // Count remaining subscribers for THIS specific cacheKey
+      const remainingForThisKey = Array.from(this.subscribers.values()).filter(
+        (s) => s.cacheKey === cacheKey,
+      ).length;
+
+      // Disconnect WebSocket if no subscribers remain for this coin+interval
+      if (remainingForThisKey === 0) {
+        DevLogger.log(
+          'CandleStreamChannel: Disconnecting WebSocket (no subscribers)',
+          {
+            cacheKey,
+          },
+        );
         this.disconnect(cacheKey);
       }
     };
@@ -178,6 +197,13 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         // Notify all subscribers
         this.notifySubscribers(cacheKey, candleData);
       },
+    });
+
+    // Log subscription establishment (once per subscription)
+    DevLogger.log('CandleStreamChannel: WebSocket subscription established', {
+      coin,
+      interval,
+      cacheKey,
     });
 
     // Store cleanup function

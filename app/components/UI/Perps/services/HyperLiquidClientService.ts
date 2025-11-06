@@ -368,10 +368,18 @@ export class HyperLiquidClientService {
 
               if (lastCandle && lastCandle.time === newCandle.time) {
                 // Update existing candle (live candle update)
-                candles[candles.length - 1] = newCandle;
+                // Create new array with updated last element to trigger React re-render
+                currentCandleData = {
+                  ...currentCandleData,
+                  candles: [...candles.slice(0, -1), newCandle],
+                };
               } else {
                 // New candle (completed candle)
-                candles.push(newCandle);
+                // Create new array with added element to trigger React re-render
+                currentCandleData = {
+                  ...currentCandleData,
+                  candles: [...candles, newCandle],
+                };
               }
             }
 

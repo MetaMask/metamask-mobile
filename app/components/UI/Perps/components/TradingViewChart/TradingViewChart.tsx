@@ -45,6 +45,7 @@ interface TradingViewChartProps {
   tpslLines?: TPSLLines;
   onChartReady?: () => void;
   visibleCandleCount?: number; // Number of candles to display (for zoom level)
+  symbol?: string; // Expected symbol for validation (prevents stale data from previous market)
   testID?: string;
 }
 
@@ -62,6 +63,7 @@ const TradingViewChart = React.forwardRef<
       tpslLines,
       onChartReady,
       visibleCandleCount = 45, // Default to 45 visible candles
+      symbol,
       testID,
     },
     ref,
@@ -306,6 +308,16 @@ const TradingViewChart = React.forwardRef<
 
       // Prioritize real data over sample data
       if (candleData?.candles && candleData.candles.length > 0) {
+        // DEFENSIVE: Validate candle data matches expected symbol
+        // This prevents rendering stale data when switching markets
+        if (symbol && candleData.coin !== symbol) {
+          DevLogger.log(
+            'TradingViewChart: Ignoring mismatched candleData',
+            `Expected: ${symbol}, Got: ${candleData.coin}`,
+          );
+          return;
+        }
+
         dataToSend = formatCandleData(candleData);
         dataSource = 'real';
       }
@@ -325,6 +337,7 @@ const TradingViewChart = React.forwardRef<
       formatCandleData,
       candleData,
       visibleCandleCount,
+      symbol,
     ]);
 
     // Update auxiliary lines when they change
