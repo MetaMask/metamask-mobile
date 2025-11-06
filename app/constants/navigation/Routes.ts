@@ -263,10 +263,12 @@ const Routes = {
     ACTIVITY: 'PerpsActivity', // Stack-based activity view for proper back navigation
     MODALS: {
       ROOT: 'PerpsModals',
+      CLOSE_POSITION_MODALS: 'PerpsClosePositionModals',
       QUOTE_EXPIRED_MODAL: 'PerpsQuoteExpiredModal',
       GTM_MODAL: 'PerpsGTMModal',
       CLOSE_ALL_POSITIONS: 'PerpsCloseAllPositions',
       CANCEL_ALL_ORDERS: 'PerpsCancelAllOrders',
+      TOOLTIP: 'PerpsTooltip',
     },
     POSITION_TRANSACTION: 'PerpsPositionTransaction',
     ORDER_TRANSACTION: 'PerpsOrderTransaction',
