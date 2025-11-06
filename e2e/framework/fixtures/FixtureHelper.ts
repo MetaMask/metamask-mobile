@@ -37,6 +37,8 @@ import {
   defaultGanacheOptions,
   FALLBACK_DAPP_SERVER_PORT,
   FALLBACK_MOCKSERVER_PORT,
+  FALLBACK_FIXTURE_SERVER_PORT,
+  FALLBACK_COMMAND_QUEUE_SERVER_PORT,
 } from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
@@ -563,13 +565,24 @@ export async function withFixtures(
     // launch into a fresh installation of the app to apply the new fixture loaded perviously.
 
     if (restartDevice) {
+      // On Android, LaunchArguments library integration is unreliable on CI
+      // We must pass fallback ports so the app uses them and adb reverse can map them
+      // to the actual allocated ports
+      const isAndroid = device.getPlatform() === 'android';
+
       await TestHelpers.launchApp({
         delete: true,
         launchArgs: {
-          fixtureServerPort: `${getFixturesServerPort()}`,
-          commandQueueServerPort: `${commandQueueServer.getServerPort()}`,
+          fixtureServerPort: isAndroid
+            ? `${FALLBACK_FIXTURE_SERVER_PORT}`
+            : `${getFixturesServerPort()}`,
+          commandQueueServerPort: isAndroid
+            ? `${FALLBACK_COMMAND_QUEUE_SERVER_PORT}`
+            : `${commandQueueServer.getServerPort()}`,
           detoxURLBlacklistRegex: Utilities.BlacklistURLs,
-          mockServerPort: `${mockServerPort}`,
+          mockServerPort: isAndroid
+            ? `${FALLBACK_MOCKSERVER_PORT}`
+            : `${mockServerPort}`,
           ...(launchArgs || {}),
         },
         languageAndLocale,
