@@ -20,17 +20,19 @@ interface TestLevelFixtures {
   driver: Client;
 }
 
-interface WorkerLevelFixtures {
-  persistentDevice: Client;
-}
+// interface WorkerLevelFixtures {
+//   persistentDevice: Client;
+// }
 
-export const test = base.extend<TestLevelFixtures, WorkerLevelFixtures>({
-  deviceProvider: async (_, use, testInfo) => {
+export const test = base.extend<TestLevelFixtures>({
+  deviceProvider: async ({}, use, testInfo) => {
     const deviceProvider = createDeviceProvider(testInfo.project);
     await use(deviceProvider);
   },
   driver: async ({ deviceProvider }, use, testInfo) => {
     const driver = (await deviceProvider.getDriver()) as Client;
+    delete (globalThis as any).driver;
+    (globalThis as any).driver = driver;
     const deviceProviderName = (
       testInfo.project as FullProject<WebDriverConfig>
     ).use.device?.provider;

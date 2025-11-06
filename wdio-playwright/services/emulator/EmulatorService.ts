@@ -15,14 +15,8 @@ export default class EmulatorProvider implements DeviceProvider {
 
   constructor(
     project: FullProject<WebDriverConfig>,
-    appBundleId: string | undefined,
   ) {
     this.project = project;
-    if (appBundleId) {
-      logger.debug(
-        `Bundle id is specified (${appBundleId}) but ignored for Emulator provider.`,
-      );
-    }
   }
 
   async getDriver(): Promise<Client> {
