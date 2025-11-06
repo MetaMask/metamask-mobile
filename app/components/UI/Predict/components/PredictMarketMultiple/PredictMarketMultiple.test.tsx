@@ -301,6 +301,8 @@ describe('PredictMarketMultiple', () => {
       params: {
         marketId: mockMarket.id,
         entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+        title: mockMarket.title,
+        image: mockMarket.image,
       },
     });
   });

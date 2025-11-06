@@ -78,21 +78,13 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
   }, [deposit, executeGuardedAction]);
 
   const handleWithdraw = useCallback(() => {
-    executeGuardedAction(
-      () => {
-        withdraw();
-      },
-      {
-        checkBalance: true,
-        attemptedAction: PredictEventValues.ATTEMPTED_ACTION.WITHDRAW,
-      },
-    );
-  }, [withdraw, executeGuardedAction]);
+    withdraw();
+  }, [withdraw]);
 
   if (isLoading) {
     return (
       <Box
-        twClassName="bg-muted rounded-xl p-4 gap-3"
+        twClassName="bg-muted rounded-xl p-4 mx-4 gap-3"
         testID="predict-balance-card-skeleton"
       >
         <Box

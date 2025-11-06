@@ -37,8 +37,16 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   marketStatus,
 }: PredictPositionProps) => {
   const tw = useTailwind();
-  const { icon, initialValue, percentPnl, outcome, avgPrice, currentValue } =
-    position;
+
+  const {
+    icon,
+    initialValue,
+    percentPnl,
+    outcome,
+    avgPrice,
+    currentValue,
+    title,
+  } = position;
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { navigate } = navigation;
@@ -46,6 +54,10 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     providerId: position.providerId,
     navigation,
   });
+
+  const groupItemTitle = market?.outcomes.find(
+    (o) => o.id === position.outcomeId && o.groupItemTitle,
+  )?.groupItemTitle;
 
   const onCashOut = () => {
     executeGuardedAction(
@@ -94,38 +106,34 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   };
 
   return (
-    <Box twClassName="w-full p-4 mb-4 gap-3 bg-background-muted rounded-xl">
+    <Box twClassName="w-full p-4 mb-4 gap-3 bg-background-muted rounded-xl justify-between">
       <Box twClassName="flex-row items-start gap-4">
         {Boolean(icon) && (
-          <Image
-            source={{ uri: icon }}
-            resizeMode="cover"
-            style={tw.style('w-12 h-12 rounded-md self-center')}
-          />
+          <Box twClassName="w-10 h-10 self-start mt-1">
+            <Image
+              source={{ uri: icon }}
+              resizeMode="cover"
+              style={tw.style('w-full h-full rounded-lg')}
+            />
+          </Box>
         )}
-        <Box>
+        <Box twClassName="flex-1">
           <Text
             variant={TextVariant.BodyMDMedium}
             color={TextColor.Default}
-            numberOfLines={1}
             ellipsizeMode="tail"
           >
-            {strings('predict.market_details.amount_on_outcome', {
-              amount: initialValue.toFixed(2),
-              outcome,
-            })}
+            {groupItemTitle ?? title}
           </Text>
           <Text
             variant={TextVariant.BodySMMedium}
             color={TextColor.Alternative}
           >
-            {strings('predict.market_details.outcome_at_price', {
-              outcome,
-              price: (avgPrice * 100).toFixed(0),
-            })}
+            ${initialValue.toFixed(2)} on {outcome} •{' '}
+            {(avgPrice * 100).toFixed(0)}¢
           </Text>
         </Box>
-        <Box twClassName="items-end justify-end ml-auto">
+        <Box twClassName="items-end justify-end ml-auto shrink-0">
           {renderValueText()}
           {marketStatus === PredictMarketStatus.OPEN && (
             <Text
