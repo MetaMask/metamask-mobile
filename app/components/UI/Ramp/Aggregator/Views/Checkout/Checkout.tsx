@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { TouchableOpacity } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { parseUrl } from 'query-string';
 import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
@@ -72,9 +71,7 @@ const CheckoutWebView = () => {
   const { url: uri, customOrderId, provider } = params;
 
   const handleCancelPress = useCallback(() => {
-    const chainId = selectedAsset?.network?.chainId;
-    if (!chainId) return;
-
+    const chainId = selectedAsset?.network?.chainId || '';
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Provider Webview',
@@ -89,6 +86,11 @@ const CheckoutWebView = () => {
       });
     }
   }, [isBuy, provider.name, selectedAsset?.network?.chainId, trackEvent]);
+
+  const handleClosePress = useCallback(() => {
+    handleCancelPress();
+    sheetRef.current?.onCloseBottomSheet();
+  }, [handleCancelPress]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -137,6 +139,11 @@ const CheckoutWebView = () => {
         }
         if (!selectedAddress) {
           Logger.error(new Error('No address available for selected asset'));
+          setError(
+            strings(
+              'fiat_on_ramp_aggregator.webview_error_no_address_provided',
+            ),
+          );
           return;
         }
         const orders = await SDK.orders();
@@ -150,9 +157,11 @@ const CheckoutWebView = () => {
         );
 
         if (!order) {
-          throw new Error(
+          const noOrderError = new Error(
             `Order could not be retrieved. Callback was ${navState?.url}`,
           );
+          Logger.error(noOrderError);
+          throw noOrderError;
         }
 
         if (customIdData) {
@@ -181,17 +190,13 @@ const CheckoutWebView = () => {
       >
         <BottomSheetHeader
           endAccessory={
-            <TouchableOpacity>
-              <ButtonIcon
-                iconName={IconName.Close}
-                size={ButtonIconSizes.Lg}
-                iconColor={IconColor.Default}
-                onPress={() => {
-                  handleCancelPress();
-                  sheetRef.current?.onCloseBottomSheet();
-                }}
-              />
-            </TouchableOpacity>
+            <ButtonIcon
+              iconName={IconName.Close}
+              size={ButtonIconSizes.Lg}
+              iconColor={IconColor.Default}
+              testID="checkout-close-button"
+              onPress={handleClosePress}
+            />
           }
           style={styles.headerWithoutPadding}
         />
@@ -217,20 +222,17 @@ const CheckoutWebView = () => {
       >
         <BottomSheetHeader
           endAccessory={
-            <TouchableOpacity>
-              <ButtonIcon
-                iconName={IconName.Close}
-                size={ButtonIconSizes.Lg}
-                iconColor={IconColor.Default}
-                onPress={() => {
-                  handleCancelPress();
-                  sheetRef.current?.onCloseBottomSheet();
-                }}
-              />
-            </TouchableOpacity>
+            <ButtonIcon
+              iconName={IconName.Close}
+              size={ButtonIconSizes.Lg}
+              iconColor={IconColor.Default}
+              testID="checkout-close-button"
+              onPress={handleClosePress}
+            />
           }
           style={styles.headerWithoutPadding}
         />
+
         <ScreenLayout>
           <ScreenLayout.Body>
             <ErrorView
@@ -258,17 +260,13 @@ const CheckoutWebView = () => {
       >
         <BottomSheetHeader
           endAccessory={
-            <TouchableOpacity>
-              <ButtonIcon
-                iconName={IconName.Close}
-                size={ButtonIconSizes.Lg}
-                iconColor={IconColor.Default}
-                onPress={() => {
-                  handleCancelPress();
-                  sheetRef.current?.onCloseBottomSheet();
-                }}
-              />
-            </TouchableOpacity>
+            <ButtonIcon
+              iconName={IconName.Close}
+              size={ButtonIconSizes.Lg}
+              iconColor={IconColor.Default}
+              testID="checkout-close-button"
+              onPress={handleClosePress}
+            />
           }
           style={styles.headerWithoutPadding}
         />
@@ -301,7 +299,37 @@ const CheckoutWebView = () => {
     );
   }
 
-  return null;
+  return (
+    <BottomSheet
+      ref={sheetRef}
+      shouldNavigateBack
+      isFullscreen
+      keyboardAvoidingViewEnabled={false}
+    >
+      <BottomSheetHeader
+        endAccessory={
+          <ButtonIcon
+            iconName={IconName.Close}
+            size={ButtonIconSizes.Lg}
+            iconColor={IconColor.Default}
+            testID="checkout-close-button"
+            onPress={handleClosePress}
+          />
+        }
+        style={styles.headerWithoutPadding}
+      />
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ErrorView
+            description={strings(
+              'fiat_on_ramp_aggregator.webview_no_url_provided',
+            )}
+            location={'Provider Webview'}
+          />
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    </BottomSheet>
+  );
 };
 
 export default CheckoutWebView;
