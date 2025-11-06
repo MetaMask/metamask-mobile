@@ -70,8 +70,6 @@ jest.mock('react-native-quick-crypto', () => ({
   ),
 }));
 
-jest.mock('react-native-blob-jsi-helper', () => ({}));
-
 // Create a persistent mock function that survives Jest teardown
 const mockBatchedUpdates = jest.fn((fn) => {
   if (typeof fn === 'function') {
