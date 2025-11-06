@@ -4564,9 +4564,30 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Extract DEX name for API calls (main DEX = null)
       const { dex: dexName } = parseAssetName(asset);
 
-      // Get asset info
-      const infoClient = this.clientService.getInfoClient();
-      const meta = await infoClient.meta({ dex: dexName ?? '' });
+      // Check cachedMetaByDex first (optimization to avoid redundant API calls)
+      const dexKey = dexName || 'main';
+      let meta = this.cachedMetaByDex.get(dexKey);
+
+      if (!meta) {
+        // Cache miss - fetch from API
+        const infoClient = this.clientService.getInfoClient();
+        meta = await infoClient.meta({ dex: dexName ?? '' });
+
+        // Store raw meta response for reuse
+        this.cachedMetaByDex.set(dexKey, meta);
+
+        DevLogger.log('[getMaxLeverage] Fetched and cached meta response', {
+          dex: dexKey,
+          asset,
+          universeSize: meta.universe?.length ?? 0,
+        });
+      } else {
+        DevLogger.log('[getMaxLeverage] Using cached meta response', {
+          dex: dexKey,
+          asset,
+          universeSize: meta.universe?.length ?? 0,
+        });
+      }
 
       // Check if meta and universe exist and is valid
       if (!meta?.universe || !Array.isArray(meta.universe)) {
