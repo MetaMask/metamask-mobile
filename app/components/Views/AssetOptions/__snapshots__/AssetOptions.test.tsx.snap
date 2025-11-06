@@ -2,16 +2,22 @@
 
 exports[`AssetOptions Component matches the snapshot 1`] = `
 <View>
-  <View
-    style={
-      [
-        undefined,
-        {
-          "opacity": undefined,
-        },
-      ]
-    }
-  />
+  <TouchableOpacity
+    activeOpacity={1}
+    disabled={false}
+    onPress={[Function]}
+  >
+    <View
+      style={
+        [
+          undefined,
+          {
+            "opacity": undefined,
+          },
+        ]
+      }
+    />
+  </TouchableOpacity>
   <View
     collapsable={false}
     enabled={true}
@@ -35,10 +41,6 @@ exports[`AssetOptions Component matches the snapshot 1`] = `
       ]
     }
   >
-    <TouchableOpacity
-      disabled={false}
-      onPress={[Function]}
-    />
     <View
       style={
         [
@@ -145,16 +147,22 @@ exports[`AssetOptions Component matches the snapshot 1`] = `
 
 exports[`AssetOptions Component should match the snapshot 1`] = `
 <View>
-  <View
-    style={
-      [
-        undefined,
-        {
-          "opacity": undefined,
-        },
-      ]
-    }
-  />
+  <TouchableOpacity
+    activeOpacity={1}
+    disabled={false}
+    onPress={[Function]}
+  >
+    <View
+      style={
+        [
+          undefined,
+          {
+            "opacity": undefined,
+          },
+        ]
+      }
+    />
+  </TouchableOpacity>
   <View
     collapsable={false}
     enabled={true}
@@ -178,10 +186,6 @@ exports[`AssetOptions Component should match the snapshot 1`] = `
       ]
     }
   >
-    <TouchableOpacity
-      disabled={false}
-      onPress={[Function]}
-    />
     <View
       style={
         [
