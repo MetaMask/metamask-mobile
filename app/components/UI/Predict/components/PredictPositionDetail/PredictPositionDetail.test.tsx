@@ -17,12 +17,8 @@ declare global {
 }
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string, vars?: Record<string, string | number>) => {
+  strings: (key: string, _vars?: Record<string, string | number>) => {
     switch (key) {
-      case 'predict.market_details.amount_on_outcome':
-        return `$${vars?.amount} on ${vars?.outcome}`;
-      case 'predict.market_details.outcome_at_price':
-        return `${vars?.outcome} at ${vars?.price}¢`;
       case 'predict.market_details.won':
         return 'Won';
       case 'predict.market_details.lost':
@@ -189,8 +185,10 @@ describe('PredictPositionDetail', () => {
   it('renders open position with current value, percent change and cash out', () => {
     renderComponent();
 
-    expect(screen.getByText('$123.45 on Yes')).toBeOnTheScreen();
-    expect(screen.getByText('Yes at 34¢')).toBeOnTheScreen();
+    expect(screen.getByText('Group')).toBeOnTheScreen();
+    expect(
+      screen.getByText('$123.45 on Yes • 34¢', { exact: false }),
+    ).toBeOnTheScreen();
 
     expect(screen.getByText('$2,345.67')).toBeOnTheScreen();
     expect(screen.getByText('+5.25%')).toBeOnTheScreen();
@@ -210,8 +208,10 @@ describe('PredictPositionDetail', () => {
   it('renders initial value line and avgPrice cents', () => {
     renderComponent({ initialValue: 50, outcome: 'No', avgPrice: 0.7 });
 
-    expect(screen.getByText('$50.00 on No')).toBeOnTheScreen();
-    expect(screen.getByText('No at 70¢')).toBeOnTheScreen();
+    expect(screen.getByText('Group')).toBeOnTheScreen();
+    expect(
+      screen.getByText('$50.00 on No • 70¢', { exact: false }),
+    ).toBeOnTheScreen();
   });
 
   it('renders won result with current value when market is closed and percent positive', () => {
