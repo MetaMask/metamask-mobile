@@ -379,6 +379,8 @@ describe('BasicInfo Component', () => {
 
     beforeEach(() => {
       mockLogoutFromProvider.mockResolvedValue(undefined);
+      mockPostKycForm.mockResolvedValue(undefined);
+      mockSubmitSsnDetails.mockResolvedValue(undefined);
       mockUseDepositSDK.mockReturnValue({
         selectedRegion: mockSelectedRegion,
         logoutFromProvider: mockLogoutFromProvider,
@@ -412,12 +414,20 @@ describe('BasicInfo Component', () => {
         screen.getByTestId('date-of-birth-input'),
         '01/01/1990',
       );
+      fireEvent.changeText(screen.getByTestId('ssn-input'), '123456789');
 
       await act(async () => {
-        fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+        fireEvent.press(screen.getByTestId('continue-button'));
       });
 
-      const logoutButton = screen.getByTestId('basic-info-logout-button');
+      // Wait for error message to appear
+      await screen.findByText(
+        'This phone number is already in use by k****@pedalsup.com. Log in using this email to continue.',
+      );
+
+      const logoutButton = await screen.findByTestId(
+        'basic-info-logout-button',
+      );
       expect(logoutButton).toBeOnTheScreen();
     });
 
@@ -444,9 +454,10 @@ describe('BasicInfo Component', () => {
         screen.getByTestId('date-of-birth-input'),
         '01/01/1990',
       );
+      fireEvent.changeText(screen.getByTestId('ssn-input'), '123456789');
 
       await act(async () => {
-        fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+        fireEvent.press(screen.getByTestId('continue-button'));
       });
 
       // Verify formatted error message is displayed with localized string
@@ -454,7 +465,9 @@ describe('BasicInfo Component', () => {
         'This phone number is already in use by k****@pedalsup.com. Log in using this email to continue.',
       );
 
-      const logoutButton = screen.getByTestId('basic-info-logout-button');
+      const logoutButton = await screen.findByTestId(
+        'basic-info-logout-button',
+      );
       expect(logoutButton).toBeOnTheScreen();
     });
 
@@ -474,15 +487,17 @@ describe('BasicInfo Component', () => {
         screen.getByTestId('date-of-birth-input'),
         '01/01/1990',
       );
+      fireEvent.changeText(screen.getByTestId('ssn-input'), '123456789');
 
       await act(async () => {
-        fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+        fireEvent.press(screen.getByTestId('continue-button'));
       });
 
+      // Wait for generic error to appear
       await screen.findByText('Network error');
-      expect(
-        screen.queryByTestId('basic-info-logout-button'),
-      ).not.toBeOnTheScreen();
+
+      // Verify logout button is NOT displayed for generic errors
+      expect(screen.queryByTestId('basic-info-logout-button')).toBeNull();
     });
 
     it('calls logoutFromProvider and navigates to EnterEmail on logout click', async () => {
@@ -507,11 +522,13 @@ describe('BasicInfo Component', () => {
         screen.getByTestId('date-of-birth-input'),
         '01/01/1990',
       );
+      fireEvent.changeText(screen.getByTestId('ssn-input'), '123456789');
 
       await act(async () => {
-        fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+        fireEvent.press(screen.getByTestId('continue-button'));
       });
 
+      // Wait for error and logout button to appear
       const logoutButton = await screen.findByTestId(
         'basic-info-logout-button',
       );
@@ -550,11 +567,13 @@ describe('BasicInfo Component', () => {
         screen.getByTestId('date-of-birth-input'),
         '01/01/1990',
       );
+      fireEvent.changeText(screen.getByTestId('ssn-input'), '123456789');
 
       await act(async () => {
-        fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+        fireEvent.press(screen.getByTestId('continue-button'));
       });
 
+      // Wait for error and logout button to appear
       const logoutButton = await screen.findByTestId(
         'basic-info-logout-button',
       );

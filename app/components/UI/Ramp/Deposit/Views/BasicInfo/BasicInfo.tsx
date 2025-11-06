@@ -243,7 +243,9 @@ const BasicInfo = (): JSX.Element => {
       let errorMessage = '';
       if (isPhoneError && errorWithCode?.error?.message) {
         // Extract email from message like "...created with k****@pedalsup.com..."
-        const emailMatch = errorWithCode.error.message.match(/[\w*]+@[\w*.]+/);
+        const emailMatch = errorWithCode.error.message.match(
+          /[\w*]+@[\w*]+(?:\.[\w*]+)*/,
+        );
         const email = emailMatch ? emailMatch[0] : '';
         errorMessage = email
           ? strings('deposit.basic_info.phone_already_registered', { email })
