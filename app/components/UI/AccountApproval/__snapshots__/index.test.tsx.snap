@@ -303,7 +303,7 @@ exports[`AccountApproval should render correctly 1`] = `
             {
               "flexDirection": "row",
               "justifyContent": "flex-start",
-              "marginLeft": 3,
+              "marginLeft": 8,
               "width": "100%",
             }
           }
@@ -328,6 +328,7 @@ exports[`AccountApproval should render correctly 1`] = `
                 "lineHeight": 24,
               }
             }
+            tooltip="Account 2"
           >
             Account 2
           </Text>
@@ -337,7 +338,7 @@ exports[`AccountApproval should render correctly 1`] = `
             {
               "flexDirection": "row",
               "justifyContent": "flex-start",
-              "marginLeft": 3,
+              "marginLeft": 8,
               "width": "100%",
             }
           }
@@ -370,7 +371,7 @@ exports[`AccountApproval should render correctly 1`] = `
             {
               "flexDirection": "row",
               "justifyContent": "flex-start",
-              "marginLeft": 3,
+              "marginLeft": 8,
               "width": "100%",
             }
           }
@@ -385,7 +386,6 @@ exports[`AccountApproval should render correctly 1`] = `
                   "color": "#121314",
                   "fontFamily": "Geist Regular",
                   "fontSize": 14,
-                  "marginLeft": 3,
                 },
                 "1": undefined,
                 "color": "#121314",

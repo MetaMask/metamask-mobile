@@ -88,7 +88,6 @@ const createStyles = (colors) =>
       fontSize: 14,
       alignSelf: 'flex-start',
       color: colors.text.default,
-      marginLeft: 8,
     },
     balanceTextSmall: {
       fontSize: 12,

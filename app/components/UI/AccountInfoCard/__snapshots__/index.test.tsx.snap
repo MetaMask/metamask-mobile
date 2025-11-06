@@ -170,7 +170,6 @@ exports[`AccountInfoCard should match snapshot 1`] = `
               "color": "#121314",
               "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "marginLeft": 8,
             },
             "1": undefined,
             "color": "#121314",
