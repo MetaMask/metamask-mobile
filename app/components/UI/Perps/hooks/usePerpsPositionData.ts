@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { isEqual } from 'lodash';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectPerpsInitializationState } from '../selectors/perpsController';
@@ -10,7 +10,7 @@ import {
   TimeDuration,
 } from '../constants/chartConfig';
 import type { PriceUpdate } from '../controllers/types';
-import type { CandleData, CandleStick } from '../types/perps-types';
+import type { CandleData } from '../types/perps-types';
 
 interface UsePerpsPositionDataProps {
   coin: string;
@@ -26,9 +26,7 @@ export const usePerpsPositionData = ({
   const [candleData, setCandleData] = useState<CandleData | null>(null);
   const [priceData, setPriceData] = useState<PriceUpdate | null>(null);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-  const [liveCandle, setLiveCandle] = useState<CandleStick | null>(null);
   const [hasHistoricalData, setHasHistoricalData] = useState(false);
-  const prevMergedDataRef = useRef<CandleData | null>(null);
 
   const initializationState = useSelector(selectPerpsInitializationState);
   const isControllerInitialized = initializationState === 'initialized';
@@ -119,6 +117,7 @@ export const usePerpsPositionData = ({
     setHasHistoricalData(false);
     const loadHistoricalData = async () => {
       try {
+        setCandleData(null);
         const historicalData = await fetchHistoricalCandles();
         // Only set data and flag if we received valid data
         if (historicalData && historicalData.candles?.length > 0) {
@@ -234,90 +233,112 @@ export const usePerpsPositionData = ({
     isControllerInitialized,
   ]);
 
-  // Build live candle from price updates
-  useEffect(() => {
-    if (!priceData?.price) return;
+  const liveCandle = useMemo(() => {
+    if (!priceData?.price || isLoadingHistory) return null;
 
-    const currentCandleTime = getCurrentCandleStartTime(selectedInterval);
     const currentPrice = Number.parseFloat(priceData.price.toString());
+    const currentCandleTime = getCurrentCandleStartTime(selectedInterval);
+    const existingCandles = candleData?.candles ?? [];
+    const existingCandleIndex = existingCandles.findIndex(
+      (candle) => candle.time === currentCandleTime,
+    );
 
-    setLiveCandle((prevLive) => {
-      // If no previous live candle or time period changed, create new one
-      if (!prevLive || prevLive.time !== currentCandleTime) {
-        return {
-          time: currentCandleTime,
-          open: currentPrice.toString(),
-          high: currentPrice.toString(),
-          low: currentPrice.toString(),
-          close: currentPrice.toString(),
-          volume: '0', // We don't have live volume
-        };
-      }
+    const existingLiveCandle =
+      existingCandleIndex >= 0 ? existingCandles[existingCandleIndex] : null;
 
-      // Update existing live candle with new price
-      const prevHigh = Number.parseFloat(prevLive.high);
-      const prevLow = Number.parseFloat(prevLive.low);
-      const newHigh = Math.max(prevHigh, currentPrice).toString();
-      const newLow = Math.min(prevLow, currentPrice).toString();
-      const newClose = currentPrice.toString();
-
-      // Only create new object if values actually changed
-      if (
-        prevLive.high === newHigh &&
-        prevLive.low === newLow &&
-        prevLive.close === newClose
-      ) {
-        return prevLive; // Keep same reference to prevent unnecessary re-renders
-      }
+    if (!existingLiveCandle) {
+      const existingCandlesLength = existingCandles.length;
+      const previousCandle =
+        existingCandlesLength > 0
+          ? existingCandles[existingCandlesLength - 1]
+          : null;
+      const open = previousCandle
+        ? previousCandle.close.toString()
+        : currentPrice.toString();
+      const close = currentPrice.toString();
+      const high = Math.max(currentPrice, Number.parseFloat(open)).toString();
+      const low = Math.min(currentPrice, Number.parseFloat(open)).toString();
 
       return {
-        ...prevLive,
-        high: newHigh,
-        low: newLow,
-        close: newClose,
+        time: currentCandleTime,
+        open,
+        high,
+        low,
+        close,
+        volume: '0',
       };
-    });
-  }, [priceData, selectedInterval, getCurrentCandleStartTime]);
+    }
+
+    const close = currentPrice.toString();
+    const high = Math.max(
+      currentPrice,
+      Number.parseFloat(existingLiveCandle.high),
+    ).toString();
+    const low = Math.min(
+      currentPrice,
+      Number.parseFloat(existingLiveCandle.low),
+    ).toString();
+
+    const newLiveCandle = {
+      ...existingLiveCandle,
+      time: currentCandleTime,
+      close,
+      high,
+      low,
+    };
+
+    return newLiveCandle;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    priceData,
+    selectedInterval,
+    getCurrentCandleStartTime,
+    isLoadingHistory,
+  ]);
 
   // Merge historical candles with live candle for chart display
-  const candleDataWithLive = useMemo(() => {
-    // Don't return any data until we have successfully loaded historical candles
-    if (!hasHistoricalData || !candleData) return null;
+  useEffect(() => {
+    // Don't merge until we have successfully loaded historical candles
+    if (!hasHistoricalData || !candleData) return;
 
-    if (!liveCandle) return candleData;
+    const candles = candleData.candles;
+    if (!liveCandle || candles.length === 0) return;
 
-    // Check if live candle already exists in historical data
-    const existingCandleIndex = candleData.candles.findIndex(
+    const liveCandleIndex = candles.findIndex(
       (candle) => candle.time === liveCandle.time,
     );
 
-    const updatedCandles = [...candleData.candles];
-
-    if (existingCandleIndex >= 0) {
-      // Replace existing candle with live version
-      updatedCandles[existingCandleIndex] = liveCandle;
-    } else {
-      // Add live candle to the end
-      updatedCandles.push(liveCandle);
+    if (liveCandleIndex === -1) {
+      setCandleData((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          candles: [...prev.candles, liveCandle],
+        };
+      });
+      return;
     }
 
-    const mergedData = {
-      ...candleData,
-      candles: updatedCandles,
-    };
-
-    // Use deep equality check to prevent unnecessary re-renders when candle values haven't changed
-    if (isEqual(prevMergedDataRef.current, mergedData)) {
-      return prevMergedDataRef.current as CandleData;
+    if (isEqual(candles[liveCandleIndex], liveCandle)) {
+      return;
     }
 
-    prevMergedDataRef.current = mergedData;
-    return mergedData;
-  }, [candleData, liveCandle, hasHistoricalData]);
+    setCandleData((prev) => {
+      if (!prev) return null;
+      const candlesCopy = [...prev.candles];
+      candlesCopy[liveCandleIndex] = liveCandle;
+      return {
+        ...prev,
+        candles: candlesCopy,
+      };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveCandle, hasHistoricalData, candleData]);
 
   const refreshCandleData = useCallback(async () => {
     setIsLoadingHistory(true);
     try {
+      setCandleData(null);
       const historicalData = await fetchHistoricalCandles();
 
       if (historicalData && historicalData.candles?.length > 0) {
@@ -342,7 +363,7 @@ export const usePerpsPositionData = ({
   }, [fetchHistoricalCandles]);
 
   return {
-    candleData: candleDataWithLive,
+    candleData,
     priceData,
     isLoadingHistory,
     refreshCandleData,

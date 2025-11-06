@@ -41,6 +41,13 @@ export const PredictEventProperties = {
 
   // Activity specific
   ACTIVITY_TYPE: 'activity_type',
+
+  // Feed session specific
+  PREDICT_FEED_TAB: 'predict_feed_tab',
+  NUM_FEED_PAGES_VIEWED_IN_SESSION: 'num_feed_pages_viewed_in_session',
+  SESSION_TIME_IN_FEED: 'session_time_in_feed',
+  SESSION_ID: 'session_id',
+  IS_SESSION_END: 'is_session_end',
 } as const;
 
 /**
@@ -52,6 +59,10 @@ export const PredictEventValues = {
     PREDICT_MARKET_DETAILS: 'predict_market_details',
     SEARCH: 'search',
     HOMEPAGE_POSITIONS: 'homepage_positions',
+    HOMEPAGE_NEW_PREDICTION: 'homepage_new_prediction',
+    HOMEPAGE_BALANCE: 'homepage_balance',
+    MAIN_TRADE_BUTTON: 'main_trade_button',
+    BACKGROUND: 'background',
   },
   TRANSACTION_TYPE: {
     MM_PREDICT_BUY: 'mm_predict_buy',
