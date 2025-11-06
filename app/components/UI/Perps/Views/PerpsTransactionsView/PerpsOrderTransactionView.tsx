@@ -103,6 +103,8 @@ const PerpsOrderTransactionView: React.FC = () => {
   ];
 
   const isFilled = transaction.order?.text === 'Filled';
+  const smallFeeThreshold = 0.01;
+  const smallFeeLabel = '< $0.01';
   // Fee breakdown
 
   const feeRows = [
@@ -111,8 +113,8 @@ const PerpsOrderTransactionView: React.FC = () => {
       value: `${
         isFilled
           ? `${
-              BigNumber(metamaskFee).isLessThan(0.01)
-                ? `$${metamaskFee}`
+              BigNumber(metamaskFee).isLessThan(smallFeeThreshold)
+                ? smallFeeLabel
                 : formatPerpsFiat(metamaskFee)
             }`
           : '$0'
@@ -123,8 +125,8 @@ const PerpsOrderTransactionView: React.FC = () => {
       value: `${
         isFilled
           ? `${
-              BigNumber(protocolFee).isLessThan(0.01)
-                ? `$${protocolFee}`
+              BigNumber(protocolFee).isLessThan(smallFeeThreshold)
+                ? smallFeeLabel
                 : formatPerpsFiat(protocolFee)
             }`
           : '$0'
@@ -135,8 +137,8 @@ const PerpsOrderTransactionView: React.FC = () => {
       value: `${
         isFilled
           ? `${
-              BigNumber(totalFee).isLessThan(0.01)
-                ? `$${totalFee}`
+              BigNumber(totalFee).isLessThan(smallFeeThreshold)
+                ? smallFeeLabel
                 : formatPerpsFiat(totalFee)
             }`
           : '$0'
