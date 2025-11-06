@@ -1546,13 +1546,12 @@ export class PredictController extends BaseController<
       });
 
       this.update((state) => {
-        state.balances[params.providerId] = {
-          ...state.balances[params.providerId],
-          [address]: {
-            balance,
-            // valid for 1 second
-            validUntil: Date.now() + 1000,
-          },
+        state.balances[params.providerId] =
+          state.balances[params.providerId] || {};
+        state.balances[params.providerId][address] = {
+          balance,
+          // valid for 1 second
+          validUntil: Date.now() + 1000,
         };
       });
       return balance;
