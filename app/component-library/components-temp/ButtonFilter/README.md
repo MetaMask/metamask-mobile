@@ -30,7 +30,7 @@ const MyComponent = () => {
   const [filter, setFilter] = useState('all');
 
   return (
-       <ButtonFilter
+    <ButtonFilter
       isActive={filter === 'all'}
       onPress={() => setFilter('all')}
     >
