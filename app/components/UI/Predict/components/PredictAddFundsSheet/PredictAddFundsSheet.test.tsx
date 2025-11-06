@@ -372,6 +372,7 @@ describe('PredictAddFundsSheet', () => {
       expect(mockExecuteGuardedAction).toHaveBeenCalledTimes(1);
       expect(mockExecuteGuardedAction).toHaveBeenCalledWith(
         expect.any(Function),
+        { attemptedAction: 'deposit' },
       );
     });
 

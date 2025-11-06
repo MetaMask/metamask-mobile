@@ -77,7 +77,12 @@ import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictControllerState = {
   // Eligibility (Geo-Blocking) per Provider
-  eligibility: { [key: string]: boolean };
+  eligibility: {
+    [key: string]: {
+      eligible: boolean;
+      country?: string;
+    };
+  };
 
   // Error handling
   lastError: string | null;
@@ -963,6 +968,84 @@ export class PredictController extends BaseController<
     );
   }
 
+  /**
+   * Track geo-blocking event when user attempts an action but is blocked
+   */
+  public trackGeoBlockTriggered({
+    providerId,
+    attemptedAction,
+  }: {
+    providerId: string;
+    attemptedAction: string;
+  }): void {
+    const eligibilityData = this.state.eligibility[providerId];
+    const analyticsProperties = {
+      [PredictEventProperties.COUNTRY]: eligibilityData?.country,
+      [PredictEventProperties.ATTEMPTED_ACTION]: attemptedAction,
+    };
+
+    DevLogger.log('📊 [Analytics] PREDICT_GEO_BLOCKED_TRIGGERED', {
+      analyticsProperties,
+    });
+
+    MetaMetrics.getInstance().trackEvent(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PREDICT_GEO_BLOCKED_TRIGGERED,
+      )
+        .addProperties(analyticsProperties)
+        .build(),
+    );
+  }
+
+  /**
+   * Track when user views the predict feed
+   * Tracks session-based feed interactions with unique session IDs
+   * @param sessionId - Unique session identifier
+   * @param feedTab - Current active feed tab
+   * @param numPagesViewed - Number of pages viewed in session
+   * @param sessionTime - Time spent in feed (seconds)
+   * @param entryPoint - How user entered the feed
+   * @param isSessionEnd - Whether this is the final event for the session
+   * @public
+   */
+  public trackFeedViewed({
+    sessionId,
+    feedTab,
+    numPagesViewed,
+    sessionTime,
+    entryPoint,
+    isSessionEnd = false,
+  }: {
+    sessionId: string;
+    feedTab: string;
+    numPagesViewed: number;
+    sessionTime: number;
+    entryPoint?: string;
+    isSessionEnd?: boolean;
+  }): void {
+    const analyticsProperties = {
+      [PredictEventProperties.SESSION_ID]: sessionId,
+      [PredictEventProperties.PREDICT_FEED_TAB]: feedTab,
+      [PredictEventProperties.NUM_FEED_PAGES_VIEWED_IN_SESSION]: numPagesViewed,
+      [PredictEventProperties.SESSION_TIME_IN_FEED]: sessionTime,
+      [PredictEventProperties.IS_SESSION_END]: isSessionEnd,
+      ...(entryPoint && { [PredictEventProperties.ENTRY_POINT]: entryPoint }),
+    };
+
+    DevLogger.log('📊 [Analytics] PREDICT_FEED_VIEWED', {
+      analyticsProperties,
+      isSessionEnd,
+    });
+
+    MetaMetrics.getInstance().trackEvent(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PREDICT_FEED_VIEWED,
+      )
+        .addProperties(analyticsProperties)
+        .build(),
+    );
+  }
+
   async previewOrder(params: PreviewOrderParams): Promise<OrderPreview> {
     try {
       const provider = this.providers.get(params.providerId);
@@ -1294,14 +1377,20 @@ export class PredictController extends BaseController<
         continue;
       }
       try {
-        const isEligible = await provider.isEligible();
+        const geoBlockResponse = await provider.isEligible();
         this.update((state) => {
-          state.eligibility[providerId] = isEligible;
+          state.eligibility[providerId] = {
+            eligible: geoBlockResponse.isEligible,
+            country: geoBlockResponse.country,
+          };
         });
       } catch (error) {
         // Default to false in case of error
         this.update((state) => {
-          state.eligibility[providerId] = false;
+          state.eligibility[providerId] = {
+            eligible: false,
+            country: undefined,
+          };
         });
         DevLogger.log('PredictController: Eligibility refresh failed', {
           error:
@@ -1497,13 +1586,12 @@ export class PredictController extends BaseController<
       });
 
       this.update((state) => {
-        state.balances[params.providerId] = {
-          ...state.balances[params.providerId],
-          [address]: {
-            balance,
-            // valid for 1 second
-            validUntil: Date.now() + 1000,
-          },
+        state.balances[params.providerId] =
+          state.balances[params.providerId] || {};
+        state.balances[params.providerId][address] = {
+          balance,
+          // valid for 1 second
+          validUntil: Date.now() + 1000,
         };
       });
       return balance;
