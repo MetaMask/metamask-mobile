@@ -273,6 +273,7 @@ export class LegacyLinkAdapter {
     delete queryParams.onboardingPath;
     delete queryParams.createAccountPath;
     delete queryParams.depositCashPath;
+    delete queryParams.perpsMarketsPath;
 
     const queryString = qs.stringify(queryParams);
     return queryString ? `${baseUrl}?${queryString}` : baseUrl;
