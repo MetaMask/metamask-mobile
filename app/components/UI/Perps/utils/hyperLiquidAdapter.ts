@@ -83,25 +83,9 @@ export function adaptOrderToSDK(
  * Transform SDK AssetPosition to MetaMask Perps API format
  * @param assetPosition - AssetPosition data from HyperLiquid SDK
  * @returns MetaMask Perps API position object
- * @throws Error if position data is invalid or missing required fields
  */
 export function adaptPositionFromSDK(assetPosition: AssetPosition): Position {
   const pos = assetPosition.position;
-
-  // Validate critical fields exist - fail fast with diagnostics
-  if (!pos.leverage) {
-    throw new Error(
-      `Invalid position data: missing leverage for ${pos.coin || 'unknown coin'}. ` +
-        `Raw assetPosition: ${JSON.stringify(assetPosition, null, 2)}`,
-    );
-  }
-
-  if (!pos.leverage.type || pos.leverage.value === undefined) {
-    throw new Error(
-      `Invalid leverage data for ${pos.coin}: type=${pos.leverage.type}, value=${pos.leverage.value}. ` +
-        `Raw leverage: ${JSON.stringify(pos.leverage, null, 2)}`,
-    );
-  }
 
   return {
     coin: pos.coin,
@@ -458,27 +442,11 @@ export function formatHyperLiquidSize(params: {
 
   // For zero decimals (ASTER, etc.), return integer without decimal processing
   if (szDecimals === 0) {
-    const result = Math.floor(num).toString();
-    DevLogger.log('[Order Debug] formatHyperLiquidSize:', {
-      inputSize: size,
-      szDecimals,
-      parsedNum: num,
-      finalResult: result,
-      note: 'Integer formatting (szDecimals=0)',
-    });
-    return result;
+    return Math.floor(num).toString();
   }
 
   // For decimals, use toFixed and remove trailing zeros AFTER decimal point
-  const result = num.toFixed(szDecimals).replace(/\.?0+$/, '');
-  DevLogger.log('[Order Debug] formatHyperLiquidSize:', {
-    inputSize: size,
-    szDecimals,
-    parsedNum: num,
-    fixedResult: num.toFixed(szDecimals),
-    finalResult: result,
-  });
-  return result;
+  return num.toFixed(szDecimals).replace(/\.?0+$/, '');
 }
 
 /**

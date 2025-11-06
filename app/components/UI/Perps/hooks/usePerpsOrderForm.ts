@@ -78,8 +78,8 @@ export function usePerpsOrderForm(
   );
 
   // Get saved leverage for this asset (user preference for new positions)
-  // Returns primitive number to prevent unnecessary re-renders from object references
-  const savedLeverage = usePerpsSelector((state) =>
+  // Returns memoized object to prevent unnecessary re-renders from new object references
+  const savedLeverageConfig = usePerpsSelector((state) =>
     selectTradeConfiguration(state, initialAsset),
   );
 
@@ -98,7 +98,7 @@ export function usePerpsOrderForm(
   const defaultLeverage =
     initialLeverage ||
     existingPositionLeverage ||
-    savedLeverage ||
+    savedLeverageConfig?.leverage ||
     TRADING_DEFAULTS.leverage;
 
   // Use memoized calculation for initial amount to ensure it updates when dependencies change

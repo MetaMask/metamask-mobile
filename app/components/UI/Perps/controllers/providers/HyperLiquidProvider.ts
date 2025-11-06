@@ -645,17 +645,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
       throw new Error(errorMsg);
     }
 
-    // Special ASTER tracking for debugging
-    const asterAsset = meta.universe.find(
-      (asset) => asset.name === 'ASTER' || asset.name.includes('ASTER'),
-    );
-    if (asterAsset) {
-      DevLogger.log('[MarketData] ⚠️ ASTER found in fetchMarketsForDex', {
-        szDecimals: asterAsset.szDecimals,
-        dex: dex || 'main',
-      });
-    }
-
     const markets = meta.universe.map((asset) => adaptMarketFromSDK(asset));
 
     // Apply market filtering for HIP-3 DEXs only (main DEX or skipFilters returns all markets)

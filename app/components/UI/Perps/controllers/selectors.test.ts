@@ -49,7 +49,7 @@ describe('PerpsController selectors', () => {
 
       const result = selectTradeConfiguration(state, 'BTC');
 
-      expect(result).toEqual(10);
+      expect(result).toEqual({ leverage: 10 });
     });
 
     it('returns saved config for testnet when testnet', () => {
@@ -65,7 +65,7 @@ describe('PerpsController selectors', () => {
 
       const result = selectTradeConfiguration(state, 'ETH');
 
-      expect(result).toEqual(5);
+      expect(result).toEqual({ leverage: 5 });
     });
 
     it('returns undefined when no config exists for asset', () => {
@@ -114,8 +114,8 @@ describe('PerpsController selectors', () => {
       const ethResult = selectTradeConfiguration(state, 'ETH');
       const btcResult = selectTradeConfiguration(state, 'BTC');
 
-      expect(ethResult).toEqual(5);
-      expect(btcResult).toEqual(10);
+      expect(ethResult).toEqual({ leverage: 5 });
+      expect(btcResult).toEqual({ leverage: 10 });
     });
   });
 

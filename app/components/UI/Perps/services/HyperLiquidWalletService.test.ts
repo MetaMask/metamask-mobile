@@ -7,7 +7,7 @@
 // Mock keyring-api to avoid import issues with definePattern
 jest.mock('@metamask/keyring-api', () => ({
   isEvmAccountType: jest.fn(
-    (accountType: string) => accountType === 'eip155:eoa',
+    (accountType: string) => accountType === 'eip155:1',
   ),
 }));
 
@@ -92,7 +92,7 @@ jest.mock('../../../../core/Engine', () => {
     getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
       {
         address: '0x1234567890123456789012345678901234567890',
-        type: 'eip155:eoa',
+        type: 'eip155:1',
       },
     ]),
   };
