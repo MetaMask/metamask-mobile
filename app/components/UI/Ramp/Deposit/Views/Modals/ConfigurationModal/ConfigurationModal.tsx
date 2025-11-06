@@ -1,24 +1,12 @@
 import React, { useCallback, useRef, useContext } from 'react';
 import { Linking } from 'react-native';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import ListItemSelect from '../../../../../../../component-library/components/List/ListItemSelect';
-import ListItemColumn, {
-  WidthType,
-} from '../../../../../../../component-library/components/List/ListItemColumn';
-import Icon, {
+import {
   IconName,
-  IconSize,
   IconColor,
 } from '../../../../../../../component-library/components/Icons/Icon';
-
-import { useStyles } from '../../../../../../hooks/useStyles';
-import styleSheet from './ConfigurationModal.styles';
 
 import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
 import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils';
@@ -33,49 +21,13 @@ import {
 } from '../../../../../../../component-library/components/Toast';
 import Logger from '../../../../../../../util/Logger';
 import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import MenuItem from '../../../../components/MenuItem';
 
 export const createConfigurationModalNavigationDetails =
   createNavigationDetails(
     Routes.DEPOSIT.MODALS.ID,
     Routes.DEPOSIT.MODALS.CONFIGURATION,
   );
-
-interface MenuItemProps {
-  iconName: IconName;
-  title: string;
-  description?: string;
-  onPress: () => void;
-}
-
-function MenuItem({ iconName, title, description, onPress }: MenuItemProps) {
-  const { theme, styles } = useStyles(styleSheet, {});
-
-  return (
-    <ListItemSelect
-      isSelected={false}
-      onPress={onPress}
-      listItemProps={{
-        style: styles.listItem,
-      }}
-    >
-      <ListItemColumn widthType={WidthType.Auto}>
-        <Icon
-          name={iconName}
-          size={IconSize.Md}
-          color={theme.colors.icon.default}
-        />
-      </ListItemColumn>
-      <ListItemColumn widthType={WidthType.Fill}>
-        <Text variant={TextVariant.BodyMDMedium}>{title}</Text>
-        {description && (
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {description}
-          </Text>
-        )}
-      </ListItemColumn>
-    </ListItemSelect>
-  );
-}
 
 function ConfigurationModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
