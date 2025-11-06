@@ -180,6 +180,7 @@ describe('VerifyIdentity Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
     });
@@ -350,7 +351,7 @@ describe('VerifyIdentity Component', () => {
   });
 
   describe('Button Interaction and Navigation', () => {
-    it('navigates with sessionUrl when continue button is pressed', async () => {
+    it('navigates to WebView when continue button is pressed', async () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <VerifyIdentity />
@@ -370,7 +371,7 @@ describe('VerifyIdentity Component', () => {
       });
     });
 
-    it('does not navigate when continue button is pressed without sessionUrl', () => {
+    it('does not navigate when continue button is pressed without sessionUrl', async () => {
       (useStartVerification as jest.Mock).mockReturnValue({
         data: null,
         isLoading: false,
@@ -387,10 +388,12 @@ describe('VerifyIdentity Component', () => {
       const button = getByTestId('verify-identity-continue-button');
       fireEvent.press(button);
 
-      expect(mockNavigate).not.toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalled();
+      });
     });
 
-    it('handles multiple button presses correctly', async () => {
+    it('handles multiple button presses', async () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <VerifyIdentity />

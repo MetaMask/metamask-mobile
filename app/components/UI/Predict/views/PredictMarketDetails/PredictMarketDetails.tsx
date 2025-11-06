@@ -5,7 +5,13 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { Image, Pressable, RefreshControl, ScrollView } from 'react-native';
+import {
+  Image,
+  Linking,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+} from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -24,7 +30,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
-import { formatVolume, formatAddress } from '../../utils/format';
+import { formatVolume, estimateLineCount } from '../../utils/format';
 import Engine from '../../../../../core/Engine';
 import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import {
@@ -97,7 +103,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [isResolvedExpanded, setIsResolvedExpanded] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
-  const { marketId, entryPoint } = route.params || {};
+  const { marketId, entryPoint, title, image } = route.params || {};
   const resolvedMarketId = marketId;
   const providerId = 'polymarket';
 
@@ -115,6 +121,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     providerId,
     enabled: Boolean(resolvedMarketId),
   });
+
+  const titleLineCount = useMemo(
+    () => estimateLineCount(title ?? market?.title),
+    [title, market?.title],
+  );
 
   const claimable = market?.status === PredictMarketStatus.CLOSED;
 
@@ -317,14 +328,20 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           },
         });
       },
-      { checkBalance: true },
+      {
+        checkBalance: true,
+        attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
+      },
     );
   };
 
   const handleClaimPress = async () => {
-    await executeGuardedAction(async () => {
-      await claim();
-    });
+    await executeGuardedAction(
+      async () => {
+        await claim();
+      },
+      { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
+    );
   };
 
   const handleTabPress = (tabIndex: number) => {
@@ -455,41 +472,48 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const renderHeader = () => (
     <Box
-      twClassName="flex-row items-start gap-3"
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Start}
+      twClassName="gap-3 pb-4"
       style={{ paddingTop: insets.top + 12 }}
     >
-      <Pressable
-        onPress={handleBackPress}
-        hitSlop={12}
-        accessibilityRole="button"
-        accessibilityLabel={strings('back')}
-        style={tw.style('items-center justify-center rounded-full w-10 h-10')}
-        testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
-      >
-        <Icon
-          name={IconName.ArrowLeft}
-          size={IconSize.Md}
-          color={colors.icon.default}
-        />
-      </Pressable>
-      <Box twClassName="w-12 h-12 rounded-lg bg-muted overflow-hidden">
-        {market?.image ? (
-          <Image
-            source={{ uri: market?.image }}
-            style={tw.style('w-full h-full')}
-            resizeMode="cover"
-          />
-        ) : (
-          <Box twClassName="w-full h-full bg-muted" />
-        )}
-      </Box>
-      <Box twClassName="flex-1">
-        <Text
-          variant={TextVariant.HeadingMD}
-          color={TextColor.Default}
-          style={tw.style('mb-1')}
+      <Box twClassName="flex-row items-center gap-3 px-1">
+        <Pressable
+          onPress={handleBackPress}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel={strings('back')}
+          style={tw.style('items-center justify-center rounded-full')}
+          testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
         >
-          {market?.title ||
+          <Icon
+            name={IconName.ArrowLeft}
+            size={IconSize.Lg}
+            color={colors.icon.default}
+          />
+        </Pressable>
+        <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
+          {image || market?.image ? (
+            <Image
+              source={{ uri: image || market?.image }}
+              style={tw.style('w-full h-full')}
+              resizeMode="cover"
+            />
+          ) : (
+            <Box twClassName="w-full h-full bg-muted" />
+          )}
+        </Box>
+      </Box>
+      <Box
+        twClassName="flex-1 min-h-[40px]"
+        justifyContent={
+          titleLineCount >= 2 ? undefined : BoxJustifyContent.Center
+        }
+        style={titleLineCount >= 2 ? tw.style('mt-[-5px]') : undefined}
+      >
+        <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+          {title ||
+            market?.title ||
             (isMarketFetching ? strings('predict.loading') : '')}
         </Text>
       </Box>
@@ -497,7 +521,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   );
 
   const renderMarketStatus = () => (
-    <Box twClassName="pt-4 gap-2">
+    <Box twClassName="gap-2">
       <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-2">
         {winningOutcomeToken && !multipleOpenOutcomesPartiallyResolved && (
           <Box
@@ -660,10 +684,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             color={colors.text.muted}
           />
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            {strings('predict.market_details.resolver')}
-          </Text>
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Error}>
-            UMA
+            {strings('predict.market_details.resolution_details')}
           </Text>
         </Box>
         <Box
@@ -671,11 +692,18 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           alignItems={BoxAlignItems.Center}
           twClassName="gap-2"
         >
-          <Pressable>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
-              {isMarketFetching || !market?.outcomes[0]?.resolvedBy
-                ? strings('predict.loading')
-                : formatAddress(market.outcomes[0].resolvedBy)}
+          <Pressable
+            onPress={() => {
+              Linking.openURL(
+                'https://docs.polymarket.com/polymarket-learn/markets/how-are-markets-resolved',
+              );
+            }}
+          >
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={colors.primary.default}
+            >
+              Polymarket
             </Text>
           </Pressable>
           <Icon
@@ -683,37 +711,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             size={IconSize.Sm}
             color={colors.primary.default}
           />
-        </Box>
-      </Box>
-
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="gap-3 my-2 pb-2"
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-3"
-        >
-          <Icon
-            name={IconName.Apps}
-            size={IconSize.Md}
-            color={colors.text.muted}
-          />
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            {strings('predict.market_details.powered_by')}
-          </Text>
-        </Box>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-2"
-        >
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-            {market?.providerId}
-          </Text>
         </Box>
       </Box>
       <Box twClassName="w-full border-t border-muted py-2" />
@@ -864,6 +861,13 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             multipleOutcomes &&
             multipleOpenOutcomesPartiallyResolved ? (
             <Box>
+              {openOutcomes.map((outcome) => (
+                <PredictMarketOutcome
+                  key={outcome.id}
+                  market={market}
+                  outcome={outcome}
+                />
+              ))}
               <Pressable
                 onPress={() => setIsResolvedExpanded((prev) => !prev)}
                 style={({ pressed }) =>
@@ -940,11 +944,15 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                         <Box
                           flexDirection={BoxFlexDirection.Row}
                           alignItems={BoxAlignItems.Center}
-                          twClassName="gap-2"
+                          twClassName="gap-1"
                         >
                           <Text
                             variant={TextVariant.BodyMDMedium}
-                            color={TextColor.Default}
+                            color={
+                              outcome.tokens[0].price > outcome.tokens[1].price
+                                ? TextColor.Default
+                                : TextColor.Alternative
+                            }
                           >
                             {outcome.tokens[0].price > outcome.tokens[1].price
                               ? outcome.tokens[0].title
@@ -953,18 +961,19 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                                 ? outcome.tokens[1].title
                                 : 'draw'}
                           </Text>
+                          {outcome.tokens[0].price >
+                            outcome.tokens[1].price && (
+                            <Icon
+                              name={IconName.Confirmation}
+                              size={IconSize.Md}
+                              color={TextColor.Success}
+                            />
+                          )}
                         </Box>
                       </Box>
                     </Box>
                   ))}
               </Pressable>
-              {openOutcomes.map((outcome) => (
-                <PredictMarketOutcome
-                  key={outcome.id}
-                  market={market}
-                  outcome={outcome}
-                />
-              ))}
             </Box>
           ) : (
             <Box>
