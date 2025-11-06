@@ -449,7 +449,7 @@ describe('PredictSellPreview', () => {
 
       expect(getByText('Cash Out')).toBeOnTheScreen();
       expect(getByText('Will Bitcoin reach $150,000?')).toBeOnTheScreen();
-      expect(getByText('$50.00 on Yes')).toBeOnTheScreen();
+      expect(getByText('$50.00 on Yes at 50¢')).toBeOnTheScreen();
 
       expect(
         queryByText('Funds will be added to your available balance'),
