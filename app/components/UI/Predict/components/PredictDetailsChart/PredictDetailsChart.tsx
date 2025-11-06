@@ -131,7 +131,7 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="px-4 pt-4 pb-0 min-h-[7.75]"
+            twClassName="px-4 pt-4 pb-0 min-h-[31px]"
           />
         </Box>
       );
