@@ -19,7 +19,7 @@ import {
 } from '../../util/middlewares';
 import Engine from '../Engine';
 import { createSanitizationMiddleware } from '../SanitizationMiddleware';
-import Logger, { AsyncLogger } from '../../util/Logger';
+import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
 import RemotePort from './RemotePort';
 import WalletConnectPort from './WalletConnectPort';
@@ -347,6 +347,7 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   async notifyChainChanged(params) {
+    DevLogger.log(`notifyChainChanged: `, params);
     this.sendNotificationEip1193({
       method: NOTIFICATION_NAMES.chainChanged,
       params:

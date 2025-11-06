@@ -1043,8 +1043,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           origin,
         );
 
-        Logger.log('jiexi sendActiveAccount', permittedAcc);
-
         notifyAllConnections({
           method: NOTIFICATION_NAMES.accountsChanged,
           params: permittedAcc,
