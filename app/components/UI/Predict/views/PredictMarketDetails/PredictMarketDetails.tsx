@@ -334,10 +334,14 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   }, [openOutcomesBase]);
 
   // build book params for fetching prices
-  const bookParams: BookParams[] = useMemo(() => openOutcomeTokenIds.map((tokenId) => ({
-      token_id: tokenId,
-      side: Side.SELL,
-    })), [openOutcomeTokenIds]);
+  const bookParams: BookParams[] = useMemo(
+    () =>
+      openOutcomeTokenIds.map((tokenId) => ({
+        token_id: tokenId,
+        side: Side.SELL,
+      })),
+    [openOutcomeTokenIds],
+  );
 
   // fetch real-time prices once after market loads
   const { prices } = usePredictPrices({
