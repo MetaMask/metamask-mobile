@@ -31,7 +31,7 @@ export function calculatePositionSize(params: PositionSizeParams): string {
 
   const positionSize = amountNum / price;
   const multiplier = Math.pow(10, szDecimals);
-  const rounded = Math.floor(positionSize * multiplier) / multiplier;
+  const rounded = Math.round(positionSize * multiplier) / multiplier;
 
   return rounded.toFixed(szDecimals);
 }
@@ -128,26 +128,16 @@ export function findOptimalAmount(params: OptimalAmountParams): string {
     szDecimals,
   });
 
-  // Position size for $1 USD
-  const dollarPositionSize = 1 / price;
-  // get the position increment base
-  // but at times wwe will need to skip by a few increments
-  let positionIncrement = 10 ** -szDecimals;
-  let dollarBasedPositionIncrement = (
-    Math.round(dollarPositionSize * multiplier) / multiplier
-  ).toFixed(szDecimals);
+  // Use minimal position increment (smallest possible change based on precision)
+  const positionIncrement = 10 ** -szDecimals;
 
-  if (parseFloat(dollarBasedPositionIncrement) === 0) {
-    dollarBasedPositionIncrement = (
-      (dollarPositionSize * multiplier) /
-      multiplier
-    ).toFixed(szDecimals);
-  }
-  if (parseFloat(dollarBasedPositionIncrement) > positionIncrement) {
-    positionIncrement = parseFloat(dollarBasedPositionIncrement);
-  }
+  // Add 15% buffer to ensure sufficient margin for fees and slippage
+  const MARGIN_BUFFER = 1.15;
 
-  if (highestAmount > maxAllowedAmount) {
+  // Apply buffer to maxAllowedAmount to ensure sufficient margin
+  const maxWithBuffer = maxAllowedAmount / MARGIN_BUFFER;
+
+  if (highestAmount > maxWithBuffer) {
     const decrementedPositionSize =
       ((positionSizeNum - positionIncrement) * multiplier) / multiplier;
     // If the decremented position size would be 0 or negative, return original amount

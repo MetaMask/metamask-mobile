@@ -17,6 +17,7 @@ interface UsePerpsOrderValidationParams {
   availableBalance: number;
   marginRequired: string;
   existingPositionLeverage?: number;
+  skipValidation?: boolean;
 }
 
 interface ValidationResult {
@@ -47,6 +48,7 @@ export function usePerpsOrderValidation(
     availableBalance,
     marginRequired,
     existingPositionLeverage,
+    skipValidation,
   } = params;
 
   const { validateOrder } = usePerpsTrading();
@@ -158,6 +160,11 @@ export function usePerpsOrderValidation(
   ]);
 
   useEffect(() => {
+    // Skip validation during keypad input to prevent flickering
+    if (skipValidation) {
+      return;
+    }
+
     // Skip validation if critical data is missing
     if (!positionSize || assetPrice === 0) {
       setValidation((prev) => ({
@@ -186,7 +193,7 @@ export function usePerpsOrderValidation(
         clearTimeout(validationTimerRef.current);
       }
     };
-  }, [performValidation, positionSize, assetPrice]);
+  }, [performValidation, positionSize, assetPrice, skipValidation]);
 
   // Return validation with stable array references
   return {

@@ -265,6 +265,7 @@ const PerpsClosePositionView: React.FC = () => {
     remainingPositionValue,
     receiveAmount,
     isPartialClose,
+    skipValidation: isInputFocused,
   });
 
   const { handleClosePosition, isClosing } = usePerpsClosePosition();

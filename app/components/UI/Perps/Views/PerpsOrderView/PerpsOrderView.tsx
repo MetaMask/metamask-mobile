@@ -169,6 +169,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const hasShownSubmittedToastRef = useRef(false);
   const orderStartTimeRef = useRef<number>(0);
   const inputMethodRef = useRef<InputMethod>('default');
+  const hasOptimizedOnBlurRef = useRef(false);
 
   const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
 
@@ -557,6 +558,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
     availableBalance,
     marginRequired: marginRequired || '0',
     existingPositionLeverage: existingPositionLeverageForValidation,
+    skipValidation: isInputFocused,
   });
 
   // Filter out specific validation error(s) from display (similar to ClosePositionView pattern)
@@ -651,26 +653,29 @@ const PerpsOrderViewContentBase: React.FC = () => {
   // Mirrors the PerpsClosePositionView behavior where, after leaving input,
   // values are normalized to valid limits.
   useEffect(() => {
-    if (!isInputFocused) {
-      const currentAmount = parseFloat(orderForm.amount || '0');
+    if (!isInputFocused && !hasOptimizedOnBlurRef.current) {
+      // Only optimize if input was from keypad (not from percentage/slider/max)
+      // This prevents overwriting intentional user selections from other input methods
+      if (inputMethodRef.current === 'keypad') {
+        const currentAmount = parseFloat(orderForm.amount || '0');
 
-      // If user-entered amount exceeds the max purchasable with current balance/leverage,
-      // snap it down to the maximum once input is closed.
-      if (currentAmount > maxPossibleAmount) {
-        setAmount(String(maxPossibleAmount));
+        // If user-entered amount exceeds the max purchasable with current balance/leverage,
+        // snap it down to the maximum once input is closed.
+        if (currentAmount > maxPossibleAmount) {
+          setAmount(String(maxPossibleAmount));
+        }
+        optimizeOrderAmount(assetData.price, marketData?.szDecimals);
       }
-      optimizeOrderAmount(assetData.price, marketData?.szDecimals);
+
+      hasOptimizedOnBlurRef.current = true;
+    } else if (isInputFocused) {
+      // Reset optimization flag when input becomes focused again
+      hasOptimizedOnBlurRef.current = false;
     }
+    // CRITICAL: Only isInputFocused dependency prevents infinite optimization loops
+    // Other dependencies would cause re-optimization on WebSocket updates
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    isInputFocused,
-    availableBalance,
-    orderForm.leverage,
-    setAmount,
-    optimizeOrderAmount,
-    assetData.price,
-    marketData?.szDecimals,
-  ]);
+  }, [isInputFocused]);
 
   const handlePlaceOrder = useCallback(async () => {
     if (isSubmittingRef.current) {
