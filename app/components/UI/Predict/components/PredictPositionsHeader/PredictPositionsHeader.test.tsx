@@ -362,8 +362,12 @@ function setupMarketsWonCardTest(
 
   const ref = React.createRef<{ refresh: () => Promise<void> }>();
 
+  // Test address and account ID to use in state
+  const testAddress = '0x1234567890123456789012345678901234567890';
+  const testAccountId = 'test-account-id';
+
   // Build claimable positions for Redux state
-  const claimablePositions =
+  const claimablePositionsArray =
     claimablePositionsOverrides.positions !== undefined
       ? (claimablePositionsOverrides.positions as unknown as PredictPosition[])
       : props.totalClaimableAmount
@@ -382,12 +386,30 @@ function setupMarketsWonCardTest(
           ] as unknown as PredictPosition[])
         : [];
 
-  // Create Redux state
+  // Create Redux state with claimablePositions keyed by address
   const state = {
     engine: {
       backgroundState: {
         PredictController: {
-          claimablePositions,
+          claimablePositions: {
+            [testAddress]: claimablePositionsArray,
+          },
+        },
+        AccountsController: {
+          internalAccounts: {
+            selectedAccount: testAccountId,
+            accounts: {
+              [testAccountId]: {
+                id: testAccountId,
+                address: testAddress,
+                name: 'Test Account',
+                type: 'eip155:eoa' as const,
+                metadata: {
+                  lastSelected: 0,
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -868,6 +890,36 @@ describe('MarketsWonCard', () => {
 
       // Verify the callback is undefined
       expect(props.onClaimPress).toBeUndefined();
+    });
+
+    it('uses fallback address when selectedAddress is undefined', () => {
+      // Arrange - create state with undefined selected account
+      const ref = React.createRef<{ refresh: () => Promise<void> }>();
+      const stateWithNoAddress = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              claimablePositions: {
+                '0x0': [],
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: undefined,
+                accounts: {},
+              },
+            },
+          },
+        },
+      };
+
+      // Act
+      const { getByTestId } = renderWithProvider(<MarketsWonCard ref={ref} />, {
+        state: stateWithNoAddress,
+      });
+
+      // Assert - component renders without crashing
+      expect(getByTestId('markets-won-card')).toBeDefined();
     });
   });
 });

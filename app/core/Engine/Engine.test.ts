@@ -2,6 +2,7 @@ import { MarketDataDetails } from '@metamask/assets-controllers';
 import Engine, { Engine as EngineClass } from './Engine';
 import { EngineState } from './types';
 import { backgroundState } from '../../util/test/initial-root-state';
+import { InitializationState } from '../../components/UI/Perps/controllers';
 import { zeroAddress } from 'ethereumjs-util';
 import {
   createMockAccountsControllerState,
@@ -228,10 +229,10 @@ describe('Engine', () => {
         lastError: null,
         lastUpdateTimestamp: 0,
         balances: {},
-        claimablePositions: [],
+        claimablePositions: {},
         pendingDeposits: {},
         withdrawTransaction: null,
-        isOnboarded: {},
+        accountMeta: {},
       },
       GatorPermissionsController: {
         gatorPermissionsMapSerialized: JSON.stringify({
@@ -263,6 +264,10 @@ describe('Engine', () => {
           mainnet: [],
           testnet: [],
         },
+        hip3ConfigVersion: 0,
+        initializationState: InitializationState.UNINITIALIZED,
+        initializationError: null,
+        initializationAttempts: 0,
       },
     };
 
