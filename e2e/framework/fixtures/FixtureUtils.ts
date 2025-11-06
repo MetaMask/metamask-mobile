@@ -429,29 +429,6 @@ export function getDappPortForFixture(index: number): number {
   return getFallbackPort(ResourceType.DAPP_SERVER) + index;
 }
 
-// ========== Deprecated Dapp Functions (Use getDappUrl/getDappPort instead) ==========
-
-/**
- * @deprecated Use getDappUrl(1) instead
- */
-export function getSecondTestDappLocalUrl() {
-  return getDappUrl(1);
-}
-
-/**
- * @deprecated Use getDappUrl(index) instead
- */
-export function getTestDappLocalUrlByDappCounter(dappCounter: number) {
-  return getDappUrl(dappCounter);
-}
-
-/**
- * @deprecated Use getDappPort(index) instead
- */
-export function getDappServerPortByIndex(index: number): number {
-  return getDappPort(index);
-}
-
 /**
  * @deprecated Use getDappUrl(0) instead
  */
@@ -470,13 +447,6 @@ export function getFixturesServerPort(): number {
 }
 export function getCommandQueueServerPort(): number {
   return getServerPort(ResourceType.COMMAND_QUEUE_SERVER);
-}
-
-/**
- * @deprecated Use getDappPort(0) instead
- */
-export function getLocalTestDappPort(): number {
-  return getDappPort(0);
 }
 
 export function getMockServerPort(): number {
@@ -544,34 +514,6 @@ export function getFixturesServerPortForFixture(): number {
  */
 export function getMockServerPortForFixture(): number {
   return getFixtureDataPort(ResourceType.MOCK_SERVER);
-}
-
-/**
- * @deprecated Use getDappPortForFixture(0) instead
- */
-export function getLocalTestDappPortForFixture(): number {
-  return getDappPortForFixture(0);
-}
-
-/**
- * @deprecated Use getDappUrlForFixture(0) instead
- */
-export function getTestDappLocalUrlForFixture(): string {
-  return getDappUrlForFixture(0);
-}
-
-/**
- * @deprecated Use getDappUrlForFixture(1) instead
- */
-export function getSecondTestDappLocalUrlForFixture(): string {
-  return getDappUrlForFixture(1);
-}
-
-/**
- * @deprecated Use getDappPort(1) instead
- */
-export function getSecondTestDappPort(): number {
-  return getDappPort(1);
 }
 
 interface Caip25Permission {
