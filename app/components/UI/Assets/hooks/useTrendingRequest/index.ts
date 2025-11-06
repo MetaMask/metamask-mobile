@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useEffect } from 'react';
+import { useCallback, useMemo, useEffect, useState } from 'react';
 import { debounce } from 'lodash';
 import { CaipChainId } from '@metamask/utils';
 import {
@@ -10,7 +10,7 @@ export const DEBOUNCE_WAIT = 500;
 
 /**
  * Hook for handling trending tokens request
- * @returns {Function} A debounced function to fetch trending tokens
+ * @returns {Object} An object containing the trending tokens results, loading state, error, and a function to trigger fetch
  */
 export const useTrendingRequest = (options: {
   chainIds: CaipChainId[];
@@ -30,6 +30,12 @@ export const useTrendingRequest = (options: {
     minMarketCap,
     maxMarketCap,
   } = options;
+
+  const [results, setResults] = useState<Awaited<
+    ReturnType<typeof getTrendingTokens>
+  > | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
   // Stabilize the chainIds array reference to prevent unnecessary re-memoization
   const stableChainIds = useStableArray(chainIds);
@@ -58,10 +64,23 @@ export const useTrendingRequest = (options: {
 
   const fetchTrendingTokens = useCallback(async () => {
     if (!memoizedOptions.chainIds.length) {
+      setResults(null);
+      setIsLoading(false);
       return;
     }
 
-    await getTrendingTokens(memoizedOptions);
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const trendingResults = await getTrendingTokens(memoizedOptions);
+      setResults(trendingResults || null);
+    } catch (err) {
+      setError(err as Error);
+      setResults(null);
+    } finally {
+      setIsLoading(false);
+    }
   }, [memoizedOptions]);
 
   const debouncedFetchTrendingTokens = useMemo(
@@ -77,5 +96,15 @@ export const useTrendingRequest = (options: {
     [debouncedFetchTrendingTokens],
   );
 
-  return debouncedFetchTrendingTokens;
+  // Automatically trigger fetch when options change
+  useEffect(() => {
+    debouncedFetchTrendingTokens();
+  }, [debouncedFetchTrendingTokens]);
+
+  return {
+    results: results || [],
+    isLoading,
+    error,
+    fetch: debouncedFetchTrendingTokens,
+  };
 };

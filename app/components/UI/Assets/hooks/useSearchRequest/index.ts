@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useEffect } from 'react';
+import { useCallback, useMemo, useEffect, useState } from 'react';
 import { debounce } from 'lodash';
 import { CaipChainId } from '@metamask/utils';
 import { searchTokens } from '@metamask/assets-controllers';
@@ -7,7 +7,7 @@ export const DEBOUNCE_WAIT = 500;
 
 /**
  * Hook for handling search tokens request
- * @returns {Function} A debounced function to search tokens
+ * @returns {Object} An object containing the search results, loading state, and a function to trigger search
  */
 export const useSearchRequest = (options: {
   chainIds: CaipChainId[];
@@ -15,6 +15,11 @@ export const useSearchRequest = (options: {
   limit: number;
 }) => {
   const { chainIds, query, limit } = options;
+  const [results, setResults] = useState<Awaited<
+    ReturnType<typeof searchTokens>
+  > | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
   // Stabilize the chainIds array reference to prevent unnecessary re-memoization
   const stableChainIds = useStableArray(chainIds);
@@ -31,18 +36,40 @@ export const useSearchRequest = (options: {
 
   const searchTokensRequest = useCallback(async () => {
     if (!memoizedOptions.query) {
+      setResults(null);
+      setIsLoading(false);
       return;
     }
 
-    await searchTokens(memoizedOptions.chainIds, memoizedOptions.query, {
-      limit: memoizedOptions.limit,
-    });
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const searchResults = await searchTokens(
+        memoizedOptions.chainIds,
+        memoizedOptions.query,
+        {
+          limit: memoizedOptions.limit,
+        },
+      );
+      setResults(searchResults || null);
+    } catch (err) {
+      setError(err as Error);
+      setResults(null);
+    } finally {
+      setIsLoading(false);
+    }
   }, [memoizedOptions]);
 
   const debouncedSearchTokensRequest = useMemo(
     () => debounce(searchTokensRequest, DEBOUNCE_WAIT),
     [searchTokensRequest],
   );
+
+  // Automatically trigger search when query changes
+  useEffect(() => {
+    debouncedSearchTokensRequest();
+  }, [debouncedSearchTokensRequest]);
 
   // Cleanup debounced function on unmount or when dependencies change
   useEffect(
@@ -52,5 +79,10 @@ export const useSearchRequest = (options: {
     [debouncedSearchTokensRequest],
   );
 
-  return debouncedSearchTokensRequest;
+  return {
+    results: results?.data || [],
+    isLoading,
+    error,
+    search: debouncedSearchTokensRequest,
+  };
 };
