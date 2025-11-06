@@ -554,13 +554,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
   /**
    * Generate session cache key for user-specific caches
-   * Format: "network:userAddress"
+   * Format: "network:userAddress" (address normalized to lowercase)
    * @param network - 'mainnet' or 'testnet'
    * @param userAddress - User's Ethereum address
    * @returns Cache key for session-based caches
    */
   private getCacheKey(network: string, userAddress: string): string {
-    return `${network}:${userAddress}`;
+    return `${network}:${userAddress.toLowerCase()}`;
   }
 
   /**
