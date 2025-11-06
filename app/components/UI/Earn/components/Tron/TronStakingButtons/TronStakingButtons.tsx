@@ -36,7 +36,7 @@ const TronStakingButtons = ({
       !isStakedTrx
         ? asset
         : // we prefer nativeAsset if present; otherwise synthesize TRX view
-          ((asset as TokenI).nativeAsset ?? {
+          (asset.nativeAsset ?? {
             ...asset,
             name: 'Tron',
             symbol: 'TRX',

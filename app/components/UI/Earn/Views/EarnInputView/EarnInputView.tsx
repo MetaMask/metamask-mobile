@@ -140,16 +140,15 @@ const EarnInputView = () => {
 
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     if (isTrxStakingEnabled && isTronNative) {
+      const experiences = [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }];
       return {
         ...token,
         balanceMinimalUnit: '0',
         balanceFormatted: token.balance ?? '0',
         balanceFiat: token.balanceFiat ?? '0',
         tokenUsdExchangeRate: 0,
-        experiences: [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }],
-        get experience() {
-          return this.experiences[0];
-        },
+        experiences,
+        experience: experiences[0],
       } as EarnTokenDetails;
     }
     ///: END:ONLY_INCLUDE_IF

@@ -347,9 +347,7 @@ const selectEarnTokens = createDeepEqualSelector(
           // i.e. 100.12345
           balanceFiatNumber: assetBalanceFiatNumber,
           tokenUsdExchangeRate,
-          get experience() {
-            return this.experiences[0];
-          },
+          experience: experiences[0],
           // asset apr info per experience
           // i.e. 4.5%
           // estimated annual rewards per experience
