@@ -32,8 +32,8 @@ export class LegacyLinkAdapter {
    * Expand this list gradually as confidence grows
    */
   private static readonly NEW_SYSTEM_ACTIONS = [
-    // ACTIONS.HOME, <------ enable here!
-    // ACTIONS.SWAP, <------ enable here!
+    // ACTIONS.HOME, // <------ enable here!
+    // ACTIONS.SWAP, // <------ enable here!
   ];
 
   /**
@@ -127,7 +127,10 @@ export class LegacyLinkAdapter {
    */
   static shouldUseNewSystem(action: string): boolean {
     // this `never` value will be changed when you enable some actions
-    return this.NEW_SYSTEM_ACTIONS.includes(action as never);
+    const shouldUseNewSystem = this.NEW_SYSTEM_ACTIONS.includes(
+      action as never,
+    );
+    return shouldUseNewSystem;
   }
 
   /**
@@ -237,11 +240,17 @@ export class LegacyLinkAdapter {
         }
         return ethUrl;
       }
+      throw new Error(
+        `Unsupported action for ethereum protocol: ${link.action}`,
+      );
     }
 
     // Handle dapp protocol
     if (targetProtocol === 'dapp') {
       const dappPath = link.params.dappPath || '';
+      if (!dappPath) {
+        throw new Error('dapp protocol requires dappPath parameter to be set');
+      }
       return `dapp://${dappPath}`;
     }
 

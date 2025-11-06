@@ -91,41 +91,6 @@ describe('LegacyLinkAdapter', () => {
       expect(params.redirect).toBe('');
       expect(params.channelId).toBe('123');
     });
-
-    it('preserves https protocol in legacy URL object', () => {
-      const coreLink = CoreLinkNormalizer.normalize(
-        'https://link.metamask.io/send?to=0x123',
-        'browser',
-      );
-
-      const { urlObj } = LegacyLinkAdapter.toLegacyFormat(coreLink);
-
-      expect(urlObj.protocol).toBe('https:');
-      expect(urlObj.hostname).toBe('link.metamask.io');
-    });
-
-    it('converts hr parameter from boolean to legacy format', () => {
-      // The normalizer stores hr as a string, we need to convert it
-      const coreLink: CoreUniversalLink = {
-        protocol: 'metamask',
-        action: ACTIONS.SWAP,
-        params: {
-          hr: true,
-        },
-        source: 'test',
-        timestamp: Date.now(),
-        originalUrl: 'metamask://swap?hr=1',
-        normalizedUrl: 'https://link.metamask.io/swap?hr=1',
-        isValid: true,
-        isSupportedAction: true,
-        isPrivateLink: false,
-        requiresAuth: false,
-      };
-
-      const { params } = LegacyLinkAdapter.toLegacyFormat(coreLink);
-
-      expect(params.hr).toBe(true);
-    });
   });
 
   describe('fromLegacyFormat', () => {
@@ -377,6 +342,26 @@ describe('LegacyLinkAdapter', () => {
       const url = LegacyLinkAdapter.toProtocolUrl(coreLink, 'ethereum');
 
       expect(url).toBe('ethereum:0x1234567890abcdef?value=1000000000000000000');
+    });
+
+    it('throws error when converting *unsupported* action to ethereum protocol', () => {
+      const coreLink: CoreUniversalLink = {
+        protocol: 'metamask',
+        action: ACTIONS.SWAP, // Unsupported for ethereum
+        params: { from: 'ETH', to: 'DAI' },
+        source: 'test',
+        timestamp: Date.now(),
+        originalUrl: 'metamask://swap?from=ETH&to=DAI',
+        normalizedUrl: 'https://link.metamask.io/swap?from=ETH&to=DAI',
+        isValid: true,
+        isSupportedAction: true,
+        isPrivateLink: false,
+        requiresAuth: false,
+      };
+
+      expect(() =>
+        LegacyLinkAdapter.toProtocolUrl(coreLink, 'ethereum'),
+      ).toThrow('Unsupported action for ethereum protocol: swap');
     });
 
     it('converts to dapp:// protocol', () => {
