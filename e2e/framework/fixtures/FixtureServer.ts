@@ -4,7 +4,7 @@ import { isObject, mapValues } from 'lodash';
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
 import { Resource, ServerStatus } from '../types';
-import PortManager from '../PortManager';
+import PortManager, { ResourceType } from '../PortManager';
 
 const logger = createLogger({
   name: 'FixtureServer',
@@ -228,9 +228,7 @@ class FixtureServer implements Resource {
         this._server = null;
         this._serverStatus = ServerStatus.STOPPED;
         // Release the port after server is stopped
-        if (this._serverPort > 0) {
-          PortManager.getInstance().releasePort(this._serverPort);
-        }
+        PortManager.getInstance().releasePort(ResourceType.FIXTURE_SERVER);
         resolve(undefined);
       };
       serverRef.once('error', onError);

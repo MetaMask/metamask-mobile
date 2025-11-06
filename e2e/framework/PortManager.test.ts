@@ -1,10 +1,6 @@
 /* eslint-disable import/no-nodejs-modules */
 import net from 'net';
-import PortManager, { ResourceId, PortRequest } from './PortManager';
-import {
-  DEFAULT_FIXTURE_SERVER_PORT,
-  DEFAULT_MOCKSERVER_PORT,
-} from './Constants';
+import PortManager, { ResourceType } from './PortManager';
 
 jest.mock('./logger', () => ({
   createLogger: () => ({
@@ -45,60 +41,67 @@ describe('PortManager', () => {
     });
 
     it('should release all ports when resetInstance is called', async () => {
-      const request: PortRequest = {
-        resourceId: ResourceId.FIXTURE_SERVER,
-      };
-
-      const port = await portManager.getAvailablePort(request);
-      expect(portManager.isPortAllocated(port)).toBe(true);
+      const allocation = await portManager.allocatePort(
+        ResourceType.FIXTURE_SERVER,
+      );
+      expect(portManager.isPortAllocated(allocation.port)).toBe(true);
 
       PortManager.resetInstance();
       portManager = PortManager.getInstance();
 
-      expect(portManager.isPortAllocated(port)).toBe(false);
+      expect(portManager.isPortAllocated(allocation.port)).toBe(false);
     });
   });
 
-  describe('getAvailablePort', () => {
-    it('should allocate the default port for a known resource when available', async () => {
-      const request: PortRequest = {
-        resourceId: ResourceId.FIXTURE_SERVER,
-      };
+  describe('allocatePort', () => {
+    it('should allocate a random port for a resource', async () => {
+      const allocation = await portManager.allocatePort(
+        ResourceType.FIXTURE_SERVER,
+      );
 
-      const port = await portManager.getAvailablePort(request);
-
-      expect(port).toBe(DEFAULT_FIXTURE_SERVER_PORT);
-      expect(portManager.isPortAllocated(port)).toBe(true);
-      expect(portManager.getPortForResource(ResourceId.FIXTURE_SERVER)).toBe(
-        port,
+      // Should be a random port in the range 40000-60000
+      expect(allocation.port).toBeGreaterThanOrEqual(40000);
+      expect(allocation.port).toBeLessThanOrEqual(60000);
+      expect(allocation.resourceType).toBe(ResourceType.FIXTURE_SERVER);
+      expect(portManager.isPortAllocated(allocation.port)).toBe(true);
+      expect(portManager.getPort(ResourceType.FIXTURE_SERVER)).toBe(
+        allocation.port,
       );
     });
 
     it('should return the same port if resource already has one allocated', async () => {
-      const request: PortRequest = {
-        resourceId: ResourceId.MOCK_SERVER,
-      };
+      const allocation1 = await portManager.allocatePort(
+        ResourceType.MOCK_SERVER,
+      );
+      const allocation2 = await portManager.allocatePort(
+        ResourceType.MOCK_SERVER,
+      );
 
-      const port1 = await portManager.getAvailablePort(request);
-      const port2 = await portManager.getAvailablePort(request);
-
-      expect(port1).toBe(port2);
+      expect(allocation1.port).toBe(allocation2.port);
+      expect(allocation1).toBe(allocation2);
     });
 
-    it('should allocate preferred port when specified and available', async () => {
-      const preferredPort = 45000;
-      const request: PortRequest = {
-        resourceId: 'custom-resource',
-        preferredPort,
-      };
+    it('should allocate different ports for different resources', async () => {
+      const allocation1 = await portManager.allocatePort(
+        ResourceType.FIXTURE_SERVER,
+      );
+      const allocation2 = await portManager.allocatePort(
+        ResourceType.MOCK_SERVER,
+      );
 
-      const port = await portManager.getAvailablePort(request);
+      // Both should be random ports in range
+      expect(allocation1.port).toBeGreaterThanOrEqual(40000);
+      expect(allocation1.port).toBeLessThanOrEqual(60000);
+      expect(allocation2.port).toBeGreaterThanOrEqual(40000);
+      expect(allocation2.port).toBeLessThanOrEqual(60000);
 
-      expect(port).toBe(preferredPort);
-      expect(portManager.isPortAllocated(port)).toBe(true);
+      // Ports should be different
+      expect(allocation1.port).not.toBe(allocation2.port);
+      expect(portManager.isPortAllocated(allocation1.port)).toBe(true);
+      expect(portManager.isPortAllocated(allocation2.port)).toBe(true);
     });
 
-    it('should find next available port when default port is occupied', async () => {
+    it('should find next available port when first random port is occupied', async () => {
       // Mock net.createServer to simulate first port being occupied
       const mockServer = {
         once: jest.fn((event, callback) => {
@@ -131,115 +134,120 @@ describe('PortManager', () => {
         } as unknown as net.Server;
       });
 
-      const request: PortRequest = {
-        resourceId: ResourceId.FIXTURE_SERVER,
-      };
-
-      const port = await portManager.getAvailablePort(request);
-
-      expect(port).toBeGreaterThan(DEFAULT_FIXTURE_SERVER_PORT);
-      expect(portManager.isPortAllocated(port)).toBe(true);
-
-      jest.restoreAllMocks();
-    });
-
-    it('should find available port when no default port is defined', async () => {
-      const request: PortRequest = {
-        resourceId: 'unknown-resource',
-      };
-
-      const port = await portManager.getAvailablePort(request);
-
-      expect(port).toBeGreaterThanOrEqual(30000);
-      expect(port).toBeLessThanOrEqual(60000);
-      expect(portManager.isPortAllocated(port)).toBe(true);
-    });
-
-    it('should throw error when no port is available after max attempts', async () => {
-      const mockServer = {
-        once: jest.fn((event, callback) => {
-          if (event === 'error') {
-            const error = new Error('Address in use') as NodeJS.ErrnoException;
-            error.code = 'EADDRINUSE';
-            setTimeout(() => callback(error), 0);
-          }
-        }),
-        listen: jest.fn(),
-        close: jest.fn(),
-      };
-
-      jest
-        .spyOn(net, 'createServer')
-        .mockReturnValue(mockServer as unknown as net.Server);
-
-      const request: PortRequest = {
-        resourceId: 'test-resource',
-        maxAttempts: 5,
-      };
-
-      await expect(portManager.getAvailablePort(request)).rejects.toThrow(
-        /Failed to find an available port after 5 attempts/,
+      const allocation = await portManager.allocatePort(
+        ResourceType.FIXTURE_SERVER,
       );
+
+      // Should be a random port in the range 40000-60000
+      expect(allocation.port).toBeGreaterThanOrEqual(40000);
+      expect(allocation.port).toBeLessThanOrEqual(60000);
+      expect(portManager.isPortAllocated(allocation.port)).toBe(true);
 
       jest.restoreAllMocks();
     });
   });
 
-  describe('BrowserStack behavior', () => {
-    it('should always return static default port when BROWSERSTACK_LOCAL is true', async () => {
-      process.env.BROWSERSTACK_LOCAL = 'true';
+  describe('allocateMultiInstancePort', () => {
+    it('should allocate ports for multiple instances of the same resource', async () => {
+      const allocation1 = await portManager.allocateMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        'instance-1',
+      );
+      const allocation2 = await portManager.allocateMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        'instance-2',
+      );
 
-      const request: PortRequest = {
-        resourceId: ResourceId.FIXTURE_SERVER,
-      };
-
-      const port = await portManager.getAvailablePort(request);
-
-      expect(port).toBe(DEFAULT_FIXTURE_SERVER_PORT);
-      expect(portManager.isPortAllocated(port)).toBe(true);
+      expect(allocation1.port).not.toBe(allocation2.port);
+      expect(allocation1.instanceId).toBe('instance-1');
+      expect(allocation2.instanceId).toBe('instance-2');
+      expect(portManager.isPortAllocated(allocation1.port)).toBe(true);
+      expect(portManager.isPortAllocated(allocation2.port)).toBe(true);
     });
 
-    it('should use static ports even when using different resource on BrowserStack', async () => {
-      process.env.BROWSERSTACK_LOCAL = 'TRUE';
+    it('should return same port for same instance', async () => {
+      const allocation1 = await portManager.allocateMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        'instance-1',
+      );
+      const allocation2 = await portManager.allocateMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        'instance-1',
+      );
 
-      PortManager.resetInstance();
-      portManager = PortManager.getInstance();
+      expect(allocation1.port).toBe(allocation2.port);
+      expect(allocation1).toBe(allocation2);
+    });
 
-      const request: PortRequest = {
-        resourceId: ResourceId.MOCK_SERVER,
-      };
+    it('should track all instance ports', async () => {
+      await portManager.allocateMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        'instance-1',
+      );
+      await portManager.allocateMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        'instance-2',
+      );
+      await portManager.allocateMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        'instance-3',
+      );
 
-      const port = await portManager.getAvailablePort(request);
+      const allPorts = portManager.getAllInstancePorts(
+        ResourceType.DAPP_SERVER,
+      );
+      expect(allPorts.length).toBe(3);
+    });
+  });
 
-      expect(port).toBe(DEFAULT_MOCKSERVER_PORT);
-      expect(portManager.isPortAllocated(port)).toBe(true);
+  // Note: BrowserStack behavior is tested in actual BrowserStack CI runs
+  // These tests verify local development behavior with random port allocation
+  describe('Local development behavior', () => {
+    it('should allocate random ports for all resources', async () => {
+      const allocation1 = await portManager.allocatePort(
+        ResourceType.FIXTURE_SERVER,
+      );
+      const allocation2 = await portManager.allocatePort(
+        ResourceType.MOCK_SERVER,
+      );
+      const allocation3 = await portManager.allocatePort(ResourceType.GANACHE);
+
+      // All ports should be random (40000-60000)
+      expect(allocation1.port).toBeGreaterThanOrEqual(40000);
+      expect(allocation1.port).toBeLessThanOrEqual(60000);
+      expect(allocation2.port).toBeGreaterThanOrEqual(40000);
+      expect(allocation2.port).toBeLessThanOrEqual(60000);
+      expect(allocation3.port).toBeGreaterThanOrEqual(40000);
+      expect(allocation3.port).toBeLessThanOrEqual(60000);
+
+      // All ports should be different
+      expect(allocation1.port).not.toBe(allocation2.port);
+      expect(allocation1.port).not.toBe(allocation3.port);
+      expect(allocation2.port).not.toBe(allocation3.port);
     });
   });
 
   describe('Port allocation and tracking', () => {
     it('should correctly track allocated ports', async () => {
-      const request1: PortRequest = {
-        resourceId: ResourceId.FIXTURE_SERVER,
-      };
-      const request2: PortRequest = {
-        resourceId: ResourceId.MOCK_SERVER,
-      };
-
-      const port1 = await portManager.getAvailablePort(request1);
-      const port2 = await portManager.getAvailablePort(request2);
-
-      expect(portManager.isPortAllocated(port1)).toBe(true);
-      expect(portManager.isPortAllocated(port2)).toBe(true);
-      expect(portManager.getPortForResource(ResourceId.FIXTURE_SERVER)).toBe(
-        port1,
+      const allocation1 = await portManager.allocatePort(
+        ResourceType.FIXTURE_SERVER,
       );
-      expect(portManager.getPortForResource(ResourceId.MOCK_SERVER)).toBe(
-        port2,
+      const allocation2 = await portManager.allocatePort(
+        ResourceType.MOCK_SERVER,
+      );
+
+      expect(portManager.isPortAllocated(allocation1.port)).toBe(true);
+      expect(portManager.isPortAllocated(allocation2.port)).toBe(true);
+      expect(portManager.getPort(ResourceType.FIXTURE_SERVER)).toBe(
+        allocation1.port,
+      );
+      expect(portManager.getPort(ResourceType.MOCK_SERVER)).toBe(
+        allocation2.port,
       );
     });
 
     it('should return undefined for resource without allocated port', () => {
-      const port = portManager.getPortForResource('non-existent-resource');
+      const port = portManager.getPort(ResourceType.GANACHE);
       expect(port).toBeUndefined();
     });
 
@@ -250,74 +258,106 @@ describe('PortManager', () => {
 
   describe('releasePort', () => {
     it('should release an allocated port', async () => {
-      const request: PortRequest = {
-        resourceId: ResourceId.FIXTURE_SERVER,
-      };
+      const allocation = await portManager.allocatePort(
+        ResourceType.FIXTURE_SERVER,
+      );
+      expect(portManager.isPortAllocated(allocation.port)).toBe(true);
 
-      const port = await portManager.getAvailablePort(request);
-      expect(portManager.isPortAllocated(port)).toBe(true);
+      portManager.releasePort(ResourceType.FIXTURE_SERVER);
 
-      portManager.releasePort(port);
+      expect(portManager.isPortAllocated(allocation.port)).toBe(false);
+      expect(portManager.getPort(ResourceType.FIXTURE_SERVER)).toBeUndefined();
+    });
 
-      expect(portManager.isPortAllocated(port)).toBe(false);
+    it('should handle releasing a non-allocated resource gracefully', () => {
+      expect(() => portManager.releasePort(ResourceType.GANACHE)).not.toThrow();
+    });
+
+    it('should allow re-allocation after release', async () => {
+      const allocation1 = await portManager.allocatePort(
+        ResourceType.FIXTURE_SERVER,
+      );
+      const port1 = allocation1.port;
+
+      portManager.releasePort(ResourceType.FIXTURE_SERVER);
+      expect(portManager.isPortAllocated(port1)).toBe(false);
+
+      // Can allocate a new port for the same resource
+      const allocation2 = await portManager.allocatePort(
+        ResourceType.FIXTURE_SERVER,
+      );
+
+      expect(allocation2.port).toBeGreaterThanOrEqual(40000);
+      expect(allocation2.port).toBeLessThanOrEqual(60000);
+      expect(portManager.isPortAllocated(allocation2.port)).toBe(true);
+      expect(portManager.getPort(ResourceType.FIXTURE_SERVER)).toBe(
+        allocation2.port,
+      );
+    });
+  });
+
+  describe('releaseMultiInstancePort', () => {
+    it('should release a specific instance port', async () => {
+      const allocation1 = await portManager.allocateMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        'instance-1',
+      );
+      const allocation2 = await portManager.allocateMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        'instance-2',
+      );
+
+      portManager.releaseMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        'instance-1',
+      );
+
+      expect(portManager.isPortAllocated(allocation1.port)).toBe(false);
+      expect(portManager.isPortAllocated(allocation2.port)).toBe(true);
+    });
+  });
+
+  describe('releaseAllInstancesOf', () => {
+    it('should release all instances of a resource type', async () => {
+      const allocation1 = await portManager.allocateMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        'instance-1',
+      );
+      const allocation2 = await portManager.allocateMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        'instance-2',
+      );
+
+      portManager.releaseAllInstancesOf(ResourceType.DAPP_SERVER);
+
+      expect(portManager.isPortAllocated(allocation1.port)).toBe(false);
+      expect(portManager.isPortAllocated(allocation2.port)).toBe(false);
       expect(
-        portManager.getPortForResource(ResourceId.FIXTURE_SERVER),
-      ).toBeUndefined();
-    });
-
-    it('should handle releasing a non-allocated port gracefully', () => {
-      expect(() => portManager.releasePort(99999)).not.toThrow();
-    });
-
-    it('should allow re-allocation of released port', async () => {
-      const request1: PortRequest = {
-        resourceId: 'resource-1',
-        preferredPort: 40000,
-      };
-
-      const port1 = await portManager.getAvailablePort(request1);
-      portManager.releasePort(port1);
-
-      const request2: PortRequest = {
-        resourceId: 'resource-2',
-        preferredPort: 40000,
-      };
-
-      const port2 = await portManager.getAvailablePort(request2);
-
-      expect(port2).toBe(port1);
-      expect(portManager.getPortForResource('resource-2')).toBe(port2);
+        portManager.getAllInstancePorts(ResourceType.DAPP_SERVER).length,
+      ).toBe(0);
     });
   });
 
   describe('releaseAll', () => {
     it('should release all allocated ports', async () => {
-      const requests: PortRequest[] = [
-        { resourceId: ResourceId.FIXTURE_SERVER },
-        { resourceId: ResourceId.MOCK_SERVER },
-        { resourceId: ResourceId.DAPP_SERVER },
-      ];
-
-      const ports: number[] = [];
-      for (const request of requests) {
-        ports.push(await portManager.getAvailablePort(request));
-      }
-
-      ports.forEach((port) => {
-        expect(portManager.isPortAllocated(port)).toBe(true);
-      });
+      const allocation1 = await portManager.allocatePort(
+        ResourceType.FIXTURE_SERVER,
+      );
+      const allocation2 = await portManager.allocatePort(
+        ResourceType.MOCK_SERVER,
+      );
+      const allocation3 = await portManager.allocateMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        'instance-1',
+      );
 
       portManager.releaseAll();
 
-      ports.forEach((port) => {
-        expect(portManager.isPortAllocated(port)).toBe(false);
-      });
-
-      requests.forEach((request) => {
-        expect(
-          portManager.getPortForResource(request.resourceId),
-        ).toBeUndefined();
-      });
+      expect(portManager.isPortAllocated(allocation1.port)).toBe(false);
+      expect(portManager.isPortAllocated(allocation2.port)).toBe(false);
+      expect(portManager.isPortAllocated(allocation3.port)).toBe(false);
+      expect(portManager.getPort(ResourceType.FIXTURE_SERVER)).toBeUndefined();
+      expect(portManager.getPort(ResourceType.MOCK_SERVER)).toBeUndefined();
     });
 
     it('should handle releaseAll when no ports are allocated', () => {
@@ -326,30 +366,29 @@ describe('PortManager', () => {
   });
 
   describe('Multiple resource types', () => {
-    it('should handle allocation for all ResourceId types', async () => {
-      const resourceIds = [
-        ResourceId.FIXTURE_SERVER,
-        ResourceId.MOCK_SERVER,
-        ResourceId.COMMAND_QUEUE_SERVER,
-        ResourceId.DAPP_SERVER,
-        ResourceId.DAPP_SERVER_1,
-        ResourceId.GANACHE,
-        ResourceId.ANVIL,
+    it('should handle allocation for all ResourceType values', async () => {
+      const resourceTypes = [
+        ResourceType.FIXTURE_SERVER,
+        ResourceType.MOCK_SERVER,
+        ResourceType.COMMAND_QUEUE_SERVER,
+        ResourceType.DAPP_SERVER,
+        ResourceType.GANACHE,
+        ResourceType.ANVIL,
       ];
 
-      const allocatedPorts: Map<string, number> = new Map();
+      const allocatedPorts: Map<ResourceType, number> = new Map();
 
-      for (const resourceId of resourceIds) {
-        const port = await portManager.getAvailablePort({ resourceId });
-        allocatedPorts.set(resourceId, port);
+      for (const resourceType of resourceTypes) {
+        const allocation = await portManager.allocatePort(resourceType);
+        allocatedPorts.set(resourceType, allocation.port);
       }
 
       const uniquePorts = new Set(allocatedPorts.values());
       expect(uniquePorts.size).toBe(allocatedPorts.size);
 
-      allocatedPorts.forEach((port, resourceId) => {
+      allocatedPorts.forEach((port, resourceType) => {
         expect(portManager.isPortAllocated(port)).toBe(true);
-        expect(portManager.getPortForResource(resourceId)).toBe(port);
+        expect(portManager.getPort(resourceType)).toBe(port);
       });
     });
   });

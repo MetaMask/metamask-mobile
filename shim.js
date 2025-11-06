@@ -3,8 +3,8 @@ import { Platform } from 'react-native';
 import { getRandomValues, randomUUID } from 'react-native-quick-crypto';
 import { LaunchArguments } from 'react-native-launch-arguments';
 import {
-  FIXTURE_SERVER_PORT,
-  COMMAND_QUEUE_SERVER_PORT,
+  FALLBACK_FIXTURE_SERVER_PORT,
+  FALLBACK_COMMAND_QUEUE_SERVER_PORT,
   isE2E,
   isTest,
   enableApiCallLogs,
@@ -46,15 +46,28 @@ if (isE2E) {
   );
 }
 
-// In a testing environment, assign the fixtureServerPort to use a deterministic port
+// In a testing environment, configure server ports for fixture and command queue servers.
+//
+// We pass dynamic ports via launchArgs in FixtureHelper.ts, but react-native-launch-arguments
+// library behavior differs by platform:
+//
+// iOS: LaunchArguments.value() successfully reads Detox launchArgs → returns { fixtureServerPort: "30002", ... }
+//      App uses the dynamic port directly.
+//
+// Android: LaunchArguments.value() returns {} (library doesn't integrate with Detox on Android)
+//          → ALWAYS falls back to hardcoded ports (12345 for fixtures, 2446 for command queue)
+//          Since we need dynamic ports for parallel test execution, the E2E infrastructure uses
+//          adb reverse to transparently map these hardcoded ports to dynamically allocated ports.
+//          Example: App connects to localhost:12345, adb reverse maps it to host port 30002.
+//          See FixtureHelper.ts for the port mapping implementation.
 if (isTest) {
   const raw = LaunchArguments.value();
   testConfig.fixtureServerPort = raw?.fixtureServerPort
     ? raw.fixtureServerPort
-    : FIXTURE_SERVER_PORT;
+    : FALLBACK_FIXTURE_SERVER_PORT;
   testConfig.commandQueueServerPort = raw?.commandQueueServerPort
     ? raw.commandQueueServerPort
-    : COMMAND_QUEUE_SERVER_PORT;
+    : FALLBACK_COMMAND_QUEUE_SERVER_PORT;
 }
 
 // Fix for https://github.com/facebook/react-native/issues/5667
@@ -163,9 +176,8 @@ if (enableApiCallLogs || isTest) {
     const raw = LaunchArguments.value();
     const mockServerPort = raw?.mockServerPort ?? defaultMockPort;
     const { fetch: originalFetch } = global;
-    const MOCKTTP_URL = `http://${
-      Platform.OS === 'ios' ? 'localhost' : '10.0.2.2'
-    }:${mockServerPort}`;
+    // Use localhost on both platforms - Android adb reverse maps localhost ports
+    const MOCKTTP_URL = `http://localhost:${mockServerPort}`;
 
     const isMockServerAvailable = await originalFetch(
       `${MOCKTTP_URL}/health-check`,
@@ -209,7 +221,7 @@ if (enableApiCallLogs || isTest) {
                     parsed.port ===
                       String(
                         testConfig.commandQueueServerPort ||
-                          COMMAND_QUEUE_SERVER_PORT,
+                          FALLBACK_COMMAND_QUEUE_SERVER_PORT,
                       );
                   if (isCommandQueue) {
                     return originalOpen.call(this, method, url, ...openArgs);

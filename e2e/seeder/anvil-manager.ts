@@ -6,7 +6,7 @@ import { createAnvilClients } from './anvil-clients';
 import { AnvilPort } from '../framework/fixtures/FixtureUtils';
 import { AnvilNodeOptions, ServerStatus, Resource } from '../framework/types';
 import { createLogger } from '../framework/logger';
-import PortManager from '../framework/PortManager';
+import PortManager, { ResourceType } from '../framework/PortManager';
 
 const logger = createLogger({
   name: 'AnvilManager',
@@ -232,7 +232,7 @@ class AnvilManager implements Resource {
       this.serverStatus = ServerStatus.STOPPED;
       // Release the port after server is stopped
       if (this.serverPort !== undefined) {
-        PortManager.getInstance().releasePort(this.serverPort);
+        PortManager.getInstance().releasePort(ResourceType.ANVIL);
       }
     } catch (e) {
       logger.error(`Error stopping server: ${e}`);

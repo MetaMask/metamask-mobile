@@ -25,7 +25,11 @@ import { BrowserViewSelectorsIDs } from './selectors/Browser/BrowserView.selecto
 import { createLogger } from './framework/logger';
 import Utilities, { sleep } from './framework/Utilities';
 
-const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
+/**
+ * Gets the localhost URL for Ganache/Anvil network connection.
+ * Must be called at runtime (not at module load time) to ensure port is allocated.
+ */
+const getLocalhostUrl = () => `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
 const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true' ||
@@ -278,7 +282,7 @@ export const addLocalhostNetwork = async () => {
   await NetworkView.switchToCustomNetworks();
 
   await NetworkView.typeInNetworkName('Localhost');
-  await NetworkView.typeInRpcUrl(LOCALHOST_URL);
+  await NetworkView.typeInRpcUrl(getLocalhostUrl());
   await NetworkView.typeInChainId('1337');
   await NetworkView.typeInNetworkSymbol('ETH\n');
 

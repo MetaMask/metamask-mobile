@@ -1,59 +1,33 @@
 /* eslint-disable import/no-nodejs-modules */
 import net from 'net';
 import { createLogger } from './logger';
-import {
-  DEFAULT_FIXTURE_SERVER_PORT,
-  DEFAULT_MOCKSERVER_PORT,
-  DEFAULT_DAPP_SERVER_PORT,
-  DEFAULT_COMMAND_QUEUE_SERVER_PORT,
-} from './Constants';
-import { DEFAULT_GANACHE_PORT } from '../../app/util/test/ganache';
-import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager';
 
 const logger = createLogger({
   name: 'PortManager',
 });
 
-export enum ResourceId {
+export enum ResourceType {
   FIXTURE_SERVER = 'fixture-server',
   MOCK_SERVER = 'mock-server',
   COMMAND_QUEUE_SERVER = 'command-queue-server',
   DAPP_SERVER = 'dapp-server',
-  DAPP_SERVER_1 = 'dapp-server-1',
   GANACHE = 'ganache',
   ANVIL = 'anvil',
 }
 
-export interface PortRequest {
-  resourceId: ResourceId | string;
-  preferredPort?: number;
-  minPort?: number;
-  maxPort?: number;
-  maxAttempts?: number;
-}
-
 export interface AllocatedPort {
   port: number;
-  resourceId: ResourceId | string;
+  resourceType: ResourceType;
+  instanceId?: string;
   allocatedAt: Date;
 }
 
 export default class PortManager {
   private static instance: PortManager | null = null;
 
-  private allocatedPorts: Map<number, AllocatedPort> = new Map();
-
-  private resourceToPort: Map<string, number> = new Map();
-
-  private static readonly DEFAULT_PORTS: Record<ResourceId, number> = {
-    [ResourceId.FIXTURE_SERVER]: DEFAULT_FIXTURE_SERVER_PORT,
-    [ResourceId.MOCK_SERVER]: DEFAULT_MOCKSERVER_PORT,
-    [ResourceId.COMMAND_QUEUE_SERVER]: DEFAULT_COMMAND_QUEUE_SERVER_PORT,
-    [ResourceId.DAPP_SERVER]: DEFAULT_DAPP_SERVER_PORT,
-    [ResourceId.DAPP_SERVER_1]: DEFAULT_DAPP_SERVER_PORT + 1,
-    [ResourceId.GANACHE]: DEFAULT_GANACHE_PORT,
-    [ResourceId.ANVIL]: DEFAULT_ANVIL_PORT,
-  };
+  private singleResourcePorts: Map<ResourceType, AllocatedPort> = new Map();
+  private multiResourcePorts: Map<ResourceType, Map<string, AllocatedPort>> =
+    new Map();
 
   private constructor() {
     logger.debug('PortManager singleton instance created');
@@ -75,128 +49,258 @@ export default class PortManager {
   }
 
   /**
-   * Gets an available port for a resource.
-   * Returns the preferred port if available, otherwise finds the next available port.
-   * On BrowserStack, always returns the static default port.
+   * Allocates a port for a single-instance resource.
+   * Allocates a random port from the range (40000-60000).
    *
-   * @param request - Port request parameters
-   * @returns Available port number
+   * @param resourceType - Type of resource to allocate port for
+   * @returns Allocated port information
    */
-  public async getAvailablePort(request: PortRequest): Promise<number> {
-    const {
-      resourceId,
-      preferredPort,
-      maxPort = 60000,
-      maxAttempts = 100,
-    } = request;
+  public async allocatePort(
+    resourceType: ResourceType,
+  ): Promise<AllocatedPort> {
+    logger.debug(`Allocating port for resource: ${resourceType}`);
 
-    logger.debug(`Getting available port for resource: ${resourceId}`);
-
-    const existingPort = this.resourceToPort.get(resourceId);
-    if (existingPort) {
+    const existing = this.singleResourcePorts.get(resourceType);
+    if (existing) {
       logger.debug(
-        `Resource ${resourceId} already has port ${existingPort} allocated`,
+        `Resource ${resourceType} already has port ${existing.port} allocated`,
       );
-      return existingPort;
+      return existing;
     }
 
-    // On BrowserStack, use static ports
-    if (this.isBrowserStack()) {
-      const staticPort = PortManager.DEFAULT_PORTS[resourceId as ResourceId];
-      logger.debug(
-        `BrowserStack detected - using static port ${staticPort} for ${resourceId}`,
-      );
-      this.allocatePortForResource(staticPort, resourceId);
-      return staticPort;
-    }
+    // Always allocate random port
+    logger.debug(`Allocating random port for ${resourceType}`);
+    const portToUse = await this.findNextAvailablePort(40000, 60000, 100);
 
-    // Determine preferred port
-    const defaultPort =
-      preferredPort ?? PortManager.DEFAULT_PORTS[resourceId as ResourceId];
-
-    // If no default port is available, find any available port
-    if (defaultPort === undefined) {
-      logger.debug(`No default port for ${resourceId}, finding available port`);
-      const portToUse = await this.findNextAvailablePort(
-        30000,
-        maxPort,
-        maxAttempts,
-      );
-      this.allocatePortForResource(portToUse, resourceId);
-      logger.info(`✓ Port ${portToUse} allocated for resource: ${resourceId}`);
-      return portToUse;
-    }
-
-    // Check if preferred port is available
-    let portToUse: number;
-    if (
-      this.isPortAllocated(defaultPort) ||
-      !(await this.isPortAvailable(defaultPort))
-    ) {
-      logger.debug(
-        `Port ${defaultPort} not available, finding next available port`,
-      );
-      portToUse = await this.findNextAvailablePort(
-        defaultPort + 1,
-        maxPort,
-        maxAttempts,
-      );
-    } else {
-      logger.debug(`Port ${defaultPort} is available for ${resourceId}`);
-      portToUse = defaultPort;
-    }
-
-    this.allocatePortForResource(portToUse, resourceId);
-    logger.info(`✓ Port ${portToUse} allocated for resource: ${resourceId}`);
-    return portToUse;
+    return this.createAndStoreAllocation(resourceType, portToUse);
   }
 
-  private allocatePortForResource(port: number, resourceId: string): void {
+  /**
+   * Allocates a port for a multi-instance resource (e.g., multiple dapp servers).
+   * Allocates a random port from the range (40000-60000).
+   *
+   * @param resourceType - Type of resource to allocate port for
+   * @param instanceId - Unique identifier for this instance
+   * @returns Allocated port information
+   */
+  public async allocateMultiInstancePort(
+    resourceType: ResourceType,
+    instanceId: string,
+  ): Promise<AllocatedPort> {
+    logger.debug(
+      `Allocating port for multi-instance resource: ${resourceType}, instance: ${instanceId}`,
+    );
+
+    // Check if this instance already has a port
+    const instanceMap = this.multiResourcePorts.get(resourceType);
+    if (instanceMap) {
+      const existing = instanceMap.get(instanceId);
+      if (existing) {
+        logger.debug(
+          `Instance ${instanceId} of ${resourceType} already has port ${existing.port}`,
+        );
+        return existing;
+      }
+    }
+
+    logger.debug(
+      `Allocating random port for multi-instance ${resourceType}:${instanceId}`,
+    );
+    const portToUse = await this.findNextAvailablePort(40000, 60000, 100);
+
+    return this.createAndStoreMultiInstanceAllocation(
+      resourceType,
+      instanceId,
+      portToUse,
+    );
+  }
+
+  private createAndStoreAllocation(
+    resourceType: ResourceType,
+    port: number,
+  ): AllocatedPort {
     const allocation: AllocatedPort = {
       port,
-      resourceId,
+      resourceType,
       allocatedAt: new Date(),
     };
-    this.allocatedPorts.set(port, allocation);
-    this.resourceToPort.set(resourceId, port);
+    this.singleResourcePorts.set(resourceType, allocation);
+    logger.info(`✓ Port ${port} allocated for resource: ${resourceType}`);
+    return allocation;
   }
 
-  public releasePort(port: number): void {
-    const allocation = this.allocatedPorts.get(port);
+  private createAndStoreMultiInstanceAllocation(
+    resourceType: ResourceType,
+    instanceId: string,
+    port: number,
+  ): AllocatedPort {
+    const allocation: AllocatedPort = {
+      port,
+      resourceType,
+      instanceId,
+      allocatedAt: new Date(),
+    };
+
+    let instanceMap = this.multiResourcePorts.get(resourceType);
+    if (!instanceMap) {
+      instanceMap = new Map();
+      this.multiResourcePorts.set(resourceType, instanceMap);
+    }
+    instanceMap.set(instanceId, allocation);
+
+    logger.info(
+      `✓ Port ${port} allocated for resource: ${resourceType}, instance: ${instanceId}`,
+    );
+    return allocation;
+  }
+
+  /**
+   * Gets the port for a single-instance resource.
+   *
+   * @param resourceType - Type of resource
+   * @returns Port number or undefined if not allocated
+   */
+  public getPort(resourceType: ResourceType): number | undefined {
+    return this.singleResourcePorts.get(resourceType)?.port;
+  }
+
+  /**
+   * Gets the port for a specific instance of a multi-instance resource.
+   *
+   * @param resourceType - Type of resource
+   * @param instanceId - Instance identifier
+   * @returns Port number or undefined if not allocated
+   */
+  public getMultiInstancePort(
+    resourceType: ResourceType,
+    instanceId: string,
+  ): number | undefined {
+    return this.multiResourcePorts.get(resourceType)?.get(instanceId)?.port;
+  }
+
+  /**
+   * Gets all ports allocated for a multi-instance resource.
+   *
+   * @param resourceType - Type of resource
+   * @returns Array of all allocations for this resource type
+   */
+  public getAllInstancePorts(resourceType: ResourceType): AllocatedPort[] {
+    const instanceMap = this.multiResourcePorts.get(resourceType);
+    if (!instanceMap) {
+      return [];
+    }
+    return Array.from(instanceMap.values());
+  }
+
+  /**
+   * Releases the port for a single-instance resource.
+   *
+   * @param resourceType - Type of resource to release
+   */
+  public releasePort(resourceType: ResourceType): void {
+    const allocation = this.singleResourcePorts.get(resourceType);
     if (allocation) {
       logger.debug(
-        `Releasing port ${port} (resource: ${allocation.resourceId})`,
+        `Releasing port ${allocation.port} (resource: ${resourceType})`,
       );
-      this.allocatedPorts.delete(port);
-      this.resourceToPort.delete(allocation.resourceId);
+      this.singleResourcePorts.delete(resourceType);
     } else {
       logger.debug(
-        `Attempted to release port ${port} but it was not allocated`,
+        `Attempted to release port for ${resourceType} but it was not allocated`,
       );
     }
   }
 
+  /**
+   * Releases the port for a specific instance of a multi-instance resource.
+   *
+   * @param resourceType - Type of resource
+   * @param instanceId - Instance identifier
+   */
+  public releaseMultiInstancePort(
+    resourceType: ResourceType,
+    instanceId: string,
+  ): void {
+    const instanceMap = this.multiResourcePorts.get(resourceType);
+    if (instanceMap) {
+      const allocation = instanceMap.get(instanceId);
+      if (allocation) {
+        logger.debug(
+          `Releasing port ${allocation.port} (resource: ${resourceType}, instance: ${instanceId})`,
+        );
+        instanceMap.delete(instanceId);
+        if (instanceMap.size === 0) {
+          this.multiResourcePorts.delete(resourceType);
+        }
+      } else {
+        logger.debug(
+          `Attempted to release port for ${resourceType}:${instanceId} but it was not allocated`,
+        );
+      }
+    }
+  }
+
+  /**
+   * Releases all ports for a multi-instance resource.
+   *
+   * @param resourceType - Type of resource
+   */
+  public releaseAllInstancesOf(resourceType: ResourceType): void {
+    const instanceMap = this.multiResourcePorts.get(resourceType);
+    if (instanceMap) {
+      const count = instanceMap.size;
+      logger.info(
+        `Releasing all ${count} instance(s) of resource: ${resourceType}`,
+      );
+      this.multiResourcePorts.delete(resourceType);
+    } else {
+      logger.debug(`No instances of ${resourceType} to release`);
+    }
+  }
+
+  /**
+   * Releases all allocated ports.
+   */
   public releaseAll(): void {
-    const count = this.allocatedPorts.size;
-    if (count > 0) {
-      logger.info(`Releasing all ${count} allocated port(s)`);
-      this.allocatedPorts.clear();
-      this.resourceToPort.clear();
+    const singleCount = this.singleResourcePorts.size;
+    let multiCount = 0;
+    this.multiResourcePorts.forEach((instanceMap) => {
+      multiCount += instanceMap.size;
+    });
+
+    const totalCount = singleCount + multiCount;
+    if (totalCount > 0) {
+      logger.info(
+        `Releasing all ${totalCount} allocated port(s) (${singleCount} single, ${multiCount} multi-instance)`,
+      );
+      this.singleResourcePorts.clear();
+      this.multiResourcePorts.clear();
     } else {
       logger.debug('No ports to release');
     }
   }
 
+  /**
+   * Checks if a port is currently allocated by any resource.
+   *
+   * @param port - Port number to check
+   * @returns True if port is allocated
+   */
   public isPortAllocated(port: number): boolean {
-    return this.allocatedPorts.has(port);
-  }
+    for (const allocation of this.singleResourcePorts.values()) {
+      if (allocation.port === port) {
+        return true;
+      }
+    }
+    for (const instanceMap of this.multiResourcePorts.values()) {
+      for (const allocation of instanceMap.values()) {
+        if (allocation.port === port) {
+          return true;
+        }
+      }
+    }
 
-  public getPortForResource(resourceId: string): number | undefined {
-    return this.resourceToPort.get(resourceId);
-  }
-
-  private isBrowserStack(): boolean {
-    return process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
+    return false;
   }
 
   private async isPortAvailable(port: number): Promise<boolean> {
@@ -221,13 +325,24 @@ export default class PortManager {
     });
   }
 
+  /**
+   * Finds the next available port in the specified range.
+   * @param startPort - Start of port range (default: 40000)
+   * @param maxPort - End of port range (default: 60000, giving 20,000 ports)
+   * @param maxAttempts - Maximum number of ports to try (default: 100)
+   * @returns Available port number
+   * @throws Error if no available port is found after maxAttempts
+   */
   private async findNextAvailablePort(
-    startPort: number,
+    startPort: number = 40000,
     maxPort: number = 60000,
     maxAttempts: number = 100,
   ): Promise<number> {
+    const range = maxPort - startPort + 1;
+    const randomOffset = Math.floor(Math.random() * range);
+    let currentPort = startPort + randomOffset;
+
     let attempts = 0;
-    let currentPort = startPort;
 
     while (attempts < maxAttempts) {
       if (!this.isPortAllocated(currentPort)) {
@@ -241,13 +356,29 @@ export default class PortManager {
 
       currentPort++;
       if (currentPort > maxPort) {
-        currentPort = 30000;
+        currentPort = startPort;
       }
+
       attempts++;
     }
 
+    const allocatedPorts: number[] = [];
+
+    for (const allocation of this.singleResourcePorts.values()) {
+      allocatedPorts.push(allocation.port);
+    }
+
+    // Collect all allocated ports from multi-instance resources
+    for (const instanceMap of this.multiResourcePorts.values()) {
+      for (const allocation of instanceMap.values()) {
+        allocatedPorts.push(allocation.port);
+      }
+    }
+
     throw new Error(
-      `Failed to find an available port after ${maxAttempts} attempts (started from ${startPort})`,
+      `Failed to find an available port after ${maxAttempts} attempts. ` +
+        `Range: ${startPort}-${maxPort}. ` +
+        `Currently allocated ports: ${allocatedPorts.length > 0 ? allocatedPorts.sort((a, b) => a - b).join(', ') : 'none'}`,
     );
   }
 }

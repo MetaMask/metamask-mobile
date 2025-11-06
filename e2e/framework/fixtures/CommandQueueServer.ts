@@ -2,7 +2,7 @@ import { getLocalHost } from './FixtureUtils';
 import Koa, { Context } from 'koa';
 import { createLogger } from '../logger';
 import { CommandType, Resource, ServerStatus } from '../types';
-import PortManager from '../PortManager';
+import PortManager, { ResourceType } from '../PortManager';
 
 const logger = createLogger({
   name: 'CommandQueueServer',
@@ -145,7 +145,9 @@ class CommandQueueServer implements Resource {
       this._server.once('close', () => {
         // Release the port after server is stopped
         if (this._serverPort > 0) {
-          PortManager.getInstance().releasePort(this._serverPort);
+          PortManager.getInstance().releasePort(
+            ResourceType.COMMAND_QUEUE_SERVER,
+          );
         }
         resolve(undefined);
       });

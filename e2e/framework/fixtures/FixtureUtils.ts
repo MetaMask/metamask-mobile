@@ -1,3 +1,4 @@
+/* eslint-disable import/no-nodejs-modules */
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
@@ -5,21 +6,111 @@ import {
   type InternalScopesObject,
 } from '@metamask/chain-agnostic-permission';
 
-import { DEFAULT_GANACHE_PORT } from '../../../app/util/test/ganache';
-import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager';
-import {
-  DEFAULT_FIXTURE_SERVER_PORT,
-  DEFAULT_MOCKSERVER_PORT,
-  DEFAULT_DAPP_SERVER_PORT,
-  DEFAULT_COMMAND_QUEUE_SERVER_PORT,
-} from '../Constants';
 import { createLogger } from '../logger';
-import PortManager, { ResourceId } from '../PortManager';
+import PortManager, { ResourceType } from '../PortManager';
 import { Resource } from '../types';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import {
+  FALLBACK_FIXTURE_SERVER_PORT,
+  FALLBACK_COMMAND_QUEUE_SERVER_PORT,
+  FALLBACK_MOCKSERVER_PORT,
+  FALLBACK_GANACHE_PORT,
+  FALLBACK_DAPP_SERVER_PORT,
+} from '../Constants';
+import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager';
+
+const execAsync = promisify(exec);
 
 const logger = createLogger({
   name: 'FixtureUtils',
 });
+
+/**
+ * Maps ResourceType to fallback port.
+ * These ports are used in fixture data and are mapped to actual allocated ports
+ * via adb reverse on Android or overridden via LaunchArgs on iOS.
+ *
+ * @param resourceType - The type of resource
+ * @returns The fallback port for the resource
+ */
+function getFallbackPort(resourceType: ResourceType): number {
+  switch (resourceType) {
+    case ResourceType.FIXTURE_SERVER:
+      return FALLBACK_FIXTURE_SERVER_PORT;
+    case ResourceType.COMMAND_QUEUE_SERVER:
+      return FALLBACK_COMMAND_QUEUE_SERVER_PORT;
+    case ResourceType.MOCK_SERVER:
+      return FALLBACK_MOCKSERVER_PORT;
+    case ResourceType.GANACHE:
+      return FALLBACK_GANACHE_PORT;
+    case ResourceType.ANVIL:
+      return DEFAULT_ANVIL_PORT;
+    case ResourceType.DAPP_SERVER:
+      return FALLBACK_DAPP_SERVER_PORT;
+    default:
+      throw new Error(`No fallback port defined for ${resourceType}`);
+  }
+}
+
+/**
+ * Sets up adb reverse for Android to map fallback port to actual allocated port.
+ *
+ * WHY THIS IS NEEDED:
+ * - iOS: LaunchArgs work → app receives actual allocated ports at runtime
+ * - Android: LaunchArgs DON'T work → app always uses fallback ports
+ * - Solution: Use adb reverse ONLY for ports that would be passed via LaunchArgs
+ *
+ * IMPORTANT: We only forward LaunchArgs ports (fixture server, command queue server, mock server).
+ * Other resources (Ganache, Anvil, Dapps) are accessed through MockServer proxy which handles
+ * port translation, so they don't need adb reverse.
+ *
+ * @param resourceType - The type of resource
+ * @param actualPort - The actual port allocated by PortManager
+ * @param _instanceIndex - Optional instance index for multi-instance resources (not used for LaunchArgs ports)
+ */
+async function setupAndroidPortForwarding(
+  resourceType: ResourceType,
+  actualPort: number,
+  _instanceIndex?: number,
+): Promise<void> {
+  try {
+    // Only set up port forwarding on Android
+    if (device.getPlatform() !== 'android') {
+      return;
+    }
+
+    // Forward all dynamically allocated ports that the app needs to access
+    // - LaunchArgs ports: Android doesn't support LaunchArgs, needs adb reverse
+    // - Dapp servers: Browser navigation bypasses MockServer, needs adb reverse
+    // - Ganache/Anvil: Even though fixture is updated, some code paths may use fallback ports
+    const forwardedResources = [
+      ResourceType.FIXTURE_SERVER,
+      ResourceType.COMMAND_QUEUE_SERVER,
+      ResourceType.MOCK_SERVER,
+      ResourceType.DAPP_SERVER,
+      ResourceType.GANACHE,
+      ResourceType.ANVIL,
+    ];
+
+    if (!forwardedResources.includes(resourceType)) {
+      return;
+    }
+
+    const fallbackPort = getFallbackPort(resourceType);
+    const command = `adb reverse tcp:${fallbackPort} tcp:${actualPort}`;
+    await execAsync(command);
+    logger.debug(
+      `✓ Android port forwarding: ${fallbackPort} → ${actualPort} (${resourceType})`,
+    );
+  } catch (error) {
+    logger.error(
+      `Failed to set up Android port forwarding for ${resourceType}:`,
+      error,
+    );
+    throw error;
+  }
+}
 
 /**
  * Starts a resource with automatic port retry logic.
@@ -29,29 +120,28 @@ const logger = createLogger({
  * with a new port if the start fails with EADDRINUSE.
  */
 export async function startResourceWithRetry(
-  resourceId: ResourceId | string,
+  resourceType: ResourceType,
   resource: Resource,
-  preferredPort?: number,
   maxRetries: number = 3,
 ): Promise<number> {
   let attempt = 0;
   let lastError: Error | undefined;
-  let currentPreferredPort = preferredPort;
 
   while (attempt <= maxRetries) {
     try {
-      const port = await PortManager.getInstance().getAvailablePort({
-        resourceId,
-        preferredPort: currentPreferredPort,
-      });
+      const allocation =
+        await PortManager.getInstance().allocatePort(resourceType);
 
-      resource.setServerPort(port);
+      // Set up Android port forwarding before starting the resource
+      await setupAndroidPortForwarding(resourceType, allocation.port);
+
+      resource.setServerPort(allocation.port);
       await resource.start();
 
       logger.debug(
-        `✓ Resource ${resourceId} started successfully on port ${port}`,
+        `✓ Resource ${resourceType} started successfully on port ${allocation.port}`,
       );
-      return port;
+      return allocation.port;
     } catch (error) {
       lastError = error as Error;
       const errorMessage = (
@@ -59,12 +149,11 @@ export async function startResourceWithRetry(
       ).toLowerCase();
 
       // Get the failed port before releasing
-      const failedPort =
-        PortManager.getInstance().getPortForResource(resourceId);
+      const failedPort = PortManager.getInstance().getPort(resourceType);
 
       // Release the failed port allocation
       if (failedPort !== undefined) {
-        PortManager.getInstance().releasePort(failedPort);
+        PortManager.getInstance().releasePort(resourceType);
       }
 
       // Check if it's a port conflict error that we should retry
@@ -74,18 +163,15 @@ export async function startResourceWithRetry(
           errorMessage.includes('address already in use'))
       ) {
         attempt++;
-        // Try next port on retry to avoid the same conflict
-        currentPreferredPort =
-          failedPort !== undefined ? failedPort + 1 : undefined;
         logger.debug(
-          `Port ${failedPort} conflict for ${resourceId}, retrying with port ${currentPreferredPort || 'next available'} (${attempt}/${maxRetries})`,
+          `Port ${failedPort} conflict for ${resourceType}, retrying with new random port (${attempt}/${maxRetries})`,
         );
         continue;
       }
 
       // Non-retryable error or max retries reached
       logger.error(
-        `Failed to start ${resourceId} after ${attempt} attempts:`,
+        `Failed to start ${resourceType} after ${attempt} attempts:`,
         error instanceof Error ? error.message : String(error),
       );
       throw error;
@@ -93,7 +179,94 @@ export async function startResourceWithRetry(
   }
 
   throw new Error(
-    `Failed to start ${resourceId} after ${maxRetries} retries: ${lastError?.message}`,
+    `Failed to start ${resourceType} after ${maxRetries} retries: ${lastError?.message}`,
+  );
+}
+
+/**
+ * Starts a multi-instance resource with automatic port retry logic.
+ *
+ * Similar to startResourceWithRetry but for resources that can have multiple instances
+ * (e.g., multiple dapp servers). Uses multi-instance port allocation.
+ */
+export async function startMultiInstanceResourceWithRetry(
+  resourceType: ResourceType,
+  instanceId: string,
+  resource: Resource,
+  maxRetries: number = 3,
+): Promise<number> {
+  let attempt = 0;
+  let lastError: Error | undefined;
+
+  while (attempt <= maxRetries) {
+    try {
+      const allocation =
+        await PortManager.getInstance().allocateMultiInstancePort(
+          resourceType,
+          instanceId,
+        );
+
+      // Extract instance index from instanceId (e.g., "dapp-server-1" -> 1)
+      const instanceIndex = parseInt(instanceId.split('-').pop() || '0', 10);
+
+      // Set up Android port forwarding before starting the resource
+      await setupAndroidPortForwarding(
+        resourceType,
+        allocation.port,
+        instanceIndex,
+      );
+
+      resource.setServerPort(allocation.port);
+      await resource.start();
+
+      logger.debug(
+        `✓ Multi-instance resource ${resourceType}:${instanceId} started successfully on port ${allocation.port}`,
+      );
+      return allocation.port;
+    } catch (error) {
+      lastError = error as Error;
+      const errorMessage = (
+        error instanceof Error ? error.message : String(error)
+      ).toLowerCase();
+
+      // Get the failed port before releasing
+      const failedPort = PortManager.getInstance().getMultiInstancePort(
+        resourceType,
+        instanceId,
+      );
+
+      // Release the failed port allocation
+      if (failedPort !== undefined) {
+        PortManager.getInstance().releaseMultiInstancePort(
+          resourceType,
+          instanceId,
+        );
+      }
+
+      // Check if it's a port conflict error that we should retry
+      if (
+        attempt < maxRetries &&
+        (errorMessage.includes('eaddrinuse') ||
+          errorMessage.includes('address already in use'))
+      ) {
+        attempt++;
+        logger.debug(
+          `Port ${failedPort} conflict for ${resourceType}:${instanceId}, retrying with new random port (${attempt}/${maxRetries})`,
+        );
+        continue;
+      }
+
+      // Non-retryable error or max retries reached
+      logger.error(
+        `Failed to start ${resourceType}:${instanceId} after ${attempt} attempts:`,
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  throw new Error(
+    `Failed to start ${resourceType}:${instanceId} after ${maxRetries} retries: ${lastError?.message}`,
   );
 }
 
@@ -137,24 +310,39 @@ export function getLocalHost() {
   return isBrowserStack() ? 'bs-local.com' : 'localhost';
 }
 
-function getServerPort(
-  resourceId: ResourceId | string,
-  defaultPort: number,
-): number {
-  if (isBrowserStack()) {
-    return defaultPort;
-  }
-  const allocatedPort =
-    PortManager.getInstance().getPortForResource(resourceId);
+/**
+ * Gets a port for use in fixture data construction.
+ * Returns the fallback port which will be mapped to the actual allocated port.
+ * Safe to call before ports are allocated (during fixture building).
+ *
+ * @param resourceType - The type of resource
+ * @returns The fallback port to use in fixture data
+ */
+function getFixtureDataPort(resourceType: ResourceType): number {
+  return getFallbackPort(resourceType);
+}
 
-  if (allocatedPort !== undefined) {
-    logger.debug(
-      `Using PortManager allocated port ${allocatedPort} for ${resourceId}`,
+/**
+ * Gets the runtime port for a resource that has been allocated by PortManager.
+ * This should be called during test execution, after startResourceWithRetry().
+ * Throws an error if the port hasn't been allocated yet.
+ *
+ * @param resourceType - The type of resource
+ * @returns The allocated port for the resource
+ */
+function getServerPort(resourceType: ResourceType): number {
+  const allocatedPort = PortManager.getInstance().getPort(resourceType);
+
+  if (allocatedPort === undefined) {
+    throw new Error(
+      `Port not allocated for ${resourceType}. Ensure startResourceWithRetry() is called before accessing the port.`,
     );
-    return allocatedPort;
   }
 
-  return defaultPort;
+  logger.debug(
+    `Using PortManager allocated port ${allocatedPort} for ${resourceType}`,
+  );
+  return allocatedPort;
 }
 
 /**
@@ -164,52 +352,226 @@ function getServerPort(
  *
  * @returns {string} The URL for the second test dapp
  */
+// ========== New Clean Dapp API (Use These) ==========
+
+/**
+ * Gets the dapp URL for use during test execution.
+ * Automatically handles platform differences (Android uses fallback ports, iOS uses actual allocated ports).
+ *
+ * @param index - The dapp index (0 for first dapp, 1 for second dapp, etc.)
+ * @returns The dapp URL (e.g., "http://localhost:8085" on Android, "http://localhost:59517" on iOS)
+ *
+ * @example
+ * // Get first dapp URL
+ * const url = getDappUrl(0);
+ *
+ * // Get second dapp URL
+ * const url2 = getDappUrl(1);
+ */
+export function getDappUrl(index: number): string {
+  const port =
+    device.getPlatform() === 'android'
+      ? FALLBACK_DAPP_SERVER_PORT + index
+      : getDappPort(index);
+  return `http://localhost:${port}`;
+}
+
+/**
+ * Gets the actual allocated dapp port (iOS runtime only).
+ * On Android, use getDappUrl() instead as it handles adb reverse mapping.
+ *
+ * @param index - The dapp index (0 for first dapp, 1 for second dapp, etc.)
+ * @returns The actual allocated port from PortManager
+ * @throws Error if port not allocated (must call startMultiInstanceResourceWithRetry first)
+ */
+export function getDappPort(index: number): number {
+  const instanceId = `dapp-server-${index}`;
+  const allocatedPort = PortManager.getInstance().getMultiInstancePort(
+    ResourceType.DAPP_SERVER,
+    instanceId,
+  );
+
+  if (allocatedPort === undefined) {
+    throw new Error(
+      `Port not allocated for ${instanceId}. Ensure startMultiInstanceResourceWithRetry() is called before accessing the port.`,
+    );
+  }
+
+  logger.debug(
+    `Using PortManager allocated port ${allocatedPort} for ${instanceId}`,
+  );
+  return allocatedPort;
+}
+
+/**
+ * Gets the dapp URL for use in fixture data construction.
+ * Safe to call before ports are allocated (returns fallback port).
+ *
+ * @param index - The dapp index (0 for first dapp, 1 for second dapp, etc.)
+ * @returns The dapp URL with fallback port (e.g., "http://localhost:8085", "http://localhost:8086")
+ *
+ * @example
+ * // In FixtureBuilder constructor
+ * const url = getDappUrlForFixture(0); // "http://localhost:8085"
+ */
+export function getDappUrlForFixture(index: number): string {
+  return `http://localhost:${getDappPortForFixture(index)}`;
+}
+
+/**
+ * Gets the dapp port for use in fixture data construction.
+ * Safe to call before ports are allocated (returns fallback port).
+ *
+ * @param index - The dapp index (0 for first dapp, 1 for second dapp, etc.)
+ * @returns The fallback dapp port (8085, 8086, etc.)
+ */
+export function getDappPortForFixture(index: number): number {
+  return getFallbackPort(ResourceType.DAPP_SERVER) + index;
+}
+
+// ========== Deprecated Dapp Functions (Use getDappUrl/getDappPort instead) ==========
+
+/**
+ * @deprecated Use getDappUrl(1) instead
+ */
 export function getSecondTestDappLocalUrl() {
-  const host = device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1';
-  return `http://${host}:${getSecondTestDappPort()}`;
+  return getDappUrl(1);
 }
 
+/**
+ * @deprecated Use getDappUrl(index) instead
+ */
 export function getTestDappLocalUrlByDappCounter(dappCounter: number) {
-  const host = device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1';
-  const port = getDappServerPortByIndex(dappCounter);
-  return `http://${host}:${port}`;
+  return getDappUrl(dappCounter);
 }
 
+/**
+ * @deprecated Use getDappPort(index) instead
+ */
 export function getDappServerPortByIndex(index: number): number {
-  const resourceId = `dapp-server-${index}`;
-  return getServerPort(resourceId, DEFAULT_DAPP_SERVER_PORT + index);
+  return getDappPort(index);
 }
 
+/**
+ * @deprecated Use getDappUrl(0) instead
+ */
 export function getTestDappLocalUrl() {
-  return `http://localhost:${getLocalTestDappPort()}`;
+  return getDappUrl(0);
 }
 
 export function getGanachePort(): number {
-  return getServerPort(ResourceId.GANACHE, DEFAULT_GANACHE_PORT);
+  return getServerPort(ResourceType.GANACHE);
 }
 export function AnvilPort(): number {
-  return getServerPort(ResourceId.ANVIL, DEFAULT_ANVIL_PORT);
+  return getServerPort(ResourceType.ANVIL);
 }
 export function getFixturesServerPort(): number {
-  return getServerPort(ResourceId.FIXTURE_SERVER, DEFAULT_FIXTURE_SERVER_PORT);
+  return getServerPort(ResourceType.FIXTURE_SERVER);
 }
 export function getCommandQueueServerPort(): number {
-  return getServerPort(
-    ResourceId.COMMAND_QUEUE_SERVER,
-    DEFAULT_COMMAND_QUEUE_SERVER_PORT,
-  );
+  return getServerPort(ResourceType.COMMAND_QUEUE_SERVER);
 }
 
+/**
+ * @deprecated Use getDappPort(0) instead
+ */
 export function getLocalTestDappPort(): number {
-  return getServerPort(ResourceId.DAPP_SERVER, DEFAULT_DAPP_SERVER_PORT);
+  return getDappPort(0);
 }
 
 export function getMockServerPort(): number {
-  return getServerPort(ResourceId.MOCK_SERVER, DEFAULT_MOCKSERVER_PORT);
+  return getServerPort(ResourceType.MOCK_SERVER);
 }
 
+// ========== Fixture Data Port Getters (Safe to call before allocation) ==========
+//
+// IMPORTANT: Use these "*ForFixture" functions when building fixture data!
+//
+// Port Allocation Timing:
+// - Fixture data is constructed FIRST (in FixtureBuilder constructor)
+// - Ports are allocated LATER (during withFixtures() execution)
+//
+// Two Sets of Functions:
+// 1. Runtime port getters (e.g., getGanachePort())
+//    - Return actual PortManager-allocated ports
+//    - Throw error if called before allocation
+//    - Use these during test execution
+//
+// 2. Fixture data port getters (e.g., getGanachePortForFixture())
+//    - Return fallback ports (8546, 8085, etc.)
+//    - Safe to call anytime, including during fixture construction
+//    - Use these when building fixture data in FixtureBuilder
+//
+// Port Mapping:
+// - Fixture data always contains fallback ports (e.g., ganache: 8546)
+// - Android: adb reverse maps fallback ports to actual allocated ports
+// - iOS: LaunchArgs override fallback ports with actual allocated ports
+//
+// These functions return fallback ports for use in fixture data construction.
+// They can be called during FixtureBuilder construction, before ports are allocated.
+
+/**
+ * Gets the Ganache port for use in fixture data.
+ * Safe to call during fixture construction (before port allocation).
+ * @returns The fallback Ganache port (8546)
+ */
+export function getGanachePortForFixture(): number {
+  return getFixtureDataPort(ResourceType.GANACHE);
+}
+
+/**
+ * Gets the Anvil port for use in fixture data.
+ * Safe to call during fixture construction (before port allocation).
+ * @returns The fallback Anvil port (same as Ganache: 8546)
+ */
+export function getAnvilPortForFixture(): number {
+  return getFixtureDataPort(ResourceType.ANVIL);
+}
+
+/**
+ * Gets the fixture server port for use in fixture data.
+ * Safe to call during fixture construction (before port allocation).
+ * @returns The fallback fixture server port (12345)
+ */
+export function getFixturesServerPortForFixture(): number {
+  return getFixtureDataPort(ResourceType.FIXTURE_SERVER);
+}
+
+/**
+ * Gets the mock server port for use in fixture data.
+ * Safe to call during fixture construction (before port allocation).
+ * @returns The fallback mock server port (8000)
+ */
+export function getMockServerPortForFixture(): number {
+  return getFixtureDataPort(ResourceType.MOCK_SERVER);
+}
+
+/**
+ * @deprecated Use getDappPortForFixture(0) instead
+ */
+export function getLocalTestDappPortForFixture(): number {
+  return getDappPortForFixture(0);
+}
+
+/**
+ * @deprecated Use getDappUrlForFixture(0) instead
+ */
+export function getTestDappLocalUrlForFixture(): string {
+  return getDappUrlForFixture(0);
+}
+
+/**
+ * @deprecated Use getDappUrlForFixture(1) instead
+ */
+export function getSecondTestDappLocalUrlForFixture(): string {
+  return getDappUrlForFixture(1);
+}
+
+/**
+ * @deprecated Use getDappPort(1) instead
+ */
 export function getSecondTestDappPort(): number {
-  return getServerPort(ResourceId.DAPP_SERVER_1, DEFAULT_DAPP_SERVER_PORT + 1);
+  return getDappPort(1);
 }
 
 interface Caip25Permission {

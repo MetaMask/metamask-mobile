@@ -5,7 +5,7 @@ import serveHandler from 'serve-handler';
 import { getLocalHost } from './fixtures/FixtureUtils';
 import { DappVariants } from './Constants';
 import path from 'path';
-import PortManager from './PortManager';
+import PortManager, { ResourceType } from './PortManager';
 
 const logger = createLogger({
   name: 'DappServer',
@@ -55,7 +55,11 @@ export default class DappServer implements Resource {
     this._serverStatus = ServerStatus.STOPPED;
     // Release the port after server is stopped
     if (this._serverPort > 0) {
-      PortManager.getInstance().releasePort(this._serverPort);
+      const instanceId = `dapp-server-${this.dappCounter}`;
+      PortManager.getInstance().releaseMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        instanceId,
+      );
     }
     logger.debug(
       `Dapp server ${this.dappVariant} stopped on port ${this._serverPort}`,
