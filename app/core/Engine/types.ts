@@ -54,10 +54,6 @@ import {
   MultichainAssetsRatesControllerState,
   MultichainAssetsRatesControllerEvents,
   MultichainAssetsRatesControllerActions,
-  RatesController,
-  RatesControllerState,
-  RatesControllerActions,
-  RatesControllerEvents,
   CodefiTokenPricesServiceV2,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
@@ -353,7 +349,6 @@ type RequiredControllers = Omit<
   | 'ErrorReportingService'
   | 'MultichainRouter'
   | 'PPOMController'
-  | 'RatesController'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
 >;
@@ -366,7 +361,6 @@ type OptionalControllers = Pick<
   | 'ErrorReportingService'
   | 'MultichainRouter'
   | 'PPOMController'
-  | 'RatesController'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
 >;
@@ -428,7 +422,6 @@ type GlobalActions =
   | MultichainAssetsRatesControllerActions
   | MultichainTransactionsControllerActions
   | MultichainAccountServiceActions
-  | RatesControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | AccountTreeControllerActions
@@ -490,7 +483,6 @@ type GlobalEvents =
   | MultichainAssetsRatesControllerEvents
   | MultichainTransactionsControllerEvents
   | MultichainAccountServiceEvents
-  | RatesControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -596,7 +588,6 @@ export type Controllers = {
   MultichainRouter: MultichainRouter;
   MultichainTransactionsController: MultichainTransactionsController;
   MultichainAccountService: MultichainAccountService;
-  RatesController: RatesController;
   SnapKeyringBuilder: SnapKeyringBuilder;
   ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataController;
@@ -670,7 +661,6 @@ export type EngineState = {
   MultichainAssetsController: MultichainAssetsControllerState;
   MultichainAssetsRatesController: MultichainAssetsRatesControllerState;
   MultichainTransactionsController: MultichainTransactionsControllerState;
-  RatesController: RatesControllerState;
   ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataControllerState;
   MultichainNetworkController: MultichainNetworkControllerState;
@@ -739,7 +729,6 @@ export type ControllersToInitialize =
   | 'MultichainRouter'
   | 'MultichainTransactionsController'
   | 'MultichainAccountService'
-  | 'RatesController'
   | 'SnapKeyringBuilder'
   ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
