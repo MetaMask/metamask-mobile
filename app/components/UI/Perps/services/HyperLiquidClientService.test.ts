@@ -350,6 +350,7 @@ describe('HyperLiquidClientService', () => {
           testnet: false,
           endpoint: 'wss://api.hyperliquid.xyz/ws',
           timestamp: expect.any(String),
+          connectionState: 'connected',
         }),
       );
     });
