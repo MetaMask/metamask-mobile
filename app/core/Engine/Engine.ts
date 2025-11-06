@@ -159,7 +159,6 @@ import { nftDetectionControllerInit } from './controllers/nft-detection-controll
 import { smartTransactionsControllerInit } from './controllers/smart-transactions-controller-init';
 import { userStorageControllerInit } from './controllers/identity/user-storage-controller-init';
 import { authenticationControllerInit } from './controllers/identity/authentication-controller-init';
-import { ratesControllerInit } from './controllers/rates-controller-init';
 import { earnControllerInit } from './controllers/earn-controller-init';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
 import { swapsControllerInit } from './controllers/swaps-controller-init';
@@ -339,7 +338,6 @@ export class Engine {
         MultichainRouter: multichainRouterInit,
         MultichainTransactionsController: multichainTransactionsControllerInit,
         MultichainAccountService: multichainAccountServiceInit,
-        RatesController: ratesControllerInit,
         ///: END:ONLY_INCLUDE_IF
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
         NetworkEnablementController: networkEnablementControllerInit,
@@ -448,7 +446,6 @@ export class Engine {
     const multichainTransactionsController =
       controllersByName.MultichainTransactionsController;
     const multichainAccountService = controllersByName.MultichainAccountService;
-    const ratesController = controllersByName.RatesController;
     ///: END:ONLY_INCLUDE_IF
 
     const networkEnablementController =
