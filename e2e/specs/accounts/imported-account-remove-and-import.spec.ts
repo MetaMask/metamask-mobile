@@ -11,9 +11,6 @@ import Assertions from '../../framework/Assertions';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import { AccountListBottomSheetSelectorsText } from '../../selectors/wallet/AccountListBottomSheet.selectors';
-import { Mockttp } from 'mockttp';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import DeleteAccount from '../../pages/MultichainAccounts/DeleteAccount';
 
@@ -22,13 +19,6 @@ import DeleteAccount from '../../pages/MultichainAccounts/DeleteAccount';
 const TEST_PRIVATE_KEY =
   'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
 const ACCOUNT_INDEX = 1;
-
-const testSpecificMock = async (mockServer: Mockttp) => {
-  await setupRemoteFeatureFlagsMock(
-    mockServer,
-    remoteFeatureMultichainAccountsAccountDetailsV2(true),
-  );
-};
 
 describe(
   RegressionAccounts('removes and reimports an account using a private key'),
@@ -40,7 +30,6 @@ describe(
             .withImportedAccountKeyringController()
             .build(),
           restartDevice: true,
-          testSpecificMock,
         },
         async () => {
           await loginToApp();
