@@ -66,11 +66,6 @@ export interface BasicInfoFormData {
   ssn?: string;
 }
 
-const isPhoneAlreadyRegisteredError = (errorMessage: string): boolean => (
-    errorMessage.includes('2020') ||
-    errorMessage.toLowerCase().includes('phone number is already registered')
-  );
-
 const BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
@@ -79,6 +74,7 @@ const BasicInfo = (): JSX.Element => {
   const { selectedRegion, logoutFromProvider } = useDepositSDK();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isPhoneRegisteredError, setIsPhoneRegisteredError] = useState(false);
 
   const firstNameInputRef = useRef<TextInput>(null);
   const lastNameInputRef = useRef<TextInput>(null);
@@ -203,6 +199,7 @@ const BasicInfo = (): JSX.Element => {
 
     // Clear any previous errors when retrying
     setError(null);
+    setIsPhoneRegisteredError(false);
 
     trackEvent('RAMPS_BASIC_INFO_ENTERED', {
       region: selectedRegion?.isoCode || '',
@@ -233,11 +230,32 @@ const BasicInfo = (): JSX.Element => {
         }),
       );
     } catch (submissionError) {
-      setError(
-        submissionError instanceof Error && submissionError.message
-          ? submissionError.message
-          : strings('deposit.basic_info.unexpected_error'),
-      );
+      // Check for Transak error code 2020 (phone already registered)
+      // API returns: { error: { errorCode: 2020, message: "..." } }
+      const errorWithCode = submissionError as unknown as {
+        error?: { errorCode?: number; message?: string };
+      };
+      const isPhoneError = errorWithCode?.error?.errorCode === 2020;
+
+      setIsPhoneRegisteredError(isPhoneError);
+
+      // For error code 2020, extract email from message and format it
+      let errorMessage = '';
+      if (isPhoneError && errorWithCode?.error?.message) {
+        // Extract email from message like "...created with k****@pedalsup.com..."
+        const emailMatch = errorWithCode.error.message.match(/[\w*]+@[\w*.]+/);
+        const email = emailMatch ? emailMatch[0] : '';
+        errorMessage = email
+          ? `This phone number is already in use by ${email}. Log in using this email to continue.`
+          : errorWithCode.error.message;
+      } else {
+        errorMessage =
+          submissionError instanceof Error && submissionError.message
+            ? submissionError.message
+            : strings('deposit.basic_info.unexpected_error');
+      }
+
+      setError(errorMessage);
       Logger.error(
         submissionError as Error,
         'Unexpected error during basic info form submission',
@@ -246,13 +264,13 @@ const BasicInfo = (): JSX.Element => {
       setLoading(false);
     }
   }, [
-    previousFormData,
     validateFormData,
     formData,
     postKycForm,
     submitSsnDetails,
     navigation,
     quote,
+    previousFormData,
     selectedRegion?.isoCode,
     trackEvent,
   ]);
@@ -283,6 +301,7 @@ const BasicInfo = (): JSX.Element => {
     (field: keyof BasicInfoFormData, nextAction?: () => void) =>
       (value: string) => {
         setError(null);
+        setIsPhoneRegisteredError(false);
         const currentValue = formData[field] || '';
         const isAutofill = value.length - currentValue.length > 1;
 
@@ -320,7 +339,7 @@ const BasicInfo = (): JSX.Element => {
                   description={error}
                   severity={BannerAlertSeverity.Error}
                   actionButtonProps={
-                    isPhoneAlreadyRegisteredError(error)
+                    isPhoneRegisteredError
                       ? {
                           variant: ButtonVariants.Link,
                           label: strings('deposit.configuration_modal.log_out'),
