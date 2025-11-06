@@ -40,6 +40,17 @@ const createStyles = (colors: Colors) =>
     buyButton: {
       marginVertical: 5,
     },
+    centered: {
+      textAlign: 'center',
+    },
+    stockBadge: {
+      backgroundColor: colors.background.muted,
+      borderRadius: 12,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      alignSelf: 'flex-start',
+      marginLeft: 4,
+    },
     assetName: {
       flexDirection: 'row',
       gap: 8,
