@@ -73,6 +73,16 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
 
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useRoute: jest.fn(() => ({
+    params: {
+      entryPoint: 'homepage_new_prediction',
+    },
+  })),
+  useFocusEffect: jest.fn((callback) => callback()),
+}));
+
 jest.mock('react-native-reanimated', () => {
   const View = jest.requireActual('react-native').View;
   return {
@@ -81,6 +91,24 @@ jest.mock('react-native-reanimated', () => {
     },
     useAnimatedStyle: jest.fn(() => ({})),
     useSharedValue: jest.fn((val) => ({ value: val })),
+  };
+});
+
+jest.mock('../../services/PredictFeedSessionManager', () => {
+  const mockInstance = {
+    startSession: jest.fn(),
+    endSession: jest.fn(),
+    trackPageView: jest.fn(),
+    trackTabChange: jest.fn(),
+    enableAppStateListener: jest.fn(),
+    disableAppStateListener: jest.fn(),
+  };
+
+  return {
+    __esModule: true,
+    default: {
+      getInstance: jest.fn(() => mockInstance),
+    },
   };
 });
 
