@@ -1,8 +1,10 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { captureException } from '@sentry/react-native';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
+import { PREDICT_CONSTANTS } from '../constants/errors';
+import { ensureError } from '../utils/predictErrorHandler';
 import { AccountState } from '../providers/types';
 
 interface UsePredictWalletParams {
@@ -73,14 +75,17 @@ export const usePredictAccountState = ({
         );
 
         // Capture exception with account state loading context (no user address)
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        Logger.error(ensureError(err), {
           tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
             component: 'usePredictAccountState',
-            action: 'account_state_load',
-            operation: 'data_fetching',
           },
-          extra: {
-            accountContext: {
+          context: {
+            name: 'usePredictAccountState',
+            data: {
+              method: 'loadAccountState',
+              action: 'account_state_load',
+              operation: 'data_fetching',
               providerId,
             },
           },

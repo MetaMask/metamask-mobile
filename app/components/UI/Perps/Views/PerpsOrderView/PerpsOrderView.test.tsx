@@ -558,6 +558,7 @@ const createMockStreamManager = () => {
           subscribers.delete(id);
         };
       },
+      subscribe: jest.fn(() => jest.fn()),
     },
     orders: {
       subscribe: jest.fn(() => jest.fn()),

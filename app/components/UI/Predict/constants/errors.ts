@@ -3,6 +3,14 @@ import { strings } from '../../../../../locales/i18n';
 export type PredictErrorCode =
   (typeof PREDICT_ERROR_CODES)[keyof typeof PREDICT_ERROR_CODES];
 
+/**
+ * Predict feature constants for error handling and logging
+ */
+export const PREDICT_CONSTANTS = {
+  FEATURE_NAME: 'Predict',
+  CONTROLLER_NAME: 'PredictController',
+} as const;
+
 export const PREDICT_ERROR_CODES = {
   PREVIEW_NO_ORDER_BOOK: 'PREDICT_PREVIEW_NO_ORDER_BOOK',
   PREVIEW_NO_ORDER_MATCH_BUY: 'PREDICT_PREVIEW_NO_ORDER_MATCH_BUY',

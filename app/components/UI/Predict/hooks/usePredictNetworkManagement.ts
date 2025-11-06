@@ -2,10 +2,12 @@ import { toHex } from '@metamask/controller-utils';
 import { RpcEndpointType } from '@metamask/network-controller';
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { captureException } from '@sentry/react-native';
 import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { PREDICT_CONSTANTS } from '../constants/errors';
+import { ensureError } from '../utils/predictErrorHandler';
 import {
   POLYGON_MAINNET_CHAIN_ID,
   POLYGON_MAINNET_CAIP_CHAIN_ID,
@@ -64,20 +66,22 @@ export const usePredictNetworkManagement = () => {
       enableNetwork(POLYGON_MAINNET_CAIP_CHAIN_ID);
     } catch (error) {
       // Log to Sentry but don't show user-facing error
-      captureException(
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          tags: {
-            component: 'usePredictNetworkManagement',
+      Logger.error(ensureError(error), {
+        tags: {
+          feature: PREDICT_CONSTANTS.FEATURE_NAME,
+          component: 'usePredictNetworkManagement',
+        },
+        context: {
+          name: 'usePredictNetworkManagement',
+          data: {
+            method: 'ensurePolygonMainnet',
             action: 'add_polygon_network',
             operation: 'network_management',
-          },
-          extra: {
             chainId,
             caipChainId: POLYGON_MAINNET_CAIP_CHAIN_ID,
           },
         },
-      );
+      });
 
       // Still try to enable the network (it might already exist)
       enableNetwork(POLYGON_MAINNET_CAIP_CHAIN_ID);

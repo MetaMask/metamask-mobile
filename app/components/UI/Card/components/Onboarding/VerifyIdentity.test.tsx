@@ -3,6 +3,7 @@ import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { useNavigation } from '@react-navigation/native';
+import { Platform, Linking } from 'react-native';
 import VerifyIdentity from './VerifyIdentity';
 import Routes from '../../../../../constants/navigation/Routes';
 import useStartVerification from '../../hooks/useStartVerification';
@@ -14,6 +15,11 @@ jest.mock('@react-navigation/native', () => ({
 
 // Mock useStartVerification hook
 jest.mock('../../hooks/useStartVerification');
+
+// Mock Linking.openURL
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn().mockResolvedValue(undefined),
+}));
 
 // Mock OnboardingStep component
 jest.mock('./OnboardingStep', () => {
@@ -176,10 +182,14 @@ const createTestStore = (initialState = {}) =>
 
 describe('VerifyIdentity Component', () => {
   const mockNavigate = jest.fn();
+  const mockOpenURL = Linking.openURL as jest.Mock;
   let store: ReturnType<typeof createTestStore>;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    Platform.OS = 'ios'; // Default to iOS
+    mockOpenURL.mockResolvedValue(undefined);
+
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
     });
@@ -350,67 +360,204 @@ describe('VerifyIdentity Component', () => {
   });
 
   describe('Button Interaction and Navigation', () => {
-    it('navigates with sessionUrl when continue button is pressed', async () => {
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
+    describe('iOS Platform', () => {
+      beforeEach(() => {
+        Platform.OS = 'ios';
+      });
 
-      const button = getByTestId('verify-identity-continue-button');
-      fireEvent.press(button);
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.CARD.ONBOARDING.WEBVIEW,
-          {
-            url: 'https://example.com/verify',
-          },
+      it('navigates to WebView when continue button is pressed', async () => {
+        const { getByTestId } = render(
+          <Provider store={store}>
+            <VerifyIdentity />
+          </Provider>,
         );
+
+        const button = getByTestId('verify-identity-continue-button');
+        fireEvent.press(button);
+
+        await waitFor(() => {
+          expect(mockNavigate).toHaveBeenCalledWith(
+            Routes.CARD.ONBOARDING.WEBVIEW,
+            {
+              url: 'https://example.com/verify',
+            },
+          );
+        });
+      });
+
+      it('does not call Linking.openURL on iOS', async () => {
+        const { getByTestId } = render(
+          <Provider store={store}>
+            <VerifyIdentity />
+          </Provider>,
+        );
+
+        const button = getByTestId('verify-identity-continue-button');
+        fireEvent.press(button);
+
+        await waitFor(() => {
+          expect(mockOpenURL).not.toHaveBeenCalled();
+        });
       });
     });
 
-    it('does not navigate when continue button is pressed without sessionUrl', () => {
-      (useStartVerification as jest.Mock).mockReturnValue({
-        data: null,
-        isLoading: false,
-        isError: false,
-        error: null,
+    describe('Android Platform', () => {
+      beforeEach(() => {
+        Platform.OS = 'android';
+        jest.clearAllMocks();
       });
 
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
+      it('opens native browser when continue button is pressed', async () => {
+        const { getByTestId } = render(
+          <Provider store={store}>
+            <VerifyIdentity />
+          </Provider>,
+        );
 
-      const button = getByTestId('verify-identity-continue-button');
-      fireEvent.press(button);
+        const button = getByTestId('verify-identity-continue-button');
+        fireEvent.press(button);
 
-      expect(mockNavigate).not.toHaveBeenCalled();
+        await waitFor(() => {
+          expect(mockOpenURL).toHaveBeenCalledWith(
+            'https://example.com/verify',
+          );
+        });
+      });
+
+      it('navigates to validating KYC screen after opening browser', async () => {
+        const { getByTestId } = render(
+          <Provider store={store}>
+            <VerifyIdentity />
+          </Provider>,
+        );
+
+        const button = getByTestId('verify-identity-continue-button');
+        fireEvent.press(button);
+
+        await waitFor(() => {
+          expect(mockNavigate).toHaveBeenCalledWith(
+            Routes.CARD.ONBOARDING.VALIDATING_KYC,
+          );
+        });
+      });
+
+      it('does not navigate to WebView on Android', async () => {
+        const { getByTestId } = render(
+          <Provider store={store}>
+            <VerifyIdentity />
+          </Provider>,
+        );
+
+        const button = getByTestId('verify-identity-continue-button');
+        fireEvent.press(button);
+
+        await waitFor(() => {
+          expect(mockNavigate).not.toHaveBeenCalledWith(
+            Routes.CARD.ONBOARDING.WEBVIEW,
+            expect.anything(),
+          );
+        });
+      });
+
+      it('opens browser before navigating to validating screen', async () => {
+        const callOrder: string[] = [];
+        mockOpenURL.mockImplementation(() => {
+          callOrder.push('openURL');
+          return Promise.resolve();
+        });
+        mockNavigate.mockImplementation(() => {
+          callOrder.push('navigate');
+        });
+
+        const { getByTestId } = render(
+          <Provider store={store}>
+            <VerifyIdentity />
+          </Provider>,
+        );
+
+        const button = getByTestId('verify-identity-continue-button');
+        fireEvent.press(button);
+
+        await waitFor(() => {
+          expect(callOrder).toEqual(['openURL', 'navigate']);
+        });
+      });
     });
 
-    it('handles multiple button presses correctly', async () => {
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
+    describe('Common Navigation Behavior', () => {
+      beforeEach(() => {
+        Platform.OS = 'ios';
+      });
 
-      const button = getByTestId('verify-identity-continue-button');
+      it('does not navigate when continue button is pressed without sessionUrl', async () => {
+        (useStartVerification as jest.Mock).mockReturnValue({
+          data: null,
+          isLoading: false,
+          isError: false,
+          error: null,
+        });
 
-      fireEvent.press(button);
-      fireEvent.press(button);
-      fireEvent.press(button);
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledTimes(3);
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.CARD.ONBOARDING.WEBVIEW,
-          {
-            url: 'https://example.com/verify',
-          },
+        const { getByTestId } = render(
+          <Provider store={store}>
+            <VerifyIdentity />
+          </Provider>,
         );
+
+        const button = getByTestId('verify-identity-continue-button');
+        fireEvent.press(button);
+
+        await waitFor(() => {
+          expect(mockNavigate).not.toHaveBeenCalled();
+          expect(mockOpenURL).not.toHaveBeenCalled();
+        });
+      });
+
+      it('handles multiple button presses on iOS', async () => {
+        const { getByTestId } = render(
+          <Provider store={store}>
+            <VerifyIdentity />
+          </Provider>,
+        );
+
+        const button = getByTestId('verify-identity-continue-button');
+
+        fireEvent.press(button);
+        fireEvent.press(button);
+        fireEvent.press(button);
+
+        await waitFor(() => {
+          expect(mockNavigate).toHaveBeenCalledTimes(3);
+          expect(mockNavigate).toHaveBeenCalledWith(
+            Routes.CARD.ONBOARDING.WEBVIEW,
+            {
+              url: 'https://example.com/verify',
+            },
+          );
+        });
+      });
+
+      it('handles multiple button presses on Android', async () => {
+        Platform.OS = 'android';
+
+        const { getByTestId } = render(
+          <Provider store={store}>
+            <VerifyIdentity />
+          </Provider>,
+        );
+
+        const button = getByTestId('verify-identity-continue-button');
+
+        fireEvent.press(button);
+        fireEvent.press(button);
+        fireEvent.press(button);
+
+        await waitFor(() => {
+          expect(mockOpenURL).toHaveBeenCalledTimes(3);
+          expect(mockNavigate).toHaveBeenCalledTimes(3);
+          expect(mockNavigate).toHaveBeenCalledWith(
+            Routes.CARD.ONBOARDING.VALIDATING_KYC,
+          );
+        });
       });
     });
   });

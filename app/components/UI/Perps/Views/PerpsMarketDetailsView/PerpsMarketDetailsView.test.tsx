@@ -39,7 +39,10 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 // Mock PerpsStreamManager
 jest.mock('../../providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => ({
-    prices: { subscribeToSymbols: jest.fn(() => jest.fn()) },
+    prices: {
+      subscribeToSymbols: jest.fn(() => jest.fn()),
+      subscribe: jest.fn(() => jest.fn()),
+    },
     positions: { subscribe: jest.fn(() => jest.fn()) },
     orders: { subscribe: jest.fn(() => jest.fn()) },
     fills: { subscribe: jest.fn(() => jest.fn()) },

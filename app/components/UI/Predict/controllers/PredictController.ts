@@ -28,7 +28,7 @@ import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import Logger from '../../../../util/Logger';
+import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import {
   PredictEventProperties,
@@ -51,8 +51,10 @@ import {
   Signer,
 } from '../providers/types';
 import {
+  AcceptAgreementParams,
   ClaimParams,
   GetPriceHistoryParams,
+  PredictAccountMeta,
   PredictActivity,
   PredictBalance,
   PredictClaim,
@@ -67,7 +69,7 @@ import {
   UnrealizedPnL,
 } from '../types';
 import { ensureError } from '../utils/predictErrorHandler';
-import { PREDICT_ERROR_CODES } from '../constants/errors';
+import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 
 /**
  * State shape for PredictController
@@ -95,9 +97,9 @@ export type PredictControllerState = {
   withdrawTransaction: PredictWithdraw | null;
 
   // Persisted data
-  // --------------
-  // Setup
-  isOnboarded: { [address: string]: boolean };
+  accountMeta: {
+    [providerId: string]: { [address: string]: PredictAccountMeta };
+  };
 };
 
 /**
@@ -111,7 +113,7 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   claimablePositions: {},
   pendingDeposits: {},
   withdrawTransaction: null,
-  isOnboarded: {},
+  accountMeta: {},
 });
 
 /**
@@ -160,11 +162,11 @@ const metadata: StateMetadata<PredictControllerState> = {
     includeInStateLogs: false,
     usedInUi: false,
   },
-  isOnboarded: {
+  accountMeta: {
     persist: true,
     includeInDebugSnapshot: false,
     includeInStateLogs: false,
-    usedInUi: false,
+    usedInUi: true,
   },
 };
 
@@ -334,21 +336,36 @@ export class PredictController extends BaseController<
   }
 
   /**
-   * Generate standard error context for Logger.error calls
-   * Ensures consistent error reporting to Sentry with minimal but complete context
+   * Generate standard error context for Logger.error calls with searchable tags and context.
+   * Enables Sentry dashboard filtering by feature and provider.
+   *
    * @param method - The method name where the error occurred
-   * @param extra - Optional additional context fields
-   * @returns Standardized error context object
+   * @param extra - Optional additional context fields (becomes searchable context data)
+   * @returns LoggerErrorOptions with tags (searchable) and context (searchable)
    * @private
+   *
+   * @example
+   * Logger.error(error, this.getErrorContext('placeOrder', { marketId: 'abc', operation: 'validate' }));
+   * // Creates searchable tags: feature:predict, provider:polymarket
+   * // Creates searchable context: predict_controller.method:placeOrder, predict_controller.marketId:abc
    */
   private getErrorContext(
     method: string,
     extra?: Record<string, unknown>,
-  ): Record<string, unknown> {
+  ): LoggerErrorOptions {
     return {
-      feature: 'Predict',
-      context: `PredictController.${method}`,
-      ...extra,
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        // Note: PredictController doesn't track active provider in state like PerpsController
+        // If we add provider tracking, we can include it here: provider: this.state.activeProvider
+      },
+      context: {
+        name: PREDICT_CONSTANTS.CONTROLLER_NAME,
+        data: {
+          method,
+          ...extra,
+        },
+      },
     };
   }
 
@@ -762,32 +779,21 @@ export class PredictController extends BaseController<
     analyticsProperties,
     providerId,
     completionDuration,
-    orderId,
     failureReason,
     sharePrice,
+    pnl,
   }: {
     eventType: PredictEventTypeValue;
     amountUsd?: number;
     analyticsProperties?: PlaceOrderParams['analyticsProperties'];
     providerId: string;
     completionDuration?: number;
-    orderId?: string;
     failureReason?: string;
     sharePrice?: number;
+    pnl?: number;
   }): Promise<void> {
     if (!analyticsProperties) {
       return;
-    }
-
-    // Get safe address from getAccountState for analytics
-    let safeAddress: string | undefined;
-    try {
-      const accountState = await this.getAccountState({
-        providerId,
-      });
-      safeAddress = accountState.address;
-    } catch {
-      // If we can't get safe address, continue without it
     }
 
     // Build regular properties (common to all events)
@@ -803,6 +809,13 @@ export class PredictController extends BaseController<
       [PredictEventProperties.LIQUIDITY]: analyticsProperties.liquidity,
       [PredictEventProperties.VOLUME]: analyticsProperties.volume,
       [PredictEventProperties.SHARE_PRICE]: sharePrice,
+      // Add market type and outcome
+      ...(analyticsProperties.marketType && {
+        [PredictEventProperties.MARKET_TYPE]: analyticsProperties.marketType,
+      }),
+      ...(analyticsProperties.outcome && {
+        [PredictEventProperties.OUTCOME]: analyticsProperties.outcome,
+      }),
       // Add completion duration for COMPLETED and FAILED events
       ...(completionDuration !== undefined && {
         [PredictEventProperties.COMPLETION_DURATION]: completionDuration,
@@ -818,13 +831,9 @@ export class PredictController extends BaseController<
       ...(amountUsd !== undefined && {
         [PredictEventProperties.AMOUNT_USD]: amountUsd,
       }),
-      // Add user address only if we have it
-      ...(safeAddress && {
-        [PredictEventProperties.USER_ADDRESS]: safeAddress,
-      }),
-      // Add order ID for COMPLETED events
-      ...(orderId && {
-        [PredictEventProperties.ORDER_ID]: orderId,
+      // Add PNL for sell orders only
+      ...(pnl !== undefined && {
+        [PredictEventProperties.PNL]: pnl,
       }),
     };
 
@@ -852,6 +861,7 @@ export class PredictController extends BaseController<
     }
 
     DevLogger.log(`📊 [Analytics] ${eventLabel}`, {
+      providerId,
       regularProperties,
       sensitiveProperties,
     });
@@ -953,6 +963,55 @@ export class PredictController extends BaseController<
     );
   }
 
+  /**
+   * Track when user views the predict feed
+   * Tracks session-based feed interactions with unique session IDs
+   * @param sessionId - Unique session identifier
+   * @param feedTab - Current active feed tab
+   * @param numPagesViewed - Number of pages viewed in session
+   * @param sessionTime - Time spent in feed (seconds)
+   * @param entryPoint - How user entered the feed
+   * @param isSessionEnd - Whether this is the final event for the session
+   * @public
+   */
+  public trackFeedViewed({
+    sessionId,
+    feedTab,
+    numPagesViewed,
+    sessionTime,
+    entryPoint,
+    isSessionEnd = false,
+  }: {
+    sessionId: string;
+    feedTab: string;
+    numPagesViewed: number;
+    sessionTime: number;
+    entryPoint?: string;
+    isSessionEnd?: boolean;
+  }): void {
+    const analyticsProperties = {
+      [PredictEventProperties.SESSION_ID]: sessionId,
+      [PredictEventProperties.PREDICT_FEED_TAB]: feedTab,
+      [PredictEventProperties.NUM_FEED_PAGES_VIEWED_IN_SESSION]: numPagesViewed,
+      [PredictEventProperties.SESSION_TIME_IN_FEED]: sessionTime,
+      [PredictEventProperties.IS_SESSION_END]: isSessionEnd,
+      ...(entryPoint && { [PredictEventProperties.ENTRY_POINT]: entryPoint }),
+    };
+
+    DevLogger.log('📊 [Analytics] PREDICT_FEED_VIEWED', {
+      analyticsProperties,
+      isSessionEnd,
+    });
+
+    MetaMetrics.getInstance().trackEvent(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PREDICT_FEED_VIEWED,
+      )
+        .addProperties(analyticsProperties)
+        .build(),
+    );
+  }
+
   async previewOrder(params: PreviewOrderParams): Promise<OrderPreview> {
     try {
       const provider = this.providers.get(params.providerId);
@@ -1015,7 +1074,7 @@ export class PredictController extends BaseController<
       const completionDuration = performance.now() - startTime;
 
       if (result.success) {
-        const { id: orderId, spentAmount, receivedAmount } = result.response;
+        const { spentAmount, receivedAmount } = result.response;
 
         const cachedBalance =
           this.state.balances[providerId]?.[signer.address]?.balance ?? 0;
@@ -1062,7 +1121,6 @@ export class PredictController extends BaseController<
           analyticsProperties,
           providerId,
           completionDuration,
-          orderId,
           sharePrice: realSharePrice,
         });
       } else {
@@ -1708,5 +1766,39 @@ export class PredictController extends BaseController<
     this.update((state) => {
       state.withdrawTransaction = null;
     });
+  }
+
+  public acceptAgreement(params: AcceptAgreementParams): boolean {
+    try {
+      const provider = this.providers.get(params.providerId);
+      if (!provider) {
+        throw new Error('Provider not available');
+      }
+      this.update((state) => {
+        const accountMeta = state.accountMeta[params.providerId]?.[
+          params.address
+        ] || {
+          isOnboarded: false,
+          acceptedToS: false,
+        };
+
+        state.accountMeta[params.providerId] = {
+          ...(state.accountMeta[params.providerId] || {}),
+          [params.address]: {
+            ...accountMeta,
+            acceptedToS: true,
+          },
+        };
+      });
+      return true;
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('acceptAgreement', {
+          providerId: params.providerId,
+        }),
+      );
+      throw error;
+    }
   }
 }

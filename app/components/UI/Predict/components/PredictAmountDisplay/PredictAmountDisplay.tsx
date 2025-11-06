@@ -101,7 +101,7 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
           <Animated.View
             testID="cursor"
             style={[
-              tw.style('w-0.5 h-13.5 ml-1'),
+              tw.style(`w-0.5 h-[${lineHeight - 4}px] ml-0.5`),
               {
                 opacity: fadeAnim,
                 backgroundColor: colors.text.default,

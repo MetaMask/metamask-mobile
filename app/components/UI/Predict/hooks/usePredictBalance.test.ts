@@ -8,9 +8,12 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
-// Mock Sentry
-jest.mock('@sentry/react-native', () => ({
-  captureException: jest.fn(),
+// Mock Logger
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
 }));
 
 // Mock usePredictTrading

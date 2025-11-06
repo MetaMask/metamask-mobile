@@ -70,7 +70,7 @@ describe('predict controller init', () => {
       claimablePositions: {},
       pendingDeposits: {},
       withdrawTransaction: null,
-      isOnboarded: {},
+      accountMeta: {},
     };
 
     initRequestMock.persistedState = {

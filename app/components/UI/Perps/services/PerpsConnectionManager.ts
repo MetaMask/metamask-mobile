@@ -22,10 +22,7 @@ import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import type { ReconnectOptions } from '../types/perps-types';
 import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
 import { ensureError } from '../utils/perpsErrorHandler';
-
-// simple wait utility
-const wait = (ms: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms));
+import { wait } from '../utils/wait';
 
 /**
  * Singleton manager for Perps connection state
@@ -437,7 +434,7 @@ class PerpsConnectionManagerClass {
 
         // Stage 1: Initialize providers
         const initStart = performance.now();
-        await Engine.context.PerpsController.initializeProviders();
+        await Engine.context.PerpsController.init();
         this.isInitialized = true;
         setMeasurement(
           PerpsMeasurementName.PERPS_PROVIDER_INIT,
@@ -610,7 +607,7 @@ class PerpsConnectionManagerClass {
       this.clearConnectionTimeout();
 
       // Clear all pending promises to cancel in-flight operations
-      // Note: Actual disconnect happens in performReconnection → Controller.initializeProviders → performInitialization
+      // Note: Actual disconnect happens in performReconnection → Controller.init → performInitialization
       this.isConnecting = false;
       this.initPromise = null;
       this.pendingReconnectPromise = null;
@@ -696,7 +693,7 @@ class PerpsConnectionManagerClass {
 
       // Stage 2: Force the controller to reinitialize with new context
       const reinitStart = performance.now();
-      await Engine.context.PerpsController.initializeProviders();
+      await Engine.context.PerpsController.init();
       setMeasurement(
         PerpsMeasurementName.PERPS_CONTROLLER_REINIT,
         performance.now() - reinitStart,

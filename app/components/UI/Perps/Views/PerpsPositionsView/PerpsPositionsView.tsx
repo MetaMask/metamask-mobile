@@ -42,6 +42,7 @@ const PerpsPositionsView: React.FC = () => {
   // Get real-time positions via WebSocket
   const { positions, isInitialLoading } = usePerpsLivePositions({
     throttleMs: 1000, // Update every second
+    useLivePnl: true, // Enable live PnL calculations for position display
   });
 
   const error = null;

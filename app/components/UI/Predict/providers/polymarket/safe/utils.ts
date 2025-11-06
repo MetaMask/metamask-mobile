@@ -17,8 +17,9 @@ import {
   splitSignature,
 } from 'ethers/lib/utils';
 import { PredictPosition } from '../../..';
+import { PREDICT_CONSTANTS } from '../../../constants/errors';
 import Engine from '../../../../../../core/Engine';
-import Logger from '../../../../../../util/Logger';
+import Logger, { type LoggerErrorOptions } from '../../../../../../util/Logger';
 import { isSmartContractAddress } from '../../../../../../util/transactions';
 import { Signer } from '../../types';
 import {
@@ -390,10 +391,19 @@ export const getDeployProxyWalletTransaction = async ({
     console.error('Error creating proxy wallet', error);
 
     // Log to Sentry with proxy wallet deployment context (no user address)
-    Logger.error(error as Error, {
-      message: 'Predict: Failed to create proxy wallet transaction',
-      context: 'safeUtils.getDeployProxyWalletTransaction',
-    });
+    const errorContext: LoggerErrorOptions = {
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        provider: 'polymarket',
+      },
+      context: {
+        name: 'safeUtils',
+        data: {
+          method: 'getDeployProxyWalletTransaction',
+        },
+      },
+    };
+    Logger.error(error as Error, errorContext);
   }
 };
 
