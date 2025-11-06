@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -20,6 +20,10 @@ import { appendURLParams } from '../../../util/browser';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Browser from '../Browser';
 import Routes from '../../../constants/navigation/Routes';
+import {
+  lastTrendingScreenRef,
+  updateLastTrendingScreen,
+} from '../../Nav/Main/MainNavigator';
 
 const Stack = createStackNavigator();
 
@@ -52,6 +56,15 @@ const TrendingFeed: React.FC = () => {
   const navigation = useNavigation();
   const { isEnabled } = useMetrics();
 
+  // Update state when returning to TrendingFeed
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      updateLastTrendingScreen('TrendingFeed');
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: { security: { dataCollectionForMarketing?: boolean } }) =>
       state.security.dataCollectionForMarketing,
@@ -64,6 +77,7 @@ const TrendingFeed: React.FC = () => {
   });
 
   const handleBrowserPress = useCallback(() => {
+    updateLastTrendingScreen('TrendingBrowser');
     navigation.navigate('TrendingBrowser', {
       newTabUrl: portfolioUrl.href,
       timestamp: Date.now(),
@@ -105,16 +119,20 @@ const TrendingFeed: React.FC = () => {
   );
 };
 
-const TrendingView: React.FC = () => (
-  <Stack.Navigator
-    initialRouteName="TrendingFeed"
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
-    <Stack.Screen name="TrendingFeed" component={TrendingFeed} />
-    <Stack.Screen name="TrendingBrowser" component={BrowserWrapper} />
-  </Stack.Navigator>
-);
+const TrendingView: React.FC = () => {
+  const initialRoot = lastTrendingScreenRef.current || 'TrendingFeed';
+
+  return (
+    <Stack.Navigator
+      initialRouteName={initialRoot}
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="TrendingFeed" component={TrendingFeed} />
+      <Stack.Screen name="TrendingBrowser" component={BrowserWrapper} />
+    </Stack.Navigator>
+  );
+};
 
 export default TrendingView;

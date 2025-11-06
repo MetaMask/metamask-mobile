@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
@@ -270,6 +270,15 @@ const RewardsHome = () => (
     />
   </Stack.Navigator>
 );
+
+// Persist the last trending screen across unmounts
+export const lastTrendingScreenRef = { current: 'TrendingFeed' };
+
+// Callback to update the last trending screen (outside component to persist)
+export const updateLastTrendingScreen = (screenName) => {
+  // eslint-disable-next-line react-compiler/react-compiler
+  lastTrendingScreenRef.current = screenName;
+};
 
 const TrendingHome = () => (
   <Stack.Navigator mode="modal" screenOptions={clearStackNavigatorOptions}>

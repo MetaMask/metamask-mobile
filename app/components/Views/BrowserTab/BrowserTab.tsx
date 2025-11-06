@@ -1363,7 +1363,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     );
 
     const handleBackPress = useCallback(() => {
-      navigation.goBack();
+      navigation.navigate('TrendingFeed');
     }, [navigation]);
 
     const onCancelUrlBar = useCallback(() => {
@@ -1374,7 +1374,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       urlBarRef.current?.setNativeProps({ text: hostName });
     }, [hideAutocomplete]);
 
-    const showBackButton = fromTrending && isAssetsTrendingTokensEnabled;
+    const showBackButton = isAssetsTrendingTokensEnabled;
 
     const onFocusUrlBar = useCallback(() => {
       // Show the autocomplete results
