@@ -3,6 +3,7 @@ import { render } from '@testing-library/react-native';
 import MultiAssetListItems from './MultiAssetListItems';
 import { useSelector } from 'react-redux';
 import { selectProviderConfig } from '../../../selectors/networkController';
+import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
 
 const mockProviderConfig = {
   type: 'mainnet',
@@ -195,5 +196,59 @@ describe('MultiAssetListItems', () => {
     expect(getByText('Token 9')).toBeOnTheScreen();
     expect(getByText('TOKEN0')).toBeOnTheScreen();
     expect(getByText('TOKEN9')).toBeOnTheScreen();
+  });
+
+  it('renders already added tokens with alreadyAddedTokens prop', () => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectProviderConfig) return mockProviderConfig;
+    });
+
+    const alreadyAddedTokens = new Set<string>([
+      '0xdac17f958d2ee523a2206206994597c13d831ec7',
+    ]);
+
+    const { getByTestId, getByText } = render(
+      <MultiAssetListItems
+        searchResults={mockSearchResults}
+        handleSelectAsset={() => ({})}
+        selectedAsset={[]}
+        searchQuery=""
+        chainId="1"
+        networkName="Ethereum"
+        alreadyAddedTokens={alreadyAddedTokens}
+      />,
+    );
+
+    expect(
+      getByTestId(ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT),
+    ).toBeOnTheScreen();
+    expect(getByText('Tether USD')).toBeOnTheScreen();
+  });
+
+  it('marks already added tokens as disabled', () => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectProviderConfig) return mockProviderConfig;
+    });
+
+    const alreadyAddedTokens = new Set<string>([
+      '0xdac17f958d2ee523a2206206994597c13d831ec7',
+    ]);
+
+    const { getByTestId } = render(
+      <MultiAssetListItems
+        searchResults={mockSearchResults}
+        handleSelectAsset={() => ({})}
+        selectedAsset={[]}
+        searchQuery=""
+        chainId="1"
+        networkName="Ethereum"
+        alreadyAddedTokens={alreadyAddedTokens}
+      />,
+    );
+
+    const listItem = getByTestId(
+      ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT,
+    );
+    expect(listItem).toHaveProp('disabled', true);
   });
 });

@@ -9,6 +9,8 @@ import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/Im
 import { BridgeToken } from '../Bridge/types';
 import Engine from '../../../core/Engine';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
+import { selectMultichainAssets } from '../../../selectors/multichain/multichain';
 
 const mockAllTokens: BridgeToken[] = [
   {
@@ -108,6 +110,16 @@ jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
   selectSelectedInternalAccountByScope: jest.fn(
     () => mockSelectInternalAccountByScope,
   ),
+}));
+
+jest.mock('../../../selectors/tokensController', () => ({
+  ...jest.requireActual('../../../selectors/tokensController'),
+  selectTokensByChainIdAndAddress: jest.fn(() => ({})),
+}));
+
+jest.mock('../../../selectors/multichain/multichain', () => ({
+  ...jest.requireActual('../../../selectors/multichain/multichain'),
+  selectMultichainAssets: jest.fn(() => ({})),
 }));
 
 describe('SearchTokenAutocomplete', () => {
@@ -592,5 +604,82 @@ describe('SearchTokenAutocomplete', () => {
       Engine.context.MultichainAssetsController.addAssets,
     ).toHaveBeenCalledWith(['solana-address-123'], 'non-evm-account-id');
     expect(Engine.context.TokensController.addTokens).not.toHaveBeenCalled();
+  });
+
+  it('renders with already added EVM tokens', () => {
+    const mockNavigation = {
+      push: jest.fn(),
+      navigate: jest.fn(),
+    };
+
+    const addedTokens = {
+      '0x123': { address: '0x123', symbol: 'TEST', decimals: 18 },
+    };
+
+    jest.mocked(selectTokensByChainIdAndAddress).mockReturnValue(addedTokens);
+    mockIsNonEvmChainId.mockReturnValue(false);
+
+    const { getByTestId } = renderWithProvider(
+      <SearchTokenAutocomplete
+        navigation={mockNavigation}
+        tabLabel={''}
+        selectedChainId={'0x1'}
+        allTokens={mockAllTokens}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(
+      getByTestId(ImportTokenViewSelectorsIDs.SEARCH_BAR),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders with already added non-EVM tokens', () => {
+    const mockNavigation = {
+      push: jest.fn(),
+      navigate: jest.fn(),
+    };
+
+    const mockNonEvmAccount = {
+      id: 'non-evm-account-id',
+      address: 'non-evm-address',
+    };
+
+    const addedAssets = {
+      'non-evm-account-id': [
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501:solana-address-123' as const,
+      ],
+    };
+
+    jest.mocked(selectMultichainAssets).mockReturnValue(addedAssets);
+    mockIsNonEvmChainId.mockReturnValue(true);
+    mockSelectInternalAccountByScope.mockReturnValue(mockNonEvmAccount);
+
+    const solanaToken: BridgeToken = {
+      address: 'solana-address-123',
+      symbol: 'SOL',
+      name: 'Solana',
+      decimals: 9,
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as const,
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <SearchTokenAutocomplete
+        navigation={mockNavigation}
+        tabLabel={''}
+        selectedChainId={
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as
+            | `0x${string}`
+            | SupportedCaipChainId
+            | null
+        }
+        allTokens={[solanaToken]}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(
+      getByTestId(ImportTokenViewSelectorsIDs.SEARCH_BAR),
+    ).toBeOnTheScreen();
   });
 });
