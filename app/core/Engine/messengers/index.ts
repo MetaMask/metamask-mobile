@@ -34,10 +34,6 @@ import { getMultichainAssetsControllerMessenger } from './multichain-assets-cont
 import { getMultichainBalancesControllerMessenger } from './multichain-balances-controller-messenger/multichain-balances-controller-messenger';
 import { getMultichainTransactionsControllerMessenger } from './multichain-transactions-controller-messenger/multichain-transactions-controller-messenger';
 import {
-  getRatesControllerInitMessenger,
-  getRatesControllerMessenger,
-} from './rates-controller-messenger';
-import {
   getSnapKeyringBuilderInitMessenger,
   getSnapKeyringBuilderMessenger,
 } from './snap-keyring-builder-messenger';
@@ -286,10 +282,6 @@ export const CONTROLLER_MESSENGERS = {
   MultichainTransactionsController: {
     getMessenger: getMultichainTransactionsControllerMessenger,
     getInitMessenger: noop,
-  },
-  RatesController: {
-    getMessenger: getRatesControllerMessenger,
-    getInitMessenger: getRatesControllerInitMessenger,
   },
   SnapKeyringBuilder: {
     getMessenger: getSnapKeyringBuilderMessenger,
