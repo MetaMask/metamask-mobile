@@ -589,6 +589,10 @@ enum EVENT_NAME {
 
   // Share
   SHARE_ACTION = 'Share Action',
+
+  // QR Scanner
+  QR_SCANNER_OPENED = 'QR Scanner Opened',
+  QR_SCANNED = 'QR Scanned',
 }
 
 enum ACTIONS {
@@ -1477,6 +1481,10 @@ const events = {
 
   // Share
   SHARE_ACTION: generateOpt(EVENT_NAME.SHARE_ACTION),
+
+  // QR Scanner
+  QR_SCANNER_OPENED: generateOpt(EVENT_NAME.QR_SCANNER_OPENED),
+  QR_SCANNED: generateOpt(EVENT_NAME.QR_SCANNED),
 };
 
 /**

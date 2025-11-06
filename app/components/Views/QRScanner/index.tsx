@@ -39,8 +39,79 @@ import createStyles from './styles';
 import { useTheme } from '../../../util/theme';
 import { ScanSuccess, StartScan } from '../QRTabSwitcher';
 import SDKConnectV2 from '../../../core/SDKConnectV2';
+import useMetrics from '../../../components/hooks/useMetrics/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+import { QRType, QRTypeValue, QRScannerEventProperties } from './constants';
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
+
+/**
+ * Determines the QR type based on the scanned content
+ */
+const getQRType = (
+  content: string,
+  origin?: string,
+  data?: ScanSuccess,
+): QRTypeValue => {
+  // Check for seed phrase
+  if (
+    data?.seed ||
+    (!failedSeedPhraseRequirements(content) && isValidMnemonic(content))
+  ) {
+    return QRType.SEED_PHRASE;
+  }
+
+  // Check for private key
+  if (
+    data?.private_key ||
+    content.length === 64 ||
+    (content.substring(0, 2).toLowerCase() === '0x' && content.length === 66)
+  ) {
+    return QRType.PRIVATE_KEY;
+  }
+
+  // Check for send flow
+  if (
+    origin === Routes.SEND_FLOW.SEND_TO ||
+    origin === Routes.SETTINGS.CONTACT_FORM ||
+    data?.action === 'send-eth' ||
+    (content.startsWith('0x') && isValidAddress(content)) ||
+    content.split(`${PROTOCOLS.ETHEREUM}:`).length > 1
+  ) {
+    return QRType.SEND_FLOW;
+  }
+
+  // Check for wallet connect
+  if (
+    data?.walletConnectURI ||
+    content.startsWith(MM_WALLETCONNECT_DEEPLINK) ||
+    content.split('wc:').length > 1
+  ) {
+    return QRType.WALLET_CONNECT;
+  }
+
+  // Check for deeplink
+  if (
+    content.startsWith(MM_SDK_DEEPLINK) ||
+    content.split('metamask-sync:').length > 1 ||
+    SDKConnectV2.isConnectDeeplink(content)
+  ) {
+    return QRType.DEEPLINK;
+  }
+
+  // Check for URL
+  const contentProtocol = getURLProtocol(content);
+  if (
+    contentProtocol === PROTOCOLS.HTTP ||
+    contentProtocol === PROTOCOLS.HTTPS ||
+    contentProtocol === PROTOCOLS.DAPP
+  ) {
+    return QRType.URL;
+  }
+
+  // Default to deeplink for other cases (EIP-945 arbitrary data)
+  return QRType.DEEPLINK;
+};
 
 /**
  * View that wraps the QR code scanner screen
@@ -69,6 +140,9 @@ const QRScanner = ({
   const currentChainId = useSelector(selectChainId);
   const theme = useTheme();
   const styles = createStyles(theme);
+  const { trackEvent, createEventBuilder } = useMetrics();
+
+  const hasTrackedScannerOpened = useRef(false);
 
   useEffect(() => {
     const checkPermission = async () => {
@@ -85,6 +159,27 @@ const QRScanner = ({
 
     checkPermission();
   }, [hasPermission, requestPermission, permissionCheckCompleted]);
+
+  // Track QR Scanner Opened when permission is granted and camera is available
+  useEffect(() => {
+    if (
+      permissionCheckCompleted &&
+      hasPermission &&
+      cameraDevice &&
+      !hasTrackedScannerOpened.current
+    ) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.QR_SCANNER_OPENED).build(),
+      );
+      hasTrackedScannerOpened.current = true;
+    }
+  }, [
+    permissionCheckCompleted,
+    hasPermission,
+    cameraDevice,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const end = useCallback(() => {
     mountedRef.current = false;
@@ -147,6 +242,14 @@ const QRScanner = ({
         origin === Routes.SETTINGS.CONTACT_FORM
       ) {
         if (!isValidAddressInputViaQRCode(content)) {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+              .addProperties({
+                [QRScannerEventProperties.SCAN_SUCCESS]: false,
+                [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
+              })
+              .build(),
+          );
           showAlertForInvalidAddress();
           end();
           return;
@@ -159,6 +262,14 @@ const QRScanner = ({
         // parent components don't need to be notified.
         // See: app/core/DeeplinkManager/Handlers/handleDeeplink.ts for details.
         shouldReadBarCodeRef.current = false;
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+            .addProperties({
+              [QRScannerEventProperties.SCAN_SUCCESS]: true,
+              [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+            })
+            .build(),
+        );
         SDKConnectV2.handleConnectDeeplink(response.data);
         end();
         return;
@@ -180,9 +291,26 @@ const QRScanner = ({
         const redirect = await showAlertForURLRedirection(content);
 
         if (!redirect) {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+              .addProperties({
+                [QRScannerEventProperties.SCAN_SUCCESS]: false,
+                [QRScannerEventProperties.QR_TYPE]: QRType.URL,
+              })
+              .build(),
+          );
           navigation.goBack();
           return;
         }
+        // User confirmed URL redirection - track as successful URL scan
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+            .addProperties({
+              [QRScannerEventProperties.SCAN_SUCCESS]: true,
+              [QRScannerEventProperties.QR_TYPE]: QRType.URL,
+            })
+            .build(),
+        );
       }
 
       let data = {};
@@ -191,11 +319,27 @@ const QRScanner = ({
         shouldReadBarCodeRef.current = false;
         data = { content };
         if (onStartScan) {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+              .addProperties({
+                [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+              })
+              .build(),
+          );
           onStartScan(data).then(() => {
             onScanSuccess(data);
           });
           mountedRef.current = false;
         } else {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+              .addProperties({
+                [QRScannerEventProperties.SCAN_SUCCESS]: false,
+                [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+              })
+              .build(),
+          );
           Alert.alert(
             strings('qr_scanner.error'),
             strings('qr_scanner.attempting_sync_from_wallet_error'),
@@ -209,6 +353,14 @@ const QRScanner = ({
         ) {
           shouldReadBarCodeRef.current = false;
           data = { seed: content };
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+              .addProperties({
+                [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                [QRScannerEventProperties.QR_TYPE]: QRType.SEED_PHRASE,
+              })
+              .build(),
+          );
           end();
           onScanSuccess(data, content);
           return;
@@ -219,6 +371,14 @@ const QRScanner = ({
         const isUnlocked = KeyringController.isUnlocked();
 
         if (!isUnlocked) {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+              .addProperties({
+                [QRScannerEventProperties.SCAN_SUCCESS]: false,
+                [QRScannerEventProperties.QR_TYPE]: getQRType(content, origin),
+              })
+              .build(),
+          );
           navigation.goBack();
           Alert.alert(
             strings('qr_scanner.error'),
@@ -240,6 +400,14 @@ const QRScanner = ({
           data = parse(handledContent);
           const action = 'send-eth';
           data = { ...data, action };
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+              .addProperties({
+                [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
+              })
+              .build(),
+          );
           end();
           onScanSuccess(data, handledContent);
           return;
@@ -255,6 +423,14 @@ const QRScanner = ({
         });
 
         if (handledByDeeplink) {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+              .addProperties({
+                [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+              })
+              .build(),
+          );
           mountedRef.current = false;
           return;
         }
@@ -269,15 +445,51 @@ const QRScanner = ({
           data = {
             private_key: content.length === 64 ? content : content.substr(2),
           };
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+              .addProperties({
+                [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                [QRScannerEventProperties.QR_TYPE]: QRType.PRIVATE_KEY,
+              })
+              .build(),
+          );
         } else if (content.substring(0, 2).toLowerCase() === '0x') {
           shouldReadBarCodeRef.current = false;
           data = { target_address: content, action: 'send-eth' };
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+              .addProperties({
+                [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
+              })
+              .build(),
+          );
         } else if (content.split('wc:').length > 1) {
           shouldReadBarCodeRef.current = false;
           data = { walletConnectURI: content };
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+              .addProperties({
+                [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                [QRScannerEventProperties.QR_TYPE]: QRType.WALLET_CONNECT,
+              })
+              .build(),
+          );
         } else {
           // EIP-945 allows scanning arbitrary data
           data = content;
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+              .addProperties({
+                [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                [QRScannerEventProperties.QR_TYPE]: getQRType(
+                  content,
+                  origin,
+                  data as ScanSuccess,
+                ),
+              })
+              .build(),
+          );
         }
         onScanSuccess(data, content);
       }
@@ -292,6 +504,8 @@ const QRScanner = ({
       onStartScan,
       onScanSuccess,
       currentChainId,
+      trackEvent,
+      createEventBuilder,
     ],
   );
 
