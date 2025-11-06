@@ -67,6 +67,8 @@ export const useTrendingRequest = (options: {
 
   const fetchTrendingTokens = useCallback(async () => {
     if (!memoizedOptions.chainIds.length) {
+      // Increment request ID to invalidate any pending requests
+      ++requestIdRef.current;
       setResults(null);
       setIsLoading(false);
       return;

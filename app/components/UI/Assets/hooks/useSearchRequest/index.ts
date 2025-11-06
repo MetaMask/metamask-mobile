@@ -39,6 +39,8 @@ export const useSearchRequest = (options: {
 
   const searchTokensRequest = useCallback(async () => {
     if (!memoizedOptions.query) {
+      // Increment request ID to invalidate any pending requests
+      ++requestIdRef.current;
       setResults(null);
       setIsLoading(false);
       return;
