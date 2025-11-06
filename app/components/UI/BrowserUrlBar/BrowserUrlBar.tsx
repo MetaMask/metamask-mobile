@@ -1,4 +1,10 @@
-import React, { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from 'react';
 import {
   NativeSyntheticEvent,
   TextInput,
@@ -49,6 +55,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       activeUrl,
       setIsUrlBarFocused,
       isUrlBarFocused,
+      showCloseButton,
     },
     ref,
   ) => {
@@ -67,18 +74,108 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
     const isConnectionIconVisible =
       connectionType !== ConnectionType.UNKNOWN && !isUrlBarFocused;
 
-    const unfocusInput = () => {
+    const unfocusInput = useCallback(() => {
       setIsUrlBarFocused(false);
       // Reset the input value
       inputValueRef.current = '';
-    };
+    }, [setIsUrlBarFocused]);
 
-    const onCancelInput = () => {
+    const onCancelInput = useCallback(() => {
       shouldTriggerBlurCallbackRef.current = false;
       inputRef?.current?.blur();
       unfocusInput();
       onCancel();
-    };
+    }, [unfocusInput, onCancel]);
+
+    const handleAccountRightButtonPress = useCallback(() => {
+      const nonTestnetNetworks = Object.keys(networkConfigurations).length + 1;
+      const numberOfConnectedAccounts = connectedAccounts.length;
+
+      // TODO: This is currently tracking two events, we should consolidate
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.OPEN_DAPP_PERMISSIONS)
+          .addProperties({
+            number_of_accounts: accountsLength,
+            number_of_accounts_connected: numberOfConnectedAccounts,
+            number_of_networks: nonTestnetNetworks,
+          })
+          .build(),
+      );
+      // Track Event: "Opened Acount Switcher"
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH)
+          .addProperties({
+            number_of_accounts: numberOfConnectedAccounts,
+          })
+          .build(),
+      );
+
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
+        params: {
+          hostInfo: {
+            metadata: {
+              origin: activeUrl && new URLParse(activeUrl).origin,
+            },
+          },
+        },
+      });
+    }, [
+      networkConfigurations,
+      connectedAccounts,
+      trackEvent,
+      createEventBuilder,
+      accountsLength,
+      navigation,
+      activeUrl,
+    ]);
+
+    const renderRightButton = useCallback(() => {
+      if (!isUrlBarFocused) {
+        return (
+          <AccountRightButton
+            selectedAddress={selectedAddress}
+            onPress={handleAccountRightButtonPress}
+          />
+        );
+      }
+
+      if (showCloseButton) {
+        return (
+          <ButtonIcon
+            iconName={IconName.Close}
+            onPress={onCancelInput}
+            iconColor={colors.icon.default}
+            size={ButtonIconSizes.Lg}
+            style={styles.closeButton}
+            testID={BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID}
+          />
+        );
+      }
+
+      return (
+        <TouchableOpacity
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          style={styles.cancelButton}
+          testID={BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID}
+          onPress={onCancelInput}
+        >
+          <Text style={styles.cancelButtonText}>
+            {strings('browser.cancel')}
+          </Text>
+        </TouchableOpacity>
+      );
+    }, [
+      isUrlBarFocused,
+      showCloseButton,
+      selectedAddress,
+      handleAccountRightButtonPress,
+      onCancelInput,
+      colors.icon.default,
+      styles.closeButton,
+      styles.cancelButton,
+      styles.cancelButtonText,
+    ]);
 
     useImperativeHandle(ref, () => ({
       hide: () => onCancelInput(),
@@ -137,41 +234,6 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       const trimmedText = text.trim();
       inputValueRef.current = trimmedText;
       onSubmitEditing(trimmedText);
-    };
-
-    const handleAccountRightButtonPress = () => {
-      const nonTestnetNetworks = Object.keys(networkConfigurations).length + 1;
-      const numberOfConnectedAccounts = connectedAccounts.length;
-
-      // TODO: This is currently tracking two events, we should consolidate
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.OPEN_DAPP_PERMISSIONS)
-          .addProperties({
-            number_of_accounts: accountsLength,
-            number_of_accounts_connected: numberOfConnectedAccounts,
-            number_of_networks: nonTestnetNetworks,
-          })
-          .build(),
-      );
-      // Track Event: "Opened Acount Switcher"
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH)
-          .addProperties({
-            number_of_accounts: numberOfConnectedAccounts,
-          })
-          .build(),
-      );
-
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
-        params: {
-          hostInfo: {
-            metadata: {
-              origin: activeUrl && new URLParse(activeUrl).origin,
-            },
-          },
-        },
-      });
     };
 
     /**
@@ -238,25 +300,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
             />
           ) : null}
         </View>
-        <View style={styles.rightButton}>
-          {isUrlBarFocused ? (
-            <TouchableOpacity
-              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-              style={styles.cancelButton}
-              testID={BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID}
-              onPress={onCancelInput}
-            >
-              <Text style={styles.cancelButtonText}>
-                {strings('browser.cancel')}
-              </Text>
-            </TouchableOpacity>
-          ) : (
-            <AccountRightButton
-              selectedAddress={selectedAddress}
-              onPress={handleAccountRightButtonPress}
-            />
-          )}
-        </View>
+        <View style={styles.rightButton}>{renderRightButton()}</View>
       </View>
     );
   },

@@ -6943,9 +6943,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controllers@npm:^87.0.0":
-  version: 87.0.0
-  resolution: "@metamask/assets-controllers@npm:87.0.0"
+"@metamask/assets-controllers@npm:^87.1.0":
+  version: 87.1.0
+  resolution: "@metamask/assets-controllers@npm:87.1.0"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@ethersproject/abi": "npm:^5.7.0"
@@ -6991,7 +6991,7 @@ __metadata:
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^61.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/023c91a982e932978dcf33e057a82cb0a7531db18da0293721838cb14965a6adc38200cbcb1c129165c20411d3abd0dbd9dc6ac41ff0d1902c9648c536c07fde
+  checksum: 10/3c82870b893ff533cf98b08323a46ddb8720e7ca8e66f19cc33edf8f3b2bad6caabea94e1e951385732cd5989a0812536ab856c371c92710af2b116acd24138d
   languageName: node
   linkType: hard
 
@@ -7051,10 +7051,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bitcoin-wallet-snap@npm:^1.4.3":
-  version: 1.4.3
-  resolution: "@metamask/bitcoin-wallet-snap@npm:1.4.3"
-  checksum: 10/e630233c48424b655eee2295178115b118108b6b47c0ede0e6e73d63fcbd793135f2e9cc682f07b05b3254f129a02b9570f204e7baed58a0fa1daad75c61a8d6
+"@metamask/bitcoin-wallet-snap@npm:^1.4.4":
+  version: 1.4.4
+  resolution: "@metamask/bitcoin-wallet-snap@npm:1.4.4"
+  checksum: 10/bc568397e35a17e04919f320e47b49cd35136cec3a58336ece6131d5ad3a73a75d35909187ea55b2e3b0828be45eb7abbbacbdf7829b6f64ceac897ddaaf232c
   languageName: node
   linkType: hard
 
@@ -8381,7 +8381,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/react-native-webview@npm:^14.5.0":
+"@metamask/react-native-webview@npm:14.5.0":
   version: 14.5.0
   resolution: "@metamask/react-native-webview@npm:14.5.0"
   dependencies:
@@ -8391,6 +8391,19 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10/c78b2d059af8172c64b6be599cd1576c5a8649f96a5ab1fcdf43254c880e50108c6884de78d05fc516a7c00a48a21f0533f65cf3e7b583bbe0f3bef88f5ad928
+  languageName: node
+  linkType: hard
+
+"@metamask/react-native-webview@patch:@metamask/react-native-webview@npm%3A14.5.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.5.0-b34fed6d50.patch":
+  version: 14.5.0
+  resolution: "@metamask/react-native-webview@patch:@metamask/react-native-webview@npm%3A14.5.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.5.0-b34fed6d50.patch::version=14.5.0&hash=c64f43"
+  dependencies:
+    escape-string-regexp: "npm:^4.0.0"
+    invariant: "npm:2.2.4"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10/ea801ba7e33c39df045bbe6dd882792b96b89f32b391c7a46c1a2878a5987f275549682b308c7014fba46fc07d1c5605b0499c0425d21076c98f65bb4bb56b05
   languageName: node
   linkType: hard
 
@@ -34209,10 +34222,10 @@ __metadata:
     "@metamask/address-book-controller": "npm:^7.0.0"
     "@metamask/app-metadata-controller": "npm:^2.0.0"
     "@metamask/approval-controller": "npm:^8.0.0"
-    "@metamask/assets-controllers": "npm:^87.0.0"
+    "@metamask/assets-controllers": "npm:^87.1.0"
     "@metamask/auto-changelog": "npm:^5.1.0"
     "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/bitcoin-wallet-snap": "npm:^1.4.3"
+    "@metamask/bitcoin-wallet-snap": "npm:^1.4.4"
     "@metamask/bridge-controller": "npm:^56.0.3"
     "@metamask/bridge-status-controller": "npm:^56.0.0"
     "@metamask/browser-passworder": "npm:^5.0.0"
@@ -34284,7 +34297,7 @@ __metadata:
     "@metamask/react-native-button": "npm:^3.0.0"
     "@metamask/react-native-payments": "npm:^2.0.0"
     "@metamask/react-native-search-api": "npm:1.0.1"
-    "@metamask/react-native-webview": "npm:^14.5.0"
+    "@metamask/react-native-webview": "patch:@metamask/react-native-webview@npm%3A14.5.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.5.0-b34fed6d50.patch"
     "@metamask/remote-feature-flag-controller": "npm:^2.0.0"
     "@metamask/rpc-errors": "npm:^7.0.2"
     "@metamask/sample-controllers": "npm:^3.0.0"
