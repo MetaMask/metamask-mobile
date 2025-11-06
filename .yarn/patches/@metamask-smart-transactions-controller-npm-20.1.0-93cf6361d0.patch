@@ -1,0 +1,26 @@
+diff --git a/dist/constants.cjs b/dist/constants.cjs
+index 8877e12aaa2200065d2103233dfe414698d99950..2a129ae41bb1be07c244ae67cdf82e3e59f7a5ed 100644
+--- a/dist/constants.cjs
++++ b/dist/constants.cjs
+@@ -6,7 +6,7 @@ exports.API_BASE_URL = 'https://transaction.api.cx.metamask.io';
+ exports.SENTINEL_API_BASE_URL_MAP = {
+     1: 'https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io',
+     56: 'https://tx-sentinel-bsc-mainnet.api.cx.metamask.io',
+-    137: 'https://tx-sentinel-polygon-mainnet.api.cx.metamask.io',
++    137: 'https://tx-sentinel-polygon-mainnet.dev-api.cx.metamask.io',
+     8453: 'https://tx-sentinel-base-mainnet.api.cx.metamask.io',
+     42161: 'https://tx-sentinel-arbitrum-mainnet.api.cx.metamask.io',
+     59144: 'https://tx-sentinel-linea-mainnet.api.cx.metamask.io',
+diff --git a/dist/constants.mjs b/dist/constants.mjs
+index e592339535dadd61aef017f36124fd1c025a3777..745eae6d80af8bcc7c3e1adfa292658628efd33b 100644
+--- a/dist/constants.mjs
++++ b/dist/constants.mjs
+@@ -3,7 +3,7 @@ export const API_BASE_URL = 'https://transaction.api.cx.metamask.io';
+ export const SENTINEL_API_BASE_URL_MAP = {
+     1: 'https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io',
+     56: 'https://tx-sentinel-bsc-mainnet.api.cx.metamask.io',
+-    137: 'https://tx-sentinel-polygon-mainnet.api.cx.metamask.io',
++    137: 'https://tx-sentinel-polygon-mainnet.dev-api.cx.metamask.io',
+     8453: 'https://tx-sentinel-base-mainnet.api.cx.metamask.io',
+     42161: 'https://tx-sentinel-arbitrum-mainnet.api.cx.metamask.io',
+     59144: 'https://tx-sentinel-linea-mainnet.api.cx.metamask.io',

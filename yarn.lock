@@ -8554,7 +8554,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/smart-transactions-controller@npm:^20.1.0":
+"@metamask/smart-transactions-controller@npm:20.1.0":
   version: 20.1.0
   resolution: "@metamask/smart-transactions-controller@npm:20.1.0"
   dependencies:
@@ -8588,6 +8588,43 @@ __metadata:
     "@metamask/remote-feature-flag-controller":
       optional: true
   checksum: 10/c9072b44cf059c09b3c1c95814cfe1aea0f8c73c490e4a304b0516b6b2d1bdafc06f7cf328c038c121c968b62eb8472a79623736a4750bbf564b58bbf3c52338
+  languageName: node
+  linkType: hard
+
+"@metamask/smart-transactions-controller@patch:@metamask/smart-transactions-controller@npm%3A20.1.0#~/.yarn/patches/@metamask-smart-transactions-controller-npm-20.1.0-93cf6361d0.patch":
+  version: 20.1.0
+  resolution: "@metamask/smart-transactions-controller@patch:@metamask/smart-transactions-controller@npm%3A20.1.0#~/.yarn/patches/@metamask-smart-transactions-controller-npm-20.1.0-93cf6361d0.patch::version=20.1.0&hash=b0a7c7"
+  dependencies:
+    "@babel/runtime": "npm:^7.24.1"
+    "@ethereumjs/tx": "npm:^5.2.1"
+    "@ethereumjs/util": "npm:^9.0.2"
+    "@ethersproject/bytes": "npm:^5.7.0"
+    "@ethersproject/keccak256": "npm:^5.8.0"
+    "@ethersproject/transactions": "npm:^5.7.0"
+    "@metamask/base-controller": "npm:^9.0.0"
+    "@metamask/controller-utils": "npm:^11.0.0"
+    "@metamask/eth-json-rpc-provider": "npm:^4.1.6"
+    "@metamask/eth-query": "npm:^4.0.0"
+    "@metamask/messenger": "npm:^0.3.0"
+    "@metamask/polling-controller": "npm:^15.0.0"
+    bignumber.js: "npm:^9.0.1"
+    fast-json-patch: "npm:^3.1.0"
+    lodash: "npm:^4.17.21"
+  peerDependencies:
+    "@metamask/network-controller": ^25.0.0
+    "@metamask/transaction-controller": ^61.0.0
+  peerDependenciesMeta:
+    "@metamask/accounts-controller":
+      optional: true
+    "@metamask/approval-controller":
+      optional: true
+    "@metamask/eth-block-tracker":
+      optional: true
+    "@metamask/gas-fee-controller":
+      optional: true
+    "@metamask/remote-feature-flag-controller":
+      optional: true
+  checksum: 10/0f2702f0cb026ef4860a348e5754e85ee324d717907922b8d420ae51afbeb0bc1ac384dcbfe6015afad5bb6d1bc013f7785e86c6c55bd5e5d5cbd744cce6c600
   languageName: node
   linkType: hard
 
@@ -8890,7 +8927,7 @@ __metadata:
 
 "@metamask/transaction-controller@patch:@metamask/transaction-controller@npm%3A61.0.0#~/.yarn/patches/@metamask-transaction-controller-npm-61.0.0-cccac388c7.patch":
   version: 61.0.0
-  resolution: "@metamask/transaction-controller@patch:@metamask/transaction-controller@npm%3A61.0.0#~/.yarn/patches/@metamask-transaction-controller-npm-61.0.0-cccac388c7.patch::version=61.0.0&hash=1a3342"
+  resolution: "@metamask/transaction-controller@patch:@metamask/transaction-controller@npm%3A61.0.0#~/.yarn/patches/@metamask-transaction-controller-npm-61.0.0-cccac388c7.patch::version=61.0.0&hash=3ea4d7"
   dependencies:
     "@ethereumjs/common": "npm:^4.4.0"
     "@ethereumjs/tx": "npm:^5.4.0"
@@ -8921,7 +8958,7 @@ __metadata:
     "@metamask/gas-fee-controller": ^25.0.0
     "@metamask/network-controller": ^25.0.0
     "@metamask/remote-feature-flag-controller": ^2.0.0
-  checksum: 10/98efdbc2df4190a4387b3d4727dd68bf01e716eaf9efd1d6be711e0f62f16d236011314fe56a382a83a881b06e78462e764c8e87a52306a46b0b7648c795c98e
+  checksum: 10/99efc4626425d5075ce2a9eda2d8f90581f71d535806cd6188c38ebe06b69c31b501daf603389817f349cfbfa00a74ec546d48fd87eb0f9d34d05c5dcd489dea
   languageName: node
   linkType: hard
 
@@ -34356,7 +34393,7 @@ __metadata:
     "@metamask/selected-network-controller": "npm:^25.0.0"
     "@metamask/signature-controller": "npm:^35.0.0"
     "@metamask/slip44": "npm:^4.2.0"
-    "@metamask/smart-transactions-controller": "npm:^20.1.0"
+    "@metamask/smart-transactions-controller": "patch:@metamask/smart-transactions-controller@npm%3A20.1.0#~/.yarn/patches/@metamask-smart-transactions-controller-npm-20.1.0-93cf6361d0.patch"
     "@metamask/snaps-controllers": "npm:^16.0.0"
     "@metamask/snaps-execution-environments": "npm:^10.2.2"
     "@metamask/snaps-rpc-methods": "npm:^14.0.0"
