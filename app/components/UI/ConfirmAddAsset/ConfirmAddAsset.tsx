@@ -94,16 +94,12 @@ const ConfirmAddAsset = () => {
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
       getImportTokenNavbarOptions(
-        `add_asset.${TOKEN_TITLE}`,
-        false,
         navigation,
-        colors,
-        true,
-        0,
+        strings(`add_asset.${TOKEN_TITLE}`),
         () => setShowExitModal(true),
       ),
     );
-  }, [colors, navigation]);
+  }, [navigation]);
 
   useEffect(() => {
     updateNavBar();

@@ -15,7 +15,6 @@ import ScrollableTabView, {
 } from '@tommasini/react-native-scrollable-tab-view';
 import { strings } from '../../../../locales/i18n';
 import AddCustomCollectible from '../../UI/AddCustomCollectible';
-import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import {
   selectChainId,
   selectNetworkConfigurations,
@@ -37,7 +36,6 @@ import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './AddAsset.styles';
 import { AddAssetParams } from './AddAsset.types';
 import Routes from '../../../constants/navigation/Routes';
-import { NFT_TITLE, TOKEN, TOKEN_TITLE } from './AddAsset.constants';
 import { AddAssetViewSelectorsIDs } from '../../../../e2e/selectors/wallet/AddAssetView.selectors';
 import { BottomSheetRef } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { Hex } from '@metamask/utils';
@@ -96,10 +94,6 @@ const AddAsset = () => {
 
   const networkName = useSelector(selectEvmNetworkName);
 
-  const handleBackPress = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
-
   const goToSecuritySettings = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA,
@@ -134,9 +128,6 @@ const AddAsset = () => {
 
   return (
     <SafeAreaView style={styles.wrapper} testID={`add-${assetType}-screen`}>
-      <BottomSheetHeader onBack={handleBackPress}>
-        {strings(`add_asset.${assetType === TOKEN ? TOKEN_TITLE : NFT_TITLE}`)}
-      </BottomSheetHeader>
       {assetType !== 'token' && (
         <View style={styles.infoWrapper}>
           <Banner
