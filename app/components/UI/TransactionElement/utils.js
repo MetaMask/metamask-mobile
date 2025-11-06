@@ -662,7 +662,9 @@ function decodeConfirmTx(args) {
   else if (
     actionKey === strings('transactions.smart_contract_interaction') ||
     (!actionKey.includes(strings('transactions.sent')) &&
-      !actionKey.includes(strings('transactions.received')))
+      !actionKey.includes(strings('transactions.send')) &&
+      !actionKey.includes(strings('transactions.received')) &&
+      !actionKey.includes(strings('transactions.receive')))
   )
     transactionType = TRANSACTION_TYPES.SITE_INTERACTION;
   else if (renderFrom?.toLowerCase() === selectedAddress?.toLowerCase())
