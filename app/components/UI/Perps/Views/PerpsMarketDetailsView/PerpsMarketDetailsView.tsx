@@ -93,7 +93,6 @@ import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useC
 import Engine from '../../../../../core/Engine';
 import { setPerpsChartPreferredCandlePeriod } from '../../../../../actions/settings';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
@@ -324,11 +323,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Get comprehensive market statistics
   const marketStats = usePerpsMarketStats(market?.symbol || '');
 
-  const {
-    candleData,
-    isLoading: isLoadingHistory,
-    hasHistoricalData,
-  } = usePerpsLiveCandles({
+  const { candleData, isLoading: isLoadingHistory } = usePerpsLiveCandles({
     coin: market?.symbol || '',
     interval: selectedCandlePeriod,
     duration: TimeDuration.YEAR_TO_DATE,
@@ -677,23 +672,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         >
           {/* TradingView Chart Section */}
           <View style={[styles.section, styles.chartSection]}>
-            {hasHistoricalData ? (
-              <TradingViewChart
-                ref={chartRef}
-                candleData={candleData}
-                height={350}
-                visibleCandleCount={visibleCandleCount}
-                tpslLines={tpslLines}
-                symbol={market?.symbol}
-                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
-              />
-            ) : (
-              <Skeleton
-                height={350}
-                width="100%"
-                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`}
-              />
-            )}
+            {/* Always render chart to avoid WebView remount on interval changes */}
+            <TradingViewChart
+              ref={chartRef}
+              candleData={candleData}
+              height={350}
+              visibleCandleCount={visibleCandleCount}
+              tpslLines={tpslLines}
+              symbol={market?.symbol}
+              testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
+            />
 
             {/* Candle Period Selector */}
             <PerpsCandlePeriodSelector

@@ -79,6 +79,11 @@ const TradingViewChart = React.forwardRef<
       close: string;
       time: number;
     } | null>(null);
+    // Buffer for candle data that arrives before WebView is ready (Android fix)
+    const pendingCandleDataRef = useRef<{
+      data: CandleData;
+      timestamp: number;
+    } | null>(null);
 
     // Format OHLC values using the same formatting as the header
     const formattedOhlcData = useMemo(() => {
@@ -301,24 +306,46 @@ const TradingViewChart = React.forwardRef<
 
     // Send real candle data to chart
     useEffect(() => {
-      if (!isChartReady || !webViewRef.current) return;
+      // If chart is not ready, buffer the data for later
+      if (!isChartReady) {
+        if (candleData?.candles && candleData.candles.length > 0) {
+          // Validate before buffering
+          if (!symbol || candleData.coin === symbol) {
+            pendingCandleDataRef.current = {
+              data: candleData,
+              timestamp: Date.now(),
+            };
+          }
+        }
+        return;
+      }
+
+      // Chart is ready - send data
+      if (!webViewRef.current) return;
 
       let dataToSend = null;
       let dataSource = 'none';
+      let dataToUse: CandleData | null = null;
 
-      // Prioritize real data over sample data
-      if (candleData?.candles && candleData.candles.length > 0) {
+      // Check for pending buffered data first (Android case)
+      if (pendingCandleDataRef.current) {
+        dataToUse = pendingCandleDataRef.current.data;
+        pendingCandleDataRef.current = null; // Clear buffer
+      } else if (candleData?.candles && candleData.candles.length > 0) {
+        dataToUse = candleData;
+      }
+
+      if (dataToUse?.candles && dataToUse.candles.length > 0) {
         // DEFENSIVE: Validate candle data matches expected symbol
-        // This prevents rendering stale data when switching markets
-        if (symbol && candleData.coin !== symbol) {
+        if (symbol && dataToUse.coin !== symbol) {
           DevLogger.log(
             'TradingViewChart: Ignoring mismatched candleData',
-            `Expected: ${symbol}, Got: ${candleData.coin}`,
+            `Expected: ${symbol}, Got: ${dataToUse.coin}`,
           );
           return;
         }
 
-        dataToSend = formatCandleData(candleData);
+        dataToSend = formatCandleData(dataToUse);
         dataSource = 'real';
       }
 
@@ -419,22 +446,23 @@ const TradingViewChart = React.forwardRef<
           twClassName="overflow-hidden rounded-lg"
           style={{ height, width: '100%', minHeight: height }} // eslint-disable-line react-native/no-inline-styles
         >
-          {/* Show skeleton while chart is loading */}
-          {!isChartReady && (
-            <Skeleton
-              height={height}
-              width="100%"
-              // eslint-disable-next-line react-native/no-inline-styles
-              style={{
-                position: 'absolute',
-                zIndex: 10,
-                backgroundColor: theme.colors.background.default,
-              }} // eslint-disable-line react-native/no-inline-styles
-              testID={`${
-                testID || TradingViewChartSelectorsIDs.CONTAINER
-              }-skeleton`}
-            />
-          )}
+          {/* Show skeleton when chart is loading AND (no data OR data doesn't match symbol) */}
+          {!isChartReady &&
+            (!candleData || (symbol && candleData.coin !== symbol)) && (
+              <Skeleton
+                height={height}
+                width="100%"
+                // eslint-disable-next-line react-native/no-inline-styles
+                style={{
+                  position: 'absolute',
+                  zIndex: 10,
+                  backgroundColor: theme.colors.background.default,
+                }} // eslint-disable-line react-native/no-inline-styles
+                testID={`${
+                  testID || TradingViewChartSelectorsIDs.CONTAINER
+                }-skeleton`}
+              />
+            )}
           {Platform.OS === 'android' ? (
             <GestureDetector gesture={Gesture.Pinch()}>
               {webViewElement}
