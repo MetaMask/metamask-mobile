@@ -51,6 +51,7 @@ import { SettingsViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Set
 import HeaderBase, {
   HeaderBaseVariant,
 } from '../../../component-library/components/HeaderBase';
+import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import AddressCopy from '../AddressCopy';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
@@ -1183,25 +1184,14 @@ export function getWalletNavbarOptions(
  * @returns {Object} - Corresponding navbar options
  */
 export function getImportTokenNavbarOptions(navigation, title, onPress) {
-  const innerStyles = StyleSheet.create({
-    headerLeft: {
-      marginHorizontal: 8,
-    },
-  });
   return {
-    headerTitleAlign: 'center',
-    headerTitle: () => (
-      <MorphText variant={TextVariant.BodyMDBold}>{title}</MorphText>
-    ),
-    headerLeft: () => (
-      <View style={innerStyles.headerLeft}>
-        <ButtonIcon
-          iconName={IconName.ArrowLeft}
-          size={ButtonIconSize.Md}
-          iconProps={{ color: MMDSIconColor.IconDefault }}
-          onPress={onPress ?? (() => navigation.goBack())}
-        />
-      </View>
+    header: () => (
+      <BottomSheetHeader
+        includesTopInset
+        onBack={onPress ?? (() => navigation.goBack())}
+      >
+        {title}
+      </BottomSheetHeader>
     ),
   };
 }
