@@ -603,7 +603,7 @@ export class PolymarketProvider implements PredictProvider {
       });
 
       if (!response) {
-        if (error?.includes(`order couldn't be fully fille`)) {
+        if (error?.includes(`order couldn't be fully filled`)) {
           throw new Error(PREDICT_ERROR_CODES.ORDER_NOT_FULLY_FILLED);
         }
 
