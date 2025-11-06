@@ -34592,7 +34592,7 @@ __metadata:
     react-native-quick-base64: "npm:^2.2.0"
     react-native-quick-crypto: "npm:^0.7.15"
     react-native-randombytes: "npm:^3.5.3"
-    react-native-reanimated: "npm:3.17.5"
+    react-native-reanimated: "npm:~3.17.2"
     react-native-release-profiler: "npm:^0.4.0"
     react-native-render-html: "npm:^6.3.4"
     react-native-safe-area-context: "npm:^5.4.0"
@@ -34629,7 +34629,7 @@ __metadata:
     redux-thunk: "npm:^2.4.2"
     regenerator-runtime: "npm:0.13.9"
     reselect: "npm:^5.1.1"
-    rive-react-native: "npm:9.3.4"
+    rive-react-native: "npm:^9.3.4"
     rxjs: "npm:^7.8.1"
     serve-handler: "npm:^6.1.5"
     simple-git: "npm:^3.25.0"
@@ -39334,7 +39334,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-reanimated@npm:3.17.5":
+"react-native-reanimated@npm:~3.17.2":
   version: 3.17.5
   resolution: "react-native-reanimated@npm:3.17.5"
   dependencies:
@@ -41014,13 +41014,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rive-react-native@npm:9.3.4":
-  version: 9.3.4
-  resolution: "rive-react-native@npm:9.3.4"
+"rive-react-native@npm:^9.3.4":
+  version: 9.6.2
+  resolution: "rive-react-native@npm:9.6.2"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/dd8be7921fdb6fa5b72a786417202e4ef7ae279898c82a13e257bbfb9fd9d232b798a4b127914195ee59ee11633568a8d2938a397efe93354e39b78b4368e11b
+  checksum: 10/9d0cffc98c632676cfa649dd749ec9b3c15a14804112bc033a2f532f335b94965737fe3c910feefe7e85b7f22492dfee9b82897269314597b7d09d08a03a14dd
   languageName: node
   linkType: hard
 
