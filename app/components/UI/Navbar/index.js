@@ -2024,7 +2024,7 @@ export function getDepositNavbarOptions(
         ? () => (
             <ButtonIcon
               onPress={onConfigurationPress}
-              iconName={IconName.MoreHorizontal}
+              iconName={IconName.Setting}
               size={ButtonIconSize.Lg}
               testID="deposit-configuration-menu-button"
               style={styles.headerLeftButton}
