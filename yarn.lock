@@ -7024,7 +7024,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-controller@npm:^50.0.0":
+"@metamask/bridge-controller@npm:50.0.0":
   version: 50.0.0
   resolution: "@metamask/bridge-controller@npm:50.0.0"
   dependencies:
@@ -7052,6 +7052,37 @@ __metadata:
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^60.0.0
   checksum: 10/3c3bae89d09ec7936a05c13472c68d3be796ef07d3bff597150f94bc9f8be0d3d7d7776145c3d97d5e7fa4e5cf77685c051be52843bae6ae54710f0f793b048f
+  languageName: node
+  linkType: hard
+
+"@metamask/bridge-controller@patch:@metamask/bridge-controller@npm%3A50.0.0#~/.yarn/patches/@metamask-bridge-controller-npm-50.0.0-8ce3ec5114.patch":
+  version: 50.0.0
+  resolution: "@metamask/bridge-controller@patch:@metamask/bridge-controller@npm%3A50.0.0#~/.yarn/patches/@metamask-bridge-controller-npm-50.0.0-8ce3ec5114.patch::version=50.0.0&hash=ced23e"
+  dependencies:
+    "@ethersproject/address": "npm:^5.7.0"
+    "@ethersproject/bignumber": "npm:^5.7.0"
+    "@ethersproject/constants": "npm:^5.7.0"
+    "@ethersproject/contracts": "npm:^5.7.0"
+    "@ethersproject/providers": "npm:^5.7.0"
+    "@metamask/base-controller": "npm:^8.4.1"
+    "@metamask/controller-utils": "npm:^11.14.1"
+    "@metamask/gas-fee-controller": "npm:^24.1.0"
+    "@metamask/keyring-api": "npm:^21.0.0"
+    "@metamask/metamask-eth-abis": "npm:^3.1.1"
+    "@metamask/multichain-network-controller": "npm:^1.0.1"
+    "@metamask/polling-controller": "npm:^14.0.1"
+    "@metamask/utils": "npm:^11.8.1"
+    bignumber.js: "npm:^9.1.2"
+    reselect: "npm:^5.1.1"
+    uuid: "npm:^8.3.2"
+  peerDependencies:
+    "@metamask/accounts-controller": ^33.0.0
+    "@metamask/assets-controllers": ^80.0.0
+    "@metamask/network-controller": ^24.0.0
+    "@metamask/remote-feature-flag-controller": ^1.6.0
+    "@metamask/snaps-controllers": ^14.0.0
+    "@metamask/transaction-controller": ^60.0.0
+  checksum: 10/fe7b2eee1de300cfd1cedc69e1183931443cb0fa225c83d023e26ba32c035b1d306e728d34ef4d578a2a2067dfc2b6898de85d48ba3921905ed85b6f52f23544
   languageName: node
   linkType: hard
 
@@ -34103,7 +34134,7 @@ __metadata:
     "@metamask/assets-controllers": "npm:^81.0.1"
     "@metamask/base-controller": "npm:^8.3.0"
     "@metamask/bitcoin-wallet-snap": "npm:^1.3.0"
-    "@metamask/bridge-controller": "npm:^50.0.0"
+    "@metamask/bridge-controller": "patch:@metamask/bridge-controller@npm%3A50.0.0#~/.yarn/patches/@metamask-bridge-controller-npm-50.0.0-8ce3ec5114.patch"
     "@metamask/bridge-status-controller": "npm:^50.0.0"
     "@metamask/browser-passworder": "npm:^5.0.0"
     "@metamask/build-utils": "npm:^3.0.0"
