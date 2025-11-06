@@ -46,6 +46,8 @@ import { PayHook } from '../../../../util/transactions/hooks/pay-hook';
 import { trace } from '../../../../util/trace';
 import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
+import { NetworkClientId } from '@metamask/network-controller';
+import { toHex } from '@metamask/controller-utils';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
@@ -161,6 +163,19 @@ export const TransactionControllerInit: ControllerInitFunction<
   }
 };
 
+async function getNextNonce(
+  transactionController: TransactionController,
+  address: string,
+  networkClientId: NetworkClientId,
+): Promise<Hex> {
+  const nonceLock = await transactionController.getNonceLock(
+    address,
+    networkClientId,
+  );
+  nonceLock.releaseLock();
+  return toHex(nonceLock.nextNonce);
+}
+
 async function publishHook({
   transactionMeta,
   getState,
@@ -196,6 +211,8 @@ async function publishHook({
         transactionController,
       ),
       messenger: initMessenger,
+      getNextNonce: (address: string, networkClientId: NetworkClientId) =>
+        getNextNonce(transactionController, address, networkClientId),
     }).getHook();
 
     const result = await hook(transactionMeta, signedTransactionInHex);
