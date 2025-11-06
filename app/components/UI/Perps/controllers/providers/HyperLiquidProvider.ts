@@ -5076,6 +5076,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Called once during initialization (ensureReady) to set up referral for the session
    * Uses session cache to avoid redundant API calls until disconnect/reconnect
    *
+   * Cache semantics: Only caches successful referral sets (never caches "not set" state)
+   * This allows detection of external referral changes between retries while avoiding redundant checks
+   *
    * Note: This is network-specific - testnet and mainnet have separate referral states
    * Note: Non-blocking - failures are logged to Sentry but don't prevent trading
    * Note: Will automatically retry on next session if failed (cache cleared on disconnect)
@@ -5096,17 +5099,15 @@ export class HyperLiquidProvider implements IPerpsProvider {
       }
 
       // Check session cache first to avoid redundant API calls
+      // Cache only stores true (referral confirmed), never false
       const cacheKey = this.getCacheKey(network, userAddress);
       const cached = this.referralCheckCache.get(cacheKey);
 
-      if (cached !== undefined) {
+      if (cached === true) {
         DevLogger.log('[ensureReferralSet] Using session cache', {
           network,
-          hasReferral: cached,
         });
-        if (cached) {
-          return; // Already has referral set this session, skip
-        }
+        return; // Already has referral set this session, skip
       }
 
       const isReady = await this.isReferralCodeReady();
@@ -5120,9 +5121,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // Check if user already has a referral set on this network
       const hasReferral = await this.checkReferralSet();
-
-      // Update session cache regardless of result
-      this.referralCheckCache.set(cacheKey, hasReferral);
 
       if (!hasReferral) {
         DevLogger.log(
@@ -5147,6 +5145,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
           );
         }
       } else {
+        // User already has referral set (possibly from external setup or previous session)
+        // Cache success to avoid redundant checks
+        this.referralCheckCache.set(cacheKey, true);
+
         DevLogger.log('[ensureReferralSet] User already has referral set', {
           network,
         });
