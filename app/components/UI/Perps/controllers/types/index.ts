@@ -13,6 +13,8 @@ export * from '../../types/navigation';
 
 // Import adapter types
 import type { RawHyperLiquidLedgerUpdate } from '../../utils/hyperLiquidAdapter';
+import type { CandleData } from '../../types/perps-types';
+import type { CandlePeriod } from '../../constants/chartConfig';
 
 // User history item for deposits and withdrawals
 export interface UserHistoryItem {
@@ -599,6 +601,12 @@ export interface SubscribeOICapsParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
 }
 
+export interface SubscribeCandlesParams {
+  coin: string;
+  interval: CandlePeriod;
+  callback: (data: CandleData) => void;
+}
+
 export interface LiquidationPriceParams {
   entryPrice: number;
   leverage: number;
@@ -786,6 +794,7 @@ export interface IPerpsProvider {
   subscribeToOrders(params: SubscribeOrdersParams): () => void;
   subscribeToAccount(params: SubscribeAccountParams): () => void;
   subscribeToOICaps(params: SubscribeOICapsParams): () => void;
+  subscribeToCandles(params: SubscribeCandlesParams): () => void;
 
   // Live data configuration
   setLiveDataConfig(config: Partial<LiveDataConfig>): void;

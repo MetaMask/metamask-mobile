@@ -4017,7 +4017,7 @@ export class PerpsController extends BaseController<
   }): () => void {
     try {
       const provider = this.getActiveProvider();
-      return provider.clientService.subscribeToCandles(params);
+      return provider.subscribeToCandles(params);
     } catch (error) {
       Logger.error(
         ensureError(error),
