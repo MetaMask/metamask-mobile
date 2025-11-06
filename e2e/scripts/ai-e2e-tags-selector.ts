@@ -1,10 +1,13 @@
+/**
+ * Overall approach:
+ 1. Analyzes code changes → Uses Claude AI to understand what files changed
+ 2. Uses an agentic approach → Claude can call tools (like reading files, getting diffs) to gather information
+ 3. Makes smart decisions → Selects only the relevant E2E test tags instead of running all tests
+**/
+
 import { AIE2ETagsSelector } from './ai-e2e-tags-selector/selector';
 
-export { AIE2ETagsSelector };
-export { default } from './ai-e2e-tags-selector/selector';
-export * from './ai-e2e-tags-selector/types';
-
-if (require.main === module) {
+async function main() {
   const apiKey = process.env.E2E_CLAUDE_API_KEY;
 
   if (!apiKey) {
@@ -13,8 +16,10 @@ if (require.main === module) {
   }
 
   const selector = new AIE2ETagsSelector(apiKey);
-  selector.run().catch(error => {
-    console.error('❌ Error:', error.message);
-    process.exit(1);
-  });
+  await selector.run();
 }
+
+main().catch(error => {
+  console.error('❌ Error:', error.message);
+  process.exit(1);
+});
