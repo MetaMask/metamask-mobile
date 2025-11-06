@@ -1,19 +1,28 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import TrendingView from './TrendingView';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockIsEnabled = jest.fn();
+const mockAddListener = jest.fn(() => jest.fn());
+
+jest.mock('../../Nav/Main/MainNavigator', () => ({
+  lastTrendingScreenRef: { current: 'TrendingFeed' },
+  updateLastTrendingScreen: jest.fn(),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
+    addListener: mockAddListener,
   }),
 }));
+
+import TrendingView from './TrendingView';
+import { updateLastTrendingScreen } from '../../Nav/Main/MainNavigator';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -46,6 +55,7 @@ describe('TrendingView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsEnabled.mockReturnValue(true);
+    mockAddListener.mockReturnValue(jest.fn());
   });
 
   it('renders native coming soon view', () => {
@@ -98,6 +108,7 @@ describe('TrendingView', () => {
       timestamp: expect.any(Number),
       fromTrending: true,
     });
+    expect(updateLastTrendingScreen).toHaveBeenCalledWith('TrendingBrowser');
   });
 
   it('includes portfolio URL with correct parameters when browser button is pressed', () => {
