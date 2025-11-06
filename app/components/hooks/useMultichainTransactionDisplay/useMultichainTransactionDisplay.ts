@@ -79,9 +79,9 @@ export function useMultichainTransactionDisplay(
 
   const typeToTitle: Partial<Record<TransactionType, string>> = {
     [TransactionType.Send]: isIncomplete
-      ? strings('transactions.send')
-      : strings('transactions.sent'),
-    [TransactionType.Receive]: strings('transactions.received'),
+      ? `${strings('transactions.send')} ${from?.unit || ''}`
+      : `${strings('transactions.sent')} ${from?.unit || ''}`,
+    [TransactionType.Receive]: `${strings('transactions.received')} ${to?.unit || ''}`,
     [TransactionType.Swap]: `${strings('transactions.swap')} ${
       from?.unit
     } ${strings('transactions.to').toLowerCase()} ${to?.unit}`,

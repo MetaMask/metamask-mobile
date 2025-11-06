@@ -32,6 +32,7 @@ import {
 } from '../number';
 import AppConstants from '../../core/AppConstants';
 import { isMainnetByChainId } from '../networks';
+import FIRST_PARTY_CONTRACT_NAMES from '../../constants/first-party-contracts';
 import {
   UINT256_BN_MAX_VALUE,
   TX_SUBMITTED,
@@ -572,6 +573,12 @@ export async function getTransactionActionKey(transaction, chainId) {
     return BRIDGE_TRANSACTION_ACTION_KEY;
   }
 
+  // Check if the 'to' address is a known bridge contract for this chainId
+  const bridgeAddress = FIRST_PARTY_CONTRACT_NAMES.Bridge?.[chainId];
+  if (bridgeAddress && to?.toLowerCase() === bridgeAddress.toLowerCase()) {
+    return BRIDGE_TRANSACTION_ACTION_KEY;
+  }
+
   // if data in transaction try to get method data
   if (data && data !== '0x') {
     const { name } = await getMethodData(data, networkClientId);
@@ -649,21 +656,34 @@ export async function getActionKey(tx, selectedAddress, ticker, chainId) {
       currencySymbol = tx.transferInformation.symbol;
     }
 
-    const incoming = safeToChecksumAddress(tx.txParams.to) === selectedAddress;
-    const selfSent =
-      incoming && safeToChecksumAddress(tx.txParams.from) === selectedAddress;
+    // Determine direction based on who initiated the transaction (txParams.from)
+    // This matches the logic in decodeIncomingTransfer (utils.js line 307)
+    // For both token transfers and ETH transfers:
+    // - If txParams.from === selectedAddress, user sent it (outgoing)
+    // - If txParams.from !== selectedAddress, user received it (incoming)
+    const fromAddress = safeToChecksumAddress(tx.txParams.from)?.toLowerCase();
+    const toAddress = safeToChecksumAddress(tx.txParams.to)?.toLowerCase();
+    const selectedAddr = selectedAddress?.toLowerCase();
+
+    // Check if transaction was sent by the selected address
+    const sentByUser = fromAddress === selectedAddr;
+    const incoming = !sentByUser;
+    const selfSent = fromAddress === selectedAddr && toAddress === selectedAddr;
 
     // Check if transaction is incomplete (not confirmed)
     const isIncomplete = isTransactionIncomplete(tx.status);
 
+    // Handle self-sent transactions first
+    if (selfSent) {
+      return currencySymbol
+        ? strings('transactions.self_sent_unit', { unit: currencySymbol })
+        : strings('transactions.self_sent_ether');
+    }
+
     if (incoming) {
-      return selfSent
-        ? currencySymbol
-          ? strings('transactions.self_sent_unit', { unit: currencySymbol })
-          : strings('transactions.self_sent_ether')
-        : currencySymbol
-          ? strings('transactions.received_unit', { unit: currencySymbol })
-          : strings('transactions.received_ether');
+      return currencySymbol
+        ? strings('transactions.received_unit', { unit: currencySymbol })
+        : strings('transactions.received_ether');
     }
     // For outgoing transactions, check status
     if (isIncomplete) {
