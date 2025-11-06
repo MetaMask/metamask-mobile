@@ -666,8 +666,6 @@ export class CardSDK {
       );
       throw error;
     }
-
-    return;
   };
 
   authorize = async (body: {
@@ -865,7 +863,10 @@ export class CardSDK {
           'Failed to get card priority wallet details. Please try again.',
         );
       } catch (error) {
-        // If we can't parse response, continue without it
+        Logger.error(
+          error as Error,
+          'Failed to get parse external wallet details.',
+        );
       }
 
       throw new CardError(
@@ -1110,7 +1111,10 @@ export class CardSDK {
         const errorResponse = await response.json();
         Logger.log(errorResponse, 'Failed to provision card.');
       } catch (error) {
-        // If we can't parse response, continue without it
+        Logger.error(
+          error as Error,
+          'Failed to parse provision card response.',
+        );
       }
 
       throw new CardError(
@@ -1238,8 +1242,6 @@ export class CardSDK {
     sigMessage: string;
     token: string;
   }): Promise<{ success: boolean }> => {
-    Logger.log('completeEVMDelegation', params);
-
     // Validate address format (must be valid Ethereum address)
     const addressRegex = /^0x[a-fA-F0-9]{40}$/;
     if (!addressRegex.test(params.address)) {
@@ -2132,12 +2134,11 @@ export class CardSDK {
   };
 
   private mapAPINetworkToCaipChainId(network: CardNetwork): CaipChainId {
-    switch (network) {
-      case 'solana':
-        return SOLANA_MAINNET.chainId;
-      default:
-        return this.lineaChainId;
+    if (network === 'solana') {
+      return SOLANA_MAINNET.chainId;
     }
+
+    return this.lineaChainId;
   }
 
   private getFirstSupportedTokenOrNull(): CardToken | null {

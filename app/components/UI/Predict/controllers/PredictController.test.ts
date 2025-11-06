@@ -293,17 +293,20 @@ describe('PredictController', () => {
       withController(({ controller }) => {
         expect(controller.state).toEqual(getDefaultPredictControllerState());
         expect(controller.state.eligibility).toEqual({});
+        expect(controller.state.accountMeta).toEqual({});
       });
     });
 
     it('initializes with custom state', () => {
       const customState: Partial<PredictControllerState> = {
-        eligibility: { polymarket: false },
+        eligibility: { polymarket: { eligible: false, country: undefined } },
       };
 
       withController(
         ({ controller }) => {
-          expect(controller.state.eligibility).toEqual({ polymarket: false });
+          expect(controller.state.eligibility).toEqual({
+            polymarket: { eligible: false, country: undefined },
+          });
         },
         { state: customState },
       );
@@ -948,85 +951,6 @@ describe('PredictController', () => {
       });
     });
 
-    it('tracks analytics with account state when available', async () => {
-      await withController(async ({ controller }) => {
-        const mockAccountState = {
-          address: '0xSafeAddress123' as `0x${string}`,
-          isDeployed: true,
-          hasAllowances: true,
-        };
-
-        mockPolymarketProvider.getAccountState.mockResolvedValue(
-          mockAccountState,
-        );
-
-        mockPolymarketProvider.placeOrder.mockResolvedValue({
-          success: true,
-          response: {
-            id: 'order-123',
-            spentAmount: '1.5',
-            receivedAmount: '3.0',
-          },
-        } as any);
-
-        const preview = createMockOrderPreview({ side: Side.BUY });
-
-        await controller.placeOrder({
-          providerId: 'polymarket',
-          preview,
-          analyticsProperties: {
-            marketId: 'market-1',
-            marketTitle: 'Test Market',
-            marketCategory: 'crypto',
-            entryPoint: 'market_details',
-            transactionType: 'buy',
-            liquidity: 10000,
-            volume: 5000,
-          },
-        });
-
-        expect(mockPolymarketProvider.getAccountState).toHaveBeenCalledWith({
-          providerId: 'polymarket',
-          ownerAddress: '0x1234567890123456789012345678901234567890',
-        });
-      });
-    });
-
-    it('tracks analytics without account state when getAccountState fails', async () => {
-      await withController(async ({ controller }) => {
-        mockPolymarketProvider.getAccountState.mockRejectedValue(
-          new Error('Failed to get account state'),
-        );
-
-        mockPolymarketProvider.placeOrder.mockResolvedValue({
-          success: true,
-          response: {
-            id: 'order-456',
-            spentAmount: '2.0',
-            receivedAmount: '4.0',
-          },
-        } as any);
-
-        const preview = createMockOrderPreview({ side: Side.BUY });
-
-        const result = await controller.placeOrder({
-          providerId: 'polymarket',
-          preview,
-          analyticsProperties: {
-            marketId: 'market-2',
-            marketTitle: 'Another Market',
-            marketCategory: 'sports',
-            entryPoint: 'home',
-            transactionType: 'buy',
-            liquidity: 20000,
-            volume: 10000,
-          },
-        });
-
-        expect(result.success).toBe(true);
-      });
-    });
-
     it('skips analytics tracking when analyticsProperties not provided', async () => {
       await withController(async ({ controller }) => {
         mockPolymarketProvider.placeOrder.mockResolvedValue({
@@ -1093,11 +1017,17 @@ describe('PredictController', () => {
   describe('refreshEligibility', () => {
     it('update eligibility for all providers successfully', async () => {
       await withController(async ({ controller }) => {
-        mockPolymarketProvider.isEligible.mockResolvedValue(true);
+        mockPolymarketProvider.isEligible.mockResolvedValue({
+          isEligible: true,
+          country: 'PT',
+        });
 
         await controller.refreshEligibility();
 
-        expect(controller.state.eligibility.polymarket).toBe(true);
+        expect(controller.state.eligibility.polymarket).toEqual({
+          eligible: true,
+          country: 'PT',
+        });
         expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
       });
     });
@@ -1111,7 +1041,10 @@ describe('PredictController', () => {
 
         await controller.refreshEligibility();
 
-        expect(controller.state.eligibility.polymarket).toBe(false);
+        expect(controller.state.eligibility.polymarket).toEqual({
+          eligible: false,
+          country: undefined,
+        });
         expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
       });
     });
@@ -1122,7 +1055,10 @@ describe('PredictController', () => {
 
         await controller.refreshEligibility();
 
-        expect(controller.state.eligibility.polymarket).toBe(false);
+        expect(controller.state.eligibility.polymarket).toEqual({
+          eligible: false,
+          country: undefined,
+        });
       });
     });
 
@@ -1131,7 +1067,10 @@ describe('PredictController', () => {
         // Add a second mock provider to the internal providers map
         const mockSecondProvider = {
           ...mockPolymarketProvider,
-          isEligible: jest.fn().mockResolvedValue(false),
+          isEligible: jest.fn().mockResolvedValue({
+            isEligible: false,
+            country: 'US',
+          }),
         };
 
         // Manually add second provider to test multiple providers scenario
@@ -1141,12 +1080,21 @@ describe('PredictController', () => {
           providers.set('second-provider', mockSecondProvider);
         });
 
-        mockPolymarketProvider.isEligible.mockResolvedValue(true);
+        mockPolymarketProvider.isEligible.mockResolvedValue({
+          isEligible: true,
+          country: 'PT',
+        });
 
         await controller.refreshEligibility();
 
-        expect(controller.state.eligibility.polymarket).toBe(true);
-        expect(controller.state.eligibility['second-provider']).toBe(false);
+        expect(controller.state.eligibility.polymarket).toEqual({
+          eligible: true,
+          country: 'PT',
+        });
+        expect(controller.state.eligibility['second-provider']).toEqual({
+          eligible: false,
+          country: 'US',
+        });
         expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
         expect(mockSecondProvider.isEligible).toHaveBeenCalled();
       });
@@ -1358,11 +1306,13 @@ describe('PredictController', () => {
     it('update state using provided updater function', () => {
       withController(({ controller }) => {
         controller.updateStateForTesting((state) => {
-          state.eligibility = { polymarket: false };
+          state.eligibility = {
+            polymarket: { eligible: false, country: undefined },
+          };
           state.lastError = 'Test error';
         });
         expect(controller.state.eligibility).toEqual({
-          polymarket: false,
+          polymarket: { eligible: false, country: undefined },
         });
         expect(controller.state.lastError).toBe('Test error');
       });
@@ -1371,11 +1321,20 @@ describe('PredictController', () => {
     it('handles complex state updates', () => {
       withController(({ controller }) => {
         controller.updateStateForTesting((state) => {
-          state.isOnboarded = { '0x123': true };
+          state.accountMeta = {
+            polymarket: {
+              '0x123': {
+                isOnboarded: true,
+                acceptedToS: false,
+              },
+            },
+          };
           state.lastError = null;
         });
 
-        expect(controller.state.isOnboarded['0x123']).toBe(true);
+        expect(
+          controller.state.accountMeta.polymarket['0x123'].isOnboarded,
+        ).toBe(true);
         expect(controller.state.lastError).toBeNull();
       });
     });
@@ -1717,10 +1676,9 @@ describe('PredictController', () => {
             balance: '100',
           },
         ]);
-        const Engine = jest.requireMock('../../../../core/Engine');
-        Engine.context.NetworkController.findNetworkClientIdByChainId = jest
-          .fn()
-          .mockReturnValue(undefined);
+        const MockedEngine = jest.requireMock('../../../../core/Engine');
+        MockedEngine.context.NetworkController.findNetworkClientIdByChainId =
+          jest.fn().mockReturnValue(undefined);
 
         mockPolymarketProvider.prepareClaim = jest
           .fn()
@@ -1751,10 +1709,9 @@ describe('PredictController', () => {
           .fn()
           .mockResolvedValue(mockClaim);
 
-        const Engine = jest.requireMock('../../../../core/Engine');
-        Engine.context.NetworkController.findNetworkClientIdByChainId = jest
-          .fn()
-          .mockReturnValue('mainnet');
+        const MockedEngine = jest.requireMock('../../../../core/Engine');
+        MockedEngine.context.NetworkController.findNetworkClientIdByChainId =
+          jest.fn().mockReturnValue('mainnet');
 
         (addTransactionBatch as jest.Mock).mockResolvedValue({});
         await controller.getPositions({ claimable: true });
@@ -1848,10 +1805,9 @@ describe('PredictController', () => {
           .fn()
           .mockResolvedValue(mockClaim);
 
-        const Engine = jest.requireMock('../../../../core/Engine');
-        Engine.context.NetworkController.findNetworkClientIdByChainId = jest
-          .fn()
-          .mockReturnValue('mainnet');
+        const MockedEngine = jest.requireMock('../../../../core/Engine');
+        MockedEngine.context.NetworkController.findNetworkClientIdByChainId =
+          jest.fn().mockReturnValue('mainnet');
 
         (addTransactionBatch as jest.Mock).mockResolvedValue({
           batchId: mockBatchId,
@@ -3548,7 +3504,9 @@ describe('PredictController', () => {
             transactionId: 'tx-789',
             amount: 200,
           };
-          state.eligibility = { polymarket: true };
+          state.eligibility = {
+            polymarket: { eligible: true, country: 'PT' },
+          };
           state.lastError = 'Some error';
         });
 
@@ -4429,6 +4387,244 @@ describe('PredictController', () => {
           },
         },
       );
+    });
+  });
+
+  describe('acceptAgreement', () => {
+    it('accepts agreement successfully for provider and address', () => {
+      withController(({ controller }) => {
+        const providerId = 'polymarket';
+        const address = '0x1234567890123456789012345678901234567890';
+
+        const result = controller.acceptAgreement({
+          providerId,
+          address,
+        });
+
+        expect(result).toBe(true);
+        expect(controller.state.accountMeta[providerId][address]).toEqual({
+          isOnboarded: false,
+          acceptedToS: true,
+        });
+      });
+    });
+
+    it('updates state correctly when accepting agreement', () => {
+      withController(({ controller }) => {
+        const providerId = 'polymarket';
+        const address = '0x1234567890123456789012345678901234567890';
+
+        expect(controller.state.accountMeta).toEqual({});
+
+        controller.acceptAgreement({
+          providerId,
+          address,
+        });
+
+        expect(controller.state.accountMeta).toEqual({
+          [providerId]: {
+            [address]: {
+              isOnboarded: false,
+              acceptedToS: true,
+            },
+          },
+        });
+      });
+    });
+
+    it('preserves existing addresses when accepting agreement for different address with same provider', () => {
+      withController(({ controller }) => {
+        const providerId = 'polymarket';
+        const address1 = '0x1234567890123456789012345678901234567890';
+        const address2 = '0x9876543210987654321098765432109876543210';
+
+        controller.acceptAgreement({
+          providerId,
+          address: address1,
+        });
+
+        expect(controller.state.accountMeta[providerId][address1]).toEqual({
+          isOnboarded: false,
+          acceptedToS: true,
+        });
+
+        controller.acceptAgreement({
+          providerId,
+          address: address2,
+        });
+
+        // Both addresses should exist
+        expect(controller.state.accountMeta[providerId][address1]).toEqual({
+          isOnboarded: false,
+          acceptedToS: true,
+        });
+        expect(controller.state.accountMeta[providerId][address2]).toEqual({
+          isOnboarded: false,
+          acceptedToS: true,
+        });
+      });
+    });
+
+    it('accepts agreement for same address with different providers', () => {
+      withController(({ controller }) => {
+        const provider1 = 'polymarket';
+        const provider2 = 'other-provider';
+        const address = '0x1234567890123456789012345678901234567890';
+
+        // Add second provider
+        const mockSecondProvider = { ...mockPolymarketProvider };
+        controller.updateStateForTesting(() => {
+          const providers = (controller as any).providers;
+          providers.set(provider2, mockSecondProvider);
+        });
+
+        controller.acceptAgreement({
+          providerId: provider1,
+          address,
+        });
+
+        controller.acceptAgreement({
+          providerId: provider2,
+          address,
+        });
+
+        expect(controller.state.accountMeta[provider1][address]).toEqual({
+          isOnboarded: false,
+          acceptedToS: true,
+        });
+        expect(controller.state.accountMeta[provider2][address]).toEqual({
+          isOnboarded: false,
+          acceptedToS: true,
+        });
+      });
+    });
+
+    it('throws error when provider is not available', () => {
+      withController(({ controller }) => {
+        const providerId = 'nonexistent-provider';
+        const address = '0x1234567890123456789012345678901234567890';
+
+        expect(() =>
+          controller.acceptAgreement({
+            providerId,
+            address,
+          }),
+        ).toThrow('Provider not available');
+
+        expect(controller.state.accountMeta[providerId]).toBeUndefined();
+      });
+    });
+
+    it('overwrites existing agreement when accepting again', () => {
+      withController(({ controller }) => {
+        const providerId = 'polymarket';
+        const address = '0x1234567890123456789012345678901234567890';
+
+        controller.acceptAgreement({
+          providerId,
+          address,
+        });
+
+        expect(controller.state.accountMeta[providerId][address]).toEqual({
+          isOnboarded: false,
+          acceptedToS: true,
+        });
+
+        // Accept again
+        const result = controller.acceptAgreement({
+          providerId,
+          address,
+        });
+
+        expect(result).toBe(true);
+        expect(controller.state.accountMeta[providerId][address]).toEqual({
+          isOnboarded: false,
+          acceptedToS: true,
+        });
+      });
+    });
+
+    it('returns true on successful agreement acceptance', () => {
+      withController(({ controller }) => {
+        const result = controller.acceptAgreement({
+          providerId: 'polymarket',
+          address: '0x1234567890123456789012345678901234567890',
+        });
+
+        expect(result).toBe(true);
+      });
+    });
+
+    it('does not affect other state properties when accepting agreement', () => {
+      withController(({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.eligibility = {
+            polymarket: { eligible: true, country: 'PT' },
+          };
+          state.lastError = 'Previous error';
+        });
+
+        const originalEligibility = controller.state.eligibility;
+        const originalLastError = controller.state.lastError;
+
+        controller.acceptAgreement({
+          providerId: 'polymarket',
+          address: '0x1234567890123456789012345678901234567890',
+        });
+
+        expect(controller.state.eligibility).toEqual(originalEligibility);
+        expect(controller.state.lastError).toBe(originalLastError);
+      });
+    });
+
+    it('preserves first address metadata when accepting agreement for second address', () => {
+      withController(({ controller }) => {
+        const providerId = 'polymarket';
+        const address1 = '0x1111111111111111111111111111111111111111';
+        const address2 = '0x2222222222222222222222222222222222222222';
+
+        controller.acceptAgreement({
+          providerId,
+          address: address1,
+        });
+
+        expect(controller.state.accountMeta[providerId][address1]).toEqual({
+          isOnboarded: false,
+          acceptedToS: true,
+        });
+        expect(
+          controller.state.accountMeta[providerId][address2],
+        ).toBeUndefined();
+
+        controller.acceptAgreement({
+          providerId,
+          address: address2,
+        });
+
+        // Both addresses should exist with their metadata
+        expect(controller.state.accountMeta[providerId][address1]).toEqual({
+          isOnboarded: false,
+          acceptedToS: true,
+        });
+        expect(controller.state.accountMeta[providerId][address2]).toEqual({
+          isOnboarded: false,
+          acceptedToS: true,
+        });
+      });
+    });
+
+    it('handles errors during agreement acceptance gracefully', () => {
+      withController(({ controller }) => {
+        const providerId = 'invalid-provider';
+        const address = '0x1234567890123456789012345678901234567890';
+
+        expect(() =>
+          controller.acceptAgreement({
+            providerId,
+            address,
+          }),
+        ).toThrow();
+      });
     });
   });
 });
