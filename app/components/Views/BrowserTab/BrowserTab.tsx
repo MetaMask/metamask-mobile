@@ -1367,23 +1367,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     }, [navigation]);
 
     const onCancelUrlBar = useCallback(() => {
-      // If from trending and feature flag is on, navigate back to trending
-      if (fromTrending && isAssetsTrendingTokensEnabled) {
-        navigation.goBack();
-        return;
-      }
-
       hideAutocomplete();
       // Reset the url bar to the current url
       const hostName =
         new URLParse(resolvedUrlRef.current).origin || resolvedUrlRef.current;
       urlBarRef.current?.setNativeProps({ text: hostName });
-    }, [
-      hideAutocomplete,
-      fromTrending,
-      isAssetsTrendingTokensEnabled,
-      navigation,
-    ]);
+    }, [hideAutocomplete]);
 
     const showBackButton = fromTrending && isAssetsTrendingTokensEnabled;
 
