@@ -8,6 +8,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: jest.fn(() => ({
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+  })),
+}));
+
 jest.mock('../../../../hooks/useStyles', () => ({
   useStyles: jest.fn(() => ({
     styles: {

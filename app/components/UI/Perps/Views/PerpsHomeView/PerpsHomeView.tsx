@@ -272,7 +272,7 @@ const PerpsHomeView = () => {
 
         {/* Recent Activity List */}
         <PerpsRecentActivityList
-          fills={recentActivity}
+          transactions={recentActivity}
           isLoading={isLoading.activity}
         />
 
