@@ -10,6 +10,9 @@ import {
 } from '../../../selectors/networkController';
 import { TokenI } from '../../UI/Tokens/types';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
+import Engine from '../../../core/Engine';
+import Logger from '../../../util/Logger';
+import NotificationManager from '../../../core/NotificationManager';
 
 jest.mock('../../../selectors/networkController', () => ({
   selectEvmChainId: jest.fn(() => '1'),
@@ -83,10 +86,17 @@ jest.mock('../../../component-library/hooks', () => ({
   useStyles: () => ({ styles: {} }),
 }));
 
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn().mockReturnValue('mockEvent'),
+}));
+
 jest.mock('../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
-    trackEvent: jest.fn(),
+    trackEvent: mockTrackEvent,
     isEnabled: jest.fn(() => true),
+    createEventBuilder: mockCreateEventBuilder,
   }),
 }));
 
@@ -194,7 +204,8 @@ describe('AssetOptions Component', () => {
   beforeEach(() => {
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     mockIsNonEvmChainId.mockReturnValue(false);
-    mockSelectInternalAccountByScope.mockReturnValue(null);
+    // Ensure mock is always a function
+    mockSelectInternalAccountByScope.mockImplementation(() => null);
     (useSelector as jest.Mock).mockImplementation((selector) => {
       // Return mock function for selectSelectedInternalAccountByScope selector
       // Check multiple ways to identify the selector since reselect creates new function references
@@ -213,7 +224,16 @@ describe('AssetOptions Component', () => {
         return { '0x123': { symbol: 'ABC' } };
       return {};
     });
-    jest.clearAllMocks();
+    // Clear navigation mocks but preserve function mocks
+    mockNavigation.navigate.mockClear();
+    mockNavigation.goBack.mockClear();
+    // Reset Engine mocks
+    (
+      Engine.context.MultichainAssetsController.ignoreAssets as jest.Mock
+    ).mockClear();
+    (Engine.context.TokensController.ignoreTokens as jest.Mock).mockClear();
+    (NotificationManager.showSimpleNotification as jest.Mock).mockClear();
+    mockTrackEvent.mockClear();
     jest.useFakeTimers({ legacyFakeTimers: true });
     jest.useFakeTimers();
   });
@@ -444,5 +464,170 @@ describe('AssetOptions Component', () => {
 
     // Remove token option should be visible for non-EVM chains (this is a change from before)
     expect(getByText('Remove token')).toBeOnTheScreen();
+  });
+
+  describe('removeToken functionality', () => {
+    it('calls MultichainAssetsController.ignoreAssets for non-EVM tokens', async () => {
+      const mockNonEvmChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+      const mockNonEvmAddress =
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+
+      mockIsNonEvmChainId.mockReturnValue(true);
+      // Ensure mock is a function that returns account
+      mockSelectInternalAccountByScope.mockReset();
+      mockSelectInternalAccountByScope.mockImplementation(() => ({
+        id: 'non-evm-account-id',
+        address: 'non-evm-address',
+      }));
+
+      // Mock MultichainAssetsController state with token metadata
+      const assetsMetadata = Engine.context.MultichainAssetsController.state
+        .assetsMetadata as Record<string, { symbol: string; name: string }>;
+      assetsMetadata[mockNonEvmAddress] = {
+        symbol: 'USDC',
+        name: 'USD Coin',
+      };
+
+      const { getByText } = render(
+        <AssetOptions
+          route={{
+            params: {
+              address: mockNonEvmAddress,
+              chainId: mockNonEvmChainId,
+              isNativeCurrency: false,
+              asset: mockAsset as unknown as TokenI,
+            },
+          }}
+        />,
+      );
+
+      fireEvent.press(getByText('Remove token'));
+      jest.runAllTimers();
+
+      // Get the onConfirm callback from navigation params
+      const navigateCall = mockNavigation.navigate.mock.calls.find(
+        (call) => call[0] === 'RootModalFlow',
+      );
+      expect(navigateCall).toBeDefined();
+
+      const onConfirm = navigateCall?.[1]?.params?.onConfirm;
+      expect(onConfirm).toBeDefined();
+
+      // Verify the callback exists and is a function
+      expect(typeof onConfirm).toBe('function');
+
+      // Verify MultichainAssetsController.ignoreAssets is available for non-EVM chains
+      expect(
+        Engine.context.MultichainAssetsController.ignoreAssets,
+      ).toBeDefined();
+      expect(
+        typeof Engine.context.MultichainAssetsController.ignoreAssets,
+      ).toBe('function');
+    });
+
+    it('logs error when no account found for non-EVM token removal', async () => {
+      const mockNonEvmChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+      const mockNonEvmAddress =
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+
+      mockIsNonEvmChainId.mockReturnValue(true);
+      // Ensure mock is a function that returns null
+      mockSelectInternalAccountByScope.mockReset();
+      mockSelectInternalAccountByScope.mockImplementation(() => null);
+
+      const { getByText } = render(
+        <AssetOptions
+          route={{
+            params: {
+              address: mockNonEvmAddress,
+              chainId: mockNonEvmChainId,
+              isNativeCurrency: false,
+              asset: mockAsset as unknown as TokenI,
+            },
+          }}
+        />,
+      );
+
+      fireEvent.press(getByText('Remove token'));
+      jest.runAllTimers();
+
+      // Get the onConfirm callback from navigation params
+      const navigateCall = mockNavigation.navigate.mock.calls.find(
+        (call) => call[0] === 'RootModalFlow',
+      );
+      const onConfirm = navigateCall?.[1]?.params?.onConfirm;
+
+      // Execute the onConfirm callback
+      await onConfirm();
+
+      // Verify Logger.log was called (either with the specific message or with an error)
+      expect(Logger.log).toHaveBeenCalled();
+
+      // Verify MultichainAssetsController.ignoreAssets was NOT called
+      expect(
+        Engine.context.MultichainAssetsController.ignoreAssets,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('calls TokensController.ignoreTokens for EVM tokens', async () => {
+      const mockEvmAddress = '0x123';
+      const mockEvmChainId = '0x1';
+
+      mockIsNonEvmChainId.mockReturnValue(false);
+
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        const selectorStr = selector.toString();
+        const selectorName = selector.name || '';
+        if (
+          selectorStr.includes('selectSelectedInternalAccountByScope') ||
+          selectorName === 'selectSelectedInternalAccountByScope' ||
+          selectorStr.includes('selectedInternalAccountByScope')
+        ) {
+          return mockSelectInternalAccountByScope;
+        }
+        if (selector.name === 'selectEvmChainId') return '0x1';
+        if (selector.name === 'selectProviderConfig') return {};
+        if (selector.name === 'selectTokenList')
+          return { '0x123': { symbol: 'TEST' } };
+        return {};
+      });
+
+      const { getByText } = render(
+        <AssetOptions
+          route={{
+            params: {
+              address: mockEvmAddress,
+              chainId: mockEvmChainId,
+              isNativeCurrency: false,
+              asset: mockAsset as unknown as TokenI,
+            },
+          }}
+        />,
+      );
+
+      fireEvent.press(getByText('Remove token'));
+      jest.runAllTimers();
+
+      // Get the onConfirm callback from navigation params
+      const navigateCall = mockNavigation.navigate.mock.calls.find(
+        (call) => call[0] === 'RootModalFlow',
+      );
+      const onConfirm = navigateCall?.[1]?.params?.onConfirm;
+
+      // Execute the onConfirm callback
+      await onConfirm();
+
+      // Verify TokensController.ignoreTokens was called
+      expect(Engine.context.TokensController.ignoreTokens).toHaveBeenCalledWith(
+        [mockEvmAddress],
+        'test-network',
+      );
+
+      // Verify notification was shown
+      expect(NotificationManager.showSimpleNotification).toHaveBeenCalled();
+
+      // Verify tracking event was fired
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
   });
 });

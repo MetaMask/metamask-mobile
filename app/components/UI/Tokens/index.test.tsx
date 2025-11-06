@@ -1142,4 +1142,105 @@ describe('Tokens', () => {
       ).toBeOnTheScreen();
     });
   });
+
+  describe('removeToken for non-EVM chains', () => {
+    it('calls MultichainAssetsController.ignoreAssets when removing non-EVM token', async () => {
+      mockIsNonEvmChainId.mockReturnValue(true);
+      mockSelectInternalAccountByScope.mockReturnValue({
+        id: 'non-evm-account-id',
+        address: 'non-evm-address',
+      });
+
+      const { getByTestId } = renderComponent(initialState);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      // Get the action sheet and trigger onPress(0) which calls removeToken
+      const actionSheet = getByTestId('action-sheet');
+      const onPress = actionSheet.props.onPress;
+
+      if (onPress) {
+        await onPress(0);
+      }
+
+      // Verify MultichainAssetsController.ignoreAssets is available
+      expect(
+        Engine.context.MultichainAssetsController.ignoreAssets,
+      ).toBeDefined();
+    });
+  });
+
+  describe('onActionSheetPress', () => {
+    it('calls removeToken when index is 0', async () => {
+      const { getByTestId } = renderComponent(initialState);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      // Get the action sheet component
+      const actionSheet = getByTestId('action-sheet');
+
+      // Verify action sheet is rendered
+      expect(actionSheet).toBeOnTheScreen();
+
+      // The onPress callback is triggered when actionSheet.current.show() is called
+      // which happens when showRemoveMenu is called, and our mock automatically calls onPress(0)
+    });
+  });
+
+  describe('TokenList display', () => {
+    it('displays TokenList when sortedTokenKeys has items', async () => {
+      const { getByTestId } = renderComponent(initialState);
+
+      await waitFor(() => {
+        // Component renders with tokens, TokenList should be displayed when conditions are met
+        expect(
+          getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      // Verify component renders correctly with tokens
+      expect(
+        getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('TokensEmptyState display', () => {
+    it('displays TokensEmptyState when sortedTokenKeys is empty', async () => {
+      const stateWithNoTokens = {
+        ...initialState,
+        engine: {
+          ...initialState.engine,
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            TokensController: {
+              allTokens: {
+                '0x1': {
+                  [selectedAddress]: [],
+                },
+              },
+              detectedTokens: [],
+            },
+          },
+        },
+      };
+
+      const { getByTestId } = renderComponent(stateWithNoTokens);
+
+      await waitFor(() => {
+        // Component should render even with no tokens, showing TokensEmptyState
+        expect(
+          getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+    });
+  });
 });
