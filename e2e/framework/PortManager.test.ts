@@ -200,10 +200,76 @@ describe('PortManager', () => {
     });
   });
 
-  // Note: BrowserStack behavior is tested in actual BrowserStack CI runs
-  // These tests verify local development behavior with random port allocation
-  describe('Local development behavior', () => {
-    it('should allocate random ports for all resources', async () => {
+  describe('getMultiInstancePort', () => {
+    it('should return the allocated port for a specific instance', async () => {
+      const allocation = await portManager.allocateMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        'dapp-server-0',
+      );
+
+      const port = portManager.getMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        'dapp-server-0',
+      );
+
+      expect(port).toBe(allocation.port);
+    });
+
+    it('should return undefined for non-allocated instance', () => {
+      const port = portManager.getMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        'non-existent-instance',
+      );
+
+      expect(port).toBeUndefined();
+    });
+
+    it('should distinguish between different instances of the same resource', async () => {
+      const allocation1 = await portManager.allocateMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        'dapp-server-0',
+      );
+      const allocation2 = await portManager.allocateMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        'dapp-server-1',
+      );
+
+      const port1 = portManager.getMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        'dapp-server-0',
+      );
+      const port2 = portManager.getMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        'dapp-server-1',
+      );
+
+      expect(port1).toBe(allocation1.port);
+      expect(port2).toBe(allocation2.port);
+      expect(port1).not.toBe(port2);
+    });
+
+    it('should return undefined after instance is released', async () => {
+      await portManager.allocateMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        'dapp-server-0',
+      );
+
+      portManager.releaseMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        'dapp-server-0',
+      );
+
+      const port = portManager.getMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        'dapp-server-0',
+      );
+
+      expect(port).toBeUndefined();
+    });
+  });
+
+  describe('Random port allocation', () => {
+    it('should allocate random ports in the 40000-60000 range for all resources', async () => {
       const allocation1 = await portManager.allocatePort(
         ResourceType.FIXTURE_SERVER,
       );
@@ -224,6 +290,26 @@ describe('PortManager', () => {
       expect(allocation1.port).not.toBe(allocation2.port);
       expect(allocation1.port).not.toBe(allocation3.port);
       expect(allocation2.port).not.toBe(allocation3.port);
+    });
+
+    it('should allocate ports in the specified range for multi-instance resources', async () => {
+      const allocation1 = await portManager.allocateMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        'dapp-server-0',
+      );
+      const allocation2 = await portManager.allocateMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        'dapp-server-1',
+      );
+
+      // Both should be in range
+      expect(allocation1.port).toBeGreaterThanOrEqual(40000);
+      expect(allocation1.port).toBeLessThanOrEqual(60000);
+      expect(allocation2.port).toBeGreaterThanOrEqual(40000);
+      expect(allocation2.port).toBeLessThanOrEqual(60000);
+
+      // Ports should be different
+      expect(allocation1.port).not.toBe(allocation2.port);
     });
   });
 

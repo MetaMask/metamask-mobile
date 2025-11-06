@@ -67,12 +67,12 @@ function getFallbackPort(resourceType: ResourceType): number {
  *
  * @param resourceType - The type of resource
  * @param actualPort - The actual port allocated by PortManager
- * @param _instanceIndex - Optional instance index for multi-instance resources (not used for LaunchArgs ports)
+ * @param instanceIndex - Optional instance index for multi-instance resources (e.g., dapp-server-0 uses index 0)
  */
 async function setupAndroidPortForwarding(
   resourceType: ResourceType,
   actualPort: number,
-  _instanceIndex?: number,
+  instanceIndex?: number,
 ): Promise<void> {
   try {
     // Only set up port forwarding on Android
@@ -97,11 +97,19 @@ async function setupAndroidPortForwarding(
       return;
     }
 
-    const fallbackPort = getFallbackPort(resourceType);
+    // Calculate the correct fallback port for multi-instance resources
+    let fallbackPort = getFallbackPort(resourceType);
+    if (
+      resourceType === ResourceType.DAPP_SERVER &&
+      instanceIndex !== undefined
+    ) {
+      fallbackPort += instanceIndex;
+    }
+
     const command = `adb reverse tcp:${fallbackPort} tcp:${actualPort}`;
     await execAsync(command);
     logger.debug(
-      `✓ Android port forwarding: ${fallbackPort} → ${actualPort} (${resourceType})`,
+      `✓ Android port forwarding: ${fallbackPort} → ${actualPort} (${resourceType}${instanceIndex !== undefined ? `:${instanceIndex}` : ''})`,
     );
   } catch (error) {
     logger.error(
