@@ -296,7 +296,7 @@
     "@metamask/swaps-controller": "^14.0.0",
     "@metamask/token-search-discovery-controller": "^3.5.0",
     "@metamask/transaction-controller": "^60.9.0",
-    "@metamask/tron-wallet-snap": "^1.6.1",
+    "@metamask/tron-wallet-snap": "^1.7.0",
     "@metamask/utils": "^11.8.1",
     "@ngraveio/bc-ur": "^1.1.6",
     "@nktkas/hyperliquid": "^0.25.4",
