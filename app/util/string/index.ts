@@ -90,3 +90,8 @@ export const formatSeedPhraseToSingleLine = (seedPhrase: string) =>
     .split('\n')
     .map((item) => item)
     .join(' ');
+
+export const toSentenceCase = (str: string): string => {
+  if (!str) return '';
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
