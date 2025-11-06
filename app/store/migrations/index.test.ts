@@ -109,7 +109,7 @@ describe('migrations', () => {
     });
   });
 
-  it('migrates successfully when latest migration is synchronous', async () => {
+  it('applies synchronous migration when it is the latest version', async () => {
     const testMigrationList = {
       ...recentMigrations,
       [numberOfMigrations]: synchronousMigration,
@@ -132,7 +132,7 @@ describe('migrations', () => {
     expect((migratedState as Record<string, unknown>).test).toEqual('sync');
   });
 
-  it('migrates successfully when latest migration is asynchronous', async () => {
+  it('applies asynchronous migration when it is the latest version', async () => {
     const testMigrationList = {
       ...recentMigrations,
       [numberOfMigrations]: asyncMigration,
@@ -155,7 +155,7 @@ describe('migrations', () => {
     expect((migratedState as Record<string, unknown>).test).toEqual('async');
   });
 
-  it('migrates successfully when using both synchronous and asynchronous migrations', async () => {
+  it('applies both synchronous and asynchronous migrations in sequence', async () => {
     const testMigrationList = {
       ...recentMigrations,
       [numberOfMigrations]: asyncMigration,
@@ -290,7 +290,7 @@ describe('Critical Error Handling', () => {
       );
     });
 
-    it('deflates when all controllers save successfully', async () => {
+    it('strips engine slice after saving all controllers to individual files', async () => {
       // Arrange
       const stateWithControllers = {
         ...initialState,
@@ -398,7 +398,7 @@ describe('Critical Error Handling', () => {
       expect(mockedControllerStorage.setItem).not.toHaveBeenCalled();
     });
 
-    it('handles mixed migration versions correctly', async () => {
+    it('inflates once when running multiple migrations past version 106', async () => {
       // Arrange - Reset all mocks to clean state
       jest.clearAllMocks();
       mockedControllerStorage.getAllPersistedState.mockResolvedValue({});
