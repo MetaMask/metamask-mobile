@@ -246,7 +246,7 @@ const BasicInfo = (): JSX.Element => {
         const emailMatch = errorWithCode.error.message.match(/[\w*]+@[\w*.]+/);
         const email = emailMatch ? emailMatch[0] : '';
         errorMessage = email
-          ? `This phone number is already in use by ${email}. Log in using this email to continue.`
+          ? strings('deposit.basic_info.phone_already_registered', { email })
           : errorWithCode.error.message;
       } else {
         errorMessage =

@@ -449,12 +449,10 @@ describe('BasicInfo Component', () => {
         fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
       });
 
-      // Verify formatted error message is displayed
-      expect(
-        screen.getByText(
-          'This phone number is already in use by k****@pedalsup.com. Log in using this email to continue.',
-        ),
-      ).toBeOnTheScreen();
+      // Verify formatted error message is displayed with localized string
+      await screen.findByText(
+        'This phone number is already in use by k****@pedalsup.com. Log in using this email to continue.',
+      );
 
       const logoutButton = screen.getByTestId('basic-info-logout-button');
       expect(logoutButton).toBeOnTheScreen();
@@ -572,12 +570,10 @@ describe('BasicInfo Component', () => {
         'Error logging out from BasicInfo error banner',
       );
 
-      // Error stays visible
-      expect(
-        screen.getByText(
-          'This phone number is already in use by d***@example.com. Log in using this email to continue.',
-        ),
-      ).toBeOnTheScreen();
+      // Error message stays visible
+      await screen.findByText(
+        'This phone number is already in use by d***@example.com. Log in using this email to continue.',
+      );
 
       mockLoggerError.mockRestore();
     });
