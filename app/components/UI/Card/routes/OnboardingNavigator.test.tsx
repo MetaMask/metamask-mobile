@@ -1,8 +1,15 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { NavigationContainer } from '@react-navigation/native';
-import OnboardingNavigator from './OnboardingNavigator';
+import {
+  NavigationContainer,
+  NavigationProp,
+  ParamListBase,
+} from '@react-navigation/native';
+import { Alert } from 'react-native';
+import OnboardingNavigator, {
+  KYCModalNavigationOptions,
+} from './OnboardingNavigator';
 import { useCardSDK } from '../sdk';
 import { strings } from '../../../../../locales/i18n';
 import { CardSDK } from '../sdk/CardSDK';
@@ -83,9 +90,33 @@ jest.mock('.', () => ({
 // Mock component library components
 jest.mock(
   '../../../../component-library/components/Buttons/ButtonIcon',
-  () => 'ButtonIcon',
+  () => ({
+    __esModule: true,
+    default: 'ButtonIcon',
+    ButtonIconSizes: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
+    },
+  }),
 );
-jest.mock('../../../../component-library/components/Texts/Text', () => 'Text');
+
+jest.mock('../../../../component-library/components/Texts/Text', () => ({
+  __esModule: true,
+  default: 'Text',
+  TextVariant: {
+    HeadingSM: 'HeadingSM',
+    BodyMd: 'BodyMd',
+  },
+}));
+
+jest.mock('../../../../component-library/components/Icons/Icon', () => ({
+  IconName: {
+    Close: 'Close',
+    ArrowLeft: 'ArrowLeft',
+  },
+}));
+
 jest.mock('@metamask/design-system-react-native', () => ({
   Box: ({
     children,
@@ -380,8 +411,15 @@ describe('OnboardingNavigator', () => {
   });
 
   describe('Navigation Options', () => {
-    describe('KYCModalavigationOptions', () => {
+    describe('KYCModalNavigationOptions', () => {
+      let mockNavigation: Partial<NavigationProp<ParamListBase>>;
+
       beforeEach(() => {
+        mockNavigation = {
+          navigate: jest.fn(),
+          goBack: jest.fn(),
+        };
+
         mockUseSelector.mockReturnValue('onboarding-123');
         mockUseCardSDK.mockReturnValue({
           user: {
@@ -393,12 +431,128 @@ describe('OnboardingNavigator', () => {
           setUser: jest.fn(),
           logoutFromProvider: jest.fn(),
         });
+
+        jest.spyOn(Alert, 'alert');
       });
 
-      it('renders navigation with proper configuration', () => {
+      afterEach(() => {
+        jest.restoreAllMocks();
+      });
+
+      it('renders close button in header right', () => {
         const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
+
         expect(queryByTestId('close-button')).toBeDefined();
-        expect(queryByTestId('activity-indicator')).toBeNull();
+      });
+
+      it('renders card title in header', () => {
+        const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
+
+        expect(queryByTestId('card-view-title')).toBeDefined();
+      });
+
+      it('renders empty view in header left', () => {
+        const options = KYCModalNavigationOptions({
+          navigation: mockNavigation as NavigationProp<ParamListBase>,
+        });
+        const HeaderLeft = options.headerLeft as () => React.ReactElement;
+        const headerLeftElement = HeaderLeft();
+        const { UNSAFE_root } = render(headerLeftElement);
+
+        expect(UNSAFE_root).toBeDefined();
+        expect(typeof UNSAFE_root.type).toBe('function');
+      });
+
+      it('displays alert when close button is pressed', () => {
+        const options = KYCModalNavigationOptions({
+          navigation: mockNavigation as NavigationProp<ParamListBase>,
+        });
+        const HeaderRight = options.headerRight as () => React.ReactElement;
+        const headerRightElement = HeaderRight();
+        const { getByTestId } = render(headerRightElement);
+
+        const closeButton = getByTestId('close-button');
+        closeButton.props.onPress();
+
+        expect(Alert.alert).toHaveBeenCalledWith(
+          'mocked_card.card_onboarding.kyc_webview.close_confirmation_title',
+          'mocked_card.card_onboarding.kyc_webview.close_confirmation_message',
+          expect.arrayContaining([
+            expect.objectContaining({
+              text: 'mocked_card.card_onboarding.kyc_webview.cancel_button',
+              style: 'cancel',
+            }),
+            expect.objectContaining({
+              text: 'mocked_card.card_onboarding.kyc_webview.close_button',
+              style: 'destructive',
+            }),
+          ]),
+        );
+      });
+
+      it('does not navigate when cancel button is pressed in alert', () => {
+        const options = KYCModalNavigationOptions({
+          navigation: mockNavigation as NavigationProp<ParamListBase>,
+        });
+        const HeaderRight = options.headerRight as () => React.ReactElement;
+        const headerRightElement = HeaderRight();
+        const { getByTestId } = render(headerRightElement);
+
+        const closeButton = getByTestId('close-button');
+        closeButton.props.onPress();
+
+        const alertCall = (Alert.alert as jest.Mock).mock.calls[0];
+        const cancelButton = alertCall[2][0];
+
+        expect(cancelButton.onPress).toBeUndefined();
+        expect(mockNavigation.navigate).not.toHaveBeenCalled();
+      });
+
+      it('navigates to VALIDATING_KYC when close button is pressed in alert', () => {
+        const options = KYCModalNavigationOptions({
+          navigation: mockNavigation as NavigationProp<ParamListBase>,
+        });
+        const HeaderRight = options.headerRight as () => React.ReactElement;
+        const headerRightElement = HeaderRight();
+        const { getByTestId } = render(headerRightElement);
+
+        const closeButton = getByTestId('close-button');
+        closeButton.props.onPress();
+
+        const alertCall = (Alert.alert as jest.Mock).mock.calls[0];
+        const destructiveButton = alertCall[2][1];
+
+        destructiveButton.onPress();
+
+        expect(mockNavigation.navigate).toHaveBeenCalledWith('VALIDATING_KYC');
+      });
+
+      it('renders header title with correct variant and test ID', () => {
+        const options = KYCModalNavigationOptions({
+          navigation: mockNavigation as NavigationProp<ParamListBase>,
+        });
+        const HeaderTitle = options.headerTitle as () => React.ReactElement;
+        const headerTitleElement = HeaderTitle();
+        const { getByTestId } = render(headerTitleElement);
+
+        const title = getByTestId('card-view-title');
+
+        expect(title).toBeDefined();
+        expect(title.props.children).toBe('mocked_card.card');
+      });
+
+      it('renders close button with correct size and icon', () => {
+        const options = KYCModalNavigationOptions({
+          navigation: mockNavigation as NavigationProp<ParamListBase>,
+        });
+        const HeaderRight = options.headerRight as () => React.ReactElement;
+        const headerRightElement = HeaderRight();
+        const { getByTestId } = render(headerRightElement);
+
+        const closeButton = getByTestId('close-button');
+
+        expect(closeButton.props.size).toBe('Lg');
+        expect(closeButton.props.iconName).toBe('Close');
       });
     });
 
