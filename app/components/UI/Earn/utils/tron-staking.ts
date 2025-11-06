@@ -3,6 +3,7 @@ import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { CaipAssetType, SnapId } from '@metamask/snaps-sdk';
 import Engine from '../../../../core/Engine';
 import { handleSnapRequest } from '../../../../core/Snaps/utils';
+import { TronResourceType } from '../../../../core/Multichain/constants';
 
 const controllerMessenger = Engine.controllerMessenger;
 
@@ -22,7 +23,7 @@ export interface TronStakeConfirmParams {
   fromAccountId: string;
   assetId: CaipAssetType;
   value: string;
-  options: { purpose: 'ENERGY' | 'BANDWIDTH' };
+  options: { purpose: TronResourceType.ENERGY | TronResourceType.BANDWIDTH };
 }
 
 export interface TronStakeResult {
@@ -30,10 +31,17 @@ export interface TronStakeResult {
   errors?: string[];
 }
 
-export interface TronUnstakeParams {
+export interface TronUnstakeValidateParams {
   value: string;
   accountId: string;
   assetId: CaipAssetType;
+}
+
+export interface TronUnstakeConfirmParams {
+  value: string;
+  accountId: string;
+  assetId: CaipAssetType;
+  options: { purpose: TronResourceType.ENERGY | TronResourceType.BANDWIDTH };
 }
 
 export interface TronUnstakeResult {
@@ -106,7 +114,7 @@ export async function computeTronFee(
 
 export async function validateTronUnstakeAmount(
   fromAccount: InternalAccount,
-  params: TronUnstakeParams,
+  params: TronUnstakeValidateParams,
 ): Promise<TronUnstakeResult> {
 
   console.log('validateTronUnstakeAmount 0', fromAccount.metadata?.snap?.id, params);
@@ -124,7 +132,7 @@ export async function validateTronUnstakeAmount(
 
 export async function confirmTronUnstake(
   fromAccount: InternalAccount,
-  params: TronUnstakeParams,
+  params: TronUnstakeConfirmParams,
 ): Promise<TronUnstakeResult> {
   return (await handleSnapRequest(controllerMessenger, {
     snapId: fromAccount.metadata?.snap?.id as SnapId,

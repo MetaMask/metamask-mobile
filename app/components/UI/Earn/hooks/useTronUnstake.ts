@@ -8,12 +8,19 @@ import {
   confirmTronUnstake,
   TronUnstakeResult,
 } from '../utils/tron-staking';
+import { TronResourceType } from '../../../../core/Multichain/constants';
+
+type Purpose = TronResourceType.ENERGY | TronResourceType.BANDWIDTH;
 
 interface UseTronUnstakeReturn {
   validating: boolean;
   errors?: string[];
   validate: (amount: string, chainId: string) => Promise<TronUnstakeResult | null>;
-  confirm: (amount: string, chainId: string) => Promise<TronUnstakeResult | null>;
+  confirm: (
+    amount: string,
+    purpose: Purpose,
+    chainId: string,
+  ) => Promise<TronUnstakeResult | null>;
 }
 
 const useTronUnstake = (): UseTronUnstakeReturn => {
@@ -51,7 +58,7 @@ const useTronUnstake = (): UseTronUnstakeReturn => {
   );
 
   const confirm = useCallback<UseTronUnstakeReturn['confirm']>(
-    async (amount: string, chainId: string) => {
+    async (amount: string, purpose: Purpose, chainId: string) => {
       if (!selectedTronAccount?.id || !chainId) return null;
 
       setValidating(true);
@@ -62,6 +69,7 @@ const useTronUnstake = (): UseTronUnstakeReturn => {
         value: amount,
         accountId: selectedTronAccount.id,
         assetId,
+        options: { purpose: purpose.toUpperCase() as TronResourceType },
       });
       setValidating(false);
       setErrors(confirmation?.errors);

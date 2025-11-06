@@ -64,6 +64,8 @@ import { EVM_SCOPE } from '../../constants/networks';
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 import { toTokenMinimalUnit, normalizeToDotDecimal } from '../../../../../util/number';
 import useTronUnstake from '../../hooks/useTronUnstake';
+import ResourceToggle, { type ResourceType } from '../../components/Tron/ResourceToggle';
+import { TRON_RESOURCE, TronResourceType } from '../../../../../core/Multichain/constants';
 ///: END:ONLY_INCLUDE_IF
 
 const EarnWithdrawInputView = () => {
@@ -83,6 +85,7 @@ const EarnWithdrawInputView = () => {
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTronAsset = token.chainId?.startsWith('tron:');
+  const [resourceType, setResourceType] = useState<ResourceType>(TRON_RESOURCE.ENERGY);
   const {
     validate: tronValidateUnstake,
     confirm: tronConfirmUnstake,
@@ -535,6 +538,7 @@ const EarnWithdrawInputView = () => {
     if (isTrxStakingEnabled && isTronAsset) {
       const result = await tronConfirmUnstake?.(
         amountToken,
+        resourceType as TronResourceType,
         String(token.chainId),
       );
       if (result?.valid && (!result.errors || result.errors.length === 0)) {
@@ -772,6 +776,13 @@ const EarnWithdrawInputView = () => {
 
   return (
     <ScreenLayout style={styles.container}>
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(tron)
+        isTrxStakingEnabled && isTronAsset ? (
+          <ResourceToggle value={resourceType} onChange={setResourceType} />
+        ) : null
+        ///: END:ONLY_INCLUDE_IF
+      }
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
