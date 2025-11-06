@@ -44,6 +44,54 @@ export const selectPerpsGtmOnboardingModalEnabledFlag = createSelector(
 );
 
 /**
+ * Selector for button color A/B test variant from LaunchDarkly
+ * TAT-1937: Tests impact of button colors (green/red vs white/white) on trading behavior
+ *
+ * @returns Variant name ('control' | 'monochrome') or null if test is disabled
+ */
+export const selectPerpsButtonColorTestVariant = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): string | null => {
+    const remoteFlag = remoteFeatureFlags?.perpButtonColorTestEnabled;
+
+    // LaunchDarkly can return:
+    // 1. A string variant name: 'control' or 'monochrome'
+    // 2. A version-gated object: { enabled: true, minAppVersion: '7.60.0', variant: 'control' }
+    // 3. null/undefined if test is disabled
+
+    if (!remoteFlag) {
+      return null;
+    }
+
+    // Check if it's a version-gated flag with variant
+    if (
+      typeof remoteFlag === 'object' &&
+      remoteFlag !== null &&
+      'enabled' in remoteFlag
+    ) {
+      const versionGatedFlag = remoteFlag as VersionGatedFeatureFlag & {
+        variant?: string;
+      };
+
+      // Validate version gating
+      if (!validatedVersionGatedFeatureFlag(versionGatedFlag)) {
+        return null;
+      }
+
+      // Return variant if present
+      return versionGatedFlag.variant || null;
+    }
+
+    // Direct string variant (simpler LaunchDarkly config)
+    if (typeof remoteFlag === 'string') {
+      return remoteFlag;
+    }
+
+    return null;
+  },
+);
+
+/**
  * Selector for HIP-3 configuration version
  * Used by ConnectionManager to detect when HIP-3 config changes and trigger reconnection
  *

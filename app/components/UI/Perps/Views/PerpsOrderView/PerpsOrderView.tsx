@@ -20,9 +20,7 @@ import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perp
 
 import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import ButtonSemantic, {
-  ButtonSemanticSeverity,
-} from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
+import ButtonSemantic from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -94,6 +92,11 @@ import {
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
+import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
+import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
+import { getButtonSeverityForDirection } from '../../constants/buttonColors';
+import { selectPerpsButtonColorTestVariant } from '../../selectors/featureFlags';
+import type { ButtonColorVariant } from '../../utils/abTesting/types';
 import {
   formatPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
@@ -191,6 +194,18 @@ const PerpsOrderViewContentBase: React.FC = () => {
     handleMaxAmount,
     maxPossibleAmount,
   } = usePerpsOrderContext();
+
+  // A/B Testing: Button color test (TAT-1937)
+  const {
+    variant,
+    variantName: buttonColorVariant,
+    isEnabled: isButtonColorTestEnabled,
+  } = usePerpsABTest({
+    test: BUTTON_COLOR_TEST,
+    featureFlagSelector: selectPerpsButtonColorTestVariant,
+    localOverride: process.env.MM_PERPS_BUTTON_COLOR_VARIANT,
+  });
+  const buttonColors = variant as ButtonColorVariant;
 
   /**
    * PROTOCOL CONSTRAINT: Existing position leverage
@@ -349,6 +364,14 @@ const PerpsOrderViewContentBase: React.FC = () => {
       [PerpsEventProperties.ORDER_SIZE]: parseFloat(orderForm.amount || '0'),
       [PerpsEventProperties.LEVERAGE_USED]: orderForm.leverage,
       [PerpsEventProperties.ORDER_TYPE]: orderForm.type,
+      // A/B Test context (TAT-1937)
+      [PerpsEventProperties.AB_TEST_ID]: isButtonColorTestEnabled
+        ? PerpsEventValues.AB_TEST.BUTTON_COLOR_TEST
+        : undefined,
+      [PerpsEventProperties.AB_TEST_VARIANT]: isButtonColorTestEnabled
+        ? buttonColorVariant
+        : undefined,
+      [PerpsEventProperties.AB_TEST_ENABLED]: isButtonColorTestEnabled,
     },
   });
 
@@ -1244,11 +1267,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
             )}
 
           <ButtonSemantic
-            severity={
-              orderForm.direction === 'long'
-                ? ButtonSemanticSeverity.Success
-                : ButtonSemanticSeverity.Danger
-            }
+            severity={getButtonSeverityForDirection(
+              orderForm.direction,
+              buttonColors,
+            )}
             onPress={handlePlaceOrder}
             isFullWidth
             size={ButtonSizeRNDesignSystem.Lg}

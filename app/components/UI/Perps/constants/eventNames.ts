@@ -104,6 +104,11 @@ export const PerpsEventProperties = {
   // PnL Hero Card properties
   IMAGE_SELECTED: 'image_selected',
   TAB_NUMBER: 'tab_number',
+
+  // A/B testing properties
+  AB_TEST_ID: 'ab_test_id',
+  AB_TEST_VARIANT: 'ab_test_variant',
+  AB_TEST_ENABLED: 'ab_test_enabled',
 } as const;
 
 /**
@@ -235,5 +240,13 @@ export const PerpsEventValues = {
     ORDERS: 'orders',
     FUNDING: 'funding',
     DEPOSITS: 'deposits',
+  },
+  // A/B testing values
+  AB_TEST: {
+    // Test IDs
+    BUTTON_COLOR_TEST: 'button_color_test',
+    // Button color test variants
+    CONTROL: 'control',
+    MONOCHROME: 'monochrome',
   },
 } as const;
