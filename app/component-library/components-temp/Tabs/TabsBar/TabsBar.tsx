@@ -26,7 +26,8 @@ const TabsBar: React.FC<TabsBarProps> = ({
   onTabPress,
   testID,
   twClassName,
-  ...boxProps
+  style,
+  ...props
 }) => {
   const tw = useTailwind();
 
@@ -42,10 +43,8 @@ const TabsBar: React.FC<TabsBarProps> = ({
   const [isInitialized, setIsInitialized] = useState(false);
   const [layoutsReady, setLayoutsReady] = useState(false);
   const activeIndexRef = useRef(activeIndex);
-
-  // State for automatic overflow detection
   const [scrollEnabled, setScrollEnabled] = useState(false);
-  const [containerWidth, setContainerWidth] = useState(0);
+  const containerWidthRef = useRef(0);
 
   // Keep activeIndexRef in sync with activeIndex
   useEffect(() => {
@@ -77,17 +76,12 @@ const TabsBar: React.FC<TabsBarProps> = ({
       tabLayouts.current = new Array(tabs.length);
       setIsInitialized(false);
       setLayoutsReady(false);
-      setScrollEnabled(false);
 
       // Stop any ongoing animation
       if (currentAnimation.current) {
         currentAnimation.current.stop();
         currentAnimation.current = null;
       }
-
-      // Force re-measurement by resetting container width temporarily
-      // This ensures fresh layout measurements for the new tab structure
-      setContainerWidth(0);
     }
   }, [tabKeys, tabs.length]);
 
@@ -142,7 +136,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
         });
       }
 
-      // Handle scrolling
+      // Handle scrolling - scroll to keep active tab visible
       if (scrollEnabled && scrollViewRef.current) {
         scrollViewRef.current.scrollTo({
           x: Math.max(0, activeTabLayout.x - 50),
@@ -166,35 +160,22 @@ const TabsBar: React.FC<TabsBarProps> = ({
     }
   }, [activeIndex, layoutsReady, animateToTab]);
 
-  // Check if content overflows and update scroll state
-  useEffect(() => {
-    if (containerWidth > 0 && tabLayouts.current.length === tabs.length) {
-      // Validate that all tab layouts are defined (prevent sparse array issues)
-      const allLayoutsDefined = tabLayouts.current.every(
-        (layout) => layout && typeof layout.width === 'number',
-      );
+  // Combined handler: measure container width and check if scrolling is needed
+  const handleContainerLayout = useCallback(
+    (layoutEvent: LayoutChangeEvent) => {
+      const { width } = layoutEvent.nativeEvent.layout;
+      containerWidthRef.current = width;
+    },
+    [],
+  );
 
-      if (allLayoutsDefined) {
-        // Calculate total content width by summing tab widths + gaps
-        const totalTabsWidth = tabLayouts.current.reduce(
-          (sum, layout) => sum + layout.width,
-          0,
-        );
-        const gapsWidth = (tabs.length - 1) * 24; // Account for gaps between tabs
-        const calculatedContentWidth = totalTabsWidth + gapsWidth;
-
-        // Account for container's px-4 padding (16px * 2 = 32px)
-        const shouldScroll = calculatedContentWidth > containerWidth - 32;
-        setScrollEnabled(shouldScroll);
-      }
+  // Handle content size change to enable/disable scrolling
+  const handleContentSizeChange = useCallback((contentWidth: number) => {
+    // Enable scrolling if content is wider than container
+    if (containerWidthRef.current > 0) {
+      setScrollEnabled(contentWidth > containerWidthRef.current);
     }
-  }, [containerWidth, tabs.length]);
-
-  // Handle container layout to measure available width
-  const handleContainerLayout = (layoutEvent: LayoutChangeEvent) => {
-    const { width } = layoutEvent.nativeEvent.layout;
-    setContainerWidth(width);
-  };
+  }, []);
 
   const handleTabLayout = useCallback(
     (index: number, layoutEvent: LayoutChangeEvent) => {
@@ -221,7 +202,6 @@ const TabsBar: React.FC<TabsBarProps> = ({
       );
 
       if (allLayoutsReady) {
-        // Recalculate scroll detection on initial load OR when any layout changes significantly
         if (!layoutsReady || hasSignificantChange) {
           if (!layoutsReady) {
             setLayoutsReady(true);
@@ -239,22 +219,10 @@ const TabsBar: React.FC<TabsBarProps> = ({
               animateToTab(activeIndexRef.current);
             });
           }
-
-          // Update scroll detection
-          if (containerWidth > 0) {
-            const totalWidth = tabLayouts.current.reduce(
-              (sum, layout) => sum + (layout?.width || 0),
-              0,
-            );
-            const gapsWidth = (tabs.length - 1) * 24;
-            // Account for container's px-4 padding (16px * 2 = 32px)
-            const shouldScroll = totalWidth + gapsWidth > containerWidth - 32;
-            setScrollEnabled(shouldScroll);
-          }
         }
       }
     },
-    [tabs.length, layoutsReady, containerWidth, animateToTab],
+    [tabs.length, layoutsReady, animateToTab],
   );
 
   // Cleanup effect
@@ -281,49 +249,22 @@ const TabsBar: React.FC<TabsBarProps> = ({
 
   return (
     <Box
-      twClassName={`relative overflow-hidden px-4 ${twClassName || ''}`}
+      twClassName={`relative overflow-hidden ${twClassName || ''}`}
+      style={style}
       testID={testID}
       onLayout={handleContainerLayout as (layoutEvent: unknown) => void}
-      {...boxProps}
+      {...props}
     >
-      {scrollEnabled ? (
-        <ScrollView
-          ref={scrollViewRef}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={tw.style('flex-grow-0')}
-          contentContainerStyle={tw.style('flex-row')}
-          scrollsToTop={false}
-        >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="relative gap-6"
-          >
-            {tabs.map((tab, index) => (
-              <Tab
-                key={tab.key}
-                label={tab.label}
-                isActive={index === activeIndex}
-                isDisabled={tab.isDisabled}
-                onPress={() => handleTabPress(index)}
-                onLayout={(layoutEvent) => handleTabLayout(index, layoutEvent)}
-                testID={`${testID}-tab-${index}`}
-              />
-            ))}
-
-            {/* Animated underline for scrollable tabs */}
-            {activeIndex >= 0 && isInitialized && (
-              <Animated.View
-                style={tw.style('absolute bottom-0 h-0.5 bg-icon-default', {
-                  width: underlineWidthAnimated,
-                  transform: [{ translateX: underlineAnimated }],
-                })}
-              />
-            )}
-          </Box>
-        </ScrollView>
-      ) : (
+      <ScrollView
+        ref={scrollViewRef}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        scrollEnabled={scrollEnabled}
+        style={tw.style('flex-grow-0')}
+        contentContainerStyle={tw.style('flex-row px-4')}
+        scrollsToTop={false}
+        onContentSizeChange={handleContentSizeChange}
+      >
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -341,7 +282,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
             />
           ))}
 
-          {/* Animated underline for non-scrollable tabs */}
+          {/* Animated underline for scrollable tabs */}
           {activeIndex >= 0 && isInitialized && (
             <Animated.View
               style={tw.style('absolute bottom-0 h-0.5 bg-icon-default', {
@@ -351,7 +292,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
             />
           )}
         </Box>
-      )}
+      </ScrollView>
     </Box>
   );
 };
