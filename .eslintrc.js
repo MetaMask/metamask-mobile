@@ -25,7 +25,22 @@ module.exports = {
       extends: ['./e2e/framework/.eslintrc.js'],
     },
     {
+      files: [
+        'integration/jest.integration.config.js',
+        'integration/setupFiles.pre-env.js',
+        'integration/mocks/**/*.js',
+      ],
+      rules: {
+        'import/no-commonjs': 0,
+        'import/no-nodejs-modules': 0,
+        'react/display-name': 0,
+        'react/prop-types': 0,
+        'no-empty-function': 0,
+      },
+    },
+    {
       files: ['*.{ts,tsx}'],
+      excludedFiles: ['integration/**/*.{ts,tsx}'],
       extends: ['@metamask/eslint-config-typescript'],
       rules: {
         // TODO: re-enable
@@ -54,6 +69,16 @@ module.exports = {
             allow: ['Text'],
           },
         ],
+      },
+    },
+    {
+      files: ['integration/**/*.{ts,tsx}'],
+      rules: {
+        '@typescript-eslint/no-parameter-properties': 0,
+        '@typescript-eslint/no-unused-vars': 0,
+        '@typescript-eslint/no-explicit-any': 0,
+        '@typescript-eslint/no-require-imports': 0,
+        'no-empty': 0,
       },
     },
     {
