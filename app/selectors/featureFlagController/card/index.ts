@@ -149,7 +149,7 @@ const defaultCardSupportedCountries: CardSupportedCountries = {
 
 export type CardSupportedCountries = Record<string, boolean>;
 
-export interface DisplayCardButtonFeatureFlag {
+export interface GateVersionedFeatureFlag {
   enabled: boolean;
   minimumVersion: string;
 }
@@ -188,7 +188,7 @@ export const selectDisplayCardButtonFeatureFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
     const remoteFlag =
-      remoteFeatureFlags?.displayCardButton as unknown as DisplayCardButtonFeatureFlag;
+      remoteFeatureFlags?.displayCardButton as unknown as GateVersionedFeatureFlag;
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
@@ -196,7 +196,12 @@ export const selectDisplayCardButtonFeatureFlag = createSelector(
 
 export const selectCardExperimentalSwitch = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => remoteFeatureFlags?.cardExperimentalSwitch ?? false,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.cardExperimentalSwitch2 as unknown as GateVersionedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
 );
 
 export const selectCardFeatureFlag = createSelector(

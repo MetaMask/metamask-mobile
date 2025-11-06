@@ -10,7 +10,6 @@ import { createSelector } from 'reselect';
 
 import I18n from '../../../locales/i18n';
 import { TokenI } from '../../components/UI/Tokens/types';
-import { sortAssets } from '../../components/UI/Tokens/util';
 import { RootState } from '../../reducers';
 import { formatWithThreshold } from '../../util/assets';
 import { selectEvmNetworkConfigurationsByChainId } from '../networkController';
@@ -27,6 +26,7 @@ import {
   TRON_RESOURCE_SYMBOLS_SET,
   TronResourceSymbol,
 } from '../../core/Multichain/constants';
+import { sortAssetsWithPriority } from '../../components/UI/Tokens/util/sortAssetsWithPriority';
 
 export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   (state: RootState) => {
@@ -49,6 +49,7 @@ export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
     let multichainState = {
       accountsAssets: {},
       assetsMetadata: {},
+      allIgnoredAssets: {},
       balances: {},
       conversionRates: {},
     };
@@ -234,7 +235,7 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
     // Current sorting options
     // {"key": "name", "order": "asc", "sortCallback": "alphaNumeric"}
     // {"key": "tokenFiatAmount", "order": "dsc", "sortCallback": "stringNumeric"}
-    const tokensSorted = sortAssets(
+    const tokensSorted = sortAssetsWithPriority(
       assets.map((asset) => ({
         ...asset,
         tokenFiatAmount: asset.fiat?.balance.toString(),

@@ -456,14 +456,14 @@ const defaultMockRoute = {
 
 const defaultMockHooks = {
   usePerpsLiveAccount: {
-    balance: '1000',
-    availableBalance: '1000',
-    accountInfo: {
-      marginSummary: {
-        accountValue: 1000,
-        totalMarginUsed: 0,
-      },
+    account: {
+      availableBalance: '1000',
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+      totalBalance: '1000',
     },
+    isInitialLoading: false,
   },
   usePerpsTrading: {
     placeOrder: jest.fn(),
@@ -558,6 +558,7 @@ const createMockStreamManager = () => {
           subscribers.delete(id);
         };
       },
+      subscribe: jest.fn(() => jest.fn()),
     },
     orders: {
       subscribe: jest.fn(() => jest.fn()),
@@ -596,6 +597,9 @@ const createMockStreamManager = () => {
     marketData: {
       subscribe: jest.fn(() => jest.fn()),
       getMarkets: jest.fn(),
+    },
+    oiCaps: {
+      subscribe: jest.fn(() => jest.fn()),
     },
   };
 };
@@ -2835,25 +2839,21 @@ describe('PerpsOrderView', () => {
   });
 
   describe('Insufficient funds handling', () => {
-    it('should show insufficient funds button when amount times leverage is below minimum', () => {
-      // Arrange - Mock low balance and high minimum
+    it('should not show balance warning when account is still loading', async () => {
+      // This test verifies our loading guard fix - balance warnings shouldn't
+      // appear while account data is still loading
       (usePerpsLiveAccount as jest.Mock).mockReturnValue({
         account: {
-          availableBalance: '1', // Very low balance
+          availableBalance: '0', // Zero balance
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
-          totalBalance: '1',
+          totalBalance: '0',
         },
-        isInitialLoading: false,
+        isInitialLoading: true, // Still loading - warning should NOT appear
       });
 
-      (useMinimumOrderAmount as jest.Mock).mockReturnValue({
-        minimumOrderAmount: 1000, // High minimum
-        isLoading: false,
-      });
-
-      const { getByText } = render(
+      const { queryByText } = render(
         <SafeAreaProvider initialMetrics={initialMetrics}>
           <TestWrapper>
             <PerpsOrderView />
@@ -2861,8 +2861,10 @@ describe('PerpsOrderView', () => {
         </SafeAreaProvider>,
       );
 
-      // Assert - Should show insufficient funds message
-      expect(getByText('Insufficient funds')).toBeOnTheScreen();
+      // Assert - Should NOT show "No funds available" warning while loading
+      expect(
+        queryByText('No funds available. Please deposit first.'),
+      ).toBeNull();
     });
 
     it('should show normal place order button when amount is sufficient', () => {
@@ -2937,7 +2939,7 @@ describe('PerpsOrderView', () => {
         },
       });
 
-      const { getByText } = render(
+      const { getByTestId, getByText } = render(
         <SafeAreaProvider initialMetrics={initialMetrics}>
           <TestWrapper>
             <PerpsOrderView />
@@ -2945,8 +2947,9 @@ describe('PerpsOrderView', () => {
         </SafeAreaProvider>,
       );
 
-      // Assert - Should display asset in header title and price
-      expect(getByText('Long BTC')).toBeOnTheScreen();
+      // Assert - Should display asset in header title using testID to avoid duplicate text matches
+      const headerTitle = getByTestId('perps-order-header-asset-title');
+      expect(headerTitle).toHaveTextContent('Long BTC');
       expect(getByText('$3,000')).toBeOnTheScreen(); // Price from mock data
     });
   });

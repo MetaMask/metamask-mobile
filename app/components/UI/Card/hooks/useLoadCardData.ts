@@ -7,7 +7,7 @@ import { useGetPriorityCardToken } from './useGetPriorityCardToken';
 import { useIsCardholder } from './useIsCardholder';
 import useGetCardExternalWalletDetails from './useGetCardExternalWalletDetails';
 import useGetDelegationSettings from './useGetDelegationSettings';
-import { CardTokenAllowance } from '../types';
+import { CardTokenAllowance, CardWarning } from '../types';
 
 /**
  * Hook to load card data.
@@ -22,7 +22,7 @@ import { CardTokenAllowance } from '../types';
  * Shared by both modes:
  * - Priority token (single token with highest priority)
  * - All available tokens with allowances (for asset selection)
- * - Asset Balance (via useAssetBalance hook - used separately)
+ * - Asset Balance (via useAssetBalances hook - used separately)
  * - Open Swaps (via useOpenSwaps hook - used separately)
  * - Card Details (for card status, type, etc.)
  *
@@ -46,6 +46,7 @@ const useLoadCardData = () => {
     data: delegationSettings,
     isLoading: isLoadingDelegationSettings,
     error: delegationSettingsError,
+    fetchData: fetchDelegationSettings,
   } = useGetDelegationSettings();
 
   // Authenticated mode: Get all wallet details from API
@@ -127,10 +128,13 @@ const useLoadCardData = () => {
   ]);
 
   // Combined warning (only from priority token and card details)
-  const warning = useMemo(
-    () => priorityTokenWarning || cardDetailsWarning,
-    [priorityTokenWarning, cardDetailsWarning],
-  );
+  // Priority: NoCard warning always takes precedence because the user must provision a card before delegating
+  const warning = useMemo(() => {
+    if (cardDetailsWarning === CardWarning.NoCard) {
+      return cardDetailsWarning;
+    }
+    return priorityTokenWarning || cardDetailsWarning;
+  }, [priorityTokenWarning, cardDetailsWarning]);
 
   // Manual fetch function to refresh all data
   const fetchAllData = useMemo(
@@ -150,6 +154,29 @@ const useLoadCardData = () => {
       fetchCardDetails,
       isAuthenticated,
       fetchExternalWalletDetails,
+    ],
+  );
+
+  // Force refetch function that bypasses cache
+  const refetchAllData = useMemo(
+    () => async () => {
+      if (isAuthenticated) {
+        await Promise.all([
+          fetchDelegationSettings(),
+          fetchExternalWalletDetails(),
+          fetchCardDetails(),
+          fetchPriorityToken(),
+        ]);
+      } else {
+        await Promise.all([fetchPriorityToken()]);
+      }
+    },
+    [
+      isAuthenticated,
+      fetchDelegationSettings,
+      fetchExternalWalletDetails,
+      fetchCardDetails,
+      fetchPriorityToken,
     ],
   );
 
@@ -173,6 +200,7 @@ const useLoadCardData = () => {
     isCardholder,
     // Fetch functions
     fetchAllData,
+    refetchAllData,
     fetchPriorityToken,
     fetchCardDetails,
     // Card provisioning

@@ -16,9 +16,6 @@ const styleSheet = (params: { theme: Theme }) => {
     content: {
       flex: 1,
     },
-    contentContainer: {
-      flexGrow: 1,
-    },
     sectionHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -92,17 +89,6 @@ const styleSheet = (params: { theme: Theme }) => {
     startTradeText: {
       marginLeft: 12,
       flex: 1,
-    },
-    debugButton: {
-      backgroundColor: colors.warning.default,
-      padding: 8,
-      marginHorizontal: 16,
-      marginVertical: 8,
-      borderRadius: 8,
-      alignItems: 'center',
-    },
-    debugButtonText: {
-      color: colors.text.default,
     },
   });
 };
