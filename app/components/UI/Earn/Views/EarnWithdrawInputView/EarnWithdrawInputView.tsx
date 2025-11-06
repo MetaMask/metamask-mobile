@@ -117,7 +117,8 @@ const EarnWithdrawInputView = () => {
   const withdrawalToken: EarnTokenDetails | undefined = useMemo(() => {
     if (
       receiptTokenToUse?.experience?.type ===
-      EARN_EXPERIENCES.STABLECOIN_LENDING
+        EARN_EXPERIENCES.STABLECOIN_LENDING ||
+      receiptTokenToUse?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING
     ) {
       return receiptTokenToUse;
     }
