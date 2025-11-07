@@ -6,34 +6,40 @@ import {
 } from './AccountsList.hooks';
 import NotificationOptionToggle from './NotificationOptionToggle';
 import { NotificationSettingsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationSettingsView.selectors';
-import { toFormattedAddress } from '../../../../util/address';
+import AccountListHeader from '../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/AccountListHeader';
 
 export const AccountsList = () => {
-  const { accounts, accountAddresses, accountAvatarType } = useAccountProps();
+  const { accountAvatarType, firstHDWalletGroups } = useAccountProps();
   const {
     isAnyAccountLoading,
     isAccountLoading,
     isAccountEnabled,
     refetchAccountSettings,
-  } = useNotificationAccountListProps(accountAddresses);
+    getEvmAddress,
+  } = useNotificationAccountListProps();
+
+  if (!firstHDWalletGroups) {
+    return null;
+  }
 
   return (
     <View>
+      <AccountListHeader title={firstHDWalletGroups.title} />
       <FlatList
-        data={accounts}
-        keyExtractor={(item) => `address-${item.address}`}
+        data={firstHDWalletGroups.data}
+        keyExtractor={(item) => `address-${item.id}`}
         renderItem={({ item }) => (
           <NotificationOptionToggle
-            key={item.address}
+            key={item.id}
+            item={item}
+            evmAddress={getEvmAddress(item.accounts)}
             icon={accountAvatarType}
-            title={item.name}
-            address={item.address}
             disabledSwitch={isAnyAccountLoading}
-            isLoading={isAccountLoading(item.address)}
-            isEnabled={isAccountEnabled(item.address)}
+            isLoading={isAccountLoading(item.accounts)}
+            isEnabled={isAccountEnabled(item.accounts)}
             refetchNotificationAccounts={refetchAccountSettings}
             testID={NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATION_TOGGLE(
-              toFormattedAddress(item.address),
+              item.id,
             )}
           />
         )}
