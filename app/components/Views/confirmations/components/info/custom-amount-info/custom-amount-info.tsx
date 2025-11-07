@@ -3,8 +3,10 @@ import React, {
   memo,
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import InfoSection from '../../UI/info-row/info-section';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
@@ -17,7 +19,7 @@ import {
 } from '../../deposit-keyboard';
 import { Box } from '../../../../../UI/Box/Box';
 import { useStyles } from '../../../../../hooks/useStyles';
-import styleSheet from './custom-amount-info.styles';
+import styleSheet, { BOTTOM_VISUAL_PADDING } from './custom-amount-info.styles';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
 import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
 import AlertBanner from '../../alert-banner';
@@ -42,6 +44,24 @@ export interface CustomAmountInfoProps {
   disablePay?: boolean;
 }
 
+/**
+ * Custom hook to create container style with dynamic bottom padding
+ * Combines safe area insets with visual padding for Android 3-button navigation
+ */
+function useContainerStyleWithBottomPadding(
+  containerStyle: Record<string, unknown>,
+) {
+  const insets = useSafeAreaInsets();
+
+  return useMemo(
+    () => ({
+      ...containerStyle,
+      paddingBottom: insets.bottom + BOTTOM_VISUAL_PADDING,
+    }),
+    [containerStyle, insets.bottom],
+  );
+}
+
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
   ({ children, currency, disablePay }) => {
     useClearConfirmationOnBackSwipe();
@@ -54,6 +74,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isResultReady = useIsResultReady({
       isKeyboardVisible,
     });
+
+    // Dynamic bottom padding: safe area inset + visual padding
+    const containerStyle = useContainerStyleWithBottomPadding(styles.container);
 
     const {
       amountFiat,
@@ -86,7 +109,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     }, []);
 
     return (
-      <Box style={styles.container}>
+      <Box style={containerStyle}>
         <Box>
           <CustomAmount
             amountFiat={amountFiat}
@@ -138,8 +161,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 export function CustomAmountInfoSkeleton() {
   const { styles } = useStyles(styleSheet, {});
 
+  // Dynamic bottom padding: safe area inset + visual padding (same as CustomAmountInfo)
+  const containerStyle = useContainerStyleWithBottomPadding(styles.container);
+
   return (
-    <Box style={styles.container}>
+    <Box style={containerStyle}>
       <Box>
         <CustomAmountSkeleton />
         <PayTokenAmountSkeleton />

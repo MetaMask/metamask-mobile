@@ -1,7 +1,11 @@
 import React from 'react';
 import { merge, noop } from 'lodash';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { CustomAmountInfo, CustomAmountInfoProps } from './custom-amount-info';
+import {
+  CustomAmountInfo,
+  CustomAmountInfoProps,
+  CustomAmountInfoSkeleton,
+} from './custom-amount-info';
 import { simpleSendTransactionControllerMock } from '../../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
@@ -17,6 +21,7 @@ import {
   useAlerts,
 } from '../../../context/alert-system-context';
 import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/pay/useAutomaticTransactionPayToken');
@@ -27,6 +32,9 @@ jest.mock('../../../context/confirmation-context');
 jest.mock('../../../hooks/pay/useTransactionTotalFiat');
 jest.mock('../../../context/alert-system-context');
 jest.mock('../../../hooks/transactions/useTransactionCustomAmountAlerts');
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: jest.fn(),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -52,6 +60,7 @@ describe('CustomAmountInfo', () => {
   const useTransactionCustomAmountAlertsMock = jest.mocked(
     useTransactionCustomAmountAlerts,
   );
+  const useSafeAreaInsetsMock = jest.mocked(useSafeAreaInsets);
 
   const useTransactionCustomAmountMock = jest.mocked(
     useTransactionCustomAmount,
@@ -59,6 +68,13 @@ describe('CustomAmountInfo', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    useSafeAreaInsetsMock.mockReturnValue({
+      top: 0,
+      right: 0,
+      bottom: 34,
+      left: 0,
+    });
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: {
@@ -176,5 +192,56 @@ describe('CustomAmountInfo', () => {
   it('renders keyboard', () => {
     const { getByTestId } = render();
     expect(getByTestId('deposit-keyboard')).toBeDefined();
+  });
+
+  it('uses safe area insets for bottom padding', () => {
+    const { getByTestId } = render();
+
+    // Verify component renders with safe area insets hook mocked
+    expect(getByTestId('deposit-keyboard')).toBeDefined();
+    expect(useSafeAreaInsetsMock).toHaveBeenCalled();
+  });
+});
+
+describe('CustomAmountInfoSkeleton', () => {
+  const useSafeAreaInsetsMock = jest.mocked(useSafeAreaInsets);
+
+  beforeEach(() => {
+    jest.resetAllMocks();
+
+    useSafeAreaInsetsMock.mockReturnValue({
+      top: 0,
+      right: 0,
+      bottom: 34,
+      left: 0,
+    });
+  });
+
+  it('renders skeleton components', () => {
+    const { getByTestId } = renderWithProvider(<CustomAmountInfoSkeleton />, {
+      state: merge(
+        {},
+        simpleSendTransactionControllerMock,
+        transactionApprovalControllerMock,
+        otherControllersMock,
+      ),
+    });
+
+    expect(getByTestId('custom-amount-skeleton')).toBeDefined();
+    expect(getByTestId('pay-token-amount-skeleton')).toBeDefined();
+  });
+
+  it('uses safe area insets for bottom padding', () => {
+    renderWithProvider(<CustomAmountInfoSkeleton />, {
+      state: merge(
+        {},
+        simpleSendTransactionControllerMock,
+        transactionApprovalControllerMock,
+        otherControllersMock,
+      ),
+    });
+
+    // Verify safe area insets hook is called for dynamic padding
+    expect(useSafeAreaInsetsMock).toHaveBeenCalled();
   });
 });
