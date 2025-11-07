@@ -80,6 +80,9 @@ MetaMetrics.getInstance().trackEvent(
 - `direction` (optional): `'long' | 'short'`
 - `source` (optional): Where user came from (e.g., `'banner'`, `'notification'`, `'main_action_button'`, `'position_tab'`, `'perp_markets'`, `'deeplink'`, `'tutorial'`)
 - `open_position` (optional): Number of open positions (used for close_all_positions screen, number)
+- `ab_test_button_color` (optional): Button color test variant (`'control' | 'monochrome'`), only included when test is enabled
+- `ab_test_button_color_enabled` (optional): Whether button color test is active (boolean)
+- Future AB tests: `ab_test_{test_name}` and `ab_test_{test_name}_enabled` (see [Multiple Concurrent Tests](#multiple-concurrent-tests))
 
 ### 2. PERPS_UI_INTERACTION
 
@@ -238,6 +241,60 @@ MetaMetrics.getInstance().trackEvent(
 );
 ```
 
+## Multiple Concurrent Tests
+
+### Flat Property Pattern
+
+To support multiple AB tests running concurrently (e.g., TAT-1937 button colors, TAT-1940 asset CTA, TAT-1827 homepage CTA), we use **flat properties** instead of generic properties.
+
+**Property Naming:** `ab_test_{test_name}` and `ab_test_{test_name}_enabled`
+
+**Example with 3 concurrent tests:**
+
+```typescript
+usePerpsEventTracking({
+  eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+  properties: {
+    [PerpsEventProperties.SCREEN_TYPE]:
+      PerpsEventValues.SCREEN_TYPE.ASSET_DETAILS,
+    [PerpsEventProperties.ASSET]: 'BTC',
+    // Test 1: Button color test (TAT-1937)
+    [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: isButtonColorTestEnabled
+      ? buttonColorVariant
+      : undefined,
+    [PerpsEventProperties.AB_TEST_BUTTON_COLOR_ENABLED]:
+      isButtonColorTestEnabled,
+    // Test 2: Asset CTA test (TAT-1940) - future
+    [PerpsEventProperties.AB_TEST_ASSET_CTA]: isAssetCTATestEnabled
+      ? assetCTAVariant
+      : undefined,
+    [PerpsEventProperties.AB_TEST_ASSET_CTA_ENABLED]: isAssetCTATestEnabled,
+    // Test 3: Homepage CTA test (TAT-1827) - future
+    [PerpsEventProperties.AB_TEST_HOMEPAGE_CTA]: isHomepageCTATestEnabled
+      ? homepageCTAVariant
+      : undefined,
+    [PerpsEventProperties.AB_TEST_HOMEPAGE_CTA_ENABLED]:
+      isHomepageCTATestEnabled,
+  },
+});
+```
+
+### Where to Track AB Tests
+
+**✅ Track in screen views:** PERPS_SCREEN_VIEWED events establish the baseline and allow analytics platforms to calculate conversion rates automatically.
+
+**❌ Don't track in every interaction:** Tracking AB test context in every UI interaction or transaction creates unnecessary event bloat.
+
+**Example:** For TAT-1937 (button color test), only track in `PERPS_SCREEN_VIEWED` for `screen_type: 'asset_details'`. Analytics can then measure:
+
+- Trade initiation rate: Users who viewed asset details → navigated to trading screen
+- Trade execution rate: Users who viewed asset details → completed a trade
+- Time to execution: Duration from screen view to transaction
+
+For details, see [perps-ab-testing.md](./perps-ab-testing.md).
+
+---
+
 ## Best Practices
 
 1. **Use constants** - Never hardcode strings
@@ -245,6 +302,7 @@ MetaMetrics.getInstance().trackEvent(
 3. **Track duration** - Include `completion_duration` for transactions
 4. **Use properties** - Don't create new events for minor variations
 5. **Auto timestamp** - `usePerpsEventTracking` adds it automatically
+6. **AB test tracking** - Only in screen view events, not every interaction
 
 ## Sentry vs MetaMetrics
 

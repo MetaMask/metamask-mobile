@@ -1,0 +1,513 @@
+# Perps A/B Testing Framework
+
+## Overview
+
+Simplified A/B testing framework for Perps that leverages LaunchDarkly for user identification, variant assignment, and persistence. The implementation focuses on reading variants and applying them in UI, while LaunchDarkly handles all complex logic.
+
+**Key Design Principles:**
+
+- LaunchDarkly is the single source of truth for variant assignment
+- Simple string flags (not JSON) for variant names
+- Fallback to first variant when flag is disabled
+- Type-safe hook API for UI components
+- No client-side assignment logic or storage
+
+## Architecture
+
+```mermaid
+graph TD
+    LD[LaunchDarkly Remote] -->|returns string| FS[Feature Flag Selector]
+    FS -->|variant name| Hook[usePerpsABTest Hook]
+    Hook -->|variant data| UI[UI Component]
+
+    TC[Test Config] -->|defines variants| Hook
+    Hook -->|maps name to data| UI
+
+    style LD fill:#e1f5ff
+    style FS fill:#fff3e0
+    style Hook fill:#f3e5f5
+    style UI fill:#e8f5e9
+```
+
+## Layer Responsibilities
+
+### Test Configuration (`tests.ts`)
+
+**Owns:**
+
+- Variant definitions (control, treatment, etc.)
+- Variant data (button colors, text, behavior flags)
+- Test metadata (ID, description, min version)
+
+**Example:**
+
+```typescript
+export const BUTTON_COLOR_TEST: ABTestConfig<ButtonColorTestVariants> = {
+  testId: 'button_color_test',
+  featureFlagKey: 'perpsButtonColorTestEnabled',
+  description: 'Tests impact of button colors on trading behavior',
+  variants: {
+    control: {
+      weight: 50, // Informational only
+      data: { long: 'green', short: 'red' },
+    },
+    monochrome: {
+      weight: 50, // Informational only
+      data: { long: 'white', short: 'white' },
+    },
+  },
+};
+```
+
+**Note:** Weights are informational only. LaunchDarkly controls actual distribution via percentage rollout rules.
+
+---
+
+### Feature Flag Selector (`selectors/featureFlags/index.ts`)
+
+**Owns:**
+
+- Reading LaunchDarkly flag value from Redux
+- Returning variant name as string or null
+
+**Example:**
+
+```typescript
+export const selectPerpsButtonColorTestVariant = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): string | null => {
+    const flag = remoteFeatureFlags?.perpsButtonColorTestEnabled;
+    return flag || null; // Returns 'control' | 'monochrome' | null
+  },
+);
+```
+
+**Redux State:**
+
+```typescript
+{
+  RemoteFeatureFlagController: {
+    remoteFeatureFlags: {
+      perpsButtonColorTestEnabled: 'control'; // String value from LaunchDarkly
+    }
+  }
+}
+```
+
+---
+
+### Hook (`usePerpsABTest`)
+
+**Owns:**
+
+- Mapping variant name to variant data
+- Fallback logic (first variant when flag is null)
+- `isEnabled` state (true if LaunchDarkly returned a variant)
+
+**Returns:**
+
+```typescript
+{
+  variant: T; // Typed variant data (e.g., { long: 'green', short: 'red' })
+  variantName: string; // Variant name (e.g., 'control')
+  isEnabled: boolean; // true if LaunchDarkly assigned variant, false if using fallback
+}
+```
+
+**Usage in Component:**
+
+```typescript
+import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
+import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
+import { selectPerpsButtonColorTestVariant } from '../../selectors/featureFlags';
+
+const MyComponent = () => {
+  const { variant, variantName, isEnabled } = usePerpsABTest({
+    test: BUTTON_COLOR_TEST,
+    featureFlagSelector: selectPerpsButtonColorTestVariant,
+  });
+
+  const buttonColors = variant as ButtonColorVariant;
+
+  // Track variant in analytics
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_UI_INTERACTION,
+    properties: {
+      [PerpsEventProperties.AB_TEST_ID]: isEnabled
+        ? PerpsEventValues.AB_TEST.BUTTON_COLOR_TEST
+        : undefined,
+      [PerpsEventProperties.AB_TEST_VARIANT]: isEnabled ? variantName : undefined,
+      [PerpsEventProperties.AB_TEST_ENABLED]: isEnabled,
+    },
+  });
+
+  return (
+    <ButtonSemantic
+      severity={getButtonSeverityForDirection(direction, buttonColors)}
+    />
+  );
+};
+```
+
+---
+
+## File Structure
+
+```
+app/components/UI/Perps/
+├── utils/abTesting/
+│   ├── types.ts              # TypeScript interfaces
+│   ├── usePerpsABTest.ts     # Main hook
+│   └── tests.ts              # Test configurations
+├── selectors/featureFlags/
+│   └── index.ts              # Feature flag selectors
+├── constants/
+│   └── eventNames.ts         # AB test event properties
+└── Views/
+    └── PerpsOrderView/       # Example usage
+```
+
+---
+
+## Adding New Tests
+
+### 1. Define Variant Data Type
+
+**File:** `app/components/UI/Perps/utils/abTesting/types.ts`
+
+```typescript
+export interface MyTestVariant {
+  property: string;
+  anotherProperty: number;
+}
+```
+
+### 2. Create Test Configuration
+
+**File:** `app/components/UI/Perps/utils/abTesting/tests.ts`
+
+```typescript
+export const MY_TEST: ABTestConfig<{
+  control: ABTestVariant<MyTestVariant>;
+  treatment: ABTestVariant<MyTestVariant>;
+}> = {
+  testId: 'my_test',
+  featureFlagKey: 'perpsMyTestEnabled',
+  description: 'Test description',
+  variants: {
+    control: {
+      weight: 50,
+      data: { property: 'value1', anotherProperty: 1 },
+    },
+    treatment: {
+      weight: 50,
+      data: { property: 'value2', anotherProperty: 2 },
+    },
+  },
+};
+```
+
+### 3. Add Feature Flag Selector
+
+**File:** `app/components/UI/Perps/selectors/featureFlags/index.ts`
+
+```typescript
+export const selectPerpsMyTestVariant = createSelector(
+  selectRemoteFeatureFlags,
+  (flags): string | null => flags?.perpsMyTestEnabled || null,
+);
+```
+
+### 4. Add Event Constants
+
+**File:** `app/components/UI/Perps/constants/eventNames.ts`
+
+```typescript
+AB_TEST: {
+  BUTTON_COLOR_TEST: 'button_color_test',
+  MY_TEST: 'my_test', // Add new test ID
+}
+```
+
+### 5. Use in Component
+
+```typescript
+const { variant, variantName, isEnabled } = usePerpsABTest({
+  test: MY_TEST,
+  featureFlagSelector: selectPerpsMyTestVariant,
+});
+```
+
+---
+
+## Multiple Concurrent Tests
+
+### Why Flat Properties?
+
+To support multiple AB tests running simultaneously (e.g., TAT-1937 button colors, TAT-1940 asset CTA, TAT-1827 homepage CTA), we use **flat properties per test** instead of generic properties.
+
+**❌ Generic Pattern (doesn't scale):**
+
+```typescript
+{
+  ab_test_id: 'button_color_test',
+  ab_test_variant: 'control',
+  ab_test_enabled: true
+}
+// Problem: Only supports ONE test per event
+```
+
+**✅ Flat Pattern (scales to 3+ tests):**
+
+```typescript
+{
+  ab_test_button_color: 'control',
+  ab_test_button_color_enabled: true,
+  ab_test_asset_cta: 'variant_a',
+  ab_test_asset_cta_enabled: true,
+  ab_test_homepage_cta: 'treatment',
+  ab_test_homepage_cta_enabled: false
+}
+// ✓ Supports multiple concurrent tests in same event
+```
+
+### Naming Convention
+
+**Pattern:** `ab_test_{test_name}` and `ab_test_{test_name}_enabled`
+
+**Examples:**
+
+- Button color test: `ab_test_button_color`, `ab_test_button_color_enabled`
+- Asset CTA test: `ab_test_asset_cta`, `ab_test_asset_cta_enabled`
+- Homepage CTA test: `ab_test_homepage_cta`, `ab_test_homepage_cta_enabled`
+
+### Implementation
+
+**1. Add properties to `eventNames.ts`:**
+
+```typescript
+export const PerpsEventProperties = {
+  // ... existing properties ...
+
+  // A/B testing properties (flat per test for multiple concurrent tests)
+  // Button color test (TAT-1937)
+  AB_TEST_BUTTON_COLOR: 'ab_test_button_color',
+  AB_TEST_BUTTON_COLOR_ENABLED: 'ab_test_button_color_enabled',
+  // Asset CTA test (TAT-1940)
+  AB_TEST_ASSET_CTA: 'ab_test_asset_cta',
+  AB_TEST_ASSET_CTA_ENABLED: 'ab_test_asset_cta_enabled',
+  // Future tests: add as AB_TEST_{TEST_NAME}, AB_TEST_{TEST_NAME}_ENABLED
+} as const;
+```
+
+**2. Use in component tracking:**
+
+```typescript
+const { variant, variantName, isEnabled } = usePerpsABTest({
+  test: BUTTON_COLOR_TEST,
+  featureFlagSelector: selectPerpsButtonColorTestVariant,
+});
+
+usePerpsEventTracking({
+  eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+  properties: {
+    [PerpsEventProperties.SCREEN_TYPE]:
+      PerpsEventValues.SCREEN_TYPE.ASSET_DETAILS,
+    [PerpsEventProperties.ASSET]: market.symbol,
+    // AB test properties (only included if enabled)
+    [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: isEnabled
+      ? variantName
+      : undefined,
+    [PerpsEventProperties.AB_TEST_BUTTON_COLOR_ENABLED]: isEnabled,
+  },
+});
+```
+
+### Where to Track
+
+**Best Practice:** Track AB test context in **screen view events** (PERPS_SCREEN_VIEWED), not in every user interaction.
+
+**Reasoning:**
+
+- Screen views establish baseline traffic
+- Analytics platforms calculate conversion rates automatically
+- Reduces event payload size
+- Cleaner analytics queries
+
+**Example Flow (TAT-1937):**
+
+1. User views PerpsMarketDetailsView → `PERPS_SCREEN_VIEWED` with `ab_test_button_color: 'control'`
+2. User taps Long button → Navigates to PerpsOrderView (no AB test tracking needed)
+3. User completes trade → `PERPS_TRADE_TRANSACTION` event
+
+**Analytics Query:**
+
+```sql
+-- Calculate trade initiation rate by AB test variant
+SELECT
+  ab_test_button_color,
+  COUNT(*) as screen_views,
+  COUNT(DISTINCT CASE WHEN next_screen = 'trading' THEN user_id END) as conversions,
+  (conversions / screen_views) as conversion_rate
+FROM perps_screen_viewed
+WHERE screen_type = 'asset_details'
+  AND ab_test_button_color_enabled = true
+GROUP BY ab_test_button_color
+```
+
+---
+
+## Local Development
+
+### Testing Variants
+
+**Production:** LaunchDarkly assigns variants automatically based on user ID and targeting rules.
+
+**Local Testing:** Temporarily hardcode the variant in your component:
+
+```typescript
+// Temporarily override for testing - REMOVE BEFORE COMMIT!
+const buttonColorVariant = 'monochrome';
+
+// Comment out the actual hook call while testing:
+// const { variant, variantName } = usePerpsABTest({...});
+```
+
+**Dev Banner:** In `__DEV__` builds, a read-only banner shows:
+
+- Current variant name
+- Source: "LaunchDarkly" or "Fallback"
+- Raw flag value from Redux
+
+**Important:** Always remove hardcoded overrides before committing.
+
+---
+
+## LaunchDarkly Configuration
+
+### Backend Team Setup
+
+**Flag Type:** Use **String** flag (not Boolean or JSON) for AB tests.
+
+**Configuration Steps:**
+
+1. **Create flag:** `perps-my-test-enabled` (kebab-case in LaunchDarkly UI)
+2. **Flag type:** String (from dropdown)
+3. **String variations:**
+   - Variation 0: Name=`Control`, Value=`control`
+   - Variation 1: Name=`Treatment`, Value=`treatment`
+4. **Targeting rules:**
+   - 50% percentage rollout → `control`
+   - 50% percentage rollout → `treatment`
+   - Optional: Version constraint via custom rule (`appVersion >= 7.60.0`)
+5. **Default variations:**
+   - When ON: `control`
+   - When OFF: (flag disabled, app uses fallback)
+
+### What the App Receives
+
+```typescript
+// Redux state structure
+{
+  RemoteFeatureFlagController: {
+    remoteFeatureFlags: {
+      perpsMyTestEnabled: 'control'; // Simple string value
+    }
+  }
+}
+```
+
+**Selector behavior:**
+
+- `"control"` → Returns control variant data
+- `"treatment"` → Returns treatment variant data
+- `null` (flag OFF) → Returns first variant (fallback), `isEnabled: false`
+- Invalid value → Warns, returns first variant, `isEnabled: true`
+
+---
+
+## Testing Strategy
+
+1. **Manual Testing:** Test variants locally using temporary hardcoded values
+2. **QA Validation:** Verify in staging environment with LaunchDarkly enabled
+3. **Gradual Rollout:** Start with small percentage (5-10%), monitor metrics
+4. **Data Collection:** Track for 2-4 weeks minimum to reach statistical significance
+5. **Analysis:** Compare metrics between variants (Amplitude/DataDog)
+6. **Decision:** Roll winning variant to 100%, remove AB test code
+
+---
+
+## Current Active Tests
+
+### TAT-1937: Button Color Test
+
+**Goal:** Determine which button colors drive better trading behavior
+
+**Variants:**
+
+- **Control:** Green (long) / Red (short) - traditional trading colors
+- **Monochrome:** White (both) - neutral, reduces emotional response
+
+**Metrics:**
+
+- Trade initiation rate
+- Trade execution rate
+- Misclick rate
+- Time to execution
+
+**Duration:** 2-4 weeks
+**Distribution:** 50/50 split
+
+---
+
+## Design Rationale
+
+### Why String Flags (Not JSON)?
+
+- **Simpler:** LaunchDarkly handles assignment, app just reads variant name
+- **Type-safe:** Variant data defined in TypeScript config, not JSON
+- **Cleaner:** No version-gating complexity in flag payload
+- **Use JSON when:** Per-variant version requirements needed (feature flags, not AB tests)
+
+### Why No Client-Side Storage?
+
+- **LaunchDarkly handles persistence:** User ID determines assignment deterministically
+- **No stale data:** Always fresh from remote
+- **Fewer bugs:** No sync issues between local storage and LaunchDarkly
+- **Simpler code:** No storage management logic needed
+
+### Why Fallback to First Variant?
+
+- **Graceful degradation:** App works even if LaunchDarkly is down
+- **Predictable behavior:** Always show control variant as fallback
+- **No blank states:** User experience never breaks
+
+---
+
+## Related Files
+
+- **Hook:** `app/components/UI/Perps/utils/abTesting/usePerpsABTest.ts`
+- **Types:** `app/components/UI/Perps/utils/abTesting/types.ts`
+- **Test configs:** `app/components/UI/Perps/utils/abTesting/tests.ts`
+- **Selectors:** `app/components/UI/Perps/selectors/featureFlags/index.ts`
+- **Event constants:** `app/components/UI/Perps/constants/eventNames.ts`
+- **Button colors:** `app/components/UI/Perps/constants/buttonColors.ts`
+
+---
+
+## FAQ
+
+**Q: What if LaunchDarkly is down?**
+A: Selector returns `null`, hook falls back to first variant, `isEnabled` is `false`.
+
+**Q: How are users assigned to variants?**
+A: LaunchDarkly uses user ID (wallet address) with deterministic hashing. Same user always gets same variant.
+
+**Q: Can I test both variants locally?**
+A: Yes, temporarily hardcode the variant name in your component (see Local Development section).
+
+**Q: Why are weights informational only?**
+A: LaunchDarkly controls actual distribution via percentage rollout rules, not client-side weights.
+
+**Q: How do I track AB test in analytics?**
+A: Use `isEnabled`, `variantName` in `usePerpsEventTracking` properties (see Usage example above).

@@ -183,7 +183,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { account } = usePerpsLiveAccount();
 
   // A/B Testing: Button color test (TAT-1937)
-  const { variantName: buttonColorVariant } = usePerpsABTest({
+  const {
+    variantName: buttonColorVariant,
+    isEnabled: isButtonColorTestEnabled,
+  } = usePerpsABTest({
     test: BUTTON_COLOR_TEST,
     featureFlagSelector: selectPerpsButtonColorTestVariant,
   });
@@ -412,6 +415,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       [PerpsEventProperties.SOURCE]:
         source || PerpsEventValues.SOURCE.PERP_MARKETS,
       [PerpsEventProperties.OPEN_POSITION]: !!existingPosition,
+      // A/B Test context (TAT-1937)
+      [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: isButtonColorTestEnabled
+        ? buttonColorVariant
+        : undefined,
+      [PerpsEventProperties.AB_TEST_BUTTON_COLOR_ENABLED]:
+        isButtonColorTestEnabled,
     },
   });
 

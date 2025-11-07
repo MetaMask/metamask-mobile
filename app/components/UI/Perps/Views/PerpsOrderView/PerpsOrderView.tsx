@@ -94,7 +94,6 @@ import {
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
-import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
 import { getButtonSeverityForDirection } from '../../constants/buttonColors';
 import { selectPerpsButtonColorTestVariant } from '../../selectors/featureFlags';
@@ -197,19 +196,19 @@ const PerpsOrderViewContentBase: React.FC = () => {
     maxPossibleAmount,
   } = usePerpsOrderContext();
 
-  // A/B Testing: Button color test (TAT-1937)
-  const {
-    variant,
-    variantName: buttonColorVariant,
-    isEnabled: isButtonColorTestEnabled,
-  } = usePerpsABTest({
-    test: BUTTON_COLOR_TEST,
-    featureFlagSelector: selectPerpsButtonColorTestVariant,
-  });
-  const buttonColors = variant as ButtonColorVariant;
+  // Button colors: Read from LaunchDarkly feature flag (assigned on asset details screen)
+  // Note: AB test tracking happens on PerpsMarketDetailsView, not here
+  const buttonColorVariantFromFlag = useSelector(
+    selectPerpsButtonColorTestVariant,
+  );
+  const buttonColorVariant = buttonColorVariantFromFlag || 'control';
+  const buttonColors: ButtonColorVariant =
+    BUTTON_COLOR_TEST.variants[
+      buttonColorVariant as keyof typeof BUTTON_COLOR_TEST.variants
+    ].data;
 
   // DEV: Get raw feature flag value for debugging banner
-  const rawFeatureFlagValue = useSelector(selectPerpsButtonColorTestVariant);
+  const rawFeatureFlagValue = buttonColorVariantFromFlag;
 
   // DEV: Determine source for informational banner
   const variantSource = __DEV__
@@ -375,14 +374,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
       [PerpsEventProperties.ORDER_SIZE]: parseFloat(orderForm.amount || '0'),
       [PerpsEventProperties.LEVERAGE_USED]: orderForm.leverage,
       [PerpsEventProperties.ORDER_TYPE]: orderForm.type,
-      // A/B Test context (TAT-1937)
-      [PerpsEventProperties.AB_TEST_ID]: isButtonColorTestEnabled
-        ? PerpsEventValues.AB_TEST.BUTTON_COLOR_TEST
-        : undefined,
-      [PerpsEventProperties.AB_TEST_VARIANT]: isButtonColorTestEnabled
-        ? buttonColorVariant
-        : undefined,
-      [PerpsEventProperties.AB_TEST_ENABLED]: isButtonColorTestEnabled,
     },
   });
 

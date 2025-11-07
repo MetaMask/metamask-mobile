@@ -105,10 +105,11 @@ export const PerpsEventProperties = {
   IMAGE_SELECTED: 'image_selected',
   TAB_NUMBER: 'tab_number',
 
-  // A/B testing properties
-  AB_TEST_ID: 'ab_test_id',
-  AB_TEST_VARIANT: 'ab_test_variant',
-  AB_TEST_ENABLED: 'ab_test_enabled',
+  // A/B testing properties (flat per test for multiple concurrent tests)
+  // Button color test (TAT-1937)
+  AB_TEST_BUTTON_COLOR: 'ab_test_button_color',
+  AB_TEST_BUTTON_COLOR_ENABLED: 'ab_test_button_color_enabled',
+  // Future tests: add as AB_TEST_{TEST_NAME}, AB_TEST_{TEST_NAME}_ENABLED
 } as const;
 
 /**
