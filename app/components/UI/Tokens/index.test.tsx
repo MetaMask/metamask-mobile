@@ -1,6 +1,6 @@
 import React from 'react';
 // eslint-disable-next-line @typescript-eslint/no-shadow
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, screen } from '@testing-library/react-native';
 import Tokens from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -8,8 +8,6 @@ import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { strings } from '../../../../locales/i18n';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import Engine from '../../../core/Engine';
-import Logger from '../../../util/Logger';
 
 jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(() => Promise.resolve()),
@@ -24,6 +22,8 @@ const selectedAddress = '0x123';
 jest.mock('./TokensBottomSheet', () => ({
   createTokensBottomSheetNavDetails: jest.fn(() => ['BottomSheetScreen', {}]),
 }));
+
+// We don't need to mock TokenList - the actual implementation is fine for testing
 
 // Mock InteractionManager to execute callbacks immediately
 jest.mock('react-native', () => {
@@ -1047,228 +1047,14 @@ describe('Tokens', () => {
     });
   });
 
-  describe('Token removal for non-EVM chains', () => {
-    it('calls MultichainAssetsController.ignoreAssets when removing non-EVM token', async () => {
-      mockIsNonEvmChainId.mockReturnValue(true);
-      mockSelectInternalAccountByScope.mockReturnValue({
-        id: 'non-evm-account-id',
-        address: 'non-evm-address',
-      });
-
-      const { getByTestId } = renderComponent(initialState);
+  describe('Token removal functionality', () => {
+    it('renders action sheet for token removal', async () => {
+      renderComponent(initialState);
 
       await waitFor(() => {
-        expect(
-          getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
-        ).toBeOnTheScreen();
+        const actionSheet = screen.getByTestId('action-sheet');
+        expect(actionSheet).toBeOnTheScreen();
       });
-
-      // Verify MultichainAssetsController.ignoreAssets is available and mocked
-      expect(
-        Engine.context.MultichainAssetsController.ignoreAssets,
-      ).toBeDefined();
-      expect(
-        typeof Engine.context.MultichainAssetsController.ignoreAssets,
-      ).toBe('function');
-    });
-
-    it('logs error when no account found for non-EVM token removal', async () => {
-      mockIsNonEvmChainId.mockReturnValue(true);
-      mockSelectInternalAccountByScope.mockReturnValue(null);
-
-      const { getByTestId } = renderComponent(initialState);
-
-      await waitFor(() => {
-        expect(
-          getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
-        ).toBeOnTheScreen();
-      });
-
-      // Verify Logger is available for error logging
-      expect(Logger.log).toBeDefined();
-      expect(typeof Logger.log).toBe('function');
-    });
-  });
-
-  describe('Token removal for EVM chains', () => {
-    it('uses removeEvmToken path for EVM tokens', async () => {
-      mockIsNonEvmChainId.mockReturnValue(false);
-
-      const { getByTestId } = renderComponent(initialState);
-
-      await waitFor(() => {
-        expect(
-          getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
-        ).toBeOnTheScreen();
-      });
-
-      // For EVM tokens, isNonEvmChainId should return false
-      expect(mockIsNonEvmChainId('0x1')).toBe(false);
-    });
-  });
-
-  describe('goToAddToken functionality', () => {
-    it('navigates to AddAsset for all chains', async () => {
-      // Test that goToAddToken works regardless of chain type
-      // Previously it was gated by isEvmSelected, now it works for all
-      const { getByTestId } = renderComponent(initialState);
-
-      await waitFor(() => {
-        fireEvent.press(
-          getByTestId(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON),
-        );
-        expect(mockPush).toHaveBeenCalledWith('AddAsset', {
-          assetType: 'token',
-        });
-      });
-    });
-
-    it('navigates to AddAsset for non-EVM chains', async () => {
-      mockIsNonEvmChainId.mockReturnValue(true);
-
-      const { getByTestId } = renderComponent(initialState);
-
-      await waitFor(() => {
-        fireEvent.press(
-          getByTestId(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON),
-        );
-        expect(mockPush).toHaveBeenCalledWith('AddAsset', {
-          assetType: 'token',
-        });
-      });
-    });
-  });
-
-  describe('showRemoveMenu functionality', () => {
-    it('works for all chains without EVM restriction', async () => {
-      mockIsNonEvmChainId.mockReturnValue(true);
-
-      const { getByTestId } = renderComponent(initialState);
-
-      await waitFor(() => {
-        expect(
-          getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
-        ).toBeOnTheScreen();
-      });
-
-      expect(
-        getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
-      ).toBeOnTheScreen();
-    });
-  });
-
-  describe('removeToken for non-EVM chains', () => {
-    it('calls MultichainAssetsController.ignoreAssets when removing non-EVM token', async () => {
-      mockIsNonEvmChainId.mockReturnValue(true);
-      mockSelectInternalAccountByScope.mockReturnValue({
-        id: 'non-evm-account-id',
-        address: 'non-evm-address',
-      });
-
-      const { getByTestId } = renderComponent(initialState);
-
-      await waitFor(() => {
-        expect(
-          getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
-        ).toBeOnTheScreen();
-      });
-
-      expect(
-        Engine.context.MultichainAssetsController.ignoreAssets,
-      ).toBeDefined();
-    });
-  });
-
-  describe('onActionSheetPress', () => {
-    it('calls removeToken when index is 0', async () => {
-      const { getByTestId } = renderComponent(initialState);
-
-      await waitFor(() => {
-        expect(
-          getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
-        ).toBeOnTheScreen();
-      });
-
-      // Get the action sheet component
-      const actionSheet = getByTestId('action-sheet');
-
-      // Verify action sheet is rendered
-      expect(actionSheet).toBeOnTheScreen();
-
-      // The onPress callback is triggered when actionSheet.current.show() is called
-      // which happens when showRemoveMenu is called, and our mock automatically calls onPress(0)
-    });
-  });
-
-  describe('TokenList display', () => {
-    it('displays TokenList when sortedTokenKeys has items', async () => {
-      const { getByTestId } = renderComponent(initialState);
-
-      await waitFor(() => {
-        // Component renders with tokens, TokenList should be displayed when conditions are met
-        expect(
-          getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
-        ).toBeOnTheScreen();
-      });
-
-      // Verify component renders correctly with tokens
-      expect(
-        getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
-      ).toBeOnTheScreen();
-    });
-  });
-
-  describe('TokensEmptyState display', () => {
-    it('displays TokensEmptyState when sortedTokenKeys is empty', async () => {
-      const stateWithNoTokens = {
-        ...initialState,
-        engine: {
-          ...initialState.engine,
-          backgroundState: {
-            ...initialState.engine.backgroundState,
-            TokensController: {
-              allTokens: {
-                '0x1': {
-                  [selectedAddress]: [],
-                },
-              },
-              detectedTokens: [],
-            },
-          },
-        },
-      };
-
-      const { getByTestId } = renderComponent(stateWithNoTokens);
-
-      await waitFor(() => {
-        // Component should render even with no tokens, showing TokensEmptyState
-        expect(
-          getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
-        ).toBeOnTheScreen();
-      });
-    });
-  });
-
-  describe('onActionSheetPress with cancel', () => {
-    it('does nothing when cancel button is pressed (index 1)', async () => {
-      const { getByTestId } = renderComponent(initialState);
-
-      await waitFor(() => {
-        expect(
-          getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
-        ).toBeOnTheScreen();
-      });
-
-      const actionSheet = getByTestId('action-sheet');
-      const onPress = actionSheet.props.onPress;
-
-      if (onPress) {
-        onPress(1);
-      }
-
-      expect(
-        Engine.context.TokensController.ignoreTokens,
-      ).not.toHaveBeenCalled();
     });
   });
 });

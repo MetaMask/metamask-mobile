@@ -21,7 +21,12 @@ import { TokenList } from './TokenList';
 import { TokenI } from './types';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../locales/i18n';
-import { refreshTokens, removeEvmToken, goToAddEvmToken } from './util';
+import {
+  refreshTokens,
+  removeEvmToken,
+  removeNonEvmToken,
+  goToAddEvmToken,
+} from './util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Box } from '@metamask/design-system-react-native';
@@ -33,11 +38,9 @@ import { selectSortedTokenKeys } from '../../../selectors/tokenList';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
-import { CaipAssetType, CaipChainId, SolScope } from '@metamask/keyring-api';
+import { SolScope } from '@metamask/keyring-api';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import Engine from '../../../core/Engine';
-import Logger from '../../../util/Logger';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import { TokensEmptyState } from '../TokensEmptyState';
 
@@ -141,22 +144,14 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
   ]);
 
   const removeToken = useCallback(async () => {
-    // remove token currently only supported on evm
     const tokenToRemove = tokenToRemoveRef.current;
     if (tokenToRemove?.chainId !== undefined) {
       if (isNonEvmChainId(tokenToRemove.chainId)) {
-        const selectedNonEvmAccount = selectInternalAccountByScope(
-          tokenToRemove.chainId as CaipChainId,
-        );
-        if (!selectedNonEvmAccount) {
-          Logger.log('Tokens List: No account ID found');
-          return;
-        }
-        const { MultichainAssetsController } = Engine.context;
-        await MultichainAssetsController.ignoreAssets(
-          [tokenToRemove.address as CaipAssetType],
-          selectedNonEvmAccount.id,
-        );
+        await removeNonEvmToken({
+          tokenAddress: tokenToRemove.address,
+          tokenChainId: tokenToRemove.chainId,
+          selectInternalAccountByScope,
+        });
       } else {
         await removeEvmToken({
           tokenToRemove,
@@ -164,7 +159,7 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
           trackEvent,
           strings,
           getDecimalChainId,
-          createEventBuilder, // Now passed as a prop
+          createEventBuilder,
         });
       }
     }

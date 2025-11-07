@@ -17,6 +17,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
         "marginTop": 10,
       }
     }
+    testID="add-asset-nft-banner"
   >
     <View
       style={
@@ -488,6 +489,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
         "paddingTop": 16,
       }
     }
+    testID="add-asset-network-selector"
   >
     <RNGestureHandlerButton
       collapsable={false}
@@ -624,6 +626,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
         "paddingHorizontal": 16,
       }
     }
+    testID="add-asset-tabs-container"
   >
     <View
       style={

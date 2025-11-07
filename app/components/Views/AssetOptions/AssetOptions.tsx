@@ -31,11 +31,12 @@ import {
 import { isPortfolioUrl } from '../../../util/url';
 import { BrowserTab, TokenI } from '../../../components/UI/Tokens/types';
 import { RootState } from '../../../reducers';
-import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
+import { CaipAssetType, Hex } from '@metamask/utils';
 import { appendURLParams } from '../../../util/browser';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
+import { removeNonEvmToken } from '../../UI/Tokens/util';
 
 // Wrapped SOL token address on Solana
 const WRAPPED_SOL_ADDRESS = 'So11111111111111111111111111111111111111111';
@@ -261,18 +262,15 @@ const AssetOptions = (props: Props) => {
           try {
             let tokenSymbol;
             if (isNonEvmChainId(networkId)) {
-              const selectedNonEvmAccount = selectInternalAccountByScope(
-                networkId as CaipChainId,
-              );
-              if (!selectedNonEvmAccount) {
-                Logger.log('AssetDetails: No account ID found');
-                return;
-              }
+              // Use the utility function for non-EVM token removal
+              await removeNonEvmToken({
+                tokenAddress: address,
+                tokenChainId: networkId,
+                selectInternalAccountByScope,
+              });
+
+              // Get token symbol for notification
               const { MultichainAssetsController } = Engine.context;
-              await MultichainAssetsController.ignoreAssets(
-                [address as CaipAssetType],
-                selectedNonEvmAccount.id,
-              );
               tokenSymbol =
                 MultichainAssetsController.state.assetsMetadata[
                   address as CaipAssetType

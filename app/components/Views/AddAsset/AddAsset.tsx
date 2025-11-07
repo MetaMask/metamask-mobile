@@ -129,7 +129,7 @@ const AddAsset = () => {
   return (
     <SafeAreaView style={styles.wrapper} testID={`add-${assetType}-screen`}>
       {assetType !== 'token' && (
-        <View style={styles.infoWrapper}>
+        <View style={styles.infoWrapper} testID="add-asset-nft-banner">
           <Banner
             variant={BannerVariant.Alert}
             description={
@@ -171,7 +171,10 @@ const AddAsset = () => {
       )}
       {assetType === 'token' ? (
         <>
-          <View style={styles.networkSelectorWrapper}>
+          <View
+            style={styles.networkSelectorWrapper}
+            testID="add-asset-network-selector"
+          >
             <TouchableOpacity
               style={styles.networkSelectorContainer}
               onPress={() => setOpenNetworkSelector(true)}
@@ -210,11 +213,14 @@ const AddAsset = () => {
             </TouchableOpacity>
           </View>
           {pending ? (
-            <View style={styles.loadingContainer}>
+            <View
+              style={styles.loadingContainer}
+              testID="add-asset-loading-indicator"
+            >
               <ActivityIndicator size="large" color={colors.primary.default} />
             </View>
           ) : (
-            <View style={styles.tabContainer}>
+            <View style={styles.tabContainer} testID="add-asset-tabs-container">
               <ScrollableTabView key={chainId} renderTabBar={renderTabBar}>
                 {allTokens && allTokens.length > 0 && (
                   <SearchTokenAutocomplete

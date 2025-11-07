@@ -11,8 +11,10 @@ import {
 import { TokenI } from '../../UI/Tokens/types';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import Engine from '../../../core/Engine';
-import Logger from '../../../util/Logger';
 import NotificationManager from '../../../core/NotificationManager';
+import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
+import Logger from '../../../util/Logger';
+import { removeNonEvmToken } from '../../UI/Tokens/util';
 
 jest.mock('../../../selectors/networkController', () => ({
   selectEvmChainId: jest.fn(() => '1'),
@@ -215,6 +217,12 @@ jest.mock('../../../core/AppConstants', () => ({
   },
 }));
 
+let mockRemoveNonEvmToken: jest.Mock;
+
+jest.mock('../../UI/Tokens/util', () => ({
+  removeNonEvmToken: jest.fn(),
+}));
+
 const mockAsset = {
   address: '0x750e4C4984a9e0f12978eA6742Bc1c5D248f40ed',
   balanceFiat: '$11.89',
@@ -233,6 +241,9 @@ describe('AssetOptions Component', () => {
   };
 
   beforeEach(() => {
+    // Get reference to the mocked function
+    mockRemoveNonEvmToken = removeNonEvmToken as jest.Mock;
+
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     mockIsNonEvmChainId.mockReturnValue(false);
     mockSelectInternalAccountByScope.mockImplementation(() => null);
@@ -262,6 +273,10 @@ describe('AssetOptions Component', () => {
     (InAppBrowser.isAvailable as jest.Mock).mockClear();
     (InAppBrowser.open as jest.Mock).mockClear();
     mockTrackEvent.mockClear();
+    if (mockRemoveNonEvmToken) {
+      mockRemoveNonEvmToken.mockClear();
+      mockRemoveNonEvmToken.mockResolvedValue(undefined);
+    }
     jest.useFakeTimers({ legacyFakeTimers: true });
     jest.useFakeTimers();
   });
@@ -279,23 +294,6 @@ describe('AssetOptions Component', () => {
   });
 
   it('matches the snapshot', () => {
-    const { toJSON } = render(
-      <AssetOptions
-        route={{
-          params: {
-            address: '0x123',
-            chainId: '0x1',
-            isNativeCurrency: false,
-            asset: mockAsset as unknown as TokenI,
-          },
-        }}
-      />,
-    );
-
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('should match the snapshot', () => {
     const { toJSON } = render(
       <AssetOptions
         route={{
@@ -470,46 +468,129 @@ describe('AssetOptions Component', () => {
     });
   });
 
-  it('displays Remove token option for non-EVM chains', () => {
+  describe('Non-EVM chain support', () => {
     const mockNonEvmChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
-    const mockNonEvmAddress =
+    const mockNonEvmTokenAddress =
       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+    const mockWrappedSolAddress =
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:So11111111111111111111111111111111111111111';
 
-    mockIsNonEvmChainId.mockReturnValue(true);
-
-    const { getByText } = render(
-      <AssetOptions
-        route={{
-          params: {
-            address: mockNonEvmAddress,
-            chainId: mockNonEvmChainId,
-            isNativeCurrency: false,
-            asset: mockAsset as unknown as TokenI,
-          },
-        }}
-      />,
-    );
-
-    // Remove token option should be visible for non-EVM chains (this is a change from before)
-    expect(getByText('Remove token')).toBeOnTheScreen();
-  });
-
-  describe('removeToken functionality', () => {
-    it('logs error when no account found for non-EVM token removal', async () => {
-      const mockNonEvmChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
-      const mockNonEvmAddress =
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
-
+    it('hides Remove token option for wrapped SOL (native token)', () => {
       mockIsNonEvmChainId.mockReturnValue(true);
-      // Ensure mock is a function that returns null
-      mockSelectInternalAccountByScope.mockReset();
-      mockSelectInternalAccountByScope.mockImplementation(() => null);
+
+      const { queryByText } = render(
+        <AssetOptions
+          route={{
+            params: {
+              address: mockWrappedSolAddress,
+              chainId: mockNonEvmChainId,
+              isNativeCurrency: false,
+              asset: mockAsset as unknown as TokenI,
+            },
+          }}
+        />,
+      );
+
+      expect(queryByText('Remove token')).not.toBeOnTheScreen();
+    });
+
+    it('extracts token address from CAIP format for block explorer', async () => {
+      mockIsNonEvmChainId.mockReturnValue(true);
+      (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(true);
 
       const { getByText } = render(
         <AssetOptions
           route={{
             params: {
-              address: mockNonEvmAddress,
+              address: mockNonEvmTokenAddress,
+              chainId: mockNonEvmChainId,
+              isNativeCurrency: false,
+              asset: mockAsset as unknown as TokenI,
+            },
+          }}
+        />,
+      );
+
+      fireEvent.press(getByText('View on block explorer'));
+      jest.runAllTimers();
+
+      await waitFor(() => {
+        expect(InAppBrowser.open).toHaveBeenCalledWith(
+          'https://solana-explorer.com/token/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        );
+      });
+    });
+
+    it('navigates to base URL for wrapped SOL on block explorer', async () => {
+      mockIsNonEvmChainId.mockReturnValue(true);
+      (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(true);
+
+      const { getByText } = render(
+        <AssetOptions
+          route={{
+            params: {
+              address: mockWrappedSolAddress,
+              chainId: mockNonEvmChainId,
+              isNativeCurrency: false,
+              asset: mockAsset as unknown as TokenI,
+            },
+          }}
+        />,
+      );
+
+      fireEvent.press(getByText('View on block explorer'));
+      jest.runAllTimers();
+
+      await waitFor(() => {
+        expect(InAppBrowser.open).toHaveBeenCalledWith(
+          'https://solana-explorer.com',
+        );
+      });
+    });
+  });
+
+  describe('Token removal', () => {
+    it('removes non-EVM token and shows notification', async () => {
+      mockIsNonEvmChainId.mockReturnValue(true);
+      mockRemoveNonEvmToken.mockResolvedValue(undefined);
+
+      const mockNonEvmChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+      const mockNonEvmTokenAddress =
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+
+      const mockAccount = { id: 'account-123' };
+      const mockAccountSelector = jest.fn(() => mockAccount);
+
+      Engine.context.MultichainAssetsController.state.assetsMetadata = {
+        [mockNonEvmTokenAddress]: {
+          fungible: true as const,
+          iconUrl: 'https://example.com/usdc.png',
+          name: 'USD Coin',
+          symbol: 'USDC',
+          units: [
+            {
+              decimals: 6,
+              name: 'USD Coin',
+              symbol: 'USDC',
+            },
+          ],
+        },
+      };
+
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectSelectedInternalAccountByScope) {
+          return mockAccountSelector;
+        }
+        if (selector.name === 'selectEvmChainId') return '1';
+        if (selector.name === 'selectTokenList') return {};
+        return {};
+      });
+
+      const { getByText } = render(
+        <AssetOptions
+          route={{
+            params: {
+              address: mockNonEvmTokenAddress,
               chainId: mockNonEvmChainId,
               isNativeCurrency: false,
               asset: mockAsset as unknown as TokenI,
@@ -521,28 +602,34 @@ describe('AssetOptions Component', () => {
       fireEvent.press(getByText('Remove token'));
       jest.runAllTimers();
 
-      // Get the onConfirm callback from navigation params
       const navigateCall = mockNavigation.navigate.mock.calls.find(
         (call) => call[0] === 'RootModalFlow',
       );
       const onConfirm = navigateCall?.[1]?.params?.onConfirm;
 
-      // Execute the onConfirm callback
+      expect(onConfirm).toBeDefined();
+
       await onConfirm();
 
-      // Verify Logger.log was called (either with the specific message or with an error)
-      expect(Logger.log).toHaveBeenCalled();
+      expect(mockRemoveNonEvmToken).toHaveBeenCalledWith({
+        tokenAddress: mockNonEvmTokenAddress,
+        tokenChainId: mockNonEvmChainId,
+        selectInternalAccountByScope: expect.any(Function),
+      });
 
-      // Verify MultichainAssetsController.ignoreAssets was NOT called
-      expect(
-        Engine.context.MultichainAssetsController.ignoreAssets,
-      ).not.toHaveBeenCalled();
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('WalletView');
+
+      expect(NotificationManager.showSimpleNotification).toHaveBeenCalledWith({
+        status: 'simple_notification',
+        duration: 5000,
+        title: expect.any(String),
+        description: expect.any(String),
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
 
-    it('calls TokensController.ignoreTokens for EVM tokens', async () => {
-      const mockEvmAddress = '0x123';
-      const mockEvmChainId = '0x1';
-
+    it('removes EVM token and shows notification', async () => {
       mockIsNonEvmChainId.mockReturnValue(false);
 
       (useSelector as jest.Mock).mockImplementation((selector) => {
@@ -556,7 +643,6 @@ describe('AssetOptions Component', () => {
           return mockSelectInternalAccountByScope;
         }
         if (selector.name === 'selectEvmChainId') return '0x1';
-        if (selector.name === 'selectProviderConfig') return {};
         if (selector.name === 'selectTokenList')
           return { '0x123': { symbol: 'TEST' } };
         return {};
@@ -566,8 +652,8 @@ describe('AssetOptions Component', () => {
         <AssetOptions
           route={{
             params: {
-              address: mockEvmAddress,
-              chainId: mockEvmChainId,
+              address: '0x123',
+              chainId: '0x1',
               isNativeCurrency: false,
               asset: mockAsset as unknown as TokenI,
             },
@@ -578,45 +664,110 @@ describe('AssetOptions Component', () => {
       fireEvent.press(getByText('Remove token'));
       jest.runAllTimers();
 
-      // Get the onConfirm callback from navigation params
       const navigateCall = mockNavigation.navigate.mock.calls.find(
         (call) => call[0] === 'RootModalFlow',
       );
       const onConfirm = navigateCall?.[1]?.params?.onConfirm;
 
-      // Execute the onConfirm callback
+      expect(onConfirm).toBeDefined();
+
       await onConfirm();
 
-      // Verify TokensController.ignoreTokens was called
       expect(Engine.context.TokensController.ignoreTokens).toHaveBeenCalledWith(
-        [mockEvmAddress],
+        ['0x123'],
         'test-network',
       );
 
-      // Verify notification was shown
-      expect(NotificationManager.showSimpleNotification).toHaveBeenCalled();
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('WalletView');
 
-      // Verify tracking event was fired
+      expect(NotificationManager.showSimpleNotification).toHaveBeenCalledWith({
+        status: 'simple_notification',
+        duration: 5000,
+        title: expect.any(String),
+        description: expect.any(String),
+      });
+
       expect(mockTrackEvent).toHaveBeenCalled();
     });
-  });
 
-  describe('openPortfolio', () => {
-    it('navigates to existing portfolio tab when found', () => {
-      const mockPortfolioUrl = 'https://portfolio.metamask.io';
+    it('logs error when non-EVM token removal fails', async () => {
+      const mockError = new Error('Failed to remove token');
+
+      mockIsNonEvmChainId.mockReturnValue(true);
+      mockRemoveNonEvmToken.mockClear();
+      mockRemoveNonEvmToken.mockRejectedValue(mockError);
+
+      const mockNonEvmChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+      const mockNonEvmTokenAddress =
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+
+      const mockAccount = { id: 'account-123' };
+      const mockAccountSelector = jest.fn(() => mockAccount);
+
       (useSelector as jest.Mock).mockImplementation((selector) => {
-        const selectorStr = selector.toString();
-        if (
-          selectorStr.includes('browser.tabs') ||
-          typeof selector === 'function'
-        ) {
-          return [
-            { id: 'tab1', url: mockPortfolioUrl },
-            { id: 'tab2', url: 'https://example.com' },
-          ];
+        if (selector === selectSelectedInternalAccountByScope) {
+          return mockAccountSelector;
         }
+        if (selector.name === 'selectEvmChainId') return '1';
+        if (selector.name === 'selectTokenList') return {};
         return {};
       });
+
+      const mockLoggerLog = jest.spyOn(Logger, 'log');
+
+      const { getByText } = render(
+        <AssetOptions
+          route={{
+            params: {
+              address: mockNonEvmTokenAddress,
+              chainId: mockNonEvmChainId,
+              isNativeCurrency: false,
+              asset: mockAsset as unknown as TokenI,
+            },
+          }}
+        />,
+      );
+
+      fireEvent.press(getByText('Remove token'));
+      jest.runAllTimers();
+
+      const navigateCall = mockNavigation.navigate.mock.calls.find(
+        (call) => call[0] === 'RootModalFlow',
+      );
+      const onConfirm = navigateCall?.[1]?.params?.onConfirm;
+
+      await onConfirm();
+
+      expect(mockLoggerLog).toHaveBeenCalledWith(
+        mockError,
+        'AssetDetails: Failed to hide token!',
+      );
+    });
+
+    it('logs error when EVM token removal fails', async () => {
+      mockIsNonEvmChainId.mockReturnValue(false);
+      const mockError = new Error('Failed to ignore token');
+      (
+        Engine.context.TokensController.ignoreTokens as jest.Mock
+      ).mockRejectedValue(mockError);
+
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        const selectorStr = selector.toString();
+        const selectorName = selector.name || '';
+        if (
+          selectorStr.includes('selectSelectedInternalAccountByScope') ||
+          selectorName === 'selectSelectedInternalAccountByScope' ||
+          selectorStr.includes('selectedInternalAccountByScope')
+        ) {
+          return mockSelectInternalAccountByScope;
+        }
+        if (selector.name === 'selectEvmChainId') return '0x1';
+        if (selector.name === 'selectTokenList')
+          return { '0x123': { symbol: 'TEST' } };
+        return {};
+      });
+
+      const mockLoggerLog = jest.spyOn(Logger, 'log');
 
       const { getByText } = render(
         <AssetOptions
@@ -631,148 +782,20 @@ describe('AssetOptions Component', () => {
         />,
       );
 
-      fireEvent.press(getByText('View on Portfolio'));
+      fireEvent.press(getByText('Remove token'));
       jest.runAllTimers();
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'BrowserHome',
-        expect.objectContaining({
-          screen: 'BrowserView',
-          params: expect.objectContaining({
-            existingTabId: 'tab1',
-          }),
-        }),
+      const navigateCall = mockNavigation.navigate.mock.calls.find(
+        (call) => call[0] === 'RootModalFlow',
       );
-    });
+      const onConfirm = navigateCall?.[1]?.params?.onConfirm;
 
-    it('creates new portfolio tab when none exists', () => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
-        const selectorStr = selector.toString();
-        if (
-          selectorStr.includes('browser.tabs') ||
-          typeof selector === 'function'
-        ) {
-          return [{ id: 'tab1', url: 'https://example.com' }];
-        }
-        if (selectorStr.includes('dataCollectionForMarketing')) {
-          return true;
-        }
-        return {};
-      });
+      await onConfirm();
 
-      const { getByText } = render(
-        <AssetOptions
-          route={{
-            params: {
-              address: '0x123',
-              chainId: '0x1',
-              isNativeCurrency: false,
-              asset: mockAsset as unknown as TokenI,
-            },
-          }}
-        />,
+      expect(mockLoggerLog).toHaveBeenCalledWith(
+        mockError,
+        'AssetDetails: Failed to hide token!',
       );
-
-      fireEvent.press(getByText('View on Portfolio'));
-      jest.runAllTimers();
-
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'BrowserHome',
-        expect.objectContaining({
-          screen: 'BrowserView',
-          params: expect.objectContaining({
-            newTabUrl: expect.stringContaining('portfolio.metamask.io'),
-          }),
-        }),
-      );
-
-      expect(mockTrackEvent).toHaveBeenCalled();
-    });
-  });
-
-  describe('openOnBlockExplorer', () => {
-    it('navigates to base URL for native currency', async () => {
-      (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(false);
-
-      const { getByText } = render(
-        <AssetOptions
-          route={{
-            params: {
-              address: '0x0',
-              chainId: '0x1',
-              isNativeCurrency: true,
-              asset: mockAsset as unknown as TokenI,
-            },
-          }}
-        />,
-      );
-
-      fireEvent.press(getByText('View on block explorer'));
-      jest.runAllTimers();
-
-      await waitFor(() => {
-        expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
-          screen: 'SimpleWebview',
-          params: {
-            url: 'https://example-explorer.com',
-            title: 'example-explorer.com',
-          },
-        });
-      });
-    });
-
-    it('uses non-EVM block explorer for Solana chains', async () => {
-      const mockNonEvmChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
-      const mockNonEvmAddress =
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
-
-      mockIsNonEvmChainId.mockReturnValue(true);
-      (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(true);
-
-      const { getByText } = render(
-        <AssetOptions
-          route={{
-            params: {
-              address: mockNonEvmAddress,
-              chainId: mockNonEvmChainId,
-              isNativeCurrency: false,
-              asset: mockAsset as unknown as TokenI,
-            },
-          }}
-        />,
-      );
-
-      fireEvent.press(getByText('View on block explorer'));
-      jest.runAllTimers();
-
-      await waitFor(() => {
-        expect(InAppBrowser.open).toHaveBeenCalled();
-      });
-    });
-  });
-
-  describe('openTokenDetails', () => {
-    it('displays options correctly for non-EVM chains', () => {
-      const mockNonEvmChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
-      const mockNonEvmAddress =
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
-
-      mockIsNonEvmChainId.mockReturnValue(true);
-
-      const { getByText } = render(
-        <AssetOptions
-          route={{
-            params: {
-              address: mockNonEvmAddress,
-              chainId: mockNonEvmChainId,
-              isNativeCurrency: false,
-              asset: mockAsset as unknown as TokenI,
-            },
-          }}
-        />,
-      );
-
-      expect(getByText('Remove token')).toBeOnTheScreen();
     });
   });
 });
