@@ -29,14 +29,10 @@ loadJSEnv(){
 # Load JS env variables
 loadJSEnv
 
-if [ "$PLATFORM" != "watcher" ]; then
-	# Use the values from the environment variables when platform is watcher
-	export METAMASK_BUILD_TYPE=${MODE:-"$METAMASK_BUILD_TYPE"}
-	export METAMASK_ENVIRONMENT=${ENVIRONMENT:-"$METAMASK_ENVIRONMENT"}
-fi
-
 # Enable Sentry to auto upload source maps and debug symbols
 export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
+export METAMASK_BUILD_TYPE=${MODE:-"$METAMASK_BUILD_TYPE"}
+export METAMASK_ENVIRONMENT=${ENVIRONMENT:-"$METAMASK_ENVIRONMENT"}
 export EXPO_NO_TYPESCRIPT_SETUP=1
 
 echo "PLATFORM = $PLATFORM"
@@ -155,7 +151,7 @@ checkParameters(){
 			printError "METAMASK_BUILD_TYPE '${METAMASK_BUILD_TYPE}' is not valid. Please set it to one of the following: ${VALID_METAMASK_BUILD_TYPES}"
 			exit 1
 	esac
-	
+
 	#TODO: Add check for valid METAMASK_BUILD_TYPE once commands are fully refactored
 }
 
@@ -387,7 +383,7 @@ prebuild_ios(){
 installICULibraries(){
 	# Install ICU libraries for Hermes
 	echo "Installing ICU libraries for Hermes..."
-	
+
 	if [[ "$OSTYPE" == "darwin"* ]]; then
 		# macOS - use Homebrew
 		brew install icu4c
@@ -400,7 +396,7 @@ installICULibraries(){
 prebuild_android(){
 	# Install ICU libraries if on Linux
 	installICULibraries
-	
+
 	# Copy JS files for injection
 	yes | cp -rf app/core/InpageBridgeWeb3.js android/app/src/main/assets/.
 	# Copy fonts with iconset
@@ -470,20 +466,6 @@ generateIosBinary() {
 	scheme="$1"
 	configuration="${CONFIGURATION:-"Release"}"
 
-	# Check if configuration is valid
-	if [ "$configuration" != "Debug" ] && [ "$configuration" != "Release" ] ; then
-		# Configuration is not recognized
-		echo "Configuration $configuration is not recognized! Only Debug and Release are supported"
-		exit 1
-	fi
-
-	# Check if scheme is valid
-	if [ "$scheme" != "MetaMask" ] && [ "$scheme" != "MetaMask-QA" ] && [ "$scheme" != "MetaMask-Flask" ] ; then
-		# Scheme is not recognized
-		echo "Scheme $scheme is not recognized! Only MetaMask, MetaMask-QA, and MetaMask-Flask are supported"
-		exit 1
-	fi
-
 	if [ "$scheme" = "MetaMask" ] ; then
 		# Main target
 		if [ "$configuration" = "Debug" ] ; then
@@ -534,27 +516,17 @@ generateAndroidBinary() {
 	# Debug or Release
 	configuration="${CONFIGURATION:-"Release"}"
 
-	# Check if configuration is valid
-	if [ "$configuration" != "Debug" ] && [ "$configuration" != "Release" ] ; then
-		# Configuration is not recognized
-		echo "Configuration $configuration is not recognized! Only Debug and Release are supported"
-		exit 1
-	fi
-
-	# Check if flavor is valid
-	if [ "$flavor" != "Prod" ] && [ "$flavor" != "Flask" ] && [ "$flavor" != "Qa" ] ; then
-		# Flavor is not recognized
-		echo "Flavor $flavor is not recognized! Only Prod, Flask, and Qa (Deprecated - Do not use) are supported"
-		exit 1
-	fi
-
 	# Create flavor configuration
 	flavorConfiguration="app:assemble${flavor}${configuration}"
+	# Create test configuration
+	testConfiguration="app:assemble${flavor}${configuration}AndroidTest"
 
+	# Generate Android binary
 	echo "Generating Android binary for ($flavor) flavor with ($configuration) configuration"
+	./gradlew $flavorConfiguration $testConfiguration --build-cache --parallel
+
+
 	if [ "$configuration" = "Release" ] ; then
-		# Generate Android binary
-		./gradlew $flavorConfiguration --build-cache --parallel
 		# Generate AAB bundle
 		bundleConfiguration="bundle${flavor}Release"
 		echo "Generating AAB bundle for ($flavor) flavor with ($configuration) configuration"
@@ -565,11 +537,6 @@ generateAndroidBinary() {
 		checkSumCommand="build:android:checksum:${lowerCaseFlavor}"
 		echo "Generating checksum for ($flavor) flavor with ($configuration) configuration"
 		yarn $checkSumCommand
-	elif [ "$configuration" = "Debug" ] ; then
-		# Create test configuration
-		testConfiguration="app:assemble${flavor}DebugAndroidTest"
-		# Generate Android binary
-		./gradlew $flavorConfiguration $testConfiguration --build-cache --parallel
 	fi
 
 	# Change directory back out
