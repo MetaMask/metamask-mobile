@@ -1,5 +1,6 @@
 import React from 'react';
 import { screen, fireEvent, waitFor, act } from '@testing-library/react-native';
+import { InteractionManager } from 'react-native';
 import {
   NavigationProp,
   ParamListBase,
@@ -12,10 +13,29 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
+const runAfterInteractionsCallbacks: (() => void)[] = [];
+const mockRunAfterInteractions = jest.spyOn(
+  InteractionManager,
+  'runAfterInteractions',
+);
+const runAfterInteractionsMockImpl: typeof InteractionManager.runAfterInteractions =
+  (task) => {
+    if (typeof task === 'function') {
+      runAfterInteractionsCallbacks.push(task as () => void);
+    }
+
+    return {
+      then: jest.fn(),
+      done: jest.fn(),
+      cancel: jest.fn(),
+    } as ReturnType<typeof InteractionManager.runAfterInteractions>;
+  };
+
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     PredictController: {
       trackMarketDetailsOpened: jest.fn(),
+      trackGeoBlockTriggered: jest.fn(),
     },
   },
 }));
@@ -434,6 +454,8 @@ function setupPredictMarketDetailsTest(
   } = {},
 ) {
   jest.clearAllMocks();
+  runAfterInteractionsCallbacks.length = 0;
+  mockRunAfterInteractions.mockImplementation(runAfterInteractionsMockImpl);
 
   const mockNavigate = jest.fn();
   const mockSetOptions = jest.fn();
@@ -526,6 +548,15 @@ function setupPredictMarketDetailsTest(
 }
 
 describe('PredictMarketDetails', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+    mockRunAfterInteractions.mockReset();
+  });
+
+  afterAll(() => {
+    mockRunAfterInteractions.mockRestore();
+  });
+
   describe('Component Rendering', () => {
     it('renders the main screen container', () => {
       setupPredictMarketDetailsTest();
@@ -609,6 +640,37 @@ describe('PredictMarketDetails', () => {
         screen.getByText('predict.market_details.resolution_details'),
       ).toBeOnTheScreen();
       expect(screen.getByText('Polymarket')).toBeOnTheScreen();
+    });
+
+    it('navigates to polymarket resolution details when pressed', () => {
+      const { mockNavigate } = setupPredictMarketDetailsTest();
+
+      const aboutTab = screen.getByTestId(
+        'predict-market-details-tab-bar-tab-1',
+      );
+      fireEvent.press(aboutTab);
+
+      const resolutionText = screen.getByText('Polymarket');
+
+      act(() => {
+        fireEvent.press(resolutionText);
+      });
+
+      expect(mockRunAfterInteractions).toHaveBeenCalledTimes(1);
+      const callback = runAfterInteractionsCallbacks[0];
+      expect(callback).toBeDefined();
+
+      act(() => {
+        callback?.();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: 'https://docs.polymarket.com/polymarket-learn/markets/how-are-markets-resolved',
+          title: 'predict.market_details.resolution_details',
+        },
+      });
     });
   });
 
