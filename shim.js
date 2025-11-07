@@ -176,14 +176,49 @@ if (enableApiCallLogs || isTest) {
     const raw = LaunchArguments.value();
     const mockServerPort = raw?.mockServerPort ?? defaultMockPort;
     const { fetch: originalFetch } = global;
-    // Use localhost on both platforms - Android adb reverse maps localhost ports
-    const MOCKTTP_URL = `http://localhost:${mockServerPort}`;
 
-    const isMockServerAvailable = await originalFetch(
-      `${MOCKTTP_URL}/health-check`,
-    )
-      .then((res) => res.ok)
-      .catch(() => false);
+    // eslint-disable-next-line no-console
+    console.log(
+      `[E2E SHIM] Platform: ${Platform.OS}, mockServerPort: ${mockServerPort}`,
+    );
+
+    // Try multiple hosts to find available mock server
+    // Priority order:
+    // 1. localhost (works on iOS, works on Android with adb reverse)
+    // 2. 10.0.2.2 (Android emulator host - direct access without adb reverse!)
+    const hosts = ['localhost'];
+    if (Platform.OS === 'android') {
+      hosts.push('10.0.2.2');
+    }
+
+    let MOCKTTP_URL = '';
+    let isMockServerAvailable = false;
+
+    for (const host of hosts) {
+      const testUrl = `http://${host}:${mockServerPort}`;
+      // eslint-disable-next-line no-console
+      console.log(`[E2E SHIM] Trying mock server at: ${testUrl}`);
+
+      const available = await originalFetch(`${testUrl}/health-check`)
+        .then((res) => {
+          // eslint-disable-next-line no-console
+          console.log(`[E2E SHIM] ${host} health check: ${res.ok}`);
+          return res.ok;
+        })
+        .catch((err) => {
+          // eslint-disable-next-line no-console
+          console.log(`[E2E SHIM] ${host} health check failed: ${err.message}`);
+          return false;
+        });
+
+      if (available) {
+        MOCKTTP_URL = testUrl;
+        isMockServerAvailable = true;
+        // eslint-disable-next-line no-console
+        console.log(`[E2E SHIM] Mock server connected via ${host}`);
+        break;
+      }
+    }
 
     // if mockServer is off we route to original destination
     global.fetch = async (url, options) =>
@@ -210,12 +245,13 @@ if (enableApiCallLogs || isTest) {
                 typeof url === 'string' &&
                 (url.startsWith('http://') || url.startsWith('https://'))
               ) {
-                // Bypass proxy for local command queue server (uses adb reverse on Android)
+                // Bypass proxy for local command queue server
                 try {
                   const parsed = new URL(url);
                   const isLocalHost =
                     parsed.hostname === 'localhost' ||
-                    parsed.hostname === '127.0.0.1';
+                    parsed.hostname === '127.0.0.1' ||
+                    parsed.hostname === '10.0.2.2';
                   const isCommandQueue =
                     isLocalHost &&
                     parsed.port ===

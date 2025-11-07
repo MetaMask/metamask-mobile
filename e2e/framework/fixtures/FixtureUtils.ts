@@ -106,16 +106,31 @@ async function setupAndroidPortForwarding(
       fallbackPort += instanceIndex;
     }
 
-    const command = `adb reverse tcp:${fallbackPort} tcp:${actualPort}`;
-    await execAsync(command);
+    // Get device ID to target specific device (important for CI with multiple devices)
+    const deviceId = device.id || '';
+    const deviceFlag = deviceId ? `-s ${deviceId}` : '';
+
+    const command = `adb ${deviceFlag} reverse tcp:${fallbackPort} tcp:${actualPort}`;
+
+    logger.debug(`Executing port forward: ${command}`);
+    const { stdout, stderr } = await execAsync(command);
+
+    if (stderr && !stderr.includes('')) {
+      logger.warn(`adb reverse stderr: ${stderr}`);
+    }
+    if (stdout) {
+      logger.debug(`adb reverse stdout: ${stdout}`);
+    }
+
     logger.debug(
       `✓ Android port forwarding: ${fallbackPort} → ${actualPort} (${resourceType}${instanceIndex !== undefined ? `:${instanceIndex}` : ''})`,
     );
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error(
-      `Failed to set up Android port forwarding for ${resourceType}:`,
-      error,
+      `Failed to set up Android port forwarding for ${resourceType}: ${errorMessage}`,
     );
+    logger.error('Error details:', error);
     throw error;
   }
 }
