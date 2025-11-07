@@ -62,6 +62,7 @@ const mockApiResponse = ({
   global,
 }: RampEligibilityAPIResponse) => {
   mockFetch.mockImplementation(async () => ({
+    ok: true,
     json: async () => ({ deposit, aggregator, global }),
   }));
 };
@@ -354,6 +355,42 @@ describe('useRampsSmartRouting', () => {
 
     it('routes to ERROR when API fetch fails', async () => {
       mockFetch.mockRejectedValue(new Error('Network error'));
+      mockOrders = [];
+
+      renderHook(() => useRampsSmartRouting());
+
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith({
+          type: 'FIAT_SET_RAMP_ROUTING_DECISION',
+          payload: UnifiedRampRoutingType.ERROR,
+        }),
+      );
+    });
+
+    it('routes to ERROR when API returns 404', async () => {
+      mockFetch.mockImplementation(async () => ({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+      }));
+      mockOrders = [];
+
+      renderHook(() => useRampsSmartRouting());
+
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith({
+          type: 'FIAT_SET_RAMP_ROUTING_DECISION',
+          payload: UnifiedRampRoutingType.ERROR,
+        }),
+      );
+    });
+
+    it('routes to ERROR when API returns 500', async () => {
+      mockFetch.mockImplementation(async () => ({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+      }));
       mockOrders = [];
 
       renderHook(() => useRampsSmartRouting());

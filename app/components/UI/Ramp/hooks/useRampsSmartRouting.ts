@@ -66,6 +66,13 @@ export default function useRampsSmartRouting() {
         const response = await fetch(
           `${baseUrl}/regions/countries/${rampGeodetectedRegion}`,
         );
+
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch region eligibility: ${response.status} ${response.statusText}`,
+          );
+        }
+
         const eligibility: RampEligibilityAPIResponse = await response.json();
 
         if (!eligibility.global) {
