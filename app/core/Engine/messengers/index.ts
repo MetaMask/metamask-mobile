@@ -110,10 +110,6 @@ import {
   getDelegationControllerMessenger,
 } from './delegation/delegation-controller-messenger';
 import { getRemoteFeatureFlagControllerMessenger } from './remote-feature-flag-controller-messenger';
-import {
-  getPPOMControllerInitMessenger,
-  getPPOMControllerMessenger,
-} from './ppom-controller-messenger';
 import { getErrorReportingServiceMessenger } from './error-reporting-service-messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
@@ -344,10 +340,6 @@ export const CONTROLLER_MESSENGERS = {
   PhishingController: {
     getMessenger: getPhishingControllerMessenger,
     getInitMessenger: noop,
-  },
-  PPOMController: {
-    getMessenger: getPPOMControllerMessenger,
-    getInitMessenger: getPPOMControllerInitMessenger,
   },
   RemoteFeatureFlagController: {
     getMessenger: getRemoteFeatureFlagControllerMessenger,

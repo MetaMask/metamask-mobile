@@ -15,7 +15,6 @@ import { PreferencesState } from '@metamask/preferences-controller';
 import { PhishingControllerState } from '@metamask/phishing-controller';
 import { TransactionControllerState } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
-import { PPOMState } from '@metamask/ppom-validator';
 import { ApprovalControllerState } from '@metamask/approval-controller';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { TokenSearchDiscoveryControllerState } from '@metamask/token-search-discovery-controller';
@@ -36,7 +35,6 @@ export interface EngineState {
       NetworkController: NetworkState;
       PreferencesController: PreferencesState;
       PhishingController: PhishingControllerState;
-      PPOMController: PPOMState;
       TokenBalancesController: TokenBalancesControllerState;
       TokenRatesController: TokenRatesControllerState;
       TransactionController: TransactionControllerState;
