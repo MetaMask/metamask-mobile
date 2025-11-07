@@ -16,6 +16,7 @@ import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
 import * as AccountSelectorsModule from '../../../../selectors/multichainAccounts/accounts';
+import initialRootState from '../../../../util/test/initial-root-state';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MockVar = any;
@@ -182,7 +183,10 @@ describe('AccountList', () => {
 
   it('renders correctly', async () => {
     arrangeMocks();
-    const { getByTestId, queryByTestId } = renderWithProvider(<AccountsList />);
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <AccountsList />,
+      { state: initialRootState },
+    );
 
     // Assert - Items exist
     expect(getByTestId(ACCOUNT_1_TEST_ID.item)).toBeTruthy();
@@ -206,7 +210,9 @@ describe('AccountList', () => {
       isAccountLoading: () => false,
     });
 
-    const { getByTestId } = renderWithProvider(<AccountsList />);
+    const { getByTestId } = renderWithProvider(<AccountsList />, {
+      state: initialRootState,
+    });
 
     // Assert switches are disabled since we are loading
     expect(getByTestId(ACCOUNT_1_TEST_ID.itemSwitch).props.disabled).toBe(true);
@@ -221,7 +227,9 @@ describe('AccountList', () => {
       isAccountLoading: () => false,
     });
 
-    const { getByTestId } = renderWithProvider(<AccountsList />);
+    const { getByTestId } = renderWithProvider(<AccountsList />, {
+      state: initialRootState,
+    });
 
     // Act
     const toggleSwitch = getByTestId(ACCOUNT_1_TEST_ID.itemSwitch);
