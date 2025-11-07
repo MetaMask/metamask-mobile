@@ -551,10 +551,11 @@ generateAndroidBinary() {
 	# Create flavor configuration
 	flavorConfiguration="app:assemble${flavor}${configuration}"
 
+	# Create test configuration
+	testConfiguration="app:assemble${flavor}DebugAndroidTest"
+
 	echo "Generating Android binary for ($flavor) flavor with ($configuration) configuration"
 	if [ "$configuration" = "Release" ] ; then
-		# Create test configuration
-		testConfiguration="app:assemble${flavor}ReleaseAndroidTest"
 
 		# Generate Android binary
 		./gradlew $flavorConfiguration $testConfiguration --build-cache --parallel
@@ -570,8 +571,6 @@ generateAndroidBinary() {
 		echo "Generating checksum for ($flavor) flavor with ($configuration) configuration"
 		yarn $checkSumCommand
 	elif [ "$configuration" = "Debug" ] ; then
-		# Create test configuration
-		testConfiguration="app:assemble${flavor}DebugAndroidTest"
 		# Generate Android binary
 		./gradlew $flavorConfiguration $testConfiguration --build-cache --parallel
 	fi
