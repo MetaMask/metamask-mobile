@@ -1,6 +1,5 @@
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 
 import Text, {
   TextVariant,
@@ -30,15 +29,11 @@ export const createEligibilityFailedModalNavigationDetails =
 
 function EligibilityFailedModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
-
   const { styles } = useStyles(styleSheet, {});
 
   const handleClose = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.goBack();
-    });
-  }, [navigation]);
+    sheetRef.current?.onCloseBottomSheet();
+  }, []);
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack isInteractable={false}>
