@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.58.1]
+
+### Fixed
+
+- fix: Android In-App Browser Crash ([#22269](https://github.com/MetaMask/metamask-mobile/pull/22269))
+- fix: cp-75.8.1 remove selected network reference from bridge getBridgeERC20Allowance handler ([#22230](https://github.com/MetaMask/metamask-mobile/pull/22230))
+- fix(card): add temporary fix for crashing KYC webview on Android ([#22238](https://github.com/MetaMask/metamask-mobile/pull/22238))
+- fix(card): Onboarding UI issues ([#22263](https://github.com/MetaMask/metamask-mobile/pull/22263))
+- fix(card): delegation issues ([#22249](https://github.com/MetaMask/metamask-mobile/pull/22249))
+
+### Changed
+
+- refactor(card): sonarcloud maintainability issues ([#22268](https://github.com/MetaMask/metamask-mobile/pull/22268))
+
 ## [7.58.0]
 
 ### Added
@@ -8790,6 +8804,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.57.1...HEAD
+[7.58.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.58.0...v7.58.1
 [7.57.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.57.0...v7.57.1
 [7.57.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.56.5...v7.57.0
 [7.56.5]: https://github.com/MetaMask/metamask-mobile/compare/v7.56.4...v7.56.5
