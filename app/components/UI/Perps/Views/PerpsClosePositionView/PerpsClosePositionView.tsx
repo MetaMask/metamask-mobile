@@ -115,11 +115,6 @@ const PerpsClosePositionView: React.FC = () => {
     ? parseFloat(priceData[position.coin].price)
     : parseFloat(position.entryPrice);
 
-  // Use ref to access latest price without triggering fee recalculations
-  // This prevents continuous recalculations on every WebSocket price update
-  const currentPriceRef = useRef(currentPrice);
-  currentPriceRef.current = currentPrice;
-
   // Get top of book data for maker/taker fee determination
   const currentTopOfBook = usePerpsTopOfBook({
     symbol: position.coin,
@@ -167,9 +162,9 @@ const PerpsClosePositionView: React.FC = () => {
     const priceToUse =
       orderType === 'limit' && limitPrice
         ? parseFloat(limitPrice)
-        : currentPriceRef.current;
+        : currentPrice;
     return absSize * priceToUse;
-  }, [absSize, orderType, limitPrice]); // Exclude currentPrice from deps to prevent recalculation
+  }, [absSize, orderType, limitPrice, currentPrice]); // Exclude currentPrice from deps to prevent recalculation
 
   // Calculate P&L based on effective price (limit price for limit orders)
   // Use ref for market price to prevent recalculation on every WebSocket update
@@ -181,12 +176,12 @@ const PerpsClosePositionView: React.FC = () => {
     const priceToUse =
       orderType === 'limit' && limitPrice
         ? parseFloat(limitPrice)
-        : currentPriceRef.current;
+        : currentPrice;
     const priceDiff = isLong
       ? priceToUse - entryPrice
       : entryPrice - priceToUse;
     return priceDiff * absSize;
-  }, [entryPrice, absSize, isLong, orderType, limitPrice]); // Exclude effectivePrice from deps
+  }, [entryPrice, absSize, isLong, orderType, limitPrice, currentPrice]); // Exclude effectivePrice from deps
 
   // Use the actual initial margin from the position
   const initialMargin = parseFloat(position.marginUsed);
