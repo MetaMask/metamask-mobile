@@ -23,6 +23,7 @@ interface ActivitySection {
 
 /**
  * Groups activities by individual day (Today, Yesterday, or specific date)
+ * Matches Perps date format: "Today", "Yesterday", or "Jan 15"
  * @param timestamp Unix timestamp in seconds
  * @param todayTime Start of today in milliseconds
  * @param yesterdayTime Start of yesterday in milliseconds
@@ -46,12 +47,13 @@ const getDateGroupLabel = (
     return strings('predict.transactions.yesterday');
   }
 
-  // Format all other dates as "MMM D, YYYY" (e.g., "Oct 5, 2025")
-  return activityDate.toLocaleDateString(undefined, {
+  // Format all other dates as "MMM D" (e.g., "Jan 15") to match Perps
+  const formatter = new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
-    year: 'numeric',
   });
+
+  return formatter.format(activityDate);
 };
 
 const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
@@ -207,10 +209,10 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
 
   const renderSectionHeader = useCallback(
     ({ section }: { section: ActivitySection }) => (
-      <Box twClassName="bg-default px-4 py-2">
+      <Box twClassName="bg-default px-2 pt-3">
         <Text
-          variant={TextVariant.BodySm}
-          twClassName="text-alternative font-medium"
+          variant={TextVariant.BodyMd}
+          twClassName="text-alternative font-semibold"
         >
           {section.title}
         </Text>
@@ -255,7 +257,7 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
           contentContainerStyle={tw.style('p-2')}
           showsVerticalScrollIndicator={false}
           style={tw.style('flex-1')}
-          stickySectionHeadersEnabled={false}
+          stickySectionHeadersEnabled
           removeClippedSubviews
           maxToRenderPerBatch={10}
           updateCellsBatchingPeriod={50}
