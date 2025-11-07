@@ -1,7 +1,7 @@
 /**
  * Output Formatting Utilities
  *
- * Formats analysis results for different output modes (default, json, tags)
+ * Formats analysis results for different output modes (console, json)
  */
 
 import { AIAnalysis, FileCategorization, ParsedArgs } from '../types';
@@ -16,8 +16,6 @@ export function formatAndOutput(
 ): void {
   if (options.output === 'json') {
     outputJSON(analysis, categorization);
-  } else if (options.output === 'tags') {
-    outputTags(analysis);
   } else {
     outputDefault(analysis);
   }
@@ -53,13 +51,6 @@ function outputJSON(
       2
     )
   );
-}
-
-/**
- * Outputs only the selected tags (one per line) for easy parsing
- */
-function outputTags(analysis: AIAnalysis): void {
-  console.log(analysis.selectedTags.join('\n'));
 }
 
 /**

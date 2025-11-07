@@ -10,9 +10,9 @@ import { execSync } from 'node:child_process';
  * Gets the list of changed files between a base branch and HEAD
  * Uses three-dot syntax (...) to compare against merge base
  */
-export function getChangedFiles(baseBranch: string, baseDir: string): string[] {
+export function getAllChangedFiles(baseBranch: string, baseDir: string): string[] {
   try {
-    const targetBranch = baseBranch || 'origin/main';
+    const targetBranch = baseBranch;
 
     const changedFiles = execSync(
       `git diff --name-only ${targetBranch}...HEAD`,
@@ -43,7 +43,7 @@ export function getFileDiff(
   linesLimit = 1000
 ): string {
   try {
-    const targetBranch = baseBranch || 'origin/main';
+    const targetBranch = baseBranch;
 
     const diff = execSync(
       `git diff ${targetBranch}...HEAD -- "${filePath}"`,
@@ -75,12 +75,13 @@ export function getFileDiff(
  */
 export function getPRDiff(
   prNumber: number,
+  repo: string,
   files?: string[],
   linesLimit = 2000
 ): string {
   try {
     const diff = execSync(
-      `gh pr diff ${prNumber} --repo metamask/metamask-mobile`,
+      `gh pr diff ${prNumber} --repo ${repo}`,
       { encoding: 'utf-8' }
     );
 
@@ -104,10 +105,13 @@ export function getPRDiff(
 /**
  * Gets files changed in a PR using GitHub CLI
  */
-export function getPRFiles(prNumber: number): string[] {
+export function getPRFiles(
+  prNumber: number,
+  repo: string
+): string[] {
   try {
     const files = execSync(
-      `gh pr view ${prNumber} --json files --jq '.files[].path'`,
+      `gh pr view ${prNumber} --repo ${repo} --json files --jq '.files[].path'`,
       { encoding: 'utf-8' }
     )
       .trim()
@@ -142,4 +146,21 @@ function filterDiffByFiles(diff: string, files: string[]): string {
   }
 
   return fileDiffs.join('\n\n') || 'No diffs found for specified files';
+}
+
+/**
+ * Validates and sanitizes a PR number to prevent command injection
+ * @param input - The input to validate (can be string or number)
+ * @returns Safe PR number or null if invalid
+ */
+export function validatePRNumber(input: unknown): number | null {
+  // Convert to number if string
+  const num = typeof input === 'string' ? parseInt(input, 10) : input;
+
+  // Check if it's a valid positive integer
+  if (typeof num !== 'number' || !Number.isInteger(num) || num <= 0 || num > 999999) {
+    return null;
+  }
+
+  return num;
 }

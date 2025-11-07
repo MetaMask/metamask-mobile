@@ -16,6 +16,7 @@ async function main() {
   }
 
   const selector = new AIE2ETagsSelector(apiKey);
+  console.log('Running AI analysis...');
   await selector.run();
 }
 

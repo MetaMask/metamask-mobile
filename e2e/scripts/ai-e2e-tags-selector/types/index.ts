@@ -21,7 +21,7 @@ export interface TagTestInfo {
 
 export interface ParsedArgs {
   baseBranch: string;
-  output: 'console' | 'json' | 'tags';
+  output: 'console' | 'json';
   changedFiles?: string;
   prNumber?: number;
 }

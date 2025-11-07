@@ -19,8 +19,7 @@ import { getToolDefinitions } from './tools/tool-registry';
 import { executeTool } from './tools/tool-executor';
 import { buildSystemPrompt } from './prompts/system-prompt-builder';
 import { buildAgentPrompt } from './prompts/agent-prompt-builder';
-import { getChangedFiles, getPRFiles } from './utils/git-utils';
-import { validatePRNumber } from './utils/validation';
+import { getAllChangedFiles, getPRFiles, validatePRNumber } from './utils/git-utils';
 import { formatAndOutput, createLogger } from './utils/output-formatter';
 
 export class AIE2ETagsSelector {
@@ -30,6 +29,7 @@ export class AIE2ETagsSelector {
   private conversationHistory: Anthropic.MessageParam[] = [];
   private readonly baseDir = process.cwd();
   private baseBranch = 'origin/main';
+  private githubRepo = 'metamask/metamask-mobile';
   private log: (message: string) => void;
 
   constructor(apiKey: string) {
@@ -48,17 +48,13 @@ export class AIE2ETagsSelector {
    */
   async analyzeWithAgent(
     categorization: FileCategorization,
-    options: { prNumber?: number; baseBranch?: string }
+    prNumber?: number
   ): Promise<AIAnalysis> {
-    this.log('🤖 Starting AI analysis for E2E tests...');
-
-    // Store context for tool execution
-    if (options.baseBranch) this.baseBranch = options.baseBranch;
 
     const tools = getToolDefinitions();
     this.conversationHistory = [];
 
-    const initialPrompt = buildAgentPrompt(categorization, options.prNumber);
+    const initialPrompt = buildAgentPrompt(categorization, prNumber);
 
     let currentMessage: string | Anthropic.MessageParam['content'] = initialPrompt;
     const maxIterations = 12;
@@ -103,7 +99,8 @@ export class AIE2ETagsSelector {
               toolUse.input as ToolInput,
               {
                 baseDir: this.baseDir,
-                baseBranch: this.baseBranch
+                baseBranch: this.baseBranch,
+                githubRepo: this.githubRepo
               }
             );
 
@@ -210,6 +207,25 @@ export class AIE2ETagsSelector {
   }
 
   /**
+   * Validates provided files against actual git changes
+   */
+  private validateProvidedFiles(providedFiles: string[]): string[] {
+    this.log('🔍 Validating provided files have changes...');
+    const actuallyChangedFiles = getAllChangedFiles(this.baseBranch, this.baseDir);
+    const invalidFiles = providedFiles.filter(f => !actuallyChangedFiles.includes(f));
+
+    if (invalidFiles.length > 0) {
+      console.error(`❌ Error: The following files have no changes or do not exist:`);
+      invalidFiles.forEach(f => console.error(`   - ${f}`));
+      console.error(`\n💡 Tip: Only provide files that have actual changes in your branch`);
+      process.exit(1);
+    }
+
+    this.log(`✅ All ${providedFiles.length} provided files validated`);
+    return providedFiles;
+  }
+
+  /**
    * Parses command line arguments
    */
   parseArgs(args: string[]): ParsedArgs {
@@ -260,8 +276,8 @@ Usage: yarn ai-e2e [options]
 
 Options:
   -b, --base-branch <branch>    Base branch for comparison (default: origin/main)
-  -o, --output <mode>           Output mode: console|json|tags (default: console)
-  --changed-files <files>       Provide changed files directly
+  -o, --output <mode>           Output mode: console|json (default: console)
+  --changed-files <files>       Provide changed files directly (default: git diff to check all changed files)
   --pr <number>                 Analyze specific PR number
   -h, --help                    Show this help message
 
@@ -294,34 +310,45 @@ Examples:
 
     const options = this.parseArgs(args);
 
-    this.isQuietMode = options.output === 'json' || options.output === 'tags';
+    // Set instance properties from options
+    this.baseBranch = options.baseBranch;
+    this.isQuietMode = options.output === 'json';
     this.log = createLogger(this.isQuietMode);
 
     // Get changed files
     let allChangedFiles: string[];
     if (options.changedFiles) {
-      this.log('📋 Using provided changed files');
-      allChangedFiles = options.changedFiles.split(/\s+/).filter(f => f);
+      const providedFiles = options.changedFiles.split(/\s+/).filter(f => f);
+      allChangedFiles = this.validateProvidedFiles(providedFiles);
     } else if (options.prNumber) {
-      this.log(`📋 Fetching changed files from PR #${options.prNumber}`);
-      allChangedFiles = getPRFiles(options.prNumber);
+      allChangedFiles = getPRFiles(options.prNumber, this.githubRepo);
     } else {
-      this.log('📋 Computing changed files via git');
-      allChangedFiles = getChangedFiles(options.baseBranch, this.baseDir);
+      allChangedFiles = getAllChangedFiles(this.baseBranch, this.baseDir);
+    }
+    this.log(`📁 Found ${allChangedFiles.length} modified files`);
+
+    // Validate we have files to analyze
+    if (allChangedFiles.length === 0) {
+      this.log('💡 Tip: Make sure you have uncommitted changes or are on a branch with commits');
+
+      const noChangesAnalysis: AIAnalysis = {
+        selectedTags: [],
+        riskLevel: 'low',
+        confidence: 100,
+        reasoning: 'No files changed - no tests needed',
+        areas: []
+      };
+      formatAndOutput(noChangesAnalysis, options, categorizeFiles([]));
+      return;
     }
 
     const categorization = categorizeFiles(allChangedFiles);
-
-    this.log(`📁 Found ${allChangedFiles.length} total files`);
     if (categorization.criticalFiles.length > 0) {
       this.log(`⚠️  ${categorization.criticalFiles.length} critical files detected`);
     }
 
     // Run AI analysis
-    const analysis = await this.analyzeWithAgent(categorization, {
-      prNumber: options.prNumber,
-      baseBranch: options.baseBranch
-    });
+    const analysis = await this.analyzeWithAgent(categorization, options.prNumber);
 
     // Output results
     formatAndOutput(analysis, options, categorization);

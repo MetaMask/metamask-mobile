@@ -5,10 +5,9 @@
  */
 
 import { ToolInput } from '../../types';
-import { getPRDiff } from '../../utils/git-utils';
-import { validatePRNumber } from '../../utils/validation';
+import { getPRDiff, validatePRNumber } from '../../utils/git-utils';
 
-export function handlePRDiff(input: ToolInput): string {
+export function handlePRDiff(input: ToolInput, githubRepo: string): string {
   const prNumber = validatePRNumber(input.pr_number);
   const files = (input.files as string[]) || [];
 
@@ -16,5 +15,5 @@ export function handlePRDiff(input: ToolInput): string {
     return `Invalid PR number: ${input.pr_number}. Must be a positive integer.`;
   }
 
-  return getPRDiff(prNumber, files);
+  return getPRDiff(prNumber, githubRepo, files);
 }

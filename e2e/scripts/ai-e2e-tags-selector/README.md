@@ -4,7 +4,6 @@
 
 ```
 ai-e2e-tags-selector/
-├── index.ts                      # Main entry point (CLI)
 ├── selector.ts                   # Core orchestrator class
 ├── types/
 │   └── index.ts                  # Shared TypeScript types
@@ -77,8 +76,8 @@ const aiE2EConfig = [
 
 ```bash
 # Check TypeScript compilation
-npx tsc --noEmit e2e/scripts/ai-e2e-tags-selector/index.ts
+npx tsc --noEmit e2e/scripts/ai-e2e-tags-selector.ts
 
 # Run with help
-E2E_CLAUDE_API_KEY=test node -r esbuild-register e2e/scripts/ai-e2e-tags-selector/index.ts --help
+E2E_CLAUDE_API_KEY=test node -r esbuild-register e2e/scripts/ai-e2e-tags-selector.ts --help
 ```

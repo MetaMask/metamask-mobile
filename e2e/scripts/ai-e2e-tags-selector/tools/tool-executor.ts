@@ -20,6 +20,7 @@ export async function executeTool(
   context: {
     baseDir: string;
     baseBranch: string;
+    githubRepo: string;
   }
 ): Promise<string> {
   try {
@@ -31,7 +32,7 @@ export async function executeTool(
         return handleGitDiff(input, context.baseDir, context.baseBranch);
 
       case 'get_pr_diff':
-        return handlePRDiff(input);
+        return handlePRDiff(input, context.githubRepo);
 
       case 'find_related_files':
         return handleRelatedFiles(input, context.baseDir);
