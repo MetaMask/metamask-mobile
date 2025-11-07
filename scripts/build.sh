@@ -555,7 +555,7 @@ generateAndroidBinary() {
 	if [ "$configuration" = "Release" ] ; then
 		# Check if this is an E2E build
 		if [ "$METAMASK_ENVIRONMENT" = "e2e" ] || [ "$E2E" = "true" ] ; then
-			buildAndroidReleaseE2E()
+			buildAndroidReleaseE2E
 		else
 			# Generate Android binary only
 			./gradlew $flavorConfiguration --build-cache --parallel
