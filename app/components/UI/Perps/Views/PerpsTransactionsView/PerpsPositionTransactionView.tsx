@@ -118,7 +118,9 @@ const PerpsPositionTransactionView: React.FC = () => {
     transaction.fill?.fee !== undefined &&
       transaction.fill?.fee !== null && {
         label: strings('perps.transactions.position.fees'),
-        value: BigNumber(transaction.fill.fee).isGreaterThan(smallFeeThreshold)
+        value: BigNumber(transaction.fill.fee).isGreaterThanOrEqualTo(
+          smallFeeThreshold,
+        )
           ? formatPerpsFiat(transaction.fill.fee)
           : smallFeeLabel,
         textColor: TextColor.Default,
