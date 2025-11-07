@@ -433,6 +433,18 @@ const buttonColorVariant = 'monochrome';
 
 ---
 
+## LaunchDarkly User Context & Bucketing
+
+**How User Identification Works:**
+
+Mobile sends user context to LaunchDarkly for per-user A/B testing via the `RemoteFeatureFlagController`:
+
+- **MetaMetrics ID** (when enabled): Used as the primary LaunchDarkly user key
+- **Fallback identification**: LaunchDarkly seem to maintain its own user segmentation even when MetaMetrics is disabled
+- **Bucketing**: Users are consistently assigned to variants based on their identifier
+
+---
+
 ## LaunchDarkly Configuration
 
 ### Backend Team Setup
@@ -454,30 +466,47 @@ const buttonColorVariant = 'monochrome';
 - `{test-name}` = What's being tested
 - No `-enabled` suffix needed (LaunchDarkly has ON/OFF toggle)
 
-### MetaMetrics Requirement
-
-**Users must have MetaMetrics enabled** for A/B testing (for privacy).
-
-- **Default state**: Disabled (opt-out by default)
-- **Enable path**: Settings → Security & Privacy → MetaMetrics
-- **LaunchDarkly targeting**: Use `IF user anonymous is one of false` to filter opted-in users
-
-**Configuration Steps (using button color test as example):**
+**Configuration Steps:**
 
 1. **Create flag:** `perps-abtest-button-color` (kebab-case in LaunchDarkly UI)
 2. **Flag type:** String (from dropdown)
 3. **String variations:**
-   - Variation 0: Name=`Control`, Value=`control`
-   - Variation 1: Name=`Monochrome`, Value=`monochrome`
-4. **Targeting rules:**
-   - IF user `anonymous` is one of `false` (filters MetaMetrics opted-in users)
-   - THEN serve percentage rollout:
-     - 50% → `control`
-     - 50% → `monochrome`
-   - Optional: Version constraint via custom rule (`appVersion >= 7.60.0`)
-5. **Default variations:**
-   - When ON: `control`
-   - When OFF: (flag disabled, app uses fallback)
+   - Variation 0: Name=`Control`, Value=`control` (default)
+   - Variation 1: Name=`Monochrome`, Value=`monochrome` (treatment)
+
+4. **Default rule (for all traffic):**
+   - **Serve:** A percentage rollout
+   - **Split:** 50% → `control`, 50% → `monochrome` (adjust percentages as needed)
+   - **By:** `user | key` (buckets users by their LaunchDarkly user key, which is the MetaMetrics ID)
+
+5. **Targeting rules:** Optional - leave empty for simple A/B test, or add custom rules for gradual rollout
+
+6. **Default variations:**
+   - **When ON:** Serves default rule (percentage rollout)
+   - **When OFF:** Serves `control` (variation 0)
+
+**Example config:**
+
+```json
+{
+  "variations": [
+    { "name": "Control", "value": "control" },
+    { "name": "Monochrome", "value": "monochrome" }
+  ],
+  "offVariation": 0,
+  "fallthrough": {
+    "rollout": {
+      "variations": [
+        { "variation": 0, "weight": 50000 },
+        { "variation": 1, "weight": 50000 }
+      ],
+      "bucketBy": "key"
+    }
+  }
+}
+```
+
+**Note:** Weights are in basis points (50000 = 50%). Adjust for different splits (e.g., 70/30 = 70000/30000).
 
 ### What the App Receives
 
