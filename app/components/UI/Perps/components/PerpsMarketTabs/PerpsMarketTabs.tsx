@@ -49,6 +49,7 @@ interface PositionTabContentProps {
   showIcon: boolean;
   onTooltipPress: (contentKey: PerpsTooltipContentKey) => void;
   onTpslCountPress: (tabId: string) => void;
+  isLoading?: boolean;
 }
 
 const PositionTabContent: React.FC<PositionTabContentProps> = ({
@@ -57,8 +58,25 @@ const PositionTabContent: React.FC<PositionTabContentProps> = ({
   showIcon,
   onTooltipPress,
   onTpslCountPress,
+  isLoading = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+
+  // Show loading skeleton if loading
+  if (isLoading && !position) {
+    return (
+      <View
+        style={styles.tabContent}
+        testID={PerpsMarketTabsSelectorsIDs.POSITION_CONTENT}
+      >
+        <View style={styles.skeletonContainer}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
+            {strings('perps.loading')}
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   if (!position) return null;
 
@@ -88,6 +106,7 @@ interface OrdersTabContentProps {
   cancellingOrderIds: Set<string>;
   onOrderCancel: (order: Order) => Promise<void>;
   onOrderSelect?: (orderId: string) => void;
+  isLoading?: boolean;
 }
 
 const OrdersTabContent = React.memo<OrdersTabContentProps>(
@@ -98,8 +117,25 @@ const OrdersTabContent = React.memo<OrdersTabContentProps>(
     cancellingOrderIds,
     onOrderCancel,
     onOrderSelect,
+    isLoading = false,
   }) => {
     const { styles } = useStyles(styleSheet, {});
+
+    // Show loading skeleton if loading
+    if (isLoading && sortedUnfilledOrders.length === 0) {
+      return (
+        <View
+          style={styles.tabContent}
+          testID={PerpsMarketTabsSelectorsIDs.ORDERS_CONTENT}
+        >
+          <View style={styles.skeletonContainer}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
+              {strings('perps.loading')}
+            </Text>
+          </View>
+        </View>
+      );
+    }
 
     return (
       <View
@@ -208,6 +244,8 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   onOrderCancelled,
   activeTPOrderId,
   activeSLOrderId,
+  isLoadingPosition = false,
+  isLoadingOrders = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const hasUserInteracted = useRef(false);
@@ -288,16 +326,19 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   const tabs = React.useMemo(() => {
     const dynamicTabs = [];
 
-    // Only show position tab if there's a position
-    if (position) {
+    // Show position tab if there's a position OR if we're loading and initialTab is 'position'
+    if (position || (isLoadingPosition && initialTab === 'position')) {
       dynamicTabs.push({
         id: 'position',
         label: strings('perps.market.position'),
       });
     }
 
-    // Only show orders tab if there are orders (use sortedUnfilledOrders for consistency with tabsToRender)
-    if (sortedUnfilledOrders.length > 0) {
+    // Show orders tab if there are orders OR if we're loading and initialTab is 'orders'
+    if (
+      sortedUnfilledOrders.length > 0 ||
+      (isLoadingOrders && initialTab === 'orders')
+    ) {
       dynamicTabs.push({
         id: 'orders',
         label: strings('perps.market.orders'),
@@ -311,7 +352,13 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     });
 
     return dynamicTabs;
-  }, [position, sortedUnfilledOrders.length]);
+  }, [
+    position,
+    sortedUnfilledOrders.length,
+    isLoadingPosition,
+    isLoadingOrders,
+    initialTab,
+  ]);
 
   // Initialize with first available tab based on priority
   const [activeTabId, setActiveTabId] = useState<PerpsTabId>(() => {
@@ -576,8 +623,9 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
       showIcon: true,
       onTooltipPress: handleTooltipPress,
       onTpslCountPress: handleTabSwitchByTabId,
+      isLoading: isLoadingPosition,
     }),
-    [position, handleTooltipPress, handleTabSwitchByTabId],
+    [position, handleTooltipPress, handleTabSwitchByTabId, isLoadingPosition],
   );
 
   const ordersTabProps = useMemo(
@@ -590,6 +638,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
       cancellingOrderIds,
       onOrderCancel: handleOrderCancel,
       onOrderSelect,
+      isLoading: isLoadingOrders,
     }),
     [
       sortedUnfilledOrders,
@@ -598,6 +647,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
       cancellingOrderIds,
       handleOrderCancel,
       onOrderSelect,
+      isLoadingOrders,
     ],
   );
 
@@ -617,15 +667,18 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   const tabsToRender = useMemo(() => {
     const tabComponents = [];
 
-    // Only show position tab if there's a position
-    if (position) {
+    // Show position tab if there's a position OR if we're loading and initialTab is 'position'
+    if (position || (isLoadingPosition && initialTab === 'position')) {
       tabComponents.push(
         <PositionTabContent {...positionTabProps} key={positionTabProps.key} />,
       );
     }
 
-    // Only show orders tab if there are orders
-    if (sortedUnfilledOrders.length > 0) {
+    // Show orders tab if there are orders OR if we're loading and initialTab is 'orders'
+    if (
+      sortedUnfilledOrders.length > 0 ||
+      (isLoadingOrders && initialTab === 'orders')
+    ) {
       tabComponents.push(
         <OrdersTabContent {...ordersTabProps} key={ordersTabProps.key} />,
       );
@@ -647,6 +700,9 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     sortedUnfilledOrders.length,
     ordersTabProps,
     statisticsTabProps,
+    isLoadingPosition,
+    isLoadingOrders,
+    initialTab,
   ]);
 
   const renderTooltipModal = useCallback(() => {

@@ -132,8 +132,21 @@ export function usePerpsLivePositions(
       throttleMs,
     });
 
+    // Add timeout: If no data arrives within 5 seconds, stop loading
+    const timeoutId = setTimeout(() => {
+      if (!hasReceivedFirstUpdate.current) {
+        DevLogger.log(
+          'usePerpsLivePositions: Timeout reached, marking as loaded with empty data',
+        );
+        hasReceivedFirstUpdate.current = true;
+        setIsInitialLoading(false);
+        setRawPositions(EMPTY_POSITIONS);
+      }
+    }, 5000);
+
     return () => {
       unsubscribe();
+      clearTimeout(timeoutId);
     };
   }, [stream, throttleMs]);
 

@@ -20,7 +20,7 @@ export const PERPS_CONSTANTS = {
 
   // Connection manager timing constants
   BALANCE_UPDATE_THROTTLE_MS: 15000, // Update at most every 15 seconds to reduce state updates in PerpsConnectionManager
-  INITIAL_DATA_DELAY_MS: 100, // Delay to allow initial data to load after connection establishment
+  INITIAL_DATA_DELAY_MS: 300, // Delay to allow initial data to load after connection establishment (increased for reliability)
 
   DEFAULT_ASSET_PREVIEW_LIMIT: 5,
   DEFAULT_MAX_LEVERAGE: 3 as number, // Default fallback max leverage when market data is unavailable - conservative default

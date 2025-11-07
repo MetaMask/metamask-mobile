@@ -228,7 +228,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     enabled: !!(monitoringIntent && market && monitoringIntent.asset),
   });
   // Get real-time open orders via WebSocket
-  const { orders: ordersData } = usePerpsLiveOrders({});
+  const { orders: ordersData, isInitialLoading: isLoadingOrders } =
+    usePerpsLiveOrders({});
   // Filter orders for the current market
   const openOrders = useMemo(() => {
     if (!ordersData?.length || !market?.symbol) return [];
@@ -726,6 +727,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               onOrderCancelled={handleOrderCancelled}
               activeTPOrderId={selectedOrderTPSL?.activeTPOrderId}
               activeSLOrderId={selectedOrderTPSL?.activeSLOrderId}
+              isLoadingPosition={isLoadingPosition}
+              isLoadingOrders={isLoadingOrders}
             />
           </View>
 

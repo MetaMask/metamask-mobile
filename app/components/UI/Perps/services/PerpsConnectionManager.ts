@@ -853,6 +853,7 @@ class PerpsConnectionManagerClass {
     }
 
     try {
+      const prewarmStartTime = Date.now();
       DevLogger.log(
         'PerpsConnectionManager: Pre-loading WebSocket subscriptions via StreamManager',
       );
@@ -888,8 +889,13 @@ class PerpsConnectionManagerClass {
       // Give subscriptions a moment to receive initial data
       await wait(PERPS_CONSTANTS.INITIAL_DATA_DELAY_MS);
 
+      const prewarmDuration = Date.now() - prewarmStartTime;
       DevLogger.log(
         'PerpsConnectionManager: Pre-loading complete with persistent subscriptions',
+        {
+          durationMs: prewarmDuration,
+          delayMs: PERPS_CONSTANTS.INITIAL_DATA_DELAY_MS,
+        },
       );
     } catch (error) {
       Logger.error(ensureError(error), {
