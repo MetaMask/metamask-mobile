@@ -28,7 +28,7 @@ export function calculateOpenInterestUSD(
   openInterest: string | number | undefined,
   currentPrice: string | number | undefined,
 ): number {
-  if (!openInterest || !currentPrice) {
+  if (openInterest == null || currentPrice == null) {
     return NaN;
   }
 

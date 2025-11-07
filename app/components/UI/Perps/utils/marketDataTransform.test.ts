@@ -479,7 +479,7 @@ describe('marketDataTransform', () => {
       expect(result).toBeNaN();
     });
 
-    it('returns NaN when price is zero', () => {
+    it('returns 0 when price is zero', () => {
       // Arrange
       const openInterest = '1000000';
       const price = '0';
@@ -489,6 +489,18 @@ describe('marketDataTransform', () => {
 
       // Assert
       expect(result).toBe(0); // 1M * 0 = 0
+    });
+
+    it('returns 0 when open interest is zero', () => {
+      // Arrange
+      const openInterest = '0';
+      const price = '50000';
+
+      // Act
+      const result = calculateOpenInterestUSD(openInterest, price);
+
+      // Assert
+      expect(result).toBe(0); // 0 * $50K = 0
     });
 
     it('returns NaN when open interest contains invalid characters', () => {
