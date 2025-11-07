@@ -11,7 +11,6 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useSelector } from 'react-redux';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import {
   SafeAreaView,
@@ -21,11 +20,12 @@ import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perp
 
 import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import ButtonSemantic from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
+import ButtonSemantic, {
+  ButtonSemanticSeverity,
+} from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
 import Button, {
   ButtonSize,
   ButtonVariants,
-  ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconColor,
@@ -94,10 +94,6 @@ import {
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
-import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
-import { getButtonSeverityForDirection } from '../../constants/buttonColors';
-import { selectPerpsButtonColorTestVariant } from '../../selectors/featureFlags';
-import type { ButtonColorVariant } from '../../utils/abTesting/types';
 import {
   formatPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
@@ -195,17 +191,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
     handleMaxAmount,
     maxPossibleAmount,
   } = usePerpsOrderContext();
-
-  // Button colors: Read from LaunchDarkly feature flag (assigned on asset details screen)
-  // Note: AB test tracking happens on PerpsMarketDetailsView, not here
-  const buttonColorVariantFromFlag = useSelector(
-    selectPerpsButtonColorTestVariant,
-  );
-  const buttonColorVariant = buttonColorVariantFromFlag || 'control';
-  const buttonColors: ButtonColorVariant =
-    BUTTON_COLOR_TEST.variants[
-      buttonColorVariant as keyof typeof BUTTON_COLOR_TEST.variants
-    ].data;
 
   /**
    * PROTOCOL CONSTRAINT: Existing position leverage
@@ -1260,43 +1245,26 @@ const PerpsOrderViewContentBase: React.FC = () => {
               </View>
             )}
 
-          {buttonColorVariant === 'monochrome' ? (
-            <Button
-              variant={ButtonVariants.Secondary}
-              onPress={handlePlaceOrder}
-              label={placeOrderLabel}
-              size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-              isDisabled={
-                !orderValidation.isValid ||
-                isPlacingOrder ||
-                doesStopLossRiskLiquidation ||
-                isAtOICap
-              }
-              loading={isPlacingOrder}
-              testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
-            />
-          ) : (
-            <ButtonSemantic
-              severity={getButtonSeverityForDirection(
-                orderForm.direction,
-                buttonColors,
-              )}
-              onPress={handlePlaceOrder}
-              isFullWidth
-              size={ButtonSizeRNDesignSystem.Lg}
-              isDisabled={
-                !orderValidation.isValid ||
-                isPlacingOrder ||
-                doesStopLossRiskLiquidation ||
-                isAtOICap
-              }
-              isLoading={isPlacingOrder}
-              testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
-            >
-              {placeOrderLabel}
-            </ButtonSemantic>
-          )}
+          <ButtonSemantic
+            severity={
+              orderForm.direction === 'long'
+                ? ButtonSemanticSeverity.Success
+                : ButtonSemanticSeverity.Danger
+            }
+            onPress={handlePlaceOrder}
+            isFullWidth
+            size={ButtonSizeRNDesignSystem.Lg}
+            isDisabled={
+              !orderValidation.isValid ||
+              isPlacingOrder ||
+              doesStopLossRiskLiquidation ||
+              isAtOICap
+            }
+            isLoading={isPlacingOrder}
+            testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
+          >
+            {placeOrderLabel}
+          </ButtonSemantic>
         </View>
       )}
       {/* Leverage Selector */}
