@@ -15,6 +15,7 @@ import {
   type PredictMarket,
   type PredictPosition,
   PredictActivity,
+  Result,
 } from '../../types';
 import { getRecurrence } from '../../utils/format';
 import type {
@@ -324,29 +325,24 @@ export const submitClobOrder = async ({
   headers: ClobHeaders;
   clobOrder: ClobOrderObject;
   feeAuthorization?: SafeFeeAuthorization;
-}) => {
-  const { CLOB_ENDPOINT, CLOB_RELAYER } = getPolymarketEndpoints();
-  let url = `${CLOB_ENDPOINT}/order`;
-  let body: ClobOrderObject & { feeAuthorization?: SafeFeeAuthorization } = {
+}): Promise<Result<OrderResponse>> => {
+  const { CLOB_RELAYER } = getPolymarketEndpoints();
+  const url = `${CLOB_RELAYER}/order`;
+  const body: ClobOrderObject & { feeAuthorization?: SafeFeeAuthorization } = {
     ...clobOrder,
+    feeAuthorization,
   };
 
-  // If a feeAuthorization is provided, we need to use our clob
-  // relayer to submit the order and collect the fee.
-  if (clobOrder.order.side === Side.BUY && feeAuthorization) {
-    url = `${CLOB_RELAYER}/order`;
-    body = { ...body, feeAuthorization };
-    // For our relayer, we need to replace the underscores with dashes
-    // since underscores are not standardly allowed in headers
-    headers = {
-      ...headers,
-      ...Object.entries(headers)
-        .map(([key, value]) => ({
-          [key.replace(/_/g, '-')]: value,
-        }))
-        .reduce((acc, curr) => ({ ...acc, ...curr }), {}),
-    };
-  }
+  // For our relayer, we need to replace the underscores with dashes
+  // since underscores are not standardly allowed in headers
+  headers = {
+    ...headers,
+    ...Object.entries(headers)
+      .map(([key, value]) => ({
+        [key.replace(/_/g, '-')]: value,
+      }))
+      .reduce((acc, curr) => ({ ...acc, ...curr }), {}),
+  };
 
   const response = await fetch(url, {
     method: 'POST',
@@ -359,7 +355,6 @@ export const submitClobOrder = async ({
       return {
         success: false,
         error: 'You are unable to access this provider.',
-        errorCode: response.status,
       };
     }
     const responseData = await response.json();
@@ -542,10 +537,9 @@ export const getParsedMarketsFromPolymarketApi = async (
   const eventsStatus = `events_status=active`;
   const sort = `sort=volume_24hr`;
   const presetsTitle = `presets=EventsTitle`;
-  const presetsEvents = `presets=Events`;
   const page = `page=${Math.floor(offset / limit) + 1}`;
 
-  const queryParamsSearch = `${type}&${eventsStatus}&${sort}&${presetsTitle}&${presetsEvents}&${limitPerType}&${page}`;
+  const queryParamsSearch = `${type}&${eventsStatus}&${sort}&${presetsTitle}&${limitPerType}&${page}`;
 
   // Use search endpoint if q parameter is provided
   const endpoint = q
