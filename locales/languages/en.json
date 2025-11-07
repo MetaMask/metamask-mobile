@@ -776,7 +776,9 @@
       "dob_required": "Date of birth is required",
       "dob_invalid": "Please enter a valid date of birth",
       "ssn_required": "Social security number is required",
-      "unexpected_error": "An unexpected error occurred. Please try again."
+      "unexpected_error": "An unexpected error occurred. Please try again.",
+      "phone_already_registered": "This phone number is already in use by {{email}}. Log in using this email to continue.",
+      "login_with_email": "Log in with email"
     },
     "enter_address": {
       "navbar_title": "Verify your identity",
