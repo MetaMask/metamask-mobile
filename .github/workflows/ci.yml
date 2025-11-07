@@ -254,7 +254,7 @@ jobs:
           github-token: ${{ github.token }}
           pr-number: ${{ github.event.pull_request.number || '' }}
           repository: ${{ github.repository }}
-          post-comment: 'false'
+          post-comment: 'true'
 
   build-android-apks:
     name: 'Build Android APKs'

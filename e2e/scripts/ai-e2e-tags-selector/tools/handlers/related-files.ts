@@ -4,9 +4,9 @@
  * Finds files related to a changed file (importers, dependencies, tests, etc.)
  */
 
-import { execSync } from 'child_process';
-import { join } from 'path';
-import { existsSync, readFileSync } from 'fs';
+import { execSync } from 'node:child_process';
+import { join } from 'node:path';
+import { existsSync, readFileSync } from 'node:fs';
 import { ToolInput } from '../../types';
 
 export function handleRelatedFiles(input: ToolInput, baseDir: string): string {
@@ -168,7 +168,7 @@ export function handleRelatedFiles(input: ToolInput, baseDir: string): string {
 
       if (fileName) {
         const importers = execSync(
-          `grep -r -l --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" "from.*['\\\"].*${fileName}" app/ 2>/dev/null | grep -v "${filePath}" | head -${maxResults} || true`,
+          `grep -r -l --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" "from.*['"].*${fileName}" app/ 2>/dev/null | grep -v "${filePath}" | head -${maxResults} || true`,
           { encoding: 'utf-8', cwd: baseDir }
         )
           .trim()

@@ -4,8 +4,8 @@
  * Handles reading file contents
  */
 
-import { join } from 'path';
-import { existsSync, readFileSync } from 'fs';
+import { join } from 'node:path';
+import { existsSync, readFileSync } from 'node:fs';
 import { ToolInput } from '../../types';
 
 export function handleReadFile(input: ToolInput, baseDir: string): string {

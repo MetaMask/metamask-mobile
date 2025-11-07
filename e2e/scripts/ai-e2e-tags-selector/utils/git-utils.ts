@@ -4,22 +4,18 @@
  * Functions for interacting with git to get file changes and diffs
  */
 
-import { execSync } from 'child_process';
+import { execSync } from 'node:child_process';
 
 /**
  * Gets the list of changed files between a base branch and HEAD
+ * Uses three-dot syntax (...) to compare against merge base
  */
-export function getChangedFiles(
-  baseBranch: string,
-  includeMainChanges: boolean,
-  baseDir: string
-): string[] {
+export function getChangedFiles(baseBranch: string, baseDir: string): string[] {
   try {
     const targetBranch = baseBranch || 'origin/main';
-    const syntax = includeMainChanges ? '..' : '...';
 
     const changedFiles = execSync(
-      `git diff --name-only ${targetBranch}${syntax}HEAD`,
+      `git diff --name-only ${targetBranch}...HEAD`,
       {
         encoding: 'utf8',
         cwd: baseDir,
@@ -38,20 +34,19 @@ export function getChangedFiles(
 
 /**
  * Gets the diff for a specific file
+ * Uses three-dot syntax (...) to compare against merge base
  */
 export function getFileDiff(
   filePath: string,
   baseBranch: string,
-  includeMainChanges: boolean,
   baseDir: string,
   linesLimit = 1000
 ): string {
   try {
     const targetBranch = baseBranch || 'origin/main';
-    const syntax = includeMainChanges ? '..' : '...';
 
     const diff = execSync(
-      `git diff ${targetBranch}${syntax}HEAD -- "${filePath}"`,
+      `git diff ${targetBranch}...HEAD -- "${filePath}"`,
       {
         encoding: 'utf-8',
         cwd: baseDir

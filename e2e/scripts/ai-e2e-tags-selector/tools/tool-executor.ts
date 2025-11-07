@@ -20,7 +20,6 @@ export async function executeTool(
   context: {
     baseDir: string;
     baseBranch: string;
-    includeMainChanges: boolean;
   }
 ): Promise<string> {
   try {
@@ -29,12 +28,7 @@ export async function executeTool(
         return handleReadFile(input, context.baseDir);
 
       case 'get_git_diff':
-        return handleGitDiff(
-          input,
-          context.baseDir,
-          context.baseBranch,
-          context.includeMainChanges
-        );
+        return handleGitDiff(input, context.baseDir, context.baseBranch);
 
       case 'get_pr_diff':
         return handlePRDiff(input);

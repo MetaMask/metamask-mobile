@@ -21,10 +21,7 @@ export interface TagTestInfo {
 
 export interface ParsedArgs {
   baseBranch: string;
-  dryRun: boolean;
-  verbose: boolean;
-  output: 'default' | 'json' | 'tags';
-  includeMainChanges: boolean;
+  output: 'console' | 'json' | 'tags';
   changedFiles?: string;
   prNumber?: number;
 }

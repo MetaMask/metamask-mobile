@@ -4,8 +4,8 @@
  * Analyzes test files for each tag and calculates optimal test splits
  */
 
-import { execSync } from 'child_process';
-import { join } from 'path';
+import { execSync } from 'node:child_process';
+import { join } from 'node:path';
 import { TagTestInfo } from '../types';
 
 /**

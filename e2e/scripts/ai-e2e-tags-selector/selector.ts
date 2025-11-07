@@ -30,7 +30,6 @@ export class AIE2ETagsSelector {
   private conversationHistory: Anthropic.MessageParam[] = [];
   private readonly baseDir = process.cwd();
   private baseBranch = 'origin/main';
-  private includeMainChanges = false;
   private log: (message: string) => void;
 
   constructor(apiKey: string) {
@@ -49,14 +48,12 @@ export class AIE2ETagsSelector {
    */
   async analyzeWithAgent(
     categorization: FileCategorization,
-    options: { prNumber?: number; baseBranch?: string; includeMainChanges?: boolean }
+    options: { prNumber?: number; baseBranch?: string }
   ): Promise<AIAnalysis> {
     this.log('🤖 Starting AI analysis for E2E tests...');
 
     // Store context for tool execution
     if (options.baseBranch) this.baseBranch = options.baseBranch;
-    if (options.includeMainChanges !== undefined)
-      this.includeMainChanges = options.includeMainChanges;
 
     const tools = getToolDefinitions();
     this.conversationHistory = [];
@@ -106,8 +103,7 @@ export class AIE2ETagsSelector {
               toolUse.input as ToolInput,
               {
                 baseDir: this.baseDir,
-                baseBranch: this.baseBranch,
-                includeMainChanges: this.includeMainChanges
+                baseBranch: this.baseBranch
               }
             );
 
@@ -219,10 +215,7 @@ export class AIE2ETagsSelector {
   parseArgs(args: string[]): ParsedArgs {
     const options: ParsedArgs = {
       baseBranch: 'origin/main',
-      dryRun: false,
-      verbose: false,
-      output: 'default',
-      includeMainChanges: false
+      output: 'console'
     };
 
     for (let i = 0; i < args.length; i++) {
@@ -232,21 +225,9 @@ export class AIE2ETagsSelector {
         case '-b':
           options.baseBranch = args[++i];
           break;
-        case '--dry-run':
-        case '-d':
-          options.dryRun = true;
-          break;
-        case '--verbose':
-        case '-v':
-          options.verbose = true;
-          break;
         case '--output':
         case '-o':
           options.output = args[++i] as ParsedArgs['output'];
-          break;
-        case '--include-main-changes':
-        case '--include-main':
-          options.includeMainChanges = true;
           break;
         case '--changed-files':
           options.changedFiles = args[++i];
@@ -279,10 +260,7 @@ Usage: yarn ai-e2e [options]
 
 Options:
   -b, --base-branch <branch>    Base branch for comparison (default: origin/main)
-  -d, --dry-run                 Dry run mode
-  -v, --verbose                 Verbose output
-  -o, --output <mode>           Output mode: default|json|tags (default: default)
-  --include-main-changes        Include main branch changes
+  -o, --output <mode>           Output mode: console|json|tags (default: console)
   --changed-files <files>       Provide changed files directly
   --pr <number>                 Analyze specific PR number
   -h, --help                    Show this help message
@@ -329,11 +307,7 @@ Examples:
       allChangedFiles = getPRFiles(options.prNumber);
     } else {
       this.log('📋 Computing changed files via git');
-      allChangedFiles = getChangedFiles(
-        options.baseBranch,
-        options.includeMainChanges,
-        this.baseDir
-      );
+      allChangedFiles = getChangedFiles(options.baseBranch, this.baseDir);
     }
 
     const categorization = categorizeFiles(allChangedFiles);
@@ -346,8 +320,7 @@ Examples:
     // Run AI analysis
     const analysis = await this.analyzeWithAgent(categorization, {
       prNumber: options.prNumber,
-      baseBranch: options.baseBranch,
-      includeMainChanges: options.includeMainChanges
+      baseBranch: options.baseBranch
     });
 
     // Output results
