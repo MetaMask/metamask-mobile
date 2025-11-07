@@ -233,18 +233,18 @@ jobs:
       #     MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
       # Cache build artifacts with the pre-build fingerprint
-      - name: Cache build artifacts
-        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
-        uses: cirruslabs/cache@v4
-        with:
-          path: |
-            ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
-            ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
-            ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.aab
-          # Keep the `hashFiles` call for Gradle config in-sync with these steps:
-          # - "Check and restore cached APKs if Fingerprint is found"
-          # - "Cache Gradle dependencies"
-          key: android-apk-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+      # - name: Cache build artifacts
+      #   if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
+      #   uses: cirruslabs/cache@v4
+      #   with:
+      #     path: |
+      #       ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
+      #       ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
+      #       ${{ steps.determine-target-paths.outputs.aab-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.aab
+      #     # Keep the `hashFiles` call for Gradle config in-sync with these steps:
+      #     # - "Check and restore cached APKs if Fingerprint is found"
+      #     # - "Cache Gradle dependencies"
+      #     key: android-apk-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Upload Android APK
         id: upload-apk
