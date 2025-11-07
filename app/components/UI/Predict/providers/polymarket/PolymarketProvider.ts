@@ -42,7 +42,7 @@ import {
   PreviewOrderParams,
   Signer,
 } from '../types';
-import { PREDICT_CONSTANTS } from '../../constants/errors';
+import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
 import {
   ORDER_RATE_LIMIT_MS,
   FEE_COLLECTOR_ADDRESS,
@@ -604,17 +604,19 @@ export class PolymarketProvider implements PredictProvider {
       });
 
       if (!success) {
-        return {
-          success,
+        DevLogger.log('PolymarketProvider: Place order failed', {
           error,
-        } as OrderResult;
-      }
-
-      if (!response.success) {
-        return {
-          success: false,
-          error: response.errorMsg,
-        } as OrderResult;
+          errorDetails: undefined,
+          side,
+          outcomeTokenId,
+        });
+        if (error.includes(`order couldn't be fully filled`)) {
+          throw new Error(PREDICT_ERROR_CODES.ORDER_NOT_FULLY_FILLED);
+        }
+        if (error.includes(`not available in your region`)) {
+          throw new Error(PREDICT_ERROR_CODES.NOT_ELIGIBLE);
+        }
+        throw new Error(error ?? PREDICT_ERROR_CODES.PLACE_ORDER_FAILED);
       }
 
       if (side === Side.BUY) {
