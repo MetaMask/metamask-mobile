@@ -53,7 +53,10 @@ import AddFundsBottomSheet from '../../components/AddFundsBottomSheet';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import { DEPOSIT_SUPPORTED_TOKENS } from '../../constants';
+import {
+  DEPOSIT_SUPPORTED_TOKENS,
+  SPENDING_LIMIT_UNSUPPORTED_TOKENS,
+} from '../../constants';
 import { useCardSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -534,12 +537,25 @@ const CardHome = () => {
   }, [cardError, isAuthenticated, dispatch, navigation]);
 
   /**
+   * Check if the current token supports the spending limit progress bar feature.
+   * Some tokens (e.g., aUSDC) have different allowance behavior and are unsupported.
+   */
+  const isSpendingLimitSupported = useMemo(() => {
+    if (!priorityToken?.symbol) {
+      return false;
+    }
+    return !SPENDING_LIMIT_UNSUPPORTED_TOKENS.includes(
+      priorityToken.symbol.toUpperCase(),
+    );
+  }, [priorityToken?.symbol]);
+
+  /**
    * This warning is shown when the user is close to their spending limit.
    * We should show when the user has consumed 80% or more of their total allowance.
    * This matches the progress bar color change threshold.
    */
   const isCloseSpendingLimitWarning = useMemo(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !isSpendingLimitSupported) {
       return false;
     }
 
@@ -551,7 +567,7 @@ const CardHome = () => {
       priorityToken?.allowanceState === AllowanceState.Limited &&
       remainingAllowance <= totalAllowance * 0.2
     );
-  }, [isAuthenticated, priorityToken]);
+  }, [isAuthenticated, isSpendingLimitSupported, priorityToken]);
 
   if (cardError) {
     return (
@@ -729,6 +745,7 @@ const CardHome = () => {
         </View>
 
         {isAuthenticated &&
+          isSpendingLimitSupported &&
           priorityToken?.allowanceState === AllowanceState.Limited && (
             <SpendingLimitProgressBar
               isLoading={isLoading}

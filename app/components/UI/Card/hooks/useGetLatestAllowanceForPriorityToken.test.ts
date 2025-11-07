@@ -4,6 +4,7 @@ import useGetLatestAllowanceForPriorityToken from './useGetLatestAllowanceForPri
 import { useCardSDK } from '../sdk';
 import { CardTokenAllowance, AllowanceState } from '../types';
 import Logger from '../../../../util/Logger';
+import { SPENDING_LIMIT_UNSUPPORTED_TOKENS } from '../constants';
 
 // Mock dependencies
 jest.mock('../sdk');
@@ -176,7 +177,6 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
       mockToken.walletAddress,
       mockToken.address,
       mockToken.delegationContract,
-      '11806489', // Current allowance in wei
     );
   });
 
@@ -193,7 +193,6 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
         mockToken.walletAddress,
         '0xstagingtokenaddress123456789012345678',
         mockToken.delegationContract,
-        '11806489',
       );
     });
   });
@@ -346,6 +345,104 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
     await waitFor(() => {
       expect(mockSDK.getLatestAllowanceFromLogs).not.toHaveBeenCalled();
       expect(result.current.latestAllowance).toBeNull();
+    });
+  });
+
+  describe('unsupported tokens', () => {
+    beforeEach(() => {
+      // Mock the includes method to return true only for AUSDC
+      jest
+        .spyOn(SPENDING_LIMIT_UNSUPPORTED_TOKENS, 'includes')
+        .mockImplementation((symbol: string) => symbol === 'AUSDC');
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('skips fetch for unsupported token (aUSDC)', async () => {
+      const mockToken = createMockToken({
+        symbol: 'aUSDC',
+      });
+
+      const { result } = renderHook(() =>
+        useGetLatestAllowanceForPriorityToken(mockToken),
+      );
+
+      await waitFor(() => {
+        expect(mockSDK.getLatestAllowanceFromLogs).not.toHaveBeenCalled();
+        expect(result.current.latestAllowance).toBeNull();
+      });
+    });
+
+    it('skips fetch for unsupported token with lowercase symbol', async () => {
+      const mockToken = createMockToken({
+        symbol: 'ausdc',
+      });
+
+      const { result } = renderHook(() =>
+        useGetLatestAllowanceForPriorityToken(mockToken),
+      );
+
+      await waitFor(() => {
+        expect(mockSDK.getLatestAllowanceFromLogs).not.toHaveBeenCalled();
+        expect(result.current.latestAllowance).toBeNull();
+      });
+    });
+
+    it('skips fetch for unsupported token with mixed case symbol', async () => {
+      const mockToken = createMockToken({
+        symbol: 'AuSdC',
+      });
+
+      const { result } = renderHook(() =>
+        useGetLatestAllowanceForPriorityToken(mockToken),
+      );
+
+      await waitFor(() => {
+        expect(mockSDK.getLatestAllowanceFromLogs).not.toHaveBeenCalled();
+        expect(result.current.latestAllowance).toBeNull();
+      });
+    });
+
+    it('fetches normally for supported tokens', async () => {
+      mockSDK.getLatestAllowanceFromLogs.mockResolvedValue('15000000');
+      const mockToken = createMockToken({
+        symbol: 'USDC',
+      });
+
+      const { result } = renderHook(() =>
+        useGetLatestAllowanceForPriorityToken(mockToken),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockSDK.getLatestAllowanceFromLogs).toHaveBeenCalledWith(
+        mockToken.walletAddress,
+        mockToken.address,
+        mockToken.delegationContract,
+      );
+      expect(result.current.latestAllowance).toBe('15.0');
+    });
+
+    it('fetches normally when token symbol is undefined', async () => {
+      mockSDK.getLatestAllowanceFromLogs.mockResolvedValue('15000000');
+      const mockToken = createMockToken({
+        symbol: undefined as unknown as string,
+      });
+
+      const { result } = renderHook(() =>
+        useGetLatestAllowanceForPriorityToken(mockToken),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockSDK.getLatestAllowanceFromLogs).toHaveBeenCalled();
+      expect(result.current.latestAllowance).toBe('15.0');
     });
   });
 });

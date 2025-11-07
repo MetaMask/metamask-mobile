@@ -1863,6 +1863,177 @@ describe('CardHome Component', () => {
     });
   });
 
+  describe('Unsupported Tokens for Spending Limit', () => {
+    it('hides progress bar for unsupported token (aUSDC)', () => {
+      // Given: authenticated with aUSDC (unsupported token) and limited allowance
+      setupMockSelectors({ isAuthenticated: true });
+      const aUSDCToken = {
+        ...mockPriorityToken,
+        symbol: 'aUSDC',
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '500',
+      };
+      setupLoadCardDataMock({
+        priorityToken: aUSDCToken,
+        allTokens: [aUSDCToken],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not display spending limit progress bar
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+    });
+
+    it('shows progress bar for supported token (USDC)', () => {
+      // Given: authenticated with USDC (supported token) and limited allowance
+      setupMockSelectors({ isAuthenticated: true });
+      const usdcToken = {
+        ...mockPriorityToken,
+        symbol: 'USDC',
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '500',
+      };
+      setupLoadCardDataMock({
+        priorityToken: usdcToken,
+        allTokens: [usdcToken],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should display spending limit progress bar
+      expect(screen.getByText('Spending Limit')).toBeOnTheScreen();
+      expect(screen.getByText('500/1000 USDC')).toBeOnTheScreen();
+    });
+
+    it('hides progress bar when symbol is undefined', () => {
+      // Given: authenticated with undefined symbol and limited allowance
+      setupMockSelectors({ isAuthenticated: true });
+      const tokenWithoutSymbol = {
+        ...mockPriorityToken,
+        symbol: undefined as unknown as string,
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '500',
+      };
+      setupLoadCardDataMock({
+        priorityToken: tokenWithoutSymbol,
+        allTokens: [tokenWithoutSymbol],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not display spending limit progress bar
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+    });
+
+    it('hides close spending limit warning for unsupported token (aUSDC)', () => {
+      // Given: authenticated with aUSDC and close to limit (20% remaining)
+      setupMockSelectors({ isAuthenticated: true });
+      const aUSDCToken = {
+        ...mockPriorityToken,
+        symbol: 'aUSDC',
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '150', // 15% remaining (below 20% threshold)
+      };
+      setupLoadCardDataMock({
+        priorityToken: aUSDCToken,
+        allTokens: [aUSDCToken],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not show close spending limit warning
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+    });
+
+    it('hides close spending limit warning when symbol is undefined', () => {
+      // Given: authenticated with undefined symbol and close to limit
+      setupMockSelectors({ isAuthenticated: true });
+      const tokenWithoutSymbol = {
+        ...mockPriorityToken,
+        symbol: undefined as unknown as string,
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '150',
+      };
+      setupLoadCardDataMock({
+        priorityToken: tokenWithoutSymbol,
+        allTokens: [tokenWithoutSymbol],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not show close spending limit warning
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+    });
+
+    it('treats lowercase unsupported token symbol case-insensitively', () => {
+      // Given: authenticated with lowercase ausdc and limited allowance
+      setupMockSelectors({ isAuthenticated: true });
+      const aUSDCTokenLower = {
+        ...mockPriorityToken,
+        symbol: 'ausdc',
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '500',
+      };
+      setupLoadCardDataMock({
+        priorityToken: aUSDCTokenLower,
+        allTokens: [aUSDCTokenLower],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not display spending limit progress bar
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+    });
+
+    it('treats mixed case unsupported token symbol case-insensitively', () => {
+      // Given: authenticated with mixed case AuSdC and limited allowance
+      setupMockSelectors({ isAuthenticated: true });
+      const aUSDCTokenMixed = {
+        ...mockPriorityToken,
+        symbol: 'AuSdC',
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '500',
+      };
+      setupLoadCardDataMock({
+        priorityToken: aUSDCTokenMixed,
+        allTokens: [aUSDCTokenMixed],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not display spending limit progress bar
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+    });
+  });
+
   describe('SpendingLimitProgressBar', () => {
     it('renders when authenticated and allowance is limited', () => {
       // Given: authenticated with limited allowance

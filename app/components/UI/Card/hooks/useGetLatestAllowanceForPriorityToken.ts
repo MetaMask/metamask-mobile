@@ -3,6 +3,7 @@ import { useCardSDK } from '../sdk';
 import { CardTokenAllowance, AllowanceState } from '../types';
 import Logger from '../../../../util/Logger';
 import { ethers } from 'ethers';
+import { SPENDING_LIMIT_UNSUPPORTED_TOKENS } from '../constants';
 
 /**
  * Hook to get the latest allowance from approval logs for the priority token.
@@ -40,6 +41,16 @@ const useGetLatestAllowanceForPriorityToken = (
       return;
     }
 
+    // Skip for unsupported tokens (e.g., aUSDC which has different allowance behavior)
+    if (
+      priorityToken.symbol &&
+      SPENDING_LIMIT_UNSUPPORTED_TOKENS.includes(
+        priorityToken.symbol.toUpperCase(),
+      )
+    ) {
+      return;
+    }
+
     // Only fetch for Linea EVM tokens
     if (priorityToken.caipChainId !== sdk.lineaChainId) {
       return;
@@ -64,16 +75,10 @@ const useGetLatestAllowanceForPriorityToken = (
     setError(null);
 
     try {
-      // Convert current allowance (human-readable) to wei for comparison
-      const currentAllowanceWei = ethers.utils
-        .parseUnits(priorityToken.allowance || '0', priorityToken.decimals)
-        .toString();
-
       const rawLatestAllowance = await sdk.getLatestAllowanceFromLogs(
         priorityToken.walletAddress,
         tokenAddress,
         priorityToken.delegationContract,
-        currentAllowanceWei, // Pass current allowance for comparison
       );
 
       if (rawLatestAllowance) {

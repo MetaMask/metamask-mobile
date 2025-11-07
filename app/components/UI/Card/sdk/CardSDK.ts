@@ -1018,21 +1018,19 @@ export class CardSDK {
 
   /**
    * Get the most recent user-initiated allowance amount from approval events for a specific token.
-   * This finds the last approval that INCREASED the allowance (user setting a new limit),
-   * filtering out automatic approval decreases that occur during Card spending.
-   * This is used to determine the initial allowance for the spending limit progress bar.
+   * This returns the last approval value set by the user, which represents their intended spending limit.
+   * Note: ERC20 spending does not create approval events, so all approval events are user-initiated.
    *
    * @param walletAddress - The user's wallet address
    * @param tokenAddress - The ERC20 token contract address
    * @param delegationContractAddress - The delegation/spender contract address
-   * @param currentAllowance - The current remaining allowance (from API) to compare against
+   * @param currentAllowance - The current remaining allowance (from API) - unused but kept for API compatibility
    * @returns The most recent user-initiated approval value as a string (in wei), or null if no logs found
    */
   getLatestAllowanceFromLogs = async (
     walletAddress: string,
     tokenAddress: string,
     delegationContractAddress: string,
-    currentAllowance?: string,
   ): Promise<string | null> => {
     try {
       const approvalInterface = new ethers.utils.Interface([
@@ -1071,38 +1069,10 @@ export class CardSDK {
           : b.blockNumber - a.blockNumber,
       );
 
-      // Parse current allowance for comparison (if provided)
-      const currentAllowanceBN = currentAllowance
-        ? ethers.BigNumber.from(currentAllowance)
-        : ethers.BigNumber.from(0);
-
-      // Find the most recent approval that is GREATER than the current allowance
-      // This filters out automatic decreases from Card spending and finds the user's actual limit
-      let selectedLog = null;
-      for (const log of logs) {
-        const parsed = approvalInterface.parseLog(log);
-        const value = parsed.args.value as ethers.BigNumber;
-
-        // If we have a current allowance, find first approval greater than it
-        // This represents the user's intended spending limit before any spending
-        if (currentAllowance && value.gt(currentAllowanceBN)) {
-          selectedLog = log;
-          break;
-        }
-
-        // If no current allowance provided, use the most recent non-zero approval
-        if (!currentAllowance && !value.isZero()) {
-          selectedLog = log;
-          break;
-        }
-      }
-
-      // If no approval greater than current allowance found, use the latest one
-      if (!selectedLog) {
-        selectedLog = logs[0];
-      }
-
-      const parsedLog = approvalInterface.parseLog(selectedLog);
+      // Get the most recent approval event
+      // This represents the last limit the user set, regardless of how much has been spent
+      const latestLog = logs[0];
+      const parsedLog = approvalInterface.parseLog(latestLog);
       const value = parsedLog.args.value as ethers.BigNumber;
 
       return value.toString();

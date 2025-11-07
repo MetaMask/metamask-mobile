@@ -2812,7 +2812,7 @@ describe('CardSDK', () => {
       });
     });
 
-    it('returns latest approval when greater than current allowance', async () => {
+    it('returns most recent approval event', async () => {
       const mockLogs = [
         {
           blockNumber: 100,
@@ -2824,7 +2824,7 @@ describe('CardSDK', () => {
           address: mockTokenAddress,
           topics: [],
           transactionHash: '0xa',
-        }, // Current (after spending)
+        }, // Most recent approval
         {
           blockNumber: 99,
           logIndex: 0,
@@ -2835,7 +2835,7 @@ describe('CardSDK', () => {
           address: mockTokenAddress,
           topics: [],
           transactionHash: '0xb',
-        }, // Original approval
+        }, // Older approval
       ];
       mockProvider.getLogs.mockResolvedValue(mockLogs);
       (ethers.BigNumber.from as jest.Mock).mockImplementation((val) => ({
@@ -2849,10 +2849,9 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
-        '11806489', // Current allowance
       );
 
-      expect(result).toBe('15000000');
+      expect(result).toBe('11806489');
       expect(mockProvider.getLogs).toHaveBeenCalledWith({
         address: mockTokenAddress,
         fromBlock: 2715910,
@@ -2891,7 +2890,7 @@ describe('CardSDK', () => {
       expect(result).toBe('15000000');
     });
 
-    it('skips approvals equal to or less than current allowance', async () => {
+    it('returns most recent approval regardless of value', async () => {
       const mockLogs = [
         {
           blockNumber: 102,
@@ -2903,7 +2902,7 @@ describe('CardSDK', () => {
           address: mockTokenAddress,
           topics: [],
           transactionHash: '0xa',
-        }, // Same as current
+        }, // Most recent
         {
           blockNumber: 101,
           logIndex: 0,
@@ -2914,7 +2913,7 @@ describe('CardSDK', () => {
           address: mockTokenAddress,
           topics: [],
           transactionHash: '0xb',
-        }, // Less than current
+        }, // Older
         {
           blockNumber: 100,
           logIndex: 0,
@@ -2925,7 +2924,7 @@ describe('CardSDK', () => {
           address: mockTokenAddress,
           topics: [],
           transactionHash: '0xc',
-        }, // Greater - this one!
+        }, // Oldest
       ];
       mockProvider.getLogs.mockResolvedValue(mockLogs);
       (ethers.BigNumber.from as jest.Mock).mockImplementation((val) => ({
@@ -2939,10 +2938,9 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
-        '11806489',
       );
 
-      expect(result).toBe('15000000');
+      expect(result).toBe('11806489');
     });
 
     it('returns most recent log when no approval greater than current found', async () => {
@@ -2981,7 +2979,6 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
-        '10000000', // Current is higher than all logs
       );
 
       expect(result).toBe('5000000'); // Returns latest log
@@ -3063,7 +3060,7 @@ describe('CardSDK', () => {
       expect(result).toBe('3000000');
     });
 
-    it('handles zero approval values', async () => {
+    it('returns most recent approval even when value is zero', async () => {
       const mockLogs = [
         {
           blockNumber: 100,
@@ -3075,7 +3072,7 @@ describe('CardSDK', () => {
           address: mockTokenAddress,
           topics: [],
           transactionHash: '0xa',
-        }, // Revoked
+        }, // Most recent (revoked)
         {
           blockNumber: 99,
           logIndex: 0,
@@ -3086,7 +3083,7 @@ describe('CardSDK', () => {
           address: mockTokenAddress,
           topics: [],
           transactionHash: '0xb',
-        },
+        }, // Older approval
       ];
       mockProvider.getLogs.mockResolvedValue(mockLogs);
       (ethers.BigNumber.from as jest.Mock).mockImplementation((val) => ({
@@ -3100,10 +3097,9 @@ describe('CardSDK', () => {
         mockWalletAddress,
         mockTokenAddress,
         mockDelegationContract,
-        '0',
       );
 
-      expect(result).toBe('15000000'); // Skips zero, returns previous approval
+      expect(result).toBe('0'); // Returns most recent, even if zero
     });
 
     it('logs error and returns null when getLogs fails', async () => {
