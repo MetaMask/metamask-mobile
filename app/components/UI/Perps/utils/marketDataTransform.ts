@@ -202,7 +202,7 @@ export function transformMarketData(
     // Calculate open interest in USD
     const openInterest = calculateOpenInterestUSD(
       assetCtx?.openInterest,
-      effectiveCurrentPrice,
+      currentPrice,
     );
 
     // Get current funding rate from assetCtx - this is the actual current funding rate
