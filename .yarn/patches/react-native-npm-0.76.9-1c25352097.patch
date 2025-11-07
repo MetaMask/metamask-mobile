@@ -62,118 +62,21 @@ index b7a06c89ed74a519f79c5abb680376c364b777a6..397d213f7fb9a5b547b57082d666832e
    measureInWindow(callback: MeasureInWindowOnSuccessCallback) {
      const node = getNodeFromInternalInstanceHandle(
        this.__internalInstanceHandle,
-diff --git a/React/Fabric/Mounting/RCTMountingManager.h b/React/Fabric/Mounting/RCTMountingManager.h
-index 127b06fd474a67de8545d8e0afd0822e7e0bfef3..c3830a3bdddc2bf9aa3f6c5f910875fe3c896852 100644
---- a/React/Fabric/Mounting/RCTMountingManager.h
-+++ b/React/Fabric/Mounting/RCTMountingManager.h
-@@ -69,6 +69,8 @@ NS_ASSUME_NONNULL_BEGIN
- - (void)synchronouslyUpdateViewOnUIThread:(ReactTag)reactTag
-                              changedProps:(NSDictionary *)props
-                       componentDescriptor:(const facebook::react::ComponentDescriptor &)componentDescriptor;
-+
-+- (void)measure:(ReactTag)reactTag callback:(const std::function<void (folly::dynamic)> &)callback;
- @end
- 
- NS_ASSUME_NONNULL_END
-diff --git a/React/Fabric/Mounting/RCTMountingManager.mm b/React/Fabric/Mounting/RCTMountingManager.mm
-index ec4354583ac04fa8df6de7c1896902a4c7d5c4b4..d372b05e17749b73e94bc51616b9123ca3d70bf8 100644
---- a/React/Fabric/Mounting/RCTMountingManager.mm
-+++ b/React/Fabric/Mounting/RCTMountingManager.mm
-@@ -6,6 +6,7 @@
-  */
- 
- #import "RCTMountingManager.h"
-+#import "UIView+React.h"
- 
- #import <QuartzCore/QuartzCore.h>
- 
-@@ -337,4 +338,38 @@ - (void)synchronouslyDispatchAccessbilityEventOnUIThread:(ReactTag)reactTag even
-   }
- }
- 
-+- (void)measure:(ReactTag)reactTag callback:(const std::function<void (folly::dynamic)> &)callback {
-+  std::function<void (folly::dynamic)> callbackCopy = callback;
-+  RCTExecuteOnMainQueue(^{
-+    UIView<RCTComponentViewProtocol> *view = [self->_componentViewRegistry findComponentViewWithTag:reactTag];
-+    if (!view) {
-+      // this view was probably collapsed out
-+      RCTLogWarn(@"measure cannot find view with tag #%@", reactTag);
-+      callbackCopy({});
-+      return;
-+    }
-+    
-+    // If in a <Modal>, rootView will be the root of the modal container.
-+    UIView *rootView = view;
-+    while (rootView.superview && ![rootView isReactRootView]) {
-+      rootView = rootView.superview;
-+    }
-+
-+    // By convention, all coordinates, whether they be touch coordinates, or
-+    // measurement coordinates are with respect to the root view.
-+    CGRect frame = view.frame;
-+    CGRect globalBounds = [view convertRect:view.bounds toView:rootView];
-+
-+    callbackCopy(
-+             folly::dynamic::array(frame.origin.x,
-+                                   frame.origin.y,
-+                                   globalBounds.size.width,
-+                                   globalBounds.size.height,
-+                                   globalBounds.origin.x,
-+                                   globalBounds.origin.y)
-+             );
-+  });
-+}
-+
-+
- @end
-diff --git a/React/Fabric/RCTScheduler.h b/React/Fabric/RCTScheduler.h
-index 379db1a6cbf415f356a2419b113e2edf236c25c5..fdee5dd04681e64d2920db6b05cc269032ff2fbb 100644
---- a/React/Fabric/RCTScheduler.h
-+++ b/React/Fabric/RCTScheduler.h
-@@ -41,6 +41,10 @@ NS_ASSUME_NONNULL_BEGIN
-                 blockNativeResponder:(BOOL)blockNativeResponder
-                        forShadowView:(const facebook::react::ShadowView &)shadowView;
- 
-+
-+- (void)schedulerMeasureAsync:(const facebook::react::ShadowView &)shadowView
-+            callback:(const std::function<void(folly::dynamic)> &)callback;
-+
- @end
- 
- /**
 diff --git a/React/Fabric/RCTScheduler.mm b/React/Fabric/RCTScheduler.mm
 index 29ea406343dde1a6655c8d8523ec71919a188c82..747a4ea7bf92f4ea6986908526a9236c75e59437 100644
 --- a/React/Fabric/RCTScheduler.mm
 +++ b/React/Fabric/RCTScheduler.mm
-@@ -68,6 +68,12 @@ void schedulerDidSendAccessibilityEvent(const ShadowView &shadowView, const std:
+@@ -68,6 +68,10 @@ void schedulerDidSendAccessibilityEvent(const ShadowView &shadowView, const std:
      [scheduler.delegate schedulerDidSendAccessibilityEvent:shadowView eventType:eventType];
    }
  
-+
 +  void schedulerMeasureAsync(const ShadowView& shadowView, const std::function<void(folly::dynamic)> &callback) override {
-+    RCTScheduler *scheduler = (__bridge RCTScheduler *)scheduler_;
-+    [scheduler.delegate schedulerMeasureAsync:shadowView callback:callback];
++    // iOS: Empty stub - on iOS this is never called because the C++ bindings handle it directly
 +  }
 +
   private:
    void *scheduler_;
  };
-diff --git a/React/Fabric/RCTSurfacePresenter.mm b/React/Fabric/RCTSurfacePresenter.mm
-index 5d6f02e91430d8bea322ca7711b21f97c00b78a1..797f6163a1e0255d57ae4320178000641d63fc1e 100644
---- a/React/Fabric/RCTSurfacePresenter.mm
-+++ b/React/Fabric/RCTSurfacePresenter.mm
-@@ -338,6 +338,11 @@ - (void)schedulerDidSetIsJSResponder:(BOOL)isJSResponder
-   [_mountingManager setIsJSResponder:isJSResponder blockNativeResponder:blockNativeResponder forShadowView:shadowView];
- }
- 
-+- (void)schedulerMeasureAsync:(const facebook::react::ShadowView &)shadowView callback:(const std::function<void (folly::dynamic)> &)callback {
-+  ReactTag tag = shadowView.tag;
-+  [_mountingManager measure:tag callback:callback];
-+}
-+
- - (void)addObserver:(id<RCTSurfacePresenterObserver>)observer
- {
-   std::unique_lock lock(_observerListMutex);
 diff --git a/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java b/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java
 index b3ba97cfe098f4809c366f65da4be3e3d73f56ca..82978ecdc4f88570427d4e67a46f1de1c29bdc86 100644
 --- a/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java
