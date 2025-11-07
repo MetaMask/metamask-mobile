@@ -537,10 +537,9 @@ export const getParsedMarketsFromPolymarketApi = async (
   const eventsStatus = `events_status=active`;
   const sort = `sort=volume_24hr`;
   const presetsTitle = `presets=EventsTitle`;
-  const presetsEvents = `presets=Events`;
   const page = `page=${Math.floor(offset / limit) + 1}`;
 
-  const queryParamsSearch = `${type}&${eventsStatus}&${sort}&${presetsTitle}&${presetsEvents}&${limitPerType}&${page}`;
+  const queryParamsSearch = `${type}&${eventsStatus}&${sort}&${presetsTitle}&${limitPerType}&${page}`;
 
   // Use search endpoint if q parameter is provided
   const endpoint = q
