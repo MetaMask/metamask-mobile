@@ -558,7 +558,7 @@ describe('Perps Feature Flag Selectors', () => {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                perpsButtonColorTestEnabled: null,
+                perpsAbtestButtonColor: null,
               },
               cacheTimestamp: 0,
             },
@@ -577,7 +577,7 @@ describe('Perps Feature Flag Selectors', () => {
             backgroundState: {
               RemoteFeatureFlagController: {
                 remoteFeatureFlags: {
-                  perpsButtonColorTestEnabled: 'control',
+                  perpsAbtestButtonColor: 'control',
                 },
                 cacheTimestamp: 0,
               },
@@ -597,7 +597,7 @@ describe('Perps Feature Flag Selectors', () => {
             backgroundState: {
               RemoteFeatureFlagController: {
                 remoteFeatureFlags: {
-                  perpsButtonColorTestEnabled: 'monochrome',
+                  perpsAbtestButtonColor: 'monochrome',
                 },
                 cacheTimestamp: 0,
               },
@@ -621,7 +621,7 @@ describe('Perps Feature Flag Selectors', () => {
             backgroundState: {
               RemoteFeatureFlagController: {
                 remoteFeatureFlags: {
-                  perpsButtonColorTestEnabled: {
+                  perpsAbtestButtonColor: {
                     enabled: true,
                     minimumVersion: '1.0.0',
                     variant: 'control',
@@ -647,7 +647,7 @@ describe('Perps Feature Flag Selectors', () => {
             backgroundState: {
               RemoteFeatureFlagController: {
                 remoteFeatureFlags: {
-                  perpsButtonColorTestEnabled: {
+                  perpsAbtestButtonColor: {
                     enabled: true,
                     minimumVersion: '1.0.0',
                   },
@@ -670,7 +670,7 @@ describe('Perps Feature Flag Selectors', () => {
             backgroundState: {
               RemoteFeatureFlagController: {
                 remoteFeatureFlags: {
-                  perpsButtonColorTestEnabled: {
+                  perpsAbtestButtonColor: {
                     enabled: false,
                     minimumVersion: '1.0.0',
                     variant: 'control',
@@ -694,7 +694,7 @@ describe('Perps Feature Flag Selectors', () => {
             backgroundState: {
               RemoteFeatureFlagController: {
                 remoteFeatureFlags: {
-                  perpsButtonColorTestEnabled: {
+                  perpsAbtestButtonColor: {
                     enabled: true,
                     minimumVersion: '99.0.0',
                     variant: 'control',
@@ -720,7 +720,7 @@ describe('Perps Feature Flag Selectors', () => {
             backgroundState: {
               RemoteFeatureFlagController: {
                 remoteFeatureFlags: {
-                  perpsButtonColorTestEnabled: 123,
+                  perpsAbtestButtonColor: 123,
                 },
                 cacheTimestamp: 0,
               },
@@ -738,7 +738,7 @@ describe('Perps Feature Flag Selectors', () => {
             backgroundState: {
               RemoteFeatureFlagController: {
                 remoteFeatureFlags: {
-                  perpsButtonColorTestEnabled: true,
+                  perpsAbtestButtonColor: true,
                 },
                 cacheTimestamp: 0,
               },

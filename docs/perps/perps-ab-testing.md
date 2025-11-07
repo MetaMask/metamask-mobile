@@ -454,6 +454,14 @@ const buttonColorVariant = 'monochrome';
 - `{test-name}` = What's being tested
 - No `-enabled` suffix needed (LaunchDarkly has ON/OFF toggle)
 
+### MetaMetrics Requirement
+
+**Users must have MetaMetrics enabled** for A/B testing (for privacy).
+
+- **Default state**: Disabled (opt-out by default)
+- **Enable path**: Settings → Security & Privacy → MetaMetrics
+- **LaunchDarkly targeting**: Use `IF user anonymous is one of false` to filter opted-in users
+
 **Configuration Steps (using button color test as example):**
 
 1. **Create flag:** `perps-abtest-button-color` (kebab-case in LaunchDarkly UI)
@@ -462,8 +470,10 @@ const buttonColorVariant = 'monochrome';
    - Variation 0: Name=`Control`, Value=`control`
    - Variation 1: Name=`Monochrome`, Value=`monochrome`
 4. **Targeting rules:**
-   - 50% percentage rollout → `control`
-   - 50% percentage rollout → `monochrome`
+   - IF user `anonymous` is one of `false` (filters MetaMetrics opted-in users)
+   - THEN serve percentage rollout:
+     - 50% → `control`
+     - 50% → `monochrome`
    - Optional: Version constraint via custom rule (`appVersion >= 7.60.0`)
 5. **Default variations:**
    - When ON: `control`
