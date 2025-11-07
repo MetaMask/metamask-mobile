@@ -132,7 +132,7 @@ export class CardSDK {
     return provider;
   }
 
-  private async getBalanceScannerInstance() {
+  private getBalanceScannerInstance() {
     const balanceScannerAddress =
       this.cardFeatureFlag.chains?.[this.lineaChainId]?.balanceScannerAddress;
 
@@ -339,7 +339,7 @@ export class CardSDK {
       foxConnectUsAddress,
     ]);
 
-    const balanceScannerInstance = await this.getBalanceScannerInstance();
+    const balanceScannerInstance = this.getBalanceScannerInstance();
     const spendersAllowancesForTokens: [boolean, string][][] =
       await balanceScannerInstance.spendersAllowancesForTokens(
         address,
@@ -1025,13 +1025,13 @@ export class CardSDK {
       return [];
     }
 
-    const balanceScannerInstance = await this.getBalanceScannerInstance();
+    const balanceScannerInstance = this.getBalanceScannerInstance();
 
     // Query each wallet for its specific token's allowance
     // This avoids querying wallet A for token B's address (which doesn't make sense)
     const promises = tokens.map(async (token) => {
       const tokenAddress =
-        token.stagingTokenAddress ?? token.tokenDetails.address ?? '';
+        token.stagingTokenAddress || token.tokenDetails.address || '';
 
       // Skip if not a valid EVM address (e.g., Solana addresses)
       if (!tokenAddress || !ethers.utils.isAddress(tokenAddress)) {
@@ -2008,16 +2008,20 @@ export class CardSDK {
   };
 
   createOnboardingConsent = async (
-    request: CreateOnboardingConsentRequest,
+    request: Omit<CreateOnboardingConsentRequest, 'tenantId'>,
   ): Promise<CreateOnboardingConsentResponse> => {
     this.logDebugInfo('createOnboardingConsent', { request });
+    const requestBody = {
+      ...request,
+      tenantId: this.cardBaanxApiKey || 'tenant_baanx_global',
+    } as CreateOnboardingConsentRequest;
 
     try {
       const response = await this.makeRequest(
         '/v2/consent/onboarding',
         {
           method: 'POST',
-          body: JSON.stringify(request),
+          body: JSON.stringify(requestBody),
           headers: {
             'Content-Type': 'application/json',
             'x-secret-key': this.cardBaanxApiKey || '',

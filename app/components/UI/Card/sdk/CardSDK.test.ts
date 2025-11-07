@@ -2550,11 +2550,10 @@ describe('CardSDK', () => {
 
   describe('createOnboardingConsent', () => {
     it('creates onboarding consent successfully', async () => {
-      const mockRequest: CreateOnboardingConsentRequest = {
+      const mockRequest: Omit<CreateOnboardingConsentRequest, 'tenantId'> = {
         policyType: 'US',
         onboardingId: 'onboarding123',
         consents: [],
-        tenantId: 'tenant_baanx_global',
         metadata: {
           userAgent: AppConstants.USER_AGENT,
           timestamp: new Date().toISOString(),
@@ -2579,17 +2578,19 @@ describe('CardSDK', () => {
         expect.stringContaining('/v2/consent/onboarding'),
         expect.objectContaining({
           method: 'POST',
-          body: JSON.stringify(mockRequest),
+          body: JSON.stringify({
+            ...mockRequest,
+            tenantId: 'test-api-key',
+          }),
         }),
       );
     });
 
     it('handles create onboarding consent error', async () => {
-      const mockRequest: CreateOnboardingConsentRequest = {
+      const mockRequest: Omit<CreateOnboardingConsentRequest, 'tenantId'> = {
         policyType: 'US',
         onboardingId: 'onboarding123',
         consents: [],
-        tenantId: 'tenant_baanx_global',
         metadata: {
           userAgent: AppConstants.USER_AGENT,
           timestamp: new Date().toISOString(),

@@ -907,8 +907,7 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
           {strings('card.select_asset')}
         </Text>
       </BottomSheetHeader>
-
-      {renderBottomSheetContent()}
+      <View style={tw.style('max-h-80')}>{renderBottomSheetContent()}</View>
     </BottomSheet>
   );
 };
