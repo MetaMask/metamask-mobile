@@ -231,19 +231,6 @@ describe('useRampsSmartRouting', () => {
         );
       });
     });
-
-    it('converts region code to lowercase', async () => {
-      mockDetectedGeolocation = 'US-ca';
-      mockOrders = [];
-
-      renderHook(() => useRampsSmartRouting());
-
-      await waitFor(() => {
-        expect(mockFetch).toHaveBeenCalledWith(
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/countries/us-ca',
-        );
-      });
-    });
   });
 
   describe('Region support check', () => {

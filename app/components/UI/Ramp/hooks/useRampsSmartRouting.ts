@@ -18,16 +18,18 @@ const RAMP_ELIGIBILITY_URLS = {
   PRODUCTION: 'https://on-ramp-content.api.cx.metamask.io',
 };
 
-const metamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
+const getBaseUrl = () => {
+  const metamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
 
-const isProductionEnvironment =
-  metamaskEnvironment === 'production' ||
-  metamaskEnvironment === 'beta' ||
-  metamaskEnvironment === 'rc';
+  const isProductionEnvironment =
+    metamaskEnvironment === 'production' ||
+    metamaskEnvironment === 'beta' ||
+    metamaskEnvironment === 'rc';
 
-const baseUrl = isProductionEnvironment
-  ? RAMP_ELIGIBILITY_URLS.PRODUCTION
-  : RAMP_ELIGIBILITY_URLS.STAGING;
+  return isProductionEnvironment
+    ? RAMP_ELIGIBILITY_URLS.PRODUCTION
+    : RAMP_ELIGIBILITY_URLS.STAGING;
+};
 
 export enum RampRegionSupport {
   DEPOSIT = 'DEPOSIT',
@@ -60,6 +62,7 @@ export default function useRampsSmartRouting() {
       }
 
       try {
+        const baseUrl = getBaseUrl();
         const response = await fetch(
           `${baseUrl}/regions/countries/${rampGeodetectedRegion}`,
         );
