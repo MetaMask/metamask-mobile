@@ -1,11 +1,31 @@
 import React, { useRef, useEffect } from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
+import { InteractionManager } from 'react-native';
 
 // Internal dependencies
 import PredictConsentSheet, {
   PredictConsentSheetRef,
 } from './PredictConsentSheet';
 import { usePredictAgreement } from '../../hooks/usePredictAgreement';
+
+const mockNavigate = jest.fn();
+const runAfterInteractionsCallbacks: (() => void)[] = [];
+const mockRunAfterInteractions = jest.spyOn(
+  InteractionManager,
+  'runAfterInteractions',
+);
+const runAfterInteractionsMockImpl: typeof InteractionManager.runAfterInteractions =
+  (task) => {
+    if (typeof task === 'function') {
+      runAfterInteractionsCallbacks.push(task as () => void);
+    }
+
+    return {
+      then: jest.fn(),
+      done: jest.fn(),
+      cancel: jest.fn(),
+    } as ReturnType<typeof InteractionManager.runAfterInteractions>;
+  };
 
 // Mock dependencies
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
@@ -36,7 +56,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
-    navigate: jest.fn(),
+    navigate: mockNavigate,
     goBack: jest.fn(),
   }),
 }));
@@ -184,6 +204,8 @@ describe('PredictConsentSheet', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    runAfterInteractionsCallbacks.length = 0;
+    mockRunAfterInteractions.mockImplementation(runAfterInteractionsMockImpl);
     (usePredictAgreement as jest.Mock).mockReturnValue({
       isAgreementAccepted: false,
       acceptAgreement: mockAcceptAgreement,
@@ -191,7 +213,12 @@ describe('PredictConsentSheet', () => {
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
+    mockRunAfterInteractions.mockReset();
+  });
+
+  afterAll(() => {
+    mockRunAfterInteractions.mockRestore();
   });
 
   describe('visibility behavior', () => {
@@ -524,6 +551,81 @@ describe('PredictConsentSheet', () => {
       fireEvent.press(agreeButton);
 
       expect(customAcceptAgreement).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Terms Link', () => {
+    it('renders learn more text', () => {
+      const TestComponent = () => {
+        const ref = useRef<PredictConsentSheetRef>(null);
+
+        useEffect(() => {
+          act(() => {
+            ref.current?.onOpenBottomSheet();
+          });
+        }, []);
+
+        return (
+          <PredictConsentSheet
+            ref={ref}
+            providerId={mockProviderId}
+            onDismiss={mockOnDismiss}
+            onAgree={mockOnAgree}
+          />
+        );
+      };
+
+      const { getByText } = render(<TestComponent />);
+
+      expect(getByText('Learn more')).toBeOnTheScreen();
+    });
+
+    it('navigates to polymarket terms webview when description is pressed', () => {
+      const TestComponent = () => {
+        const ref = useRef<PredictConsentSheetRef>(null);
+
+        useEffect(() => {
+          act(() => {
+            ref.current?.onOpenBottomSheet();
+          });
+        }, []);
+
+        return (
+          <PredictConsentSheet
+            ref={ref}
+            providerId={mockProviderId}
+            onDismiss={mockOnDismiss}
+            onAgree={mockOnAgree}
+          />
+        );
+      };
+
+      const { getByText } = render(<TestComponent />);
+
+      const learnMoreText = getByText('Learn more');
+      const touchableParent = learnMoreText.parent;
+
+      expect(touchableParent).toBeTruthy();
+
+      act(() => {
+        if (touchableParent) {
+          fireEvent.press(touchableParent);
+        }
+      });
+
+      expect(mockRunAfterInteractions).toHaveBeenCalledTimes(1);
+      const callback = runAfterInteractionsCallbacks[0];
+      expect(callback).toBeDefined();
+
+      callback?.();
+
+      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: 'https://polymarket.com/tos',
+          title: 'Terms and Conditions',
+        },
+      });
     });
   });
 });
