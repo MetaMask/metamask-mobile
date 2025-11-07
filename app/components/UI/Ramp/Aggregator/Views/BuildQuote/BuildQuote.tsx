@@ -245,17 +245,23 @@ const BuildQuote = () => {
     }, [shouldShowUnsupportedModal, navigation, regions, selectedRegion]),
   );
 
+  const previousRegionRef = useRef(selectedRegion);
+
   useEffect(() => {
     const handleRegionChange = async () => {
       if (
         selectedRegion &&
-        selectedFiatCurrencyId === defaultFiatCurrency?.id
+        previousRegionRef.current?.id !== selectedRegion.id
       ) {
-        const newRegionCurrency = await queryDefaultFiatCurrency(
-          selectedRegion.id,
-        );
-        if (newRegionCurrency?.id) {
-          setSelectedFiatCurrencyId(newRegionCurrency.id);
+        previousRegionRef.current = selectedRegion;
+
+        if (selectedFiatCurrencyId === defaultFiatCurrency?.id) {
+          const newRegionCurrency = await queryDefaultFiatCurrency(
+            selectedRegion.id,
+          );
+          if (newRegionCurrency?.id) {
+            setSelectedFiatCurrencyId(newRegionCurrency.id);
+          }
         }
       }
     };
