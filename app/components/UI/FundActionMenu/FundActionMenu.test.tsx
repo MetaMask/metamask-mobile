@@ -283,7 +283,10 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('BuyScreen', {});
+        expect(mockGoToRamps).toHaveBeenCalledWith({
+          mode: RampMode.AGGREGATOR,
+          params: { rampType: expect.anything() },
+        });
       });
     });
 
@@ -315,7 +318,10 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('BuyScreen', {});
+        expect(mockGoToRamps).toHaveBeenCalledWith({
+          mode: RampMode.AGGREGATOR,
+          params: { rampType: expect.anything() },
+        });
       });
     });
   });
@@ -354,10 +360,13 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(createBuyNavigationDetails).toHaveBeenCalledWith({
-          assetId: 'eip155:137/slip44:60',
+        expect(mockGoToRamps).toHaveBeenCalledWith({
+          mode: RampMode.AGGREGATOR,
+          params: {
+            rampType: expect.anything(),
+            intent: { assetId: 'eip155:137/slip44:60' },
+          },
         });
-        expect(mockNavigate).toHaveBeenCalledWith('BuyScreen', {});
       });
     });
 
@@ -373,8 +382,10 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(createBuyNavigationDetails).toHaveBeenCalledWith();
-        expect(mockNavigate).toHaveBeenCalledWith('BuyScreen', {});
+        expect(mockGoToRamps).toHaveBeenCalledWith({
+          mode: RampMode.AGGREGATOR,
+          params: { rampType: expect.anything() },
+        });
       });
     });
 
@@ -552,7 +563,10 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(createBuyNavigationDetails).toHaveBeenCalledWith();
+        expect(mockGoToRamps).toHaveBeenCalledWith({
+          mode: RampMode.AGGREGATOR,
+          params: { rampType: expect.anything() },
+        });
       });
     });
 
@@ -571,8 +585,9 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(createBuyNavigationDetails).toHaveBeenCalledWith({
-          assetId: undefined,
+        expect(mockGoToRamps).toHaveBeenCalledWith({
+          mode: RampMode.AGGREGATOR,
+          params: { rampType: expect.anything() },
         });
       });
     });
