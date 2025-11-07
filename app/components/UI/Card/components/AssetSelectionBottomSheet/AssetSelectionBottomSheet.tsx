@@ -9,13 +9,8 @@ import {
   CardTokenAllowance,
   DelegationSettingsResponse,
 } from '../../types';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  setAuthenticatedPriorityToken,
-  setAuthenticatedPriorityTokenLastFetched,
-  clearCacheData,
-  selectUserCardLocation,
-} from '../../../../../core/redux/slices/card';
+import { useSelector } from 'react-redux';
+import { selectUserCardLocation } from '../../../../../core/redux/slices/card';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -60,9 +55,9 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions } from '../../util/metrics';
 import { truncateAddress } from '../../util/truncateAddress';
 import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
-import Logger from '../../../../../util/Logger';
 import { useAssetBalances } from '../../hooks/useAssetBalances';
 import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
+import { useUpdateTokenPriority } from '../../hooks/useUpdateTokenPriority';
 
 export interface AssetSelectionBottomSheetProps {
   setOpenAssetSelectionBottomSheet: (open: boolean) => void;
@@ -103,7 +98,6 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
   const navigation = useNavigation();
   const theme = useTheme();
   const tw = useTailwind();
-  const dispatch = useDispatch();
   const { toastRef } = useContext(ToastContext);
   const { sdk } = useCardSDK();
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -493,6 +487,17 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
     });
   }, [toastRef, theme]);
 
+  const { updateTokenPriority } = useUpdateTokenPriority({
+    onSuccess: () => {
+      showSuccessToast();
+      setOpenAssetSelectionBottomSheet(false);
+    },
+    onError: () => {
+      showErrorToast();
+      setOpenAssetSelectionBottomSheet(false);
+    },
+  });
+
   const updatePriority = useCallback(
     async (token: CardTokenAllowance) => {
       trackEvent(
@@ -509,92 +514,18 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
           })
           .build(),
       );
-      if (
-        !sdk ||
-        !delegationSettings ||
-        !cardExternalWalletDetails?.walletDetails
-      ) {
+
+      if (!cardExternalWalletDetails?.walletDetails) {
+        showErrorToast();
         setOpenAssetSelectionBottomSheet(false);
         return;
       }
 
-      try {
-        const selectedWallet = cardExternalWalletDetails.walletDetails.find(
-          (wallet) =>
-            wallet.tokenDetails.address?.toLowerCase() ===
-              token.address?.toLowerCase() &&
-            wallet.caipChainId === token.caipChainId &&
-            wallet.walletAddress?.toLowerCase() ===
-              token.walletAddress?.toLowerCase(),
-        );
-
-        if (!selectedWallet) {
-          showErrorToast();
-          setOpenAssetSelectionBottomSheet(false);
-          return;
-        }
-
-        // First, sort by current priority to maintain order
-        const sortedWallets = [...cardExternalWalletDetails.walletDetails].sort(
-          (a, b) => a.priority - b.priority,
-        );
-
-        // Build new priorities: selected gets 1, others shift down maintaining their order
-        let nextPriority = 2;
-        const newPriorities = sortedWallets.map((wallet) => {
-          const isSelected =
-            wallet.id === selectedWallet.id &&
-            wallet.walletAddress?.toLowerCase() ===
-              selectedWallet.walletAddress?.toLowerCase();
-
-          const priority = isSelected ? 1 : nextPriority++;
-
-          return {
-            id: wallet.id,
-            priority,
-          };
-        });
-
-        await sdk.updateWalletPriority(newPriorities);
-
-        // Invalidate external wallet details cache to force refetch with updated priorities
-        dispatch(clearCacheData('card-external-wallet-details'));
-
-        // Update priority token in Redux with new priority value
-        const priorityTokenData: CardTokenAllowance = {
-          address: token.address,
-          decimals: token.decimals,
-          symbol: token.symbol,
-          name: token.name,
-          allowanceState: token.allowanceState,
-          allowance: token.allowance || '0',
-          availableBalance: token.availableBalance || '0',
-          walletAddress: selectedWallet.walletAddress,
-          caipChainId: token.caipChainId,
-          delegationContract: token.delegationContract,
-          priority: 1, // New priority is always 1 (highest)
-        };
-
-        dispatch(setAuthenticatedPriorityToken(priorityTokenData));
-        dispatch(setAuthenticatedPriorityTokenLastFetched(new Date()));
-
-        showSuccessToast();
-        setOpenAssetSelectionBottomSheet(false);
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          'AssetSelectionBottomSheet: Error updating wallet priority',
-        );
-        showErrorToast();
-        setOpenAssetSelectionBottomSheet(false);
-      }
+      await updateTokenPriority(token, cardExternalWalletDetails.walletDetails);
     },
     [
-      sdk,
-      delegationSettings,
       cardExternalWalletDetails,
-      dispatch,
-      showSuccessToast,
+      updateTokenPriority,
       showErrorToast,
       setOpenAssetSelectionBottomSheet,
       trackEvent,

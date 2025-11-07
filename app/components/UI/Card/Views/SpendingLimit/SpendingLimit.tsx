@@ -13,6 +13,7 @@ import {
   UserCancelledError,
 } from '../../hooks/useCardDelegation';
 import { useCardSDK } from '../../sdk';
+import { useUpdateTokenPriority } from '../../hooks/useUpdateTokenPriority';
 import { strings } from '../../../../../../locales/i18n';
 import { BAANX_MAX_LIMIT, ARBITRARY_ALLOWANCE } from '../../constants';
 import Logger from '../../../../../util/Logger';
@@ -112,6 +113,7 @@ const SpendingLimit = ({
   const { submitDelegation, isLoading: isDelegationLoading } =
     useCardDelegation(selectedToken);
   const dispatch = useDispatch();
+  const { updateTokenPriority } = useUpdateTokenPriority();
 
   useEffect(() => {
     trackEvent(
@@ -250,8 +252,22 @@ const SpendingLimit = ({
             network,
           });
 
-          // Invalidate external wallet details cache to force refetch
-          dispatch(clearCacheData('card-external-wallet-details'));
+          // Update token priority if external wallet details are available
+          if (
+            externalWalletDetailsData?.walletDetails &&
+            externalWalletDetailsData.walletDetails.length > 0
+          ) {
+            const tokenWithWallet = tokenToUse || priorityToken;
+            if (tokenWithWallet) {
+              await updateTokenPriority(
+                tokenWithWallet,
+                externalWalletDetailsData.walletDetails,
+              );
+            }
+          } else {
+            // If no external wallet details, just invalidate cache
+            dispatch(clearCacheData('card-external-wallet-details'));
+          }
 
           // Show success toast
           toastRef?.current?.showToast({
@@ -323,6 +339,8 @@ const SpendingLimit = ({
     theme.colors.error.muted,
     dispatch,
     navigation,
+    updateTokenPriority,
+    externalWalletDetailsData,
   ]);
 
   const handleCancel = useCallback(() => {

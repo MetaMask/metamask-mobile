@@ -5,6 +5,7 @@ const mockAddListener = jest.fn();
 const mockSubmitDelegation = jest.fn();
 const mockShowToast = jest.fn();
 const mockDispatch = jest.fn();
+const mockUpdateTokenPriority = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -81,6 +82,12 @@ jest.mock('../../hooks/useCardDelegation', () => ({
     isLoading: false,
   })),
   UserCancelledError: MockUserCancelledError,
+}));
+
+jest.mock('../../hooks/useUpdateTokenPriority', () => ({
+  useUpdateTokenPriority: jest.fn(() => ({
+    updateTokenPriority: mockUpdateTokenPriority,
+  })),
 }));
 
 jest.mock('../../sdk', () => ({
@@ -225,6 +232,7 @@ describe('SpendingLimit Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSubmitDelegation.mockResolvedValue(undefined);
+    mockUpdateTokenPriority.mockResolvedValue(true);
 
     // Mock addListener to return an unsubscribe function
     mockAddListener.mockReturnValue(jest.fn());
@@ -780,6 +788,219 @@ describe('SpendingLimit Component', () => {
 
       await waitFor(() => {
         expect(screen.queryByText('Restricted')).not.toBeOnTheScreen();
+      });
+    });
+  });
+
+  describe('Token Priority Update', () => {
+    it('calls updateTokenPriority after successful delegation with external wallet details', async () => {
+      const mockExternalWalletDetails = {
+        walletDetails: [
+          {
+            id: 1,
+            walletAddress: '0xwallet123',
+            currency: 'USDC',
+            balance: '1000',
+            allowance: '1000000',
+            priority: 1,
+            tokenDetails: {
+              address: '0x123',
+              symbol: 'USDC',
+              name: 'USD Coin',
+              decimals: 6,
+            },
+            caipChainId: 'eip155:59144' as `${string}:${string}`,
+            network: 'linea' as const,
+          },
+        ] as unknown as CardExternalWalletDetailsResponse,
+        mappedWalletDetails: [mockPriorityToken],
+        priorityWalletDetail: mockPriorityToken,
+      };
+
+      const routeWithWalletDetails: MockRoute = {
+        params: {
+          ...mockRoute.params,
+          externalWalletDetailsData: mockExternalWalletDetails,
+        },
+      };
+
+      render(routeWithWalletDetails);
+
+      const confirmButton = screen.getByText('Confirm');
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(mockUpdateTokenPriority).toHaveBeenCalledWith(
+          expect.objectContaining({
+            address: mockPriorityToken.address,
+            symbol: mockPriorityToken.symbol,
+            caipChainId: mockPriorityToken.caipChainId,
+          }),
+          mockExternalWalletDetails.walletDetails,
+        );
+      });
+    });
+
+    it('does not call updateTokenPriority when external wallet details are not available', async () => {
+      render();
+
+      const confirmButton = screen.getByText('Confirm');
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(mockSubmitDelegation).toHaveBeenCalled();
+      });
+
+      expect(mockUpdateTokenPriority).not.toHaveBeenCalled();
+    });
+
+    it('clears cache when external wallet details are not available', async () => {
+      render();
+
+      const confirmButton = screen.getByText('Confirm');
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(mockDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: expect.stringContaining('clearCacheData'),
+            payload: 'card-external-wallet-details',
+          }),
+        );
+      });
+    });
+
+    it('does not call updateTokenPriority when wallet details array is empty', async () => {
+      const emptyWalletDetails = {
+        walletDetails: [],
+        mappedWalletDetails: [],
+        priorityWalletDetail: null,
+      };
+
+      const routeWithEmptyDetails: MockRoute = {
+        params: {
+          ...mockRoute.params,
+          externalWalletDetailsData: emptyWalletDetails,
+        },
+      };
+
+      render(routeWithEmptyDetails);
+
+      const confirmButton = screen.getByText('Confirm');
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(mockSubmitDelegation).toHaveBeenCalled();
+      });
+
+      expect(mockUpdateTokenPriority).not.toHaveBeenCalled();
+    });
+
+    it('calls updateTokenPriority with selected token when available', async () => {
+      const mockExternalWalletDetails = {
+        walletDetails: [
+          {
+            id: 1,
+            walletAddress: '0xwallet123',
+            currency: 'mUSD',
+            balance: '2000',
+            allowance: '2000000',
+            priority: 2,
+            tokenDetails: {
+              address: '0xmusd',
+              symbol: 'mUSD',
+              name: 'Meta USD',
+              decimals: 18,
+            },
+            caipChainId: 'eip155:59144' as `${string}:${string}`,
+            network: 'linea' as const,
+          },
+        ] as unknown as CardExternalWalletDetailsResponse,
+        mappedWalletDetails: [mockMUSDToken],
+        priorityWalletDetail: undefined,
+      };
+
+      const routeWithSelectedToken: MockRoute = {
+        params: {
+          flow: 'enable' as const,
+          selectedToken: mockMUSDToken,
+          priorityToken: mockPriorityToken,
+          allTokens: [mockPriorityToken, mockMUSDToken],
+          delegationSettings: null,
+          externalWalletDetailsData: mockExternalWalletDetails,
+        },
+      };
+
+      render(routeWithSelectedToken);
+
+      const confirmButton = screen.getByText('Confirm');
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(mockUpdateTokenPriority).toHaveBeenCalledWith(
+          expect.objectContaining({
+            address: mockMUSDToken.address,
+            symbol: mockMUSDToken.symbol,
+            caipChainId: mockMUSDToken.caipChainId,
+          }),
+          mockExternalWalletDetails.walletDetails,
+        );
+      });
+    });
+
+    it('updates priority after delegation in restricted mode', async () => {
+      const mockExternalWalletDetails = {
+        walletDetails: [
+          {
+            id: 1,
+            walletAddress: '0xwallet123',
+            currency: 'USDC',
+            balance: '1000',
+            allowance: '500',
+            priority: 1,
+            tokenDetails: {
+              address: '0x123',
+              symbol: 'USDC',
+              name: 'USD Coin',
+              decimals: 6,
+            },
+            caipChainId: 'eip155:59144' as `${string}:${string}`,
+            network: 'linea' as const,
+          },
+        ] as unknown as CardExternalWalletDetailsResponse,
+        mappedWalletDetails: [mockPriorityToken],
+        priorityWalletDetail: mockPriorityToken,
+      };
+
+      const routeWithWalletDetails: MockRoute = {
+        params: {
+          ...mockRoute.params,
+          externalWalletDetailsData: mockExternalWalletDetails,
+        },
+      };
+
+      render(routeWithWalletDetails);
+
+      const setLimitButton = screen.getByText('Set a limit');
+      fireEvent.press(setLimitButton);
+
+      const restrictedOption = screen.getByText('Restricted');
+      fireEvent.press(restrictedOption);
+
+      const input = screen.getByPlaceholderText('0');
+      fireEvent.changeText(input, '5000');
+
+      const confirmButton = screen.getByText('Confirm');
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(mockUpdateTokenPriority).toHaveBeenCalledWith(
+          expect.objectContaining({
+            address: mockPriorityToken.address,
+            symbol: mockPriorityToken.symbol,
+          }),
+          mockExternalWalletDetails.walletDetails,
+        );
       });
     });
   });

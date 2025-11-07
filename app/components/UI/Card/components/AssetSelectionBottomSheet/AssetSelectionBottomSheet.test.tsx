@@ -89,6 +89,11 @@ jest.mock('../../hooks/useAssetBalances', () => ({
   useAssetBalances: jest.fn(),
 }));
 
+const mockUpdateTokenPriority = jest.fn();
+jest.mock('../../hooks/useUpdateTokenPriority', () => ({
+  useUpdateTokenPriority: jest.fn(),
+}));
+
 jest.mock('../../../../../util/Logger');
 
 // Create a mock tailwind function that can be called and has a style method
@@ -131,15 +136,11 @@ import {
 } from '../../types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import {
-  setAuthenticatedPriorityToken,
-  setAuthenticatedPriorityTokenLastFetched,
-  clearCacheData,
-} from '../../../../../core/redux/slices/card';
 import { ToastContext } from '../../../../../component-library/components/Toast';
 import { useMetrics } from '../../../../hooks/useMetrics';
 import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
 import { useAssetBalances } from '../../hooks/useAssetBalances';
+import { useUpdateTokenPriority } from '../../hooks/useUpdateTokenPriority';
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
@@ -233,6 +234,20 @@ describe('AssetSelectionBottomSheet', () => {
     (useNavigateToCardPage as jest.Mock).mockReturnValue({
       navigateToCardPage: mockNavigateToCardPage,
     });
+
+    // Mock useUpdateTokenPriority to call onSuccess by default
+    mockUpdateTokenPriority.mockImplementation(async () => true);
+    (useUpdateTokenPriority as jest.Mock).mockImplementation((params) => ({
+      updateTokenPriority: async (token: unknown, walletDetails: unknown) => {
+        const result = await mockUpdateTokenPriority(token, walletDetails);
+        if (result && params?.onSuccess) {
+          params.onSuccess();
+        } else if (!result && params?.onError) {
+          params.onError(new Error('Update failed'));
+        }
+        return result;
+      },
+    }));
   });
 
   afterEach(() => {
@@ -716,7 +731,7 @@ describe('AssetSelectionBottomSheet', () => {
         priorityWalletDetail: undefined,
       };
 
-      mockSdk.updateWalletPriority.mockResolvedValue(undefined);
+      mockUpdateTokenPriority.mockImplementation(async () => true);
 
       const { getByText } = renderWithToastContext(
         <AssetSelectionBottomSheet
@@ -728,37 +743,28 @@ describe('AssetSelectionBottomSheet', () => {
         />,
       );
 
-      // Use getByText since FlatList items render synchronously in tests
       const tokenElement = getByText('USDC on Linea');
 
-      // Fire press event and wait for async operations
       await act(async () => {
         fireEvent.press(tokenElement);
-        // Allow time for async handlers to complete
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
       await waitFor(
         () => {
-          expect(mockSdk.updateWalletPriority).toHaveBeenCalled();
+          expect(mockUpdateTokenPriority).toHaveBeenCalledWith(
+            expect.objectContaining({
+              address: token.address,
+              symbol: token.symbol,
+              caipChainId: token.caipChainId,
+              walletAddress: token.walletAddress,
+            }),
+            cardExternalWalletDetails.walletDetails,
+          );
         },
         { timeout: 3000 },
       );
 
-      expect(mockDispatch).toHaveBeenCalledWith(
-        clearCacheData('card-external-wallet-details'),
-      );
-      expect(mockDispatch).toHaveBeenCalledWith(
-        setAuthenticatedPriorityToken(
-          expect.objectContaining({
-            symbol: 'USDC',
-            priority: 1,
-          }),
-        ),
-      );
-      expect(mockDispatch).toHaveBeenCalledWith(
-        setAuthenticatedPriorityTokenLastFetched(expect.any(Date)),
-      );
       expect(mockShowToast).toHaveBeenCalledWith(
         expect.objectContaining({
           labelOptions: [{ label: 'Spend priority updated successfully' }],
@@ -796,7 +802,7 @@ describe('AssetSelectionBottomSheet', () => {
   });
 
   describe('error handling', () => {
-    it('displays error toast when updateWalletPriority fails', async () => {
+    it('displays error toast when updateTokenPriority fails', async () => {
       const mockSetOpen = jest.fn();
       const token = createMockToken({
         allowanceState: AllowanceState.Enabled,
@@ -829,7 +835,7 @@ describe('AssetSelectionBottomSheet', () => {
         priorityWalletDetail: undefined,
       };
 
-      mockSdk.updateWalletPriority.mockRejectedValue(new Error('API Error'));
+      mockUpdateTokenPriority.mockImplementation(async () => false);
 
       const { getByText } = renderWithToastContext(
         <AssetSelectionBottomSheet
@@ -843,7 +849,6 @@ describe('AssetSelectionBottomSheet', () => {
 
       const tokenElement = getByText('USDC on Linea');
 
-      // Fire press event and wait for async operations
       await act(async () => {
         fireEvent.press(tokenElement);
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -863,39 +868,12 @@ describe('AssetSelectionBottomSheet', () => {
       expect(mockSetOpen).toHaveBeenCalledWith(false);
     });
 
-    it('displays error toast when selected wallet is not found', async () => {
+    it('displays error toast when wallet details are not available', async () => {
       const mockSetOpen = jest.fn();
       const token = createMockToken({
         allowanceState: AllowanceState.Enabled,
-        address: '0xdifferent',
       });
       const delegationSettings = createMockDelegationSettings();
-      const cardExternalWalletDetails: {
-        walletDetails: CardExternalWalletDetail[];
-        mappedWalletDetails: CardTokenAllowance[];
-        priorityWalletDetail: CardTokenAllowance | undefined;
-      } = {
-        walletDetails: [
-          {
-            id: 1,
-            walletAddress: '0xwallet',
-            currency: 'USDC',
-            balance: '1000',
-            allowance: '500',
-            priority: 1,
-            tokenDetails: {
-              address: '0x123',
-              symbol: 'USDC',
-              name: 'USD Coin',
-              decimals: 6,
-            },
-            caipChainId: 'eip155:59144' as CaipChainId,
-            network: 'linea' as const,
-          },
-        ],
-        mappedWalletDetails: [token],
-        priorityWalletDetail: undefined,
-      };
 
       const { getByText } = renderWithToastContext(
         <AssetSelectionBottomSheet
@@ -903,13 +881,12 @@ describe('AssetSelectionBottomSheet', () => {
           sheetRef={sheetRef}
           tokensWithAllowances={[token]}
           delegationSettings={delegationSettings}
-          cardExternalWalletDetails={cardExternalWalletDetails}
+          cardExternalWalletDetails={null}
         />,
       );
 
       const tokenElement = getByText('USDC on Linea');
 
-      // Fire press event and wait for async operations
       await act(async () => {
         fireEvent.press(tokenElement);
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -927,6 +904,7 @@ describe('AssetSelectionBottomSheet', () => {
       );
 
       expect(mockSetOpen).toHaveBeenCalledWith(false);
+      expect(mockUpdateTokenPriority).not.toHaveBeenCalled();
     });
   });
 
@@ -965,7 +943,7 @@ describe('AssetSelectionBottomSheet', () => {
         priorityWalletDetail: undefined,
       };
 
-      mockSdk.updateWalletPriority.mockResolvedValue(undefined);
+      mockUpdateTokenPriority.mockImplementation(async () => true);
 
       const { getByText } = renderWithToastContext(
         <AssetSelectionBottomSheet
@@ -979,7 +957,6 @@ describe('AssetSelectionBottomSheet', () => {
 
       const tokenElement = getByText('USDC on Linea');
 
-      // Fire press event and wait for async operations
       await act(async () => {
         fireEvent.press(tokenElement);
         await new Promise((resolve) => setTimeout(resolve, 100));
