@@ -551,14 +551,15 @@ generateAndroidBinary() {
 	# Create flavor configuration
 	flavorConfiguration="app:assemble${flavor}${configuration}"
 
-	# Create test configuration
-	testConfiguration="app:assemble${flavor}DebugAndroidTest"
-
 	echo "Generating Android binary for ($flavor) flavor with ($configuration) configuration"
 	if [ "$configuration" = "Release" ] ; then
-
-		# Generate Android binary
-		./gradlew $flavorConfiguration $testConfiguration --build-cache --parallel
+		# Check if this is an E2E build
+		if [ "$METAMASK_ENVIRONMENT" = "e2e" ] || [ "$E2E" = "true" ] ; then
+			buildAndroidReleaseE2E()
+		else
+			# Generate Android binary only
+			./gradlew $flavorConfiguration --build-cache --parallel
+		fi
 		
 		# Generate AAB bundle
 		bundleConfiguration="bundle${flavor}Release"
@@ -571,6 +572,8 @@ generateAndroidBinary() {
 		echo "Generating checksum for ($flavor) flavor with ($configuration) configuration"
 		yarn $checkSumCommand
 	elif [ "$configuration" = "Debug" ] ; then
+		# Create test configuration
+		testConfiguration="app:assemble${flavor}DebugAndroidTest"
 		# Generate Android binary
 		./gradlew $flavorConfiguration $testConfiguration --build-cache --parallel
 	fi
@@ -802,7 +805,11 @@ if [ -z "$METAMASK_ENVIRONMENT" ]; then
 	exit 1
 else
     echo "METAMASK_ENVIRONMENT is set to: $METAMASK_ENVIRONMENT"
+	
 fi
+	# Update Expo channel configuration based on environment
+	echo "Updating Expo channel configuration..."
+	node "${__DIRNAME__}/update-expo-channel.js"
 
 if [ "$PLATFORM" == "ios" ]; then
 	# we don't care about env file in CI
