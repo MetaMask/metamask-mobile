@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { captureException } from '@sentry/react-native';
+import Logger from '../../../../util/Logger';
 import { OrderPreview, PreviewOrderParams } from '../providers/types';
 import { usePredictTrading } from './usePredictTrading';
-import { parseErrorMessage } from '../utils/predictErrorHandler';
-import { PREDICT_ERROR_CODES } from '../constants/errors';
+import { ensureError, parseErrorMessage } from '../utils/predictErrorHandler';
+import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 
 interface OrderPreviewResult {
   preview?: OrderPreview | null;
@@ -32,6 +32,7 @@ export function usePredictOrderPreview(
     side,
     size,
     autoRefreshTimeout,
+    positionId,
   } = params;
 
   const calculatePreview = useCallback(async () => {
@@ -57,6 +58,7 @@ export function usePredictOrderPreview(
         outcomeTokenId,
         side,
         size,
+        positionId,
       });
       if (operationId === currentOperationRef.current && isMountedRef.current) {
         setPreview(p);
@@ -65,15 +67,18 @@ export function usePredictOrderPreview(
     } catch (err) {
       console.error('Failed to preview order:', err);
 
-      // Capture exception with order preview context (no sensitive amounts)
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      // Log error with order preview context (no sensitive amounts)
+      Logger.error(ensureError(err), {
         tags: {
+          feature: PREDICT_CONSTANTS.FEATURE_NAME,
           component: 'usePredictOrderPreview',
-          action: 'order_preview',
-          operation: 'order_management',
         },
-        extra: {
-          previewContext: {
+        context: {
+          name: 'usePredictOrderPreview',
+          data: {
+            method: 'calculatePreview',
+            action: 'order_preview',
+            operation: 'order_management',
             providerId,
             side,
             marketId,
@@ -102,6 +107,7 @@ export function usePredictOrderPreview(
     outcomeId,
     outcomeTokenId,
     side,
+    positionId,
   ]);
 
   const calculatePreviewRef = useRef(calculatePreview);

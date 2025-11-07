@@ -48,7 +48,17 @@ const MainRoutes = () => (
         detachPreviousScreen: false,
       }}
     />
-    <Stack.Screen name={Routes.RAMP.CHECKOUT} component={CheckoutWebView} />
+    <Stack.Screen
+      name={Routes.RAMP.CHECKOUT}
+      component={CheckoutWebView}
+      options={{
+        headerShown: false,
+        cardStyle: { backgroundColor: colors.transparent },
+        animationEnabled: false,
+        gestureEnabled: false,
+        detachPreviousScreen: false,
+      }}
+    />
   </Stack.Navigator>
 );
 

@@ -25,7 +25,7 @@ const VerifyIdentity = () => {
 
   const { sessionUrl } = verificationResponse || {};
 
-  const handleContinue = useCallback(() => {
+  const handleContinue = useCallback(async () => {
     if (sessionUrl) {
       navigation.navigate(Routes.CARD.ONBOARDING.WEBVIEW, {
         url: sessionUrl,

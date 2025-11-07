@@ -36,16 +36,11 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
       style={styles.positionContainer}
       onPress={() => onPress?.(position)}
     >
-      <View style={styles.positionImage}>
+      <View style={styles.positionImageContainer}>
         <Image source={{ uri: icon }} style={styles.positionImage} />
       </View>
       <View style={styles.positionDetails}>
-        <Text
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Default}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        >
+        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
           {title}
         </Text>
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>

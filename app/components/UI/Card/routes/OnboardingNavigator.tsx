@@ -29,36 +29,56 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Alert } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
-
 const Stack = createStackNavigator();
 
-const KYCModalavigationOptions = ({
+export const KYCModalNavigationOptions = ({
   navigation,
 }: {
   navigation: NavigationProp<ParamListBase>;
-}): StackNavigationOptions => ({
-  headerLeft: () => <View />,
-  headerTitle: () => (
-    <Text
-      variant={TextVariant.HeadingSM}
-      style={headerStyle.title}
-      testID={'card-view-title'}
-    >
-      {strings('card.card')}
-    </Text>
-  ),
-  headerRight: () => (
-    <ButtonIcon
-      style={headerStyle.icon}
-      size={ButtonIconSizes.Lg}
-      iconName={IconName.Close}
-      testID="close-button"
-      onPress={() => navigation.navigate(Routes.CARD.ONBOARDING.VALIDATING_KYC)}
-    />
-  ),
-});
+}): StackNavigationOptions => {
+  const handleClosePress = () => {
+    Alert.alert(
+      strings('card.card_onboarding.kyc_webview.close_confirmation_title'),
+      strings('card.card_onboarding.kyc_webview.close_confirmation_message'),
+      [
+        {
+          text: strings('card.card_onboarding.kyc_webview.cancel_button'),
+          style: 'cancel',
+        },
+        {
+          text: strings('card.card_onboarding.kyc_webview.close_button'),
+          onPress: () =>
+            navigation.navigate(Routes.CARD.ONBOARDING.VALIDATING_KYC),
+          style: 'destructive',
+        },
+      ],
+    );
+  };
+
+  return {
+    headerLeft: () => <View />,
+    headerTitle: () => (
+      <Text
+        variant={TextVariant.HeadingSM}
+        style={headerStyle.title}
+        testID={'card-view-title'}
+      >
+        {strings('card.card')}
+      </Text>
+    ),
+    headerRight: () => (
+      <ButtonIcon
+        style={headerStyle.icon}
+        size={ButtonIconSizes.Lg}
+        iconName={IconName.Close}
+        testID="close-button"
+        onPress={handleClosePress}
+      />
+    ),
+  };
+};
 
 const ValidatingKYCNavigationOptions = ({
   navigation,
@@ -100,7 +120,7 @@ const OnboardingNavigator: React.FC = () => {
       return Routes.CARD.ONBOARDING.VALIDATING_KYC;
     }
     if (user?.verificationState === 'VERIFIED') {
-      if (!user?.firstName) {
+      if (!user?.firstName || !user?.countryOfNationality) {
         return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
       } else if (!user?.addressLine1) {
         return Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS;
@@ -182,7 +202,7 @@ const OnboardingNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.WEBVIEW}
         component={KYCWebview}
-        options={KYCModalavigationOptions}
+        options={KYCModalNavigationOptions}
       />
     </Stack.Navigator>
   );

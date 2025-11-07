@@ -1,10 +1,10 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { toHex } from '@metamask/controller-utils';
 import { RpcEndpointType } from '@metamask/network-controller';
-import { captureException } from '@sentry/react-native';
 import { useSelector } from 'react-redux';
 import { usePredictNetworkManagement } from './usePredictNetworkManagement';
 import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
 import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import {
   POLYGON_MAINNET_CHAIN_ID,
@@ -12,7 +12,12 @@ import {
 } from '../providers/polymarket/constants';
 
 // Mock all external dependencies
-jest.mock('@sentry/react-native');
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
+}));
 jest.mock('../../../../core/Engine');
 jest.mock('../../../hooks/useNetworkEnablement/useNetworkEnablement');
 jest.mock('react-redux', () => ({
@@ -21,8 +26,8 @@ jest.mock('react-redux', () => ({
 
 const mockEnableNetwork = jest.fn();
 const mockAddNetwork = jest.fn();
-const mockCaptureException = captureException as jest.MockedFunction<
-  typeof captureException
+const mockLoggerError = Logger.error as jest.MockedFunction<
+  typeof Logger.error
 >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
@@ -142,15 +147,20 @@ describe('usePredictNetworkManagement', () => {
         ).rejects.toThrow('Network addition failed');
       });
 
-      expect(mockCaptureException).toHaveBeenCalledWith(networkError, {
+      expect(mockLoggerError).toHaveBeenCalledWith(networkError, {
         tags: {
           component: 'usePredictNetworkManagement',
-          action: 'add_polygon_network',
-          operation: 'network_management',
+          feature: 'Predict',
         },
-        extra: {
-          chainId: polygonChainId,
-          caipChainId: POLYGON_MAINNET_CAIP_CHAIN_ID,
+        context: {
+          name: 'usePredictNetworkManagement',
+          data: {
+            action: 'add_polygon_network',
+            method: 'ensurePolygonMainnet',
+            operation: 'network_management',
+            chainId: polygonChainId,
+            caipChainId: POLYGON_MAINNET_CAIP_CHAIN_ID,
+          },
         },
       });
     });
@@ -183,7 +193,7 @@ describe('usePredictNetworkManagement', () => {
         );
       });
 
-      expect(mockCaptureException).toHaveBeenCalledWith(
+      expect(mockLoggerError).toHaveBeenCalledWith(
         new Error('String error message'),
         expect.any(Object),
       );

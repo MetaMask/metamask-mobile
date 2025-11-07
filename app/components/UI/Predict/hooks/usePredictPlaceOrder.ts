@@ -1,19 +1,18 @@
 import { useCallback, useContext, useState } from 'react';
-import { captureException } from '@sentry/react-native';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import {
   ToastContext,
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
 import { PlaceOrderParams } from '../providers/types';
 import { Side, type Result } from '../types';
 import { usePredictTrading } from './usePredictTrading';
 import { strings } from '../../../../../locales/i18n';
 import { formatPrice } from '../utils/format';
-import { usePredictBalance } from './usePredictBalance';
-import { parseErrorMessage } from '../utils/predictErrorHandler';
-import { PREDICT_ERROR_CODES } from '../constants/errors';
+import { ensureError, parseErrorMessage } from '../utils/predictErrorHandler';
+import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 
 interface UsePredictPlaceOrderOptions {
   /**
@@ -43,7 +42,6 @@ export function usePredictPlaceOrder(
 ): UsePredictPlaceOrderReturn {
   const { onError, onComplete } = options;
   const { placeOrder: controllerPlaceOrder } = usePredictTrading();
-  const { loadBalance } = usePredictBalance();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>();
@@ -110,8 +108,6 @@ export function usePredictPlaceOrder(
           );
         }
 
-        await loadBalance({ isRefresh: true });
-
         DevLogger.log('usePredictPlaceOrder: Order placed successfully');
       } catch (err) {
         const parsedErrorMessage = parseErrorMessage({
@@ -123,15 +119,18 @@ export function usePredictPlaceOrder(
           orderParams,
         });
 
-        // Capture exception with order context (no sensitive data like amounts)
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        // Log error with order context (no sensitive data like amounts)
+        Logger.error(ensureError(err), {
           tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
             component: 'usePredictPlaceOrder',
-            action: 'order_placement',
-            operation: 'order_management',
           },
-          extra: {
-            orderContext: {
+          context: {
+            name: 'usePredictPlaceOrder',
+            data: {
+              method: 'placeOrder',
+              action: 'order_placement',
+              operation: 'order_management',
               providerId: orderParams.providerId,
               side: orderParams.preview?.side,
               marketId: orderParams.analyticsProperties?.marketId,
@@ -149,7 +148,6 @@ export function usePredictPlaceOrder(
     [
       controllerPlaceOrder,
       onComplete,
-      loadBalance,
       showCashedOutToast,
       showOrderPlacedToast,
       onError,

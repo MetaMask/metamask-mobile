@@ -1377,6 +1377,99 @@ describe('PerpsClosePositionView', () => {
         expect(getByTestId('effective-pnl').props.children).toBe(20);
       });
     });
+
+    it('prevents confirm when limit price is missing for limit orders', () => {
+      const mockHandleClosePosition = jest.fn();
+
+      const TestComponent = () => {
+        const [orderType] = React.useState<'market' | 'limit'>('limit');
+        const [limitPrice] = React.useState<string>('');
+
+        const handleConfirm = () => {
+          if (orderType === 'limit' && !limitPrice) {
+            return;
+          }
+          mockHandleClosePosition();
+        };
+
+        return (
+          <View>
+            <TouchableOpacity testID="confirm-button" onPress={handleConfirm}>
+              <Text>Confirm</Text>
+            </TouchableOpacity>
+            <Text testID="order-type">{orderType}</Text>
+            <Text testID="limit-price">{limitPrice}</Text>
+          </View>
+        );
+      };
+
+      const { getByTestId } = render(<TestComponent />);
+
+      fireEvent.press(getByTestId('confirm-button'));
+
+      expect(mockHandleClosePosition).not.toHaveBeenCalled();
+    });
+
+    it('validates invalid limit price values before using as effective price', () => {
+      const TestComponent = () => {
+        const [limitPrice, setLimitPrice] = React.useState<string>('invalid');
+        const orderType = 'limit';
+        const currentPrice = 50000;
+
+        const effectivePrice = () => {
+          if (orderType === 'limit' && limitPrice) {
+            const parsed = parseFloat(limitPrice);
+            if (!isNaN(parsed) && parsed > 0) {
+              return parsed;
+            }
+          }
+          return currentPrice;
+        };
+
+        return (
+          <View>
+            <TouchableOpacity
+              testID="set-invalid"
+              onPress={() => setLimitPrice('invalid')}
+            >
+              <Text>Set Invalid</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              testID="set-negative"
+              onPress={() => setLimitPrice('-100')}
+            >
+              <Text>Set Negative</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              testID="set-zero"
+              onPress={() => setLimitPrice('0')}
+            >
+              <Text>Set Zero</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              testID="set-valid"
+              onPress={() => setLimitPrice('51000')}
+            >
+              <Text>Set Valid</Text>
+            </TouchableOpacity>
+            <Text testID="effective-price">{effectivePrice()}</Text>
+          </View>
+        );
+      };
+
+      const { getByTestId } = render(<TestComponent />);
+
+      expect(getByTestId('effective-price').props.children).toBe(50000);
+
+      fireEvent.press(getByTestId('set-negative'));
+      expect(getByTestId('effective-price').props.children).toBe(50000);
+
+      fireEvent.press(getByTestId('set-zero'));
+      expect(getByTestId('effective-price').props.children).toBe(50000);
+
+      fireEvent.press(getByTestId('set-valid'));
+      expect(getByTestId('effective-price').props.children).toBe(51000);
+    });
   });
 
   describe('Input Handling', () => {

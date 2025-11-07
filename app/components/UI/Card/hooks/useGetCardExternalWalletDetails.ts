@@ -14,6 +14,21 @@ import { ARBITRARY_ALLOWANCE } from '../constants';
 import { useWrapWithCache } from './useWrapWithCache';
 
 /**
+ * Determines the allowance state based on the allowance value
+ * @param allowanceFloat - Parsed allowance value
+ * @returns AllowanceState enum value
+ */
+const determineAllowanceState = (allowanceFloat: number): AllowanceState => {
+  if (allowanceFloat === 0) {
+    return AllowanceState.NotEnabled;
+  }
+  if (allowanceFloat < ARBITRARY_ALLOWANCE) {
+    return AllowanceState.Limited;
+  }
+  return AllowanceState.Enabled;
+};
+
+/**
  * Maps a CardExternalWalletDetail to CardTokenAllowance format
  * @param cardExternalWalletDetail - External wallet detail from API
  * @returns Mapped CardTokenAllowance or null if invalid
@@ -35,12 +50,7 @@ export const mapCardExternalWalletDetailToCardTokenAllowance = (
     );
     const balanceFloat = parseFloat(cardExternalWalletDetail.balance || '0');
 
-    const allowanceState =
-      allowanceFloat === 0
-        ? AllowanceState.NotEnabled
-        : allowanceFloat < ARBITRARY_ALLOWANCE
-          ? AllowanceState.Limited
-          : AllowanceState.Enabled;
+    const allowanceState = determineAllowanceState(allowanceFloat);
     const availableBalance = Math.min(balanceFloat, allowanceFloat);
 
     // Find totalAllowance by matching the token address

@@ -32,6 +32,7 @@ import {
 import {
   formatPerpsFiat,
   formatTransactionDate,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsPositionTransactionView.styles';
 
@@ -103,7 +104,9 @@ const PerpsPositionTransactionView: React.FC = () => {
           transaction.fill?.action === 'Closed'
             ? strings('perps.transactions.position.close_price')
             : strings('perps.transactions.position.entry_price'),
-        value: formatPerpsFiat(transaction.fill.entryPrice),
+        value: formatPerpsFiat(transaction.fill.entryPrice, {
+          ranges: PRICE_RANGES_UNIVERSAL,
+        }),
       },
   ].filter(Boolean);
 

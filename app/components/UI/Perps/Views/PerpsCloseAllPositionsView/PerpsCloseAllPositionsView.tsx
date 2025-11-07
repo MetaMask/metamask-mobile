@@ -204,11 +204,22 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
     }
   }, [navigation, externalSheetRef, sheetRef, onExternalClose]);
 
+  // Wrapper for "Keep Positions" button that properly handles overlay dismissal
+  const handleKeepButtonPress = useCallback(() => {
+    if (externalSheetRef) {
+      // When used as overlay, close the sheet properly to remove overlay
+      handleClose();
+    } else {
+      // When used as standalone screen, use hook's navigation
+      handleKeepPositions();
+    }
+  }, [externalSheetRef, handleClose, handleKeepPositions]);
+
   const footerButtons = useMemo(
     () => [
       {
         label: strings('perps.close_all_modal.keep_positions'),
-        onPress: handleKeepPositions,
+        onPress: handleKeepButtonPress,
         variant: ButtonVariants.Secondary,
         size: ButtonSize.Lg,
         disabled: isClosing,
@@ -224,13 +235,17 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         danger: true,
       },
     ],
-    [handleKeepPositions, handleCloseAll, isClosing],
+    [handleKeepButtonPress, handleCloseAll, isClosing],
   );
 
   // Show loading state while fetching positions
   if (isInitialLoading) {
     return (
-      <BottomSheet ref={sheetRef} shouldNavigateBack={!externalSheetRef}>
+      <BottomSheet
+        ref={sheetRef}
+        shouldNavigateBack={!externalSheetRef}
+        onClose={externalSheetRef ? onExternalClose : undefined}
+      >
         <BottomSheetHeader onClose={handleClose}>
           <Text variant={TextVariant.HeadingMD}>
             {strings('perps.close_all_modal.title')}
@@ -249,7 +264,11 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
   // Show empty state if no positions
   if (!positions || positions.length === 0) {
     return (
-      <BottomSheet ref={sheetRef} shouldNavigateBack={!externalSheetRef}>
+      <BottomSheet
+        ref={sheetRef}
+        shouldNavigateBack={!externalSheetRef}
+        onClose={externalSheetRef ? onExternalClose : undefined}
+      >
         <BottomSheetHeader onClose={handleClose}>
           <Text variant={TextVariant.HeadingMD}>
             {strings('perps.close_all_modal.title')}
@@ -265,7 +284,11 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
   }
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack={!externalSheetRef}>
+    <BottomSheet
+      ref={sheetRef}
+      shouldNavigateBack={!externalSheetRef}
+      onClose={externalSheetRef ? onExternalClose : undefined}
+    >
       <BottomSheetHeader onClose={handleClose}>
         <Text variant={TextVariant.HeadingMD}>
           {strings('perps.close_all_modal.title')}

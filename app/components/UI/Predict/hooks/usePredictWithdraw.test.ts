@@ -36,12 +36,6 @@ jest.mock('@react-navigation/native', () => ({
   })),
 }));
 
-// Mock usePredictEligibility
-const mockEligibilityResult = { isEligible: true };
-jest.mock('./usePredictEligibility', () => ({
-  usePredictEligibility: jest.fn(() => mockEligibilityResult),
-}));
-
 // Mock toast context
 const mockToastRef = {
   current: {
@@ -130,7 +124,6 @@ describe('usePredictWithdraw', () => {
     mockNavigate.mockClear();
     mockGoBack.mockClear();
     mockPrepareWithdraw.mockClear();
-    mockEligibilityResult.isEligible = true;
   });
 
   afterEach(() => {
@@ -204,20 +197,6 @@ describe('usePredictWithdraw', () => {
   });
 
   describe('withdraw function', () => {
-    it('navigates to unavailable modal when user is not eligible', async () => {
-      mockEligibilityResult.isEligible = false;
-
-      const { result } = setupUsePredictWithdrawTest();
-
-      await result.current.withdraw();
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
-      });
-      expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
-      expect(mockPrepareWithdraw).not.toHaveBeenCalled();
-    });
-
     it('calls navigateToConfirmation with correct params when eligible', async () => {
       mockPrepareWithdraw.mockResolvedValue({ success: true });
 
@@ -415,16 +394,6 @@ describe('usePredictWithdraw', () => {
       consoleErrorSpy.mockRestore();
     });
 
-    it('returns undefined when user is not eligible', async () => {
-      mockEligibilityResult.isEligible = false;
-
-      const { result } = setupUsePredictWithdrawTest();
-
-      const response = await result.current.withdraw();
-
-      expect(response).toBeUndefined();
-    });
-
     it('returns undefined when error occurs', async () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       mockPrepareWithdraw.mockRejectedValue(new Error('Withdraw failed'));
@@ -502,43 +471,6 @@ describe('usePredictWithdraw', () => {
       expect(mockPrepareWithdraw).toHaveBeenCalledWith({
         providerId: 'test-provider',
       });
-    });
-  });
-
-  describe('eligibility checks', () => {
-    it('proceeds with withdraw when user is eligible', async () => {
-      mockEligibilityResult.isEligible = true;
-      mockPrepareWithdraw.mockResolvedValue({ success: true });
-
-      const { result } = setupUsePredictWithdrawTest();
-
-      await result.current.withdraw();
-
-      expect(mockPrepareWithdraw).toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
-
-    it('navigates to unavailable modal when user is not eligible', async () => {
-      mockEligibilityResult.isEligible = false;
-
-      const { result } = setupUsePredictWithdrawTest();
-
-      await result.current.withdraw();
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
-      });
-      expect(mockPrepareWithdraw).not.toHaveBeenCalled();
-    });
-
-    it('does not navigate to confirmation when user is not eligible', async () => {
-      mockEligibilityResult.isEligible = false;
-
-      const { result } = setupUsePredictWithdrawTest();
-
-      await result.current.withdraw();
-
-      expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
     });
   });
 

@@ -5,6 +5,7 @@ import {
   PerpsController,
   PerpsControllerMessenger,
   PerpsControllerState,
+  InitializationState,
 } from '../../../../components/UI/Perps/controllers';
 import { MARKET_SORTING_CONFIG } from '../../../../components/UI/Perps/constants/perpsConfig';
 import { perpsControllerInit } from '.';
@@ -19,6 +20,7 @@ jest.mock('../../../../components/UI/Perps/controllers', () => {
     controllerName: actualPerpsController.controllerName,
     getDefaultPerpsControllerState:
       actualPerpsController.getDefaultPerpsControllerState,
+    InitializationState: actualPerpsController.InitializationState,
     PerpsController: jest.fn(),
   };
 });
@@ -129,6 +131,7 @@ describe('perps controller init', () => {
         mainnet: {},
       },
       marketFilterPreferences: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
+      hip3ConfigVersion: 0,
       withdrawInProgress: false,
       lastWithdrawResult: null,
       withdrawalRequests: [],
@@ -138,6 +141,9 @@ describe('perps controller init', () => {
         activeWithdrawalId: null,
       },
       depositRequests: [],
+      initializationState: InitializationState.UNINITIALIZED,
+      initializationError: null,
+      initializationAttempts: 0,
     };
 
     initRequestMock.persistedState = {

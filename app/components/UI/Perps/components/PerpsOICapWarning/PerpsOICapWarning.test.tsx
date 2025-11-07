@@ -2,8 +2,8 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import PerpsOICapWarning from './PerpsOICapWarning';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
+import { strings } from '../../../../../../locales/i18n';
 
-// Mock the usePerpsOICap hook
 jest.mock('../../hooks/usePerpsOICap');
 
 describe('PerpsOICapWarning', () => {
@@ -49,11 +49,8 @@ describe('PerpsOICapWarning', () => {
       );
 
       expect(getByTestId('perps-oi-cap-warning')).toBeTruthy();
-      expect(getByText('Open Interest Cap Reached')).toBeTruthy();
       expect(
-        getByText(
-          'This market is at capacity. New positions cannot be opened until open interest decreases.',
-        ),
+        getByText(strings('perps.order.validation.oi_cap_reached')),
       ).toBeTruthy();
     });
 

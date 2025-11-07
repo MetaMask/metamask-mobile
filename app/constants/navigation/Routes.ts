@@ -75,6 +75,7 @@ const Routes = {
   REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',
+  TRENDING_VIEW: 'TrendingView',
   REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
   REWARDS_ONBOARDING_INTRO: 'RewardsOnboardingIntro',
   REWARDS_ONBOARDING_1: 'RewardsOnboarding1',
@@ -261,10 +262,12 @@ const Routes = {
     ACTIVITY: 'PerpsActivity', // Stack-based activity view for proper back navigation
     MODALS: {
       ROOT: 'PerpsModals',
+      CLOSE_POSITION_MODALS: 'PerpsClosePositionModals',
       QUOTE_EXPIRED_MODAL: 'PerpsQuoteExpiredModal',
       GTM_MODAL: 'PerpsGTMModal',
       CLOSE_ALL_POSITIONS: 'PerpsCloseAllPositions',
       CANCEL_ALL_ORDERS: 'PerpsCancelAllOrders',
+      TOOLTIP: 'PerpsTooltip',
     },
     POSITION_TRANSACTION: 'PerpsPositionTransaction',
     ORDER_TRANSACTION: 'PerpsOrderTransaction',

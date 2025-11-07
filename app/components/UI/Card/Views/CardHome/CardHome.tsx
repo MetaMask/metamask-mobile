@@ -379,6 +379,7 @@ const CardHome = () => {
         changeAssetAction();
       }
     } catch (error) {
+      Logger.log('enableCardAction error', error);
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [{ label: strings('card.card_home.enable_card_error') }],

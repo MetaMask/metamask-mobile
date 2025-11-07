@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ActivityIndicator } from 'react-native';
 import { LineChart } from 'react-native-svg-charts';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -97,15 +97,6 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
 
   const renderGraph = () => {
     if (isLoading || !hasData) {
-      const placeholderLabel = isLoading
-        ? 'Loading price history...'
-        : emptyLabel;
-      const placeholderAxisLabel = isLoading ? 'Loading...' : '\u00A0';
-      const placeholderLabels = Array.from(
-        { length: 4 },
-        () => placeholderAxisLabel,
-      );
-
       return (
         <Box twClassName="mb-6">
           {isMultipleSeries && (
@@ -125,26 +116,23 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
               <ChartGrid colors={colors} range={range} />
             </LineChart>
             <Box twClassName="absolute inset-0 items-center justify-center px-4">
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {placeholderLabel}
-              </Text>
+              {isLoading ? (
+                <ActivityIndicator color={colors.primary.alternative} />
+              ) : (
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {emptyLabel}
+                </Text>
+              )}
             </Box>
           </Box>
           <Box
             flexDirection={BoxFlexDirection.Row}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="px-4 pt-4 pb-0"
-          >
-            {placeholderLabels.map((label, index) => (
-              <Text
-                key={`placeholder-${index}`}
-                variant={TextVariant.BodyXS}
-                color={TextColor.Alternative}
-              >
-                {label}
-              </Text>
-            ))}
-          </Box>
+            twClassName="px-4 pt-4 pb-0 min-h-[31px]"
+          />
         </Box>
       );
     }
@@ -163,11 +151,11 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
     );
 
     return (
-      <Box twClassName="mb-6">
+      <Box twClassName="mb-4">
         {isMultipleSeries && (
           <ChartLegend series={nonEmptySeries} range={range} />
         )}
-        <Box twClassName="h-48 bg-default rounded-lg mb-4 relative overflow-hidden">
+        <Box twClassName="h-48 bg-default rounded-lg mb-3 relative overflow-hidden">
           <LineChart
             style={tw.style(`h-[${CHART_HEIGHT}px] w-full`)}
             data={primaryChartData}
@@ -213,8 +201,8 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
           {axisLabels.map((point, index) => (
             <Text
               key={`${point.timestamp}-${index}`}
-              variant={TextVariant.BodyXS}
               color={TextColor.Alternative}
+              style={tw.style('text-[11px]')}
             >
               {point.label}
             </Text>

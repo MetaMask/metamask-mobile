@@ -1,11 +1,13 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { captureException } from '@sentry/react-native';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
 import { UnrealizedPnL } from '../types';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { PREDICT_CONSTANTS } from '../constants/errors';
+import { ensureError } from '../utils/predictErrorHandler';
 
 export interface UseUnrealizedPnLOptions {
   /**
@@ -94,15 +96,18 @@ export const useUnrealizedPnL = (
         setUnrealizedPnL(null);
         DevLogger.log('useUnrealizedPnL: Error loading unrealized P&L', err);
 
-        // Capture exception with unrealized PnL loading context (no user address)
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        // Log error with unrealized PnL loading context (no user address)
+        Logger.error(ensureError(err), {
           tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
             component: 'useUnrealizedPnL',
-            action: 'unrealized_pnl_load',
-            operation: 'data_fetching',
           },
-          extra: {
-            pnlContext: {
+          context: {
+            name: 'useUnrealizedPnL',
+            data: {
+              method: 'loadUnrealizedPnL',
+              action: 'unrealized_pnl_load',
+              operation: 'data_fetching',
               providerId,
             },
           },
@@ -120,6 +125,7 @@ export const useUnrealizedPnL = (
     if (loadOnMount) {
       loadUnrealizedPnL();
     }
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadOnMount]);
 

@@ -8,9 +8,9 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
-import { captureException } from '@sentry/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../../util/Logger';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -27,6 +27,8 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import Routes from '../../../../../constants/navigation/Routes';
+import { PREDICT_CONSTANTS } from '../../constants/errors';
+import { ensureError } from '../../utils/predictErrorHandler';
 import {
   PredictMarket,
   PredictOutcome,
@@ -84,23 +86,23 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
         error,
       });
 
-      captureException(
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          tags: {
-            component: 'PredictMarketMultiple',
+      Logger.error(ensureError(error), {
+        tags: {
+          feature: PREDICT_CONSTANTS.FEATURE_NAME,
+          component: 'PredictMarketMultiple',
+        },
+        context: {
+          name: 'PredictMarketMultiple',
+          data: {
+            method: 'parseOutcomePrices',
             action: 'parse_outcome_prices',
             operation: 'market_display',
-          },
-          extra: {
-            context: {
-              marketId: market.id,
-              marketTitle: market.title,
-              outcomePrices,
-            },
+            marketId: market.id,
+            marketTitle: market.title,
+            outcomePrices,
           },
         },
-      );
+      });
     }
 
     return undefined;
@@ -130,7 +132,10 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           },
         });
       },
-      { checkBalance: true },
+      {
+        checkBalance: true,
+        attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
+      },
     );
   };
 
@@ -148,6 +153,8 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           params: {
             marketId: market.id,
             entryPoint,
+            title: market.title,
+            image: market.image,
           },
         });
       }}

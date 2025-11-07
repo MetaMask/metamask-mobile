@@ -1,17 +1,11 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  usePerpsLivePositions,
-  usePerpsLiveOrders,
-  usePerpsLiveFills,
-} from './stream';
+import { usePerpsLivePositions, usePerpsLiveOrders } from './stream';
 import { usePerpsMarkets } from './usePerpsMarkets';
-import type {
-  Position,
-  Order,
-  OrderFill,
-  PerpsMarketData,
-} from '../controllers/types';
+import { usePerpsTransactionHistory } from './usePerpsTransactionHistory';
+import { usePerpsConnection } from './usePerpsConnection';
+import type { Position, Order, PerpsMarketData } from '../controllers/types';
+import type { PerpsTransaction } from '../types/transactionHistory';
 import {
   HOME_SCREEN_CONFIG,
   MARKET_SORTING_CONFIG,
@@ -39,7 +33,7 @@ interface UsePerpsHomeDataReturn {
   commoditiesMarkets: PerpsMarketData[]; // Commodity markets
   stocksAndCommoditiesMarkets: PerpsMarketData[]; // Combined stocks & commodities markets
   forexMarkets: PerpsMarketData[]; // Forex markets
-  recentActivity: OrderFill[];
+  recentActivity: PerpsTransaction[];
   sortBy: SortField;
   isLoading: {
     positions: boolean;
@@ -75,11 +69,20 @@ export const usePerpsHomeData = ({
       hideTpSl: true, // Hide Take Profit and Stop Loss orders from home screen
     });
 
-  // Fetch recent activity (order fills) via WebSocket
-  const { fills: allFills, isInitialLoading: isActivityLoading } =
-    usePerpsLiveFills({
-      throttleMs: 1000,
+  // Get connection status for transaction history
+  const { isConnected } = usePerpsConnection();
+
+  // Fetch all transaction history (trades, orders, funding, deposits)
+  const { transactions: allTransactions, isLoading: isActivityLoading } =
+    usePerpsTransactionHistory({
+      skipInitialFetch: !isConnected,
     });
+
+  // Filter to only trades - same as Trades tab in TransactionsView
+  const tradesOnly = useMemo(
+    () => allTransactions.filter((tx) => tx.type === 'trade'),
+    [allTransactions],
+  );
 
   // Fetch markets data for trending section (markets don't need real-time updates)
   // Volume filtering is handled at the data layer in usePerpsMarkets
@@ -190,7 +193,7 @@ export const usePerpsHomeData = ({
           orders: allOrders,
           watchlistMarkets, // Show all watchlisted markets
           markets: perpsMarkets, // Show top 5 perps (crypto) when no search
-          fills: allFills,
+          transactions: tradesOnly, // Only trades, same as Trades tab
         };
       }
 
@@ -218,9 +221,9 @@ export const usePerpsHomeData = ({
             market.symbol?.toLowerCase().includes(lowerQuery) ||
             market.name?.toLowerCase().includes(lowerQuery),
         ),
-        // OrderFill only has 'symbol' field (no 'coin' or 'asset')
-        fills: allFills.filter((fill: OrderFill) =>
-          fill.symbol?.toLowerCase().includes(lowerQuery),
+        // Filter trades only (same as Trades tab)
+        transactions: tradesOnly.filter((transaction: PerpsTransaction) =>
+          transaction.asset?.toLowerCase().includes(lowerQuery),
         ),
       };
     },
@@ -230,7 +233,7 @@ export const usePerpsHomeData = ({
       watchlistMarkets,
       perpsMarkets,
       allMarkets,
-      allFills,
+      tradesOnly,
     ],
   );
 
@@ -253,8 +256,8 @@ export const usePerpsHomeData = ({
     [filteredData.watchlistMarkets],
   );
   const limitedActivity = useMemo(
-    () => filteredData.fills.slice(0, activityLimit),
-    [filteredData.fills, activityLimit],
+    () => filteredData.transactions.slice(0, activityLimit),
+    [filteredData.transactions, activityLimit],
   );
 
   // When searching, split filtered markets by type
