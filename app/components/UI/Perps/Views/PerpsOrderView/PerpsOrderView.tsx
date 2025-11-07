@@ -11,6 +11,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useSelector } from 'react-redux';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import {
   SafeAreaView,
@@ -24,6 +25,7 @@ import ButtonSemantic from '../../../../../component-library/components-temp/But
 import Button, {
   ButtonSize,
   ButtonVariants,
+  ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconColor,
@@ -203,9 +205,18 @@ const PerpsOrderViewContentBase: React.FC = () => {
   } = usePerpsABTest({
     test: BUTTON_COLOR_TEST,
     featureFlagSelector: selectPerpsButtonColorTestVariant,
-    localOverride: process.env.MM_PERPS_BUTTON_COLOR_VARIANT,
   });
   const buttonColors = variant as ButtonColorVariant;
+
+  // DEV: Get raw feature flag value for debugging banner
+  const rawFeatureFlagValue = useSelector(selectPerpsButtonColorTestVariant);
+
+  // DEV: Determine source for informational banner
+  const variantSource = __DEV__
+    ? rawFeatureFlagValue
+      ? 'LaunchDarkly'
+      : 'Fallback'
+    : '';
 
   /**
    * PROTOCOL CONSTRAINT: Existing position leverage
@@ -890,6 +901,20 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      {/* DEV: AB Test Info Banner */}
+      {__DEV__ && (
+        <View
+          style={
+            // eslint-disable-next-line react-native/no-inline-styles, react-native/no-color-literals
+            { padding: 8, backgroundColor: 'rgba(0, 150, 255, 0.1)' }
+          }
+        >
+          <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+            [DEV] AB Test: {buttonColorVariant} ({variantSource}) | Flag:{' '}
+            {rawFeatureFlagValue || 'null'}
+          </Text>
+        </View>
+      )}
       {/* Header */}
       <PerpsOrderHeader
         asset={getPerpsDisplaySymbol(orderForm.asset)}
@@ -1268,25 +1293,43 @@ const PerpsOrderViewContentBase: React.FC = () => {
               </View>
             )}
 
-          <ButtonSemantic
-            severity={getButtonSeverityForDirection(
-              orderForm.direction,
-              buttonColors,
-            )}
-            onPress={handlePlaceOrder}
-            isFullWidth
-            size={ButtonSizeRNDesignSystem.Lg}
-            isDisabled={
-              !orderValidation.isValid ||
-              isPlacingOrder ||
-              doesStopLossRiskLiquidation ||
-              isAtOICap
-            }
-            isLoading={isPlacingOrder}
-            testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
-          >
-            {placeOrderLabel}
-          </ButtonSemantic>
+          {buttonColorVariant === 'monochrome' ? (
+            <Button
+              variant={ButtonVariants.Secondary}
+              onPress={handlePlaceOrder}
+              label={placeOrderLabel}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+              isDisabled={
+                !orderValidation.isValid ||
+                isPlacingOrder ||
+                doesStopLossRiskLiquidation ||
+                isAtOICap
+              }
+              loading={isPlacingOrder}
+              testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
+            />
+          ) : (
+            <ButtonSemantic
+              severity={getButtonSeverityForDirection(
+                orderForm.direction,
+                buttonColors,
+              )}
+              onPress={handlePlaceOrder}
+              isFullWidth
+              size={ButtonSizeRNDesignSystem.Lg}
+              isDisabled={
+                !orderValidation.isValid ||
+                isPlacingOrder ||
+                doesStopLossRiskLiquidation ||
+                isAtOICap
+              }
+              isLoading={isPlacingOrder}
+              testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
+            >
+              {placeOrderLabel}
+            </ButtonSemantic>
+          )}
         </View>
       )}
       {/* Leverage Selector */}

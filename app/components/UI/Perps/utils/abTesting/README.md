@@ -45,7 +45,7 @@ In `tests.ts`:
 ```typescript
 export const BUTTON_COLOR_TEST: ABTestConfig<ButtonColorTestVariants> = {
   testId: 'button_color_test',
-  featureFlagKey: 'perpButtonColorTestEnabled',
+  featureFlagKey: 'perpsButtonColorTestEnabled',
   description: 'Tests impact of button colors on trading behavior',
   minVersion: '7.60.0',
   variants: {
@@ -69,7 +69,7 @@ In `selectors/featureFlags/index.ts`:
 export const selectPerpsButtonColorTestVariant = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): string | null => {
-    const remoteFlag = remoteFeatureFlags?.perpButtonColorTestEnabled;
+    const remoteFlag = remoteFeatureFlags?.perpsButtonColorTestEnabled;
     // Returns 'control' | 'monochrome' | null
     return remoteFlag || null;
   },
@@ -92,7 +92,6 @@ const MyComponent = () => {
   } = usePerpsABTest({
     test: BUTTON_COLOR_TEST,
     featureFlagSelector: selectPerpsButtonColorTestVariant,
-    localOverride: process.env.MM_PERPS_BUTTON_COLOR_VARIANT, // Optional
   });
 
   // Apply variant
@@ -122,58 +121,65 @@ usePerpsEventTracking({
 
 ## Local Development
 
-### Override Variant for Testing
+### Testing Variants Locally
 
-Set environment variable:
+**Method 1: Dev Info Banner (Read-Only)**
 
-```bash
-MM_PERPS_BUTTON_COLOR_VARIANT=monochrome
+- In DEV builds, see a blue banner at the top of Perps screens
+- Shows current variant, source (LaunchDarkly/Fallback), and raw flag value
+- Read-only informational display - no interaction needed
+
+**Method 2: Temporary Hardcode (For Testing)**
+For quick local testing, temporarily hardcode the variant in the component:
+
+```typescript
+// In PerpsOrderView.tsx or PerpsMarketDetailsView.tsx
+// Temporarily override for testing - REMOVE BEFORE COMMIT!
+const buttonColorVariant = 'monochrome'; // Force specific variant
+// Comment out the actual hook call while testing
 ```
 
-Or update `.env`:
-
-```
-MM_PERPS_BUTTON_COLOR_VARIANT=monochrome
-```
-
-The hook will prioritize local override over LaunchDarkly value.
+**Important:** Always remove hardcoded overrides before committing!
 
 ## LaunchDarkly Configuration
 
 ### Backend Team Setup
 
-1. **Create feature flag**: `perpButtonColorTestEnabled`
-2. **Configure variations**:
-   - Variation 0: `"control"`
-   - Variation 1: `"monochrome"`
-3. **Set targeting rules**:
-   - 50% rollout to variation 0
-   - 50% rollout to variation 1
-4. **Version constraint**: `>=7.60.0`
+**IMPORTANT: Use String flag type for AB tests, not Boolean or JSON**
 
-### Flag Structure
+1. **Create feature flag**: `perps-button-color-test-enabled` (kebab-case in LaunchDarkly UI)
+2. **Select flag type**: **String** (not Boolean, not JSON)
+3. **Configure string variations**:
+   - Variation 0: Name: `Control`, Value: `control` (lowercase string)
+   - Variation 1: Name: `Monochrome`, Value: `monochrome` (lowercase string)
+4. **Set targeting rules**:
+   - Rule 1: 50% percentage rollout → `control`
+   - Rule 2: 50% percentage rollout → `monochrome`
+   - Optional: Add version constraint via custom rule: `appVersion >= 7.60.0`
+5. **Default variations**:
+   - When targeting ON: `control`
+   - When targeting OFF: (flag disabled)
 
-**Simple (string):**
+### What the App Receives
 
-```json
+LaunchDarkly returns a simple string value:
+
+```typescript
+// What Redux state looks like
 {
-  "perpButtonColorTestEnabled": "control"
-}
-```
-
-**Version-gated (object):**
-
-```json
-{
-  "perpButtonColorTestEnabled": {
-    "enabled": true,
-    "minAppVersion": "7.60.0",
-    "variant": "control"
+  RemoteFeatureFlagController: {
+    remoteFeatureFlags: {
+      perpsButtonColorTestEnabled: 'control'; // or "monochrome"
+    }
   }
 }
 ```
 
-Both formats are supported by the selector.
+The selector (`selectPerpsButtonColorTestVariant`) reads this value as-is and returns:
+
+- `"control"` → Green/Red buttons
+- `"monochrome"` → White/White buttons
+- `null` → Test disabled, fall back to default
 
 ## Adding New Tests
 
@@ -193,7 +199,7 @@ export const MY_TEST: ABTestConfig<{
   treatment: ABTestVariant<MyTestVariant>;
 }> = {
   testId: 'my_test',
-  featureFlagKey: 'perpMyTestEnabled',
+  featureFlagKey: 'perpsMyTestEnabled',
   variants: {
     control: { weight: 50, data: { myProperty: 'value1' } },
     treatment: { weight: 50, data: { myProperty: 'value2' } },
@@ -206,7 +212,7 @@ export const MY_TEST: ABTestConfig<{
 ```typescript
 export const selectPerpsMyTestVariant = createSelector(
   selectRemoteFeatureFlags,
-  (flags): string | null => flags?.perpMyTestEnabled || null,
+  (flags): string | null => flags?.perpsMyTestEnabled || null,
 );
 ```
 
@@ -230,7 +236,7 @@ const { variant, variantName, isEnabled } = usePerpsABTest({
 
 ## Testing Strategy
 
-1. **Manual Testing**: Test both variants locally using env var override
+1. **Manual Testing**: Test both variants locally using temporary hardcoded overrides
 2. **QA Validation**: Validate in staging environment
 3. **Gradual Rollout**: Start with small percentage, monitor metrics
 4. **Data Collection**: Track for 2-4 weeks minimum
@@ -267,13 +273,16 @@ A: LaunchDarkly already handles user identification, assignment, and persistence
 A: They're informational only. LaunchDarkly controls actual distribution.
 
 **Q: How do I test both variants locally?**
-A: Use `MM_PERPS_BUTTON_COLOR_VARIANT=control` or `=monochrome` env var.
+A: Temporarily hardcode the variant in the component (see "Local Development" section above). Remember to remove before committing!
 
 **Q: Can I add unit tests?**
 A: Yes, but we're validating manually first. Add tests later if needed.
 
 **Q: What if LaunchDarkly is down?**
 A: The selector returns `null`, and the hook falls back to the first variant (control).
+
+**Q: Why use String flag type instead of JSON?**
+A: For AB tests, string variants are simpler and cleaner. LaunchDarkly handles user assignment and persistence. JSON format with version gating is better for feature flags that need per-variant version requirements, not for AB tests.
 
 ## References
 

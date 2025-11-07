@@ -15,7 +15,6 @@ import type {
   ABTestConfig,
   ABTestVariant,
   UsePerpsABTestResult,
-  ButtonColorVariantName,
 } from './types';
 
 /**
@@ -29,8 +28,6 @@ interface UsePerpsABTestParams<
   test: ABTestConfig<V>;
   /** Feature flag selector that returns the variant name from LaunchDarkly */
   featureFlagSelector: (state: S) => string | null;
-  /** Optional local override for development/testing */
-  localOverride?: string;
 }
 
 /**
@@ -50,11 +47,13 @@ interface UsePerpsABTestParams<
  * const { variant, variantName, isEnabled } = usePerpsABTest({
  *   test: BUTTON_COLOR_TEST,
  *   featureFlagSelector: selectPerpsButtonColorTestVariant,
- *   localOverride: process.env.MM_PERPS_BUTTON_COLOR_VARIANT, // Optional
  * });
  *
  * // Use variant data
  * const buttonColor = variant.long; // 'green' or 'white'
+ *
+ * // For local testing, tap the dev banner OR temporarily hardcode:
+ * // const buttonColorVariant = 'monochrome'; // Remove before commit!
  * ```
  */
 export function usePerpsABTest<
@@ -62,20 +61,18 @@ export function usePerpsABTest<
   T = unknown,
   S = unknown,
 >(params: UsePerpsABTestParams<V, S>): UsePerpsABTestResult<T> {
-  const { test, featureFlagSelector, localOverride } = params;
+  const { test, featureFlagSelector } = params;
 
   // Read variant name from LaunchDarkly feature flag
   const launchDarklyVariant = useSelector(featureFlagSelector) as string | null;
 
-  // Determine final variant name (local override takes precedence for dev/testing)
+  // Determine final variant name (LaunchDarkly or fallback to first variant)
   const variantName =
-    localOverride ||
-    launchDarklyVariant ||
-    (Object.keys(test.variants)[0] as keyof V);
+    launchDarklyVariant || (Object.keys(test.variants)[0] as keyof V);
 
   // Check if variant exists in config
   const variant = test.variants[variantName as keyof V];
-  const isEnabled = !!(localOverride || launchDarklyVariant);
+  const isEnabled = !!launchDarklyVariant;
 
   if (!variant) {
     // Variant not found - fall back to first variant
@@ -111,7 +108,6 @@ export function usePerpsABTest<
  */
 export function usePerpsButtonColorTest(
   _featureFlagSelector: (state: unknown) => string | null,
-  _localOverride?: ButtonColorVariantName,
 ): UsePerpsABTestResult<{
   long: 'green' | 'white' | 'blue';
   short: 'red' | 'white' | 'orange';

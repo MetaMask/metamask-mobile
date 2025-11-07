@@ -18,7 +18,7 @@ describe('usePerpsABTest', () => {
     monochrome: ABTestVariant<ButtonColorVariant>;
   }> = {
     testId: 'button_color_test',
-    featureFlagKey: 'perpButtonColorTestEnabled',
+    featureFlagKey: 'perpsButtonColorTestEnabled',
     description: 'Test button colors',
     variants: {
       control: {
@@ -99,58 +99,6 @@ describe('usePerpsABTest', () => {
     });
   });
 
-  describe('with localOverride', () => {
-    it('uses localOverride variant over LaunchDarkly variant', () => {
-      mockUseSelector.mockReturnValue('control');
-
-      const { result } = renderHook(() =>
-        usePerpsABTest({
-          test: mockTestConfig,
-          featureFlagSelector: mockFeatureFlagSelector,
-          localOverride: 'monochrome',
-        }),
-      );
-
-      expect(result.current.variant).toEqual({
-        long: 'white',
-        short: 'white',
-      });
-      expect(result.current.variantName).toBe('monochrome');
-    });
-
-    it('sets isEnabled true when using localOverride', () => {
-      mockUseSelector.mockReturnValue(null);
-
-      const { result } = renderHook(() =>
-        usePerpsABTest({
-          test: mockTestConfig,
-          featureFlagSelector: mockFeatureFlagSelector,
-          localOverride: 'control',
-        }),
-      );
-
-      expect(result.current.isEnabled).toBe(true);
-    });
-
-    it('returns correct variant data for localOverride', () => {
-      mockUseSelector.mockReturnValue(null);
-
-      const { result } = renderHook(() =>
-        usePerpsABTest({
-          test: mockTestConfig,
-          featureFlagSelector: mockFeatureFlagSelector,
-          localOverride: 'monochrome',
-        }),
-      );
-
-      expect(result.current.variant).toEqual({
-        long: 'white',
-        short: 'white',
-      });
-      expect(result.current.variantName).toBe('monochrome');
-    });
-  });
-
   describe('with invalid variant name', () => {
     it('warns and falls back to first variant when LaunchDarkly returns invalid variant', () => {
       const consoleWarnSpy = jest
@@ -198,35 +146,6 @@ describe('usePerpsABTest', () => {
 
       consoleWarnSpy.mockRestore();
     });
-
-    it('warns and falls back when localOverride is invalid', () => {
-      const consoleWarnSpy = jest
-        .spyOn(console, 'warn')
-        .mockImplementation(() => {
-          // Intentionally empty - suppressing console.warn during tests
-        });
-      mockUseSelector.mockReturnValue(null);
-
-      const { result } = renderHook(() =>
-        usePerpsABTest({
-          test: mockTestConfig,
-          featureFlagSelector: mockFeatureFlagSelector,
-          localOverride: 'invalid_variant',
-        }),
-      );
-
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        '[ABTest] Variant "invalid_variant" not found in test "button_color_test". Falling back to first variant.',
-      );
-      expect(result.current.variant).toEqual({
-        long: 'green',
-        short: 'red',
-      });
-      expect(result.current.variantName).toBe('control');
-      expect(result.current.isEnabled).toBe(true);
-
-      consoleWarnSpy.mockRestore();
-    });
   });
 
   describe('with null or undefined LaunchDarkly response', () => {
@@ -247,7 +166,7 @@ describe('usePerpsABTest', () => {
       expect(result.current.variantName).toBe('control');
     });
 
-    it('sets isEnabled false when LaunchDarkly returns null and no localOverride', () => {
+    it('sets isEnabled false when LaunchDarkly returns null', () => {
       mockUseSelector.mockReturnValue(null);
 
       const { result } = renderHook(() =>
@@ -321,16 +240,6 @@ describe('usePerpsButtonColorTest', () => {
 
     expect(() => {
       usePerpsButtonColorTest(mockSelector);
-    }).toThrow(
-      'usePerpsButtonColorTest: Please use usePerpsABTest directly with BUTTON_COLOR_TEST config',
-    );
-  });
-
-  it('throws error when called with localOverride', () => {
-    const mockSelector = jest.fn().mockReturnValue('control');
-
-    expect(() => {
-      usePerpsButtonColorTest(mockSelector, 'monochrome');
     }).toThrow(
       'usePerpsButtonColorTest: Please use usePerpsABTest directly with BUTTON_COLOR_TEST config',
     );
