@@ -2403,8 +2403,8 @@ describe('PolymarketProvider', () => {
     it('get prices successfully', async () => {
       const provider = createProvider();
       const mockPricesData = {
-        'token-1': { BUY: '0.65' },
-        'token-2': { BUY: '0.35' },
+        'token-1': { BUY: '0.65', SELL: '0.64' },
+        'token-2': { BUY: '0.35', SELL: '0.34' },
       };
       const mockResponse = {
         ok: true,
@@ -2413,15 +2413,36 @@ describe('PolymarketProvider', () => {
       (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
 
       const result = await provider.getPrices({
-        bookParams: [
-          { token_id: 'token-1', side: 'BUY' },
-          { token_id: 'token-2', side: 'BUY' },
+        queries: [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+          },
+          {
+            marketId: 'market-2',
+            outcomeId: 'outcome-2',
+            outcomeTokenId: 'token-2',
+          },
         ],
       });
 
       expect(result).toEqual({
-        'token-1': { BUY: 0.65 },
-        'token-2': { BUY: 0.35 },
+        providerId: 'polymarket',
+        results: [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+            entry: { buy: 0.65, sell: 0.64 },
+          },
+          {
+            marketId: 'market-2',
+            outcomeId: 'outcome-2',
+            outcomeTokenId: 'token-2',
+            entry: { buy: 0.35, sell: 0.34 },
+          },
+        ],
       });
 
       expect(global.fetch).toHaveBeenCalledWith(
@@ -2430,8 +2451,10 @@ describe('PolymarketProvider', () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify([
-            { token_id: 'token-1', side: 'BUY' },
-            { token_id: 'token-2', side: 'BUY' },
+            { token_id: 'token-1', side: Side.BUY },
+            { token_id: 'token-1', side: Side.SELL },
+            { token_id: 'token-2', side: Side.BUY },
+            { token_id: 'token-2', side: Side.SELL },
           ]),
         },
       );
@@ -2442,18 +2465,31 @@ describe('PolymarketProvider', () => {
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue({
-          'token-1': { BUY: '0.123456' },
-          'token-2': { SELL: '0.987654' },
+          'token-1': { BUY: '0.123456', SELL: '0.123' },
+          'token-2': { BUY: '0.987', SELL: '0.987654' },
         }),
       };
       (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
 
       const result = await provider.getPrices({
-        bookParams: [{ token_id: 'token-1', side: 'BUY' }],
+        queries: [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+          },
+          {
+            marketId: 'market-2',
+            outcomeId: 'outcome-2',
+            outcomeTokenId: 'token-2',
+          },
+        ],
       });
 
-      expect(result['token-1'].BUY).toBe(0.123456);
-      expect(result['token-2'].SELL).toBe(0.987654);
+      expect(result.results[0].entry.buy).toBe(0.123456);
+      expect(result.results[0].entry.sell).toBe(0.123);
+      expect(result.results[1].entry.buy).toBe(0.987);
+      expect(result.results[1].entry.sell).toBe(0.987654);
     });
 
     it('handle multiple sides for same token', async () => {
@@ -2467,26 +2503,27 @@ describe('PolymarketProvider', () => {
       (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
 
       const result = await provider.getPrices({
-        bookParams: [
-          { token_id: 'token-1', side: 'BUY' },
-          { token_id: 'token-1', side: 'SELL' },
+        queries: [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+          },
         ],
       });
 
-      expect(result['token-1'].BUY).toBe(0.65);
-      expect(result['token-1'].SELL).toBe(0.64);
+      expect(result.results[0].entry.buy).toBe(0.65);
+      expect(result.results[0].entry.sell).toBe(0.64);
     });
 
-    it('throw error when bookParams is empty', async () => {
+    it('throw error when queries is empty', async () => {
       const provider = createProvider();
 
       await expect(
         provider.getPrices({
-          bookParams: [],
+          queries: [],
         }),
-      ).rejects.toThrow(
-        'bookParams parameter is required and must not be empty',
-      );
+      ).rejects.toThrow('queries parameter is required and must not be empty');
     });
 
     it('return empty object when response is not ok', async () => {
@@ -2500,10 +2537,16 @@ describe('PolymarketProvider', () => {
       (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
 
       const result = await provider.getPrices({
-        bookParams: [{ token_id: 'token-1', side: 'BUY' }],
+        queries: [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+          },
+        ],
       });
 
-      expect(result).toEqual({});
+      expect(result).toEqual({ providerId: 'polymarket', results: [] });
     });
 
     it('return empty object when fetch fails', async () => {
@@ -2511,10 +2554,16 @@ describe('PolymarketProvider', () => {
       (global.fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
 
       const result = await provider.getPrices({
-        bookParams: [{ token_id: 'token-1', side: 'BUY' }],
+        queries: [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+          },
+        ],
       });
 
-      expect(result).toEqual({});
+      expect(result).toEqual({ providerId: 'polymarket', results: [] });
     });
 
     it('return empty object when invalid JSON response', async () => {
@@ -2526,10 +2575,16 @@ describe('PolymarketProvider', () => {
       (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
 
       const result = await provider.getPrices({
-        bookParams: [{ token_id: 'token-1', side: 'BUY' }],
+        queries: [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+          },
+        ],
       });
 
-      expect(result).toEqual({});
+      expect(result).toEqual({ providerId: 'polymarket', results: [] });
     });
 
     it('handle non-numeric price values', async () => {
@@ -2545,16 +2600,28 @@ describe('PolymarketProvider', () => {
       (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
 
       const result = await provider.getPrices({
-        bookParams: [
-          { token_id: 'token-1', side: 'BUY' },
-          { token_id: 'token-2', side: 'BUY' },
-          { token_id: 'token-3', side: 'BUY' },
+        queries: [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+          },
+          {
+            marketId: 'market-2',
+            outcomeId: 'outcome-2',
+            outcomeTokenId: 'token-2',
+          },
+          {
+            marketId: 'market-3',
+            outcomeId: 'outcome-3',
+            outcomeTokenId: 'token-3',
+          },
         ],
       });
 
-      expect(result['token-1'].BUY).toBe(0.65);
-      expect(result['token-2'].BUY).toBeNaN();
-      expect(result['token-3'].BUY).toBe(0.35);
+      expect(result.results[0].entry.buy).toBe(0.65);
+      expect(result.results[1].entry.buy).toBeNaN();
+      expect(result.results[2].entry.buy).toBe(0.35);
     });
 
     it('handle null or undefined prices', async () => {
@@ -2562,24 +2629,36 @@ describe('PolymarketProvider', () => {
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue({
-          'token-1': { BUY: '0.65' },
-          'token-2': { BUY: null },
+          'token-1': { BUY: '0.65', SELL: '0.64' },
+          'token-2': { BUY: null, SELL: null },
           'token-3': {},
         }),
       };
       (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
 
       const result = await provider.getPrices({
-        bookParams: [
-          { token_id: 'token-1', side: 'BUY' },
-          { token_id: 'token-2', side: 'BUY' },
-          { token_id: 'token-3', side: 'BUY' },
+        queries: [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+          },
+          {
+            marketId: 'market-2',
+            outcomeId: 'outcome-2',
+            outcomeTokenId: 'token-2',
+          },
+          {
+            marketId: 'market-3',
+            outcomeId: 'outcome-3',
+            outcomeTokenId: 'token-3',
+          },
         ],
       });
 
-      expect(result['token-1'].BUY).toBe(0.65);
-      expect(result['token-2']).toEqual({});
-      expect(result['token-3']).toEqual({});
+      expect(result.results[0].entry.buy).toBe(0.65);
+      expect(result.results[1].entry.buy).toBe(0);
+      expect(result.results[2].entry.buy).toBe(0);
     });
 
     it('return empty object when response body is null', async () => {
@@ -2591,10 +2670,16 @@ describe('PolymarketProvider', () => {
       (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
 
       const result = await provider.getPrices({
-        bookParams: [{ token_id: 'token-1', side: 'BUY' }],
+        queries: [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+          },
+        ],
       });
 
-      expect(result).toEqual({});
+      expect(result).toEqual({ providerId: 'polymarket', results: [] });
     });
 
     it('handle BUY side correctly', async () => {
@@ -2602,17 +2687,23 @@ describe('PolymarketProvider', () => {
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue({
-          'token-1': { BUY: '0.65' },
+          'token-1': { BUY: '0.65', SELL: '0.64' },
         }),
       };
       (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
 
       const result = await provider.getPrices({
-        bookParams: [{ token_id: 'token-1', side: 'BUY' }],
+        queries: [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+          },
+        ],
       });
 
-      expect(result['token-1']).toHaveProperty('BUY');
-      expect(result['token-1'].BUY).toBe(0.65);
+      expect(result.results[0].entry).toHaveProperty('buy');
+      expect(result.results[0].entry.buy).toBe(0.65);
     });
 
     it('handle SELL side correctly', async () => {
@@ -2620,17 +2711,23 @@ describe('PolymarketProvider', () => {
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue({
-          'token-1': { SELL: '0.64' },
+          'token-1': { BUY: '0.65', SELL: '0.64' },
         }),
       };
       (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
 
       const result = await provider.getPrices({
-        bookParams: [{ token_id: 'token-1', side: 'SELL' }],
+        queries: [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+          },
+        ],
       });
 
-      expect(result['token-1']).toHaveProperty('SELL');
-      expect(result['token-1'].SELL).toBe(0.64);
+      expect(result.results[0].entry).toHaveProperty('sell');
+      expect(result.results[0].entry.sell).toBe(0.64);
     });
 
     it('handle multiple tokens with different sides', async () => {
@@ -2638,24 +2735,36 @@ describe('PolymarketProvider', () => {
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue({
-          'token-1': { BUY: '0.65' },
-          'token-2': { SELL: '0.64' },
-          'token-3': { BUY: '0.35' },
+          'token-1': { BUY: '0.65', SELL: '0.64' },
+          'token-2': { BUY: '0.36', SELL: '0.34' },
+          'token-3': { BUY: '0.35', SELL: '0.33' },
         }),
       };
       (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
 
       const result = await provider.getPrices({
-        bookParams: [
-          { token_id: 'token-1', side: 'BUY' },
-          { token_id: 'token-2', side: 'SELL' },
-          { token_id: 'token-3', side: 'BUY' },
+        queries: [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+          },
+          {
+            marketId: 'market-2',
+            outcomeId: 'outcome-2',
+            outcomeTokenId: 'token-2',
+          },
+          {
+            marketId: 'market-3',
+            outcomeId: 'outcome-3',
+            outcomeTokenId: 'token-3',
+          },
         ],
       });
 
-      expect(result['token-1'].BUY).toBe(0.65);
-      expect(result['token-2'].SELL).toBe(0.64);
-      expect(result['token-3'].BUY).toBe(0.35);
+      expect(result.results[0].entry.buy).toBe(0.65);
+      expect(result.results[1].entry.sell).toBe(0.34);
+      expect(result.results[2].entry.buy).toBe(0.35);
     });
   });
 

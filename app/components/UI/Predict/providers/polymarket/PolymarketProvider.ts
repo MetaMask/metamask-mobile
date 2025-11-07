@@ -13,14 +13,14 @@ import {
 } from '../../../../../util/transactions';
 import {
   GetPriceHistoryParams,
-  GetPricesParams,
-  ParsedPricesMap,
+  GetPriceParams,
+  GetPriceResponse,
+  PriceResult,
   PredictActivity,
   PredictCategory,
   PredictMarket,
   PredictPosition,
   PredictPriceHistoryPoint,
-  PricesResponse,
   Side,
   UnrealizedPnL,
 } from '../../types';
@@ -304,18 +304,23 @@ export class PolymarketProvider implements PredictProvider {
    * BUY = what you'd pay to buy
    * SELL = what you'd receive to sell
    *
-   * @param params - Array of book parameters (token_id + side)
-   * @returns Parsed prices map with numeric values
+   * @param params - Query parameters with marketId, outcomeId, and outcomeTokenId
+   * @returns Structured price response with results
    */
   public async getPrices({
-    bookParams,
-  }: GetPricesParams): Promise<ParsedPricesMap> {
-    if (!bookParams || bookParams.length === 0) {
-      throw new Error('bookParams parameter is required and must not be empty');
+    queries,
+  }: Omit<GetPriceParams, 'providerId'>): Promise<GetPriceResponse> {
+    if (!queries || queries.length === 0) {
+      throw new Error('queries parameter is required and must not be empty');
     }
 
     try {
       const { CLOB_ENDPOINT } = getPolymarketEndpoints();
+
+      const bookParams = queries.flatMap((query) => [
+        { token_id: query.outcomeTokenId, side: Side.BUY },
+        { token_id: query.outcomeTokenId, side: Side.SELL },
+      ]);
 
       const response = await fetch(`${CLOB_ENDPOINT}/prices`, {
         method: 'POST',
@@ -332,34 +337,43 @@ export class PolymarketProvider implements PredictProvider {
         );
       }
 
-      const data = (await response.json()) as PricesResponse;
+      type PolymarketPricesResponse = Record<
+        string,
+        Partial<Record<Side, string>>
+      >;
+      const data = (await response.json()) as PolymarketPricesResponse;
 
-      // Parse the response - convert price strings to numbers
-      const parsedPrices: ParsedPricesMap = {};
-      for (const [tokenId, sides] of Object.entries(data)) {
-        parsedPrices[tokenId] = {};
-        if (sides.BUY != null) {
-          parsedPrices[tokenId].BUY = Number(sides.BUY);
-        }
-        if (sides.SELL != null) {
-          parsedPrices[tokenId].SELL = Number(sides.SELL);
-        }
-      }
+      const results: PriceResult[] = queries.map((query) => {
+        const priceData = data[query.outcomeTokenId];
+        return {
+          marketId: query.marketId,
+          outcomeId: query.outcomeId,
+          outcomeTokenId: query.outcomeTokenId,
+          entry: {
+            buy: priceData?.BUY ? Number(priceData.BUY) : 0,
+            sell: priceData?.SELL ? Number(priceData.SELL) : 0,
+          },
+        };
+      });
 
-      return parsedPrices;
+      return {
+        providerId: this.providerId,
+        results,
+      };
     } catch (error) {
       DevLogger.log('Error getting prices via Polymarket API:', error);
 
-      // Log to Sentry - this error is swallowed (returns {}) so controller won't see it
       Logger.error(
         error instanceof Error ? error : new Error(String(error)),
         this.getErrorContext('getPrices', {
-          bookParamsCount: bookParams.length,
-          tokenIds: bookParams.map((bp) => bp.token_id).join(','),
+          queriesCount: queries.length,
         }),
       );
 
-      return {};
+      return {
+        providerId: this.providerId,
+        results: [],
+      };
     }
   }
 

@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { ParsedPricesMap, Side, BookParams } from '../types';
+import { GetPriceResponse, PriceQuery } from '../types';
 import { usePredictPrices } from './usePredictPrices';
 
 jest.mock('../../../../core/Engine', () => {
@@ -23,9 +23,22 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 }));
 
 describe('usePredictPrices', () => {
-  const mockPrices: ParsedPricesMap = {
-    'token-1': { [Side.BUY]: 0.65, [Side.SELL]: 0.64 },
-    'token-2': { [Side.BUY]: 0.35, [Side.SELL]: 0.34 },
+  const mockPrices: GetPriceResponse = {
+    providerId: 'polymarket',
+    results: [
+      {
+        marketId: 'market-1',
+        outcomeId: 'outcome-1',
+        outcomeTokenId: 'token-1',
+        entry: { buy: 0.65, sell: 0.64 },
+      },
+      {
+        marketId: 'market-2',
+        outcomeId: 'outcome-2',
+        outcomeTokenId: 'token-2',
+        entry: { buy: 0.35, sell: 0.34 },
+      },
+    ],
   };
 
   beforeEach(() => {
@@ -40,10 +53,10 @@ describe('usePredictPrices', () => {
   });
 
   describe('initial state', () => {
-    it('returns empty prices and not fetching when no bookParams provided', () => {
-      const { result } = renderHook(() => usePredictPrices({ bookParams: [] }));
+    it('returns empty prices and not fetching when no queries provided', () => {
+      const { result } = renderHook(() => usePredictPrices({ queries: [] }));
 
-      expect(result.current.prices).toEqual({});
+      expect(result.current.prices).toEqual({ providerId: '', results: [] });
       expect(result.current.isFetching).toBe(false);
       expect(result.current.error).toBeNull();
       expect(typeof result.current.refetch).toBe('function');
@@ -52,12 +65,18 @@ describe('usePredictPrices', () => {
     it('returns empty prices when disabled', () => {
       const { result } = renderHook(() =>
         usePredictPrices({
-          bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+          ],
           enabled: false,
         }),
       );
 
-      expect(result.current.prices).toEqual({});
+      expect(result.current.prices).toEqual({ providerId: '', results: [] });
       expect(result.current.isFetching).toBe(false);
       expect(result.current.error).toBeNull();
     });
@@ -67,7 +86,13 @@ describe('usePredictPrices', () => {
     it('fetches prices for a single token', async () => {
       const { result, waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
-          bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+          ],
         }),
       );
 
@@ -76,7 +101,13 @@ describe('usePredictPrices', () => {
       await waitForNextUpdate();
 
       expect(Engine.context.PredictController.getPrices).toHaveBeenCalledWith({
-        bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+        queries: [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+          },
+        ],
         providerId: 'polymarket',
       });
       expect(result.current.prices).toEqual(mockPrices);
@@ -92,13 +123,19 @@ describe('usePredictPrices', () => {
 
       const { result, waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
-          bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+          ],
         }),
       );
 
       await waitForNextUpdate();
 
-      expect(result.current.prices).toEqual({});
+      expect(result.current.prices).toEqual({ providerId: '', results: [] });
       expect(result.current.error).toBe('Failed to fetch prices');
       expect(result.current.isFetching).toBe(false);
       expect(DevLogger.log).toHaveBeenCalledWith(
@@ -112,9 +149,17 @@ describe('usePredictPrices', () => {
     it('fetches prices for multiple tokens with different sides', async () => {
       const { result, waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
-          bookParams: [
-            { token_id: 'token-1', side: Side.BUY },
-            { token_id: 'token-2', side: Side.SELL },
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+            {
+              marketId: 'market-2',
+              outcomeId: 'outcome-2',
+              outcomeTokenId: 'token-2',
+            },
           ],
         }),
       );
@@ -122,9 +167,17 @@ describe('usePredictPrices', () => {
       await waitForNextUpdate();
 
       expect(Engine.context.PredictController.getPrices).toHaveBeenCalledWith({
-        bookParams: [
-          { token_id: 'token-1', side: Side.BUY },
-          { token_id: 'token-2', side: Side.SELL },
+        queries: [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+          },
+          {
+            marketId: 'market-2',
+            outcomeId: 'outcome-2',
+            outcomeTokenId: 'token-2',
+          },
         ],
         providerId: 'polymarket',
       });
@@ -136,9 +189,17 @@ describe('usePredictPrices', () => {
     it('fetches prices for same token with both BUY and SELL sides', async () => {
       const { result, waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
-          bookParams: [
-            { token_id: 'token-1', side: Side.BUY },
-            { token_id: 'token-1', side: Side.SELL },
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
           ],
         }),
       );
@@ -157,7 +218,13 @@ describe('usePredictPrices', () => {
     it('refetches data when refetch is called', async () => {
       const { result, waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
-          bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+          ],
         }),
       );
 
@@ -180,7 +247,13 @@ describe('usePredictPrices', () => {
     it('does not refetch when disabled', async () => {
       const { result } = renderHook(() =>
         usePredictPrices({
-          bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+          ],
           enabled: false,
         }),
       );
@@ -197,7 +270,13 @@ describe('usePredictPrices', () => {
     it('uses custom provider when provided', async () => {
       const { waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
-          bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+          ],
           providerId: 'custom-provider',
         }),
       );
@@ -205,7 +284,13 @@ describe('usePredictPrices', () => {
       await waitForNextUpdate();
 
       expect(Engine.context.PredictController.getPrices).toHaveBeenCalledWith({
-        bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+        queries: [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+          },
+        ],
         providerId: 'custom-provider',
       });
     });
@@ -213,14 +298,26 @@ describe('usePredictPrices', () => {
     it('defaults to polymarket provider when not specified', async () => {
       const { waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
-          bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+          ],
         }),
       );
 
       await waitForNextUpdate();
 
       expect(Engine.context.PredictController.getPrices).toHaveBeenCalledWith({
-        bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+        queries: [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+          },
+        ],
         providerId: 'polymarket',
       });
     });
@@ -232,7 +329,13 @@ describe('usePredictPrices', () => {
 
       const { waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
-          bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+          ],
           pollingInterval: 5000,
         }),
       );
@@ -269,7 +372,13 @@ describe('usePredictPrices', () => {
 
       const { unmount, waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
-          bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+          ],
           pollingInterval: 5000,
         }),
       );
@@ -296,7 +405,13 @@ describe('usePredictPrices', () => {
 
       const { waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
-          bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+          ],
         }),
       );
 
@@ -317,15 +432,21 @@ describe('usePredictPrices', () => {
   });
 
   describe('reactivity', () => {
-    it('refetches when bookParams change', async () => {
+    it('refetches when queries change', async () => {
       const { rerender, waitForNextUpdate } = renderHook(
-        ({ bookParams }) =>
+        ({ queries }) =>
           usePredictPrices({
-            bookParams,
+            queries,
           }),
         {
           initialProps: {
-            bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
           },
         },
       );
@@ -333,18 +454,38 @@ describe('usePredictPrices', () => {
       await waitForNextUpdate();
 
       expect(Engine.context.PredictController.getPrices).toHaveBeenCalledWith({
-        bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+        queries: [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+          },
+        ],
         providerId: 'polymarket',
       });
 
-      rerender({ bookParams: [{ token_id: 'token-2', side: Side.SELL }] });
+      rerender({
+        queries: [
+          {
+            marketId: 'market-2',
+            outcomeId: 'outcome-2',
+            outcomeTokenId: 'token-2',
+          },
+        ],
+      });
 
       await waitForNextUpdate();
 
       expect(
         Engine.context.PredictController.getPrices,
       ).toHaveBeenLastCalledWith({
-        bookParams: [{ token_id: 'token-2', side: Side.SELL }],
+        queries: [
+          {
+            marketId: 'market-2',
+            outcomeId: 'outcome-2',
+            outcomeTokenId: 'token-2',
+          },
+        ],
         providerId: 'polymarket',
       });
     });
@@ -353,7 +494,13 @@ describe('usePredictPrices', () => {
       const { rerender, waitForNextUpdate } = renderHook(
         ({ providerId }) =>
           usePredictPrices({
-            bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
             providerId,
           }),
         {
@@ -370,7 +517,13 @@ describe('usePredictPrices', () => {
       expect(
         Engine.context.PredictController.getPrices,
       ).toHaveBeenLastCalledWith({
-        bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+        queries: [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+          },
+        ],
         providerId: 'custom-provider',
       });
     });
@@ -379,7 +532,13 @@ describe('usePredictPrices', () => {
       const { rerender } = renderHook(
         ({ enabled }) =>
           usePredictPrices({
-            bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
             enabled,
           }),
         {
@@ -398,7 +557,13 @@ describe('usePredictPrices', () => {
       const { rerender, waitForNextUpdate } = renderHook(
         ({ enabled }) =>
           usePredictPrices({
-            bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
             enabled,
           }),
         {
@@ -419,7 +584,13 @@ describe('usePredictPrices', () => {
       const { result, rerender, waitForNextUpdate } = renderHook(
         ({ enabled }) =>
           usePredictPrices({
-            bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
             enabled,
           }),
         {
@@ -433,7 +604,7 @@ describe('usePredictPrices', () => {
 
       rerender({ enabled: false });
 
-      expect(result.current.prices).toEqual({});
+      expect(result.current.prices).toEqual({ providerId: '', results: [] });
       expect(result.current.error).toBeNull();
       expect(result.current.isFetching).toBe(false);
     });
@@ -446,13 +617,19 @@ describe('usePredictPrices', () => {
 
       const { result, waitFor } = renderHook(() =>
         usePredictPrices({
-          bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+          ],
         }),
       );
 
       await waitFor(() => result.current.isFetching === false);
 
-      expect(result.current.prices).toEqual({});
+      expect(result.current.prices).toEqual({ providerId: '', results: [] });
       expect(result.current.error).toBe('Engine not initialized');
       expect(result.current.isFetching).toBe(false);
       expect(DevLogger.log).toHaveBeenCalled();
@@ -469,13 +646,19 @@ describe('usePredictPrices', () => {
 
       const { result, waitFor } = renderHook(() =>
         usePredictPrices({
-          bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+          ],
         }),
       );
 
       await waitFor(() => result.current.isFetching === false);
 
-      expect(result.current.prices).toEqual({});
+      expect(result.current.prices).toEqual({ providerId: '', results: [] });
       expect(result.current.error).toBe('Predict controller not available');
       expect(result.current.isFetching).toBe(false);
       expect(DevLogger.log).toHaveBeenCalled();
@@ -494,13 +677,19 @@ describe('usePredictPrices', () => {
 
       const { result, waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
-          bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+          ],
         }),
       );
 
       await waitForNextUpdate();
 
-      expect(result.current.prices).toEqual({});
+      expect(result.current.prices).toEqual({ providerId: '', results: [] });
       expect(result.current.error).toBe('Failed to fetch prices');
       expect(DevLogger.log).toHaveBeenCalled();
     });
@@ -513,7 +702,13 @@ describe('usePredictPrices', () => {
 
       const { result, waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
-          bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+          ],
         }),
       );
 
@@ -549,7 +744,13 @@ describe('usePredictPrices', () => {
 
       const { unmount, result } = renderHook(() =>
         usePredictPrices({
-          bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+          ],
         }),
       );
 
@@ -569,7 +770,13 @@ describe('usePredictPrices', () => {
 
       const { unmount, waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
-          bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+          ],
           pollingInterval: 5000,
         }),
       );
@@ -593,62 +800,74 @@ describe('usePredictPrices', () => {
   });
 
   describe('edge cases', () => {
-    it('handles empty bookParams array', async () => {
+    it('handles empty queries array', async () => {
       const { result } = renderHook(() =>
         usePredictPrices({
-          bookParams: [],
+          queries: [],
         }),
       );
 
-      expect(result.current.prices).toEqual({});
+      expect(result.current.prices).toEqual({ providerId: '', results: [] });
       expect(result.current.isFetching).toBe(false);
       expect(result.current.error).toBeNull();
       expect(Engine.context.PredictController.getPrices).not.toHaveBeenCalled();
     });
 
-    it('handles undefined bookParams', async () => {
+    it('handles undefined queries', async () => {
       const { result } = renderHook(() =>
         usePredictPrices({
-          bookParams: undefined as unknown as [],
+          queries: undefined as unknown as [],
         }),
       );
 
-      expect(result.current.prices).toEqual({});
+      expect(result.current.prices).toEqual({ providerId: '', results: [] });
       expect(result.current.isFetching).toBe(false);
       expect(Engine.context.PredictController.getPrices).not.toHaveBeenCalled();
     });
 
-    it('handles transition from empty to non-empty bookParams', async () => {
+    it('handles transition from empty to non-empty queries', async () => {
       const { result, rerender, waitForNextUpdate } = renderHook(
-        ({ bookParams }) =>
+        ({ queries }) =>
           usePredictPrices({
-            bookParams,
+            queries,
           }),
         {
-          initialProps: { bookParams: [] as BookParams[] },
+          initialProps: { queries: [] as PriceQuery[] },
         },
       );
 
-      expect(result.current.prices).toEqual({});
+      expect(result.current.prices).toEqual({ providerId: '', results: [] });
 
-      rerender({ bookParams: [{ token_id: 'token-1', side: Side.BUY }] });
+      rerender({
+        queries: [
+          {
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+          },
+        ],
+      });
 
       await waitForNextUpdate();
 
       expect(result.current.prices).toEqual(mockPrices);
     });
 
-    it('handles transition from non-empty to empty bookParams', async () => {
+    it('handles transition from non-empty to empty queries', async () => {
       const { result, rerender, waitForNextUpdate } = renderHook(
-        ({ bookParams }) =>
+        ({ queries }) =>
           usePredictPrices({
-            bookParams,
+            queries,
           }),
         {
           initialProps: {
-            bookParams: [
-              { token_id: 'token-1', side: Side.BUY },
-            ] as BookParams[],
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ] as PriceQuery[],
           },
         },
       );
@@ -657,26 +876,32 @@ describe('usePredictPrices', () => {
 
       expect(result.current.prices).toEqual(mockPrices);
 
-      rerender({ bookParams: [] });
+      rerender({ queries: [] });
 
-      expect(result.current.prices).toEqual({});
+      expect(result.current.prices).toEqual({ providerId: '', results: [] });
       expect(result.current.isFetching).toBe(false);
     });
 
     it('handles empty prices response', async () => {
       (
         Engine.context.PredictController.getPrices as jest.Mock
-      ).mockResolvedValueOnce({});
+      ).mockResolvedValueOnce({ providerId: '', results: [] });
 
       const { result, waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
-          bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+          ],
         }),
       );
 
       await waitForNextUpdate();
 
-      expect(result.current.prices).toEqual({});
+      expect(result.current.prices).toEqual({ providerId: '', results: [] });
       expect(result.current.error).toBeNull();
       expect(result.current.isFetching).toBe(false);
     });
@@ -693,7 +918,13 @@ describe('usePredictPrices', () => {
 
       const { result, waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
-          bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+          ],
           pollingInterval: 5000,
         }),
       );
@@ -723,14 +954,20 @@ describe('usePredictPrices', () => {
 
       const { result, waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
-          bookParams: [{ token_id: 'token-1', side: Side.BUY }],
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+          ],
         }),
       );
 
       await waitForNextUpdate();
 
       expect(result.current.error).toBe('Network error');
-      expect(result.current.prices).toEqual({});
+      expect(result.current.prices).toEqual({ providerId: '', results: [] });
 
       (
         Engine.context.PredictController.getPrices as jest.Mock

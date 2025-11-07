@@ -218,7 +218,7 @@ jest.mock('../../hooks/usePredictEligibility', () => ({
 
 jest.mock('../../hooks/usePredictPrices', () => ({
   usePredictPrices: jest.fn(() => ({
-    prices: {},
+    prices: { providerId: '', results: [] },
     isFetching: false,
     error: null,
     refetch: jest.fn(),
@@ -2727,7 +2727,7 @@ describe('PredictMarketDetails', () => {
       );
 
       usePredictPrices.mockReturnValue({
-        prices: {},
+        prices: { providerId: '', results: [] },
         isFetching: false,
         error: new Error('Failed to fetch prices'),
         refetch: jest.fn(),

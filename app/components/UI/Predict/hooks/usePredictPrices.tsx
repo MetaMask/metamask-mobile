@@ -4,10 +4,10 @@ import Logger from '../../../../util/Logger';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
-import { BookParams, ParsedPricesMap, Side } from '../types';
+import { PriceQuery, GetPriceResponse, Side } from '../types';
 
 export interface UsePredictPricesOptions {
-  bookParams: BookParams[];
+  queries: PriceQuery[];
   providerId?: string;
   enabled?: boolean;
   /**
@@ -18,7 +18,7 @@ export interface UsePredictPricesOptions {
 }
 
 export interface UsePredictPricesResult {
-  prices: ParsedPricesMap;
+  prices: GetPriceResponse;
   isFetching: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -31,13 +31,16 @@ export const usePredictPrices = (
   options: UsePredictPricesOptions,
 ): UsePredictPricesResult => {
   const {
-    bookParams = [],
+    queries = [],
     providerId = 'polymarket',
     enabled = true,
     pollingInterval,
   } = options;
 
-  const [prices, setPrices] = useState<ParsedPricesMap>({});
+  const [prices, setPrices] = useState<GetPriceResponse>({
+    providerId: '',
+    results: [],
+  });
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,7 +59,7 @@ export const usePredictPrices = (
 
   useEffect(() => {
     if (!enabled && isMountedRef.current) {
-      setPrices({});
+      setPrices({ providerId: '', results: [] });
       setError(null);
       setIsFetching(false);
       if (pollingTimeoutRef.current) {
@@ -65,16 +68,16 @@ export const usePredictPrices = (
     }
   }, [enabled]);
 
-  const bookParamsKey = JSON.stringify(bookParams);
+  const queriesKey = JSON.stringify(queries);
 
   const fetchPrices = useCallback(async () => {
     if (!enabled) {
       return;
     }
 
-    if (!bookParams?.length) {
+    if (!queries?.length) {
       if (isMountedRef.current) {
-        setPrices({});
+        setPrices({ providerId: '', results: [] });
         setError(null);
         setIsFetching(false);
       }
@@ -97,7 +100,7 @@ export const usePredictPrices = (
       }
 
       const fetchedPrices = await controller.getPrices({
-        bookParams,
+        queries,
         providerId,
       });
 
@@ -129,7 +132,7 @@ export const usePredictPrices = (
             method: 'loadPrices',
             action: 'prices_load',
             operation: 'data_fetching',
-            bookParamsCount: bookParams.length,
+            queriesCount: queries.length,
             providerId,
           },
         },
@@ -137,7 +140,7 @@ export const usePredictPrices = (
 
       if (isMountedRef.current) {
         setError(errorMessage);
-        setPrices({});
+        setPrices({ providerId: '', results: [] });
       }
     } finally {
       if (isMountedRef.current) {
@@ -145,7 +148,7 @@ export const usePredictPrices = (
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, bookParamsKey, providerId, pollingInterval]);
+  }, [enabled, queriesKey, providerId, pollingInterval]);
 
   useEffect(() => {
     if (pollingTimeoutRef.current) {

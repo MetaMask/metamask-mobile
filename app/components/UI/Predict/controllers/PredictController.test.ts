@@ -783,9 +783,17 @@ describe('PredictController', () => {
           .mockResolvedValue(mockPrices);
 
         const result = await controller.getPrices({
-          bookParams: [
-            { token_id: 'token-1', side: 'BUY' as const },
-            { token_id: 'token-2', side: 'BUY' as const },
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+            {
+              marketId: 'market-2',
+              outcomeId: 'outcome-2',
+              outcomeTokenId: 'token-2',
+            },
           ],
           providerId: 'polymarket',
         });
@@ -794,11 +802,18 @@ describe('PredictController', () => {
         expect(controller.state.lastError).toBeNull();
         expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
         expect(mockPolymarketProvider.getPrices).toHaveBeenCalledWith({
-          bookParams: [
-            { token_id: 'token-1', side: 'BUY' },
-            { token_id: 'token-2', side: 'BUY' },
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+            {
+              marketId: 'market-2',
+              outcomeId: 'outcome-2',
+              outcomeTokenId: 'token-2',
+            },
           ],
-          providerId: 'polymarket',
         });
       });
     });
@@ -810,7 +825,14 @@ describe('PredictController', () => {
           .mockResolvedValue(mockPrices);
 
         const result = await controller.getPrices({
-          bookParams: [{ token_id: 'token-1', side: 'BUY' as const }],
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+          ],
+          providerId: 'polymarket',
         });
 
         expect(result).toEqual(mockPrices);
@@ -820,13 +842,16 @@ describe('PredictController', () => {
 
     it('handle empty bookParams array', async () => {
       await withController(async ({ controller }) => {
-        mockPolymarketProvider.getPrices = jest.fn().mockResolvedValue({});
+        mockPolymarketProvider.getPrices = jest
+          .fn()
+          .mockResolvedValue({ providerId: 'polymarket', results: [] });
 
         const result = await controller.getPrices({
-          bookParams: [],
+          queries: [],
+          providerId: 'polymarket',
         });
 
-        expect(result).toEqual({});
+        expect(result).toEqual({ providerId: 'polymarket', results: [] });
         expect(controller.state.lastError).toBeNull();
       });
     });
@@ -843,10 +868,19 @@ describe('PredictController', () => {
           .mockResolvedValue(mockBuyPrices);
 
         const result = await controller.getPrices({
-          bookParams: [
-            { token_id: 'token-1', side: 'BUY' as const },
-            { token_id: 'token-2', side: 'BUY' as const },
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+            {
+              marketId: 'market-2',
+              outcomeId: 'outcome-2',
+              outcomeTokenId: 'token-2',
+            },
           ],
+          providerId: 'polymarket',
         });
 
         expect(result).toEqual(mockBuyPrices);
@@ -865,10 +899,19 @@ describe('PredictController', () => {
           .mockResolvedValue(mockSellPrices);
 
         const result = await controller.getPrices({
-          bookParams: [
-            { token_id: 'token-1', side: 'SELL' as const },
-            { token_id: 'token-2', side: 'SELL' as const },
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+            {
+              marketId: 'market-2',
+              outcomeId: 'outcome-2',
+              outcomeTokenId: 'token-2',
+            },
           ],
+          providerId: 'polymarket',
         });
 
         expect(result).toEqual(mockSellPrices);
@@ -879,7 +922,13 @@ describe('PredictController', () => {
       await withController(async ({ controller }) => {
         await expect(
           controller.getPrices({
-            bookParams: [{ token_id: 'token-1', side: 'BUY' as const }],
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
             providerId: 'nonexistent',
           }),
         ).rejects.toThrow('Provider not available');
@@ -898,7 +947,14 @@ describe('PredictController', () => {
 
         await expect(
           controller.getPrices({
-            bookParams: [{ token_id: 'token-1', side: 'BUY' as const }],
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
+            providerId: 'polymarket',
           }),
         ).rejects.toThrow(errorMessage);
 
@@ -915,7 +971,14 @@ describe('PredictController', () => {
 
         await expect(
           controller.getPrices({
-            bookParams: [{ token_id: 'token-1', side: 'BUY' as const }],
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
+            providerId: 'polymarket',
           }),
         ).rejects.toBe('String error');
 
@@ -935,7 +998,14 @@ describe('PredictController', () => {
           .mockResolvedValue(mockPrices);
 
         await controller.getPrices({
-          bookParams: [{ token_id: 'token-1', side: 'BUY' as const }],
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+          ],
+          providerId: 'polymarket',
         });
 
         expect(controller.state.lastError).toBeNull();

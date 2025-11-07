@@ -54,8 +54,8 @@ import {
   AcceptAgreementParams,
   ClaimParams,
   GetPriceHistoryParams,
-  GetPricesParams,
-  ParsedPricesMap,
+  GetPriceParams,
+  GetPriceResponse,
   PredictAccountMeta,
   PredictActivity,
   PredictBalance,
@@ -606,11 +606,11 @@ export class PredictController extends BaseController<
   /**
    * Get current prices for multiple tokens
    *
-   * Fetches BUY (best ask) and SELL (best bid) prices from the CLOB API.
+   * Fetches BUY (best ask) and SELL (best bid) prices from the provider.
    * BUY = what you'd pay to buy
    * SELL = what you'd receive to sell
    */
-  async getPrices(params: GetPricesParams): Promise<ParsedPricesMap> {
+  async getPrices(params: GetPriceParams): Promise<GetPriceResponse> {
     try {
       const providerId = params.providerId ?? 'polymarket';
       const provider = this.providers.get(providerId);
@@ -619,14 +619,14 @@ export class PredictController extends BaseController<
         throw new Error('Provider not available');
       }
 
-      const prices = await provider.getPrices(params);
+      const response = await provider.getPrices({ queries: params.queries });
 
       this.update((state) => {
         state.lastError = null;
         state.lastUpdateTimestamp = Date.now();
       });
 
-      return prices;
+      return response;
     } catch (error) {
       const errorMessage =
         error instanceof Error
@@ -643,7 +643,7 @@ export class PredictController extends BaseController<
         ensureError(error),
         this.getErrorContext('getPrices', {
           providerId: params.providerId,
-          bookParamsCount: params.bookParams?.length,
+          queriesCount: params.queries?.length,
         }),
       );
 

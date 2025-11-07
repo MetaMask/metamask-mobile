@@ -53,12 +53,11 @@ import { usePredictMarket } from '../../hooks/usePredictMarket';
 import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
 import { usePredictPrices } from '../../hooks/usePredictPrices';
 import {
-  BookParams,
+  PriceQuery,
   PredictPriceHistoryInterval,
   PredictMarketStatus,
   PredictOutcome,
   PredictOutcomeToken,
-  Side,
 } from '../../types';
 import PredictMarketOutcome from '../../components/PredictMarketOutcome';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
@@ -322,46 +321,39 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     [market?.outcomes],
   );
 
-  // extract token IDs from open outcomes for price fetching
-  const openOutcomeTokenIds = useMemo(() => {
-    const tokenIds: string[] = [];
-    openOutcomesBase.forEach((outcome) => {
-      outcome.tokens.forEach((token) => {
-        if (token.id) {
-          tokenIds.push(token.id);
-        }
-      });
-    });
-    return tokenIds;
-  }, [openOutcomesBase]);
-
-  // build book params for fetching prices
-  const bookParams: BookParams[] = useMemo(
+  // build price queries for fetching prices
+  const priceQueries: PriceQuery[] = useMemo(
     () =>
-      openOutcomeTokenIds.map((tokenId) => ({
-        token_id: tokenId,
-        side: Side.SELL,
-      })),
-    [openOutcomeTokenIds],
+      openOutcomesBase.flatMap((outcome) =>
+        outcome.tokens.map((token) => ({
+          marketId: outcome.marketId,
+          outcomeId: outcome.id,
+          outcomeTokenId: token.id,
+        })),
+      ),
+    [openOutcomesBase],
   );
 
   // fetch real-time prices once after market loads
   const { prices } = usePredictPrices({
-    bookParams,
+    queries: priceQueries,
     providerId,
-    enabled: !isMarketFetching && openOutcomeTokenIds.length > 0,
+    enabled: !isMarketFetching && priceQueries.length > 0,
   });
 
   // create open outcomes with updated prices from real-time data
   const openOutcomes = useMemo(() => {
-    if (!Object.keys(prices).length) {
+    if (!prices.results.length) {
       return openOutcomesBase;
     }
 
     return openOutcomesBase.map((outcome) => ({
       ...outcome,
       tokens: outcome.tokens.map((token) => {
-        const realTimePrice = prices[token.id]?.SELL;
+        const priceResult = prices.results.find(
+          (r) => r.outcomeTokenId === token.id,
+        );
+        const realTimePrice = priceResult?.entry.sell;
         return {
           ...token,
           // use real-time (CLOB) price if available, otherwise keep existing price
