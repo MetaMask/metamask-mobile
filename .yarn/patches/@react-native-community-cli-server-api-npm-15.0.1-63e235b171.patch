@@ -1,0 +1,64 @@
+diff --git a/build/openURLMiddleware.js b/build/openURLMiddleware.js
+index 7a94ec05225f885a179b68df05195f706f3148de..798a43ade0d36f7300599e49e6e5f0eb72773dea 100644
+--- a/build/openURLMiddleware.js
++++ b/build/openURLMiddleware.js
+@@ -1,7 +1,7 @@
+ "use strict";
+ 
+ Object.defineProperty(exports, "__esModule", {
+-  value: true
++  value: true,
+ });
+ exports.default = void 0;
+ function _cliTools() {
+@@ -19,7 +19,9 @@ function _connect() {
+   return data;
+ }
+ var _rawBodyMiddleware = _interopRequireDefault(require("./rawBodyMiddleware"));
+-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
++function _interopRequireDefault(obj) {
++  return obj && obj.__esModule ? obj : { default: obj };
++}
+ /**
+  * Copyright (c) Facebook, Inc. and its affiliates.
+  *
+@@ -32,16 +34,33 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
+  */
+ function openURLMiddleware(req, res, next) {
+   if (!req.rawBody) {
+-    return next(new Error('missing request body'));
++    return next(new Error("missing request body"));
++  }
++  const { url } = JSON.parse(req.rawBody);
++
++  // This needs to be removed when updating react-native
++  // When react-native updates, we will need to bump react-native-community/cli
++  // and that update will include this update since this is a dep of it
++  try {
++    const parsedUrl = new URL(url);
++    if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
++      res.writeHead(400);
++      res.end("Invalid URL protocol");
++      return;
++    }
++  } catch (error) {
++    res.writeHead(400);
++    res.end("Invalid URL format");
++    return;
+   }
+-  const {
+-    url
+-  } = JSON.parse(req.rawBody);
++
+   _cliTools().logger.info(`Opening ${url}...`);
+   (0, _cliTools().launchDefaultBrowser)(url);
+-  res.end('OK');
++  res.end("OK");
+ }
+-var _default = (0, _connect().default)().use(_rawBodyMiddleware.default).use(openURLMiddleware);
++var _default = (0, _connect().default)()
++  .use(_rawBodyMiddleware.default)
++  .use(openURLMiddleware);
+ exports.default = _default;
+ 
+ //# sourceMappingURL=/Users/thymikee/Developer/oss/rncli/packages/cli-server-api/build/openURLMiddleware.js.map

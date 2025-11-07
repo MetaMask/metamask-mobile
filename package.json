@@ -176,7 +176,8 @@
     "@scure/bip32": "1.7.0",
     "@metamask/snaps-sdk": "^10.0.0",
     "react-native@0.76.9": "patch:react-native@npm%3A0.76.9#./.yarn/patches/react-native-npm-0.76.9-1c25352097.patch",
-    "@metamask/transaction-controller@npm:^61.0.0": "patch:@metamask/transaction-controller@npm%3A61.0.0#~/.yarn/patches/@metamask-transaction-controller-npm-61.0.0-cccac388c7.patch"
+    "@metamask/transaction-controller@npm:^61.0.0": "patch:@metamask/transaction-controller@npm%3A61.0.0#~/.yarn/patches/@metamask-transaction-controller-npm-61.0.0-cccac388c7.patch",
+    "@react-native-community/cli-server-api@npm:15.0.1": "patch:@react-native-community/cli-server-api@npm%3A15.0.1#~/.yarn/patches/@react-native-community-cli-server-api-npm-15.0.1-63e235b171.patch"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
@@ -299,7 +300,7 @@
     "@react-native-community/cli": "15.0.1",
     "@react-native-community/cli-platform-android": "15.0.1",
     "@react-native-community/cli-platform-ios": "15.0.1",
-    "@react-native-community/cli-server-api": "^17.0.0",
+    "@react-native-community/cli-server-api": "patch:@react-native-community/cli-server-api@npm%3A15.0.1#~/.yarn/patches/@react-native-community-cli-server-api-npm-15.0.1-63e235b171.patch",
     "@react-native-community/datetimepicker": "^8.3.0",
     "@react-native-community/netinfo": "^11.4.1",
     "@react-native-community/slider": "^4.4.3",

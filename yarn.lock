@@ -10824,21 +10824,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-community/cli-server-api@npm:^17.0.0":
-  version: 17.0.0
-  resolution: "@react-native-community/cli-server-api@npm:17.0.0"
+"@react-native-community/cli-server-api@patch:@react-native-community/cli-server-api@npm%3A15.0.1#~/.yarn/patches/@react-native-community-cli-server-api-npm-15.0.1-63e235b171.patch":
+  version: 15.0.1
+  resolution: "@react-native-community/cli-server-api@patch:@react-native-community/cli-server-api@npm%3A15.0.1#~/.yarn/patches/@react-native-community-cli-server-api-npm-15.0.1-63e235b171.patch::version=15.0.1&hash=c5fada"
   dependencies:
-    "@react-native-community/cli-tools": "npm:17.0.0"
-    body-parser: "npm:^1.20.3"
+    "@react-native-community/cli-debugger-ui": "npm:15.0.1"
+    "@react-native-community/cli-tools": "npm:15.0.1"
     compression: "npm:^1.7.1"
     connect: "npm:^3.6.5"
     errorhandler: "npm:^1.5.1"
     nocache: "npm:^3.0.1"
-    open: "npm:^6.2.0"
     pretty-format: "npm:^26.6.2"
     serve-static: "npm:^1.13.1"
     ws: "npm:^6.2.3"
-  checksum: 10/1f303edbe4d81b1048a11a67a5621d0aea259ba2d7f070a02c755d950e0d030c33561bcb473da1b90f7e4fbad8ed5188ddc766478a2d63bac9d2ddc6fd1806a4
+  checksum: 10/dbbecb789591634e6eb176440c6627df47ef0dbcfd670d53d921b8b6d920b57c3094427f0c4c26fab899b60147ea18bb0e8c665169f8a305d852553f0f6b45b0
   languageName: node
   linkType: hard
 
@@ -10858,24 +10857,6 @@ __metadata:
     shell-quote: "npm:^1.7.3"
     sudo-prompt: "npm:^9.0.0"
   checksum: 10/3447257d1650104466b7d59846ddcd45d8432b18d18df71c0606ecfed7892014fa959b917ab435c822b305a9a890bd51e762e941137e29f7824e215beacb42a5
-  languageName: node
-  linkType: hard
-
-"@react-native-community/cli-tools@npm:17.0.0":
-  version: 17.0.0
-  resolution: "@react-native-community/cli-tools@npm:17.0.0"
-  dependencies:
-    "@vscode/sudo-prompt": "npm:^9.0.0"
-    appdirsjs: "npm:^1.2.4"
-    chalk: "npm:^4.1.2"
-    execa: "npm:^5.0.0"
-    find-up: "npm:^5.0.0"
-    launch-editor: "npm:^2.9.1"
-    mime: "npm:^2.4.1"
-    ora: "npm:^5.4.1"
-    prompts: "npm:^2.4.2"
-    semver: "npm:^7.5.2"
-  checksum: 10/674bfc0bd7b818f568e898eef17b81ed5842b1372dddda092cb1cc5c1c26f24126937e204fac16d3f86c1e33c619e09a497a20d13444925999fdb465d2143366
   languageName: node
   linkType: hard
 
@@ -18296,13 +18277,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vscode/sudo-prompt@npm:^9.0.0":
-  version: 9.3.1
-  resolution: "@vscode/sudo-prompt@npm:9.3.1"
-  checksum: 10/233edb992ae5dda69b9c63101f85a7996ff7034cb9b0ea976f3ab06483511a35162a650d8e081ded5f07aa9b2f2bac93e45420d956cf1b1d8a76ac385d4a9581
-  languageName: node
-  linkType: hard
-
 "@vue/compiler-core@npm:3.3.4":
   version: 3.3.4
   resolution: "@vue/compiler-core@npm:3.3.4"
@@ -22141,7 +22115,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"body-parser@npm:1.20.3, body-parser@npm:^1.15.2, body-parser@npm:^1.19.0, body-parser@npm:^1.20.3":
+"body-parser@npm:1.20.3, body-parser@npm:^1.15.2, body-parser@npm:^1.19.0":
   version: 1.20.3
   resolution: "body-parser@npm:1.20.3"
   dependencies:
@@ -33057,16 +33031,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"launch-editor@npm:^2.9.1":
-  version: 2.10.0
-  resolution: "launch-editor@npm:2.10.0"
-  dependencies:
-    picocolors: "npm:^1.0.0"
-    shell-quote: "npm:^1.8.1"
-  checksum: 10/2ef26369d89ad22938c1f5c343a622ff2e8e2f7709901c739ef38319a103b7da400afc147005e765fc0c22fd467eeb5f63f98568b3882e21f7782a4061fdeb60
-  languageName: node
-  linkType: hard
-
 "lazy-universal-dotenv@npm:^4.0.0":
   version: 4.0.0
   resolution: "lazy-universal-dotenv@npm:4.0.0"
@@ -34388,7 +34352,7 @@ __metadata:
     "@react-native-community/cli": "npm:15.0.1"
     "@react-native-community/cli-platform-android": "npm:15.0.1"
     "@react-native-community/cli-platform-ios": "npm:15.0.1"
-    "@react-native-community/cli-server-api": "npm:^17.0.0"
+    "@react-native-community/cli-server-api": "patch:@react-native-community/cli-server-api@npm%3A15.0.1#~/.yarn/patches/@react-native-community-cli-server-api-npm-15.0.1-63e235b171.patch"
     "@react-native-community/datetimepicker": "npm:^8.3.0"
     "@react-native-community/netinfo": "npm:^11.4.1"
     "@react-native-community/slider": "npm:^4.4.3"
