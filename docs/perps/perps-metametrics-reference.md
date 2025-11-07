@@ -248,7 +248,13 @@ MetaMetrics.getInstance().trackEvent(
 
 To support multiple AB tests running concurrently (e.g., TAT-1937 button colors, TAT-1940 asset CTA, TAT-1827 homepage CTA), we use **flat properties** instead of generic properties.
 
-**Property Naming:** `ab_test_{test_name}` and `ab_test_{test_name}_enabled`
+**Property Naming:** `ab_test_{test_name}` (no `_enabled` suffix needed)
+
+**Why no `_enabled` property?**
+
+- Events are only sent when test is enabled (`isEnabled === true`)
+- Including the property means the test is active
+- No need for redundant `_enabled` flag
 
 **Example with 3 concurrent tests:**
 
@@ -259,23 +265,18 @@ usePerpsEventTracking({
     [PerpsEventProperties.SCREEN_TYPE]:
       PerpsEventValues.SCREEN_TYPE.ASSET_DETAILS,
     [PerpsEventProperties.ASSET]: 'BTC',
-    // Test 1: Button color test (TAT-1937)
-    [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: isButtonColorTestEnabled
-      ? buttonColorVariant
-      : undefined,
-    [PerpsEventProperties.AB_TEST_BUTTON_COLOR_ENABLED]:
-      isButtonColorTestEnabled,
+    // Test 1: Button color test (TAT-1937) - only included when enabled
+    ...(isButtonColorTestEnabled && {
+      [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+    }),
     // Test 2: Asset CTA test (TAT-1940) - future
-    [PerpsEventProperties.AB_TEST_ASSET_CTA]: isAssetCTATestEnabled
-      ? assetCTAVariant
-      : undefined,
-    [PerpsEventProperties.AB_TEST_ASSET_CTA_ENABLED]: isAssetCTATestEnabled,
+    ...(isAssetCTATestEnabled && {
+      [PerpsEventProperties.AB_TEST_ASSET_CTA]: assetCTAVariant,
+    }),
     // Test 3: Homepage CTA test (TAT-1827) - future
-    [PerpsEventProperties.AB_TEST_HOMEPAGE_CTA]: isHomepageCTATestEnabled
-      ? homepageCTAVariant
-      : undefined,
-    [PerpsEventProperties.AB_TEST_HOMEPAGE_CTA_ENABLED]:
-      isHomepageCTATestEnabled,
+    ...(isHomepageCTATestEnabled && {
+      [PerpsEventProperties.AB_TEST_HOMEPAGE_CTA]: homepageCTAVariant,
+    }),
   },
 });
 ```

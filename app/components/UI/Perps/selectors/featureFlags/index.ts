@@ -53,7 +53,7 @@ export const selectPerpsGtmOnboardingModalEnabledFlag = createSelector(
 export const selectPerpsButtonColorTestVariant = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): string | null => {
-    const remoteFlag = remoteFeatureFlags?.perpsButtonColorTestEnabled;
+    const remoteFlag = remoteFeatureFlags?.perpsAbtestButtonColor;
 
     // LaunchDarkly can return:
     // 1. A string variant name: 'control' or 'monochrome'

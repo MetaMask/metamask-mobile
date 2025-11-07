@@ -44,7 +44,7 @@ graph TD
 ```typescript
 export const BUTTON_COLOR_TEST: ABTestConfig<ButtonColorTestVariants> = {
   testId: 'button_color_test',
-  featureFlagKey: 'perpsButtonColorTestEnabled',
+  featureFlagKey: 'perpsAbtestButtonColor',
   description: 'Tests impact of button colors on trading behavior',
   variants: {
     control: {
@@ -76,7 +76,7 @@ export const BUTTON_COLOR_TEST: ABTestConfig<ButtonColorTestVariants> = {
 export const selectPerpsButtonColorTestVariant = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): string | null => {
-    const flag = remoteFeatureFlags?.perpsButtonColorTestEnabled;
+    const flag = remoteFeatureFlags?.perpsAbtestButtonColor;
     return flag || null; // Returns 'control' | 'monochrome' | null
   },
 );
@@ -88,7 +88,7 @@ export const selectPerpsButtonColorTestVariant = createSelector(
 {
   RemoteFeatureFlagController: {
     remoteFeatureFlags: {
-      perpsButtonColorTestEnabled: 'control'; // String value from LaunchDarkly
+      perpsAbtestButtonColor: 'control'; // String value from LaunchDarkly
     }
   }
 }
@@ -216,7 +216,7 @@ export const MY_TEST: ABTestConfig<{
   treatment: ABTestVariant<MyTestVariant>;
 }> = {
   testId: 'my_test',
-  featureFlagKey: 'perpsMyTestEnabled',
+  featureFlagKey: 'perpsAbtestMyTest',
   description: 'Test description',
   variants: {
     control: {
@@ -231,6 +231,8 @@ export const MY_TEST: ABTestConfig<{
 };
 ```
 
+**Note:** LaunchDarkly flag name would be `perps-abtest-my-test` (kebab-case), which becomes `perpsAbtestMyTest` (camelCase) in Redux state.
+
 ### 3. Add Feature Flag Selector
 
 **File:** `app/components/UI/Perps/selectors/featureFlags/index.ts`
@@ -238,7 +240,7 @@ export const MY_TEST: ABTestConfig<{
 ```typescript
 export const selectPerpsMyTestVariant = createSelector(
   selectRemoteFeatureFlags,
-  (flags): string | null => flags?.perpsMyTestEnabled || null,
+  (flags): string | null => flags?.perpsAbtestMyTest || null,
 );
 ```
 
@@ -286,24 +288,28 @@ To support multiple AB tests running simultaneously (e.g., TAT-1937 button color
 ```typescript
 {
   ab_test_button_color: 'control',
-  ab_test_button_color_enabled: true,
   ab_test_asset_cta: 'variant_a',
-  ab_test_asset_cta_enabled: true,
-  ab_test_homepage_cta: 'treatment',
-  ab_test_homepage_cta_enabled: false
+  ab_test_homepage_cta: 'treatment'
 }
 // ✓ Supports multiple concurrent tests in same event
+// Note: Only include properties when test is enabled (don't send event if disabled)
 ```
 
 ### Naming Convention
 
-**Pattern:** `ab_test_{test_name}` and `ab_test_{test_name}_enabled`
+**Pattern:** `ab_test_{test_name}` (no `_enabled` suffix needed)
+
+**Why no `_enabled` property?**
+
+- Events are only sent when test is enabled
+- Including the property means the test is active
+- No need for redundant `_enabled` flag
 
 **Examples:**
 
-- Button color test: `ab_test_button_color`, `ab_test_button_color_enabled`
-- Asset CTA test: `ab_test_asset_cta`, `ab_test_asset_cta_enabled`
-- Homepage CTA test: `ab_test_homepage_cta`, `ab_test_homepage_cta_enabled`
+- Button color test: `ab_test_button_color`
+- Asset CTA test: `ab_test_asset_cta`
+- Homepage CTA test: `ab_test_homepage_cta`
 
 ### Implementation
 
@@ -314,13 +320,12 @@ export const PerpsEventProperties = {
   // ... existing properties ...
 
   // A/B testing properties (flat per test for multiple concurrent tests)
+  // Only include AB test properties when test is enabled (event not sent when disabled)
   // Button color test (TAT-1937)
   AB_TEST_BUTTON_COLOR: 'ab_test_button_color',
-  AB_TEST_BUTTON_COLOR_ENABLED: 'ab_test_button_color_enabled',
   // Asset CTA test (TAT-1940)
   AB_TEST_ASSET_CTA: 'ab_test_asset_cta',
-  AB_TEST_ASSET_CTA_ENABLED: 'ab_test_asset_cta_enabled',
-  // Future tests: add as AB_TEST_{TEST_NAME}, AB_TEST_{TEST_NAME}_ENABLED
+  // Future tests: add as AB_TEST_{TEST_NAME} (no _ENABLED property needed)
 } as const;
 ```
 
@@ -434,16 +439,31 @@ const buttonColorVariant = 'monochrome';
 
 **Flag Type:** Use **String** flag (not Boolean or JSON) for AB tests.
 
-**Configuration Steps:**
+**Naming Convention:** `perps-abtest-{test-name}`
 
-1. **Create flag:** `perps-my-test-enabled` (kebab-case in LaunchDarkly UI)
+**Examples:**
+
+- Button color test: `perps-abtest-button-color`
+- Asset details test: `perps-abtest-asset-details`
+- Homepage test: `perps-abtest-homepage`
+
+**Why this pattern?**
+
+- `perps-` = Feature area (Perps trading)
+- `abtest-` = Identifies it as an AB test (vs feature flag)
+- `{test-name}` = What's being tested
+- No `-enabled` suffix needed (LaunchDarkly has ON/OFF toggle)
+
+**Configuration Steps (using button color test as example):**
+
+1. **Create flag:** `perps-abtest-button-color` (kebab-case in LaunchDarkly UI)
 2. **Flag type:** String (from dropdown)
 3. **String variations:**
    - Variation 0: Name=`Control`, Value=`control`
-   - Variation 1: Name=`Treatment`, Value=`treatment`
+   - Variation 1: Name=`Monochrome`, Value=`monochrome`
 4. **Targeting rules:**
    - 50% percentage rollout → `control`
-   - 50% percentage rollout → `treatment`
+   - 50% percentage rollout → `monochrome`
    - Optional: Version constraint via custom rule (`appVersion >= 7.60.0`)
 5. **Default variations:**
    - When ON: `control`
@@ -452,11 +472,11 @@ const buttonColorVariant = 'monochrome';
 ### What the App Receives
 
 ```typescript
-// Redux state structure
+// Redux state structure (kebab-case converted to camelCase)
 {
   RemoteFeatureFlagController: {
     remoteFeatureFlags: {
-      perpsMyTestEnabled: 'control'; // Simple string value
+      perpsAbtestButtonColor: 'control'; // Simple string value
     }
   }
 }

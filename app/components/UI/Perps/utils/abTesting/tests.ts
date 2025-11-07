@@ -24,7 +24,7 @@ import type { ABTestConfig, ButtonColorTestVariants } from './types';
  * - Misclick rate (cancelled trades within 10s)
  * - Time to execution
  *
- * Feature flag: perpsButtonColorTestEnabled
+ * Feature flag: perpsAbtestButtonColor
  * Duration: 2-4 weeks
  * Distribution: 50/50 (controlled by LaunchDarkly)
  *
@@ -32,7 +32,7 @@ import type { ABTestConfig, ButtonColorTestVariants } from './types';
  */
 export const BUTTON_COLOR_TEST: ABTestConfig<ButtonColorTestVariants> = {
   testId: 'button_color_test',
-  featureFlagKey: 'perpsButtonColorTestEnabled',
+  featureFlagKey: 'perpsAbtestButtonColor',
   description:
     'Tests impact of button colors (green/red vs white/white) on trading behavior',
   minVersion: '7.60.0',

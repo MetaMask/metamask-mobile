@@ -106,10 +106,10 @@ export const PerpsEventProperties = {
   TAB_NUMBER: 'tab_number',
 
   // A/B testing properties (flat per test for multiple concurrent tests)
+  // Only include AB test properties when test is enabled (event not sent when disabled)
   // Button color test (TAT-1937)
   AB_TEST_BUTTON_COLOR: 'ab_test_button_color',
-  AB_TEST_BUTTON_COLOR_ENABLED: 'ab_test_button_color_enabled',
-  // Future tests: add as AB_TEST_{TEST_NAME}, AB_TEST_{TEST_NAME}_ENABLED
+  // Future tests: add as AB_TEST_{TEST_NAME} (no _ENABLED property needed)
 } as const;
 
 /**
