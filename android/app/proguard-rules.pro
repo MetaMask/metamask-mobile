@@ -54,6 +54,10 @@
 -dontwarn kotlinx.coroutines.**
 -keep class kotlin.coroutines.** { *; }
 
+# Detox & Espresso idling resources
+-keep class com.wix.detox.** { *; }
+-keep class androidx.test.espresso.idling.** { *; }
+
 -dontwarn kotlinx.serialization.SerialName
 -dontwarn kotlinx.serialization.Serializable
 
