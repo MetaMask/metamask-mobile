@@ -35,7 +35,7 @@ jobs:
     runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg
     env:
       GRADLE_USER_HOME: /home/admin/_work/.gradle
-      CACHE_GENERATION: v1 # Increment this to bust the cache (v1, v2, v3, etc.)
+      CACHE_GENERATION: v2 # Increment this to bust the cache (v1, v2, v3, etc.)
     outputs:
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
       aab-uploaded: ${{ steps.upload-aab.outcome == 'success' }}
