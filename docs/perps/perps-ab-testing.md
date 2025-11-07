@@ -129,11 +129,25 @@ const MyComponent = () => {
 
   const buttonColors = variant as ButtonColorVariant;
 
+  // Track screen view with AB test context (baseline exposure)
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+    properties: {
+      [PerpsEventProperties.SCREEN_TYPE]:
+        PerpsEventValues.SCREEN_TYPE.ASSET_DETAILS,
+      [PerpsEventProperties.ASSET]: market.symbol,
+      // AB test context - only included when test is enabled
+      ...(isEnabled && {
+        [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: variantName,
+      }),
+    },
+  });
+
   // Get imperative track function for button press tracking
   const { track } = usePerpsEventTracking();
 
   const handleButtonPress = (direction: 'long' | 'short') => {
-    // Track AB test on button press
+    // Track AB test on button press (engagement)
     if (isEnabled) {
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PerpsEventProperties.INTERACTION_TYPE]:
@@ -318,12 +332,25 @@ const { variant, variantName, isEnabled } = usePerpsABTest({
   featureFlagSelector: selectPerpsButtonColorTestVariant,
 });
 
+// Track screen view (baseline exposure)
+usePerpsEventTracking({
+  eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+  properties: {
+    [PerpsEventProperties.SCREEN_TYPE]:
+      PerpsEventValues.SCREEN_TYPE.ASSET_DETAILS,
+    [PerpsEventProperties.ASSET]: market.symbol,
+    ...(isEnabled && {
+      [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: variantName,
+    }),
+  },
+});
+
 // Get imperative track function for button press tracking
 const { track } = usePerpsEventTracking();
 
 // In button press handler
 const handleLongPress = () => {
-  // Track AB test on button press (TAT-1937)
+  // Track AB test on button press (engagement)
   if (isEnabled) {
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PerpsEventProperties.INTERACTION_TYPE]:
@@ -341,39 +368,37 @@ const handleLongPress = () => {
 
 ### Where to Track
 
-**Best Practice:** Track AB test context at the **point of user interaction** (button press) using PERPS_UI_INTERACTION events, not on screen views.
+**Best Practice:** Track AB test context in **both screen view and button press** events to enable engagement rate calculation.
 
-**Reasoning:**
+**Dual Tracking Approach:**
 
-- Measures the actual action being tested (button press), not just exposure
-- Avoids false attribution when order screen is reached from multiple sources
-- Captures user engagement rather than passive viewing
-- More accurate conversion data (pressed button → completed trade)
-- Only tracks users who interact with the tested element
+1. **PERPS_SCREEN_VIEWED** (baseline exposure):
+   - Tracks when user views the asset details screen
+   - Establishes how many users were exposed to each variant
+   - Only includes AB test property when test is enabled
+
+2. **PERPS_UI_INTERACTION** (engagement):
+   - Tracks when user presses Long/Short button
+   - Measures which variant drives more button presses
+   - Only sent when test is enabled
+
+**Why Both Events?**
+
+- **Engagement Rate** = Button presses / Screen views per variant
+- Answers: "Which button color makes users more likely to press the button?"
+- Screen views alone = exposure but not engagement
+- Button presses alone = engagement but no baseline for comparison
 
 **Example Flow (TAT-1937):**
 
-1. User views PerpsMarketDetailsView (asset details screen) - no tracking
-2. User taps Long button → `PERPS_UI_INTERACTION` with `ab_test_button_color: 'control'`, `interaction_type: 'tap'`
+1. User views PerpsMarketDetailsView → `PERPS_SCREEN_VIEWED` with `ab_test_button_color: 'control'` (baseline)
+2. User taps Long button → `PERPS_UI_INTERACTION` with `ab_test_button_color: 'control'`, `interaction_type: 'tap'` (engagement)
 3. User navigates to PerpsOrderView (order screen) - button colors applied, no tracking
 4. User completes trade → `PERPS_TRADE_TRANSACTION` event (no AB test context needed)
 
-**Analytics Query:**
+**Calculating Engagement Rate:**
 
-```sql
--- Calculate trade execution rate by AB test variant
-SELECT
-  ab_test_button_color,
-  COUNT(*) as button_presses,
-  COUNT(DISTINCT CASE WHEN trade_completed THEN user_id END) as completed_trades,
-  (completed_trades / button_presses) as execution_rate
-FROM perps_ui_interaction
-WHERE interaction_type = 'tap'
-  AND ab_test_button_color_enabled = true
-  AND asset IS NOT NULL
-  AND direction IS NOT NULL
-GROUP BY ab_test_button_color
-```
+Compare button presses to screen views for each variant to determine which color drives higher engagement.
 
 ---
 
@@ -454,31 +479,6 @@ const buttonColorVariant = 'monochrome';
 4. **Data Collection:** Track for 2-4 weeks minimum to reach statistical significance
 5. **Analysis:** Compare metrics between variants (Amplitude/DataDog)
 6. **Decision:** Roll winning variant to 100%, remove AB test code
-
----
-
-## Current Active Tests
-
-### TAT-1937: Button Color Test
-
-**Goal:** Determine which button colors drive better trading behavior
-
-**Variants:**
-
-- **Control:** Green (long) / Red (short) - traditional trading colors
-- **Monochrome:** White (both) - neutral, reduces emotional response
-
-**Metrics:**
-
-- Trade initiation rate
-- Trade execution rate
-- Misclick rate
-- Time to execution
-
-**Duration:** 2-4 weeks
-**Distribution:** 50/50 split
-
----
 
 ## Design Rationale
 

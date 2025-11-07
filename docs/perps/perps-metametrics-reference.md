@@ -80,6 +80,8 @@ MetaMetrics.getInstance().trackEvent(
 - `direction` (optional): `'long' | 'short'`
 - `source` (optional): Where user came from (e.g., `'banner'`, `'notification'`, `'main_action_button'`, `'position_tab'`, `'perp_markets'`, `'deeplink'`, `'tutorial'`)
 - `open_position` (optional): Number of open positions (used for close_all_positions screen, number)
+- `ab_test_button_color` (optional): Button color test variant (`'control' | 'monochrome'`), only included when test is enabled (for baseline exposure tracking)
+- Future AB tests: `ab_test_{test_name}` (see [Multiple Concurrent Tests](#multiple-concurrent-tests))
 
 ### 2. PERPS_UI_INTERACTION
 
@@ -100,7 +102,7 @@ MetaMetrics.getInstance().trackEvent(
 - `sort_direction` (optional): Sort direction: `'asc' | 'desc'`
 - `search_query` (optional): Search query text (when search_clicked)
 - `favorites_count` (optional): Total number of markets in watchlist after toggle (number, used with `favorite_toggled`)
-- `ab_test_button_color` (optional): Button color test variant (`'control' | 'monochrome'`), only included when test is enabled and user taps Long/Short button
+- `ab_test_button_color` (optional): Button color test variant (`'control' | 'monochrome'`), only included when test is enabled and user taps Long/Short button (for engagement tracking)
 - Future AB tests: `ab_test_{test_name}` (see [Multiple Concurrent Tests](#multiple-concurrent-tests))
 
 ### 3. PERPS_TRADE_TRANSACTION
@@ -280,15 +282,30 @@ usePerpsEventTracking({
 
 ### Where to Track AB Tests
 
-**✅ Track at point of interaction:** PERPS_UI_INTERACTION events with `interaction_type: 'tap'` measure the actual tested action (button press), not just exposure.
+**✅ Track in both events:** Use dual tracking to enable engagement rate calculation.
 
-**❌ Don't track in screen views:** Screen view tracking measures exposure but doesn't capture user engagement with the tested element. It also creates false attribution when screens are reached from multiple sources.
+**Dual Tracking Approach:**
 
-**Example:** For TAT-1937 (button color test), track in `PERPS_UI_INTERACTION` when user taps Long/Short buttons. Analytics can then measure:
+1. **PERPS_SCREEN_VIEWED** (baseline exposure):
+   - Include `ab_test_button_color` when test is enabled
+   - Establishes how many users were exposed to each variant
+   - Required to calculate engagement rate
 
-- Trade execution rate: Users who pressed buttons → completed a trade
-- Time to execution: Duration from button press to transaction
-- Button engagement: Which variant drives more button presses
+2. **PERPS_UI_INTERACTION** (engagement):
+   - Include `ab_test_button_color` when user taps Long/Short button
+   - Only sent when test is enabled
+   - Measures which variant drives more button presses
+
+**Why Both Events?**
+
+- **Engagement Rate** = Button presses / Screen views per variant
+- Answers: "Which button color makes users more likely to press the button?"
+
+**Example:** For TAT-1937 (button color test):
+
+- Screen views establish baseline (how many saw control vs monochrome)
+- Button presses measure engagement
+- Compare button presses to screen views for each variant
 
 For details, see [perps-ab-testing.md](./perps-ab-testing.md).
 
