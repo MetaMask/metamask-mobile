@@ -1,0 +1,91 @@
+name: Push OTA Update (Test)
+
+on:
+  push:
+    branches:
+      - wsun/ota-update-exp-workflow
+  # workflow_dispatch:
+  #   inputs:
+  #     channel:
+  #       description: 'Update channel (e.g., preview, production)'
+  #       required: true
+  #       type: string
+  #       default: 'preview'
+  #     message:
+  #       description: 'Update message/description'
+  #       required: false
+  #       type: string
+  #       default: 'Manual update from GitHub Actions'
+  #     branch:
+  #       description: 'Branch name to include in update'
+  #       required: false
+  #       type: string
+  #       default: ''
+
+jobs:
+  push-update:
+    name: Push EAS Update
+    runs-on: ubuntu-latest
+    environment: expo-update
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: |
+          echo "📦 Installing dependencies..."
+          yarn install --immutable
+
+      - name: Install EAS CLI
+        run: |
+          echo "📦 Installing EAS CLI..."
+          npm install -g eas-cli
+
+      - name: Display configuration
+        run: |
+          echo "🔧 Configuration:"
+          echo "  Channel: preview"
+          echo "  Message: test eas update workflow"
+          echo "  Runtime Version: $(node -e "console.log(require('./package.json').version)")"
+          echo ""
+          echo "📱 Project Info:"
+          echo "  Project ID (from ota.config.js): $(node -e "console.log(require('./ota.config.js').PROJECT_ID)")"
+          echo "  EXPO_PROJECT_ID (from secrets): $EXPO_PROJECT_ID"
+          echo "  EXPO_TOKEN (from secrets): $EXPO_TOKEN"
+
+      - name: Push EAS Update
+        run: |
+          echo "🚀 Publishing EAS update..."
+
+          eas update \
+            --platform ios \
+            --channel "preview" \
+            --message "test eas update workflow" \
+            --non-interactive
+
+      - name: Update summary
+        if: success()
+        run: |
+          echo "### ✅ EAS Update Published Successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Channel:** \`preview\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Message:** test eas update workflow" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Users on the \`preview\` channel will receive this update on their next app launch." >> $GITHUB_STEP_SUMMARY
+
+      - name: Update summary on failure
+        if: failure()
+        run: |
+          echo "### ❌ EAS Update Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check the logs above for error details." >> $GITHUB_STEP_SUMMARY
