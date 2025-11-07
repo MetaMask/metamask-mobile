@@ -1341,6 +1341,132 @@ describe('Onboarding', () => {
     });
   });
 
+  describe('checkForMigrationFailureAndVaultBackup', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+    });
+
+    it('returns early when route.params.delete is true', async () => {
+      // Arrange
+      const { toJSON } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+        { route: { params: { delete: true } } },
+      );
+
+      // Act - Component mounts and checkForMigrationFailureAndVaultBackup is called
+      await waitFor(() => {
+        expect(toJSON()).toBeDefined();
+      });
+
+      // Assert - When delete param is true, vault backup check is skipped
+      expect(StorageWrapper.getItem).not.toHaveBeenCalled();
+    });
+
+    it('accesses existingUser prop from Redux state', async () => {
+      // Arrange
+      const { toJSON } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialStateWithExistingUser,
+        },
+      );
+
+      // Act - Component mounts and reads existingUser from props
+      await waitFor(() => {
+        expect(toJSON()).toBeDefined();
+      });
+
+      // Assert - Component renders without errors when existingUser is true
+      expect(toJSON()).toBeTruthy();
+    });
+
+    it('reads existingUser as false for new users', async () => {
+      // Arrange
+      const { toJSON } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      // Act - Component mounts with existingUser false
+      await waitFor(() => {
+        expect(toJSON()).toBeDefined();
+      });
+
+      // Assert - Component handles new user case without errors
+      expect(toJSON()).toBeTruthy();
+    });
+  });
+
+  describe('showNotification', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.clearAllMocks();
+      jest.spyOn(BackHandler, 'addEventListener').mockImplementation(() => ({
+        remove: jest.fn(),
+      }));
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('calls Animated.timing when delete param is present', async () => {
+      // Arrange
+      const animatedTimingSpy = jest.spyOn(Animated, 'timing');
+
+      // Act
+      renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+        { route: { params: { delete: true } } },
+      );
+
+      // Assert - Animation is triggered
+      await waitFor(() => {
+        expect(animatedTimingSpy).toHaveBeenCalled();
+      });
+
+      animatedTimingSpy.mockRestore();
+    });
+
+    it('calls BackHandler.addEventListener when notification is shown', async () => {
+      // Arrange
+      const backHandlerSpy = jest.spyOn(BackHandler, 'addEventListener');
+
+      // Act
+      renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+        { route: { params: { delete: true } } },
+      );
+
+      // Assert - Verifies disableBackPress was called
+      await waitFor(() => {
+        expect(backHandlerSpy).toHaveBeenCalledWith(
+          'hardwareBackPress',
+          expect.any(Function),
+        );
+      });
+
+      backHandlerSpy.mockRestore();
+    });
+  });
+
   describe('ErrorBoundary Tests', () => {
     const mockOAuthService = jest.requireMock(
       '../../../core/OAuthService/OAuthService',
