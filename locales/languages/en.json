@@ -1916,7 +1916,7 @@
       "retry": "Retry"
     },
     "error_messages": {
-      "not_eligible": "This feature is not available in your region",
+      "not_eligible": "Not available in your region",
       "place_order_failed": "Failed to place order",
       "preview_failed": "Failed to preview order",
       "preview_no_order_book": "No order book found",
