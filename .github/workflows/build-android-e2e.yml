@@ -234,7 +234,7 @@ jobs:
 
       # Cache build artifacts with the pre-build fingerprint
       - name: Cache build artifacts
-        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
+        if: ${{ false }}
         uses: cirruslabs/cache@v4
         with:
           path: |

@@ -54,6 +54,13 @@
 -dontwarn kotlinx.coroutines.**
 -keep class kotlin.coroutines.** { *; }
 
+# Additional Kotlin/Coroutines internals and metadata to preserve
+-keep class kotlin.jvm.** { *; }
+-keep class kotlin.coroutines.jvm.internal.** { *; }
+-keep class kotlinx.coroutines.internal.** { *; }
+-keep class kotlinx.coroutines.scheduling.** { *; }
+-keepattributes InnerClasses,EnclosingMethod,Signature,Annotation
+
 # Detox & Espresso idling resources
 -keep class com.wix.detox.** { *; }
 -keep class androidx.test.espresso.idling.** { *; }

@@ -382,9 +382,10 @@ dependencies {
     } else {
         implementation jscFlavor
     }
-    androidTestImplementation('com.wix:detox:+') {
+    androidTestImplementation('com.wix:detox:20.35.0') {
          exclude module: "protobuf-lite"
      }
+    androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1"
     androidTestImplementation ('androidx.test.espresso:espresso-contrib:3.4.0')
 
     // Add these dependencies for androidTest
