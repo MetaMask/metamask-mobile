@@ -13,6 +13,9 @@ import {
 } from '../../../../../util/transactions';
 import {
   GetPriceHistoryParams,
+  GetPriceParams,
+  GetPriceResponse,
+  PriceResult,
   PredictActivity,
   PredictCategory,
   PredictMarket,
@@ -294,6 +297,86 @@ export class PolymarketProvider implements PredictProvider {
     }
   }
 
+  /**
+   * Get current prices for multiple tokens from CLOB /prices endpoint
+   *
+   * Fetches BUY (best ask) and SELL (best bid) prices for outcome tokens.
+   * BUY = what you'd pay to buy
+   * SELL = what you'd receive to sell
+   *
+   * @param params - Query parameters with marketId, outcomeId, and outcomeTokenId
+   * @returns Structured price response with results
+   */
+  public async getPrices({
+    queries,
+  }: Omit<GetPriceParams, 'providerId'>): Promise<GetPriceResponse> {
+    if (!queries || queries.length === 0) {
+      throw new Error('queries parameter is required and must not be empty');
+    }
+
+    try {
+      const { CLOB_ENDPOINT } = getPolymarketEndpoints();
+
+      const bookParams = queries.flatMap((query) => [
+        { token_id: query.outcomeTokenId, side: Side.BUY },
+        { token_id: query.outcomeTokenId, side: Side.SELL },
+      ]);
+
+      const response = await fetch(`${CLOB_ENDPOINT}/prices`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(bookParams),
+      });
+
+      if (!response.ok) {
+        const responseText = await response.text();
+        throw new Error(
+          `POST /prices failed: ${response.status} ${responseText}`,
+        );
+      }
+
+      type PolymarketPricesResponse = Record<
+        string,
+        Partial<Record<Side, string>>
+      >;
+      const data = (await response.json()) as PolymarketPricesResponse;
+
+      const results: PriceResult[] = queries.map((query) => {
+        const priceData = data[query.outcomeTokenId];
+        return {
+          marketId: query.marketId,
+          outcomeId: query.outcomeId,
+          outcomeTokenId: query.outcomeTokenId,
+          entry: {
+            buy: priceData?.BUY ? Number(priceData.BUY) : 0,
+            sell: priceData?.SELL ? Number(priceData.SELL) : 0,
+          },
+        };
+      });
+
+      return {
+        providerId: this.providerId,
+        results,
+      };
+    } catch (error) {
+      DevLogger.log('Error getting prices via Polymarket API:', error);
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('getPrices', {
+          queriesCount: queries.length,
+        }),
+      );
+
+      return {
+        providerId: this.providerId,
+        results: [],
+      };
+    }
+  }
+
   private addRecentlySoldPositions({
     address,
     positionIds,
@@ -390,7 +473,6 @@ export class PolymarketProvider implements PredictProvider {
         (await this.getAccountState({ ownerAddress: address })).address;
 
       const queryParams = new URLSearchParams({
-        // user: '0x33a90b4f8a9cccfe19059b0954e3f052d93efc00',
         user: predictAddress,
       });
 
