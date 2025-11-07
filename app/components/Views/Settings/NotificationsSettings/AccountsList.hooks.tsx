@@ -84,10 +84,6 @@ export function useNotificationAccountListProps() {
 
 export function useFirstHDWalletAccounts() {
   const accountGroupsByWallet = useSelector(selectAccountGroupsByWallet);
-
-  // TODO - do we have a reliable way of receiving the first HD wallet?
-  // Notifications only support the first HD wallet (due to backend limitations)
-  // This limitation will most likely be removed in near future
   const firstHDWalletGroup = accountGroupsByWallet.find(
     (w) => w.wallet.type === AccountWalletType.Entropy,
   );
