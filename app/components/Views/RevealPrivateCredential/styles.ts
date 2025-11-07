@@ -79,7 +79,6 @@ export const createStyles = (theme: Theme) =>
       borderColor: theme.colors.border.default,
       padding: 10,
       color: theme.colors.text.default,
-      fontFamily: 'Geist Regular',
     },
     icon: {
       color: theme.colors.error.default,
