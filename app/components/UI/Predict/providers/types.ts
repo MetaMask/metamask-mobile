@@ -48,6 +48,8 @@ export interface PlaceOrderParams {
     sharePrice?: number;
     liquidity?: number;
     volume?: number;
+    marketType?: string;
+    outcome?: string;
   };
 }
 
@@ -68,6 +70,11 @@ export interface PredictFees {
   metamaskFee: number;
   providerFee: number;
   totalFee: number;
+}
+
+export interface GeoBlockResponse {
+  isEligible: boolean;
+  country?: string;
 }
 
 /**
@@ -231,7 +238,7 @@ export interface PredictProvider {
   confirmClaim?(params: { positions: PredictPosition[]; signer: Signer }): void;
 
   // Eligibility (Geo-Blocking)
-  isEligible(): Promise<boolean>;
+  isEligible(): Promise<GeoBlockResponse>;
 
   // Predict wallet management
   prepareDeposit(

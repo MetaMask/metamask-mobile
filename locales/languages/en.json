@@ -542,7 +542,8 @@
     "activity": "Activity",
     "trade": "Trade",
     "settings": "Settings",
-    "rewards": "Rewards"
+    "rewards": "Rewards",
+    "trending": "Trending"
   },
   "drawer": {
     "send_button": "Send",
@@ -1746,6 +1747,7 @@
       "end_date": "End date",
       "resolver": "Resolver",
       "powered_by": "Powered by",
+      "resolution_details": "Resolution details",
       "yes": "Yes",
       "no": "No",
       "on": "on",
@@ -1769,6 +1771,8 @@
     "sell_position": "Sell Position",
     "cash_out": "Cash out",
     "cash_out_info": "Funds will be added to your available balance",
+    "at_price_per_share": "At price: {{price}}¢ per share",
+    "cashout_info": "{{amount}} on {{outcome}} at {{initialPrice}}¢",
     "buy_yes": "Yes",
     "buy_no": "No",
     "outcomes": "outcomes",
@@ -1827,6 +1831,14 @@
     "add_funds_sheet": {
       "title": "Add funds",
       "description": "You'll need to add funds to your Predictions account to get started. You can add any token and make your first prediction in seconds."
+    },
+    "consent_sheet": {
+      "title": "Terms of use",
+      "description": "MetaMask partners with Polymarket to offer prediction markets. All of our available markets, orders, and settlements happen on Polymarket.",
+      "learn_more": "Learn more.",
+      "agree": "Agree",
+      "disagree": "Disagree",
+      "disclaimer": "By continuing, you accept Polymarket’s terms."
     },
     "transactions": {
       "title": "Predictions",
@@ -4411,6 +4423,8 @@
     "order_status_completed": "Completed",
     "order_status_failed": "Failed",
     "order_status_cancelled": "Cancelled",
+    "webview_no_url_provided": "No URL was provided to continue",
+    "webview_error_no_address_provided": "No wallet address was provided to continue",
     "onboarding": {
       "what_to_expect": "What to Expect",
       "quotes": "Our buy crypto feature aggregates quotes from integrated vendors, providing quotes from those sources to get crypto directly into your wallet with no waiting period.",
@@ -6193,6 +6207,12 @@
         "verify_button": "Start verification",
         "start_verification_error": "Error starting verification. Please try again shortly."
       },
+      "kyc_webview": {
+        "close_confirmation_title": "Exit verification?",
+        "close_confirmation_message": "If you exit now, you'll need to restart the identity verification process. Are you sure you want to exit?",
+        "cancel_button": "Stay",
+        "close_button": "Exit"
+      },
       "validating_kyc": {
         "title": "Validating your KYC...",
         "timeout_button": "Restart verification"
@@ -6764,5 +6784,9 @@
     "update_rpc": "Update RPC",
     "check_network_connectivity": "Check your network connectivity.",
     "check_network_connectivity_or": "Check your network connectivity or"
+  },
+  "trending": {
+    "title": "Trending",
+    "coming_soon": "Trending tokens coming soon"
   }
 }
