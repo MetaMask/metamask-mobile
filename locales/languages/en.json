@@ -1771,6 +1771,8 @@
     "sell_position": "Sell Position",
     "cash_out": "Cash out",
     "cash_out_info": "Funds will be added to your available balance",
+    "at_price_per_share": "At price: {{price}}¢ per share",
+    "cashout_info": "{{amount}} on {{outcome}} at {{initialPrice}}¢",
     "buy_yes": "Yes",
     "buy_no": "No",
     "outcomes": "outcomes",
@@ -6705,6 +6707,8 @@
       "link_account": "Add account",
       "tracked": "Tracked",
       "untracked": "Untracked",
+      "unsupported": "Unsupported",
+      "tracked_count": "{{optedIn}}/{{total}} tracked",
       "link_account_success": "{{accountName}} added successfully",
       "link_account_error": "Failed to add one or more addresses for {{accountName}}"
     },

@@ -823,6 +823,7 @@ describe('PolymarketProvider', () => {
     mockSubmitClobOrder.mockResolvedValue({
       success: true,
       response: {
+        success: true,
         makingAmount: '1000000',
         orderID: 'order-123',
         status: 'success',
@@ -1131,7 +1132,7 @@ describe('PolymarketProvider', () => {
       });
       mockSubmitClobOrder.mockResolvedValue({
         success: true,
-        response: { orderId: 'test-order' },
+        response: { success: true, orderId: 'test-order' },
         error: undefined,
       });
       mockCreateApiKey.mockResolvedValue({
@@ -2599,7 +2600,7 @@ describe('PolymarketProvider', () => {
         });
       };
 
-      it('does not set rateLimited for SELL orders', async () => {
+      it('sets rateLimited for SELL orders after BUY order', async () => {
         setupPreviewOrderMock();
         const { provider, mockSigner } = setupPlaceOrderTest();
 
@@ -2610,7 +2611,7 @@ describe('PolymarketProvider', () => {
           preview,
         });
 
-        // Now try to preview a SELL order - should NOT be rate limited
+        // Now try to preview a SELL order - should also be rate limited
         const sellPreview = await provider.previewOrder({
           marketId: 'market-1',
           outcomeId: 'outcome-1',
@@ -2620,7 +2621,7 @@ describe('PolymarketProvider', () => {
           signer: mockSigner,
         });
 
-        expect(sellPreview.rateLimited).toBeUndefined();
+        expect(sellPreview.rateLimited).toBe(true);
       });
 
       it('does not set rateLimited when signer is not provided', async () => {
