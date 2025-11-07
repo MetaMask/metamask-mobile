@@ -47,7 +47,7 @@ import {
 } from '../types';
 import { PREDICT_CONSTANTS } from '../../constants/errors';
 import {
-  BUY_ORDER_RATE_LIMIT_MS,
+  ORDER_RATE_LIMIT_MS,
   FEE_COLLECTOR_ADDRESS,
   MATIC_CONTRACTS,
   POLYGON_MAINNET_CHAIN_ID,
@@ -206,7 +206,7 @@ export class PolymarketProvider implements PredictProvider {
       return false;
     }
     const elapsed = Date.now() - lastTimestamp;
-    return elapsed < BUY_ORDER_RATE_LIMIT_MS;
+    return elapsed < ORDER_RATE_LIMIT_MS;
   }
 
   public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
@@ -531,7 +531,7 @@ export class PolymarketProvider implements PredictProvider {
   ): Promise<OrderPreview> {
     const basePreview = await previewOrder(params);
 
-    if (params.side === Side.BUY && params.signer) {
+    if (params.signer) {
       if (this.isRateLimited(params.signer.address)) {
         return {
           ...basePreview,
@@ -671,10 +671,17 @@ export class PolymarketProvider implements PredictProvider {
         feeAuthorization,
       });
 
-      if (!response) {
+      if (!success) {
         return {
           success,
           error,
+        } as OrderResult;
+      }
+
+      if (!response.success) {
+        return {
+          success: false,
+          error: response.errorMsg,
         } as OrderResult;
       }
 
