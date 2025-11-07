@@ -542,7 +542,10 @@ describe('BasicInfo Component', () => {
       });
 
       expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.ENTER_EMAIL, {});
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.DEPOSIT.ENTER_EMAIL,
+        undefined,
+      );
     });
 
     it('handles logout error gracefully', async () => {
