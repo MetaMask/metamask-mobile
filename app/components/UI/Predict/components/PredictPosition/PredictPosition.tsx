@@ -8,7 +8,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { PredictPosition as PredictPositionType } from '../../types';
 import { formatPercentage, formatPrice } from '../../utils/format';
 import styleSheet from './PredictPosition.styles';
-import { getPredictPositionSelector } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictPositionSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -32,20 +32,15 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
 
   return (
     <TouchableOpacity
-      testID={getPredictPositionSelector.currentPositionCard}
+      testID={PredictPositionSelectorsIDs.CURRENT_POSITION_CARD}
       style={styles.positionContainer}
       onPress={() => onPress?.(position)}
     >
-      <View style={styles.positionImage}>
+      <View style={styles.positionImageContainer}>
         <Image source={{ uri: icon }} style={styles.positionImage} />
       </View>
       <View style={styles.positionDetails}>
-        <Text
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Default}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        >
+        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
           {title}
         </Text>
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>

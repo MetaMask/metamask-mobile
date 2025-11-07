@@ -28,6 +28,10 @@ jest.mock('../../../../../locales/i18n', () => ({
         options?.time || 5
       } seconds`,
       'predict.order.order_failed': 'Order failed',
+      'predict.error_messages.place_order_failed': 'Failed to place order',
+      'predict.error_messages.preview_failed': 'Failed to preview order',
+      'predict.error_messages.claim_failed': 'Failed to claim',
+      'predict.error_messages.unknown_error': 'An unknown error occurred',
     };
     return translations[key] || key;
   },
@@ -209,27 +213,6 @@ describe('usePredictPlaceOrder', () => {
       );
     });
 
-    it('reloads balance after order placement completes', async () => {
-      mockPlaceOrder.mockResolvedValue(mockSuccessResult);
-      const mockLoadBalance = jest.fn();
-      mockUsePredictBalance.mockReturnValue({
-        balance: 1000,
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        hasNoBalance: false,
-        loadBalance: mockLoadBalance,
-      });
-      const { result } = renderHook(() => usePredictPlaceOrder());
-
-      await act(async () => {
-        await result.current.placeOrder(mockOrderParams);
-      });
-
-      expect(mockLoadBalance).toHaveBeenCalledWith({ isRefresh: true });
-      expect(mockLoadBalance).toHaveBeenCalledTimes(1);
-    });
-
     it('calls onComplete callback when provided and order succeeds', async () => {
       mockPlaceOrder.mockResolvedValue(mockSuccessResult);
       const mockOnComplete = jest.fn();
@@ -288,7 +271,7 @@ describe('usePredictPlaceOrder', () => {
 
   describe('placeOrder - failure scenario', () => {
     it('updates error state when order fails', async () => {
-      mockPlaceOrder.mockResolvedValue(mockFailureResult);
+      mockPlaceOrder.mockRejectedValue(new Error('Order placement failed'));
       const { result } = renderHook(() => usePredictPlaceOrder());
 
       await act(async () => {
@@ -296,12 +279,12 @@ describe('usePredictPlaceOrder', () => {
       });
 
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBe('Order placement failed');
+      expect(result.current.error).toBe('Failed to place order');
       expect(result.current.result).toBeNull();
     });
 
     it('does not show toast when order placement fails', async () => {
-      mockPlaceOrder.mockResolvedValue(mockFailureResult);
+      mockPlaceOrder.mockRejectedValue(new Error('Order placement failed'));
 
       const { result } = renderHook(() => usePredictPlaceOrder());
 
@@ -313,7 +296,7 @@ describe('usePredictPlaceOrder', () => {
     });
 
     it('calls onError callback when provided and order fails', async () => {
-      mockPlaceOrder.mockResolvedValue(mockFailureResult);
+      mockPlaceOrder.mockRejectedValue(new Error('Order placement failed'));
       const mockOnError = jest.fn();
 
       const { result } = renderHook(() =>
@@ -324,7 +307,7 @@ describe('usePredictPlaceOrder', () => {
         await result.current.placeOrder(mockOrderParams);
       });
 
-      expect(mockOnError).toHaveBeenCalledWith('Order placement failed');
+      expect(mockOnError).toHaveBeenCalledWith('Failed to place order');
       expect(mockOnError).toHaveBeenCalledTimes(1);
     });
 
@@ -337,7 +320,7 @@ describe('usePredictPlaceOrder', () => {
         await result.current.placeOrder(mockOrderParams);
       });
 
-      expect(result.current.error).toBe('Network error');
+      expect(result.current.error).toBe('Failed to place order');
       expect(result.current.result).toBeNull();
     });
 
@@ -379,7 +362,7 @@ describe('usePredictPlaceOrder', () => {
       expect(mockDevLoggerLog).toHaveBeenCalledWith(
         'usePredictPlaceOrder: Error placing order',
         {
-          error: mockError,
+          error: 'Failed to place order',
           orderParams: mockOrderParams,
         },
       );
@@ -439,7 +422,7 @@ describe('usePredictPlaceOrder', () => {
       mockOnError.mockClear();
 
       // Test failure
-      mockPlaceOrder.mockResolvedValueOnce(mockFailureResult);
+      mockPlaceOrder.mockRejectedValueOnce(new Error('Order placement failed'));
 
       rerender({});
 
@@ -447,7 +430,7 @@ describe('usePredictPlaceOrder', () => {
         await result.current.placeOrder(mockOrderParams);
       });
 
-      expect(mockOnError).toHaveBeenCalledWith('Order placement failed');
+      expect(mockOnError).toHaveBeenCalledWith('Failed to place order');
       expect(mockOnComplete).not.toHaveBeenCalled();
     });
   });
@@ -455,14 +438,14 @@ describe('usePredictPlaceOrder', () => {
   describe('state management', () => {
     it('resets error state when order placement succeeds after failure', async () => {
       // First fail an order
-      mockPlaceOrder.mockResolvedValueOnce(mockFailureResult);
+      mockPlaceOrder.mockRejectedValueOnce(new Error('Order placement failed'));
       const { result } = renderHook(() => usePredictPlaceOrder());
 
       await act(async () => {
         await result.current.placeOrder(mockOrderParams);
       });
 
-      expect(result.current.error).toBe('Order placement failed');
+      expect(result.current.error).toBe('Failed to place order');
 
       // Then succeed
       mockPlaceOrder.mockResolvedValueOnce(mockSuccessResult);

@@ -1,5 +1,6 @@
 import { Matchers, Gestures } from '../../framework';
 import {
+  PredictBalanceSelectorsIDs,
   PredictMarketDetailsSelectorsIDs,
   PredictMarketDetailsSelectorsText,
 } from '../../selectors/Predict/Predict.selectors';
@@ -32,6 +33,10 @@ class PredictDetailsPage {
       PredictMarketDetailsSelectorsIDs.BACK_BUTTON,
     );
   }
+  get balanceCard(): DetoxElement {
+    return Matchers.getElementByID(PredictBalanceSelectorsIDs.BALANCE_CARD);
+  }
+
   async tapBackButton(): Promise<void> {
     await Gestures.waitAndTap(this.backButton, {
       elemDescription: 'Back button',

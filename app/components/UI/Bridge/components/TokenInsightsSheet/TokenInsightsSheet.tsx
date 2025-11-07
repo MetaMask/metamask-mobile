@@ -409,8 +409,8 @@ const TokenInsightsSheet: React.FC = () => {
                   priceChange24h > 0
                     ? TextColor.Success
                     : priceChange24h < 0
-                    ? TextColor.Error
-                    : TextColor.Alternative
+                      ? TextColor.Error
+                      : TextColor.Alternative
                 }
               >
                 {formatPercentChange(priceChange24h)}

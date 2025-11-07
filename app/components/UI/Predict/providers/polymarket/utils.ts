@@ -15,6 +15,7 @@ import {
   type PredictMarket,
   type PredictPosition,
   PredictActivity,
+  Result,
 } from '../../types';
 import { getRecurrence } from '../../utils/format';
 import type {
@@ -53,6 +54,7 @@ import {
   OrderBook,
   RoundConfig,
 } from './types';
+import { PREDICT_ERROR_CODES } from '../../constants/errors';
 
 export const getPolymarketEndpoints = () => ({
   GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
@@ -213,7 +215,13 @@ export const getOrderBook = async ({ tokenId }: { tokenId: string }) => {
     method: 'GET',
   });
   if (!response.ok) {
-    throw new Error('Failed to get order book');
+    const responseData = (await response.json()) as { error: string };
+    if (
+      responseData.error === 'No orderbook exists for the requested token id'
+    ) {
+      throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
+    }
+    throw new Error(responseData.error);
   }
   const responseData = (await response.json()) as OrderBook;
   return responseData;
@@ -317,29 +325,24 @@ export const submitClobOrder = async ({
   headers: ClobHeaders;
   clobOrder: ClobOrderObject;
   feeAuthorization?: SafeFeeAuthorization;
-}) => {
-  const { CLOB_ENDPOINT, CLOB_RELAYER } = getPolymarketEndpoints();
-  let url = `${CLOB_ENDPOINT}/order`;
-  let body: ClobOrderObject & { feeAuthorization?: SafeFeeAuthorization } = {
+}): Promise<Result<OrderResponse>> => {
+  const { CLOB_RELAYER } = getPolymarketEndpoints();
+  const url = `${CLOB_RELAYER}/order`;
+  const body: ClobOrderObject & { feeAuthorization?: SafeFeeAuthorization } = {
     ...clobOrder,
+    feeAuthorization,
   };
 
-  // If a feeAuthorization is provided, we need to use our clob
-  // relayer to submit the order and collect the fee.
-  if (clobOrder.order.side === Side.BUY && feeAuthorization) {
-    url = `${CLOB_RELAYER}/order`;
-    body = { ...body, feeAuthorization };
-    // For our relayer, we need to replace the underscores with dashes
-    // since underscores are not standardly allowed in headers
-    headers = {
-      ...headers,
-      ...Object.entries(headers)
-        .map(([key, value]) => ({
-          [key.replace(/_/g, '-')]: value,
-        }))
-        .reduce((acc, curr) => ({ ...acc, ...curr }), {}),
-    };
-  }
+  // For our relayer, we need to replace the underscores with dashes
+  // since underscores are not standardly allowed in headers
+  headers = {
+    ...headers,
+    ...Object.entries(headers)
+      .map(([key, value]) => ({
+        [key.replace(/_/g, '-')]: value,
+      }))
+      .reduce((acc, curr) => ({ ...acc, ...curr }), {}),
+  };
 
   const response = await fetch(url, {
     method: 'POST',
@@ -352,7 +355,6 @@ export const submitClobOrder = async ({
       return {
         success: false,
         error: 'You are unable to access this provider.',
-        errorCode: response.status,
       };
     }
     const responseData = await response.json();
@@ -384,7 +386,8 @@ export const parsePolymarketEvents = (
         : PredictMarketStatus.OPEN,
       recurrence: getRecurrence(event.series),
       endDate: event.endDate,
-      categories: [category],
+      category,
+      tags: event.tags.map((t) => t.label),
       outcomes: event.markets
         .filter((market: PolymarketApiMarket) => market.active !== false)
         .sort((a: PolymarketApiMarket, b: PolymarketApiMarket) => {
@@ -534,10 +537,9 @@ export const getParsedMarketsFromPolymarketApi = async (
   const eventsStatus = `events_status=active`;
   const sort = `sort=volume_24hr`;
   const presetsTitle = `presets=EventsTitle`;
-  const presetsEvents = `presets=Events`;
   const page = `page=${Math.floor(offset / limit) + 1}`;
 
-  const queryParamsSearch = `${type}&${eventsStatus}&${sort}&${presetsTitle}&${presetsEvents}&${limitPerType}&${page}`;
+  const queryParamsSearch = `${type}&${eventsStatus}&${sort}&${presetsTitle}&${limitPerType}&${page}`;
 
   // Use search endpoint if q parameter is provided
   const endpoint = q
@@ -1129,14 +1131,14 @@ export const previewOrder = async (
   const { marketId, outcomeId, outcomeTokenId, side, size } = params;
   const book = await getOrderBook({ tokenId: outcomeTokenId });
   if (!book) {
-    throw new Error('no orderbook');
+    throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
   }
   const roundConfig = ROUNDING_CONFIG[book.tick_size as TickSize];
 
   if (side === Side.BUY) {
     const { asks } = book;
     if (!asks || asks.length === 0) {
-      throw new Error('no order match (buy)');
+      throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_BUY);
     }
     const { price: bestPrice, size: shareAmount } = matchBuyOrder({
       asks,
@@ -1170,7 +1172,7 @@ export const previewOrder = async (
   }
   const { bids } = book;
   if (!bids || bids.length === 0) {
-    throw new Error('no order match (sell)');
+    throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_SELL);
   }
   const { price: bestPrice, size: dollarAmount } = matchSellOrder({
     bids,
@@ -1189,6 +1191,7 @@ export const previewOrder = async (
     outcomeTokenId,
     timestamp: new Date(book.timestamp).getTime(),
     side: Side.SELL,
+    positionId: params.positionId,
     sharePrice: bestPrice,
     maxAmountSpent: makerAmount,
     minAmountReceived: takerAmount,

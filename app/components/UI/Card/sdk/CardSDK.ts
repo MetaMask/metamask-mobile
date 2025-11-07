@@ -123,12 +123,11 @@ export class CardSDK {
     };
   }
 
-  private async getEthersProvider() {
+  private getEthersProvider() {
     // Default RPC URL for LINEA mainnet
     const provider = new ethers.providers.JsonRpcProvider(
       LINEA_DEFAULT_RPC_URL,
     );
-    await provider.ready;
 
     return provider;
   }
@@ -143,7 +142,7 @@ export class CardSDK {
       );
     }
 
-    const ethersProvider = await this.getEthersProvider();
+    const ethersProvider = this.getEthersProvider();
 
     return new ethers.Contract(
       balanceScannerAddress,
@@ -667,8 +666,6 @@ export class CardSDK {
       );
       throw error;
     }
-
-    return;
   };
 
   authorize = async (body: {
@@ -866,7 +863,10 @@ export class CardSDK {
           'Failed to get card priority wallet details. Please try again.',
         );
       } catch (error) {
-        // If we can't parse response, continue without it
+        Logger.error(
+          error as Error,
+          'Failed to get parse external wallet details.',
+        );
       }
 
       throw new CardError(
@@ -1035,7 +1035,6 @@ export class CardSDK {
 
       // Skip if not a valid EVM address (e.g., Solana addresses)
       if (!tokenAddress || !ethers.utils.isAddress(tokenAddress)) {
-        Logger.log('getTotalAllowance: Skipping non-EVM address', tokenAddress);
         return {
           address: tokenAddress,
           allowance: undefined,
@@ -1112,7 +1111,10 @@ export class CardSDK {
         const errorResponse = await response.json();
         Logger.log(errorResponse, 'Failed to provision card.');
       } catch (error) {
-        // If we can't parse response, continue without it
+        Logger.error(
+          error as Error,
+          'Failed to parse provision card response.',
+        );
       }
 
       throw new CardError(
@@ -1240,8 +1242,6 @@ export class CardSDK {
     sigMessage: string;
     token: string;
   }): Promise<{ success: boolean }> => {
-    Logger.log('completeEVMDelegation', params);
-
     // Validate address format (must be valid Ethereum address)
     const addressRegex = /^0x[a-fA-F0-9]{40}$/;
     if (!addressRegex.test(params.address)) {
@@ -2134,21 +2134,11 @@ export class CardSDK {
   };
 
   private mapAPINetworkToCaipChainId(network: CardNetwork): CaipChainId {
-    switch (network) {
-      case 'solana':
-        return SOLANA_MAINNET.chainId;
-      default:
-        return this.lineaChainId;
+    if (network === 'solana') {
+      return SOLANA_MAINNET.chainId;
     }
-  }
 
-  private mapAPINetworkToAssetChainId(network: CardNetwork): string {
-    switch (network) {
-      case 'solana':
-        return SOLANA_MAINNET.chainId;
-      default:
-        return LINEA_CHAIN_ID; // Asset only supports HEX chainId on EVM assets.
-    }
+    return this.lineaChainId;
   }
 
   private getFirstSupportedTokenOrNull(): CardToken | null {
@@ -2207,7 +2197,7 @@ export class CardSDK {
       ethers.utils.hexZeroPad(s.toLowerCase(), 32),
     );
     const spendersDeployedBlock = 2715910; // Block where the spenders were deployed
-    const ethersProvider = await this.getEthersProvider();
+    const ethersProvider = this.getEthersProvider();
 
     const logsPerToken = await Promise.all(
       nonZeroBalanceTokensAddresses.map((tokenAddress) =>

@@ -1,8 +1,13 @@
+// Mock wait utility to avoid delays in tests
+jest.mock('../utils/wait', () => ({
+  wait: jest.fn().mockResolvedValue(undefined),
+}));
+
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PerpsController: {
-      initializeProviders: jest.fn(),
+      init: jest.fn(),
       getAccountState: jest.fn(),
       disconnect: jest.fn(),
       reconnectWithNewContext: jest.fn(),
@@ -51,6 +56,7 @@ const mockStreamManagerInstance = {
   account: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   marketData: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   prices: { clearCache: jest.fn(), prewarm: jest.fn(async () => jest.fn()) },
+  oiCaps: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
 };
 
 jest.mock('../providers/PerpsStreamManager', () => ({
@@ -132,7 +138,7 @@ const resetManager = (manager: unknown) => {
 describe('PerpsConnectionManager', () => {
   let mockDevLogger: jest.Mocked<typeof DevLogger>;
   let mockPerpsController: {
-    initializeProviders: jest.MockedFunction<() => Promise<void>>;
+    init: jest.MockedFunction<() => Promise<void>>;
     getAccountState: jest.MockedFunction<
       () => Promise<Record<string, unknown>>
     >;
@@ -147,6 +153,17 @@ describe('PerpsConnectionManager', () => {
 
     // Clear store callbacks array for test isolation
     storeCallbacks.length = 0;
+
+    // Mock Redux state with proper structure for selectors
+    (store.getState as jest.Mock).mockReturnValue({
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            hip3ConfigVersion: 0,
+          },
+        },
+      },
+    });
 
     // Clear StreamManager mock calls
     mockStreamManagerInstance.positions.clearCache.mockClear();
@@ -179,18 +196,18 @@ describe('PerpsConnectionManager', () => {
 
   describe('connect', () => {
     it('should initialize providers and connect successfully', async () => {
-      mockPerpsController.initializeProviders.mockResolvedValueOnce();
+      mockPerpsController.init.mockResolvedValueOnce();
 
       await PerpsConnectionManager.connect();
 
-      expect(mockPerpsController.initializeProviders).toHaveBeenCalledTimes(1);
+      expect(mockPerpsController.init).toHaveBeenCalledTimes(1);
       expect(mockDevLogger.log).toHaveBeenCalledWith(
         expect.stringContaining('Successfully connected'),
       );
     });
 
     it('should increment reference count on each connect call', async () => {
-      mockPerpsController.initializeProviders.mockResolvedValue();
+      mockPerpsController.init.mockResolvedValue();
 
       await PerpsConnectionManager.connect();
       await PerpsConnectionManager.connect();
@@ -210,7 +227,7 @@ describe('PerpsConnectionManager', () => {
       const promises: Promise<void>[] = [];
 
       // Mock a slow initialization
-      mockPerpsController.initializeProviders.mockImplementation(
+      mockPerpsController.init.mockImplementation(
         () => new Promise((resolve) => setTimeout(resolve, 50)),
       );
       mockPerpsController.getAccountState.mockResolvedValue({});
@@ -223,7 +240,7 @@ describe('PerpsConnectionManager', () => {
       await Promise.all(promises);
 
       // Should only initialize once - this proves they shared the same init process
-      expect(mockPerpsController.initializeProviders).toHaveBeenCalledTimes(1);
+      expect(mockPerpsController.init).toHaveBeenCalledTimes(1);
 
       // Both connects should have incremented ref count
       expect(mockDevLogger.log).toHaveBeenCalledWith(
@@ -236,7 +253,7 @@ describe('PerpsConnectionManager', () => {
 
     it('should handle connection failures', async () => {
       const error = new Error('Connection failed');
-      mockPerpsController.initializeProviders.mockRejectedValueOnce(error);
+      mockPerpsController.init.mockRejectedValueOnce(error);
 
       await expect(PerpsConnectionManager.connect()).rejects.toThrow(
         'Connection failed',
@@ -256,7 +273,7 @@ describe('PerpsConnectionManager', () => {
 
     it('should skip reconnection if already connected', async () => {
       // First successful connection
-      mockPerpsController.initializeProviders.mockResolvedValueOnce();
+      mockPerpsController.init.mockResolvedValueOnce();
       await PerpsConnectionManager.connect();
 
       // Second connect should return early without reinitializing
@@ -265,12 +282,12 @@ describe('PerpsConnectionManager', () => {
       // initializeProviders should only be called once
       // (Stale connection detection removed for performance - connections issues
       // will surface when components attempt to use the connection)
-      expect(mockPerpsController.initializeProviders).toHaveBeenCalledTimes(1);
+      expect(mockPerpsController.init).toHaveBeenCalledTimes(1);
     });
 
     it('should handle rapid disconnect-connect cycles with grace period', async () => {
       // Setup initial connection
-      mockPerpsController.initializeProviders.mockResolvedValue();
+      mockPerpsController.init.mockResolvedValue();
       mockPerpsController.getAccountState.mockResolvedValue({});
 
       // Connect first
@@ -300,7 +317,7 @@ describe('PerpsConnectionManager', () => {
   describe('disconnect', () => {
     beforeEach(async () => {
       // Setup initial connection
-      mockPerpsController.initializeProviders.mockResolvedValue();
+      mockPerpsController.init.mockResolvedValue();
       mockPerpsController.getAccountState.mockResolvedValue({});
       mockPerpsController.disconnect.mockResolvedValue();
     });
@@ -418,7 +435,7 @@ describe('PerpsConnectionManager', () => {
     });
 
     it('should return connecting state during connection', async () => {
-      mockPerpsController.initializeProviders.mockImplementation(
+      mockPerpsController.init.mockImplementation(
         () => new Promise((resolve) => setTimeout(resolve, 100)),
       );
       mockPerpsController.getAccountState.mockResolvedValue({});
@@ -441,7 +458,7 @@ describe('PerpsConnectionManager', () => {
   describe('grace period functionality', () => {
     beforeEach(async () => {
       // Setup initial connection mocks
-      mockPerpsController.initializeProviders.mockResolvedValue();
+      mockPerpsController.init.mockResolvedValue();
       mockPerpsController.getAccountState.mockResolvedValue({});
       mockPerpsController.disconnect.mockResolvedValue();
     });
@@ -517,7 +534,7 @@ describe('PerpsConnectionManager', () => {
 
   describe('concurrent operations', () => {
     it('should handle multiple concurrent connect/disconnect operations', async () => {
-      mockPerpsController.initializeProviders.mockResolvedValue();
+      mockPerpsController.init.mockResolvedValue();
       mockPerpsController.getAccountState.mockResolvedValue({});
       mockPerpsController.disconnect.mockResolvedValue();
 
@@ -557,7 +574,7 @@ describe('PerpsConnectionManager', () => {
 
     it('should set up Redux store subscription on first connect', async () => {
       // Connect to trigger monitoring setup
-      mockPerpsController.initializeProviders.mockResolvedValue();
+      mockPerpsController.init.mockResolvedValue();
       mockPerpsController.getAccountState.mockResolvedValue({});
 
       await PerpsConnectionManager.connect();
@@ -572,7 +589,7 @@ describe('PerpsConnectionManager', () => {
 
     it('should detect account changes and trigger reconnection', async () => {
       // Setup connected state
-      mockPerpsController.initializeProviders.mockResolvedValue();
+      mockPerpsController.init.mockResolvedValue();
       mockPerpsController.getAccountState.mockResolvedValue({});
 
       await PerpsConnectionManager.connect();
@@ -595,7 +612,7 @@ describe('PerpsConnectionManager', () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(mockDevLogger.log).toHaveBeenCalledWith(
-        expect.stringContaining('Account or network change detected'),
+        expect.stringContaining('State change detected'),
         expect.objectContaining({
           accountChanged: true,
           networkChanged: false,
@@ -607,7 +624,7 @@ describe('PerpsConnectionManager', () => {
 
     it('should detect network changes and trigger reconnection', async () => {
       // Setup connected state
-      mockPerpsController.initializeProviders.mockResolvedValue();
+      mockPerpsController.init.mockResolvedValue();
       mockPerpsController.getAccountState.mockResolvedValue({});
 
       await PerpsConnectionManager.connect();
@@ -630,7 +647,7 @@ describe('PerpsConnectionManager', () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(mockDevLogger.log).toHaveBeenCalledWith(
-        expect.stringContaining('Account or network change detected'),
+        expect.stringContaining('State change detected'),
         expect.objectContaining({
           accountChanged: false,
           networkChanged: true,
@@ -642,7 +659,7 @@ describe('PerpsConnectionManager', () => {
 
     it('should continue monitoring during grace period', async () => {
       // Setup but don't connect
-      mockPerpsController.initializeProviders.mockResolvedValue();
+      mockPerpsController.init.mockResolvedValue();
       mockPerpsController.getAccountState.mockResolvedValue({});
 
       // Connect and immediately disconnect to set up monitoring
@@ -666,7 +683,7 @@ describe('PerpsConnectionManager', () => {
 
         // Should still log account change detection during grace period
         expect(mockDevLogger.log).toHaveBeenCalledWith(
-          expect.stringContaining('Account or network change detected'),
+          expect.stringContaining('State change detected'),
           expect.any(Object),
         );
       }
@@ -680,7 +697,7 @@ describe('PerpsConnectionManager', () => {
 
     it('should clear StreamManager caches', async () => {
       // Setup connected state first
-      mockPerpsController.initializeProviders.mockResolvedValue();
+      mockPerpsController.init.mockResolvedValue();
       await PerpsConnectionManager.connect();
 
       // Now call reconnectWithNewContext through the private method
@@ -700,7 +717,7 @@ describe('PerpsConnectionManager', () => {
     });
 
     it('should reinitialize controller with new context', async () => {
-      mockPerpsController.initializeProviders.mockResolvedValue();
+      mockPerpsController.init.mockResolvedValue();
 
       await (
         PerpsConnectionManager as unknown as {
@@ -710,12 +727,12 @@ describe('PerpsConnectionManager', () => {
 
       // Manager now calls initializeProviders directly (Controller.reconnectWithNewContext was removed as redundant)
       // Account data will be fetched via WebSocket subscriptions during preload, no explicit getAccountState() call
-      expect(mockPerpsController.initializeProviders).toHaveBeenCalled();
+      expect(mockPerpsController.init).toHaveBeenCalled();
     });
 
     it('should handle reconnection errors gracefully', async () => {
       const error = new Error('Reconnection failed');
-      mockPerpsController.initializeProviders.mockRejectedValueOnce(error);
+      mockPerpsController.init.mockRejectedValueOnce(error);
 
       // Reconnection errors are caught, logged, and re-thrown (so caller can handle)
       await expect(
