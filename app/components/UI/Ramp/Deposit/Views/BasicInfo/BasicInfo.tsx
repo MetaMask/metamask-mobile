@@ -346,6 +346,7 @@ const BasicInfo = (): JSX.Element => {
                           variant: ButtonVariants.Link,
                           label: strings('deposit.basic_info.login_with_email'),
                           onPress: handleLogout,
+                          labelTextVariant: TextVariant.BodyMD,
                           testID: 'basic-info-logout-button',
                         }
                       : undefined
