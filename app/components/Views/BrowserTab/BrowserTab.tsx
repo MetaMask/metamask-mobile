@@ -121,6 +121,15 @@ import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 import { toHex } from '@metamask/controller-utils';
 import { parseCaipAccountId } from '@metamask/utils';
 import { selectBrowserFullscreen } from '../../../selectors/browser';
+import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
+import {
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+} from '@metamask/design-system-react-native';
 
 /**
  * Tab component for the in-app browser
@@ -143,6 +152,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     newTab,
     homePageUrl,
     activeChainId,
+    fromTrending,
   }) => {
     // This any can be removed when react navigation is bumped to v6 - issue https://github.com/react-navigation/react-navigation/issues/9037#issuecomment-735698288
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -194,6 +204,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     }>();
     const fromHomepage = useRef(false);
     const searchEngine = useSelector(selectSearchEngine);
+    const isAssetsTrendingTokensEnabled = useSelector(
+      selectAssetsTrendingTokensEnabled,
+    );
 
     const permittedEvmAccountsList = useSelector((state: RootState) => {
       const permissionsControllerState = selectPermissionControllerState(state);
@@ -1349,6 +1362,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       [],
     );
 
+    const handleBackPress = useCallback(() => {
+      navigation.navigate('TrendingFeed');
+    }, [navigation]);
+
     const onCancelUrlBar = useCallback(() => {
       hideAutocomplete();
       // Reset the url bar to the current url
@@ -1356,6 +1373,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         new URLParse(resolvedUrlRef.current).origin || resolvedUrlRef.current;
       urlBarRef.current?.setNativeProps({ text: hostName });
     }, [hideAutocomplete]);
+
+    const showBackButton = isAssetsTrendingTokensEnabled;
 
     const onFocusUrlBar = useCallback(() => {
       // Show the autocomplete results
@@ -1478,19 +1497,37 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             style={styles.wrapper}
             {...(Device.isAndroid() ? { collapsable: false } : {})}
           >
-            <BrowserUrlBar
-              ref={urlBarRef}
-              connectionType={connectionType}
-              onSubmitEditing={onSubmitEditing}
-              onCancel={onCancelUrlBar}
-              onFocus={onFocusUrlBar}
-              onBlur={hideAutocomplete}
-              onChangeText={onChangeUrlBar}
-              connectedAccounts={permittedCaipAccountAddressesList}
-              activeUrl={resolvedUrlRef.current}
-              setIsUrlBarFocused={setIsUrlBarFocused}
-              isUrlBarFocused={isUrlBarFocused}
-            />
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+            >
+              {showBackButton && (
+                <ButtonIcon
+                  iconName={IconName.ArrowLeft}
+                  size={ButtonIconSize.Lg}
+                  onPress={handleBackPress}
+                  testID="browser-tab-back-button"
+                />
+              )}
+              <Box twClassName="flex-1">
+                <BrowserUrlBar
+                  ref={urlBarRef}
+                  connectionType={connectionType}
+                  onSubmitEditing={onSubmitEditing}
+                  onCancel={onCancelUrlBar}
+                  onFocus={onFocusUrlBar}
+                  onBlur={hideAutocomplete}
+                  onChangeText={onChangeUrlBar}
+                  connectedAccounts={permittedCaipAccountAddressesList}
+                  activeUrl={resolvedUrlRef.current}
+                  setIsUrlBarFocused={setIsUrlBarFocused}
+                  isUrlBarFocused={isUrlBarFocused}
+                  showCloseButton={
+                    fromTrending && isAssetsTrendingTokensEnabled
+                  }
+                />
+              </Box>
+            </Box>
             <View style={styles.wrapper}>
               {renderProgressBar()}
               <View style={styles.webview}>

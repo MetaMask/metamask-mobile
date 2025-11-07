@@ -58,12 +58,12 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -116,29 +116,87 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
                 >
-                  Back
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -192,29 +250,87 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -2801,12 +2917,12 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -2859,29 +2975,87 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
                 >
-                  Back
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -2935,29 +3109,87 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -3445,12 +3677,12 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -3503,29 +3735,87 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
                 >
-                  Back
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -3579,29 +3869,87 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -4089,12 +4437,12 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -4147,29 +4495,87 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
                 >
-                  Back
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -4223,29 +4629,87 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -4733,12 +5197,12 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -4791,29 +5255,87 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
                 >
-                  Back
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -4867,29 +5389,87 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -5628,33 +6208,23 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                           onPress={[Function]}
                                           testID="amount-input"
                                         >
-                                          <View
+                                          <Text
+                                            accessibilityRole="text"
+                                            adjustsFontSizeToFit={true}
+                                            numberOfLines={1}
                                             style={
-                                              [
-                                                {
-                                                  "backgroundColor": "#f3f5f9",
-                                                  "borderRadius": 30,
-                                                  "padding": 14,
-                                                },
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                {
-                                                  "width": "50%",
-                                                },
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                              ]
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Medium",
+                                                "fontSize": 24,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 32,
+                                              }
                                             }
-                                          />
+                                          >
+                                            $
+                                            0
+                                          </Text>
                                         </TouchableOpacity>
                                       </View>
                                       <View
@@ -5675,33 +6245,134 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                         }
                                         testID="listitemcolumn"
                                       >
-                                        <View
-                                          style={
-                                            [
-                                              {
-                                                "backgroundColor": "#f3f5f9",
-                                                "borderRadius": 30,
-                                                "padding": 14,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "width": "30%",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                        <TouchableOpacity
+                                          accessibilityRole="button"
+                                          accessible={true}
+                                          disabled={false}
+                                          hitSlop={
+                                            {
+                                              "bottom": 20,
+                                              "left": 20,
+                                              "right": 20,
+                                              "top": 20,
+                                            }
                                           }
-                                        />
+                                          onPress={[Function]}
+                                          testID="select-currency"
+                                        >
+                                          <View>
+                                            <Text
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Regular",
+                                                    "fontSize": 30,
+                                                    "marginVertical": 2,
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  {
+                                                    "color": "#121314",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  {
+                                                    "color": "#121314",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              <Text
+                                                style={
+                                                  [
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist Regular",
+                                                      "fontSize": 30,
+                                                      "marginVertical": 2,
+                                                    },
+                                                    undefined,
+                                                    undefined,
+                                                    {
+                                                      "fontFamily": "Geist Bold",
+                                                    },
+                                                    undefined,
+                                                    {
+                                                      "color": "#121314",
+                                                    },
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    {
+                                                      "color": "#121314",
+                                                    },
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                  ]
+                                                }
+                                              >
+                                                USD
+                                              </Text>
+                                                
+                                              <Text
+                                                allowFontScaling={false}
+                                                selectable={false}
+                                                style={
+                                                  [
+                                                    {
+                                                      "color": undefined,
+                                                      "fontSize": 16,
+                                                    },
+                                                    {
+                                                      "color": "#121314",
+                                                      "marginLeft": 10,
+                                                    },
+                                                    {
+                                                      "fontFamily": "Entypo",
+                                                      "fontStyle": "normal",
+                                                      "fontWeight": "normal",
+                                                    },
+                                                    {},
+                                                  ]
+                                                }
+                                              >
+                                                
+                                              </Text>
+                                            </Text>
+                                          </View>
+                                        </TouchableOpacity>
                                       </View>
                                     </View>
                                   </View>
@@ -5767,10 +6438,8 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                   Update payment method
                                 </Text>
                                 <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
+                                  accessible={false}
+                                  disabled={true}
                                 >
                                   <View
                                     style={
@@ -5815,27 +6484,33 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                           }
                                           testID="listitemcolumn"
                                         >
-                                          <Text
-                                            allowFontScaling={false}
-                                            selectable={false}
+                                          <View
                                             style={
                                               [
                                                 {
-                                                  "color": "#121314",
-                                                  "fontSize": 20,
+                                                  "backgroundColor": "#f3f5f9",
+                                                  "borderRadius": 30,
+                                                  "padding": 14,
                                                 },
                                                 undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
                                                 {
-                                                  "fontFamily": "simple-line-icons",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
+                                                  "width": "30%",
                                                 },
-                                                {},
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
                                               ]
                                             }
-                                          >
-                                            
-                                          </Text>
+                                          />
                                         </View>
                                         <View
                                           accessible={false}
@@ -5854,53 +6529,13 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                           }
                                           testID="listitemcolumn"
                                         >
-                                          <Text
-                                            accessibilityRole="text"
-                                            style={
-                                              {
-                                                "color": "#121314",
-                                                "fontFamily": "Geist Medium",
-                                                "fontSize": 18,
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
-                                              }
-                                            }
-                                          >
-                                            Credit or Debit Card
-                                          </Text>
-                                        </View>
-                                        <View
-                                          accessible={false}
-                                          style={
-                                            {
-                                              "width": 16,
-                                            }
-                                          }
-                                          testID="listitem-gap"
-                                        />
-                                        <View>
-                                          <Text
+                                          <View
                                             style={
                                               [
                                                 {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
-                                                  "fontSize": 30,
-                                                  "marginVertical": 2,
-                                                },
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                {
-                                                  "color": "#121314",
-                                                },
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                {
-                                                  "color": "#121314",
+                                                  "backgroundColor": "#f3f5f9",
+                                                  "borderRadius": 30,
+                                                  "padding": 14,
                                                 },
                                                 undefined,
                                                 undefined,
@@ -5918,77 +6553,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                                 undefined,
                                               ]
                                             }
-                                          >
-                                            <Text
-                                              style={
-                                                [
-                                                  {
-                                                    "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
-                                                    "fontSize": 30,
-                                                    "marginVertical": 2,
-                                                  },
-                                                  undefined,
-                                                  undefined,
-                                                  {
-                                                    "fontFamily": "Geist Bold",
-                                                  },
-                                                  undefined,
-                                                  {
-                                                    "color": "#121314",
-                                                  },
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  {
-                                                    "color": "#121314",
-                                                  },
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                ]
-                                              }
-                                            >
-                                              Change
-                                            </Text>
-                                              
-                                            <Text
-                                              allowFontScaling={false}
-                                              selectable={false}
-                                              style={
-                                                [
-                                                  {
-                                                    "color": undefined,
-                                                    "fontSize": 16,
-                                                  },
-                                                  {
-                                                    "color": "#121314",
-                                                    "marginLeft": 10,
-                                                  },
-                                                  {
-                                                    "fontFamily": "Entypo",
-                                                    "fontStyle": "normal",
-                                                    "fontWeight": "normal",
-                                                  },
-                                                  {},
-                                                ]
-                                              }
-                                            >
-                                              
-                                            </Text>
-                                          </Text>
+                                          />
                                         </View>
                                       </View>
                                     </View>
@@ -6011,45 +6576,30 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       }
                                     >
                                       <View
-                                        source={
-                                          {
-                                            "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png",
-                                          }
-                                        }
                                         style={
-                                          {
-                                            "height": 20,
-                                            "marginRight": 6,
-                                            "width": 30,
-                                          }
-                                        }
-                                      />
-                                      <View
-                                        source={
-                                          {
-                                            "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png",
-                                          }
-                                        }
-                                        style={
-                                          {
-                                            "height": 20,
-                                            "marginRight": 6,
-                                            "width": 30,
-                                          }
-                                        }
-                                      />
-                                      <View
-                                        source={
-                                          {
-                                            "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png",
-                                          }
-                                        }
-                                        style={
-                                          {
-                                            "height": 20,
-                                            "marginRight": 6,
-                                            "width": 30,
-                                          }
+                                          [
+                                            {
+                                              "backgroundColor": "#f3f5f9",
+                                              "borderRadius": 30,
+                                              "padding": 14,
+                                            },
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            {
+                                              "width": "30%",
+                                            },
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                          ]
                                         }
                                       />
                                     </View>
@@ -7210,12 +7760,12 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -7268,29 +7818,87 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
                 >
-                  Back
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -7344,29 +7952,87 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -7854,12 +8520,12 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -7912,29 +8578,87 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
                 >
-                  Back
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -7988,29 +8712,87 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -8471,10 +9253,8 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                 You want to buy
                               </Text>
                               <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                disabled={false}
-                                onPress={[Function]}
+                                accessible={false}
+                                disabled={true}
                               >
                                 <View
                                   style={
@@ -8521,131 +9301,21 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                           testID="listitemcolumn"
                                         >
                                           <View
-                                            onLayout={[Function]}
                                             style={
-                                              {
-                                                "alignSelf": "flex-start",
-                                                "position": "relative",
-                                              }
-                                            }
-                                            testID="badge-wrapper-badge"
-                                          >
-                                            <View>
-                                              <View
-                                                style={
-                                                  [
-                                                    {
-                                                      "alignItems": "center",
-                                                      "backgroundColor": "#f3f5f9",
-                                                      "borderRadius": 9999,
-                                                      "height": 40,
-                                                      "justifyContent": "center",
-                                                      "overflow": "hidden",
-                                                      "width": 40,
-                                                    },
-                                                    undefined,
-                                                  ]
-                                                }
-                                              >
-                                                <Image
-                                                  onError={[Function]}
-                                                  resizeMode="contain"
-                                                  source={
-                                                    {
-                                                      "uri": "some_random_logo_url",
-                                                    }
-                                                  }
-                                                  style={
-                                                    [
-                                                      {
-                                                        "height": "100%",
-                                                        "width": "100%",
-                                                      },
-                                                      undefined,
-                                                    ]
-                                                  }
-                                                />
-                                              </View>
-                                            </View>
-                                            <View
-                                              style={
+                                              [
                                                 {
                                                   "alignItems": "center",
-                                                  "aspectRatio": 1,
-                                                  "bottom": 0,
-                                                  "height": 0,
+                                                  "backgroundColor": "#f3f5f9",
+                                                  "borderRadius": 9999,
+                                                  "height": 40,
                                                   "justifyContent": "center",
-                                                  "position": "absolute",
-                                                  "right": 0,
-                                                  "transform": [
-                                                    {
-                                                      "translateX": 0,
-                                                    },
-                                                    {
-                                                      "translateY": 0,
-                                                    },
-                                                  ],
-                                                }
-                                              }
-                                            >
-                                              <View
-                                                onLayout={[Function]}
-                                                style={
-                                                  {
-                                                    "alignItems": "center",
-                                                    "aspectRatio": 1,
-                                                    "height": "50%",
-                                                    "justifyContent": "center",
-                                                    "maxHeight": 24,
-                                                    "minHeight": 8,
-                                                    "opacity": 0,
-                                                  }
-                                                }
-                                                testID="badgenetwork"
-                                              >
-                                                <View
-                                                  style={
-                                                    {
-                                                      "alignItems": "center",
-                                                      "backgroundColor": "#ffffff",
-                                                      "borderColor": "#ffffff",
-                                                      "borderRadius": 8,
-                                                      "borderWidth": 2,
-                                                      "height": 32,
-                                                      "justifyContent": "center",
-                                                      "overflow": "hidden",
-                                                      "shadowColor": "#0000001a",
-                                                      "shadowOffset": {
-                                                        "height": 2,
-                                                        "width": 0,
-                                                      },
-                                                      "shadowOpacity": 1,
-                                                      "shadowRadius": 4,
-                                                      "transform": [
-                                                        {
-                                                          "scale": 1,
-                                                        },
-                                                      ],
-                                                      "width": 32,
-                                                    }
-                                                  }
-                                                >
-                                                  <Image
-                                                    onError={[Function]}
-                                                    resizeMode="contain"
-                                                    source={1}
-                                                    style={
-                                                      {
-                                                        "height": 32,
-                                                        "width": 32,
-                                                      }
-                                                    }
-                                                    testID="network-avatar-image"
-                                                  />
-                                                </View>
-                                              </View>
-                                            </View>
-                                          </View>
+                                                  "overflow": "hidden",
+                                                  "width": 40,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                          />
                                         </View>
                                         <View
                                           accessible={false}
@@ -8664,22 +9334,33 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                           }
                                           testID="listitemcolumn"
                                         >
-                                          <Text
-                                            accessibilityRole="text"
-                                            adjustsFontSizeToFit={true}
-                                            numberOfLines={1}
+                                          <View
                                             style={
-                                              {
-                                                "color": "#121314",
-                                                "fontFamily": "Geist Medium",
-                                                "fontSize": 18,
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
-                                              }
+                                              [
+                                                {
+                                                  "backgroundColor": "#f3f5f9",
+                                                  "borderRadius": 30,
+                                                  "padding": 14,
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                {
+                                                  "width": "30%",
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                              ]
                                             }
-                                          >
-                                            Ethereum
-                                          </Text>
+                                          />
                                         </View>
                                         <View
                                           accessible={false}
@@ -8698,118 +9379,33 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                           }
                                           testID="listitemcolumn"
                                         >
-                                          <View>
-                                            <Text
-                                              style={
-                                                [
-                                                  {
-                                                    "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
-                                                    "fontSize": 30,
-                                                    "marginVertical": 2,
-                                                  },
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  {
-                                                    "color": "#121314",
-                                                  },
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  {
-                                                    "color": "#121314",
-                                                  },
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                ]
-                                              }
-                                            >
-                                              <Text
-                                                style={
-                                                  [
-                                                    {
-                                                      "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
-                                                      "fontSize": 30,
-                                                      "marginVertical": 2,
-                                                    },
-                                                    undefined,
-                                                    undefined,
-                                                    {
-                                                      "fontFamily": "Geist Bold",
-                                                    },
-                                                    undefined,
-                                                    {
-                                                      "color": "#121314",
-                                                    },
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    {
-                                                      "color": "#121314",
-                                                    },
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                    undefined,
-                                                  ]
-                                                }
-                                              >
-                                                ETH
-                                              </Text>
-                                                
-                                              <Text
-                                                allowFontScaling={false}
-                                                selectable={false}
-                                                style={
-                                                  [
-                                                    {
-                                                      "color": undefined,
-                                                      "fontSize": 16,
-                                                    },
-                                                    {
-                                                      "color": "#121314",
-                                                      "marginLeft": 10,
-                                                    },
-                                                    {
-                                                      "fontFamily": "Entypo",
-                                                      "fontStyle": "normal",
-                                                      "fontWeight": "normal",
-                                                    },
-                                                    {},
-                                                  ]
-                                                }
-                                              >
-                                                
-                                              </Text>
-                                            </Text>
-                                          </View>
+                                          <View
+                                            style={
+                                              [
+                                                {
+                                                  "backgroundColor": "#f3f5f9",
+                                                  "borderRadius": 30,
+                                                  "padding": 14,
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                {
+                                                  "width": "30%",
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                              ]
+                                            }
+                                          />
                                         </View>
                                       </View>
                                     </View>
@@ -8828,24 +9424,35 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                   ]
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "color": "#686e7d",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 14,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                    }
+                                    [
+                                      {
+                                        "backgroundColor": "#f3f5f9",
+                                        "borderRadius": 30,
+                                        "padding": 14,
+                                      },
+                                      {
+                                        "padding": 8,
+                                      },
+                                      undefined,
+                                      undefined,
+                                      {
+                                        "width": "50%",
+                                      },
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                    ]
                                   }
-                                >
-                                  Current balance
-                                  :
-                                   
-                                  5.36385 ETH
-                                   ≈ $27.02
-                                </Text>
+                                />
                               </View>
                               <Text
                                 accessibilityRole="text"
@@ -9063,10 +9670,8 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                   Update payment method
                                 </Text>
                                 <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
+                                  accessible={false}
+                                  disabled={true}
                                 >
                                   <View
                                     style={
@@ -9111,27 +9716,33 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                           }
                                           testID="listitemcolumn"
                                         >
-                                          <Text
-                                            allowFontScaling={false}
-                                            selectable={false}
+                                          <View
                                             style={
                                               [
                                                 {
-                                                  "color": "#121314",
-                                                  "fontSize": 20,
+                                                  "backgroundColor": "#f3f5f9",
+                                                  "borderRadius": 30,
+                                                  "padding": 14,
                                                 },
                                                 undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
                                                 {
-                                                  "fontFamily": "simple-line-icons",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
+                                                  "width": "30%",
                                                 },
-                                                {},
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
                                               ]
                                             }
-                                          >
-                                            
-                                          </Text>
+                                          />
                                         </View>
                                         <View
                                           accessible={false}
@@ -9150,53 +9761,13 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                           }
                                           testID="listitemcolumn"
                                         >
-                                          <Text
-                                            accessibilityRole="text"
-                                            style={
-                                              {
-                                                "color": "#121314",
-                                                "fontFamily": "Geist Medium",
-                                                "fontSize": 18,
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
-                                              }
-                                            }
-                                          >
-                                            Credit or Debit Card
-                                          </Text>
-                                        </View>
-                                        <View
-                                          accessible={false}
-                                          style={
-                                            {
-                                              "width": 16,
-                                            }
-                                          }
-                                          testID="listitem-gap"
-                                        />
-                                        <View>
-                                          <Text
+                                          <View
                                             style={
                                               [
                                                 {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
-                                                  "fontSize": 30,
-                                                  "marginVertical": 2,
-                                                },
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                {
-                                                  "color": "#121314",
-                                                },
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                {
-                                                  "color": "#121314",
+                                                  "backgroundColor": "#f3f5f9",
+                                                  "borderRadius": 30,
+                                                  "padding": 14,
                                                 },
                                                 undefined,
                                                 undefined,
@@ -9214,77 +9785,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                                 undefined,
                                               ]
                                             }
-                                          >
-                                            <Text
-                                              style={
-                                                [
-                                                  {
-                                                    "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
-                                                    "fontSize": 30,
-                                                    "marginVertical": 2,
-                                                  },
-                                                  undefined,
-                                                  undefined,
-                                                  {
-                                                    "fontFamily": "Geist Bold",
-                                                  },
-                                                  undefined,
-                                                  {
-                                                    "color": "#121314",
-                                                  },
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  {
-                                                    "color": "#121314",
-                                                  },
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                ]
-                                              }
-                                            >
-                                              Change
-                                            </Text>
-                                              
-                                            <Text
-                                              allowFontScaling={false}
-                                              selectable={false}
-                                              style={
-                                                [
-                                                  {
-                                                    "color": undefined,
-                                                    "fontSize": 16,
-                                                  },
-                                                  {
-                                                    "color": "#121314",
-                                                    "marginLeft": 10,
-                                                  },
-                                                  {
-                                                    "fontFamily": "Entypo",
-                                                    "fontStyle": "normal",
-                                                    "fontWeight": "normal",
-                                                  },
-                                                  {},
-                                                ]
-                                              }
-                                            >
-                                              
-                                            </Text>
-                                          </Text>
+                                          />
                                         </View>
                                       </View>
                                     </View>
@@ -9307,45 +9808,30 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       }
                                     >
                                       <View
-                                        source={
-                                          {
-                                            "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png",
-                                          }
-                                        }
                                         style={
-                                          {
-                                            "height": 20,
-                                            "marginRight": 6,
-                                            "width": 30,
-                                          }
-                                        }
-                                      />
-                                      <View
-                                        source={
-                                          {
-                                            "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png",
-                                          }
-                                        }
-                                        style={
-                                          {
-                                            "height": 20,
-                                            "marginRight": 6,
-                                            "width": 30,
-                                          }
-                                        }
-                                      />
-                                      <View
-                                        source={
-                                          {
-                                            "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png",
-                                          }
-                                        }
-                                        style={
-                                          {
-                                            "height": 20,
-                                            "marginRight": 6,
-                                            "width": 30,
-                                          }
+                                          [
+                                            {
+                                              "backgroundColor": "#f3f5f9",
+                                              "borderRadius": 30,
+                                              "padding": 14,
+                                            },
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            {
+                                              "width": "30%",
+                                            },
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                          ]
                                         }
                                       />
                                     </View>
@@ -10506,12 +10992,12 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -10564,29 +11050,87 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
                 >
-                  Back
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -10640,29 +11184,87 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -11150,12 +11752,12 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -11208,29 +11810,87 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
                 >
-                  Back
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -11284,29 +11944,87 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -13850,12 +14568,12 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -13908,29 +14626,87 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
                 >
-                  Back
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -13984,29 +14760,87 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -16472,12 +17306,12 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -16530,29 +17364,87 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
                 >
-                  Back
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -16606,29 +17498,87 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -17116,12 +18066,12 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -17174,29 +18124,87 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
                 >
-                  Back
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -17250,29 +18258,87 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -19436,12 +20502,12 @@ exports[`BuildQuote View renders correctly 1`] = `
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -19494,29 +20560,87 @@ exports[`BuildQuote View renders correctly 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
                 >
-                  Back
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -19570,29 +20694,87 @@ exports[`BuildQuote View renders correctly 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -22179,12 +23361,12 @@ exports[`BuildQuote View renders correctly 2`] = `
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -22237,29 +23419,87 @@ exports[`BuildQuote View renders correctly 2`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
                 >
-                  Back
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -22313,29 +23553,87 @@ exports[`BuildQuote View renders correctly 2`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -24902,12 +26200,12 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -24960,29 +26258,87 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
                 >
-                  Back
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -25036,29 +26392,87 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -25546,12 +26960,12 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -25604,29 +27018,87 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
                 >
-                  Back
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -25680,29 +27152,87 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <Text
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "color": "#4459ff",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 23.57142857142857,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="deposit-close-navbar-button"
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>

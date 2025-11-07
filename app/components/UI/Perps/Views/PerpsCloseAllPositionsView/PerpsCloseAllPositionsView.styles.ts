@@ -29,6 +29,8 @@ export const createStyles = (_theme: Theme) =>
     },
     footerContainer: {
       paddingHorizontal: 16,
+      zIndex: 0, // Ensure footer stays behind modal overlays
+      elevation: 0, // Android equivalent
     },
     labelWithTooltip: {
       flexDirection: 'row',
