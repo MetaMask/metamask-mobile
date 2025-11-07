@@ -49,6 +49,11 @@
 
   -keep class kotlin.Metadata { *; }
 
+# Keep Kotlin coroutines (used by Detox instrumentation idling resources)
+-keep class kotlinx.coroutines.** { *; }
+-dontwarn kotlinx.coroutines.**
+-keep class kotlin.coroutines.** { *; }
+
 -dontwarn kotlinx.serialization.SerialName
 -dontwarn kotlinx.serialization.Serializable
 
