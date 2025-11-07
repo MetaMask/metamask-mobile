@@ -184,12 +184,32 @@ const PerpsClosePositionView: React.FC = () => {
   // Keep pnl reference for backwards compatibility with event tracking
   const pnl = unrealizedPnl;
 
-  // Use position value from HyperLiquid to keep margin and fees in sync
-  // This prevents timing issues between price updates and position updates
-  const positionValue = useMemo(
-    () => parseFloat(livePosition.positionValue),
-    [livePosition.positionValue],
-  );
+  // Calculate position value and effective margin
+  // For limit orders, use limit price for display calculations
+  const positionValue = useMemo(() => {
+    const priceToUse =
+      orderType === 'limit' && limitPrice
+        ? parseFloat(limitPrice)
+        : currentPrice;
+    return absSize * priceToUse;
+  }, [absSize, orderType, limitPrice, currentPrice]);
+
+  // Calculate P&L based on effective price (limit price for limit orders)
+  // Use ref for market price to prevent recalculation on every WebSocket update
+  const entryPrice = parseFloat(position.entryPrice);
+  const effectivePnL = useMemo(() => {
+    // Calculate P&L based on the effective price (limit price for limit orders)
+    // For long positions: (effectivePrice - entryPrice) * absSize
+    // For short positions: (entryPrice - effectivePrice) * absSize
+    if (orderType === 'market') {
+      return pnl;
+    }
+    const priceToUse = limitPrice ? parseFloat(limitPrice) : currentPrice;
+    const priceDiff = isLong
+      ? priceToUse - entryPrice
+      : entryPrice - priceToUse;
+    return priceDiff * absSize;
+  }, [entryPrice, absSize, isLong, orderType, limitPrice, currentPrice, pnl]); // Exclude effectivePrice from deps
 
   // Calculate fees using the unified fee hook
   const closingValue = useMemo(
@@ -337,7 +357,7 @@ const PerpsClosePositionView: React.FC = () => {
         totalFee: feeResults.totalFee,
         marketPrice: currentPrice,
         receivedAmount: receiveAmount,
-        realizedPnl: pnl * (closePercentage / 100),
+        realizedPnl: effectivePnL * (closePercentage / 100),
         metamaskFeeRate: feeResults.metamaskFeeRate,
         feeDiscountPercentage: feeResults.feeDiscountPercentage,
         metamaskFee: feeResults.metamaskFee,
@@ -477,7 +497,7 @@ const PerpsClosePositionView: React.FC = () => {
   const Summary = (
     <PerpsCloseSummary
       totalMargin={(closePercentage / 100) * marginUsed}
-      totalPnl={pnl * (closePercentage / 100)}
+      totalPnl={effectivePnL * (closePercentage / 100)}
       totalFees={feeResults.totalFee}
       feeDiscountPercentage={rewardsState.feeDiscountPercentage}
       metamaskFeeRate={feeResults.metamaskFeeRate}

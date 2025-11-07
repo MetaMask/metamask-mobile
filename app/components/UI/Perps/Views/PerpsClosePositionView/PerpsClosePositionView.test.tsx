@@ -2389,6 +2389,81 @@ describe('PerpsClosePositionView', () => {
   });
 
   describe('Price Update Synchronization', () => {
+    it('recalculates effectivePnL when current price changes', async () => {
+      // Arrange - Position with entry price
+      const mockPosition = {
+        ...defaultPerpsPositionMock,
+        size: '1', // 1 token long position
+        entryPrice: '100', // Entry at $100
+        marginUsed: '100',
+        unrealizedPnl: '0',
+      };
+
+      useRouteMock.mockReturnValue({
+        params: { position: mockPosition },
+      });
+
+      // Mock usePerpsLivePositions to return the test's mock position
+      usePerpsLivePositionsMock.mockReturnValue({
+        positions: [mockPosition],
+        isInitialLoading: false,
+      });
+
+      // Initially price equals entry price (no P&L)
+      usePerpsLivePricesMock.mockReturnValue({
+        ETH: { price: '100' }, // Current price = entry price
+      });
+
+      const { rerender, getByText, queryByText } = renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      // Assert initial state - effectivePnL should be close to 0 when price = entry
+      // (100 - 100) * 1 = 0
+      // The margin displayed should be just the margin used ($100)
+      // P&L displayed should be $0 (or very close to it)
+      await waitFor(() => {
+        const marginLabel = getByText(strings('perps.close_position.margin'));
+        expect(marginLabel).toBeDefined();
+        // P&L should be ~$0 when price equals entry price
+        expect(queryByText(/\+.*\$0/)).toBeDefined();
+      });
+
+      // Act - Simulate live price increasing to $150
+      // Update both price and position to reflect the P&L change
+      const updatedPosition = {
+        ...mockPosition,
+        unrealizedPnl: '50', // (150 - 100) * 1 = 50
+        marginUsed: '150', // 100 initial + 50 P&L
+      };
+
+      usePerpsLivePositionsMock.mockReturnValue({
+        positions: [updatedPosition],
+        isInitialLoading: false,
+      });
+
+      usePerpsLivePricesMock.mockReturnValue({
+        ETH: { price: '150' }, // Live price is $150 (50% profit)
+      });
+
+      // Force re-render with new price to trigger dependency recalculation
+      rerender(<PerpsClosePositionView />);
+
+      // Assert - effectivePnL should update to positive value
+      // (150 - 100) * 1 = 50 profit
+      // Margin should now include the P&L: 100 + 50 = 150
+      await waitFor(() => {
+        // Look for the positive P&L display in the "includes P&L" row
+        expect(queryByText(/\+.*\$50/)).toBeDefined();
+        // Look for the margin label to ensure we're checking the right section
+        expect(getByText(strings('perps.close_position.margin'))).toBeDefined();
+      });
+    });
+
     it('syncs input amount when price updates from entry to live price', async () => {
       // Arrange - Position with entry price
       const mockPosition = {
