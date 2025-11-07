@@ -80,9 +80,6 @@ MetaMetrics.getInstance().trackEvent(
 - `direction` (optional): `'long' | 'short'`
 - `source` (optional): Where user came from (e.g., `'banner'`, `'notification'`, `'main_action_button'`, `'position_tab'`, `'perp_markets'`, `'deeplink'`, `'tutorial'`)
 - `open_position` (optional): Number of open positions (used for close_all_positions screen, number)
-- `ab_test_button_color` (optional): Button color test variant (`'control' | 'monochrome'`), only included when test is enabled
-- `ab_test_button_color_enabled` (optional): Whether button color test is active (boolean)
-- Future AB tests: `ab_test_{test_name}` and `ab_test_{test_name}_enabled` (see [Multiple Concurrent Tests](#multiple-concurrent-tests))
 
 ### 2. PERPS_UI_INTERACTION
 
@@ -103,6 +100,8 @@ MetaMetrics.getInstance().trackEvent(
 - `sort_direction` (optional): Sort direction: `'asc' | 'desc'`
 - `search_query` (optional): Search query text (when search_clicked)
 - `favorites_count` (optional): Total number of markets in watchlist after toggle (number, used with `favorite_toggled`)
+- `ab_test_button_color` (optional): Button color test variant (`'control' | 'monochrome'`), only included when test is enabled and user taps Long/Short button
+- Future AB tests: `ab_test_{test_name}` (see [Multiple Concurrent Tests](#multiple-concurrent-tests))
 
 ### 3. PERPS_TRADE_TRANSACTION
 
@@ -281,15 +280,15 @@ usePerpsEventTracking({
 
 ### Where to Track AB Tests
 
-**✅ Track in screen views:** PERPS_SCREEN_VIEWED events establish the baseline and allow analytics platforms to calculate conversion rates automatically.
+**✅ Track at point of interaction:** PERPS_UI_INTERACTION events with `interaction_type: 'tap'` measure the actual tested action (button press), not just exposure.
 
-**❌ Don't track in every interaction:** Tracking AB test context in every UI interaction or transaction creates unnecessary event bloat.
+**❌ Don't track in screen views:** Screen view tracking measures exposure but doesn't capture user engagement with the tested element. It also creates false attribution when screens are reached from multiple sources.
 
-**Example:** For TAT-1937 (button color test), only track in `PERPS_SCREEN_VIEWED` for `screen_type: 'asset_details'`. Analytics can then measure:
+**Example:** For TAT-1937 (button color test), track in `PERPS_UI_INTERACTION` when user taps Long/Short buttons. Analytics can then measure:
 
-- Trade initiation rate: Users who viewed asset details → navigated to trading screen
-- Trade execution rate: Users who viewed asset details → completed a trade
-- Time to execution: Duration from screen view to transaction
+- Trade execution rate: Users who pressed buttons → completed a trade
+- Time to execution: Duration from button press to transaction
+- Button engagement: Which variant drives more button presses
 
 For details, see [perps-ab-testing.md](./perps-ab-testing.md).
 

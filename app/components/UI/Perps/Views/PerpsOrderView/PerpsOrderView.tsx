@@ -207,16 +207,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
       buttonColorVariant as keyof typeof BUTTON_COLOR_TEST.variants
     ].data;
 
-  // DEV: Get raw feature flag value for debugging banner
-  const rawFeatureFlagValue = buttonColorVariantFromFlag;
-
-  // DEV: Determine source for informational banner
-  const variantSource = __DEV__
-    ? rawFeatureFlagValue
-      ? 'LaunchDarkly'
-      : 'Fallback'
-    : '';
-
   /**
    * PROTOCOL CONSTRAINT: Existing position leverage
    *
@@ -892,20 +882,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      {/* DEV: AB Test Info Banner */}
-      {__DEV__ && (
-        <View
-          style={
-            // eslint-disable-next-line react-native/no-inline-styles, react-native/no-color-literals
-            { padding: 8, backgroundColor: 'rgba(0, 150, 255, 0.1)' }
-          }
-        >
-          <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-            [DEV] AB Test: {buttonColorVariant} ({variantSource}) | Flag:{' '}
-            {rawFeatureFlagValue || 'null'}
-          </Text>
-        </View>
-      )}
       {/* Header */}
       <PerpsOrderHeader
         asset={getPerpsDisplaySymbol(orderForm.asset)}

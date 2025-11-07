@@ -191,16 +191,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     featureFlagSelector: selectPerpsButtonColorTestVariant,
   });
 
-  // DEV: Get raw feature flag value for debugging banner
-  const rawFeatureFlagValue = useSelector(selectPerpsButtonColorTestVariant);
-
-  // DEV: Determine source for informational banner
-  const variantSource = __DEV__
-    ? rawFeatureFlagValue
-      ? 'LaunchDarkly'
-      : 'Fallback'
-    : '';
-
   // TP/SL order selection state - track TP and SL separately
   const [activeTPOrderId, setActiveTPOrderId] = useState<string | null>(null);
   const [activeSLOrderId, setActiveSLOrderId] = useState<string | null>(null);
@@ -415,12 +405,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       [PerpsEventProperties.SOURCE]:
         source || PerpsEventValues.SOURCE.PERP_MARKETS,
       [PerpsEventProperties.OPEN_POSITION]: !!existingPosition,
-      // A/B Test context (TAT-1937)
-      [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: isButtonColorTestEnabled
-        ? buttonColorVariant
-        : undefined,
-      [PerpsEventProperties.AB_TEST_BUTTON_COLOR_ENABLED]:
-        isButtonColorTestEnabled,
     },
   });
 
@@ -561,6 +545,17 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       return;
     }
 
+    // Track AB test on button press (TAT-1937)
+    if (isButtonColorTestEnabled) {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PerpsEventProperties.INTERACTION_TYPE]:
+          PerpsEventValues.INTERACTION_TYPE.TAP,
+        [PerpsEventProperties.ASSET]: market.symbol,
+        [PerpsEventProperties.DIRECTION]: PerpsEventValues.DIRECTION.LONG,
+        [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+      });
+    }
+
     navigateToOrder({
       direction: 'long',
       asset: market.symbol,
@@ -571,6 +566,17 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     if (!isEligible) {
       setIsEligibilityModalVisible(true);
       return;
+    }
+
+    // Track AB test on button press (TAT-1937)
+    if (isButtonColorTestEnabled) {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PerpsEventProperties.INTERACTION_TYPE]:
+          PerpsEventValues.INTERACTION_TYPE.TAP,
+        [PerpsEventProperties.ASSET]: market.symbol,
+        [PerpsEventProperties.DIRECTION]: PerpsEventValues.DIRECTION.SHORT,
+        [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+      });
     }
 
     navigateToOrder({
@@ -678,20 +684,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       style={styles.mainContainer}
       testID={PerpsMarketDetailsViewSelectorsIDs.CONTAINER}
     >
-      {/* DEV: AB Test Info Banner */}
-      {__DEV__ && (
-        <View
-          style={
-            // eslint-disable-next-line react-native/no-inline-styles, react-native/no-color-literals
-            { padding: 8, backgroundColor: 'rgba(0, 150, 255, 0.1)' }
-          }
-        >
-          <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-            [DEV] AB Test: {buttonColorVariant} ({variantSource}) | Flag:{' '}
-            {rawFeatureFlagValue || 'null'}
-          </Text>
-        </View>
-      )}
       {/* Fixed Header Section */}
       <View>
         <PerpsMarketHeader

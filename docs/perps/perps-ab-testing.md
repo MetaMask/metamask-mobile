@@ -129,21 +129,31 @@ const MyComponent = () => {
 
   const buttonColors = variant as ButtonColorVariant;
 
-  // Track variant in analytics
-  usePerpsEventTracking({
-    eventName: MetaMetricsEvents.PERPS_UI_INTERACTION,
-    properties: {
-      [PerpsEventProperties.AB_TEST_ID]: isEnabled
-        ? PerpsEventValues.AB_TEST.BUTTON_COLOR_TEST
-        : undefined,
-      [PerpsEventProperties.AB_TEST_VARIANT]: isEnabled ? variantName : undefined,
-      [PerpsEventProperties.AB_TEST_ENABLED]: isEnabled,
-    },
-  });
+  // Get imperative track function for button press tracking
+  const { track } = usePerpsEventTracking();
+
+  const handleButtonPress = (direction: 'long' | 'short') => {
+    // Track AB test on button press
+    if (isEnabled) {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PerpsEventProperties.INTERACTION_TYPE]:
+          PerpsEventValues.INTERACTION_TYPE.TAP,
+        [PerpsEventProperties.ASSET]: market.symbol,
+        [PerpsEventProperties.DIRECTION]: direction === 'long'
+          ? PerpsEventValues.DIRECTION.LONG
+          : PerpsEventValues.DIRECTION.SHORT,
+        [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: variantName,
+      });
+    }
+
+    // Navigate or perform action
+    // ...
+  };
 
   return (
     <ButtonSemantic
-      severity={getButtonSeverityForDirection(direction, buttonColors)}
+      onPress={() => handleButtonPress('long')}
+      severity={getButtonSeverityForDirection('long', buttonColors)}
     />
   );
 };
@@ -308,50 +318,60 @@ const { variant, variantName, isEnabled } = usePerpsABTest({
   featureFlagSelector: selectPerpsButtonColorTestVariant,
 });
 
-usePerpsEventTracking({
-  eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-  properties: {
-    [PerpsEventProperties.SCREEN_TYPE]:
-      PerpsEventValues.SCREEN_TYPE.ASSET_DETAILS,
-    [PerpsEventProperties.ASSET]: market.symbol,
-    // AB test properties (only included if enabled)
-    [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: isEnabled
-      ? variantName
-      : undefined,
-    [PerpsEventProperties.AB_TEST_BUTTON_COLOR_ENABLED]: isEnabled,
-  },
-});
+// Get imperative track function for button press tracking
+const { track } = usePerpsEventTracking();
+
+// In button press handler
+const handleLongPress = () => {
+  // Track AB test on button press (TAT-1937)
+  if (isEnabled) {
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PerpsEventProperties.INTERACTION_TYPE]:
+        PerpsEventValues.INTERACTION_TYPE.TAP,
+      [PerpsEventProperties.ASSET]: market.symbol,
+      [PerpsEventProperties.DIRECTION]: PerpsEventValues.DIRECTION.LONG,
+      [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: variantName,
+    });
+  }
+
+  // Navigate to order screen
+  navigation.navigate(/* ... */);
+};
 ```
 
 ### Where to Track
 
-**Best Practice:** Track AB test context in **screen view events** (PERPS_SCREEN_VIEWED), not in every user interaction.
+**Best Practice:** Track AB test context at the **point of user interaction** (button press) using PERPS_UI_INTERACTION events, not on screen views.
 
 **Reasoning:**
 
-- Screen views establish baseline traffic
-- Analytics platforms calculate conversion rates automatically
-- Reduces event payload size
-- Cleaner analytics queries
+- Measures the actual action being tested (button press), not just exposure
+- Avoids false attribution when order screen is reached from multiple sources
+- Captures user engagement rather than passive viewing
+- More accurate conversion data (pressed button → completed trade)
+- Only tracks users who interact with the tested element
 
 **Example Flow (TAT-1937):**
 
-1. User views PerpsMarketDetailsView → `PERPS_SCREEN_VIEWED` with `ab_test_button_color: 'control'`
-2. User taps Long button → Navigates to PerpsOrderView (no AB test tracking needed)
-3. User completes trade → `PERPS_TRADE_TRANSACTION` event
+1. User views PerpsMarketDetailsView (asset details screen) - no tracking
+2. User taps Long button → `PERPS_UI_INTERACTION` with `ab_test_button_color: 'control'`, `interaction_type: 'tap'`
+3. User navigates to PerpsOrderView (order screen) - button colors applied, no tracking
+4. User completes trade → `PERPS_TRADE_TRANSACTION` event (no AB test context needed)
 
 **Analytics Query:**
 
 ```sql
--- Calculate trade initiation rate by AB test variant
+-- Calculate trade execution rate by AB test variant
 SELECT
   ab_test_button_color,
-  COUNT(*) as screen_views,
-  COUNT(DISTINCT CASE WHEN next_screen = 'trading' THEN user_id END) as conversions,
-  (conversions / screen_views) as conversion_rate
-FROM perps_screen_viewed
-WHERE screen_type = 'asset_details'
+  COUNT(*) as button_presses,
+  COUNT(DISTINCT CASE WHEN trade_completed THEN user_id END) as completed_trades,
+  (completed_trades / button_presses) as execution_rate
+FROM perps_ui_interaction
+WHERE interaction_type = 'tap'
   AND ab_test_button_color_enabled = true
+  AND asset IS NOT NULL
+  AND direction IS NOT NULL
 GROUP BY ab_test_button_color
 ```
 
