@@ -395,6 +395,27 @@ describe('useBridgeQuoteData', () => {
     expect(result.current.formattedQuoteData?.networkFee).toBe('-');
   });
 
+  it('formats network fee with fiat formatter for normal values', () => {
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: {
+        ...mockQuoteWithMetadata,
+        totalNetworkFee: {
+          amount: '0.01',
+          valueInCurrency: '10',
+        },
+      },
+      alternativeQuotes: [],
+    }));
+
+    const testState = createBridgeTestState({});
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    expect(result.current.formattedQuoteData?.networkFee).toBe('$10');
+  });
+
   it('formats network fee as "<$0.01" when value is less than 0.01', () => {
     (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
       recommendedQuote: {
