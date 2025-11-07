@@ -11,7 +11,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import QrScanner from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
-import { QRType, QRScannerEventProperties } from './constants';
+import { QRType, QRScannerEventProperties, ScanResult } from './constants';
 import Routes from '../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
@@ -361,6 +361,7 @@ describe('QrScanner', () => {
           expect(mockAddProperties).toHaveBeenCalledWith({
             [QRScannerEventProperties.SCAN_SUCCESS]: true,
             [QRScannerEventProperties.QR_TYPE]: QRType.SEED_PHRASE,
+            [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
           });
         });
       });
@@ -398,6 +399,7 @@ describe('QrScanner', () => {
           expect(mockAddProperties).toHaveBeenCalledWith({
             [QRScannerEventProperties.SCAN_SUCCESS]: true,
             [QRScannerEventProperties.QR_TYPE]: QRType.PRIVATE_KEY,
+            [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
           });
         });
       });
@@ -437,6 +439,7 @@ describe('QrScanner', () => {
             expect.objectContaining({
               [QRScannerEventProperties.SCAN_SUCCESS]: true,
               [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
+              [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
             }),
           );
         });
@@ -469,6 +472,8 @@ describe('QrScanner', () => {
           expect(mockAddProperties).toHaveBeenCalledWith({
             [QRScannerEventProperties.SCAN_SUCCESS]: false,
             [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
+            [QRScannerEventProperties.SCAN_RESULT]:
+              ScanResult.INVALID_ADDRESS_FORMAT,
           });
         });
       });
@@ -501,6 +506,7 @@ describe('QrScanner', () => {
           expect(mockAddProperties).toHaveBeenCalledWith({
             [QRScannerEventProperties.SCAN_SUCCESS]: true,
             [QRScannerEventProperties.QR_TYPE]: QRType.WALLET_CONNECT,
+            [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
           });
         });
       });
@@ -530,6 +536,7 @@ describe('QrScanner', () => {
           expect(mockAddProperties).toHaveBeenCalledWith({
             [QRScannerEventProperties.SCAN_SUCCESS]: true,
             [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+            [QRScannerEventProperties.SCAN_RESULT]: ScanResult.DEEPLINK_HANDLED,
           });
         });
       });
@@ -595,6 +602,8 @@ describe('QrScanner', () => {
           expect(mockAddProperties).toHaveBeenCalledWith({
             [QRScannerEventProperties.SCAN_SUCCESS]: true,
             [QRScannerEventProperties.QR_TYPE]: QRType.URL,
+            [QRScannerEventProperties.SCAN_RESULT]:
+              ScanResult.URL_NAVIGATION_CONFIRMED,
           });
           expect(mockLinkingOpenURL).toHaveBeenCalledWith(
             'https://example.com',
@@ -664,6 +673,8 @@ describe('QrScanner', () => {
           expect(mockAddProperties).toHaveBeenCalledWith({
             [QRScannerEventProperties.SCAN_SUCCESS]: false,
             [QRScannerEventProperties.QR_TYPE]: QRType.URL,
+            [QRScannerEventProperties.SCAN_RESULT]:
+              ScanResult.URL_NAVIGATION_CANCELLED,
           });
         });
       });

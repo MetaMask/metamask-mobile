@@ -42,7 +42,7 @@ import { ScanSuccess, StartScan } from '../QRTabSwitcher';
 import SDKConnectV2 from '../../../core/SDKConnectV2';
 import useMetrics from '../../../components/hooks/useMetrics/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
-import { QRType, QRScannerEventProperties } from './constants';
+import { QRType, QRScannerEventProperties, ScanResult } from './constants';
 import { getQRType } from './utils';
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
@@ -189,6 +189,8 @@ const QRScanner = ({
               .addProperties({
                 [QRScannerEventProperties.SCAN_SUCCESS]: false,
                 [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
+                [QRScannerEventProperties.SCAN_RESULT]:
+                  ScanResult.INVALID_ADDRESS_FORMAT,
               })
               .build(),
           );
@@ -214,6 +216,8 @@ const QRScanner = ({
             .addProperties({
               [QRScannerEventProperties.SCAN_SUCCESS]: true,
               [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+              [QRScannerEventProperties.SCAN_RESULT]:
+                ScanResult.DEEPLINK_HANDLED,
             })
             .build(),
         );
@@ -250,6 +254,8 @@ const QRScanner = ({
               .addProperties({
                 [QRScannerEventProperties.SCAN_SUCCESS]: false,
                 [QRScannerEventProperties.QR_TYPE]: QRType.URL,
+                [QRScannerEventProperties.SCAN_RESULT]:
+                  ScanResult.URL_NAVIGATION_CANCELLED,
               })
               .build(),
           );
@@ -262,6 +268,8 @@ const QRScanner = ({
             .addProperties({
               [QRScannerEventProperties.SCAN_SUCCESS]: true,
               [QRScannerEventProperties.QR_TYPE]: QRType.URL,
+              [QRScannerEventProperties.SCAN_RESULT]:
+                ScanResult.URL_NAVIGATION_CONFIRMED,
             })
             .build(),
         );
@@ -287,6 +295,8 @@ const QRScanner = ({
               .addProperties({
                 [QRScannerEventProperties.SCAN_SUCCESS]: true,
                 [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+                [QRScannerEventProperties.SCAN_RESULT]:
+                  ScanResult.DEEPLINK_HANDLED,
               })
               .build(),
           );
@@ -300,6 +310,8 @@ const QRScanner = ({
               .addProperties({
                 [QRScannerEventProperties.SCAN_SUCCESS]: false,
                 [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+                [QRScannerEventProperties.SCAN_RESULT]:
+                  ScanResult.UNRECOGNIZED_QR_CODE,
               })
               .build(),
           );
@@ -325,6 +337,7 @@ const QRScanner = ({
               .addProperties({
                 [QRScannerEventProperties.SCAN_SUCCESS]: true,
                 [QRScannerEventProperties.QR_TYPE]: QRType.SEED_PHRASE,
+                [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
               })
               .build(),
           );
@@ -338,11 +351,14 @@ const QRScanner = ({
         const isUnlocked = KeyringController.isUnlocked();
 
         if (!isUnlocked) {
+          const qrType = getQRType(content, origin);
           trackEvent(
             createEventBuilder(MetaMetricsEvents.QR_SCANNED)
               .addProperties({
                 [QRScannerEventProperties.SCAN_SUCCESS]: false,
-                [QRScannerEventProperties.QR_TYPE]: getQRType(content, origin),
+                [QRScannerEventProperties.QR_TYPE]: qrType,
+                [QRScannerEventProperties.SCAN_RESULT]:
+                  ScanResult.WALLET_LOCKED,
               })
               .build(),
           );
@@ -378,6 +394,7 @@ const QRScanner = ({
               .addProperties({
                 [QRScannerEventProperties.SCAN_SUCCESS]: true,
                 [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
+                [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
               })
               .build(),
           );
@@ -405,6 +422,8 @@ const QRScanner = ({
               .addProperties({
                 [QRScannerEventProperties.SCAN_SUCCESS]: true,
                 [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+                [QRScannerEventProperties.SCAN_RESULT]:
+                  ScanResult.DEEPLINK_HANDLED,
               })
               .build(),
           );
@@ -431,6 +450,7 @@ const QRScanner = ({
               .addProperties({
                 [QRScannerEventProperties.SCAN_SUCCESS]: true,
                 [QRScannerEventProperties.QR_TYPE]: QRType.PRIVATE_KEY,
+                [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
               })
               .build(),
           );
@@ -448,6 +468,7 @@ const QRScanner = ({
               .addProperties({
                 [QRScannerEventProperties.SCAN_SUCCESS]: true,
                 [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
+                [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
               })
               .build(),
           );
@@ -465,6 +486,7 @@ const QRScanner = ({
               .addProperties({
                 [QRScannerEventProperties.SCAN_SUCCESS]: true,
                 [QRScannerEventProperties.QR_TYPE]: QRType.WALLET_CONNECT,
+                [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
               })
               .build(),
           );
@@ -474,17 +496,17 @@ const QRScanner = ({
         // ============================================================
         // Fallback for any other QR code content
         // Allows scanning arbitrary data as per EIP-945
+        // Note: Parent component may show "Unrecognized QR Code" dialog
         else {
           data = content;
+          const qrType = getQRType(content, origin, data as ScanSuccess);
           trackEvent(
             createEventBuilder(MetaMetricsEvents.QR_SCANNED)
               .addProperties({
                 [QRScannerEventProperties.SCAN_SUCCESS]: true,
-                [QRScannerEventProperties.QR_TYPE]: getQRType(
-                  content,
-                  origin,
-                  data as ScanSuccess,
-                ),
+                [QRScannerEventProperties.QR_TYPE]: qrType,
+                [QRScannerEventProperties.SCAN_RESULT]:
+                  ScanResult.UNRECOGNIZED_QR_CODE,
               })
               .build(),
           );
