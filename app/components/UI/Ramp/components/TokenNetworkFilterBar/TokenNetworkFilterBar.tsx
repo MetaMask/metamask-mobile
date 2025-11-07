@@ -83,7 +83,7 @@ function TokenNetworkFilterBar({
             color={isAllSelected ? TextColor.Inverse : TextColor.Default}
             variant={TextVariant.BodyMD}
           >
-            {strings('deposit.unified_ramp.networks_filter_bar.all_networks')}
+            {strings('unified_ramp.networks_filter_bar.all_networks')}
           </Text>
         }
         onPress={handleAllPress}

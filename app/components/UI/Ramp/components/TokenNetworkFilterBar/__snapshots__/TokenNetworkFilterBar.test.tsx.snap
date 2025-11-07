@@ -51,7 +51,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
           }
         }
       >
-        [missing "en.deposit.unified_ramp.networks_filter_bar.all_networks" translation]
+        All
       </Text>
     </TouchableOpacity>
     <TouchableOpacity
@@ -304,7 +304,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
           }
         }
       >
-        [missing "en.deposit.unified_ramp.networks_filter_bar.all_networks" translation]
+        All
       </Text>
     </TouchableOpacity>
     <TouchableOpacity
@@ -559,7 +559,7 @@ exports[`TokenNetworkFilterBar renders correctly with partial networks selected 
           }
         }
       >
-        [missing "en.deposit.unified_ramp.networks_filter_bar.all_networks" translation]
+        All
       </Text>
     </TouchableOpacity>
     <TouchableOpacity
@@ -810,7 +810,7 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
           }
         }
       >
-        [missing "en.deposit.unified_ramp.networks_filter_bar.all_networks" translation]
+        All
       </Text>
     </TouchableOpacity>
     <TouchableOpacity

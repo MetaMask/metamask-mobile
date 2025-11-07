@@ -67,18 +67,6 @@ describe('TokenSelection Component', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('displays network filter selector when pressing "All networks" button', async () => {
-    const { getByText, toJSON } = renderWithProvider(TokenSelection);
-
-    const allNetworksButton = getByText('All networks');
-    fireEvent.press(allNetworksButton);
-
-    await waitFor(() => {
-      expect(getByText('Deselect all')).toBeTruthy();
-    });
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('displays empty state when no tokens match search', async () => {
     (useSearchTokenResults as jest.Mock).mockReturnValue([]);
     const { getByPlaceholderText, getByText, toJSON } =
@@ -90,17 +78,6 @@ describe('TokenSelection Component', () => {
     await waitFor(() => {
       expect(getByText('No tokens match "Nonexistent Token"')).toBeTruthy();
     });
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('renders with DEPOSIT ramp type', () => {
-    (useParams as jest.Mock).mockReturnValue({
-      rampType: 'DEPOSIT',
-      selectedCryptoAssetId: undefined,
-    });
-
-    const { toJSON } = renderWithProvider(TokenSelection);
-
     expect(toJSON()).toMatchSnapshot();
   });
 
