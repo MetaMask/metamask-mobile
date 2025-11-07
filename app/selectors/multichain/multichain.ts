@@ -14,10 +14,8 @@ import {
 import { createDeepEqualSelector } from '../util';
 import {
   Balance,
-  BtcScope,
   SolScope,
   Transaction as NonEvmTransaction,
-  TransactionType,
 } from '@metamask/keyring-api';
 import { isMainNet } from '../../util/networks';
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
@@ -502,65 +500,10 @@ export const selectNonEvmTransactions = createDeepEqualSelector(
     }
 
     // For all other cases, return transactions for the selected chain
-    const chainTransactions =
+    return (
       accountTransactions[selectedNonEvmNetworkChainId] ??
-      DEFAULT_TRANSACTION_STATE_ENTRY;
-
-    // Add hardcoded unconfirmed BTC transaction for testing
-    if (selectedNonEvmNetworkChainId === BtcScope.Mainnet) {
-      const hardcodedBtcTransaction: NonEvmTransaction = {
-        id: 'hardcoded-btc-tx-unconfirmed',
-        chain: BtcScope.Mainnet,
-        account: selectedAccount.address,
-        from: [
-          {
-            address: selectedAccount.address,
-            asset: {
-              amount: '0.005',
-              unit: 'BTC',
-              fungible: true,
-              type: `${BtcScope.Mainnet}/slip44:0`,
-            },
-          },
-        ],
-        to: [
-          {
-            address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-            asset: {
-              amount: '0.005',
-              unit: 'BTC',
-              fungible: true,
-              type: `${BtcScope.Mainnet}/slip44:0`,
-            },
-          },
-        ],
-        type: TransactionType.Send,
-        timestamp: Math.floor(Date.now() / 1000) - 300, // 5 minutes ago (in seconds)
-        status: 'unconfirmed',
-        events: [],
-        fees: [
-          {
-            type: 'base',
-            asset: {
-              amount: '0.00001',
-              unit: 'BTC',
-              fungible: true,
-              type: `${BtcScope.Mainnet}/slip44:0`,
-            },
-          },
-        ],
-      };
-
-      return {
-        ...chainTransactions,
-        transactions: [
-          hardcodedBtcTransaction,
-          ...chainTransactions.transactions,
-        ],
-      };
-    }
-
-    return chainTransactions;
+      DEFAULT_TRANSACTION_STATE_ENTRY
+    );
   },
 );
 
@@ -618,62 +561,6 @@ export const selectNonEvmTransactionsForSelectedAccountGroup =
                 : lu;
           }
         }
-      }
-
-      // Add hardcoded unconfirmed BTC transaction for testing
-      const btcAccount = selectedGroupAccounts.find(
-        (account) =>
-          account.type === 'bip122:p2wpkh' ||
-          account.type === 'bip122:p2pkh' ||
-          account.type === 'bip122:p2sh' ||
-          account.type === 'bip122:p2tr',
-      );
-
-      if (btcAccount) {
-        const hardcodedBtcTransaction: NonEvmTransaction = {
-          id: 'hardcoded-btc-tx-unconfirmed',
-          chain: BtcScope.Mainnet,
-          account: btcAccount.address,
-          from: [
-            {
-              address: btcAccount.address,
-              asset: {
-                amount: '0.005',
-                unit: 'BTC',
-                fungible: true,
-                type: `${BtcScope.Mainnet}/slip44:0`,
-              },
-            },
-          ],
-          to: [
-            {
-              address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-              asset: {
-                amount: '0.005',
-                unit: 'BTC',
-                fungible: true,
-                type: `${BtcScope.Mainnet}/slip44:0`,
-              },
-            },
-          ],
-          type: TransactionType.Send,
-          timestamp: Math.floor(Date.now() / 1000) - 300, // 5 minutes ago (in seconds)
-          status: 'unconfirmed',
-          events: [],
-          fees: [
-            {
-              type: 'base',
-              asset: {
-                amount: '0.00001',
-                unit: 'BTC',
-                fungible: true,
-                type: `${BtcScope.Mainnet}/slip44:0`,
-              },
-            },
-          ],
-        };
-
-        aggregated.transactions.push(hardcodedBtcTransaction);
       }
 
       // Sort by timestamp (non-EVM tx use seconds)
