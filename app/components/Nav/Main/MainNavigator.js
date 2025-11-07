@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
@@ -277,6 +277,15 @@ const RewardsHome = () => (
     />
   </Stack.Navigator>
 );
+
+// Persist the last trending screen across unmounts
+export const lastTrendingScreenRef = { current: 'TrendingFeed' };
+
+// Callback to update the last trending screen (outside component to persist)
+export const updateLastTrendingScreen = (screenName) => {
+  // eslint-disable-next-line react-compiler/react-compiler
+  lastTrendingScreenRef.current = screenName;
+};
 
 const TrendingHome = () => (
   <Stack.Navigator mode="modal" screenOptions={clearStackNavigatorOptions}>
@@ -674,23 +683,26 @@ const HomeTabs = () => {
         options={options.home}
         component={WalletTabModalFlow}
       />
-      {isAssetsTrendingTokensEnabled && (
+      {isAssetsTrendingTokensEnabled ? (
         <Tab.Screen
           name={Routes.TRENDING_VIEW}
           options={options.trending}
           component={TrendingHome}
           layout={({ children }) => UnmountOnBlurComponent(children)}
         />
+      ) : (
+        <Tab.Screen
+          name={Routes.BROWSER.HOME}
+          options={{
+            ...options.browser,
+            tabBarButton: isAssetsTrendingTokensEnabled
+              ? () => null
+              : undefined,
+          }}
+          component={BrowserFlow}
+          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+        />
       )}
-      <Tab.Screen
-        name={Routes.BROWSER.HOME}
-        options={{
-          ...options.browser,
-          tabBarButton: isAssetsTrendingTokensEnabled ? () => null : undefined,
-        }}
-        component={BrowserFlow}
-        layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
-      />
       <Tab.Screen
         name={Routes.MODAL.TRADE_WALLET_ACTIONS}
         options={options.trade}
