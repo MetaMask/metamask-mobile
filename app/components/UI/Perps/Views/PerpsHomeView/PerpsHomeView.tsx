@@ -257,7 +257,7 @@ const PerpsHomeView = () => {
         <PerpsMarketTypeSection
           title={strings('perps.home.stocks_and_commodities')}
           markets={stocksAndCommoditiesMarkets}
-          marketType="all"
+          marketType="stocks_and_commodities"
           sortBy={sortBy}
           isLoading={isLoading.markets}
         />
