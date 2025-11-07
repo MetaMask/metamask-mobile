@@ -1,11 +1,18 @@
 import React, {
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  RefreshControl,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 import Icon, {
   IconName,
@@ -16,7 +23,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
@@ -29,15 +36,12 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import { useGetPriorityCardToken } from '../../hooks/useGetPriorityCardToken';
 import { strings } from '../../../../../../locales/i18n';
-import { useAssetBalance } from '../../hooks/useAssetBalance';
 import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
 import { AllowanceState, CardStatus, CardType, CardWarning } from '../../types';
 import CardAssetItem from '../../components/CardAssetItem';
 import ManageCardListItem from '../../components/ManageCardListItem';
 import CardImage from '../../components/CardImage';
-import { selectChainId } from '../../../../../selectors/networkController';
 import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
 import {
   TOKEN_BALANCE_LOADING,
@@ -52,12 +56,29 @@ import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { DEPOSIT_SUPPORTED_TOKENS } from '../../constants';
 import { useCardSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
-import useIsBaanxLoginEnabled from '../../hooks/isBaanxLoginEnabled';
-import useCardDetails from '../../hooks/useCardDetails';
-import { selectIsAuthenticatedCard } from '../../../../../core/redux/slices/card';
+import {
+  setIsAuthenticatedCard,
+  setAuthenticatedPriorityToken,
+  setAuthenticatedPriorityTokenLastFetched,
+  setUserCardLocation,
+  clearAllCache,
+} from '../../../../../core/redux/slices/card';
 import { useCardProvision } from '../../hooks/useCardProvision';
 import CardWarningBox from '../../components/CardWarningBox/CardWarningBox';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
+import { isAuthenticationError } from '../../util/isAuthenticationError';
+import { removeCardBaanxToken } from '../../util/cardTokenVault';
+import Logger from '../../../../../util/Logger';
+import useLoadCardData from '../../hooks/useLoadCardData';
+import AssetSelectionBottomSheet from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
+import { CardActions } from '../../util/metrics';
+import { isSolanaChainId } from '@metamask/bridge-controller';
+import { useAssetBalances } from '../../hooks/useAssetBalances';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
+import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/SpendingLimitProgressBar';
 
 /**
  * CardHome Component
@@ -73,39 +94,60 @@ import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledFo
 const CardHome = () => {
   const { PreferencesController } = Engine.context;
   const [openAddFundsBottomSheet, setOpenAddFundsBottomSheet] = useState(false);
+  const [openAssetSelectionBottomSheet, setOpenAssetSelectionBottomSheet] =
+    useState(false);
   const [retries, setRetries] = useState(0);
-  const sheetRef = useRef<BottomSheetRef>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const addFundsSheetRef = useRef<BottomSheetRef>(null);
+  const assetSelectionSheetRef = useRef<BottomSheetRef>(null);
+  const { toastRef } = useContext(ToastContext);
   const { logoutFromProvider, isLoading: isSDKLoading } = useCardSDK();
-  const isBaanxLoginEnabled = useIsBaanxLoginEnabled();
+  const [
+    isCloseSpendingLimitWarningShown,
+    setIsCloseSpendingLimitWarningShown,
+  ] = useState(true);
 
   const { trackEvent, createEventBuilder } = useMetrics();
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const theme = useTheme();
 
   const styles = createStyles(theme);
 
   const privacyMode = useSelector(selectPrivacyMode);
-  const selectedChainId = useSelector(selectChainId);
-  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
 
+  // Use the orchestrator hook for card data
   const {
     priorityToken,
-    fetchPriorityToken,
-    isLoading: isLoadingPriorityToken,
-    error: priorityTokenError,
-    warning: priorityTokenWarning,
-  } = useGetPriorityCardToken();
-  const { balanceFiat, mainBalance, rawFiatNumber, rawTokenBalance, asset } =
-    useAssetBalance(priorityToken);
-  const {
     cardDetails,
+    isLoading,
+    error: cardError,
+    warning,
+    isAuthenticated,
+    isBaanxLoginEnabled,
+    fetchPriorityToken,
+    fetchAllData,
     pollCardStatusUntilProvisioned,
-    fetchCardDetails,
-    isLoading: isLoadingCardDetails,
-    error: cardDetailsError,
-    warning: cardDetailsWarning,
     isLoadingPollCardStatusUntilProvisioned,
-  } = useCardDetails();
+    allTokens,
+    delegationSettings,
+    externalWalletDetailsData,
+  } = useLoadCardData();
+
+  const assetBalancesMap = useAssetBalances(
+    priorityToken ? [priorityToken] : [],
+  );
+  const assetBalance = assetBalancesMap.get(
+    `${priorityToken?.address?.toLowerCase()}-${priorityToken?.caipChainId}-${priorityToken?.walletAddress?.toLowerCase()}`,
+  );
+  const {
+    asset,
+    balanceFiat,
+    balanceFormatted,
+    rawFiatNumber,
+    rawTokenBalance,
+  } = assetBalance ?? {};
+
   const { provisionCard, isLoading: isLoadingProvisionCard } =
     useCardProvision();
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
@@ -130,32 +172,51 @@ const CardHome = () => {
     [priorityToken, isAuthenticated],
   );
 
+  // Extract warnings from the combined warning
+  const priorityTokenWarning = warning;
+  const cardDetailsWarning = warning;
+
   const balanceAmount = useMemo(() => {
     if (!balanceFiat || balanceFiat === TOKEN_RATE_UNDEFINED) {
-      return mainBalance;
+      return balanceFormatted;
     }
 
     return balanceFiat;
-  }, [balanceFiat, mainBalance]);
+  }, [balanceFiat, balanceFormatted]);
 
   const renderAddFundsBottomSheet = useCallback(
     () => (
       <AddFundsBottomSheet
-        sheetRef={sheetRef}
+        sheetRef={addFundsSheetRef}
         setOpenAddFundsBottomSheet={setOpenAddFundsBottomSheet}
         priorityToken={priorityToken ?? undefined}
-        chainId={selectedChainId}
         navigate={navigation.navigate}
       />
     ),
-    [
-      sheetRef,
-      setOpenAddFundsBottomSheet,
-      priorityToken,
-      selectedChainId,
-      navigation,
-    ],
+    [priorityToken, navigation],
   );
+
+  const renderAssetSelectionBottomSheet = useCallback(
+    () => (
+      <AssetSelectionBottomSheet
+        sheetRef={assetSelectionSheetRef}
+        setOpenAssetSelectionBottomSheet={setOpenAssetSelectionBottomSheet}
+        tokensWithAllowances={allTokens}
+        delegationSettings={delegationSettings}
+        cardExternalWalletDetails={externalWalletDetailsData}
+      />
+    ),
+    [allTokens, delegationSettings, externalWalletDetailsData],
+  );
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await fetchAllData();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [fetchAllData]);
 
   // Track event only once after priorityToken and balances are loaded
   const hasTrackedCardHomeView = useRef(false);
@@ -171,10 +232,10 @@ const CardHome = () => {
       return;
     }
 
-    const hasValidMainBalance =
-      mainBalance !== undefined &&
-      mainBalance !== TOKEN_BALANCE_LOADING &&
-      mainBalance !== TOKEN_BALANCE_LOADING_UPPERCASE;
+    const hasValidTokenBalance =
+      balanceFormatted !== undefined &&
+      balanceFormatted !== TOKEN_BALANCE_LOADING &&
+      balanceFormatted !== TOKEN_BALANCE_LOADING_UPPERCASE;
 
     const hasValidFiatBalance =
       balanceFiat !== undefined &&
@@ -183,7 +244,7 @@ const CardHome = () => {
       balanceFiat !== TOKEN_RATE_UNDEFINED;
 
     const isLoaded =
-      !!priorityToken && (hasValidMainBalance || hasValidFiatBalance);
+      !!priorityToken && (hasValidTokenBalance || hasValidFiatBalance);
 
     if (isLoaded) {
       // Set flag immediately to prevent race conditions
@@ -207,7 +268,7 @@ const CardHome = () => {
     }
   }, [
     priorityToken,
-    mainBalance,
+    balanceFormatted,
     balanceFiat,
     rawTokenBalance,
     rawFiatNumber,
@@ -227,57 +288,113 @@ const CardHome = () => {
     if (isPriorityTokenSupportedDeposit) {
       setOpenAddFundsBottomSheet(true);
     } else if (priorityToken) {
-      openSwaps({
-        chainId: selectedChainId,
+      openSwaps({});
+    }
+  }, [trackEvent, createEventBuilder, priorityToken, openSwaps]);
+
+  const changeAssetAction = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.CHANGE_ASSET_BUTTON,
+        })
+        .build(),
+    );
+
+    if (isAuthenticated) {
+      setOpenAssetSelectionBottomSheet(true);
+    } else {
+      navigation.navigate(Routes.CARD.WELCOME);
+    }
+  }, [isAuthenticated, navigation, trackEvent, createEventBuilder]);
+
+  const manageSpendingLimitAction = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.MANAGE_SPENDING_LIMIT_BUTTON,
+        })
+        .build(),
+    );
+
+    if (isAuthenticated) {
+      navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
+        flow: 'enable',
+        priorityToken,
+        allTokens,
+        delegationSettings,
+        externalWalletDetailsData,
       });
+    } else {
+      navigation.navigate(Routes.CARD.WELCOME);
     }
   }, [
+    isAuthenticated,
+    navigation,
     trackEvent,
     createEventBuilder,
     priorityToken,
-    openSwaps,
-    selectedChainId,
+    allTokens,
+    delegationSettings,
+    externalWalletDetailsData,
   ]);
 
-  const changeAssetAction = useCallback(() => {
-    if (isAuthenticated) {
-      // open asset bottom sheet
-    } else {
-      navigation.navigate(Routes.CARD.WELCOME);
-    }
-  }, [isAuthenticated, navigation]);
+  const logoutAction = useCallback(() => {
+    Alert.alert(
+      strings('card.card_home.logout_confirmation_title'),
+      strings('card.card_home.logout_confirmation_message'),
+      [
+        {
+          text: strings('card.card_home.logout_confirmation_cancel'),
+          style: 'cancel',
+        },
+        {
+          text: strings('card.card_home.logout_confirmation_confirm'),
+          style: 'destructive',
+          onPress: () => {
+            logoutFromProvider();
+            navigation.goBack();
+          },
+        },
+      ],
+    );
+  }, [logoutFromProvider, navigation]);
 
-  const manageSpendingLimitAction = useCallback(() => {
-    if (isAuthenticated) {
-      // open spending limit screen
-    } else {
-      navigation.navigate(Routes.CARD.WELCOME);
-    }
-  }, [isAuthenticated, navigation]);
-
-  const logoutAction = () => {
-    logoutFromProvider();
-    navigation.goBack();
-  };
-
-  const isLoading = useMemo(
-    () => isLoadingPriorityToken || isLoadingCardDetails,
-    [isLoadingPriorityToken, isLoadingCardDetails],
+  const needToEnableCard = useMemo(
+    () => cardDetailsWarning === CardWarning.NoCard,
+    [cardDetailsWarning],
+  );
+  const needToEnableAssets = useMemo(
+    () => priorityTokenWarning === CardWarning.NeedDelegation,
+    [priorityTokenWarning],
   );
 
   const enableCardAction = useCallback(async () => {
-    await provisionCard();
-    const isProvisioned = await pollCardStatusUntilProvisioned();
+    try {
+      await provisionCard();
+      const isProvisioned = await pollCardStatusUntilProvisioned();
 
-    if (isProvisioned) {
-      fetchPriorityToken();
-      changeAssetAction();
+      if (isProvisioned) {
+        fetchPriorityToken();
+        changeAssetAction();
+      }
+    } catch (error) {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [{ label: strings('card.card_home.enable_card_error') }],
+        iconName: IconName.Danger,
+        iconColor: theme.colors.error.default,
+        backgroundColor: theme.colors.error.muted,
+        hasNoTimeout: false,
+      });
     }
   }, [
     provisionCard,
     pollCardStatusUntilProvisioned,
     fetchPriorityToken,
     changeAssetAction,
+    toastRef,
+    theme,
   ]);
 
   const ButtonsSection = useMemo(() => {
@@ -293,7 +410,7 @@ const CardHome = () => {
     }
 
     if (isBaanxLoginEnabled) {
-      if (cardDetailsWarning === CardWarning.NoCard) {
+      if (needToEnableCard) {
         return (
           <Button
             variant={ButtonVariants.Primary}
@@ -317,12 +434,12 @@ const CardHome = () => {
         );
       }
 
-      if (priorityTokenWarning === CardWarning.NeedDelegation) {
+      if (needToEnableAssets) {
         return (
           <Button
             variant={ButtonVariants.Primary}
             style={styles.defaultMarginTop}
-            label={strings('card.card_home.enable_assets_button_label')}
+            label={strings('card.card_home.enable_card_button_label')}
             size={ButtonSize.Lg}
             onPress={changeAssetAction}
             width={ButtonWidthTypes.Full}
@@ -384,12 +501,58 @@ const CardHome = () => {
     isSwapEnabledForPriorityToken,
   ]);
 
-  const error = useMemo(
-    () => priorityTokenError || cardDetailsError,
-    [priorityTokenError, cardDetailsError],
-  );
+  // Handle authentication errors (expired token, invalid credentials, etc.)
+  useEffect(() => {
+    const handleAuthenticationError = async () => {
+      if (!cardError) {
+        return;
+      }
 
-  if (error) {
+      // Check if the error is authentication-related
+      if (isAuthenticated && isAuthenticationError(cardError)) {
+        Logger.log(
+          'CardHome: Authentication error detected, clearing auth state and redirecting',
+        );
+
+        // Clear authentication state
+        await removeCardBaanxToken();
+        dispatch(setIsAuthenticatedCard(false));
+        dispatch(setAuthenticatedPriorityToken(null));
+        dispatch(setAuthenticatedPriorityTokenLastFetched(null));
+        dispatch(setUserCardLocation(null));
+
+        // Clear all cached data
+        dispatch(clearAllCache());
+
+        // Redirect to welcome screen for re-authentication
+        navigation.navigate(Routes.CARD.WELCOME);
+      }
+    };
+
+    handleAuthenticationError();
+  }, [cardError, isAuthenticated, dispatch, navigation]);
+
+  /**
+   * This warning is shown when the user is close to their spending limit.
+   * We should show when the user has consumed 80% or more of their total allowance.
+   * This matches the progress bar color change threshold.
+   */
+  const isCloseSpendingLimitWarning = useMemo(() => {
+    if (!isAuthenticated) {
+      return false;
+    }
+
+    const totalAllowance = Number(priorityToken?.totalAllowance) || 0;
+    const remainingAllowance = Number(priorityToken?.allowance) || 0;
+
+    // Show warning when remaining allowance is 20% or less of total (consumed >= 80%)
+    return (
+      priorityToken?.allowanceState === AllowanceState.Limited &&
+      remainingAllowance <= totalAllowance * 0.2
+    );
+  }, [isAuthenticated, priorityToken]);
+
+  if (cardError) {
     return (
       <View style={styles.errorContainer}>
         <Icon
@@ -410,7 +573,7 @@ const CardHome = () => {
         >
           {strings('card.card_home.error_description')}
         </Text>
-        {retries < 3 && (
+        {retries < 3 && !isAuthenticationError(cardError) && (
           <View style={styles.tryAgainButtonContainer}>
             <Button
               variant={ButtonVariants.Primary}
@@ -418,11 +581,7 @@ const CardHome = () => {
               size={ButtonSize.Md}
               onPress={() => {
                 setRetries((prevState) => prevState + 1);
-                fetchPriorityToken();
-
-                if (cardDetailsError) {
-                  fetchCardDetails();
-                }
+                fetchAllData();
               }}
               testID={CardHomeSelectors.TRY_AGAIN_BUTTON}
             />
@@ -438,15 +597,38 @@ const CardHome = () => {
       showsVerticalScrollIndicator={false}
       alwaysBounceVertical={false}
       contentContainerStyle={styles.contentContainer}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={handleRefresh}
+          colors={[theme.colors.primary.default]}
+          tintColor={theme.colors.icon.default}
+        />
+      }
     >
-      {cardDetailsWarning && <CardWarningBox warning={cardDetailsWarning} />}
+      {isCloseSpendingLimitWarningShown && isCloseSpendingLimitWarning && (
+        <CardWarningBox
+          warning={CardWarning.CloseSpendingLimit}
+          onConfirm={() => {
+            navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
+              flow: 'enable',
+              priorityToken,
+              allTokens,
+              delegationSettings,
+              externalWalletDetailsData,
+            });
+          }}
+          onDismiss={() => {
+            setIsCloseSpendingLimitWarningShown(false);
+          }}
+        />
+      )}
       <View style={styles.cardBalanceContainer}>
         <View
           style={[
             styles.balanceTextContainer,
             styles.defaultHorizontalPadding,
-            priorityTokenWarning === CardWarning.NeedDelegation &&
-              styles.shouldBeHidden,
+            (needToEnableAssets || needToEnableCard) && styles.shouldBeHidden,
           ]}
         >
           <SensitiveText
@@ -464,7 +646,7 @@ const CardHome = () => {
                 testID={CardHomeSelectors.BALANCE_SKELETON}
               />
             ) : (
-              balanceAmount ?? '0'
+              (balanceAmount ?? '0')
             )}
           </SensitiveText>
           <TouchableOpacity
@@ -530,8 +712,7 @@ const CardHome = () => {
           style={[
             styles.cardAssetItemContainer,
             styles.defaultHorizontalPadding,
-            priorityTokenWarning === CardWarning.NeedDelegation &&
-              styles.shouldBeHidden,
+            (needToEnableAssets || needToEnableCard) && styles.shouldBeHidden,
           ]}
         >
           {isLoading ? (
@@ -546,6 +727,16 @@ const CardHome = () => {
           )}
         </View>
 
+        {isAuthenticated &&
+          priorityToken?.allowanceState === AllowanceState.Limited && (
+            <SpendingLimitProgressBar
+              decimals={priorityToken?.decimals ?? 6}
+              totalAllowance={priorityToken?.totalAllowance ?? '0'}
+              remainingAllowance={priorityToken?.allowance ?? '0'}
+              symbol={priorityToken?.symbol ?? ''}
+            />
+          )}
+
         <View
           style={[styles.buttonsContainerBase, styles.defaultHorizontalPadding]}
         >
@@ -555,25 +746,25 @@ const CardHome = () => {
 
       <View
         style={[
-          priorityTokenWarning === CardWarning.NeedDelegation &&
-            styles.shouldBeHidden,
+          (needToEnableAssets || needToEnableCard) && styles.shouldBeHidden,
         ]}
       >
-        {isBaanxLoginEnabled && (
-          <ManageCardListItem
-            title={strings(
-              'card.card_home.manage_card_options.manage_spending_limit',
-            )}
-            description={strings(
-              priorityToken?.allowanceState === AllowanceState.Enabled
-                ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
-                : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted',
-            )}
-            rightIcon={IconName.ArrowRight}
-            onPress={manageSpendingLimitAction}
-            testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
-          />
-        )}
+        {isBaanxLoginEnabled &&
+          !isSolanaChainId(priorityToken?.caipChainId ?? '') && (
+            <ManageCardListItem
+              title={strings(
+                'card.card_home.manage_card_options.manage_spending_limit',
+              )}
+              description={strings(
+                priorityToken?.allowanceState === AllowanceState.Enabled
+                  ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
+                  : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted',
+              )}
+              rightIcon={IconName.ArrowRight}
+              onPress={manageSpendingLimitAction}
+              testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
+            />
+          )}
 
         <ManageCardListItem
           title={strings('card.card_home.manage_card_options.manage_card')}
@@ -588,14 +779,15 @@ const CardHome = () => {
 
       {isAuthenticated && (
         <ManageCardListItem
-          title="Logout"
-          description="Logout of your Card account"
+          title={strings('card.card_home.logout')}
+          description={strings('card.card_home.logout_description')}
           rightIcon={IconName.Logout}
           onPress={logoutAction}
         />
       )}
 
       {openAddFundsBottomSheet && renderAddFundsBottomSheet()}
+      {openAssetSelectionBottomSheet && renderAssetSelectionBottomSheet()}
     </ScrollView>
   );
 };

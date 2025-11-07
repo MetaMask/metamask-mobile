@@ -1,9 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
-<View
+<RCTSafeAreaView
   style={
     {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
       "paddingVertical": 16,
     }
   }
@@ -298,6 +300,7 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -337,6 +340,7 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
@@ -373,5 +377,5 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
     </View>
   </View>
   <View />
-</View>
+</RCTSafeAreaView>
 `;

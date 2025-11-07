@@ -17,7 +17,6 @@ import {
   SolScope,
   Transaction as NonEvmTransaction,
 } from '@metamask/keyring-api';
-import { selectConversionRate } from '../currencyRateController';
 import { isMainNet } from '../../util/networks';
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
 import { selectShowFiatInTestnets } from '../settings';
@@ -142,29 +141,9 @@ export const selectMultichainSelectedAccountCachedBalance =
     selectNonEvmCachedBalance,
     (isEvmSelected, accountBalanceByChainId, nonEvmCachedBalance) =>
       isEvmSelected
-        ? accountBalanceByChainId?.balance ?? '0x0'
+        ? (accountBalanceByChainId?.balance ?? '0x0')
         : nonEvmCachedBalance,
   );
-
-export function selectMultichainCoinRates(state: RootState) {
-  return state.engine.backgroundState.RatesController.rates;
-}
-
-export const selectMultichainConversionRate = createDeepEqualSelector(
-  selectIsEvmNetworkSelected,
-  selectConversionRate,
-  selectMultichainCoinRates,
-  selectSelectedNonEvmNetworkSymbol,
-  (isEvmSelected, evmConversionRate, multichaincCoinRates, nonEvmTicker) => {
-    if (isEvmSelected) {
-      return evmConversionRate;
-    }
-    // TODO: [SOLANA] - This should be mapping a caip-19 not a ticker
-    return nonEvmTicker
-      ? multichaincCoinRates?.[nonEvmTicker.toLowerCase()]?.conversionRate
-      : undefined;
-  },
-);
 
 /**
  *
@@ -180,14 +159,26 @@ export const selectMultichainTransactions = createDeepEqualSelector(
     multichainTransactionsControllerState.nonEvmTransactions,
 );
 
-// TODO: refactor this file to use createDeepEqualSelector
-export function selectMultichainAssets(state: RootState) {
-  return state.engine.backgroundState.MultichainAssetsController.accountsAssets;
-}
+const selectMultichainAssetsControllerState = (state: RootState) =>
+  state.engine.backgroundState.MultichainAssetsController;
 
-export function selectMultichainAssetsMetadata(state: RootState) {
-  return state.engine.backgroundState.MultichainAssetsController.assetsMetadata;
-}
+export const selectMultichainAssets = createDeepEqualSelector(
+  selectMultichainAssetsControllerState,
+  (multichainAssetsControllerState) =>
+    multichainAssetsControllerState.accountsAssets,
+);
+
+export const selectMultichainAssetsMetadata = createDeepEqualSelector(
+  selectMultichainAssetsControllerState,
+  (multichainAssetsControllerState) =>
+    multichainAssetsControllerState.assetsMetadata,
+);
+
+export const selectMultichainAssetsAllIgnoredAssets = createDeepEqualSelector(
+  selectMultichainAssetsControllerState,
+  (multichainAssetsControllerState) =>
+    multichainAssetsControllerState.allIgnoredAssets,
+);
 
 function selectMultichainAssetsRatesState(state: RootState) {
   return state.engine.backgroundState.MultichainAssetsRatesController

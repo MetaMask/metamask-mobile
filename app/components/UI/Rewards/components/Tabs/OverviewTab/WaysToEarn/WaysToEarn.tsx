@@ -195,7 +195,7 @@ export const WaysToEarn = () => {
       navigation.navigate(Routes.PERPS.TUTORIAL);
     } else {
       navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKETS,
+        screen: Routes.PERPS.PERPS_HOME,
       });
     }
   }, [navigation, isFirstTimePerpsUser]);

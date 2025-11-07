@@ -1,4 +1,4 @@
-import { FlashListAssetKey } from '../Tokens/TokenList';
+import { CaipChainId } from '@metamask/utils';
 
 /**
  * Enum for asset delegation status
@@ -40,24 +40,30 @@ export interface CardToken {
 
 // Card token data interface
 // Used on Keychain storage
+// Note: refreshToken and refreshTokenExpiresAt are optional to support
+// the onboarding flow where we only receive a short-lived accessToken
 export interface CardTokenData {
   accessToken: string;
-  refreshToken: string;
+  refreshToken?: string;
   accessTokenExpiresAt: number;
-  refreshTokenExpiresAt: number;
+  refreshTokenExpiresAt?: number;
   location: CardLocation;
 }
 
 export interface AuthenticatedCardTokenAllowanceData {
   availableBalance?: string;
   walletAddress?: string;
+  priority?: number; // Lower number = higher priority (1 is highest)
+  delegationContract?: string | null;
+  stagingTokenAddress?: string | null; // Used in staging environment for actual on-chain token address
 }
 
 export type CardTokenAllowance = {
+  caipChainId: CaipChainId;
   allowanceState: AllowanceState;
   allowance: string;
-} & FlashListAssetKey &
-  CardToken &
+  totalAllowance?: string;
+} & CardToken &
   AuthenticatedCardTokenAllowanceData;
 
 export interface CardLoginInitiateResponse {
@@ -66,6 +72,8 @@ export interface CardLoginInitiateResponse {
 }
 
 export type CardLocation = 'us' | 'international';
+
+export type CardNetwork = 'linea' | 'linea-us' | 'solana';
 
 export interface CardLoginResponse {
   phase: CardUserPhase | null;
@@ -126,14 +134,14 @@ export interface CardWalletExternalResponse {
   currency: string;
   balance: string;
   allowance: string;
-  network: 'linea' | 'solana';
+  network: CardNetwork;
 }
 
 export interface CardWalletExternalPriorityResponse {
   id: number;
   address: string; // This is the wallet address;
   currency: string;
-  network: 'linea' | 'solana';
+  network: CardNetwork;
   priority: number;
 }
 
@@ -142,10 +150,13 @@ export interface CardExternalWalletDetail {
   walletAddress: string;
   currency: string;
   balance: string;
-  allowance: string;
+  allowance: string; // Remaining allowance for the token
   priority: number;
   tokenDetails: CardToken;
-  chainId: string;
+  caipChainId: CaipChainId;
+  network: CardNetwork;
+  delegationContractAddress?: string;
+  stagingTokenAddress?: string;
 }
 
 export type CardExternalWalletDetailsResponse = CardExternalWalletDetail[];
@@ -160,6 +171,7 @@ export enum CardErrorType {
   VALIDATION_ERROR = 'VALIDATION_ERROR',
   SERVER_ERROR = 'SERVER_ERROR',
   NO_CARD = 'NO_CARD',
+  CONFLICT_ERROR = 'CONFLICT_ERROR',
 }
 
 export class CardError extends Error {
@@ -174,8 +186,113 @@ export class CardError extends Error {
   }
 }
 
+// Email verification types
+export interface EmailVerificationSendRequest {
+  email: string;
+}
+
+export interface EmailVerificationSendResponse {
+  contactVerificationId: string;
+}
+
+export interface EmailVerificationVerifyRequest {
+  email: string;
+  password: string;
+  verificationCode: string;
+  contactVerificationId: string;
+  countryOfResidence: string;
+  allowMarketing: boolean;
+  allowSms: boolean;
+}
+
+export interface EmailVerificationVerifyResponse {
+  hasAccount: boolean;
+  onboardingId: string;
+  user: UserResponse;
+}
+
+// Phone verification interfaces
+export interface PhoneVerificationSendRequest {
+  phoneCountryCode: string;
+  phoneNumber: string;
+  contactVerificationId: string;
+}
+
+export interface PhoneVerificationSendResponse {
+  success: boolean;
+}
+
+export interface PhoneVerificationVerifyRequest {
+  phoneCountryCode: string;
+  phoneNumber: string;
+  verificationCode: string;
+  onboardingId: string;
+  contactVerificationId: string;
+}
+
+export interface StartUserVerificationRequest {
+  onboardingId: string;
+}
+
+export interface StartUserVerificationResponse {
+  sessionUrl: string;
+}
+
+export interface RegisterPersonalDetailsRequest {
+  onboardingId: string;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string; // Format: YYYY-MM-DD
+  countryOfNationality: string; // ISO 3166-1 alpha-2 country code
+  ssn?: string; // Required for US users only
+}
+
+export interface RegisterUserResponse {
+  onboardingId: string;
+  user: UserResponse;
+}
+
+export interface RegisterPhysicalAddressRequest {
+  onboardingId: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  zip: string;
+  usState?: string; // Required for US users
+  isSameMailingAddress?: boolean;
+}
+
+export interface RegisterAddressResponse {
+  accessToken: string | null;
+  onboardingId: string;
+  user?: UserResponse;
+}
+
+export interface UserResponse {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  dateOfBirth?: string; // Format: YYYY-MM-DD
+  email?: string;
+  verificationState?: CardVerificationState;
+  phoneNumber?: string; // Format: 2345678901
+  phoneCountryCode?: string; // Format: +1
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  zip?: string;
+  usState?: string; // Required for US users
+  countryOfResidence?: string; // ISO 3166-1 alpha-2 country code
+  ssn?: string; // Required for US users only
+  mailingAddressLine1?: string;
+  mailingAddressLine2?: string;
+  mailingCity?: string;
+  mailingZip?: string;
+  mailingUsState?: string; // Required for US users
+}
+
 // Country type definition
-export interface CountriesOutput {
+export interface RegistrationSettingsResponse {
   countries: {
     id: string;
     name: string;
@@ -194,6 +311,7 @@ export interface CountriesOutput {
       termsAndConditions: string;
       accountOpeningDisclosure: string;
       noticeOfPrivacy: string;
+      eSignConsentDisclosure: string;
     };
     intl: {
       termsAndConditions: string;
@@ -211,5 +329,67 @@ export interface CountriesOutput {
       consentSmsNumber: string;
       supportEmail: string;
     };
+  };
+}
+
+export interface ConsentMetadata {
+  ipAddress?: string;
+  userAgent?: string;
+  timestamp?: string;
+  clientId?: string;
+  version?: string;
+}
+
+export interface Consent {
+  consentType:
+    | 'eSignAct'
+    | 'termsAndPrivacy'
+    | 'marketingNotifications'
+    | 'smsNotifications'
+    | 'emailNotifications';
+  consentStatus: 'granted' | 'denied';
+  metadata: ConsentMetadata;
+}
+
+export interface CreateOnboardingConsentRequest {
+  policyType: 'US' | 'global';
+  onboardingId: string;
+  tenantId: string;
+  consents: Consent[];
+  metadata?: ConsentMetadata;
+}
+
+export interface CreateOnboardingConsentResponse {
+  consentSetId: string;
+}
+
+export interface LinkUserToConsentRequest {
+  userId: string;
+}
+
+export interface LinkUserToConsentResponse {
+  useId: string;
+  consentSetId: string;
+}
+
+export interface ChainConfigToken {
+  symbol: string;
+  decimals: number;
+  address: string;
+}
+
+export interface DelegationSettingsNetwork {
+  network: string;
+  environment: string;
+  chainId: string;
+  delegationContract: string;
+  tokens: Record<string, ChainConfigToken>;
+}
+
+export interface DelegationSettingsResponse {
+  networks: DelegationSettingsNetwork[];
+  count: number;
+  _links: {
+    self: string;
   };
 }

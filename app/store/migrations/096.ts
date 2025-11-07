@@ -53,8 +53,8 @@ const migration = async (state: unknown): Promise<unknown> => {
         const cryptocurrency = isObject(order.cryptocurrency)
           ? order.cryptocurrency?.symbol
           : typeof order.cryptocurrency === 'string'
-          ? order.cryptocurrency
-          : undefined;
+            ? order.cryptocurrency
+            : undefined;
 
         const network = isObject(order.cryptocurrency)
           ? order.cryptocurrency?.chainId
@@ -63,7 +63,7 @@ const migration = async (state: unknown): Promise<unknown> => {
           ...order,
           cryptocurrency: cryptocurrency ?? '...',
           network:
-            typeof order.network === 'string' ? order.network : network ?? '',
+            typeof order.network === 'string' ? order.network : (network ?? ''),
           forceUpdate: true,
         };
       }

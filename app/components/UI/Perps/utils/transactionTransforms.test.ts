@@ -350,7 +350,7 @@ describe('transactionTransforms', () => {
         id: 'order1-1640995200000',
         type: 'order',
         category: 'limit_order',
-        title: 'Long limit',
+        title: 'Limit long',
         subtitle: '1 BTC',
         timestamp: 1640995200000,
         asset: 'BTC',
@@ -445,7 +445,59 @@ describe('transactionTransforms', () => {
 
       const result = transformOrdersToTransactions([shortOrder]);
 
-      expect(result[0].title).toBe('Short limit');
+      expect(result[0].title).toBe('Limit short');
+    });
+
+    it('formats closing long position as Close Long', () => {
+      const closeLongOrder = {
+        ...mockOrder,
+        side: 'sell' as const,
+        reduceOnly: true,
+      };
+
+      const result = transformOrdersToTransactions([closeLongOrder]);
+
+      expect(result[0].title).toBe('Limit close long');
+    });
+
+    it('formats closing short position as Close Short', () => {
+      const closeShortOrder = {
+        ...mockOrder,
+        side: 'buy' as const,
+        reduceOnly: true,
+      };
+
+      const result = transformOrdersToTransactions([closeShortOrder]);
+
+      expect(result[0].title).toBe('Limit close short');
+    });
+
+    it('formats trigger orders as closing orders', () => {
+      const triggerOrder = {
+        ...mockOrder,
+        side: 'sell' as const,
+        isTrigger: true,
+        detailedOrderType: 'Stop Market',
+        orderType: 'market' as const,
+      };
+
+      const result = transformOrdersToTransactions([triggerOrder]);
+
+      expect(result[0].title).toBe('Stop market close long');
+    });
+
+    it('uses detailedOrderType for Take Profit orders', () => {
+      const takeProfitOrder = {
+        ...mockOrder,
+        side: 'sell' as const,
+        isTrigger: true,
+        reduceOnly: true,
+        detailedOrderType: 'Take Profit Limit',
+      };
+
+      const result = transformOrdersToTransactions([takeProfitOrder]);
+
+      expect(result[0].title).toBe('Take profit limit close long');
     });
 
     it('handles market orders correctly', () => {

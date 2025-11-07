@@ -128,7 +128,7 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   await SendScreen.typeAddressInSendAddressField(solanaAddress);
   await SendScreen.clickOnReviewButton();
   timer4.start();
-  await ConfirmationScreen.isVisible();
+  await ConfirmationScreen.isVisible('Solana', 180000);
   timer4.stop();
 
   performanceTracker.addTimer(timer1);

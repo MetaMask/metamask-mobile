@@ -205,14 +205,27 @@ export const useBridgeQuoteData = ({
             bridgeFeatureFlags.priceImpactThreshold.normal)),
   );
 
+  const abortController = useRef<AbortController | null>(new AbortController());
+  useEffect(
+    () => () => {
+      abortController.current?.abort();
+      abortController.current = null;
+    },
+    [],
+  );
+
   const validateQuote = useCallback(async () => {
     // Increment validation ID for this request
     const validationId = ++currentValidationIdRef.current;
+    // Cancel any ongoing request
+    abortController.current?.abort();
+    abortController.current = new AbortController();
 
     if (activeQuote && (isSolanaSwap || isSolanaToNonSolana)) {
       try {
         const validationResult = await validateBridgeTx({
           quoteResponse: activeQuote,
+          signal: abortController.current?.signal,
         });
 
         // Check if this is still the current validation after async operation
@@ -257,8 +270,9 @@ export const useBridgeQuoteData = ({
     bestQuote,
     quoteFetchError,
     activeQuote,
+    quotesLoadingStatus,
     destTokenAmount: formattedDestTokenAmount,
-    isLoading: quotesLoadingStatus === RequestStatus.LOADING,
+    isLoading,
     formattedQuoteData,
     isNoQuotesAvailable,
     willRefresh,
