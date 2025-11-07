@@ -19,6 +19,7 @@ import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../../types/navigation';
+import { PredictEventValues } from '../../constants/eventNames';
 import {
   usePredictBottomSheet,
   type PredictBottomSheetRef,
@@ -50,9 +51,12 @@ const PredictAddFundsSheet = forwardRef<
   };
 
   const handleAddFunds = () => {
-    executeGuardedAction(() => {
-      deposit();
-    });
+    executeGuardedAction(
+      () => {
+        deposit();
+      },
+      { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.DEPOSIT },
+    );
   };
 
   useImperativeHandle(ref, getRefHandlers, [getRefHandlers]);
