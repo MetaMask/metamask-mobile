@@ -39,7 +39,7 @@ export const AccountsList = () => {
             isEnabled={isAccountEnabled(item.accounts)}
             refetchNotificationAccounts={refetchAccountSettings}
             testID={NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATION_TOGGLE(
-              item.id,
+              getEvmAddress(item.accounts) ?? '',
             )}
           />
         )}
