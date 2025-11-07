@@ -37,6 +37,7 @@ import { Json } from '@metamask/utils';
 import { SchedulableBackgroundEvent } from '@metamask/snaps-controllers';
 import { endTrace, trace } from '../../util/trace';
 import { AppState } from 'react-native';
+import { getVersion } from 'react-native-device-info';
 
 export function getSnapIdFromRequest(
   request: Record<string, unknown>,
@@ -195,6 +196,7 @@ const snapMethodMiddlewareBuilder = (
       AppState.currentState === 'active' &&
       engineContext.KeyringController.isUnlocked(),
     getIsLocked: () => !engineContext.KeyringController.isUnlocked(),
+    getVersion: () => getVersion(),
     getEntropySources: () => {
       const state = controllerMessenger.call('KeyringController:getState');
 
