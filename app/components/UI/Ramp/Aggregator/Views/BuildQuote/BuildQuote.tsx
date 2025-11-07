@@ -266,7 +266,6 @@ const BuildQuote = () => {
     selectedFiatCurrencyId,
     defaultFiatCurrency?.id,
     queryDefaultFiatCurrency,
-    selectedPaymentMethodId,
     setSelectedFiatCurrencyId,
   ]);
 
