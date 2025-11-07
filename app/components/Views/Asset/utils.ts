@@ -1,6 +1,6 @@
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps,tron)
 import { SolScope, TrxScope } from '@metamask/keyring-api';
-///: END:ONLY_INCLUDE_IF(keyring-snaps)
+///: END:ONLY_INCLUDE_IF(keyring-snaps,tron)
 import { isAssetFromSearch } from '../../../selectors/tokenSearchDiscoveryDataController';
 import { isSwapsAllowed } from '../../UI/Swaps/utils';
 
