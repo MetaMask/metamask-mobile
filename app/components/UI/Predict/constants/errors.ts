@@ -12,6 +12,7 @@ export const PREDICT_CONSTANTS = {
 } as const;
 
 export const PREDICT_ERROR_CODES = {
+  NOT_ELIGIBLE: 'PREDICT_NOT_ELIGIBLE',
   ORDER_NOT_FULLY_FILLED: 'PREDICT_ORDER_NOT_FULLY_FILLED',
   PREVIEW_NO_ORDER_BOOK: 'PREDICT_PREVIEW_NO_ORDER_BOOK',
   PREVIEW_NO_ORDER_MATCH_BUY: 'PREDICT_PREVIEW_NO_ORDER_MATCH_BUY',
@@ -42,6 +43,9 @@ export const getPredictErrorMessages = () =>
     ),
     [PREDICT_ERROR_CODES.PLACE_ORDER_FAILED]: strings(
       'predict.error_messages.place_order_failed',
+    ),
+    [PREDICT_ERROR_CODES.NOT_ELIGIBLE]: strings(
+      'predict.error_messages.not_eligible',
     ),
     [PREDICT_ERROR_CODES.PREVIEW_FAILED]: strings(
       'predict.error_messages.preview_failed',

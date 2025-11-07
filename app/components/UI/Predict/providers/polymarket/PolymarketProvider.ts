@@ -44,7 +44,7 @@ import {
 } from '../types';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
 import {
-  BUY_ORDER_RATE_LIMIT_MS,
+  ORDER_RATE_LIMIT_MS,
   FEE_COLLECTOR_ADDRESS,
   MATIC_CONTRACTS,
   POLYGON_MAINNET_CHAIN_ID,
@@ -203,7 +203,7 @@ export class PolymarketProvider implements PredictProvider {
       return false;
     }
     const elapsed = Date.now() - lastTimestamp;
-    return elapsed < BUY_ORDER_RATE_LIMIT_MS;
+    return elapsed < ORDER_RATE_LIMIT_MS;
   }
 
   public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
@@ -463,7 +463,7 @@ export class PolymarketProvider implements PredictProvider {
   ): Promise<OrderPreview> {
     const basePreview = await previewOrder(params);
 
-    if (params.side === Side.BUY && params.signer) {
+    if (params.signer) {
       if (this.isRateLimited(params.signer.address)) {
         return {
           ...basePreview,
@@ -603,15 +603,20 @@ export class PolymarketProvider implements PredictProvider {
         feeAuthorization,
       });
 
-      if (!response) {
-        if (error?.includes(`order couldn't be fully filled`)) {
+      if (!success) {
+        DevLogger.log('PolymarketProvider: Place order failed', {
+          error,
+          errorDetails: undefined,
+          side,
+          outcomeTokenId,
+        });
+        if (error.includes(`order couldn't be fully filled`)) {
           throw new Error(PREDICT_ERROR_CODES.ORDER_NOT_FULLY_FILLED);
         }
-
-        return {
-          success,
-          error,
-        } as OrderResult;
+        if (error.includes(`not available in your region`)) {
+          throw new Error(PREDICT_ERROR_CODES.NOT_ELIGIBLE);
+        }
+        throw new Error(error ?? PREDICT_ERROR_CODES.PLACE_ORDER_FAILED);
       }
 
       if (side === Side.BUY) {
