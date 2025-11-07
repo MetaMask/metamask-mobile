@@ -80,27 +80,27 @@ jobs:
       #     echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
       #     echo "Current fingerprint: ${FINGERPRINT}"
 
-      # - name: Determine target paths and Artifact Names
-      #   id: determine-target-paths
-      #   run: |
-      #     if [[ "${{ inputs.build_type }}" == "flask" ]]; then
-      #       {
-      #         echo "apk-target-path=android/app/build/outputs/apk/flask/release"
-      #         echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/flask/release"
-      #         echo "aab-target-path=android/app/build/outputs/bundle/flaskRelease"
-      #         echo "artifact_name=app-flask-release"
-      #       } >> "$GITHUB_OUTPUT"
-      #     elif [[ "${{ inputs.build_type }}" == "main" ]]; then
-      #       {
-      #         echo "apk-target-path=android/app/build/outputs/apk/prod/release"
-      #         echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/prod/release"
-      #         echo "aab-target-path=android/app/build/outputs/bundle/prodRelease"
-      #         echo "artifact_name=app-prod-release"
-      #       } >> "$GITHUB_OUTPUT"
-      #     else
-      #       echo "❌ Error: build_type ${{ inputs.build_type }} is not valid"
-      #       exit 1
-      #     fi
+      - name: Determine target paths and Artifact Names
+        id: determine-target-paths
+        run: |
+          if [[ "${{ inputs.build_type }}" == "flask" ]]; then
+            {
+              echo "apk-target-path=android/app/build/outputs/apk/flask/release"
+              echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/flask/release"
+              echo "aab-target-path=android/app/build/outputs/bundle/flaskRelease"
+              echo "artifact_name=app-flask-release"
+            } >> "$GITHUB_OUTPUT"
+          elif [[ "${{ inputs.build_type }}" == "main" ]]; then
+            {
+              echo "apk-target-path=android/app/build/outputs/apk/prod/release"
+              echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/prod/release"
+              echo "aab-target-path=android/app/build/outputs/bundle/prodRelease"
+              echo "artifact_name=app-prod-release"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "❌ Error: build_type ${{ inputs.build_type }} is not valid"
+            exit 1
+          fi
 
       # - name: Check and restore cached APKs if Fingerprint is found
       #   id: apk-cache-restore
@@ -121,7 +121,6 @@ jobs:
 
       - name: Cache Gradle dependencies
         uses: cirruslabs/cache@v4
-        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
         env:
           GRADLE_CACHE_VERSION: 1
         with:
@@ -134,7 +133,6 @@ jobs:
           key: gradle-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Build Android E2E APKs
-        if: ${{ steps.apk-cache-restore.outputs.cache-hit != 'true' }}
         run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=8192"
