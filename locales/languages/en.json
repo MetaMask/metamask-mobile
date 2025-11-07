@@ -1713,6 +1713,7 @@
         "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperCore for no added fee."
       },
       "got_it": "Got it",
+      "lets_go": "Let's go",
       "card": {
         "title": "Learn the basics of perps"
       }
@@ -6709,6 +6710,8 @@
       "link_account": "Add account",
       "tracked": "Tracked",
       "untracked": "Untracked",
+      "unsupported": "Unsupported",
+      "tracked_count": "{{optedIn}}/{{total}} tracked",
       "link_account_success": "{{accountName}} added successfully",
       "link_account_error": "Failed to add one or more addresses for {{accountName}}"
     },
