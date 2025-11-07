@@ -194,17 +194,16 @@ const ConfirmAddAsset = () => {
                 }
               >
                 {(() => {
-                  const icon =
-                    'image' in asset
-                      ? asset.image
-                      : 'iconUrl' in asset
-                        ? asset.iconUrl
-                        : undefined;
+                  const assetImage = 'image' in asset ? asset.image : undefined;
+                  const assetIconUrl =
+                    'iconUrl' in asset ? asset.iconUrl : undefined;
+                  const logo = assetImage || assetIconUrl;
+
                   return (
-                    icon && (
+                    logo && (
                       <AssetIcon
                         address={asset.address}
-                        logo={icon}
+                        logo={logo}
                         customStyle={styles.assetIcon}
                       />
                     )
