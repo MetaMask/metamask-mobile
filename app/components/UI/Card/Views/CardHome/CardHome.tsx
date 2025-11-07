@@ -48,8 +48,6 @@ import {
   TOKEN_BALANCE_LOADING_UPPERCASE,
   TOKEN_RATE_UNDEFINED,
 } from '../../../Tokens/constants';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import AddFundsBottomSheet from '../../components/AddFundsBottomSheet';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
@@ -73,7 +71,6 @@ import { isAuthenticationError } from '../../util/isAuthenticationError';
 import { removeCardBaanxToken } from '../../util/cardTokenVault';
 import Logger from '../../../../../util/Logger';
 import useLoadCardData from '../../hooks/useLoadCardData';
-import AssetSelectionBottomSheet from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
 import { CardActions } from '../../util/metrics';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { useAssetBalances } from '../../hooks/useAssetBalances';
@@ -82,6 +79,8 @@ import {
   ToastVariants,
 } from '../../../../../component-library/components/Toast';
 import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/SpendingLimitProgressBar';
+import { createAddFundsModalNavigationDetails } from '../../components/AddFundsBottomSheet/AddFundsBottomSheet';
+import { createAssetSelectionModalNavigationDetails } from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
 
 /**
  * CardHome Component
@@ -96,13 +95,8 @@ import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/
  */
 const CardHome = () => {
   const { PreferencesController } = Engine.context;
-  const [openAddFundsBottomSheet, setOpenAddFundsBottomSheet] = useState(false);
-  const [openAssetSelectionBottomSheet, setOpenAssetSelectionBottomSheet] =
-    useState(false);
   const [retries, setRetries] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const addFundsSheetRef = useRef<BottomSheetRef>(null);
-  const assetSelectionSheetRef = useRef<BottomSheetRef>(null);
   const { toastRef } = useContext(ToastContext);
   const { logoutFromProvider, isLoading: isSDKLoading } = useCardSDK();
   const [
@@ -187,31 +181,6 @@ const CardHome = () => {
     return balanceFiat;
   }, [balanceFiat, balanceFormatted]);
 
-  const renderAddFundsBottomSheet = useCallback(
-    () => (
-      <AddFundsBottomSheet
-        sheetRef={addFundsSheetRef}
-        setOpenAddFundsBottomSheet={setOpenAddFundsBottomSheet}
-        priorityToken={priorityToken ?? undefined}
-        navigate={navigation.navigate}
-      />
-    ),
-    [priorityToken, navigation],
-  );
-
-  const renderAssetSelectionBottomSheet = useCallback(
-    () => (
-      <AssetSelectionBottomSheet
-        sheetRef={assetSelectionSheetRef}
-        setOpenAssetSelectionBottomSheet={setOpenAssetSelectionBottomSheet}
-        tokensWithAllowances={allTokens}
-        delegationSettings={delegationSettings}
-        cardExternalWalletDetails={externalWalletDetailsData}
-      />
-    ),
-    [allTokens, delegationSettings, externalWalletDetailsData],
-  );
-
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
@@ -289,11 +258,15 @@ const CardHome = () => {
     );
 
     if (isPriorityTokenSupportedDeposit) {
-      setOpenAddFundsBottomSheet(true);
+      navigation.navigate(
+        ...createAddFundsModalNavigationDetails({
+          priorityToken: priorityToken ?? undefined,
+        }),
+      );
     } else if (priorityToken) {
       openSwaps({});
     }
-  }, [trackEvent, createEventBuilder, priorityToken, openSwaps]);
+  }, [trackEvent, createEventBuilder, priorityToken, openSwaps, navigation]);
 
   const changeAssetAction = useCallback(() => {
     trackEvent(
@@ -305,11 +278,25 @@ const CardHome = () => {
     );
 
     if (isAuthenticated) {
-      setOpenAssetSelectionBottomSheet(true);
+      navigation.navigate(
+        ...createAssetSelectionModalNavigationDetails({
+          tokensWithAllowances: allTokens,
+          delegationSettings,
+          cardExternalWalletDetails: externalWalletDetailsData,
+        }),
+      );
     } else {
       navigation.navigate(Routes.CARD.WELCOME);
     }
-  }, [isAuthenticated, navigation, trackEvent, createEventBuilder]);
+  }, [
+    isAuthenticated,
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    allTokens,
+    delegationSettings,
+    externalWalletDetailsData,
+  ]);
 
   const manageSpendingLimitAction = useCallback(() => {
     trackEvent(
@@ -804,9 +791,6 @@ const CardHome = () => {
           onPress={logoutAction}
         />
       )}
-
-      {openAddFundsBottomSheet && renderAddFundsBottomSheet()}
-      {openAssetSelectionBottomSheet && renderAssetSelectionBottomSheet()}
     </ScrollView>
   );
 };

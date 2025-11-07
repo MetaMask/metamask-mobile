@@ -2,10 +2,12 @@
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockAddListener = jest.fn();
+const mockSetParams = jest.fn();
 const mockSubmitDelegation = jest.fn();
 const mockShowToast = jest.fn();
 const mockDispatch = jest.fn();
 const mockUpdateTokenPriority = jest.fn();
+const mockUseFocusEffect = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -13,7 +15,9 @@ jest.mock('@react-navigation/native', () => ({
     goBack: mockGoBack,
     navigate: mockNavigate,
     addListener: mockAddListener,
+    setParams: mockSetParams,
   }),
+  useFocusEffect: (callback: () => void) => mockUseFocusEffect(callback),
 }));
 
 jest.mock('react-redux', () => ({
@@ -154,6 +158,13 @@ jest.mock('../../util/buildTokenIconUrl', () => ({
   ),
 }));
 
+jest.mock('../../components/AssetSelectionBottomSheet', () => ({
+  createAssetSelectionModalNavigationDetails: jest.fn((params) => [
+    'CardModals',
+    { screen: 'CardAssetSelectionModal', params },
+  ]),
+}));
+
 import React from 'react';
 import { ActivityIndicator } from 'react-native';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
@@ -163,6 +174,7 @@ import { useCardDelegation } from '../../hooks/useCardDelegation';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Logger from '../../../../../util/Logger';
 import { ToastContext } from '../../../../../component-library/components/Toast';
+import Routes from '../../../../../constants/navigation/Routes';
 
 jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
 
@@ -185,6 +197,7 @@ interface MockRoute {
           priorityWalletDetail: CardTokenAllowance | undefined;
         }
       | null;
+    returnedSelectedToken?: CardTokenAllowance;
   };
 }
 
@@ -236,6 +249,12 @@ describe('SpendingLimit Component', () => {
 
     // Mock addListener to return an unsubscribe function
     mockAddListener.mockReturnValue(jest.fn());
+
+    // Mock useFocusEffect - store the callback but don't execute automatically
+    // to avoid infinite render loops in tests
+    mockUseFocusEffect.mockImplementation(() => {
+      // No-op in tests - the hook will be called but won't execute the callback
+    });
 
     // Reset useCardDelegation mock to default state
     (useCardDelegation as jest.Mock).mockReturnValue({
@@ -1107,12 +1126,53 @@ describe('SpendingLimit Component', () => {
     });
   });
 
-  describe('Asset Selection Bottom Sheet', () => {
-    it('opens asset selection bottom sheet when token selector is pressed', () => {
+  describe('Asset Selection Navigation', () => {
+    it('navigates to asset selection modal when token selector is pressed', () => {
       render();
 
-      // Token selector should be rendered
-      expect(screen.getByText('USDC')).toBeOnTheScreen();
+      const tokenSelector = screen.getByText('USDC');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fireEvent.press(tokenSelector.parent?.parent as any);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'CardModals',
+        expect.objectContaining({
+          screen: 'CardAssetSelectionModal',
+          params: expect.objectContaining({
+            tokensWithAllowances: expect.any(Array),
+            selectionOnly: true,
+            hideSolanaAssets: true,
+            callerRoute: Routes.CARD.SPENDING_LIMIT,
+          }),
+        }),
+      );
+    });
+
+    it('passes caller route and params to asset selection modal', () => {
+      const routeWithCustomParams: MockRoute = {
+        params: {
+          ...mockRoute.params,
+          customField: 'customValue',
+        } as MockRoute['params'] & { customField: string },
+      };
+
+      render(routeWithCustomParams);
+
+      const tokenSelector = screen.getByText('USDC');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fireEvent.press(tokenSelector.parent?.parent as any);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'CardModals',
+        expect.objectContaining({
+          params: expect.objectContaining({
+            callerRoute: Routes.CARD.SPENDING_LIMIT,
+            callerParams: expect.objectContaining({
+              customField: 'customValue',
+            }),
+          }),
+        }),
+      );
     });
   });
 

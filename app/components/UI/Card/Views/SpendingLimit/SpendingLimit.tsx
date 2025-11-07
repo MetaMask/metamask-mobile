@@ -6,7 +6,7 @@ import React, {
   useMemo,
 } from 'react';
 import { ScrollView, TouchableOpacity, View, TextInput } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
 import {
   useCardDelegation,
@@ -42,8 +42,7 @@ import {
   CardExternalWalletDetailsResponse,
   CardNetwork,
 } from '../../types';
-import AssetSelectionBottomSheet from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import { createAssetSelectionModalNavigationDetails } from '../../components/AssetSelectionBottomSheet';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { buildTokenIconUrl } from '../../util/buildTokenIconUrl';
@@ -52,6 +51,7 @@ import { CardActions, CardScreens } from '../../util/metrics';
 import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
 import { clearCacheData } from '../../../../../core/redux/slices/card';
 import { useDispatch } from 'react-redux';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const getNetworkFromCaipChainId = (caipChainId: string): CardNetwork => {
   if (caipChainId === SolScope.Mainnet || caipChainId.startsWith('solana:')) {
@@ -91,9 +91,6 @@ const SpendingLimit = ({
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useMetrics();
   const { sdk } = useCardSDK();
-  const [openAssetSelectionBottomSheet, setOpenAssetSelectionBottomSheet] =
-    useState(false);
-  const assetSelectionSheetRef = React.useRef<BottomSheetRef>(null);
 
   const flow = route?.params?.flow || 'manage';
   const selectedTokenFromRoute = route?.params?.selectedToken;
@@ -187,6 +184,26 @@ const SpendingLimit = ({
       }
     }
   }, [flow, selectedTokenFromRoute, priorityToken, allTokens, selectedToken]);
+
+  // Listen for token selection from AssetSelectionBottomSheet modal
+  useFocusEffect(
+    useCallback(() => {
+      // Check if we're returning from the asset selection modal with a selected token
+      const params = route?.params as
+        | {
+            returnedSelectedToken?: CardTokenAllowance;
+          }
+        | undefined;
+      if (params?.returnedSelectedToken) {
+        setSelectedToken(params.returnedSelectedToken);
+
+        // Clear the returned token from params to avoid re-applying it
+        navigation.setParams({
+          returnedSelectedToken: undefined,
+        } as Record<string, unknown>);
+      }
+    }, [route?.params, navigation]),
+  );
 
   const handleOptionSelect = useCallback((option: 'full' | 'restricted') => {
     setTempSelectedOption(option);
@@ -370,10 +387,35 @@ const SpendingLimit = ({
     isDelegationLoading,
   ]);
 
-  const handleTokenSelection = useCallback((token: CardTokenAllowance) => {
-    setSelectedToken(token);
-    setOpenAssetSelectionBottomSheet(false);
-  }, []);
+  const handleOpenAssetSelection = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.CHANGE_ASSET_BUTTON,
+        })
+        .build(),
+    );
+
+    navigation.navigate(
+      ...createAssetSelectionModalNavigationDetails({
+        tokensWithAllowances: allTokens ?? [],
+        delegationSettings,
+        cardExternalWalletDetails: externalWalletDetailsData,
+        selectionOnly: true,
+        hideSolanaAssets: true,
+        callerRoute: Routes.CARD.SPENDING_LIMIT,
+        callerParams: route?.params as Record<string, unknown>,
+      }),
+    );
+  }, [
+    navigation,
+    allTokens,
+    delegationSettings,
+    externalWalletDetailsData,
+    trackEvent,
+    createEventBuilder,
+    route?.params,
+  ]);
 
   const renderSelectedToken = () => {
     if (!selectedToken) {
@@ -439,7 +481,7 @@ const SpendingLimit = ({
       <View style={styles.assetContainer}>
         <TouchableOpacity
           style={styles.dropdownButton}
-          onPress={() => setOpenAssetSelectionBottomSheet(true)}
+          onPress={handleOpenAssetSelection}
         >
           {renderSelectedToken()}
         </TouchableOpacity>
@@ -597,18 +639,6 @@ const SpendingLimit = ({
           disabled={isDelegationLoading}
         />
       </View>
-      {openAssetSelectionBottomSheet && (
-        <AssetSelectionBottomSheet
-          sheetRef={assetSelectionSheetRef}
-          setOpenAssetSelectionBottomSheet={setOpenAssetSelectionBottomSheet}
-          tokensWithAllowances={allTokens ?? []}
-          delegationSettings={delegationSettings}
-          cardExternalWalletDetails={externalWalletDetailsData}
-          selectionOnly
-          onTokenSelect={handleTokenSelection}
-          hideSolanaAssets
-        />
-      )}
     </ScrollView>
   );
 };

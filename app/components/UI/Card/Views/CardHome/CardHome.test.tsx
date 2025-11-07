@@ -198,8 +198,27 @@ jest.mock('../../../../hooks/useMetrics', () => ({
   MetaMetricsEvents: {
     CARD_ADD_FUNDS_CLICKED: 'card_add_funds_clicked',
     CARD_HOME_VIEWED: 'card_home_viewed',
+    CARD_BUTTON_CLICKED: 'card_button_clicked',
   },
 }));
+
+// Mock navigation helper functions
+jest.mock('../../components/AddFundsBottomSheet/AddFundsBottomSheet', () => ({
+  createAddFundsModalNavigationDetails: jest.fn((params) => [
+    'CardModals',
+    { screen: 'CardAddFundsModal', params },
+  ]),
+}));
+
+jest.mock(
+  '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet',
+  () => ({
+    createAssetSelectionModalNavigationDetails: jest.fn((params) => [
+      'CardModals',
+      { screen: 'CardAssetSelectionModal', params },
+    ]),
+  }),
+);
 
 // Mock react-native-device-info
 jest.mock('react-native-device-info', () => ({
@@ -580,7 +599,7 @@ describe('CardHome Component', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('opens AddFundsBottomSheet when add funds button is pressed with USDC token', async () => {
+  it('navigates to add funds modal when add funds button is pressed with USDC token', async () => {
     // Given: priority token is USDC (default)
     // When: user presses add funds button
     render();
@@ -590,15 +609,23 @@ describe('CardHome Component', () => {
     );
     fireEvent.press(addFundsButton);
 
-    // Then: should open bottom sheet, not swaps
+    // Then: should navigate to add funds modal, not swaps
     await waitFor(() => {
-      expect(screen.getByTestId('add-funds-bottom-sheet')).toBeTruthy();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'CardModals',
+        expect.objectContaining({
+          screen: 'CardAddFundsModal',
+          params: expect.objectContaining({
+            priorityToken: mockPriorityToken,
+          }),
+        }),
+      );
     });
 
     expect(mockOpenSwaps).not.toHaveBeenCalled();
   });
 
-  it('opens AddFundsBottomSheet when add funds button is pressed with USDT token', async () => {
+  it('navigates to add funds modal when add funds button is pressed with USDT token', async () => {
     // Given: priority token is USDT
     const usdtToken = {
       ...mockPriorityToken,
@@ -614,9 +641,17 @@ describe('CardHome Component', () => {
     );
     fireEvent.press(addFundsButton);
 
-    // Then: should open bottom sheet for supported token
+    // Then: should navigate to add funds modal for supported token
     await waitFor(() => {
-      expect(screen.getByTestId('add-funds-bottom-sheet')).toBeTruthy();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'CardModals',
+        expect.objectContaining({
+          screen: 'CardAddFundsModal',
+          params: expect.objectContaining({
+            priorityToken: usdtToken,
+          }),
+        }),
+      );
     });
 
     expect(mockOpenSwaps).not.toHaveBeenCalled();
@@ -1243,6 +1278,30 @@ describe('CardHome Component', () => {
 
       // Then: should navigate to welcome screen
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.WELCOME);
+    });
+
+    it('navigates to asset selection modal when change asset pressed and authenticated', () => {
+      // Given: user is authenticated
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({ isAuthenticated: true });
+
+      // When: user presses change asset button
+      render();
+      const changeAssetButton = screen.getByTestId(
+        CardHomeSelectors.CHANGE_ASSET_BUTTON,
+      );
+      fireEvent.press(changeAssetButton);
+
+      // Then: should navigate to asset selection modal
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'CardModals',
+        expect.objectContaining({
+          screen: 'CardAssetSelectionModal',
+          params: expect.objectContaining({
+            tokensWithAllowances: [mockPriorityToken],
+          }),
+        }),
+      );
     });
 
     it('shows manage spending limit button when Baanx login is enabled', () => {
