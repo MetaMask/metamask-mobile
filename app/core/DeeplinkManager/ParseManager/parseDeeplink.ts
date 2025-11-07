@@ -97,8 +97,7 @@ async function parseDeeplink({
         // Return true to indicate we handled this
         return true;
       }
-        Alert.alert(strings('deeplink.invalid'), `Invalid URL: ${url}`);
-
+      Alert.alert(strings('deeplink.invalid'), `Invalid URL: ${url}`);
     }
 
     return false;
