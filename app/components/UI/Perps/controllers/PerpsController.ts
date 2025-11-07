@@ -23,6 +23,7 @@ import { v4 as uuidv4 } from 'uuid';
 import Engine from '../../../../core/Engine';
 import { generateDepositId } from '../utils/idUtils';
 import { USDC_SYMBOL } from '../constants/hyperLiquidConfig';
+import { isTPSLOrder } from '../constants/orderTypes';
 import {
   LastTransactionResult,
   TransactionStatus,
@@ -116,13 +117,20 @@ import {
   validatedVersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
 import { parseCommaSeparatedString } from '../utils/stringParseUtils';
-
-// Simple wait utility
-const wait = (ms: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms));
+import { wait } from '../utils/wait';
 
 // Re-export error codes from separate file to avoid circular dependencies
 export { PERPS_ERROR_CODES, type PerpsErrorCode } from './perpsErrorCodes';
+
+/**
+ * Initialization state enum for state machine tracking
+ */
+export enum InitializationState {
+  UNINITIALIZED = 'uninitialized',
+  INITIALIZING = 'initializing',
+  INITIALIZED = 'initialized',
+  FAILED = 'failed',
+}
 
 const ON_RAMP_GEO_BLOCKING_URLS = {
   // Use UAT endpoint since DEV endpoint is less reliable.
@@ -142,6 +150,11 @@ export type PerpsControllerState = {
   activeProvider: string;
   isTestnet: boolean; // Dev toggle for testnet
   connectionStatus: 'disconnected' | 'connecting' | 'connected';
+
+  // Initialization state machine
+  initializationState: InitializationState;
+  initializationError: string | null;
+  initializationAttempts: number;
 
   // Account data (persisted) - using HyperLiquid property names
   accountState: AccountState | null;
@@ -266,6 +279,9 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   activeProvider: 'hyperliquid',
   isTestnet: false, // Default to mainnet
   connectionStatus: 'disconnected',
+  initializationState: InitializationState.UNINITIALIZED,
+  initializationError: null,
+  initializationAttempts: 0,
   accountState: null,
   positions: [],
   perpsBalances: {},
@@ -344,6 +360,24 @@ const metadata: StateMetadata<PerpsControllerState> = {
     persist: false,
     includeInDebugSnapshot: false,
     usedInUi: true,
+  },
+  initializationState: {
+    includeInStateLogs: true,
+    persist: false,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  initializationError: {
+    includeInStateLogs: true,
+    persist: false,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  initializationAttempts: {
+    includeInStateLogs: true,
+    persist: false,
+    includeInDebugSnapshot: false,
+    usedInUi: false,
   },
   pendingOrders: {
     includeInStateLogs: true,
@@ -706,10 +740,6 @@ export class PerpsController extends BaseController<
     );
 
     this.providers = new Map();
-
-    this.initializeProviders().catch((error) => {
-      Logger.error(ensureError(error), this.getErrorContext('constructor'));
-    });
   }
 
   private setBlockedRegionList(list: string[], source: 'remote' | 'fallback') {
@@ -1169,7 +1199,7 @@ export class PerpsController extends BaseController<
    * Must be called before using any other methods
    * Prevents double initialization with promise caching
    */
-  async initializeProviders(): Promise<void> {
+  async init(): Promise<void> {
     if (this.isInitialized) {
       return;
     }
@@ -1183,61 +1213,125 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Actual initialization implementation
+   * Actual initialization implementation with retry logic
    */
   private async performInitialization(): Promise<void> {
+    const maxAttempts = 3;
+    const baseDelay = 1000;
+
+    this.update((state) => {
+      state.initializationState = InitializationState.INITIALIZING;
+      state.initializationError = null;
+      state.initializationAttempts = 0;
+    });
+
     DevLogger.log('PerpsController: Initializing providers', {
       currentNetwork: this.state.isTestnet ? 'testnet' : 'mainnet',
       existingProviders: Array.from(this.providers.keys()),
       timestamp: new Date().toISOString(),
     });
 
-    // Disconnect existing providers to close WebSocket connections
-    const existingProviders = Array.from(this.providers.values());
-    if (existingProviders.length > 0) {
-      DevLogger.log('PerpsController: Disconnecting existing providers', {
-        count: existingProviders.length,
-        timestamp: new Date().toISOString(),
-      });
-      await Promise.all(
-        existingProviders.map((provider) => provider.disconnect()),
-      );
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        this.update((state) => {
+          state.initializationAttempts = attempt;
+        });
+
+        // Disconnect existing providers to close WebSocket connections
+        const existingProviders = Array.from(this.providers.values());
+        if (existingProviders.length > 0) {
+          DevLogger.log('PerpsController: Disconnecting existing providers', {
+            count: existingProviders.length,
+            timestamp: new Date().toISOString(),
+          });
+          await Promise.all(
+            existingProviders.map((provider) => provider.disconnect()),
+          );
+        }
+        this.providers.clear();
+
+        DevLogger.log(
+          'PerpsController: Creating provider with HIP-3 configuration',
+          {
+            hip3Enabled: this.hip3Enabled,
+            hip3AllowlistMarkets: this.hip3AllowlistMarkets,
+            hip3BlocklistMarkets: this.hip3BlocklistMarkets,
+            hip3ConfigSource: this.hip3ConfigSource,
+            isTestnet: this.state.isTestnet,
+          },
+        );
+
+        this.providers.set(
+          'hyperliquid',
+          new HyperLiquidProvider({
+            isTestnet: this.state.isTestnet,
+            hip3Enabled: this.hip3Enabled,
+            allowlistMarkets: this.hip3AllowlistMarkets,
+            blocklistMarkets: this.hip3BlocklistMarkets,
+          }),
+        );
+
+        // Future providers can be added here with their own authentication patterns:
+        // - Some might use API keys: new BinanceProvider({ apiKey, apiSecret })
+        // - Some might use different wallet patterns: new GMXProvider({ signer })
+        // - Some might not need auth at all: new DydxProvider()
+
+        // Wait for WebSocket transport to be ready before marking as initialized
+        await wait(PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS);
+
+        this.isInitialized = true;
+        this.update((state) => {
+          state.initializationState = InitializationState.INITIALIZED;
+          state.initializationError = null;
+        });
+
+        DevLogger.log('PerpsController: Providers initialized successfully', {
+          providerCount: this.providers.size,
+          activeProvider: this.state.activeProvider,
+          timestamp: new Date().toISOString(),
+          attempts: attempt,
+        });
+
+        return; // Exit retry loop on success
+      } catch (error) {
+        lastError = ensureError(error);
+
+        Logger.error(
+          lastError,
+          this.getErrorContext('performInitialization', {
+            attempt,
+            maxAttempts,
+          }),
+        );
+
+        // If not the last attempt, wait before retrying (exponential backoff)
+        if (attempt < maxAttempts) {
+          const delay = baseDelay * Math.pow(2, attempt - 1); // 1s, 2s, 4s
+          DevLogger.log(
+            `PerpsController: Retrying initialization in ${delay}ms`,
+            {
+              attempt,
+              maxAttempts,
+              error: lastError.message,
+            },
+          );
+          await wait(delay);
+        }
+      }
     }
-    this.providers.clear();
 
-    DevLogger.log(
-      'PerpsController: Creating provider with HIP-3 configuration',
-      {
-        hip3Enabled: this.hip3Enabled,
-        hip3AllowlistMarkets: this.hip3AllowlistMarkets,
-        hip3BlocklistMarkets: this.hip3BlocklistMarkets,
-        hip3ConfigSource: this.hip3ConfigSource,
-        isTestnet: this.state.isTestnet,
-      },
-    );
+    this.isInitialized = false;
+    this.update((state) => {
+      state.initializationState = InitializationState.FAILED;
+      state.initializationError = lastError?.message ?? 'Unknown error';
+    });
+    this.initializationPromise = null; // Clear promise to allow retry
 
-    this.providers.set(
-      'hyperliquid',
-      new HyperLiquidProvider({
-        isTestnet: this.state.isTestnet,
-        hip3Enabled: this.hip3Enabled,
-        allowlistMarkets: this.hip3AllowlistMarkets,
-        blocklistMarkets: this.hip3BlocklistMarkets,
-      }),
-    );
-
-    // Future providers can be added here with their own authentication patterns:
-    // - Some might use API keys: new BinanceProvider({ apiKey, apiSecret })
-    // - Some might use different wallet patterns: new GMXProvider({ signer })
-    // - Some might not need auth at all: new DydxProvider()
-
-    // Wait for WebSocket transport to be ready before marking as initialized
-    await wait(PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS);
-
-    this.isInitialized = true;
-    DevLogger.log('PerpsController: Providers initialized successfully', {
-      providerCount: this.providers.size,
-      activeProvider: this.state.activeProvider,
+    DevLogger.log('PerpsController: Initialization failed', {
+      error: lastError?.message,
+      attempts: maxAttempts,
       timestamp: new Date().toISOString(),
     });
   }
@@ -1292,12 +1386,20 @@ export class PerpsController extends BaseController<
     }
 
     // Check if not initialized
-    if (!this.isInitialized) {
+    if (
+      this.state.initializationState !== InitializationState.INITIALIZED ||
+      !this.isInitialized
+    ) {
+      const errorMessage =
+        this.state.initializationState === InitializationState.FAILED
+          ? `${PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED}: ${this.state.initializationError || 'Initialization failed'}`
+          : PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED;
+
       this.update((state) => {
-        state.lastError = PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED;
+        state.lastError = errorMessage;
         state.lastUpdateTimestamp = Date.now();
       });
-      throw new Error(PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED);
+      throw new Error(errorMessage);
     }
 
     const provider = this.providers.get(this.state.activeProvider);
@@ -1827,8 +1929,10 @@ export class PerpsController extends BaseController<
         // Filter orders based on params
         let ordersToCancel = orders;
         if (params.cancelAll || (!params.coins && !params.orderIds)) {
-          // Cancel all orders
-          ordersToCancel = orders;
+          // Cancel all orders (excluding TP/SL orders for positions)
+          ordersToCancel = orders.filter(
+            (o) => !isTPSLOrder(o.detailedOrderType),
+          );
         } else if (params.orderIds && params.orderIds.length > 0) {
           // Cancel specific order IDs
           ordersToCancel = orders.filter((o) =>
@@ -3746,7 +3850,7 @@ export class PerpsController extends BaseController<
       // Reset initialization state and reinitialize provider with new testnet setting
       this.isInitialized = false;
       this.initializationPromise = null;
-      await this.initializeProviders();
+      await this.init();
 
       DevLogger.log('PerpsController: Network toggle completed', {
         newNetwork,
