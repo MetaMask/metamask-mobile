@@ -28,6 +28,7 @@ import {
 import AppConstants from '../../../core/AppConstants';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import Engine from '../../../core/Engine';
+import type { EngineContext } from '../../../core/Engine/types';
 import { selectChainId } from '../../../selectors/networkController';
 import { isValidAddressInputViaQRCode } from '../../../util/address';
 import { getURLProtocol } from '../../../util/general';
@@ -41,77 +42,10 @@ import { ScanSuccess, StartScan } from '../QRTabSwitcher';
 import SDKConnectV2 from '../../../core/SDKConnectV2';
 import useMetrics from '../../../components/hooks/useMetrics/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
-import { QRType, QRTypeValue, QRScannerEventProperties } from './constants';
+import { QRType, QRScannerEventProperties } from './constants';
+import { getQRType } from './utils';
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
-
-/**
- * Determines the QR type based on the scanned content
- */
-const getQRType = (
-  content: string,
-  origin?: string,
-  data?: ScanSuccess,
-): QRTypeValue => {
-  // Check for seed phrase
-  if (
-    data?.seed ||
-    (!failedSeedPhraseRequirements(content) && isValidMnemonic(content))
-  ) {
-    return QRType.SEED_PHRASE;
-  }
-
-  // Check for private key
-  if (
-    data?.private_key ||
-    content.length === 64 ||
-    (content.substring(0, 2).toLowerCase() === '0x' && content.length === 66)
-  ) {
-    return QRType.PRIVATE_KEY;
-  }
-
-  // Check for send flow
-  if (
-    origin === Routes.SEND_FLOW.SEND_TO ||
-    origin === Routes.SETTINGS.CONTACT_FORM ||
-    data?.action === 'send-eth' ||
-    (content.startsWith('0x') && isValidAddress(content)) ||
-    content.split(`${PROTOCOLS.ETHEREUM}:`).length > 1
-  ) {
-    return QRType.SEND_FLOW;
-  }
-
-  // Check for wallet connect
-  if (
-    data?.walletConnectURI ||
-    content.startsWith(MM_WALLETCONNECT_DEEPLINK) ||
-    content.split('wc:').length > 1
-  ) {
-    return QRType.WALLET_CONNECT;
-  }
-
-  // Check for deeplink
-  if (
-    content.startsWith(MM_SDK_DEEPLINK) ||
-    content.split('metamask-sync:').length > 1 ||
-    SDKConnectV2.isConnectDeeplink(content)
-  ) {
-    return QRType.DEEPLINK;
-  }
-
-  // Check for URL
-  const contentProtocol = getURLProtocol(content);
-  if (
-    contentProtocol === PROTOCOLS.HTTP ||
-    contentProtocol === PROTOCOLS.HTTPS ||
-    contentProtocol === PROTOCOLS.DAPP
-  ) {
-    return QRType.URL;
-  }
-
-  // Default to deeplink for other cases (EIP-945 arbitrary data)
-  return QRType.DEEPLINK;
-};
 
 /**
  * View that wraps the QR code scanner screen
@@ -224,6 +158,7 @@ const QRScanner = ({
 
   const onBarCodeRead = useCallback(
     async (codes: Code[]) => {
+      // Early exit if no codes detected
       if (!codes.length) return;
 
       const response = { data: codes[0].value };
@@ -237,6 +172,13 @@ const QRScanner = ({
         return;
       }
 
+      // ============================================================
+      // CONDITION 1: Address Validation for Send Flow & Contact Form
+      // ============================================================
+      // Handles QR codes scanned from:
+      // - Send token flow (Routes.SEND_FLOW.SEND_TO)
+      // - Contact form (Routes.SETTINGS.CONTACT_FORM)
+      // Validates that the scanned content is a valid address
       if (
         origin === Routes.SEND_FLOW.SEND_TO ||
         origin === Routes.SETTINGS.CONTACT_FORM
@@ -256,6 +198,11 @@ const QRScanner = ({
         }
       }
 
+      // ============================================================
+      // CONDITION 2: SDK Connect V2 Deeplink
+      // ============================================================
+      // Handles SDK connection deeplinks (metamask-sdk://)
+      // Establishes WebSocket connection and handles internally
       if (SDKConnectV2.isConnectDeeplink(response.data)) {
         // SDKConnectV2 handles the connection entirely internally (establishes WebSocket, etc.)
         // and bypasses the standard deeplink saga flow. We don't call onScanSuccess here because
@@ -275,6 +222,12 @@ const QRScanner = ({
         return;
       }
 
+      // ============================================================
+      // CONDITION 3: Regular URLs (HTTP/HTTPS/DAPP)
+      // ============================================================
+      // Handles standard web URLs and dapp:// protocol
+      // Prompts user for confirmation before opening external URLs
+      // Excludes WalletConnect and SDK deeplinks
       const contentProtocol = getURLProtocol(content);
       const isWalletConnect = content.startsWith(MM_WALLETCONNECT_DEEPLINK);
       const isSDK = content.startsWith(MM_SDK_DEEPLINK);
@@ -285,6 +238,7 @@ const QRScanner = ({
         !isWalletConnect &&
         !isSDK
       ) {
+        // Convert dapp:// protocol to https://
         if (contentProtocol === PROTOCOLS.DAPP) {
           content = content.replace(PROTOCOLS.DAPP, PROTOCOLS.HTTPS);
         }
@@ -311,10 +265,19 @@ const QRScanner = ({
             })
             .build(),
         );
+        // Open the URL and end the scanner
+        await Linking.openURL(content);
+        end();
+        return;
       }
 
       let data = {};
 
+      // ============================================================
+      // CONDITION 4: MetaMask Sync Protocol
+      // ============================================================
+      // Handles wallet sync QR codes (metamask-sync:)
+      // Used for syncing data between MetaMask instances
       if (content.split('metamask-sync:').length > 1) {
         shouldReadBarCodeRef.current = false;
         data = { content };
@@ -347,6 +310,10 @@ const QRScanner = ({
           mountedRef.current = false;
         }
       } else {
+        // ============================================================
+        // CONDITION 5: Seed Phrase/Mnemonic
+        // ============================================================
+        // Handles 12/24 word seed phrases for wallet import
         if (
           !failedSeedPhraseRequirements(content) &&
           isValidMnemonic(content)
@@ -365,9 +332,9 @@ const QRScanner = ({
           onScanSuccess(data, content);
           return;
         }
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { KeyringController } = Engine.context as any;
+
+        // Check if wallet is unlocked before processing other scan types
+        const { KeyringController } = Engine.context as EngineContext;
         const isUnlocked = KeyringController.isUnlocked();
 
         if (!isUnlocked) {
@@ -387,7 +354,13 @@ const QRScanner = ({
           mountedRef.current = false;
           return;
         }
-        // Let ethereum:address and address go forward
+
+        // ============================================================
+        // CONDITION 6: Ethereum Address (EIP-681)
+        // ============================================================
+        // Handles ethereum: protocol addresses or plain 0x addresses
+        // Examples: ethereum:0x123... or 0x123...
+        // Initiates send flow for the scanned address
         if (
           (content.split(`${PROTOCOLS.ETHEREUM}:`).length > 1 &&
             !parse(content).function_name) ||
@@ -413,7 +386,11 @@ const QRScanner = ({
           return;
         }
 
-        // Checking if it can be handled like deeplinks
+        // ============================================================
+        // CONDITION 7: Generic Deeplinks
+        // ============================================================
+        // Attempts to handle content through SharedDeeplinkManager
+        // Handles metamask:// deeplinks and other registered protocols
         const handledByDeeplink = await SharedDeeplinkManager.parse(content, {
           origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
           // TODO: Check is pop is still valid.
@@ -435,7 +412,11 @@ const QRScanner = ({
           return;
         }
 
-        // I can't be handled by deeplinks, checking other options
+        // ============================================================
+        // CONDITION 8: Private Key Import
+        // ============================================================
+        // Handles private keys for account import
+        // Accepts 64 char hex or 66 char hex (with 0x prefix)
         if (
           content.length === 64 ||
           (content.substring(0, 2).toLowerCase() === '0x' &&
@@ -453,7 +434,13 @@ const QRScanner = ({
               })
               .build(),
           );
-        } else if (content.substring(0, 2).toLowerCase() === '0x') {
+        }
+        // ============================================================
+        // CONDITION 9: Ethereum Address (0x prefix, fallback)
+        // ============================================================
+        // Fallback handler for 0x addresses that didn't match earlier checks
+        // Initiates send flow for the address
+        else if (content.substring(0, 2).toLowerCase() === '0x') {
           shouldReadBarCodeRef.current = false;
           data = { target_address: content, action: 'send-eth' };
           trackEvent(
@@ -464,7 +451,13 @@ const QRScanner = ({
               })
               .build(),
           );
-        } else if (content.split('wc:').length > 1) {
+        }
+        // ============================================================
+        // CONDITION 10: WalletConnect URI
+        // ============================================================
+        // Handles WalletConnect v1/v2 connection URIs (wc:)
+        // Initiates WalletConnect pairing
+        else if (content.split('wc:').length > 1) {
           shouldReadBarCodeRef.current = false;
           data = { walletConnectURI: content };
           trackEvent(
@@ -475,8 +468,13 @@ const QRScanner = ({
               })
               .build(),
           );
-        } else {
-          // EIP-945 allows scanning arbitrary data
+        }
+        // ============================================================
+        // CONDITION 11: Arbitrary Data (EIP-945)
+        // ============================================================
+        // Fallback for any other QR code content
+        // Allows scanning arbitrary data as per EIP-945
+        else {
           data = content;
           trackEvent(
             createEventBuilder(MetaMetricsEvents.QR_SCANNED)

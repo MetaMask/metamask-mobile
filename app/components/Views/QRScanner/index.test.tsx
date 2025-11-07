@@ -5,6 +5,7 @@ import {
   useCameraDevice,
   useCodeScanner,
 } from 'react-native-vision-camera';
+import { Linking } from 'react-native';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import QrScanner from './';
@@ -19,6 +20,7 @@ const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 const mockBuild = jest.fn();
 const mockAddProperties = jest.fn();
+const mockLinkingOpenURL = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -90,6 +92,14 @@ jest.mock('eth-url-parser', () => ({
   }),
 }));
 
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn(),
+  addEventListener: jest.fn(() => ({ remove: jest.fn() })),
+  removeEventListener: jest.fn(),
+  canOpenURL: jest.fn().mockResolvedValue(true),
+  getInitialURL: jest.fn().mockResolvedValue(null),
+}));
+
 const mockUseCameraDevice = useCameraDevice as jest.MockedFunction<
   typeof useCameraDevice
 >;
@@ -119,6 +129,10 @@ describe('QrScanner', () => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
     mockGoBack.mockClear();
+    mockLinkingOpenURL.mockClear();
+
+    // Setup Linking mock
+    (Linking.openURL as jest.Mock) = mockLinkingOpenURL.mockResolvedValue(true);
 
     // Setup metrics mocks
     mockBuild.mockReturnValue({ event: 'mock-event' });
@@ -582,6 +596,10 @@ describe('QrScanner', () => {
             [QRScannerEventProperties.SCAN_SUCCESS]: true,
             [QRScannerEventProperties.QR_TYPE]: QRType.URL,
           });
+          expect(mockLinkingOpenURL).toHaveBeenCalledWith(
+            'https://example.com',
+          );
+          expect(mockGoBack).toHaveBeenCalled();
         });
       });
 
