@@ -75,10 +75,8 @@ const createStyles = (params: { theme: Theme }) => {
 export const ChainPopularity: Record<Hex | CaipChainId, number> = {
   [ETH_CHAIN_ID]: 1,
   [BSC_CHAIN_ID]: 2,
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
-  [BtcScope.Mainnet]: 3,
-  ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  [BtcScope.Mainnet]: 3,
   [SolScope.Mainnet]: 4,
   ///: END:ONLY_INCLUDE_IF
   [BASE_CHAIN_ID]: 5,
