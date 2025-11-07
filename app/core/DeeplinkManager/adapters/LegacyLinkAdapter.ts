@@ -181,6 +181,7 @@ export class LegacyLinkAdapter {
       [ACTIONS.ONBOARDING]: 'onboardingPath',
       [ACTIONS.CREATE_ACCOUNT]: 'createAccountPath',
       [ACTIONS.DEPOSIT]: 'depositCashPath',
+      [ACTIONS.PERPS_MARKETS]: 'perpsMarketsPath',
     };
 
     const pathKey = actionPaths[link.action];
