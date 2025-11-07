@@ -8,7 +8,7 @@ import { getNetworkImageSource } from '../../../../util/networks';
 import { DEPOSIT_NETWORKS_BY_CHAIN_ID } from '../Deposit/constants/networks';
 
 interface TokenNetworkInfo {
-  networkName: string;
+  networkName?: string;
   depositNetworkName: string | undefined;
   networkImageSource: ImageSourcePropType;
 }
