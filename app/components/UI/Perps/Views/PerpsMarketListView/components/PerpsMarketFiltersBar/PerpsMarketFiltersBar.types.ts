@@ -15,14 +15,19 @@ export interface PerpsMarketFiltersBarProps {
   onSortPress: () => void;
 
   /**
-   * Whether watchlist-only filter is active
+   * Whether to show stocks/commodities dropdown (only for Stocks tab)
    */
-  showWatchlistOnly: boolean;
+  showStocksCommoditiesDropdown?: boolean;
 
   /**
-   * Callback when watchlist filter is toggled
+   * Selected stocks/commodities filter
    */
-  onWatchlistToggle: () => void;
+  stocksCommoditiesFilter?: 'all' | 'equity' | 'commodity';
+
+  /**
+   * Callback when stocks/commodities dropdown is pressed
+   */
+  onStocksCommoditiesPress?: () => void;
 
   /**
    * Optional test ID for testing

@@ -1,7 +1,5 @@
 import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, Switch, View } from 'react-native';
-import { useMetrics } from '../../../../../components/hooks/useMetrics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 import { createStyles } from './styles';
 import Text, {
   TextColor,
@@ -83,7 +81,6 @@ const NotificationOptionToggle = ({
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles();
-  const { trackEvent, createEventBuilder } = useMetrics();
 
   const { toggleAccount, loading: isUpdatingAccount } = useUpdateAccountSetting(
     address,
@@ -93,17 +90,8 @@ const NotificationOptionToggle = ({
   const loading = isLoading || isUpdatingAccount;
 
   const handleToggleAccountNotifications = useCallback(async () => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED)
-        .addProperties({
-          settings_type: 'account_notifications',
-          old_value: isEnabled,
-          new_value: !isEnabled,
-        })
-        .build(),
-    );
     await toggleAccount(!isEnabled);
-  }, [isEnabled, toggleAccount, trackEvent, createEventBuilder]);
+  }, [isEnabled, toggleAccount]);
 
   return (
     <View

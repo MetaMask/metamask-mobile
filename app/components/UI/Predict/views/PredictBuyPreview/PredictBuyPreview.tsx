@@ -3,6 +3,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  ButtonSize as ButtonSizeHero,
   Icon,
   IconName,
   IconSize,
@@ -15,10 +16,17 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+  useCallback,
+} from 'react';
 import {
   ActivityIndicator,
   Image,
+  Linking,
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
@@ -51,10 +59,16 @@ import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { strings } from '../../../../../../locales/i18n';
+import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
+import PredictConsentSheet, {
+  type PredictConsentSheetRef,
+} from '../../components/PredictConsentSheet';
+import { usePredictAgreement } from '../../hooks/usePredictAgreement';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
+  const consentSheetRef = useRef<PredictConsentSheetRef>(null);
   const { goBack, dispatch } =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const route =
@@ -62,17 +76,25 @@ const PredictBuyPreview = () => {
 
   const { market, outcome, outcomeToken, entryPoint } = route.params;
 
-  // Prepare analytics properties (userAddress will be added by PredictController)
+  // Prepare analytics properties
   const analyticsProperties = useMemo(
     () => ({
       marketId: market?.id,
       marketTitle: market?.title,
-      marketCategory: market?.categories?.[0],
+      marketCategory: market?.category,
+      marketTags: market?.tags,
       entryPoint: entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
       liquidity: market?.liquidity,
       volume: market?.volume,
       sharePrice: outcomeToken?.price,
+      // Market type: binary if 1 outcome group, multi-outcome otherwise
+      marketType:
+        market?.outcomes?.length === 1
+          ? PredictEventValues.MARKET_TYPE.BINARY
+          : PredictEventValues.MARKET_TYPE.MULTI_OUTCOME,
+      // Outcome: use actual outcome token title (e.g., "Yes", "No", "Trump", "Biden", etc.)
+      outcome: outcomeToken?.title?.toLowerCase(),
     }),
     [market, outcomeToken, entryPoint],
   );
@@ -94,19 +116,25 @@ const PredictBuyPreview = () => {
     providerId: outcome.providerId,
   });
 
+  const { isAgreementAccepted } = usePredictAgreement({
+    providerId: outcome.providerId,
+  });
+
   const [currentValue, setCurrentValue] = useState(0);
   const [currentValueUSDString, setCurrentValueUSDString] = useState('');
   const [isInputFocused, setIsInputFocused] = useState(true);
 
-  const { preview, isCalculating } = usePredictOrderPreview({
+  const { preview, error: previewError } = usePredictOrderPreview({
     providerId: outcome.providerId,
     marketId: market.id,
     outcomeId: outcome.id,
     outcomeTokenId: outcomeToken.id,
     side: Side.BUY,
     size: currentValue,
-    autoRefreshTimeout: 5000,
+    autoRefreshTimeout: 1000,
   });
+
+  const errorMessage = previewError ?? placeOrderError;
 
   // Track Predict Action Initiated when screen mounts
   useEffect(() => {
@@ -118,6 +146,7 @@ const PredictBuyPreview = () => {
       providerId: outcome.providerId,
       sharePrice: outcomeToken?.price,
     });
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -136,15 +165,16 @@ const PredictBuyPreview = () => {
     currentValue >= MINIMUM_BET &&
     !hasInsufficientFunds &&
     preview &&
-    !isCalculating &&
     !isLoading &&
     !isBalanceLoading &&
     !isRateLimited;
 
   const title = market.title;
   const outcomeGroupTitle = outcome.groupItemTitle
-    ? `${outcome.groupItemTitle} · `
+    ? outcome.groupItemTitle
     : '';
+
+  const separator = '·';
   const outcomeTokenLabel = `${outcomeToken?.title} at ${formatCents(
     preview?.sharePrice ?? outcomeToken?.price ?? 0,
   )}`;
@@ -155,15 +185,29 @@ const PredictBuyPreview = () => {
     }
   }, [dispatch, result]);
 
-  const onPlaceBet = async () => {
+  const onPlaceBet = useCallback(async () => {
     if (!preview || hasInsufficientFunds || isBelowMinimum) return;
+
+    // Check if user has accepted the agreement
+    if (!isAgreementAccepted) {
+      consentSheetRef.current?.onOpenBottomSheet();
+      return;
+    }
 
     await placeOrder({
       providerId: outcome.providerId,
       analyticsProperties,
       preview,
     });
-  };
+  }, [
+    preview,
+    hasInsufficientFunds,
+    isBelowMinimum,
+    isAgreementAccepted,
+    placeOrder,
+    outcome.providerId,
+    analyticsProperties,
+  ]);
 
   const renderHeader = () => (
     <Box
@@ -178,10 +222,7 @@ const PredictBuyPreview = () => {
         source={{ uri: outcome?.image }}
         style={tw.style('w-10 h-10 rounded')}
       />
-      <Box
-        flexDirection={BoxFlexDirection.Column}
-        twClassName="flex-1 min-w-0 gap-1"
-      >
+      <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 min-w-0">
         <Box flexDirection={BoxFlexDirection.Row} twClassName="min-w-0 gap-4">
           <Box twClassName="flex-1 min-w-0">
             <Text
@@ -195,16 +236,24 @@ const PredictBuyPreview = () => {
         </Box>
         <Box flexDirection={BoxFlexDirection.Row} twClassName="min-w-0 gap-4">
           <Box twClassName="flex-1 min-w-0">
-            <Box flexDirection={BoxFlexDirection.Row}>
+            <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
               {!!outcomeGroupTitle && (
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Alternative}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {outcomeGroupTitle}
-                </Text>
+                <>
+                  <Text
+                    variant={TextVariant.BodySMMedium}
+                    color={TextColor.Alternative}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {outcomeGroupTitle}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodySMMedium}
+                    color={TextColor.Alternative}
+                  >
+                    {separator}
+                  </Text>
+                </>
               )}
               <Text
                 variant={TextVariant.BodySMMedium}
@@ -346,29 +395,17 @@ const PredictBuyPreview = () => {
     }
 
     return (
-      <Button
-        label={
-          <Text variant={TextVariant.BodyLGMedium} color={TextColor.Success}>
-            {outcomeToken?.title} · {formatCents(outcomeToken?.price ?? 0)}
-          </Text>
-        }
-        variant={ButtonVariants.Secondary}
+      <ButtonHero
         onPress={onPlaceBet}
-        style={tw.style(
-          outcomeToken?.title === 'Yes'
-            ? 'bg-success-default/15'
-            : 'bg-error-default/15',
-          outcomeToken?.title === 'Yes'
-            ? 'text-success-default'
-            : 'text-error-default',
-          !canPlaceBet && 'opacity-40',
-        )}
         disabled={!canPlaceBet}
-        loading={isLoading}
-        size={ButtonSize.Lg}
-        width={ButtonWidthTypes.Full}
-        labelTextVariant={TextVariant.BodyMD}
-      />
+        isLoading={isLoading}
+        size={ButtonSizeHero.Lg}
+        style={tw.style('w-full')}
+      >
+        <Text variant={TextVariant.BodyMDMedium} style={tw.style('text-white')}>
+          {outcomeToken?.title} · {formatCents(outcomeToken?.price ?? 0)}
+        </Text>
+      </ButtonHero>
     );
   };
 
@@ -383,19 +420,28 @@ const PredictBuyPreview = () => {
         twClassName="border-t border-muted p-4 pb-0 gap-4"
       >
         <Box justifyContent={BoxJustifyContent.Center} twClassName="gap-2">
-          {placeOrderError && (
+          {errorMessage && (
             <Text
               variant={TextVariant.BodySM}
               color={TextColor.Error}
               style={tw.style('text-center pb-2')}
             >
-              {strings('predict.order.order_failed_generic')}
+              {errorMessage}
             </Text>
           )}
           <Box twClassName="w-full h-12">{renderActionButton()}</Box>
-          <Box twClassName="text-center items-center">
+          <Box twClassName="text-center items-center flex-row gap-1 justify-center">
             <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
-              {strings('predict.order.payments_made_in_usdc')}
+              {strings('predict.consent_sheet.disclaimer')}
+            </Text>
+            <Text
+              variant={TextVariant.BodyXS}
+              style={tw.style('text-info-default')}
+              onPress={() => {
+                Linking.openURL('https://polymarket.com/tos');
+              }}
+            >
+              {strings('predict.consent_sheet.learn_more')}
             </Text>
           </Box>
         </Box>
@@ -426,6 +472,11 @@ const PredictBuyPreview = () => {
         onAddFunds={deposit}
       />
       {renderBottomContent()}
+      <PredictConsentSheet
+        ref={consentSheetRef}
+        providerId={outcome.providerId}
+        onAgree={onPlaceBet}
+      />
     </SafeAreaView>
   );
 };
