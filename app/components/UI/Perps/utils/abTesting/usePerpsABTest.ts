@@ -52,7 +52,7 @@ interface UsePerpsABTestParams<
  * // Use variant data
  * const buttonColor = variant.long; // 'green' or 'white'
  *
- * // For local testing, tap the dev banner OR temporarily hardcode:
+ * // For local testing, temporarily hardcode the variant:
  * // const buttonColorVariant = 'monochrome'; // Remove before commit!
  * ```
  */
@@ -93,28 +93,4 @@ export function usePerpsABTest<
     variantName: String(variantName),
     isEnabled,
   };
-}
-
-/**
- * Type-safe hook specifically for button color test
- * Provides better type inference for button colors
- *
- * @example
- * ```typescript
- * const { variant, variantName } = usePerpsButtonColorTest();
- * // variant is typed as ButtonColorVariant
- * const longColor = variant.long; // 'green' | 'white' | 'blue'
- * ```
- */
-export function usePerpsButtonColorTest(
-  _featureFlagSelector: (state: unknown) => string | null,
-): UsePerpsABTestResult<{
-  long: 'green' | 'white' | 'blue';
-  short: 'red' | 'white' | 'orange';
-}> {
-  // This is a placeholder - the actual import needs to be done in the consuming file
-  // to avoid circular dependencies
-  throw new Error(
-    'usePerpsButtonColorTest: Please use usePerpsABTest directly with BUTTON_COLOR_TEST config',
-  );
 }

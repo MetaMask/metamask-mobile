@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
-import { usePerpsABTest, usePerpsButtonColorTest } from './usePerpsABTest';
+import { usePerpsABTest } from './usePerpsABTest';
 import { BUTTON_COLOR_TEST } from './tests';
 import type { ABTestConfig, ABTestVariant, ButtonColorVariant } from './types';
 
@@ -231,17 +231,5 @@ describe('usePerpsABTest', () => {
       });
       expect(result.current.variantName).toBe('monochrome');
     });
-  });
-});
-
-describe('usePerpsButtonColorTest', () => {
-  it('throws error indicating placeholder function', () => {
-    const mockSelector = jest.fn().mockReturnValue('control');
-
-    expect(() => {
-      usePerpsButtonColorTest(mockSelector);
-    }).toThrow(
-      'usePerpsButtonColorTest: Please use usePerpsABTest directly with BUTTON_COLOR_TEST config',
-    );
   });
 });
