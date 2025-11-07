@@ -17,6 +17,7 @@ describe(FlaskBuildTests('Lifecycle hooks Snap Tests'), () => {
         skipReactNativeReload: true,
       },
       async () => {
+        await new Promise((resolve) => setTimeout(resolve, 500));
         await loginToApp();
         await TabBarComponent.tapBrowser();
         await TestSnaps.navigateToTestSnap();
