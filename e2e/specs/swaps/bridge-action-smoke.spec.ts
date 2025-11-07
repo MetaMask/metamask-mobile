@@ -63,6 +63,8 @@ describe(SmokeTrade('Bridge functionality'), () => {
         await device.disableSynchronization();
         await QuoteView.tapDestinationToken();
         await TestHelpers.delay(2000); // wait until tokens are displayed
+        await QuoteView.tapSeeAll(); // Open network selector modal
+        await TestHelpers.delay(1000); // wait for modal to open
         await QuoteView.selectNetwork(destNetwork);
         await QuoteView.tapToken(destChainId, sourceSymbol);
         await QuoteView.enterAmount(quantity);
