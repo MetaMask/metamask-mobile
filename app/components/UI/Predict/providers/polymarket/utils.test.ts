@@ -2013,13 +2013,13 @@ describe('polymarket utils', () => {
       }
     });
 
-    it('maps non-TRADE to claimWinnings entries and handles defaults', () => {
+    it('maps REDEEM with payout to claimWinnings entries', () => {
       const input = [
         {
           type: 'REDEEM' as const,
           side: '' as const,
           timestamp: 3000,
-          usdcSize: 1.23,
+          usdcSize: 1.23, // Winning claim with actual payout
           price: 0,
           conditionId: '',
           outcomeIndex: 0,
@@ -2030,9 +2030,30 @@ describe('polymarket utils', () => {
         },
       ];
       const result = parsePolymarketActivity(input);
+      expect(result).toHaveLength(1);
       expect(result[0].entry.type).toBe('claimWinnings');
       expect(result[0].entry.amount).toBe(1.23);
       expect(result[0].id).toBe('0xhash3');
+    });
+
+    it('filters out REDEEM activities with no payout (lost positions)', () => {
+      const input = [
+        {
+          type: 'REDEEM' as const,
+          side: '' as const,
+          timestamp: 3000,
+          usdcSize: 0, // No payout - lost position
+          price: 0,
+          conditionId: '',
+          outcomeIndex: 0,
+          title: 'Lost Market',
+          outcome: '' as const,
+          icon: '',
+          transactionHash: '0xhash3',
+        },
+      ];
+      const result = parsePolymarketActivity(input);
+      expect(result).toHaveLength(0);
     });
 
     it('generates fallback id and timestamp when missing', () => {
