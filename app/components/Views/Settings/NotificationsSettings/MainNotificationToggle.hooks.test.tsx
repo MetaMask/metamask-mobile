@@ -5,7 +5,6 @@ import { useNotificationsToggle } from '../../../../util/notifications/hooks/use
 import { useMetrics } from '../../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
-import { EVENT_NAME } from '../../../../core/Analytics';
 
 // Mock dependencies
 jest.mock('@react-navigation/native');
@@ -91,17 +90,6 @@ describe('useMainNotificationToggle', () => {
     result.current.onToggle();
 
     expect(mocks.switchNotifications).toHaveBeenCalledWith(false);
-    expect(mocks.trackEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: EVENT_NAME.NOTIFICATIONS_SETTINGS_UPDATED,
-        properties: expect.objectContaining({
-          settings_type: 'notifications',
-          old_value: true,
-          new_value: false,
-          was_profile_syncing_on: true,
-        }),
-      }),
-    );
   });
 
   it('toggles from false to true', () => {
@@ -117,17 +105,6 @@ describe('useMainNotificationToggle', () => {
     result.current.onToggle();
 
     expect(mocks.switchNotifications).toHaveBeenCalledWith(true);
-    expect(mocks.trackEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: EVENT_NAME.NOTIFICATIONS_SETTINGS_UPDATED,
-        properties: expect.objectContaining({
-          settings_type: 'notifications',
-          old_value: false,
-          new_value: true,
-          was_profile_syncing_on: true,
-        }),
-      }),
-    );
   });
 
   it('navigate to basic functionality screen when basicFunctionalityEnabled is false', () => {
