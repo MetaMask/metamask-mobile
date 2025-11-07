@@ -16,6 +16,8 @@ import { debounce } from 'lodash';
 import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
+import useIsInsufficientBalance from '../useInsufficientBalance';
+import { useLatestBalance } from '../useLatestBalance';
 
 export const DEBOUNCE_WAIT = 300;
 
@@ -35,6 +37,18 @@ export const useBridgeQuoteRequest = () => {
   const shouldUseSmartTransaction = useSelector(
     selectShouldUseSmartTransaction,
   );
+
+  const latestSourceBalance = useLatestBalance({
+    address: sourceToken?.address,
+    decimals: sourceToken?.decimals,
+    chainId: sourceToken?.chainId,
+  });
+  const insufficientBal = useIsInsufficientBalance({
+    amount: sourceAmount,
+    token: sourceToken,
+    latestAtomicBalance: latestSourceBalance?.atomicBalance,
+  });
+
   /**
    * Updates quote parameters in the bridge controller
    */
@@ -68,6 +82,7 @@ export const useBridgeQuoteRequest = () => {
       destWalletAddress: destAddress ?? walletAddress,
       gasIncluded: shouldUseSmartTransaction,
       gasIncluded7702: false, // TODO research how to handle this
+      insufficientBal,
     };
 
     await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
@@ -84,6 +99,7 @@ export const useBridgeQuoteRequest = () => {
     destAddress,
     context,
     shouldUseSmartTransaction,
+    insufficientBal,
   ]);
 
   // Create a stable debounced function that persists across renders
