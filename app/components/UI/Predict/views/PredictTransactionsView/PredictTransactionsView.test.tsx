@@ -42,7 +42,11 @@ const mockRenderItem: jest.Mock = jest.fn();
 jest.mock('../../components/PredictActivity/PredictActivity', () => {
   const ReactActual = jest.requireActual('react');
   const { Text: RNText, View: RNView } = jest.requireActual('react-native');
-  const PredictActivityType = { BUY: 'BUY', SELL: 'SELL', CLAIM: 'CLAIM' };
+  const MockedPredictActivityType = {
+    BUY: 'BUY',
+    SELL: 'SELL',
+    CLAIM: 'CLAIM',
+  };
   const MockComponent = ({
     item,
   }: {
@@ -55,7 +59,11 @@ jest.mock('../../components/PredictActivity/PredictActivity', () => {
       ReactActual.createElement(RNText, null, item.detail),
     );
   };
-  return { __esModule: true, default: MockComponent, PredictActivityType };
+  return {
+    __esModule: true,
+    default: MockComponent,
+    PredictActivityType: MockedPredictActivityType,
+  };
 });
 
 // Mock hook

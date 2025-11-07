@@ -164,9 +164,10 @@ describe('PredictDetailsChart', () => {
     });
 
     it('renders loading state when isLoading is true', () => {
-      const { getByText } = setupTest({ isLoading: true });
+      const { getByTestId } = setupTest({ isLoading: true });
 
-      expect(getByText('Loading price history...')).toBeOnTheScreen();
+      const lineChart = getByTestId('line-chart');
+      expect(lineChart).toBeOnTheScreen();
     });
 
     it('renders empty state when no data provided', () => {

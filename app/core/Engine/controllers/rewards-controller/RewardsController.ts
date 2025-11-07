@@ -54,6 +54,7 @@ import {
   AuthorizationFailedError,
   InvalidTimestampError,
   AccountAlreadyRegisteredError,
+  SeasonNotFoundError,
 } from './services/rewards-data-service';
 import { sortAccounts } from './utils/sortAccounts';
 
@@ -668,6 +669,15 @@ export class RewardsController extends BaseController<
       } else {
         const sortedAccounts = sortAccounts(accounts);
 
+        try {
+          // Prefer to get opt in status in bulk for sorted accounts.
+          await this.getOptInStatus({
+            addresses: sortedAccounts.map((account) => account.address),
+          });
+        } catch {
+          // Failed to get opt in status in bulk for sorted accounts, let silent auth do it individually
+        }
+
         // Try silent auth on each account until one succeeds
         let successAccount: InternalAccount | null = null;
         for (const account of sortedAccounts) {
@@ -717,10 +727,10 @@ export class RewardsController extends BaseController<
   /**
    * Check if silent authentication should be skipped
    */
-  shouldSkipSilentAuth(
+  async shouldSkipSilentAuth(
     account: CaipAccountId,
     internalAccount: InternalAccount,
-  ): boolean {
+  ): Promise<boolean> {
     // Skip if opt-in is not supported (e.g., hardware wallets, unsupported account types)
     if (!this.isOptInSupported(internalAccount)) return true;
 
@@ -736,7 +746,13 @@ export class RewardsController extends BaseController<
           NOT_OPTED_IN_OIS_STALE_CACHE_THRESHOLD_MS
         );
       }
-      return true;
+      return (
+        Boolean(accountState.subscriptionId) &&
+        Boolean(
+          (await getSubscriptionToken(accountState.subscriptionId as string))
+            ?.token,
+        )
+      );
     }
 
     return false;
@@ -816,7 +832,7 @@ export class RewardsController extends BaseController<
       this.convertInternalAccountToCaipAccountId(internalAccount);
 
     const shouldSkip = account
-      ? this.shouldSkipSilentAuth(account, internalAccount)
+      ? await this.shouldSkipSilentAuth(account, internalAccount)
       : false;
 
     if (shouldSkip && respectSkipSilentAuth) {
@@ -1804,6 +1820,11 @@ export class RewardsController extends BaseController<
               await this.invalidateAccountsAndSubscriptions();
               throw error;
             }
+          } else if (error instanceof SeasonNotFoundError) {
+            this.update((state: RewardsControllerState) => {
+              state.seasons = {};
+            });
+            throw error;
           }
           Logger.log(
             'RewardsController: Failed to get season status:',

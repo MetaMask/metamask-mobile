@@ -313,7 +313,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -2187,7 +2187,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -4061,7 +4061,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -5935,7 +5935,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -7748,7 +7748,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -9560,7 +9560,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -11373,7 +11373,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -13279,7 +13279,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -15047,7 +15047,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -16860,7 +16860,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -18673,7 +18673,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -20486,7 +20486,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -22299,7 +22299,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -24205,7 +24205,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -26016,7 +26016,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -27920,7 +27920,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -29826,7 +29826,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"

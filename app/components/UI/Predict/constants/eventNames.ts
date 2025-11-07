@@ -42,6 +42,10 @@ export const PredictEventProperties = {
   // Activity specific
   ACTIVITY_TYPE: 'activity_type',
 
+  // Geo-blocking specific
+  COUNTRY: 'country',
+  ATTEMPTED_ACTION: 'attempted_action',
+
   // Feed session specific
   PREDICT_FEED_TAB: 'predict_feed_tab',
   NUM_FEED_PAGES_VIEWED_IN_SESSION: 'num_feed_pages_viewed_in_session',
@@ -82,6 +86,13 @@ export const PredictEventValues = {
     PREDICTED: 'predicted',
     CASHED_OUT: 'cashed_out',
     CLAIMED: 'claimed',
+  },
+  ATTEMPTED_ACTION: {
+    DEPOSIT: 'deposit',
+    PREDICT: 'predict_action',
+    CASHOUT: 'cashout',
+    CLAIM: 'claim',
+    WITHDRAW: 'withdraw',
   },
 } as const;
 

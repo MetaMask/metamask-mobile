@@ -823,6 +823,7 @@ describe('PolymarketProvider', () => {
     mockSubmitClobOrder.mockResolvedValue({
       success: true,
       response: {
+        success: true,
         makingAmount: '1000000',
         orderID: 'order-123',
         status: 'success',
@@ -1131,7 +1132,7 @@ describe('PolymarketProvider', () => {
       });
       mockSubmitClobOrder.mockResolvedValue({
         success: true,
-        response: { orderId: 'test-order' },
+        response: { success: true, orderId: 'test-order' },
         error: undefined,
       });
       mockCreateApiKey.mockResolvedValue({
@@ -1735,13 +1736,13 @@ describe('PolymarketProvider', () => {
     it('returns true when user is not geoblocked', async () => {
       const { provider } = setupIsEligibleTest();
       const mockResponse = {
-        json: jest.fn().mockResolvedValue({ blocked: false }),
+        json: jest.fn().mockResolvedValue({ blocked: false, country: 'PT' }),
       };
       globalThis.fetch = jest.fn().mockResolvedValue(mockResponse);
 
       const result = await provider.isEligible();
 
-      expect(result).toBe(true);
+      expect(result).toEqual({ isEligible: true, country: 'PT' });
       expect(globalThis.fetch).toHaveBeenCalledWith(
         'https://polymarket.com/api/geoblock',
       );
@@ -1750,13 +1751,13 @@ describe('PolymarketProvider', () => {
     it('returns false when user is geoblocked', async () => {
       const { provider } = setupIsEligibleTest();
       const mockResponse = {
-        json: jest.fn().mockResolvedValue({ blocked: true }),
+        json: jest.fn().mockResolvedValue({ blocked: true, country: 'US' }),
       };
       globalThis.fetch = jest.fn().mockResolvedValue(mockResponse);
 
       const result = await provider.isEligible();
 
-      expect(result).toBe(false);
+      expect(result).toEqual({ isEligible: false, country: 'US' });
       expect(globalThis.fetch).toHaveBeenCalledWith(
         'https://polymarket.com/api/geoblock',
       );
@@ -1771,7 +1772,7 @@ describe('PolymarketProvider', () => {
 
       const result = await provider.isEligible();
 
-      expect(result).toBe(false);
+      expect(result).toEqual({ isEligible: false });
       expect(globalThis.fetch).toHaveBeenCalledWith(
         'https://polymarket.com/api/geoblock',
       );
@@ -1786,7 +1787,7 @@ describe('PolymarketProvider', () => {
 
       const result = await provider.isEligible();
 
-      expect(result).toBe(false);
+      expect(result).toEqual({ isEligible: false });
       expect(globalThis.fetch).toHaveBeenCalledWith(
         'https://polymarket.com/api/geoblock',
       );
@@ -1800,7 +1801,7 @@ describe('PolymarketProvider', () => {
 
       const result = await provider.isEligible();
 
-      expect(result).toBe(false);
+      expect(result).toEqual({ isEligible: false });
       expect(globalThis.fetch).toHaveBeenCalledWith(
         'https://polymarket.com/api/geoblock',
       );
@@ -1815,7 +1816,7 @@ describe('PolymarketProvider', () => {
 
       const result = await provider.isEligible();
 
-      expect(result).toBe(false);
+      expect(result).toEqual({ isEligible: false });
       expect(globalThis.fetch).toHaveBeenCalledWith(
         'https://polymarket.com/api/geoblock',
       );
@@ -1827,7 +1828,7 @@ describe('PolymarketProvider', () => {
 
       const result = await provider.isEligible();
 
-      expect(result).toBe(false);
+      expect(result).toEqual({ isEligible: false });
     });
 
     it('returns false for malformed API response', async () => {
@@ -1839,7 +1840,7 @@ describe('PolymarketProvider', () => {
 
       const result = await provider.isEligible();
 
-      expect(result).toBe(false);
+      expect(result).toEqual({ isEligible: false });
     });
   });
 
@@ -2599,7 +2600,7 @@ describe('PolymarketProvider', () => {
         });
       };
 
-      it('does not set rateLimited for SELL orders', async () => {
+      it('sets rateLimited for SELL orders after BUY order', async () => {
         setupPreviewOrderMock();
         const { provider, mockSigner } = setupPlaceOrderTest();
 
@@ -2610,7 +2611,7 @@ describe('PolymarketProvider', () => {
           preview,
         });
 
-        // Now try to preview a SELL order - should NOT be rate limited
+        // Now try to preview a SELL order - should also be rate limited
         const sellPreview = await provider.previewOrder({
           marketId: 'market-1',
           outcomeId: 'outcome-1',
@@ -2620,7 +2621,7 @@ describe('PolymarketProvider', () => {
           signer: mockSigner,
         });
 
-        expect(sellPreview.rateLimited).toBeUndefined();
+        expect(sellPreview.rateLimited).toBe(true);
       });
 
       it('does not set rateLimited when signer is not provided', async () => {

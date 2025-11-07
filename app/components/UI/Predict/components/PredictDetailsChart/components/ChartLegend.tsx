@@ -23,7 +23,7 @@ const ChartLegend: React.FC<ChartLegendProps> = ({ series, range }) => {
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="px-4 mb-3 flex-wrap"
+      twClassName="px-4 mb-2 flex-wrap"
     >
       {series.map((seriesItem, index) => {
         const lastPoint = seriesItem.data[seriesItem.data.length - 1];

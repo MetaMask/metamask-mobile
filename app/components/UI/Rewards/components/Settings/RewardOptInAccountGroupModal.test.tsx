@@ -162,6 +162,7 @@ jest.mock(
           {
             testID: 'bottom-sheet',
             ref,
+            onClose,
             ...props,
           },
           children,
@@ -227,41 +228,16 @@ jest.mock(
         ReactActual.createElement(
           View,
           { testID, ...props },
-          ReactActual.createElement(View, { testID: `address-${address}` }),
           ReactActual.createElement(View, {
-            testID: `network-${networkName}`,
+            testID: `multichain-address-row-address`,
+          }),
+          ReactActual.createElement(View, {
+            testID: `multichain-address-row-network-name`,
           }),
         ),
     };
   },
 );
-
-// Mock RewardsInfoBanner
-jest.mock('../RewardsInfoBanner', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-
-  return {
-    __esModule: true,
-    default: ({
-      title,
-      description,
-      testID,
-      ...props
-    }: {
-      title: string;
-      description: string;
-      testID?: string;
-      [key: string]: unknown;
-    }) =>
-      ReactActual.createElement(
-        View,
-        { testID, ...props },
-        ReactActual.createElement(Text, {}, title),
-        ReactActual.createElement(Text, {}, description),
-      ),
-  };
-});
 
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
@@ -390,80 +366,76 @@ describe('RewardOptInAccountGroupModal', () => {
   });
 
   describe('Basic Rendering', () => {
-    it('should render bottom sheet container', () => {
+    it('renders bottom sheet container', () => {
       const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
       expect(getByTestId('bottom-sheet')).toBeOnTheScreen();
     });
 
-    it('should render header with account group name', () => {
+    it('renders header with account group name', () => {
       const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
       expect(getByTestId('bottom-sheet-header')).toBeOnTheScreen();
     });
 
-    it('should render address list', () => {
+    it('renders address list', () => {
       const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
       expect(getByTestId('reward-opt-in-address-list')).toBeOnTheScreen();
     });
 
-    it('should render address items for each address', () => {
+    it('renders address items for each address', () => {
       const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
-      // Check that the MultichainAddressRow components are rendered
       expect(
-        getByTestId('address-0x1234567890123456789012345678901234567890'),
+        getByTestId(
+          'flat-list-item-0x1234567890123456789012345678901234567890-eip155:1',
+        ),
       ).toBeOnTheScreen();
       expect(
-        getByTestId('address-0x0987654321098765432109876543210987654321'),
+        getByTestId(
+          'flat-list-item-0x0987654321098765432109876543210987654321-eip155:1',
+        ),
       ).toBeOnTheScreen();
     });
-  });
 
-  describe('Unsupported Accounts Banner', () => {
-    it('should show banner when there are unsupported accounts', () => {
-      // Arrange
+    it('does not render address list when addressData is empty', () => {
       mockUseRoute.mockReturnValue({
         params: {
           ...defaultRouteParams,
-          addressData: [
-            ...defaultRouteParams.addressData,
-            {
-              address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-              hasOptedIn: false,
-              scopes: ['eip155:1' as CaipChainId],
-              isSupported: false,
-            },
-          ],
+          addressData: [],
         },
         key: 'test-route',
         name: 'RewardOptInAccountGroupModal',
       } as never);
 
-      // Act
-      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
-
-      // Assert
-      expect(getByTestId('unsupported-accounts-banner')).toBeOnTheScreen();
-    });
-
-    it('should not show banner when all accounts are supported', () => {
       const { queryByTestId } = render(<RewardOptInAccountGroupModal />);
 
-      expect(queryByTestId('unsupported-accounts-banner')).toBeNull();
+      expect(queryByTestId('reward-opt-in-address-list')).toBeNull();
+    });
+
+    it('calls navigation.goBack when BottomSheet onClose is triggered', () => {
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      const bottomSheet = getByTestId('bottom-sheet');
+      const onClose = bottomSheet.props.onClose;
+
+      if (onClose) {
+        onClose();
+      }
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('Link Account Group Button', () => {
-    it('should render link button when there are accounts that can opt in', () => {
+    it('renders link button when there are accounts that can opt in', () => {
       const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
       expect(getByTestId('link-account-group-button')).toBeOnTheScreen();
     });
 
-    it('should not render link button when all accounts are opted in', () => {
-      // Arrange
+    it('does not render link button when all accounts are opted in', () => {
       mockUseRoute.mockReturnValue({
         params: {
           ...defaultRouteParams,
@@ -480,15 +452,40 @@ describe('RewardOptInAccountGroupModal', () => {
         name: 'RewardOptInAccountGroupModal',
       } as never);
 
-      // Act
       const { queryByTestId } = render(<RewardOptInAccountGroupModal />);
 
-      // Assert
       expect(queryByTestId('link-account-group-button')).toBeNull();
     });
 
-    it('should call linkAccountGroup when button is pressed', async () => {
-      // Arrange
+    it('does not render link button when all supported addresses are opted in but unsupported addresses exist', () => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          ...defaultRouteParams,
+          addressData: [
+            {
+              address: '0x1234567890123456789012345678901234567890',
+              hasOptedIn: true,
+              scopes: ['eip155:1' as CaipChainId],
+              isSupported: true,
+            },
+            {
+              address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+              hasOptedIn: false,
+              scopes: ['eip155:1' as CaipChainId],
+              isSupported: false,
+            },
+          ],
+        },
+        key: 'test-route',
+        name: 'RewardOptInAccountGroupModal',
+      } as never);
+
+      const { queryByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      expect(queryByTestId('link-account-group-button')).toBeNull();
+    });
+
+    it('calls linkAccountGroup when button is pressed', async () => {
       mockLinkAccountGroup.mockResolvedValue({
         success: true,
         byAddress: {
@@ -498,11 +495,9 @@ describe('RewardOptInAccountGroupModal', () => {
 
       const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
-      // Act
       const linkButton = getByTestId('link-account-group-button');
       fireEvent.press(linkButton);
 
-      // Assert
       await waitFor(() => {
         expect(mockLinkAccountGroup).toHaveBeenCalledWith(
           'keyring:wallet-1/ethereum',
@@ -510,24 +505,20 @@ describe('RewardOptInAccountGroupModal', () => {
       });
     });
 
-    it('should show loading state when linking', () => {
-      // Arrange
+    it('shows loading state when linking', () => {
       mockUseLinkAccountGroup.mockReturnValue({
         linkAccountGroup: mockLinkAccountGroup,
         isLoading: true,
         isError: false,
       });
 
-      // Act
       const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
-      // Assert
       const linkButton = getByTestId('link-account-group-button');
       expect(linkButton).toHaveProp('disabled', true);
     });
 
-    it('should update local state after successful link', async () => {
-      // Arrange
+    it('updates local state after successful link', async () => {
       mockLinkAccountGroup.mockResolvedValue({
         success: true,
         byAddress: {
@@ -537,18 +528,24 @@ describe('RewardOptInAccountGroupModal', () => {
 
       const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
-      // Act
       const linkButton = getByTestId('link-account-group-button');
       fireEvent.press(linkButton);
 
-      // Assert
       await waitFor(() => {
         expect(mockLinkAccountGroup).toHaveBeenCalled();
       });
+
+      // Wait for the async state update to complete
+      await waitFor(() => {
+        expect(
+          getByTestId(
+            'flat-list-item-0x0987654321098765432109876543210987654321-eip155:1',
+          ),
+        ).toBeOnTheScreen();
+      });
     });
 
-    it('should handle link failure gracefully', async () => {
-      // Arrange
+    it('handles link failure gracefully', async () => {
       const consoleErrorSpy = jest
         .spyOn(console, 'error')
         .mockImplementation(() => {
@@ -558,11 +555,9 @@ describe('RewardOptInAccountGroupModal', () => {
 
       const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
-      // Act
       const linkButton = getByTestId('link-account-group-button');
       fireEvent.press(linkButton);
 
-      // Assert
       await waitFor(() => {
         expect(consoleErrorSpy).toHaveBeenCalledWith(
           'Failed to link account group:',
@@ -575,8 +570,7 @@ describe('RewardOptInAccountGroupModal', () => {
   });
 
   describe('Network Resolution', () => {
-    it('should resolve non-EVM network names correctly', () => {
-      // Arrange
+    it('resolves non-EVM network names correctly', () => {
       mockUseRoute.mockReturnValue({
         params: {
           ...defaultRouteParams,
@@ -595,15 +589,16 @@ describe('RewardOptInAccountGroupModal', () => {
         name: 'RewardOptInAccountGroupModal',
       } as never);
 
-      // Act
       const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
-      // Assert
-      expect(getByTestId('network-Bitcoin')).toBeOnTheScreen();
+      expect(
+        getByTestId(
+          'flat-list-item-bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh-bip122:000000000019d6689c085ae165831e93',
+        ),
+      ).toBeOnTheScreen();
     });
 
-    it('should handle unknown network scopes', () => {
-      // Arrange
+    it('handles unknown network scopes', () => {
       const consoleWarnSpy = jest
         .spyOn(console, 'warn')
         .mockImplementation(() => {
@@ -626,10 +621,8 @@ describe('RewardOptInAccountGroupModal', () => {
         name: 'RewardOptInAccountGroupModal',
       } as never);
 
-      // Act
       render(<RewardOptInAccountGroupModal />);
 
-      // Assert
       expect(consoleWarnSpy).toHaveBeenCalledWith(
         'Unknown network for scope:',
         'unknown:network',
@@ -637,11 +630,37 @@ describe('RewardOptInAccountGroupModal', () => {
 
       consoleWarnSpy.mockRestore();
     });
+
+    it('treats addresses with undefined isSupported as supported', () => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          ...defaultRouteParams,
+          addressData: [
+            {
+              address: '0x1234567890123456789012345678901234567890',
+              hasOptedIn: false,
+              scopes: ['eip155:1' as CaipChainId],
+              isSupported: undefined,
+            },
+          ],
+        },
+        key: 'test-route',
+        name: 'RewardOptInAccountGroupModal',
+      } as never);
+
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      expect(
+        getByTestId(
+          'flat-list-item-0x1234567890123456789012345678901234567890-eip155:1',
+        ),
+      ).toBeOnTheScreen();
+      expect(getByTestId('link-account-group-button')).toBeOnTheScreen();
+    });
   });
 
   describe('Wildcard Scope Handling', () => {
-    it('should expand eip155:* wildcard to all EVM networks', () => {
-      // Arrange
+    it('expands eip155:* wildcard to all EVM networks', () => {
       mockUseRoute.mockReturnValue({
         params: {
           ...defaultRouteParams,
@@ -658,15 +677,16 @@ describe('RewardOptInAccountGroupModal', () => {
         name: 'RewardOptInAccountGroupModal',
       } as never);
 
-      // Act
       const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
-      // Assert - Should render Ethereum Mainnet, but not Goerli testnet
-      expect(getByTestId('network-Ethereum Mainnet')).toBeOnTheScreen();
+      expect(
+        getByTestId(
+          'flat-list-item-0x1234567890123456789012345678901234567890-eip155:1',
+        ),
+      ).toBeOnTheScreen();
     });
 
-    it('should expand bip122:0 wildcard to all Bitcoin networks', () => {
-      // Arrange
+    it('expands bip122:0 wildcard to all Bitcoin networks', () => {
       mockUseRoute.mockReturnValue({
         params: {
           ...defaultRouteParams,
@@ -683,15 +703,16 @@ describe('RewardOptInAccountGroupModal', () => {
         name: 'RewardOptInAccountGroupModal',
       } as never);
 
-      // Act
       const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
-      // Assert
-      expect(getByTestId('network-Bitcoin')).toBeOnTheScreen();
+      expect(
+        getByTestId(
+          'flat-list-item-bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh-bip122:000000000019d6689c085ae165831e93',
+        ),
+      ).toBeOnTheScreen();
     });
 
-    it('should filter out testnets when expanding EVM wildcards', () => {
-      // Arrange
+    it('filters out testnets when expanding EVM wildcards', () => {
       mockUseRoute.mockReturnValue({
         params: {
           ...defaultRouteParams,
@@ -708,15 +729,17 @@ describe('RewardOptInAccountGroupModal', () => {
         name: 'RewardOptInAccountGroupModal',
       } as never);
 
-      // Act
       const { queryByTestId } = render(<RewardOptInAccountGroupModal />);
 
-      // Assert - Goerli testnet should not be rendered
-      expect(queryByTestId('network-Goerli Testnet')).toBeNull();
+      // Goerli testnet should be filtered out, so no items with that network should exist
+      expect(
+        queryByTestId(
+          'flat-list-item-0x1234567890123456789012345678901234567890-eip155:5',
+        ),
+      ).toBeNull();
     });
 
-    it('should handle invalid CAIP scope format', () => {
-      // Arrange
+    it('handles invalid CAIP scope format', () => {
       const consoleWarnSpy = jest
         .spyOn(console, 'warn')
         .mockImplementation(() => {
@@ -739,10 +762,8 @@ describe('RewardOptInAccountGroupModal', () => {
         name: 'RewardOptInAccountGroupModal',
       } as never);
 
-      // Act
       render(<RewardOptInAccountGroupModal />);
 
-      // Assert
       expect(consoleWarnSpy).toHaveBeenCalledWith(
         'Unknown network for scope:',
         'invalid',
@@ -750,22 +771,64 @@ describe('RewardOptInAccountGroupModal', () => {
 
       consoleWarnSpy.mockRestore();
     });
+
+    it('handles wildcard scope with missing namespace', () => {
+      const consoleWarnSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {
+          // Suppress warning output in test
+        });
+
+      mockUseRoute.mockReturnValue({
+        params: {
+          ...defaultRouteParams,
+          addressData: [
+            {
+              address: '0x1234567890123456789012345678901234567890',
+              hasOptedIn: false,
+              scopes: [':*' as CaipChainId],
+              isSupported: true,
+            },
+          ],
+        },
+        key: 'test-route',
+        name: 'RewardOptInAccountGroupModal',
+      } as never);
+
+      render(<RewardOptInAccountGroupModal />);
+
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'Invalid CAIP scope format:',
+        ':*',
+      );
+
+      consoleWarnSpy.mockRestore();
+    });
   });
 
   describe('Edge Cases', () => {
-    it('should handle missing account group context', () => {
-      // Arrange
+    it('handles missing account group context', () => {
       mockSelectAccountGroupById.mockReturnValue(undefined);
 
-      // Act
       const { queryByTestId } = render(<RewardOptInAccountGroupModal />);
 
-      // Assert - Header should not render without account group name
       expect(queryByTestId('bottom-sheet-header')).toBeNull();
     });
 
-    it('should handle EVM chain ID conversion errors', () => {
-      // Arrange
+    it('handles account group context without metadata name', () => {
+      mockSelectAccountGroupById.mockReturnValue({
+        id: 'keyring:wallet-1/ethereum',
+        scopes: [],
+        keyringType: 'HD Key Tree',
+        metadata: {},
+      } as never);
+
+      const { queryByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      expect(queryByTestId('bottom-sheet-header')).toBeNull();
+    });
+
+    it('handles EVM chain ID conversion errors', () => {
       const consoleWarnSpy = jest
         .spyOn(console, 'warn')
         .mockImplementation(() => {
@@ -786,10 +849,8 @@ describe('RewardOptInAccountGroupModal', () => {
         throw new Error('Invalid chain ID');
       });
 
-      // Act
       render(<RewardOptInAccountGroupModal />);
 
-      // Assert
       expect(consoleWarnSpy).toHaveBeenCalledWith(
         'Invalid EVM chain ID:',
         'invalid-chain-id',
@@ -799,8 +860,7 @@ describe('RewardOptInAccountGroupModal', () => {
       consoleWarnSpy.mockRestore();
     });
 
-    it('should handle address items with valid scope', () => {
-      // Arrange
+    it('handles address items with valid scope', () => {
       mockUseRoute.mockReturnValue({
         params: {
           ...defaultRouteParams,
@@ -817,46 +877,247 @@ describe('RewardOptInAccountGroupModal', () => {
         name: 'RewardOptInAccountGroupModal',
       } as never);
 
-      // Act
       const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
-      // Assert - Should render the address
       expect(
-        getByTestId('address-0x1234567890123456789012345678901234567890'),
+        getByTestId(
+          'flat-list-item-0x1234567890123456789012345678901234567890-eip155:1',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('skips address items with missing address', () => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          ...defaultRouteParams,
+          addressData: [
+            {
+              address: '',
+              hasOptedIn: false,
+              scopes: ['eip155:1' as CaipChainId],
+              isSupported: true,
+            },
+          ],
+        },
+        key: 'test-route',
+        name: 'RewardOptInAccountGroupModal',
+      } as never);
+
+      const { queryByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      expect(queryByTestId('reward-opt-in-address-list')).toBeNull();
+    });
+
+    it('skips address items with null address', () => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          ...defaultRouteParams,
+          addressData: [
+            {
+              address: null as unknown as string,
+              hasOptedIn: false,
+              scopes: ['eip155:1' as CaipChainId],
+              isSupported: true,
+            },
+          ],
+        },
+        key: 'test-route',
+        name: 'RewardOptInAccountGroupModal',
+      } as never);
+
+      const { queryByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      expect(queryByTestId('reward-opt-in-address-list')).toBeNull();
+    });
+
+    it('skips address items with empty scopes array', () => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          ...defaultRouteParams,
+          addressData: [
+            {
+              address: '0x1234567890123456789012345678901234567890',
+              hasOptedIn: false,
+              scopes: [],
+              isSupported: true,
+            },
+          ],
+        },
+        key: 'test-route',
+        name: 'RewardOptInAccountGroupModal',
+      } as never);
+
+      const { queryByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      expect(queryByTestId('reward-opt-in-address-list')).toBeNull();
+    });
+
+    it('skips address items with null scopes', () => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          ...defaultRouteParams,
+          addressData: [
+            {
+              address: '0x1234567890123456789012345678901234567890',
+              hasOptedIn: false,
+              scopes: null as unknown as string[],
+              isSupported: true,
+            },
+          ],
+        },
+        key: 'test-route',
+        name: 'RewardOptInAccountGroupModal',
+      } as never);
+
+      const { queryByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      expect(queryByTestId('reward-opt-in-address-list')).toBeNull();
+    });
+
+    it('skips empty scope strings', () => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          ...defaultRouteParams,
+          addressData: [
+            {
+              address: '0x1234567890123456789012345678901234567890',
+              hasOptedIn: false,
+              scopes: ['', 'eip155:1' as CaipChainId],
+              isSupported: true,
+            },
+          ],
+        },
+        key: 'test-route',
+        name: 'RewardOptInAccountGroupModal',
+      } as never);
+
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      expect(
+        getByTestId(
+          'flat-list-item-0x1234567890123456789012345678901234567890-eip155:1',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('skips whitespace-only scope strings', () => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          ...defaultRouteParams,
+          addressData: [
+            {
+              address: '0x1234567890123456789012345678901234567890',
+              hasOptedIn: false,
+              scopes: ['   ', 'eip155:1' as CaipChainId],
+              isSupported: true,
+            },
+          ],
+        },
+        key: 'test-route',
+        name: 'RewardOptInAccountGroupModal',
+      } as never);
+
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      expect(
+        getByTestId(
+          'flat-list-item-0x1234567890123456789012345678901234567890-eip155:1',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('handles address items with multiple scopes', () => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          ...defaultRouteParams,
+          addressData: [
+            {
+              address: '0x1234567890123456789012345678901234567890',
+              hasOptedIn: false,
+              scopes: [
+                'eip155:1' as CaipChainId,
+                'bip122:000000000019d6689c085ae165831e93' as CaipChainId,
+              ],
+              isSupported: true,
+            },
+          ],
+        },
+        key: 'test-route',
+        name: 'RewardOptInAccountGroupModal',
+      } as never);
+
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      expect(
+        getByTestId(
+          'flat-list-item-0x1234567890123456789012345678901234567890-eip155:1',
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(
+          'flat-list-item-0x1234567890123456789012345678901234567890-bip122:000000000019d6689c085ae165831e93',
+        ),
       ).toBeOnTheScreen();
     });
   });
 
   describe('FlatList Configuration', () => {
-    it('should render FlatList with correct testID', () => {
+    it('renders FlatList with correct testID', () => {
       const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
-      // Verify the FlatList is rendered
       expect(getByTestId('reward-opt-in-address-list')).toBeOnTheScreen();
     });
 
-    it('should have correct FlatList props for scrolling', () => {
+    it('has correct FlatList props for scrolling', () => {
       const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
       const flatList = getByTestId('reward-opt-in-address-list');
       expect(flatList).toHaveProp('showsVerticalScrollIndicator', true);
     });
+
+    it('generates correct keys for header items', () => {
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      const flatList = getByTestId('reward-opt-in-address-list');
+      const keyExtractor = flatList.props.keyExtractor;
+
+      const headerItem = { type: 'header' as const, title: 'Test Header' };
+      const key = keyExtractor(headerItem, 0);
+
+      expect(key).toBe('header-Test Header-0');
+    });
+
+    it('generates correct keys for address items', () => {
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      const flatList = getByTestId('reward-opt-in-address-list');
+      const keyExtractor = flatList.props.keyExtractor;
+
+      const addressItem = {
+        type: 'item' as const,
+        address: '0x123',
+        scope: 'eip155:1' as CaipChainId,
+        hasOptedIn: false,
+        networkName: 'Ethereum',
+        isSupported: true,
+      };
+      const key = keyExtractor(addressItem, 1);
+
+      expect(key).toBe('0x123-eip155:1-1');
+    });
   });
 
   describe('Section Headers (Tracked/Untracked)', () => {
-    it('should show section headers when there are both tracked and untracked addresses', () => {
-      // Arrange - default route params has both tracked and untracked addresses
+    it('shows section headers when there are both tracked and untracked addresses', () => {
       const { getByText } = render(<RewardOptInAccountGroupModal />);
 
-      // Assert
       expect(getByText('rewards.link_account_group.tracked')).toBeOnTheScreen();
       expect(
         getByText('rewards.link_account_group.untracked'),
       ).toBeOnTheScreen();
     });
 
-    it('should not show section headers when all addresses are tracked', () => {
-      // Arrange
+    it('shows tracked section header when all addresses are tracked', () => {
       mockUseRoute.mockReturnValue({
         params: {
           ...defaultRouteParams,
@@ -873,16 +1134,15 @@ describe('RewardOptInAccountGroupModal', () => {
         name: 'RewardOptInAccountGroupModal',
       } as never);
 
-      // Act
-      const { queryByText } = render(<RewardOptInAccountGroupModal />);
+      const { getByText, queryByText } = render(
+        <RewardOptInAccountGroupModal />,
+      );
 
-      // Assert - Headers should not be rendered when there's only one type
-      expect(queryByText('rewards.link_account_group.tracked')).toBeNull();
+      expect(getByText('rewards.link_account_group.tracked')).toBeOnTheScreen();
       expect(queryByText('rewards.link_account_group.untracked')).toBeNull();
     });
 
-    it('should not show section headers when all addresses are untracked', () => {
-      // Arrange
+    it('shows untracked section header when all addresses are untracked', () => {
       mockUseRoute.mockReturnValue({
         params: {
           ...defaultRouteParams,
@@ -899,16 +1159,17 @@ describe('RewardOptInAccountGroupModal', () => {
         name: 'RewardOptInAccountGroupModal',
       } as never);
 
-      // Act
-      const { queryByText } = render(<RewardOptInAccountGroupModal />);
+      const { getByText, queryByText } = render(
+        <RewardOptInAccountGroupModal />,
+      );
 
-      // Assert - Headers should not be rendered when there's only one type
       expect(queryByText('rewards.link_account_group.tracked')).toBeNull();
-      expect(queryByText('rewards.link_account_group.untracked')).toBeNull();
+      expect(
+        getByText('rewards.link_account_group.untracked'),
+      ).toBeOnTheScreen();
     });
 
-    it('should not show section headers for unsupported addresses', () => {
-      // Arrange
+    it('shows unsupported section header for unsupported addresses', () => {
       mockUseRoute.mockReturnValue({
         params: {
           ...defaultRouteParams,
@@ -925,22 +1186,109 @@ describe('RewardOptInAccountGroupModal', () => {
         name: 'RewardOptInAccountGroupModal',
       } as never);
 
-      // Act
-      const { queryByText } = render(<RewardOptInAccountGroupModal />);
+      const { getByText } = render(<RewardOptInAccountGroupModal />);
 
-      // Assert - Unsupported addresses should not be shown in the list
-      expect(queryByText('rewards.link_account_group.tracked')).toBeNull();
-      expect(queryByText('rewards.link_account_group.untracked')).toBeNull();
+      expect(
+        getByText('rewards.link_account_group.unsupported'),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows unsupported section header when unsupported addresses exist alongside supported ones', () => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          ...defaultRouteParams,
+          addressData: [
+            {
+              address: '0x1234567890123456789012345678901234567890',
+              hasOptedIn: true,
+              scopes: ['eip155:1' as CaipChainId],
+              isSupported: true,
+            },
+            {
+              address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+              hasOptedIn: false,
+              scopes: ['eip155:1' as CaipChainId],
+              isSupported: false,
+            },
+          ],
+        },
+        key: 'test-route',
+        name: 'RewardOptInAccountGroupModal',
+      } as never);
+
+      const { getByText } = render(<RewardOptInAccountGroupModal />);
+
+      expect(
+        getByText('rewards.link_account_group.unsupported'),
+      ).toBeOnTheScreen();
     });
   });
 
   describe('Accessibility', () => {
-    it('should have proper testIDs for all interactive elements', () => {
+    it('has proper testIDs for all interactive elements', () => {
       const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
       expect(getByTestId('bottom-sheet')).toBeOnTheScreen();
       expect(getByTestId('reward-opt-in-address-list')).toBeOnTheScreen();
       expect(getByTestId('link-account-group-button')).toBeOnTheScreen();
+    });
+  });
+
+  describe('RenderItem Function', () => {
+    it('renders header items correctly', () => {
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      const flatList = getByTestId('reward-opt-in-address-list');
+      const renderItem = flatList.props.renderItem;
+
+      const headerItem = {
+        item: { type: 'header' as const, title: 'Test Header' },
+      };
+      const headerComponent = renderItem(headerItem);
+
+      expect(headerComponent).toBeTruthy();
+    });
+
+    it('returns null for items without address', () => {
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      const flatList = getByTestId('reward-opt-in-address-list');
+      const renderItem = flatList.props.renderItem;
+
+      const invalidItem = {
+        item: {
+          type: 'item' as const,
+          address: '',
+          scope: 'eip155:1' as CaipChainId,
+          hasOptedIn: false,
+          networkName: 'Ethereum',
+          isSupported: true,
+        },
+      };
+      const result = renderItem(invalidItem);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null for items without scope', () => {
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      const flatList = getByTestId('reward-opt-in-address-list');
+      const renderItem = flatList.props.renderItem;
+
+      const invalidItem = {
+        item: {
+          type: 'item' as const,
+          address: '0x123',
+          scope: '' as CaipChainId,
+          hasOptedIn: false,
+          networkName: 'Ethereum',
+          isSupported: true,
+        },
+      };
+      const result = renderItem(invalidItem);
+
+      expect(result).toBeNull();
     });
   });
 });

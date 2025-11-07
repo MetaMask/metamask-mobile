@@ -25,6 +25,7 @@ import {
   AccountState,
   ClaimOrderParams,
   ClaimOrderResponse,
+  GeoBlockResponse,
   GetBalanceParams,
   GetMarketsParams,
   GetPositionsParams,
@@ -43,7 +44,7 @@ import {
 } from '../types';
 import { PREDICT_CONSTANTS } from '../../constants/errors';
 import {
-  BUY_ORDER_RATE_LIMIT_MS,
+  ORDER_RATE_LIMIT_MS,
   FEE_COLLECTOR_ADDRESS,
   MATIC_CONTRACTS,
   POLYGON_MAINNET_CHAIN_ID,
@@ -202,7 +203,7 @@ export class PolymarketProvider implements PredictProvider {
       return false;
     }
     const elapsed = Date.now() - lastTimestamp;
-    return elapsed < BUY_ORDER_RATE_LIMIT_MS;
+    return elapsed < ORDER_RATE_LIMIT_MS;
   }
 
   public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
@@ -462,7 +463,7 @@ export class PolymarketProvider implements PredictProvider {
   ): Promise<OrderPreview> {
     const basePreview = await previewOrder(params);
 
-    if (params.side === Side.BUY && params.signer) {
+    if (params.signer) {
       if (this.isRateLimited(params.signer.address)) {
         return {
           ...basePreview,
@@ -602,10 +603,17 @@ export class PolymarketProvider implements PredictProvider {
         feeAuthorization,
       });
 
-      if (!response) {
+      if (!success) {
         return {
           success,
           error,
+        } as OrderResult;
+      }
+
+      if (!response.success) {
+        return {
+          success: false,
+          error: response.errorMsg,
         } as OrderResult;
       }
 
@@ -729,14 +737,20 @@ export class PolymarketProvider implements PredictProvider {
     });
   }
 
-  public async isEligible(): Promise<boolean> {
+  public async isEligible(): Promise<GeoBlockResponse> {
     const { GEOBLOCK_API_ENDPOINT } = getPolymarketEndpoints();
-    let eligible = false;
+    const result: GeoBlockResponse = { isEligible: false };
+
     try {
       const res = await fetch(GEOBLOCK_API_ENDPOINT);
-      const { blocked } = (await res.json()) as { blocked: boolean };
-      if (blocked !== undefined) {
-        eligible = blocked === false;
+      const data = (await res.json()) as {
+        blocked?: boolean;
+        country?: string;
+      };
+
+      if (data.blocked !== undefined) {
+        result.isEligible = data.blocked === false;
+        result.country = data.country;
       }
     } catch (error) {
       DevLogger.log('PolymarketProvider: Error checking geoblock status', {
@@ -755,7 +769,7 @@ export class PolymarketProvider implements PredictProvider {
         }),
       );
     }
-    return eligible;
+    return result;
   }
 
   public async prepareDeposit(

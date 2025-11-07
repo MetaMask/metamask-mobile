@@ -13,7 +13,7 @@ jest.mock('./util', () => ({
 const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 
-describe('Migration 105: Reset PhishingController urlScanCache', () => {
+describe('Migration 105: Remove RatesController state', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
@@ -29,13 +29,9 @@ describe('Migration 105: Reset PhishingController urlScanCache', () => {
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('captures exception if PhishingController state is invalid', () => {
+  it('returns state unchanged if backgroundState is missing', () => {
     const state = {
-      engine: {
-        backgroundState: {
-          // PhishingController is missing
-        },
-      },
+      engine: {},
     };
 
     mockedEnsureValidState.mockReturnValue(true);
@@ -43,24 +39,20 @@ describe('Migration 105: Reset PhishingController urlScanCache', () => {
     const migratedState = migrate(state);
 
     expect(migratedState).toEqual(state);
-    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      'Migration 105: Invalid PhishingController state',
-    );
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('resets PhishingController urlScanCache to empty object while preserving other fields', () => {
+  it('removes RatesController from backgroundState', () => {
     interface TestState {
       engine: {
         backgroundState: {
-          PhishingController: {
-            c2DomainBlocklistLastFetched: number;
-            phishingLists: string[];
-            whitelist: string[];
-            hotlistLastFetched: number;
-            stalelistLastFetched: number;
-            urlScanCache: Record<string, unknown>;
-            extraProperty?: string;
+          RatesController?: {
+            cryptocurrencies: string[];
+            fiatCurrency: string;
+            rates: Record<string, unknown>;
+          };
+          MultichainAssetsRatesController: {
+            someProperty: string;
           };
           OtherController: {
             shouldStayUntouched: boolean;
@@ -72,17 +64,24 @@ describe('Migration 105: Reset PhishingController urlScanCache', () => {
     const state: TestState = {
       engine: {
         backgroundState: {
-          PhishingController: {
-            c2DomainBlocklistLastFetched: 123456789,
-            phishingLists: ['list1', 'list2'],
-            whitelist: ['site1', 'site2'],
-            hotlistLastFetched: 987654321,
-            stalelistLastFetched: 123123123,
-            urlScanCache: {
-              'example.com': { result: 'safe', timestamp: 1234567890 },
-              'phishing.com': { result: 'malicious', timestamp: 9876543210 },
+          RatesController: {
+            cryptocurrencies: ['btc', 'sol'],
+            fiatCurrency: 'usd',
+            rates: {
+              btc: {
+                conversionRate: 45000,
+                conversionDate: 1234567890,
+                usdConversionRate: 45000,
+              },
+              sol: {
+                conversionRate: 100,
+                conversionDate: 1234567890,
+                usdConversionRate: 100,
+              },
             },
-            extraProperty: 'should remain',
+          },
+          MultichainAssetsRatesController: {
+            someProperty: 'should remain',
           },
           OtherController: {
             shouldStayUntouched: true,
@@ -95,34 +94,15 @@ describe('Migration 105: Reset PhishingController urlScanCache', () => {
 
     const migratedState = migrate(state) as typeof state;
 
-    // urlScanCache should be reset to empty object
     expect(
-      migratedState.engine.backgroundState.PhishingController.urlScanCache,
-    ).toEqual({});
+      migratedState.engine.backgroundState.RatesController,
+    ).toBeUndefined();
 
-    // Other fields should remain unchanged
     expect(
-      migratedState.engine.backgroundState.PhishingController
-        .c2DomainBlocklistLastFetched,
-    ).toBe(123456789);
-    expect(
-      migratedState.engine.backgroundState.PhishingController.phishingLists,
-    ).toEqual(['list1', 'list2']);
-    expect(
-      migratedState.engine.backgroundState.PhishingController.whitelist,
-    ).toEqual(['site1', 'site2']);
-    expect(
-      migratedState.engine.backgroundState.PhishingController
-        .hotlistLastFetched,
-    ).toBe(987654321);
-    expect(
-      migratedState.engine.backgroundState.PhishingController
-        .stalelistLastFetched,
-    ).toBe(123123123);
-    expect(
-      migratedState.engine.backgroundState.PhishingController.extraProperty,
-    ).toBe('should remain');
-
+      migratedState.engine.backgroundState.MultichainAssetsRatesController,
+    ).toEqual({
+      someProperty: 'should remain',
+    });
     expect(migratedState.engine.backgroundState.OtherController).toEqual({
       shouldStayUntouched: true,
     });
@@ -130,22 +110,51 @@ describe('Migration 105: Reset PhishingController urlScanCache', () => {
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('handles error during migration', () => {
-    // Create state with a PhishingController that throws when urlScanCache is accessed
-    const state = {
+  it('leaves state unchanged if RatesController does not exist', () => {
+    interface TestState {
       engine: {
         backgroundState: {
-          PhishingController: Object.defineProperty({}, 'urlScanCache', {
-            get: () => {
-              throw new Error('Test error');
-            },
-            set: () => {
-              throw new Error('Test error');
-            },
-            configurable: true,
-            enumerable: true,
-          }),
+          MultichainAssetsRatesController: {
+            someProperty: string;
+          };
+          OtherController: {
+            shouldStayUntouched: boolean;
+          };
+        };
+      };
+    }
+
+    const state: TestState = {
+      engine: {
+        backgroundState: {
+          MultichainAssetsRatesController: {
+            someProperty: 'should remain',
+          },
+          OtherController: {
+            shouldStayUntouched: true,
+          },
         },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state) as typeof state;
+
+    expect(migratedState).toEqual(state);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('handles error during migration', () => {
+    const state = {
+      engine: {
+        backgroundState: Object.defineProperty({}, 'RatesController', {
+          get: () => {
+            throw new Error('Test error');
+          },
+          configurable: true,
+          enumerable: true,
+        }),
       },
     };
 
@@ -156,7 +165,7 @@ describe('Migration 105: Reset PhishingController urlScanCache', () => {
     expect(migratedState).toEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
     expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      'Migration 105: cleaning PhishingController state failed with error',
+      'Migration 105 failed',
     );
   });
 });

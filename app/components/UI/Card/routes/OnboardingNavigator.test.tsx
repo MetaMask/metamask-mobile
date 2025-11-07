@@ -272,6 +272,7 @@ describe('OnboardingNavigator', () => {
             user: {
               id: 'user-123',
               verificationState: 'VERIFIED',
+              countryOfNationality: 'US',
               // firstName is undefined
             },
             isLoading: false,
@@ -287,13 +288,58 @@ describe('OnboardingNavigator', () => {
           expect(queryByTestId('activity-indicator')).toBeNull();
         });
 
-        it('returns PHYSICAL_ADDRESS route when firstName exists but addressLine1 is missing', () => {
+        it('returns PERSONAL_DETAILS route when countryOfNationality is missing', () => {
           mockUseSelector.mockReturnValue('onboarding-123');
           mockUseCardSDK.mockReturnValue({
             user: {
               id: 'user-123',
               verificationState: 'VERIFIED',
               firstName: 'John',
+              // countryOfNationality is undefined
+            },
+            isLoading: false,
+            sdk: null,
+            setUser: jest.fn(),
+            logoutFromProvider: jest.fn(),
+          });
+
+          const { queryByTestId } = renderWithNavigation(
+            <OnboardingNavigator />,
+          );
+
+          expect(queryByTestId('activity-indicator')).toBeNull();
+        });
+
+        it('returns PERSONAL_DETAILS route when both firstName and countryOfNationality are missing', () => {
+          mockUseSelector.mockReturnValue('onboarding-123');
+          mockUseCardSDK.mockReturnValue({
+            user: {
+              id: 'user-123',
+              verificationState: 'VERIFIED',
+              // firstName is undefined
+              // countryOfNationality is undefined
+            },
+            isLoading: false,
+            sdk: null,
+            setUser: jest.fn(),
+            logoutFromProvider: jest.fn(),
+          });
+
+          const { queryByTestId } = renderWithNavigation(
+            <OnboardingNavigator />,
+          );
+
+          expect(queryByTestId('activity-indicator')).toBeNull();
+        });
+
+        it('returns PHYSICAL_ADDRESS route when firstName and countryOfNationality exist but addressLine1 is missing', () => {
+          mockUseSelector.mockReturnValue('onboarding-123');
+          mockUseCardSDK.mockReturnValue({
+            user: {
+              id: 'user-123',
+              verificationState: 'VERIFIED',
+              firstName: 'John',
+              countryOfNationality: 'US',
               // addressLine1 is undefined
             },
             isLoading: false,
@@ -309,13 +355,14 @@ describe('OnboardingNavigator', () => {
           expect(queryByTestId('activity-indicator')).toBeNull();
         });
 
-        it('returns COMPLETE route when both firstName and addressLine1 exist', () => {
+        it('returns COMPLETE route when firstName, countryOfNationality, and addressLine1 exist', () => {
           mockUseSelector.mockReturnValue('onboarding-123');
           mockUseCardSDK.mockReturnValue({
             user: {
               id: 'user-123',
               verificationState: 'VERIFIED',
               firstName: 'John',
+              countryOfNationality: 'US',
               addressLine1: '123 Main St',
             },
             isLoading: false,

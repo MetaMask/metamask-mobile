@@ -87,6 +87,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
         {
           "flexDirection": "row",
           "justifyContent": "flex-start",
+          "marginLeft": 8,
           "width": "100%",
         }
       }
@@ -111,9 +112,21 @@ exports[`AccountInfoCard should match snapshot 1`] = `
             "lineHeight": 24,
           }
         }
+        tooltip="Account 1"
       >
         Account 1
       </Text>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "justifyContent": "flex-start",
+          "marginLeft": 8,
+          "width": "100%",
+        }
+      }
+    >
       <Text
         accessibilityRole="text"
         numberOfLines={1}
@@ -134,35 +147,44 @@ exports[`AccountInfoCard should match snapshot 1`] = `
           }
         }
       >
-        (
         0xC4955...4D272
-        )
       </Text>
     </View>
-    <Text
-      accessibilityRole="text"
-      numberOfLines={1}
+    <View
       style={
         {
-          "0": {
-            "alignSelf": "flex-start",
-            "color": "#121314",
-            "fontFamily": "Geist Regular",
-            "fontSize": 14,
-          },
-          "1": undefined,
-          "color": "#121314",
-          "fontFamily": "Geist Regular",
-          "fontSize": 16,
-          "letterSpacing": 0,
-          "lineHeight": 24,
+          "flexDirection": "row",
+          "justifyContent": "flex-start",
+          "marginLeft": 8,
+          "width": "100%",
         }
       }
     >
-      Balance:
-       
-      &lt; 0.00001 SepoliaETH
-    </Text>
+      <Text
+        accessibilityRole="text"
+        numberOfLines={1}
+        style={
+          {
+            "0": {
+              "alignSelf": "flex-start",
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
+            },
+            "1": undefined,
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Balance:
+         
+        &lt; 0.00001 SepoliaETH
+      </Text>
+    </View>
   </View>
 </View>
 `;

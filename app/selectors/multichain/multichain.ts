@@ -467,6 +467,10 @@ interface NonEvmTransactionStateEntry {
   lastUpdated: number | undefined;
 }
 
+/**
+ * @deprecated
+ * This selector is deprecated and broken. It should not be used in new code.
+ */
 export const selectNonEvmTransactions = createDeepEqualSelector(
   selectMultichainTransactions,
   selectSelectedInternalAccount,
