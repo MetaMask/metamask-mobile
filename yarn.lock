@@ -39371,8 +39371,8 @@ __metadata:
   linkType: hard
 
 "react-native-reanimated@npm:^3.17.2":
-  version: 3.19.3
-  resolution: "react-native-reanimated@npm:3.19.3"
+  version: 3.17.5
+  resolution: "react-native-reanimated@npm:3.17.5"
   dependencies:
     "@babel/plugin-transform-arrow-functions": "npm:^7.0.0-0"
     "@babel/plugin-transform-class-properties": "npm:^7.0.0-0"
@@ -39390,7 +39390,7 @@ __metadata:
     "@babel/core": ^7.0.0-0
     react: "*"
     react-native: "*"
-  checksum: 10/8c9e47ffe30fea038ec2a880877eebb90aced1aa3d434a11a92fbffcfe07f081f50c4efa3c82b5ea66a55cb408065d2edf416333a9e7207668e9ff11fd73926a
+  checksum: 10/63501d8ac0cb2039e60ac93bc779e946af267bb55f95cf53ed538bcf9bfca030fa5d84d5c9343dcbc4d8df0d5e9d7c58ca5647d43b17f8399dec11d812da11fc
   languageName: node
   linkType: hard
 
@@ -41051,12 +41051,12 @@ __metadata:
   linkType: hard
 
 "rive-react-native@npm:^9.3.4":
-  version: 9.6.2
-  resolution: "rive-react-native@npm:9.6.2"
+  version: 9.3.4
+  resolution: "rive-react-native@npm:9.3.4"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/9d0cffc98c632676cfa649dd749ec9b3c15a14804112bc033a2f532f335b94965737fe3c910feefe7e85b7f22492dfee9b82897269314597b7d09d08a03a14dd
+  checksum: 10/dd8be7921fdb6fa5b72a786417202e4ef7ae279898c82a13e257bbfb9fd9d232b798a4b127914195ee59ee11633568a8d2938a397efe93354e39b78b4368e11b
   languageName: node
   linkType: hard
 
@@ -41838,17 +41838,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"shell-quote@npm:1.8.2":
+"shell-quote@npm:1.8.2, shell-quote@npm:^1.6.1, shell-quote@npm:^1.7.2, shell-quote@npm:^1.7.3, shell-quote@npm:^1.8.1":
   version: 1.8.2
   resolution: "shell-quote@npm:1.8.2"
   checksum: 10/3ae4804fd80a12ba07650d0262804ae3b479a62a6b6971a6dc5fa12995507aa63d3de3e6a8b7a8d18f4ce6eb118b7d75db7fcb2c0acbf016f210f746b10cfe02
-  languageName: node
-  linkType: hard
-
-"shell-quote@npm:^1.6.1, shell-quote@npm:^1.7.2, shell-quote@npm:^1.7.3, shell-quote@npm:^1.8.1":
-  version: 1.8.3
-  resolution: "shell-quote@npm:1.8.3"
-  checksum: 10/5473e354637c2bd698911224129c9a8961697486cff1fb221f234d71c153fc377674029b0223d1d3c953a68d451d79366abfe53d1a0b46ee1f28eb9ade928f4c
   languageName: node
   linkType: hard
 
@@ -46352,3 +46345,4 @@ __metadata:
   checksum: 10/00c4636f10556174858bddd67758ef1e3046d005e9890a208fa5dd9296ec69a3e93ce8300a54d84cf72deea188503d8c5aa67c515daf79da40de378786832807
   languageName: node
   linkType: hard
+  
