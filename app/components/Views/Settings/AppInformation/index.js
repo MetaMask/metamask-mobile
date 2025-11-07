@@ -20,6 +20,7 @@ import {
   runtimeVersion,
   isEmbeddedLaunch,
   isEnabled as isOTAUpdatesEnabled,
+  url as otaUpdateUrl,
 } from 'expo-updates';
 import { fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
@@ -244,6 +245,9 @@ export default class AppInformation extends PureComponent {
                     </Text>
                     <Text style={styles.branchInfo}>
                       {`OTA Update runtime version: ${runtimeVersion}`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`OTA Update url: ${otaUpdateUrl}`}
                     </Text>
                     <Text style={styles.branchInfo}>
                       {`OTA Update status: ${otaUpdateMessage}`}
