@@ -949,7 +949,7 @@ export class CardSDK {
             name: tokenDetails?.name ?? '',
           },
           network: wallet.network,
-          totalAllowance: null, // Will be populated by getTotalAllowance
+          totalAllowance: null, // Will be populated later for priority token only
           delegationContractAddress:
             tokenDetails?.delegationContractAddress ?? '',
           stagingTokenAddress: tokenDetails?.stagingTokenAddress ?? '',
@@ -1016,82 +1016,103 @@ export class CardSDK {
     };
   };
 
-  // Get total allowance for a list of tokens. Used for authenticated mode.
-  // Currently only supporting Linea.
-  getTotalAllowance = async (
-    tokens: CardExternalWalletDetail[],
-  ): Promise<{ address: string; allowance: string | undefined }[]> => {
-    if (!tokens || tokens.length === 0) {
-      return [];
-    }
+  /**
+   * Get the most recent user-initiated allowance amount from approval events for a specific token.
+   * This finds the last approval that INCREASED the allowance (user setting a new limit),
+   * filtering out automatic approval decreases that occur during Card spending.
+   * This is used to determine the initial allowance for the spending limit progress bar.
+   *
+   * @param walletAddress - The user's wallet address
+   * @param tokenAddress - The ERC20 token contract address
+   * @param delegationContractAddress - The delegation/spender contract address
+   * @param currentAllowance - The current remaining allowance (from API) to compare against
+   * @returns The most recent user-initiated approval value as a string (in wei), or null if no logs found
+   */
+  getLatestAllowanceFromLogs = async (
+    walletAddress: string,
+    tokenAddress: string,
+    delegationContractAddress: string,
+    currentAllowance?: string,
+  ): Promise<string | null> => {
+    try {
+      const approvalInterface = new ethers.utils.Interface([
+        'event Approval(address indexed owner, address indexed spender, uint256 value)',
+      ]);
 
-    const balanceScannerInstance = this.getBalanceScannerInstance();
+      const approvalTopic = approvalInterface.getEventTopic('Approval');
+      const ownerTopic = ethers.utils.hexZeroPad(
+        walletAddress.toLowerCase(),
+        32,
+      );
+      const spenderTopic = ethers.utils.hexZeroPad(
+        delegationContractAddress.toLowerCase(),
+        32,
+      );
 
-    // Query each wallet for its specific token's allowance
-    // This avoids querying wallet A for token B's address (which doesn't make sense)
-    const promises = tokens.map(async (token) => {
-      const tokenAddress =
-        token.stagingTokenAddress || token.tokenDetails.address || '';
+      const spendersDeployedBlock = 2715910; // Block where the delegation contracts were deployed
+      const ethersProvider = this.getEthersProvider();
 
-      // Skip if not a valid EVM address (e.g., Solana addresses)
-      if (!tokenAddress || !ethers.utils.isAddress(tokenAddress)) {
-        return {
-          address: tokenAddress,
-          allowance: undefined,
-        };
+      // Get all approval logs for this specific wallet + token + spender combination
+      const logs = await ethersProvider.getLogs({
+        address: tokenAddress,
+        fromBlock: spendersDeployedBlock,
+        toBlock: 'latest',
+        topics: [approvalTopic, ownerTopic, spenderTopic],
+      });
+
+      if (logs.length === 0) {
+        return null;
       }
 
-      try {
-        // Query this specific wallet for this specific token
-        const spendersAllowances =
-          await balanceScannerInstance.spendersAllowancesForTokens(
-            token.walletAddress,
-            [tokenAddress], // Only query for this token's address
-            [[token.delegationContractAddress ?? '']], // Only this token's delegation contract
-          );
+      // Sort chronologically (newest first)
+      logs.sort((a, b) =>
+        b.blockNumber === a.blockNumber
+          ? b.logIndex - a.logIndex
+          : b.blockNumber - a.blockNumber,
+      );
 
-        // spendersAllowances is Result[][] - 2D array
-        // Outer array: one element per token (we queried 1 token)
-        // Inner array: one element per spender (we queried 1 spender)
-        // Each element is [success, allowance]
-        const tokenResults = spendersAllowances[0]; // First (and only) token
-        const spenderResult = tokenResults?.[0]; // First (and only) spender
-        const allowanceHex = spenderResult?.[1]; // The allowance value (hex-encoded bytes)
+      // Parse current allowance for comparison (if provided)
+      const currentAllowanceBN = currentAllowance
+        ? ethers.BigNumber.from(currentAllowance)
+        : ethers.BigNumber.from(0);
 
-        // Convert hex to human-readable number using token decimals
-        let allowance: string | undefined;
-        if (allowanceHex) {
-          try {
-            const allowanceBigNumber = ethers.BigNumber.from(allowanceHex);
-            // Format with token decimals (e.g., if decimals=6, divides by 10^6)
-            const decimals = token.tokenDetails.decimals ?? 18; // Default to 18 if not specified
-            allowance = ethers.utils.formatUnits(allowanceBigNumber, decimals);
-          } catch (error) {
-            Logger.error(
-              error as Error,
-              `getTotalAllowance: Failed to parse allowance hex for token ${tokenAddress}`,
-            );
-            allowance = undefined;
-          }
+      // Find the most recent approval that is GREATER than the current allowance
+      // This filters out automatic decreases from Card spending and finds the user's actual limit
+      let selectedLog = null;
+      for (const log of logs) {
+        const parsed = approvalInterface.parseLog(log);
+        const value = parsed.args.value as ethers.BigNumber;
+
+        // If we have a current allowance, find first approval greater than it
+        // This represents the user's intended spending limit before any spending
+        if (currentAllowance && value.gt(currentAllowanceBN)) {
+          selectedLog = log;
+          break;
         }
 
-        return {
-          address: tokenAddress,
-          allowance,
-        };
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          `getTotalAllowance: Failed to get allowance for token ${tokenAddress} at wallet ${token.walletAddress}`,
-        );
-        return {
-          address: tokenAddress,
-          allowance: undefined,
-        };
+        // If no current allowance provided, use the most recent non-zero approval
+        if (!currentAllowance && !value.isZero()) {
+          selectedLog = log;
+          break;
+        }
       }
-    });
 
-    return await Promise.all(promises);
+      // If no approval greater than current allowance found, use the latest one
+      if (!selectedLog) {
+        selectedLog = logs[0];
+      }
+
+      const parsedLog = approvalInterface.parseLog(selectedLog);
+      const value = parsedLog.args.value as ethers.BigNumber;
+
+      return value.toString();
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        `getLatestAllowanceFromLogs: Failed to get latest allowance for token ${tokenAddress}`,
+      );
+      return null;
+    }
   };
 
   provisionCard = async (): Promise<{ success: boolean }> => {

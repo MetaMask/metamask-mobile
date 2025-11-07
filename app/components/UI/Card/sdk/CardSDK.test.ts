@@ -2792,4 +2792,390 @@ describe('CardSDK', () => {
       });
     });
   });
+
+  describe('getLatestAllowanceFromLogs', () => {
+    const mockWalletAddress = '0x1234567890123456789012345678901234567890';
+    const mockTokenAddress = '0x0987654321098765432109876543210987654321';
+    const mockDelegationContract = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      // Reset ethers mocks
+      (ethers.utils.hexZeroPad as jest.Mock).mockImplementation((val) => val);
+      (ethers.utils.Interface as unknown as jest.Mock).mockReturnValue({
+        getEventTopic: jest.fn().mockReturnValue('0xtopic'),
+        parseLog: jest.fn().mockImplementation((log) => ({
+          args: {
+            value: ethers.BigNumber.from(log.data || '0'),
+          },
+        })),
+      });
+    });
+
+    it('returns latest approval when greater than current allowance', async () => {
+      const mockLogs = [
+        {
+          blockNumber: 100,
+          logIndex: 1,
+          data: '11806489',
+          blockHash: '0x1',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xa',
+        }, // Current (after spending)
+        {
+          blockNumber: 99,
+          logIndex: 0,
+          data: '15000000',
+          blockHash: '0x2',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xb',
+        }, // Original approval
+      ];
+      mockProvider.getLogs.mockResolvedValue(mockLogs);
+      (ethers.BigNumber.from as jest.Mock).mockImplementation((val) => ({
+        toString: () => val,
+        gt: (other: { toString: () => string }) =>
+          parseInt(val, 10) > parseInt(other.toString(), 10),
+        isZero: () => val === '0',
+      }));
+
+      const result = await cardSDK.getLatestAllowanceFromLogs(
+        mockWalletAddress,
+        mockTokenAddress,
+        mockDelegationContract,
+        '11806489', // Current allowance
+      );
+
+      expect(result).toBe('15000000');
+      expect(mockProvider.getLogs).toHaveBeenCalledWith({
+        address: mockTokenAddress,
+        fromBlock: 2715910,
+        toBlock: 'latest',
+        topics: expect.any(Array),
+      });
+    });
+
+    it('returns latest approval when no current allowance provided', async () => {
+      const mockLogs = [
+        {
+          blockNumber: 100,
+          logIndex: 0,
+          data: '15000000',
+          blockHash: '0x1',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xa',
+        },
+      ];
+      mockProvider.getLogs.mockResolvedValue(mockLogs);
+      (ethers.BigNumber.from as jest.Mock).mockImplementation((val) => ({
+        toString: () => val,
+        gt: () => true,
+        isZero: () => val === '0',
+      }));
+
+      const result = await cardSDK.getLatestAllowanceFromLogs(
+        mockWalletAddress,
+        mockTokenAddress,
+        mockDelegationContract,
+      );
+
+      expect(result).toBe('15000000');
+    });
+
+    it('skips approvals equal to or less than current allowance', async () => {
+      const mockLogs = [
+        {
+          blockNumber: 102,
+          logIndex: 0,
+          data: '11806489',
+          blockHash: '0x1',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xa',
+        }, // Same as current
+        {
+          blockNumber: 101,
+          logIndex: 0,
+          data: '10000000',
+          blockHash: '0x2',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xb',
+        }, // Less than current
+        {
+          blockNumber: 100,
+          logIndex: 0,
+          data: '15000000',
+          blockHash: '0x3',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xc',
+        }, // Greater - this one!
+      ];
+      mockProvider.getLogs.mockResolvedValue(mockLogs);
+      (ethers.BigNumber.from as jest.Mock).mockImplementation((val) => ({
+        toString: () => val,
+        gt: (other: { toString: () => string }) =>
+          parseInt(val, 10) > parseInt(other.toString(), 10),
+        isZero: () => val === '0',
+      }));
+
+      const result = await cardSDK.getLatestAllowanceFromLogs(
+        mockWalletAddress,
+        mockTokenAddress,
+        mockDelegationContract,
+        '11806489',
+      );
+
+      expect(result).toBe('15000000');
+    });
+
+    it('returns most recent log when no approval greater than current found', async () => {
+      const mockLogs = [
+        {
+          blockNumber: 100,
+          logIndex: 0,
+          data: '5000000',
+          blockHash: '0x1',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xa',
+        },
+        {
+          blockNumber: 99,
+          logIndex: 0,
+          data: '3000000',
+          blockHash: '0x2',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xb',
+        },
+      ];
+      mockProvider.getLogs.mockResolvedValue(mockLogs);
+      (ethers.BigNumber.from as jest.Mock).mockImplementation((val) => ({
+        toString: () => val,
+        gt: () => false,
+        isZero: () => val === '0',
+      }));
+
+      const result = await cardSDK.getLatestAllowanceFromLogs(
+        mockWalletAddress,
+        mockTokenAddress,
+        mockDelegationContract,
+        '10000000', // Current is higher than all logs
+      );
+
+      expect(result).toBe('5000000'); // Returns latest log
+    });
+
+    it('returns null when no logs found', async () => {
+      mockProvider.getLogs.mockResolvedValue([]);
+
+      const result = await cardSDK.getLatestAllowanceFromLogs(
+        mockWalletAddress,
+        mockTokenAddress,
+        mockDelegationContract,
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it('sorts logs chronologically (newest first)', async () => {
+      const mockLogs = [
+        {
+          blockNumber: 98,
+          logIndex: 0,
+          data: '1000000',
+          blockHash: '0x1',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xa',
+        },
+        {
+          blockNumber: 100,
+          logIndex: 2,
+          data: '3000000',
+          blockHash: '0x2',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xb',
+        },
+        {
+          blockNumber: 100,
+          logIndex: 1,
+          data: '2000000',
+          blockHash: '0x3',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xc',
+        },
+        {
+          blockNumber: 99,
+          logIndex: 0,
+          data: '1500000',
+          blockHash: '0x4',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xd',
+        },
+      ];
+      mockProvider.getLogs.mockResolvedValue(mockLogs);
+      (ethers.BigNumber.from as jest.Mock).mockImplementation((val) => ({
+        toString: () => val,
+        gt: () => true,
+        isZero: () => val === '0',
+      }));
+
+      const result = await cardSDK.getLatestAllowanceFromLogs(
+        mockWalletAddress,
+        mockTokenAddress,
+        mockDelegationContract,
+      );
+
+      // Most recent should be block 100, logIndex 2
+      expect(result).toBe('3000000');
+    });
+
+    it('handles zero approval values', async () => {
+      const mockLogs = [
+        {
+          blockNumber: 100,
+          logIndex: 0,
+          data: '0',
+          blockHash: '0x1',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xa',
+        }, // Revoked
+        {
+          blockNumber: 99,
+          logIndex: 0,
+          data: '15000000',
+          blockHash: '0x2',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xb',
+        },
+      ];
+      mockProvider.getLogs.mockResolvedValue(mockLogs);
+      (ethers.BigNumber.from as jest.Mock).mockImplementation((val) => ({
+        toString: () => val,
+        gt: (other: { toString: () => string }) =>
+          parseInt(val, 10) > parseInt(other.toString(), 10),
+        isZero: () => val === '0',
+      }));
+
+      const result = await cardSDK.getLatestAllowanceFromLogs(
+        mockWalletAddress,
+        mockTokenAddress,
+        mockDelegationContract,
+        '0',
+      );
+
+      expect(result).toBe('15000000'); // Skips zero, returns previous approval
+    });
+
+    it('logs error and returns null when getLogs fails', async () => {
+      const mockError = new Error('RPC error');
+      mockProvider.getLogs.mockRejectedValue(mockError);
+
+      const result = await cardSDK.getLatestAllowanceFromLogs(
+        mockWalletAddress,
+        mockTokenAddress,
+        mockDelegationContract,
+      );
+
+      expect(result).toBeNull();
+      expect(Logger.error).toHaveBeenCalledWith(
+        mockError,
+        `getLatestAllowanceFromLogs: Failed to get latest allowance for token ${mockTokenAddress}`,
+      );
+    });
+
+    it('calls getLogs with correct parameters', async () => {
+      mockProvider.getLogs.mockResolvedValue([]);
+      (ethers.utils.hexZeroPad as jest.Mock).mockImplementation(
+        (addr) => `padded_${addr}`,
+      );
+
+      await cardSDK.getLatestAllowanceFromLogs(
+        mockWalletAddress,
+        mockTokenAddress,
+        mockDelegationContract,
+      );
+
+      expect(mockProvider.getLogs).toHaveBeenCalledWith({
+        address: mockTokenAddress,
+        fromBlock: 2715910,
+        toBlock: 'latest',
+        topics: [
+          '0xtopic',
+          `padded_${mockWalletAddress.toLowerCase()}`,
+          `padded_${mockDelegationContract.toLowerCase()}`,
+        ],
+      });
+    });
+
+    it('handles large approval values correctly', async () => {
+      const largeValue = '2199023255551000000'; // Unlimited approval
+      const mockLogs = [
+        {
+          blockNumber: 100,
+          logIndex: 0,
+          data: largeValue,
+          blockHash: '0x1',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xa',
+        },
+      ];
+      mockProvider.getLogs.mockResolvedValue(mockLogs);
+      (ethers.BigNumber.from as jest.Mock).mockImplementation((val) => ({
+        toString: () => val,
+        gt: () => true,
+        isZero: () => false,
+      }));
+
+      const result = await cardSDK.getLatestAllowanceFromLogs(
+        mockWalletAddress,
+        mockTokenAddress,
+        mockDelegationContract,
+      );
+
+      expect(result).toBe(largeValue);
+    });
+  });
 });

@@ -731,6 +731,7 @@ const CardHome = () => {
         {isAuthenticated &&
           priorityToken?.allowanceState === AllowanceState.Limited && (
             <SpendingLimitProgressBar
+              isLoading={isLoading}
               decimals={priorityToken?.decimals ?? 6}
               totalAllowance={priorityToken?.totalAllowance ?? '0'}
               remainingAllowance={priorityToken?.allowance ?? '0'}
