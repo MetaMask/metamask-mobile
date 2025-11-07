@@ -174,8 +174,9 @@ const PerpsHomeView = () => {
     setShowCancelAllSheet(false);
   }, []);
 
-  // Back button handler - now uses navigation hook
-  const handleBackPress = perpsNavigation.navigateBack;
+  // Back button handler - always navigate to wallet home to avoid loops
+  // (e.g., when coming from tutorial/onboarding flow)
+  const handleBackPress = perpsNavigation.navigateToWallet;
 
   return (
     <SafeAreaView style={styles.container}>
