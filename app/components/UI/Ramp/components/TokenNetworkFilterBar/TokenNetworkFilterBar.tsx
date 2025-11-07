@@ -1,5 +1,4 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
 import { ScrollView } from 'react-native-gesture-handler';
 
@@ -16,11 +15,9 @@ import Text, {
 
 import styleSheet from './TokenNetworkFilterBar.styles';
 
-import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 import { useStyles } from '../../../../hooks/useStyles';
-import { DEPOSIT_NETWORKS_BY_CHAIN_ID } from '../../Deposit/constants/networks';
 import { excludeFromArray } from '../../Deposit/utils';
-import { getNetworkImageSource } from '../../../../../util/networks';
+import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import { strings } from '../../../../../../locales/i18n';
 
 interface TokenNetworkFilterBarProps {
@@ -35,10 +32,7 @@ function TokenNetworkFilterBar({
   setNetworkFilter,
 }: Readonly<TokenNetworkFilterBarProps>) {
   const { styles } = useStyles(styleSheet, {});
-
-  const allNetworkConfigurations = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
-  );
+  const getTokenNetworkInfo = useTokenNetworkInfo();
 
   const isAllSelected =
     !networkFilter ||
@@ -91,9 +85,9 @@ function TokenNetworkFilterBar({
       {networks.map((chainId) => {
         const isSelected =
           !isAllSelected && (networkFilter?.includes(chainId) ?? false);
-        const networkName =
-          DEPOSIT_NETWORKS_BY_CHAIN_ID[chainId]?.name ??
-          allNetworkConfigurations[chainId]?.name;
+        const { depositNetworkName, networkName, networkImageSource } =
+          getTokenNetworkInfo(chainId);
+        const displayName = depositNetworkName ?? networkName;
         return (
           <Button
             key={chainId}
@@ -104,8 +98,8 @@ function TokenNetworkFilterBar({
             label={
               <>
                 <AvatarNetwork
-                  imageSource={getNetworkImageSource({ chainId })}
-                  name={networkName}
+                  imageSource={networkImageSource}
+                  name={displayName}
                   size={AvatarSize.Xs}
                   style={styles.selectedNetworkIcon}
                 />
@@ -114,7 +108,7 @@ function TokenNetworkFilterBar({
                   color={isSelected ? TextColor.Inverse : TextColor.Default}
                   variant={TextVariant.BodyMD}
                 >
-                  {networkName}
+                  {displayName}
                 </Text>
               </>
             }

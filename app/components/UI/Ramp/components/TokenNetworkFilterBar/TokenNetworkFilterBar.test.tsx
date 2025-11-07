@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import TokenNetworkFilterBar from './TokenNetworkFilterBar';
 import { CaipChainId } from '@metamask/utils';
 
@@ -70,5 +70,80 @@ describe('TokenNetworkFilterBar', () => {
     );
 
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  describe('handleNetworkPress', () => {
+    it('sets single network when all networks are selected', () => {
+      const { getByText } = render(
+        <TokenNetworkFilterBar
+          networks={mockNetworks}
+          networkFilter={null}
+          setNetworkFilter={mockSetNetworkFilter}
+        />,
+      );
+
+      fireEvent.press(getByText('Ethereum'));
+
+      expect(mockSetNetworkFilter).toHaveBeenCalledWith(['eip155:1']);
+    });
+
+    it('removes network from filter when network is currently selected', () => {
+      const { getByText } = render(
+        <TokenNetworkFilterBar
+          networks={mockNetworks}
+          networkFilter={['eip155:1', 'eip155:10'] as CaipChainId[]}
+          setNetworkFilter={mockSetNetworkFilter}
+        />,
+      );
+
+      fireEvent.press(getByText('Ethereum'));
+
+      expect(mockSetNetworkFilter).toHaveBeenCalledWith(['eip155:10']);
+    });
+
+    it('sets filter to empty array when deselecting last selected network', () => {
+      const { getByText } = render(
+        <TokenNetworkFilterBar
+          networks={mockNetworks}
+          networkFilter={['eip155:1'] as CaipChainId[]}
+          setNetworkFilter={mockSetNetworkFilter}
+        />,
+      );
+
+      fireEvent.press(getByText('Ethereum'));
+
+      expect(mockSetNetworkFilter).toHaveBeenCalledWith([]);
+    });
+
+    it('adds network to filter when network is not currently selected', () => {
+      const { getByText } = render(
+        <TokenNetworkFilterBar
+          networks={mockNetworks}
+          networkFilter={['eip155:1'] as CaipChainId[]}
+          setNetworkFilter={mockSetNetworkFilter}
+        />,
+      );
+
+      fireEvent.press(getByText('Optimism'));
+
+      expect(mockSetNetworkFilter).toHaveBeenCalledWith([
+        'eip155:1',
+        'eip155:10',
+      ]);
+    });
+
+    it('sets filter to null when adding network results in all networks selected', () => {
+      const { getByText } = render(
+        <TokenNetworkFilterBar
+          networks={mockNetworks}
+          networkFilter={['eip155:1', 'eip155:10'] as CaipChainId[]}
+          setNetworkFilter={mockSetNetworkFilter}
+        />,
+      );
+
+      fireEvent.press(getByText('Polygon'));
+
+      expect(mockSetNetworkFilter).toHaveBeenCalledWith(null);
+    });
   });
 });

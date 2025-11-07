@@ -8,11 +8,11 @@ import React, {
 import { View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 
 import TokenNetworkFilterBar from '../TokenNetworkFilterBar';
+import TokenListItem from '../TokenListItem';
 
 import Text, {
   TextVariant,
@@ -23,27 +23,15 @@ import {
   IconName,
 } from '@metamask/design-system-react-native';
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
-import ListItemColumn, {
-  WidthType,
-} from '../../../../../component-library/components/List/ListItemColumn';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import BadgeNetwork from '../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 
 import styleSheet from './TokenSelection.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import useSearchTokenResults from '../../Deposit/hooks/useSearchTokenResults';
 
-import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { getNetworkImageSource } from '../../../../../util/networks';
 import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 import { strings } from '../../../../../../locales/i18n';
-import { DEPOSIT_NETWORKS_BY_CHAIN_ID } from '../../Deposit/constants/networks';
 import { useTheme } from '../../../../../util/theme';
 import { MOCK_CRYPTOCURRENCIES } from '../../Deposit/constants/mockCryptoCurrencies';
 // TODO: Fetch these tokens from the API new enpoint for top 25 with supported status
@@ -76,10 +64,6 @@ function TokenSelection() {
     searchString,
   });
 
-  const allNetworkConfigurations = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
-  );
-
   const handleSelectAssetIdCallback = useCallback((_assetId: string) => {
     // TODO: Handle token by routing to the appropriate agg or deposit screen with asset id as param and pre-select it
     // https://consensyssoftware.atlassian.net/browse/TRAM-2795
@@ -107,50 +91,15 @@ function TokenSelection() {
   }, [handleSearchTextChange]);
 
   const renderToken = useCallback(
-    ({ item: token }: { item: DepositCryptoCurrency }) => {
-      const networkName = allNetworkConfigurations[token.chainId]?.name;
-      const networkImageSource = getNetworkImageSource({
-        chainId: token.chainId,
-      });
-      const depositNetworkName =
-        DEPOSIT_NETWORKS_BY_CHAIN_ID[token.chainId]?.name;
-      return (
-        <ListItemSelect
-          isSelected={selectedCryptoAssetId === token.assetId}
-          onPress={() => handleSelectAssetIdCallback(token.assetId)}
-          accessibilityRole="button"
-          accessible
-        >
-          {/*TODO: disable token if not supported
-          https://consensyssoftware.atlassian.net/browse/TRAM-2816 */}
-          <ListItemColumn widthType={WidthType.Auto}>
-            <BadgeWrapper
-              badgePosition={BadgePosition.BottomRight}
-              badgeElement={
-                <BadgeNetwork
-                  name={networkName}
-                  imageSource={networkImageSource}
-                />
-              }
-            >
-              <AvatarToken
-                name={token.name}
-                imageSource={{ uri: token.iconUrl }}
-                size={AvatarSize.Md}
-              />
-            </BadgeWrapper>
-          </ListItemColumn>
-          <ListItemColumn widthType={WidthType.Fill}>
-            <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
-            <Text variant={TextVariant.BodyMD} color={colors.text.alternative}>
-              {depositNetworkName ?? networkName}
-            </Text>
-          </ListItemColumn>
-        </ListItemSelect>
-      );
-    },
+    ({ item: token }: { item: DepositCryptoCurrency }) => (
+      <TokenListItem
+        token={token}
+        isSelected={selectedCryptoAssetId === token.assetId}
+        onPress={() => handleSelectAssetIdCallback(token.assetId)}
+        textColor={colors.text.alternative}
+      />
+    ),
     [
-      allNetworkConfigurations,
       colors.text.alternative,
       handleSelectAssetIdCallback,
       selectedCryptoAssetId,
