@@ -35,14 +35,15 @@ ${tagCoverageLines}
 
 TOOLS AVAILABLE:
 - read_file: Read actual file content
-- get_git_diff: See exact code changes
-- get_pr_diff: Get full PR diff (for live PRs)
+- get_git_diff: See exact code changes for specific files
 - find_related_files: Discover impact depth and relationships
   * For CI files: finds reusable workflow callers, GitHub Action usage, script usage in workflows
   * For code files: finds importers (dependents), dependencies, tests, module files
   * Use search_type='ci' for workflow/action/script relationships
   * Use search_type='importers' to find who depends on code changes
   * Use search_type='all' for comprehensive relationship analysis
+- list_directory: List files in a directory to understand module structure
+- grep_codebase: Search for patterns to find usage or references across codebase
 - finalize_decision: Submit your selection
 
 REASONING APPROACH:

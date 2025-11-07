@@ -15,8 +15,8 @@ import {
   calculateSplitsForActualFiles
 } from './analysis/tag-analyzer';
 import { parseAgentDecision, createFallbackAnalysis } from './analysis/decision-parser';
-import { getToolDefinitions } from './tools/tool-registry';
-import { executeTool } from './tools/tool-executor';
+import { getToolDefinitions } from './ai-tools/tool-registry';
+import { executeTool } from './ai-tools/tool-executor';
 import { buildSystemPrompt } from './prompts/system-prompt-builder';
 import { buildAgentPrompt } from './prompts/agent-prompt-builder';
 import { getAllChangedFiles, getPRFiles, validatePRNumber } from './utils/git-utils';
@@ -47,14 +47,13 @@ export class AIE2ETagsSelector {
    * Main analysis method using AI agent with tools
    */
   async analyzeWithAgent(
-    categorization: FileCategorization,
-    prNumber?: number
+    categorization: FileCategorization
   ): Promise<AIAnalysis> {
 
     const tools = getToolDefinitions();
     this.conversationHistory = [];
 
-    const initialPrompt = buildAgentPrompt(categorization, prNumber);
+    const initialPrompt = buildAgentPrompt(categorization);
 
     let currentMessage: string | Anthropic.MessageParam['content'] = initialPrompt;
     const maxIterations = 12;
@@ -99,8 +98,7 @@ export class AIE2ETagsSelector {
               toolUse.input as ToolInput,
               {
                 baseDir: this.baseDir,
-                baseBranch: this.baseBranch,
-                githubRepo: this.githubRepo
+                baseBranch: this.baseBranch
               }
             );
 
@@ -271,14 +269,29 @@ export class AIE2ETagsSelector {
    */
   showHelp(): void {
     console.log(`
-AI E2E Tag Selector
+Smart E2E test selector based on code changes
+
+AI flow (using the provided tools and context):
+1. AI gets list of changed files: "Engine.ts, Logger.ts"
+2. AI thinks: "Engine is critical, let me check"
+   → Calls: get_git_diff("Engine.ts")
+3. AI sees: "Changed transaction handling"
+   → Calls: find_related_files("Engine.ts", "importers")
+4. AI discovers: "Used by 50+ files!"
+5. AI decides: "This is HIGH RISK"
+   → Calls: finalize_decision({
+       selected_tags: ["SmokeCore", "SmokeAccounts"],
+       risk_level: "high",
+       ...
+     })
+
 Usage: yarn ai-e2e [options]
 
 Options:
   -b, --base-branch <branch>    Base branch for comparison (default: origin/main)
   -o, --output <mode>           Output mode: console|json (default: console)
   --changed-files <files>       Provide changed files directly (default: git diff to check all changed files)
-  --pr <number>                 Analyze specific PR number
+  --pr <number>                 Get the changed files from a specific PR
   -h, --help                    Show this help message
 
 Examples:
@@ -348,7 +361,7 @@ Examples:
     }
 
     // Run AI analysis
-    const analysis = await this.analyzeWithAgent(categorization, options.prNumber);
+    const analysis = await this.analyzeWithAgent(categorization);
 
     // Output results
     formatAndOutput(analysis, options, categorization);

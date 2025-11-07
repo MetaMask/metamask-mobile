@@ -10,10 +10,9 @@ import { FileCategorization } from '../types';
  * Builds the agent prompt from file categorization
  */
 export function buildAgentPrompt(
-  categorization: FileCategorization,
-  prNumber?: number
+  categorization: FileCategorization
 ): string {
-  const { allFiles, criticalFiles, categories, summary, hasCriticalChanges } =
+  const { criticalFiles, categories, summary, hasCriticalChanges } =
     categorization;
 
   const fileList: string[] = [];
@@ -74,7 +73,6 @@ export function buildAgentPrompt(
 
   return `Analyze these code changes and select E2E smoke test tags.
 
-${prNumber ? `PR #${prNumber}\n` : ''}CHANGED FILES (${allFiles.length} total):
 ${fileList.join('\n')}
 
 SUMMARY:
@@ -88,7 +86,7 @@ SUMMARY:
 - Assets: ${summary.assets} files
 - Other: ${summary.other} files
 
-${prNumber ? `Use get_pr_diff(${prNumber}) to see actual changes.\n` : ''}${
+${
     criticalFiles.length > 0
       ? `⚠️  CRITICAL FILES DETECTED - Examine these carefully using read_file or get_git_diff.\n`
       : ''

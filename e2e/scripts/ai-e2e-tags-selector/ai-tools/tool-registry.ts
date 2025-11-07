@@ -50,25 +50,6 @@ export function getToolDefinitions(): Anthropic.Tool[] {
       }
     },
     {
-      name: 'get_pr_diff',
-      description: 'Get full PR diff from GitHub (for analyzing live PRs)',
-      input_schema: {
-        type: 'object',
-        properties: {
-          pr_number: {
-            type: 'number',
-            description: 'PR number to fetch'
-          },
-          files: {
-            type: 'array',
-            items: { type: 'string' },
-            description: 'Specific files to get diff for (optional)'
-          }
-        },
-        required: ['pr_number']
-      }
-    },
-    {
       name: 'find_related_files',
       description:
         'Find files related to a changed file to understand change impact depth. For CI files: finds workflows that call reusable workflows, scripts used in workflows, or workflows using specific scripts. For code files: finds importers, dependencies, tests.',
@@ -92,6 +73,44 @@ export function getToolDefinitions(): Anthropic.Tool[] {
           }
         },
         required: ['file_path', 'search_type']
+      }
+    },
+    {
+      name: 'list_directory',
+      description: 'List files and subdirectories in a directory to understand module structure and context',
+      input_schema: {
+        type: 'object',
+        properties: {
+          directory: {
+            type: 'string',
+            description: 'Path to directory (e.g. "app/core/")'
+          }
+        },
+        required: ['directory']
+      }
+    },
+    {
+      name: 'grep_codebase',
+      description: 'Search for patterns across the codebase to find usage, dependencies, or references',
+      input_schema: {
+        type: 'object',
+        properties: {
+          pattern: {
+            type: 'string',
+            description: 'Pattern to search for (e.g. "import.*Engine", "useWallet", "export.*function")'
+          },
+          file_pattern: {
+            type: 'string',
+            description: 'File pattern to search in (e.g. "*.tsx", "*.ts", "*"). Default: "*"',
+            default: '*'
+          },
+          max_results: {
+            type: 'number',
+            description: 'Max results to return (default: 50)',
+            default: 50
+          }
+        },
+        required: ['pattern']
       }
     },
     {

@@ -7,8 +7,9 @@
 import { ToolInput } from '../types';
 import { handleReadFile } from './handlers/read-file';
 import { handleGitDiff } from './handlers/git-diff';
-import { handlePRDiff } from './handlers/pr-diff';
 import { handleRelatedFiles } from './handlers/related-files';
+import { handleListDirectory } from './handlers/list-directory';
+import { handleGrepCodebase } from './handlers/grep-codebase';
 import { handleFinalizeDecision } from './handlers/finalize-decision';
 
 /**
@@ -20,7 +21,6 @@ export async function executeTool(
   context: {
     baseDir: string;
     baseBranch: string;
-    githubRepo: string;
   }
 ): Promise<string> {
   try {
@@ -31,11 +31,14 @@ export async function executeTool(
       case 'get_git_diff':
         return handleGitDiff(input, context.baseDir, context.baseBranch);
 
-      case 'get_pr_diff':
-        return handlePRDiff(input, context.githubRepo);
-
       case 'find_related_files':
         return handleRelatedFiles(input, context.baseDir);
+
+      case 'list_directory':
+        return handleListDirectory(input, context.baseDir);
+
+      case 'grep_codebase':
+        return handleGrepCodebase(input, context.baseDir);
 
       case 'finalize_decision':
         return handleFinalizeDecision(input);
