@@ -553,15 +553,11 @@ generateAndroidBinary() {
 
 	echo "Generating Android binary for ($flavor) flavor with ($configuration) configuration"
 	if [ "$configuration" = "Release" ] ; then
+		# Create test configuration
+		testConfiguration="app:assemble${flavor}ReleaseAndroidTest"
+
 		# Generate Android binary
-		./gradlew $flavorConfiguration --build-cache --parallel
-		
-		# If e2e environment, also build the Android test APK with release build type
-		if [ "$METAMASK_ENVIRONMENT" = "e2e" ] ; then
-			testConfiguration="app:assemble${flavor}ReleaseAndroidTest"
-			echo "Generating Android test APK for e2e with release build type"
-			./gradlew $testConfiguration -PminSdkVersion=26 -DtestBuildType=release --build-cache --parallel
-		fi
+		./gradlew $flavorConfiguration $testConfiguration --build-cache --parallel
 		
 		# Generate AAB bundle
 		bundleConfiguration="bundle${flavor}Release"
