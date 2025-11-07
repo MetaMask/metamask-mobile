@@ -3660,6 +3660,7 @@ export class PerpsController extends BaseController<
     let traceData: { success: boolean; error?: string } | undefined;
 
     try {
+      console.log('fetching historical candles');
       trace({
         name: TraceName.PerpsFetchHistoricalCandles,
         id: traceId,
@@ -3690,6 +3691,7 @@ export class PerpsController extends BaseController<
           limit,
         );
 
+        console.log('fetched historical candles finished', result);
         traceData = { success: true };
         return result;
       }
@@ -3697,6 +3699,7 @@ export class PerpsController extends BaseController<
       // Fallback: throw error if method not available
       throw new Error('Historical candles not supported by current provider');
     } catch (error) {
+      console.log('error fetching historical candles', error);
       const errorMessage =
         error instanceof Error
           ? error.message

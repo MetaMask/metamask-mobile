@@ -66,6 +66,7 @@ const TradingViewChart = React.forwardRef<
     },
     ref,
   ) => {
+    console.log('rendering TradingViewChart');
     const { styles, theme } = useStyles(styleSheet, {});
     const webViewRef = useRef<WebView>(null);
     const [isChartReady, setIsChartReady] = useState(false);
@@ -395,6 +396,8 @@ const TradingViewChart = React.forwardRef<
         {...platformSpecificProps}
       />
     );
+
+    console.log('isChartReady', isChartReady);
 
     return (
       <Box

@@ -74,12 +74,16 @@ export const usePerpsPositionData = ({
       `Fetching ${baseCandleCount} candles for ${selectedDuration} with ${selectedInterval} period`,
     );
 
+    console.log('fetching historical data');
+
     const historicalData =
       await Engine.context.PerpsController.fetchHistoricalCandles(
         coin,
         selectedInterval,
         baseCandleCount,
       );
+
+    console.log('');
 
     return historicalData;
   }, [coin, selectedDuration, selectedInterval]);

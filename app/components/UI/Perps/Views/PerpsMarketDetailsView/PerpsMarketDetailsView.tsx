@@ -331,6 +331,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       selectedInterval: selectedCandlePeriod,
     });
 
+  console.log('isLoadingHistory', isLoadingHistory);
+  console.log('hasHistoricalData', hasHistoricalData);
+
   // Check if user has an existing position for this market
   const { isLoading: isLoadingPosition, existingPosition } =
     useHasExistingPosition({

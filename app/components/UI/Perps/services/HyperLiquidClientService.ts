@@ -296,12 +296,14 @@ export class HyperLiquidClientService {
         };
       }
 
+      console.log('no candles found', data);
       return {
         coin,
         interval,
         candles: [],
       };
     } catch (error) {
+      console.log('error fetching historical candles', error);
       DevLogger.log('Error fetching historical candles:', error);
       throw error;
     }
