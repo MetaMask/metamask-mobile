@@ -50,6 +50,7 @@ import { Colors } from '../../../util/theme/models';
 import { Hex } from '@metamask/utils';
 import { selectLastSelectedEvmAccount } from '../../../selectors/accountsController';
 import { TokenI } from '../../UI/Tokens/types';
+import { areAddressesEqual } from '../../../util/address';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -402,7 +403,10 @@ const AssetDetailsContainer = (props: Props) => {
   );
 
   const portfolioToken = useMemo(
-    () => tokensByChain.find((rawToken) => rawToken.address === address),
+    () =>
+      tokensByChain.find((rawToken) =>
+        areAddressesEqual(rawToken.address, address),
+      ),
     [tokensByChain, address],
   );
 
