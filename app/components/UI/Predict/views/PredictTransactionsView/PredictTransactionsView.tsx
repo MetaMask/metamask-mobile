@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useCallback } from 'react';
 import { ActivityIndicator, SectionList } from 'react-native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -24,23 +24,21 @@ interface ActivitySection {
 /**
  * Groups activities by individual day (Today, Yesterday, or specific date)
  * @param timestamp Unix timestamp in seconds
+ * @param todayTime Start of today in milliseconds
+ * @param yesterdayTime Start of yesterday in milliseconds
  */
-const getDateGroupLabel = (timestamp: number): string => {
+const getDateGroupLabel = (
+  timestamp: number,
+  todayTime: number,
+  yesterdayTime: number,
+): string => {
   // Convert timestamp from seconds to milliseconds
   const timestampMs = timestamp * 1000;
-  const now = Date.now();
   const activityDate = new Date(timestampMs);
-  const today = new Date(now);
-  const yesterday = new Date(now - 24 * 60 * 60 * 1000);
 
   // Reset time to start of day for accurate comparison
-  today.setHours(0, 0, 0, 0);
-  yesterday.setHours(0, 0, 0, 0);
   activityDate.setHours(0, 0, 0, 0);
-
   const activityTime = activityDate.getTime();
-  const todayTime = today.getTime();
-  const yesterdayTime = yesterday.getTime();
 
   if (activityTime === todayTime) {
     return strings('predict.transactions.today');
@@ -72,6 +70,19 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
   }, [isVisible, isLoading]);
 
   const sections: ActivitySection[] = useMemo(() => {
+    // Cache today and yesterday timestamps for reuse
+    const now = Date.now();
+    const today = new Date(now);
+    const yesterday = new Date(now - 24 * 60 * 60 * 1000);
+    today.setHours(0, 0, 0, 0);
+    yesterday.setHours(0, 0, 0, 0);
+    const todayTime = today.getTime();
+    const yesterdayTime = yesterday.getTime();
+
+    // Pre-compute date order labels
+    const todayLabel = strings('predict.transactions.today');
+    const yesterdayLabel = strings('predict.transactions.yesterday');
+
     // First, map activities to items
     const items: PredictActivityItem[] = activity.map((activityEntry) => {
       const e = activityEntry.entry;
@@ -150,60 +161,74 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
       (a, b) => b.entry.timestamp - a.entry.timestamp,
     );
 
-    // Group items by date
-    const groupedByDate = sortedItems.reduce<
-      Record<string, PredictActivityItem[]>
-    >((acc, item) => {
-      const dateLabel = getDateGroupLabel(item.entry.timestamp);
-      if (!acc[dateLabel]) {
-        acc[dateLabel] = [];
+    // Group items by date and build sections in a single pass
+    const groupedByDate: Record<string, PredictActivityItem[]> = {};
+    const sectionOrder: string[] = [];
+
+    sortedItems.forEach((item) => {
+      const dateLabel = getDateGroupLabel(
+        item.entry.timestamp,
+        todayTime,
+        yesterdayTime,
+      );
+
+      if (!groupedByDate[dateLabel]) {
+        groupedByDate[dateLabel] = [];
+        sectionOrder.push(dateLabel);
       }
-      acc[dateLabel].push(item);
-      return acc;
-    }, {});
+      groupedByDate[dateLabel].push(item);
+    });
 
     // Convert to sections array, maintaining chronological order
-    const dateOrder = [
-      strings('predict.transactions.today'),
-      strings('predict.transactions.yesterday'),
-    ];
+    const sections: ActivitySection[] = [];
 
-    const orderedSections: ActivitySection[] = [];
-    const dateSections: ActivitySection[] = [];
+    // Add Today first if it exists
+    if (groupedByDate[todayLabel]) {
+      sections.push({ title: todayLabel, data: groupedByDate[todayLabel] });
+    }
 
-    Object.entries(groupedByDate).forEach(([title, data]) => {
-      const section = { title, data };
-      const orderIndex = dateOrder.indexOf(title);
+    // Add Yesterday second if it exists
+    if (groupedByDate[yesterdayLabel]) {
+      sections.push({
+        title: yesterdayLabel,
+        data: groupedByDate[yesterdayLabel],
+      });
+    }
 
-      if (orderIndex !== -1) {
-        // Today or Yesterday
-        orderedSections[orderIndex] = section;
-      } else {
-        // Specific dates
-        dateSections.push(section);
+    // Add all other dates in chronological order
+    sectionOrder.forEach((label) => {
+      if (label !== todayLabel && label !== yesterdayLabel) {
+        sections.push({ title: label, data: groupedByDate[label] });
       }
     });
 
-    // Sort date sections by the first item's timestamp (newest first)
-    dateSections.sort((a, b) => {
-      const aTimestamp = a.data[0]?.entry.timestamp ?? 0;
-      const bTimestamp = b.data[0]?.entry.timestamp ?? 0;
-      return bTimestamp - aTimestamp;
-    });
-
-    return [...orderedSections.filter(Boolean), ...dateSections];
+    return sections;
   }, [activity]);
 
-  const renderSectionHeader = ({ section }: { section: ActivitySection }) => (
-    <Box twClassName="bg-default px-4 py-2">
-      <Text
-        variant={TextVariant.BodySm}
-        twClassName="text-alternative font-medium"
-      >
-        {section.title}
-      </Text>
-    </Box>
+  const renderSectionHeader = useCallback(
+    ({ section }: { section: ActivitySection }) => (
+      <Box twClassName="bg-default px-4 py-2">
+        <Text
+          variant={TextVariant.BodySm}
+          twClassName="text-alternative font-medium"
+        >
+          {section.title}
+        </Text>
+      </Box>
+    ),
+    [],
   );
+
+  const renderItem = useCallback(
+    ({ item }: { item: PredictActivityItem }) => (
+      <Box twClassName="py-1">
+        <PredictActivity item={item} />
+      </Box>
+    ),
+    [],
+  );
+
+  const keyExtractor = useCallback((item: PredictActivityItem) => item.id, []);
 
   return (
     <Box twClassName="flex-1">
@@ -224,18 +249,18 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
         // TODO: Improve loading state, pagination, consider FlashList for better performance, pull down to refresh, etc.
         <SectionList<PredictActivityItem, ActivitySection>
           sections={sections}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <Box twClassName="py-1">
-              <PredictActivity item={item} />
-            </Box>
-          )}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
           renderSectionHeader={renderSectionHeader}
           contentContainerStyle={tw.style('p-2')}
           showsVerticalScrollIndicator={false}
-          nestedScrollEnabled
           style={tw.style('flex-1')}
           stickySectionHeadersEnabled={false}
+          removeClippedSubviews
+          maxToRenderPerBatch={10}
+          updateCellsBatchingPeriod={50}
+          initialNumToRender={10}
+          windowSize={5}
         />
       )}
     </Box>
