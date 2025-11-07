@@ -7,7 +7,7 @@ import {
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import {
   Image,
-  Linking,
+  InteractionManager,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -360,6 +360,18 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     setIsRefreshing(false);
   }, [loadPositions, refetchMarket, refetchPriceHistory]);
 
+  const handlePolymarketResolution = useCallback(() => {
+    InteractionManager.runAfterInteractions(() => {
+      navigation.navigate('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: 'https://docs.polymarket.com/polymarket-learn/markets/how-are-markets-resolved',
+          title: strings('predict.market_details.resolution_details'),
+        },
+      });
+    });
+  }, [navigation]);
+
   type TabKey = 'positions' | 'outcomes' | 'about';
 
   const trackMarketDetailsOpened = useCallback(
@@ -692,13 +704,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           alignItems={BoxAlignItems.Center}
           twClassName="gap-2"
         >
-          <Pressable
-            onPress={() => {
-              Linking.openURL(
-                'https://docs.polymarket.com/polymarket-learn/markets/how-are-markets-resolved',
-              );
-            }}
-          >
+          <Pressable onPress={handlePolymarketResolution}>
             <Text
               variant={TextVariant.BodyMDMedium}
               color={colors.primary.default}

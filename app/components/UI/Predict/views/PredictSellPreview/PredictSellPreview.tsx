@@ -126,7 +126,8 @@ const PredictSellPreview = () => {
   }, [dispatch, result]);
 
   const currentValue = preview?.minAmountReceived ?? 0;
-  const { cashPnl, percentPnl } = position;
+  const currentPrice = preview?.sharePrice ?? position?.price;
+  const { cashPnl, percentPnl, avgPrice } = position;
 
   const signal = useMemo(() => (cashPnl >= 0 ? '+' : '-'), [cashPnl]);
 
@@ -198,7 +199,9 @@ const PredictSellPreview = () => {
   return (
     <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
       <BottomSheetHeader onClose={() => goBack()}>
-        <Text variant={TextVariant.HeadingMD}>Cash Out</Text>
+        <Text variant={TextVariant.HeadingMD}>
+          {strings('predict.cash_out')}
+        </Text>
       </BottomSheetHeader>
       <View
         testID={PredictCashOutSelectorsIDs.CONTAINER}
@@ -207,6 +210,14 @@ const PredictSellPreview = () => {
         <View style={styles.cashOutContainer}>
           <Text style={styles.currentValue} variant={TextVariant.BodyMDMedium}>
             {formatPrice(currentValue, { maximumDecimals: 2 })}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            color={TextColor.Alternative}
+          >
+            {strings('predict.at_price_per_share', {
+              price: (currentPrice * 100).toFixed(0),
+            })}
           </Text>
           <Text
             style={styles.percentPnl}
@@ -228,30 +239,26 @@ const PredictSellPreview = () => {
               {strings('predict.order.order_failed_generic')}
             </Text>
           )}
-          <View style={styles.positionContainer}>
-            <View>
+          <Box twClassName="flex-row items-center gap-4">
+            <Box twClassName="w-10 h-10 self-start mt-1">
               <Image source={{ uri: icon }} style={styles.positionIcon} />
-            </View>
-            <View style={styles.positionDetails}>
+            </Box>
+            <Box twClassName="flex-col gap-1 flex-1">
+              <Text variant={TextVariant.HeadingSM}>{outcomeTitle}</Text>
               <Text
                 numberOfLines={1}
                 ellipsizeMode="tail"
-                style={styles.detailsLeft}
-                variant={TextVariant.HeadingSM}
-              >
-                {outcomeTitle}
-              </Text>
-              <Text
-                numberOfLines={1}
-                ellipsizeMode="tail"
-                style={styles.detailsResolves}
                 variant={TextVariant.BodySMMedium}
+                color={TextColor.Alternative}
               >
-                {formatPrice(initialValue, { maximumDecimals: 2 })} on{' '}
-                {outcomeSideText}
+                {strings('predict.cashout_info', {
+                  amount: formatPrice(initialValue, { maximumDecimals: 2 }),
+                  outcome: outcomeSideText,
+                  initialPrice: (avgPrice * 100).toFixed(0),
+                })}
               </Text>
-            </View>
-          </View>
+            </Box>
+          </Box>
           <View style={styles.cashOutButtonContainer}>
             {renderCashOutButton()}
             <Text variant={TextVariant.BodyXS} style={styles.cashOutButtonText}>
