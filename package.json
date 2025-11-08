@@ -140,7 +140,7 @@
     "@metamask/accounts-controller": "^18.2.3",
     "@metamask/address-book-controller": "^6.0.1",
     "@metamask/approval-controller": "^7.1.1",
-    "@metamask/assets-controllers": "^41.0.0",
+    "@metamask/assets-controllers": "^42.0.0",
     "@metamask/base-controller": "^7.0.1",
     "@metamask/composable-controller": "^3.0.0",
     "@metamask/controller-utils": "^11.6.0",
