@@ -1192,7 +1192,7 @@ const MainNavigator = () => {
           ...GeneralSettings.navigationOptions,
         }}
       />
-      {process.env.METAMASK_ENVIRONMENT !== 'production' && (
+      {!(process.env.METAMASK_ENVIRONMENT === 'production') && (
         <Stack.Screen
           name={Routes.FEATURE_FLAG_OVERRIDE}
           component={FeatureFlagOverride}

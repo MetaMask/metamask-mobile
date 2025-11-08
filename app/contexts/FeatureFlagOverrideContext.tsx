@@ -146,7 +146,7 @@ export const FeatureFlagOverrideProvider: React.FC<
   const validateMinimumVersion = useCallback(
     (flagKey: string, flagValue: MinimumVersionFlagValue) => {
       if (
-        process.env.METAMASK_ENVIRONMENT !== 'production' &&
+        !(process.env.METAMASK_ENVIRONMENT === 'production') &&
         !isMinimumRequiredVersionSupported(flagValue.minimumVersion)
       ) {
         toastRef?.current?.showToast({

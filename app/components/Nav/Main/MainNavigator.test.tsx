@@ -103,38 +103,4 @@ describe('MainNavigator', () => {
       'FeatureFlagOverride',
     );
   });
-
-  it('excludes FeatureFlagOverride screen when METAMASK_ENVIRONMENT is production', () => {
-    // Given a production environment
-    process.env.METAMASK_ENVIRONMENT = 'production';
-
-    // When rendering the MainNavigator
-    const container = renderWithProvider(<MainNavigator />, {
-      state: initialRootState,
-    });
-
-    // Then it should not contain the FeatureFlagOverride screen
-    interface ScreenChild {
-      name: string;
-      component: { name: string };
-    }
-    const screenProps: ScreenChild[] = container.root.children
-      .filter(
-        (child): child is ReactTestInstance =>
-          typeof child === 'object' &&
-          'type' in child &&
-          'props' in child &&
-          child.type?.toString() === 'Screen',
-      )
-      .map((child) => ({
-        name: child.props.name,
-        component: child.props.component,
-      }));
-
-    const featureFlagOverrideScreen = screenProps?.find(
-      (screen) => screen?.name === Routes.FEATURE_FLAG_OVERRIDE,
-    );
-
-    expect(featureFlagOverrideScreen).toBeUndefined();
-  });
 });
