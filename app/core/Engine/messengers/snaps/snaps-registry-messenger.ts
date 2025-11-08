@@ -3,10 +3,10 @@ import {
   type MessengerActions,
   type MessengerEvents,
 } from '@metamask/messenger';
-import { SnapsRegistryMessenger } from '@metamask/snaps-controllers';
+import type { SnapsRegistryMessenger as SnapsRegistryMessengerType } from '@metamask/snaps-controllers';
 import { RootMessenger } from '../../types';
 
-export { type SnapsRegistryMessenger };
+export type SnapsRegistryMessenger = SnapsRegistryMessengerType;
 
 /**
  * Get a messenger for the Snaps registry. This is scoped to the
@@ -27,5 +27,5 @@ export function getSnapsRegistryMessenger(
     namespace: 'SnapsRegistry',
     parent: rootMessenger,
   });
-  return messenger;
+  return messenger as SnapsRegistryMessenger;
 }

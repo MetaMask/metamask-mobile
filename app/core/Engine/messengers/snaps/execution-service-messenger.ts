@@ -3,10 +3,10 @@ import {
   type MessengerActions,
   type MessengerEvents,
 } from '@metamask/messenger';
-import { ExecutionServiceMessenger } from '@metamask/snaps-controllers';
+import type { ExecutionServiceMessenger as ExecutionServiceMessengerType } from '@metamask/snaps-controllers';
 import { RootMessenger } from '../../types';
 
-export { type ExecutionServiceMessenger };
+export type ExecutionServiceMessenger = ExecutionServiceMessengerType;
 
 /**
  * Get a messenger for the execution service. This is scoped to the
@@ -27,5 +27,5 @@ export function getExecutionServiceMessenger(
     namespace: 'ExecutionService',
     parent: rootMessenger,
   });
-  return messenger;
+  return messenger as ExecutionServiceMessenger;
 }

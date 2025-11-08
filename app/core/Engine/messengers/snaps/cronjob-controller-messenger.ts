@@ -3,10 +3,10 @@ import {
   type MessengerActions,
   type MessengerEvents,
 } from '@metamask/messenger';
-import { CronjobControllerMessenger } from '@metamask/snaps-controllers';
+import type { CronjobControllerMessenger as CronjobControllerMessengerType } from '@metamask/snaps-controllers';
 import { RootMessenger } from '../../types';
 
-export { type CronjobControllerMessenger };
+export type CronjobControllerMessenger = CronjobControllerMessengerType;
 
 /**
  * Get a messenger for the cronjob controller. This is scoped to the
@@ -41,5 +41,5 @@ export function getCronjobControllerMessenger(
     ],
     messenger,
   });
-  return messenger;
+  return messenger as CronjobControllerMessenger;
 }

@@ -3,10 +3,10 @@ import {
   type MessengerActions,
   type MessengerEvents,
 } from '@metamask/messenger';
-import { WebSocketServiceMessenger } from '@metamask/snaps-controllers';
+import type { WebSocketServiceMessenger as WebSocketServiceMessengerType } from '@metamask/snaps-controllers';
 import { RootMessenger } from '../../types';
 
-export { type WebSocketServiceMessenger };
+export type WebSocketServiceMessenger = WebSocketServiceMessengerType;
 
 /**
  * Get a messenger for the WebSocket service. This is scoped to the
@@ -36,5 +36,5 @@ export function getWebSocketServiceMessenger(
     ],
     messenger,
   });
-  return messenger;
+  return messenger as WebSocketServiceMessenger;
 }

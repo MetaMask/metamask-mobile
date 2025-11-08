@@ -1,13 +1,14 @@
 import {
   Messenger,
-  MessengerActions,
-  MessengerEvents,
+  type MessengerActions,
+  type MessengerEvents,
 } from '@metamask/messenger';
-import { SnapInterfaceControllerMessenger } from '@metamask/snaps-controllers';
-import { MaybeUpdateState } from '@metamask/phishing-controller';
+import type { SnapInterfaceControllerMessenger as SnapInterfaceControllerMessengerType } from '@metamask/snaps-controllers';
+import type { MaybeUpdateState } from '@metamask/phishing-controller';
 import { RootMessenger } from '../../types';
 
-export { type SnapInterfaceControllerMessenger };
+export type SnapInterfaceControllerMessenger =
+  SnapInterfaceControllerMessengerType;
 
 /**
  * Get a messenger for the Snap interface controller. This is scoped
@@ -44,5 +45,5 @@ export function getSnapInterfaceControllerMessenger(
     events: ['NotificationServicesController:notificationsListUpdated'],
     messenger,
   });
-  return messenger;
+  return messenger as SnapInterfaceControllerMessenger;
 }
