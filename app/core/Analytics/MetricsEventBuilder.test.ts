@@ -56,13 +56,12 @@ describe('MetricsEventBuilder', () => {
     const event = MetricsEventBuilder.createEventBuilder(mockEvent)
       .addProperties(newProps)
       .build();
-    const expectedProps: JsonMap = { ...newProps };
-    expect(event.properties).toEqual(expectedProps);
+    expect(event.properties).toEqual(newProps);
 
     const rebuiltEvent = MetricsEventBuilder.createEventBuilder(event)
       .addProperties(newProps)
       .build();
-    expect(rebuiltEvent.properties).toEqual(expectedProps);
+    expect(rebuiltEvent.properties).toEqual(newProps);
   });
 
   it('adds sensitive properties', () => {

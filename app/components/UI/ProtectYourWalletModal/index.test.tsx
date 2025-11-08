@@ -145,7 +145,6 @@ describe('ProtectYourWalletModal', () => {
           properties: {
             source: 'Modal',
             wallet_protection_required: false,
-            relatedFlags: [],
           },
           saveDataRecording: true,
           sensitiveProperties: {},
@@ -183,7 +182,6 @@ describe('ProtectYourWalletModal', () => {
           properties: {
             source: 'Modal',
             wallet_protection_required: false,
-            relatedFlags: [],
           },
           saveDataRecording: true,
           sensitiveProperties: {},

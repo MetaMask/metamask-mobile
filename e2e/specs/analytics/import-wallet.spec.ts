@@ -65,7 +65,6 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
               Assertions.checkIfObjectsMatch(
                 analyticsPreferenceSelectedEvent?.properties,
                 {
-                  relatedFlags: [],
                   has_marketing_consent: false,
                   is_metrics_opted_in: true,
                   location: 'onboarding_metametrics',

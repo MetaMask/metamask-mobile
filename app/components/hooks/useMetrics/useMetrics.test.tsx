@@ -9,12 +9,8 @@ import useMetrics from './useMetrics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { IUseMetricsHook } from './useMetrics.types';
-import { useFeatureFlagOverride } from '../../../contexts/FeatureFlagOverrideContext';
 
 jest.mock('../../../core/Analytics/MetaMetrics');
-jest.mock('../../../contexts/FeatureFlagOverrideContext', () => ({
-  useFeatureFlagOverride: jest.fn(),
-}));
 
 // allows runAfterInteractions to return immediately
 jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
@@ -68,28 +64,9 @@ class MockEventDataBuilder extends MetricsEventBuilder {
   build = jest.fn().mockReturnThis();
 }
 
-const mockGetFeatureFlagSnapshots = jest.fn();
-
 describe('useMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetFeatureFlagSnapshots.mockReturnValue({});
-    (useFeatureFlagOverride as jest.Mock).mockReturnValue({
-      getFeatureFlagSnapshots: mockGetFeatureFlagSnapshots,
-      featureFlags: {},
-      originalFlags: {},
-      getFeatureFlag: jest.fn(),
-      featureFlagsList: [],
-      overrides: {},
-      setOverride: jest.fn(),
-      removeOverride: jest.fn(),
-      clearAllOverrides: jest.fn(),
-      hasOverride: jest.fn(),
-      getOverride: jest.fn(),
-      getAllOverrides: jest.fn(),
-      applyOverrides: jest.fn(),
-      getOverrideCount: jest.fn(),
-    });
     jest
       .spyOn(MetricsEventBuilder, 'createEventBuilder')
       .mockImplementation((event) => MockEventDataBuilder.getMockEvent(event));
@@ -102,7 +79,7 @@ describe('useMetrics', () => {
         "addTraitsToUser": [MockFunction],
         "checkDataDeleteStatus": [MockFunction],
         "createDataDeletionTask": [MockFunction],
-        "createEventBuilder": [Function],
+        "createEventBuilder": [MockFunction],
         "enable": [MockFunction],
         "enableSocialLogin": [MockFunction],
         "getDeleteRegulationCreationDate": [MockFunction],
@@ -189,14 +166,7 @@ describe('useMetrics', () => {
     } = renderHook(() => useMetrics());
 
     (Object.keys(firstResult) as (keyof IUseMetricsHook)[]).forEach((key) => {
-      // createEventBuilder is created with useCallback and depends on context,
-      // so it may have different references across different hook instances
-      if (key === 'createEventBuilder') {
-        expect(typeof firstResult[key]).toBe('function');
-        expect(typeof secondResult[key]).toBe('function');
-      } else {
-        expect(firstResult[key]).toBe(secondResult[key]);
-      }
+      expect(firstResult[key]).toBe(secondResult[key]);
     });
   });
 
@@ -209,127 +179,5 @@ describe('useMetrics', () => {
 
     // Assert - object reference is the same after re-render
     expect(secondRender).toBe(firstRender);
-  });
-
-  describe('feature flag snapshots integration', () => {
-    it('calls getFeatureFlagSnapshots when creating event builder', () => {
-      const { result } = renderHook(() => useMetrics());
-
-      result.current.createEventBuilder({
-        category: 'test event',
-      });
-
-      expect(mockGetFeatureFlagSnapshots).toHaveBeenCalled();
-    });
-
-    it('adds feature flag snapshots to event builder via addProperties', () => {
-      const mockFeatureFlagSnapshots = {
-        relatedFlags: [
-          {
-            key: 'featureFlag1',
-            value: true,
-            timestamp: 1234567890,
-            type: 'boolean',
-            description: 'Test flag 1',
-            isOverridden: false,
-          },
-          {
-            key: 'featureFlag2',
-            value: 'test-value',
-            timestamp: 1234567891,
-            type: 'string',
-            description: 'Test flag 2',
-            isOverridden: true,
-          },
-        ],
-      };
-      mockGetFeatureFlagSnapshots.mockReturnValue(mockFeatureFlagSnapshots);
-      const { result } = renderHook(() => useMetrics());
-      let capturedBuilder: MockEventDataBuilder | undefined;
-
-      jest
-        .spyOn(MetricsEventBuilder, 'createEventBuilder')
-        .mockImplementation((event) => {
-          capturedBuilder = MockEventDataBuilder.getMockEvent(event);
-          return capturedBuilder;
-        });
-
-      result.current.createEventBuilder({
-        category: 'test event',
-      });
-
-      expect(mockGetFeatureFlagSnapshots).toHaveBeenCalled();
-      expect(capturedBuilder?.addProperties).toHaveBeenCalledWith(
-        mockFeatureFlagSnapshots,
-      );
-    });
-
-    it('adds empty object when getFeatureFlagSnapshots returns empty object', () => {
-      mockGetFeatureFlagSnapshots.mockReturnValue({});
-      const { result } = renderHook(() => useMetrics());
-      let capturedBuilder: MockEventDataBuilder | undefined;
-
-      jest
-        .spyOn(MetricsEventBuilder, 'createEventBuilder')
-        .mockImplementation((event) => {
-          capturedBuilder = MockEventDataBuilder.getMockEvent(event);
-          return capturedBuilder;
-        });
-
-      result.current.createEventBuilder({
-        category: 'test event',
-      });
-
-      expect(mockGetFeatureFlagSnapshots).toHaveBeenCalled();
-      expect(capturedBuilder?.addProperties).toHaveBeenCalledWith({});
-    });
-
-    it('calls getFeatureFlagSnapshots for each createEventBuilder call', () => {
-      const { result } = renderHook(() => useMetrics());
-
-      result.current.createEventBuilder({
-        category: 'first event',
-      });
-      result.current.createEventBuilder({
-        category: 'second event',
-      });
-
-      expect(mockGetFeatureFlagSnapshots).toHaveBeenCalledTimes(2);
-    });
-
-    it('includes feature flag snapshots in events with additional properties', () => {
-      const mockFeatureFlagSnapshots = {
-        relatedFlags: [
-          {
-            key: 'testFlag',
-            value: true,
-            timestamp: 1234567890,
-            type: 'boolean',
-            description: 'Test flag',
-            isOverridden: false,
-          },
-        ],
-      };
-      mockGetFeatureFlagSnapshots.mockReturnValue(mockFeatureFlagSnapshots);
-      const { result } = renderHook(() => useMetrics());
-      let capturedBuilder: MockEventDataBuilder | undefined;
-
-      jest
-        .spyOn(MetricsEventBuilder, 'createEventBuilder')
-        .mockImplementation((event) => {
-          capturedBuilder = MockEventDataBuilder.getMockEvent(event);
-          return capturedBuilder;
-        });
-
-      result.current
-        .createEventBuilder({
-          category: 'test event',
-        })
-        .addProperties({ customProp: 'customValue' });
-
-      expect(capturedBuilder?.addProperties).toHaveBeenCalledWith(
-        mockFeatureFlagSnapshots,
-      );
-    });
   });
 });

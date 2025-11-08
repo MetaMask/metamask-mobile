@@ -5,6 +5,7 @@ import React, {
   useCallback,
   ReactNode,
   useMemo,
+  useEffect,
 } from 'react';
 import { useSelector } from 'react-redux';
 import { selectRemoteFeatureFlags } from '../selectors/featureFlagController';
@@ -20,6 +21,7 @@ import {
   ToastVariants,
 } from '../component-library/components/Toast';
 import { MinimumVersionFlagValue } from '../components/Views/FeatureFlagOverride/FeatureFlagOverride';
+import useMetrics from '../components/hooks/useMetrics/useMetrics';
 
 interface FeatureFlagOverrides {
   [key: string]: unknown;
@@ -53,6 +55,7 @@ interface FeatureFlagOverrideProviderProps {
 export const FeatureFlagOverrideProvider: React.FC<
   FeatureFlagOverrideProviderProps
 > = ({ children }) => {
+  const { addTraitsToUser } = useMetrics();
   // Get the initial feature flags from Redux
   const rawFeatureFlags = useSelector(selectRemoteFeatureFlags);
   const toastContext = useContext(ToastContext);
@@ -63,6 +66,12 @@ export const FeatureFlagOverrideProvider: React.FC<
   const [featureFlagSnapshots, setFeatureFlagSnapshots] = useState<
     FeatureFlagInfoSnapshot[]
   >([]);
+
+  useEffect(() => {
+    addTraitsToUser({
+      relatedFlags: JSON.stringify(featureFlagSnapshots),
+    });
+  }, [featureFlagSnapshots, addTraitsToUser]);
 
   const setOverride = useCallback((key: string, value: unknown) => {
     setOverrides((prev) => ({
