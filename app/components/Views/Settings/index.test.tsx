@@ -195,7 +195,7 @@ describe('Settings', () => {
     });
 
     it('renders feature flag override drawer when METAMASK_ENVIRONMENT is not production', () => {
-      process.env.METAMASK_ENVIRONMENT = 'developement';
+      process.env.METAMASK_ENVIRONMENT = 'development';
 
       const { getByText } = renderWithProvider(<Settings />, {
         state: initialState,
