@@ -553,15 +553,10 @@ generateAndroidBinary() {
 
 	echo "Generating Android binary for ($flavor) flavor with ($configuration) configuration"
 	if [ "$configuration" = "Release" ] ; then
-		# Check if this is an E2E build
-		if [ "$METAMASK_ENVIRONMENT" = "e2e" ] || [ "$E2E" = "true" ] ; then
-			buildAndroidReleaseE2E
-		else
-			# Generate Android binary only
-			./gradlew $flavorConfiguration --build-cache --parallel
-		fi
+		# Generate Android binary only
+		./gradlew $flavorConfiguration --build-cache --parallel
 		
-		# Generate AAB bundle
+		# Generate AAB bundle (not needed for E2E)
 		bundleConfiguration="bundle${flavor}Release"
 		echo "Generating AAB bundle for ($flavor) flavor with ($configuration) configuration"
 		./gradlew $bundleConfiguration
@@ -603,11 +598,36 @@ buildIosReleaseE2E(){
 }
 
 buildAndroidReleaseE2E(){
+	local flavor="${1:-Prod}"
+	local lowerFlavor=$(echo "$flavor" | tr '[:upper:]' '[:lower:]')
+	
 	prebuild_android
 	# Use GitHub CI gradle properties for E2E builds (x86_64 only, optimized memory settings)
 	cp android/gradle.properties.github android/gradle.properties
 	# E2E builds only need x86_64 for emulator testing, reducing build time and memory usage
-	cd android && ./gradlew assembleProdRelease app:assembleProdReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
+	echo "Building E2E APKs for $flavor flavor..."
+	cd android && ./gradlew assemble${flavor}Release app:assemble${flavor}ReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
+	
+	# Verify APK files were created
+	echo ""
+	echo "📦 Verifying E2E APK outputs..."
+	local appApkPath="app/build/outputs/apk/${lowerFlavor}/release/app-${lowerFlavor}-release.apk"
+	local testApkPath="app/build/outputs/apk/androidTest/${lowerFlavor}/release/app-${lowerFlavor}-release-androidTest.apk"
+	
+	if [ -f "$appApkPath" ]; then
+		echo "✅ App APK found: $appApkPath ($(du -h "$appApkPath" | cut -f1))"
+	else
+		echo "❌ App APK NOT found at: $appApkPath"
+	fi
+	
+	if [ -f "$testApkPath" ]; then
+		echo "✅ Test APK found: $testApkPath ($(du -h "$testApkPath" | cut -f1))"
+	else
+		echo "❌ Test APK NOT found at: $testApkPath"
+	fi
+	echo ""
+	
+	cd ..
 }
 
 buildAndroid() {
@@ -615,6 +635,9 @@ buildAndroid() {
 	if [ "$METAMASK_BUILD_TYPE" == "release" ] || [ "$METAMASK_BUILD_TYPE" == "main" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
 			buildAndroidMainLocal
+		elif [ "$METAMASK_ENVIRONMENT" = "e2e" ] || [ "$E2E" = "true" ] ; then
+			# E2E builds use a separate function
+			buildAndroidReleaseE2E "Prod"
 		else
 			# Prepare Android dependencies
 			prebuild_android
@@ -626,6 +649,9 @@ buildAndroid() {
 	elif [ "$METAMASK_BUILD_TYPE" == "flask" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
 			buildAndroidFlaskLocal
+		elif [ "$METAMASK_ENVIRONMENT" = "e2e" ] || [ "$E2E" = "true" ] ; then
+			# E2E builds use a separate function
+			buildAndroidReleaseE2E "Flask"
 		else
 			# Prepare Android dependencies
 			prebuild_android
@@ -646,7 +672,8 @@ buildAndroid() {
 			generateAndroidBinary "Qa"
 		fi
 	elif [ "$METAMASK_BUILD_TYPE" == "releaseE2E" ] ; then
-		buildAndroidReleaseE2E
+		# Legacy E2E build type, defaults to Prod
+		buildAndroidReleaseE2E "Prod"
 	else
 		printError "METAMASK_BUILD_TYPE '${METAMASK_BUILD_TYPE}' is not recognized."
 		exit 1
