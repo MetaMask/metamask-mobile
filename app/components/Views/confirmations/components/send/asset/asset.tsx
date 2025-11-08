@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   Box,
   Button,
@@ -25,8 +25,28 @@ import { useEVMNfts } from '../../../hooks/send/useNfts';
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export const Asset = () => {
-  const tokens = useAccountTokens();
+export interface AssetProps {
+  hideNfts?: boolean;
+  includeNoBalance?: boolean;
+  onTokenSelect?: (token: AssetType) => void;
+  tokenFilter?: (assets: AssetType[]) => AssetType[];
+}
+
+export const Asset: React.FC<AssetProps> = (props = {}) => {
+  const {
+    hideNfts = false,
+    includeNoBalance = false,
+    onTokenSelect,
+    tokenFilter,
+  } = props;
+
+  const originalTokens = useAccountTokens({ includeNoBalance });
+
+  const tokens = useMemo(
+    () => (tokenFilter ? tokenFilter(originalTokens) : originalTokens),
+    [originalTokens, tokenFilter],
+  );
+
   const nfts = useEVMNfts();
   const [filteredTokensByNetwork, setFilteredTokensByNetwork] =
     useState<AssetType[]>(tokens);
@@ -42,6 +62,7 @@ export const Asset = () => {
     filteredNfts,
     clearSearch,
   } = useTokenSearch(filteredTokensByNetwork, nfts, selectedNetworkFilter);
+
   const {
     setAssetListSize,
     setNoneAssetFilterMethod,
@@ -49,6 +70,7 @@ export const Asset = () => {
   } = useAssetSelectionMetrics();
 
   const [hasActiveNetworkFilter, setHasActiveNetworkFilter] = useState(false);
+
   const [clearNetworkFilters, setClearNetworkFilters] = useState<
     (() => void) | null
   >(null);
@@ -140,7 +162,7 @@ export const Asset = () => {
           </Box>
         ) : (
           <>
-            {filteredTokens.length > 0 && (
+            {!hideNfts && filteredTokens.length > 0 && (
               <Text
                 twClassName="m-4 mt-2 mb-2"
                 variant={TextVariant.BodyMd}
@@ -150,18 +172,22 @@ export const Asset = () => {
                 {strings('send.tokens')}
               </Text>
             )}
-            <TokenList tokens={filteredTokens} />
-            {filteredNfts.length > 0 && (
-              <Text
-                twClassName="m-4 mt-4 mb-4"
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-                fontWeight={FontWeight.Medium}
-              >
-                {strings('send.nfts')}
-              </Text>
+            <TokenList tokens={filteredTokens} onSelect={onTokenSelect} />
+            {!hideNfts && (
+              <>
+                {filteredNfts.length > 0 && (
+                  <Text
+                    twClassName="m-4 mt-4 mb-4"
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                    fontWeight={FontWeight.Medium}
+                  >
+                    {strings('send.nfts')}
+                  </Text>
+                )}
+                <NftList nfts={filteredNfts} />
+              </>
             )}
-            <NftList nfts={filteredNfts} />
           </>
         )}
       </ScrollView>
