@@ -15,6 +15,11 @@ import {
   selectDisplayCardButtonFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
 import { handleLocalAuthentication } from '../../../../components/UI/Card/util/handleLocalAuthentication';
+import { TokenI } from '../../../../components/UI/Tokens/types';
+import { isSolanaChainId } from '@metamask/bridge-controller';
+import { safeFormatChainIdToHex } from '../../../../components/UI/Card/util/safeFormatChainIdToHex';
+import { selectAsset } from '../../../../selectors/assets/assets-list';
+import { mapEqual } from '../../../../components/UI/Card/util/mapEqual';
 
 export interface OnboardingState {
   onboardingId: string | null;
@@ -370,6 +375,48 @@ export const selectConsentSetId = createSelector(
   selectCardState,
   (card) => card.onboarding.consentSetId,
 );
+
+/**
+ * Creates a memoized selector for wallet assets.
+ * Returns a Map of assets keyed by token address and chain ID.
+ *
+ * @param tokens - Array of tokens to get assets for
+ * @returns Memoized selector function
+ */
+export const makeSelectWalletAssets = (tokens: CardTokenAllowance[]) =>
+  createSelector(
+    [(state: RootState) => state],
+    (state) => {
+      const map = new Map<string, TokenI>();
+      tokens
+        .filter((token) => token !== undefined)
+        .forEach((token) => {
+          if (token?.caipChainId && token?.address) {
+            const isSolana = isSolanaChainId(token.caipChainId);
+            const chainId = isSolana
+              ? token.caipChainId
+              : (safeFormatChainIdToHex(token.caipChainId) as string);
+
+            const asset = selectAsset(state, {
+              address: token.address,
+              chainId,
+            });
+
+            if (asset) {
+              // Key should use the same address used for balance lookups
+              const key = `${token.address.toLowerCase()}-${token.caipChainId}`;
+              map.set(key, asset);
+            }
+          }
+        });
+      return map;
+    },
+    {
+      memoizeOptions: {
+        resultEqualityCheck: mapEqual,
+      },
+    },
+  );
 
 // Actions
 export const {

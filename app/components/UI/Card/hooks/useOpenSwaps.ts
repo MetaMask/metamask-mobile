@@ -38,6 +38,7 @@ export const useOpenSwaps = ({
   );
   const tokensWithBalance = useTokensWithBalance({
     chainIds,
+    hasShallowEqual: true,
   });
   const { trackEvent, createEventBuilder } = useMetrics();
 

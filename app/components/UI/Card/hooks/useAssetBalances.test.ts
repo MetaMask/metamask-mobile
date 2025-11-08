@@ -7,7 +7,7 @@ import { CaipChainId } from '@metamask/utils';
 import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
 import { formatWithThreshold } from '../../../../util/assets';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
-import { selectAsset } from '../../../../selectors/assets/assets-list';
+import { makeSelectWalletAssets } from '../../../../core/redux/slices/card';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import Engine from '../../../../core/Engine';
 
@@ -21,8 +21,8 @@ jest.mock('../../../../util/assets', () => ({
 jest.mock('../util/buildTokenIconUrl', () => ({
   buildTokenIconUrl: jest.fn(),
 }));
-jest.mock('../../../../selectors/assets/assets-list', () => ({
-  selectAsset: jest.fn(),
+jest.mock('../../../../core/redux/slices/card', () => ({
+  makeSelectWalletAssets: jest.fn(),
 }));
 jest.mock('../../Bridge/hooks/useTokensWithBalance', () => ({
   useTokensWithBalance: jest.fn(() => []),
@@ -79,7 +79,8 @@ jest.mock('../util/safeFormatChainIdToHex', () => ({
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockSelectAsset = selectAsset as jest.MockedFunction<typeof selectAsset>;
+const mockMakeSelectWalletAssets =
+  makeSelectWalletAssets as jest.MockedFunction<typeof makeSelectWalletAssets>;
 const mockDeriveBalanceFromAssetMarketDetails =
   deriveBalanceFromAssetMarketDetails as jest.MockedFunction<
     typeof deriveBalanceFromAssetMarketDetails
@@ -136,33 +137,20 @@ describe('useAssetBalances', () => {
     // Default mock implementations
     mockUseSelector.mockImplementation((selector: any) => {
       if (typeof selector === 'function') {
-        // Mock state structure
-        const state = {
-          engine: {
-            backgroundState: {
-              NetworkController: {
-                networkConfigurationsByChainId: {
-                  '0xe708': {
-                    nativeCurrency: 'ETH',
-                  },
-                },
-              },
-              CurrencyRateController: {
-                currencyRates: {
-                  ETH: {
-                    conversionRate: 2000,
-                  },
-                },
-              },
-            },
-          },
-        };
-        return selector(state);
+        // Check if it's the wallet assets selector (returns a Map)
+        const result = selector({});
+        if (result instanceof Map) {
+          return result;
+        }
+        // Otherwise return currency
+        return 'USD';
       }
       return 'USD';
     });
 
-    mockSelectAsset.mockReturnValue(undefined);
+    // Mock makeSelectWalletAssets to return a selector that returns an empty Map
+    mockMakeSelectWalletAssets.mockReturnValue((() => new Map()) as any);
+
     mockUseTokensWithBalance.mockReturnValue([]);
     mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
       balanceFiat: '$1,000.00',
@@ -184,6 +172,23 @@ describe('useAssetBalances', () => {
     (Engine.context.TokenRatesController as any) = {
       state: {
         marketData: {},
+      },
+    };
+    (Engine.context.NetworkController as any) = {
+      getNetworkConfigurationByChainId: jest.fn((chainId: string) => {
+        if (chainId === '0xe708') {
+          return { nativeCurrency: 'ETH' };
+        }
+        return undefined;
+      }),
+    };
+    (Engine.context.CurrencyRateController as any) = {
+      state: {
+        currencyRates: {
+          ETH: {
+            conversionRate: 2000,
+          },
+        },
       },
     };
   });
@@ -417,7 +422,12 @@ describe('useAssetBalances', () => {
         aggregators: [],
       };
 
-      mockSelectAsset.mockReturnValue(walletAsset as any);
+      const walletAssetsMap = new Map();
+      const walletAssetKey = `${mockEvmToken.address?.toLowerCase()}-${mockEvmToken.caipChainId}`;
+      walletAssetsMap.set(walletAssetKey, walletAsset);
+      mockMakeSelectWalletAssets.mockReturnValue(
+        (() => walletAssetsMap) as any,
+      );
 
       const { result } = renderHook(() => useAssetBalances([enabledToken]));
 
@@ -435,7 +445,7 @@ describe('useAssetBalances', () => {
       };
 
       mockUseTokensWithBalance.mockReturnValue([]);
-      mockSelectAsset.mockReturnValue(undefined);
+      mockMakeSelectWalletAssets.mockReturnValue((() => new Map()) as any);
 
       const { result } = renderHook(() => useAssetBalances([enabledToken]));
 
@@ -480,7 +490,12 @@ describe('useAssetBalances', () => {
         aggregators: [],
       };
 
-      mockSelectAsset.mockReturnValue(walletAsset as any);
+      const walletAssetsMap = new Map();
+      const walletAssetKey = `${mockNotEnabledToken.address?.toLowerCase()}-${mockNotEnabledToken.caipChainId}`;
+      walletAssetsMap.set(walletAssetKey, walletAsset);
+      mockMakeSelectWalletAssets.mockReturnValue(
+        (() => walletAssetsMap) as any,
+      );
 
       const { result } = renderHook(() =>
         useAssetBalances([mockNotEnabledToken]),
@@ -503,7 +518,12 @@ describe('useAssetBalances', () => {
         aggregators: [],
       };
 
-      mockSelectAsset.mockReturnValue(walletAsset as any);
+      const walletAssetsMap = new Map();
+      const walletAssetKey = `${mockEvmToken.address?.toLowerCase()}-${mockEvmToken.caipChainId}`;
+      walletAssetsMap.set(walletAssetKey, walletAsset);
+      mockMakeSelectWalletAssets.mockReturnValue(
+        (() => walletAssetsMap) as any,
+      );
 
       const { result } = renderHook(() => useAssetBalances([mockEvmToken]));
 
@@ -520,7 +540,7 @@ describe('useAssetBalances', () => {
       };
 
       mockUseTokensWithBalance.mockReturnValue([]);
-      mockSelectAsset.mockReturnValue(undefined);
+      mockMakeSelectWalletAssets.mockReturnValue((() => new Map()) as any);
 
       const { result } = renderHook(() =>
         useAssetBalances([tokenWithoutBalance]),
@@ -594,7 +614,12 @@ describe('useAssetBalances', () => {
         aggregators: [],
       };
 
-      mockSelectAsset.mockReturnValue(walletAsset as any);
+      const walletAssetsMap = new Map();
+      const walletAssetKey = `${mockEvmToken.address?.toLowerCase()}-${mockEvmToken.caipChainId}`;
+      walletAssetsMap.set(walletAssetKey, walletAsset);
+      mockMakeSelectWalletAssets.mockReturnValue(
+        (() => walletAssetsMap) as any,
+      );
 
       const { result } = renderHook(() => useAssetBalances([limitedToken]));
 
@@ -612,7 +637,7 @@ describe('useAssetBalances', () => {
       };
 
       mockUseTokensWithBalance.mockReturnValue([]);
-      mockSelectAsset.mockReturnValue(undefined);
+      mockMakeSelectWalletAssets.mockReturnValue((() => new Map()) as any);
 
       const { result } = renderHook(() => useAssetBalances([limitedToken]));
 
@@ -712,7 +737,12 @@ describe('useAssetBalances', () => {
         aggregators: [],
       };
 
-      mockSelectAsset.mockReturnValue(walletAsset as any);
+      const walletAssetsMap = new Map();
+      const walletAssetKey = `${mockEvmToken.address?.toLowerCase()}-${mockEvmToken.caipChainId}`;
+      walletAssetsMap.set(walletAssetKey, walletAsset);
+      mockMakeSelectWalletAssets.mockReturnValue(
+        (() => walletAssetsMap) as any,
+      );
 
       mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
         balanceFiat: '$500.50',
@@ -753,6 +783,15 @@ describe('useAssetBalances', () => {
       });
 
       (Engine.context.TokenRatesController as any).state.marketData = {};
+      (
+        Engine.context.NetworkController as any
+      ).getNetworkConfigurationByChainId = jest.fn(() => undefined);
+
+      // Mock deriveBalanceFromAssetMarketDetails to return a failure state
+      mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
+        balanceFiat: 'tokenRateUndefined',
+        balanceValueFormatted: '500.50 USDC',
+      });
 
       const { result } = renderHook(() => useAssetBalances([mockEvmToken]));
 
@@ -903,7 +942,12 @@ describe('useAssetBalances', () => {
         aggregators: [],
       };
 
-      mockSelectAsset.mockReturnValue(walletAsset as any);
+      const walletAssetsMap = new Map();
+      const walletAssetKey = `${mockEvmToken.address?.toLowerCase()}-${mockEvmToken.caipChainId}`;
+      walletAssetsMap.set(walletAssetKey, walletAsset);
+      mockMakeSelectWalletAssets.mockReturnValue(
+        (() => walletAssetsMap) as any,
+      );
       mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
         balanceFiat: 'tokenRateUndefined',
         balanceValueFormatted: '500 USDC',
@@ -968,7 +1012,12 @@ describe('useAssetBalances', () => {
         aggregators: [],
       };
 
-      mockSelectAsset.mockReturnValue(walletAsset as any);
+      const walletAssetsMap = new Map();
+      const walletAssetKey = `${mockEvmToken.address?.toLowerCase()}-${mockEvmToken.caipChainId}`;
+      walletAssetsMap.set(walletAssetKey, walletAsset);
+      mockMakeSelectWalletAssets.mockReturnValue(
+        (() => walletAssetsMap) as any,
+      );
       mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
         balanceFiat: 'tokenRateUndefined',
         balanceValueFormatted: '1000 USDC',
@@ -1033,7 +1082,12 @@ describe('useAssetBalances', () => {
         aggregators: [],
       };
 
-      mockSelectAsset.mockReturnValue(walletAsset as any);
+      const walletAssetsMap = new Map();
+      const walletAssetKey = `${mockEvmToken.address?.toLowerCase()}-${mockEvmToken.caipChainId}`;
+      walletAssetsMap.set(walletAssetKey, walletAsset);
+      mockMakeSelectWalletAssets.mockReturnValue(
+        (() => walletAssetsMap) as any,
+      );
       mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
         balanceFiat: 'tokenRateUndefined',
         balanceValueFormatted: '250 USDC',
@@ -1098,7 +1152,12 @@ describe('useAssetBalances', () => {
         aggregators: [],
       };
 
-      mockSelectAsset.mockReturnValue(walletAsset as any);
+      const walletAssetsMap = new Map();
+      const walletAssetKey = `${mockEvmToken.address?.toLowerCase()}-${mockEvmToken.caipChainId}`;
+      walletAssetsMap.set(walletAssetKey, walletAsset);
+      mockMakeSelectWalletAssets.mockReturnValue(
+        (() => walletAssetsMap) as any,
+      );
       mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
         balanceFiat: 'tokenRateUndefined',
         balanceValueFormatted: '0.1 USDC',
@@ -1163,7 +1222,12 @@ describe('useAssetBalances', () => {
         aggregators: [],
       };
 
-      mockSelectAsset.mockReturnValue(walletAsset as any);
+      const walletAssetsMap = new Map();
+      const walletAssetKey = `${mockEvmToken.address?.toLowerCase()}-${mockEvmToken.caipChainId}`;
+      walletAssetsMap.set(walletAssetKey, walletAsset);
+      mockMakeSelectWalletAssets.mockReturnValue(
+        (() => walletAssetsMap) as any,
+      );
       mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
         balanceFiat: 'tokenRateUndefined',
         balanceValueFormatted: '100 USDC',
@@ -1224,7 +1288,12 @@ describe('useAssetBalances', () => {
         aggregators: [],
       };
 
-      mockSelectAsset.mockReturnValue(walletAsset as any);
+      const walletAssetsMap = new Map();
+      const walletAssetKey = `${mockEvmToken.address?.toLowerCase()}-${mockEvmToken.caipChainId}`;
+      walletAssetsMap.set(walletAssetKey, walletAsset);
+      mockMakeSelectWalletAssets.mockReturnValue(
+        (() => walletAssetsMap) as any,
+      );
       mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
         balanceFiat: 'tokenRateUndefined',
         balanceValueFormatted: '0 USDC',
@@ -1287,7 +1356,12 @@ describe('useAssetBalances', () => {
         aggregators: [],
       };
 
-      mockSelectAsset.mockReturnValue(walletAsset as any);
+      const walletAssetsMap = new Map();
+      const walletAssetKey = `${mockEvmToken.address?.toLowerCase()}-${mockEvmToken.caipChainId}`;
+      walletAssetsMap.set(walletAssetKey, walletAsset);
+      mockMakeSelectWalletAssets.mockReturnValue(
+        (() => walletAssetsMap) as any,
+      );
       mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
         balanceFiat: 'tokenRateUndefined',
         balanceValueFormatted: '500.25 USDC',
@@ -1350,7 +1424,12 @@ describe('useAssetBalances', () => {
         aggregators: [],
       };
 
-      mockSelectAsset.mockReturnValue(walletAsset as any);
+      const walletAssetsMap = new Map();
+      const walletAssetKey = `${mockEvmToken.address?.toLowerCase()}-${mockEvmToken.caipChainId}`;
+      walletAssetsMap.set(walletAssetKey, walletAsset);
+      mockMakeSelectWalletAssets.mockReturnValue(
+        (() => walletAssetsMap) as any,
+      );
       mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
         balanceFiat: 'tokenRateUndefined',
         balanceValueFormatted: '500 USDC',

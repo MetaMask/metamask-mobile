@@ -1,4 +1,4 @@
-import { useSelector } from 'react-redux';
+import { useSelector, shallowEqual } from 'react-redux';
 import { RootState } from '../../../../../reducers';
 import { selectMultichainTokenListForAccountAnyChain } from '../../../../../selectors/multichain';
 import { useNonEvmAccounts } from '../useNonEvmAccounts';
@@ -8,7 +8,7 @@ import { useMemo } from 'react';
  * Hook to get non-EVM tokens from all non-EVM accounts
  * @returns Combined array of tokens from all non-EVM accounts
  */
-export const useNonEvmTokensWithBalance = () => {
+export const useNonEvmTokensWithBalance = (hasShallowEqual = false) => {
   const nonEvmAccounts = useNonEvmAccounts();
   const nonEvmTokens = useSelector(
     useMemo(
@@ -27,6 +27,7 @@ export const useNonEvmTokensWithBalance = () => {
       },
       [nonEvmAccounts],
     ),
+    hasShallowEqual ? shallowEqual : undefined,
   );
 
   return nonEvmTokens;
