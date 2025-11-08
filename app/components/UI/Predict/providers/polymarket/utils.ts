@@ -756,6 +756,9 @@ export async function calculateFees({
 
   totalFee = (userBetAmount * FEE_PERCENTAGE) / 100;
 
+  // Round to 4 decimals
+  totalFee = Math.round(totalFee * 10000) / 10000;
+
   // split total 50/50 between metamask and provider
   const metamaskFee = totalFee / 2;
   const providerFee = totalFee - metamaskFee;
