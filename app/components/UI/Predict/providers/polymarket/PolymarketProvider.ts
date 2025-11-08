@@ -588,11 +588,27 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Maker address not found');
       }
 
-      // Introduce slippage into minAmountReceived to reduce failure rate
+      /*
+       * Introduce slippage into minAmountReceived to reduce failure rate.
+       */
       const roundConfig = ROUNDING_CONFIG[tickSize.toString() as TickSize];
       const decimals = roundConfig.amount ?? 4;
+
+      let _minWithSlippage = minAmountReceived * (1 - slippage);
+      /*
+       * For BUY orders, the minAmountWithSlippage needs to be capped at
+       * maxAmountSpent + tickSize, otherwise, the order will fail due to
+       * sharePrice being >= 1 (which is impossible).
+       */
+      if (side === Side.BUY) {
+        _minWithSlippage = Math.max(
+          _minWithSlippage,
+          maxAmountSpent + tickSize,
+        );
+      }
+
       const minAmountWithSlippage = roundOrderAmount({
-        amount: minAmountReceived * (1 - slippage),
+        amount: _minWithSlippage,
         decimals,
       });
 
