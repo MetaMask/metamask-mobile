@@ -776,7 +776,9 @@
       "dob_required": "Date of birth is required",
       "dob_invalid": "Please enter a valid date of birth",
       "ssn_required": "Social security number is required",
-      "unexpected_error": "An unexpected error occurred. Please try again."
+      "unexpected_error": "An unexpected error occurred. Please try again.",
+      "phone_already_registered": "This phone number is already in use by {{email}}. Log in using this email to continue.",
+      "login_with_email": "Log in with email"
     },
     "enter_address": {
       "navbar_title": "Verify your identity",
@@ -1711,6 +1713,7 @@
         "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperCore for no added fee."
       },
       "got_it": "Got it",
+      "lets_go": "Let's go",
       "card": {
         "title": "Learn the basics of perps"
       }
@@ -1789,6 +1792,7 @@
     "outcomes_plural": "outcomes",
     "outcome_winner": "Winner",
     "outcome_loser": "Loser",
+    "outcome_draw": "Draw",
     "resolved_outcomes": "Resolved outcomes",
     "category": {
       "trending": "Trending",
@@ -1916,13 +1920,15 @@
       "retry": "Retry"
     },
     "error_messages": {
+      "not_eligible": "Not available in your region",
       "place_order_failed": "Failed to place order",
       "preview_failed": "Failed to preview order",
       "preview_no_order_book": "No order book found",
       "preview_no_order_match_buy": "No order match found for buy",
       "preview_no_order_match_sell": "No order match found for sell",
       "claim_failed": "Failed to claim",
-      "unknown_error": "An unknown error occurred"
+      "unknown_error": "An unknown error occurred",
+      "order_not_fully_filled": "Failed to fill your order"
     }
   },
   "receive": {
