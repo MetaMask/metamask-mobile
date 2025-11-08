@@ -590,17 +590,25 @@ export class PolymarketProvider implements PredictProvider {
 
       /*
        * Introduce slippage into minAmountReceived to reduce failure rate.
-       * The minAmountWithSlippage needs to be capped at maxAmountSpent + tickSize,
-       * otherwise, the order will fail due to sharePrice being > 1 (which is impossible).
        */
       const roundConfig = ROUNDING_CONFIG[tickSize.toString() as TickSize];
       const decimals = roundConfig.amount ?? 4;
 
-      const minAmountWithSlippage = roundOrderAmount({
-        amount: Math.max(
-          minAmountReceived * (1 - slippage),
+      let _minWithSlippage = minAmountReceived * (1 - slippage);
+      /*
+       * For BUY orders, the minAmountWithSlippage needs to be capped at
+       * maxAmountSpent + tickSize, otherwise, the order will fail due to
+       * sharePrice being > 1 (which is impossible).
+       */
+      if (side === Side.BUY) {
+        _minWithSlippage = Math.max(
+          _minWithSlippage,
           maxAmountSpent + tickSize,
-        ),
+        );
+      }
+
+      const minAmountWithSlippage = roundOrderAmount({
+        amount: _minWithSlippage,
         decimals,
       });
 
