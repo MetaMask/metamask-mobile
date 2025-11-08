@@ -5,6 +5,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import { TOOL_LIMITS } from '../config';
 
 /**
  * Gets all tool definitions for the AI agent
@@ -23,8 +24,8 @@ export function getToolDefinitions(): Anthropic.Tool[] {
           },
           lines_limit: {
             type: 'number',
-            description: 'Max lines to read (default: 2000)',
-            default: 2000
+            description: `Max lines to read (default: ${TOOL_LIMITS.readFileMaxLines})`,
+            default: TOOL_LIMITS.readFileMaxLines
           }
         },
         required: ['file_path']
@@ -42,8 +43,8 @@ export function getToolDefinitions(): Anthropic.Tool[] {
           },
           lines_limit: {
             type: 'number',
-            description: 'Max diff lines (default: 1000)',
-            default: 1000
+            description: `Max diff lines (default: ${TOOL_LIMITS.gitDiffMaxLines})`,
+            default: TOOL_LIMITS.gitDiffMaxLines
           }
         },
         required: ['file_path']
@@ -68,8 +69,8 @@ export function getToolDefinitions(): Anthropic.Tool[] {
           },
           max_results: {
             type: 'number',
-            description: 'Max files to return (default: 20)',
-            default: 20
+            description: `Max files to return (default: ${TOOL_LIMITS.relatedFilesMaxResults})`,
+            default: TOOL_LIMITS.relatedFilesMaxResults
           }
         },
         required: ['file_path', 'search_type']
@@ -106,8 +107,8 @@ export function getToolDefinitions(): Anthropic.Tool[] {
           },
           max_results: {
             type: 'number',
-            description: 'Max results to return (default: 50)',
-            default: 50
+            description: `Max results to return (default: ${TOOL_LIMITS.grepMaxResults})`,
+            default: TOOL_LIMITS.grepMaxResults
           }
         },
         required: ['pattern']

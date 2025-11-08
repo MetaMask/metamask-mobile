@@ -7,10 +7,11 @@
 import { join } from 'node:path';
 import { existsSync, readFileSync } from 'node:fs';
 import { ToolInput } from '../../types';
+import { TOOL_LIMITS } from '../../config';
 
 export function handleReadFile(input: ToolInput, baseDir: string): string {
   const filePath = input.file_path as string;
-  const linesLimit = (input.lines_limit as number) || 2000;
+  const linesLimit = (input.lines_limit as number) || TOOL_LIMITS.readFileMaxLines;
   const fullPath = join(baseDir, filePath);
 
   if (!existsSync(fullPath)) {

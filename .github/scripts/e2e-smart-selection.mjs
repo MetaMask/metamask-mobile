@@ -99,7 +99,7 @@ async function main() {
     // Build command - use --pr flag for better analysis (agent will fetch diffs from GitHub)
     const baseCmd = `node -r esbuild-register e2e/scripts/ai-e2e-tags-selector.ts --output json --pr ${env.PR_NUMBER}`;
     const result = execCommand(baseCmd, { silent: true });
-    console.log('AI analysis completed\n');
+    console.log('🤖 AI analysis completed\n');
 
     // Validate JSON output
     let parsedResult;

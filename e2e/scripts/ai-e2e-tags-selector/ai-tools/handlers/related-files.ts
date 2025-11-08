@@ -8,11 +8,12 @@ import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 import { existsSync, readFileSync } from 'node:fs';
 import { ToolInput } from '../../types';
+import { TOOL_LIMITS } from '../../config';
 
 export function handleRelatedFiles(input: ToolInput, baseDir: string): string {
   const filePath = input.file_path as string;
   const searchType = input.search_type as string;
-  const maxResults = (input.max_results as number) || 20;
+  const maxResults = (input.max_results as number) || TOOL_LIMITS.relatedFilesMaxResults;
 
   const results: string[] = [];
   const isCI =

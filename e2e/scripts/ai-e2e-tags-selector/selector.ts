@@ -8,6 +8,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { aiE2EConfig } from '../../tags';
 import { AIAnalysis, FileCategorization, ParsedArgs, ToolInput } from './types';
+import { CLAUDE_CONFIG, APP_CONFIG } from './config';
 import { categorizeFiles } from './analysis/file-categorizer';
 import {
   countTestFilesForTags,
@@ -28,8 +29,8 @@ export class AIE2ETagsSelector {
   private isQuietMode = false;
   private conversationHistory: Anthropic.MessageParam[] = [];
   private readonly baseDir = process.cwd();
-  private baseBranch = 'origin/main';
-  private githubRepo = 'metamask/metamask-mobile';
+  private baseBranch = APP_CONFIG.defaultBaseBranch;
+  private githubRepo = APP_CONFIG.githubRepo;
   private log: (message: string) => void;
 
   constructor(apiKey: string) {
@@ -51,22 +52,19 @@ export class AIE2ETagsSelector {
   ): Promise<AIAnalysis> {
 
     const tools = getToolDefinitions();
+    const initialPrompt = buildAgentPrompt(categorization);
+    let currentMessage: string | Anthropic.MessageParam['content'] = initialPrompt;
     this.conversationHistory = [];
 
-    const initialPrompt = buildAgentPrompt(categorization);
-
-    let currentMessage: string | Anthropic.MessageParam['content'] = initialPrompt;
-    const maxIterations = 12;
-
-    for (let iteration = 0; iteration < maxIterations; iteration++) {
-      this.log(`🔄 Iteration ${iteration + 1}/${maxIterations}...`);
+    for (let iteration = 0; iteration < CLAUDE_CONFIG.maxIterations; iteration++) {
+      this.log(`🔄 Iteration ${iteration + 1}/${CLAUDE_CONFIG.maxIterations}...`);
 
       const response: Anthropic.Message = await this.anthropic.messages.create({
-        model: 'claude-sonnet-4-5-20250929',
-        max_tokens: 16000,
+        model: CLAUDE_CONFIG.model,
+        max_tokens: CLAUDE_CONFIG.maxTokens,
         thinking: {
           type: 'enabled',
-          budget_tokens: 10000
+          budget_tokens: CLAUDE_CONFIG.thinkingBudgetTokens
         },
         system: buildSystemPrompt(),
         tools,
@@ -77,7 +75,7 @@ export class AIE2ETagsSelector {
       const thinking = response.content.find(
         (block: Anthropic.ContentBlock) => block.type === 'thinking'
       );
-      if (thinking && 'thinking' in thinking && !this.isQuietMode) {
+      if (thinking && 'thinking' in thinking) {
         this.log(`💭 ${thinking.thinking.substring(0, 200)}...`);
       }
 
@@ -228,7 +226,7 @@ export class AIE2ETagsSelector {
    */
   parseArgs(args: string[]): ParsedArgs {
     const options: ParsedArgs = {
-      baseBranch: 'origin/main',
+      baseBranch: APP_CONFIG.defaultBaseBranch,
       output: 'console'
     };
 
@@ -285,7 +283,7 @@ AI flow (using the provided tools and context):
        ...
      })
 
-Usage: yarn ai-e2e [options]
+Local usage: yarn ai-e2e [options]
 
 Options:
   -b, --base-branch <branch>    Base branch for comparison (default: origin/main)
@@ -355,7 +353,7 @@ Examples:
       return;
     }
 
-    const categorization = categorizeFiles(allChangedFiles);
+    const categorization = categorizeFiles(allChangedFiles); //TODO!
     if (categorization.criticalFiles.length > 0) {
       this.log(`⚠️  ${categorization.criticalFiles.length} critical files detected`);
     }

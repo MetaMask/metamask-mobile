@@ -6,11 +6,12 @@
 
 import { execSync } from 'node:child_process';
 import { ToolInput } from '../../types';
+import { TOOL_LIMITS } from '../../config';
 
 export function handleGrepCodebase(input: ToolInput, baseDir: string): string {
   const pattern = input.pattern as string;
   const filePattern = (input.file_pattern as string) || '*';
-  const maxResults = (input.max_results as number) || 50;
+  const maxResults = (input.max_results as number) || TOOL_LIMITS.grepMaxResults;
 
   if (!pattern) {
     return 'Error: pattern is required';

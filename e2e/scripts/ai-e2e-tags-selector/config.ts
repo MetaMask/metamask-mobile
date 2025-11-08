@@ -1,0 +1,92 @@
+/**
+ * AI Configuration
+ * Central configuration for AI agent behavior and API settings
+ *
+*/
+
+/**
+ * Anthropic Claude API Configuration
+ */
+export const CLAUDE_CONFIG = {
+  /**
+   * Claude model to use for analysis
+   * - See available models: https://docs.anthropic.com/en/docs/about-claude/models
+   */
+  model: 'claude-sonnet-4-5-20250929' as const,
+
+  /**
+   * Maximum tokens allowed for the AI response. Controls the length of reasoning and tool calls
+   * Docs: https://docs.anthropic.com/en/api/messages
+   */
+  maxTokens: 16000,
+
+  /**
+   * Extended thinking budget (tokens). AI uses this for deep reasoning before responding.
+   * Higher = more thorough analysis but slower/costlier
+   * Docs: https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking
+   */
+  thinkingBudgetTokens: 10000,
+
+  /**
+   * Maximum agentic iterations to prevent infinite loops
+   *
+   * Each iteration is a full round trip:
+   * 1. AI thinks about the problem
+   * 2. AI can call multiple tools (get_git_diff, find_related_files, etc.)
+   * 3. Tools execute and return results
+   * 4. Results sent back to AI → next iteration
+   *
+   * Typical flow example:
+   * - Iteration 1: AI examines critical files (3-5 tool calls)
+   * - Iteration 2: AI investigates dependencies (2-3 tool calls)
+   * - Iteration 3: AI calls finalize_decision → DONE
+   */
+  maxIterations: 12,
+};
+
+
+/**
+ * Tool-specific limits
+ * Tool Use: https://docs.anthropic.com/en/docs/build-with-claude/tool-use
+ */
+export const TOOL_LIMITS = {
+  /**
+   * Maximum lines to read when using read_file tool
+   * Prevents excessive token usage on large files
+   */
+  readFileMaxLines: 2000,
+
+  /**
+   * Maximum diff lines when using get_git_diff tool
+   * Typical diffs are < 100 lines
+   */
+  gitDiffMaxLines: 1000,
+
+  /**
+   * Maximum results for find_related_files tool
+   * Prevents overwhelming the AI with too many files
+   */
+  relatedFilesMaxResults: 20,
+
+  /**
+   * Maximum results for grep_codebase tool
+   * Typical searches return 10-50 matches
+   */
+  grepMaxResults: 50,
+} as const;
+
+/**
+ * Application Configuration
+ */
+export const APP_CONFIG = {
+  /**
+   * GitHub repository for context analysis
+   * Format: 'owner/repo'
+   */
+  githubRepo: 'metamask/metamask-mobile',
+
+  /**
+   * Default base branch for git comparisons
+   */
+  defaultBaseBranch: 'origin/main',
+};
