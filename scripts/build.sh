@@ -606,7 +606,16 @@ buildAndroidReleaseE2E(){
 	cp android/gradle.properties.github android/gradle.properties
 	# E2E builds only need x86_64 for emulator testing, reducing build time and memory usage
 	echo "Building E2E APKs for $flavor flavor..."
-	cd android && ./gradlew assemble${flavor}Release app:assemble${flavor}ReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
+	cd android
+	
+	# Try building with optimized settings
+	if ! ./gradlew assemble${flavor}Release app:assemble${flavor}ReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release; then
+		echo "⚠️  Build failed, retrying with reduced parallelism..."
+		# Kill any remaining daemon
+		./gradlew --stop || true
+		# Retry with no parallel builds to reduce memory pressure
+		./gradlew assemble${flavor}Release app:assemble${flavor}ReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release --no-parallel --max-workers=2
+	fi
 	
 	# Verify APK files were created
 	echo ""
@@ -618,12 +627,16 @@ buildAndroidReleaseE2E(){
 		echo "✅ App APK found: $appApkPath ($(du -h "$appApkPath" | cut -f1))"
 	else
 		echo "❌ App APK NOT found at: $appApkPath"
+		cd ..
+		return 1
 	fi
 	
 	if [ -f "$testApkPath" ]; then
 		echo "✅ Test APK found: $testApkPath ($(du -h "$testApkPath" | cut -f1))"
 	else
 		echo "❌ Test APK NOT found at: $testApkPath"
+		cd ..
+		return 1
 	fi
 	echo ""
 	
