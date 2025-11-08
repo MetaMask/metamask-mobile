@@ -27,6 +27,11 @@ jest.mock('../../../../../../selectors/preferencesController', () => ({
   selectSmartTransactionsMigrationApplied: () => false,
   selectSmartTransactionsOptInStatus: () => false,
   selectIsTokenNetworkFilterEqualCurrentNetwork: () => true,
+  selectTokenSortConfig: () => ({
+    key: 'tokenFiatAmount',
+    order: 'dsc',
+    sortCallback: 'stringNumeric',
+  }),
 }));
 
 jest.mock('../../../../../../core/GasPolling/GasPolling', () => ({
