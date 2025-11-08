@@ -142,6 +142,7 @@ import type { GatorPermissionsController } from '@metamask/gator-permissions-con
 import { DelegationControllerInit } from './controllers/delegation/delegation-controller-init';
 import { selectedNetworkControllerInit } from './controllers/selected-network-controller-init';
 import { permissionControllerInit } from './controllers/permission-controller-init';
+import { rampsControllerInit } from './controllers/ramps-controller-init';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { subjectMetadataControllerInit } from './controllers/subject-metadata-controller-init';
 ///: END:ONLY_INCLUDE_IF
@@ -355,6 +356,7 @@ export class Engine {
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
         AddressBookController: addressBookControllerInit,
+        RampsController: rampsControllerInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
@@ -387,6 +389,7 @@ export class Engine {
     const preferencesController = controllersByName.PreferencesController;
     const delegationController = controllersByName.DelegationController;
     const addressBookController = controllersByName.AddressBookController;
+    const rampsController = controllersByName.RampsController;
 
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
@@ -532,6 +535,7 @@ export class Engine {
       PredictController: predictController,
       RewardsController: rewardsController,
       DelegationController: delegationController,
+      RampsController: rampsController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -1286,6 +1290,7 @@ export default {
       PhishingController,
       PredictController,
       PreferencesController,
+      RampsController,
       RemoteFeatureFlagController,
       RewardsController,
       SeedlessOnboardingController,
@@ -1346,6 +1351,7 @@ export default {
       PhishingController,
       PredictController,
       PreferencesController,
+      RampsController,
       RemoteFeatureFlagController,
       RewardsController,
       SeedlessOnboardingController,
