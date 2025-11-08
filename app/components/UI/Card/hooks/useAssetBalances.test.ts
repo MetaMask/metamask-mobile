@@ -134,16 +134,43 @@ describe('useAssetBalances', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    // Default mock Redux state structure
+    const mockState = {
+      engine: {
+        backgroundState: {
+          MultichainNetworkController: {
+            multichainNetworkConfigurationsByChainId: {},
+          },
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              '0xe708': { nativeCurrency: 'ETH' },
+            },
+          },
+          CurrencyRateController: {
+            currencyRates: {
+              ETH: {
+                conversionRate: 2000,
+              },
+            },
+            currentCurrency: 'USD',
+          },
+          TokenRatesController: {
+            marketData: {},
+          },
+        },
+      },
+    };
+
     // Default mock implementations
     mockUseSelector.mockImplementation((selector: any) => {
       if (typeof selector === 'function') {
         // Check if it's the wallet assets selector (returns a Map)
-        const result = selector({});
+        const result = selector(mockState);
         if (result instanceof Map) {
           return result;
         }
-        // Otherwise return currency
-        return 'USD';
+        // Return the result of the selector
+        return result;
       }
       return 'USD';
     });
@@ -167,28 +194,6 @@ describe('useAssetBalances', () => {
     (Engine.context.MultichainAssetsRatesController as any) = {
       state: {
         conversionRates: {},
-      },
-    };
-    (Engine.context.TokenRatesController as any) = {
-      state: {
-        marketData: {},
-      },
-    };
-    (Engine.context.NetworkController as any) = {
-      getNetworkConfigurationByChainId: jest.fn((chainId: string) => {
-        if (chainId === '0xe708') {
-          return { nativeCurrency: 'ETH' };
-        }
-        return undefined;
-      }),
-    };
-    (Engine.context.CurrencyRateController as any) = {
-      state: {
-        currencyRates: {
-          ETH: {
-            conversionRate: 2000,
-          },
-        },
       },
     };
   });
@@ -220,6 +225,9 @@ describe('useAssetBalances', () => {
           const state = {
             engine: {
               backgroundState: {
+                MultichainNetworkController: {
+                  multichainNetworkConfigurationsByChainId: {},
+                },
                 NetworkController: {
                   networkConfigurationsByChainId: {
                     '0xe708': {
@@ -234,6 +242,15 @@ describe('useAssetBalances', () => {
                     },
                   },
                 },
+                TokenRatesController: {
+                  marketData: {
+                    '0xe708': {
+                      [mockEvmToken.address?.toLowerCase() as any]: {
+                        price: 2.0,
+                      },
+                    },
+                  },
+                },
               },
             },
           };
@@ -241,14 +258,6 @@ describe('useAssetBalances', () => {
         }
         return 'USD';
       });
-
-      (Engine.context.TokenRatesController as any).state.marketData = {
-        '0xe708': {
-          [mockEvmToken.address?.toLowerCase() as any]: {
-            price: 2.0,
-          },
-        },
-      };
 
       mockFormatWithThreshold.mockReturnValue('$1,001.00');
 
@@ -655,6 +664,9 @@ describe('useAssetBalances', () => {
           const state = {
             engine: {
               backgroundState: {
+                MultichainNetworkController: {
+                  multichainNetworkConfigurationsByChainId: {},
+                },
                 NetworkController: {
                   networkConfigurationsByChainId: {
                     '0xe708': {
@@ -669,6 +681,15 @@ describe('useAssetBalances', () => {
                     },
                   },
                 },
+                TokenRatesController: {
+                  marketData: {
+                    '0xe708': {
+                      [mockEvmToken.address?.toLowerCase() as any]: {
+                        price: 1.0,
+                      },
+                    },
+                  },
+                },
               },
             },
           };
@@ -676,14 +697,6 @@ describe('useAssetBalances', () => {
         }
         return 'USD';
       });
-
-      (Engine.context.TokenRatesController as any).state.marketData = {
-        '0xe708': {
-          [mockEvmToken.address?.toLowerCase() as any]: {
-            price: 1.0,
-          },
-        },
-      };
 
       mockFormatWithThreshold.mockReturnValue('$1,001.00');
 
@@ -701,6 +714,9 @@ describe('useAssetBalances', () => {
           const state = {
             engine: {
               backgroundState: {
+                MultichainNetworkController: {
+                  multichainNetworkConfigurationsByChainId: {},
+                },
                 NetworkController: {
                   networkConfigurationsByChainId: {
                     '0xe708': {
@@ -715,6 +731,11 @@ describe('useAssetBalances', () => {
                     },
                   },
                 },
+                TokenRatesController: {
+                  marketData: {
+                    '0xe708': {},
+                  },
+                },
               },
             },
           };
@@ -722,10 +743,6 @@ describe('useAssetBalances', () => {
         }
         return 'USD';
       });
-
-      (Engine.context.TokenRatesController as any).state.marketData = {
-        '0xe708': {},
-      };
 
       const walletAsset = {
         address: mockEvmToken.address,
@@ -768,11 +785,17 @@ describe('useAssetBalances', () => {
           const state = {
             engine: {
               backgroundState: {
+                MultichainNetworkController: {
+                  multichainNetworkConfigurationsByChainId: {},
+                },
                 NetworkController: {
                   networkConfigurationsByChainId: {},
                 },
                 CurrencyRateController: {
                   currencyRates: {},
+                },
+                TokenRatesController: {
+                  marketData: {},
                 },
               },
             },
@@ -781,11 +804,6 @@ describe('useAssetBalances', () => {
         }
         return 'USD';
       });
-
-      (Engine.context.TokenRatesController as any).state.marketData = {};
-      (
-        Engine.context.NetworkController as any
-      ).getNetworkConfigurationByChainId = jest.fn(() => undefined);
 
       // Mock deriveBalanceFromAssetMarketDetails to return a failure state
       mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
@@ -906,6 +924,9 @@ describe('useAssetBalances', () => {
           const state = {
             engine: {
               backgroundState: {
+                MultichainNetworkController: {
+                  multichainNetworkConfigurationsByChainId: {},
+                },
                 NetworkController: {
                   networkConfigurationsByChainId: {
                     '0xe708': {
@@ -920,6 +941,11 @@ describe('useAssetBalances', () => {
                     },
                   },
                 },
+                TokenRatesController: {
+                  marketData: {
+                    '0xe708': {},
+                  },
+                },
               },
             },
           };
@@ -927,10 +953,6 @@ describe('useAssetBalances', () => {
         }
         return 'USD';
       });
-
-      (Engine.context.TokenRatesController as any).state.marketData = {
-        '0xe708': {},
-      };
 
       const walletAsset = {
         address: mockEvmToken.address,
@@ -976,6 +998,9 @@ describe('useAssetBalances', () => {
           const state = {
             engine: {
               backgroundState: {
+                MultichainNetworkController: {
+                  multichainNetworkConfigurationsByChainId: {},
+                },
                 NetworkController: {
                   networkConfigurationsByChainId: {
                     '0xe708': {
@@ -990,6 +1015,11 @@ describe('useAssetBalances', () => {
                     },
                   },
                 },
+                TokenRatesController: {
+                  marketData: {
+                    '0xe708': {},
+                  },
+                },
               },
             },
           };
@@ -997,10 +1027,6 @@ describe('useAssetBalances', () => {
         }
         return 'USD';
       });
-
-      (Engine.context.TokenRatesController as any).state.marketData = {
-        '0xe708': {},
-      };
 
       const walletAsset = {
         address: mockEvmToken.address,
@@ -1046,6 +1072,9 @@ describe('useAssetBalances', () => {
           const state = {
             engine: {
               backgroundState: {
+                MultichainNetworkController: {
+                  multichainNetworkConfigurationsByChainId: {},
+                },
                 NetworkController: {
                   networkConfigurationsByChainId: {
                     '0xe708': {
@@ -1060,6 +1089,11 @@ describe('useAssetBalances', () => {
                     },
                   },
                 },
+                TokenRatesController: {
+                  marketData: {
+                    '0xe708': {},
+                  },
+                },
               },
             },
           };
@@ -1067,10 +1101,6 @@ describe('useAssetBalances', () => {
         }
         return 'USD';
       });
-
-      (Engine.context.TokenRatesController as any).state.marketData = {
-        '0xe708': {},
-      };
 
       const walletAsset = {
         address: mockEvmToken.address,
@@ -1116,6 +1146,9 @@ describe('useAssetBalances', () => {
           const state = {
             engine: {
               backgroundState: {
+                MultichainNetworkController: {
+                  multichainNetworkConfigurationsByChainId: {},
+                },
                 NetworkController: {
                   networkConfigurationsByChainId: {
                     '0xe708': {
@@ -1130,6 +1163,11 @@ describe('useAssetBalances', () => {
                     },
                   },
                 },
+                TokenRatesController: {
+                  marketData: {
+                    '0xe708': {},
+                  },
+                },
               },
             },
           };
@@ -1137,10 +1175,6 @@ describe('useAssetBalances', () => {
         }
         return 'USD';
       });
-
-      (Engine.context.TokenRatesController as any).state.marketData = {
-        '0xe708': {},
-      };
 
       const walletAsset = {
         address: mockEvmToken.address,
@@ -1186,6 +1220,9 @@ describe('useAssetBalances', () => {
           const state = {
             engine: {
               backgroundState: {
+                MultichainNetworkController: {
+                  multichainNetworkConfigurationsByChainId: {},
+                },
                 NetworkController: {
                   networkConfigurationsByChainId: {
                     '0xe708': {
@@ -1200,6 +1237,11 @@ describe('useAssetBalances', () => {
                     },
                   },
                 },
+                TokenRatesController: {
+                  marketData: {
+                    '0xe708': {},
+                  },
+                },
               },
             },
           };
@@ -1207,10 +1249,6 @@ describe('useAssetBalances', () => {
         }
         return 'USD';
       });
-
-      (Engine.context.TokenRatesController as any).state.marketData = {
-        '0xe708': {},
-      };
 
       const walletAsset = {
         address: mockEvmToken.address,
@@ -1252,6 +1290,9 @@ describe('useAssetBalances', () => {
           const state = {
             engine: {
               backgroundState: {
+                MultichainNetworkController: {
+                  multichainNetworkConfigurationsByChainId: {},
+                },
                 NetworkController: {
                   networkConfigurationsByChainId: {
                     '0xe708': {
@@ -1266,6 +1307,11 @@ describe('useAssetBalances', () => {
                     },
                   },
                 },
+                TokenRatesController: {
+                  marketData: {
+                    '0xe708': {},
+                  },
+                },
               },
             },
           };
@@ -1273,10 +1319,6 @@ describe('useAssetBalances', () => {
         }
         return 'USD';
       });
-
-      (Engine.context.TokenRatesController as any).state.marketData = {
-        '0xe708': {},
-      };
 
       const walletAsset = {
         address: mockEvmToken.address,
@@ -1320,6 +1362,9 @@ describe('useAssetBalances', () => {
           const state = {
             engine: {
               backgroundState: {
+                MultichainNetworkController: {
+                  multichainNetworkConfigurationsByChainId: {},
+                },
                 NetworkController: {
                   networkConfigurationsByChainId: {
                     '0xe708': {
@@ -1334,6 +1379,11 @@ describe('useAssetBalances', () => {
                     },
                   },
                 },
+                TokenRatesController: {
+                  marketData: {
+                    '0xe708': {},
+                  },
+                },
               },
             },
           };
@@ -1341,10 +1391,6 @@ describe('useAssetBalances', () => {
         }
         return 'USD';
       });
-
-      (Engine.context.TokenRatesController as any).state.marketData = {
-        '0xe708': {},
-      };
 
       const walletAsset = {
         address: mockEvmToken.address,
@@ -1388,6 +1434,9 @@ describe('useAssetBalances', () => {
           const state = {
             engine: {
               backgroundState: {
+                MultichainNetworkController: {
+                  multichainNetworkConfigurationsByChainId: {},
+                },
                 NetworkController: {
                   networkConfigurationsByChainId: {
                     '0xe708': {
@@ -1402,6 +1451,11 @@ describe('useAssetBalances', () => {
                     },
                   },
                 },
+                TokenRatesController: {
+                  marketData: {
+                    '0xe708': {},
+                  },
+                },
               },
             },
           };
@@ -1409,10 +1463,6 @@ describe('useAssetBalances', () => {
         }
         return 'USD';
       });
-
-      (Engine.context.TokenRatesController as any).state.marketData = {
-        '0xe708': {},
-      };
 
       const walletAsset = {
         address: mockEvmToken.address,
