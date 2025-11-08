@@ -598,7 +598,7 @@ export class PolymarketProvider implements PredictProvider {
       /*
        * For BUY orders, the minAmountWithSlippage needs to be capped at
        * maxAmountSpent + tickSize, otherwise, the order will fail due to
-       * sharePrice being > 1 (which is impossible).
+       * sharePrice being >= 1 (which is impossible).
        */
       if (side === Side.BUY) {
         _minWithSlippage = Math.max(
