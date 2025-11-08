@@ -46,7 +46,7 @@ export const CLAUDE_CONFIG = {
 
 
 /**
- * Tool-specific limits
+ * AI Tool-specific limits
  * Tool Use: https://docs.anthropic.com/en/docs/build-with-claude/tool-use
  */
 export const TOOL_LIMITS = {
@@ -76,7 +76,7 @@ export const TOOL_LIMITS = {
 } as const;
 
 /**
- * Application Configuration
+ * Application (System under test) Configuration
  */
 export const APP_CONFIG = {
   /**
@@ -89,4 +89,53 @@ export const APP_CONFIG = {
    * Default base branch for git comparisons
    */
   defaultBaseBranch: 'origin/main',
+
+  /**
+   * Critical file detection - files that require comprehensive analysis
+   */
+  critical: {
+    /** Exact file names that are critical */
+    files: ['package.json', 'yarn.lock', 'package-lock.json'],
+    /** Keywords that indicate critical files (checked with includes()) */
+    keywords: ['Controller', 'Engine'],
+    /** Path segments that indicate critical areas */
+    paths: ['app/core/'],
+  },
+
+  /**
+   * File categorization patterns
+   * Order matters - first match wins
+   * Each pattern is checked with string.includes() unless specified otherwise
+   */
+  categories: {
+    /** Package/dependency files */
+    dependencies: ['lock', 'package.json'],
+
+    /** Core application logic */
+    core: ['core/', 'Controller'],
+
+    /** Configuration files */
+    config: ['config', 'tsconfig', 'babel', 'metro', 'webpack', 'eslint', 'jest'],
+
+    /** CI/CD and automation */
+    ci: ['.github', 'bitrise', 'workflow', 'action.yml'],
+
+    /** Test files */
+    tests: ['test', 'spec', '__tests__'],
+
+    /** Documentation (markdown files) */
+    docs: { extension: '.md' },
+
+    /** Static assets (images, fonts, etc.) */
+    assets: {
+      paths: ['/images/', '/fonts/', '/assets/'],
+      extensions: ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf'],
+    },
+
+    /** Source code files (fallback category) */
+    app: {
+      extensions: ['.ts', '.tsx', '.js', '.jsx'],
+      exclude: ['node_modules'],
+    },
+  },
 };

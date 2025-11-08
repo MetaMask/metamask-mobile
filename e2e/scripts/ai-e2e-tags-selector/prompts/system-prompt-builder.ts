@@ -5,6 +5,7 @@
  */
 
 import { aiE2EConfig } from '../../../tags';
+import { APP_CONFIG } from '../config';
 
 /**
  * Builds the system prompt for the AI agent
@@ -32,6 +33,14 @@ ${availableTags.map(tag => `- ${tag}`).join('\n')}
 
 TAG COVERAGE:
 ${tagCoverageLines}
+
+CRITICAL FILE PATTERNS (files pre-marked as critical for you):
+- Exact files: ${APP_CONFIG.critical.files.join(', ')}
+- Keywords: ${APP_CONFIG.critical.keywords.join(', ')} (any file containing these)
+- Paths: ${APP_CONFIG.critical.paths.join(', ')} (files in these directories)
+
+Note: Files matching these patterns are flagged as CRITICAL in the file list you receive.
+You can see WHY each file is critical and agree/disagree based on actual changes.
 
 TOOLS AVAILABLE:
 - read_file: Read actual file content

@@ -5,6 +5,33 @@
  */
 
 import { FileCategorization } from '../types';
+import { APP_CONFIG } from '../config';
+
+/**
+ * Explains why a file is marked as critical
+ */
+function explainCritical(file: string): string {
+  const reasons: string[] = [];
+  const { files, keywords, paths } = APP_CONFIG.critical;
+
+  if (files.includes(file)) {
+    reasons.push('exact match');
+  }
+
+  keywords.forEach(keyword => {
+    if (file.includes(keyword)) {
+      reasons.push(`contains '${keyword}'`);
+    }
+  });
+
+  paths.forEach(path => {
+    if (file.includes(path)) {
+      reasons.push(`in '${path}'`);
+    }
+  });
+
+  return reasons.length > 0 ? ` [${reasons.join(', ')}]` : '';
+}
 
 /**
  * Builds the agent prompt from file categorization
@@ -17,10 +44,10 @@ export function buildAgentPrompt(
 
   const fileList: string[] = [];
 
-  // Critical files first
+  // Critical files first with explanation
   if (criticalFiles.length > 0) {
-    fileList.push('⚠️  CRITICAL FILES (must examine):');
-    criticalFiles.forEach(f => fileList.push(`  CRITICAL ${f}`));
+    fileList.push('⚠️  CRITICAL FILES (examine carefully):');
+    criticalFiles.forEach(f => fileList.push(`  ${f}${explainCritical(f)}`));
     fileList.push('');
   }
 
