@@ -216,6 +216,15 @@ jest.mock('../../hooks/usePredictEligibility', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePredictPrices', () => ({
+  usePredictPrices: jest.fn(() => ({
+    prices: { providerId: '', results: [] },
+    isFetching: false,
+    error: null,
+    refetch: jest.fn(),
+  })),
+}));
+
 jest.mock('../../components/PredictDetailsChart/PredictDetailsChart', () => {
   const { View, Text } = jest.requireActual('react-native');
   return function MockPredictDetailsChart() {
@@ -2662,6 +2671,73 @@ describe('PredictMarketDetails', () => {
         screen.queryByText('predict.resolved_outcomes'),
       ).not.toBeOnTheScreen();
       expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Real-time Price Updates', () => {
+    it('calls usePredictPrices hook for open markets', () => {
+      const { usePredictPrices } = jest.requireMock(
+        '../../hooks/usePredictPrices',
+      );
+
+      const marketWithTokens = createMockMarket({
+        status: 'open',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [{ id: 'token-1', price: 0.65 }],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(marketWithTokens);
+
+      expect(usePredictPrices).toHaveBeenCalled();
+    });
+
+    it('handles usePredictPrices hook being called', () => {
+      const { usePredictPrices } = jest.requireMock(
+        '../../hooks/usePredictPrices',
+      );
+
+      setupPredictMarketDetailsTest();
+
+      expect(usePredictPrices).toHaveBeenCalled();
+    });
+
+    it('uses usePredictPrices hook with providerId', () => {
+      const { usePredictPrices } = jest.requireMock(
+        '../../hooks/usePredictPrices',
+      );
+
+      setupPredictMarketDetailsTest();
+
+      expect(usePredictPrices).toHaveBeenCalledWith(
+        expect.objectContaining({
+          providerId: 'polymarket',
+        }),
+      );
+    });
+
+    it('handles price fetching errors gracefully', () => {
+      const { usePredictPrices } = jest.requireMock(
+        '../../hooks/usePredictPrices',
+      );
+
+      usePredictPrices.mockReturnValue({
+        prices: { providerId: '', results: [] },
+        isFetching: false,
+        error: new Error('Failed to fetch prices'),
+        refetch: jest.fn(),
+      });
+
+      setupPredictMarketDetailsTest();
+
+      expect(
+        screen.getByTestId('predict-market-details-screen'),
+      ).toBeOnTheScreen();
     });
   });
 });
