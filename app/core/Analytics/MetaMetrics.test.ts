@@ -433,9 +433,7 @@ describe('MetaMetrics', () => {
         const metaMetrics = TestMetaMetrics.getInstance();
         await metaMetrics.configure();
         await metaMetrics.enable();
-        const nonAnonProp = {
-          non_anon_prop: 'test value',
-        };
+        const nonAnonProp = { non_anon_prop: 'test value' };
         const event = MetricsEventBuilder.createEventBuilder({
           category: 'test event',
         })

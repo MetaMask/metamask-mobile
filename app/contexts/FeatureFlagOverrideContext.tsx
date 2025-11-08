@@ -68,9 +68,11 @@ export const FeatureFlagOverrideProvider: React.FC<
   >([]);
 
   useEffect(() => {
-    addTraitsToUser({
-      relatedFlags: JSON.stringify(featureFlagSnapshots),
-    });
+    if (featureFlagSnapshots.length > 0) {
+      addTraitsToUser({
+        relatedFlags: JSON.stringify(featureFlagSnapshots),
+      });
+    }
   }, [featureFlagSnapshots, addTraitsToUser]);
 
   const setOverride = useCallback((key: string, value: unknown) => {
