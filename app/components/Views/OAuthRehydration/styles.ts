@@ -75,10 +75,7 @@ const styleSheet = (params: { theme: Theme }) => {
         ios: 0,
         android: 16,
       }),
-      marginTop: Platform.select({
-        ios: 8,
-        android: 16,
-      }),
+      marginTop: 16,
     },
     footer: {
       marginTop: 32,

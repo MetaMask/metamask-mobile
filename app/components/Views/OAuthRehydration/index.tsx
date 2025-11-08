@@ -340,8 +340,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                   testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
                 >
                   <Text
-                    variant={TextVariant.BodyLGMedium}
-                    color={TextColor.Default}
+                    variant={TextVariant.BodyMDMedium}
+                    color={TextColor.Primary}
                   >
                     {strings('login.other_methods')}
                   </Text>
