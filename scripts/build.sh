@@ -604,6 +604,9 @@ buildIosReleaseE2E(){
 
 buildAndroidReleaseE2E(){
 	prebuild_android
+	# Use GitHub CI gradle properties for E2E builds (x86_64 only, optimized memory settings)
+	cp android/gradle.properties.github android/gradle.properties
+	# E2E builds only need x86_64 for emulator testing, reducing build time and memory usage
 	cd android && ./gradlew assembleProdRelease app:assembleProdReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
 }
 
