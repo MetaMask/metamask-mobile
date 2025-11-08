@@ -52,14 +52,16 @@ describe('PredictMarketOutcomeResolved', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockFormatVolume.mockImplementation((volume: number) => {
-      if (volume >= 1000000) {
-        return `${(volume / 1000000).toFixed(1)}M`;
+    mockFormatVolume.mockImplementation((volume: string | number) => {
+      const numVolume =
+        typeof volume === 'string' ? parseFloat(volume) : volume;
+      if (numVolume >= 1000000) {
+        return `${(numVolume / 1000000).toFixed(1)}M`;
       }
-      if (volume >= 1000) {
-        return `${(volume / 1000).toFixed(1)}K`;
+      if (numVolume >= 1000) {
+        return `${(numVolume / 1000).toFixed(1)}K`;
       }
-      return volume.toString();
+      return numVolume.toString();
     });
   });
 
