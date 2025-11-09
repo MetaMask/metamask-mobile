@@ -17,10 +17,25 @@ import {
 import { parseAgentDecision, createFallbackAnalysis } from './analysis/decision-parser';
 import { getToolDefinitions } from './ai-tools/tool-registry';
 import { executeTool } from './ai-tools/tool-executor';
-import { buildSystemPrompt } from './prompts/system-prompt-builder';
-import { buildTaskPrompt } from './prompts/task-prompt-builder';
+import { buildSystemPrompt } from './prompts/select-tags/system-prompt';
+import { buildTaskPrompt } from './prompts/select-tags/task-prompt';
 import { getAllChangedFiles, getPRFiles, validatePRNumber } from './utils/git-utils';
 import { formatAndOutput, createLogger } from './utils/output-formatter';
+
+/**
+ * Prompt builders registry for each mode
+ */
+const MODE_PROMPTS = {
+  'select-tags': {
+    systemPromptBuilder: buildSystemPrompt,
+    taskPromptBuilder: buildTaskPrompt,
+  },
+  // Future modes will add their prompt builders here:
+  // 'suggest-migration': {
+  //   systemPromptBuilder: buildMigrationSystemPrompt,
+  //   taskPromptBuilder: buildMigrationTaskPrompt,
+  // },
+} as const;
 
 /**
  * Identifies critical files from a list of changed files
@@ -102,10 +117,12 @@ export class AIE2ETagsSelector {
   async analyzeWithAgent(
     categorization: FileCategorization
   ): Promise<AIAnalysis> {
-    // Note: In the future, different modes can use different prompt builders
-    // For now, only 'select-tags' mode is implemented
+    // Get prompt builders for current mode
+    const promptBuilders = MODE_PROMPTS[this.mode];
+    const systemPrompt = promptBuilders.systemPromptBuilder();
+    const taskPrompt = promptBuilders.taskPromptBuilder(categorization);
+
     const tools = getToolDefinitions();
-    const taskPrompt = buildTaskPrompt(categorization);
     let currentMessage: string | Anthropic.MessageParam['content'] = taskPrompt;
     this.conversationHistory = [];
 
@@ -119,7 +136,7 @@ export class AIE2ETagsSelector {
           type: 'enabled',
           budget_tokens: CLAUDE_CONFIG.thinkingBudgetTokens
         },
-        system: buildSystemPrompt(),
+        system: systemPrompt,
         tools,
         messages: [...this.conversationHistory, { role: 'user', content: currentMessage }]
       });

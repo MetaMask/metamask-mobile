@@ -1,14 +1,18 @@
 /**
- * System Prompt Builder
+ * Tag Selection System Prompt Builder
  *
- * Builds the system prompt for the AI agent
+ * Mode-specific system prompt for E2E tag selection
  */
 
-import { aiE2EConfig } from '../../../tags';
-import { APP_CONFIG } from '../config';
+import { aiE2EConfig } from '../../../../tags';
+import {
+  buildCriticalPatternsSection,
+  buildToolsSection,
+  buildReasoningSection,
+} from '../shared/base-system-prompt';
 
 /**
- * Builds the system prompt for the AI agent
+ * Builds the system prompt for tag selection mode
  */
 export function buildSystemPrompt(): string {
   const availableTags = aiE2EConfig.map(config => config.tag);
@@ -34,33 +38,11 @@ ${availableTags.map(tag => `- ${tag}`).join('\n')}
 TAG COVERAGE:
 ${tagCoverageLines}
 
-CRITICAL FILE PATTERNS (files pre-marked as critical for you):
-- Exact files: ${APP_CONFIG.critical.files.join(', ')}
-- Keywords: ${APP_CONFIG.critical.keywords.join(', ')} (any file containing these)
-- Paths: ${APP_CONFIG.critical.paths.join(', ')} (files in these directories)
+${buildCriticalPatternsSection()}
 
-Note: Files matching these patterns are flagged as CRITICAL in the file list you receive.
-You can see WHY each file is critical and agree/disagree based on actual changes.
+${buildToolsSection()}
 
-TOOLS AVAILABLE:
-- read_file: Read actual file content
-- get_git_diff: See exact code changes for specific files
-- find_related_files: Discover impact depth and relationships
-  * For CI files: finds reusable workflow callers, GitHub Action usage, script usage in workflows
-  * For code files: finds importers (dependents), dependencies, tests, module files
-  * Use search_type='ci' for workflow/action/script relationships
-  * Use search_type='importers' to find who depends on code changes
-  * Use search_type='all' for comprehensive relationship analysis
-- list_directory: List files in a directory to understand module structure
-- grep_codebase: Search for patterns to find usage or references across codebase
-- finalize_decision: Submit your selection
-
-REASONING APPROACH:
-You have extended thinking enabled (10,000 tokens). Use it to:
-- Think deeply about change impacts
-- Consider direct and indirect effects
-- Reason about risk levels
-- Map changes to test coverage
+${buildReasoningSection()}
 
 WORKFLOW:
 1. Review the changed files

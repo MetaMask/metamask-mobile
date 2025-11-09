@@ -1,5 +1,5 @@
 /**
- * AI Configuration
+ * System Configuration
  * Central configuration for AI agent behavior and API settings
  *
 */
@@ -99,13 +99,13 @@ export const APP_CONFIG = {
    * 3. Path segments (e.g., 'app/core/' matches anything in that directory)
    */
   critical: {
-    /** Exact file names that are critical */
+    /** Exact file names that are critical (checked with file.includes(file)) */
     files: ['package.json'],
 
-    /** Keywords that indicate critical files (checked with includes()) */
+    /** Keywords that indicate critical files (checked with file.includes(keyword)) */
     keywords: ['Controller', 'Engine'],
 
-    /** Path segments that indicate critical areas */
+    /** Path segments that indicate critical areas (checked with file.includes(path)) */
     paths: ['app/core/'],
   },
 };
@@ -115,6 +115,8 @@ export const APP_CONFIG = {
  *
  * Different analysis modes for various use cases.
  * Each mode uses the same tools but different prompts and logic.
+ *
+ * Note: Prompt builders are registered in selector.ts (MODE_PROMPTS) to avoid circular dependencies
  */
 export const MODES = {
   /**
