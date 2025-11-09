@@ -92,50 +92,13 @@ export const APP_CONFIG = {
 
   /**
    * Critical file detection - files that require comprehensive analysis
-   */
+  */
   critical: {
-    /** Exact file names that are critical */
-    files: ['package.json', 'yarn.lock', 'package-lock.json'],
-    /** Keywords that indicate critical files (checked with includes()) */
+    /** Exact file names that are critical (checked with file.includes(file)) */
+    files: ['package.json'],
+    /** Keywords that indicate critical files (checked with file.includes(keyword)) */
     keywords: ['Controller', 'Engine'],
-    /** Path segments that indicate critical areas */
+    /** Path segments that indicate critical areas (checked with file.includes(path)) */
     paths: ['app/core/'],
-  },
-
-  /**
-   * File categorization patterns
-   * Order matters - first match wins
-   * Each pattern is checked with string.includes() unless specified otherwise
-   */
-  categories: {
-    /** Package/dependency files */
-    dependencies: ['lock', 'package.json'],
-
-    /** Core application logic */
-    core: ['core/', 'Controller'],
-
-    /** Configuration files */
-    config: ['config', 'tsconfig', 'babel', 'metro', 'webpack', 'eslint', 'jest'],
-
-    /** CI/CD and automation */
-    ci: ['.github', 'bitrise', 'workflow', 'action.yml'],
-
-    /** Test files */
-    tests: ['test', 'spec', '__tests__'],
-
-    /** Documentation (markdown files) */
-    docs: { extension: '.md' },
-
-    /** Static assets (images, fonts, etc.) */
-    assets: {
-      paths: ['/images/', '/fonts/', '/assets/'],
-      extensions: ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf'],
-    },
-
-    /** Source code files (fallback category) */
-    app: {
-      extensions: ['.ts', '.tsx', '.js', '.jsx'],
-      exclude: ['node_modules'],
-    },
   },
 };

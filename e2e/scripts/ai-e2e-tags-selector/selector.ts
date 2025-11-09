@@ -9,7 +9,6 @@ import Anthropic from '@anthropic-ai/sdk';
 import { aiE2EConfig } from '../../tags';
 import { AIAnalysis, FileCategorization, ParsedArgs, ToolInput } from './types';
 import { CLAUDE_CONFIG, APP_CONFIG } from './config';
-import { categorizeFiles } from './analysis/file-categorizer';
 import {
   countTestFilesForTags,
   countTestFilesForCombinedPattern,
@@ -22,6 +21,41 @@ import { buildSystemPrompt } from './prompts/system-prompt-builder';
 import { buildAgentPrompt } from './prompts/agent-prompt-builder';
 import { getAllChangedFiles, getPRFiles, validatePRNumber } from './utils/git-utils';
 import { formatAndOutput, createLogger } from './utils/output-formatter';
+
+/**
+ * Identifies critical files from a list of changed files
+ */
+function categorizeFiles(files: string[]): FileCategorization {
+  const { files: criticalFileNames, keywords, paths } = APP_CONFIG.critical;
+
+  const criticalFiles = files.filter(file => {
+    // Check exact file names
+    if (criticalFileNames.includes(file)) {
+      return true;
+    }
+
+    // Check keywords
+    for (const keyword of keywords) {
+      if (file.includes(keyword)) {
+        return true;
+      }
+    }
+
+    // Check critical paths
+    for (const path of paths) {
+      if (file.includes(path)) {
+        return true;
+      }
+    }
+
+    return false;
+  });
+
+  return {
+    allFiles: files,
+    criticalFiles,
+  };
+}
 
 export class AIE2ETagsSelector {
   private anthropic: Anthropic;
@@ -52,7 +86,7 @@ export class AIE2ETagsSelector {
   ): Promise<AIAnalysis> {
 
     const tools = getToolDefinitions();
-    const initialPrompt = buildAgentPrompt(categorization);
+    const initialPrompt = buildAgentPrompt(categorization); //TODO
     let currentMessage: string | Anthropic.MessageParam['content'] = initialPrompt;
     this.conversationHistory = [];
 
@@ -353,7 +387,7 @@ Examples:
       return;
     }
 
-    const categorization = categorizeFiles(allChangedFiles); //TODO!
+    const categorization = categorizeFiles(allChangedFiles);
     if (categorization.criticalFiles.length > 0) {
       this.log(`⚠️  ${categorization.criticalFiles.length} critical files detected`);
     }

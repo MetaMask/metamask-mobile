@@ -29,21 +29,6 @@ export interface ParsedArgs {
 export interface FileCategorization {
   allFiles: string[];
   criticalFiles: string[];
-  categories: FileCategories;
-  summary: Record<string, number>;
-  hasCriticalChanges: boolean;
-}
-
-export interface FileCategories {
-  app: string[];
-  core: string[];
-  dependencies: string[];
-  config: string[];
-  ci: string[];
-  tests: string[];
-  docs: string[];
-  assets: string[];
-  other: string[];
 }
 
 export interface ToolInput {
