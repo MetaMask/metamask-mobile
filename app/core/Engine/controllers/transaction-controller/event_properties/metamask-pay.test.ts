@@ -46,19 +46,6 @@ describe('Metamask Pay Metrics', () => {
     });
   });
 
-  it('returns nothing if predict_deposit', () => {
-    request.transactionMeta.nestedTransactions = [
-      { type: TransactionType.predictDeposit },
-    ];
-
-    const result = getMetaMaskPayProperties(request);
-
-    expect(result).toStrictEqual({
-      properties: {},
-      sensitiveProperties: {},
-    });
-  });
-
   it('copies properties from parent transaction if bridge', () => {
     getUIMetricsMock.mockReturnValue({
       properties: {
@@ -358,5 +345,37 @@ describe('Metamask Pay Metrics', () => {
     const result = getMetaMaskPayProperties(request);
 
     expect(result.properties.mm_pay_dust_usd).toBeUndefined();
+  });
+
+  it('sets polymarket_account_created as true if predict deposit and matching nested transaction', () => {
+    request.transactionMeta.nestedTransactions = [
+      { type: TransactionType.predictDeposit },
+      { data: '0xa1884d2c1234' },
+    ];
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: {
+        polymarket_account_created: true,
+      },
+      sensitiveProperties: {},
+    });
+  });
+
+  it('sets polymarket_account_created as false if predict deposit with no matching nested transaction', () => {
+    request.transactionMeta.nestedTransactions = [
+      { type: TransactionType.predictDeposit },
+      { data: '0xa1884d2d' },
+    ];
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: {
+        polymarket_account_created: false,
+      },
+      sensitiveProperties: {},
+    });
   });
 });

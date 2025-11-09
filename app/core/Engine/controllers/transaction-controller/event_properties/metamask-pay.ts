@@ -5,6 +5,8 @@ import { orderBy } from 'lodash';
 import { NATIVE_TOKEN_ADDRESS } from '../../../../../components/Views/confirmations/constants/tokens';
 import { hasTransactionType } from '../../../../../components/Views/confirmations/utils/transaction';
 
+const FOUR_BYTE_SAFE_PROXY_CREATE = '0xa1884d2c';
+
 const COPY_METRICS = [
   'mm_pay',
   'mm_pay_use_case',
@@ -31,6 +33,12 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
       tx.requiredTransactionIds?.includes(transactionId) ||
       (batchId && hasTransactionType(tx, PAY_TYPES) && tx.batchId === batchId),
   );
+
+  if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
+    properties.polymarket_account_created = (
+      transactionMeta?.nestedTransactions ?? []
+    ).some((t) => t.data?.startsWith(FOUR_BYTE_SAFE_PROXY_CREATE));
+  }
 
   if (hasTransactionType(transactionMeta, PAY_TYPES) || !parentTransaction) {
     return {
