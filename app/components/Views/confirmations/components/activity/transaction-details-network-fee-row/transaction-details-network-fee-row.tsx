@@ -22,7 +22,7 @@ export function TransactionDetailsNetworkFeeRow() {
   const { metamaskPay } = transactionMeta;
   const { networkFeeFiat: payNetworkFeeFiat } = metamaskPay || {};
 
-  const networkFee = estimatedFeeFiatPrecise ?? payNetworkFeeFiat;
+  const networkFee = payNetworkFeeFiat ?? estimatedFeeFiatPrecise;
 
   const networkFeeFormatted = useMemo(
     () => formatFiat(new BigNumber(networkFee ?? 0)),
