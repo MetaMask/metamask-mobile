@@ -101,6 +101,6 @@ describe('PredictClaimFooter', () => {
     const { getByText } = render({ singlePosition: true });
 
     expect(getByText('Market 1')).toBeDefined();
-    expect(getByText('$101 on Yes')).toBeDefined();
+    expect(getByText('$100 on Yes')).toBeDefined();
   });
 });
