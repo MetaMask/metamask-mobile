@@ -500,25 +500,39 @@ export async function withFixtures(
   // Prepare android devices for testing to avoid having this in all tests
   await TestHelpers.reverseServerPort();
 
-  const { mockServerInstance, mockServerPort } =
-    await createMockAPIServer(testSpecificMock);
+  // ========== RESOURCE STARTUP ORDER (IMPORTANT!) ==========
+  // Resources must be started in this specific order to ensure ports are allocated
+  // before they're referenced by subsequent resources, especially in testSpecificMock.
+  //
+  // 1. Local nodes (Anvil/Ganache) - Foundation for contracts and fixtures
+  // 2. Smart contracts - Deploy to local nodes
+  // 3. Dapp servers - May reference contract addresses
+  // 4. Mock server - testSpecificMock can reference all above (dapps, nodes, contracts)
+  // 5. Fixture server - Loads state with proper port mappings
+  //
+  // WHY: testSpecificMock runs during MockServer.start() and may call:
+  // - getTestDappLocalUrl() / getDappUrl() - needs dapp ports allocated (iOS)
+  // - getGanachePort() / AnvilPort() - needs node ports allocated
+  // - Contract addresses from contractRegistry
+  // ==========================================================
 
-  // Handle local nodes
+  // Initialize resource references for cleanup
   let localNodes;
-  // Start servers based on the localNodes array
-  if (!disableLocalNodes) {
-    localNodes = await handleLocalNodes(localNodeOptions);
-  }
-
+  let contractRegistry;
   const dappServer: DappServer[] = [];
+  let mockServerInstance;
+  let mockServerPort;
   const fixtureServer = new FixtureServer();
   const commandQueueServer = new CommandQueueServer();
-
   let testError: Error | null = null;
 
   try {
-    // Handle smart contracts
-    let contractRegistry;
+    // Step 1: Start local nodes (Anvil/Ganache)
+    if (!disableLocalNodes) {
+      localNodes = await handleLocalNodes(localNodeOptions);
+    }
+
+    // Step 2: Deploy smart contracts (needs local nodes running)
     if (
       smartContracts &&
       smartContracts.length > 0 &&
@@ -535,17 +549,21 @@ export async function withFixtures(
       );
     }
 
+    // Step 3: Start dapp servers (may reference contract addresses)
+    if (dapps && dapps.length > 0) {
+      await handleDapps(dapps, dappServer);
+    }
+
+    // Step 4: Start mock server (testSpecificMock can reference everything above)
+    const mockServerResult = await createMockAPIServer(testSpecificMock);
+    mockServerInstance = mockServerResult.mockServerInstance;
+    mockServerPort = mockServerResult.mockServerPort;
     // Resolve fixture after local nodes are started so dynamic ports are known
     let resolvedFixture: FixtureBuilder;
     if (typeof fixtureOption === 'function') {
       resolvedFixture = await fixtureOption({ localNodes });
     } else {
       resolvedFixture = fixtureOption;
-    }
-
-    // Handle dapps
-    if (dapps && dapps.length > 0) {
-      await handleDapps(dapps, dappServer);
     }
 
     // Start fixture server
@@ -602,7 +620,7 @@ export async function withFixtures(
   } finally {
     const cleanupErrors: Error[] = [];
 
-    if (endTestfn) {
+    if (endTestfn && mockServerInstance) {
       try {
         // Pass the mockServer to the endTestfn if it exists as we may want
         // to capture events before cleanup
@@ -677,12 +695,14 @@ export async function withFixtures(
       }
     }
 
-    try {
-      // Validate live requests
-      mockServerInstance.validateLiveRequests();
-    } catch (cleanupError) {
-      logger.error('Error during live request validation:', cleanupError);
-      cleanupErrors.push(cleanupError as Error);
+    if (mockServerInstance) {
+      try {
+        // Validate live requests
+        mockServerInstance.validateLiveRequests();
+      } catch (cleanupError) {
+        logger.error('Error during live request validation:', cleanupError);
+        cleanupErrors.push(cleanupError as Error);
+      }
     }
 
     // Handle error reporting: prioritize test error over cleanup errors
