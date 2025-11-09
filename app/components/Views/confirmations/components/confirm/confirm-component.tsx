@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 import { BackHandler, TouchableWithoutFeedback, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
@@ -162,31 +162,17 @@ function Loader() {
 
   if (loader === ConfirmationLoader.CustomAmount) {
     return (
-      <SafeAreaView
-        edges={['right', 'bottom', 'left']}
-        style={styles.flatContainer}
-        testID="confirm-loader-custom-amount"
-      >
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollViewContent}
-        >
-          <CustomAmountInfoSkeleton />
-        </ScrollView>
-      </SafeAreaView>
+      <InfoLoader testId="confirm-loader-custom-amount">
+        <CustomAmountInfoSkeleton />
+      </InfoLoader>
     );
   }
 
   if (loader === ConfirmationLoader.PredictClaim) {
     return (
-      <View style={styles.flatContainer} testID="confirm-loader-custom-amount">
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollViewContent}
-        >
-          <PredictClaimInfoSkeleton />
-        </ScrollView>
-      </View>
+      <InfoLoader testId="confirm-loader-predict-claim">
+        <PredictClaimInfoSkeleton />
+      </InfoLoader>
     );
   }
 
@@ -194,6 +180,31 @@ function Loader() {
     <View style={styles.spinnerContainer} testID="confirm-loader-default">
       <AnimatedSpinner size={SpinnerSize.MD} />
     </View>
+  );
+}
+
+function InfoLoader({
+  children,
+  testId,
+}: {
+  children: ReactNode;
+  testId?: string;
+}) {
+  const { styles } = useStyles(styleSheet, { isFullScreenConfirmation: true });
+
+  return (
+    <SafeAreaView
+      edges={['right', 'bottom', 'left']}
+      style={styles.flatContainer}
+      testID={testId}
+    >
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+      >
+        {children}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
