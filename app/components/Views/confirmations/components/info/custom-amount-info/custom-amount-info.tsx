@@ -54,6 +54,7 @@ import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { getNativeTokenAddress } from '../../../utils/asset';
 import { toCaipAssetType } from '@metamask/utils';
 import { AlignItems } from '../../../../../UI/Box/box.types';
+import { strings } from '../../../../../../../locales/i18n';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -218,7 +219,7 @@ function BuySection() {
         Add funds to your wallet to use Predictions.
       </Text>
       <Button
-        label="Buy crypto"
+        label={strings('confirm.custom_amount.buy_button')}
         variant={ButtonVariants.Primary}
         onPress={handleBuyPress}
         width={ButtonWidthTypes.Full}

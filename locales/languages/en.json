@@ -5791,6 +5791,9 @@
       "footer_bottom": "Funds will be added to your available balance",
       "footer_top": "Winnings from {{count}} markets"
     },
+    "custom_amount": {
+      "buy_button": "Buy crypto"
+    },
     "unlimited": "Unlimited",
     "all": "All",
     "none": "None",
