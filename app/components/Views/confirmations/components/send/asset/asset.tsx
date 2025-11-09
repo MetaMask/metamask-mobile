@@ -125,7 +125,11 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
         <TextFieldSearch
           value={searchQuery}
           onChangeText={setSearchQuery}
-          placeholder={strings('send.search_tokens_and_nfts')}
+          placeholder={
+            hideNfts
+              ? strings('send.search_tokens')
+              : strings('send.search_tokens_and_nfts')
+          }
           size={TextFieldSize.Lg}
           showClearButton={searchQuery.length > 0}
           onPressClearButton={clearSearch}
