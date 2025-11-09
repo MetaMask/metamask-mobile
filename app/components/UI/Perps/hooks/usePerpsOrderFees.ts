@@ -3,7 +3,10 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { useRewardsEnabled } from '../../../../components/hooks/FeatureFlags/useRewardsEnabled';
+import {
+  useFeatureFlag,
+  FeatureFlagNames,
+} from '../../../hooks/FeatureFlags/useFeatureFlag';
 import { selectChainId } from '../../../../selectors/networkController';
 
 import { setMeasurement } from '@sentry/react-native';
@@ -113,7 +116,9 @@ export function usePerpsOrderFees({
   currentBidPrice,
 }: UsePerpsOrderFeesParams): OrderFeesResult {
   const { calculateFees } = usePerpsTrading();
-  const rewardsEnabled = useRewardsEnabled();
+  const rewardsEnabled = useFeatureFlag(
+    FeatureFlagNames.rewardsEnabled,
+  ) as boolean;
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );

@@ -2,7 +2,10 @@ import { useNavigation } from '@react-navigation/native';
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectRewardsAnnouncementModalEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
-import { useRewardsEnabled } from '../../../../components/hooks/FeatureFlags/useRewardsEnabled';
+import {
+  useFeatureFlag,
+  FeatureFlagNames,
+} from '../../../hooks/FeatureFlags/useFeatureFlag';
 import { selectMultichainAccountsIntroModalSeen } from '../../../../reducers/user';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import {
@@ -32,7 +35,9 @@ export const useRewardsIntroModal = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
 
-  const isRewardsFeatureEnabled = useRewardsEnabled();
+  const isRewardsFeatureEnabled = useFeatureFlag(
+    FeatureFlagNames.rewardsEnabled,
+  ) as boolean;
   const isRewardsAnnouncementEnabled = useSelector(
     selectRewardsAnnouncementModalEnabledFlag,
   );

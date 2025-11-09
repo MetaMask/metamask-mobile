@@ -1,7 +1,10 @@
 import { useCallback } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
-import { useRewardsEnabled } from '../../../../components/hooks/FeatureFlags/useRewardsEnabled';
+import {
+  useFeatureFlag,
+  FeatureFlagNames,
+} from '../../../hooks/FeatureFlags/useFeatureFlag';
 import type { PerpsNavigationParamList } from '../types/navigation';
 import type { PerpsMarketData } from '../controllers/types';
 
@@ -61,7 +64,9 @@ export interface PerpsNavigationHandlers {
  */
 export const usePerpsNavigation = (): PerpsNavigationHandlers => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const isRewardsEnabled = useRewardsEnabled();
+  const isRewardsEnabled = useFeatureFlag(
+    FeatureFlagNames.rewardsEnabled,
+  ) as boolean;
 
   // Main app navigation handlers
   const navigateToWallet = useCallback(() => {
