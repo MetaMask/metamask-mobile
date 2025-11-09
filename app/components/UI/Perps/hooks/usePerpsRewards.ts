@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useRewardsEnabled } from '../../../../components/hooks/FeatureFlags/useRewardsEnabled';
+import {
+  useFeatureFlag,
+  FeatureFlagNames,
+} from '../../../hooks/FeatureFlags/useFeatureFlag';
 import { DEVELOPMENT_CONFIG } from '../constants/perpsConfig';
 import { OrderFeesResult } from './usePerpsOrderFees';
 
@@ -42,7 +45,9 @@ export const usePerpsRewards = ({
   orderAmount = '',
 }: UsePerpsRewardsParams): UsePerpsRewardsResult => {
   // Get rewards feature flag
-  const rewardsEnabled = useRewardsEnabled();
+  const rewardsEnabled = useFeatureFlag(
+    FeatureFlagNames.rewardsEnabled,
+  ) as boolean;
 
   // Track previous points to detect refresh state
   const [previousPoints, setPreviousPoints] = useState<number | undefined>();

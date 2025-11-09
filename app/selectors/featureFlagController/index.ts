@@ -15,9 +15,3 @@ export const selectRemoteFeatureFlags = createSelector(
     return remoteFeatureFlagControllerState?.remoteFeatureFlags ?? {};
   },
 );
-
-export enum FeatureFlagNames {
-  rewardsEnabled = 'rewardsEnabled',
-  rewardsEnableCardSpend = 'rewardsEnableCardSpend',
-  rewardsAnnouncementModalEnabled = 'rewardsAnnouncementModalEnabled',
-}
