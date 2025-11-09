@@ -24,6 +24,7 @@ export interface ParsedArgs {
   output: 'console' | 'json';
   changedFiles?: string;
   prNumber?: number;
+  mode?: string;
 }
 
 export interface FileCategorization {

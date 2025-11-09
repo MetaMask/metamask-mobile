@@ -1,42 +1,15 @@
 /**
- * Agent Prompt Builder
+ * Task Prompt Builder
  *
- * Builds the initial prompt for the AI agent based on changed files
+ * Builds the task prompt (initial user message) based on changed files
  */
 
 import { FileCategorization } from '../types';
-import { APP_CONFIG } from '../config';
 
 /**
- * Explains why a file is marked as critical
+ * Builds the task prompt from file categorization
  */
-function explainCritical(file: string): string {
-  const reasons: string[] = [];
-  const { files, keywords, paths } = APP_CONFIG.critical;
-
-  if (files.includes(file)) {
-    reasons.push('exact match');
-  }
-
-  keywords.forEach(keyword => {
-    if (file.includes(keyword)) {
-      reasons.push(`contains '${keyword}'`);
-    }
-  });
-
-  paths.forEach(path => {
-    if (file.includes(path)) {
-      reasons.push(`in '${path}'`);
-    }
-  });
-
-  return reasons.length > 0 ? ` [${reasons.join(', ')}]` : '';
-}
-
-/**
- * Builds the agent prompt from file categorization
- */
-export function buildAgentPrompt(
+export function buildTaskPrompt(
   categorization: FileCategorization
 ): string {
   const { allFiles, criticalFiles } = categorization;
@@ -44,10 +17,10 @@ export function buildAgentPrompt(
 
   const fileList: string[] = [];
 
-  // Critical files first with explanation
+  // Critical files first
   if (criticalFiles.length > 0) {
     fileList.push('⚠️  CRITICAL FILES (examine carefully):');
-    criticalFiles.forEach(f => fileList.push(`  ${f}${explainCritical(f)}`));
+    criticalFiles.forEach(f => fileList.push(`  ${f}`));
     fileList.push('');
   }
 

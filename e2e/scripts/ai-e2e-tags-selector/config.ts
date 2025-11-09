@@ -92,13 +92,65 @@ export const APP_CONFIG = {
 
   /**
    * Critical file detection - files that require comprehensive analysis
-  */
+   *
+   * Three ways to define critical files:
+   * 1. Exact file names (e.g., 'package.json')
+   * 2. Keywords anywhere in path (e.g., 'Controller' matches 'WalletController.ts')
+   * 3. Path segments (e.g., 'app/core/' matches anything in that directory)
+   */
   critical: {
-    /** Exact file names that are critical (checked with file.includes(file)) */
+    /** Exact file names that are critical */
     files: ['package.json'],
-    /** Keywords that indicate critical files (checked with file.includes(keyword)) */
+
+    /** Keywords that indicate critical files (checked with includes()) */
     keywords: ['Controller', 'Engine'],
-    /** Path segments that indicate critical areas (checked with file.includes(path)) */
+
+    /** Path segments that indicate critical areas */
     paths: ['app/core/'],
   },
 };
+
+/**
+ * Operation Modes
+ *
+ * Different analysis modes for various use cases.
+ * Each mode uses the same tools but different prompts and logic.
+ */
+export const MODES = {
+  /**
+   * E2E Tag Selection Mode (Current - CI/CD)
+   * Analyzes code changes and selects appropriate E2E smoke test tags to run
+   */
+  'select-tags': {
+    name: 'E2E Tag Selection',
+    description: 'Analyze code changes and select E2E test tags to run',
+    defaultMode: true,
+  },
+
+  // Future modes (commented - ready for implementation):
+  // 'suggest-migration': {
+  //   name: 'Test Migration Suggestions',
+  //   description: 'Identify E2E tests that could be converted to unit/integration tests',
+  //   defaultMode: false,
+  // },
+  //
+  // 'analyze-coverage': {
+  //   name: 'Coverage Gap Analysis',
+  //   description: 'Find code paths missing E2E test coverage',
+  //   defaultMode: false,
+  // },
+  //
+  // 'detect-flaky': {
+  //   name: 'Flaky Test Detection',
+  //   description: 'Analyze test failures and identify flaky tests',
+  //   defaultMode: false,
+  // },
+  //
+  // 'self-healing': {
+  //   name: 'Self-Healing Recommendations',
+  //   description: 'Suggest test updates for UI/selector changes',
+  //   defaultMode: false,
+  // },
+} as const;
+
+export type ModeKey = keyof typeof MODES;

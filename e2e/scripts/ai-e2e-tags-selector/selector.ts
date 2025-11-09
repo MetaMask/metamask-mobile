@@ -8,7 +8,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { aiE2EConfig } from '../../tags';
 import { AIAnalysis, FileCategorization, ParsedArgs, ToolInput } from './types';
-import { CLAUDE_CONFIG, APP_CONFIG } from './config';
+import { CLAUDE_CONFIG, APP_CONFIG, MODES, ModeKey } from './config';
 import {
   countTestFilesForTags,
   countTestFilesForCombinedPattern,
@@ -18,7 +18,7 @@ import { parseAgentDecision, createFallbackAnalysis } from './analysis/decision-
 import { getToolDefinitions } from './ai-tools/tool-registry';
 import { executeTool } from './ai-tools/tool-executor';
 import { buildSystemPrompt } from './prompts/system-prompt-builder';
-import { buildAgentPrompt } from './prompts/agent-prompt-builder';
+import { buildTaskPrompt } from './prompts/task-prompt-builder';
 import { getAllChangedFiles, getPRFiles, validatePRNumber } from './utils/git-utils';
 import { formatAndOutput, createLogger } from './utils/output-formatter';
 
@@ -65,6 +65,7 @@ export class AIE2ETagsSelector {
   private readonly baseDir = process.cwd();
   private baseBranch = APP_CONFIG.defaultBaseBranch;
   private githubRepo = APP_CONFIG.githubRepo;
+  private mode: ModeKey = 'select-tags';
   private log: (message: string) => void;
 
   constructor(apiKey: string) {
@@ -79,15 +80,33 @@ export class AIE2ETagsSelector {
   }
 
   /**
+   * Validates and sets the operation mode
+   */
+  private setMode(modeInput?: string): void {
+    if (!modeInput) {
+      this.mode = 'select-tags'; // Default mode
+      return;
+    }
+
+    if (!(modeInput in MODES)) {
+      const validModes = Object.keys(MODES).join(', ');
+      throw new Error(`Invalid mode: ${modeInput}. Valid modes: ${validModes}`);
+    }
+
+    this.mode = modeInput as ModeKey;
+  }
+
+  /**
    * Main analysis method using AI agent with tools
    */
   async analyzeWithAgent(
     categorization: FileCategorization
   ): Promise<AIAnalysis> {
-
+    // Note: In the future, different modes can use different prompt builders
+    // For now, only 'select-tags' mode is implemented
     const tools = getToolDefinitions();
-    const initialPrompt = buildAgentPrompt(categorization); //TODO
-    let currentMessage: string | Anthropic.MessageParam['content'] = initialPrompt;
+    const taskPrompt = buildTaskPrompt(categorization);
+    let currentMessage: string | Anthropic.MessageParam['content'] = taskPrompt;
     this.conversationHistory = [];
 
     for (let iteration = 0; iteration < CLAUDE_CONFIG.maxIterations; iteration++) {
@@ -261,12 +280,17 @@ export class AIE2ETagsSelector {
   parseArgs(args: string[]): ParsedArgs {
     const options: ParsedArgs = {
       baseBranch: APP_CONFIG.defaultBaseBranch,
-      output: 'console'
+      output: 'console',
+      mode: 'select-tags' // Default mode
     };
 
     for (let i = 0; i < args.length; i++) {
       const arg = args[i];
       switch (arg) {
+        case '--mode':
+        case '-m':
+          options.mode = args[++i];
+          break;
         case '--base-branch':
         case '-b':
           options.baseBranch = args[++i];
@@ -300,44 +324,45 @@ export class AIE2ETagsSelector {
    * Shows help message
    */
   showHelp(): void {
+    const modeList = Object.entries(MODES)
+      .map(([key, mode]) => `  ${key.padEnd(20)} ${mode.description}`)
+      .join('\n');
+
     console.log(`
-Smart E2E test selector based on code changes
+Smart E2E AI Analyzer
 
-AI flow (using the provided tools and context):
-1. AI gets list of changed files: "Engine.ts, Logger.ts"
-2. AI thinks: "Engine is critical, let me check"
-   → Calls: get_git_diff("Engine.ts")
-3. AI sees: "Changed transaction handling"
-   → Calls: find_related_files("Engine.ts", "importers")
-4. AI discovers: "Used by 50+ files!"
-5. AI decides: "This is HIGH RISK"
-   → Calls: finalize_decision({
-       selected_tags: ["SmokeCore", "SmokeAccounts"],
-       risk_level: "high",
-       ...
-     })
+AVAILABLE MODES:
+${modeList}
 
-Local usage: yarn ai-e2e [options]
+AI AGENTIC FLOW:
+1. AI gets list of changed files
+2. AI calls tools to investigate (get_git_diff, find_related_files, etc.)
+3. AI thinks deeply about impacts
+4. AI makes decision using finalize_decision tool
+
+Usage: yarn ai-e2e [options]
 
 Options:
+  -m, --mode <mode>             Analysis mode (default: select-tags)
   -b, --base-branch <branch>    Base branch for comparison (default: origin/main)
   -o, --output <mode>           Output mode: console|json (default: console)
-  --changed-files <files>       Provide changed files directly (default: git diff to check all changed files)
-  --pr <number>                 Get the changed files from a specific PR
+  --changed-files <files>       Provide changed files directly
+  --pr <number>                 Get changed files from a specific PR
   -h, --help                    Show this help message
 
 Examples:
-  # Analyze current branch (compares HEAD to origin/main)
+  # Analyze current branch (default: select-tags mode)
   yarn ai-e2e
 
-  # Analyze with explicit files
-  yarn ai-e2e --changed-files "app/core/Engine.ts"
+  # Specific mode
+  yarn ai-e2e --mode select-tags
 
-  # Analyze specific PR (fetches diff from GitHub)
-  yarn ai-e2e --pr 12345
+  # Analyze PR in CI
+  yarn ai-e2e --pr 12345 --output json
 
-  # JSON output for CI/CD
-  yarn ai-e2e --output json
+  # Future modes (to be implemented):
+  # yarn ai-e2e --mode suggest-migration
+  # yarn ai-e2e --mode analyze-coverage
     `);
   }
 
@@ -356,9 +381,14 @@ Examples:
     const options = this.parseArgs(args);
 
     // Set instance properties from options
+    this.setMode(options.mode);
     this.baseBranch = options.baseBranch;
     this.isQuietMode = options.output === 'json';
     this.log = createLogger(this.isQuietMode);
+
+    // Log current mode
+    const currentMode = MODES[this.mode];
+    this.log(`🎯 Mode: ${currentMode.name}`);
 
     // Get changed files
     let allChangedFiles: string[];
