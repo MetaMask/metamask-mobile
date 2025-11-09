@@ -201,6 +201,7 @@ export const useRewardsAnimation = ({
     // Ensure animated value is set to current value when entering Idle state
     // This fixes the issue where transitioning from Loading to Idle with the same value
     // would leave the display stuck at 0
+    /* istanbul ignore next - Reanimated shared value mutation not tracked by Istanbul */
     if (animatedValue.value !== currentValue) {
       animatedValue.value = withTiming(currentValue, {
         duration: ANIMATION_DURATION.FAST,
@@ -267,6 +268,7 @@ export const useRewardsAnimation = ({
 
     // Ensure animated value is set to current value when entering RefreshFinished state
     // This ensures the display shows the correct value after a refresh
+    /* istanbul ignore next - Reanimated shared value mutation not tracked by Istanbul */
     if (animatedValue.value !== value) {
       animatedValue.value = withTiming(value, {
         duration: ANIMATION_DURATION.FAST,
