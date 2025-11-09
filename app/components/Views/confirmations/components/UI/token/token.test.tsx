@@ -129,4 +129,18 @@ describe('Token', () => {
 
     expect(getByText('Native SegWit')).toBeOnTheScreen();
   });
+
+  it('renders disabled message when token is disabled', () => {
+    const mockToken = createMockToken({
+      accountType: BtcAccountType.P2wpkh,
+      disabled: true,
+      disabledMessage: 'Disabled Test',
+    });
+
+    const { getByText } = renderWithProvider(
+      <Token asset={mockToken} onPress={mockOnPress} />,
+    );
+
+    expect(getByText('Disabled Test')).toBeOnTheScreen();
+  });
 });

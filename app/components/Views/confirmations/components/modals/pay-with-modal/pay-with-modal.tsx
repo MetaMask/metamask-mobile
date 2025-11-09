@@ -75,7 +75,10 @@ export function PayWithModal() {
           );
 
           const disabled = new BigNumber(nativeToken?.balance ?? 0).isZero();
-          const disabledMessage = disabled ? 'No native balance for gas' : '';
+
+          const disabledMessage = disabled
+            ? strings('pay_with_modal.no_gas')
+            : undefined;
 
           return {
             ...token,
