@@ -17,6 +17,10 @@ export function PayWithModal() {
   const requiredTokens = useTransactionPayRequiredTokens();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
+  const handleClose = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
       setPayToken({
@@ -24,9 +28,9 @@ export function PayWithModal() {
         chainId: token.chainId as Hex,
       });
 
-      bottomSheetRef.current?.onCloseBottomSheet();
+      handleClose();
     },
-    [setPayToken],
+    [handleClose, setPayToken],
   );
 
   const getAvailableTokens = useCallback(
@@ -92,7 +96,9 @@ export function PayWithModal() {
 
   return (
     <BottomSheet isFullscreen ref={bottomSheetRef}>
-      <BottomSheetHeader>{strings('pay_with_modal.title')}</BottomSheetHeader>
+      <BottomSheetHeader onClose={handleClose}>
+        {strings('pay_with_modal.title')}
+      </BottomSheetHeader>
       <Asset
         includeNoBalance
         hideNfts
