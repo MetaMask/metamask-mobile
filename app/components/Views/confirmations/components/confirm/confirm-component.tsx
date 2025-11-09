@@ -29,10 +29,12 @@ import { CustomAmountInfoSkeleton } from '../info/custom-amount-info';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { hasTransactionType } from '../../utils/transaction';
+import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
 
 export enum ConfirmationLoader {
   Default = 'default',
   CustomAmount = 'customAmount',
+  PredictClaim = 'predictClaim',
 }
 
 export interface ConfirmationParams {
@@ -172,6 +174,19 @@ function Loader() {
           <CustomAmountInfoSkeleton />
         </ScrollView>
       </SafeAreaView>
+    );
+  }
+
+  if (loader === ConfirmationLoader.PredictClaim) {
+    return (
+      <View style={styles.flatContainer} testID="confirm-loader-custom-amount">
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
+        >
+          <PredictClaimInfoSkeleton />
+        </ScrollView>
+      </View>
     );
   }
 
