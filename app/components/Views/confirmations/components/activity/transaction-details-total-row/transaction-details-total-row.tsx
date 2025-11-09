@@ -9,10 +9,7 @@ import { hasTransactionType } from '../../../utils/transaction';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { BigNumber } from 'bignumber.js';
 
-const FALLBACK_TYPES = [
-  TransactionType.predictClaim,
-  TransactionType.predictWithdraw,
-];
+const FALLBACK_TYPES = [TransactionType.predictWithdraw];
 
 export function TransactionDetailsTotalRow() {
   const formatFiat = useFiatFormatter({ currency: 'usd' });

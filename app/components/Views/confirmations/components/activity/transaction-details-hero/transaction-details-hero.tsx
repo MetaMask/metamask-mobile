@@ -22,7 +22,6 @@ import { Hex } from '@metamask/utils';
 
 const SUPPORTED_TYPES = [
   TransactionType.perpsDeposit,
-  TransactionType.predictClaim,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
 ];

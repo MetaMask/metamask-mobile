@@ -41,7 +41,7 @@ export const useFeeCalculations = (
     gas: string;
     shouldUseEIP1559FeeLogic: boolean;
     priorityFeePerGas: string;
-    receiptGasPrice: string | undefined;
+    receiptGasPrice?: string;
   }) => {
     currentCurrencyFee: string | null;
     nativeCurrencyFee: string | null;
@@ -124,7 +124,7 @@ export const useFeeCalculations = (
       gasPrice: string;
       gas: string;
       shouldUseEIP1559FeeLogic: boolean;
-      receiptGasPrice: string | undefined;
+      receiptGasPrice?: string;
     }) =>
       calculateGasEstimate({
         feePerGas,
