@@ -5792,7 +5792,9 @@
       "footer_top": "Winnings from {{count}} markets"
     },
     "custom_amount": {
-      "buy_button": "Buy crypto"
+      "buy_button": "Buy crypto",
+      "buy_predict": "Add funds to your wallet to use Predictions.",
+      "buy_perps": "Add funds to your wallet to use Perps."
     },
     "unlimited": "Unlimited",
     "all": "All",

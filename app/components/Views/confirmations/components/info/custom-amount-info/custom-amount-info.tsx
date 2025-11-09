@@ -55,6 +55,9 @@ import { getNativeTokenAddress } from '../../../utils/asset';
 import { toCaipAssetType } from '@metamask/utils';
 import { AlignItems } from '../../../../../UI/Box/box.types';
 import { strings } from '../../../../../../../locales/i18n';
+import { hasTransactionType } from '../../../utils/transaction';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { TransactionType } from '@metamask/transaction-controller';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -180,6 +183,7 @@ export function CustomAmountInfoSkeleton() {
 }
 
 function BuySection() {
+  const transactionMeta = useTransactionMetadataRequest();
   const tokens = useAccountTokens({ includeNoBalance: true });
   const requiredTokens = useTransactionPayRequiredTokens();
 
@@ -213,11 +217,23 @@ function BuySection() {
     });
   }, [assetId, goToRamps]);
 
+  let message: string | undefined;
+
+  if (hasTransactionType(transactionMeta, [TransactionType.perpsDeposit])) {
+    message = strings('confirm.custom_amount.buy_perps');
+  }
+
+  if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
+    message = strings('confirm.custom_amount.buy_predict');
+  }
+
   return (
     <Box alignItems={AlignItems.center} gap={20}>
-      <Text variant={TextVariant.BodySM} color={TextColor.Error}>
-        Add funds to your wallet to use Predictions.
-      </Text>
+      {message && (
+        <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+          {message}
+        </Text>
+      )}
       <Button
         label={strings('confirm.custom_amount.buy_button')}
         variant={ButtonVariants.Primary}
