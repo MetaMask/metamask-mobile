@@ -80,7 +80,7 @@ export const FeatureFlagOverrideProvider: React.FC<
     }));
   }, []);
 
-  const takeSnapshot = useCallback((featureFlagInfo: FeatureFlagInfo) => {
+  const takeSnapshot = (featureFlagInfo: FeatureFlagInfo) => {
     if (featureFlagInfo.type === 'boolean') {
       setFeatureFlagSnapshots((prev) => ({
         ...prev,
@@ -94,7 +94,7 @@ export const FeatureFlagOverrideProvider: React.FC<
         ).enabled,
       }));
     }
-  }, []);
+  };
 
   const removeOverride = useCallback((key: string) => {
     setOverrides((prev) => {
