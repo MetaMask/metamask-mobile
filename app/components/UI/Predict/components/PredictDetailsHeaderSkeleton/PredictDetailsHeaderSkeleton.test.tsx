@@ -1,10 +1,16 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { NavigationContainer } from '@react-navigation/native';
 import PredictDetailsHeaderSkeleton from './PredictDetailsHeaderSkeleton';
+
+const renderWithNavigation = (component: React.ReactElement) =>
+  render(<NavigationContainer>{component}</NavigationContainer>);
 
 describe('PredictDetailsHeaderSkeleton', () => {
   it('renders header skeleton with all elements', () => {
-    const { getByTestId } = render(<PredictDetailsHeaderSkeleton />);
+    const { getByTestId } = renderWithNavigation(
+      <PredictDetailsHeaderSkeleton />,
+    );
 
     expect(
       getByTestId('predict-details-header-skeleton-back-button'),
@@ -18,7 +24,7 @@ describe('PredictDetailsHeaderSkeleton', () => {
 
   it('renders with custom testID', () => {
     const customTestId = 'custom-header-skeleton';
-    const { getByTestId } = render(
+    const { getByTestId } = renderWithNavigation(
       <PredictDetailsHeaderSkeleton testID={customTestId} />,
     );
 
@@ -29,7 +35,9 @@ describe('PredictDetailsHeaderSkeleton', () => {
   });
 
   it('matches snapshot', () => {
-    const tree = render(<PredictDetailsHeaderSkeleton />).toJSON();
+    const tree = renderWithNavigation(
+      <PredictDetailsHeaderSkeleton />,
+    ).toJSON();
     expect(tree).toMatchSnapshot();
   });
 });

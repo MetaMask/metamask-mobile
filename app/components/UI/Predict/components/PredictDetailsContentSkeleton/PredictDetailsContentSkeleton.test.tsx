@@ -21,7 +21,10 @@ describe('PredictDetailsContentSkeleton', () => {
       getByTestId('predict-details-content-skeleton-option-2-subtitle'),
     ).toBeTruthy();
     expect(
-      getByTestId('predict-details-content-skeleton-option-2-value'),
+      getByTestId('predict-details-content-skeleton-option-2-value-1'),
+    ).toBeTruthy();
+    expect(
+      getByTestId('predict-details-content-skeleton-option-2-value-2'),
     ).toBeTruthy();
 
     // Outcome Card 2
@@ -35,7 +38,10 @@ describe('PredictDetailsContentSkeleton', () => {
       getByTestId('predict-details-content-skeleton-option-3-subtitle'),
     ).toBeTruthy();
     expect(
-      getByTestId('predict-details-content-skeleton-option-3-value'),
+      getByTestId('predict-details-content-skeleton-option-3-value-1'),
+    ).toBeTruthy();
+    expect(
+      getByTestId('predict-details-content-skeleton-option-3-value-2'),
     ).toBeTruthy();
   });
 
