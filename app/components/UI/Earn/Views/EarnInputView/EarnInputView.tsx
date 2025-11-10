@@ -655,7 +655,7 @@ const EarnInputView = () => {
           currency_type: !isFiat ? 'fiat' : 'native',
           experience: earnToken?.experience?.type,
           token_symbol: earnToken?.symbol,
-          chain_id: earnToken?.chainId,
+          chain_id: earnToken?.chainId ? toHex(earnToken.chainId) : undefined,
         })
         .build(),
     );

@@ -1,3 +1,4 @@
+import { toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
 import {
   useFocusEffect,
@@ -577,7 +578,9 @@ const EarnWithdrawInputView = () => {
             currency_type: isFiat ? 'native' : 'fiat',
             experience: receiptToken?.experience?.type,
             token_symbol: receiptToken?.symbol,
-            chain_id: receiptToken?.chainId,
+            chain_id: receiptToken?.chainId
+              ? toHex(receiptToken.chainId)
+              : undefined,
           })
           .build(),
       );
@@ -594,7 +597,9 @@ const EarnWithdrawInputView = () => {
             currency_type: isFiat ? 'native' : 'fiat',
             experience: receiptToken?.experience?.type,
             token_symbol: receiptToken?.symbol,
-            chain_id: receiptToken?.chainId,
+            chain_id: receiptToken?.chainId
+              ? toHex(receiptToken.chainId)
+              : undefined,
           })
           .build(),
       );
