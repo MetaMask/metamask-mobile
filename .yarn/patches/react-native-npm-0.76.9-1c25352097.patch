@@ -2,12 +2,16 @@ diff --git a/Libraries/Pressability/Pressability.js b/Libraries/Pressability/Pre
 index 1bd6853b4202e4f726e80709660f6d049a4fc741..005008a26a5e07ae697098c82cce03dc86791635 100644
 --- a/Libraries/Pressability/Pressability.js
 +++ b/Libraries/Pressability/Pressability.js
-@@ -806,7 +806,7 @@ export default class Pressability {
+@@ -806,7 +806,11 @@ export default class Pressability {
      if (typeof this._responderID === 'number') {
        UIManager.measure(this._responderID, this._measureCallback);
      } else {
 -      this._responderID.measure(this._measureCallback);
-+      this._responderID.measureAsyncOnUI(this._measureCallback);
++      // On Android, use async measurement to avoid UI thread blocking
++      // On iOS, use synchronous measurement (measureAsyncOnUI not needed)
++      Platform.OS === 'android'
++        ? this._responderID.measureAsyncOnUI(this._measureCallback)
++        : this._responderID.measure(this._measureCallback);
      }
    }
  
@@ -66,12 +70,13 @@ diff --git a/React/Fabric/RCTScheduler.mm b/React/Fabric/RCTScheduler.mm
 index 29ea406343dde1a6655c8d8523ec71919a188c82..747a4ea7bf92f4ea6986908526a9236c75e59437 100644
 --- a/React/Fabric/RCTScheduler.mm
 +++ b/React/Fabric/RCTScheduler.mm
-@@ -68,6 +68,10 @@ void schedulerDidSendAccessibilityEvent(const ShadowView &shadowView, const std:
+@@ -68,6 +68,11 @@ void schedulerDidSendAccessibilityEvent(const ShadowView &shadowView, const std:
      [scheduler.delegate schedulerDidSendAccessibilityEvent:shadowView eventType:eventType];
    }
  
 +  void schedulerMeasureAsync(const ShadowView& shadowView, const std::function<void(folly::dynamic)> &callback) override {
-+    // iOS: Empty stub - on iOS this is never called because the C++ bindings handle it directly
++    // iOS: Stub implementation - not called because Pressability.js uses Platform.OS check
++    // to call regular measure() on iOS instead of measureAsyncOnUI()
 +  }
 +
   private:
