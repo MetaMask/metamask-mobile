@@ -1866,7 +1866,9 @@
       "net_pnl": "Net P&L",
       "total_net_pnl": "Total Net P&L",
       "market_net_pnl": "Market Net P&L",
-      "activity_details": "Activity details"
+      "activity_details": "Activity details",
+      "today": "Today",
+      "yesterday": "Yesterday"
     },
     "claim": {
       "toasts": {
