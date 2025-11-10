@@ -63,9 +63,11 @@ export default function useRampsSmartRouting() {
 
       try {
         const baseUrl = getBaseUrl();
-        const response = await fetch(
-          `${baseUrl}/regions/countries/${rampGeodetectedRegion}`,
-        );
+        const url = new URL(
+          `/regions/countries/${rampGeodetectedRegion}`,
+          baseUrl,
+        ).toString();
+        const response = await fetch(url);
 
         if (!response.ok) {
           throw new Error(
