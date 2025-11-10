@@ -198,12 +198,32 @@ enum EVENT_NAME {
   // Key Management
   ANDROID_HARDWARE_KEYSTORE = 'Android Hardware Keystore',
 
-  // QR Hardware Wallet
+  // Common Hardware Wallet
+  ADD_HARDWARE_WALLET = 'Clicked Add Hardware Wallet',
   CONNECT_HARDWARE_WALLET = 'Clicked Connect Hardware Wallet',
+  HARDWARE_WALLET_MARKETING = 'Hardware wallet Marketing Button Clicked',
+  HARDWARE_WALLET_PERMISSION_REQUEST = 'Clicked Hardware Wallet Permission request',
+  HARDWARE_WALLET_CONNECT_INSTRUCTIONS = 'Connect Hardware Wallet Instructions Viewed',
+  HARDWARE_WALLET_FOUND = 'Connect Hardware Wallet Device Found',
+  HARDWARE_WALLET_CONTINUE_CONNECTION = 'Connect Hardware Wallet Continue Button Clicked',
+  HARDWARE_WALLET_CONNECTION_ERROR = 'Error Connecting Hardware Wallet',
+  HARDWARE_WALLET_CONNECTION_RETRY = 'Error Connecting Hardware Wallet Retry Button Click',
+  HARDWARE_WALLET_ACCOUNT_SELECTOR_OPEN = 'Connect Hardware Wallet Account Selector Viewed',
+  HARDWARE_WALLET_ADD_ACCOUNT = 'Connected Account with hardware wallet',
+  HARDWARE_WALLET_FORGOTTEN = 'Hardware wallet forgotten',
+
+  // QR Hardware Wallet
   CONTINUE_QR_HARDWARE_WALLET = 'Clicked Continue QR Hardware Wallet',
   CONNECT_HARDWARE_WALLET_SUCCESS = 'Connected Account with hardware wallet',
   QR_HARDWARE_TRANSACTION_CANCELED = 'User canceled QR hardware transaction',
   HARDWARE_WALLET_ERROR = 'Hardware wallet error',
+
+  //Ledger
+  CONNECT_LEDGER = 'Clicked Connect Ledger',
+  CONTINUE_LEDGER_HARDWARE_WALLET = 'Clicked Continue Ledger Hardware Wallet',
+  CONNECT_LEDGER_SUCCESS = 'Connected Account with hardware wallet',
+  LEDGER_HARDWARE_TRANSACTION_CANCELLED = 'User canceled Ledger hardware transaction',
+  LEDGER_HARDWARE_WALLET_ERROR = 'Ledger hardware wallet error',
 
   // Tokens
   TOKEN_DETECTED = 'Token Detected',
@@ -442,16 +462,6 @@ enum EVENT_NAME {
   // Edit account name
   ACCOUNT_RENAMED = 'Account Renamed',
 
-  //Ledger
-  CONNECT_LEDGER = 'Clicked Connect Ledger',
-  CONTINUE_LEDGER_HARDWARE_WALLET = 'Clicked Continue Ledger Hardware Wallet',
-  CONNECT_LEDGER_SUCCESS = 'Connected Account with hardware wallet',
-  LEDGER_HARDWARE_TRANSACTION_CANCELLED = 'User canceled Ledger hardware transaction',
-  LEDGER_HARDWARE_WALLET_ERROR = 'Ledger hardware wallet error',
-
-  // common hardware wallet
-  HARDWARE_WALLET_FORGOTTEN = 'Hardware wallet forgotten',
-
   // Remove an account
   ACCOUNT_REMOVED = 'Account removed',
   ACCOUNT_REMOVE_FAILED = 'Account remove failed',
@@ -589,6 +599,11 @@ enum EVENT_NAME {
 
   // Share
   SHARE_ACTION = 'Share Action',
+}
+
+export enum BUTTON_TYPE {
+  TUTORIAL = 'tutorial',
+  PICKER = 'picker',
 }
 
 enum ACTIONS {
@@ -825,12 +840,41 @@ const events = {
     EVENT_NAME.REVEAL_PRIVATE_KEY_COMPLETED,
   ),
   ANDROID_HARDWARE_KEYSTORE: generateOpt(EVENT_NAME.ANDROID_HARDWARE_KEYSTORE),
+
+  // Hardware Wallet
+  ADD_HARDWARE_WALLET: generateOpt(EVENT_NAME.ADD_HARDWARE_WALLET),
   CONNECT_HARDWARE_WALLET: generateOpt(EVENT_NAME.CONNECT_HARDWARE_WALLET),
-  CONTINUE_QR_HARDWARE_WALLET: generateOpt(
-    EVENT_NAME.CONTINUE_QR_HARDWARE_WALLET,
+
+  HARDWARE_WALLET_MARKETING: generateOpt(EVENT_NAME.HARDWARE_WALLET_MARKETING),
+  HARDWARE_WALLET_PERMISSION_REQUEST: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_PERMISSION_REQUEST,
   ),
+  HARDWARE_WALLET_CONNECT_INSTRUCTIONS: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_CONNECT_INSTRUCTIONS,
+  ),
+  HARDWARE_WALLET_FOUND: generateOpt(EVENT_NAME.HARDWARE_WALLET_FOUND),
+  HARDWARE_WALLET_CONTINUE_CONNECTION: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_CONTINUE_CONNECTION,
+  ),
+  HARDWARE_WALLET_CONNECTION_ERROR: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_CONNECTION_ERROR,
+  ),
+  HARDWARE_WALLET_CONNECTION_RETRY: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_CONNECTION_RETRY,
+  ),
+  HARDWARE_WALLET_ACCOUNT_SELECTOR_OPEN: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_ACCOUNT_SELECTOR_OPEN,
+  ),
+  HARDWARE_WALLET_ADD_ACCOUNT: generateOpt(
+    EVENT_NAME.HARDWARE_WALLET_ADD_ACCOUNT,
+  ),
+  HARDWARE_WALLET_FORGOTTEN: generateOpt(EVENT_NAME.HARDWARE_WALLET_FORGOTTEN),
+
   CONNECT_HARDWARE_WALLET_SUCCESS: generateOpt(
     EVENT_NAME.CONNECT_HARDWARE_WALLET_SUCCESS,
+  ),
+  CONTINUE_QR_HARDWARE_WALLET: generateOpt(
+    EVENT_NAME.CONTINUE_QR_HARDWARE_WALLET,
   ),
   QR_HARDWARE_TRANSACTION_CANCELED: generateOpt(
     EVENT_NAME.QR_HARDWARE_TRANSACTION_CANCELED,
