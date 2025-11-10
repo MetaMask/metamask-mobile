@@ -153,6 +153,17 @@ const PredictPositionsHeader = forwardRef<
     );
   };
 
+  // Show component if there's a claimable amount, or if we have/are loading balance or P&L data
+  if (
+    !hasClaimableAmount &&
+    !hasAvailableBalance &&
+    !hasUnrealizedPnL &&
+    !isBalanceLoading &&
+    !isUnrealizedPnLLoading
+  ) {
+    return null;
+  }
+
   return (
     <Box twClassName="gap-4 pb-4 pt-2">
       {hasClaimableAmount && (
@@ -170,115 +181,120 @@ const PredictPositionsHeader = forwardRef<
         </ButtonHero>
       )}
 
-      <Box
-        style={tw.style(
-          'bg-muted rounded-xl pt-3',
-          !(hasUnrealizedPnL || isUnrealizedPnLLoading) && 'pb-3',
-        )}
-        testID="markets-won-card"
-      >
-        {(hasAvailableBalance || isBalanceLoading) && (
-          <TouchableOpacity
-            onPress={handleBalanceTouch}
-            disabled={isBalanceLoading}
-          >
-            <Box
-              style={tw.style(
-                'px-4',
-                (hasUnrealizedPnL || isUnrealizedPnLLoading) && 'pb-3',
-              )}
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Between}
+      {(hasAvailableBalance ||
+        hasUnrealizedPnL ||
+        isBalanceLoading ||
+        isUnrealizedPnLLoading) && (
+        <Box
+          style={tw.style(
+            'bg-muted rounded-xl pt-3',
+            !(hasUnrealizedPnL || isUnrealizedPnLLoading) && 'pb-3',
+          )}
+          testID="markets-won-card"
+        >
+          {(hasAvailableBalance || isBalanceLoading) && (
+            <TouchableOpacity
+              onPress={handleBalanceTouch}
+              disabled={isBalanceLoading}
             >
               <Box
+                style={tw.style(
+                  'px-4',
+                  (hasUnrealizedPnL || isUnrealizedPnLLoading) && 'pb-3',
+                )}
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Between}
               >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  twClassName="text-alternative"
-                  testID="markets-won-count"
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
                 >
-                  {strings('predict.available_balance')}
-                </Text>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    twClassName="text-alternative"
+                    testID="markets-won-count"
+                  >
+                    {strings('predict.available_balance')}
+                  </Text>
+                </Box>
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="flex-row items-center"
+                >
+                  {isBalanceLoading ? (
+                    <Skeleton
+                      width={80}
+                      height={20}
+                      style={tw.style('rounded-md mr-1')}
+                    />
+                  ) : (
+                    <>
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        twClassName="text-primary mr-1"
+                        testID="claimable-amount"
+                      >
+                        {formatPrice(balance, { maximumDecimals: 2 })}
+                      </Text>
+                      <Icon
+                        name={IconName.ArrowRight}
+                        size={IconSize.Sm}
+                        color={IconColor.Alternative}
+                      />
+                    </>
+                  )}
+                </Box>
               </Box>
+            </TouchableOpacity>
+          )}
+          {(hasUnrealizedPnL || isUnrealizedPnLLoading) && (
+            <>
+              <Box twClassName="h-px bg-alternative" />
               <Box
+                twClassName="px-4 pb-3 mt-3"
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName="flex-row items-center"
+                justifyContent={BoxJustifyContent.Between}
               >
-                {isBalanceLoading ? (
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                >
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    twClassName="text-alternative"
+                  >
+                    {strings('predict.unrealized_pnl_label')}
+                  </Text>
+                </Box>
+                {isUnrealizedPnLLoading ? (
                   <Skeleton
-                    width={80}
+                    width={120}
                     height={20}
-                    style={tw.style('rounded-md mr-1')}
+                    style={tw.style('rounded-md')}
                   />
                 ) : (
-                  <>
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      twClassName="text-primary mr-1"
-                      testID="claimable-amount"
-                    >
-                      {formatPrice(balance, { maximumDecimals: 2 })}
-                    </Text>
-                    <Icon
-                      name={IconName.ArrowRight}
-                      size={IconSize.Sm}
-                      color={IconColor.Alternative}
-                    />
-                  </>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    twClassName={
+                      unrealizedAmount >= 0
+                        ? 'text-success-default'
+                        : 'text-error-default'
+                    }
+                  >
+                    {strings('predict.unrealized_pnl_value', {
+                      amount: formatAmount(unrealizedAmount),
+                      percent: formatPercent(unrealizedPercent),
+                    })}
+                  </Text>
                 )}
               </Box>
-            </Box>
-          </TouchableOpacity>
-        )}
-        {(hasUnrealizedPnL || isUnrealizedPnLLoading) && (
-          <>
-            <Box twClassName="h-px bg-alternative" />
-            <Box
-              twClassName="px-4 pb-3 mt-3"
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Between}
-            >
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  twClassName="text-alternative"
-                >
-                  {strings('predict.unrealized_pnl_label')}
-                </Text>
-              </Box>
-              {isUnrealizedPnLLoading ? (
-                <Skeleton
-                  width={120}
-                  height={20}
-                  style={tw.style('rounded-md')}
-                />
-              ) : (
-                <Text
-                  variant={TextVariant.BodyMd}
-                  twClassName={
-                    unrealizedAmount >= 0
-                      ? 'text-success-default'
-                      : 'text-error-default'
-                  }
-                >
-                  {strings('predict.unrealized_pnl_value', {
-                    amount: formatAmount(unrealizedAmount),
-                    percent: formatPercent(unrealizedPercent),
-                  })}
-                </Text>
-              )}
-            </Box>
-          </>
-        )}
-      </Box>
+            </>
+          )}
+        </Box>
+      )}
     </Box>
   );
 });

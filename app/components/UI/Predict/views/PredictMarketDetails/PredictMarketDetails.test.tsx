@@ -588,9 +588,16 @@ describe('PredictMarketDetails', () => {
         { market: { isFetching: true, market: null } },
       );
 
-      // Check that loading text appears (there may be multiple instances)
-      const loadingTexts = screen.getAllByText('predict.loading');
-      expect(loadingTexts.length).toBeGreaterThan(0);
+      // Check that skeleton loaders appear
+      expect(
+        screen.getByTestId('predict-details-header-skeleton-back-button'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-details-content-skeleton-option-1'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-details-buttons-skeleton-button-yes'),
+      ).toBeOnTheScreen();
     });
 
     it('displays fallback title when market data is unavailable', () => {

@@ -200,8 +200,11 @@ describe('PredictPositions', () => {
     // Act
     renderWithProvider(<PredictPositions />);
 
-    // Assert
-    expect(screen.getByTestId('activity-indicator')).toBeOnTheScreen();
+    // Assert - Check for skeleton loaders instead of activity indicator
+    expect(screen.getByTestId('predict-position-skeleton-1')).toBeOnTheScreen();
+    expect(screen.getByTestId('predict-position-skeleton-2')).toBeOnTheScreen();
+    expect(screen.getByTestId('predict-position-skeleton-3')).toBeOnTheScreen();
+    expect(screen.getByTestId('predict-position-skeleton-4')).toBeOnTheScreen();
   });
 
   it('renders loading state when isRefreshing and no positions', () => {
