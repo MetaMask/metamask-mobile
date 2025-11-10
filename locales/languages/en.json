@@ -613,6 +613,11 @@
     "invalid_address": "Invalid address",
     "contractAddressError": "You are sending tokens to the token's contract address. This may result in the loss of these tokens."
   },
+  "unified_ramp": {
+    "networks_filter_bar": {
+      "all_networks": "All"
+    }
+  },
   "deposit": {
     "title": "Deposit",
     "selectRegion": "Select Region",
