@@ -54,6 +54,8 @@ import {
   AcceptAgreementParams,
   ClaimParams,
   GetPriceHistoryParams,
+  GetPriceParams,
+  GetPriceResponse,
   PredictAccountMeta,
   PredictActivity,
   PredictBalance,
@@ -594,6 +596,54 @@ export class PredictController extends BaseController<
           marketId: params.marketId,
           fidelity: params.fidelity,
           interval: params.interval,
+        }),
+      );
+
+      throw error;
+    }
+  }
+
+  /**
+   * Get current prices for multiple tokens
+   *
+   * Fetches BUY (best ask) and SELL (best bid) prices from the provider.
+   * BUY = what you'd pay to buy
+   * SELL = what you'd receive to sell
+   */
+  async getPrices(params: GetPriceParams): Promise<GetPriceResponse> {
+    try {
+      const providerId = params.providerId ?? 'polymarket';
+      const provider = this.providers.get(providerId);
+
+      if (!provider) {
+        throw new Error('Provider not available');
+      }
+
+      const response = await provider.getPrices({ queries: params.queries });
+
+      this.update((state) => {
+        state.lastError = null;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      return response;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.UNKNOWN_ERROR;
+
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      // Log to Sentry with prices context
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getPrices', {
+          providerId: params.providerId,
+          queriesCount: params.queries?.length,
         }),
       );
 
