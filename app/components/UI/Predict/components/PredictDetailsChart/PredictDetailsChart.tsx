@@ -134,6 +134,8 @@ const ChartTooltip: React.FC<TooltipProps> = ({
 
       {/* Render circles and labels for each series - positioned at their line points */}
       {(() => {
+        const maxLabelChars = 25; // Maximum characters for label title
+
         // Calculate initial positions for all labels
         const labelData = nonEmptySeries
           .map((series, seriesIndex) => {
@@ -141,7 +143,12 @@ const ChartTooltip: React.FC<TooltipProps> = ({
             if (!seriesData) return null;
 
             const lineYPos = y(seriesData.value);
-            const labelText = `${series.label}: ${seriesData.value.toFixed(2)}%`;
+            // Truncate label if too long
+            const truncatedLabel =
+              series.label.length > maxLabelChars
+                ? `${series.label.substring(0, maxLabelChars)}...`
+                : series.label;
+            const labelText = `${truncatedLabel}: ${seriesData.value.toFixed(2)}%`;
             const textWidth = labelText.length * (fontSize * 0.55);
             const labelWidth = textWidth + labelPadding * 2;
 
@@ -152,6 +159,7 @@ const ChartTooltip: React.FC<TooltipProps> = ({
               lineYPos,
               labelText,
               labelWidth,
+              truncatedLabel,
               adjustedY: lineYPos - labelHeight / 2, // Initial position
             };
           })
