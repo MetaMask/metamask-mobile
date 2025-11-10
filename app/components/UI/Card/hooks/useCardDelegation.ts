@@ -170,6 +170,18 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
                   );
                   reject(error);
                 }
+              } else if (transactionMeta.status === TransactionStatus.failed) {
+                Logger.error(
+                  new Error(
+                    transactionMeta.error?.message ?? 'Transaction failed',
+                  ),
+                  'Transaction failed',
+                );
+                reject(
+                  new Error(
+                    transactionMeta.error?.message ?? 'Transaction failed',
+                  ),
+                );
               }
             },
             (transactionMeta) => transactionMeta.id === transactionId,
