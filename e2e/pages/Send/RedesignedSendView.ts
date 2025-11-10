@@ -1,6 +1,5 @@
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import TestHelpers from '../../helpers';
 import { RedesignedSendViewSelectorsIDs } from '../../selectors/SendFlow/RedesignedSendView.selectors';
 import { Utilities } from '../../framework';
 
@@ -22,11 +21,15 @@ class SendView {
   }
 
   get fiftyPercentButton(): DetoxElement {
-    return Matchers.getElementByText('50%');
+    return Matchers.getElementByID(
+      RedesignedSendViewSelectorsIDs.PERCENTAGE_BUTTON_50,
+    );
   }
 
   get maxButton(): DetoxElement {
-    return Matchers.getElementByText('Max');
+    return Matchers.getElementByID(
+      RedesignedSendViewSelectorsIDs.PERCENTAGE_BUTTON_100,
+    );
   }
 
   get continueButton(): DetoxElement {
@@ -72,12 +75,14 @@ class SendView {
   async pressFiftyPercentButton(): Promise<void> {
     await Gestures.waitAndTap(this.fiftyPercentButton, {
       elemDescription: 'Amount 50%',
+      timeout: 5000,
     });
   }
 
   async pressAmountMaxButton(): Promise<void> {
     await Gestures.waitAndTap(this.maxButton, {
       elemDescription: 'Amount Max',
+      timeout: 5000,
     });
   }
 
@@ -95,10 +100,10 @@ class SendView {
   }
 
   async pressReviewButton() {
-    await Utilities.waitForElementToBeEnabled(this.reviewButton);
-    await TestHelpers.delay(2000);
+    await Utilities.waitForElementToBeEnabled(this.reviewButton, 5000);
     await Gestures.waitAndTap(this.reviewButton, {
       elemDescription: 'Review button',
+      timeout: 5000,
     });
   }
 }

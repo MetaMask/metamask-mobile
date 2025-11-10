@@ -53,6 +53,11 @@ export const AnimatedCursor = () => {
     );
 
     blinkAnimation.start();
+
+    return () => {
+      blinkAnimation.stop();
+      cursorOpacity.stopAnimation();
+    };
   }, [cursorOpacity]);
 
   return (

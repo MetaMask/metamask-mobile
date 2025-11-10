@@ -75,6 +75,7 @@ export function EditAmountKeyboard({
               style={styles.percentageButton}
               onPress={() => onPercentagePress(val)}
               variant={ButtonVariants.Secondary}
+              testID={`percentage-button-${val}`}
             />
           ))}
           {!hideDoneButton && onDonePress && (
