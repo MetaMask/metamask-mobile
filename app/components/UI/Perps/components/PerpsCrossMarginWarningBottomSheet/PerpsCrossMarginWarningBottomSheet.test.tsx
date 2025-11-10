@@ -33,18 +33,6 @@ jest.mock('./PerpsCrossMarginWarningBottomSheet.styles', () => ({
   }),
 }));
 
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
-    const translations: Record<string, string> = {
-      'perps.crossMargin.title': 'Cross Margin Not Supported',
-      'perps.crossMargin.message':
-        'MetaMask Perps only support trading with isolated margin. You need to first close your cross margin position before you can trade on MetaMask.',
-      'perps.crossMargin.dismiss': 'Got it',
-    };
-    return translations[key] || key;
-  }),
-}));
-
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
