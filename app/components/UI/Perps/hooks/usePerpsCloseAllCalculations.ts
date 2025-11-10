@@ -124,9 +124,8 @@ export function usePerpsCloseAllCalculations({
   const totalMargin = useMemo(
     () =>
       positions.reduce((sum, pos) => {
-        const margin = parseFloat(pos.marginUsed) || 0;
-        const pnl = parseFloat(pos.unrealizedPnl) || 0;
-        return sum + margin + pnl;
+        const margin = Number.parseFloat(pos.marginUsed) || 0;
+        return sum + margin;
       }, 0),
     [positions],
   );
