@@ -46,8 +46,9 @@ export function useTransactionConfirm() {
     selectShouldUseSmartTransaction(state, chainId),
   );
 
-  const waitForResult =
-    !shouldUseSmartTransaction && !quotes?.length && !selectedGasFeeToken;
+  // Don't wait for transaction result to prevent UI from hanging
+  // Users can check transaction status in the activity tab
+  const waitForResult = false;
 
   const handleSmartTransaction = useCallback(
     (updatedMetadata: TransactionMeta) => {
