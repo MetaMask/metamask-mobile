@@ -156,14 +156,18 @@ function Loader() {
 
   if (loader === ConfirmationLoader.CustomAmount) {
     return (
-      <View style={styles.flatContainer} testID="confirm-loader-custom-amount">
+      <SafeAreaView
+        edges={['right', 'bottom', 'left']}
+        style={styles.flatContainer}
+        testID="confirm-loader-custom-amount"
+      >
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollViewContent}
         >
           <CustomAmountInfoSkeleton />
         </ScrollView>
-      </View>
+      </SafeAreaView>
     );
   }
 
