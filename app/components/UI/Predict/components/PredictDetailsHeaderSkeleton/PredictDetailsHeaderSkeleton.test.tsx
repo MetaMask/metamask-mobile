@@ -1,26 +1,30 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import PredictDetailsHeaderSkeleton from './PredictDetailsHeaderSkeleton';
 
-const initialMetrics = {
-  frame: { x: 0, y: 0, width: 0, height: 0 },
-  insets: { top: 0, left: 0, right: 0, bottom: 0 },
-};
+// Mock navigation
+const mockGoBack = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    goBack: mockGoBack,
+  }),
+}));
 
-const renderWithNavigation = (component: React.ReactElement) =>
-  render(
-    <SafeAreaProvider initialMetrics={initialMetrics}>
-      <NavigationContainer>{component}</NavigationContainer>
-    </SafeAreaProvider>,
-  );
+// Mock safe area insets
+jest.mock('react-native-safe-area-context', () => ({
+  ...jest.requireActual('react-native-safe-area-context'),
+  useSafeAreaInsets: () => ({
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+  }),
+}));
 
 describe('PredictDetailsHeaderSkeleton', () => {
   it('renders header skeleton with all elements', () => {
-    const { getByTestId } = renderWithNavigation(
-      <PredictDetailsHeaderSkeleton />,
-    );
+    const { getByTestId } = render(<PredictDetailsHeaderSkeleton />);
 
     expect(
       getByTestId('predict-details-header-skeleton-back-button'),
@@ -34,7 +38,7 @@ describe('PredictDetailsHeaderSkeleton', () => {
 
   it('renders with custom testID', () => {
     const customTestId = 'custom-header-skeleton';
-    const { getByTestId } = renderWithNavigation(
+    const { getByTestId } = render(
       <PredictDetailsHeaderSkeleton testID={customTestId} />,
     );
 
@@ -45,9 +49,7 @@ describe('PredictDetailsHeaderSkeleton', () => {
   });
 
   it('matches snapshot', () => {
-    const tree = renderWithNavigation(
-      <PredictDetailsHeaderSkeleton />,
-    ).toJSON();
+    const tree = render(<PredictDetailsHeaderSkeleton />).toJSON();
     expect(tree).toMatchSnapshot();
   });
 });
