@@ -1,11 +1,8 @@
+import '../../../../../util/test/integration/backgroundOnlyMocks';
 import { RequestStatus } from '@metamask/bridge-controller';
-import { renderBridgeScreen } from './tests/renderBridgeScreen';
+import { renderIntegrationScreen } from '../../../../../util/test/integration/render';
 import { tokenFactory, markNoFeeDestAsset } from './tests/BridgeView.builders';
 import { createBridgeTestState } from '../../testUtils';
-import {
-  initialState as baseInitialState,
-  evmAccountId,
-} from '../../_mocks_/initialState';
 import { strings } from '../../../../../../locales/i18n';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { Hex } from '@metamask/utils';
@@ -13,105 +10,10 @@ import type { BridgeToken } from '../../types';
 import type { RootState } from '../../../../../reducers';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import { setupIntegrationNetworkInterceptors } from '../../../../../util/test/integration/network';
+import BridgeView from '.';
+import Routes from '../../../../../constants/navigation/Routes';
 
-// Background-only mocks (no hooks mocked)
-jest.mock('../../../../../core/Engine', () => {
-  const engine = {
-    context: {
-      // Provide only minimal controllers accessed indirectly by the UI/hooks
-      GasFeeController: {
-        startPolling: jest.fn(),
-        stopPollingByPollingToken: jest.fn(),
-      },
-      NetworkController: {
-        getNetworkConfigurationByNetworkClientId: jest.fn(),
-        // Needed by getProviderByChainId → useLatestBalance
-        findNetworkClientIdByChainId: jest.fn((chainId: string) =>
-          // Return a deterministic client id for mainnet and a generic one otherwise
-          chainId?.toLowerCase() === '0x1' ? 'mainnet' : 'custom',
-        ),
-        getNetworkClientById: jest.fn((id: string) => {
-          // Minimal provider shape with request method used by balance fetching
-          const twoEthHex = '0x1bc16d674ec80000';
-          const provider = {
-            request: jest.fn(
-              async (args: { method: string; params?: unknown[] }) => {
-                if (args?.method === 'eth_chainId') {
-                  return '0x1';
-                }
-                if (args?.method === 'net_version') {
-                  return '1';
-                }
-                if (args?.method === 'eth_blockNumber') {
-                  // Return a plausible block number
-                  return '0xabcdef';
-                }
-                if (
-                  args?.method === 'eth_getBalance' ||
-                  args?.method === 'eth_call'
-                ) {
-                  return twoEthHex;
-                }
-                return null;
-              },
-            ),
-            // Event API stubs expected by Web3Provider in some code paths
-            on: jest.fn(),
-            removeListener: jest.fn(),
-          };
-          return { id, provider };
-        }),
-      },
-      BridgeStatusController: {
-        submitTx: jest.fn().mockResolvedValue({ success: true }),
-      },
-      BridgeController: {
-        resetState: jest.fn(),
-        setBridgeFeatureFlags: jest.fn().mockResolvedValue(undefined),
-        updateBridgeQuoteRequestParams: jest.fn(),
-      },
-      AccountsController: {
-        state: {
-          internalAccounts: {
-            selectedAccount: '30786334-3935-4563-b064-363339643939',
-            accounts: {
-              '30786334-3935-4563-b064-363339643939': {
-                id: '30786334-3935-4563-b064-363339643939',
-                address: '0x1234567890123456789012345678901234567890',
-                name: 'Account 1',
-                type: 'eip155:eoa',
-                scopes: ['eip155:0'],
-                metadata: {
-                  lastSelected: 0,
-                  keyring: { type: 'HD Key Tree' },
-                },
-              },
-            },
-          },
-        },
-      },
-      KeyringController: {
-        state: {
-          keyrings: [
-            {
-              accounts: ['0x1234567890123456789012345678901234567890'],
-              type: 'HD Key Tree',
-              metadata: { id: 'test', name: '' },
-            },
-          ],
-        },
-      },
-    },
-    getTotalEvmFiatAccountBalance: jest.fn().mockReturnValue({
-      balance: '1000000000000000000',
-      fiatBalance: '2000',
-    }),
-  };
-  return {
-    __esModule: true,
-    default: engine,
-  };
-});
+// Background-only mocks installed via backgroundOnlyMocks
 
 // Install default network interceptors for integration tests
 let restoreNetwork: (() => void) | undefined;
@@ -123,13 +25,7 @@ afterAll(() => {
   restoreNetwork = undefined;
 });
 
-// Avoid Engine access inside address utils used by smart tx selectors
-jest.mock('../../../../../util/address', () => ({
-  __esModule: true,
-  ...jest.requireActual('../../../../../util/address'),
-  isHardwareAccount: jest.fn(() => false),
-  getKeyringByAddress: jest.fn(() => undefined),
-}));
+// Address helpers mocked via backgroundOnlyMocks
 
 // Avoid heavy UI/effects from QuoteDetailsCard when activeQuote is present
 jest.mock('../../components/QuoteDetailsCard', () => ({
@@ -183,19 +79,6 @@ jest.mock('../../../../hooks/useAccounts', () => ({
   }),
 }));
 
-// Provide deterministic app version for version gating logic used by bridge slice
-jest.mock('react-native-device-info', () => ({
-  __esModule: true,
-  getVersion: () => '99.0.0',
-}));
-
-// Avoid third-party image/timing side-effects used by token icons
-jest.mock('react-native-fade-in-image', () => 'FadeIn');
-jest.mock('../../../../Base/RemoteImage', () => ({
-  __esModule: true,
-  default: () => null,
-}));
-
 describe('BridgeView (background-only)', () => {
   const bridgeSliceMock = jest.requireMock(
     '../../../../../core/redux/slices/bridge',
@@ -216,60 +99,29 @@ describe('BridgeView (background-only)', () => {
 
   it('renders initial UI with background mocked only', () => {
     // Arrange: Compose state with fetched status to avoid loading UI
-    const state = createBridgeTestState(
-      {
-        bridgeControllerOverrides: {
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [],
-          quotesLastFetched: 1,
-        },
-        bridgeReducerOverrides: {
-          // Ensure no amount so the UI shows the Select amount state
-          sourceAmount: undefined,
-          // Set a simple native ETH as source token to exercise balance path without typing
-          sourceToken: tokenFactory('ETH', {
-            chainId: '0x1' as Hex,
-          }) as unknown as BridgeToken,
-          destToken: undefined,
-        },
+    const state = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotesLoadingStatus: RequestStatus.FETCHED,
+        quotes: [],
+        quotesLastFetched: 1,
       },
-      {
-        ...baseInitialState,
-        engine: {
-          ...baseInitialState.engine,
-          backgroundState: {
-            ...baseInitialState.engine.backgroundState,
-            AccountsController: {
-              ...baseInitialState.engine.backgroundState.AccountsController,
-              internalAccounts: {
-                ...baseInitialState.engine.backgroundState.AccountsController
-                  .internalAccounts,
-                accounts: {
-                  ...baseInitialState.engine.backgroundState.AccountsController
-                    .internalAccounts.accounts,
-                  [evmAccountId]: {
-                    ...baseInitialState.engine.backgroundState
-                      .AccountsController.internalAccounts.accounts[
-                      evmAccountId
-                    ],
-                    metadata: {
-                      ...baseInitialState.engine.backgroundState
-                        .AccountsController.internalAccounts.accounts[
-                        evmAccountId
-                      ].metadata,
-                      keyring: { type: 'HD Key Tree' },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+      bridgeReducerOverrides: {
+        // Ensure no amount so the UI shows the Select amount state
+        sourceAmount: undefined,
+        // Set a simple native ETH as source token to exercise balance path without typing
+        sourceToken: tokenFactory('ETH', {
+          chainId: '0x1' as Hex,
+        }) as unknown as BridgeToken,
+        destToken: undefined,
       },
-    );
+    });
 
     // Act: Render screen with real providers/hooks
-    const { getByTestId } = renderBridgeScreen(state);
+    const { getByTestId } = renderIntegrationScreen(
+      BridgeView,
+      { name: Routes.BRIDGE.ROOT },
+      { state },
+    );
 
     // Assert: Source input is present (lightweight initial UI assertion)
     expect(getByTestId('source-token-area-input')).toBeTruthy();
@@ -330,7 +182,11 @@ describe('BridgeView (background-only)', () => {
       musdAddress,
     ) as DeepPartial<RootState>;
 
-    const { findByText } = renderBridgeScreen(updatedState);
+    const { findByText } = renderIntegrationScreen(
+      BridgeView,
+      { name: Routes.BRIDGE.ROOT },
+      { state: updatedState },
+    );
 
     const expected = strings('bridge.no_mm_fee_disclaimer', {
       destTokenSymbol: 'mUSD',
