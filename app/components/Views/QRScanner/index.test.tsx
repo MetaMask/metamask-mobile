@@ -678,6 +678,63 @@ describe('QrScanner', () => {
           });
         });
       });
+
+      it('tracks QR_SCANNED with unrecognized_qr_code result and scan_success false for arbitrary content', async () => {
+        const validatorsModule = jest.requireMock('../../../util/validators');
+        (validatorsModule.isValidMnemonic as jest.Mock).mockReturnValue(false);
+        (
+          validatorsModule.failedSeedPhraseRequirements as jest.Mock
+        ).mockReturnValue(true);
+
+        const ethereumjsUtilModule = jest.requireMock('ethereumjs-util');
+        (ethereumjsUtilModule.isValidAddress as jest.Mock).mockReturnValue(
+          false,
+        );
+
+        const generalUtilsModule = jest.requireMock('../../../util/general');
+        (generalUtilsModule.getURLProtocol as jest.Mock).mockReturnValue('');
+
+        const SDKConnectV2Module = jest.requireMock(
+          '../../../core/SDKConnectV2',
+        );
+        (
+          SDKConnectV2Module.default.isConnectDeeplink as jest.Mock
+        ).mockReturnValue(false);
+
+        const SharedDeeplinkManagerModule = jest.requireMock(
+          '../../../core/DeeplinkManager/SharedDeeplinkManager',
+        );
+        (
+          SharedDeeplinkManagerModule.default.parse as jest.Mock
+        ).mockResolvedValue(false);
+
+        const mockOnScanSuccess = jest.fn();
+        renderWithProvider(<QrScanner onScanSuccess={mockOnScanSuccess} />, {
+          state: initialState,
+        });
+
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
+
+        await act(async () => {
+          // Arbitrary content that doesn't match any known pattern
+          onCodeScannedCallback?.([{ value: 'arbitrary-unknown-content-123' }]);
+        });
+
+        await waitFor(() => {
+          expect(mockAddProperties).toHaveBeenCalledWith({
+            [QRScannerEventProperties.SCAN_SUCCESS]: false,
+            [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK, // getQRType returns DEEPLINK as default
+            [QRScannerEventProperties.SCAN_RESULT]:
+              ScanResult.UNRECOGNIZED_QR_CODE,
+          });
+          expect(mockOnScanSuccess).toHaveBeenCalledWith(
+            'arbitrary-unknown-content-123',
+            'arbitrary-unknown-content-123',
+          );
+        });
+      });
     });
   });
 });
