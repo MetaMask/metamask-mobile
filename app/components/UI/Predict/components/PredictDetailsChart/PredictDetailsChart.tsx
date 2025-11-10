@@ -133,59 +133,118 @@ const ChartTooltip: React.FC<TooltipProps> = ({
       </G>
 
       {/* Render circles and labels for each series - positioned at their line points */}
-      {nonEmptySeries.map((series, seriesIndex) => {
-        const seriesData = series.data[activeIndex];
-        if (!seriesData) return null;
+      {(() => {
+        // Calculate initial positions for all labels
+        const labelData = nonEmptySeries
+          .map((series, seriesIndex) => {
+            const seriesData = series.data[activeIndex];
+            if (!seriesData) return null;
 
-        const lineYPos = y(seriesData.value);
-        const labelText = `${series.label}: ${seriesData.value.toFixed(2)}%`;
+            const lineYPos = y(seriesData.value);
+            const labelText = `${series.label}: ${seriesData.value.toFixed(2)}%`;
+            const textWidth = labelText.length * (fontSize * 0.55);
+            const labelWidth = textWidth + labelPadding * 2;
 
-        // Approximate text width
-        const textWidth = labelText.length * (fontSize * 0.55);
-        const labelWidth = textWidth + labelPadding * 2;
+            return {
+              series,
+              seriesIndex,
+              seriesData,
+              lineYPos,
+              labelText,
+              labelWidth,
+              adjustedY: lineYPos - labelHeight / 2, // Initial position
+            };
+          })
+          .filter(Boolean);
 
-        // Position label based on which side of the chart we're on
-        const labelX = isRightSide
-          ? xPos - labelWidth - labelOffset // Left side of crosshair
-          : xPos + labelOffset; // Right side of crosshair
-        const labelY = lineYPos - labelHeight / 2;
+        // Sort by Y position to detect collisions
+        const sortedLabels = [...labelData]
+          .filter((item): item is NonNullable<typeof item> => item !== null)
+          .sort((a, b) => a.adjustedY - b.adjustedY);
 
-        return (
-          <G key={`series-${seriesIndex}`}>
-            {/* Circle on the line */}
-            <Circle
-              cx={xPos}
-              cy={lineYPos}
-              r={6}
-              stroke={colors.background.default}
-              strokeWidth={2}
-              fill={series.color}
-            />
+        // Adjust positions to prevent overlap
+        const minSpacing = 4; // Minimum pixels between labels
+        for (let i = 1; i < sortedLabels.length; i++) {
+          const current = sortedLabels[i];
+          const previous = sortedLabels[i - 1];
 
-            {/* Background rectangle with series color */}
-            <Rect
-              x={labelX}
-              y={labelY}
-              width={labelWidth}
-              height={labelHeight}
-              fill={series.color}
-              rx={4}
-              ry={4}
-            />
+          if (!current || !previous) continue;
 
-            {/* White text */}
-            <SvgText
-              x={labelX + labelPadding}
-              y={labelY + labelHeight / 2 + fontSize / 3}
-              fill={colors.background.default}
-              fontSize={fontSize}
-              fontWeight="600"
-            >
-              {labelText}
-            </SvgText>
-          </G>
-        );
-      })}
+          const overlap =
+            previous.adjustedY + labelHeight + minSpacing - current.adjustedY;
+
+          if (overlap > 0) {
+            // Shift current label down
+            current.adjustedY += overlap;
+          }
+        }
+
+        // Apply adjusted positions back to original array
+        sortedLabels.forEach((label) => {
+          if (!label) return;
+          const original = labelData.find(
+            (l) => l?.seriesIndex === label.seriesIndex,
+          );
+          if (original) {
+            original.adjustedY = label.adjustedY;
+          }
+        });
+
+        // Render all labels
+        return labelData.map((data) => {
+          if (!data) return null;
+
+          const {
+            series,
+            seriesIndex,
+            lineYPos,
+            labelText,
+            labelWidth,
+            adjustedY,
+          } = data;
+
+          // Position label based on which side of the chart we're on
+          const labelX = isRightSide
+            ? xPos - labelWidth - labelOffset // Left side of crosshair
+            : xPos + labelOffset; // Right side of crosshair
+
+          return (
+            <G key={`series-${seriesIndex}`}>
+              {/* Circle on the line */}
+              <Circle
+                cx={xPos}
+                cy={lineYPos}
+                r={6}
+                stroke={colors.background.default}
+                strokeWidth={2}
+                fill={series.color}
+              />
+
+              {/* Background rectangle with series color */}
+              <Rect
+                x={labelX}
+                y={adjustedY}
+                width={labelWidth}
+                height={labelHeight}
+                fill={series.color}
+                rx={4}
+                ry={4}
+              />
+
+              {/* White text */}
+              <SvgText
+                x={labelX + labelPadding}
+                y={adjustedY + labelHeight / 2 + fontSize / 3}
+                fill={colors.background.default}
+                fontSize={fontSize}
+                fontWeight="600"
+              >
+                {labelText}
+              </SvgText>
+            </G>
+          );
+        });
+      })()}
     </G>
   );
 };
