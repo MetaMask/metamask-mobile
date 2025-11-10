@@ -102,39 +102,34 @@ export const RecipientInput = ({
     );
   }, [to, handleClearInput, handlePaste, isRecipientSelectedFromList]);
 
-  const customInputElement = useMemo(
-    () => (
-      <Input
-        textVariant={TOKEN_TEXTFIELD_INPUT_TEXT_VARIANT}
-        ref={inputRef}
-        value={to}
-        onChangeText={handleTextChange}
-        autoCorrect={false}
-        multiline={false}
-        numberOfLines={1}
-        scrollEnabled={false}
-        textAlignVertical="center"
-        textBreakStrategy="simple"
-        spellCheck={false}
-        autoComplete="off"
-        autoCapitalize="none"
-        placeholder={strings('send.enter_address_to_send_to')}
-        autoFocus={false}
-        testID="recipient-address-input"
-        isStateStylesDisabled
-        style={INPUT_STYLE_OVERRIDE}
-      />
-    ),
-    [to, handleTextChange],
-  );
-
   return (
     <Box twClassName="w-full px-4 py-2">
       <TextField
         size={TextFieldSize.Lg}
         endAccessory={renderEndAccessory}
         startAccessory={defaultStartAccessory}
-        inputElement={customInputElement}
+        inputElement={
+          <Input
+            textVariant={TOKEN_TEXTFIELD_INPUT_TEXT_VARIANT}
+            ref={inputRef}
+            value={to}
+            onChangeText={handleTextChange}
+            autoCorrect={false}
+            multiline={false}
+            numberOfLines={1}
+            scrollEnabled={false}
+            textAlignVertical="center"
+            textBreakStrategy="simple"
+            spellCheck={false}
+            autoComplete="off"
+            autoCapitalize="none"
+            placeholder={strings('send.enter_address_to_send_to')}
+            autoFocus={false}
+            testID="recipient-address-input"
+            isStateStylesDisabled
+            style={INPUT_STYLE_OVERRIDE}
+          />
+        }
       />
     </Box>
   );
