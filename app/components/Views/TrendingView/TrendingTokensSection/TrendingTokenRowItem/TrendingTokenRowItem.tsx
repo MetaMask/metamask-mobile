@@ -36,6 +36,7 @@ import {
   getNonEvmNetworkImageSourceByChainId,
 } from '../../../../../util/networks/customNetworks';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import { formatMarketStats } from './utils';
 
 interface TrendingTokenRowItemProps {
   token: TrendingAsset;
@@ -92,31 +93,6 @@ const TrendingTokenRowItem = ({
       return customNetworkImg;
     }
   }, []);
-
-  function formatCompactUSD(value: number) {
-    const num = Number(value);
-    if (isNaN(num)) return 'Invalid number';
-
-    const absNum = Math.abs(num);
-    let formatted;
-
-    if (absNum >= 1_000_000_000) {
-      formatted = `$${(num / 1_000_000_000).toFixed(0)}B`; // e.g. 13B
-    } else if (absNum >= 1_000_000) {
-      formatted = `$${(num / 1_000_000).toFixed(1)}M`; // e.g. 34.2M
-    } else if (absNum >= 1_000) {
-      formatted = `$${(num / 1_000).toFixed(1)}K`; // e.g. 850.5K
-    } else {
-      formatted = `$${num.toFixed(2)}`; // e.g. 532.50
-    }
-
-    return formatted;
-  }
-
-  // Example combined output
-  function formatMarketStats(marketCap: number, volume: number) {
-    return `${formatCompactUSD(marketCap)} cap • ${formatCompactUSD(volume)} vol`;
-  }
 
   const handlePress = () => {
     // TODO: Implement token press logic
