@@ -52,7 +52,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
         </Text>
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
           {strings(
-            size > 1
+            size !== 1
               ? 'predict.position_info_plural'
               : 'predict.position_info_singular',
             {
