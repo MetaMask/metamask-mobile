@@ -1,10 +1,15 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import PredictDetailsHeaderSkeleton from './PredictDetailsHeaderSkeleton';
 
 const renderWithNavigation = (component: React.ReactElement) =>
-  render(<NavigationContainer>{component}</NavigationContainer>);
+  render(
+    <SafeAreaProvider>
+      <NavigationContainer>{component}</NavigationContainer>
+    </SafeAreaProvider>,
+  );
 
 describe('PredictDetailsHeaderSkeleton', () => {
   it('renders header skeleton with all elements', () => {
