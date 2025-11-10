@@ -38,6 +38,15 @@ jest.mock('../../../../selectors/featureFlagController/rewards', () => ({
 // Mock trending tokens feature flag selector
 jest.mock('../../../../selectors/featureFlagController/assetsTrendingTokens');
 
+// Mock isMinimumRequiredVersionSupported to return true for feature flag validation
+jest.mock('../../../../util/feature-flags', () => {
+  const original = jest.requireActual('../../../../util/feature-flags');
+  return {
+    ...original,
+    isMinimumRequiredVersionSupported: jest.fn(() => true),
+  };
+});
+
 // Mock the navigation object with proper typing
 const navigation: NavigationHelpers<ParamListBase> = {
   navigate: jest.fn(),
