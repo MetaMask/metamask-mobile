@@ -42,10 +42,10 @@ const PredictMarketSkeleton: React.FC<PredictMarketSkeletonProps> = ({
         </Box>
       </Box>
 
-      {/* Large Content Area (Chart/Image) */}
+      {/* Prediction Options Area */}
       <Skeleton
         width="100%"
-        height={180}
+        height={150}
         style={tw.style('rounded-xl mb-4')}
         testID={`${testID}-chart`}
       />
