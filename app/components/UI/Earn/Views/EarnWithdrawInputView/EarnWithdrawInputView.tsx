@@ -577,7 +577,7 @@ const EarnWithdrawInputView = () => {
             currency_type: isFiat ? 'native' : 'fiat',
             experience: receiptToken?.experience?.type,
             token_symbol: receiptToken?.symbol,
-            chain_id_hex: receiptToken?.chainId,
+            chain_id: receiptToken?.chainId,
           })
           .build(),
       );
@@ -594,7 +594,7 @@ const EarnWithdrawInputView = () => {
             currency_type: isFiat ? 'native' : 'fiat',
             experience: receiptToken?.experience?.type,
             token_symbol: receiptToken?.symbol,
-            chain_id_hex: receiptToken?.chainId,
+            chain_id: receiptToken?.chainId,
           })
           .build(),
       );
