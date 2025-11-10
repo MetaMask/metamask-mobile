@@ -146,6 +146,10 @@ jest.mock('../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
   }),
 }));
 
+jest.mock('../../../selectors/bridgeStatusController', () => ({
+  selectBridgeHistoryForAccount: () => ({}),
+}));
+
 const mockGetBlockExplorerUrl = jest.fn(() => undefined);
 const mockGetBlockExplorerName = jest.fn(() => 'Explorer');
 jest.mock('../../hooks/useBlockExplorer', () => ({

@@ -41,6 +41,7 @@ jest.mock(
 
 // Mock hooks (consolidated to avoid conflicts)
 const mockNavigateBack = jest.fn();
+const mockNavigateToWallet = jest.fn();
 const mockNavigateToMarketList = jest.fn();
 jest.mock('../../hooks', () => ({
   usePerpsHomeData: jest.fn(),
@@ -49,6 +50,7 @@ jest.mock('../../hooks', () => ({
     navigateTo: jest.fn(),
     navigateToMarketDetails: jest.fn(),
     navigateToMarketList: mockNavigateToMarketList,
+    navigateToWallet: mockNavigateToWallet,
     navigateBack: mockNavigateBack,
     goBack: jest.fn(),
   })),
@@ -392,6 +394,7 @@ describe('PerpsHomeView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigateBack.mockClear();
+    mockNavigateToWallet.mockClear();
     mockNavigateToMarketList.mockClear();
     mockUsePerpsHomeData.mockReturnValue(mockDefaultData);
   });
@@ -537,15 +540,15 @@ describe('PerpsHomeView', () => {
     expect(queryByText('perps.home.orders')).toBeNull();
   });
 
-  it('handles back button press', () => {
+  it('navigates to wallet home when back button is pressed', () => {
     // Arrange
     const { getByTestId } = render(<PerpsHomeView />);
 
     // Act
     fireEvent.press(getByTestId('back-button'));
 
-    // Assert
-    expect(mockNavigateBack).toHaveBeenCalled();
+    // Assert - Always navigates to wallet home to avoid loops (e.g., from tutorial)
+    expect(mockNavigateToWallet).toHaveBeenCalled();
   });
 
   it('navigates to close all modal when close all is pressed', () => {

@@ -22,7 +22,7 @@ module.exports = {
       $0: 'jest',
       config: 'e2e/jest.e2e.config.js',
     },
-    detached: true,
+    detached: process.env.CI ? true : false,
     jest: {
       setupTimeout: 220000,
       teardownTimeout: 60000, // Increase teardown timeout from default 30s to 60s
@@ -132,25 +132,25 @@ module.exports = {
     'android.debug': {
       type: 'android.apk',
       binaryPath: process.env.PREBUILT_ANDROID_APK_PATH || 'android/app/build/outputs/apk/prod/debug/app-prod-debug.apk',
-      testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH,
+      testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH || 'android/app/build/outputs/apk/androidTest/prod/debug/app-prod-debug-androidTest.apk',
       build: 'export CONFIGURATION="Debug" && yarn build:android:main:e2e',
     },
     'android.release': {
       type: 'android.apk',
       binaryPath: process.env.PREBUILT_ANDROID_APK_PATH || 'android/app/build/outputs/apk/prod/release/app-prod-release.apk',
-      testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH,
+      testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH || 'android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk',
       build: `export CONFIGURATION="Release" && yarn build:android:main:e2e`,
     },
     'android.flask.debug': {
       type: 'android.apk',
       binaryPath: process.env.PREBUILT_ANDROID_APK_PATH || 'android/app/build/outputs/apk/flask/debug/app-flask-debug.apk',
-      testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH,
+      testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH || 'android/app/build/outputs/apk/androidTest/flask/debug/app-flask-debug-androidTest.apk',
       build: 'export CONFIGURATION="Debug" && yarn build:android:flask:e2e',
     },
     'android.flask.release': {
       type: 'android.apk',
       binaryPath: process.env.PREBUILT_ANDROID_APK_PATH || 'android/app/build/outputs/apk/flask/release/app-flask-release.apk',
-      testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH,
+      testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH || 'android/app/build/outputs/apk/androidTest/flask/release/app-flask-release-androidTest.apk',
       build: `export CONFIGURATION="Release" && yarn build:android:flask:e2e`,
     },
   },
