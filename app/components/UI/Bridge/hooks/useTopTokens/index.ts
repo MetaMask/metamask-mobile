@@ -99,14 +99,21 @@ export const useTopTokens = ({
 } => {
   const swapsChainCache: SwapsControllerState['chainCache'] =
     useSelector(selectChainCache);
-  const swapsTopAssets = useMemo(
-    () => (chainId ? swapsChainCache[chainId]?.topAssets : null),
-    [chainId, swapsChainCache],
-  );
-  // For non-EVM chains, we don't need to fetch top assets from the Swaps API
-  const swapsTopAssetsPending = isCaipChainId(chainId)
-    ? false
-    : !swapsTopAssets;
+  const { swapsTopAssets, swapsTopAssetsPending } = useMemo(() => {
+    if (!chainId) {
+      return { swapsTopAssets: null, swapsTopAssetsPending: true };
+    }
+
+    // For non-EVM chains, we don't need to fetch top assets from the Swaps API
+    if (isCaipChainId(chainId)) {
+      return { swapsTopAssets: null, swapsTopAssetsPending: false };
+    }
+
+    return {
+      swapsTopAssets: swapsChainCache[chainId]?.topAssets || null,
+      swapsTopAssetsPending: false,
+    };
+  }, [chainId, swapsChainCache]);
 
   // Get cached tokens from TokenListController
   const cachedEvmTokensByChain = useSelector(selectERC20TokensByChain);

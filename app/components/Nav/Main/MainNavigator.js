@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
@@ -128,6 +128,13 @@ import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/Level
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import ReferralBottomSheetModal from '../../UI/Rewards/components/ReferralBottomSheetModal';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
+import { getImportTokenNavbarOptions } from '../../UI/Navbar';
+import {
+  TOKEN_TITLE,
+  NFT_TITLE,
+  TOKEN,
+} from '../../Views/AddAsset/AddAsset.constants';
+import { strings } from '../../../../locales/i18n';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -988,7 +995,15 @@ const MainNavigator = () => {
       <Stack.Screen
         name="AddAsset"
         component={AddAsset}
-        options={{ headerShown: false }}
+        options={({ route, navigation }) => ({
+          ...getImportTokenNavbarOptions(
+            navigation,
+            strings(
+              `add_asset.${route.params?.assetType === TOKEN ? TOKEN_TITLE : NFT_TITLE}`,
+            ),
+          ),
+          headerShown: true,
+        })}
       />
       <Stack.Screen
         name="ConfirmAddAsset"
@@ -1177,7 +1192,7 @@ const MainNavigator = () => {
           ...GeneralSettings.navigationOptions,
         }}
       />
-      {process.env.NODE_ENV !== 'production' && (
+      {process.env.METAMASK_ENVIRONMENT !== 'production' && (
         <Stack.Screen
           name={Routes.FEATURE_FLAG_OVERRIDE}
           component={FeatureFlagOverride}
