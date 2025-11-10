@@ -1,6 +1,12 @@
 import React from 'react';
-import { StyleSheet, ActivityIndicator } from 'react-native';
+import {
+  StyleSheet,
+  ActivityIndicator,
+  PanResponder,
+  View,
+} from 'react-native';
 import { LineChart } from 'react-native-svg-charts';
+import { Circle, G, Line, Text as SvgText } from 'react-native-svg';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -51,6 +57,11 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
   const tw = useTailwind();
   const { colors } = useTheme();
 
+  // Interactive chart state
+  const [activeIndex, setActiveIndex] = React.useState<number>(-1);
+  const chartWidthRef = React.useRef<number>(0);
+  const isHorizontalGestureRef = React.useRef<boolean>(false);
+
   // Limit to MAX_SERIES
   const seriesToRender = React.useMemo(() => data.slice(0, MAX_SERIES), [data]);
   const isSingleSeries = seriesToRender.length === 1;
@@ -94,6 +105,157 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
   const primaryChartData = primaryData.length
     ? primaryData.map((point) => point.value)
     : [0, 0];
+
+  // Handle chart layout to track width
+  const handleChartLayout = (event: any) => {
+    const { width } = event.nativeEvent.layout;
+    chartWidthRef.current = width;
+  };
+
+  // Update active position based on touch X coordinate
+  const updatePosition = React.useCallback(
+    (x: number) => {
+      if (primaryData.length === 0) return;
+
+      const adjustedX = x - CHART_CONTENT_INSET.left;
+      const chartDataWidth =
+        chartWidthRef.current -
+        CHART_CONTENT_INSET.left -
+        CHART_CONTENT_INSET.right;
+
+      if (chartDataWidth <= 0) return;
+
+      const index = Math.round(
+        (adjustedX / chartDataWidth) * (primaryData.length - 1),
+      );
+
+      const clampedIndex = Math.max(0, Math.min(primaryData.length - 1, index));
+      setActiveIndex(clampedIndex);
+    },
+    [primaryData.length],
+  );
+
+  // PanResponder for handling touch gestures
+  // Responds to touches but only blocks ScrollView for horizontal gestures
+  const panResponder = React.useMemo(
+    () =>
+      PanResponder.create({
+        // Claim gesture on initial touch
+        onStartShouldSetPanResponder: () => true,
+        onStartShouldSetPanResponderCapture: () => false,
+        
+        // Determine if we should keep the gesture based on direction
+        onMoveShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponderCapture: (event, gestureState) => {
+          // Only capture (block ScrollView) if movement is more horizontal than vertical
+          const { dx, dy } = gestureState;
+          const isHorizontal = Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 5;
+          isHorizontalGestureRef.current = isHorizontal;
+          return isHorizontal;
+        },
+        
+        // Allow ScrollView to take over if user scrolls vertically
+        onPanResponderTerminationRequest: (event, gestureState) => {
+          const { dx, dy } = gestureState;
+          const isVertical = Math.abs(dy) > Math.abs(dx);
+          return isVertical; // Allow termination for vertical scrolls
+        },
+        
+        onPanResponderGrant: (event) => {
+          isHorizontalGestureRef.current = true; // Assume horizontal initially
+          updatePosition(event.nativeEvent.locationX);
+        },
+        
+        onPanResponderMove: (event, gestureState) => {
+          const { dx, dy } = gestureState;
+          // Check if gesture is still horizontal
+          if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 10) {
+            // User is scrolling vertically, stop updating
+            isHorizontalGestureRef.current = false;
+            setActiveIndex(-1);
+          } else {
+            // Continue with horizontal interaction
+            updatePosition(event.nativeEvent.locationX);
+          }
+        },
+        
+        onPanResponderRelease: () => {
+          setActiveIndex(-1);
+          isHorizontalGestureRef.current = false;
+        },
+        
+        onPanResponderTerminate: () => {
+          setActiveIndex(-1);
+          isHorizontalGestureRef.current = false;
+        },
+      }),
+    [updatePosition],
+  );
+
+  // Tooltip component for interactive chart
+  const Tooltip = ({ x, y, ticks }: any) => {
+    if (activeIndex < 0 || !primaryData[activeIndex]) return null;
+
+    const activePoint = primaryData[activeIndex];
+
+    return (
+      <G x={x(activeIndex)} key="tooltip">
+        {/* Vertical crosshair line */}
+        <Line
+          y1={ticks[0]}
+          y2={ticks[ticks.length - 1]}
+          stroke={colors.primary.default}
+          strokeWidth={2}
+          strokeDasharray={[6, 3]}
+        />
+
+        {/* Render circles for all series at active index */}
+        {nonEmptySeries.map((series, seriesIndex) => {
+          const seriesData = series.data[activeIndex];
+          if (!seriesData) return null;
+
+          return (
+            <Circle
+              key={`circle-${seriesIndex}`}
+              cy={y(seriesData.value)}
+              r={6}
+              stroke={colors.background.default}
+              strokeWidth={2}
+              fill={series.color}
+            />
+          );
+        })}
+
+        {/* Display tooltip text */}
+        <G x={10} y={20}>
+          <SvgText
+            fill={colors.text.alternative}
+            fontSize={12}
+            fontWeight="400"
+          >
+            {activePoint.label}
+          </SvgText>
+          {nonEmptySeries.map((series, seriesIndex) => {
+            const seriesData = series.data[activeIndex];
+            if (!seriesData) return null;
+
+            return (
+              <SvgText
+                key={`text-${seriesIndex}`}
+                y={16 + seriesIndex * 16}
+                fill={series.color}
+                fontSize={14}
+                fontWeight="bold"
+              >
+                {isSingleSeries ? '' : `${series.label}: `}
+                {seriesData.value.toFixed(2)}%
+              </SvgText>
+            );
+          })}
+        </G>
+      </G>
+    );
+  };
 
   const renderGraph = () => {
     if (isLoading || !hasData) {
@@ -155,7 +317,13 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
         {isMultipleSeries && (
           <ChartLegend series={nonEmptySeries} range={range} />
         )}
-        <Box twClassName="h-48 bg-default rounded-lg mb-3 relative overflow-hidden">
+        <View
+          style={tw.style(
+            'h-48 bg-default rounded-lg mb-3 relative overflow-hidden',
+          )}
+          {...panResponder.panHandlers}
+          onLayout={handleChartLayout}
+        >
           <LineChart
             style={tw.style(`h-[${CHART_HEIGHT}px] w-full`)}
             data={primaryChartData}
@@ -177,6 +345,7 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
               />
             )}
             <ChartGrid colors={colors} range={range} />
+            <Tooltip />
           </LineChart>
           {overlaySeries.map((series, index) => (
             <LineChart
@@ -191,7 +360,7 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
               curve={LINE_CURVE}
             />
           ))}
-        </Box>
+        </View>
 
         <Box
           flexDirection={BoxFlexDirection.Row}
