@@ -9,7 +9,6 @@ import { setExistingUser } from '../../../actions/user';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 
