@@ -48,12 +48,13 @@ import {
   TOKEN_BALANCE_LOADING_UPPERCASE,
   TOKEN_RATE_UNDEFINED,
 } from '../../../Tokens/constants';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import AddFundsBottomSheet from '../../components/AddFundsBottomSheet';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import { DEPOSIT_SUPPORTED_TOKENS } from '../../constants';
+import {
+  DEPOSIT_SUPPORTED_TOKENS,
+  SPENDING_LIMIT_UNSUPPORTED_TOKENS,
+} from '../../constants';
 import { useCardSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -70,7 +71,6 @@ import { isAuthenticationError } from '../../util/isAuthenticationError';
 import { removeCardBaanxToken } from '../../util/cardTokenVault';
 import Logger from '../../../../../util/Logger';
 import useLoadCardData from '../../hooks/useLoadCardData';
-import AssetSelectionBottomSheet from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
 import { CardActions } from '../../util/metrics';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { useAssetBalances } from '../../hooks/useAssetBalances';
@@ -79,6 +79,8 @@ import {
   ToastVariants,
 } from '../../../../../component-library/components/Toast';
 import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/SpendingLimitProgressBar';
+import { createAddFundsModalNavigationDetails } from '../../components/AddFundsBottomSheet/AddFundsBottomSheet';
+import { createAssetSelectionModalNavigationDetails } from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
 
 /**
  * CardHome Component
@@ -93,13 +95,8 @@ import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/
  */
 const CardHome = () => {
   const { PreferencesController } = Engine.context;
-  const [openAddFundsBottomSheet, setOpenAddFundsBottomSheet] = useState(false);
-  const [openAssetSelectionBottomSheet, setOpenAssetSelectionBottomSheet] =
-    useState(false);
   const [retries, setRetries] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const addFundsSheetRef = useRef<BottomSheetRef>(null);
-  const assetSelectionSheetRef = useRef<BottomSheetRef>(null);
   const { toastRef } = useContext(ToastContext);
   const { logoutFromProvider, isLoading: isSDKLoading } = useCardSDK();
   const [
@@ -184,31 +181,6 @@ const CardHome = () => {
     return balanceFiat;
   }, [balanceFiat, balanceFormatted]);
 
-  const renderAddFundsBottomSheet = useCallback(
-    () => (
-      <AddFundsBottomSheet
-        sheetRef={addFundsSheetRef}
-        setOpenAddFundsBottomSheet={setOpenAddFundsBottomSheet}
-        priorityToken={priorityToken ?? undefined}
-        navigate={navigation.navigate}
-      />
-    ),
-    [priorityToken, navigation],
-  );
-
-  const renderAssetSelectionBottomSheet = useCallback(
-    () => (
-      <AssetSelectionBottomSheet
-        sheetRef={assetSelectionSheetRef}
-        setOpenAssetSelectionBottomSheet={setOpenAssetSelectionBottomSheet}
-        tokensWithAllowances={allTokens}
-        delegationSettings={delegationSettings}
-        cardExternalWalletDetails={externalWalletDetailsData}
-      />
-    ),
-    [allTokens, delegationSettings, externalWalletDetailsData],
-  );
-
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
@@ -286,11 +258,15 @@ const CardHome = () => {
     );
 
     if (isPriorityTokenSupportedDeposit) {
-      setOpenAddFundsBottomSheet(true);
+      navigation.navigate(
+        ...createAddFundsModalNavigationDetails({
+          priorityToken: priorityToken ?? undefined,
+        }),
+      );
     } else if (priorityToken) {
       openSwaps({});
     }
-  }, [trackEvent, createEventBuilder, priorityToken, openSwaps]);
+  }, [trackEvent, createEventBuilder, priorityToken, openSwaps, navigation]);
 
   const changeAssetAction = useCallback(() => {
     trackEvent(
@@ -302,11 +278,25 @@ const CardHome = () => {
     );
 
     if (isAuthenticated) {
-      setOpenAssetSelectionBottomSheet(true);
+      navigation.navigate(
+        ...createAssetSelectionModalNavigationDetails({
+          tokensWithAllowances: allTokens,
+          delegationSettings,
+          cardExternalWalletDetails: externalWalletDetailsData,
+        }),
+      );
     } else {
       navigation.navigate(Routes.CARD.WELCOME);
     }
-  }, [isAuthenticated, navigation, trackEvent, createEventBuilder]);
+  }, [
+    isAuthenticated,
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    allTokens,
+    delegationSettings,
+    externalWalletDetailsData,
+  ]);
 
   const manageSpendingLimitAction = useCallback(() => {
     trackEvent(
@@ -493,13 +483,18 @@ const CardHome = () => {
         testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
       />
     );
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     addFundsAction,
-    priorityTokenWarning,
+    changeAssetAction,
+    enableCardAction,
+    isBaanxLoginEnabled,
     isLoading,
+    isLoadingPollCardStatusUntilProvisioned,
+    isLoadingProvisionCard,
     isSwapEnabledForPriorityToken,
+    needToEnableAssets,
+    needToEnableCard,
+    styles,
   ]);
 
   // Handle authentication errors (expired token, invalid credentials, etc.)
@@ -534,12 +529,28 @@ const CardHome = () => {
   }, [cardError, isAuthenticated, dispatch, navigation]);
 
   /**
+   * Check if the current token supports the spending limit progress bar feature.
+   * Some tokens (e.g., aUSDC) have different allowance behavior and are unsupported.
+   */
+  const isSpendingLimitSupported = useMemo(() => {
+    if (
+      !priorityToken?.symbol ||
+      isSolanaChainId(priorityToken.caipChainId ?? '')
+    ) {
+      return false;
+    }
+    return !SPENDING_LIMIT_UNSUPPORTED_TOKENS.includes(
+      priorityToken.symbol.toUpperCase(),
+    );
+  }, [priorityToken?.symbol, priorityToken?.caipChainId]);
+
+  /**
    * This warning is shown when the user is close to their spending limit.
    * We should show when the user has consumed 80% or more of their total allowance.
    * This matches the progress bar color change threshold.
    */
   const isCloseSpendingLimitWarning = useMemo(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !isSpendingLimitSupported) {
       return false;
     }
 
@@ -551,7 +562,7 @@ const CardHome = () => {
       priorityToken?.allowanceState === AllowanceState.Limited &&
       remainingAllowance <= totalAllowance * 0.2
     );
-  }, [isAuthenticated, priorityToken]);
+  }, [isAuthenticated, isSpendingLimitSupported, priorityToken]);
 
   if (cardError) {
     return (
@@ -729,8 +740,10 @@ const CardHome = () => {
         </View>
 
         {isAuthenticated &&
+          isSpendingLimitSupported &&
           priorityToken?.allowanceState === AllowanceState.Limited && (
             <SpendingLimitProgressBar
+              isLoading={isLoading}
               decimals={priorityToken?.decimals ?? 6}
               totalAllowance={priorityToken?.totalAllowance ?? '0'}
               remainingAllowance={priorityToken?.allowance ?? '0'}
@@ -786,9 +799,6 @@ const CardHome = () => {
           onPress={logoutAction}
         />
       )}
-
-      {openAddFundsBottomSheet && renderAddFundsBottomSheet()}
-      {openAssetSelectionBottomSheet && renderAssetSelectionBottomSheet()}
     </ScrollView>
   );
 };

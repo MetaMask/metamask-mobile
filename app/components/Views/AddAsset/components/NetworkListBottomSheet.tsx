@@ -20,7 +20,10 @@ import {
 import { Hex } from '@metamask/utils';
 import { getNetworkImageSource } from '../../../../util/networks';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
+import {
+  MultichainNetworkConfiguration,
+  SupportedCaipChainId,
+} from '@metamask/multichain-network-controller';
 
 export const NETWORK_LIST_BOTTOM_SHEET = 'NETWORK_LIST_BOTTOM_SHEET';
 
@@ -31,8 +34,8 @@ export default function NetworkListBottomSheet({
   sheetRef,
   displayEvmNetworksOnly = true,
 }: {
-  selectedNetwork: Hex | null;
-  setSelectedNetwork: (network: Hex) => void;
+  selectedNetwork: SupportedCaipChainId | Hex | null;
+  setSelectedNetwork: (network: SupportedCaipChainId | Hex) => void;
   setOpenNetworkSelector: (open: boolean) => void;
   sheetRef: React.RefObject<BottomSheetRef>;
   displayEvmNetworksOnly?: boolean;

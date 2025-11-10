@@ -1792,6 +1792,7 @@
     "outcomes_plural": "outcomes",
     "outcome_winner": "Winner",
     "outcome_loser": "Loser",
+    "outcome_draw": "Draw",
     "resolved_outcomes": "Resolved outcomes",
     "category": {
       "trending": "Trending",
