@@ -121,10 +121,8 @@ const TrendingTokenLogo: React.FC<TrendingTokenLogoProps> = ({
 
   // Show custom two-letter fallback if no symbol or error
   if (!symbol || !imageUri || hasError) {
-    // Extract display symbol (e.g., "TSLA" from "xyz:TSLA")
-    const displaySymbol = 'test';
     // Get first 2 letters, uppercase
-    const fallbackText = displaySymbol.substring(0, 2).toUpperCase();
+    const fallbackText = symbol.substring(0, 2).toUpperCase();
 
     return (
       <View style={[containerStyle, style]} testID={testID}>
