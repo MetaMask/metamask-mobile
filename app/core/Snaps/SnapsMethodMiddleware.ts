@@ -196,7 +196,16 @@ const snapMethodMiddlewareBuilder = (
       AppState.currentState === 'active' &&
       engineContext.KeyringController.isUnlocked(),
     getIsLocked: () => !engineContext.KeyringController.isUnlocked(),
-    getVersion: () => getVersion(),
+    getVersion: () => {
+      const baseVersion = getVersion();
+      const buildType = process.env.METAMASK_BUILD_TYPE;
+
+      if (buildType === 'main' || buildType === 'qa') {
+        return baseVersion;
+      }
+
+      return `${baseVersion}-${buildType}.0`;
+    },
     getEntropySources: () => {
       const state = controllerMessenger.call('KeyringController:getState');
 
