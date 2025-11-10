@@ -16,6 +16,35 @@ import { getIntlNumberFormatter } from '../../../../util/intl';
 import { parseAssetName } from './hyperLiquidAdapter';
 
 /**
+ * Calculate open interest in USD
+ * Open interest from HyperLiquid is in contracts/units, not USD
+ * To get USD value, multiply by current price
+ *
+ * @param openInterest - Raw open interest value in contracts/units
+ * @param currentPrice - Current price of the asset
+ * @returns Open interest in USD, or NaN if invalid
+ */
+export function calculateOpenInterestUSD(
+  openInterest: string | number | undefined,
+  currentPrice: string | number | undefined,
+): number {
+  if (openInterest == null || currentPrice == null) {
+    return NaN;
+  }
+
+  const openInterestNum =
+    typeof openInterest === 'string' ? parseFloat(openInterest) : openInterest;
+  const priceNum =
+    typeof currentPrice === 'string' ? parseFloat(currentPrice) : currentPrice;
+
+  if (isNaN(openInterestNum) || isNaN(priceNum)) {
+    return NaN;
+  }
+
+  return openInterestNum * priceNum;
+}
+
+/**
  * HyperLiquid-specific market data structure
  */
 export interface HyperLiquidMarketData {
@@ -170,11 +199,11 @@ export function transformMarketData(
     // If assetCtx is missing or dayNtlVlm is not available, use NaN to indicate missing data
     const volume = assetCtx?.dayNtlVlm ? parseFloat(assetCtx.dayNtlVlm) : NaN;
 
-    // Format open interest
-    // If assetCtx is missing or openInterest is not available, use NaN to indicate missing data
-    const openInterest = assetCtx?.openInterest
-      ? parseFloat(assetCtx.openInterest)
-      : NaN;
+    // Calculate open interest in USD
+    const openInterest = calculateOpenInterestUSD(
+      assetCtx?.openInterest,
+      currentPrice,
+    );
 
     // Get current funding rate from assetCtx - this is the actual current funding rate
     let fundingRate: number | undefined;
