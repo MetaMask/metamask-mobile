@@ -3,6 +3,7 @@ import { Animated, Easing, StyleSheet } from 'react-native';
 
 import { Theme } from '../../../../../../util/theme/models';
 import { useStyles } from '../../../../../hooks/useStyles';
+import { isE2E } from '../../../../../../util/test/utils';
 
 const { View: AnimatedView } = Animated;
 
@@ -28,13 +29,19 @@ const styleSheet = (params: {
 };
 
 export const AnimatedCursor = () => {
-  const cursorOpacity = useRef(new Animated.Value(0.6)).current;
+  const cursorOpacity = useRef(new Animated.Value(isE2E ? 1 : 0.6)).current;
 
   const { styles } = useStyles(styleSheet, {
     cursorOpacity,
   });
 
   useEffect(() => {
+    // Disable animation in E2E tests to prevent synchronization issues
+    if (isE2E) {
+      cursorOpacity.setValue(1);
+      return;
+    }
+
     const blinkAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(cursorOpacity, {
