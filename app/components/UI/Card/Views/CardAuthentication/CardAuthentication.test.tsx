@@ -975,7 +975,6 @@ describe('CardAuthentication Component', () => {
     });
 
     it('displays error below OTP input fields', async () => {
-      // Arrange
       mockLogin.mockResolvedValue({
         isOtpRequired: true,
         userId: 'user-123',
@@ -1000,9 +999,11 @@ describe('CardAuthentication Component', () => {
       const loginButton = screen.getByTestId(
         CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON,
       );
+
       fireEvent.changeText(emailInput, 'test@example.com');
       fireEvent.changeText(passwordInput, 'password123');
       fireEvent.press(loginButton);
+      
       await waitFor(() => {
         expect(
           screen.getByText('Enter your verification code'),
