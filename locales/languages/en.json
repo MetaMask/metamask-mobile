@@ -542,7 +542,8 @@
     "activity": "Activity",
     "trade": "Trade",
     "settings": "Settings",
-    "rewards": "Rewards"
+    "rewards": "Rewards",
+    "trending": "Trending"
   },
   "drawer": {
     "send_button": "Send",
@@ -601,6 +602,7 @@
     "network_not_found_title": "Network not found",
     "network_not_found_description": "Network with chain id {{chain_id}} not found in your wallet. Please add the network first.",
     "network_missing_id": "Missing chain id.",
+    "search_tokens":"Search tokens",
     "search_tokens_and_nfts": "Search tokens and NFTs",
     "tokens": "Tokens",
     "nfts": "NFTs",
@@ -775,7 +777,9 @@
       "dob_required": "Date of birth is required",
       "dob_invalid": "Please enter a valid date of birth",
       "ssn_required": "Social security number is required",
-      "unexpected_error": "An unexpected error occurred. Please try again."
+      "unexpected_error": "An unexpected error occurred. Please try again.",
+      "phone_already_registered": "This phone number is already in use by {{email}}. Log in using this email to continue.",
+      "login_with_email": "Log in with email"
     },
     "enter_address": {
       "navbar_title": "Verify your identity",
@@ -1710,6 +1714,7 @@
         "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperCore for no added fee."
       },
       "got_it": "Got it",
+      "lets_go": "Let's go",
       "card": {
         "title": "Learn the basics of perps"
       }
@@ -1746,6 +1751,7 @@
       "end_date": "End date",
       "resolver": "Resolver",
       "powered_by": "Powered by",
+      "resolution_details": "Resolution details",
       "yes": "Yes",
       "no": "No",
       "on": "on",
@@ -1769,6 +1775,8 @@
     "sell_position": "Sell Position",
     "cash_out": "Cash out",
     "cash_out_info": "Funds will be added to your available balance",
+    "at_price_per_share": "At price: {{price}}¢ per share",
+    "cashout_info": "{{amount}} on {{outcome}} at {{initialPrice}}¢",
     "buy_yes": "Yes",
     "buy_no": "No",
     "outcomes": "outcomes",
@@ -1785,6 +1793,7 @@
     "outcomes_plural": "outcomes",
     "outcome_winner": "Winner",
     "outcome_loser": "Loser",
+    "outcome_draw": "Draw",
     "resolved_outcomes": "Resolved outcomes",
     "category": {
       "trending": "Trending",
@@ -1828,6 +1837,14 @@
       "title": "Add funds",
       "description": "You'll need to add funds to your Predictions account to get started. You can add any token and make your first prediction in seconds."
     },
+    "consent_sheet": {
+      "title": "Terms of use",
+      "description": "MetaMask partners with Polymarket to offer prediction markets. All of our available markets, orders, and settlements happen on Polymarket.",
+      "learn_more": "Learn more.",
+      "agree": "Agree",
+      "disagree": "Disagree",
+      "disclaimer": "By continuing, you accept Polymarket’s terms."
+    },
     "transactions": {
       "title": "Predictions",
       "no_transactions": "No recent activity",
@@ -1849,7 +1866,9 @@
       "net_pnl": "Net P&L",
       "total_net_pnl": "Total Net P&L",
       "market_net_pnl": "Market Net P&L",
-      "activity_details": "Activity details"
+      "activity_details": "Activity details",
+      "today": "Today",
+      "yesterday": "Yesterday"
     },
     "claim": {
       "toasts": {
@@ -1904,13 +1923,15 @@
       "retry": "Retry"
     },
     "error_messages": {
+      "not_eligible": "Not available in your region",
       "place_order_failed": "Failed to place order",
       "preview_failed": "Failed to preview order",
       "preview_no_order_book": "No order book found",
       "preview_no_order_match_buy": "No order match found for buy",
       "preview_no_order_match_sell": "No order match found for sell",
       "claim_failed": "Failed to claim",
-      "unknown_error": "An unknown error occurred"
+      "unknown_error": "An unknown error occurred",
+      "order_not_fully_filled": "Failed to fill your order"
     }
   },
   "receive": {
@@ -3769,6 +3790,9 @@
   },
   "import_new_secret_recovery_phrase": {
     "title": "Import Secret Recovery Phrase",
+    "import_wallet_title": "Import a wallet",
+    "enter_srp_subtitle": "Enter your Secret Recovery Phrase",
+    "textarea_placeholder": "Add a space between each word and make sure no one is watching",
     "description": "Enter your wallet's secret recovery phrase. You can import any Ethereum, Solana, or Bitcoin secret recovery phrase.",
     "subtitle": "Paste your secret recovery phrase",
     "cta_text": "Continue",
@@ -3789,6 +3813,8 @@
     "error_multiple_srp_word_error_3": " are incorrect or misspelled.",
     "error_invalid_srp": "Invalid Secret Recovery Phrase",
     "error_duplicate_srp": "This Secret Recovery Phrase has already been imported.",
+    "invalid_qr_code_title": "Invalid QR Code",
+    "invalid_qr_code_message": "The QR code does not contain a valid Secret Recovery Phrase",
     "success_1": "Wallet",
     "success_2": "imported"
   },
@@ -4406,6 +4432,8 @@
     "order_status_completed": "Completed",
     "order_status_failed": "Failed",
     "order_status_cancelled": "Cancelled",
+    "webview_no_url_provided": "No URL was provided to continue",
+    "webview_error_no_address_provided": "No wallet address was provided to continue",
     "onboarding": {
       "what_to_expect": "What to Expect",
       "quotes": "Our buy crypto feature aggregates quotes from integrated vendors, providing quotes from those sources to get crypto directly into your wallet with no waiting period.",
@@ -6188,6 +6216,12 @@
         "verify_button": "Start verification",
         "start_verification_error": "Error starting verification. Please try again shortly."
       },
+      "kyc_webview": {
+        "close_confirmation_title": "Exit verification?",
+        "close_confirmation_message": "If you exit now, you'll need to restart the identity verification process. Are you sure you want to exit?",
+        "cancel_button": "Stay",
+        "close_button": "Exit"
+      },
       "validating_kyc": {
         "title": "Validating your KYC...",
         "timeout_button": "Restart verification"
@@ -6404,7 +6438,8 @@
     "report_submitted": "Error report has been submitted."
   },
   "pay_with_modal": {
-    "title": "Select payment method"
+    "title": "Select payment method",
+    "no_gas": "No native balance for gas"
   },
   "connection_removed_modal": {
     "title": "Connections removed",
@@ -6682,6 +6717,8 @@
       "link_account": "Add account",
       "tracked": "Tracked",
       "untracked": "Untracked",
+      "unsupported": "Unsupported",
+      "tracked_count": "{{optedIn}}/{{total}} tracked",
       "link_account_success": "{{accountName}} added successfully",
       "link_account_error": "Failed to add one or more addresses for {{accountName}}"
     },
@@ -6759,5 +6796,9 @@
     "update_rpc": "Update RPC",
     "check_network_connectivity": "Check your network connectivity.",
     "check_network_connectivity_or": "Check your network connectivity or"
+  },
+  "trending": {
+    "title": "Trending",
+    "coming_soon": "Trending tokens coming soon"
   }
 }

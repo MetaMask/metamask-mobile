@@ -52,7 +52,7 @@ import BadgeWrapper, {
 import BadgeNetwork from '../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
-import { getFiatOnRampAggNavbar } from '../../../../Navbar';
+import { getDepositNavbarOptions } from '../../../../Navbar';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   createNavigationDetails,
@@ -115,10 +115,8 @@ export const createBuildQuoteNavDetails =
 const BuildQuote = () => {
   const navigation = useNavigation();
   const params = useParams<BuildQuoteParams>();
-  const {
-    styles,
-    theme: { colors, themeAppearance },
-  } = useStyles(styleSheet, {});
+  const { styles, theme } = useStyles(styleSheet, {});
+  const { colors, themeAppearance } = theme;
   const trackEvent = useAnalytics();
   const [amountFocused, setAmountFocused] = useState(false);
   const [amount, setAmount] = useState('0');
@@ -141,7 +139,6 @@ const BuildQuote = () => {
     selectedRegion,
     selectedAsset,
     selectedFiatCurrencyId,
-    setSelectedFiatCurrencyId,
     selectedAddress,
     selectedNetworkName,
     sdkError,
@@ -185,7 +182,6 @@ const BuildQuote = () => {
   }, [paymentMethods, themeAppearance]);
 
   const {
-    defaultFiatCurrency,
     queryDefaultFiatCurrency,
     fiatCurrencies,
     queryGetFiatCurrencies,
@@ -246,31 +242,6 @@ const BuildQuote = () => {
       }
     }, [shouldShowUnsupportedModal, navigation, regions, selectedRegion]),
   );
-
-  useEffect(() => {
-    const handleRegionChange = async () => {
-      if (
-        selectedRegion &&
-        selectedFiatCurrencyId === defaultFiatCurrency?.id
-      ) {
-        const newRegionCurrency = await queryDefaultFiatCurrency(
-          selectedRegion.id,
-        );
-        if (newRegionCurrency?.id) {
-          setSelectedFiatCurrencyId(newRegionCurrency.id);
-        }
-      }
-    };
-
-    handleRegionChange();
-  }, [
-    selectedRegion,
-    selectedFiatCurrencyId,
-    defaultFiatCurrency?.id,
-    queryDefaultFiatCurrency,
-    selectedPaymentMethodId,
-    setSelectedFiatCurrencyId,
-  ]);
 
   const gasLimitEstimation = useERC20GasLimitEstimation({
     tokenAddress: selectedAsset?.address,
@@ -448,20 +419,19 @@ const BuildQuote = () => {
 
   useEffect(() => {
     navigation.setOptions(
-      getFiatOnRampAggNavbar(
+      getDepositNavbarOptions(
         navigation,
         {
           title: isBuy
             ? strings('fiat_on_ramp_aggregator.amount_to_buy')
             : strings('fiat_on_ramp_aggregator.amount_to_sell'),
           showBack: params.showBack,
-          showNetwork: false,
         },
-        colors,
+        theme,
         handleCancelPress,
       ),
     );
-  }, [navigation, colors, handleCancelPress, params.showBack, isBuy]);
+  }, [navigation, theme, handleCancelPress, params.showBack, isBuy]);
 
   /**
    * * Keypad style, handlers and effects
