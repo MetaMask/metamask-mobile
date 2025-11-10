@@ -22,6 +22,7 @@ import {
 } from '../component-library/components/Toast';
 import { MinimumVersionFlagValue } from '../components/Views/FeatureFlagOverride/FeatureFlagOverride';
 import useMetrics from '../components/hooks/useMetrics/useMetrics';
+import { JsonValue } from '@segment/analytics-react-native';
 
 interface FeatureFlagOverrides {
   [key: string]: unknown;
@@ -31,7 +32,6 @@ export interface FeatureFlagOverrideContextType {
   featureFlags: { [key: string]: FeatureFlagInfo };
   originalFlags: FeatureFlagOverrides;
   getFeatureFlag: (key: string) => unknown;
-  getFeatureFlagSnapshots: () => { relatedFlags?: FeatureFlagInfoSnapshot[] };
   featureFlagsList: FeatureFlagInfo[];
   overrides: FeatureFlagOverrides;
   setOverride: (key: string, value: unknown) => void;
@@ -52,6 +52,10 @@ interface FeatureFlagOverrideProviderProps {
   children: ReactNode;
 }
 
+interface RelatedFlagsSnapshotType {
+  [key: string]: FeatureFlagInfoSnapshot;
+}
+
 export const FeatureFlagOverrideProvider: React.FC<
   FeatureFlagOverrideProviderProps
 > = ({ children }) => {
@@ -63,14 +67,13 @@ export const FeatureFlagOverrideProvider: React.FC<
 
   // Local state for overrides
   const [overrides, setOverrides] = useState<FeatureFlagOverrides>({});
-  const [featureFlagSnapshots, setFeatureFlagSnapshots] = useState<
-    FeatureFlagInfoSnapshot[]
-  >([]);
+  const [featureFlagSnapshots, setFeatureFlagSnapshots] =
+    useState<RelatedFlagsSnapshotType>({});
 
   useEffect(() => {
-    if (featureFlagSnapshots.length > 0) {
+    if (Object.keys(featureFlagSnapshots).length > 0) {
       addTraitsToUser({
-        relatedFlags: JSON.stringify(featureFlagSnapshots),
+        relatedFlags: featureFlagSnapshots as unknown as JsonValue,
       });
     }
   }, [featureFlagSnapshots, addTraitsToUser]);
@@ -83,13 +86,13 @@ export const FeatureFlagOverrideProvider: React.FC<
   }, []);
 
   const takeSnapshot = useCallback((featureFlagInfo: FeatureFlagInfo) => {
-    setFeatureFlagSnapshots((prev) => [
+    setFeatureFlagSnapshots((prev) => ({
       ...prev,
-      {
-        timestamp: Date.now(),
+      [featureFlagInfo.key]: {
         ...featureFlagInfo,
+        timestamp: Date.now(),
       },
-    ]);
+    }));
   }, []);
 
   const removeOverride = useCallback((key: string) => {
@@ -169,13 +172,6 @@ export const FeatureFlagOverrideProvider: React.FC<
     a.key.localeCompare(b.key),
   );
 
-  const getFeatureFlagSnapshots = useCallback(
-    () => ({
-      relatedFlags: featureFlagSnapshots,
-    }),
-    [featureFlagSnapshots],
-  );
-
   const validateMinimumVersion = useCallback(
     (flagKey: string, flagValue: MinimumVersionFlagValue) => {
       if (
@@ -231,7 +227,6 @@ export const FeatureFlagOverrideProvider: React.FC<
     featureFlags,
     originalFlags: rawFeatureFlags,
     getFeatureFlag,
-    getFeatureFlagSnapshots,
     featureFlagsList,
     overrides,
     setOverride,
