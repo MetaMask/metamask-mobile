@@ -8,12 +8,10 @@ import { useTheme } from '../../../../../util/theme';
 import {
   ASSETS_REQUIRING_DARK_BG,
   ASSETS_REQUIRING_LIGHT_BG,
-  K_PREFIX_ASSETS,
 } from './TrendingTokenBgConfig.ts';
 
-import { getAssetIconUrl } from '../../../../UI/Perps/utils/marketUtils';
-
 interface TrendingTokenLogoProps {
+  assetId: string;
   symbol: string;
   size?: number;
   style?: ViewStyle;
@@ -22,6 +20,7 @@ interface TrendingTokenLogoProps {
 }
 
 const TrendingTokenLogo: React.FC<TrendingTokenLogoProps> = ({
+  assetId,
   symbol,
   size = 44,
   style,
@@ -38,7 +37,6 @@ const TrendingTokenLogo: React.FC<TrendingTokenLogoProps> = ({
     setHasError(false);
   }, [symbol]);
 
-  // Memoize the background checks to prevent recalculation
   const { needsLightBg, needsDarkBg } = useMemo(() => {
     const upperSymbol = symbol?.toUpperCase();
     return {
@@ -98,12 +96,12 @@ const TrendingTokenLogo: React.FC<TrendingTokenLogoProps> = ({
     [size, colors.text.default],
   );
 
-  // SVG URL - expo-image handles SVG rendering properly
   const imageUri = useMemo(() => {
-    if (!symbol) return null;
-    const imageUrl = getAssetIconUrl(symbol, K_PREFIX_ASSETS);
+    const imageUrl = `https://static.cx.metamask.io/api/v2/tokenIcons/assets/${assetId
+      .split(':')
+      .join('/')}.png`;
     return imageUrl;
-  }, [symbol]);
+  }, [assetId]);
 
   const handleLoadStart = () => {
     setIsLoading(true);
@@ -119,8 +117,7 @@ const TrendingTokenLogo: React.FC<TrendingTokenLogoProps> = ({
     setHasError(true);
   };
 
-  // Show custom two-letter fallback if no symbol or error
-  if (!symbol || !imageUri || hasError) {
+  if (!imageUri || hasError) {
     // Get first 2 letters, uppercase
     const fallbackText = symbol.substring(0, 2).toUpperCase();
 

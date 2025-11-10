@@ -111,7 +111,7 @@ export const useTrendingRequest = (options: {
     debouncedFetchTrendingTokens.cancel();
 
     // If chainIds is empty, don't trigger fetch
-    if (!memoizedOptions.chainIds.length) {
+    if (!stableChainIds.length) {
       return;
     }
 
@@ -122,7 +122,7 @@ export const useTrendingRequest = (options: {
     return () => {
       debouncedFetchTrendingTokens.cancel();
     };
-  }, [debouncedFetchTrendingTokens, memoizedOptions.chainIds.length]);
+  }, [debouncedFetchTrendingTokens, stableChainIds]);
 
   return {
     results: results || [],

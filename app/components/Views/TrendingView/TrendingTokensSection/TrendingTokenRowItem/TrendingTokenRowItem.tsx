@@ -37,6 +37,7 @@ import {
 } from '../../../../../util/networks/customNetworks';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { formatMarketStats } from './utils';
+import { formatPrice } from '../../../../UI/Predict/utils/format';
 
 interface TrendingTokenRowItemProps {
   token: TrendingAsset;
@@ -94,6 +95,11 @@ const TrendingTokenRowItem = ({
     }
   }, []);
 
+  const pricePercentChange1d = 3.44; // TODO ; this should come from the trending hook
+
+  // Determine the color for percentage change
+  const isPositiveChange = pricePercentChange1d && pricePercentChange1d > 0;
+
   const handlePress = () => {
     // TODO: Implement token press logic
     onPress?.();
@@ -119,6 +125,7 @@ const TrendingTokenRowItem = ({
           }
         >
           <TrendingTokenLogo
+            assetId={token.assetId}
             symbol={token.symbol}
             size={iconSize}
             recyclingKey={token.assetId}
@@ -142,10 +149,16 @@ const TrendingTokenRowItem = ({
       </View>
       <View style={styles.rightContainer}>
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-          $23,000
+          {formatPrice(token.price, {
+            minimumDecimals: 2,
+            maximumDecimals: 2,
+          })}
         </Text>
-        <Text variant={TextVariant.BodySM} color={TextColor.Success}>
-          +3.44%
+        <Text
+          variant={TextVariant.BodySM}
+          color={isPositiveChange ? TextColor.Success : TextColor.Error}
+        >
+          +{pricePercentChange1d}%
         </Text>
       </View>
     </TouchableOpacity>
