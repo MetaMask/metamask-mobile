@@ -129,7 +129,7 @@ describe('useAmountValidation', () => {
       isBitcoinSendType: true,
     } as ReturnType<typeof useSendType>);
     mockUseSendContext.mockReturnValue({
-      value: '0.00005',
+      value: '0.000005',
     } as unknown as ReturnType<typeof useSendContext>);
     mockUseBalance.mockReturnValue({
       balance: '1',
