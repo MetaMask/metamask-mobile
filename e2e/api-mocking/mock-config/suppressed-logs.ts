@@ -1,1 +1,1 @@
-export const SUPPRESSED_LOGS_URLS = [/^https:\/\/localhost:\d+\/favicon\.ico$/];
+export const SUPPRESSED_LOGS_URLS = [/^http:\/\/localhost:\d+\/favicon\.ico$/];
