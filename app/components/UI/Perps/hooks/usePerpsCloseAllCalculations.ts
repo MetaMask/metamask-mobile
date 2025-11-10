@@ -14,7 +14,7 @@ import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
  * Aggregated calculations result for closing all positions
  */
 export interface CloseAllCalculationsResult {
-  /** Total margin across all positions (includes P&L) */
+  /** Total margin across all positions (excludes P&L) */
   totalMargin: number;
   /** Total unrealized P&L across all positions */
   totalPnl: number;
@@ -120,7 +120,7 @@ export function usePerpsCloseAllCalculations({
   const hasValidResultsRef = useRef(false);
   const hasValidDiscountRef = useRef(false);
 
-  // Calculate total margin (including P&L)
+  // Calculate total margin
   const totalMargin = useMemo(
     () =>
       positions.reduce((sum, pos) => {
@@ -134,7 +134,7 @@ export function usePerpsCloseAllCalculations({
   const totalPnl = useMemo(
     () =>
       positions.reduce(
-        (sum, pos) => sum + (parseFloat(pos.unrealizedPnl) || 0),
+        (sum, pos) => sum + (Number.parseFloat(pos.unrealizedPnl) || 0),
         0,
       ),
     [positions],
