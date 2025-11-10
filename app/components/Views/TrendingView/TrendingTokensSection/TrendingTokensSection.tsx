@@ -12,17 +12,37 @@ import TrendingTokensSkeleton from './TrendingTokensSkeleton';
 import TrendingTokensList from './TrendingTokensList';
 import Card from '../../../../component-library/components/Cards/Card';
 import { useTrendingRequest } from '../../../UI/Assets/hooks/useTrendingRequest';
-import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 
 const TrendingTokensSection = () => {
   const { styles } = useStyles(styleSheet, {});
 
-  const { enabledNetworks } = useCurrentNetworkInfo();
-  //memoize the caipChainIds
+  const { enabledNetworksByNamespace } = useNetworkEnablement();
+  const enabledNetworks = useMemo(() => {
+    function getEnabledNetworks(
+      obj: Record<string, boolean | Record<string, boolean>>,
+    ): string[] {
+      const enabled: string[] = [];
+
+      Object.entries(obj).forEach(([key, value]) => {
+        if (typeof value === 'object' && value !== null) {
+          // recurse into nested object
+          enabled.push(...getEnabledNetworks(value));
+        } else if (value === true) {
+          // Return just the chain ID, not the full namespace path
+          enabled.push(key);
+        }
+      });
+
+      return enabled;
+    }
+
+    return getEnabledNetworks(enabledNetworksByNamespace);
+  }, [enabledNetworksByNamespace]);
+
   const caipChainIds = useMemo(
-    () =>
-      enabledNetworks.map((network) => formatChainIdToCaip(network.chainId)),
+    () => enabledNetworks.map((chainId) => formatChainIdToCaip(chainId)),
     [enabledNetworks],
   );
   const { results: trendingTokensResults, isLoading } = useTrendingRequest({

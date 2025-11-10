@@ -21,18 +21,17 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-import TrendingView from './TrendingView';
-import { updateLastTrendingScreen } from '../../Nav/Main/MainNavigator';
-
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest.fn((selector) => {
-    if (selector.toString().includes('dataCollectionForMarketing')) {
-      return false;
-    }
-    return undefined;
-  }),
+  useSelector: jest.fn(),
 }));
+
+import TrendingView from './TrendingView';
+import { updateLastTrendingScreen } from '../../Nav/Main/MainNavigator';
+import { selectChainId } from '../../../selectors/networkController';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
+import { useSelector } from 'react-redux';
 
 jest.mock('../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
@@ -52,10 +51,32 @@ jest.mock('../Browser', () => ({
 }));
 
 describe('TrendingView', () => {
+  const mockUseSelector = useSelector as jest.MockedFunction<
+    typeof useSelector
+  >;
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsEnabled.mockReturnValue(true);
     mockAddListener.mockReturnValue(jest.fn());
+
+    mockUseSelector.mockImplementation((selector) => {
+      // Compare selectors by reference for memoized selectors
+      if (selector === selectChainId) {
+        return '0x1';
+      }
+      if (selector === selectIsEvmNetworkSelected) {
+        return true;
+      }
+      if (selector === selectEnabledNetworksByNamespace) {
+        return {
+          eip155: {
+            '0x1': true,
+          },
+        };
+      }
+      return undefined;
+    });
   });
 
   it('renders browser button in header', () => {
