@@ -15,6 +15,12 @@ import {
   getVersion,
   getBuildNumber,
 } from 'react-native-device-info';
+import {
+  channel,
+  runtimeVersion,
+  isEmbeddedLaunch,
+  isEnabled as isOTAUpdatesEnabled,
+} from 'expo-updates';
 import { fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
@@ -27,6 +33,7 @@ import {
   getFeatureFlagAppDistribution,
   getFeatureFlagAppEnvironment,
 } from '../../../../core/Engine/controllers/remote-feature-flag-controller/utils';
+import { getFullVersion } from '../../../../constants/ota';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -183,6 +190,10 @@ export default class AppInformation extends PureComponent {
   render = () => {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
+    const otaUpdateMessage =
+      __DEV__ || isEmbeddedLaunch
+        ? 'This app is running from built-in code or in development mode'
+        : 'This app is running an update';
 
     return (
       <SafeAreaView
@@ -202,14 +213,16 @@ export default class AppInformation extends PureComponent {
                 resizeMethod={'auto'}
               />
             </TouchableOpacity>
-            <Text style={styles.versionInfo}>{this.state.appInfo}</Text>
+            <Text style={styles.versionInfo}>
+              {getFullVersion(this.state.appVersion)}
+            </Text>
             {isQa ? (
               <Text style={styles.branchInfo}>
                 {`Branch: ${process.env['GIT_BRANCH']}`}
               </Text>
             ) : null}
 
-            {this.state.showEnvironmentInfo ? (
+            {this.state.showEnvironmentInfo && (
               <>
                 <Text style={styles.branchInfo}>
                   {`Environment: ${process.env.METAMASK_ENVIRONMENT}`}
@@ -221,8 +234,24 @@ export default class AppInformation extends PureComponent {
                 <Text style={styles.branchInfo}>
                   {`Remote Feature Flag Distribution: ${getFeatureFlagAppDistribution()}`}
                 </Text>
+                <Text style={styles.branchInfo}>
+                  {`OTA Updates enabled: ${String(isOTAUpdatesEnabled)}`}
+                </Text>
+                {isOTAUpdatesEnabled && (
+                  <>
+                    <Text style={styles.branchInfo}>
+                      {`OTA Update Channel: ${channel}`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`OTA Update runtime version: ${runtimeVersion}`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`OTA Update status: ${otaUpdateMessage}`}
+                    </Text>
+                  </>
+                )}
               </>
-            ) : null}
+            )}
           </View>
           <Text style={styles.title}>{strings('app_information.links')}</Text>
           <View style={styles.links}>

@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.60.0",
+  "version": "7.60.99",
   "private": true,
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
@@ -370,6 +370,7 @@
     "expo-haptics": "~14.0.1",
     "expo-image": "~2.0.7",
     "expo-sensors": "~14.0.2",
+    "expo-updates": "~0.27.4",
     "fast-equals": "^5.2.2",
     "fuse.js": "3.4.4",
     "he": "^1.2.0",
