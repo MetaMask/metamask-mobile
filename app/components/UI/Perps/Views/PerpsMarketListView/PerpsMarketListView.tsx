@@ -74,6 +74,7 @@ const PerpsMarketListView = ({
 
   const fadeAnimation = useRef(new Animated.Value(0)).current;
   const tabScrollViewRef = useRef<ScrollView>(null);
+  const isScrollingProgrammatically = useRef(false);
   const [isSortFieldSheetVisible, setIsSortFieldSheetVisible] = useState(false);
   const [isStocksCommoditiesSheetVisible, setIsStocksCommoditiesSheetVisible] =
     useState(false);
@@ -221,6 +222,11 @@ const PerpsMarketListView = ({
   // Handle scroll to sync active tab (for swipe gestures)
   const handleScroll = useCallback(
     (event: { nativeEvent: { contentOffset: { x: number } } }) => {
+      // Ignore programmatic scrolls to prevent feedback loop with useEffect
+      if (isScrollingProgrammatically.current) {
+        return;
+      }
+
       const offsetX = event.nativeEvent.contentOffset.x;
       const index = Math.round(offsetX / containerWidth);
       if (index >= 0 && index < tabsData.length) {
@@ -240,10 +246,15 @@ const PerpsMarketListView = ({
       activeTabIndex >= 0 &&
       tabsData.length > 0
     ) {
+      isScrollingProgrammatically.current = true;
       tabScrollViewRef.current.scrollTo({
         x: activeTabIndex * containerWidth,
         animated: true,
       });
+      // Clear flag after animation completes (~300ms animation + 50ms buffer)
+      setTimeout(() => {
+        isScrollingProgrammatically.current = false;
+      }, 350);
     }
   }, [activeTabIndex, containerWidth, tabsData.length]);
 
