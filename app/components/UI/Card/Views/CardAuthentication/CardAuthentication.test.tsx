@@ -1003,7 +1003,7 @@ describe('CardAuthentication Component', () => {
       fireEvent.changeText(emailInput, 'test@example.com');
       fireEvent.changeText(passwordInput, 'password123');
       fireEvent.press(loginButton);
-      
+
       await waitFor(() => {
         expect(
           screen.getByText('Enter your verification code'),
