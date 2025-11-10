@@ -6,7 +6,7 @@ import {
   View,
 } from 'react-native';
 import { LineChart } from 'react-native-svg-charts';
-import { Circle, G, Line, Text as SvgText } from 'react-native-svg';
+import { Circle, G, Line, Text as SvgText, Rect } from 'react-native-svg';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -18,6 +18,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
+import type { Colors } from '../../../../../util/theme/models';
 import TimeframeSelector from './components/TimeframeSelector';
 import ChartGrid from './components/ChartGrid';
 import ChartArea from './components/ChartArea';
@@ -34,7 +35,7 @@ import {
 export interface ChartSeries {
   label: string;
   color: string;
-  data: { timestamp: number; value: number }[];
+  data: { timestamp: number; value: number; label?: string }[];
 }
 
 interface PredictDetailsChartProps {
@@ -45,6 +46,126 @@ interface PredictDetailsChartProps {
   isLoading?: boolean;
   emptyLabel?: string;
 }
+
+interface TooltipManualProps {
+  activeIndex: number;
+  primaryData: { timestamp: number; value: number; label: string }[];
+  nonEmptySeries: ChartSeries[];
+  colors: Colors;
+}
+
+interface TooltipInjectedProps {
+  x: (index: number) => number;
+  y: (value: number) => number;
+  ticks: number[];
+}
+
+type TooltipProps = TooltipManualProps & Partial<TooltipInjectedProps>;
+
+// Tooltip component for interactive chart - defined outside to avoid re-renders
+const ChartTooltip: React.FC<TooltipProps> = ({
+  x,
+  y,
+  ticks,
+  activeIndex,
+  primaryData,
+  nonEmptySeries,
+  colors,
+}) => {
+  if (!x || !y || !ticks) return null; // Injected props not yet available
+  if (activeIndex < 0 || !primaryData[activeIndex]) return null;
+
+  const activePoint = primaryData[activeIndex];
+  const xPos = x(activeIndex);
+
+  // Calculate label dimensions
+  const labelPadding = 6;
+  const fontSize = 12;
+  const labelHeight = fontSize + labelPadding * 2;
+  const labelOffset = 10;
+
+  // Determine if we should show labels on the left or right
+  // If we're in the right half of the chart, show labels on the left
+  const maxDataIndex = primaryData.length - 1;
+  const isRightSide = activeIndex > maxDataIndex / 2;
+
+  return (
+    <G key="tooltip">
+      {/* Vertical crosshair line */}
+      <Line
+        x1={xPos}
+        x2={xPos}
+        y1={ticks[0]}
+        y2={ticks[ticks.length - 1]}
+        stroke={colors.primary.default}
+        strokeWidth={2}
+        strokeDasharray={[6, 3]}
+      />
+
+      {/* Display timestamp at top - adjust position based on side */}
+      <G x={isRightSide ? xPos - 60 : xPos + 10} y={20}>
+        <SvgText fill={colors.text.alternative} fontSize={11} fontWeight="400">
+          {activePoint.label}
+        </SvgText>
+      </G>
+
+      {/* Render circles and labels for each series - positioned at their line points */}
+      {nonEmptySeries.map((series, seriesIndex) => {
+        const seriesData = series.data[activeIndex];
+        if (!seriesData) return null;
+
+        const lineYPos = y(seriesData.value);
+        const labelText = `${series.label}: ${seriesData.value.toFixed(2)}%`;
+
+        // Approximate text width
+        const textWidth = labelText.length * (fontSize * 0.55);
+        const labelWidth = textWidth + labelPadding * 2;
+
+        // Position label based on which side of the chart we're on
+        const labelX = isRightSide
+          ? xPos - labelWidth - labelOffset // Left side of crosshair
+          : xPos + labelOffset; // Right side of crosshair
+        const labelY = lineYPos - labelHeight / 2;
+
+        return (
+          <G key={`series-${seriesIndex}`}>
+            {/* Circle on the line */}
+            <Circle
+              cx={xPos}
+              cy={lineYPos}
+              r={6}
+              stroke={colors.background.default}
+              strokeWidth={2}
+              fill={series.color}
+            />
+
+            {/* Background rectangle with series color */}
+            <Rect
+              x={labelX}
+              y={labelY}
+              width={labelWidth}
+              height={labelHeight}
+              fill={series.color}
+              rx={4}
+              ry={4}
+            />
+
+            {/* White text */}
+            <SvgText
+              x={labelX + labelPadding}
+              y={labelY + labelHeight / 2 + fontSize / 3}
+              fill={colors.background.default}
+              fontSize={fontSize}
+              fontWeight="600"
+            >
+              {labelText}
+            </SvgText>
+          </G>
+        );
+      })}
+    </G>
+  );
+};
 
 const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
   data,
@@ -107,7 +228,9 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
     : [0, 0];
 
   // Handle chart layout to track width
-  const handleChartLayout = (event: any) => {
+  const handleChartLayout = (event: {
+    nativeEvent: { layout: { width: number } };
+  }) => {
     const { width } = event.nativeEvent.layout;
     chartWidthRef.current = width;
   };
@@ -143,29 +266,29 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
         // Claim gesture on initial touch
         onStartShouldSetPanResponder: () => true,
         onStartShouldSetPanResponderCapture: () => false,
-        
+
         // Determine if we should keep the gesture based on direction
         onMoveShouldSetPanResponder: () => true,
-        onMoveShouldSetPanResponderCapture: (event, gestureState) => {
+        onMoveShouldSetPanResponderCapture: (_event, gestureState) => {
           // Only capture (block ScrollView) if movement is more horizontal than vertical
           const { dx, dy } = gestureState;
           const isHorizontal = Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 5;
           isHorizontalGestureRef.current = isHorizontal;
           return isHorizontal;
         },
-        
+
         // Allow ScrollView to take over if user scrolls vertically
-        onPanResponderTerminationRequest: (event, gestureState) => {
+        onPanResponderTerminationRequest: (_event, gestureState) => {
           const { dx, dy } = gestureState;
           const isVertical = Math.abs(dy) > Math.abs(dx);
           return isVertical; // Allow termination for vertical scrolls
         },
-        
+
         onPanResponderGrant: (event) => {
           isHorizontalGestureRef.current = true; // Assume horizontal initially
           updatePosition(event.nativeEvent.locationX);
         },
-        
+
         onPanResponderMove: (event, gestureState) => {
           const { dx, dy } = gestureState;
           // Check if gesture is still horizontal
@@ -178,12 +301,12 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
             updatePosition(event.nativeEvent.locationX);
           }
         },
-        
+
         onPanResponderRelease: () => {
           setActiveIndex(-1);
           isHorizontalGestureRef.current = false;
         },
-        
+
         onPanResponderTerminate: () => {
           setActiveIndex(-1);
           isHorizontalGestureRef.current = false;
@@ -191,71 +314,6 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
       }),
     [updatePosition],
   );
-
-  // Tooltip component for interactive chart
-  const Tooltip = ({ x, y, ticks }: any) => {
-    if (activeIndex < 0 || !primaryData[activeIndex]) return null;
-
-    const activePoint = primaryData[activeIndex];
-
-    return (
-      <G x={x(activeIndex)} key="tooltip">
-        {/* Vertical crosshair line */}
-        <Line
-          y1={ticks[0]}
-          y2={ticks[ticks.length - 1]}
-          stroke={colors.primary.default}
-          strokeWidth={2}
-          strokeDasharray={[6, 3]}
-        />
-
-        {/* Render circles for all series at active index */}
-        {nonEmptySeries.map((series, seriesIndex) => {
-          const seriesData = series.data[activeIndex];
-          if (!seriesData) return null;
-
-          return (
-            <Circle
-              key={`circle-${seriesIndex}`}
-              cy={y(seriesData.value)}
-              r={6}
-              stroke={colors.background.default}
-              strokeWidth={2}
-              fill={series.color}
-            />
-          );
-        })}
-
-        {/* Display tooltip text */}
-        <G x={10} y={20}>
-          <SvgText
-            fill={colors.text.alternative}
-            fontSize={12}
-            fontWeight="400"
-          >
-            {activePoint.label}
-          </SvgText>
-          {nonEmptySeries.map((series, seriesIndex) => {
-            const seriesData = series.data[activeIndex];
-            if (!seriesData) return null;
-
-            return (
-              <SvgText
-                key={`text-${seriesIndex}`}
-                y={16 + seriesIndex * 16}
-                fill={series.color}
-                fontSize={14}
-                fontWeight="bold"
-              >
-                {isSingleSeries ? '' : `${series.label}: `}
-                {seriesData.value.toFixed(2)}%
-              </SvgText>
-            );
-          })}
-        </G>
-      </G>
-    );
-  };
 
   const renderGraph = () => {
     if (isLoading || !hasData) {
@@ -345,7 +403,6 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
               />
             )}
             <ChartGrid colors={colors} range={range} />
-            <Tooltip />
           </LineChart>
           {overlaySeries.map((series, index) => (
             <LineChart
@@ -360,6 +417,24 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
               curve={LINE_CURVE}
             />
           ))}
+          {/* Tooltip overlay - rendered last to appear on top */}
+          <LineChart
+            style={StyleSheet.absoluteFillObject}
+            data={primaryChartData}
+            svg={{ stroke: 'transparent', strokeWidth: 0 }}
+            contentInset={CHART_CONTENT_INSET}
+            yMin={chartMin}
+            yMax={chartMax}
+            numberOfTicks={4}
+            curve={LINE_CURVE}
+          >
+            <ChartTooltip
+              activeIndex={activeIndex}
+              primaryData={primaryData}
+              nonEmptySeries={nonEmptySeries}
+              colors={colors}
+            />
+          </LineChart>
         </View>
 
         <Box
