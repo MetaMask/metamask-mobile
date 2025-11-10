@@ -18,7 +18,7 @@ class DappConnectionModal {
         }
 
         if (AppwrightSelectors.isAndroid(this._device)) {
-            return AppwrightSelectors.getElementByText(this._device, 'Connect');
+            return AppwrightSelectors.getElementByXpath(this._device, '//android.widget.Button[@content-desc="connect-button"]');
         }
     }
 

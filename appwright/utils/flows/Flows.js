@@ -15,6 +15,7 @@ import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
 import MultichainAccountEducationModal from '../../../wdio/screen-objects/Modals/MultichainAccountEducationModal.js';
 import PerpsGTMModal from '../../../wdio/screen-objects/Modals/PerpsGTMModal.js';
 import RewardsGTMModal from '../../../wdio/screen-objects/Modals/RewardsGTMModal.js';
+import AppwrightGestures from '../../../e2e/framework/AppwrightGestures.js';
 
 export async function onboardingFlowImportSRP(device, srp) {
   WelcomeScreen.device = device;
@@ -128,9 +129,11 @@ export async function login(device, options = {}) {
   await LoginScreen.tapUnlockButton();
   // Wait for app to settle after unlock
 
-  if (shouldDismissModals) {
-    await dissmissAllModals(device);
-  }
+  // if (shouldDismissModals) {
+  //   await dissmissAllModals(device);
+  // }
+  console.log("Manually dismiss modals now!")
+  await AppwrightGestures.wait(5000);
 }
 export async function tapPerpsBottomSheetGotItButton(device) {
   PerpsGTMModal.device = device;
