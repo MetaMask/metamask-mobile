@@ -56,14 +56,6 @@ export const createStyles = (params: { theme: Theme }) => {
       flex: 1,
       justifyContent: 'flex-end',
     },
-    keypadContainer: {
-      flex: 1,
-      justifyContent: 'flex-end',
-      paddingBottom: 8,
-    },
-    keypad: {
-      paddingHorizontal: 24,
-    },
     destinationAccountSelectorContainer: {
       paddingBottom: 12,
     },
