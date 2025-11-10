@@ -101,7 +101,7 @@ index ec4354583ac04fa8df6de7c1896902a4c7d5c4b4..d372b05e17749b73e94bc51616b9123c
 +    UIView<RCTComponentViewProtocol> *view = [self->_componentViewRegistry findComponentViewWithTag:reactTag];
 +    if (!view) {
 +      // this view was probably collapsed out
-+      RCTLogWarn(@"measure cannot find view with tag #%@", reactTag);
++      RCTLogWarn(@"measure cannot find view with tag #%@", @(reactTag));
 +      callbackCopy({});
 +      return;
 +    }
