@@ -1,5 +1,6 @@
 import React from 'react';
-import { screen, fireEvent, waitFor } from '@testing-library/react-native';
+import { screen, fireEvent, waitFor, act } from '@testing-library/react-native';
+import { InteractionManager } from 'react-native';
 import {
   NavigationProp,
   ParamListBase,
@@ -12,10 +13,29 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
+const runAfterInteractionsCallbacks: (() => void)[] = [];
+const mockRunAfterInteractions = jest.spyOn(
+  InteractionManager,
+  'runAfterInteractions',
+);
+const runAfterInteractionsMockImpl: typeof InteractionManager.runAfterInteractions =
+  (task) => {
+    if (typeof task === 'function') {
+      runAfterInteractionsCallbacks.push(task as () => void);
+    }
+
+    return {
+      then: jest.fn(),
+      done: jest.fn(),
+      cancel: jest.fn(),
+    } as ReturnType<typeof InteractionManager.runAfterInteractions>;
+  };
+
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     PredictController: {
       trackMarketDetailsOpened: jest.fn(),
+      trackGeoBlockTriggered: jest.fn(),
     },
   },
 }));
@@ -135,12 +155,21 @@ jest.mock('../../utils/format', () => ({
       ? '0%'
       : `${value > 0 ? '+' : ''}${Math.abs(value).toFixed(2)}%`,
   ),
+  formatAddress: jest.fn(
+    (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`,
+  ),
+  estimateLineCount: jest.fn((text?: string) => {
+    if (!text) return 1;
+    // Simple mock implementation - returns 1 for short text, 2 for longer
+    return text.length > 50 ? 2 : 1;
+  }),
 }));
 
 jest.mock('../../hooks/usePredictMarket', () => ({
   usePredictMarket: jest.fn(() => ({
     market: null,
     isFetching: false,
+    refetch: jest.fn(),
   })),
 }));
 
@@ -149,6 +178,7 @@ jest.mock('../../hooks/usePredictPriceHistory', () => ({
     priceHistories: [],
     isFetching: false,
     errors: [],
+    refetch: jest.fn(),
   })),
 }));
 
@@ -183,6 +213,15 @@ jest.mock('../../hooks/usePredictEligibility', () => ({
   usePredictEligibility: jest.fn(() => ({
     isEligible: true,
     refreshEligibility: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/usePredictPrices', () => ({
+  usePredictPrices: jest.fn(() => ({
+    prices: { providerId: '', results: [] },
+    isFetching: false,
+    error: null,
+    refetch: jest.fn(),
   })),
 }));
 
@@ -424,6 +463,8 @@ function setupPredictMarketDetailsTest(
   } = {},
 ) {
   jest.clearAllMocks();
+  runAfterInteractionsCallbacks.length = 0;
+  mockRunAfterInteractions.mockImplementation(runAfterInteractionsMockImpl);
 
   const mockNavigate = jest.fn();
   const mockSetOptions = jest.fn();
@@ -480,6 +521,7 @@ function setupPredictMarketDetailsTest(
   usePredictMarket.mockReturnValue({
     market: mockMarket,
     isFetching: false,
+    refetch: jest.fn(),
     ...hookOverrides.market,
   });
 
@@ -515,6 +557,15 @@ function setupPredictMarketDetailsTest(
 }
 
 describe('PredictMarketDetails', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+    mockRunAfterInteractions.mockReset();
+  });
+
+  afterAll(() => {
+    mockRunAfterInteractions.mockRestore();
+  });
+
   describe('Component Rendering', () => {
     it('renders the main screen container', () => {
       setupPredictMarketDetailsTest();
@@ -586,7 +637,7 @@ describe('PredictMarketDetails', () => {
       expect(screen.getByText('12/31/2024')).toBeOnTheScreen();
     });
 
-    it('displays provider information', () => {
+    it('displays resolution details information', () => {
       setupPredictMarketDetailsTest();
 
       const aboutTab = screen.getByTestId(
@@ -595,23 +646,40 @@ describe('PredictMarketDetails', () => {
       fireEvent.press(aboutTab);
 
       expect(
-        screen.getByText('predict.market_details.powered_by'),
+        screen.getByText('predict.market_details.resolution_details'),
       ).toBeOnTheScreen();
-      expect(screen.getByText('polymarket')).toBeOnTheScreen();
+      expect(screen.getByText('Polymarket')).toBeOnTheScreen();
     });
 
-    it('displays resolver information', () => {
-      setupPredictMarketDetailsTest();
+    it('navigates to polymarket resolution details when pressed', () => {
+      const { mockNavigate } = setupPredictMarketDetailsTest();
 
       const aboutTab = screen.getByTestId(
         'predict-market-details-tab-bar-tab-1',
       );
       fireEvent.press(aboutTab);
 
-      expect(
-        screen.getByText('predict.market_details.resolver'),
-      ).toBeOnTheScreen();
-      expect(screen.getByText('UMA')).toBeOnTheScreen();
+      const resolutionText = screen.getByText('Polymarket');
+
+      act(() => {
+        fireEvent.press(resolutionText);
+      });
+
+      expect(mockRunAfterInteractions).toHaveBeenCalledTimes(1);
+      const callback = runAfterInteractionsCallbacks[0];
+      expect(callback).toBeDefined();
+
+      act(() => {
+        callback?.();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: 'https://docs.polymarket.com/polymarket-learn/markets/how-are-markets-resolved',
+          title: 'predict.market_details.resolution_details',
+        },
+      });
     });
   });
 
@@ -696,7 +764,7 @@ describe('PredictMarketDetails', () => {
         screen.getByText('predict.market_details.end_date'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText('predict.market_details.resolver'),
+        screen.getByText('predict.market_details.resolution_details'),
       ).toBeOnTheScreen();
     });
 
@@ -994,12 +1062,62 @@ describe('PredictMarketDetails', () => {
     });
   });
 
+  describe('Pull to Refresh', () => {
+    it('attaches a themed RefreshControl to the scroll view', () => {
+      setupPredictMarketDetailsTest();
+
+      const scrollView = screen.getByTestId(
+        'predict-market-details-scrollable-tab-view',
+      );
+      const refreshControlProps = scrollView.props.refreshControl.props;
+
+      expect(scrollView.props.refreshControl).toBeDefined();
+      expect(refreshControlProps.tintColor).toBeTruthy();
+      expect(refreshControlProps.colors).toEqual([
+        refreshControlProps.tintColor,
+      ]);
+      expect(refreshControlProps.refreshing).toBe(false);
+    });
+
+    it('triggers market, price history, and positions refresh', async () => {
+      const mockRefetchMarket = jest.fn(() => Promise.resolve());
+      const mockRefetchPriceHistory = jest.fn(() => Promise.resolve());
+      const mockLoadPositions = jest.fn(() => Promise.resolve());
+
+      setupPredictMarketDetailsTest(
+        {},
+        {},
+        {
+          market: { refetch: mockRefetchMarket },
+          priceHistory: { refetch: mockRefetchPriceHistory },
+          positions: { loadPositions: mockLoadPositions },
+        },
+      );
+
+      const scrollView = screen.getByTestId(
+        'predict-market-details-scrollable-tab-view',
+      );
+
+      await act(async () => {
+        await scrollView.props.refreshControl.props.onRefresh();
+      });
+
+      await waitFor(() => {
+        expect(mockRefetchMarket).toHaveBeenCalledTimes(1);
+        expect(mockRefetchPriceHistory).toHaveBeenCalledTimes(1);
+        expect(mockLoadPositions).toHaveBeenCalledTimes(1);
+        expect(mockLoadPositions).toHaveBeenCalledWith({ isRefresh: true });
+      });
+    });
+  });
+
   describe('Conditional Rendering', () => {
     it('renders positions section when user has positions', () => {
       const mockPosition = {
         id: 'position-1',
         outcomeId: 'outcome-1',
         outcome: 'Yes',
+        title: 'Yes',
         size: 100,
         initialValue: 65,
         currentValue: 70,
@@ -1022,10 +1140,7 @@ describe('PredictMarketDetails', () => {
 
       expect(screen.getByText('predict.cash_out')).toBeOnTheScreen();
       expect(
-        screen.getByText('predict.market_details.amount_on_outcome'),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText('predict.market_details.outcome_at_price'),
+        screen.getByText('$65.00 on Yes • 65¢', { exact: false }),
       ).toBeOnTheScreen();
       expect(screen.getByText('+7.70%')).toBeOnTheScreen();
     });
@@ -1035,6 +1150,7 @@ describe('PredictMarketDetails', () => {
         id: 'position-1',
         outcomeId: 'outcome-1',
         outcome: 'Yes',
+        title: 'Yes',
         size: 100,
         initialValue: 65,
         currentValue: 60,
@@ -1169,6 +1285,7 @@ describe('PredictMarketDetails', () => {
         id: 'position-1',
         outcomeId: 'outcome-1',
         outcome: 'Yes',
+        title: 'Yes',
         size: 100,
         initialValue: 65,
         currentValue: 70,
@@ -1188,11 +1305,9 @@ describe('PredictMarketDetails', () => {
       );
       fireEvent.press(positionsTab);
 
+      expect(screen.getByText('Yes Option')).toBeOnTheScreen();
       expect(
-        screen.getByText('predict.market_details.amount_on_outcome'),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText('predict.market_details.outcome_at_price'),
+        screen.getByText('$65.00 on Yes • 65¢', { exact: false }),
       ).toBeOnTheScreen();
     });
 
@@ -1201,6 +1316,7 @@ describe('PredictMarketDetails', () => {
         id: 'position-1',
         outcomeId: 'outcome-1',
         outcome: 'Yes',
+        title: 'Yes',
         size: 100,
         initialValue: 65,
         currentValue: 70,
@@ -1220,11 +1336,9 @@ describe('PredictMarketDetails', () => {
       );
       fireEvent.press(positionsTab);
 
+      expect(screen.getByText('Yes')).toBeOnTheScreen();
       expect(
-        screen.getByText('predict.market_details.amount_on_outcome'),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText('predict.market_details.outcome_at_price'),
+        screen.getByText('$65.00 on Yes • 65¢', { exact: false }),
       ).toBeOnTheScreen();
     });
 
@@ -1233,6 +1347,7 @@ describe('PredictMarketDetails', () => {
         id: 'position-1',
         outcomeId: 'outcome-1',
         outcome: 'Yes',
+        title: 'Yes',
         size: 100,
         initialValue: 65,
         currentValue: 65,
@@ -1928,14 +2043,24 @@ describe('PredictMarketDetails', () => {
           {
             id: 'outcome-1',
             title: 'Yes',
-            tokens: [{ id: 't1', price: 1 }],
-            volume: 1,
+            groupItemTitle: 'Yes Outcome',
+            status: 'closed',
+            tokens: [
+              { id: 't1', price: 1, title: 'Yes' },
+              { id: 't2', price: 0, title: 'No' },
+            ],
+            volume: 1000000,
           },
           {
             id: 'outcome-2',
             title: 'No',
-            tokens: [{ id: 't2', price: 0 }],
-            volume: 1,
+            groupItemTitle: 'No Outcome',
+            status: 'closed',
+            tokens: [
+              { id: 't3', price: 0, title: 'Yes' },
+              { id: 't4', price: 1, title: 'No' },
+            ],
+            volume: 500000,
           },
         ],
       });
@@ -1943,8 +2068,10 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(closedMarket);
 
       expect(
-        screen.getAllByTestId('predict-market-outcome').length,
-      ).toBeGreaterThan(0);
+        screen.getByTestId('predict-market-details-outcomes-tab'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Yes Outcome')).toBeOnTheScreen();
+      expect(screen.getByText('No Outcome')).toBeOnTheScreen();
     });
 
     it('keeps user-selected About tab on closed market', () => {
@@ -2320,7 +2447,7 @@ describe('PredictMarketDetails', () => {
       if (pressable) {
         fireEvent.press(pressable);
 
-        expect(screen.getByText('draw')).toBeOnTheScreen();
+        expect(screen.getByText('predict.outcome_draw')).toBeOnTheScreen();
       }
     });
 
@@ -2556,6 +2683,73 @@ describe('PredictMarketDetails', () => {
         screen.queryByText('predict.resolved_outcomes'),
       ).not.toBeOnTheScreen();
       expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Real-time Price Updates', () => {
+    it('calls usePredictPrices hook for open markets', () => {
+      const { usePredictPrices } = jest.requireMock(
+        '../../hooks/usePredictPrices',
+      );
+
+      const marketWithTokens = createMockMarket({
+        status: 'open',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [{ id: 'token-1', price: 0.65 }],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(marketWithTokens);
+
+      expect(usePredictPrices).toHaveBeenCalled();
+    });
+
+    it('handles usePredictPrices hook being called', () => {
+      const { usePredictPrices } = jest.requireMock(
+        '../../hooks/usePredictPrices',
+      );
+
+      setupPredictMarketDetailsTest();
+
+      expect(usePredictPrices).toHaveBeenCalled();
+    });
+
+    it('uses usePredictPrices hook with providerId', () => {
+      const { usePredictPrices } = jest.requireMock(
+        '../../hooks/usePredictPrices',
+      );
+
+      setupPredictMarketDetailsTest();
+
+      expect(usePredictPrices).toHaveBeenCalledWith(
+        expect.objectContaining({
+          providerId: 'polymarket',
+        }),
+      );
+    });
+
+    it('handles price fetching errors gracefully', () => {
+      const { usePredictPrices } = jest.requireMock(
+        '../../hooks/usePredictPrices',
+      );
+
+      usePredictPrices.mockReturnValue({
+        prices: { providerId: '', results: [] },
+        isFetching: false,
+        error: new Error('Failed to fetch prices'),
+        refetch: jest.fn(),
+      });
+
+      setupPredictMarketDetailsTest();
+
+      expect(
+        screen.getByTestId('predict-market-details-screen'),
+      ).toBeOnTheScreen();
     });
   });
 });
