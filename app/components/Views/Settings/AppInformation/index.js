@@ -214,7 +214,7 @@ export default class AppInformation extends PureComponent {
               />
             </TouchableOpacity>
             <Text style={styles.versionInfo}>
-              {getFullVersion(this.state.appVersion)}
+              {getFullVersion(this.state.appInfo)}
             </Text>
             {isQa ? (
               <Text style={styles.branchInfo}>
