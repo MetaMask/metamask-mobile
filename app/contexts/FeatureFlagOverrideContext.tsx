@@ -80,21 +80,12 @@ export const FeatureFlagOverrideProvider: React.FC<
     }));
   }, []);
 
-  const takeSnapshot = (featureFlagInfo: FeatureFlagInfo) => {
-    if (featureFlagInfo.type === 'boolean') {
-      setFeatureFlagSnapshots((prev) => ({
-        ...prev,
-        [featureFlagInfo.key]: featureFlagInfo.value as boolean,
-      }));
-    } else if (featureFlagInfo.type === 'boolean with minimumVersion') {
-      setFeatureFlagSnapshots((prev) => ({
-        ...prev,
-        [featureFlagInfo.key]: (
-          featureFlagInfo.value as MinimumVersionFlagValue
-        ).enabled,
-      }));
-    }
-  };
+  const takeSnapshot = useCallback((flagName: string, flagValue: boolean) => {
+    setFeatureFlagSnapshots((prev) => ({
+      ...prev,
+      [flagName]: flagValue,
+    }));
+  }, []);
 
   const removeOverride = useCallback((key: string) => {
     setOverrides((prev) => {
@@ -210,18 +201,22 @@ export const FeatureFlagOverrideProvider: React.FC<
       if (!flag) {
         return undefined;
       }
-      takeSnapshot(flag);
 
       if (flag.type === 'boolean with minimumVersion') {
-        return validateMinimumVersion(
+        const flagValue = validateMinimumVersion(
           flag.key,
           flag.value as unknown as MinimumVersionFlagValue,
         );
+        takeSnapshot(flag.key, flagValue);
+        return flagValue;
+      }
+      if (flag.type === 'boolean') {
+        takeSnapshot(flag.key, flag.value as boolean);
       }
 
       return flag.value;
     },
-    [featureFlags, validateMinimumVersion],
+    [featureFlags, validateMinimumVersion, takeSnapshot],
   );
 
   const getOverrideCount = useCallback(
