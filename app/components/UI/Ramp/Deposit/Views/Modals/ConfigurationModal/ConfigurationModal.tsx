@@ -22,6 +22,7 @@ import {
 import Logger from '../../../../../../../util/Logger';
 import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import MenuItem from '../../../../components/MenuItem';
+import useAnalytics from '../../../../hooks/useAnalytics';
 
 export const createConfigurationModalNavigationDetails =
   createNavigationDetails(
@@ -33,8 +34,10 @@ function ConfigurationModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
+  const trackEvent = useAnalytics();
 
-  const { logoutFromProvider, isAuthenticated } = useDepositSDK();
+  const { logoutFromProvider, isAuthenticated, selectedRegion } =
+    useDepositSDK();
 
   const navigateToOrderHistory = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -52,9 +55,14 @@ function ConfigurationModal() {
   }, []);
 
   const handleNavigateToAggregator = useCallback(() => {
+    trackEvent('RAMPS_BUTTON_CLICKED', {
+      location: 'Configuration Modal',
+      ramp_type: 'BUY',
+      region: selectedRegion?.isoCode as string,
+    });
     navigation.dangerouslyGetParent()?.dangerouslyGetParent()?.goBack();
     navigation.navigate(...createBuyNavigationDetails());
-  }, [navigation]);
+  }, [navigation, selectedRegion?.isoCode, trackEvent]);
 
   const handleLogOut = useCallback(async () => {
     try {
