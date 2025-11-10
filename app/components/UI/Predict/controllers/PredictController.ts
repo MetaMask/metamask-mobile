@@ -54,6 +54,8 @@ import {
   AcceptAgreementParams,
   ClaimParams,
   GetPriceHistoryParams,
+  GetPriceParams,
+  GetPriceResponse,
   PredictAccountMeta,
   PredictActivity,
   PredictBalance,
@@ -77,7 +79,12 @@ import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictControllerState = {
   // Eligibility (Geo-Blocking) per Provider
-  eligibility: { [key: string]: boolean };
+  eligibility: {
+    [key: string]: {
+      eligible: boolean;
+      country?: string;
+    };
+  };
 
   // Error handling
   lastError: string | null;
@@ -597,6 +604,54 @@ export class PredictController extends BaseController<
   }
 
   /**
+   * Get current prices for multiple tokens
+   *
+   * Fetches BUY (best ask) and SELL (best bid) prices from the provider.
+   * BUY = what you'd pay to buy
+   * SELL = what you'd receive to sell
+   */
+  async getPrices(params: GetPriceParams): Promise<GetPriceResponse> {
+    try {
+      const providerId = params.providerId ?? 'polymarket';
+      const provider = this.providers.get(providerId);
+
+      if (!provider) {
+        throw new Error('Provider not available');
+      }
+
+      const response = await provider.getPrices({ queries: params.queries });
+
+      this.update((state) => {
+        state.lastError = null;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      return response;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.UNKNOWN_ERROR;
+
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      // Log to Sentry with prices context
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getPrices', {
+          providerId: params.providerId,
+          queriesCount: params.queries?.length,
+        }),
+      );
+
+      throw error;
+    }
+  }
+
+  /**
    * Get user positions
    */
   async getPositions(params: GetPositionsParams): Promise<PredictPosition[]> {
@@ -957,6 +1012,35 @@ export class PredictController extends BaseController<
     MetaMetrics.getInstance().trackEvent(
       MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PREDICT_ACTIVITY_VIEWED,
+      )
+        .addProperties(analyticsProperties)
+        .build(),
+    );
+  }
+
+  /**
+   * Track geo-blocking event when user attempts an action but is blocked
+   */
+  public trackGeoBlockTriggered({
+    providerId,
+    attemptedAction,
+  }: {
+    providerId: string;
+    attemptedAction: string;
+  }): void {
+    const eligibilityData = this.state.eligibility[providerId];
+    const analyticsProperties = {
+      [PredictEventProperties.COUNTRY]: eligibilityData?.country,
+      [PredictEventProperties.ATTEMPTED_ACTION]: attemptedAction,
+    };
+
+    DevLogger.log('📊 [Analytics] PREDICT_GEO_BLOCKED_TRIGGERED', {
+      analyticsProperties,
+    });
+
+    MetaMetrics.getInstance().trackEvent(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PREDICT_GEO_BLOCKED_TRIGGERED,
       )
         .addProperties(analyticsProperties)
         .build(),
@@ -1343,14 +1427,20 @@ export class PredictController extends BaseController<
         continue;
       }
       try {
-        const isEligible = await provider.isEligible();
+        const geoBlockResponse = await provider.isEligible();
         this.update((state) => {
-          state.eligibility[providerId] = isEligible;
+          state.eligibility[providerId] = {
+            eligible: geoBlockResponse.isEligible,
+            country: geoBlockResponse.country,
+          };
         });
       } catch (error) {
         // Default to false in case of error
         this.update((state) => {
-          state.eligibility[providerId] = false;
+          state.eligibility[providerId] = {
+            eligible: false,
+            country: undefined,
+          };
         });
         DevLogger.log('PredictController: Eligibility refresh failed', {
           error:
@@ -1546,13 +1636,12 @@ export class PredictController extends BaseController<
       });
 
       this.update((state) => {
-        state.balances[params.providerId] = {
-          ...state.balances[params.providerId],
-          [address]: {
-            balance,
-            // valid for 1 second
-            validUntil: Date.now() + 1000,
-          },
+        state.balances[params.providerId] =
+          state.balances[params.providerId] || {};
+        state.balances[params.providerId][address] = {
+          balance,
+          // valid for 1 second
+          validUntil: Date.now() + 1000,
         };
       });
       return balance;

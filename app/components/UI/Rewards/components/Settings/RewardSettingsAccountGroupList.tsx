@@ -17,6 +17,7 @@ import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { useRewardOptinSummary } from '../../hooks/useRewardOptinSummary';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { selectInternalAccountsByGroupId } from '../../../../../selectors/multichainAccounts/accounts';
+import { AccountGroupId } from '@metamask/account-api';
 import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
@@ -43,23 +44,28 @@ const RewardSettingsAccountGroupList: React.FC = () => {
     refresh: fetchOptInStatus,
   } = useRewardOptinSummary();
 
+  // Helper function to extract addresses for a single account group
+  const getAddressesForGroup = useCallback(
+    (state: RootState, groupId: AccountGroupId): string[] => {
+      try {
+        const accounts = selectInternalAccountsByGroupId(state)(groupId);
+        return accounts.map((account) => account.address).filter(Boolean);
+      } catch {
+        return [];
+      }
+    },
+    [],
+  );
+
   // Memoize expensive selector operations to prevent unnecessary re-renders
   const allAddresses = useSelector((state: RootState) => {
     const addresses: Record<string, string[]> = {};
-    byWallet.forEach((walletItem) => {
-      walletItem.groups.forEach((accountGroup) => {
-        try {
-          const accounts = selectInternalAccountsByGroupId(state)(
-            accountGroup.id,
-          );
-          addresses[accountGroup.id] = accounts
-            .map((account) => account.address)
-            .filter(Boolean);
-        } catch (error) {
-          addresses[accountGroup.id] = [];
-        }
-      });
+    const allGroups = byWallet.flatMap((walletItem) => walletItem.groups);
+
+    allGroups.forEach((accountGroup) => {
+      addresses[accountGroup.id] = getAddressesForGroup(state, accountGroup.id);
     });
+
     return addresses;
   });
 
@@ -128,7 +134,7 @@ const RewardSettingsAccountGroupList: React.FC = () => {
 
   const ListHeaderComponent = useCallback(
     () => (
-      <Box testID="rewards-settings-header" twClassName="gap-4 px-4 pb-2">
+      <Box testID="rewards-settings-header" twClassName="gap-4 px-4 py-2">
         <Box twClassName="gap-2">
           <Text variant={TextVariant.HeadingMd}>
             {strings('rewards.settings.subtitle')}
@@ -214,7 +220,7 @@ const RewardSettingsAccountGroupList: React.FC = () => {
         <Box twClassName="gap-3 px-4">
           {[...Array(3)].map((_, index) => (
             <Box
-              key={index}
+              key={`rewards-settings-skeleton-${index}`}
               testID={`rewards-settings-skeleton-${index}`}
               twClassName="flex-row items-center gap-3 py-2 rounded-lg"
             >
