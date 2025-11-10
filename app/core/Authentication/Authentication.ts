@@ -96,10 +96,19 @@ class AuthenticationService {
       AccountTreeInitService.clearState();
     }
     await AccountTreeInitService.initializeAccountTree();
-    const { MultichainAccountService } = Engine.context;
+    const {
+      MultichainAccountService,
+      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      SnapController,
+      ///: END:ONLY_INCLUDE_IF
+    } = Engine.context;
     await MultichainAccountService.init();
 
     ReduxService.store.dispatch(logIn());
+
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    SnapController.updateRegistry();
+    ///: END:ONLY_INCLUDE_IF
   }
 
   private dispatchPasswordSet(): void {
