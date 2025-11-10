@@ -56,7 +56,8 @@ const isUrlAllowed = (url: string): boolean => {
   }
 };
 
-const isUrlSuppressedFromLogs = (url: string): boolean => SUPPRESSED_LOGS_URLS.some((pattern: RegExp) => pattern.test(url));
+const isUrlSuppressedFromLogs = (url: string): boolean =>
+  SUPPRESSED_LOGS_URLS.some((pattern: RegExp) => pattern.test(url));
 
 const handleDirectFetch = async (
   url: string,
