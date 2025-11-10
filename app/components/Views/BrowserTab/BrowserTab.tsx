@@ -54,6 +54,8 @@ import {
   sortMultichainAccountsByLastSelected,
 } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
+import { isInternalDeepLink } from '../../../util/deeplinks';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import {
   selectIpfsGateway,
   selectIsIpfsGatewayEnabled,
@@ -122,6 +124,14 @@ import { toHex } from '@metamask/controller-utils';
 import { parseCaipAccountId } from '@metamask/utils';
 import { selectBrowserFullscreen } from '../../../selectors/browser';
 import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
+import {
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+} from '@metamask/design-system-react-native';
 
 /**
  * Tab component for the in-app browser
@@ -818,6 +828,29 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         }
       }
 
+      // Check if this is an internal MetaMask deeplink that should be handled within the app
+      if (isInternalDeepLink(urlToLoad)) {
+        // Handle the deeplink internally instead of passing to OS
+        SharedDeeplinkManager.parse(urlToLoad, {
+          origin: AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
+          browserCallBack: (url: string) => {
+            // If the deeplink handler wants to navigate to a different URL in the browser
+            if (url && webviewRef.current) {
+              webviewRef.current.injectJavaScript(`
+                window.location.href = '${sanitizeUrlInput(url)}';
+                true;  // Required for iOS
+              `);
+            }
+          },
+        }).catch((error) => {
+          Logger.error(
+            error,
+            'BrowserTab: Failed to handle internal deeplink in browser',
+          );
+        });
+        return false; // Stop the webview from loading this URL
+      }
+
       const { protocol } = new URLParse(urlToLoad);
 
       if (trustedProtocolToDeeplink.includes(protocol)) {
@@ -1354,24 +1387,19 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       [],
     );
 
-    const onCancelUrlBar = useCallback(() => {
-      // If from trending and feature flag is on, navigate back to trending
-      if (fromTrending && isAssetsTrendingTokensEnabled) {
-        navigation.navigate(Routes.TRENDING_VIEW);
-        return;
-      }
+    const handleBackPress = useCallback(() => {
+      navigation.navigate('TrendingFeed');
+    }, [navigation]);
 
+    const onCancelUrlBar = useCallback(() => {
       hideAutocomplete();
       // Reset the url bar to the current url
       const hostName =
         new URLParse(resolvedUrlRef.current).origin || resolvedUrlRef.current;
       urlBarRef.current?.setNativeProps({ text: hostName });
-    }, [
-      hideAutocomplete,
-      fromTrending,
-      isAssetsTrendingTokensEnabled,
-      navigation,
-    ]);
+    }, [hideAutocomplete]);
+
+    const showBackButton = isAssetsTrendingTokensEnabled;
 
     const onFocusUrlBar = useCallback(() => {
       // Show the autocomplete results
@@ -1494,20 +1522,37 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             style={styles.wrapper}
             {...(Device.isAndroid() ? { collapsable: false } : {})}
           >
-            <BrowserUrlBar
-              ref={urlBarRef}
-              connectionType={connectionType}
-              onSubmitEditing={onSubmitEditing}
-              onCancel={onCancelUrlBar}
-              onFocus={onFocusUrlBar}
-              onBlur={hideAutocomplete}
-              onChangeText={onChangeUrlBar}
-              connectedAccounts={permittedCaipAccountAddressesList}
-              activeUrl={resolvedUrlRef.current}
-              setIsUrlBarFocused={setIsUrlBarFocused}
-              isUrlBarFocused={isUrlBarFocused}
-              showCloseButton={fromTrending && isAssetsTrendingTokensEnabled}
-            />
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+            >
+              {showBackButton && (
+                <ButtonIcon
+                  iconName={IconName.ArrowLeft}
+                  size={ButtonIconSize.Lg}
+                  onPress={handleBackPress}
+                  testID="browser-tab-back-button"
+                />
+              )}
+              <Box twClassName="flex-1">
+                <BrowserUrlBar
+                  ref={urlBarRef}
+                  connectionType={connectionType}
+                  onSubmitEditing={onSubmitEditing}
+                  onCancel={onCancelUrlBar}
+                  onFocus={onFocusUrlBar}
+                  onBlur={hideAutocomplete}
+                  onChangeText={onChangeUrlBar}
+                  connectedAccounts={permittedCaipAccountAddressesList}
+                  activeUrl={resolvedUrlRef.current}
+                  setIsUrlBarFocused={setIsUrlBarFocused}
+                  isUrlBarFocused={isUrlBarFocused}
+                  showCloseButton={
+                    fromTrending && isAssetsTrendingTokensEnabled
+                  }
+                />
+              </Box>
+            </Box>
             <View style={styles.wrapper}>
               {renderProgressBar()}
               <View style={styles.webview}>

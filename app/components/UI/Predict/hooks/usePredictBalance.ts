@@ -146,6 +146,7 @@ export function usePredictBalance(
         setIsRefreshing(false);
       }
     },
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [getBalance, selectedInternalAccountAddress, providerId],
   );
