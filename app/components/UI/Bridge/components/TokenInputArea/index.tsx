@@ -409,6 +409,7 @@ export const TokenInputArea = forwardRef<
                         variant={ButtonVariants.Link}
                         label={strings('bridge.max')}
                         onPress={onMaxPress}
+                        testID="token-input-area-max-button"
                       />
                     </Box>
                   ) : (

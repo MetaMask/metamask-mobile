@@ -409,7 +409,7 @@ describe('BridgeView', () => {
       },
     };
 
-    const { queryByText } = renderScreen(
+    const { queryByTestId } = renderScreen(
       BridgeView,
       {
         name: Routes.BRIDGE.ROOT,
@@ -418,7 +418,7 @@ describe('BridgeView', () => {
     );
 
     // Verify max button is not present for native token
-    expect(queryByText('Max')).toBeNull();
+    expect(queryByTestId('token-input-area-max-button')).toBeNull();
   });
 
   it('should display max button when source token is not native token', () => {
@@ -438,7 +438,7 @@ describe('BridgeView', () => {
       },
     };
 
-    const { queryByText } = renderScreen(
+    const { queryByTestId } = renderScreen(
       BridgeView,
       {
         name: Routes.BRIDGE.ROOT,
@@ -447,7 +447,7 @@ describe('BridgeView', () => {
     );
 
     // Verify max button is present for ERC-20 token
-    expect(queryByText('Max')).toBeTruthy();
+    expect(queryByTestId('token-input-area-max-button')).toBeTruthy();
   });
 
   it('should set source amount to maximum balance when max button is pressed', async () => {
@@ -467,7 +467,7 @@ describe('BridgeView', () => {
       },
     };
 
-    const { getByText, getByTestId } = renderScreen(
+    const { getByTestId } = renderScreen(
       BridgeView,
       {
         name: Routes.BRIDGE.ROOT,
@@ -476,7 +476,7 @@ describe('BridgeView', () => {
     );
 
     // Find and press the max button
-    const maxButton = getByText('Max');
+    const maxButton = getByTestId('token-input-area-max-button');
     expect(maxButton).toBeTruthy();
     fireEvent.press(maxButton);
 
