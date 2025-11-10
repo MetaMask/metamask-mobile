@@ -19,13 +19,9 @@ import ConditionalScrollView from '../../../../../component-library/components-t
 
 interface PredictTabViewProps {
   isVisible?: boolean;
-  onVisibilityChange?: (callback: (visible: boolean) => void) => void;
 }
 
-const PredictTabView: React.FC<PredictTabViewProps> = ({
-  isVisible,
-  onVisibilityChange: _onVisibilityChange,
-}) => {
+const PredictTabView: React.FC<PredictTabViewProps> = ({ isVisible }) => {
   const tw = useTailwind();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [positionsError, setPositionsError] = useState<string | null>(null);

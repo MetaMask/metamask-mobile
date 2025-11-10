@@ -357,24 +357,12 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     null,
   );
 
-  // Store the visibility update callback from PredictTabView
-  const predictVisibilityCallback = useRef<((visible: boolean) => void) | null>(
-    null,
-  );
-
   // Update Perps visibility when tab changes
   useEffect(() => {
     if (isPerpsEnabled && perpsVisibilityCallback.current) {
       perpsVisibilityCallback.current(isPerpsTabVisible);
     }
   }, [currentTabIndex, perpsTabIndex, isPerpsTabVisible, isPerpsEnabled]);
-
-  // Update Predict visibility when tab changes
-  useEffect(() => {
-    if (isPredictEnabled && predictVisibilityCallback.current) {
-      predictVisibilityCallback.current(isPredictTabVisible);
-    }
-  }, [currentTabIndex, predictTabIndex, isPredictTabVisible, isPredictEnabled]);
 
   // Handle tab selection from navigation params (e.g., from deeplinks)
   // This uses useFocusEffect to ensure the tab selection happens when the screen receives focus
@@ -434,9 +422,6 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
           {...predictTabProps}
           key={predictTabProps.key}
           isVisible={isPredictTabVisible}
-          onVisibilityChange={(callback: (visible: boolean) => void) => {
-            predictVisibilityCallback.current = callback;
-          }}
         />,
       );
     }

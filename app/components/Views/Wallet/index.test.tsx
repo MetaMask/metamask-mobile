@@ -1270,7 +1270,7 @@ describe('Wallet', () => {
       mockPredictEnabled = true; // Reset to default
     });
 
-    it('should register visibility callback when Predict is enabled', () => {
+    it('should render PredictTabView when Predict is enabled', () => {
       const state = {
         ...mockInitialState,
         engine: {
@@ -1305,8 +1305,6 @@ describe('Wallet', () => {
 
       // Check the props it was called with
       const predictTabViewProps = mockPredictTabView.mock.calls[0][0];
-      expect(predictTabViewProps.onVisibilityChange).toBeDefined();
-      expect(typeof predictTabViewProps.onVisibilityChange).toBe('function');
       expect(predictTabViewProps.isVisible).toBe(false); // Initially not visible (tab 0 is selected)
     });
 
@@ -1411,7 +1409,7 @@ describe('Wallet', () => {
       expect(mockPredictTabView).not.toHaveBeenCalled();
     });
 
-    it('should not call visibility callback when Predict is disabled', () => {
+    it('should not render PredictTabView on tab change when Predict is disabled', () => {
       // Set the flag to disabled for this test
       mockPredictEnabled = false;
 
@@ -1448,7 +1446,7 @@ describe('Wallet', () => {
         ref: { props: { tabLabel: 'Predict' } },
       });
 
-      // Predict visibility callback should not be called since Predict is disabled
+      // PredictTabView should not be rendered since Predict is disabled
       expect(mockPredictTabView).not.toHaveBeenCalled();
     });
   });
