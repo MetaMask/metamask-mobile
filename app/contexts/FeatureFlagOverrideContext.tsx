@@ -11,7 +11,6 @@ import { useSelector } from 'react-redux';
 import { selectRemoteFeatureFlags } from '../selectors/featureFlagController';
 import {
   FeatureFlagInfo,
-  FeatureFlagInfoSnapshot,
   getFeatureFlagDescription,
   getFeatureFlagType,
   isMinimumRequiredVersionSupported,
@@ -22,7 +21,6 @@ import {
 } from '../component-library/components/Toast';
 import { MinimumVersionFlagValue } from '../components/Views/FeatureFlagOverride/FeatureFlagOverride';
 import useMetrics from '../components/hooks/useMetrics/useMetrics';
-import { JsonValue } from '@segment/analytics-react-native';
 
 interface FeatureFlagOverrides {
   [key: string]: unknown;
@@ -52,10 +50,6 @@ interface FeatureFlagOverrideProviderProps {
   children: ReactNode;
 }
 
-interface RelatedFlagsSnapshotType {
-  [key: string]: FeatureFlagInfoSnapshot;
-}
-
 export const FeatureFlagOverrideProvider: React.FC<
   FeatureFlagOverrideProviderProps
 > = ({ children }) => {
@@ -67,13 +61,14 @@ export const FeatureFlagOverrideProvider: React.FC<
 
   // Local state for overrides
   const [overrides, setOverrides] = useState<FeatureFlagOverrides>({});
-  const [featureFlagSnapshots, setFeatureFlagSnapshots] =
-    useState<RelatedFlagsSnapshotType>({});
+  const [featureFlagSnapshots, setFeatureFlagSnapshots] = useState<{
+    [key: string]: boolean;
+  }>({});
 
   useEffect(() => {
     if (Object.keys(featureFlagSnapshots).length > 0) {
       addTraitsToUser({
-        relatedFlags: featureFlagSnapshots as unknown as UserTraits,
+        ...featureFlagSnapshots,
       });
     }
   }, [featureFlagSnapshots, addTraitsToUser]);
@@ -86,13 +81,19 @@ export const FeatureFlagOverrideProvider: React.FC<
   }, []);
 
   const takeSnapshot = useCallback((featureFlagInfo: FeatureFlagInfo) => {
-    setFeatureFlagSnapshots((prev) => ({
-      ...prev,
-      [featureFlagInfo.key]: {
-        ...featureFlagInfo,
-        timestamp: Date.now(),
-      },
-    }));
+    if (featureFlagInfo.type === 'boolean') {
+      setFeatureFlagSnapshots((prev) => ({
+        ...prev,
+        [featureFlagInfo.key]: featureFlagInfo.value as boolean,
+      }));
+    } else if (featureFlagInfo.type === 'boolean with minimumVersion') {
+      setFeatureFlagSnapshots((prev) => ({
+        ...prev,
+        [featureFlagInfo.key]: (
+          featureFlagInfo.value as MinimumVersionFlagValue
+        ).enabled,
+      }));
+    }
   }, []);
 
   const removeOverride = useCallback((key: string) => {
