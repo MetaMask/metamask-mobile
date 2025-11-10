@@ -483,13 +483,18 @@ const CardHome = () => {
         testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
       />
     );
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     addFundsAction,
-    priorityTokenWarning,
+    changeAssetAction,
+    enableCardAction,
+    isBaanxLoginEnabled,
     isLoading,
+    isLoadingPollCardStatusUntilProvisioned,
+    isLoadingProvisionCard,
     isSwapEnabledForPriorityToken,
+    needToEnableAssets,
+    needToEnableCard,
+    styles,
   ]);
 
   // Handle authentication errors (expired token, invalid credentials, etc.)
@@ -528,13 +533,16 @@ const CardHome = () => {
    * Some tokens (e.g., aUSDC) have different allowance behavior and are unsupported.
    */
   const isSpendingLimitSupported = useMemo(() => {
-    if (!priorityToken?.symbol) {
+    if (
+      !priorityToken?.symbol ||
+      isSolanaChainId(priorityToken.caipChainId ?? '')
+    ) {
       return false;
     }
     return !SPENDING_LIMIT_UNSUPPORTED_TOKENS.includes(
       priorityToken.symbol.toUpperCase(),
     );
-  }, [priorityToken?.symbol]);
+  }, [priorityToken?.symbol, priorityToken?.caipChainId]);
 
   /**
    * This warning is shown when the user is close to their spending limit.
