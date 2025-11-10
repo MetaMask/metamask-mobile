@@ -144,7 +144,7 @@ export const Amount = () => {
             <AnimatedCursor />
             <Text
               style={styles.inputText}
-              color={amountError ? TextColor.Error : TextColor.Muted}
+              color={textColor}
               numberOfLines={1}
               variant={TextVariant.DisplayLG}
             >
