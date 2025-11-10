@@ -158,16 +158,11 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
       }
     });
 
-    // Sort items by timestamp (newest first)
-    const sortedItems = [...items].sort(
-      (a, b) => b.entry.timestamp - a.entry.timestamp,
-    );
-
     // Group items by date and build sections in a single pass
     const groupedByDate: Record<string, PredictActivityItem[]> = {};
     const sectionOrder: string[] = [];
 
-    sortedItems.forEach((item) => {
+    items.forEach((item) => {
       const dateLabel = getDateGroupLabel(
         item.entry.timestamp,
         todayTime,
