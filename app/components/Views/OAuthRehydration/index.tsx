@@ -65,6 +65,7 @@ import { useAuthPreferences } from '../Login/hooks/useAuthPreferences';
 import { usePasswordOutdated } from '../Login/hooks/usePasswordOutdated';
 import { LoginPasswordField } from '../Login/components/LoginPasswordField';
 import { LoginErrorMessage } from '../Login/components/LoginErrorMessage';
+import Label from '../../../component-library/components/Form/Label';
 
 const EmptyRecordConstant = {};
 
@@ -286,6 +287,13 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
               </Text>
 
               <View style={styles.field}>
+                <Label
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Default}
+                  style={styles.label}
+                >
+                  {strings('login.password')}
+                </Label>
                 <LoginPasswordField
                   password={password}
                   onPasswordChange={handlePasswordChange}

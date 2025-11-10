@@ -21,7 +21,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     container: {
       flex: 1,
-      justifyContent: 'center',
+      justifyContent: 'flex-start',
       alignItems: 'center',
       flexDirection: 'column',
       width: '100%',
@@ -33,16 +33,13 @@ const styleSheet = (params: { theme: Theme }) => {
     oauthContentWrapper: {
       width: '100%',
       alignItems: 'center',
-      marginTop: Platform.select({
-        ios: -200,
-        android: -180,
-      }),
+      marginTop: 10,
     },
     metamaskName: {
       width: 80,
       height: 40,
       alignSelf: 'center',
-      marginTop: 0,
+      marginTop: 10,
       tintColor: colors.icon.default,
     },
     foxWrapper: {
@@ -66,6 +63,9 @@ const styleSheet = (params: { theme: Theme }) => {
       width: '100%',
       rowGap: 8,
       justifyContent: 'flex-start',
+    },
+    label: {
+      marginBottom: -4,
     },
     ctaWrapperRehydration: {
       width: '100%',
