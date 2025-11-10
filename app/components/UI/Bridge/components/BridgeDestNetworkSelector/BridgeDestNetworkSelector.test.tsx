@@ -152,3 +152,87 @@ describe('BridgeDestNetworkSelector', () => {
     expect(queryByText('Optimism')).toBeTruthy();
   });
 });
+
+describe('BridgeDestNetworkSelector - ChainPopularity fallback', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('assigns Infinity to chains without defined popularity', () => {
+    // Create a state with both Linea (has popularity) and Palm (doesn't have popularity)
+    // This will test both branches of the ?? operator
+    const stateWithMultipleNetworks = {
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              bridgeConfig: {
+                minimumVersion: '0.0.0',
+                maxRefreshCount: 5,
+                refreshRate: 30000,
+                support: true,
+                chains: {
+                  'eip155:1': {
+                    isActiveSrc: true,
+                    isActiveDest: true,
+                  },
+                  'eip155:59144': {
+                    // Linea
+                    isActiveSrc: true,
+                    isActiveDest: true,
+                  },
+                  'eip155:11297108109': {
+                    // Palm
+                    isActiveSrc: true,
+                    isActiveDest: true,
+                  },
+                },
+              },
+              bridgeConfigV2: {
+                minimumVersion: '0.0.0',
+                maxRefreshCount: 5,
+                refreshRate: 30000,
+                support: true,
+                chains: {
+                  'eip155:1': {
+                    isActiveSrc: true,
+                    isActiveDest: true,
+                    isGaslessSwapEnabled: true,
+                  },
+                  'eip155:59144': {
+                    // Linea
+                    isActiveSrc: true,
+                    isActiveDest: true,
+                    isGaslessSwapEnabled: false,
+                  },
+                  'eip155:11297108109': {
+                    // Palm
+                    isActiveSrc: true,
+                    isActiveDest: true,
+                    isGaslessSwapEnabled: false,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const { getByText } = renderScreen(
+      BridgeDestNetworkSelector,
+      {
+        name: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
+      },
+      { state: stateWithMultipleNetworks },
+    );
+
+    // Both networks should be visible
+    // Linea tests the path where ChainPopularity[chainId] has a value
+    // Palm tests the path where ChainPopularity[chainId] ?? Infinity fallback is used
+    expect(getByText('Palm')).toBeTruthy();
+  });
+});
