@@ -55,6 +55,7 @@ import UpdateEIP1559Tx from '../confirmations/legacy/components/UpdateEIP1559Tx'
 import styleSheet from './UnifiedTransactionsView.styles';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import useBlockExplorer from '../../hooks/useBlockExplorer';
+import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 
 type SmartTransactionWithId = SmartTransaction & { id: string };
 type EvmTransaction = TransactionMeta | SmartTransactionWithId;
@@ -147,6 +148,8 @@ const UnifiedTransactionsView = ({
     selectEvmNetworkConfigurationsByChainId,
   );
 
+  const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
+
   const { data, nonEvmTransactionsForSelectedChain } = useMemo<{
     data: UnifiedItem[];
     nonEvmTransactionsForSelectedChain: NonEvmTransaction[];
@@ -188,7 +191,7 @@ const UnifiedTransactionsView = ({
 
       const isReceivedOrSentTransaction =
         selectedAccountGroupInternalAccountsAddresses.some((addr) =>
-          filterByAddress(tx, tokens, addr, transactionMetaPool),
+          filterByAddress(tx, tokens, addr, transactionMetaPool, bridgeHistory),
         );
       if (!isReceivedOrSentTransaction) return false;
 
@@ -324,6 +327,7 @@ const UnifiedTransactionsView = ({
     enabledNonEVMChainIds,
     selectedInternalAccount,
     tokens,
+    bridgeHistory,
   ]);
 
   const hasEvmChainsEnabled = enabledEVMChainIds.length > 0;

@@ -20,7 +20,11 @@ import {
 } from '../../../util/activity';
 import { areAddressesEqual } from '../../../util/address';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
-import { selectProviderType } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectProviderType,
+  selectSelectedNetworkClientId,
+} from '../../../selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
@@ -39,6 +43,7 @@ import { isEvmAccountType } from '@metamask/keyring-api';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import useCurrencyRatePolling from '../../hooks/AssetPolling/useCurrencyRatePolling';
 import useTokenRatesPolling from '../../hooks/AssetPolling/useTokenRatesPolling';
+import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -60,6 +65,9 @@ const TransactionsView = ({
   const [submittedTxs, setSubmittedTxs] = useState([]);
   const [confirmedTxs, setConfirmedTxs] = useState([]);
   const [loading, setLoading] = useState();
+  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
+  const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
+
   const enabledNetworksByNamespace = useSelector(
     selectEnabledNetworksByNamespace,
   );
@@ -90,6 +98,7 @@ const TransactionsView = ({
         selectedAddress,
         tokenNetworkFilter,
         allTransactionsSorted,
+        bridgeHistory,
       );
 
       if (!filter) return false;
@@ -123,7 +132,6 @@ const TransactionsView = ({
       return filter;
     });
 
-    // TODO: Make sure to come back and check on how Solana transactions are handled
     const allTransactionsFiltered = allTransactions.filter((tx) => {
       const enabledChainIds = Object.entries(
         enabledNetworksByNamespace?.[KnownCaipNamespace.Eip155] ?? {},
@@ -184,12 +192,16 @@ const TransactionsView = ({
     tokens,
     tokenNetworkFilter,
     enabledNetworksByNamespace,
+    bridgeHistory,
   ]);
 
   useEffect(() => {
     setLoading(true);
-    filterTransactions();
-  }, [filterTransactions]);
+
+    if (selectedNetworkClientId) {
+      filterTransactions();
+    }
+  }, [filterTransactions, selectedNetworkClientId]);
 
   return (
     <View style={styles.wrapper}>
@@ -244,6 +256,7 @@ TransactionsView.propTypes = {
 };
 
 const mapStateToProps = (state) => {
+  const chainId = selectChainId(state);
   const selectedInternalAccount = selectSelectedInternalAccount(state);
   const evmTransactions = selectSortedTransactions(state);
 
@@ -269,6 +282,7 @@ const mapStateToProps = (state) => {
     selectedInternalAccount,
     transactions: allTransactions,
     networkType: selectProviderType(state),
+    chainId,
     tokenNetworkFilter: selectEVMEnabledNetworks(state).reduce(
       (acc, network) => ({ ...acc, [network]: true }),
       {},

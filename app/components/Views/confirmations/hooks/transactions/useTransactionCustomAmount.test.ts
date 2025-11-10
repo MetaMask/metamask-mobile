@@ -13,20 +13,21 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import {
-  TransactionToken,
-  useTransactionRequiredTokens,
-} from '../pay/useTransactionRequiredTokens';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import { Hex } from '@metamask/utils';
 import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
+import { useTransactionPayRequiredTokens } from '../pay/useTransactionPayData';
+import {
+  TransactionPaymentToken,
+  TransactionPayRequiredToken,
+} from '@metamask/transaction-pay-controller';
 
 jest.mock('../tokens/useTokenFiatRates');
 jest.mock('../transactions/useUpdateTokenAmount');
 jest.mock('../pay/useTransactionPayToken');
+jest.mock('../pay/useTransactionPayData');
 jest.mock('../useTokenAmount');
 jest.mock('../../../../../util/navigation/navUtils');
-jest.mock('../pay/useTransactionRequiredTokens');
 jest.mock('../../../../UI/Predict/hooks/usePredictBalance');
 
 jest.useFakeTimers();
@@ -82,7 +83,7 @@ describe('useTransactionCustomAmount', () => {
   const useParamsMock = jest.mocked(useParams);
   const usePredictBalanceMock = jest.mocked(usePredictBalance);
   const useTransactionRequiredTokensMock = jest.mocked(
-    useTransactionRequiredTokens,
+    useTransactionPayRequiredTokens,
   );
 
   const updateTokenAmountMock: ReturnType<
@@ -101,9 +102,9 @@ describe('useTransactionCustomAmount', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: {
         address: TOKEN_ADDRESS_MOCK,
+        balanceUsd: '1234.56',
         chainId: '0x1' as Hex,
-        tokenFiatAmount: 1234.56,
-      },
+      } as TransactionPaymentToken,
     } as ReturnType<typeof useTransactionPayToken>);
 
     useParamsMock.mockReturnValue({});
@@ -300,7 +301,7 @@ describe('useTransactionCustomAmount', () => {
       useTransactionRequiredTokensMock.mockReturnValue([
         {},
         {},
-      ] as TransactionToken[]);
+      ] as TransactionPayRequiredToken[]);
 
       const { result } = runHook();
 
@@ -315,13 +316,13 @@ describe('useTransactionCustomAmount', () => {
       useTransactionRequiredTokensMock.mockReturnValue([
         {},
         {},
-      ] as TransactionToken[]);
+      ] as TransactionPayRequiredToken[]);
 
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
           address: NATIVE_TOKEN_ADDRESS as Hex,
-          tokenFiatAmount: 1234.56,
-        },
+          balanceUsd: '1234.56',
+        } as TransactionPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook();
@@ -339,7 +340,7 @@ describe('useTransactionCustomAmount', () => {
           address: TOKEN_ADDRESS_MOCK,
         },
         {},
-      ] as TransactionToken[]);
+      ] as TransactionPayRequiredToken[]);
 
       useParamsMock.mockReturnValue({ amount: '43.21' });
 
@@ -356,7 +357,7 @@ describe('useTransactionCustomAmount', () => {
       useTransactionRequiredTokensMock.mockReturnValue([
         { skipIfBalance: true, amountRaw: '1', balanceRaw: '1' },
         { skipIfBalance: true, amountRaw: '1', balanceRaw: '1' },
-      ] as TransactionToken[]);
+      ] as TransactionPayRequiredToken[]);
 
       const { result } = runHook();
 

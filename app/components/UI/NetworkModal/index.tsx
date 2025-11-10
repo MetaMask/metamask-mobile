@@ -379,6 +379,8 @@ const NetworkModals = (props: NetworkProps) => {
       backdropOpacity={0.7}
       animationInTiming={600}
       animationOutTiming={600}
+      onBackdropPress={onClose}
+      onSwipeComplete={onClose}
       propagateSwipe
     >
       <View style={styles.modalContainer}>

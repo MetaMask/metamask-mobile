@@ -1,4 +1,3 @@
-import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 import {
   useNetworksByNamespace,
   NetworkType,
@@ -9,7 +8,6 @@ import Engine from '../../../core/Engine';
 
 // Mock the feature flags
 jest.mock('../../../util/networks', () => ({
-  isPerDappSelectedNetworkEnabled: jest.fn(),
   getDecimalChainId: jest.fn(() => '1'),
 }));
 
@@ -83,10 +81,6 @@ const mockUseNetworkSelection = useNetworkSelection as jest.MockedFunction<
   typeof useNetworkSelection
 >;
 const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
-const mockIsPerDappSelectedNetworkEnabled =
-  isPerDappSelectedNetworkEnabled as jest.MockedFunction<
-    typeof isPerDappSelectedNetworkEnabled
-  >;
 
 const mockSelectNetwork = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -127,8 +121,6 @@ describe('useSwitchNetworks', () => {
       isDataRecorded: jest.fn(),
       getMetaMetricsId: jest.fn(),
     });
-
-    mockIsPerDappSelectedNetworkEnabled.mockReturnValue(false);
 
     // Mock the event builder
     mockCreateEventBuilder.mockReturnValue({

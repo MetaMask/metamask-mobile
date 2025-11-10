@@ -46,7 +46,11 @@ import {
   usePerpsToasts,
   usePerpsMarketData,
 } from '../../hooks';
-import { usePerpsLivePrices, usePerpsTopOfBook } from '../../hooks/stream';
+import {
+  usePerpsLivePositions,
+  usePerpsLivePrices,
+  usePerpsTopOfBook,
+} from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import {
@@ -115,14 +119,29 @@ const PerpsClosePositionView: React.FC = () => {
     ? parseFloat(priceData[position.coin].price)
     : parseFloat(position.entryPrice);
 
+  // Use ref to access latest price without triggering fee recalculations
+  // This prevents continuous recalculations on every WebSocket price update
+  const currentPriceRef = useRef(currentPrice);
+  currentPriceRef.current = currentPrice;
+
   // Get top of book data for maker/taker fee determination
   const currentTopOfBook = usePerpsTopOfBook({
     symbol: position.coin,
   });
 
-  // Determine position direction
-  const isLong = parseFloat(position.size) > 0;
-  const absSize = Math.abs(parseFloat(position.size));
+  // Subscribe to live position updates for this coin
+  // This ensures margin and PnL values include real-time funding fees
+  const { positions: livePositions } = usePerpsLivePositions({
+    throttleMs: 1000,
+  });
+  const livePosition = useMemo(
+    () => livePositions.find((p) => p.coin === position.coin) || position,
+    [livePositions, position],
+  );
+
+  // Determine position direction using live position data
+  const isLong = parseFloat(livePosition.size) > 0;
+  const absSize = Math.abs(parseFloat(livePosition.size));
   // Calculate effective price for calculations
   // For limit orders, use limit price when available; otherwise use current market price
   const effectivePrice = useMemo(() => {
@@ -155,34 +174,46 @@ const PerpsClosePositionView: React.FC = () => {
       ? closeAmountUSDString
       : calculatedUSDString;
 
+  // Use live position data which includes real-time funding fees
+  // HyperLiquid's marginUsed already includes accumulated PnL
+  const marginUsed = parseFloat(livePosition.marginUsed);
+
+  // Use unrealizedPnl from live position (includes funding fees)
+  const unrealizedPnl = parseFloat(livePosition.unrealizedPnl);
+
+  // Keep pnl reference for backwards compatibility with event tracking
+  const pnl = unrealizedPnl;
+
   // Calculate position value and effective margin
   // For limit orders, use limit price for display calculations
-  const positionValue = useMemo(
-    () => absSize * effectivePrice,
-    [absSize, effectivePrice], // Round to 2 decimal places
-  );
+  const positionValue = useMemo(() => {
+    const priceToUse =
+      orderType === 'limit' && limitPrice
+        ? parseFloat(limitPrice)
+        : currentPrice;
+    return absSize * priceToUse;
+  }, [absSize, orderType, limitPrice, currentPrice]);
 
   // Calculate P&L based on effective price (limit price for limit orders)
+  // Use ref for market price to prevent recalculation on every WebSocket update
   const entryPrice = parseFloat(position.entryPrice);
   const effectivePnL = useMemo(() => {
     // Calculate P&L based on the effective price (limit price for limit orders)
     // For long positions: (effectivePrice - entryPrice) * absSize
     // For short positions: (entryPrice - effectivePrice) * absSize
+    if (orderType === 'market') {
+      return pnl;
+    }
+    const priceToUse = limitPrice ? parseFloat(limitPrice) : currentPrice;
     const priceDiff = isLong
-      ? effectivePrice - entryPrice
-      : entryPrice - effectivePrice;
+      ? priceToUse - entryPrice
+      : entryPrice - priceToUse;
     return priceDiff * absSize;
-  }, [effectivePrice, entryPrice, absSize, isLong]);
-
-  // Use the actual initial margin from the position
-  const initialMargin = parseFloat(position.marginUsed);
-
-  // Use unrealized PnL from position for current market price (for reference/tracking)
-  const pnl = parseFloat(position.unrealizedPnl);
+  }, [entryPrice, absSize, isLong, orderType, limitPrice, currentPrice, pnl]); // Exclude effectivePrice from deps
 
   // Calculate fees using the unified fee hook
   const closingValue = useMemo(
-    () => positionValue * (closePercentage / 100), // Round to 2 decimal places
+    () => positionValue * (closePercentage / 100),
     [positionValue, closePercentage],
   );
   const closingValueString = useMemo(
@@ -219,13 +250,17 @@ const PerpsClosePositionView: React.FC = () => {
     orderAmount: closingValueString,
   });
 
-  // Calculate what user will receive (initial margin + P&L - fees)
-  // P&L is already shown separately in the margin section as "includes P&L"
+  // Calculate what user will receive (margin - fees)
+  // Round each component separately to match what user sees in UI
+  // This ensures: displayed margin - displayed fees = displayed receive amount
   const receiveAmount = useMemo(() => {
-    const marginPortion = (closePercentage / 100) * initialMargin;
-    const pnlPortion = effectivePnL * (closePercentage / 100);
-    return marginPortion + pnlPortion - feeResults.totalFee;
-  }, [closePercentage, initialMargin, effectivePnL, feeResults.totalFee]);
+    const marginPortion = (closePercentage / 100) * marginUsed;
+    // Round margin and fees to 2 decimals (what user sees)
+    const roundedMargin = Math.round(marginPortion * 100) / 100;
+    const roundedFees = Math.round(feeResults.totalFee * 100) / 100;
+    // Subtract rounded values for transparent calculation
+    return roundedMargin - roundedFees;
+  }, [closePercentage, marginUsed, feeResults.totalFee]);
 
   // Get minimum order amount for this asset
   const { minimumOrderAmount } = useMinimumOrderAmount({
@@ -255,10 +290,10 @@ const PerpsClosePositionView: React.FC = () => {
 
   const { handleClosePosition, isClosing } = usePerpsClosePosition();
 
-  const unrealizedPnlPercent = useMemo(
-    () => (initialMargin > 0 ? (pnl / initialMargin) * 100 : 0),
-    [initialMargin, pnl],
-  );
+  const unrealizedPnlPercent = useMemo(() => {
+    const initialMargin = marginUsed - pnl; // Back-calculate initial margin
+    return initialMargin > 0 ? (pnl / initialMargin) * 100 : 0;
+  }, [marginUsed, pnl]);
 
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
@@ -314,7 +349,7 @@ const PerpsClosePositionView: React.FC = () => {
     navigation.goBack();
 
     await handleClosePosition(
-      position,
+      livePosition,
       sizeToClose || '',
       orderType,
       orderType === 'limit' ? limitPrice : undefined,
@@ -461,10 +496,7 @@ const PerpsClosePositionView: React.FC = () => {
 
   const Summary = (
     <PerpsCloseSummary
-      totalMargin={
-        (closePercentage / 100) * initialMargin +
-        effectivePnL * (closePercentage / 100)
-      }
+      totalMargin={(closePercentage / 100) * marginUsed}
       totalPnl={effectivePnL * (closePercentage / 100)}
       totalFees={feeResults.totalFee}
       feeDiscountPercentage={rewardsState.feeDiscountPercentage}

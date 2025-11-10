@@ -49,6 +49,7 @@ import { SettingsViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Set
 import HeaderBase, {
   HeaderBaseVariant,
 } from '../../../component-library/components/HeaderBase';
+import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import AddressCopy from '../AddressCopy';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
@@ -1151,85 +1152,22 @@ export function getWalletNavbarOptions(
 }
 
 /**
- * Function that returns the navigation options containing title and network indicator
+ * Function that returns the navigation options for the Import Asset screen
  *
- * @param {string} title - Title in string format
- * @param {boolean} translate - Boolean that specifies if the title needs translation
  * @param {Object} navigation - Navigation object required to push new views
- * @param {Object} themeColors - Colors from theme
- * @param {boolean} disableNetwork - Boolean that determines if network is accessible from navbar
- * @param {Function} onClose - Onclose navbar function
- * @returns {Object} - Corresponding navbar options containing headerTitle and headerTitle
+ * @param {string} title - Title in string format
+ * @returns {Object} - Corresponding navbar options
  */
-export function getImportTokenNavbarOptions(
-  title,
-  translate,
-  navigation,
-  themeColors,
-  disableNetwork = false,
-  contentOffset = 0,
-  onClose = undefined,
-) {
-  const innerStyles = StyleSheet.create({
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-    headerShadow: {
-      elevation: 2,
-      shadowColor: themeColors.background.primary,
-      shadowOpacity: contentOffset < 20 ? contentOffset / 100 : 0.2,
-      shadowOffset: { height: 4, width: 0 },
-      shadowRadius: 8,
-    },
-    headerIcon: {
-      color: themeColors.primary.default,
-    },
-    title: {
-      textAlign: 'center',
-      fontWeight: 'bold',
-    },
-  });
+export function getImportTokenNavbarOptions(navigation, title, onPress) {
   return {
-    headerTitle: () => (
-      <NavbarTitle
-        disableNetwork={disableNetwork}
-        showSelectedNetwork={false}
-        translate={translate}
+    header: () => (
+      <BottomSheetHeader
+        includesTopInset
+        onBack={onPress ?? (() => navigation.goBack())}
       >
         {title}
-      </NavbarTitle>
+      </BottomSheetHeader>
     ),
-    headerRight: () => (
-      // eslint-disable-next-line react/jsx-no-bind
-      <TouchableOpacity
-        style={styles.backButton}
-        testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
-      >
-        <ButtonIcon
-          iconName={IconName.Close}
-          iconColor={IconColor.Default}
-          size={ButtonIconSize.Lg}
-          onPress={
-            onClose
-              ? () => onClose()
-              : () =>
-                  navigation.navigate(Routes.WALLET.HOME, {
-                    screen: Routes.WALLET.TAB_STACK_FLOW,
-                    params: {
-                      screen: Routes.WALLET_VIEW,
-                    },
-                  })
-          }
-        />
-      </TouchableOpacity>
-    ),
-    headerLeft: null,
-    headerStyle: [
-      innerStyles.headerStyle,
-      contentOffset && innerStyles.headerShadow,
-    ],
   };
 }
 
@@ -1999,7 +1937,7 @@ export function getDepositNavbarOptions(
         ? () => (
             <ButtonIcon
               onPress={onConfigurationPress}
-              iconName={IconName.MoreHorizontal}
+              iconName={IconName.Setting}
               size={ButtonIconSize.Lg}
               testID="deposit-configuration-menu-button"
               style={styles.headerLeftButton}
@@ -2016,102 +1954,10 @@ export function getDepositNavbarOptions(
               navigation.dangerouslyGetParent()?.pop();
               onClose?.();
             }}
+            testID="deposit-close-navbar-button"
           />
         )
       : null,
-  };
-}
-
-export function getFiatOnRampAggNavbar(
-  navigation,
-  { title = '', showBack = true, showCancel = true, showNetwork = false } = {},
-  themeColors,
-  onCancel,
-) {
-  const innerStyles = StyleSheet.create({
-    headerButtonText: {
-      color: themeColors.primary.default,
-      fontSize: scale(11),
-      ...fontStyles.normal,
-    },
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-    headerTitleStyle: {
-      fontSize: 18,
-      ...fontStyles.normal,
-      color: themeColors.text.default,
-      ...(!showBack && { textAlign: 'center' }),
-    },
-  });
-
-  const leftActionText = strings('navigation.back');
-
-  const leftAction = () => navigation.pop();
-
-  const navigationCancelText = strings('navigation.cancel');
-
-  const disableNetwork = !showNetwork;
-  const showSelectedNetwork = showNetwork;
-
-  return {
-    headerTitle: () => (
-      <NavbarTitle
-        title={title}
-        disableNetwork={disableNetwork}
-        showSelectedNetwork={showSelectedNetwork}
-        translate={false}
-      />
-    ),
-    headerLeft: () => {
-      if (!showBack) return <View />;
-
-      return Device.isAndroid() ? (
-        <TouchableOpacity
-          onPress={leftAction}
-          style={styles.backButton}
-          accessibilityRole="button"
-          accessible
-        >
-          <IonicIcon
-            name={'arrow-back'}
-            size={24}
-            style={innerStyles.headerIcon}
-          />
-        </TouchableOpacity>
-      ) : (
-        <TouchableOpacity
-          onPress={leftAction}
-          style={styles.closeButton}
-          accessibilityRole="button"
-          accessible
-        >
-          <Text style={innerStyles.headerButtonText}>{leftActionText}</Text>
-        </TouchableOpacity>
-      );
-    },
-    headerRight: () => {
-      if (!showCancel) return <View />;
-      return (
-        <TouchableOpacity
-          onPress={() => {
-            navigation.dangerouslyGetParent()?.pop();
-            onCancel?.();
-          }}
-          style={styles.closeButton}
-          accessibilityRole="button"
-          accessible
-        >
-          <Text style={innerStyles.headerButtonText}>
-            {navigationCancelText}
-          </Text>
-        </TouchableOpacity>
-      );
-    },
-    headerStyle: innerStyles.headerStyle,
-    headerTitleStyle: innerStyles.headerTitleStyle,
   };
 }
 

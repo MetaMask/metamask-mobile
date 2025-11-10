@@ -73,9 +73,11 @@ export default {
     POLLING_FREQUENCY: 10000,
   },
   DEEPLINKS: {
+    ORIGIN_CAROUSEL: 'carousel',
     ORIGIN_DEEPLINK: 'deeplink',
     ORIGIN_QR_CODE: 'qr-code',
     ORIGIN_NOTIFICATION: 'notifications',
+    ORIGIN_IN_APP_BROWSER: 'in-app-browser',
   },
   WALLET_CONNECT: {
     //One day in hours
@@ -240,8 +242,6 @@ export default {
       'https://legal.consensys.io/plain/terms-of-use/',
   },
   FAVICON_CACHE_MAX_SIZE: 100,
-  PPOM_INITIALISATION_STATE_CHANGE_EVENT:
-    'PPOMController:initialisationStateChangeEvent',
   BASIC_FUNCTIONALITY_BLOCK_LIST: [
     'token-api',
     'token.api',

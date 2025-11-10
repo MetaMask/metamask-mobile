@@ -6,13 +6,16 @@ import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { Hex, numberToHex } from '@metamask/utils';
 import { parseUnits } from 'ethers/lib/utils';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import Logger from '../../../../../util/Logger';
+import Logger, { type LoggerErrorOptions } from '../../../../../util/Logger';
 import {
   generateTransferData,
   isSmartContractAddress,
 } from '../../../../../util/transactions';
 import {
   GetPriceHistoryParams,
+  GetPriceParams,
+  GetPriceResponse,
+  PriceResult,
   PredictActivity,
   PredictCategory,
   PredictMarket,
@@ -25,6 +28,7 @@ import {
   AccountState,
   ClaimOrderParams,
   ClaimOrderResponse,
+  GeoBlockResponse,
   GetBalanceParams,
   GetMarketsParams,
   GetPositionsParams,
@@ -41,8 +45,9 @@ import {
   PreviewOrderParams,
   Signer,
 } from '../types';
+import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
 import {
-  BUY_ORDER_RATE_LIMIT_MS,
+  ORDER_RATE_LIMIT_MS,
   FEE_COLLECTOR_ADDRESS,
   MATIC_CONTRACTS,
   POLYGON_MAINNET_CHAIN_ID,
@@ -100,6 +105,8 @@ interface RecentlySoldPosition {
 
 export class PolymarketProvider implements PredictProvider {
   readonly providerId = POLYMARKET_PROVIDER_ID;
+  readonly name = 'Polymarket';
+  readonly chainId = POLYGON_MAINNET_CHAIN_ID;
 
   #apiKeysByAddress: Map<string, ApiKeyCreds> = new Map();
   #accountStateByAddress: Map<string, AccountState> = new Map();
@@ -108,6 +115,33 @@ export class PolymarketProvider implements PredictProvider {
   #recentlySoldPositionsByAddress = new Map<string, RecentlySoldPosition[]>();
 
   private static readonly FALLBACK_CATEGORY: PredictCategory = 'trending';
+
+  /**
+   * Generate standard error context for Logger.error calls with searchable tags and context.
+   * Enables Sentry dashboard filtering by feature and provider.
+   * @param method - The method name where the error occurred
+   * @param extra - Optional additional context fields (becomes searchable context data)
+   * @returns LoggerErrorOptions with tags (searchable) and context (searchable)
+   * @private
+   */
+  private getErrorContext(
+    method: string,
+    extra?: Record<string, unknown>,
+  ): LoggerErrorOptions {
+    return {
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        provider: POLYMARKET_PROVIDER_ID,
+      },
+      context: {
+        name: 'PolymarketProvider',
+        data: {
+          method,
+          ...extra,
+        },
+      },
+    };
+  }
 
   public async getMarketDetails({
     marketId,
@@ -172,7 +206,7 @@ export class PolymarketProvider implements PredictProvider {
       return false;
     }
     const elapsed = Date.now() - lastTimestamp;
-    return elapsed < BUY_ORDER_RATE_LIMIT_MS;
+    return elapsed < ORDER_RATE_LIMIT_MS;
   }
 
   public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
@@ -183,15 +217,15 @@ export class PolymarketProvider implements PredictProvider {
       DevLogger.log('Error getting markets via Polymarket API:', error);
 
       // Log to Sentry - this error is swallowed (returns []) so controller won't see it
-      Logger.error(error instanceof Error ? error : new Error(String(error)), {
-        context: 'PolymarketProvider.getMarkets',
-        feature: 'Predict',
-        provider: POLYMARKET_PROVIDER_ID,
-        category: params?.category,
-        status: params?.status,
-        sortBy: params?.sortBy,
-        hasSearchQuery: !!params?.q,
-      });
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('getMarkets', {
+          category: params?.category,
+          status: params?.status,
+          sortBy: params?.sortBy,
+          hasSearchQuery: !!params?.q,
+        }),
+      );
 
       return [];
     }
@@ -250,16 +284,96 @@ export class PolymarketProvider implements PredictProvider {
       DevLogger.log('Error getting price history via Polymarket API:', error);
 
       // Log to Sentry - this error is swallowed (returns []) so controller won't see it
-      Logger.error(error instanceof Error ? error : new Error(String(error)), {
-        context: 'PolymarketProvider.getPriceHistory',
-        feature: 'Predict',
-        provider: POLYMARKET_PROVIDER_ID,
-        marketId,
-        fidelity,
-        interval,
-      });
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('getPriceHistory', {
+          marketId,
+          fidelity,
+          interval,
+        }),
+      );
 
       return [];
+    }
+  }
+
+  /**
+   * Get current prices for multiple tokens from CLOB /prices endpoint
+   *
+   * Fetches BUY (best ask) and SELL (best bid) prices for outcome tokens.
+   * BUY = what you'd pay to buy
+   * SELL = what you'd receive to sell
+   *
+   * @param params - Query parameters with marketId, outcomeId, and outcomeTokenId
+   * @returns Structured price response with results
+   */
+  public async getPrices({
+    queries,
+  }: Omit<GetPriceParams, 'providerId'>): Promise<GetPriceResponse> {
+    if (!queries || queries.length === 0) {
+      throw new Error('queries parameter is required and must not be empty');
+    }
+
+    try {
+      const { CLOB_ENDPOINT } = getPolymarketEndpoints();
+
+      const bookParams = queries.flatMap((query) => [
+        { token_id: query.outcomeTokenId, side: Side.BUY },
+        { token_id: query.outcomeTokenId, side: Side.SELL },
+      ]);
+
+      const response = await fetch(`${CLOB_ENDPOINT}/prices`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(bookParams),
+      });
+
+      if (!response.ok) {
+        const responseText = await response.text();
+        throw new Error(
+          `POST /prices failed: ${response.status} ${responseText}`,
+        );
+      }
+
+      type PolymarketPricesResponse = Record<
+        string,
+        Partial<Record<Side, string>>
+      >;
+      const data = (await response.json()) as PolymarketPricesResponse;
+
+      const results: PriceResult[] = queries.map((query) => {
+        const priceData = data[query.outcomeTokenId];
+        return {
+          marketId: query.marketId,
+          outcomeId: query.outcomeId,
+          outcomeTokenId: query.outcomeTokenId,
+          entry: {
+            buy: priceData?.BUY ? Number(priceData.BUY) : 0,
+            sell: priceData?.SELL ? Number(priceData.SELL) : 0,
+          },
+        };
+      });
+
+      return {
+        providerId: this.providerId,
+        results,
+      };
+    } catch (error) {
+      DevLogger.log('Error getting prices via Polymarket API:', error);
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('getPrices', {
+          queriesCount: queries.length,
+        }),
+      );
+
+      return {
+        providerId: this.providerId,
+        results: [],
+      };
     }
   }
 
@@ -359,7 +473,6 @@ export class PolymarketProvider implements PredictProvider {
         (await this.getAccountState({ ownerAddress: address })).address;
 
       const queryParams = new URLSearchParams({
-        // user: '0x33a90b4f8a9cccfe19059b0954e3f052d93efc00',
         user: predictAddress,
       });
 
@@ -384,12 +497,10 @@ export class PolymarketProvider implements PredictProvider {
       DevLogger.log('Error getting activity via Polymarket API:', error);
 
       // Log to Sentry - this error is swallowed (returns []) so controller won't see it
-      Logger.error(error instanceof Error ? error : new Error(String(error)), {
-        context: 'PolymarketProvider.fetchActivity',
-        feature: 'Predict',
-        provider: POLYMARKET_PROVIDER_ID,
-        // No user address in params to avoid sensitive data
-      });
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('fetchActivity'),
+      );
 
       return [];
     }
@@ -434,7 +545,7 @@ export class PolymarketProvider implements PredictProvider {
   ): Promise<OrderPreview> {
     const basePreview = await previewOrder(params);
 
-    if (params.side === Side.BUY && params.signer) {
+    if (params.signer) {
       if (this.isRateLimited(params.signer.address)) {
         return {
           ...basePreview,
@@ -477,11 +588,27 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Maker address not found');
       }
 
-      // Introduce slippage into minAmountReceived to reduce failure rate
+      /*
+       * Introduce slippage into minAmountReceived to reduce failure rate.
+       */
       const roundConfig = ROUNDING_CONFIG[tickSize.toString() as TickSize];
       const decimals = roundConfig.amount ?? 4;
+
+      let _minWithSlippage = minAmountReceived * (1 - slippage);
+      /*
+       * For BUY orders, the minAmountWithSlippage needs to be capped at
+       * maxAmountSpent + tickSize, otherwise, the order will fail due to
+       * sharePrice being >= 1 (which is impossible).
+       */
+      if (side === Side.BUY) {
+        _minWithSlippage = Math.max(
+          _minWithSlippage,
+          maxAmountSpent + tickSize,
+        );
+      }
+
       const minAmountWithSlippage = roundOrderAmount({
-        amount: minAmountReceived * (1 - slippage),
+        amount: _minWithSlippage,
         decimals,
       });
 
@@ -574,11 +701,23 @@ export class PolymarketProvider implements PredictProvider {
         feeAuthorization,
       });
 
-      if (!response) {
-        return {
-          success,
+      if (!success) {
+        DevLogger.log('PolymarketProvider: Place order failed', {
           error,
-        } as OrderResult;
+          errorDetails: undefined,
+          side,
+          outcomeTokenId,
+        });
+        if (error.includes(`order couldn't be fully filled`)) {
+          throw new Error(PREDICT_ERROR_CODES.ORDER_NOT_FULLY_FILLED);
+        }
+        if (
+          error.includes(`not available in your region`) ||
+          error.includes(`unable to access this provider`)
+        ) {
+          throw new Error(PREDICT_ERROR_CODES.NOT_ELIGIBLE);
+        }
+        throw new Error(error ?? PREDICT_ERROR_CODES.PLACE_ORDER_FAILED);
       }
 
       if (side === Side.BUY) {
@@ -701,14 +840,20 @@ export class PolymarketProvider implements PredictProvider {
     });
   }
 
-  public async isEligible(): Promise<boolean> {
+  public async isEligible(): Promise<GeoBlockResponse> {
     const { GEOBLOCK_API_ENDPOINT } = getPolymarketEndpoints();
-    let eligible = false;
+    const result: GeoBlockResponse = { isEligible: false };
+
     try {
       const res = await fetch(GEOBLOCK_API_ENDPOINT);
-      const { blocked } = (await res.json()) as { blocked: boolean };
-      if (blocked !== undefined) {
-        eligible = blocked === false;
+      const data = (await res.json()) as {
+        blocked?: boolean;
+        country?: string;
+      };
+
+      if (data.blocked !== undefined) {
+        result.isEligible = data.blocked === false;
+        result.country = data.country;
       }
     } catch (error) {
       DevLogger.log('PolymarketProvider: Error checking geoblock status', {
@@ -720,14 +865,14 @@ export class PolymarketProvider implements PredictProvider {
       });
 
       // Log to Sentry - this error is swallowed (returns false) so controller won't see it
-      Logger.error(error instanceof Error ? error : new Error(String(error)), {
-        context: 'PolymarketProvider.isEligible',
-        feature: 'Predict',
-        provider: POLYMARKET_PROVIDER_ID,
-        operation: 'geoblock_check',
-      });
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('isEligible', {
+          operation: 'geoblock_check',
+        }),
+      );
     }
-    return eligible;
+    return result;
   }
 
   public async prepareDeposit(

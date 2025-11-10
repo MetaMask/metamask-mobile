@@ -472,10 +472,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "isPushEnabled": true,
         "isUpdatingFCMToken": false,
       },
-      "PPOMController": {
-        "storageMetadata": [],
-        "versionInfo": [],
-      },
       "PermissionController": {
         "subjects": {},
       },
@@ -484,10 +480,15 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "activeProvider": "hyperliquid",
         "connectionStatus": "disconnected",
         "depositInProgress": false,
+        "depositRequests": {},
         "hasPlacedFirstOrder": {
           "mainnet": false,
           "testnet": false,
         },
+        "hip3ConfigVersion": 0,
+        "initializationAttempts": 0,
+        "initializationError": null,
+        "initializationState": "uninitialized",
         "isEligible": false,
         "isFirstTimeUser": {
           "mainnet": true,
@@ -499,10 +500,15 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "lastError": null,
         "lastUpdateTimestamp": 0,
         "lastWithdrawResult": null,
+        "marketFilterPreferences": {},
         "pendingOrders": [],
         "perpsBalances": {},
         "positions": [],
+        "tradeConfigurations": {},
+        "watchlistMarkets": [],
         "withdrawInProgress": false,
+        "withdrawalProgress": {},
+        "withdrawalRequests": {},
       },
       "PreferencesController": {
         "dismissSmartAccountSuggestionEnabled": false,
@@ -736,6 +742,9 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "submitHistory": [],
         "transactionBatches": [],
         "transactions": [],
+      },
+      "TransactionPayController": {
+        "transactionData": {},
       },
       "UserStorageController": {
         "isAccountSyncingEnabled": true,
@@ -1222,10 +1231,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "isPushEnabled": true,
         "isUpdatingFCMToken": false,
       },
-      "PPOMController": {
-        "storageMetadata": [],
-        "versionInfo": [],
-      },
       "PermissionController": {
         "subjects": {},
       },
@@ -1234,10 +1239,15 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "activeProvider": "hyperliquid",
         "connectionStatus": "disconnected",
         "depositInProgress": false,
+        "depositRequests": {},
         "hasPlacedFirstOrder": {
           "mainnet": false,
           "testnet": false,
         },
+        "hip3ConfigVersion": 0,
+        "initializationAttempts": 0,
+        "initializationError": null,
+        "initializationState": "uninitialized",
         "isEligible": false,
         "isFirstTimeUser": {
           "mainnet": true,
@@ -1249,10 +1259,15 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "lastError": null,
         "lastUpdateTimestamp": 0,
         "lastWithdrawResult": null,
+        "marketFilterPreferences": {},
         "pendingOrders": [],
         "perpsBalances": {},
         "positions": [],
+        "tradeConfigurations": {},
+        "watchlistMarkets": [],
         "withdrawInProgress": false,
+        "withdrawalProgress": {},
+        "withdrawalRequests": {},
       },
       "PreferencesController": {
         "dismissSmartAccountSuggestionEnabled": false,
@@ -1468,6 +1483,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "submitHistory": [],
         "transactionBatches": [],
         "transactions": [],
+      },
+      "TransactionPayController": {
+        "transactionData": {},
       },
       "UserStorageController": {
         "isAccountSyncingEnabled": true,
