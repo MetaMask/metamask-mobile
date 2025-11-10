@@ -8,9 +8,11 @@ import WalletView from '../../pages/wallet/WalletView';
 import TestHelpers from '../../helpers';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
+import Matchers from '../../framework/Matchers';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
 import { testSpecificMock } from './helpers/bridge-mocks';
+import { gaslessTestSpecificMock } from './helpers/gasless-bridge-mocks';
 import SoftAssert from '../../framework/SoftAssert';
 
 enum eventsToCheck {
@@ -79,6 +81,115 @@ describe(SmokeTrade('Bridge functionality'), () => {
         await Assertions.expectElementToBeVisible(ActivitiesView.title);
         await Assertions.expectElementToBeVisible(
           ActivitiesView.bridgeActivityTitle(destNetwork),
+        );
+      },
+    );
+  });
+
+  it('bridges MUSD (Ethereum Mainnet) to ETH (Base Network) with gasless transaction', async () => {
+    const destNetwork = 'Base';
+    const quantity: string = '1';
+    const sourceSymbol: string = 'MUSD';
+    const chainId = '0x1';
+    const destChainId = '0x2105';
+
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder()
+          .withGanacheNetwork(chainId)
+          // NOTE: Smart transactions enabled for gasless test
+          .withTokensForAllPopularNetworks([
+            {
+              address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+              symbol: 'MUSD',
+              decimals: 18,
+              name: 'Metamask USD',
+            },
+          ])
+          .build(),
+        localNodeOptions: [
+          {
+            type: LocalNodeType.ganache,
+            options: {
+              chainId: 1,
+            },
+          },
+        ],
+        testSpecificMock: gaslessTestSpecificMock,
+        restartDevice: true,
+      },
+      async () => {
+        await loginToApp();
+        await prepareSwapsTestEnvironment();
+
+        await TabBarComponent.tapWallet();
+        await WalletView.tapWalletSwapButton();
+        await device.disableSynchronization();
+
+        // Select MUSD as source token
+        await QuoteView.tapSourceToken();
+        await QuoteView.tapSearchToken();
+        await QuoteView.typeSearchToken(sourceSymbol);
+        await QuoteView.selectToken(sourceSymbol, 0);
+
+        // Wait for MUSD token to appear in source area (confirms selection completed)
+        const musdSourceToken = Matchers.getElementByText('MUSD');
+        await Assertions.expectElementToBeVisible(musdSourceToken, {
+          timeout: 10000,
+          description: 'MUSD should be visible in source token area',
+        });
+
+        // Wait for the destination token area to become stable and visible
+        await Assertions.expectElementToBeVisible(
+          QuoteView.destinationTokenArea,
+          {
+            timeout: 10000,
+            description:
+              'destination token area should be visible and hittable',
+          },
+        );
+
+        // Select ETH on Base as destination token - following same flow as working test
+        await QuoteView.tapDestinationToken();
+
+        // Wait for network button to be visible before attempting to swipe
+        const baseNetworkButton = Matchers.getElementByText(destNetwork);
+        await Assertions.expectElementToBeVisible(baseNetworkButton, {
+          timeout: 10000,
+          description: `${destNetwork} network button should be visible`,
+        });
+
+        // Swipe to make Base network more visible if needed
+        await QuoteView.swipeNetwork(destNetwork, 0.3);
+
+        // Select the Base network
+        await QuoteView.selectNetwork(destNetwork);
+
+        // Select ETH token on Base network
+        await QuoteView.tapToken(destChainId, 'ETH');
+        await QuoteView.enterAmount(quantity);
+        await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel, {
+          timeout: 60000,
+          description: 'network fee label should be visible',
+        });
+
+        // Verify gasless indicator (strikethrough)
+        await QuoteView.verifyGaslessIndicator();
+
+        await Assertions.expectElementToBeVisible(QuoteView.confirmBridge, {
+          description: 'confirm bridge button should be visible',
+        });
+        await QuoteView.tapConfirmBridge();
+
+        // Check the bridge activity completed
+        await Assertions.expectElementToBeVisible(ActivitiesView.title, {
+          description: 'activities view title should be visible',
+        });
+        await Assertions.expectElementToBeVisible(
+          ActivitiesView.bridgeActivityTitle(destNetwork),
+          {
+            description: 'bridge activity title should be visible',
+          },
         );
       },
     );

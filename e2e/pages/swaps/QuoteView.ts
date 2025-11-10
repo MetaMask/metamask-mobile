@@ -1,5 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import Assertions from '../../framework/Assertions';
 import {
   QuoteViewSelectorIDs,
   QuoteViewSelectorText,
@@ -134,6 +135,14 @@ class QuoteView {
   async tapOnCancelButton() {
     await Gestures.waitAndTap(this.cancelButton, {
       elemDescription: 'Cancel swap',
+    });
+  }
+
+  async verifyGaslessIndicator(): Promise<void> {
+    // Verify that the "Included" text is visible, which indicates gasless transaction
+    const includedText = Matchers.getElementByText('Included');
+    await Assertions.expectElementToBeVisible(includedText, {
+      description: 'Verify gasless fee indicator (Included text) is visible',
     });
   }
 }
