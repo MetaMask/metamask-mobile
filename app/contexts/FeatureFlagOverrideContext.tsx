@@ -73,7 +73,7 @@ export const FeatureFlagOverrideProvider: React.FC<
   useEffect(() => {
     if (Object.keys(featureFlagSnapshots).length > 0) {
       addTraitsToUser({
-        relatedFlags: featureFlagSnapshots as unknown as JsonValue,
+        relatedFlags: featureFlagSnapshots as unknown as UserTraits,
       });
     }
   }, [featureFlagSnapshots, addTraitsToUser]);
