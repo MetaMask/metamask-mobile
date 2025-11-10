@@ -1,25 +1,22 @@
-import { WebDriverConfig, Platform , EmulatorConfig } from '../../../e2e/framework/types';
-import { createLogger } from '../../../e2e/framework/logger';
+import {
+  WebDriverConfig,
+  Platform,
+  EmulatorConfig,
+} from '../../../e2e/framework/types';
 import { DeviceProvider } from '../common/interfaces/DeviceProvider';
-import WebDriver, { Client } from 'webdriver';
 import { installDriver, startAppiumServer } from '../common/AppiumHelpers';
 import { FullProject } from '@playwright/test';
-
-const logger = createLogger({
-  name: 'EmulatorProvider',
-});
+import { remote } from 'webdriverio';
 
 export default class EmulatorProvider implements DeviceProvider {
   sessionId?: string;
   private readonly project: FullProject<WebDriverConfig>;
 
-  constructor(
-    project: FullProject<WebDriverConfig>,
-  ) {
+  constructor(project: FullProject<WebDriverConfig>) {
     this.project = project;
   }
 
-  async getDriver(): Promise<Client> {
+  async getDriver(): Promise<WebdriverIO.Browser> {
     return await this.createDriver();
   }
 
@@ -28,18 +25,14 @@ export default class EmulatorProvider implements DeviceProvider {
     // throw new Error('Not implemented');
   }
 
-  private async createDriver(): Promise<Client> {
+  private async createDriver(): Promise<WebdriverIO.Browser> {
     await installDriver(
       this.project.use.platform === Platform.ANDROID
         ? 'uiautomator2'
         : 'xcuitest',
     );
     await startAppiumServer();
-    const webDriverClient = await WebDriver.newSession(
-      await this.createConfig(),
-    );
-    this.sessionId = webDriverClient.sessionId;
-    // TODO REMOVE THIS: webDriverClient.findElement('xpath', '//*[@text="Hello World"]');
+    const webDriverClient = await remote(await this.createConfig());
     return webDriverClient;
   }
 
