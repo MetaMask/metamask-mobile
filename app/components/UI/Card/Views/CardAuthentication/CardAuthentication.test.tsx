@@ -975,12 +975,15 @@ describe('CardAuthentication Component', () => {
     });
 
     it('displays error below OTP input fields', async () => {
+      // Arrange
       mockLogin.mockResolvedValue({
         isOtpRequired: true,
         userId: 'user-123',
         phoneNumber: '+1 (555) 123-****',
       });
-
+      mockSendOtpLogin.mockRejectedValue(
+        new Error('The code you entered is incorrect'),
+      );
       render();
       const emailInput = screen.getByPlaceholderText(
         'Enter your email address',
@@ -989,17 +992,14 @@ describe('CardAuthentication Component', () => {
       const loginButton = screen.getByTestId(
         CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON,
       );
-
       fireEvent.changeText(emailInput, 'test@example.com');
       fireEvent.changeText(passwordInput, 'password123');
       fireEvent.press(loginButton);
-
       await waitFor(() => {
         expect(
           screen.getByText('Enter your verification code'),
         ).toBeOnTheScreen();
       });
-
       mockUseCardProviderAuthentication.mockReturnValue({
         login: mockLogin,
         loading: false,
@@ -1011,9 +1011,15 @@ describe('CardAuthentication Component', () => {
         clearOtpError: mockClearOtpError,
       });
 
+      // Act
+      const otpInput = screen.getByDisplayValue('');
+      fireEvent.changeText(otpInput, '123456');
+
+      // Assert
       await waitFor(() => {
-        const errorText = screen.getByText('The code you entered is incorrect');
-        expect(errorText).toBeOnTheScreen();
+        expect(
+          screen.getByText('The code you entered is incorrect'),
+        ).toBeOnTheScreen();
         expect(screen.getByText('Verification Code')).toBeOnTheScreen();
       });
     });
