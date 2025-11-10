@@ -201,6 +201,20 @@ describe('PayWithModal', () => {
     expect(queryByText('Test Token 4')).toBeNull();
   });
 
+  it('does not render token with zero balance if required token and skipIfBalance is true', async () => {
+    useTransactionPayRequiredTokensMock.mockReturnValue([
+      {
+        address: '0x234' as Hex,
+        chainId: CHAIN_ID_1_MOCK,
+        skipIfBalance: true,
+      },
+    ] as TransactionPayRequiredToken[]);
+
+    const { queryByText } = render();
+
+    expect(queryByText('Test Token 2')).toBeNull();
+  });
+
   describe('on token select', () => {
     it('sets pay asset', async () => {
       const { getByText } = render();

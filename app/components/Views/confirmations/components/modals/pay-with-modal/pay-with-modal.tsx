@@ -55,7 +55,8 @@ export function PayWithModal() {
           const isRequiredToken = requiredTokens.some(
             (t) =>
               t.address.toLowerCase() === token.address.toLowerCase() &&
-              t.chainId === token.chainId,
+              t.chainId === token.chainId &&
+              !t.skipIfBalance,
           );
 
           if (isRequiredToken) {
