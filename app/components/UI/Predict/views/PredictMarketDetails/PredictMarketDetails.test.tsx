@@ -216,6 +216,15 @@ jest.mock('../../hooks/usePredictEligibility', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePredictPrices', () => ({
+  usePredictPrices: jest.fn(() => ({
+    prices: { providerId: '', results: [] },
+    isFetching: false,
+    error: null,
+    refetch: jest.fn(),
+  })),
+}));
+
 jest.mock('../../components/PredictDetailsChart/PredictDetailsChart', () => {
   const { View, Text } = jest.requireActual('react-native');
   return function MockPredictDetailsChart() {
@@ -2034,14 +2043,24 @@ describe('PredictMarketDetails', () => {
           {
             id: 'outcome-1',
             title: 'Yes',
-            tokens: [{ id: 't1', price: 1 }],
-            volume: 1,
+            groupItemTitle: 'Yes Outcome',
+            status: 'closed',
+            tokens: [
+              { id: 't1', price: 1, title: 'Yes' },
+              { id: 't2', price: 0, title: 'No' },
+            ],
+            volume: 1000000,
           },
           {
             id: 'outcome-2',
             title: 'No',
-            tokens: [{ id: 't2', price: 0 }],
-            volume: 1,
+            groupItemTitle: 'No Outcome',
+            status: 'closed',
+            tokens: [
+              { id: 't3', price: 0, title: 'Yes' },
+              { id: 't4', price: 1, title: 'No' },
+            ],
+            volume: 500000,
           },
         ],
       });
@@ -2049,8 +2068,10 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(closedMarket);
 
       expect(
-        screen.getAllByTestId('predict-market-outcome').length,
-      ).toBeGreaterThan(0);
+        screen.getByTestId('predict-market-details-outcomes-tab'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Yes Outcome')).toBeOnTheScreen();
+      expect(screen.getByText('No Outcome')).toBeOnTheScreen();
     });
 
     it('keeps user-selected About tab on closed market', () => {
@@ -2426,7 +2447,7 @@ describe('PredictMarketDetails', () => {
       if (pressable) {
         fireEvent.press(pressable);
 
-        expect(screen.getByText('draw')).toBeOnTheScreen();
+        expect(screen.getByText('predict.outcome_draw')).toBeOnTheScreen();
       }
     });
 
@@ -2662,6 +2683,73 @@ describe('PredictMarketDetails', () => {
         screen.queryByText('predict.resolved_outcomes'),
       ).not.toBeOnTheScreen();
       expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Real-time Price Updates', () => {
+    it('calls usePredictPrices hook for open markets', () => {
+      const { usePredictPrices } = jest.requireMock(
+        '../../hooks/usePredictPrices',
+      );
+
+      const marketWithTokens = createMockMarket({
+        status: 'open',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [{ id: 'token-1', price: 0.65 }],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(marketWithTokens);
+
+      expect(usePredictPrices).toHaveBeenCalled();
+    });
+
+    it('handles usePredictPrices hook being called', () => {
+      const { usePredictPrices } = jest.requireMock(
+        '../../hooks/usePredictPrices',
+      );
+
+      setupPredictMarketDetailsTest();
+
+      expect(usePredictPrices).toHaveBeenCalled();
+    });
+
+    it('uses usePredictPrices hook with providerId', () => {
+      const { usePredictPrices } = jest.requireMock(
+        '../../hooks/usePredictPrices',
+      );
+
+      setupPredictMarketDetailsTest();
+
+      expect(usePredictPrices).toHaveBeenCalledWith(
+        expect.objectContaining({
+          providerId: 'polymarket',
+        }),
+      );
+    });
+
+    it('handles price fetching errors gracefully', () => {
+      const { usePredictPrices } = jest.requireMock(
+        '../../hooks/usePredictPrices',
+      );
+
+      usePredictPrices.mockReturnValue({
+        prices: { providerId: '', results: [] },
+        isFetching: false,
+        error: new Error('Failed to fetch prices'),
+        refetch: jest.fn(),
+      });
+
+      setupPredictMarketDetailsTest();
+
+      expect(
+        screen.getByTestId('predict-market-details-screen'),
+      ).toBeOnTheScreen();
     });
   });
 });
