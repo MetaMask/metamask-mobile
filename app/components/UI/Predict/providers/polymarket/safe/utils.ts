@@ -23,6 +23,7 @@ import Logger, { type LoggerErrorOptions } from '../../../../../../util/Logger';
 import { isSmartContractAddress } from '../../../../../../util/transactions';
 import { Signer } from '../../types';
 import {
+  COLLATERAL_TOKEN_DECIMALS,
   CONDITIONAL_TOKEN_DECIMALS,
   MATIC_CONTRACTS,
   POLYGON_MAINNET_CHAIN_ID,
@@ -31,6 +32,7 @@ import {
   encodeApprove,
   encodeClaim,
   encodeErc1155Approve,
+  encodeErc20Transfer,
   getAllowance,
   getContractConfig,
   getIsApprovedForAll,
@@ -608,7 +610,12 @@ export const hasAllowances = async ({ address }: { address: string }) => {
   );
 };
 
-export const createClaimSafeTransaction = (positions: PredictPosition[]) => {
+export const createClaimSafeTransaction = (
+  positions: PredictPosition[],
+  includeTransfer?: {
+    address: string;
+  },
+) => {
   const safeTxns: SafeTransaction[] = [];
   const contractConfig = getContractConfig(POLYGON_MAINNET_CHAIN_ID);
 
@@ -634,6 +641,18 @@ export const createClaimSafeTransaction = (positions: PredictPosition[]) => {
     });
   }
 
+  if (includeTransfer) {
+    safeTxns.push({
+      to: MATIC_CONTRACTS.collateral,
+      data: encodeErc20Transfer({
+        to: includeTransfer.address,
+        value: parseUnits('0.5', COLLATERAL_TOKEN_DECIMALS).toBigInt(),
+      }),
+      operation: OperationType.Call,
+      value: '0',
+    });
+  }
+
   const safeTxn = aggregateTransaction(safeTxns);
 
   return safeTxn;
@@ -643,12 +662,17 @@ export const getClaimTransaction = async ({
   signer,
   positions,
   safeAddress,
+  includeTransferTransaction,
 }: {
   signer: Signer;
   positions: PredictPosition[];
   safeAddress: string;
+  includeTransferTransaction?: boolean;
 }) => {
-  const safeTxn = createClaimSafeTransaction(positions);
+  const includeTransfer = includeTransferTransaction
+    ? { address: signer.address }
+    : undefined;
+  const safeTxn = createClaimSafeTransaction(positions, includeTransfer);
   const callData = await getSafeTransactionCallData({
     signer,
     safeAddress,
