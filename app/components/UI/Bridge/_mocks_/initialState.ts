@@ -378,6 +378,9 @@ export const initialState = {
               scopes: [EthScope.Eoa],
               metadata: {
                 lastSelected: 0,
+                keyring: {
+                  type: 'HD Key Tree',
+                },
               },
             },
             [solanaAccountId]: {
