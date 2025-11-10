@@ -2,8 +2,13 @@ import { test as base, FullProject } from '@playwright/test';
 import { WebDriverConfig } from '../../e2e/framework/types';
 import { DeviceProvider } from '../services/common/interfaces/DeviceProvider';
 import { createDeviceProvider } from '../services';
-import { Client } from 'webdriver';
 import { stopAppiumServer } from '../services/common/AppiumHelpers';
+
+// Extend globalThis to include driver property
+declare global {
+  // eslint-disable-next-line no-var
+  var driver: WebdriverIO.Browser | undefined;
+}
 
 interface TestLevelFixtures {
   /**
@@ -17,7 +22,7 @@ interface TestLevelFixtures {
    * This provides the functionality to interact with the device
    * during the test.
    */
-  driver: Client;
+  driver: WebdriverIO.Browser;
 }
 
 // interface WorkerLevelFixtures {
@@ -25,14 +30,15 @@ interface TestLevelFixtures {
 // }
 
 export const test = base.extend<TestLevelFixtures>({
-  deviceProvider: async ({}, use, testInfo) => {
+  // TODO: fix _ for {} in the future. Using {} is causing linter errors
+  deviceProvider: async (_, use, testInfo) => {
     const deviceProvider = createDeviceProvider(testInfo.project);
     await use(deviceProvider);
   },
   driver: async ({ deviceProvider }, use, testInfo) => {
-    const driver = (await deviceProvider.getDriver()) as Client;
-    delete (globalThis as any).driver;
-    (globalThis as any).driver = driver;
+    const driver = (await deviceProvider.getDriver()) as WebdriverIO.Browser;
+    // Make driver globally accessible
+    globalThis.driver = driver;
     const deviceProviderName = (
       testInfo.project as FullProject<WebDriverConfig>
     ).use.device?.provider;
@@ -47,6 +53,8 @@ export const test = base.extend<TestLevelFixtures>({
     await deviceProvider.syncTestDetails?.({ name: testInfo.title });
     await use(driver);
     await driver.deleteSession();
+    // Clean up global driver reference
+    delete globalThis.driver;
     if (deviceProviderName === 'emulator') {
       await stopAppiumServer();
     }

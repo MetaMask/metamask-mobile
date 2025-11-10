@@ -12,7 +12,7 @@ export default defineConfig({
   projects: [
     {
       name: 'dummy-test',
-      testMatch: 'tests/*.spec.ts',
+      testMatch: 'tests/dumy.spec.ts',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -21,7 +21,7 @@ export default defineConfig({
           osVersion: '14',
           packageName: 'io.metamask',
         },
-        buildPath: '/Users/cferreira/Downloads/app-prod-release.apk',
+        buildPath: '/Users/cferreira/Downloads/with-srp.apk',
         launchableActivity: 'io.metamask.MainActivity',
       },
     },

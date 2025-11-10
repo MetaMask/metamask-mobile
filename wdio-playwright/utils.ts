@@ -1,7 +1,5 @@
-import type { Client } from 'webdriver';
-
-export function getDriver(): Client {
-  const drv = (globalThis as any).driver as Client | undefined;
+export function getDriver(): WebdriverIO.Browser {
+  const drv = globalThis.driver;
   if (!drv) throw new Error('driver is not available');
   return drv;
 }
