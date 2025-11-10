@@ -236,17 +236,12 @@ const PredictPositionsHeader = forwardRef<
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
               >
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
+                <Text
+                  variant={TextVariant.BodyMd}
+                  twClassName="text-alternative"
                 >
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    twClassName="text-alternative"
-                  >
-                    {strings('predict.unrealized_pnl_label')}
-                  </Text>
-                </Box>
+                  {strings('predict.unrealized_pnl_label')}
+                </Text>
                 <Text
                   variant={TextVariant.BodyMd}
                   twClassName={
