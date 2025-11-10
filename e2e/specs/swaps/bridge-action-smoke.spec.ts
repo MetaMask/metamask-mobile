@@ -5,6 +5,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import QuoteView from '../../pages/swaps/QuoteView';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import WalletView from '../../pages/wallet/WalletView';
+import TestHelpers from '../../helpers';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
@@ -61,10 +62,9 @@ describe(SmokeTrade('Bridge functionality'), () => {
         await WalletView.tapWalletSwapButton();
         await device.disableSynchronization();
         await QuoteView.tapDestinationToken();
-        // Base is now at position 5 after sorting, needs more scrolling
-        // Swipe using a visible network element (Ethereum) as anchor with higher percentage
-        const firstNetwork = 'Ethereum';
-        await QuoteView.swipeNetwork(firstNetwork, 0.9);
+        await TestHelpers.delay(2000); // wait until tokens are displayed
+        await QuoteView.swipeNetwork('Ethereum', 0.8);
+        await TestHelpers.delay(2000); // allow scroll to take place
         await QuoteView.selectNetwork(destNetwork);
         await QuoteView.tapToken(destChainId, sourceSymbol);
         await QuoteView.enterAmount(quantity);
