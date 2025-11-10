@@ -1,14 +1,12 @@
 /**
- * AI E2E Tags Selector
- *
- * Main orchestrator class that uses AI to analyze code changes
- * and select appropriate E2E smoke test tags
+ * Main orchestrator class for AI-powered E2E test analysis.
+ * Supports multiple modes: tag selection, flaky tests detection, etc.
  */
 
 import Anthropic from '@anthropic-ai/sdk';
 import { aiE2EConfig } from '../../tags';
 import { AIAnalysis, FileCategorization, ParsedArgs, ToolInput } from './types';
-import { CLAUDE_CONFIG, APP_CONFIG, MODES, ModeKey } from './config';
+import { CLAUDE_CONFIG, APP_CONFIG } from './config';
 import {
   countTestFilesForTags,
   countTestFilesForCombinedPattern,
@@ -23,39 +21,41 @@ import { getAllChangedFiles, getPRFiles, validatePRNumber } from './utils/git-ut
 import { formatAndOutput, createLogger } from './utils/output-formatter';
 
 /**
- * Prompt builders registry for each mode
+ * Mode Registry
+ * Each mode defines its metadata and prompt builders.
  */
-const MODE_PROMPTS = {
+const MODES = {
   'select-tags': {
+    description: 'Analyze code changes and select E2E test tags to run',
     systemPromptBuilder: buildSystemPrompt,
     taskPromptBuilder: buildTaskPrompt,
   },
-  // Future modes will add their prompt builders here:
-  // 'suggest-migration': {
-  //   systemPromptBuilder: buildMigrationSystemPrompt,
-  //   taskPromptBuilder: buildMigrationTaskPrompt,
+  // 'flaky-tests-detection': {
+  //   description: 'Identify flakiness risks in the E2E tests',
+  //   systemPromptBuilder: buildFlakyTestsDetectionSystemPrompt,
+  //   taskPromptBuilder: buildFlakyTestsDetectionTaskPrompt,
   // },
 } as const;
 
+type ModeKey = keyof typeof MODES;
+
 /**
- * Identifies critical files from a list of changed files
+ * Identifies critical files from the list of changed files
  */
-function categorizeFiles(files: string[]): FileCategorization {
+function identifyCriticalFiles(files: string[]): string[] {
   const { files: criticalFileNames, keywords, paths } = APP_CONFIG.critical;
 
-  const criticalFiles = files.filter(file => {
+  return files.filter(file => {
     // Check exact file names
     if (criticalFileNames.includes(file)) {
       return true;
     }
-
     // Check keywords
     for (const keyword of keywords) {
       if (file.includes(keyword)) {
         return true;
       }
     }
-
     // Check critical paths
     for (const path of paths) {
       if (file.includes(path)) {
@@ -65,14 +65,9 @@ function categorizeFiles(files: string[]): FileCategorization {
 
     return false;
   });
-
-  return {
-    allFiles: files,
-    criticalFiles,
-  };
 }
 
-export class AIE2ETagsSelector {
+export class E2EAIAnalyzer {
   private anthropic: Anthropic;
   private readonly availableTags: string[];
   private isQuietMode = false;
@@ -117,10 +112,10 @@ export class AIE2ETagsSelector {
   async analyzeWithAgent(
     categorization: FileCategorization
   ): Promise<AIAnalysis> {
-    // Get prompt builders for current mode
-    const promptBuilders = MODE_PROMPTS[this.mode];
-    const systemPrompt = promptBuilders.systemPromptBuilder();
-    const taskPrompt = promptBuilders.taskPromptBuilder(categorization);
+    // Get mode configuration with prompt builders
+    const modeConfig = MODES[this.mode];
+    const systemPrompt = modeConfig.systemPromptBuilder();
+    const taskPrompt = modeConfig.taskPromptBuilder(categorization);
 
     const tools = getToolDefinitions();
     let currentMessage: string | Anthropic.MessageParam['content'] = taskPrompt;
@@ -386,7 +381,7 @@ Examples:
   /**
    * Main run method
    */
-  async run(): Promise<void> {
+  async run(mode: ModeKey = 'select-tags'): Promise<void> {
     const args = process.argv.slice(2);
 
     // Handle help
@@ -398,14 +393,13 @@ Examples:
     const options = this.parseArgs(args);
 
     // Set instance properties from options
-    this.setMode(options.mode);
+    this.setMode(options.mode || mode);
     this.baseBranch = options.baseBranch;
     this.isQuietMode = options.output === 'json';
     this.log = createLogger(this.isQuietMode);
 
     // Log current mode
-    const currentMode = MODES[this.mode];
-    this.log(`🎯 Mode: ${currentMode.name}`);
+    this.log(`🎯 Mode: ${this.mode}`);
 
     // Get changed files
     let allChangedFiles: string[];
@@ -430,14 +424,19 @@ Examples:
         reasoning: 'No files changed - no tests needed',
         areas: []
       };
-      formatAndOutput(noChangesAnalysis, options, categorizeFiles([]));
+      formatAndOutput(noChangesAnalysis, options, { allFiles: [], criticalFiles: [] });
       return;
     }
 
-    const categorization = categorizeFiles(allChangedFiles);
-    if (categorization.criticalFiles.length > 0) {
-      this.log(`⚠️  ${categorization.criticalFiles.length} critical files detected`);
+    const criticalFiles = identifyCriticalFiles(allChangedFiles);
+    if (criticalFiles.length > 0) {
+      this.log(`⚠️  ${criticalFiles.length} critical files detected`);
     }
+
+    const categorization: FileCategorization = {
+      allFiles: allChangedFiles,
+      criticalFiles,
+    };
 
     // Run AI analysis
     const analysis = await this.analyzeWithAgent(categorization);
@@ -446,5 +445,3 @@ Examples:
     formatAndOutput(analysis, options, categorization);
   }
 }
-
-export default AIE2ETagsSelector;
