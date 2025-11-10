@@ -21,13 +21,13 @@ jobs:
         e2e/
         docs/
         .storybook/
-        '**/*.test.js'
-        '**/*.test.ts'
-        '**/*.test.jsx'
-        '**/*.test.tsx'
-        '**/*.stories.tsx'
-        '**/*.stories.js'
-        '**/*.snap'
+        **/*.test.js
+        **/*.test.ts
+        **/*.test.jsx
+        **/*.test.tsx
+        **/*.stories.tsx
+        **/*.stories.js
+        **/*.snap
     secrets:
       project-metrics-token: ${{ secrets.SECURITY_SCAN_METRICS_TOKEN }}
       slack-webhook: ${{ secrets.APPSEC_BOT_SLACK_WEBHOOK }}
