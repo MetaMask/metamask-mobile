@@ -12,6 +12,7 @@ import { Hex } from '@metamask/utils';
 import type { BridgeToken } from '../../types';
 import type { RootState } from '../../../../../reducers';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
+import { setupIntegrationNetworkInterceptors } from '../../../../../util/test/integration/network';
 
 // Background-only mocks (no hooks mocked)
 jest.mock('../../../../../core/Engine', () => {
@@ -27,7 +28,7 @@ jest.mock('../../../../../core/Engine', () => {
         // Needed by getProviderByChainId → useLatestBalance
         findNetworkClientIdByChainId: jest.fn((chainId: string) =>
           // Return a deterministic client id for mainnet and a generic one otherwise
-           chainId?.toLowerCase() === '0x1' ? 'mainnet' : 'custom'
+          chainId?.toLowerCase() === '0x1' ? 'mainnet' : 'custom',
         ),
         getNetworkClientById: jest.fn((id: string) => {
           // Minimal provider shape with request method used by balance fetching
@@ -112,97 +113,14 @@ jest.mock('../../../../../core/Engine', () => {
   };
 });
 
-// Intercept JSON-RPC via fetch to provide deterministic balances (no provider mock, no MSW)
-const originalFetch =
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (global as any).fetch as undefined | typeof fetch;
+// Install default network interceptors for integration tests
+let restoreNetwork: (() => void) | undefined;
 beforeAll(() => {
-  jest
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .spyOn(global as any, 'fetch')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .mockImplementation(async (input: any, init?: any) => {
-      try {
-        // Handle Blockaid validation endpoint used by useValidateBridgeTx
-        const url = typeof input === 'string' ? input : input?.url;
-        if (typeof url === 'string' && url.includes('/solana/message/scan')) {
-          return Promise.resolve({
-            ok: true,
-            json: async () => ({ status: 'OK' }),
-          } as Response as unknown as {
-            ok: true;
-            json: () => Promise<unknown>;
-          });
-        }
-        const body =
-          typeof init?.body === 'string' ? JSON.parse(init.body) : undefined;
-        const { method, id } = body ?? {};
-        const twoEthHex = '0x1bc16d674ec80000'; // 2 ETH
-        if (method === 'eth_chainId') {
-          return Promise.resolve({
-            ok: true,
-            json: async () => ({
-              jsonrpc: '2.0',
-              id: id ?? 1,
-              result: '0x1',
-            }),
-          } as Response as unknown as {
-            ok: true;
-            json: () => Promise<unknown>;
-          });
-        }
-        if (method === 'eth_getBalance') {
-          return Promise.resolve({
-            ok: true,
-            json: async () => ({
-              jsonrpc: '2.0',
-              id: id ?? 1,
-              result: twoEthHex,
-            }),
-          } as Response as unknown as {
-            ok: true;
-            json: () => Promise<unknown>;
-          });
-        }
-        if (method === 'eth_call') {
-          return Promise.resolve({
-            ok: true,
-            json: async () => ({
-              jsonrpc: '2.0',
-              id: id ?? 1,
-              result: twoEthHex,
-            }),
-          } as Response as unknown as {
-            ok: true;
-            json: () => Promise<unknown>;
-          });
-        }
-      } catch {
-        // fall through
-      }
-      // Fallback to original fetch if available, otherwise generic 404
-      if (originalFetch) {
-        return originalFetch(input, init);
-      }
-      return Promise.resolve({
-        ok: false,
-        status: 404,
-        json: async () => ({}),
-      } as Response as unknown as {
-        ok: false;
-        status: number;
-        json: () => Promise<unknown>;
-      });
-    });
+  restoreNetwork = setupIntegrationNetworkInterceptors();
 });
 afterAll(() => {
-  if (originalFetch) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (global as any).fetch = originalFetch;
-  } else {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (global as any).fetch = undefined;
-  }
+  restoreNetwork?.();
+  restoreNetwork = undefined;
 });
 
 // Avoid Engine access inside address utils used by smart tx selectors
