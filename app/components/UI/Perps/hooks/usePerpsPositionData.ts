@@ -224,12 +224,13 @@ export const usePerpsPositionData = ({
       clearInterval(intervalId);
       DevLogger.log('Cleared candle refresh interval');
     };
+    // Note: candleData is intentionally excluded from deps to prevent infinite loop
+    // This effect only needs to re-run when the interval settings change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    candleData,
     isLoadingHistory,
     selectedInterval,
     fetchHistoricalCandles,
-    initializationState,
     isControllerInitialized,
   ]);
 
