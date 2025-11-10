@@ -146,12 +146,8 @@ export const getRecurrence = (series?: PredictSeries[]): Recurrence => {
   }
 };
 
-export const formatCents = (
-  dollars: string | number,
-  options?: { maximumDecimals?: number },
-): string => {
+export const formatCents = (dollars: string | number): string => {
   const num = typeof dollars === 'string' ? parseFloat(dollars) : dollars;
-  const maximumDecimals = options?.maximumDecimals ?? 2;
 
   if (isNaN(num)) {
     return '0¢';
@@ -160,16 +156,16 @@ export const formatCents = (
   // Convert dollars to cents (multiply by 100)
   const cents = num * 100;
 
-  // Round to the maximum decimals precision to check if decimals are needed
-  const roundedCents = Number(cents.toFixed(maximumDecimals));
+  // Round to 1 decimal precision to check if decimals are needed
+  const roundedCents = Number(cents.toFixed(1));
 
   // If it's a whole number, don't show decimals
   if (roundedCents === Math.floor(roundedCents)) {
     return `${Math.floor(roundedCents)}¢`;
   }
 
-  // Otherwise, show decimals up to maximumDecimals
-  return `${cents.toFixed(maximumDecimals)}¢`;
+  // Otherwise, show decimals up to 1 decimal place
+  return `${cents.toFixed(1)}¢`;
 };
 
 /**

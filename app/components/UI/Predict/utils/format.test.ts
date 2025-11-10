@@ -1020,28 +1020,22 @@ describe('format utils', () => {
   });
 
   describe('formatCents', () => {
-    it('formats dollars to whole cents', () => {
+    it('formats dollars to whole cents without decimals', () => {
       const result = formatCents(0.5);
 
       expect(result).toBe('50¢');
     });
 
-    it('formats dollars to decimal cents', () => {
+    it('formats dollars to cents with 1 decimal when needed', () => {
       const result = formatCents(0.456);
 
-      expect(result).toBe('45.60¢');
+      expect(result).toBe('45.6¢');
     });
 
-    it('formats dollars with default 2 decimal precision', () => {
+    it('formats dollars with 1 decimal precision', () => {
       const result = formatCents(0.12345);
 
-      expect(result).toBe('12.35¢');
-    });
-
-    it('formats dollars with custom maximum decimals', () => {
-      const result = formatCents(0.456, { maximumDecimals: 1 });
-
-      expect(result).toBe('45.6¢');
+      expect(result).toBe('12.3¢');
     });
 
     it('formats whole cents without decimals', () => {
@@ -1080,10 +1074,10 @@ describe('format utils', () => {
       expect(result).toBe('0¢');
     });
 
-    it('formats very small values correctly', () => {
+    it('formats very small values with 1 decimal', () => {
       const result = formatCents(0.001);
 
-      expect(result).toBe('0.10¢');
+      expect(result).toBe('0.1¢');
     });
 
     it('formats negative values correctly', () => {
@@ -1098,28 +1092,24 @@ describe('format utils', () => {
       expect(result).toBe('1050¢');
     });
 
+    it('formats 0.40123 as 40.1¢', () => {
+      const result = formatCents(0.40123);
+
+      expect(result).toBe('40.1¢');
+    });
+
     it.each([
       [0.5, '50¢'],
       [0.25, '25¢'],
       [0.75, '75¢'],
-      [0.456, '45.60¢'],
-      [0.12345, '12.35¢'],
+      [0.456, '45.6¢'],
+      [0.12345, '12.3¢'],
       [1, '100¢'],
       [0, '0¢'],
+      [0.625, '62.5¢'],
+      [0.7, '70¢'],
     ])('formats %d dollars as %s', (input, expected) => {
       expect(formatCents(input)).toBe(expected);
-    });
-
-    it('respects maximumDecimals option of 0', () => {
-      const result = formatCents(0.456, { maximumDecimals: 0 });
-
-      expect(result).toBe('46¢');
-    });
-
-    it('respects maximumDecimals option of 3', () => {
-      const result = formatCents(0.12345, { maximumDecimals: 3 });
-
-      expect(result).toBe('12.345¢');
     });
   });
 

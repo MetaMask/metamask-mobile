@@ -65,9 +65,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
                 minimumDecimals: 2,
                 maximumDecimals: 2,
               }),
-              priceCents: formatCents(avgPrice, {
-                maximumDecimals: 1,
-              }),
+              priceCents: formatCents(avgPrice),
             },
           )}
         </Text>

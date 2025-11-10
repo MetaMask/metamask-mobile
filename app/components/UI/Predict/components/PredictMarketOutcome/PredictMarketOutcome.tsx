@@ -33,7 +33,11 @@ import {
   PredictEntryPoint,
 } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
-import { formatPercentage, formatVolume } from '../../utils/format';
+import {
+  formatCents,
+  formatPercentage,
+  formatVolume,
+} from '../../utils/format';
 import styleSheet from './PredictMarketOutcome.styles';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 interface PredictMarketOutcomeProps {
@@ -185,7 +189,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
             label={
               <Text style={tw.style('font-medium')} color={TextColor.Success}>
                 {outcome.tokens[0].title} •{' '}
-                {(outcome.tokens[0].price * 100).toFixed(2)}¢
+                {formatCents(outcome.tokens[0].price)}
               </Text>
             }
             onPress={() => handleBuy(outcome.tokens[0])}
@@ -198,7 +202,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
             label={
               <Text style={tw.style('font-medium')} color={TextColor.Error}>
                 {outcome.tokens[1].title} •{' '}
-                {(outcome.tokens[1].price * 100).toFixed(2)}¢
+                {formatCents(outcome.tokens[1].price)}
               </Text>
             }
             onPress={() => handleBuy(outcome.tokens[1])}
