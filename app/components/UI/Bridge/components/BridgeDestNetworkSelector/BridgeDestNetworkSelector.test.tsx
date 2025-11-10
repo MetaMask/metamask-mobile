@@ -159,8 +159,14 @@ describe('BridgeDestNetworkSelector - ChainPopularity fallback', () => {
   });
 
   it('assigns Infinity to chains without defined popularity', () => {
-    // Create a state with both Linea (has popularity) and Palm (doesn't have popularity)
-    // This will test both branches of the ?? operator
+    // Add networks with and without defined popularity to test all branch combinations:
+    // - Optimism: HAS defined popularity (10 in ChainPopularity)
+    // - Palm: NO defined popularity (triggers ?? Infinity)
+    // - zkSync Era: NO defined popularity (triggers ?? Infinity)
+    // This ensures all branch combinations are tested:
+    // 1. Both have defined popularity (Optimism already tested in existing tests)
+    // 2. Both lack defined popularity (Palm vs zkSync Era)
+    // 3. One has, one doesn't (Optimism vs Palm/zkSync)
     const stateWithMultipleNetworks = {
       ...initialState,
       engine: {
@@ -179,13 +185,18 @@ describe('BridgeDestNetworkSelector - ChainPopularity fallback', () => {
                     isActiveSrc: true,
                     isActiveDest: true,
                   },
-                  'eip155:59144': {
-                    // Linea
+                  'eip155:10': {
+                    // Optimism - HAS defined popularity
                     isActiveSrc: true,
                     isActiveDest: true,
                   },
                   'eip155:11297108109': {
-                    // Palm
+                    // Palm - NOT in ChainPopularity
+                    isActiveSrc: true,
+                    isActiveDest: true,
+                  },
+                  'eip155:324': {
+                    // zkSync Era - NOT in ChainPopularity
                     isActiveSrc: true,
                     isActiveDest: true,
                   },
@@ -202,14 +213,20 @@ describe('BridgeDestNetworkSelector - ChainPopularity fallback', () => {
                     isActiveDest: true,
                     isGaslessSwapEnabled: true,
                   },
-                  'eip155:59144': {
-                    // Linea
+                  'eip155:10': {
+                    // Optimism
                     isActiveSrc: true,
                     isActiveDest: true,
                     isGaslessSwapEnabled: false,
                   },
                   'eip155:11297108109': {
                     // Palm
+                    isActiveSrc: true,
+                    isActiveDest: true,
+                    isGaslessSwapEnabled: false,
+                  },
+                  'eip155:324': {
+                    // zkSync Era
                     isActiveSrc: true,
                     isActiveDest: true,
                     isGaslessSwapEnabled: false,
@@ -230,9 +247,10 @@ describe('BridgeDestNetworkSelector - ChainPopularity fallback', () => {
       { state: stateWithMultipleNetworks },
     );
 
-    // Both networks should be visible
-    // Linea tests the path where ChainPopularity[chainId] has a value
-    // Palm tests the path where ChainPopularity[chainId] ?? Infinity fallback is used
+    // All three networks should be visible and sorted by popularity
+    // Optimism (popularity 10) should appear before Palm and zkSync Era (both Infinity)
+    expect(getByText('Optimism')).toBeTruthy();
     expect(getByText('Palm')).toBeTruthy();
+    expect(getByText('zkSync Era')).toBeTruthy();
   });
 });
