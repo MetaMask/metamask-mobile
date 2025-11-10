@@ -8,6 +8,7 @@ const Routes = {
     ID: 'Ramp',
     BUY: 'RampBuy',
     SELL: 'RampSell',
+    TOKEN_SELECTION: 'RampTokenSelection',
     GET_STARTED: 'GetStarted',
     BUILD_QUOTE: 'BuildQuote',
     BUILD_QUOTE_HAS_STARTED: 'BuildQuoteHasStarted',
@@ -25,6 +26,7 @@ const Routes = {
       REGION_SELECTOR: 'RampRegionSelectorModal',
       UNSUPPORTED_REGION: 'RampUnsupportedRegionModal',
       PAYMENT_METHOD_SELECTOR: 'RampPaymentMethodSelectorModal',
+      SETTINGS: 'RampSettingsModal',
     },
   },
   DEPOSIT: {

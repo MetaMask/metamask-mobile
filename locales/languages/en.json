@@ -613,6 +613,11 @@
     "invalid_address": "Invalid address",
     "contractAddressError": "You are sending tokens to the token's contract address. This may result in the loss of these tokens."
   },
+  "unified_ramp": {
+    "networks_filter_bar": {
+      "all_networks": "All"
+    }
+  },
   "deposit": {
     "title": "Deposit",
     "selectRegion": "Select Region",
@@ -642,13 +647,15 @@
       "apply": "Apply"
     },
     "configuration_modal": {
-      "title": "Options",
+      "title": "Settings",
       "view_order_history": "View order history",
       "contact_support": "Contact support",
-      "log_out": "Log out",
+      "log_out": "Log out of Transak",
       "logged_out_success": "Successfully logged out",
       "error_sdk_not_initialized": "SDK not initialized",
-      "logged_out_error": "Error logging out"
+      "logged_out_error": "Error logging out",
+      "more_ways_to_buy": "More ways to buy",
+      "more_ways_to_buy_description": "Use a different payment provider"
     },
     "region_modal": {
       "select_a_region": "Select a region",
@@ -1866,7 +1873,9 @@
       "net_pnl": "Net P&L",
       "total_net_pnl": "Total Net P&L",
       "market_net_pnl": "Market Net P&L",
-      "activity_details": "Activity details"
+      "activity_details": "Activity details",
+      "today": "Today",
+      "yesterday": "Yesterday"
     },
     "claim": {
       "toasts": {
@@ -4432,6 +4441,11 @@
     "order_status_cancelled": "Cancelled",
     "webview_no_url_provided": "No URL was provided to continue",
     "webview_error_no_address_provided": "No wallet address was provided to continue",
+    "settings_modal": {
+      "title": "Settings",
+      "use_new_buy_experience": "Use new buy experience",
+      "use_new_buy_experience_description": "Try new native on ramp"
+    },
     "onboarding": {
       "what_to_expect": "What to Expect",
       "quotes": "Our buy crypto feature aggregates quotes from integrated vendors, providing quotes from those sources to get crypto directly into your wallet with no waiting period.",
