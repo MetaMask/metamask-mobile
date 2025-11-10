@@ -89,22 +89,45 @@ const ChartTooltip: React.FC<TooltipProps> = ({
   const maxDataIndex = primaryData.length - 1;
   const isRightSide = activeIndex > maxDataIndex / 2;
 
+  // Theme-aware colors for crosshair
+  const lineColor = colors.border.muted;
+  const textColor = colors.text.alternative;
+
   return (
     <G key="tooltip">
-      {/* Vertical crosshair line */}
+      {/* Top solid line connecting to timestamp */}
+      <Line
+        x1={xPos}
+        x2={xPos}
+        y1={0}
+        y2={ticks[0]}
+        stroke={lineColor}
+        strokeWidth={2}
+      />
+
+      {/* Main vertical crosshair line through data area */}
       <Line
         x1={xPos}
         x2={xPos}
         y1={ticks[0]}
         y2={ticks[ticks.length - 1]}
-        stroke={colors.primary.default}
+        stroke={lineColor}
         strokeWidth={2}
-        strokeDasharray={[6, 3]}
       />
 
-      {/* Display timestamp at top - adjust position based on side */}
-      <G x={isRightSide ? xPos - 60 : xPos + 10} y={20}>
-        <SvgText fill={colors.text.alternative} fontSize={11} fontWeight="400">
+      {/* Bottom line extending to chart bottom */}
+      <Line
+        x1={xPos}
+        x2={xPos}
+        y1={ticks[ticks.length - 1]}
+        y2={CHART_HEIGHT}
+        stroke={lineColor}
+        strokeWidth={2}
+      />
+
+      {/* Display timestamp at very top - adjust position based on side */}
+      <G x={isRightSide ? xPos - 60 : xPos + 10} y={8}>
+        <SvgText fill={textColor} fontSize={11} fontWeight="600">
           {activePoint.label}
         </SvgText>
       </G>
