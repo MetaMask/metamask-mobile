@@ -1,0 +1,39 @@
+diff --git a/dist/providers/browserstack/index.js b/dist/providers/browserstack/index.js
+index 61ecd1508400f59302d6139a805e7a912e9a1036..ae03b530816d4ab042ccd357281253079550cd4a 100644
+--- a/dist/providers/browserstack/index.js
++++ b/dist/providers/browserstack/index.js
+@@ -275,6 +275,8 @@ class BrowserStackDeviceProvider {
+                 "appium:settings[actionAcknowledgmentTimeout]": 3000,
+                 "appium:settings[ignoreUnimportantViews]": true,
+                 "appium:settings[waitForSelectorTimeout]": 10000,
++                'appium:includeSafariInWebviews': true,
++                'appium:chromedriverAutodownload': true,
+             },
+         };
+     }
+diff --git a/dist/providers/emulator/index.js b/dist/providers/emulator/index.js
+index f3bc1502e7aa9d59b99a915adcbba5e13928e413..02ce867c4fb1478bbdb45eabb9a84719c4cb8054 100644
+--- a/dist/providers/emulator/index.js
++++ b/dist/providers/emulator/index.js
+@@ -77,6 +77,8 @@ Follow the steps mentioned in ${androidSimulatorConfigDocLink} to run test on An
+                 "appium:deviceOrientation": this.project.use.device?.orientation,
+                 "appium:settings[snapshotMaxDepth]": 62,
+                 "appium:wdaLaunchTimeout": 300_000,
++                'appium:includeSafariInWebviews': true,
++                'appium:chromedriverAutodownload': true,
+             },
+         };
+     }
+diff --git a/dist/providers/local/index.js b/dist/providers/local/index.js
+index dc394b0696dd67d259a03856c5b49dcb5820d0ad..98f5de7f282116bf82f424a368c189938817ad5e 100644
+--- a/dist/providers/local/index.js
++++ b/dist/providers/local/index.js
+@@ -79,6 +79,8 @@ To specify a device, use the udid property. Run "adb devices" to get the UDID fo
+                 "appium:fullReset": true,
+                 "appium:deviceOrientation": this.project.use.device?.orientation,
+                 "appium:settings[snapshotMaxDepth]": 62,
++                'appium:includeSafariInWebviews': true,
++                'appium:chromedriverAutodownload': true,
+             },
+         };
+     }

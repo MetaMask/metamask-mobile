@@ -310,4 +310,23 @@ export default class AppwrightGestures {
     const webDriverClient = (deviceInstance as any).webDriverClient;
     return await webDriverClient.dismissAlert();
   }
+
+  /**
+   * Switch to a different context
+   * @param deviceInstance - The device object
+   * @param context - The context to switch to
+   * @param dappUrl - The URL of the dapp to switch to
+   */
+  static async switchContext(
+    deviceInstance: Device,
+    context: 'NATIVE_APP' | 'WEBVIEW',
+    dappUrl: string,
+  ): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const webDriverClient = (deviceInstance as any).webDriverClient;
+    await webDriverClient.switchContext({
+      context,
+      url: dappUrl,
+    });
+  }
 }
