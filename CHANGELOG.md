@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- feat(smart-transaction): add support for gasless bridges with eth_sendBunble and smart transaction [#22223](https://github.com/MetaMask/metamask-mobile/pull/22223)
+
 ## [7.58.0]
 
 ### Added
