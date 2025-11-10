@@ -11,10 +11,11 @@ import { TOOL_LIMITS } from '../../config';
 export function handleGitDiff(
   input: ToolInput,
   baseDir: string,
-  baseBranch: string
+  baseBranch: string,
 ): string {
   const filePath = input.file_path as string;
-  const linesLimit = (input.lines_limit as number) || TOOL_LIMITS.gitDiffMaxLines;
+  const linesLimit =
+    (input.lines_limit as number) || TOOL_LIMITS.gitDiffMaxLines;
 
   return getFileDiff(filePath, baseBranch, baseDir, linesLimit);
 }

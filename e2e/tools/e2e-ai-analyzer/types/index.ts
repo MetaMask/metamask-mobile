@@ -2,14 +2,11 @@
  * Shared TypeScript types for AI E2E Tags Selector
  */
 
-export interface AIAnalysis {
-  riskLevel: 'low' | 'medium' | 'high';
+export interface SelectTagsAnalysis {
   selectedTags: string[];
-  areas: string[];
-  reasoning: string;
   confidence: number;
-  testFileInfo?: TagTestInfo[];
-  totalSplits?: number;
+  riskLevel: 'low' | 'medium' | 'high';
+  reasoning: string;
 }
 
 export interface TagTestInfo {

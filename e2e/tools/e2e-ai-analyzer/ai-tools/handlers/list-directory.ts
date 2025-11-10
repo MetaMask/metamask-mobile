@@ -21,7 +21,7 @@ export function handleListDirectory(input: ToolInput, baseDir: string): string {
     const files: string[] = [];
     const dirs: string[] = [];
 
-    entries.forEach(entry => {
+    entries.forEach((entry) => {
       const entryPath = join(fullPath, entry);
       const stats = statSync(entryPath);
 
@@ -36,9 +36,12 @@ export function handleListDirectory(input: ToolInput, baseDir: string): string {
     const sortedFiles = files.sort();
     const allEntries = [...sortedDirs, ...sortedFiles];
 
-    return `Directory listing for ${directory} (${allEntries.length} items):\n\n${allEntries.join('\n')}`;
+    return `Directory listing for ${directory} (${
+      allEntries.length
+    } items):\n\n${allEntries.join('\n')}`;
   } catch (error) {
-    return `Error reading directory ${directory}: ${error instanceof Error ? error.message : String(error)}`;
+    return `Error reading directory ${directory}: ${
+      error instanceof Error ? error.message : String(error)
+    }`;
   }
 }
-

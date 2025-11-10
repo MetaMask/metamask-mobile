@@ -12,7 +12,7 @@ import { AIAnalysis, FileCategorization, ParsedArgs } from '../types';
 export function formatAndOutput(
   analysis: AIAnalysis,
   options: ParsedArgs,
-  categorization: FileCategorization
+  categorization: FileCategorization,
 ): void {
   if (options.output === 'json') {
     outputJSON(analysis, categorization);
@@ -26,7 +26,7 @@ export function formatAndOutput(
  */
 function outputJSON(
   analysis: AIAnalysis,
-  categorization: FileCategorization
+  categorization: FileCategorization,
 ): void {
   console.log(
     JSON.stringify(
@@ -34,22 +34,22 @@ function outputJSON(
         selectedTags: analysis.selectedTags,
         riskLevel: analysis.riskLevel,
         totalSplits: analysis.totalSplits,
-        testFileBreakdown: analysis.testFileInfo?.map(info => ({
+        testFileBreakdown: analysis.testFileInfo?.map((info) => ({
           tag: info.tag,
           fileCount: info.fileCount,
-          recommendedSplits: info.recommendedSplits
+          recommendedSplits: info.recommendedSplits,
         })),
         changedFiles: {
           total: categorization.allFiles.length,
           relevant: categorization.allFiles.length,
-          filteredOut: 0
+          filteredOut: 0,
         },
         reasoning: analysis.reasoning,
-        confidence: analysis.confidence
+        confidence: analysis.confidence,
       },
       null,
-      2
-    )
+      2,
+    ),
   );
 }
 
@@ -61,16 +61,18 @@ function outputDefault(analysis: AIAnalysis): void {
   console.log('===================================');
   console.log(`🎯 Risk level: ${analysis.riskLevel}`);
   console.log(
-    `✅ Selected ${analysis.selectedTags.length} tags: ${analysis.selectedTags.join(', ')}`
+    `✅ Selected ${
+      analysis.selectedTags.length
+    } tags: ${analysis.selectedTags.join(', ')}`,
   );
   console.log(`📊 Confidence: ${analysis.confidence}%`);
   console.log(`💭 Reasoning: ${analysis.reasoning}`);
 
   if (analysis.testFileInfo && analysis.totalSplits) {
     console.log(`\n📈 Test File Analysis:`);
-    analysis.testFileInfo.forEach(info => {
+    analysis.testFileInfo.forEach((info) => {
       console.log(
-        `   ${info.tag}: ${info.fileCount} files → ${info.recommendedSplits} splits`
+        `   ${info.tag}: ${info.fileCount} files → ${info.recommendedSplits} splits`,
       );
     });
     console.log(`🔢 Total splits: ${analysis.totalSplits}`);

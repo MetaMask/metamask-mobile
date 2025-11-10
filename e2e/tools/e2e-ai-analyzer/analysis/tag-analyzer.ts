@@ -13,7 +13,7 @@ import { TagTestInfo } from '../types';
  */
 export async function countTestFilesForTags(
   tagList: string[],
-  baseDir: string
+  baseDir: string,
 ): Promise<TagTestInfo[]> {
   const tagInfo: TagTestInfo[] = [];
   const specsDir = join(baseDir, 'e2e', 'specs');
@@ -24,27 +24,29 @@ export async function countTestFilesForTags(
 
       const testFiles = execSync(findCommand, {
         encoding: 'utf8',
-        stdio: ['ignore', 'pipe', 'ignore']
+        stdio: ['ignore', 'pipe', 'ignore'],
       })
         .trim()
         .split('\n')
-        .filter(f => f);
+        .filter((f) => f);
 
       const recommendedSplits =
-        testFiles.length > 0 ? Math.min(Math.ceil(testFiles.length / 3.5), 5) : 0;
+        testFiles.length > 0
+          ? Math.min(Math.ceil(testFiles.length / 3.5), 5)
+          : 0;
 
       tagInfo.push({
         tag,
         testFiles,
         fileCount: testFiles.length,
-        recommendedSplits
+        recommendedSplits,
       });
     } catch {
       tagInfo.push({
         tag,
         testFiles: [],
         fileCount: 0,
-        recommendedSplits: 0
+        recommendedSplits: 0,
       });
     }
   }
@@ -57,7 +59,7 @@ export async function countTestFilesForTags(
  */
 export async function countTestFilesForCombinedPattern(
   tagPattern: string,
-  baseDir: string
+  baseDir: string,
 ): Promise<string[]> {
   const specsDir = join(baseDir, 'e2e', 'specs');
 
@@ -66,11 +68,11 @@ export async function countTestFilesForCombinedPattern(
 
     const testFiles = execSync(findCommand, {
       encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'ignore']
+      stdio: ['ignore', 'pipe', 'ignore'],
     })
       .trim()
       .split('\n')
-      .filter(f => f);
+      .filter((f) => f);
 
     return testFiles;
   } catch {

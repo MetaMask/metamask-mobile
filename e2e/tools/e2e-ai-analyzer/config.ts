@@ -2,7 +2,7 @@
  * System Configuration
  * Central configuration for AI agent behavior and API settings
  *
-*/
+ */
 
 /**
  * Anthropic Claude API Configuration
@@ -43,7 +43,6 @@ export const CLAUDE_CONFIG = {
    */
   maxIterations: 12,
 };
-
 
 /**
  * AI Tool-specific limits
@@ -109,4 +108,3 @@ export const APP_CONFIG = {
     paths: ['app/core/'],
   },
 };
-

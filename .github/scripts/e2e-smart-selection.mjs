@@ -97,7 +97,7 @@ async function main() {
 
     console.log('🤖 Starting AI analysis...');
     // Build command
-    const baseCmd = `node -r esbuild-register e2e/scripts/ai-e2e-tags-selector.ts --mode select-tags --output json --pr ${env.PR_NUMBER}`;
+    const baseCmd = `node -r esbuild-register e2e/tools/e2e-ai-analyzer --mode select-tags --output json --pr ${env.PR_NUMBER}`;
     const result = execCommand(baseCmd, { silent: true });
     console.log('🤖 AI analysis completed\n');
 

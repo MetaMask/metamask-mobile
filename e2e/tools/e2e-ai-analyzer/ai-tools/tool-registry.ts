@@ -14,22 +14,23 @@ export function getToolDefinitions(): Anthropic.Tool[] {
   return [
     {
       name: 'read_file',
-      description: 'Read the full content of a changed file to understand modifications',
+      description:
+        'Read the full content of a changed file to understand modifications',
       input_schema: {
         type: 'object',
         properties: {
           file_path: {
             type: 'string',
-            description: 'Path to file (e.g. "app/core/Engine.ts")'
+            description: 'Path to file (e.g. "app/core/Engine.ts")',
           },
           lines_limit: {
             type: 'number',
             description: `Max lines to read (default: ${TOOL_LIMITS.readFileMaxLines})`,
-            default: TOOL_LIMITS.readFileMaxLines
-          }
+            default: TOOL_LIMITS.readFileMaxLines,
+          },
         },
-        required: ['file_path']
-      }
+        required: ['file_path'],
+      },
     },
     {
       name: 'get_git_diff',
@@ -39,16 +40,16 @@ export function getToolDefinitions(): Anthropic.Tool[] {
         properties: {
           file_path: {
             type: 'string',
-            description: 'Path to file'
+            description: 'Path to file',
           },
           lines_limit: {
             type: 'number',
             description: `Max diff lines (default: ${TOOL_LIMITS.gitDiffMaxLines})`,
-            default: TOOL_LIMITS.gitDiffMaxLines
-          }
+            default: TOOL_LIMITS.gitDiffMaxLines,
+          },
         },
-        required: ['file_path']
-      }
+        required: ['file_path'],
+      },
     },
     {
       name: 'find_related_files',
@@ -59,60 +60,64 @@ export function getToolDefinitions(): Anthropic.Tool[] {
         properties: {
           file_path: {
             type: 'string',
-            description: 'Path to the changed file'
+            description: 'Path to the changed file',
           },
           search_type: {
             type: 'string',
             enum: ['importers', 'imports', 'tests', 'module', 'ci', 'all'],
             description:
-              'Type of related files: importers (who uses this code), imports (what this uses), tests (test files), module (same directory), ci (CI relationships - reusable workflow callers, script usage), all (comprehensive)'
+              'Type of related files: importers (who uses this code), imports (what this uses), tests (test files), module (same directory), ci (CI relationships - reusable workflow callers, script usage), all (comprehensive)',
           },
           max_results: {
             type: 'number',
             description: `Max files to return (default: ${TOOL_LIMITS.relatedFilesMaxResults})`,
-            default: TOOL_LIMITS.relatedFilesMaxResults
-          }
+            default: TOOL_LIMITS.relatedFilesMaxResults,
+          },
         },
-        required: ['file_path', 'search_type']
-      }
+        required: ['file_path', 'search_type'],
+      },
     },
     {
       name: 'list_directory',
-      description: 'List files and subdirectories in a directory to understand module structure and context',
+      description:
+        'List files and subdirectories in a directory to understand module structure and context',
       input_schema: {
         type: 'object',
         properties: {
           directory: {
             type: 'string',
-            description: 'Path to directory (e.g. "app/core/")'
-          }
+            description: 'Path to directory (e.g. "app/core/")',
+          },
         },
-        required: ['directory']
-      }
+        required: ['directory'],
+      },
     },
     {
       name: 'grep_codebase',
-      description: 'Search for patterns across the codebase to find usage, dependencies, or references',
+      description:
+        'Search for patterns across the codebase to find usage, dependencies, or references',
       input_schema: {
         type: 'object',
         properties: {
           pattern: {
             type: 'string',
-            description: 'Pattern to search for (e.g. "import.*Engine", "useWallet", "export.*function")'
+            description:
+              'Pattern to search for (e.g. "import.*Engine", "useWallet", "export.*function")',
           },
           file_pattern: {
             type: 'string',
-            description: 'File pattern to search in (e.g. "*.tsx", "*.ts", "*"). Default: "*"',
-            default: '*'
+            description:
+              'File pattern to search in (e.g. "*.tsx", "*.ts", "*"). Default: "*"',
+            default: '*',
           },
           max_results: {
             type: 'number',
             description: `Max results to return (default: ${TOOL_LIMITS.grepMaxResults})`,
-            default: TOOL_LIMITS.grepMaxResults
-          }
+            default: TOOL_LIMITS.grepMaxResults,
+          },
         },
-        required: ['pattern']
-      }
+        required: ['pattern'],
+      },
     },
     {
       name: 'finalize_decision',
@@ -123,28 +128,34 @@ export function getToolDefinitions(): Anthropic.Tool[] {
           selected_tags: {
             type: 'array',
             items: { type: 'string' },
-            description: 'Tags to run'
+            description: 'Tags to run',
           },
           risk_level: {
             type: 'string',
-            enum: ['low', 'medium', 'high']
+            enum: ['low', 'medium', 'high'],
           },
           confidence: {
             type: 'number',
-            description: 'Confidence 0-100'
+            description: 'Confidence 0-100',
           },
           reasoning: {
             type: 'string',
-            description: 'Detailed reasoning'
+            description: 'Detailed reasoning',
           },
           areas: {
             type: 'array',
             items: { type: 'string' },
-            description: 'Affected areas'
-          }
+            description: 'Affected areas',
+          },
         },
-        required: ['selected_tags', 'risk_level', 'confidence', 'reasoning', 'areas']
-      }
-    }
+        required: [
+          'selected_tags',
+          'risk_level',
+          'confidence',
+          'reasoning',
+          'areas',
+        ],
+      },
+    },
   ];
 }

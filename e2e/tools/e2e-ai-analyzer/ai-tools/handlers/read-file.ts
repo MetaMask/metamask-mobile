@@ -11,7 +11,8 @@ import { TOOL_LIMITS } from '../../config';
 
 export function handleReadFile(input: ToolInput, baseDir: string): string {
   const filePath = input.file_path as string;
-  const linesLimit = (input.lines_limit as number) || TOOL_LIMITS.readFileMaxLines;
+  const linesLimit =
+    (input.lines_limit as number) || TOOL_LIMITS.readFileMaxLines;
   const fullPath = join(baseDir, filePath);
 
   if (!existsSync(fullPath)) {
@@ -22,7 +23,9 @@ export function handleReadFile(input: ToolInput, baseDir: string): string {
   const lines = content.split('\n');
 
   if (lines.length > linesLimit) {
-    return `${filePath} (${lines.length} lines, showing first ${linesLimit}):\n\n${lines
+    return `${filePath} (${
+      lines.length
+    } lines, showing first ${linesLimit}):\n\n${lines
       .slice(0, linesLimit)
       .join('\n')}`;
   }

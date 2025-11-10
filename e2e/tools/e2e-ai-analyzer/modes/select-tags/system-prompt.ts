@@ -4,7 +4,7 @@
  * Mode-specific system prompt for E2E tag selection
  */
 
-import { aiE2EConfig } from '../../../../tags';
+import { SELECT_TAGS_CONFIG } from './config';
 import {
   buildCriticalPatternsSection,
   buildToolsSection,
@@ -15,14 +15,14 @@ import {
  * Builds the system prompt for tag selection mode
  */
 export function buildSystemPrompt(): string {
-  const availableTags = aiE2EConfig.map(config => config.tag);
+  const availableTags = SELECT_TAGS_CONFIG.map((config) => config.tag);
   const tagCoverage: Record<string, string> = {};
-  for (const config of aiE2EConfig) {
+  for (const config of SELECT_TAGS_CONFIG) {
     tagCoverage[config.tag] = config.description;
   }
 
   const tagCoverageLines = availableTags
-    .map(tag => {
+    .map((tag) => {
       const coverage = tagCoverage[tag] || 'General smoke tests';
       return `- ${tag}: ${coverage}`;
     })
@@ -33,7 +33,7 @@ export function buildSystemPrompt(): string {
 GOAL: Analyze code changes and select appropriate smoke test tags to run.
 
 AVAILABLE TAGS:
-${availableTags.map(tag => `- ${tag}`).join('\n')}
+${availableTags.map((tag) => `- ${tag}`).join('\n')}
 
 TAG COVERAGE:
 ${tagCoverageLines}

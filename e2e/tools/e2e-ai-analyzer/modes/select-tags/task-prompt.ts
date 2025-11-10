@@ -4,23 +4,21 @@
  * Builds the task prompt (initial user message) based on changed files
  */
 
-import { FileCategorization } from '../types';
+import { FileCategorization } from '../../types';
 
 /**
  * Builds the task prompt from file categorization
  */
-export function buildTaskPrompt(
-  categorization: FileCategorization
-): string {
+export function buildTaskPrompt(categorization: FileCategorization): string {
   const { allFiles, criticalFiles } = categorization;
-  const otherFiles = allFiles.filter(f => !criticalFiles.includes(f));
+  const otherFiles = allFiles.filter((f) => !criticalFiles.includes(f));
 
   const fileList: string[] = [];
 
   // Critical files first
   if (criticalFiles.length > 0) {
     fileList.push('⚠️  CRITICAL FILES (examine carefully):');
-    criticalFiles.forEach(f => fileList.push(`  ${f}`));
+    criticalFiles.forEach((f) => fileList.push(`  ${f}`));
     fileList.push('');
   }
 
@@ -28,7 +26,7 @@ export function buildTaskPrompt(
   if (otherFiles.length > 0) {
     fileList.push(`OTHER FILES (${otherFiles.length}):`);
     // Show first 20, truncate if more
-    otherFiles.slice(0, 20).forEach(f => fileList.push(`  ${f}`));
+    otherFiles.slice(0, 20).forEach((f) => fileList.push(`  ${f}`));
     if (otherFiles.length > 20) {
       fileList.push(`  ... and ${otherFiles.length - 20} more`);
     }
@@ -40,10 +38,10 @@ CHANGED FILES (${allFiles.length} total):
 ${fileList.join('\n')}
 
 ${
-    criticalFiles.length > 0
-      ? `⚠️  ${criticalFiles.length} CRITICAL FILES DETECTED - Examine these carefully using get_git_diff or read_file.\n`
-      : ''
-  }
+  criticalFiles.length > 0
+    ? `⚠️  ${criticalFiles.length} CRITICAL FILES DETECTED - Examine these carefully using get_git_diff or read_file.\n`
+    : ''
+}
 Investigate thoroughly. Use tools as needed.
 Think deeply about impacts.
 

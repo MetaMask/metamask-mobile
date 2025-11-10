@@ -21,7 +21,7 @@ export async function executeTool(
   context: {
     baseDir: string;
     baseBranch: string;
-  }
+  },
 ): Promise<string> {
   try {
     switch (toolName) {
@@ -47,6 +47,8 @@ export async function executeTool(
         return `Unknown tool: ${toolName}`;
     }
   } catch (error) {
-    return `Tool error: ${error instanceof Error ? error.message : String(error)}`;
+    return `Tool error: ${
+      error instanceof Error ? error.message : String(error)
+    }`;
   }
 }
