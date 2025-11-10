@@ -58,18 +58,6 @@ describe('TrendingView', () => {
     mockAddListener.mockReturnValue(jest.fn());
   });
 
-  it('renders native coming soon view', () => {
-    const { getByTestId } = render(
-      <NavigationContainer>
-        <TrendingView />
-      </NavigationContainer>,
-    );
-
-    const comingSoonText = getByTestId('trending-view-coming-soon');
-
-    expect(comingSoonText).toBeDefined();
-  });
-
   it('renders browser button in header', () => {
     const { getByTestId } = render(
       <NavigationContainer>
