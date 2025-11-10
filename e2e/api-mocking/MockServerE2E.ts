@@ -1,6 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-shadow
 import { getLocal, Headers, Mockttp } from 'mockttp';
 import { ALLOWLISTED_HOSTS, ALLOWLISTED_URLS } from './mock-e2e-allowlist';
+import { SUPPRESSED_LOGS_URLS } from './mock-config/suppressed-logs';
 import { createLogger, LogLevel } from '../framework/logger';
 import {
   MockApiEndpoint,
@@ -55,6 +56,8 @@ const isUrlAllowed = (url: string): boolean => {
   }
 };
 
+const isUrlSuppressedFromLogs = (url: string): boolean => SUPPRESSED_LOGS_URLS.some((pattern: RegExp) => pattern.test(url));
+
 const handleDirectFetch = async (
   url: string,
   method: string,
@@ -78,7 +81,9 @@ const handleDirectFetch = async (
     const responseBody = await response.text();
     return { statusCode: response.status, body: responseBody };
   } catch (error) {
-    logger.error('Error forwarding request:', url, error);
+    if (!isUrlSuppressedFromLogs(url)) {
+      logger.error('Error forwarding request:', url, error);
+    }
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Failed to forward request' }),
@@ -146,7 +151,7 @@ export default class MockServerE2E implements Resource {
       );
     }
 
-    logger.debug(
+    logger.info(
       `Mockttp server running at http://${getLocalHost()}:${this._serverPort}`,
     );
 
@@ -160,7 +165,7 @@ export default class MockServerE2E implements Resource {
       .thenReply(200, 'favicon.ico');
 
     if (this._testSpecificMock) {
-      logger.info('Applying testSpecificMock function (takes precedence)');
+      logger.debug('Applying testSpecificMock function (takes precedence)');
       await this._testSpecificMock(mockServer);
     }
 
@@ -223,8 +228,8 @@ export default class MockServerE2E implements Resource {
         }
 
         if (matchingEvent) {
-          logger.info(`Mocking ${method} request to: ${urlEndpoint}`);
-          logger.info(`Response status: ${matchingEvent.responseCode}`);
+          logger.debug(`Mocking ${method} request to: ${urlEndpoint}`);
+          logger.debug(`Response status: ${matchingEvent.responseCode}`);
           logger.debug('Response:', matchingEvent.response);
           if (method === 'POST' && matchingEvent.requestBody) {
             const result = processPostRequestBody(
