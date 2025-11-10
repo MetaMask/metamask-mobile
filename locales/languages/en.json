@@ -602,6 +602,7 @@
     "network_not_found_title": "Network not found",
     "network_not_found_description": "Network with chain id {{chain_id}} not found in your wallet. Please add the network first.",
     "network_missing_id": "Missing chain id.",
+    "search_tokens":"Search tokens",
     "search_tokens_and_nfts": "Search tokens and NFTs",
     "tokens": "Tokens",
     "nfts": "NFTs",
@@ -641,13 +642,15 @@
       "apply": "Apply"
     },
     "configuration_modal": {
-      "title": "Options",
+      "title": "Settings",
       "view_order_history": "View order history",
       "contact_support": "Contact support",
-      "log_out": "Log out",
+      "log_out": "Log out of Transak",
       "logged_out_success": "Successfully logged out",
       "error_sdk_not_initialized": "SDK not initialized",
-      "logged_out_error": "Error logging out"
+      "logged_out_error": "Error logging out",
+      "more_ways_to_buy": "More ways to buy",
+      "more_ways_to_buy_description": "Use a different payment provider"
     },
     "region_modal": {
       "select_a_region": "Select a region",
@@ -776,7 +779,9 @@
       "dob_required": "Date of birth is required",
       "dob_invalid": "Please enter a valid date of birth",
       "ssn_required": "Social security number is required",
-      "unexpected_error": "An unexpected error occurred. Please try again."
+      "unexpected_error": "An unexpected error occurred. Please try again.",
+      "phone_already_registered": "This phone number is already in use by {{email}}. Log in using this email to continue.",
+      "login_with_email": "Log in with email"
     },
     "enter_address": {
       "navbar_title": "Verify your identity",
@@ -1711,6 +1716,7 @@
         "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperCore for no added fee."
       },
       "got_it": "Got it",
+      "lets_go": "Let's go",
       "card": {
         "title": "Learn the basics of perps"
       }
@@ -1789,6 +1795,7 @@
     "outcomes_plural": "outcomes",
     "outcome_winner": "Winner",
     "outcome_loser": "Loser",
+    "outcome_draw": "Draw",
     "resolved_outcomes": "Resolved outcomes",
     "category": {
       "trending": "Trending",
@@ -1861,7 +1868,9 @@
       "net_pnl": "Net P&L",
       "total_net_pnl": "Total Net P&L",
       "market_net_pnl": "Market Net P&L",
-      "activity_details": "Activity details"
+      "activity_details": "Activity details",
+      "today": "Today",
+      "yesterday": "Yesterday"
     },
     "claim": {
       "toasts": {
@@ -1916,13 +1925,15 @@
       "retry": "Retry"
     },
     "error_messages": {
+      "not_eligible": "Not available in your region",
       "place_order_failed": "Failed to place order",
       "preview_failed": "Failed to preview order",
       "preview_no_order_book": "No order book found",
       "preview_no_order_match_buy": "No order match found for buy",
       "preview_no_order_match_sell": "No order match found for sell",
       "claim_failed": "Failed to claim",
-      "unknown_error": "An unknown error occurred"
+      "unknown_error": "An unknown error occurred",
+      "order_not_fully_filled": "Failed to fill your order"
     }
   },
   "receive": {
@@ -4425,6 +4436,11 @@
     "order_status_cancelled": "Cancelled",
     "webview_no_url_provided": "No URL was provided to continue",
     "webview_error_no_address_provided": "No wallet address was provided to continue",
+    "settings_modal": {
+      "title": "Settings",
+      "use_new_buy_experience": "Use new buy experience",
+      "use_new_buy_experience_description": "Try new native on ramp"
+    },
     "onboarding": {
       "what_to_expect": "What to Expect",
       "quotes": "Our buy crypto feature aggregates quotes from integrated vendors, providing quotes from those sources to get crypto directly into your wallet with no waiting period.",
@@ -6429,7 +6445,8 @@
     "report_submitted": "Error report has been submitted."
   },
   "pay_with_modal": {
-    "title": "Select payment method"
+    "title": "Select payment method",
+    "no_gas": "No native balance for gas"
   },
   "connection_removed_modal": {
     "title": "Connections removed",

@@ -25,6 +25,7 @@ const Routes = {
       REGION_SELECTOR: 'RampRegionSelectorModal',
       UNSUPPORTED_REGION: 'RampUnsupportedRegionModal',
       PAYMENT_METHOD_SELECTOR: 'RampPaymentMethodSelectorModal',
+      SETTINGS: 'RampSettingsModal',
     },
   },
   DEPOSIT: {
@@ -381,6 +382,11 @@ const Routes = {
       COMPLETE: 'CardOnboardingComplete',
       KYC_FAILED: 'CardOnboardingKYCFailed',
       WEBVIEW: 'CardOnboardingWebview',
+    },
+    MODALS: {
+      ID: 'CardModals',
+      ADD_FUNDS: 'CardAddFundsModal',
+      ASSET_SELECTION: 'CardAssetSelectionModal',
     },
   },
   SEND: {
