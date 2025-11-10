@@ -139,8 +139,10 @@ export const FeatureFlagOverrideProvider: React.FC<
     getAllOverrides,
   ]);
 
-  const featureFlagsList = Object.values(featureFlags).sort((a, b) =>
-    a.key.localeCompare(b.key),
+  const featureFlagsList = useMemo(
+    () =>
+      Object.values(featureFlags).sort((a, b) => a.key.localeCompare(b.key)),
+    [featureFlags],
   );
 
   const validateMinimumVersion = useCallback(
