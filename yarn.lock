@@ -5375,6 +5375,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@henrygd/semaphore@npm:0.1.0":
+  version: 0.1.0
+  resolution: "@henrygd/semaphore@npm:0.1.0"
+  checksum: 10/bbc8832162be81d1c6d5782f635b53dd916bcc86dd366f161ad1f0216110f7a490a1a4579af16b3759563f11c517e73328412efec07fa1443d370df98c0cbd25
+  languageName: node
+  linkType: hard
+
 "@httptoolkit/httpolyglot@npm:^2.2.1":
   version: 2.2.1
   resolution: "@httptoolkit/httpolyglot@npm:2.2.1"
@@ -9099,18 +9106,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nktkas/hyperliquid@npm:^0.25.7":
-  version: 0.25.7
-  resolution: "@nktkas/hyperliquid@npm:0.25.7"
+"@nktkas/hyperliquid@npm:^0.25.9":
+  version: 0.25.9
+  resolution: "@nktkas/hyperliquid@npm:0.25.9"
   dependencies:
+    "@henrygd/semaphore": "npm:0.1.0"
     "@msgpack/msgpack": "npm:^3.1.2"
-    "@noble/hashes": "npm:^2.0.0"
+    "@noble/hashes": "npm:^2.0.1"
     "@noble/secp256k1": "npm:^3.0.0"
     typescript-event-target: "npm:1.1.1"
     valibot: "npm:1.1.0"
   bin:
     hyperliquid: esm/bin/cli.js
-  checksum: 10/673e004d406cd774fc7af215598503cd5e70fe08c4b54e9e1297bde8eb85a15a68dbe67d1d3e47d068ff7266390ad6fe67107950986c98a26b3f08028b308e3a
+  checksum: 10/b62cf956449342d0ef777d62a7ca03515ad7cbc7b54bb6907bd5f426ec3b54d82320e4d5fd80a489a98dea817fae34ec885fc9a9a598625425c45d103ae1974f
   languageName: node
   linkType: hard
 
@@ -9210,7 +9218,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@noble/hashes@npm:^2.0.0":
+"@noble/hashes@npm:^2.0.1":
   version: 2.0.1
   resolution: "@noble/hashes@npm:2.0.1"
   checksum: 10/f4d00e7564eb4ff4e6d16be151dd0e404aede35f91e4372b0a8a6ec888379c1dd1e02c721b480af8e7853bea9637185b5cb9533970c5b77d60c254ead0cfd8f7
@@ -34355,7 +34363,7 @@ __metadata:
     "@metamask/tron-wallet-snap": "npm:^1.6.1"
     "@metamask/utils": "npm:^11.8.1"
     "@ngraveio/bc-ur": "npm:^1.1.6"
-    "@nktkas/hyperliquid": "npm:^0.25.7"
+    "@nktkas/hyperliquid": "npm:^0.25.9"
     "@noble/curves": "npm:1.9.6"
     "@notifee/react-native": "npm:^9.0.0"
     "@octokit/rest": "npm:^21.0.0"
