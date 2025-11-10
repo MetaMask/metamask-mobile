@@ -10,7 +10,7 @@ import MultiChainEvmTestDapp from '../../../wdio/screen-objects/MultiChainEvmTes
 import AndroidScreenHelpers from '../../../wdio/screen-objects/Native/Android.js';
 import DappConnectionModal from '../../../wdio/screen-objects/Modals/DappConnectionModal.js';
 
-const EVM_LEGACY_TEST_DAPP_URL = 'http://10.0.2.2:5174/';
+const EVM_LEGACY_TEST_DAPP_URL = 'http://10.0.2.2:5173/';
 const EVM_LEGACY_TEST_DAPP_NAME = 'Connect | Legacy EVM';
 
 test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
