@@ -118,6 +118,7 @@ import {
   getMultichainRouterInitMessenger,
   getMultichainRouterMessenger,
 } from './multichain-router-messenger';
+import { getTransactionPayControllerMessenger } from './transaction-pay-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -170,6 +171,10 @@ export const CONTROLLER_MESSENGERS = {
   TransactionController: {
     getMessenger: getTransactionControllerMessenger,
     getInitMessenger: getTransactionControllerInitMessenger,
+  },
+  TransactionPayController: {
+    getMessenger: getTransactionPayControllerMessenger,
+    getInitMessenger: noop,
   },
   CurrencyRateController: {
     getMessenger: getCurrencyRateControllerMessenger,
