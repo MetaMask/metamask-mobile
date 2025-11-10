@@ -3,11 +3,15 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictDetailsChart, { ChartSeries } from './PredictDetailsChart';
 
 jest.mock('react-native-svg-charts', () => ({
-  LineChart: jest.fn(({ children, data, ...props }) => {
+  LineChart: jest.fn(({ children, data, svg, ...props }) => {
     const { View, Text } = jest.requireActual('react-native');
+    // Only add testID if the chart is visible (not the transparent tooltip overlay)
+    const isVisible = svg?.stroke !== 'transparent';
     return (
-      <View testID="line-chart" {...props}>
-        <Text testID="chart-data">{JSON.stringify(data)}</Text>
+      <View testID={isVisible ? 'line-chart' : undefined} {...props}>
+        <Text testID={isVisible ? 'chart-data' : undefined}>
+          {JSON.stringify(data)}
+        </Text>
         {children}
       </View>
     );
@@ -42,6 +46,14 @@ jest.mock('react-native-svg', () => ({
   Path: jest.fn((props) => {
     const { View } = jest.requireActual('react-native');
     return <View testID="svg-path" {...props} />;
+  }),
+  Circle: jest.fn((props) => {
+    const { View } = jest.requireActual('react-native');
+    return <View testID="svg-circle" {...props} />;
+  }),
+  Rect: jest.fn((props) => {
+    const { View } = jest.requireActual('react-native');
+    return <View testID="svg-rect" {...props} />;
   }),
 }));
 
@@ -142,11 +154,16 @@ describe('PredictDetailsChart', () => {
     });
 
     it('renders chart with multiple series data', () => {
-      const { getAllByTestId } = setupTest({ data: mockMultipleSeries });
+      const { getAllByTestId, getByText } = setupTest({
+        data: mockMultipleSeries,
+      });
 
-      // Multiple LineChart components are rendered for multiple series
+      // At least one chart is rendered
       const charts = getAllByTestId('line-chart');
       expect(charts.length).toBeGreaterThanOrEqual(1);
+      // Legend with multiple series is displayed
+      expect(getByText(/Outcome A/)).toBeOnTheScreen();
+      expect(getByText(/Outcome B/)).toBeOnTheScreen();
     });
 
     it('renders timeframe selector with all timeframes', () => {
