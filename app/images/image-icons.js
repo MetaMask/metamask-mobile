@@ -51,6 +51,7 @@ import LUKSO from './lukso.png';
 import INJECTIVE from './injective.png';
 import PLASMA from './plasma-native.png';
 import CRONOS from './cronos.png';
+import HYPE from './hyperevm.png';
 /// BEGIN:ONLY_INCLUDE_IF(tron)
 import TRON from './tron.png';
 /// END:ONLY_INCLUDE_IF
@@ -114,4 +115,5 @@ export default {
   INJ: INJECTIVE,
   XPL: PLASMA,
   CRO: CRONOS,
+  HYPE,
 };
