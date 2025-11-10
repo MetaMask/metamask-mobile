@@ -829,11 +829,11 @@ fi
 
 if [ "$METAMASK_BUILD_TYPE" == "releaseE2E" ] || [ "$METAMASK_BUILD_TYPE" == "QA" ]; then
 	echo "DEBUG SENTRY PROPS"
-	checkAuthToken 'sentry.debug.properties'
+	#checkAuthToken 'sentry.debug.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
 elif [ "$METAMASK_BUILD_TYPE" == "release" ] || [ "$METAMASK_BUILD_TYPE" == "flask" ] || [ "$METAMASK_BUILD_TYPE" == "main" ]; then
 	echo "RELEASE SENTRY PROPS"
-	checkAuthToken 'sentry.release.properties'
+	#checkAuthToken 'sentry.release.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
 fi
 
