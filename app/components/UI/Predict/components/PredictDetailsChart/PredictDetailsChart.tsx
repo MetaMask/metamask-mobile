@@ -402,7 +402,11 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
       return (
         <Box twClassName="mb-6">
           {isMultipleSeries && (
-            <ChartLegend series={seriesWithLabels} range={range} />
+            <ChartLegend
+              series={seriesWithLabels}
+              range={range}
+              activeIndex={-1}
+            />
           )}
           <Box twClassName="h-48 bg-default rounded-lg relative overflow-hidden">
             <LineChart
@@ -455,7 +459,11 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
     return (
       <Box twClassName="mb-4">
         {isMultipleSeries && (
-          <ChartLegend series={nonEmptySeries} range={range} />
+          <ChartLegend
+            series={nonEmptySeries}
+            range={range}
+            activeIndex={activeIndex}
+          />
         )}
         <View
           style={tw.style(
