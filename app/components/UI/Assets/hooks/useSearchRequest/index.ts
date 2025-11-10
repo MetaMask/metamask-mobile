@@ -1,38 +1,22 @@
 import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
 import { debounce } from 'lodash';
 import { CaipChainId } from '@metamask/utils';
-import {
-  getTrendingTokens,
-  SortTrendingBy,
-} from '@metamask/assets-controllers';
+import { searchTokens } from '@metamask/assets-controllers';
 import { useStableArray } from '../../../Perps/hooks/useStableArray';
 export const DEBOUNCE_WAIT = 500;
 
 /**
- * Hook for handling trending tokens request
- * @returns {Object} An object containing the trending tokens results, loading state, error, and a function to trigger fetch
+ * Hook for handling search tokens request
+ * @returns {Object} An object containing the search results, loading state, and a function to trigger search
  */
-export const useTrendingRequest = (options: {
+export const useSearchRequest = (options: {
   chainIds: CaipChainId[];
-  sortBy?: SortTrendingBy;
-  minLiquidity?: number;
-  minVolume24hUsd?: number;
-  maxVolume24hUsd?: number;
-  minMarketCap?: number;
-  maxMarketCap?: number;
+  query: string;
+  limit: number;
 }) => {
-  const {
-    chainIds,
-    sortBy,
-    minLiquidity,
-    minVolume24hUsd,
-    maxVolume24hUsd,
-    minMarketCap,
-    maxMarketCap,
-  } = options;
-
+  const { chainIds, query, limit } = options;
   const [results, setResults] = useState<Awaited<
-    ReturnType<typeof getTrendingTokens>
+    ReturnType<typeof searchTokens>
   > | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -47,26 +31,14 @@ export const useTrendingRequest = (options: {
   const memoizedOptions = useMemo(
     () => ({
       chainIds: stableChainIds,
-      sortBy,
-      minLiquidity,
-      minVolume24hUsd,
-      maxVolume24hUsd,
-      minMarketCap,
-      maxMarketCap,
+      query,
+      limit,
     }),
-    [
-      stableChainIds,
-      sortBy,
-      minLiquidity,
-      minVolume24hUsd,
-      maxVolume24hUsd,
-      minMarketCap,
-      maxMarketCap,
-    ],
+    [stableChainIds, query, limit],
   );
 
-  const fetchTrendingTokens = useCallback(async () => {
-    if (!memoizedOptions.chainIds.length) {
+  const searchTokensRequest = useCallback(async () => {
+    if (!memoizedOptions.query) {
       // Increment request ID to invalidate any pending requests
       ++requestIdRef.current;
       setResults(null);
@@ -80,10 +52,16 @@ export const useTrendingRequest = (options: {
     setError(null);
 
     try {
-      const trendingResults = await getTrendingTokens(memoizedOptions);
+      const searchResults = await searchTokens(
+        memoizedOptions.chainIds,
+        memoizedOptions.query,
+        {
+          limit: memoizedOptions.limit,
+        },
+      );
       // Only update state if this is still the current request
       if (currentRequestId === requestIdRef.current) {
-        setResults(trendingResults || null);
+        setResults(searchResults || null);
       }
     } catch (err) {
       // Only update state if this is still the current request
@@ -99,35 +77,35 @@ export const useTrendingRequest = (options: {
     }
   }, [memoizedOptions]);
 
-  const debouncedFetchTrendingTokens = useMemo(
-    () => debounce(fetchTrendingTokens, DEBOUNCE_WAIT),
-    [fetchTrendingTokens],
+  const debouncedSearchTokensRequest = useMemo(
+    () => debounce(searchTokensRequest, DEBOUNCE_WAIT),
+    [searchTokensRequest],
   );
 
-  // Automatically trigger fetch when options change
+  // Automatically trigger search when query changes
   // Cancel previous debounced function BEFORE triggering new one to prevent race conditions
   useEffect(() => {
     // Cancel any pending debounced calls from previous render
-    debouncedFetchTrendingTokens.cancel();
+    debouncedSearchTokensRequest.cancel();
 
-    // If chainIds is empty, don't trigger fetch
-    if (!memoizedOptions.chainIds.length) {
+    // If query is empty, don't trigger search
+    if (!memoizedOptions.query) {
       return;
     }
 
-    // Trigger new fetch
-    debouncedFetchTrendingTokens();
+    // Trigger new search
+    debouncedSearchTokensRequest();
 
     // Cleanup: cancel on unmount or when dependencies change
     return () => {
-      debouncedFetchTrendingTokens.cancel();
+      debouncedSearchTokensRequest.cancel();
     };
-  }, [debouncedFetchTrendingTokens, memoizedOptions.chainIds.length]);
+  }, [debouncedSearchTokensRequest, memoizedOptions.query]);
 
   return {
-    results: results || [],
+    results: results?.data || [],
     isLoading,
     error,
-    fetch: debouncedFetchTrendingTokens,
+    search: debouncedSearchTokensRequest,
   };
 };
