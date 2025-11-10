@@ -41,18 +41,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingBottom: 0,
       gap: 16,
     },
-    positionContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 16,
-      width: '100%',
-    },
-    positionDetails: {
-      flexDirection: 'column',
-      gap: 4,
-      flex: 1,
-      minWidth: 0,
-    },
     detailsLine: {
       flexDirection: 'row',
       gap: 16,
@@ -61,11 +49,6 @@ const styleSheet = (params: { theme: Theme }) => {
     detailsLeft: {
       flex: 1,
       minWidth: 0,
-    },
-    detailsResolves: {
-      flex: 1,
-      minWidth: 0,
-      color: theme.colors.text.alternative,
     },
     detailsRight: {
       flexShrink: 0,

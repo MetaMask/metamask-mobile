@@ -389,7 +389,7 @@ export const useGetPriorityCardToken = (
                 validAllowances,
                 chainBalances,
               );
-            finalToken = positiveBalanceAllowance || matchingAllowance;
+            finalToken = positiveBalanceAllowance ?? matchingAllowance;
           }
         } else {
           finalToken = cardTokenAllowances[0] || null;
@@ -440,10 +440,7 @@ export const useGetPriorityCardToken = (
         // Use provided data if available (to avoid duplicate calls)
         let priorityWalletDetail: CardTokenAllowance | null = null;
 
-        if (
-          externalWalletDetailsData &&
-          externalWalletDetailsData.priorityWalletDetail
-        ) {
+        if (externalWalletDetailsData?.priorityWalletDetail) {
           priorityWalletDetail = externalWalletDetailsData.priorityWalletDetail;
         }
 
