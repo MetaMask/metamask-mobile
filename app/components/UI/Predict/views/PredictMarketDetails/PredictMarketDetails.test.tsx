@@ -2043,14 +2043,24 @@ describe('PredictMarketDetails', () => {
           {
             id: 'outcome-1',
             title: 'Yes',
-            tokens: [{ id: 't1', price: 1 }],
-            volume: 1,
+            groupItemTitle: 'Yes Outcome',
+            status: 'closed',
+            tokens: [
+              { id: 't1', price: 1, title: 'Yes' },
+              { id: 't2', price: 0, title: 'No' },
+            ],
+            volume: 1000000,
           },
           {
             id: 'outcome-2',
             title: 'No',
-            tokens: [{ id: 't2', price: 0 }],
-            volume: 1,
+            groupItemTitle: 'No Outcome',
+            status: 'closed',
+            tokens: [
+              { id: 't3', price: 0, title: 'Yes' },
+              { id: 't4', price: 1, title: 'No' },
+            ],
+            volume: 500000,
           },
         ],
       });
@@ -2058,8 +2068,10 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(closedMarket);
 
       expect(
-        screen.getAllByTestId('predict-market-outcome').length,
-      ).toBeGreaterThan(0);
+        screen.getByTestId('predict-market-details-outcomes-tab'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Yes Outcome')).toBeOnTheScreen();
+      expect(screen.getByText('No Outcome')).toBeOnTheScreen();
     });
 
     it('keeps user-selected About tab on closed market', () => {
@@ -2435,7 +2447,7 @@ describe('PredictMarketDetails', () => {
       if (pressable) {
         fireEvent.press(pressable);
 
-        expect(screen.getByText('draw')).toBeOnTheScreen();
+        expect(screen.getByText('predict.outcome_draw')).toBeOnTheScreen();
       }
     });
 
