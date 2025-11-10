@@ -1,12 +1,8 @@
 import { DEBOUNCE_WAIT, useTrendingRequest } from './';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { act } from '@testing-library/react-native';
-import { CaipChainId } from '@metamask/utils';
 // eslint-disable-next-line import/no-namespace
 import * as assetsControllers from '@metamask/assets-controllers';
-
-jest.useFakeTimers();
-const spyGetTrendingTokens = jest.spyOn(assetsControllers, 'getTrendingTokens');
 
 describe('useTrendingRequest', () => {
   beforeEach(() => {
@@ -14,103 +10,260 @@ describe('useTrendingRequest', () => {
     jest.useFakeTimers();
   });
 
-  afterEach(() => {
-    jest.useRealTimers();
+  it('returns an object with results, isLoading, error, and fetch function', () => {
+    const spyGetTrendingTokens = jest.spyOn(
+      assetsControllers,
+      'getTrendingTokens',
+    );
+    spyGetTrendingTokens.mockResolvedValue([]);
+
+    const { result, unmount } = renderHookWithProvider(() =>
+      useTrendingRequest({
+        chainIds: ['eip155:1'],
+      }),
+    );
+
+    expect(result.current).toHaveProperty('results');
+    expect(result.current).toHaveProperty('isLoading');
+    expect(result.current).toHaveProperty('error');
+    expect(result.current).toHaveProperty('fetch');
+    expect(typeof result.current.fetch).toBe('function');
+    expect(Array.isArray(result.current.results)).toBe(true);
+    expect(typeof result.current.isLoading).toBe('boolean');
+
+    spyGetTrendingTokens.mockRestore();
+    unmount();
   });
 
-  it('makes a single call to get trending tokens when invoked multiple times', async () => {
-    const { result } = renderHookWithProvider(() =>
+  it('returns trending tokens results when fetch succeeds', async () => {
+    const spyGetTrendingTokens = jest.spyOn(
+      assetsControllers,
+      'getTrendingTokens',
+    );
+    const mockResults: assetsControllers.TrendingAsset[] = [
+      {
+        assetId: 'eip155:1/erc20:0x123',
+        symbol: 'TOKEN1',
+        name: 'Token 1',
+        decimals: 18,
+        price: '1',
+        aggregatedUsdVolume: 1,
+        marketCap: 1,
+      },
+      {
+        assetId: 'eip155:1/erc20:0x456',
+        symbol: 'TOKEN2',
+        name: 'Token 2',
+        decimals: 18,
+        price: '1',
+        aggregatedUsdVolume: 1,
+        marketCap: 1,
+      },
+    ];
+    spyGetTrendingTokens.mockResolvedValue(mockResults as never);
+
+    const { result, unmount } = renderHookWithProvider(() =>
       useTrendingRequest({
-        chainIds: ['eip155:1', 'eip155:10'],
+        chainIds: ['eip155:1'],
       }),
     );
 
     await act(async () => {
-      // Make multiple rapid calls
-      result.current();
-      result.current();
-      result.current();
-
-      spyGetTrendingTokens.mockClear();
-
-      // Advance timer by less than debounce time
-      jest.advanceTimersByTime(DEBOUNCE_WAIT - 100);
-
-      // Should not have been called yet
-      expect(spyGetTrendingTokens).not.toHaveBeenCalled();
-
-      // Advance timer past debounce time
-      jest.advanceTimersByTime(DEBOUNCE_WAIT + 200);
-
-      // Should have been called exactly once
-      expect(spyGetTrendingTokens).toHaveBeenCalledTimes(1);
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
+      await Promise.resolve();
     });
+
+    expect(spyGetTrendingTokens).toHaveBeenCalledTimes(1);
+    expect(result.current.results).toEqual(mockResults);
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBe(null);
+
+    spyGetTrendingTokens.mockRestore();
+    unmount();
   });
 
-  it('returns a debounced function for trending tokens requests', () => {
-    const testOptions = {
-      chainIds: ['eip155:1', 'eip155:10'],
-    } as {
-      chainIds: CaipChainId[];
-    };
+  it('sets isLoading to true during fetch', async () => {
+    const spyGetTrendingTokens = jest.spyOn(
+      assetsControllers,
+      'getTrendingTokens',
+    );
+    let resolvePromise: ((value: unknown[]) => void) | undefined;
+    const pendingPromise = new Promise<unknown[]>((resolve) => {
+      resolvePromise = resolve;
+    });
+    spyGetTrendingTokens.mockReturnValue(pendingPromise as never);
 
-    const { result } = renderHookWithProvider(() =>
-      useTrendingRequest(testOptions),
+    const { result, unmount } = renderHookWithProvider(() =>
+      useTrendingRequest({
+        chainIds: ['eip155:1'],
+      }),
     );
 
-    expect(typeof result.current).toBe('function');
+    await act(async () => {
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
+      await Promise.resolve();
+    });
+
+    expect(result.current.isLoading).toBe(true);
+
+    await act(async () => {
+      if (resolvePromise) {
+        resolvePromise([]);
+      }
+      await Promise.resolve();
+    });
+
+    expect(result.current.isLoading).toBe(false);
+
+    spyGetTrendingTokens.mockRestore();
+    unmount();
   });
 
-  it('skips update when chain ids are missing', async () => {
-    const { result } = renderHookWithProvider(() =>
+  it('sets error state when fetch fails', async () => {
+    const spyGetTrendingTokens = jest.spyOn(
+      assetsControllers,
+      'getTrendingTokens',
+    );
+    const mockError = new Error('Failed to fetch trending tokens');
+    spyGetTrendingTokens.mockRejectedValue(mockError);
+
+    const { result, unmount } = renderHookWithProvider(() =>
+      useTrendingRequest({
+        chainIds: ['eip155:1'],
+      }),
+    );
+
+    await act(async () => {
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
+      await Promise.resolve();
+    });
+
+    expect(result.current.error).toEqual(mockError);
+    expect(result.current.results).toEqual([]);
+    expect(result.current.isLoading).toBe(false);
+
+    spyGetTrendingTokens.mockRestore();
+    unmount();
+  });
+
+  it('allows manual retry after error using fetch function', async () => {
+    const spyGetTrendingTokens = jest.spyOn(
+      assetsControllers,
+      'getTrendingTokens',
+    );
+    const mockError = new Error('Failed to fetch trending tokens');
+    const mockResults: assetsControllers.TrendingAsset[] = [
+      {
+        assetId: 'eip155:1/erc20:0x123',
+        symbol: 'TOKEN1',
+        name: 'Token 1',
+        decimals: 18,
+        price: '1',
+        aggregatedUsdVolume: 1,
+        marketCap: 1,
+      },
+    ];
+
+    spyGetTrendingTokens.mockRejectedValueOnce(mockError);
+
+    const { result, unmount } = renderHookWithProvider(() =>
+      useTrendingRequest({
+        chainIds: ['eip155:1'],
+      }),
+    );
+
+    await act(async () => {
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
+      await Promise.resolve();
+    });
+
+    expect(result.current.error).toEqual(mockError);
+
+    spyGetTrendingTokens.mockResolvedValue(mockResults as never);
+
+    await act(async () => {
+      result.current.fetch();
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
+      await Promise.resolve();
+    });
+
+    expect(result.current.error).toBe(null);
+    expect(result.current.results).toEqual(mockResults);
+    expect(result.current.isLoading).toBe(false);
+
+    spyGetTrendingTokens.mockRestore();
+    unmount();
+  });
+
+  it('skips fetch when chain ids are empty', async () => {
+    const spyGetTrendingTokens = jest.spyOn(
+      assetsControllers,
+      'getTrendingTokens',
+    );
+    spyGetTrendingTokens.mockResolvedValue([]);
+
+    const { result, unmount } = renderHookWithProvider(() =>
       useTrendingRequest({
         chainIds: [],
       }),
     );
 
     await act(async () => {
-      await result.current();
       jest.advanceTimersByTime(DEBOUNCE_WAIT);
+      await Promise.resolve();
     });
 
     expect(spyGetTrendingTokens).not.toHaveBeenCalled();
+    expect(result.current.results).toEqual([]);
+    expect(result.current.isLoading).toBe(false);
+
+    await act(async () => {
+      await result.current.fetch();
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
+      await Promise.resolve();
+    });
+
+    expect(spyGetTrendingTokens).not.toHaveBeenCalled();
+
+    spyGetTrendingTokens.mockRestore();
+    unmount();
   });
 
-  it('maintains stable debounced function reference when chainIds array reference changes but values remain the same', () => {
-    let chainIds: CaipChainId[] = ['eip155:1', 'eip155:10'];
-    const { result, rerender } = renderHookWithProvider(() =>
+  it('coalesces multiple rapid calls into a single fetch', async () => {
+    const spyGetTrendingTokens = jest.spyOn(
+      assetsControllers,
+      'getTrendingTokens',
+    );
+    spyGetTrendingTokens.mockResolvedValue([]);
+
+    const { result, unmount } = renderHookWithProvider(() =>
       useTrendingRequest({
-        chainIds,
+        chainIds: ['eip155:1'],
       }),
     );
 
-    const firstDebouncedFunction = result.current;
+    await act(async () => {
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
+      await Promise.resolve();
+    });
 
-    // Rerender with same array values but different reference
-    chainIds = ['eip155:1', 'eip155:10'];
-    rerender(undefined);
+    spyGetTrendingTokens.mockClear();
 
-    // The debounced function should remain the same reference
-    // because the array values are identical
-    expect(result.current).toBe(firstDebouncedFunction);
-  });
+    await act(async () => {
+      result.current.fetch();
+      result.current.fetch();
+      result.current.fetch();
 
-  it('creates new debounced function when chainIds values change', () => {
-    let chainIds: CaipChainId[] = ['eip155:1', 'eip155:10'];
-    const { result, rerender } = renderHookWithProvider(() =>
-      useTrendingRequest({
-        chainIds,
-      }),
-    );
+      jest.advanceTimersByTime(DEBOUNCE_WAIT - 100);
+      expect(spyGetTrendingTokens).not.toHaveBeenCalled();
 
-    const firstDebouncedFunction = result.current;
+      jest.advanceTimersByTime(DEBOUNCE_WAIT + 200);
+      await Promise.resolve();
+    });
 
-    // Rerender with different array values
-    chainIds = ['eip155:1', 'eip155:137'];
-    rerender(undefined);
+    expect(spyGetTrendingTokens).toHaveBeenCalledTimes(1);
 
-    // The debounced function should be a new reference
-    // because the array values changed
-    expect(result.current).not.toBe(firstDebouncedFunction);
+    spyGetTrendingTokens.mockRestore();
+    unmount();
   });
 });
