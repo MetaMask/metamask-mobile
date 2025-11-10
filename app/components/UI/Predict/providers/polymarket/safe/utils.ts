@@ -26,6 +26,7 @@ import {
   COLLATERAL_TOKEN_DECIMALS,
   CONDITIONAL_TOKEN_DECIMALS,
   MATIC_CONTRACTS,
+  MIN_COLLATERAL_BALANCE_FOR_CLAIM,
   POLYGON_MAINNET_CHAIN_ID,
 } from '../constants';
 import {
@@ -646,7 +647,10 @@ export const createClaimSafeTransaction = (
       to: MATIC_CONTRACTS.collateral,
       data: encodeErc20Transfer({
         to: includeTransfer.address,
-        value: parseUnits('0.5', COLLATERAL_TOKEN_DECIMALS).toBigInt(),
+        value: parseUnits(
+          MIN_COLLATERAL_BALANCE_FOR_CLAIM.toString(),
+          COLLATERAL_TOKEN_DECIMALS,
+        ).toBigInt(),
       }),
       operation: OperationType.Call,
       value: '0',
