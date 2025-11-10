@@ -136,6 +136,7 @@ export class HyperLiquidClientService {
       isTestnet: this.isTestnet,
       ...HYPERLIQUID_TRANSPORT_CONFIG,
       reconnect: {
+        ...HYPERLIQUID_TRANSPORT_CONFIG.reconnect,
         WebSocket, // Use React Native's global WebSocket
       },
     });
