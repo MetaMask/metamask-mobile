@@ -85,17 +85,22 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
     const todayLabel = strings('predict.transactions.today');
     const yesterdayLabel = strings('predict.transactions.yesterday');
 
-    // First, map activities to items
-    const items: PredictActivityItem[] = activity.map((activityEntry) => {
+    // Map and group in a single pass for better performance
+    const groupedByDate: Record<string, PredictActivityItem[]> = {};
+    const sectionOrder: string[] = [];
+
+    activity.forEach((activityEntry) => {
       const e = activityEntry.entry;
 
+      // Map activity to item
+      let item: PredictActivityItem;
       switch (e.type) {
         case 'buy': {
           const amountUsd = e.amount;
           const priceCents = formatCents(e.price ?? 0);
           const outcome = activityEntry.outcome;
 
-          return {
+          item = {
             id: activityEntry.id,
             type: PredictActivityType.BUY,
             marketTitle: activityEntry.title ?? '',
@@ -110,11 +115,12 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
             providerId: activityEntry.providerId,
             entry: e,
           };
+          break;
         }
         case 'sell': {
           const amountUsd = e.amount;
           const priceCents = formatCents(e.price ?? 0);
-          return {
+          item = {
             id: activityEntry.id,
             type: PredictActivityType.SELL,
             marketTitle: activityEntry.title ?? '',
@@ -127,10 +133,11 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
             providerId: activityEntry.providerId,
             entry: e,
           };
+          break;
         }
         case 'claimWinnings': {
           const amountUsd = e.amount;
-          return {
+          item = {
             id: activityEntry.id,
             type: PredictActivityType.CLAIM,
             marketTitle: activityEntry.title ?? '',
@@ -141,9 +148,10 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
             providerId: activityEntry.providerId,
             entry: e,
           };
+          break;
         }
         default: {
-          return {
+          item = {
             id: activityEntry.id,
             type: PredictActivityType.CLAIM,
             marketTitle: activityEntry.title ?? '',
@@ -154,15 +162,11 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
             providerId: activityEntry.providerId,
             entry: e,
           };
+          break;
         }
       }
-    });
 
-    // Group items by date and build sections in a single pass
-    const groupedByDate: Record<string, PredictActivityItem[]> = {};
-    const sectionOrder: string[] = [];
-
-    items.forEach((item) => {
+      // Group by date
       const dateLabel = getDateGroupLabel(
         item.entry.timestamp,
         todayTime,
