@@ -37,7 +37,7 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
 
   // Connect to the dapp
   // This might make things worse?
-  await MultiChainEvmTestDapp.tapTerminateButton();
+  // await MultiChainEvmTestDapp.tapTerminateButton();
   await MultiChainEvmTestDapp.tapConnectButton();
   await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
 
