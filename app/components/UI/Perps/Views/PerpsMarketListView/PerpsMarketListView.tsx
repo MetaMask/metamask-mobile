@@ -477,7 +477,7 @@ const PerpsMarketListView = ({
               />
             )}
 
-            {/* Tab Content - Swipeable with lazy rendering */}
+            {/* Tab Content - Swipeable */}
             <ScrollView
               ref={tabScrollViewRef}
               horizontal
@@ -490,7 +490,7 @@ const PerpsMarketListView = ({
               }}
               style={styles.tabScrollView}
             >
-              {tabsData.map((tab, index) => (
+              {tabsData.map((tab) => (
                 <View
                   key={tab.key}
                   style={[
@@ -498,27 +498,21 @@ const PerpsMarketListView = ({
                     { width: containerWidth },
                   ]}
                 >
-                  {/* Only render content for active tab (lazy loading) */}
-                  {index === activeTabIndex ? (
-                    <Animated.View
-                      style={[
-                        styles.animatedListContainer,
-                        { opacity: fadeAnimation },
-                      ]}
-                    >
-                      <PerpsMarketList
-                        markets={displayMarkets}
-                        onMarketPress={handleMarketPress}
-                        sortBy={sortBy}
-                        showBadge={false}
-                        contentContainerStyle={styles.tabContentContainer}
-                        testID={`${PerpsMarketListViewSelectorsIDs.MARKET_LIST}-${tab.filter}`}
-                      />
-                    </Animated.View>
-                  ) : (
-                    // Empty view for non-active tabs to maintain scroll area
-                    <View />
-                  )}
+                  <Animated.View
+                    style={[
+                      styles.animatedListContainer,
+                      { opacity: fadeAnimation },
+                    ]}
+                  >
+                    <PerpsMarketList
+                      markets={displayMarkets}
+                      onMarketPress={handleMarketPress}
+                      sortBy={sortBy}
+                      showBadge={false}
+                      contentContainerStyle={styles.tabContentContainer}
+                      testID={`${PerpsMarketListViewSelectorsIDs.MARKET_LIST}-${tab.filter}`}
+                    />
+                  </Animated.View>
                 </View>
               ))}
             </ScrollView>
