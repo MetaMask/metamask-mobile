@@ -53,7 +53,11 @@ export const FeatureFlagOverrideProvider: React.FC<
   FeatureFlagOverrideProviderProps
 > = ({ children }) => {
   // Get the initial feature flags from Redux
-  const rawFeatureFlags = useSelector(selectRemoteFeatureFlags);
+  const rawFeatureFlagsSelected = useSelector(selectRemoteFeatureFlags);
+  const rawFeatureFlags = useMemo(
+    () => rawFeatureFlagsSelected || {},
+    [rawFeatureFlagsSelected],
+  );
   const toastContext = useContext(ToastContext);
   const toastRef = toastContext?.toastRef;
 
