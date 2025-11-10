@@ -1,5 +1,6 @@
 import React, { useCallback, useRef, useMemo } from 'react';
 import { TextInput } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   Text,
@@ -7,6 +8,8 @@ import {
   ButtonVariant,
   ButtonBaseSize,
   TextColor,
+  BoxFlexDirection,
+  BoxAlignItems,
 } from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../../locales/i18n';
@@ -14,6 +17,13 @@ import TextField from '../../../../../component-library/components/Form/TextFiel
 import { TextFieldSize } from '../../../../../component-library/components/Form/TextField/TextField.types';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import { useSendContext } from '../../context/send-context/send-context';
+import Routes from '../../../../../constants/navigation/Routes';
+import { extractAddressFromQRContent } from '../../../../../util/address';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { ScanSuccess } from '../../../QRTabSwitcher';
 
 export const RecipientInput = ({
   isRecipientSelectedFromList,
@@ -26,6 +36,7 @@ export const RecipientInput = ({
 }) => {
   const { to, updateTo } = useSendContext();
   const inputRef = useRef<TextInput>(null);
+  const navigation = useNavigation();
 
   const handlePaste = useCallback(async () => {
     resetStateOnInput();
@@ -64,9 +75,45 @@ export const RecipientInput = ({
     [resetStateOnInput, setPastedRecipient, updateTo],
   );
 
+  const handleQRScanPress = useCallback(() => {
+    navigation.navigate(Routes.QR_TAB_SWITCHER, {
+      origin: Routes.SEND_FLOW.SEND_TO,
+      onScanSuccess: (data: ScanSuccess, content?: string) => {
+        // Extract address from QR content
+        const qrContent = content || data.target_address || data.content || '';
+        const extractedAddress = extractAddressFromQRContent(qrContent);
+
+        if (extractedAddress) {
+          resetStateOnInput();
+          updateTo(extractedAddress);
+          setPastedRecipient(undefined);
+        }
+        // Scanner will close automatically via navigation.goBack() in QRScanner
+      },
+      onScanError: () => {
+        // Error handling is done by QRScanner (shows alerts)
+        // Scanner will close automatically
+      },
+    });
+  }, [navigation, resetStateOnInput, updateTo, setPastedRecipient]);
+
   const defaultStartAccessory = useMemo(
-    () => <Text color={TextColor.TextAlternative}>{strings('send.to')}</Text>,
-    [],
+    () => (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-2"
+      >
+        <ButtonIcon
+          iconName={IconName.Scan}
+          size={ButtonIconSizes.Sm}
+          onPress={handleQRScanPress}
+          testID="recipient-qr-scanner-button"
+        />
+        <Text color={TextColor.TextAlternative}>{strings('send.to')}</Text>
+      </Box>
+    ),
+    [handleQRScanPress],
   );
 
   const renderEndAccessory = useMemo(() => {

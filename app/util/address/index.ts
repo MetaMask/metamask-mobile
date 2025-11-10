@@ -13,6 +13,10 @@ import {
   isStrictHexString,
   parseCaipAccountId,
 } from '@metamask/utils';
+import {
+  isBtcMainnetAddress,
+  isBtcTestnetAddress,
+} from '../../core/Multichain/utils';
 import punycode from 'punycode/punycode';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
@@ -756,6 +760,10 @@ export function isValidAddressInputViaQRCode(input: string) {
     return true;
   }
 
+  if (isBtcMainnetAddress(input) || isBtcTestnetAddress(input)) {
+    return true;
+  }
+
   if (input.includes(PROTOCOLS.ETHEREUM)) {
     const { pathname } = new URL(input);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -763,6 +771,53 @@ export function isValidAddressInputViaQRCode(input: string) {
     return isValidHexAddress(address);
   }
   return isValidHexAddress(input);
+}
+
+/**
+ * Extracts an address from QR code content.
+ * Handles plain addresses, ethereum: URLs, Solana addresses, and Bitcoin addresses.
+ *
+ * @param {string} content - QR code content string
+ * @returns {string | null} - Extracted address or null if not a valid address format
+ */
+export function extractAddressFromQRContent(content: string): string | null {
+  if (!content || typeof content !== 'string') {
+    return null;
+  }
+
+  // Check if it's a valid address format first
+  if (!isValidAddressInputViaQRCode(content)) {
+    return null;
+  }
+
+  // Handle Solana addresses (return as-is)
+  if (isSolanaAddress(content)) {
+    return content;
+  }
+
+  // Handle Bitcoin addresses (return as-is if valid)
+  if (isBtcMainnetAddress(content) || isBtcTestnetAddress(content)) {
+    return content;
+  }
+
+  // Handle ethereum: URLs (extract address from URL using native URL API)
+  if (content.includes(PROTOCOLS.ETHEREUM)) {
+    try {
+      const { pathname } = new URL(content);
+      // Extract address from pathname (format: ethereum:0x...@chainId)
+      const [address] = pathname.split('@');
+      return isValidHexAddress(address) ? address : null;
+    } catch {
+      return null;
+    }
+  }
+
+  // Handle plain EVM addresses (return as-is if valid)
+  if (isValidHexAddress(content)) {
+    return content;
+  }
+
+  return null;
 }
 
 /** Removes hex prefix from a string if it's there.

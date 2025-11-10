@@ -39,7 +39,14 @@ import { InitSendLocation } from '../confirmations/constants/send';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { getEther } from '../../../util/transactions';
 import { RootState } from '../../../reducers';
-import { isValidAddressInputViaQRCode } from '../../../util/address';
+import {
+  isValidAddressInputViaQRCode,
+  extractAddressFromQRContent,
+} from '../../../util/address';
+import {
+  isBtcMainnetAddress,
+  isBtcTestnetAddress,
+} from '../../../core/Multichain/utils';
 import { getURLProtocol } from '../../../util/general';
 import {
   failedSeedPhraseRequirements,
@@ -266,12 +273,14 @@ const QRScanner = ({
           return;
         }
         // Handle plain addresses and ethereum: URLs by using home screen send flow
-        // Also handle non-EVM addresses like Solana
+        // Also handle non-EVM addresses like Solana and Bitcoin
         if (
           (content.split(`${PROTOCOLS.ETHEREUM}:`).length > 1 &&
             !parse(content).function_name) ||
           (content.startsWith('0x') && isValidAddress(content)) ||
-          isSolanaAddress(content)
+          isSolanaAddress(content) ||
+          isBtcMainnetAddress(content) ||
+          isBtcTestnetAddress(content)
         ) {
           // Immediately stop barcode scanning to prevent multiple triggers
           shouldReadBarCodeRef.current = false;
@@ -280,6 +289,15 @@ const QRScanner = ({
           ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
           // Try non-EVM first (Solana, Bitcoin, etc.), if handled, return early
           if (isSolanaAddress(content)) {
+            // If we're already in the send flow (from recipient input), call onScanSuccess instead of navigating
+            if (origin === Routes.SEND_FLOW.SEND_TO) {
+              shouldReadBarCodeRef.current = false;
+              setIsCameraActive(false);
+              onScanSuccess({ target_address: content }, content);
+              end();
+              return;
+            }
+
             const wasHandledAsNonEvm = await sendNonEvmAsset(
               InitSendLocation.QRScanner,
             );
@@ -307,7 +325,45 @@ const QRScanner = ({
 
           // Skip Ethereum processing for Solana addresses when keyring-snaps is disabled
           if (isSolanaAddress(content)) {
+            // If we're already in the send flow (from recipient input), call onScanSuccess instead of showing error
+            if (origin === Routes.SEND_FLOW.SEND_TO) {
+              shouldReadBarCodeRef.current = false;
+              setIsCameraActive(false);
+              onScanSuccess({ target_address: content }, content);
+              end();
+              return;
+            }
+
             // Show error for unsupported Solana addresses when keyring-snaps is disabled
+            showAlertForInvalidAddress();
+            end();
+            return;
+          }
+
+          // Handle Bitcoin addresses
+          if (isBtcMainnetAddress(content) || isBtcTestnetAddress(content)) {
+            // If we're already in the send flow (from recipient input), call onScanSuccess instead of navigating
+            if (origin === Routes.SEND_FLOW.SEND_TO) {
+              shouldReadBarCodeRef.current = false;
+              setIsCameraActive(false);
+              onScanSuccess({ target_address: content }, content);
+              end();
+              return;
+            }
+
+            // For Bitcoin addresses, extract and navigate to send flow
+            const extractedAddress = extractAddressFromQRContent(content);
+            if (extractedAddress) {
+              end();
+              InteractionManager.runAfterInteractions(() => {
+                navigateToSendPage(InitSendLocation.QRScanner, undefined, {
+                  recipientAddress: extractedAddress,
+                });
+              });
+              return;
+            }
+
+            // Invalid Bitcoin address
             showAlertForInvalidAddress();
             end();
             return;
@@ -317,6 +373,15 @@ const QRScanner = ({
           const recipientAddress = content.startsWith('0x')
             ? content
             : parse(content).target_address;
+
+          // If we're already in the send flow (from recipient input), call onScanSuccess instead of navigating
+          if (origin === Routes.SEND_FLOW.SEND_TO) {
+            shouldReadBarCodeRef.current = false;
+            setIsCameraActive(false);
+            onScanSuccess({ target_address: recipientAddress }, content);
+            end();
+            return;
+          }
 
           // Initialize transaction with native currency (same as home screen send button)
           if (nativeCurrency) {

@@ -7,6 +7,7 @@ import {
   formatAddress,
   isValidHexAddress,
   isValidAddressInputViaQRCode,
+  extractAddressFromQRContent,
   stripHexPrefix,
   getAddress,
   shouldShowBlockExplorer,
@@ -283,34 +284,190 @@ describe('isValidHexAddress', () => {
 });
 
 describe('isValidAddressInputViaQRCode', () => {
-  it('should be valid to use the ethereum keyword followed by an address and chain id', () => {
+  it('returns true for ethereum keyword followed by an address and chain id', () => {
     const mockInput = 'ethereum:0x2990079bcdEe240329a520d2444386FC119da21a@1';
-    expect(isValidAddressInputViaQRCode(mockInput)).toBe(true);
+
+    const result = isValidAddressInputViaQRCode(mockInput);
+
+    expect(result).toBe(true);
   });
 
-  it('should be valid to use the ethereum keyword followed by an address', () => {
+  it('returns true for ethereum keyword followed by an address', () => {
     const mockInput = 'ethereum:0x2990079bcdEe240329a520d2444386FC119da21a';
-    expect(isValidAddressInputViaQRCode(mockInput)).toBe(true);
+
+    const result = isValidAddressInputViaQRCode(mockInput);
+
+    expect(result).toBe(true);
   });
 
-  it('should be invalid to use the ethereum keyword followed by an wrong address', () => {
+  it('returns false for ethereum keyword followed by an invalid address', () => {
     const mockInput = 'ethereum:0x2990079bcdEe240329a520d2444386FC119d';
-    expect(isValidAddressInputViaQRCode(mockInput)).toBe(false);
+
+    const result = isValidAddressInputViaQRCode(mockInput);
+
+    expect(result).toBe(false);
   });
 
-  it('should be invalid to only have the ethereum keyword', () => {
+  it('returns false for ethereum keyword without address', () => {
     const mockInput = 'ethereum:';
-    expect(isValidAddressInputViaQRCode(mockInput)).toBe(false);
+
+    const result = isValidAddressInputViaQRCode(mockInput);
+
+    expect(result).toBe(false);
   });
 
-  it('should be valid to only have the address', () => {
+  it('returns true for plain EVM address', () => {
     const mockInput = '0x2990079bcdEe240329a520d2444386FC119da21a';
-    expect(isValidAddressInputViaQRCode(mockInput)).toBe(true);
+
+    const result = isValidAddressInputViaQRCode(mockInput);
+
+    expect(result).toBe(true);
   });
 
-  it('should be invalid to have an URL', () => {
+  it('returns false for invalid URL', () => {
     const mockInput = 'https://www.metamask.io';
-    expect(isValidAddressInputViaQRCode(mockInput)).toBe(false);
+
+    const result = isValidAddressInputViaQRCode(mockInput);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns true for Bitcoin mainnet P2WPKH address', () => {
+    const mockInput = 'bc1qwl8399fz829uqvqly9tcatgrgtwp3udnhxfq4k';
+
+    const result = isValidAddressInputViaQRCode(mockInput);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns true for Bitcoin mainnet P2PKH address', () => {
+    const mockInput = '1P5ZEDWTKTFGxQjZphgWPQUpe554WKDfHQ';
+
+    const result = isValidAddressInputViaQRCode(mockInput);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns true for Bitcoin testnet address', () => {
+    const mockInput = 'tb1q63st8zfndjh00gf9hmhsdg7l8umuxudrj4lucp';
+
+    const result = isValidAddressInputViaQRCode(mockInput);
+
+    expect(result).toBe(true);
+  });
+});
+
+describe('extractAddressFromQRContent', () => {
+  describe('with EVM addresses', () => {
+    it('returns plain EVM address as-is', () => {
+      const content = '0x2990079bcdEe240329a520d2444386FC119da21a';
+
+      const result = extractAddressFromQRContent(content);
+
+      expect(result).toBe('0x2990079bcdEe240329a520d2444386FC119da21a');
+    });
+
+    it('extracts address from ethereum URL with chainId', () => {
+      const content = 'ethereum:0x2990079bcdEe240329a520d2444386FC119da21a@1';
+
+      const result = extractAddressFromQRContent(content);
+
+      expect(result).toBe('0x2990079bcdEe240329a520d2444386FC119da21a');
+    });
+
+    it('extracts address from ethereum URL without chainId', () => {
+      const content = 'ethereum:0x2990079bcdEe240329a520d2444386FC119da21a';
+
+      const result = extractAddressFromQRContent(content);
+
+      expect(result).toBe('0x2990079bcdEe240329a520d2444386FC119da21a');
+    });
+
+    it('returns null for invalid ethereum URL', () => {
+      const content = 'ethereum:invalid';
+
+      const result = extractAddressFromQRContent(content);
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('with Solana addresses', () => {
+    it('returns Solana address as-is', () => {
+      const content = '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
+
+      const result = extractAddressFromQRContent(content);
+
+      expect(result).toBe('7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV');
+    });
+  });
+
+  describe('with Bitcoin addresses', () => {
+    it('returns Bitcoin mainnet P2WPKH address as-is', () => {
+      const content = 'bc1qwl8399fz829uqvqly9tcatgrgtwp3udnhxfq4k';
+
+      const result = extractAddressFromQRContent(content);
+
+      expect(result).toBe('bc1qwl8399fz829uqvqly9tcatgrgtwp3udnhxfq4k');
+    });
+
+    it('returns Bitcoin mainnet P2PKH address as-is', () => {
+      const content = '1P5ZEDWTKTFGxQjZphgWPQUpe554WKDfHQ';
+
+      const result = extractAddressFromQRContent(content);
+
+      expect(result).toBe('1P5ZEDWTKTFGxQjZphgWPQUpe554WKDfHQ');
+    });
+
+    it('returns Bitcoin testnet address as-is', () => {
+      const content = 'tb1q63st8zfndjh00gf9hmhsdg7l8umuxudrj4lucp';
+
+      const result = extractAddressFromQRContent(content);
+
+      expect(result).toBe('tb1q63st8zfndjh00gf9hmhsdg7l8umuxudrj4lucp');
+    });
+  });
+
+  describe('with invalid inputs', () => {
+    it('returns null for empty string', () => {
+      const content = '';
+
+      const result = extractAddressFromQRContent(content);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null for null input', () => {
+      const content = null as unknown as string;
+
+      const result = extractAddressFromQRContent(content);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null for undefined input', () => {
+      const content = undefined as unknown as string;
+
+      const result = extractAddressFromQRContent(content);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null for invalid URL', () => {
+      const content = 'https://www.metamask.io';
+
+      const result = extractAddressFromQRContent(content);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null for invalid address format', () => {
+      const content = 'invalid-address-format';
+
+      const result = extractAddressFromQRContent(content);
+
+      expect(result).toBeNull();
+    });
   });
 });
 
