@@ -170,10 +170,9 @@ export const useAssetBalances = (
     ): { balanceFiat: string; rawFiatNumber: number | undefined } => {
       const conversionRates =
         MultichainAssetsRatesController?.state?.conversionRates;
-      const assetConversionRate =
-        conversionRates?.[
-          `${token.caipChainId}/token:${token.address}` as `${string}:${string}/${string}:${string}`
-        ];
+      const assetKey =
+        `${token.caipChainId}/token:${token.address}` as `${string}:${string}/${string}:${string}`;
+      const assetConversionRate = conversionRates?.[assetKey];
 
       if (assetConversionRate) {
         const normalizedBalanceForFiat = balanceToUse.replace(',', '.');
@@ -198,8 +197,24 @@ export const useAssetBalances = (
         return { balanceFiat, rawFiatNumber: balanceFiatCalculation };
       }
 
+      // Fallback: Check if balance is actually zero
+      const balanceNum = parseFloat(balanceToUse.replace(',', '.'));
+      if (balanceNum === 0 || isNaN(balanceNum)) {
+        // Show $0.00 for zero balances
+        const balanceFiat = formatWithThreshold(0, 0.01, I18n.locale, {
+          style: 'currency',
+          currency: currentCurrency?.toUpperCase() || 'USD',
+        });
+        return {
+          balanceFiat,
+          rawFiatNumber: 0,
+        };
+      }
+
+      // If we have a real balance but no conversion rate, show balance with symbol
+      // This prevents showing $0.00 for tokens with actual value
       return {
-        balanceFiat: `${balanceToUse} ${token.symbol}`,
+        balanceFiat: `${parseFloat(balanceToUse.replace(',', '.')).toFixed(6)} ${token.symbol}`,
         rawFiatNumber: undefined,
       };
     },
@@ -272,7 +287,7 @@ export const useAssetBalances = (
   // Helper: Calculate fiat for EVM tokens
   const calculateEvmFiat = useCallback(
     (
-      token: CardTokenAllowance,
+      _token: CardTokenAllowance,
       balanceToUse: string,
       balanceSource: 'availableBalance' | 'filteredToken' | 'walletAsset',
       chainId: Hex,
@@ -316,18 +331,37 @@ export const useAssetBalances = (
       }
 
       // For availableBalance with rates but no market data price
+      // Try deriveBalanceFromAssetMarketDetails even without walletAsset
       if (
         balanceSource === 'availableBalance' &&
         rates?.conversionRate &&
-        rates.conversionRate > 0 &&
-        walletAsset
+        rates.conversionRate > 0
       ) {
         const normalizedBalance = balanceToUse.replace(',', '.');
-        const mockAsset: TokenI = {
-          ...walletAsset,
-          balance: normalizedBalance,
-          balanceFiat: undefined,
-        };
+
+        // Create mock asset from walletAsset if available, otherwise from token data
+        const mockAsset: TokenI = walletAsset
+          ? {
+              ...walletAsset,
+              balance: normalizedBalance,
+              balanceFiat: undefined,
+            }
+          : ({
+              address: _token.address ?? '',
+              symbol: _token.symbol ?? '',
+              decimals: _token.decimals ?? 0,
+              name: _token.name ?? _token.symbol ?? '',
+              balance: normalizedBalance,
+              balanceFiat: undefined,
+              chainId,
+              isETH: false,
+              aggregators: [],
+              image: buildTokenIconUrl(
+                _token.caipChainId,
+                _token.address ?? '',
+              ),
+              logo: buildTokenIconUrl(_token.caipChainId, _token.address ?? ''),
+            } as TokenI);
 
         const allMarketDataForChain =
           TokenRatesController?.state?.marketData?.[chainId] || {};
@@ -374,9 +408,24 @@ export const useAssetBalances = (
         }
       }
 
-      // Last resort: show balance with token symbol
+      // Last resort: Check if balance is actually zero
+      const balanceNum = parseFloat(balanceToUse.replace(',', '.'));
+      if (balanceNum === 0 || isNaN(balanceNum)) {
+        // Show $0.00 for zero balances
+        const balanceFiat = formatWithThreshold(0, 0.01, I18n.locale, {
+          style: 'currency',
+          currency: currentCurrency?.toUpperCase() || 'USD',
+        });
+        return {
+          balanceFiat,
+          rawFiatNumber: 0,
+        };
+      }
+
+      // If we have a real balance but no price data, show balance with symbol
+      // This prevents showing $0.00 for tokens with actual value
       return {
-        balanceFiat: `${balanceToUse} ${token.symbol}`,
+        balanceFiat: `${parseFloat(balanceToUse.replace(',', '.')).toFixed(6)} ${_token.symbol}`,
         rawFiatNumber: undefined,
       };
     },

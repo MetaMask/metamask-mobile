@@ -1,7 +1,4 @@
-import {
-  isRemoveGlobalNetworkSelectorEnabled,
-  isPerDappSelectedNetworkEnabled,
-} from '../../../util/networks';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import {
   useNetworksByNamespace,
   NetworkType,
@@ -13,7 +10,6 @@ import Engine from '../../../core/Engine';
 // Mock the feature flags
 jest.mock('../../../util/networks', () => ({
   isRemoveGlobalNetworkSelectorEnabled: jest.fn(),
-  isPerDappSelectedNetworkEnabled: jest.fn(),
   getDecimalChainId: jest.fn(() => '1'),
 }));
 
@@ -91,10 +87,6 @@ const mockIsRemoveGlobalNetworkSelectorEnabled =
   isRemoveGlobalNetworkSelectorEnabled as jest.MockedFunction<
     typeof isRemoveGlobalNetworkSelectorEnabled
   >;
-const mockIsPerDappSelectedNetworkEnabled =
-  isPerDappSelectedNetworkEnabled as jest.MockedFunction<
-    typeof isPerDappSelectedNetworkEnabled
-  >;
 
 const mockSelectNetwork = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -137,7 +129,6 @@ describe('useSwitchNetworks Feature Flag Tests', () => {
     });
 
     mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
-    mockIsPerDappSelectedNetworkEnabled.mockReturnValue(false);
 
     // Mock the event builder
     mockCreateEventBuilder.mockReturnValue({

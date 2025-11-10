@@ -388,6 +388,16 @@ const CardAuthentication = () => {
                       )}
                     />
                   </Box>
+                  {otpError && (
+                    <Box style={styles.errorBox}>
+                      <Text
+                        variant={TextVariant.BodySm}
+                        style={{ color: theme.colors.error.default }}
+                      >
+                        {otpError}
+                      </Text>
+                    </Box>
+                  )}
                   <Box twClassName="mt-4 items-center">
                     {resendCountdown > 0 ? (
                       <Text
@@ -413,16 +423,6 @@ const CardAuthentication = () => {
                     )}
                   </Box>
                 </Box>
-                {otpError && (
-                  <Box style={styles.errorBox}>
-                    <Text
-                      variant={TextVariant.BodySm}
-                      style={{ color: theme.colors.error.default }}
-                    >
-                      {otpError}
-                    </Text>
-                  </Box>
-                )}
               </Box>
               <Box twClassName="gap-2">
                 <Button

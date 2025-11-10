@@ -1,134 +1,111 @@
-import React, { useCallback, useMemo } from 'react';
-import {
-  BridgeTokenSelectorBase,
-  SkeletonItem,
-} from '../../../../../UI/Bridge/components/BridgeTokenSelectorBase';
-import { BridgeSourceNetworksBar } from '../../../../../UI/Bridge/components/BridgeSourceNetworksBar';
-import { useSelector } from 'react-redux';
+import React, { useCallback, useRef } from 'react';
 import { Hex } from '@metamask/utils';
-import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
-import {
-  selectEnabledSourceChains,
-  selectSelectedSourceChainIds,
-} from '../../../../../../core/redux/slices/bridge';
-import { useSortedSourceNetworks } from '../../../../../UI/Bridge/hooks/useSortedSourceNetworks';
-import { BridgeToken } from '../../../../../UI/Bridge/types';
-import { TokenSelectorItem } from '../../../../../UI/Bridge/components/TokenSelectorItem';
-import { getNetworkImageSource } from '../../../../../../util/networks';
-import Routes from '../../../../../../constants/navigation/Routes';
-import { useNavigation } from '@react-navigation/native';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { strings } from '../../../../../../../locales/i18n';
-import { isSolanaChainId } from '@metamask/bridge-controller';
-import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
+import { Asset } from '../../send/asset';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import { AssetType, TokenStandard } from '../../../types/token';
+import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
+import { BigNumber } from 'bignumber.js';
+import { getNativeTokenAddress } from '../../../utils/asset';
 
 export function PayWithModal() {
-  const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
-  const enabledSourceChains = useSelector(selectEnabledSourceChains);
-  const selectedSourceChainIds = useSelector(selectSelectedSourceChainIds);
-  const navigation = useNavigation();
   const { payToken, setPayToken } = useTransactionPayToken();
+  const requiredTokens = useTransactionPayRequiredTokens();
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
 
-  const { availableTokens, availableChainIds } =
-    useTransactionPayAvailableTokens();
-
-  const tokens = useMemo(
-    () =>
-      availableTokens.filter((token) =>
-        selectedSourceChainIds.includes(token.chainId as Hex),
-      ),
-    [availableTokens, selectedSourceChainIds],
-  );
-
-  const { sortedSourceNetworks: sortedSourceNetworksRaw } =
-    useSortedSourceNetworks();
-
-  const supportedChains = useMemo(
-    () =>
-      enabledSourceChains.filter(
-        (chain) =>
-          !isSolanaChainId(chain.chainId) &&
-          availableChainIds.includes(chain.chainId as Hex),
-      ),
-    [availableChainIds, enabledSourceChains],
-  );
-
-  const networksWithIcon = useMemo(
-    () =>
-      sortedSourceNetworksRaw.filter(
-        (chain) =>
-          supportedChains.some((c) => c.chainId === chain.chainId) &&
-          selectedSourceChainIds.includes(chain.chainId),
-      ),
-    [selectedSourceChainIds, sortedSourceNetworksRaw, supportedChains],
-  );
-
-  const chainIdsInCount = useMemo(
-    () => networksWithIcon.map((n) => n.chainId),
-    [networksWithIcon],
-  );
+  const handleClose = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
 
   const handleTokenSelect = useCallback(
-    (token: BridgeToken) => {
+    (token: AssetType) => {
       setPayToken({
         address: token.address as Hex,
         chainId: token.chainId as Hex,
       });
 
-      navigation.goBack();
+      handleClose();
     },
-    [navigation, setPayToken],
+    [handleClose, setPayToken],
   );
 
-  const renderItem = useCallback(
-    ({ item }: { item: BridgeToken | null }) => {
-      if (!item) {
-        return <SkeletonItem />;
-      }
+  const getAvailableTokens = useCallback(
+    (tokens: AssetType[]) =>
+      tokens
+        .filter((token) => {
+          if (
+            token.standard !== TokenStandard.ERC20 ||
+            !token.accountType?.includes('eip155')
+          ) {
+            return false;
+          }
 
-      const { chainId } = item;
-      const networkName = allNetworkConfigurations[chainId]?.name;
+          const isSelected =
+            payToken?.address.toLowerCase() === token.address.toLowerCase() &&
+            payToken?.chainId === token.chainId;
 
-      const isSelected =
-        payToken?.chainId === chainId &&
-        payToken?.address.toLowerCase() === item.address.toLowerCase();
+          if (isSelected) {
+            return true;
+          }
 
-      const networkImageSource = getNetworkImageSource({
-        chainId,
-      });
+          const isRequiredToken = requiredTokens.some(
+            (t) =>
+              t.address.toLowerCase() === token.address.toLowerCase() &&
+              t.chainId === token.chainId &&
+              !t.skipIfBalance,
+          );
 
-      return (
-        <TokenSelectorItem
-          token={item}
-          onPress={handleTokenSelect}
-          networkName={networkName}
-          networkImageSource={networkImageSource}
-          isSelected={isSelected}
-        />
-      );
-    },
-    [allNetworkConfigurations, handleTokenSelect, payToken],
+          if (isRequiredToken) {
+            return true;
+          }
+
+          return new BigNumber(token.balance).gt(0);
+        })
+        .map((token) => {
+          const isSelected =
+            payToken?.address.toLowerCase() === token.address.toLowerCase() &&
+            payToken?.chainId === token.chainId;
+
+          const nativeTokenAddress = getNativeTokenAddress(
+            token.chainId as Hex,
+          );
+
+          const nativeToken = tokens.find(
+            (t) =>
+              t.address === nativeTokenAddress && t.chainId === token.chainId,
+          );
+
+          const disabled = new BigNumber(nativeToken?.balance ?? 0).isZero();
+
+          const disabledMessage = disabled
+            ? strings('pay_with_modal.no_gas')
+            : undefined;
+
+          return {
+            ...token,
+            disabled,
+            disabledMessage,
+            isSelected,
+          };
+        }),
+    [payToken, requiredTokens],
   );
-
-  const handleNetworkPress = useCallback(() => {
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_NETWORK_MODAL);
-  }, [navigation]);
 
   return (
-    <BridgeTokenSelectorBase
-      networksBar={
-        <BridgeSourceNetworksBar
-          networksToShow={networksWithIcon}
-          networkConfigurations={allNetworkConfigurations}
-          selectedSourceChainIds={chainIdsInCount as Hex[]}
-          enabledSourceChains={supportedChains}
-          onPress={handleNetworkPress}
-        />
-      }
-      renderTokenItem={renderItem}
-      allTokens={tokens}
-      tokensToRender={tokens}
-      title={strings('pay_with_modal.title')}
-    />
+    <BottomSheet isFullscreen ref={bottomSheetRef}>
+      <BottomSheetHeader onClose={handleClose}>
+        {strings('pay_with_modal.title')}
+      </BottomSheetHeader>
+      <Asset
+        includeNoBalance
+        hideNfts
+        tokenFilter={getAvailableTokens}
+        onTokenSelect={handleTokenSelect}
+      />
+    </BottomSheet>
   );
 }

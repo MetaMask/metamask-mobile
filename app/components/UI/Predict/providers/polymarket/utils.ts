@@ -344,29 +344,43 @@ export const submitClobOrder = async ({
       .reduce((acc, curr) => ({ ...acc, ...curr }), {}),
   };
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body),
-  });
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+    });
 
-  if (!response.ok) {
     if (response.status === 403) {
       return {
         success: false,
         error: 'You are unable to access this provider.',
       };
     }
-    const responseData = await response.json();
-    const error = responseData.error ?? response.statusText;
+
+    let responseData;
+    try {
+      responseData = (await response.json()) as OrderResponse;
+    } catch (error) {
+      responseData = undefined;
+    }
+
+    if (!response.ok || !responseData || responseData?.success === false) {
+      const error = responseData?.errorMsg ?? response.statusText;
+      return {
+        success: false,
+        error,
+      };
+    }
+
+    return { success: true, response: responseData };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : 'Unknown error';
     return {
       success: false,
-      error,
+      error: `Failed to submit CLOB order: ${msg}`,
     };
   }
-
-  const responseData = (await response.json()) as OrderResponse;
-  return { success: true, response: responseData };
 };
 
 export const parsePolymarketEvents = (

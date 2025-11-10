@@ -355,8 +355,8 @@ export interface Consent {
 export interface CreateOnboardingConsentRequest {
   policyType: 'US' | 'global';
   onboardingId: string;
-  tenantId: string;
   consents: Consent[];
+  tenantId: string;
   metadata?: ConsentMetadata;
 }
 

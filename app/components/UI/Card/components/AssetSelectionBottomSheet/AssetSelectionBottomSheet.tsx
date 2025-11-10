@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo } from 'react';
+import React, { useCallback, useContext, useMemo, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
@@ -9,13 +9,8 @@ import {
   CardTokenAllowance,
   DelegationSettingsResponse,
 } from '../../types';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  setAuthenticatedPriorityToken,
-  setAuthenticatedPriorityTokenLastFetched,
-  clearCacheData,
-  selectUserCardLocation,
-} from '../../../../../core/redux/slices/card';
+import { useSelector } from 'react-redux';
+import { selectUserCardLocation } from '../../../../../core/redux/slices/card';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -60,13 +55,15 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions } from '../../util/metrics';
 import { truncateAddress } from '../../util/truncateAddress';
 import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
-import Logger from '../../../../../util/Logger';
 import { useAssetBalances } from '../../hooks/useAssetBalances';
 import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
+import { useUpdateTokenPriority } from '../../hooks/useUpdateTokenPriority';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../util/navigation/navUtils';
 
-export interface AssetSelectionBottomSheetProps {
-  setOpenAssetSelectionBottomSheet: (open: boolean) => void;
-  sheetRef: React.RefObject<BottomSheetRef>;
+interface AssetSelectionModalNavigationDetails {
   tokensWithAllowances: CardTokenAllowance[];
   delegationSettings: DelegationSettingsResponse | null;
   cardExternalWalletDetails?:
@@ -82,28 +79,37 @@ export interface AssetSelectionBottomSheetProps {
       }
     | null;
   navigateToCardHomeOnPriorityToken?: boolean;
-  // Selection only mode: just call onTokenSelect and close, don't handle priority/navigation
   selectionOnly?: boolean;
   onTokenSelect?: (token: CardTokenAllowance) => void;
-  // Hide Solana assets completely (used in SpendingLimit since Solana delegation is not supported)
   hideSolanaAssets?: boolean;
+  // For navigation-based selection mode: where to return with the selected token
+  callerRoute?: string;
+  callerParams?: Record<string, unknown>;
 }
 
-const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
-  setOpenAssetSelectionBottomSheet,
-  sheetRef,
-  tokensWithAllowances,
-  delegationSettings,
-  cardExternalWalletDetails,
-  navigateToCardHomeOnPriorityToken = false,
-  selectionOnly = false,
-  onTokenSelect,
-  hideSolanaAssets = false,
-}) => {
+export const createAssetSelectionModalNavigationDetails =
+  createNavigationDetails<AssetSelectionModalNavigationDetails>(
+    Routes.CARD.MODALS.ID,
+    Routes.CARD.MODALS.ASSET_SELECTION,
+  );
+
+const AssetSelectionBottomSheet: React.FC = () => {
+  const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
+  const {
+    tokensWithAllowances,
+    delegationSettings,
+    cardExternalWalletDetails,
+    navigateToCardHomeOnPriorityToken = false,
+    selectionOnly = false,
+    onTokenSelect,
+    hideSolanaAssets = false,
+    callerRoute,
+    callerParams,
+  } = useParams<AssetSelectionModalNavigationDetails>();
+
   const theme = useTheme();
   const tw = useTailwind();
-  const dispatch = useDispatch();
   const { toastRef } = useContext(ToastContext);
   const { sdk } = useCardSDK();
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -493,6 +499,17 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
     });
   }, [toastRef, theme]);
 
+  const { updateTokenPriority } = useUpdateTokenPriority({
+    onSuccess: () => {
+      showSuccessToast();
+      sheetRef.current?.onCloseBottomSheet();
+    },
+    onError: () => {
+      showErrorToast();
+      sheetRef.current?.onCloseBottomSheet();
+    },
+  });
+
   const updatePriority = useCallback(
     async (token: CardTokenAllowance) => {
       trackEvent(
@@ -509,94 +526,19 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
           })
           .build(),
       );
-      if (
-        !sdk ||
-        !delegationSettings ||
-        !cardExternalWalletDetails?.walletDetails
-      ) {
-        setOpenAssetSelectionBottomSheet(false);
+
+      if (!cardExternalWalletDetails?.walletDetails) {
+        showErrorToast();
+        sheetRef.current?.onCloseBottomSheet();
         return;
       }
 
-      try {
-        const selectedWallet = cardExternalWalletDetails.walletDetails.find(
-          (wallet) =>
-            wallet.tokenDetails.address?.toLowerCase() ===
-              token.address?.toLowerCase() &&
-            wallet.caipChainId === token.caipChainId &&
-            wallet.walletAddress?.toLowerCase() ===
-              token.walletAddress?.toLowerCase(),
-        );
-
-        if (!selectedWallet) {
-          showErrorToast();
-          setOpenAssetSelectionBottomSheet(false);
-          return;
-        }
-
-        // First, sort by current priority to maintain order
-        const sortedWallets = [...cardExternalWalletDetails.walletDetails].sort(
-          (a, b) => a.priority - b.priority,
-        );
-
-        // Build new priorities: selected gets 1, others shift down maintaining their order
-        let nextPriority = 2;
-        const newPriorities = sortedWallets.map((wallet) => {
-          const isSelected =
-            wallet.id === selectedWallet.id &&
-            wallet.walletAddress?.toLowerCase() ===
-              selectedWallet.walletAddress?.toLowerCase();
-
-          const priority = isSelected ? 1 : nextPriority++;
-
-          return {
-            id: wallet.id,
-            priority,
-          };
-        });
-
-        await sdk.updateWalletPriority(newPriorities);
-
-        // Invalidate external wallet details cache to force refetch with updated priorities
-        dispatch(clearCacheData('card-external-wallet-details'));
-
-        // Update priority token in Redux with new priority value
-        const priorityTokenData: CardTokenAllowance = {
-          address: token.address,
-          decimals: token.decimals,
-          symbol: token.symbol,
-          name: token.name,
-          allowanceState: token.allowanceState,
-          allowance: token.allowance || '0',
-          availableBalance: token.availableBalance || '0',
-          walletAddress: selectedWallet.walletAddress,
-          caipChainId: token.caipChainId,
-          delegationContract: token.delegationContract,
-          priority: 1, // New priority is always 1 (highest)
-        };
-
-        dispatch(setAuthenticatedPriorityToken(priorityTokenData));
-        dispatch(setAuthenticatedPriorityTokenLastFetched(new Date()));
-
-        showSuccessToast();
-        setOpenAssetSelectionBottomSheet(false);
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          'AssetSelectionBottomSheet: Error updating wallet priority',
-        );
-        showErrorToast();
-        setOpenAssetSelectionBottomSheet(false);
-      }
+      await updateTokenPriority(token, cardExternalWalletDetails.walletDetails);
     },
     [
-      sdk,
-      delegationSettings,
       cardExternalWalletDetails,
-      dispatch,
-      showSuccessToast,
+      updateTokenPriority,
       showErrorToast,
-      setOpenAssetSelectionBottomSheet,
       trackEvent,
       createEventBuilder,
     ],
@@ -616,10 +558,28 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
 
   const handleTokenPress = useCallback(
     async (token: CardTokenAllowance) => {
-      // Selection only mode: just call the callback and close
-      if (selectionOnly && onTokenSelect) {
-        onTokenSelect(token);
-        setOpenAssetSelectionBottomSheet(false);
+      // Selection only mode: navigate back with the selected token
+      if (selectionOnly) {
+        // If onTokenSelect callback is provided (legacy mode), use it
+        if (onTokenSelect) {
+          onTokenSelect(token);
+          sheetRef.current?.onCloseBottomSheet();
+          return;
+        }
+
+        // Navigation-based mode: go back with the selected token
+        closeBottomSheetAndNavigate(() => {
+          if (callerRoute) {
+            // Navigate back to the caller route with the selected token
+            navigation.navigate(callerRoute, {
+              ...callerParams,
+              returnedSelectedToken: token,
+            });
+          } else {
+            // Fallback: just go back
+            navigation.goBack();
+          }
+        });
         return;
       }
 
@@ -636,7 +596,7 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
           });
         } else {
           // Just close the bottom sheet
-          setOpenAssetSelectionBottomSheet(false);
+          sheetRef.current?.onCloseBottomSheet();
         }
       } else if (
         token.allowanceState === AllowanceState.Enabled ||
@@ -662,11 +622,12 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
     [
       selectionOnly,
       onTokenSelect,
+      callerRoute,
+      callerParams,
       isPriorityToken,
       navigateToCardHomeOnPriorityToken,
       closeBottomSheetAndNavigate,
       navigation,
-      setOpenAssetSelectionBottomSheet,
       updatePriority,
       cardExternalWalletDetails,
       tokensWithAllowances,
@@ -894,21 +855,17 @@ const AssetSelectionBottomSheet: React.FC<AssetSelectionBottomSheetProps> = ({
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack={false}
-      onClose={() => {
-        setOpenAssetSelectionBottomSheet(false);
-      }}
+      shouldNavigateBack
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader
-        onClose={() => setOpenAssetSelectionBottomSheet(false)}
-      >
+      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <Text variant={TextVariant.HeadingSM}>
           {strings('card.select_asset')}
         </Text>
       </BottomSheetHeader>
-
-      {renderBottomSheetContent()}
+      <View style={tw.style('max-h-[400px]')}>
+        {renderBottomSheetContent()}
+      </View>
     </BottomSheet>
   );
 };

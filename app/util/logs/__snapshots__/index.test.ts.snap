@@ -748,6 +748,9 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "transactionBatches": [],
         "transactions": [],
       },
+      "TransactionPayController": {
+        "transactionData": {},
+      },
       "UserStorageController": {
         "isAccountSyncingEnabled": true,
         "isBackupAndSyncEnabled": true,
@@ -1490,6 +1493,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "submitHistory": [],
         "transactionBatches": [],
         "transactions": [],
+      },
+      "TransactionPayController": {
+        "transactionData": {},
       },
       "UserStorageController": {
         "isAccountSyncingEnabled": true,

@@ -32,6 +32,18 @@ jest.mock('../../../../../core/Engine', () => ({
         ],
       },
     },
+    NetworkController: {
+      findNetworkClientIdByChainId: jest.fn(() => 'mainnet'),
+      getNetworkClientById: jest.fn(() => ({
+        provider: {
+          request: jest.fn(),
+          sendAsync: jest.fn(),
+        },
+        configuration: {
+          chainId: '0x1',
+        },
+      })),
+    },
   },
 }));
 

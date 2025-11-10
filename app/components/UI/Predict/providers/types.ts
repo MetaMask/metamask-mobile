@@ -1,6 +1,8 @@
 import { KeyringController } from '@metamask/keyring-controller';
 import {
   GetPriceHistoryParams,
+  GetPriceParams,
+  GetPriceResponse,
   PredictActivity,
   PredictCategory,
   PredictMarket,
@@ -215,6 +217,9 @@ export interface PredictProvider {
   getPriceHistory(
     params: GetPriceHistoryParams,
   ): Promise<PredictPriceHistoryPoint[]>;
+  getPrices(
+    params: Omit<GetPriceParams, 'providerId'>,
+  ): Promise<GetPriceResponse>;
 
   // User information
   getPositions(

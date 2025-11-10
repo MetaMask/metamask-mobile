@@ -382,6 +382,11 @@ const Routes = {
       KYC_FAILED: 'CardOnboardingKYCFailed',
       WEBVIEW: 'CardOnboardingWebview',
     },
+    MODALS: {
+      ID: 'CardModals',
+      ADD_FUNDS: 'CardAddFundsModal',
+      ASSET_SELECTION: 'CardAssetSelectionModal',
+    },
   },
   SEND: {
     RECIPIENT: 'Recipient',
