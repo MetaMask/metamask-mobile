@@ -198,8 +198,27 @@ jest.mock('../../../../hooks/useMetrics', () => ({
   MetaMetricsEvents: {
     CARD_ADD_FUNDS_CLICKED: 'card_add_funds_clicked',
     CARD_HOME_VIEWED: 'card_home_viewed',
+    CARD_BUTTON_CLICKED: 'card_button_clicked',
   },
 }));
+
+// Mock navigation helper functions
+jest.mock('../../components/AddFundsBottomSheet/AddFundsBottomSheet', () => ({
+  createAddFundsModalNavigationDetails: jest.fn((params) => [
+    'CardModals',
+    { screen: 'CardAddFundsModal', params },
+  ]),
+}));
+
+jest.mock(
+  '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet',
+  () => ({
+    createAssetSelectionModalNavigationDetails: jest.fn((params) => [
+      'CardModals',
+      { screen: 'CardAssetSelectionModal', params },
+    ]),
+  }),
+);
 
 // Mock react-native-device-info
 jest.mock('react-native-device-info', () => ({
@@ -580,7 +599,7 @@ describe('CardHome Component', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('opens AddFundsBottomSheet when add funds button is pressed with USDC token', async () => {
+  it('navigates to add funds modal when add funds button is pressed with USDC token', async () => {
     // Given: priority token is USDC (default)
     // When: user presses add funds button
     render();
@@ -590,15 +609,23 @@ describe('CardHome Component', () => {
     );
     fireEvent.press(addFundsButton);
 
-    // Then: should open bottom sheet, not swaps
+    // Then: should navigate to add funds modal, not swaps
     await waitFor(() => {
-      expect(screen.getByTestId('add-funds-bottom-sheet')).toBeTruthy();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'CardModals',
+        expect.objectContaining({
+          screen: 'CardAddFundsModal',
+          params: expect.objectContaining({
+            priorityToken: mockPriorityToken,
+          }),
+        }),
+      );
     });
 
     expect(mockOpenSwaps).not.toHaveBeenCalled();
   });
 
-  it('opens AddFundsBottomSheet when add funds button is pressed with USDT token', async () => {
+  it('navigates to add funds modal when add funds button is pressed with USDT token', async () => {
     // Given: priority token is USDT
     const usdtToken = {
       ...mockPriorityToken,
@@ -614,9 +641,17 @@ describe('CardHome Component', () => {
     );
     fireEvent.press(addFundsButton);
 
-    // Then: should open bottom sheet for supported token
+    // Then: should navigate to add funds modal for supported token
     await waitFor(() => {
-      expect(screen.getByTestId('add-funds-bottom-sheet')).toBeTruthy();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'CardModals',
+        expect.objectContaining({
+          screen: 'CardAddFundsModal',
+          params: expect.objectContaining({
+            priorityToken: usdtToken,
+          }),
+        }),
+      );
     });
 
     expect(mockOpenSwaps).not.toHaveBeenCalled();
@@ -1245,6 +1280,30 @@ describe('CardHome Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.WELCOME);
     });
 
+    it('navigates to asset selection modal when change asset pressed and authenticated', () => {
+      // Given: user is authenticated
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({ isAuthenticated: true });
+
+      // When: user presses change asset button
+      render();
+      const changeAssetButton = screen.getByTestId(
+        CardHomeSelectors.CHANGE_ASSET_BUTTON,
+      );
+      fireEvent.press(changeAssetButton);
+
+      // Then: should navigate to asset selection modal
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'CardModals',
+        expect.objectContaining({
+          screen: 'CardAssetSelectionModal',
+          params: expect.objectContaining({
+            tokensWithAllowances: [mockPriorityToken],
+          }),
+        }),
+      );
+    });
+
     it('shows manage spending limit button when Baanx login is enabled', () => {
       // Given: Baanx login is enabled
       // When: component renders
@@ -1860,6 +1919,177 @@ describe('CardHome Component', () => {
         expect(mockProvisionCard).toHaveBeenCalled();
         expect(mockPollCardStatusUntilProvisioned).toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('Unsupported Tokens for Spending Limit', () => {
+    it('hides progress bar for unsupported token (aUSDC)', () => {
+      // Given: authenticated with aUSDC (unsupported token) and limited allowance
+      setupMockSelectors({ isAuthenticated: true });
+      const aUSDCToken = {
+        ...mockPriorityToken,
+        symbol: 'aUSDC',
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '500',
+      };
+      setupLoadCardDataMock({
+        priorityToken: aUSDCToken,
+        allTokens: [aUSDCToken],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not display spending limit progress bar
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+    });
+
+    it('shows progress bar for supported token (USDC)', () => {
+      // Given: authenticated with USDC (supported token) and limited allowance
+      setupMockSelectors({ isAuthenticated: true });
+      const usdcToken = {
+        ...mockPriorityToken,
+        symbol: 'USDC',
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '500',
+      };
+      setupLoadCardDataMock({
+        priorityToken: usdcToken,
+        allTokens: [usdcToken],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should display spending limit progress bar
+      expect(screen.getByText('Spending Limit')).toBeOnTheScreen();
+      expect(screen.getByText('500/1000 USDC')).toBeOnTheScreen();
+    });
+
+    it('hides progress bar when symbol is undefined', () => {
+      // Given: authenticated with undefined symbol and limited allowance
+      setupMockSelectors({ isAuthenticated: true });
+      const tokenWithoutSymbol = {
+        ...mockPriorityToken,
+        symbol: undefined as unknown as string,
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '500',
+      };
+      setupLoadCardDataMock({
+        priorityToken: tokenWithoutSymbol,
+        allTokens: [tokenWithoutSymbol],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not display spending limit progress bar
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+    });
+
+    it('hides close spending limit warning for unsupported token (aUSDC)', () => {
+      // Given: authenticated with aUSDC and close to limit (20% remaining)
+      setupMockSelectors({ isAuthenticated: true });
+      const aUSDCToken = {
+        ...mockPriorityToken,
+        symbol: 'aUSDC',
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '150', // 15% remaining (below 20% threshold)
+      };
+      setupLoadCardDataMock({
+        priorityToken: aUSDCToken,
+        allTokens: [aUSDCToken],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not show close spending limit warning
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+    });
+
+    it('hides close spending limit warning when symbol is undefined', () => {
+      // Given: authenticated with undefined symbol and close to limit
+      setupMockSelectors({ isAuthenticated: true });
+      const tokenWithoutSymbol = {
+        ...mockPriorityToken,
+        symbol: undefined as unknown as string,
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '150',
+      };
+      setupLoadCardDataMock({
+        priorityToken: tokenWithoutSymbol,
+        allTokens: [tokenWithoutSymbol],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not show close spending limit warning
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+    });
+
+    it('treats lowercase unsupported token symbol case-insensitively', () => {
+      // Given: authenticated with lowercase ausdc and limited allowance
+      setupMockSelectors({ isAuthenticated: true });
+      const aUSDCTokenLower = {
+        ...mockPriorityToken,
+        symbol: 'ausdc',
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '500',
+      };
+      setupLoadCardDataMock({
+        priorityToken: aUSDCTokenLower,
+        allTokens: [aUSDCTokenLower],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not display spending limit progress bar
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+    });
+
+    it('treats mixed case unsupported token symbol case-insensitively', () => {
+      // Given: authenticated with mixed case AuSdC and limited allowance
+      setupMockSelectors({ isAuthenticated: true });
+      const aUSDCTokenMixed = {
+        ...mockPriorityToken,
+        symbol: 'AuSdC',
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '500',
+      };
+      setupLoadCardDataMock({
+        priorityToken: aUSDCTokenMixed,
+        allTokens: [aUSDCTokenMixed],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not display spending limit progress bar
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
     });
   });
 
