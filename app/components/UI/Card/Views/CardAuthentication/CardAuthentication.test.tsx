@@ -980,6 +980,16 @@ describe('CardAuthentication Component', () => {
         userId: 'user-123',
         phoneNumber: '+1 (555) 123-****',
       });
+      mockUseCardProviderAuthentication.mockReturnValue({
+        login: mockLogin,
+        loading: false,
+        error: null,
+        clearError: mockClearError,
+        sendOtpLogin: mockSendOtpLogin,
+        otpLoading: false,
+        otpError: 'The code you entered is incorrect',
+        clearOtpError: mockClearOtpError,
+      });
 
       render();
       const emailInput = screen.getByPlaceholderText(
@@ -998,22 +1008,9 @@ describe('CardAuthentication Component', () => {
         expect(
           screen.getByText('Enter your verification code'),
         ).toBeOnTheScreen();
-      });
-
-      mockUseCardProviderAuthentication.mockReturnValue({
-        login: mockLogin,
-        loading: false,
-        error: null,
-        clearError: mockClearError,
-        sendOtpLogin: mockSendOtpLogin,
-        otpLoading: false,
-        otpError: 'The code you entered is incorrect',
-        clearOtpError: mockClearOtpError,
-      });
-
-      await waitFor(() => {
-        const errorText = screen.getByText('The code you entered is incorrect');
-        expect(errorText).toBeOnTheScreen();
+        expect(
+          screen.getByText('The code you entered is incorrect'),
+        ).toBeOnTheScreen();
         expect(screen.getByText('Verification Code')).toBeOnTheScreen();
       });
     });
