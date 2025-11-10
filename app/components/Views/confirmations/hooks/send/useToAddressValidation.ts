@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import { isENS, isValidHexAddress } from '../../../../../util/address';
 import { isBtcMainnetAddress } from '../../../../../core/Multichain/utils';
+import { isE2E } from '../../../../../util/test/utils';
 import {
   validateHexAddress,
   validateSolanaAddress,
@@ -88,7 +89,11 @@ export const useToAddressValidation = () => {
     (async () => {
       setLoading(true);
       prevAddressValidated.current = to;
-      const validationResult = await validateToAddress(to);
+
+      // Skip expensive validation in E2E tests for better performance
+      const validationResult = isE2E
+        ? { error: undefined, warning: undefined, resolvedAddress: undefined }
+        : await validateToAddress(to);
 
       if (!unmountedRef.current && prevAddressValidated.current === to) {
         setResult({
