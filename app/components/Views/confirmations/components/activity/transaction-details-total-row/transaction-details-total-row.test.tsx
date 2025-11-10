@@ -6,7 +6,7 @@ import { TransactionDetailsTotalRow } from './transaction-details-total-row';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
 
-const TOTAL_FIAT_MOCK = '$123.45';
+const TOTAL_FIAT_MOCK = '123.45';
 
 function render() {
   return renderWithProvider(<TransactionDetailsTotalRow />, {});
@@ -29,7 +29,7 @@ describe('TransactionDetailsTotalRow', () => {
 
   it('renders total fiat', () => {
     const { getByText } = render();
-    expect(getByText(TOTAL_FIAT_MOCK)).toBeDefined();
+    expect(getByText(`$${TOTAL_FIAT_MOCK}`)).toBeDefined();
   });
 
   it('renders nothing if no total fiat', () => {
@@ -41,6 +41,6 @@ describe('TransactionDetailsTotalRow', () => {
 
     const { queryByText } = render();
 
-    expect(queryByText(TOTAL_FIAT_MOCK)).toBeNull();
+    expect(queryByText(`$${TOTAL_FIAT_MOCK}`)).toBeNull();
   });
 });

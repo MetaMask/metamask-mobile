@@ -16,6 +16,20 @@ import { useParams } from '../../../util/navigation/navUtils';
 import { TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT } from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.constants';
 import Routes from '../../../constants/navigation/Routes';
 
+const mockIsNonEvmAddress = jest.fn();
+const mockToHex = jest.fn();
+
+jest.mock('../../../core/Multichain/utils', () => ({
+  ...jest.requireActual('../../../core/Multichain/utils'),
+  isNonEvmAddress: (address: string) => mockIsNonEvmAddress(address),
+}));
+
+jest.mock('../../../core/Delegation/utils', () => ({
+  ...jest.requireActual('../../../core/Delegation/utils'),
+  toHex: (value: string | number | boolean | Buffer | Uint8Array) =>
+    mockToHex(value),
+}));
+
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -41,7 +55,7 @@ jest.mock('../../../util/navigation/navUtils', () => ({
         address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
         symbol: 'USDT',
         name: 'Tether USD',
-        iconUrl: 'https://example.com/usdt.png',
+        image: 'https://example.com/usdt.png',
         decimals: 18,
         chainId: '0x1',
       },
@@ -98,6 +112,12 @@ const mockInitialState: DeepPartial<RootState> = {
 };
 
 describe('ConfirmAddAsset', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockIsNonEvmAddress.mockReturnValue(false);
+    mockToHex.mockImplementation((val) => val);
+  });
+
   it('render matches previous snapshot', () => {
     const wrapper = renderWithProvider(<ConfirmAddAsset />, {
       state: mockInitialState,
@@ -126,12 +146,125 @@ describe('ConfirmAddAsset', () => {
     ).toBeOnTheScreen();
   });
 
-  it('should call addTokenList and navigate when confirm button is pressed', async () => {
+  it('calls useBalance with original address for EVM addresses', () => {
     const mockAsset = {
       address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
       symbol: 'USDT',
       name: 'Tether USD',
-      iconUrl: 'https://example.com/usdt.png',
+      image: 'https://example.com/usdt.png',
+      decimals: 18,
+      chainId: '0x1',
+    };
+
+    mockIsNonEvmAddress.mockReturnValue(false);
+
+    (useParams as jest.Mock).mockReturnValue({
+      selectedAsset: [mockAsset],
+      networkName: 'Ethereum Main Network',
+      addTokenList: mockAddTokenList,
+    });
+
+    renderWithProvider(<ConfirmAddAsset />, {
+      state: mockInitialState,
+    });
+
+    expect(mockIsNonEvmAddress).toHaveBeenCalledWith(mockAsset.address);
+    expect(mockToHex).not.toHaveBeenCalled();
+    expect(useBalance).toHaveBeenCalledWith({
+      address: mockAsset.address,
+      decimals: mockAsset.decimals,
+    });
+  });
+
+  it('calls useBalance with hex converted address for non-EVM addresses', () => {
+    const mockNonEvmAddress = 'solana_address_123';
+    const mockConvertedHex = '0x1234567890abcdef';
+    const mockAsset = {
+      address: mockNonEvmAddress,
+      symbol: 'SOL',
+      name: 'Solana',
+      image: 'https://example.com/sol.png',
+      decimals: 9,
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    };
+
+    mockIsNonEvmAddress.mockReturnValue(true);
+    mockToHex.mockReturnValue(mockConvertedHex);
+
+    (useParams as jest.Mock).mockReturnValue({
+      selectedAsset: [mockAsset],
+      networkName: 'Solana',
+      addTokenList: mockAddTokenList,
+    });
+
+    renderWithProvider(<ConfirmAddAsset />, {
+      state: mockInitialState,
+    });
+
+    expect(mockIsNonEvmAddress).toHaveBeenCalledWith(mockNonEvmAddress);
+    expect(mockToHex).toHaveBeenCalledWith(mockNonEvmAddress);
+    expect(useBalance).toHaveBeenCalledWith({
+      address: mockConvertedHex,
+      decimals: mockAsset.decimals,
+    });
+  });
+
+  it('renders AssetIcon when asset has image property', () => {
+    const mockAsset = {
+      address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+      symbol: 'USDT',
+      name: 'Tether USD',
+      image: 'https://example.com/usdt.png',
+      decimals: 18,
+      chainId: '0x1',
+    };
+
+    (useParams as jest.Mock).mockReturnValue({
+      selectedAsset: [mockAsset],
+      networkName: 'Ethereum Main Network',
+      addTokenList: mockAddTokenList,
+    });
+
+    const { getByText } = renderWithProvider(<ConfirmAddAsset />, {
+      state: mockInitialState,
+    });
+
+    // Asset should render with name and symbol when image exists
+    expect(getByText('Tether USD')).toBeOnTheScreen();
+    expect(getByText('USDT')).toBeOnTheScreen();
+    expect(useBalance).toHaveBeenCalled();
+  });
+
+  it('does not render AssetIcon when asset image is missing', () => {
+    const mockAsset = {
+      address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+      symbol: 'USDT',
+      name: 'Tether USD',
+      decimals: 18,
+      chainId: '0x1',
+    };
+
+    (useParams as jest.Mock).mockReturnValue({
+      selectedAsset: [mockAsset],
+      networkName: 'Ethereum Main Network',
+      addTokenList: mockAddTokenList,
+    });
+
+    const { getByText } = renderWithProvider(<ConfirmAddAsset />, {
+      state: mockInitialState,
+    });
+
+    // Asset should still render with name and symbol
+    expect(getByText('Tether USD')).toBeOnTheScreen();
+    expect(getByText('USDT')).toBeOnTheScreen();
+  });
+
+  it('calls addTokenList and navigate when confirm button is pressed', async () => {
+    const mockAsset = {
+      address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+      symbol: 'USDT',
+      name: 'Tether USD',
+      image: 'https://example.com/usdt.png',
       decimals: 18,
       chainId: '0x1',
     };
