@@ -602,6 +602,7 @@
     "network_not_found_title": "Network not found",
     "network_not_found_description": "Network with chain id {{chain_id}} not found in your wallet. Please add the network first.",
     "network_missing_id": "Missing chain id.",
+    "search_tokens":"Search tokens",
     "search_tokens_and_nfts": "Search tokens and NFTs",
     "tokens": "Tokens",
     "nfts": "NFTs",
@@ -6437,7 +6438,8 @@
     "report_submitted": "Error report has been submitted."
   },
   "pay_with_modal": {
-    "title": "Select payment method"
+    "title": "Select payment method",
+    "no_gas": "No native balance for gas"
   },
   "connection_removed_modal": {
     "title": "Connections removed",
