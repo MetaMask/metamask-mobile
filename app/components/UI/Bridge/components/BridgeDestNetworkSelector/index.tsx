@@ -17,6 +17,7 @@ import { NetworkRow } from '../NetworkRow';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { BridgeViewMode } from '../../types';
+import { ChainPopularity } from '../BridgeDestNetworksBar';
 
 export interface BridgeDestNetworkSelectorRouteParams {
   shouldGoToTokens?: boolean;
@@ -67,6 +68,11 @@ export const BridgeDestNetworkSelector: React.FC = () => {
             return true;
           }
           return chain.chainId !== currentChainId;
+        })
+        .sort((a, b) => {
+          const aPopularity = ChainPopularity[a.chainId] ?? Infinity;
+          const bPopularity = ChainPopularity[b.chainId] ?? Infinity;
+          return aPopularity - bPopularity;
         })
         .map((chain) => (
           <TouchableOpacity

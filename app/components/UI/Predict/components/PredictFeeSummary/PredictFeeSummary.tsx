@@ -1,18 +1,11 @@
-import React from 'react';
 import { Box } from '@metamask/design-system-react-native';
+import React from 'react';
+import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { formatPrice } from '../../utils/format';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../component-library/components/Icons/Icon';
-import { strings } from '../../../../../../locales/i18n';
 
 interface PredictFeeSummaryProps {
   disabled: boolean;
@@ -37,11 +30,6 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
           <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
             {strings('predict.fee_summary.provider_fee')}
           </Text>
-          <ButtonIcon
-            iconName={IconName.Info}
-            size={ButtonIconSizes.Sm}
-            iconColor={IconColor.Alternative}
-          />
         </Box>
         <Text color={TextColor.Alternative}>
           {formatPrice(providerFee, {
@@ -54,11 +42,6 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
           <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
             {strings('predict.fee_summary.metamask_fee')}
           </Text>
-          <ButtonIcon
-            iconName={IconName.Info}
-            size={ButtonIconSizes.Sm}
-            iconColor={IconColor.Alternative}
-          />
         </Box>
         <Text color={TextColor.Alternative}>
           {formatPrice(metamaskFee, {
@@ -71,11 +54,6 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
           <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
             {strings('predict.fee_summary.total')}
           </Text>
-          <ButtonIcon
-            iconName={IconName.Info}
-            size={ButtonIconSizes.Sm}
-            iconColor={IconColor.Alternative}
-          />
         </Box>
         <Text color={TextColor.Alternative}>
           {formatPrice(total, {
