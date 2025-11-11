@@ -198,11 +198,7 @@ async function publishHook({
     return payResult;
   }
 
-  if (
-    !shouldUseSmartTransaction ||
-    !sendBundleSupport ||
-    transactionMeta.isGasFeeSponsored
-  ) {
+  if (!shouldUseSmartTransaction || !sendBundleSupport) {
     const hook = new Delegation7702PublishHook({
       isAtomicBatchSupported: transactionController.isAtomicBatchSupported.bind(
         transactionController,
