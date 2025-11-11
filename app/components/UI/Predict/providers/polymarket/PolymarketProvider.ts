@@ -11,16 +11,17 @@ import {
   generateTransferData,
   isSmartContractAddress,
 } from '../../../../../util/transactions';
+import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
 import {
   GetPriceHistoryParams,
   GetPriceParams,
   GetPriceResponse,
-  PriceResult,
   PredictActivity,
   PredictCategory,
   PredictMarket,
   PredictPosition,
   PredictPriceHistoryPoint,
+  PriceResult,
   Side,
   UnrealizedPnL,
 } from '../../types';
@@ -38,18 +39,18 @@ import {
   PredictProvider,
   PrepareDepositParams,
   PrepareDepositResponse,
-  SignWithdrawParams,
-  SignWithdrawResponse,
   PrepareWithdrawParams,
   PrepareWithdrawResponse,
   PreviewOrderParams,
   Signer,
+  SignWithdrawParams,
+  SignWithdrawResponse,
 } from '../types';
-import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
 import {
-  ORDER_RATE_LIMIT_MS,
   FEE_COLLECTOR_ADDRESS,
   MATIC_CONTRACTS,
+  MIN_COLLATERAL_BALANCE_FOR_CLAIM,
+  ORDER_RATE_LIMIT_MS,
   POLYGON_MAINNET_CHAIN_ID,
   POLYMARKET_PROVIDER_ID,
   ROUNDING_CONFIG,
@@ -711,7 +712,10 @@ export class PolymarketProvider implements PredictProvider {
         if (error.includes(`order couldn't be fully filled`)) {
           throw new Error(PREDICT_ERROR_CODES.ORDER_NOT_FULLY_FILLED);
         }
-        if (error.includes(`not available in your region`)) {
+        if (
+          error.includes(`not available in your region`) ||
+          error.includes(`unable to access this provider`)
+        ) {
           throw new Error(PREDICT_ERROR_CODES.NOT_ELIGIBLE);
         }
         throw new Error(error ?? PREDICT_ERROR_CODES.PLACE_ORDER_FAILED);
@@ -771,6 +775,14 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Signer address is required for claim');
       }
 
+      const signerBalance = await getBalance({ address: signer.address });
+
+      let includeTransferTransaction = false;
+
+      if (signerBalance < MIN_COLLATERAL_BALANCE_FOR_CLAIM) {
+        includeTransferTransaction = true;
+      }
+
       // Get safe address from cache or fetch it
       let safeAddress: string | undefined;
       try {
@@ -794,6 +806,7 @@ export class PolymarketProvider implements PredictProvider {
           signer,
           positions,
           safeAddress,
+          includeTransferTransaction,
         });
       } catch (error) {
         throw new Error(
