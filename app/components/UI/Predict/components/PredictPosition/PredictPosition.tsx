@@ -15,6 +15,7 @@ import {
 import styleSheet from './PredictPosition.styles';
 import { PredictPositionSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { strings } from '../../../../../../locales/i18n';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -34,6 +35,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     avgPrice,
     currentValue,
     size,
+    optimistic,
   } = position;
   const { styles } = useStyles(styleSheet, {});
 
@@ -71,15 +73,24 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
         </Text>
       </View>
       <View style={styles.positionPnl}>
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-          {formatPrice(currentValue, { maximumDecimals: 2 })}
-        </Text>
-        <Text
-          variant={TextVariant.BodySMMedium}
-          color={percentPnl > 0 ? TextColor.Success : TextColor.Error}
-        >
-          {formatPercentage(percentPnl)}
-        </Text>
+        {optimistic ? (
+          <>
+            <Skeleton width={60} height={20} style={{ marginBottom: 4 }} />
+            <Skeleton width={50} height={16} />
+          </>
+        ) : (
+          <>
+            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+              {formatPrice(currentValue, { maximumDecimals: 2 })}
+            </Text>
+            <Text
+              variant={TextVariant.BodySMMedium}
+              color={percentPnl > 0 ? TextColor.Success : TextColor.Error}
+            >
+              {formatPercentage(percentPnl)}
+            </Text>
+          </>
+        )}
       </View>
     </TouchableOpacity>
   );
