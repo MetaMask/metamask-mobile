@@ -54,6 +54,7 @@ import { useDispatch } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { isZeroValue } from '../../../../../util/number';
 
 const getNetworkFromCaipChainId = (caipChainId: string): CardNetwork => {
   if (caipChainId === SolScope.Mainnet || caipChainId.startsWith('solana:')) {
@@ -271,10 +272,11 @@ const SpendingLimit = ({
             network,
           });
 
-          // Update token priority if external wallet details are available
+          // Update token priority if external wallet details are available and delegation is more than 0
           if (
             externalWalletDetailsData?.walletDetails &&
-            externalWalletDetailsData.walletDetails.length > 0
+            externalWalletDetailsData.walletDetails.length > 0 &&
+            !isZeroValue(parseFloat(delegationAmount))
           ) {
             const tokenWithWallet = tokenToUse || priorityToken;
             if (tokenWithWallet) {
@@ -284,7 +286,6 @@ const SpendingLimit = ({
               );
             }
           } else {
-            // If no external wallet details, just invalidate cache
             dispatch(clearCacheData('card-external-wallet-details'));
           }
 
