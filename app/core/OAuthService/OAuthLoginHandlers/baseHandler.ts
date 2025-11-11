@@ -217,6 +217,14 @@ export abstract class BaseLoginHandler {
     );
 
     const data = await res.json();
+
+    if (!data.id_token || !data.refresh_token || !data.revoke_token) {
+      throw new OAuthError(
+        'Invalid auth response',
+        OAuthErrorType.AuthServerError,
+      );
+    }
+
     return data;
   }
 
