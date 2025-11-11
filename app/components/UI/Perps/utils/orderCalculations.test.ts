@@ -6,10 +6,11 @@ import {
 
 describe('orderCalculations', () => {
   describe('calculatePositionSize', () => {
-    it('should calculate position size correctly with default decimals', () => {
+    it('should calculate position size correctly with szDecimals', () => {
       const result = calculatePositionSize({
         amount: '10000',
         price: 50000,
+        szDecimals: 6,
       });
 
       expect(result).toBe('0.200000');
@@ -30,7 +31,9 @@ describe('orderCalculations', () => {
         price: 3000,
         szDecimals: 4,
       });
-      expect(ethResult).toBe('3.3333'); // Properly rounded from 3.3333...
+      // 10000 / 3000 = 3.33333... → Math.round = 3.3333
+      // 3.3333 * 3000 = 9999.9 < 10000, so increment by 0.0001
+      expect(ethResult).toBe('3.3334'); // Incremented to meet USD minimum
 
       // DOGE-style decimals (0)
       const dogeResult = calculatePositionSize({
@@ -45,6 +48,7 @@ describe('orderCalculations', () => {
       const resultDefault = calculatePositionSize({
         amount: '0',
         price: 50000,
+        szDecimals: 6,
       });
       expect(resultDefault).toBe('0.000000');
 
@@ -60,6 +64,7 @@ describe('orderCalculations', () => {
       const resultDefault = calculatePositionSize({
         amount: '10000',
         price: 0,
+        szDecimals: 6,
       });
       expect(resultDefault).toBe('0.000000');
 
@@ -75,6 +80,7 @@ describe('orderCalculations', () => {
       const result = calculatePositionSize({
         amount: '',
         price: 50000,
+        szDecimals: 6,
       });
 
       expect(result).toBe('0.000000');
@@ -84,6 +90,7 @@ describe('orderCalculations', () => {
       const result = calculatePositionSize({
         amount: '1',
         price: 50000,
+        szDecimals: 6,
       });
 
       expect(result).toBe('0.000020');
@@ -93,13 +100,14 @@ describe('orderCalculations', () => {
       const result = calculatePositionSize({
         amount: '1000000',
         price: 50000,
+        szDecimals: 6,
       });
 
       expect(result).toBe('20.000000');
     });
 
-    it('should use proper rounding (Math.floor)', () => {
-      // Test that Math.floor is used (always rounding down for conservative estimates)
+    it('should use proper rounding (Math.round with USD validation)', () => {
+      // Test that Math.round is used with validation to meet USD minimum
       const result = calculatePositionSize({
         amount: '11',
         price: 50000,
@@ -107,14 +115,86 @@ describe('orderCalculations', () => {
       });
       expect(result).toBe('0.000220'); // Exact value, no rounding needed
 
-      // Test case where Math.floor rounds down
+      // Test case where Math.round rounds down but then gets adjusted up
       const result2 = calculatePositionSize({
         amount: '100',
         price: 30000,
         szDecimals: 8,
       });
       // 100 / 30000 = 0.00333333...
-      expect(result2).toBe('0.00333333'); // Math.floor rounds down for conservative estimate
+      // Math.round(0.00333333 * 10^8) / 10^8 = 0.00333333
+      // But 0.00333333 * 30000 = 99.9999 < 100, so increment by 1/10^8
+      expect(result2).toBe('0.00333334'); // Incremented to meet USD minimum
+    });
+
+    it('should handle $10 minimum order with low precision asset (ASTER edge case)', () => {
+      // ASTER-like asset: $1.07575, szDecimals=0
+      // User requests $10.00
+      // 10 / 1.07575 = 9.295... → Math.round = 9
+      // 9 * 1.07575 = 9.68175 < 10, so increment by 1
+      // Result: 10 tokens = $10.7575
+      const result = calculatePositionSize({
+        amount: '10',
+        price: 1.07575,
+        szDecimals: 0,
+      });
+
+      expect(result).toBe('10'); // Incremented from 9 to 10 to meet $10 minimum
+
+      // Verify actual USD value meets minimum
+      const actualUsd = parseFloat(result) * 1.07575;
+      expect(actualUsd).toBeGreaterThanOrEqual(10);
+    });
+
+    it('should handle $10 minimum order with mid precision asset (ETH edge case)', () => {
+      // ETH-like asset: $3000, szDecimals=4
+      // User requests $10.00
+      // 10 / 3000 = 0.00333333... → Math.round = 0.0033
+      // 0.0033 * 3000 = 9.90 < 10, so increment by 0.0001
+      // Result: 0.0034 ETH = $10.20
+      const result = calculatePositionSize({
+        amount: '10',
+        price: 3000,
+        szDecimals: 4,
+      });
+
+      expect(result).toBe('0.0034'); // Incremented from 0.0033 to 0.0034
+
+      // Verify actual USD value meets minimum
+      const actualUsd = parseFloat(result) * 3000;
+      expect(actualUsd).toBeGreaterThanOrEqual(10);
+    });
+
+    it('should throw error when szDecimals is undefined', () => {
+      expect(() =>
+        calculatePositionSize({
+          amount: '100',
+          price: 50000,
+          // @ts-expect-error Testing runtime validation
+          szDecimals: undefined,
+        }),
+      ).toThrow('szDecimals is required for position size calculation');
+    });
+
+    it('should throw error when szDecimals is null', () => {
+      expect(() =>
+        calculatePositionSize({
+          amount: '100',
+          price: 50000,
+          // @ts-expect-error Testing runtime validation
+          szDecimals: null,
+        }),
+      ).toThrow('szDecimals is required for position size calculation');
+    });
+
+    it('should throw error when szDecimals is negative', () => {
+      expect(() =>
+        calculatePositionSize({
+          amount: '100',
+          price: 50000,
+          szDecimals: -1,
+        }),
+      ).toThrow('szDecimals must be >= 0, got: -1');
     });
   });
 

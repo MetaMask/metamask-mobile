@@ -371,15 +371,31 @@ const PerpsOrderViewContentBase: React.FC = () => {
   ]);
 
   // Real-time position size calculation - memoized to prevent recalculation
-  const positionSize = useMemo(
-    () =>
-      calculatePositionSize({
-        amount: orderForm.amount,
-        price: assetData.price,
-        szDecimals: marketData?.szDecimals,
-      }),
-    [orderForm.amount, assetData.price, marketData?.szDecimals],
-  );
+  const positionSize = useMemo(() => {
+    // During loading, return '0' as temporary state (not a default - this is intentional for loading UX)
+    if (isLoadingMarketData) {
+      return '0';
+    }
+
+    // After loading completes, szDecimals MUST be present - throw error if missing
+    if (marketData?.szDecimals === undefined) {
+      throw new Error(
+        `Market data szDecimals is required for position calculation (asset: ${orderForm.asset})`,
+      );
+    }
+
+    return calculatePositionSize({
+      amount: orderForm.amount,
+      price: assetData.price,
+      szDecimals: marketData.szDecimals,
+    });
+  }, [
+    orderForm.amount,
+    orderForm.asset,
+    assetData.price,
+    marketData?.szDecimals,
+    isLoadingMarketData,
+  ]);
 
   const marginRequired = useMemo(() => {
     if (!isLoadingMarketData && orderForm.amount) {

@@ -92,7 +92,9 @@ const PerpsClosePositionView: React.FC = () => {
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   // Get market data for szDecimals
-  const { marketData } = usePerpsMarketData(position.coin);
+  const { marketData, isLoading: isLoadingMarketData } = usePerpsMarketData(
+    position.coin,
+  );
 
   // Track screen load performance with unified hook (immediate measurement)
   usePerpsMeasurement({
@@ -158,17 +160,40 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Calculate display values directly from closePercentage for immediate updates
   const { closeAmount, calculatedUSDString } = useMemo(() => {
+    // During loading, return '0' as temporary state (not a default - intentional for loading UX)
+    if (isLoadingMarketData) {
+      return {
+        closeAmount: '0',
+        calculatedUSDString: '0.00',
+      };
+    }
+
+    // After loading completes, szDecimals MUST be present - throw error if missing
+    if (marketData?.szDecimals === undefined) {
+      throw new Error(
+        `Market data szDecimals is required for close position calculation (asset: ${position.coin})`,
+      );
+    }
+
     const { tokenAmount, usdValue } = calculateCloseAmountFromPercentage({
       percentage: closePercentage,
       positionSize: absSize,
       currentPrice: effectivePrice,
+      szDecimals: marketData.szDecimals,
     });
 
     return {
       closeAmount: tokenAmount.toString(),
       calculatedUSDString: formatCloseAmountUSD(usdValue),
     };
-  }, [closePercentage, absSize, effectivePrice]);
+  }, [
+    closePercentage,
+    absSize,
+    effectivePrice,
+    marketData?.szDecimals,
+    position.coin,
+    isLoadingMarketData,
+  ]);
 
   // Use calculated USD string when not in input mode, user input when typing
   const displayUSDString =

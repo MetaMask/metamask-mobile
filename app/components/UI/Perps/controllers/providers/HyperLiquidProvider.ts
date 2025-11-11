@@ -41,6 +41,11 @@ import {
   type RawHyperLiquidLedgerUpdate,
 } from '../../utils/hyperLiquidAdapter';
 import {
+  buildOrdersArray,
+  calculateFinalPositionSize,
+  calculateOrderPriceAndSize,
+} from '../../utils/orderCalculations';
+import {
   compileMarketPattern,
   shouldIncludeMarket,
   type CompiledMarketPattern,
@@ -118,6 +123,59 @@ import type {
   UserHistoryItem,
 } from '../types';
 import { PERPS_ERROR_CODES } from '../PerpsController';
+
+// Helper method parameter interfaces (module-level for class-dependent methods only)
+interface GetAssetInfoParams {
+  coin: string;
+  dexName: string | null;
+}
+
+interface GetAssetInfoResult {
+  assetInfo: {
+    name: string;
+    szDecimals: number;
+    maxLeverage: number;
+  };
+  currentPrice: number;
+  meta: MetaResponse;
+}
+
+interface PrepareAssetForTradingParams {
+  coin: string;
+  assetId: number;
+  leverage?: number;
+}
+
+interface HandleHip3PreOrderParams {
+  dexName: string;
+  coin: string;
+  orderPrice: number;
+  positionSize: number;
+  leverage: number;
+  isBuy: boolean;
+  maxLeverage: number;
+}
+
+interface HandleHip3PreOrderResult {
+  transferInfo: { amount: number; sourceDex: string } | null;
+}
+
+interface SubmitOrderWithRollbackParams {
+  orders: SDKOrderParams[];
+  grouping: 'na' | 'normalTpsl' | 'positionTpsl';
+  isHip3Order: boolean;
+  dexName: string | null;
+  transferInfo: { amount: number; sourceDex: string } | null;
+  coin: string;
+  assetId: number;
+}
+
+interface HandleOrderErrorParams {
+  error: unknown;
+  coin: string;
+  orderType: 'market' | 'limit';
+  isBuy: boolean;
+}
 
 /**
  * HyperLiquid provider implementation
@@ -1531,14 +1589,237 @@ export class HyperLiquidProvider implements IPerpsProvider {
     }
   }
 
+  // ============================================================================
+  // Helper Methods for placeOrder Refactoring
+  // ============================================================================
+
   /**
-   * Place an order using direct wallet signing (same as working debug test)
+   * Validates order parameters before placement using provider-level validation
+   * @throws Error if validation fails
+   */
+  private async validateOrderBeforePlacement(
+    params: OrderParams,
+  ): Promise<void> {
+    DevLogger.log('Provider: Validating order before placement:', params);
+
+    const validation = await this.validateOrder(params);
+    if (!validation.isValid) {
+      throw new Error(
+        validation.error || 'Order validation failed at provider level',
+      );
+    }
+  }
+
+  /**
+   * Gets asset info and current price from the correct DEX
+   */
+  private async getAssetInfo(
+    params: GetAssetInfoParams,
+  ): Promise<GetAssetInfoResult> {
+    const { coin, dexName } = params;
+
+    const infoClient = this.clientService.getInfoClient();
+    const meta = await this.getCachedMeta({ dexName });
+
+    const assetInfo = meta.universe.find((asset) => asset.name === coin);
+    if (!assetInfo) {
+      throw new Error(
+        `Asset ${coin} not found in ${dexName || 'main'} DEX universe`,
+      );
+    }
+
+    const mids = await infoClient.allMids({ dex: dexName ?? '' });
+    const currentPrice = parseFloat(mids[coin] || '0');
+    if (currentPrice === 0) {
+      throw new Error(`No price available for ${coin}`);
+    }
+
+    return { assetInfo, currentPrice, meta };
+  }
+
+  /**
+   * Prepares asset for trading by updating leverage if specified
+   */
+  private async prepareAssetForTrading(
+    params: PrepareAssetForTradingParams,
+  ): Promise<void> {
+    const { coin, assetId, leverage } = params;
+
+    if (!leverage) {
+      return;
+    }
+
+    DevLogger.log('Updating leverage before order:', {
+      coin,
+      assetId,
+      requestedLeverage: leverage,
+      leverageType: 'isolated',
+    });
+
+    const exchangeClient = this.clientService.getExchangeClient();
+    const leverageResult = await exchangeClient.updateLeverage({
+      asset: assetId,
+      isCross: false,
+      leverage,
+    });
+
+    if (leverageResult.status !== 'ok') {
+      throw new Error(
+        `Failed to update leverage: ${JSON.stringify(leverageResult)}`,
+      );
+    }
+
+    DevLogger.log('Leverage updated successfully:', { coin, leverage });
+  }
+
+  /**
+   * Handles HIP-3 pre-order balance management
+   */
+  private async handleHip3PreOrder(
+    params: HandleHip3PreOrderParams,
+  ): Promise<HandleHip3PreOrderResult> {
+    const { dexName, coin, orderPrice, positionSize, leverage, isBuy } = params;
+
+    if (this.useDexAbstraction) {
+      DevLogger.log('Using DEX abstraction (no manual transfer)', {
+        coin,
+        dex: dexName,
+      });
+      return { transferInfo: null };
+    }
+
+    DevLogger.log('Using manual auto-transfer', { coin, dex: dexName });
+
+    const requiredMarginWithBuffer = await this.calculateHip3RequiredMargin({
+      coin,
+      dexName,
+      positionSize,
+      orderPrice,
+      leverage,
+      isBuy,
+    });
+
+    try {
+      const transferInfo = await this.autoTransferForHip3Order({
+        targetDex: dexName,
+        requiredMargin: requiredMarginWithBuffer,
+      });
+      return { transferInfo };
+    } catch (transferError) {
+      const errorMsg = (transferError as Error)?.message || '';
+
+      if (errorMsg.includes('Cannot transfer with DEX abstraction enabled')) {
+        DevLogger.log('Detected DEX abstraction is enabled, switching mode');
+        this.useDexAbstraction = true;
+        return { transferInfo: null };
+      }
+
+      throw transferError;
+    }
+  }
+
+  /**
+   * Submits order with atomic rollback for HIP-3 failures
+   */
+  private async submitOrderWithRollback(
+    params: SubmitOrderWithRollbackParams,
+  ): Promise<OrderResult> {
+    const { orders, grouping, isHip3Order, dexName, transferInfo, coin } =
+      params;
+
+    const exchangeClient = this.clientService.getExchangeClient();
+
+    // Calculate discounted builder fee
+    let builderFee = BUILDER_FEE_CONFIG.maxFeeTenthsBps;
+    if (this.userFeeDiscountBips !== undefined) {
+      builderFee = Math.floor(
+        builderFee * (1 - this.userFeeDiscountBips / BASIS_POINTS_DIVISOR),
+      );
+      DevLogger.log('Applying builder fee discount', {
+        originalFee: BUILDER_FEE_CONFIG.maxFeeTenthsBps,
+        discountBips: this.userFeeDiscountBips,
+        discountedFee: builderFee,
+      });
+    }
+
+    DevLogger.log('Submitting order via asset ID routing', {
+      coin,
+      assetId: orders[0].a,
+      orderCount: orders.length,
+      mainOrder: orders[0],
+      dexName: dexName || 'main',
+      isHip3: !!dexName,
+    });
+
+    try {
+      const result = await exchangeClient.order({
+        orders,
+        grouping,
+        builder: {
+          b: this.getBuilderAddress(this.clientService.isTestnetMode()),
+          f: builderFee,
+        },
+      });
+
+      if (result.status !== 'ok') {
+        throw new Error(`Order failed: ${JSON.stringify(result)}`);
+      }
+
+      const status = result.response?.data?.statuses?.[0];
+      const restingOrder =
+        status && 'resting' in status ? status.resting : null;
+      const filledOrder = status && 'filled' in status ? status.filled : null;
+
+      // Success - auto-rebalance excess funds
+      if (isHip3Order && transferInfo && dexName) {
+        await this.handleHip3PostOrderRebalance({ dexName, transferInfo });
+      }
+
+      return {
+        success: true,
+        orderId: restingOrder?.oid?.toString() || filledOrder?.oid?.toString(),
+        filledSize: filledOrder?.totalSz,
+        averagePrice: filledOrder?.avgPx,
+      };
+    } catch (orderError) {
+      // Failure - rollback transfer
+      if (transferInfo && dexName) {
+        await this.handleHip3OrderRollback({ dexName, transferInfo });
+      }
+      throw orderError;
+    }
+  }
+
+  /**
+   * Handles order errors with proper error mapping
+   */
+  private handleOrderError(params: HandleOrderErrorParams): OrderResult {
+    const { error, coin, orderType, isBuy } = params;
+
+    Logger.error(
+      ensureError(error),
+      this.getErrorContext('placeOrder', {
+        coin,
+        orderType,
+        isBuy,
+      }),
+    );
+
+    const mappedError = this.mapError(error);
+    return createErrorResult(mappedError, { success: false });
+  }
+
+  /**
+   * Place an order using direct wallet signing
+   *
+   * Refactored to use helper methods for better maintainability and reduced complexity.
+   * Each helper method is focused on a single responsibility.
    */
   async placeOrder(params: OrderParams): Promise<OrderResult> {
     try {
       DevLogger.log('Placing order via HyperLiquid SDK:', params);
 
-      // Validate order parameters
+      // Basic sync validation (backward compatibility)
       const validation = validateOrderParams({
         coin: params.coin,
         size: params.size,
@@ -1549,13 +1830,16 @@ export class HyperLiquidProvider implements IPerpsProvider {
         throw new Error(validation.error);
       }
 
+      // Validate order at provider level (enforces USD validation rules)
+      await this.validateOrderBeforePlacement(params);
+
       await this.ensureReady();
 
       // Debug: Log asset map state before order placement
       const allMapKeys = Array.from(this.coinToAssetId.keys());
       const hip3Keys = allMapKeys.filter((k) => k.includes(':'));
       const assetExists = this.coinToAssetId.has(params.coin);
-      DevLogger.log('HyperLiquidProvider: Asset map state at order time', {
+      DevLogger.log('Asset map state at order time', {
         requestedCoin: params.coin,
         assetExistsInMap: assetExists,
         totalAssetsInMap: this.coinToAssetId.size,
@@ -1566,171 +1850,56 @@ export class HyperLiquidProvider implements IPerpsProvider {
         blocklistMarkets: this.blocklistMarkets,
       });
 
-      // See ensureReady() - builder fee and referral are session-cached
-
       // Extract DEX name for API calls (main DEX = null)
       const { dex: dexName } = parseAssetName(params.coin);
 
-      // Get asset info from the correct DEX (uses cache to avoid redundant API calls)
-      const infoClient = this.clientService.getInfoClient();
-      const meta = await this.getCachedMeta({ dexName });
-
-      // asset.name format: "BTC" for main DEX, "xyz:XYZ100" for HIP-3
-      const assetInfo = meta.universe.find(
-        (asset) => asset.name === params.coin,
-      );
-      if (!assetInfo) {
-        throw new Error(
-          `Asset ${params.coin} not found in ${dexName || 'main'} DEX universe`,
-        );
-      }
-
-      // Use provided current price or fetch if not provided
-      let currentPrice: number;
-      if (params.currentPrice && params.currentPrice > 0) {
-        currentPrice = params.currentPrice;
-        DevLogger.log('Using provided current price:', {
-          coin: params.coin,
-          providedPrice: currentPrice,
-          source: 'UI price feed',
-        });
-      } else {
-        DevLogger.log('Fetching current price via API (fallback)');
-        const mids = await infoClient.allMids({ dex: dexName ?? '' });
-        // allMids returns prices keyed by asset name ("BTC" or "xyz:XYZ100")
-        currentPrice = parseFloat(mids[params.coin] || '0');
-        if (currentPrice === 0) {
-          throw new Error(`No price available for ${params.coin}`);
-        }
-      }
-
-      // HYBRID APPROACH: USD as source of truth with price validation and optimization
-      let finalPositionSize: number;
-
-      if (params.usdAmount && parseFloat(params.usdAmount) > 0) {
-        // NEW: USD amount provided - use it as source of truth and recalculate size with fresh price
-        const usdAmount = parseFloat(params.usdAmount);
-
-        // 1. Validate price staleness if priceAtCalculation provided
-        if (params.priceAtCalculation) {
-          const priceDeltaBps = Math.abs(
-            ((currentPrice - params.priceAtCalculation) /
-              params.priceAtCalculation) *
-              10000,
-          );
-          const maxSlippageBps =
-            params.maxSlippageBps ?? ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS;
-
-          if (priceDeltaBps > maxSlippageBps) {
-            throw new Error(
-              `Price moved too much: ${priceDeltaBps.toFixed(0)} bps (max: ${maxSlippageBps} bps). ` +
-                `Expected: ${params.priceAtCalculation.toFixed(2)}, Current: ${currentPrice.toFixed(2)}`,
-            );
-          }
-
-          DevLogger.log('Price validation passed:', {
-            priceAtCalculation: params.priceAtCalculation,
-            currentPrice,
-            deltaBps: priceDeltaBps.toFixed(2),
-            maxSlippageBps,
-          });
-        }
-
-        // 2. Recalculate position size with fresh price
-        finalPositionSize = usdAmount / currentPrice;
-
-        // 3. Apply size decimals rounding (same as calculatePositionSize in UI)
-        const multiplier = Math.pow(10, assetInfo.szDecimals);
-        finalPositionSize =
-          Math.round(finalPositionSize * multiplier) / multiplier;
-
-        // 4. Optimization: Ensure rounded size still converts back to valid USD amount
-        // This prevents "insufficient margin" errors from rounding issues
-        const actualNotionalValue = finalPositionSize * currentPrice;
-        const requiredMargin = actualNotionalValue / (params.leverage || 1);
-
-        // If rounded size requires more margin than available, reduce by one position increment
-        // Note: availableBalance check should be done in validation layer, this is for rounding edge cases
-        const minPositionSizeIncrement = 1 / multiplier;
-
-        // Validate that the position size after rounding still represents a reasonable USD amount
-        // Allow up to $0.01 difference to account for price fluctuations during calculation
-        const usdDifference = Math.abs(actualNotionalValue - usdAmount);
-        if (usdDifference > 0.01) {
-          DevLogger.log(
-            'Position size rounding caused significant USD difference:',
-            {
-              requestedUsd: usdAmount,
-              actualUsd: actualNotionalValue,
-              difference: usdDifference,
-              positionSize: finalPositionSize,
-              note: 'Difference > $0.01 but within acceptable range',
-            },
-          );
-        }
-
-        DevLogger.log('Recalculated position size with fresh price:', {
-          usdAmount,
-          priceAtCalculation: params.priceAtCalculation,
-          currentPrice,
-          originalSize: params.size,
-          recalculatedSize: finalPositionSize,
-          requiredMargin,
-          minIncrement: minPositionSizeIncrement,
-        });
-      } else {
-        // LEGACY: Use provided size (backward compatibility)
-        finalPositionSize = parseFloat(params.size);
-
-        DevLogger.log(
-          'Using legacy size calculation (no USD amount provided):',
-          {
-            providedSize: params.size,
-            finalSize: finalPositionSize,
-          },
-        );
-      }
-
-      // Calculate order parameters using the same logic as debug test
-      let orderPrice: number;
-      let formattedSize: string;
-
-      if (params.orderType === 'market') {
-        // For market orders, use finalPositionSize (recalculated with fresh price) and add slippage
-        const slippage =
-          params.slippage ?? ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS / 10000;
-        orderPrice = params.isBuy
-          ? currentPrice * (1 + slippage) // Buy above market
-          : currentPrice * (1 - slippage); // Sell below market
-        formattedSize = formatHyperLiquidSize({
-          size: finalPositionSize,
-          szDecimals: assetInfo.szDecimals,
-        });
-      } else {
-        // For limit orders, use provided price and finalPositionSize
-        if (!params.price) {
-          throw new Error(
-            strings('perps.errors.orderValidation.limitPriceRequired'),
-          );
-        }
-        orderPrice = parseFloat(params.price);
-        formattedSize = formatHyperLiquidSize({
-          size: finalPositionSize,
-          szDecimals: assetInfo.szDecimals,
-        });
-      }
-
-      const formattedPrice = formatHyperLiquidPrice({
-        price: orderPrice,
-        szDecimals: assetInfo.szDecimals,
+      // 1. Get asset info and current price
+      const { assetInfo, currentPrice } = await this.getAssetInfo({
+        coin: params.coin,
+        dexName,
       });
 
-      // Get the asset ID for this DEX
-      // Each DEX has its own universe with indices starting from 0
-      // e.g., xyz:XYZ100 is at index 0 in xyz DEX, BTC is at index 0 in main DEX
+      // Allow override with UI-provided price (optimization to avoid API call)
+      const effectivePrice =
+        params.currentPrice && params.currentPrice > 0
+          ? params.currentPrice
+          : currentPrice;
+
+      if (params.currentPrice && params.currentPrice > 0) {
+        DevLogger.log('Using provided current price:', {
+          coin: params.coin,
+          providedPrice: effectivePrice,
+          source: 'UI price feed',
+        });
+      }
+
+      // 2. Calculate final position size with USD reconciliation
+      const { finalPositionSize } = calculateFinalPositionSize({
+        usdAmount: params.usdAmount,
+        size: params.size,
+        currentPrice: effectivePrice,
+        priceAtCalculation: params.priceAtCalculation,
+        maxSlippageBps: params.maxSlippageBps,
+        szDecimals: assetInfo.szDecimals,
+        leverage: params.leverage,
+      });
+
+      // 3. Calculate order price and formatted size
+      const { orderPrice, formattedSize, formattedPrice } =
+        calculateOrderPriceAndSize({
+          orderType: params.orderType,
+          isBuy: params.isBuy,
+          finalPositionSize,
+          currentPrice: effectivePrice,
+          limitPrice: params.price,
+          slippage: params.slippage,
+          szDecimals: assetInfo.szDecimals,
+        });
+
+      // 4. Get asset ID and validate it exists
       const assetId = this.coinToAssetId.get(params.coin);
       if (assetId === undefined) {
-        DevLogger.log('HyperLiquidProvider: Asset ID lookup failed', {
+        DevLogger.log('Asset ID lookup failed', {
           requestedCoin: params.coin,
           dexName: dexName || 'main',
           mapSize: this.coinToAssetId.size,
@@ -1740,271 +1909,69 @@ export class HyperLiquidProvider implements IPerpsProvider {
         throw new Error(`Asset ID not found for ${params.coin}`);
       }
 
-      DevLogger.log('HyperLiquidProvider: Resolved DEX-specific asset ID', {
+      DevLogger.log('Resolved DEX-specific asset ID', {
         coin: params.coin,
         dex: dexName || 'main',
         assetId,
-        note: `Asset ID ${assetId} is correct for ${params.coin} in ${
-          dexName || 'main'
-        } DEX`,
       });
 
-      // Update leverage if specified
-      if (params.leverage) {
-        DevLogger.log('Updating leverage before order:', {
-          coin: params.coin,
-          assetId,
-          requestedLeverage: params.leverage,
-          leverageType: 'isolated', // Default to isolated leverage
-        });
+      // 5. Update leverage if specified
+      await this.prepareAssetForTrading({
+        coin: params.coin,
+        assetId,
+        leverage: params.leverage,
+      });
 
-        const exchangeClient = this.clientService.getExchangeClient();
-        const leverageResult = await exchangeClient.updateLeverage({
-          asset: assetId,
-          isCross: false, // Default to isolated leverage for now
-          leverage: params.leverage,
-        });
-
-        if (leverageResult.status !== 'ok') {
-          throw new Error(
-            `Failed to update leverage: ${JSON.stringify(leverageResult)}`,
-          );
-        }
-
-        DevLogger.log('Leverage updated successfully:', {
-          coin: params.coin,
-          leverage: params.leverage,
-        });
-      }
-
-      // HIP-3 balance management: native abstraction or programmatic transfer
+      // 6. Handle HIP-3 balance management (if applicable)
       const isHip3Order = dexName !== null;
       let transferInfo: { amount: number; sourceDex: string } | null = null;
 
-      if (isHip3Order && !this.useDexAbstraction) {
-        // Manual auto-transfer logic (when DEX abstraction is disabled)
-        DevLogger.log('HyperLiquidProvider: Using manual auto-transfer', {
-          coin: params.coin,
-          dex: dexName,
-        });
-
-        // Calculate required margin based on existing position
-        const positionSize = parseFloat(formattedSize);
+      if (isHip3Order && dexName) {
         const effectiveLeverage = params.leverage || assetInfo.maxLeverage || 1;
-
-        const requiredMarginWithBuffer = await this.calculateHip3RequiredMargin(
-          {
-            coin: params.coin,
-            dexName,
-            positionSize,
-            orderPrice,
-            leverage: effectiveLeverage,
-            isBuy: params.isBuy,
-          },
-        );
-
-        // Transfer funds to reach required TOTAL margin in available balance
-        // autoTransferForHip3Order checks current balance and only transfers shortfall
-        try {
-          transferInfo = await this.autoTransferForHip3Order({
-            targetDex: dexName,
-            requiredMargin: requiredMarginWithBuffer,
-          });
-        } catch (transferError) {
-          // Reactive fix: Check if transfer failed because DEX abstraction is actually enabled
-          const errorMsg = (transferError as Error)?.message || '';
-
-          if (
-            errorMsg.includes('Cannot transfer with DEX abstraction enabled')
-          ) {
-            DevLogger.log(
-              'HyperLiquidProvider: Detected DEX abstraction is enabled, switching to abstraction mode',
-            );
-
-            // Update flag to prevent this issue on future orders
-            this.useDexAbstraction = true;
-
-            // Continue without manual transfer - let DEX abstraction handle it
-            transferInfo = null;
-          } else {
-            // Different error - rethrow
-            throw transferError;
-          }
-        }
-      } else if (isHip3Order && this.useDexAbstraction) {
-        DevLogger.log(
-          'HyperLiquidProvider: Using DEX abstraction (no manual transfer)',
-          {
-            coin: params.coin,
-            dex: dexName,
-            note: 'HyperLiquid will auto-manage collateral',
-          },
-        );
-      }
-
-      // Build orders array - main order plus optional TP/SL orders
-      const orders: SDKOrderParams[] = [];
-
-      // 1. Main order (always present)
-      const mainOrder: SDKOrderParams = {
-        a: assetId,
-        b: params.isBuy,
-        p: formattedPrice,
-        s: formattedSize,
-        r: params.reduceOnly || false,
-        /**
-         * HyperLiquid Time-In-Force (TIF) options:
-         * - 'Gtc' (Good Till Canceled): Standard limit orders that remain active until filled or canceled
-         * - 'Ioc' (Immediate or Cancel): Limit orders that fill immediately or cancel unfilled portion
-         * - 'FrontendMarket': True market orders as used in HyperLiquid UI - USE THIS FOR MARKET ORDERS
-         * - 'Alo' (Add Liquidity Only): Maker-only orders that add liquidity to order book
-         * - 'LiquidationMarket': Similar to IoC, used for liquidation orders
-         *
-         * IMPORTANT: Use 'FrontendMarket' for market orders, NOT 'Ioc'
-         * HyperLiquid treats 'Ioc' as limit orders, causing incorrect order type display
-         */
-        t:
-          params.orderType === 'limit'
-            ? { limit: { tif: 'Gtc' } } // Standard limit order
-            : { limit: { tif: 'FrontendMarket' } }, // True market order
-        c: params.clientOrderId ? (params.clientOrderId as Hex) : undefined,
-      };
-      orders.push(mainOrder);
-
-      // 2. Take Profit order (if specified)
-      if (params.takeProfitPrice) {
-        const tpOrder: SDKOrderParams = {
-          a: assetId,
-          b: !params.isBuy, // Opposite side to close position
-          p: formatHyperLiquidPrice({
-            price: parseFloat(params.takeProfitPrice),
-            szDecimals: assetInfo.szDecimals,
-          }),
-          s: formattedSize, // Same size as main order
-          r: true, // Always reduce-only for TP
-          t: {
-            trigger: {
-              isMarket: false, // Limit order when triggered
-              triggerPx: formatHyperLiquidPrice({
-                price: parseFloat(params.takeProfitPrice),
-                szDecimals: assetInfo.szDecimals,
-              }),
-              tpsl: 'tp',
-            },
-          },
-        };
-        orders.push(tpOrder);
-      }
-
-      // 3. Stop Loss order (if specified)
-      if (params.stopLossPrice) {
-        const slOrder: SDKOrderParams = {
-          a: assetId,
-          b: !params.isBuy, // Opposite side to close position
-          p: formatHyperLiquidPrice({
-            price: parseFloat(params.stopLossPrice),
-            szDecimals: assetInfo.szDecimals,
-          }),
-          s: formattedSize, // Same size as main order
-          r: true, // Always reduce-only for SL
-          t: {
-            trigger: {
-              isMarket: true, // Market order when triggered for faster execution
-              triggerPx: formatHyperLiquidPrice({
-                price: parseFloat(params.stopLossPrice),
-                szDecimals: assetInfo.szDecimals,
-              }),
-              tpsl: 'sl',
-            },
-          },
-        };
-        orders.push(slOrder);
-      }
-
-      // 4. Determine grouping - use explicit override or smart defaults
-      const grouping =
-        params.grouping ||
-        (params.takeProfitPrice || params.stopLossPrice ? 'normalTpsl' : 'na');
-
-      // 5. Calculate discounted builder fee if reward discount is active
-      let builderFee = BUILDER_FEE_CONFIG.maxFeeTenthsBps;
-      if (this.userFeeDiscountBips !== undefined) {
-        builderFee = Math.floor(
-          builderFee * (1 - this.userFeeDiscountBips / BASIS_POINTS_DIVISOR),
-        );
-        DevLogger.log('HyperLiquid: Applying builder fee discount', {
-          originalFee: BUILDER_FEE_CONFIG.maxFeeTenthsBps,
-          discountBips: this.userFeeDiscountBips,
-          discountedFee: builderFee,
-        });
-      }
-
-      // 6. Submit order with atomic rollback for HIP-3 failures
-      // Asset ID determines routing (main DEX: direct index, HIP-3: BASE_ASSET_ID + dexIndex*DEX_MULTIPLIER + coinIndex)
-      // The exchange client handles all DEXs through a single instance
-      const exchangeClient = this.clientService.getExchangeClient();
-
-      DevLogger.log(
-        'HyperLiquidProvider: Submitting order via asset ID routing',
-        {
+        const hip3Result = await this.handleHip3PreOrder({
+          dexName,
           coin: params.coin,
-          assetId: orders[0].a,
-          orderCount: orders.length,
-          mainOrder: orders[0],
-          dexName: dexName || 'main',
-          isHip3: !!dexName,
-        },
-      );
-
-      try {
-        const result = await exchangeClient.order({
-          orders,
-          grouping,
-          builder: {
-            b: this.getBuilderAddress(this.clientService.isTestnetMode()),
-            f: builderFee,
-          },
-        });
-
-        if (result.status !== 'ok') {
-          throw new Error(`Order failed: ${JSON.stringify(result)}`);
-        }
-
-        const status = result.response?.data?.statuses?.[0];
-        const restingOrder =
-          status && 'resting' in status ? status.resting : null;
-        const filledOrder = status && 'filled' in status ? status.filled : null;
-
-        // Order succeeded - auto-rebalance excess funds back to main DEX
-        if (isHip3Order && transferInfo && dexName) {
-          await this.handleHip3PostOrderRebalance({ dexName, transferInfo });
-        }
-
-        return {
-          success: true,
-          orderId:
-            restingOrder?.oid?.toString() || filledOrder?.oid?.toString(),
-          filledSize: filledOrder?.totalSz,
-          averagePrice: filledOrder?.avgPx,
-        };
-      } catch (orderError) {
-        // Order failed - rollback HIP-3 transfer if funds were moved
-        if (transferInfo && dexName) {
-          await this.handleHip3OrderRollback({ dexName, transferInfo });
-        }
-        throw orderError;
-      }
-    } catch (error) {
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('placeOrder', {
-          coin: params.coin,
-          orderType: params.orderType,
+          orderPrice,
+          positionSize: parseFloat(formattedSize),
+          leverage: effectiveLeverage,
           isBuy: params.isBuy,
-        }),
-      );
-      const mappedError = this.mapError(error);
-      return createErrorResult(mappedError, { success: false });
+          maxLeverage: assetInfo.maxLeverage,
+        });
+        transferInfo = hip3Result.transferInfo;
+      }
+
+      // 7. Build orders array (main + TP/SL if specified)
+      const { orders, grouping } = buildOrdersArray({
+        assetId,
+        isBuy: params.isBuy,
+        formattedPrice,
+        formattedSize,
+        reduceOnly: params.reduceOnly || false,
+        orderType: params.orderType,
+        clientOrderId: params.clientOrderId,
+        takeProfitPrice: params.takeProfitPrice,
+        stopLossPrice: params.stopLossPrice,
+        szDecimals: assetInfo.szDecimals,
+        grouping: params.grouping,
+      });
+
+      // 8. Submit order with atomic rollback
+      return await this.submitOrderWithRollback({
+        orders,
+        grouping,
+        isHip3Order,
+        dexName,
+        transferInfo,
+        coin: params.coin,
+        assetId,
+      });
+    } catch (error) {
+      return this.handleOrderError({
+        error,
+        coin: params.coin,
+        orderType: params.orderType,
+        isBuy: params.isBuy,
+      });
     }
   }
 
@@ -2780,6 +2747,26 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const freedMarginRatio = closeSizeNum / totalPositionSize;
       const freedMargin = totalMarginUsed * freedMarginRatio;
 
+      // Get current price for validation if not provided (and not a full close)
+      // Full closes don't need price for validation
+      let currentPrice = params.currentPrice;
+      if (!currentPrice && params.size && !params.usdAmount) {
+        // Partial close without USD or price: use limit price as fallback for validation
+        // For limit orders, the limit price is a reasonable proxy for validation purposes
+        if (params.price && params.orderType === 'limit') {
+          currentPrice = parseFloat(params.price);
+          DevLogger.log(
+            'Using limit price for close position validation (limit order)',
+            {
+              coin: params.coin,
+              currentPrice,
+            },
+          );
+        }
+        // Note: For market orders without usdAmount/currentPrice, validation will fail
+        // with "price_required" error, which is correct behavior (prevents invalid orders)
+      }
+
       DevLogger.log('Position close details', {
         coin: position.coin,
         isHip3Position,
@@ -2797,7 +2784,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
         orderType: params.orderType || 'market',
         price: params.price,
         reduceOnly: true,
-        // Pass through slippage parameters for consistent validation
+        isFullClose: !params.size, // True if closing 100% (size not provided)
+        // Pass through price and slippage parameters for consistent validation
+        currentPrice,
         usdAmount: params.usdAmount,
         priceAtCalculation: params.priceAtCalculation,
         maxSlippageBps: params.maxSlippageBps,
@@ -3905,46 +3894,70 @@ export class HyperLiquidProvider implements IPerpsProvider {
         ? TRADING_DEFAULTS.amount.testnet
         : TRADING_DEFAULTS.amount.mainnet;
 
-      // Calculate order value in USD for minimum validation
-      let orderValueUSD: number;
-
-      if (params.usdAmount) {
-        // Preferred: Use provided USD amount (source of truth, no rounding loss)
-        orderValueUSD = parseFloat(params.usdAmount);
-
-        DevLogger.log('Validating USD amount (source of truth):', {
-          usdAmount: orderValueUSD,
-          minimumRequired: minimumOrderSize,
-        });
+      // Skip USD validation and minimum check for full closes (100% position close)
+      if (params.reduceOnly && params.isFullClose) {
+        DevLogger.log(
+          'Full close detected: skipping USD validation and $10 minimum',
+        );
       } else {
-        // Fallback: Calculate from size × currentPrice (backward compatibility)
-        const size = parseFloat(params.size || '0');
+        // Calculate order value in USD for minimum validation
+        let orderValueUSD: number;
 
-        if (!params.currentPrice) {
-          return {
-            isValid: false,
-            error: strings('perps.order.validation.price_required'),
-          };
+        if (params.usdAmount) {
+          // Preferred: Use provided USD amount (source of truth, no rounding loss)
+          orderValueUSD = parseFloat(params.usdAmount);
+
+          DevLogger.log('Validating USD amount (source of truth):', {
+            usdAmount: orderValueUSD,
+            minimumRequired: minimumOrderSize,
+          });
+        } else {
+          // Fallback: Calculate from size × price
+          const size = parseFloat(params.size || '0');
+          let priceForValidation = params.currentPrice;
+
+          // For limit orders without currentPrice, use limit price as fallback
+          if (
+            !priceForValidation &&
+            params.price &&
+            params.orderType === 'limit'
+          ) {
+            priceForValidation = parseFloat(params.price);
+            DevLogger.log(
+              'Using limit price for order validation (limit order):',
+              {
+                size,
+                limitPrice: priceForValidation,
+              },
+            );
+          }
+
+          if (!priceForValidation) {
+            return {
+              isValid: false,
+              error: strings('perps.order.validation.price_required'),
+            };
+          }
+
+          orderValueUSD = size * priceForValidation;
+
+          DevLogger.log('Validating calculated USD from size:', {
+            size,
+            price: priceForValidation,
+            calculatedUsd: orderValueUSD,
+            minimumRequired: minimumOrderSize,
+          });
         }
 
-        orderValueUSD = size * params.currentPrice;
-
-        DevLogger.log('Validating calculated USD from size:', {
-          size,
-          price: params.currentPrice,
-          calculatedUsd: orderValueUSD,
-          minimumRequired: minimumOrderSize,
-        });
-      }
-
-      // Validate minimum order size for all orders
-      if (orderValueUSD < minimumOrderSize) {
-        return {
-          isValid: false,
-          error: strings('perps.order.validation.minimum_amount', {
-            amount: minimumOrderSize.toString(),
-          }),
-        };
+        // Validate minimum order size
+        if (orderValueUSD < minimumOrderSize) {
+          return {
+            isValid: false,
+            error: strings('perps.order.validation.minimum_amount', {
+              amount: minimumOrderSize.toString(),
+            }),
+          };
+        }
       }
 
       // Asset-specific leverage validation

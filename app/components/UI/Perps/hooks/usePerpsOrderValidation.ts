@@ -5,8 +5,10 @@ import {
   PERFORMANCE_CONFIG,
   VALIDATION_THRESHOLDS,
 } from '../constants/perpsConfig';
+import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
 import type { OrderParams } from '../controllers/types';
 import type { OrderFormState } from '../types/perps-types';
+import { usePerpsNetwork } from './usePerpsNetwork';
 import { usePerpsTrading } from './usePerpsTrading';
 import { useStableArray } from './useStableArray';
 
@@ -54,6 +56,7 @@ export function usePerpsOrderValidation(
   } = params;
 
   const { validateOrder } = usePerpsTrading();
+  const network = usePerpsNetwork();
 
   const [validation, setValidation] = useState<ValidationResult>({
     errors: EMPTY_ERRORS,
@@ -92,19 +95,20 @@ export function usePerpsOrderValidation(
     }
 
     // Minimum order size validation using original USD input (prevents precision loss)
-    // If originalUsdAmount is provided, validate it directly instead of recalculated value
+    // Validate USD amount directly (source of truth) instead of recalculated value
     // This prevents validation flash when price updates cause rounding near the $10 minimum
-    if (originalUsdAmount) {
-      const usdAmount = Number.parseFloat(originalUsdAmount || '0');
-      const minimumOrderSize = 10; // TRADING_DEFAULTS.amount.mainnet/testnet
+    const usdAmount = Number.parseFloat(originalUsdAmount || '0');
+    const minimumOrderSize =
+      network === 'mainnet'
+        ? TRADING_DEFAULTS.amount.mainnet
+        : TRADING_DEFAULTS.amount.testnet;
 
-      if (usdAmount > 0 && usdAmount < minimumOrderSize) {
-        immediateErrors.push(
-          strings('perps.order.validation.minimum_amount', {
-            amount: minimumOrderSize.toString(),
-          }),
-        );
-      }
+    if (usdAmount > 0 && usdAmount < minimumOrderSize) {
+      immediateErrors.push(
+        strings('perps.order.validation.minimum_amount', {
+          amount: minimumOrderSize.toString(),
+        }),
+      );
     }
 
     try {
@@ -118,6 +122,7 @@ export function usePerpsOrderValidation(
         leverage: orderForm.leverage,
         currentPrice: assetPrice,
         existingPositionLeverage,
+        usdAmount: originalUsdAmount, // Pass USD as source of truth for validation
       };
 
       // Get protocol-specific validation
@@ -176,6 +181,7 @@ export function usePerpsOrderValidation(
     existingPositionLeverage,
     originalUsdAmount,
     validateOrder,
+    network,
   ]);
 
   useEffect(() => {

@@ -96,6 +96,7 @@ export type OrderParams = {
   orderType: OrderType; // Order type
   price?: string; // Limit price (required for limit orders)
   reduceOnly?: boolean; // Reduce-only flag
+  isFullClose?: boolean; // Indicates closing 100% of position (skips $10 minimum validation)
   timeInForce?: 'GTC' | 'IOC' | 'ALO'; // Time in force
 
   // USD as source of truth (hybrid approach)
