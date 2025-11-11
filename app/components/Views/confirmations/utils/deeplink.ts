@@ -72,7 +72,7 @@ export async function addTransactionForDeeplink({
 
   // Temporary solution for preventing back to back deeplink requests
   if (isAddingDeeplinkTransaction) {
-    Logger.error(new Error('Cannot add another deeplink transaction'));
+    Logger.log('Cannot add another deeplink transaction');
     return;
   }
 
