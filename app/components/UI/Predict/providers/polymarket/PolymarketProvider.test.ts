@@ -842,6 +842,96 @@ describe('PolymarketProvider', () => {
     };
   }
 
+  // Helper function to create optimistic position for testing
+  function createOptimisticPosition(
+    overrides?: Partial<PredictPosition>,
+  ): PredictPosition {
+    return {
+      ...createMockPosition(overrides),
+      optimistic: true,
+      ...overrides,
+    };
+  }
+
+  // Helper function to setup optimistic update test environment
+  function setupOptimisticUpdateTest() {
+    const mockAddress = '0x1234567890123456789012345678901234567890';
+    const mockSigner = {
+      address: mockAddress,
+      signTypedMessage: jest.fn(),
+      signPersonalMessage: jest.fn(),
+    };
+
+    const provider = createProvider();
+
+    // Setup common mocks
+    mockComputeProxyAddress.mockReturnValue('0xproxy');
+    mockFindNetworkClientIdByChainId.mockReturnValue('polygon');
+    mockGetNetworkClientById.mockReturnValue({ provider: {} });
+    mockQuery.mockResolvedValue('0x1');
+
+    const mockFetch = jest.fn();
+    (globalThis as unknown as { fetch: jest.Mock }).fetch = mockFetch;
+
+    return {
+      provider,
+      mockAddress,
+      mockSigner,
+      mockFetch,
+    };
+  }
+
+  // Helper function to mock getMarketDetails response
+  function mockMarketDetailsForOptimistic(params: {
+    marketId: string;
+    outcomes: {
+      id: string;
+      title: string;
+      tokenId: string;
+      price: number;
+    }[];
+  }) {
+    mockGetMarketDetailsFromGammaApi.mockResolvedValue({
+      id: params.marketId,
+      question: 'Test Market',
+      markets: [],
+    });
+
+    mockParsePolymarketEvents.mockReturnValue([
+      {
+        id: params.marketId,
+        providerId: 'polymarket',
+        slug: 'test-market',
+        title: 'Test Market',
+        description: 'A test market',
+        image: 'https://example.com/market.png',
+        status: 'open',
+        recurrence: Recurrence.NONE,
+        categories: [],
+        outcomes: params.outcomes.map((outcome) => ({
+          id: outcome.id,
+          providerId: 'polymarket',
+          marketId: params.marketId,
+          title: outcome.title,
+          description: outcome.title,
+          image: 'https://example.com/outcome.png',
+          status: 'open',
+          tokens: [
+            {
+              id: outcome.tokenId,
+              title: outcome.title,
+              price: outcome.price,
+            },
+          ],
+          volume: 1000,
+          groupItemTitle: 'Test Group',
+        })),
+        liquidity: 10000,
+        volume: 20000,
+      },
+    ]);
+  }
+
   describe('placeOrder', () => {
     beforeEach(() => {
       jest.clearAllMocks();
@@ -4673,6 +4763,134 @@ describe('PolymarketProvider', () => {
         );
         expect(optimisticPos).toBeDefined();
         expect(optimisticPos?.optimistic).toBe(true);
+      });
+    });
+
+    describe('optimistic position creation - BUY orders', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+      });
+
+      it('creates optimistic position when buying new shares', async () => {
+        // Arrange
+        const { provider, mockSigner, mockFetch } = setupOptimisticUpdateTest();
+
+        mockMarketDetailsForOptimistic({
+          marketId: 'market-1',
+          outcomes: [
+            {
+              id: 'outcome-456',
+              title: 'Yes',
+              tokenId: 'token-456',
+              price: 0.5,
+            },
+          ],
+        });
+
+        const preview = createMockOrderPreview({
+          side: Side.BUY,
+          outcomeTokenId: 'token-456',
+          outcomeId: 'outcome-456',
+          marketId: 'market-1',
+          sharePrice: 0.5,
+        });
+
+        mockSubmitClobOrder.mockResolvedValue({
+          success: true,
+          response: {
+            success: true,
+            makingAmount: '1000000',
+            takingAmount: '2000000',
+            orderID: 'order-123',
+            status: 'success',
+            transactionsHashes: [],
+          },
+          error: undefined,
+        });
+
+        mockSignTypedMessage.mockResolvedValue('0xsignature');
+        mockSignPersonalMessage.mockResolvedValue('0xpersonalsignature');
+        mockCreateApiKey.mockResolvedValue({
+          apiKey: 'test-api-key',
+          secret: 'test-secret',
+          passphrase: 'test-passphrase',
+        });
+        mockPriceValid.mockReturnValue(true);
+        mockGetContractConfig.mockReturnValue({
+          exchange: '0x1234567890123456789012345678901234567890',
+          negRiskExchange: '0x0987654321098765432109876543210987654321',
+          collateral: '0xCollateralAddress',
+          conditionalTokens: '0xConditionalTokensAddress',
+          negRiskAdapter: '0xNegRiskAdapterAddress',
+        });
+        mockGetOrderTypedData.mockReturnValue({
+          types: {},
+          primaryType: 'Order',
+          domain: {},
+          message: {},
+        });
+        mockGetL2Headers.mockReturnValue({
+          POLY_ADDRESS: 'address',
+          POLY_SIGNATURE: 'signature',
+          POLY_TIMESTAMP: 'timestamp',
+          POLY_API_KEY: 'apiKey',
+          POLY_PASSPHRASE: 'passphrase',
+        });
+        mockCreateSafeFeeAuthorization.mockResolvedValue({
+          type: 'safe-transaction',
+          authorization: {
+            tx: {
+              to: '0xCollateralAddress',
+              operation: 0,
+              data: '0xdata',
+              value: '0',
+            },
+            sig: '0xsig',
+          },
+        });
+
+        // Act
+        await provider.placeOrder({ signer: mockSigner, preview });
+
+        // Assert
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue([]),
+        });
+
+        mockParsePolymarketPositions.mockResolvedValue([]);
+
+        const positions = await provider.getPositions({
+          address: mockSigner.address,
+        });
+
+        expect(positions.length).toBeGreaterThanOrEqual(1);
+        const optimisticPos = positions.find(
+          (p) => p.outcomeTokenId === 'token-456',
+        );
+        expect(optimisticPos).toBeDefined();
+        expect(optimisticPos?.optimistic).toBe(true);
+      });
+
+      it('verifies createOptimisticPosition helper creates position with optimistic flag', () => {
+        // Arrange
+        const basePosition = createMockPosition({
+          id: 'position-1',
+          outcomeTokenId: 'token-1',
+        });
+
+        // Act
+        const optimisticPosition = createOptimisticPosition({
+          id: 'position-1',
+          outcomeTokenId: 'token-1',
+        });
+
+        // Assert
+        expect(optimisticPosition.optimistic).toBe(true);
+        expect(optimisticPosition.id).toBe(basePosition.id);
+        expect(optimisticPosition.outcomeTokenId).toBe(
+          basePosition.outcomeTokenId,
+        );
       });
     });
   });
