@@ -391,6 +391,9 @@ export const initialState = {
               scopes: [SolScope.Mainnet],
               metadata: {
                 lastSelected: 0,
+                keyring: {
+                  type: 'Snap Keyring',
+                },
               },
             },
             [btcAccountId]: {
@@ -401,6 +404,9 @@ export const initialState = {
               scopes: [BtcScope.Mainnet],
               metadata: {
                 lastSelected: 0,
+                keyring: {
+                  type: 'HD Key Tree',
+                },
               },
             },
           },

@@ -22,17 +22,23 @@ jest.mock('../../../core/Engine', () => {
         ),
         getNetworkClientById: jest.fn((id: string) => {
           const twoEthHex = '0x1bc16d674ec80000';
+          const pad32 = (hex: string) => {
+            const v = hex.startsWith('0x') ? hex.slice(2) : hex;
+            return `0x${v.padStart(64, '0')}`;
+          };
+          const hundredEthHex = '0x56BC75E2D63100000';
           const provider = {
             request: jest.fn(
               async (args: { method: string; params?: unknown[] }) => {
                 if (args?.method === 'eth_chainId') return '0x1';
                 if (args?.method === 'net_version') return '1';
                 if (args?.method === 'eth_blockNumber') return '0xabcdef';
-                if (
-                  args?.method === 'eth_getBalance' ||
-                  args?.method === 'eth_call'
-                ) {
-                  return twoEthHex;
+                if (args?.method === 'eth_getBalance') {
+                  return hundredEthHex;
+                }
+                if (args?.method === 'eth_call') {
+                  // Return ABI-encoded uint256 (32-byte padded)
+                  return pad32(twoEthHex);
                 }
                 return null;
               },
