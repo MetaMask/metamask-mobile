@@ -18,7 +18,6 @@ import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTran
 import { getGlobalChainId } from '../../../../util/networks/global-network';
 import { submitSmartTransactionHook } from '../../../../util/smart-transactions/smart-publish-hook';
 import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
-import { PayHook } from '../../../../util/transactions/hooks/pay-hook';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
@@ -32,6 +31,7 @@ import {
   handleTransactionSubmittedEventForMetrics,
 } from './event-handlers/metrics';
 import { TransactionControllerInit } from './transaction-controller-init';
+import { TransactionPayPublishHook } from '@metamask/transaction-pay-controller';
 
 jest.mock('@metamask/transaction-controller');
 jest.mock('../../../../reducers/swaps');
@@ -39,9 +39,9 @@ jest.mock('../../../../selectors/smartTransactionsController');
 jest.mock('../../../../util/networks/global-network');
 jest.mock('../../../../util/smart-transactions/smart-publish-hook');
 jest.mock('./event-handlers/metrics');
-jest.mock('../../../../util/transactions/hooks/pay-hook');
 jest.mock('../../../../util/transactions/hooks/delegation-7702-publish');
 jest.mock('../../../../util/transactions/sentinel-api');
+jest.mock('@metamask/transaction-pay-controller');
 
 jest.mock('../../../../util/transactions', () => ({
   getTransactionById: jest.fn((_id) => ({
@@ -144,7 +144,7 @@ describe('Transaction Controller Init', () => {
     handleTransactionAddedEventForMetrics,
   );
   const isSendBundleSupportedMock = jest.mocked(isSendBundleSupported);
-  const payHookClassMock = jest.mocked(PayHook);
+  const payHookClassMock = jest.mocked(TransactionPayPublishHook);
   const payHookMock: jest.MockedFn<PublishHook> = jest.fn();
 
   /**
@@ -180,7 +180,7 @@ describe('Transaction Controller Init', () => {
 
     payHookClassMock.mockReturnValue({
       getHook: () => payHookMock,
-    } as unknown as PayHook);
+    } as unknown as TransactionPayPublishHook);
 
     payHookMock.mockResolvedValue({
       transactionHash: undefined,

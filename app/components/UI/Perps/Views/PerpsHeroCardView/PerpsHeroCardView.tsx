@@ -60,6 +60,7 @@ import {
   getPerpsHeroCardViewSelector,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { useReferralDetails } from '../../../Rewards/hooks/useReferralDetails';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 
 // To add a new card, add the image to the array.
 const CARD_IMAGES: { image: ImageSourcePropType; id: number; name: string }[] =
@@ -185,7 +186,7 @@ const PerpsHeroCardView: React.FC = () => {
               style={styles.assetName}
               testID={getPerpsHeroCardViewSelector.assetSymbol(index)}
             >
-              {data.asset}
+              {getPerpsDisplaySymbol(data.asset)}
             </Text>
             <View
               style={styles.directionBadge}
