@@ -20,7 +20,6 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { store } from '../../../../store';
 import PREINSTALLED_SNAPS from '../../../../lib/snaps/preinstalled-snaps';
-import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 import { MetaMetrics } from '../../../Analytics';
 import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
 
@@ -86,7 +85,6 @@ export const snapControllerInit: ControllerInitFunction<
   }
 
   const controller = new SnapController({
-    dynamicPermissions: [Caip25EndowmentPermissionName],
     environmentEndowmentPermissions: Object.values(EndowmentPermissions),
     excludedPermissions: {
       ...ExcludedSnapPermissions,
