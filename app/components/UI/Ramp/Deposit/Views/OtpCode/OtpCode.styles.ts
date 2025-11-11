@@ -1,5 +1,6 @@
 import { Theme } from '../../../../../../util/theme/models';
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../../../styles/common';
 import { getOtpCellSize } from '../../../utils/getOtpCellSize';
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -10,7 +11,7 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     title: {
       marginTop: 24,
-      fontWeight: 'bold',
+      ...fontStyles.bold,
     },
     description: {
       marginTop: 8,
@@ -35,7 +36,7 @@ const styleSheet = (params: { theme: Theme }) => {
       fontSize: 24,
       lineHeight: 30,
       textAlign: 'center',
-      fontWeight: 'bold',
+      ...fontStyles.bold,
     },
     focusCell: {
       borderColor: theme.colors.info.default,

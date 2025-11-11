@@ -1,4 +1,5 @@
 import React from 'react';
+import { fontStyles } from '../../../../styles/common';
 import {
   StyleSheet,
   ImageSourcePropType,
@@ -52,7 +53,7 @@ const createStyles = (params: StylesParams) => {
     tokenSymbol: {
       color: theme.colors.text.default,
       fontSize: theme.typography.sHeadingLG.fontSize,
-      fontWeight: 500,
+      ...fontStyles.medium,
     },
   });
 };

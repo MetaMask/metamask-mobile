@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import Device from '../../../util/device';
+import { fontStyles } from '../../../styles/common';
 import { Theme } from '@metamask/design-tokens';
 
 const modalPadding = 24;
@@ -22,7 +23,7 @@ const createStyles = ({ theme }: { theme: Theme }) =>
     header: {
       textAlign: 'center',
       marginTop: 16,
-      fontWeight: 'bold',
+      ...fontStyles.bold,
     },
     headerContainer: {
       alignItems: 'center',

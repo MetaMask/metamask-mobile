@@ -1,4 +1,5 @@
 import type { Theme } from '../../../../../util/theme/models';
+import { fontStyles } from '../../../../../styles/common';
 
 export const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -40,7 +41,7 @@ export const styleSheet = (params: { theme: Theme }) => {
     },
     sectionHeaderText: {
       fontSize: 16,
-      fontWeight: '600' as const,
+      ...fontStyles.medium,
       color: colors.text.alternative,
     },
     transactionItem: {
@@ -68,13 +69,13 @@ export const styleSheet = (params: { theme: Theme }) => {
     },
     transactionTitle: {
       fontSize: 16,
-      fontWeight: '400' as const,
+      ...(fontStyles.normal as const),
       color: colors.text.default,
       marginBottom: 4,
     },
     transactionTitleCentered: {
       fontSize: 16,
-      fontWeight: '400' as const,
+      ...(fontStyles.normal as const),
       color: colors.text.default,
       marginBottom: 0, // No margin when centered
     },

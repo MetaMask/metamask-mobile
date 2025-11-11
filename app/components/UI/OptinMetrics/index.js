@@ -111,7 +111,7 @@ const createStyles = ({ colors }) =>
       backgroundColor: colors.border.muted,
     },
     title: {
-      fontWeight: '700',
+      ...fontStyles.bold,
       marginTop: 8,
     },
     sectionContainer: {

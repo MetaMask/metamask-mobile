@@ -1,5 +1,6 @@
 // Third party dependencies.
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../styles/common';
 import { Theme } from '../../../util/theme/models';
 
 /**
@@ -16,8 +17,8 @@ const styleSheet = ({ theme }: { theme: Theme }) =>
       alignItems: 'flex-end',
       flexDirection: 'column',
     },
-    balanceLabel: { textAlign: 'right', fontWeight: '500' },
-    titleText: { fontWeight: '500' },
+    balanceLabel: { textAlign: 'right', ...fontStyles.medium },
+    titleText: { ...fontStyles.medium },
     sectionHeader: {
       paddingHorizontal: 16,
       paddingVertical: 8,

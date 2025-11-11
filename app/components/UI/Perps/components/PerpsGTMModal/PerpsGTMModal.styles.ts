@@ -1,5 +1,8 @@
 import { Platform, StyleSheet, Dimensions } from 'react-native';
-import { colors as importedColors } from '../../../../../styles/common';
+import {
+  fontStyles,
+  colors as importedColors,
+} from '../../../../../styles/common';
 import { Theme } from '@metamask/design-tokens';
 
 // Responsive scaling utilities
@@ -98,7 +101,7 @@ const createStyles = (
           ? 'System'
           : 'Roboto'
         : 'Geist-Regular',
-      fontWeight: '500',
+      ...fontStyles.medium,
     },
     footerContainer: {
       display: 'flex',
@@ -114,7 +117,7 @@ const createStyles = (
     },
     tryNowButtonText: {
       color: isDarkMode ? importedColors.btnBlack : importedColors.white,
-      fontWeight: '600',
+      ...fontStyles.medium,
       fontSize: scaleFont(16),
     },
     notNowButton: {
@@ -124,7 +127,7 @@ const createStyles = (
       borderColor: importedColors.transparent,
     },
     notNowButtonText: {
-      fontWeight: '500',
+      ...fontStyles.medium,
       fontSize: scaleFont(16),
     },
   });

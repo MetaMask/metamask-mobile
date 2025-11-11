@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../../../styles/common';
 import { Theme } from '../../../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -10,7 +11,7 @@ const styleSheet = (params: { theme: Theme }) => {
       gap: 16,
     },
     title: {
-      fontWeight: 'bold',
+      ...fontStyles.bold,
     },
     description: {
       color: theme.colors.text.alternative,

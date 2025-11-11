@@ -24,12 +24,12 @@ const styleSheet = (params: { theme: Theme }) => {
     messageExpanded: {
       color: theme.colors.text.default,
       ...fontStyles.normal,
-      fontWeight: '400',
+      ...fontStyles.normal,
     },
     siweTos: {
       color: theme.colors.text.default,
       ...fontStyles.normal,
-      fontWeight: '400',
+      ...fontStyles.normal,
       paddingHorizontal: 8,
       marginBottom: 8,
     },

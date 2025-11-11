@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../../../styles/common';
 import { Theme } from '../../../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -15,7 +16,7 @@ const styleSheet = (params: { theme: Theme }) => {
       textAlign: 'center',
       marginTop: 12,
       marginBottom: 16,
-      fontWeight: 'bold',
+      ...fontStyles.bold,
     },
     description: {
       textAlign: 'center',

@@ -79,7 +79,7 @@ const createStyles = (colors) =>
     },
     textInputDisabled: {
       color: colors.text.muted,
-      fontWeight: 'bold',
+      ...fontStyles.bold,
     },
     textInputFocus: {
       borderColor: colors.primary.default,

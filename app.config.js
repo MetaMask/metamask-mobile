@@ -38,6 +38,13 @@ module.exports = {
     [
       'expo-font',
       {
+        // NOTE: We use a simple path array for fonts. Each font file becomes a separate
+        // font family based on its filename (e.g., Geist-Medium.otf → 'Geist-Medium').
+        // This means the fontWeight property won't automatically switch fonts - you must use
+        // explicit font families like 'Geist-Medium' or use fontStyles.* from common.ts.
+        //
+        // Future: We may migrate to platform-specific configuration to enable native
+        // fontWeight support. See: https://docs.expo.dev/develop/user-interface/fonts/
         fonts: [
           './assets/fonts/Geist-Regular.otf',
           './assets/fonts/Geist-Medium.otf',

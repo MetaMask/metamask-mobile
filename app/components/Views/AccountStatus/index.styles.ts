@@ -1,4 +1,5 @@
 import { StyleSheet, Platform, Dimensions } from 'react-native';
+import { fontStyles } from '../../../styles/common';
 
 const IMAGE_MAX_WIDTH = 343;
 const IMAGE_ASPECT_RATIO = 343 / 302;
@@ -36,7 +37,7 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     marginTop: 14,
     lineHeight: 22,
-    fontWeight: '400',
+    ...fontStyles.normal,
   },
   descriptionWrapper: {
     width: '100%',

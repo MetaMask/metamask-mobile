@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../../styles/common';
 import { Theme } from '../../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -58,7 +59,7 @@ const styleSheet = (params: { theme: Theme }) => {
     titleText: {},
     valueText: {
       marginRight: 8,
-      fontWeight: 500,
+      ...fontStyles.medium,
     },
     infoIcon: {
       marginLeft: 4,

@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../../styles/common';
 import { Theme } from '../../../../../util/theme/models';
 
 export const createStyles = (colors: Theme['colors']) =>
@@ -31,7 +32,7 @@ export const createStyles = (colors: Theme['colors']) =>
     },
     limitPriceValue: {
       fontSize: 16,
-      fontWeight: '500',
+      ...fontStyles.medium,
       color: colors.text.default,
       flex: 1,
     },

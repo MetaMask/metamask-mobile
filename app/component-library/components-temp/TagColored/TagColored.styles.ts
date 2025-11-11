@@ -2,6 +2,7 @@
 import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
+import { fontStyles } from '../../../styles/common';
 import { Theme } from '../../../util/theme/models';
 
 // Internal dependencies.
@@ -62,7 +63,7 @@ const styleSheet = (params: {
       style,
     ) as ViewStyle,
     text: {
-      fontWeight: 'bold',
+      ...fontStyles.bold,
       textTransform: 'uppercase',
       color: textColor,
     },

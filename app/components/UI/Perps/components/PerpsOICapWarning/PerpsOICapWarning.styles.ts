@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../../styles/common';
 import type { Theme } from '../../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -26,7 +27,7 @@ const styleSheet = (params: { theme: Theme }) => {
       gap: 4,
     },
     title: {
-      fontWeight: '600',
+      ...fontStyles.medium,
     },
     description: {
       lineHeight: 18,

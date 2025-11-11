@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../../../styles/common';
 import { Theme } from '../../../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -44,7 +45,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     label: {
       fontSize: 14,
-      fontWeight: '600',
+      ...fontStyles.medium,
       color: theme.colors.text.default,
       marginBottom: 6,
     },

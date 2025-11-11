@@ -1,4 +1,5 @@
 import { Theme } from '@metamask/design-tokens';
+import { fontStyles } from '../../../../../styles/common';
 import { StyleSheet, ViewStyle } from 'react-native';
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -142,7 +143,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     addAccountButtonText: {
       color: colors.primary.default,
-      fontWeight: '500',
+      ...fontStyles.medium,
     },
   });
 };

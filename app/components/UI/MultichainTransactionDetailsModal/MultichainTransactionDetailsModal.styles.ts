@@ -1,4 +1,5 @@
 import { StyleSheet, TextStyle } from 'react-native';
+import { fontStyles } from '../../../styles/common';
 import { Colors } from '../../../util/theme/models';
 import { ThemeTypography } from '@metamask/design-tokens';
 import {
@@ -29,7 +30,7 @@ const createStyles = (colors: Colors, typography: ThemeTypography) =>
     },
     title: {
       fontSize: 18,
-      fontWeight: 'bold',
+      ...fontStyles.bold,
       marginBottom: 5,
     },
     date: {

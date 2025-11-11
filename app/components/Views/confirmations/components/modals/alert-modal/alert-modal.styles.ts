@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../../../styles/common';
 
 import { Theme } from '../../../../../../util/theme/models';
 import Device from '../../../../../../util/device';
@@ -34,7 +35,7 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 16,
     },
     headerText: {
-      fontWeight: 'bold',
+      ...fontStyles.bold,
       textAlign: 'center',
       marginBottom: 16,
     },

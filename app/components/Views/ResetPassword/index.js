@@ -167,7 +167,7 @@ const createStyles = (colors) =>
     subtitle: {
       lineHeight: 23,
       textAlign: 'center',
-      fontWeight: '400',
+      ...fontStyles.normal,
     },
     text: {
       marginBottom: 10,

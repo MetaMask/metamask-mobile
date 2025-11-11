@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import type { Theme } from '../../../../../util/theme/models';
+import { fontStyles } from '../../../../../styles/common';
 
 const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
@@ -13,18 +14,18 @@ const createStyles = (colors: Theme['colors']) =>
     },
     amountValue: {
       fontSize: 54,
-      fontWeight: '600',
+      ...fontStyles.medium,
       color: colors.text.default,
     },
     amountValueToken: {
       fontSize: 54,
-      fontWeight: '800',
+      ...fontStyles.bold,
       letterSpacing: -0.5,
       lineHeight: 74,
     },
     amountValueTokenAndroid: {
       fontSize: 54,
-      fontWeight: '500',
+      ...fontStyles.medium,
       letterSpacing: -0.5,
       lineHeight: 74,
     },

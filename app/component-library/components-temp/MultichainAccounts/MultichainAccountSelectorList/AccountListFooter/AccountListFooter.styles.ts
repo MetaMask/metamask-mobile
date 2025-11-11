@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../../styles/common';
 import { Theme } from '../../../../../util/theme/models';
 
 const createStyles = ({ theme }: { theme: Theme }) =>
@@ -30,7 +31,7 @@ const createStyles = ({ theme }: { theme: Theme }) =>
     },
     buttonText: {
       color: theme.colors.primary.default,
-      fontWeight: '500',
+      ...fontStyles.medium,
     },
   });
 

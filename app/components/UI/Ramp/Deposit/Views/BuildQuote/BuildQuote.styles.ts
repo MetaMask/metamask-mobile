@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../../../styles/common';
 import { Theme } from '../../../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -10,7 +11,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     selectionRow: {
       flexDirection: 'row',
-      fontWeight: 500,
+      ...fontStyles.medium,
       justifyContent: 'center',
       gap: 12,
     },
@@ -39,7 +40,7 @@ const styleSheet = (params: { theme: Theme }) => {
       textAlign: 'center',
       fontSize: 64,
       lineHeight: 64 + 8,
-      fontWeight: 400,
+      ...fontStyles.normal,
     },
     convertedAmount: {
       textAlign: 'center',

@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../styles/common';
 import type { Theme } from '../../../../util/theme/models';
 
 /**
@@ -42,7 +43,7 @@ export const createTransactionDetailStyles = (theme: Theme) => {
       borderRadius: 36,
     },
     assetAmount: {
-      fontWeight: '700',
+      ...fontStyles.bold,
       color: colors.text.default,
     },
 
@@ -65,7 +66,7 @@ export const createTransactionDetailStyles = (theme: Theme) => {
     },
     detailValue: {
       fontSize: 14,
-      fontWeight: '400',
+      ...fontStyles.normal,
     },
     // Section separator
     sectionSeparator: {
@@ -82,7 +83,7 @@ export const createTransactionDetailStyles = (theme: Theme) => {
     // Status-specific styles
     profitValue: {
       color: colors.success.default,
-      fontWeight: '500',
+      ...fontStyles.medium,
     },
     buttonsContainer: {
       paddingVertical: 20,

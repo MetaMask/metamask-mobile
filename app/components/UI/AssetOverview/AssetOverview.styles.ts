@@ -1,4 +1,5 @@
 import type { Theme } from '@metamask/design-tokens';
+import { fontStyles } from '../../../styles/common';
 import { StyleSheet, TextStyle } from 'react-native';
 import {
   getFontFamily,
@@ -58,7 +59,7 @@ const styleSheet = (params: { theme: Theme }) => {
     buttonText: {
       fontSize: 12,
       fontStyle: 'normal',
-      fontWeight: '400',
+      ...fontStyles.normal,
       lineHeight: 20,
       letterSpacing: 0.25,
     },

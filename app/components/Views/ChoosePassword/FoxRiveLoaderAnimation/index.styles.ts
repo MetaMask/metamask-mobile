@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../styles/common';
 import { Theme } from '../../../../util/theme/models';
 import { getScreenDimensions } from '../../../../util/onboarding';
 
@@ -46,7 +47,7 @@ const createStyles = (
     textTitle: {
       textAlign: 'center',
       fontSize: 28,
-      fontWeight: '600',
+      ...fontStyles.medium,
       color: colors.text.default,
       lineHeight: 36,
       paddingHorizontal: 40,
