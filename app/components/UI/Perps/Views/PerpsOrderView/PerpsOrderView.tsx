@@ -850,7 +850,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
     !isLoadingAccount && amountTimesLeverage < minimumOrderAmount;
   const placeOrderLabel = isInsufficientFunds
     ? strings('perps.order.validation.insufficient_funds')
-    : strings(orderButtonKey, { asset: orderForm.asset });
+    : strings(orderButtonKey, {
+        asset: getPerpsDisplaySymbol(orderForm.asset),
+      });
 
   const doesStopLossRiskLiquidation = Boolean(
     orderForm.stopLossPrice &&
