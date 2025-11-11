@@ -338,6 +338,13 @@ class ChoosePassword extends PureComponent {
         headerLeft: () => <View />,
       });
     }
+
+    if (
+      prevState.password !== this.state.password &&
+      this.state.password === ''
+    ) {
+      this.setState({ confirmPassword: '' });
+    }
   }
 
   componentWillUnmount() {
@@ -666,7 +673,6 @@ class ChoosePassword extends PureComponent {
   onPasswordChange = (val) => {
     this.setState((prevState) => ({
       password: val,
-      confirmPassword: val === '' ? '' : prevState.confirmPassword,
     }));
   };
 
