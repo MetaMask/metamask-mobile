@@ -80,6 +80,14 @@ async function setupAndroidPortForwarding(
       return;
     }
 
+    // Skip adb reverse on BrowserStack - BrowserStack Local tunnel handles port forwarding
+    if (isBrowserStack()) {
+      logger.info(
+        `BrowserStack mode: Skipping adb reverse for ${resourceType} (port ${actualPort} forwarded via tunnel)`,
+      );
+      return;
+    }
+
     // Forward all dynamically allocated ports that the app needs to access
     // - LaunchArgs ports: Android doesn't support LaunchArgs, needs adb reverse
     // - Dapp servers: Browser navigation bypasses MockServer, needs adb reverse
@@ -381,6 +389,9 @@ function getServerPort(resourceType: ResourceType): number {
  * Gets the dapp URL for use during test execution.
  * Automatically handles platform differences (Android uses fallback ports, iOS uses actual allocated ports).
  *
+ * NOTE: BrowserStack Local tunnel automatically handles localhost requests, so we don't need
+ * to use bs-local.com for dapp URLs. They work fine with localhost on BrowserStack.
+ *
  * @param index - The dapp index (0 for first dapp, 1 for second dapp, etc.)
  * @returns The dapp URL (e.g., "http://localhost:8085" on Android, "http://localhost:59517" on iOS)
  *
@@ -429,6 +440,9 @@ export function getDappPort(index: number): number {
 /**
  * Gets the dapp URL for use in fixture data construction.
  * Safe to call before ports are allocated (returns fallback port).
+ *
+ * NOTE: BrowserStack Local tunnel automatically handles localhost requests, so we don't need
+ * to use bs-local.com for dapp URLs in fixtures.
  *
  * @param index - The dapp index (0 for first dapp, 1 for second dapp, etc.)
  * @returns The dapp URL with fallback port (e.g., "http://localhost:8085", "http://localhost:8086")

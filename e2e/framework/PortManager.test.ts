@@ -1,6 +1,14 @@
 /* eslint-disable import/no-nodejs-modules */
 import net from 'net';
 import PortManager, { ResourceType } from './PortManager';
+import {
+  FALLBACK_FIXTURE_SERVER_PORT,
+  FALLBACK_COMMAND_QUEUE_SERVER_PORT,
+  FALLBACK_MOCKSERVER_PORT,
+  FALLBACK_GANACHE_PORT,
+  FALLBACK_DAPP_SERVER_PORT,
+} from './Constants';
+import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager';
 
 jest.mock('./logger', () => ({
   createLogger: () => ({
@@ -475,6 +483,263 @@ describe('PortManager', () => {
       allocatedPorts.forEach((port, resourceType) => {
         expect(portManager.isPortAllocated(port)).toBe(true);
         expect(portManager.getPort(resourceType)).toBe(port);
+      });
+    });
+  });
+
+  describe('BrowserStack Mode', () => {
+    beforeEach(() => {
+      PortManager.resetInstance();
+      process.env.BROWSERSTACK_LOCAL = 'true';
+      portManager = PortManager.getInstance();
+    });
+
+    afterEach(() => {
+      delete process.env.BROWSERSTACK_LOCAL;
+    });
+
+    describe('allocatePort with BROWSERSTACK_LOCAL=true', () => {
+      it('should use static fallback port for FIXTURE_SERVER', async () => {
+        const allocation = await portManager.allocatePort(
+          ResourceType.FIXTURE_SERVER,
+        );
+
+        expect(allocation.port).toBe(FALLBACK_FIXTURE_SERVER_PORT);
+        expect(allocation.resourceType).toBe(ResourceType.FIXTURE_SERVER);
+      });
+
+      it('should use static fallback port for MOCK_SERVER', async () => {
+        const allocation = await portManager.allocatePort(
+          ResourceType.MOCK_SERVER,
+        );
+
+        expect(allocation.port).toBe(FALLBACK_MOCKSERVER_PORT);
+      });
+
+      it('should use static fallback port for COMMAND_QUEUE_SERVER', async () => {
+        const allocation = await portManager.allocatePort(
+          ResourceType.COMMAND_QUEUE_SERVER,
+        );
+
+        expect(allocation.port).toBe(FALLBACK_COMMAND_QUEUE_SERVER_PORT);
+      });
+
+      it('should use static fallback port for GANACHE', async () => {
+        const allocation = await portManager.allocatePort(ResourceType.GANACHE);
+
+        expect(allocation.port).toBe(FALLBACK_GANACHE_PORT);
+      });
+
+      it('should use static fallback port for ANVIL', async () => {
+        const allocation = await portManager.allocatePort(ResourceType.ANVIL);
+
+        expect(allocation.port).toBe(DEFAULT_ANVIL_PORT);
+      });
+
+      it('should use static fallback port for DAPP_SERVER', async () => {
+        const allocation = await portManager.allocatePort(
+          ResourceType.DAPP_SERVER,
+        );
+
+        expect(allocation.port).toBe(FALLBACK_DAPP_SERVER_PORT);
+      });
+
+      it('should return same static port on multiple calls', async () => {
+        const allocation1 = await portManager.allocatePort(
+          ResourceType.MOCK_SERVER,
+        );
+        const allocation2 = await portManager.allocatePort(
+          ResourceType.MOCK_SERVER,
+        );
+
+        expect(allocation1.port).toBe(FALLBACK_MOCKSERVER_PORT);
+        expect(allocation2.port).toBe(FALLBACK_MOCKSERVER_PORT);
+        expect(allocation1).toBe(allocation2);
+      });
+
+      it('should use different static ports for different resources', async () => {
+        const allocation1 = await portManager.allocatePort(
+          ResourceType.FIXTURE_SERVER,
+        );
+        const allocation2 = await portManager.allocatePort(
+          ResourceType.MOCK_SERVER,
+        );
+        const allocation3 = await portManager.allocatePort(
+          ResourceType.GANACHE,
+        );
+
+        expect(allocation1.port).toBe(FALLBACK_FIXTURE_SERVER_PORT);
+        expect(allocation2.port).toBe(FALLBACK_MOCKSERVER_PORT);
+        expect(allocation3.port).toBe(FALLBACK_GANACHE_PORT);
+
+        // All ports should be different
+        expect(allocation1.port).not.toBe(allocation2.port);
+        expect(allocation1.port).not.toBe(allocation3.port);
+        expect(allocation2.port).not.toBe(allocation3.port);
+      });
+    });
+
+    describe('allocateMultiInstancePort with BROWSERSTACK_LOCAL=true', () => {
+      it('should use static fallback port + offset for first dapp instance', async () => {
+        const allocation = await portManager.allocateMultiInstancePort(
+          ResourceType.DAPP_SERVER,
+          'dapp-server-0',
+        );
+
+        expect(allocation.port).toBe(FALLBACK_DAPP_SERVER_PORT + 0);
+        expect(allocation.instanceId).toBe('dapp-server-0');
+      });
+
+      it('should use static fallback port + offset for second dapp instance', async () => {
+        const allocation = await portManager.allocateMultiInstancePort(
+          ResourceType.DAPP_SERVER,
+          'dapp-server-1',
+        );
+
+        expect(allocation.port).toBe(FALLBACK_DAPP_SERVER_PORT + 1);
+        expect(allocation.instanceId).toBe('dapp-server-1');
+      });
+
+      it('should use static fallback port + offset for third dapp instance', async () => {
+        const allocation = await portManager.allocateMultiInstancePort(
+          ResourceType.DAPP_SERVER,
+          'dapp-server-2',
+        );
+
+        expect(allocation.port).toBe(FALLBACK_DAPP_SERVER_PORT + 2);
+        expect(allocation.instanceId).toBe('dapp-server-2');
+      });
+
+      it('should allocate different static ports for multiple dapp instances', async () => {
+        const allocation1 = await portManager.allocateMultiInstancePort(
+          ResourceType.DAPP_SERVER,
+          'dapp-server-0',
+        );
+        const allocation2 = await portManager.allocateMultiInstancePort(
+          ResourceType.DAPP_SERVER,
+          'dapp-server-1',
+        );
+        const allocation3 = await portManager.allocateMultiInstancePort(
+          ResourceType.DAPP_SERVER,
+          'dapp-server-2',
+        );
+
+        expect(allocation1.port).toBe(FALLBACK_DAPP_SERVER_PORT);
+        expect(allocation2.port).toBe(FALLBACK_DAPP_SERVER_PORT + 1);
+        expect(allocation3.port).toBe(FALLBACK_DAPP_SERVER_PORT + 2);
+
+        // All should be different
+        expect(allocation1.port).not.toBe(allocation2.port);
+        expect(allocation1.port).not.toBe(allocation3.port);
+        expect(allocation2.port).not.toBe(allocation3.port);
+      });
+
+      it('should return same static port for same instance', async () => {
+        const allocation1 = await portManager.allocateMultiInstancePort(
+          ResourceType.DAPP_SERVER,
+          'dapp-server-0',
+        );
+        const allocation2 = await portManager.allocateMultiInstancePort(
+          ResourceType.DAPP_SERVER,
+          'dapp-server-0',
+        );
+
+        expect(allocation1.port).toBe(FALLBACK_DAPP_SERVER_PORT);
+        expect(allocation2.port).toBe(FALLBACK_DAPP_SERVER_PORT);
+        expect(allocation1).toBe(allocation2);
+      });
+    });
+
+    describe('BrowserStack environment detection', () => {
+      it('should detect BROWSERSTACK_LOCAL=true', async () => {
+        process.env.BROWSERSTACK_LOCAL = 'true';
+        PortManager.resetInstance();
+        portManager = PortManager.getInstance();
+
+        const allocation = await portManager.allocatePort(
+          ResourceType.FIXTURE_SERVER,
+        );
+
+        expect(allocation.port).toBe(FALLBACK_FIXTURE_SERVER_PORT);
+      });
+
+      it('should detect BROWSERSTACK_LOCAL=TRUE (case insensitive)', async () => {
+        process.env.BROWSERSTACK_LOCAL = 'TRUE';
+        PortManager.resetInstance();
+        portManager = PortManager.getInstance();
+
+        const allocation = await portManager.allocatePort(
+          ResourceType.FIXTURE_SERVER,
+        );
+
+        expect(allocation.port).toBe(FALLBACK_FIXTURE_SERVER_PORT);
+      });
+
+      it('should not use static ports when BROWSERSTACK_LOCAL=false', async () => {
+        process.env.BROWSERSTACK_LOCAL = 'false';
+        PortManager.resetInstance();
+        portManager = PortManager.getInstance();
+
+        const allocation = await portManager.allocatePort(
+          ResourceType.FIXTURE_SERVER,
+        );
+
+        // Should be dynamic port, not fallback
+        expect(allocation.port).not.toBe(FALLBACK_FIXTURE_SERVER_PORT);
+        expect(allocation.port).toBeGreaterThanOrEqual(40000);
+        expect(allocation.port).toBeLessThanOrEqual(60000);
+      });
+
+      it('should not use static ports when BROWSERSTACK_LOCAL is not set', async () => {
+        delete process.env.BROWSERSTACK_LOCAL;
+        PortManager.resetInstance();
+        portManager = PortManager.getInstance();
+
+        const allocation = await portManager.allocatePort(
+          ResourceType.FIXTURE_SERVER,
+        );
+
+        // Should be dynamic port, not fallback
+        expect(allocation.port).not.toBe(FALLBACK_FIXTURE_SERVER_PORT);
+        expect(allocation.port).toBeGreaterThanOrEqual(40000);
+        expect(allocation.port).toBeLessThanOrEqual(60000);
+      });
+
+      it('should not use static ports when BROWSERSTACK_LOCAL is empty string', async () => {
+        process.env.BROWSERSTACK_LOCAL = '';
+        PortManager.resetInstance();
+        portManager = PortManager.getInstance();
+
+        const allocation = await portManager.allocatePort(
+          ResourceType.FIXTURE_SERVER,
+        );
+
+        // Should be dynamic port, not fallback
+        expect(allocation.port).not.toBe(FALLBACK_FIXTURE_SERVER_PORT);
+        expect(allocation.port).toBeGreaterThanOrEqual(40000);
+        expect(allocation.port).toBeLessThanOrEqual(60000);
+      });
+    });
+
+    describe('BrowserStack mode with all resource types', () => {
+      it('should use correct static fallback ports for all resources', async () => {
+        const expectedPorts = new Map([
+          [ResourceType.FIXTURE_SERVER, FALLBACK_FIXTURE_SERVER_PORT],
+          [ResourceType.MOCK_SERVER, FALLBACK_MOCKSERVER_PORT],
+          [
+            ResourceType.COMMAND_QUEUE_SERVER,
+            FALLBACK_COMMAND_QUEUE_SERVER_PORT,
+          ],
+          [ResourceType.GANACHE, FALLBACK_GANACHE_PORT],
+          [ResourceType.ANVIL, DEFAULT_ANVIL_PORT],
+          [ResourceType.DAPP_SERVER, FALLBACK_DAPP_SERVER_PORT],
+        ]);
+
+        for (const [resourceType, expectedPort] of expectedPorts.entries()) {
+          const allocation = await portManager.allocatePort(resourceType);
+          expect(allocation.port).toBe(expectedPort);
+          expect(allocation.resourceType).toBe(resourceType);
+        }
       });
     });
   });

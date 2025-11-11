@@ -1,6 +1,14 @@
 /* eslint-disable import/no-nodejs-modules */
 import net from 'net';
 import { createLogger } from './logger';
+import {
+  FALLBACK_FIXTURE_SERVER_PORT,
+  FALLBACK_COMMAND_QUEUE_SERVER_PORT,
+  FALLBACK_MOCKSERVER_PORT,
+  FALLBACK_GANACHE_PORT,
+  FALLBACK_DAPP_SERVER_PORT,
+} from './Constants';
+import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager';
 
 const logger = createLogger({
   name: 'PortManager',
@@ -20,6 +28,42 @@ export interface AllocatedPort {
   resourceType: ResourceType;
   instanceId?: string;
   allocatedAt: Date;
+}
+
+/**
+ * Determines if tests are running on BrowserStack with local tunnel enabled.
+ *
+ * @returns True when BrowserStack local tunnel is enabled
+ */
+function isBrowserStack(): boolean {
+  return process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
+}
+
+/**
+ * Maps ResourceType to fallback port.
+ * These static ports are used on BrowserStack where dynamic port allocation
+ * is not possible due to lack of adb access.
+ *
+ * @param resourceType - The type of resource
+ * @returns The fallback port for the resource
+ */
+function getFallbackPortForResource(resourceType: ResourceType): number {
+  switch (resourceType) {
+    case ResourceType.FIXTURE_SERVER:
+      return FALLBACK_FIXTURE_SERVER_PORT;
+    case ResourceType.MOCK_SERVER:
+      return FALLBACK_MOCKSERVER_PORT;
+    case ResourceType.COMMAND_QUEUE_SERVER:
+      return FALLBACK_COMMAND_QUEUE_SERVER_PORT;
+    case ResourceType.GANACHE:
+      return FALLBACK_GANACHE_PORT;
+    case ResourceType.ANVIL:
+      return DEFAULT_ANVIL_PORT;
+    case ResourceType.DAPP_SERVER:
+      return FALLBACK_DAPP_SERVER_PORT;
+    default:
+      throw new Error(`Unknown resource type: ${resourceType}`);
+  }
 }
 
 export default class PortManager {
@@ -50,7 +94,8 @@ export default class PortManager {
 
   /**
    * Allocates a port for a single-instance resource.
-   * Allocates a random port from the range (40000-60000).
+   * - On BrowserStack: Uses static fallback ports (no adb access for dynamic ports)
+   * - Local development: Allocates a random port from the range (40000-60000)
    *
    * @param resourceType - Type of resource to allocate port for
    * @returns Allocated port information
@@ -68,16 +113,26 @@ export default class PortManager {
       return existing;
     }
 
-    // Always allocate random port
+    // On BrowserStack, use static fallback ports (no adb access for dynamic mapping)
+    if (isBrowserStack()) {
+      const fallbackPort = getFallbackPortForResource(resourceType);
+      logger.info(
+        `BrowserStack mode: Using static fallback port ${fallbackPort} for ${resourceType}`,
+      );
+      return this.createAndStoreAllocation(resourceType, fallbackPort);
+    }
+
+    // Local development: allocate dynamic port
     logger.debug(`Allocating random port for ${resourceType}`);
-    const portToUse = await this.findNextAvailablePort(40000, 60000, 100);
+    const portToUse = await this.findNextAvailablePort();
 
     return this.createAndStoreAllocation(resourceType, portToUse);
   }
 
   /**
    * Allocates a port for a multi-instance resource (e.g., multiple dapp servers).
-   * Allocates a random port from the range (40000-60000).
+   * - On BrowserStack: Uses static fallback ports + instance offset
+   * - Local development: Allocates a random port from the range (40000-60000)
    *
    * @param resourceType - Type of resource to allocate port for
    * @param instanceId - Unique identifier for this instance
@@ -103,10 +158,27 @@ export default class PortManager {
       }
     }
 
+    // On BrowserStack, use static fallback ports + instance offset
+    if (isBrowserStack()) {
+      const baseFallbackPort = getFallbackPortForResource(resourceType);
+      // Extract instance number from instanceId (e.g., "dapp-server-0" -> 0)
+      const instanceIndex = parseInt(instanceId.split('-').pop() || '0', 10);
+      const portToUse = baseFallbackPort + instanceIndex;
+      logger.info(
+        `BrowserStack mode: Using static port ${portToUse} for ${resourceType}:${instanceId}`,
+      );
+      return this.createAndStoreMultiInstanceAllocation(
+        resourceType,
+        instanceId,
+        portToUse,
+      );
+    }
+
+    // Local development: allocate dynamic port
     logger.debug(
       `Allocating random port for multi-instance ${resourceType}:${instanceId}`,
     );
-    const portToUse = await this.findNextAvailablePort(40000, 60000, 100);
+    const portToUse = await this.findNextAvailablePort();
 
     return this.createAndStoreMultiInstanceAllocation(
       resourceType,
