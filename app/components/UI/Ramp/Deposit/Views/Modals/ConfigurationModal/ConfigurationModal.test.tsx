@@ -148,6 +148,7 @@ describe('ConfigurationModal', () => {
       mockUseDepositSDK.mockReturnValue({
         logoutFromProvider: mockClearAuthToken,
         isAuthenticated: true,
+        selectedRegion: { isoCode: 'us' },
       });
     });
 

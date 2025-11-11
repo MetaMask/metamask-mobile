@@ -36,15 +36,14 @@ function SettingsModal() {
   }, [navigation]);
 
   const handleDepositPress = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet();
-    navigation.dangerouslyGetParent()?.dangerouslyGetParent()?.goBack();
-    navigation.navigate(...createDepositNavigationDetails());
-
     trackEvent('RAMPS_BUTTON_CLICKED', {
       location: 'Buy Settings Modal',
       ramp_type: 'DEPOSIT',
       region: selectedRegion?.id as string,
     });
+    sheetRef.current?.onCloseBottomSheet();
+    navigation.dangerouslyGetParent()?.dangerouslyGetParent()?.goBack();
+    navigation.navigate(...createDepositNavigationDetails());
   }, [navigation, selectedRegion?.id, trackEvent]);
 
   const handleClosePress = useCallback(() => {
