@@ -218,7 +218,10 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   );
 
   // Subscribe to data internally (marketStats moved to StatisticsTabContent to isolate price updates)
-  const { positions } = usePerpsLivePositions({ throttleMs: 0 });
+  const { positions } = usePerpsLivePositions({
+    throttleMs: 0,
+    useLivePnl: true,
+  });
   const { orders: allOrders } = usePerpsLiveOrders({ throttleMs: 0 });
 
   const position = useMemo(
