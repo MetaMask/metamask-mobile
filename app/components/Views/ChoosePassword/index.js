@@ -254,6 +254,8 @@ class ChoosePassword extends PureComponent {
   confirmPasswordFieldHasFocus = false;
   expectingCharAfterClear = false;
   expectingConfirmCharAfterClear = false;
+  passwordHasSelectAll = false;
+  confirmPasswordHasSelectAll = false;
 
   track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
@@ -687,7 +689,8 @@ class ChoosePassword extends PureComponent {
         isSecureTextEntry &&
         prevState.password === this.passwordAtFocusTime &&
         this.passwordAtFocusTime.length > 1 &&
-        val === ''
+        val === '' &&
+        !this.passwordHasSelectAll
       ) {
         this.expectingCharAfterClear = true;
         return { password: prevState.password };
@@ -711,27 +714,49 @@ class ChoosePassword extends PureComponent {
   onPasswordFocus = () => {
     this.passwordAtFocusTime = this.state.password;
     this.passwordFieldHasFocus = true;
+    this.passwordHasSelectAll = false;
   };
 
   onPasswordBlur = () => {
     this.passwordFieldHasFocus = false;
     this.passwordAtFocusTime = '';
     this.expectingCharAfterClear = false;
+    this.passwordHasSelectAll = false;
 
     if (this.state.password === '' && this.state.confirmPassword !== '') {
       this.setState({ confirmPassword: '' });
     }
   };
 
+  onPasswordSelectionChange = (event) => {
+    const { selection } = event.nativeEvent;
+    const passwordLength = this.state.password.length;
+    this.passwordHasSelectAll =
+      passwordLength > 0 &&
+      selection.start === 0 &&
+      selection.end === passwordLength;
+  };
+
   onConfirmPasswordFocus = () => {
     this.confirmPasswordAtFocusTime = this.state.confirmPassword;
     this.confirmPasswordFieldHasFocus = true;
+    this.confirmPasswordHasSelectAll = false;
   };
 
   onConfirmPasswordBlur = () => {
     this.confirmPasswordFieldHasFocus = false;
     this.confirmPasswordAtFocusTime = '';
     this.expectingConfirmCharAfterClear = false;
+    this.confirmPasswordHasSelectAll = false;
+  };
+
+  onConfirmPasswordSelectionChange = (event) => {
+    const { selection } = event.nativeEvent;
+    const confirmPasswordLength = this.state.confirmPassword.length;
+    this.confirmPasswordHasSelectAll =
+      confirmPasswordLength > 0 &&
+      selection.start === 0 &&
+      selection.end === confirmPasswordLength;
   };
 
   learnMore = () => {
@@ -771,7 +796,8 @@ class ChoosePassword extends PureComponent {
         isSecureTextEntry &&
         prevState.confirmPassword === this.confirmPasswordAtFocusTime &&
         this.confirmPasswordAtFocusTime.length > 1 &&
-        val === ''
+        val === '' &&
+        !this.confirmPasswordHasSelectAll
       ) {
         this.expectingConfirmCharAfterClear = true;
         return { confirmPassword: prevState.confirmPassword };
@@ -897,6 +923,7 @@ class ChoosePassword extends PureComponent {
                     onChangeText={this.onPasswordChange}
                     onFocus={this.onPasswordFocus}
                     onBlur={this.onPasswordBlur}
+                    onSelectionChange={this.onPasswordSelectionChange}
                     selectTextOnFocus={false}
                     placeholderTextColor={colors.text.muted}
                     testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
@@ -946,6 +973,7 @@ class ChoosePassword extends PureComponent {
                     onChangeText={this.setConfirmPassword}
                     onFocus={this.onConfirmPasswordFocus}
                     onBlur={this.onConfirmPasswordBlur}
+                    onSelectionChange={this.onConfirmPasswordSelectionChange}
                     selectTextOnFocus={false}
                     secureTextEntry={this.state.showPasswordIndex.includes(1)}
                     placeholderTextColor={colors.text.muted}
