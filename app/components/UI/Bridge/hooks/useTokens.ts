@@ -8,6 +8,7 @@ import {
 } from '@metamask/bridge-controller';
 import { zeroAddress } from 'ethereumjs-util';
 import { POLYGON_NATIVE_TOKEN } from '../constants/assets';
+import { includeOnlyTradableTokens } from '../utils/includeOnlyTradableTokens';
 
 interface UseTokensProps {
   topTokensChainId?: Hex | CaipChainId;
@@ -79,7 +80,8 @@ export function useTokens({
     .filter((token) => {
       const tokenKey = getTokenKey(token);
       return !tokensWithBalanceSet.has(tokenKey);
-    });
+    })
+    .filter(includeOnlyTradableTokens);
 
   // Combine tokens with balance and filtered tokens and filter out excluded tokens
   const allTokens = tokensWithBalance
@@ -87,7 +89,8 @@ export function useTokens({
     .filter((token) => {
       const tokenKey = getTokenKey(token);
       return !excludedTokensSet.has(tokenKey);
-    });
+    })
+    .filter(includeOnlyTradableTokens);
 
   const tokensToRender = tokensWithBalance
     .concat(
@@ -99,7 +102,8 @@ export function useTokens({
     .filter((token) => {
       const tokenKey = getTokenKey(token);
       return !excludedTokensSet.has(tokenKey);
-    });
+    })
+    .filter(includeOnlyTradableTokens);
 
   return { allTokens, tokensToRender, pending };
 }
