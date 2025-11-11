@@ -21,6 +21,7 @@ import PredictMarket from '../PredictMarket';
 import PredictMarketSkeleton from '../PredictMarketSkeleton';
 import { getPredictMarketListSelector } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { ScrollCoordinator } from '../../types/scrollCoordinator';
+import PredictOffline from '../PredictOffline';
 
 interface MarketListContentProps {
   q?: string;
@@ -111,13 +112,7 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
   }
 
   if (error) {
-    return (
-      <Box style={styles.errorContainer}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
-          Error: {error}
-        </Text>
-      </Box>
-    );
+    return <PredictOffline onRetry={handleRefresh} />;
   }
 
   if (!marketData || marketData.length === 0) {
