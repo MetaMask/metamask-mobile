@@ -1,7 +1,7 @@
 import { toHex } from '@metamask/controller-utils';
 import { useNavigation } from '@react-navigation/native';
-import React from 'react';
-import { Pressable } from 'react-native';
+import React, { useMemo, useCallback } from 'react';
+import { Alert, Pressable } from 'react-native';
 import { useSelector } from 'react-redux';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../../../locales/i18n';
@@ -25,6 +25,7 @@ import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
+  selectIsMusdConversionFlowEnabled,
 } from '../../../Earn/selectors/featureFlags';
 import createStyles from '../../../Tokens/styles';
 import { BrowserTab, TokenI } from '../../../Tokens/types';
@@ -38,10 +39,18 @@ import { earnSelectors } from '../../../../../selectors/earnController/earn';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 ///: END:ONLY_INCLUDE_IF
+import {
+  MUSD_CONVERTIBLE_STABLECOINS_ETHEREUM,
+  ETHEREUM_MAINNET_CHAIN_ID,
+} from '../../../Earn/constants/musd';
+import { convertStablecoinToMUSD } from '../../../Tokens/util/convertToMUSD';
+import Logger from '../../../../../util/Logger';
+
 interface StakeButtonProps {
   asset: TokenI;
 }
 
+// TODO: Rename to EarnCta to better describe this component's purpose.
 const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -56,6 +65,9 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
+  );
+  const isMusdConversionFlowEnabled = useSelector(
+    selectIsMusdConversionFlowEnabled,
   );
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
@@ -76,6 +88,16 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
   const areEarnExperiencesDisabled =
     !isPooledStakingEnabled && !isStablecoinLendingEnabled;
+
+  const isConvertibleStablecoin = useMemo(
+    () =>
+      isMusdConversionFlowEnabled &&
+      asset?.chainId === ETHEREUM_MAINNET_CHAIN_ID &&
+      MUSD_CONVERTIBLE_STABLECOINS_ETHEREUM.includes(
+        asset.address.toLowerCase(),
+      ),
+    [isMusdConversionFlowEnabled, asset.chainId, asset.address],
+  );
 
   const handleStakeRedirect = async () => {
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
@@ -194,19 +216,53 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     });
   };
 
+  const handleConvertToMUSD = useCallback(async () => {
+    try {
+      Logger.log('[mUSD Conversion] Starting conversion flow...');
+
+      // TODO: Rename convertStablecoinToMUSD to initiateMusdConversion to be more descriptive of what it's actually doing.
+      await convertStablecoinToMUSD();
+
+      Logger.log('[mUSD Conversion] Navigating to confirmation screen...');
+
+      navigation.navigate(Routes.EARN.ROOT, {
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      });
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        '[mUSD Conversion] Failed to initiate conversion',
+      );
+
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred';
+      Alert.alert(
+        'Conversion Failed',
+        `Unable to start mUSD conversion: ${errorMessage}`,
+        [{ text: 'OK' }],
+      );
+    }
+  }, [navigation]);
+
   const onEarnButtonPress = async () => {
     if (primaryExperienceType === EARN_EXPERIENCES.POOLED_STAKING) {
       return handleStakeRedirect();
     }
 
     if (primaryExperienceType === EARN_EXPERIENCES.STABLECOIN_LENDING) {
+      if (isConvertibleStablecoin) {
+        return handleConvertToMUSD();
+      }
+
       return handleLendingRedirect();
     }
   };
 
   if (
     areEarnExperiencesDisabled ||
-    (!earnToken?.isETH && earnToken?.balanceMinimalUnit === '0') ||
+    (!isConvertibleStablecoin && // Show for convertible stablecoins even with 0 balance
+      !earnToken?.isETH &&
+      earnToken?.balanceMinimalUnit === '0') ||
     (earnToken?.isETH && !isPooledStakingEnabled)
   )
     return <></>;
@@ -222,6 +278,10 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       </Text>
       <Text color={TextColor.Primary} variant={TextVariant.BodySMMedium}>
         {(() => {
+          if (isConvertibleStablecoin) {
+            return strings('asset_overview.convert');
+          }
+
           const aprNumber = Number(earnToken?.experience?.apr);
           const aprText =
             Number.isFinite(aprNumber) && aprNumber > 0

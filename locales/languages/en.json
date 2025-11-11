@@ -3037,6 +3037,7 @@
     "swap": "Swap",
     "bridge": "Bridge",
     "earn": "Earn",
+    "convert": "Convert",
     "tron": {
       "daily_resource": "Daily resource",
       "bandwidth": "Bandwidth",

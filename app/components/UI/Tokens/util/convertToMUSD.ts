@@ -5,7 +5,7 @@ import {
   MUSD_ADDRESS_ETHEREUM,
   USDC_ADDRESS_ETHEREUM,
   ETHEREUM_MAINNET_CHAIN_ID,
-} from '../constants';
+} from '../../Earn/constants/musd';
 import { store } from '../../../../store';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { generateTransferData } from '../../../../util/transactions';

@@ -51,3 +51,9 @@ export const selectStablecoinLendingServiceInterruptionBannerEnabledFlag =
     // Fallback to local flag if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   });
+
+// TODO: Add remote feature flag support for this with minimum version gating.
+export const selectIsMusdConversionFlowEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  () => process.env.MM_MUSD_CONVERSION_FLOW_ENABLED === 'true',
+);
