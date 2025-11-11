@@ -701,6 +701,23 @@ const PerpsOrderViewContentBase: React.FC = () => {
         return;
       }
 
+      // Check for cross-margin position (MetaMask only supports isolated margin)
+      if (existingPosition?.leverage?.type === 'cross') {
+        navigation.navigate(Routes.PERPS.MODALS.ROOT, {
+          screen: Routes.PERPS.MODALS.CROSS_MARGIN_WARNING,
+        });
+
+        track(MetaMetricsEvents.PERPS_ERROR, {
+          [PerpsEventProperties.ERROR_TYPE]:
+            PerpsEventValues.ERROR_TYPE.VALIDATION,
+          [PerpsEventProperties.ERROR_MESSAGE]:
+            'Cross margin position detected',
+        });
+
+        isSubmittingRef.current = false;
+        return;
+      }
+
       // Navigate immediately BEFORE order execution (enhanced with monitoring parameters for data-driven tab selection)
       // Always monitor both orders and positions because:
       // - Market orders: Usually create positions immediately
@@ -847,7 +864,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
     !isLoadingAccount && amountTimesLeverage < minimumOrderAmount;
   const placeOrderLabel = isInsufficientFunds
     ? strings('perps.order.validation.insufficient_funds')
-    : strings(orderButtonKey, { asset: orderForm.asset });
+    : strings(orderButtonKey, {
+        asset: getPerpsDisplaySymbol(orderForm.asset),
+      });
 
   const doesStopLossRiskLiquidation = Boolean(
     orderForm.stopLossPrice &&
