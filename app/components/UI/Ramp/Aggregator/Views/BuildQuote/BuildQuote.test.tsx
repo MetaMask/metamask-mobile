@@ -430,9 +430,9 @@ describe('BuildQuote View', () => {
 
   it('navigates and tracks event on cancel button press', async () => {
     render(BuildQuote);
-    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
+    fireEvent.press(screen.getByTestId('deposit-close-navbar-button'));
     expect(mockPop).toHaveBeenCalled();
-    expect(mockTrackEvent).toBeCalledWith('ONRAMP_CANCELED', {
+    expect(mockTrackEvent).toHaveBeenCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '1',
       location: 'Amount to Buy Screen',
     });
@@ -444,9 +444,9 @@ describe('BuildQuote View', () => {
     mockUseRampSDKValues.isSell = true;
     mockUseRampSDKValues.rampType = RampType.SELL;
     render(BuildQuote);
-    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
+    fireEvent.press(screen.getByTestId('deposit-close-navbar-button'));
     expect(mockPop).toHaveBeenCalled();
-    expect(mockTrackEvent).toBeCalledWith('OFFRAMP_CANCELED', {
+    expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_CANCELED', {
       chain_id_source: '1',
       location: 'Amount to Sell Screen',
     });
@@ -983,6 +983,9 @@ describe('BuildQuote View', () => {
       amount: VALID_AMOUNT,
       currency_source: mockUseFiatCurrenciesValues?.currentFiatCurrency?.symbol,
       currency_destination: mockUseRampSDKValues?.selectedAsset?.symbol,
+      currency_destination_symbol: mockUseRampSDKValues?.selectedAsset?.symbol,
+      currency_destination_network:
+        mockUseRampSDKValues?.selectedAsset?.network.shortName,
       payment_method_id: mockUsePaymentMethodsValues.currentPaymentMethod?.id,
       chain_id_destination: '1',
       location: 'Amount to Buy Screen',
@@ -1025,6 +1028,9 @@ describe('BuildQuote View', () => {
     expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_QUOTES_REQUESTED', {
       amount: VALID_AMOUNT,
       currency_source: mockUseRampSDKValues?.selectedAsset?.symbol,
+      currency_source_symbol: mockUseRampSDKValues?.selectedAsset?.symbol,
+      currency_source_network:
+        mockUseRampSDKValues?.selectedAsset?.network?.shortName,
       currency_destination:
         mockUseFiatCurrenciesValues?.currentFiatCurrency?.symbol,
       payment_method_id: mockUsePaymentMethodsValues.currentPaymentMethod?.id,

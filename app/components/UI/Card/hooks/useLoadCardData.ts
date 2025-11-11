@@ -7,7 +7,8 @@ import { useGetPriorityCardToken } from './useGetPriorityCardToken';
 import { useIsCardholder } from './useIsCardholder';
 import useGetCardExternalWalletDetails from './useGetCardExternalWalletDetails';
 import useGetDelegationSettings from './useGetDelegationSettings';
-import { CardTokenAllowance } from '../types';
+import useGetLatestAllowanceForPriorityToken from './useGetLatestAllowanceForPriorityToken';
+import { CardTokenAllowance, CardWarning } from '../types';
 
 /**
  * Hook to load card data.
@@ -70,6 +71,27 @@ const useLoadCardData = () => {
     fetchPriorityToken,
   } = useGetPriorityCardToken(externalWalletDetailsData);
 
+  // Get latest allowance for priority token (authenticated mode only, for spending limit display)
+  // This fetches the most recent approval amount from on-chain logs
+  const {
+    latestAllowance: priorityTokenLatestAllowance,
+    isLoading: isLoadingLatestAllowance,
+  } = useGetLatestAllowanceForPriorityToken(
+    isAuthenticated ? priorityToken : null,
+  );
+
+  // Update priority token with latest allowance if available
+  const priorityTokenWithLatestAllowance = useMemo(() => {
+    if (!priorityToken || !isAuthenticated) {
+      return priorityToken;
+    }
+
+    return {
+      ...priorityToken,
+      totalAllowance: priorityTokenLatestAllowance || priorityToken.allowance,
+    };
+  }, [priorityToken, priorityTokenLatestAllowance, isAuthenticated]);
+
   // Get card details (only needed for unauthenticated mode)
   const {
     cardDetails,
@@ -99,7 +121,11 @@ const useLoadCardData = () => {
       isLoadingDelegationSettings;
 
     if (isAuthenticated) {
-      return baseLoading || isLoadingExternalWalletDetails;
+      return (
+        baseLoading ||
+        isLoadingExternalWalletDetails ||
+        isLoadingLatestAllowance
+      );
     }
     return baseLoading;
   }, [
@@ -107,6 +133,7 @@ const useLoadCardData = () => {
     isLoadingCardDetails,
     isLoadingDelegationSettings,
     isLoadingExternalWalletDetails,
+    isLoadingLatestAllowance,
     isAuthenticated,
   ]);
 
@@ -128,10 +155,13 @@ const useLoadCardData = () => {
   ]);
 
   // Combined warning (only from priority token and card details)
-  const warning = useMemo(
-    () => priorityTokenWarning || cardDetailsWarning,
-    [priorityTokenWarning, cardDetailsWarning],
-  );
+  // Priority: NoCard warning always takes precedence because the user must provision a card before delegating
+  const warning = useMemo(() => {
+    if (cardDetailsWarning === CardWarning.NoCard) {
+      return cardDetailsWarning;
+    }
+    return priorityTokenWarning || cardDetailsWarning;
+  }, [priorityTokenWarning, cardDetailsWarning]);
 
   // Manual fetch function to refresh all data
   const fetchAllData = useMemo(
@@ -179,7 +209,7 @@ const useLoadCardData = () => {
 
   return {
     // Token data
-    priorityToken,
+    priorityToken: priorityTokenWithLatestAllowance,
     allTokens,
     // Card details
     cardDetails,

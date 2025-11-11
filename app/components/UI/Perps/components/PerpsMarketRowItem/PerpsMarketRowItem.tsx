@@ -17,6 +17,7 @@ import {
   getMarketBadgeType,
 } from '../../utils/marketUtils';
 import {
+  formatFundingRate,
   formatPercentage,
   formatPerpsFiat,
   formatPnl,
@@ -63,8 +64,13 @@ const PerpsMarketRowItem = ({
       maximumDecimals: 2,
     });
 
-    // Only update if price actually changed
-    if (comparisonPrice === market.price) {
+    // Check if funding rate needs updating (even if price hasn't changed)
+    const fundingRateChanged =
+      livePrice.funding !== undefined &&
+      livePrice.funding !== market.fundingRate;
+
+    // Only update if price actually changed or funding rate needs updating
+    if (comparisonPrice === market.price && !fundingRateChanged) {
       return market;
     }
 
@@ -108,6 +114,11 @@ const PerpsMarketRowItem = ({
       updatedMarket.volume = PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
     }
 
+    // Update funding rate from live data if available
+    if (livePrice.funding !== undefined) {
+      updatedMarket.fundingRate = livePrice.funding;
+    }
+
     return updatedMarket;
   }, [market, livePrices]);
 
@@ -125,14 +136,8 @@ const PerpsMarketRowItem = ({
           displayMarket.openInterest || PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
         );
       case 'fundingRate':
-        // Format funding rate as percentage (e.g., 0.0001 → 0.0100%)
-        if (
-          displayMarket.fundingRate !== undefined &&
-          displayMarket.fundingRate !== null
-        ) {
-          return `${(displayMarket.fundingRate * 100).toFixed(4)}%`;
-        }
-        return '0.0000%';
+        // Use formatFundingRate utility for consistent formatting with asset detail screen
+        return formatFundingRate(displayMarket.fundingRate);
       case 'volume':
       default:
         return displayMarket.volume;
@@ -206,4 +211,4 @@ const PerpsMarketRowItem = ({
   );
 };
 
-export default PerpsMarketRowItem;
+export default React.memo(PerpsMarketRowItem);
