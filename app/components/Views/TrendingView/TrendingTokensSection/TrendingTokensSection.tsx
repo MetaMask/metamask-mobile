@@ -76,7 +76,7 @@ const TrendingTokensSection = () => {
     return (
       <View>
         <SectionHeader />
-        <Card style={styles.cardContainer}>
+        <Card style={styles.cardContainer} disabled>
           <TrendingTokensSkeleton count={3} />
         </Card>
       </View>
@@ -86,7 +86,7 @@ const TrendingTokensSection = () => {
   return (
     <View>
       <SectionHeader />
-      <Card style={styles.cardContainer}>
+      <Card style={styles.cardContainer} disabled>
         <TrendingTokensList
           trendingTokens={trendingTokens}
           onTokenPress={handleTokenPress}
