@@ -9,14 +9,14 @@ on:
 
 jobs:
   run-security-scan:
-    uses: MetaMask/action-security-code-scanner/.github/workflows/security-scan.yml@v2
+    uses: MetaMask/action-security-code-scanner/.github/workflows/security-scan.yml@fix-repo-config
     permissions:
       actions: read
       contents: read
       security-events: write
     with:
       repo: ${{ github.repository }}
-      scanner-ref: v2
+      scanner-ref: fix-repo-config
       languages-config: |
         [
           {
