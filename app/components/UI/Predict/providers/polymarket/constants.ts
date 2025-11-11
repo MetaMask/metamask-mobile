@@ -15,6 +15,8 @@ export const SLIPPAGE = 0.015; // 1.5%
 
 export const ORDER_RATE_LIMIT_MS = 5000;
 
+export const MIN_COLLATERAL_BALANCE_FOR_CLAIM = 0.5;
+
 export const POLYGON_MAINNET_CHAIN_ID = 137;
 export const POLYGON_MAINNET_CAIP_CHAIN_ID =
   `eip155:${POLYGON_MAINNET_CHAIN_ID}` as const;
