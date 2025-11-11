@@ -42,7 +42,11 @@ const mockRenderItem: jest.Mock = jest.fn();
 jest.mock('../../components/PredictActivity/PredictActivity', () => {
   const ReactActual = jest.requireActual('react');
   const { Text: RNText, View: RNView } = jest.requireActual('react-native');
-  const PredictActivityType = { BUY: 'BUY', SELL: 'SELL', CLAIM: 'CLAIM' };
+  const MockedPredictActivityType = {
+    BUY: 'BUY',
+    SELL: 'SELL',
+    CLAIM: 'CLAIM',
+  };
   const MockComponent = ({
     item,
   }: {
@@ -55,7 +59,11 @@ jest.mock('../../components/PredictActivity/PredictActivity', () => {
       ReactActual.createElement(RNText, null, item.detail),
     );
   };
-  return { __esModule: true, default: MockComponent, PredictActivityType };
+  return {
+    __esModule: true,
+    default: MockComponent,
+    PredictActivityType: MockedPredictActivityType,
+  };
 });
 
 // Mock hook
@@ -99,6 +107,8 @@ describe('PredictTransactionsView', () => {
   });
 
   it('renders list items mapped from activity entries', () => {
+    const mockTimestamp = Math.floor(Date.now() / 1000); // Current time in seconds
+
     (usePredictActivity as jest.Mock).mockReturnValueOnce({
       isLoading: false,
       activity: [
@@ -107,28 +117,52 @@ describe('PredictTransactionsView', () => {
           title: 'Market A',
           outcome: 'Yes',
           icon: 'https://example.com/a.png',
-          entry: { type: 'buy', amount: 50, price: 0.34 },
+          entry: {
+            type: 'buy',
+            amount: 50,
+            price: 0.34,
+            timestamp: mockTimestamp,
+            marketId: 'market-a',
+            outcomeId: 'outcome-yes',
+            outcomeTokenId: 1,
+          },
         },
         {
           id: 'b2',
           title: 'Market B',
           outcome: 'No',
           icon: 'https://example.com/b.png',
-          entry: { type: 'sell', amount: 12.3, price: 0.7 },
+          entry: {
+            type: 'sell',
+            amount: 12.3,
+            price: 0.7,
+            timestamp: mockTimestamp - 100,
+            marketId: 'market-b',
+            outcomeId: 'outcome-no',
+            outcomeTokenId: 2,
+          },
         },
         {
           id: 'c3',
           title: 'Market C',
           outcome: 'Yes',
           icon: 'https://example.com/c.png',
-          entry: { type: 'claimWinnings', amount: 99.99 },
+          entry: {
+            type: 'claimWinnings',
+            amount: 99.99,
+            timestamp: mockTimestamp - 200,
+          },
         },
         {
           id: 'd4',
           title: 'Market D',
           outcome: 'Yes',
           icon: 'https://example.com/d.png',
-          entry: { type: 'unknown', amount: 1.23 },
+          entry: {
+            type: 'unknown',
+            amount: 1.23,
+            timestamp: mockTimestamp - 300,
+          },
         },
       ],
     });
