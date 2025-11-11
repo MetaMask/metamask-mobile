@@ -101,5 +101,19 @@ export default defineConfig({
         expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
       },
     },
+    {
+      name: 'mm-connect',
+      testMatch: '**/tests/mm-connect/**/*.spec.js',
+      use: {
+        platform: Platform.ANDROID,
+        device: {
+          provider: 'emulator',
+          name: 'Samsung Galaxy S24 Ultra', // this can be changed to your emulator name
+          osVersion: '14', // this can be changed to your emulator version
+        },
+        buildPath: '/Users/cferreira/Downloads/with-srp.apk', // Path to your .apk file
+        expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
+      },
+    },
   ],
 });

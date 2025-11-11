@@ -20811,7 +20811,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"appwright@patch:appwright@npm%3A0.1.45#./.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch::locator=metamask%40workspace%3A.":
+"appwright@patch:appwright@npm%3A0.1.45#./.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch::version=0.1.45&hash=7499a8&locator=metamask%40workspace%3A.":
   version: 0.1.45
   resolution: "appwright@patch:appwright@npm%3A0.1.45#./.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch::version=0.1.45&hash=7499a8&locator=metamask%40workspace%3A."
   dependencies:
@@ -20830,6 +20830,94 @@ __metadata:
   bin:
     appwright: dist/bin/index.js
   checksum: 10/e2567f4e57df88b1a3de695ff0132d9fdffed057e50aacf53356374917c0d5d1de48f4c936d7d1bbf38f2ad406432055d09f1fa518892acb066792d812462682
+  languageName: node
+  linkType: hard
+
+"appwright@patch:appwright@patch%3Aappwright@npm%253A0.1.45%23./.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=7499a8&locator=metamask%2540workspace%253A.#~/.yarn/patches/appwright-patch-55afb81fc2.patch::version=0.1.45&hash=d5a281":
+  version: 0.1.45
+  resolution: "appwright@patch:appwright@patch%3Aappwright@npm%253A0.1.45%23./.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=7499a8&locator=metamask%2540workspace%253A.#~/.yarn/patches/appwright-patch-55afb81fc2.patch::version=0.1.45&hash=d5a281"
+  dependencies:
+    "@empiricalrun/llm": "npm:^0.9.25"
+    "@ffmpeg-installer/ffmpeg": "npm:^1.1.0"
+    "@playwright/test": "npm:^1.47.1"
+    appium: "npm:^2.6.0"
+    appium-uiautomator2-driver: "npm:^3.8.0"
+    appium-xcuitest-driver: "npm:^7.27.0"
+    async-retry: "npm:^1.3.3"
+    fluent-ffmpeg: "npm:^2.1.3"
+    form-data: "npm:4.0.0"
+    node-fetch: "npm:^3.3.2"
+    picocolors: "npm:^1.1.0"
+    webdriver: "npm:^8.36.1"
+  bin:
+    appwright: dist/bin/index.js
+  checksum: 10/33c569bb1bed16d4c24ef3351debc4b72398f0874c09f79516c8841e21316a59578896c2ba6c215ae55034a77d7e089d8659c7afec7d30b59238e6f2978a889b
+  languageName: node
+  linkType: hard
+
+"appwright@patch:appwright@patch%3Aappwright@patch%253Aappwright@npm%25253A0.1.45%2523./.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%253A%253Aversion=0.1.45&hash=7499a8&locator=metamask%252540workspace%25253A.%23~/.yarn/patches/appwright-patch-55afb81fc2.patch%3A%3Aversion=0.1.45&hash=d5a281#~/.yarn/patches/appwright-patch-3cd06bfaf0.patch::version=0.1.45&hash=3ff62a":
+  version: 0.1.45
+  resolution: "appwright@patch:appwright@patch%3Aappwright@patch%253Aappwright@npm%25253A0.1.45%2523./.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%253A%253Aversion=0.1.45&hash=7499a8&locator=metamask%252540workspace%25253A.%23~/.yarn/patches/appwright-patch-55afb81fc2.patch%3A%3Aversion=0.1.45&hash=d5a281#~/.yarn/patches/appwright-patch-3cd06bfaf0.patch::version=0.1.45&hash=3ff62a"
+  dependencies:
+    "@empiricalrun/llm": "npm:^0.9.25"
+    "@ffmpeg-installer/ffmpeg": "npm:^1.1.0"
+    "@playwright/test": "npm:^1.47.1"
+    appium: "npm:^2.6.0"
+    appium-uiautomator2-driver: "npm:^3.8.0"
+    appium-xcuitest-driver: "npm:^7.27.0"
+    async-retry: "npm:^1.3.3"
+    fluent-ffmpeg: "npm:^2.1.3"
+    form-data: "npm:4.0.0"
+    node-fetch: "npm:^3.3.2"
+    picocolors: "npm:^1.1.0"
+    webdriver: "npm:^8.36.1"
+  bin:
+    appwright: dist/bin/index.js
+  checksum: 10/5a7e355de9de62c1490bb56bcc9e8d48fa94f5417ebcd610729975dfe64705f8550c355a20c4b6f1c741fdc147bcc4a1b174003b7e8809154fa0dc2d209bb8bb
+  languageName: node
+  linkType: hard
+
+"appwright@patch:appwright@patch%3Aappwright@patch%253Aappwright@patch%25253Aappwright@npm%2525253A0.1.45%252523./.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%25253A%25253Aversion=0.1.45&hash=7499a8&locator=metamask%25252540workspace%2525253A.%2523~/.yarn/patches/appwright-patch-55afb81fc2.patch%253A%253Aversion=0.1.45&hash=d5a281%23~/.yarn/patches/appwright-patch-3cd06bfaf0.patch%3A%3Aversion=0.1.45&hash=3ff62a#~/.yarn/patches/appwright-patch-b9f902c3ac.patch::version=0.1.45&hash=80f5c9":
+  version: 0.1.45
+  resolution: "appwright@patch:appwright@patch%3Aappwright@patch%253Aappwright@patch%25253Aappwright@npm%2525253A0.1.45%252523./.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%25253A%25253Aversion=0.1.45&hash=7499a8&locator=metamask%25252540workspace%2525253A.%2523~/.yarn/patches/appwright-patch-55afb81fc2.patch%253A%253Aversion=0.1.45&hash=d5a281%23~/.yarn/patches/appwright-patch-3cd06bfaf0.patch%3A%3Aversion=0.1.45&hash=3ff62a#~/.yarn/patches/appwright-patch-b9f902c3ac.patch::version=0.1.45&hash=80f5c9"
+  dependencies:
+    "@empiricalrun/llm": "npm:^0.9.25"
+    "@ffmpeg-installer/ffmpeg": "npm:^1.1.0"
+    "@playwright/test": "npm:^1.47.1"
+    appium: "npm:^2.6.0"
+    appium-uiautomator2-driver: "npm:^3.8.0"
+    appium-xcuitest-driver: "npm:^7.27.0"
+    async-retry: "npm:^1.3.3"
+    fluent-ffmpeg: "npm:^2.1.3"
+    form-data: "npm:4.0.0"
+    node-fetch: "npm:^3.3.2"
+    picocolors: "npm:^1.1.0"
+    webdriver: "npm:^8.36.1"
+  bin:
+    appwright: dist/bin/index.js
+  checksum: 10/c6003711b3886db3a1c2d579d51bb8c1e652d575cdf429be52f3297f77356831a3dc883953ee364a51300165eed3c4cd6aa99160758c8af1b13befc22172cb1e
+  languageName: node
+  linkType: hard
+
+"appwright@patch:appwright@patch%3Aappwright@patch%253Aappwright@patch%25253Aappwright@patch%2525253Aappwright@npm%252525253A0.1.45%25252523./.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%2525253A%2525253Aversion=0.1.45&hash=7499a8&locator=metamask%2525252540workspace%252525253A.%252523~/.yarn/patches/appwright-patch-55afb81fc2.patch%25253A%25253Aversion=0.1.45&hash=d5a281%2523~/.yarn/patches/appwright-patch-3cd06bfaf0.patch%253A%253Aversion=0.1.45&hash=3ff62a%23~/.yarn/patches/appwright-patch-b9f902c3ac.patch%3A%3Aversion=0.1.45&hash=80f5c9#~/.yarn/patches/appwright-patch-6312dd5a04.patch":
+  version: 0.1.45
+  resolution: "appwright@patch:appwright@patch%3Aappwright@patch%253Aappwright@patch%25253Aappwright@patch%2525253Aappwright@npm%252525253A0.1.45%25252523./.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%2525253A%2525253Aversion=0.1.45&hash=7499a8&locator=metamask%2525252540workspace%252525253A.%252523~/.yarn/patches/appwright-patch-55afb81fc2.patch%25253A%25253Aversion=0.1.45&hash=d5a281%2523~/.yarn/patches/appwright-patch-3cd06bfaf0.patch%253A%253Aversion=0.1.45&hash=3ff62a%23~/.yarn/patches/appwright-patch-b9f902c3ac.patch%3A%3Aversion=0.1.45&hash=80f5c9#~/.yarn/patches/appwright-patch-6312dd5a04.patch::version=0.1.45&hash=ef2062"
+  dependencies:
+    "@empiricalrun/llm": "npm:^0.9.25"
+    "@ffmpeg-installer/ffmpeg": "npm:^1.1.0"
+    "@playwright/test": "npm:^1.47.1"
+    appium: "npm:^2.6.0"
+    appium-uiautomator2-driver: "npm:^3.8.0"
+    appium-xcuitest-driver: "npm:^7.27.0"
+    async-retry: "npm:^1.3.3"
+    fluent-ffmpeg: "npm:^2.1.3"
+    form-data: "npm:4.0.0"
+    node-fetch: "npm:^3.3.2"
+    picocolors: "npm:^1.1.0"
+    webdriver: "npm:^8.36.1"
+  bin:
+    appwright: dist/bin/index.js
+  checksum: 10/47797f37ed80ee4b659091353637f9ced6937c22f19ce0f0ad531590663beca18dbb34efa6e77495f2344e0f3092b02eca2dc56295b90959ef0d00beca6e0fe6
   languageName: node
   linkType: hard
 
@@ -23227,12 +23315,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chromedriver@npm:^123.0.1":
-  version: 123.0.1
-  resolution: "chromedriver@npm:123.0.1"
+"chromedriver@npm:^142.0.1":
+  version: 142.0.1
+  resolution: "chromedriver@npm:142.0.1"
   dependencies:
     "@testim/chrome-version": "npm:^1.1.4"
-    axios: "npm:^1.6.7"
+    axios: "npm:^1.12.0"
     compare-versions: "npm:^6.1.0"
     extract-zip: "npm:^2.0.1"
     proxy-agent: "npm:^6.4.0"
@@ -23240,7 +23328,7 @@ __metadata:
     tcp-port-used: "npm:^1.0.2"
   bin:
     chromedriver: bin/chromedriver
-  checksum: 10/eded6a8ec168f6c2908d99062368235936eb4ee3816fdc8e4cf6d0fac7d05b07b0fe31752ffd41ee60ccce055bde093479ac34439652b267a92a794cf3551bba
+  checksum: 10/cb4e9f0e172206ad33d61135252f3834b49eb4a2e6af58c765dac4d8590ecdbedba7456e89f80dadddab5b1f422356285a1f875c13a82718414a2b3db4ff9554
   languageName: node
   linkType: hard
 
@@ -34459,7 +34547,7 @@ __metadata:
     appium-adb: "npm:^9.11.4"
     appium-uiautomator2-driver: "npm:4.2.7"
     appium-xcuitest-driver: "npm:5.16.1"
-    appwright: "npm:^0.1.45"
+    appwright: "patch:appwright@patch%3Aappwright@patch%253Aappwright@patch%25253Aappwright@patch%2525253Aappwright@npm%252525253A0.1.45%25252523./.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%2525253A%2525253Aversion=0.1.45&hash=7499a8&locator=metamask%2525252540workspace%252525253A.%252523~/.yarn/patches/appwright-patch-55afb81fc2.patch%25253A%25253Aversion=0.1.45&hash=d5a281%2523~/.yarn/patches/appwright-patch-3cd06bfaf0.patch%253A%253Aversion=0.1.45&hash=3ff62a%23~/.yarn/patches/appwright-patch-b9f902c3ac.patch%3A%3Aversion=0.1.45&hash=80f5c9#~/.yarn/patches/appwright-patch-6312dd5a04.patch"
     assert: "npm:^1.5.0"
     asyncstorage-down: "npm:4.2.0"
     axios: "npm:^1.8.2"
@@ -34477,7 +34565,7 @@ __metadata:
     bnjs5: "npm:bn.js@^5.2.1"
     browserstack-local: "npm:^1.5.1"
     buffer: "npm:6.0.3"
-    chromedriver: "npm:^123.0.1"
+    chromedriver: "npm:^142.0.1"
     cockatiel: "npm:^3.1.2"
     compare-versions: "npm:^3.6.0"
     content-hash: "npm:2.5.2"

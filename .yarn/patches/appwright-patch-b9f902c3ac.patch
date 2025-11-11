@@ -1,0 +1,13 @@
+diff --git a/dist/providers/appium.js b/dist/providers/appium.js
+index 2d8e8924124b882d44ab0aa11fede4d4094b7a65..b68e359305c02be7272b4432b468b3ddaffd0902 100644
+--- a/dist/providers/appium.js
++++ b/dist/providers/appium.js
+@@ -43,7 +43,7 @@ async function installDriver(driverName) {
+ async function startAppiumServer(provider) {
+     let emulatorStartRequested = false;
+     return new Promise((resolve, reject) => {
+-        const appiumProcess = (0, child_process_1.spawn)("npx", ["appium"], {
++        const appiumProcess = (0, child_process_1.spawn)("npx", ["appium", "--allow-insecure='*:chromedriver_autodownload'"], {
+             stdio: "pipe",
+         });
+         appiumProcess.stderr.on("data", async (data) => {

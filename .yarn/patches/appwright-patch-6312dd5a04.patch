@@ -1,0 +1,26 @@
+diff --git a/dist/providers/emulator/index.js b/dist/providers/emulator/index.js
+index fe3c6acd5272ab9fba73d914acc6205383c16cf7..82f35537e8db1f2bef2cf3efe8a82ce0da12d7a2 100644
+--- a/dist/providers/emulator/index.js
++++ b/dist/providers/emulator/index.js
+@@ -41,7 +41,7 @@ Follow the steps mentioned in ${androidSimulatorConfigDocLink} to run test on An
+         await (0, appium_1.installDriver)(this.project.use.platform == types_1.Platform.ANDROID
+             ? "uiautomator2"
+             : "xcuitest");
+-        await (0, appium_1.installDriver)("chromedriver");
++        await (0, appium_1.installDriver)("chromium");
+         await (0, appium_1.startAppiumServer)(this.project.use.device?.provider);
+         const WebDriver = (await import("webdriver")).default;
+         const webDriverClient = await WebDriver.newSession(await this.createConfig());
+diff --git a/dist/providers/local/index.js b/dist/providers/local/index.js
+index f460ddff05f5b28f318f8ea534e01f1a9703f471..c338b5652c5ac11b73af9b1ff8db93fd9535c5f6 100644
+--- a/dist/providers/local/index.js
++++ b/dist/providers/local/index.js
+@@ -31,7 +31,7 @@ class LocalDeviceProvider {
+         await (0, appium_1.installDriver)(this.project.use.platform == types_1.Platform.ANDROID
+             ? "uiautomator2"
+             : "xcuitest");
+-        await (0, appium_1.installDriver)("chromedriver");
++        await (0, appium_1.installDriver)("chromium");
+         await (0, appium_1.startAppiumServer)(this.project.use.device?.provider);
+         const WebDriver = (await import("webdriver")).default;
+         const webDriverClient = await WebDriver.newSession(await this.createConfig());
