@@ -23,8 +23,13 @@ jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => {
   };
 });
 
+import { query } from '@metamask/controller-utils';
 import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import {
+  generateTransferData,
+  isSmartContractAddress,
+} from '../../../../../util/transactions';
 import {
   PredictPosition,
   PredictPositionStatus,
@@ -32,7 +37,16 @@ import {
   Recurrence,
   Side,
 } from '../../types';
+import { OrderPreview, PlaceOrderParams } from '../types';
 import { PolymarketProvider } from './PolymarketProvider';
+import {
+  computeProxyAddress,
+  createSafeFeeAuthorization,
+  getClaimTransaction,
+  getDeployProxyWalletTransaction,
+  getProxyWalletAllowancesTransaction,
+  hasAllowances,
+} from './safe/utils';
 import {
   createApiKey,
   encodeClaim,
@@ -49,20 +63,6 @@ import {
   priceValid,
   submitClobOrder,
 } from './utils';
-import { OrderPreview, PlaceOrderParams } from '../types';
-import { query } from '@metamask/controller-utils';
-import {
-  computeProxyAddress,
-  createSafeFeeAuthorization,
-  getClaimTransaction,
-  getDeployProxyWalletTransaction,
-  getProxyWalletAllowancesTransaction,
-  hasAllowances,
-} from './safe/utils';
-import {
-  generateTransferData,
-  isSmartContractAddress,
-} from '../../../../../util/transactions';
 
 jest.mock('@metamask/controller-utils', () => {
   const actual = jest.requireActual('@metamask/controller-utils');
@@ -152,6 +152,7 @@ const mockGetClaimTransaction = getClaimTransaction as jest.Mock;
 const mockHasAllowances = hasAllowances as jest.Mock;
 const mockQuery = query as jest.Mock;
 const mockPreviewOrder = previewOrder as jest.Mock;
+const mockGetBalance = getBalance as jest.Mock;
 
 describe('PolymarketProvider', () => {
   const createProvider = () => new PolymarketProvider();
@@ -1460,21 +1461,23 @@ describe('PolymarketProvider', () => {
         negRiskAdapter: '0xNegRiskAdapterAddress',
       });
       mockEncodeClaim.mockReturnValue('0xencodedclaim');
-      mockGetClaimTransaction.mockResolvedValue({
-        to: '0xConditionalTokensAddress',
-        data: '0xencodedclaim',
-        value: '0x0',
-      });
+      mockGetClaimTransaction.mockResolvedValue([
+        {
+          params: {
+            to: '0xConditionalTokensAddress',
+            data: '0xencodedclaim',
+            value: '0x0',
+          },
+        },
+      ]);
 
-      // Mock getAccountState to return a safe address
-      const mockAccountState = {
-        address: '0xSafeAddress123456789012345678901234567890' as const,
-        isDeployed: true,
-        hasAllowances: true,
-      };
-      jest
-        .spyOn(PolymarketProvider.prototype, 'getAccountState')
-        .mockResolvedValue(mockAccountState);
+      // Mock getBalance to return a balance above the threshold by default
+      mockGetBalance.mockResolvedValue(1);
+
+      // Mock computeProxyAddress to return a safe address
+      mockComputeProxyAddress.mockReturnValue(
+        '0xSafeAddress123456789012345678901234567890',
+      );
 
       // Mock hasAllowances used by getAccountState
       mockHasAllowances.mockResolvedValue(true);
@@ -1524,11 +1527,15 @@ describe('PolymarketProvider', () => {
 
       expect(result).toEqual({
         chainId: 137, // POLYGON_MAINNET_CHAIN_ID
-        transactions: {
-          data: '0xencodedclaim',
-          to: '0xConditionalTokensAddress',
-          value: '0x0',
-        },
+        transactions: [
+          {
+            params: {
+              data: '0xencodedclaim',
+              to: '0xConditionalTokensAddress',
+              value: '0x0',
+            },
+          },
+        ],
       });
 
       // encodeClaim is called internally by getClaimTransaction
@@ -1572,11 +1579,15 @@ describe('PolymarketProvider', () => {
 
       expect(result).toEqual({
         chainId: 137,
-        transactions: {
-          data: '0xencodedclaim',
-          to: '0xConditionalTokensAddress',
-          value: '0x0',
-        },
+        transactions: [
+          {
+            params: {
+              data: '0xencodedclaim',
+              to: '0xConditionalTokensAddress',
+              value: '0x0',
+            },
+          },
+        ],
       });
 
       // encodeClaim is called internally by getClaimTransaction
@@ -1718,6 +1729,311 @@ describe('PolymarketProvider', () => {
           signer,
         }),
       ).rejects.toThrow('No claim transaction generated');
+    });
+
+    it('calls getBalance to check signer collateral balance', async () => {
+      const { provider, signer } = setupPrepareClaimTest();
+      mockGetBalance.mockResolvedValue(1);
+
+      const position = {
+        id: 'position-1',
+        providerId: 'polymarket',
+        marketId: 'market-1',
+        outcomeId: 'outcome-456',
+        outcomeIndex: 0,
+        outcome: 'Yes',
+        outcomeTokenId: '0',
+        title: 'Test Market Position',
+        icon: 'test-icon.png',
+        amount: 1.5,
+        price: 0.5,
+        size: 1.5,
+        negRisk: false,
+        redeemable: true,
+        status: PredictPositionStatus.OPEN,
+        realizedPnl: 0,
+        curPrice: 0.5,
+        conditionId: 'outcome-456',
+        percentPnl: 0,
+        cashPnl: 0,
+        initialValue: 0.5,
+        avgPrice: 0.5,
+        currentValue: 0.5,
+        endDate: '2025-01-01T00:00:00Z',
+        claimable: false,
+      };
+
+      await provider.prepareClaim({
+        positions: [position],
+        signer,
+      });
+
+      expect(mockGetBalance).toHaveBeenCalledWith({ address: signer.address });
+    });
+
+    it('does not include transfer when signer balance is above minimum collateral threshold', async () => {
+      const { provider, signer } = setupPrepareClaimTest();
+      mockGetBalance.mockResolvedValue(1);
+      mockGetClaimTransaction.mockResolvedValue([
+        {
+          params: {
+            to: '0xConditionalTokensAddress',
+            data: '0xencodedclaim',
+            value: '0x0',
+          },
+        },
+      ]);
+
+      const position = {
+        id: 'position-1',
+        providerId: 'polymarket',
+        marketId: 'market-1',
+        outcomeId: 'outcome-456',
+        outcomeIndex: 0,
+        outcome: 'Yes',
+        outcomeTokenId: '0',
+        title: 'Test Market Position',
+        icon: 'test-icon.png',
+        amount: 1.5,
+        price: 0.5,
+        size: 1.5,
+        negRisk: false,
+        redeemable: true,
+        status: PredictPositionStatus.OPEN,
+        realizedPnl: 0,
+        curPrice: 0.5,
+        conditionId: 'outcome-456',
+        percentPnl: 0,
+        cashPnl: 0,
+        initialValue: 0.5,
+        avgPrice: 0.5,
+        currentValue: 0.5,
+        endDate: '2025-01-01T00:00:00Z',
+        claimable: false,
+      };
+
+      await provider.prepareClaim({
+        positions: [position],
+        signer,
+      });
+
+      expect(mockGetClaimTransaction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          includeTransferTransaction: false,
+        }),
+      );
+    });
+
+    it('does not include transfer when signer balance equals minimum collateral threshold', async () => {
+      const { provider, signer } = setupPrepareClaimTest();
+      mockGetBalance.mockResolvedValue(0.5);
+      mockGetClaimTransaction.mockResolvedValue([
+        {
+          params: {
+            to: '0xConditionalTokensAddress',
+            data: '0xencodedclaim',
+            value: '0x0',
+          },
+        },
+      ]);
+
+      const position = {
+        id: 'position-1',
+        providerId: 'polymarket',
+        marketId: 'market-1',
+        outcomeId: 'outcome-456',
+        outcomeIndex: 0,
+        outcome: 'Yes',
+        outcomeTokenId: '0',
+        title: 'Test Market Position',
+        icon: 'test-icon.png',
+        amount: 1.5,
+        price: 0.5,
+        size: 1.5,
+        negRisk: false,
+        redeemable: true,
+        status: PredictPositionStatus.OPEN,
+        realizedPnl: 0,
+        curPrice: 0.5,
+        conditionId: 'outcome-456',
+        percentPnl: 0,
+        cashPnl: 0,
+        initialValue: 0.5,
+        avgPrice: 0.5,
+        currentValue: 0.5,
+        endDate: '2025-01-01T00:00:00Z',
+        claimable: false,
+      };
+
+      await provider.prepareClaim({
+        positions: [position],
+        signer,
+      });
+
+      expect(mockGetClaimTransaction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          includeTransferTransaction: false,
+        }),
+      );
+    });
+
+    it('includes transfer when signer balance is below minimum collateral threshold', async () => {
+      const { provider, signer } = setupPrepareClaimTest();
+      mockGetBalance.mockResolvedValue(0.3);
+      mockGetClaimTransaction.mockResolvedValue([
+        {
+          params: {
+            to: '0xConditionalTokensAddress',
+            data: '0xencodedclaim',
+            value: '0x0',
+          },
+        },
+      ]);
+
+      const position = {
+        id: 'position-1',
+        providerId: 'polymarket',
+        marketId: 'market-1',
+        outcomeId: 'outcome-456',
+        outcomeIndex: 0,
+        outcome: 'Yes',
+        outcomeTokenId: '0',
+        title: 'Test Market Position',
+        icon: 'test-icon.png',
+        amount: 1.5,
+        price: 0.5,
+        size: 1.5,
+        negRisk: false,
+        redeemable: true,
+        status: PredictPositionStatus.OPEN,
+        realizedPnl: 0,
+        curPrice: 0.5,
+        conditionId: 'outcome-456',
+        percentPnl: 0,
+        cashPnl: 0,
+        initialValue: 0.5,
+        avgPrice: 0.5,
+        currentValue: 0.5,
+        endDate: '2025-01-01T00:00:00Z',
+        claimable: false,
+      };
+
+      await provider.prepareClaim({
+        positions: [position],
+        signer,
+      });
+
+      expect(mockGetClaimTransaction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          includeTransferTransaction: true,
+        }),
+      );
+    });
+
+    it('includes transfer when signer balance is zero', async () => {
+      const { provider, signer } = setupPrepareClaimTest();
+      mockGetBalance.mockResolvedValue(0);
+      mockGetClaimTransaction.mockResolvedValue([
+        {
+          params: {
+            to: '0xConditionalTokensAddress',
+            data: '0xencodedclaim',
+            value: '0x0',
+          },
+        },
+      ]);
+
+      const position = {
+        id: 'position-1',
+        providerId: 'polymarket',
+        marketId: 'market-1',
+        outcomeId: 'outcome-456',
+        outcomeIndex: 0,
+        outcome: 'Yes',
+        outcomeTokenId: '0',
+        title: 'Test Market Position',
+        icon: 'test-icon.png',
+        amount: 1.5,
+        price: 0.5,
+        size: 1.5,
+        negRisk: false,
+        redeemable: true,
+        status: PredictPositionStatus.OPEN,
+        realizedPnl: 0,
+        curPrice: 0.5,
+        conditionId: 'outcome-456',
+        percentPnl: 0,
+        cashPnl: 0,
+        initialValue: 0.5,
+        avgPrice: 0.5,
+        currentValue: 0.5,
+        endDate: '2025-01-01T00:00:00Z',
+        claimable: false,
+      };
+
+      await provider.prepareClaim({
+        positions: [position],
+        signer,
+      });
+
+      expect(mockGetClaimTransaction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          includeTransferTransaction: true,
+        }),
+      );
+    });
+
+    it('includes transfer when signer balance is slightly below threshold', async () => {
+      const { provider, signer } = setupPrepareClaimTest();
+      mockGetBalance.mockResolvedValue(0.49);
+      mockGetClaimTransaction.mockResolvedValue([
+        {
+          params: {
+            to: '0xConditionalTokensAddress',
+            data: '0xencodedclaim',
+            value: '0x0',
+          },
+        },
+      ]);
+
+      const position = {
+        id: 'position-1',
+        providerId: 'polymarket',
+        marketId: 'market-1',
+        outcomeId: 'outcome-456',
+        outcomeIndex: 0,
+        outcome: 'Yes',
+        outcomeTokenId: '0',
+        title: 'Test Market Position',
+        icon: 'test-icon.png',
+        amount: 1.5,
+        price: 0.5,
+        size: 1.5,
+        negRisk: false,
+        redeemable: true,
+        status: PredictPositionStatus.OPEN,
+        realizedPnl: 0,
+        curPrice: 0.5,
+        conditionId: 'outcome-456',
+        percentPnl: 0,
+        cashPnl: 0,
+        initialValue: 0.5,
+        avgPrice: 0.5,
+        currentValue: 0.5,
+        endDate: '2025-01-01T00:00:00Z',
+        claimable: false,
+      };
+
+      await provider.prepareClaim({
+        positions: [position],
+        signer,
+      });
+
+      expect(mockGetClaimTransaction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          includeTransferTransaction: true,
+        }),
+      );
     });
   });
 
