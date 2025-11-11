@@ -6816,6 +6816,7 @@
   },
   "trending": {
     "title": "Trending",
-    "view_all": "View all"
+    "view_all": "View all",
+    "tokens": "Tokens"
   }
 }

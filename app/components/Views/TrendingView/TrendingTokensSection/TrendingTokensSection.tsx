@@ -59,7 +59,7 @@ const TrendingTokensSection = () => {
     () => (
       <View style={styles.header}>
         <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-          {'Tokens'}
+          {strings('trending.tokens')}
         </Text>
         <TouchableOpacity onPress={handleViewAll}>
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Primary}>
