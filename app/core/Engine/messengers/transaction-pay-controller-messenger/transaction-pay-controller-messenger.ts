@@ -6,6 +6,7 @@ import {
   MessengerEvents,
 } from '@metamask/messenger';
 import { DelegationControllerSignDelegationAction } from '@metamask/delegation-controller';
+import { KeyringControllerSignEip7702AuthorizationAction } from '@metamask/keyring-controller';
 
 export function getTransactionPayControllerMessenger(
   rootMessenger: RootMessenger,
@@ -48,7 +49,9 @@ export function getTransactionPayControllerMessenger(
   return messenger;
 }
 
-type InitMessengerActions = DelegationControllerSignDelegationAction;
+type InitMessengerActions =
+  | DelegationControllerSignDelegationAction
+  | KeyringControllerSignEip7702AuthorizationAction;
 type InitMessengerEvents = never;
 
 export type TransactionPayControllerInitMessenger = ReturnType<
@@ -69,7 +72,10 @@ export function getTransactionPayControllerInitMessenger(
   });
 
   rootMessenger.delegate({
-    actions: ['DelegationController:signDelegation'],
+    actions: [
+      'DelegationController:signDelegation',
+      'KeyringController:signEip7702Authorization',
+    ],
     events: [],
     messenger,
   });

@@ -1,4 +1,7 @@
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  AuthorizationList,
+  TransactionMeta,
+} from '@metamask/transaction-controller';
 import {
   BATCH_DEFAULT_MODE,
   Caveat,
@@ -15,25 +18,36 @@ import {
   createDelegation,
   encodeRedeemDelegations,
 } from '../../core/Delegation/delegation';
-import { Hex, createProjectLogger } from '@metamask/utils';
+import { Hex, add0x, createProjectLogger } from '@metamask/utils';
 import { limitedCalls } from '../../core/Delegation/caveatBuilder/limitedCallsBuilder';
 import { Messenger } from '@metamask/messenger';
 import { DelegationControllerSignDelegationAction } from '@metamask/delegation-controller';
+import { KeyringControllerSignEip7702AuthorizationAction } from '@metamask/keyring-controller';
+import { toHex } from '@metamask/controller-utils';
+import Engine from '../../core/Engine';
 
 const log = createProjectLogger('transaction-delegation');
 
 type SignMessenger = Messenger<
   string,
-  DelegationControllerSignDelegationAction,
+  | DelegationControllerSignDelegationAction
+  | KeyringControllerSignEip7702AuthorizationAction,
   never
 >;
+
+export interface DelegationTransaction {
+  authorizationList?: AuthorizationList;
+  data: Hex;
+  to: Hex;
+  value: Hex;
+}
 
 export async function getDelegationTransaction<
   MessengerType extends SignMessenger,
 >(
   messenger: MessengerType,
   transaction: TransactionMeta,
-): Promise<{ to: Hex; value: Hex; data: Hex }> {
+): Promise<DelegationTransaction> {
   const { chainId } = transaction;
   const delegationEnvironment = getDeleGatorEnvironment(parseInt(chainId, 16));
 
@@ -57,11 +71,91 @@ export async function getDelegationTransaction<
     executions,
   });
 
+  const authorizationList = await buildAuthorizationList(
+    transaction,
+    messenger,
+  );
+
   return {
+    authorizationList,
+    data: transactionData,
     to: delegationManagerAddress,
     value: '0x0',
-    data: transactionData,
   };
+}
+
+async function buildAuthorizationList<MessengerType extends SignMessenger>(
+  transactionMeta: TransactionMeta,
+  messenger: MessengerType,
+): Promise<AuthorizationList | undefined> {
+  const { TransactionController } = Engine.context;
+
+  const { chainId, delegationAddress, networkClientId, txParams } =
+    transactionMeta;
+
+  const { from } = txParams;
+
+  if (delegationAddress) {
+    log('Skipping authorization list as already upgraded');
+    return undefined;
+  }
+
+  log('Including authorization as not upgraded');
+
+  const atomicBatchResult =
+    await Engine.context.TransactionController.isAtomicBatchSupported({
+      address: from as Hex,
+      chainIds: [chainId],
+    });
+
+  const upgradeContractAddress = atomicBatchResult.find(
+    (r) => r.chainId.toLowerCase() === chainId.toLowerCase(),
+  )?.upgradeContractAddress;
+
+  if (!upgradeContractAddress) {
+    throw new Error('Upgrade contract address not found');
+  }
+
+  const nonceLock = await TransactionController.getNonceLock(
+    from,
+    networkClientId,
+  );
+
+  const nonce = nonceLock.nextNonce;
+  nonceLock.releaseLock();
+
+  const authorizationSignature = (await messenger.call(
+    'KeyringController:signEip7702Authorization',
+    {
+      chainId: parseInt(chainId, 16),
+      contractAddress: upgradeContractAddress,
+      from,
+      nonce,
+    },
+  )) as Hex;
+
+  const { r, s, yParity } = decodeAuthorizationSignature(
+    authorizationSignature,
+  );
+
+  log('Authorization signature', {
+    authorizationSignature,
+    r,
+    s,
+    yParity,
+    nonce,
+  });
+
+  return [
+    {
+      address: upgradeContractAddress,
+      chainId,
+      nonce: toHex(nonce),
+      r,
+      s,
+      yParity,
+    },
+  ];
 }
 
 async function buildDelegation<MessengerType extends SignMessenger>(
@@ -138,4 +232,17 @@ function buildCaveats(environment: DeleGatorEnvironment): Caveat[] {
   caveatBuilder.addCaveat(limitedCalls, 1);
 
   return caveatBuilder.build();
+}
+
+function decodeAuthorizationSignature(signature: Hex) {
+  const r = signature.slice(0, 66) as Hex;
+  const s = add0x(signature.slice(66, 130));
+  const v = parseInt(signature.slice(130, 132), 16);
+  const yParity = toHex(v - 27 === 0 ? 0 : 1);
+
+  return {
+    r,
+    s,
+    yParity,
+  };
 }
