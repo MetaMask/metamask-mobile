@@ -235,7 +235,9 @@ describe('PredictPosition', () => {
     it('shows initial value line when optimistic', () => {
       renderComponent({ optimistic: true, initialValue: 123.45 });
 
-      expect(screen.getByText('$123.45 on Yes • 34¢')).toBeOnTheScreen();
+      expect(
+        screen.getByText('$123.45 on Yes · 10 shares at 34¢'),
+      ).toBeOnTheScreen();
     });
   });
 });
