@@ -53,102 +53,6 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
           <View
             style={
               {
-                "width": undefined,
-              }
-            }
-          >
-            <View
-              onLayout={[Function]}
-            >
-              <View
-                style={
-                  {
-                    "alignItems": "flex-start",
-                  }
-                }
-              >
-                <TouchableOpacity
-                  disabled={false}
-                  hitSlop={
-                    {
-                      "bottom": 12,
-                      "left": 12,
-                      "right": 12,
-                      "top": 12,
-                    }
-                  }
-                  onPress={[Function]}
-                  style={
-                    {
-                      "alignItems": "center",
-                      "alignSelf": "flex-start",
-                      "backgroundColor": "#f3f5f9",
-                      "borderRadius": 16,
-                      "flexDirection": "row",
-                      "height": 32,
-                      "marginLeft": 16,
-                      "paddingHorizontal": 8,
-                    }
-                  }
-                  testID="open-networks-button"
-                >
-                  <View
-                    style={
-                      {
-                        "marginRight": 8,
-                      }
-                    }
-                  >
-                    <View
-                      accessibilityLabel="Ethereum Mainnet"
-                      style={
-                        {
-                          "alignItems": "center",
-                          "backgroundColor": "#ffffff",
-                          "borderRadius": 4,
-                          "height": 16,
-                          "justifyContent": "center",
-                          "overflow": "hidden",
-                          "width": 16,
-                        }
-                      }
-                      testID="network-avatar-picker"
-                    >
-                      <Image
-                        onError={[Function]}
-                        resizeMode="contain"
-                        source={1}
-                        style={
-                          {
-                            "height": 16,
-                            "width": 16,
-                          }
-                        }
-                        testID="network-avatar-image"
-                      />
-                    </View>
-                  </View>
-                  <SvgMock
-                    color="#121314"
-                    fill="currentColor"
-                    height={12}
-                    name="ArrowDown"
-                    style={
-                      {
-                        "height": 12,
-                        "width": 12,
-                      }
-                    }
-                    testID="pickernetwork-arrow"
-                    width={12}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              {
                 "alignItems": "flex-start",
                 "flex": 1,
               }
@@ -1040,7 +944,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                                   }
                                 >
                                   View: Wallet
-TypeError: Cannot read properties of undefined (reading 'key')
+TypeError: Cannot read properties of undefined (reading 'isNftFetchingProgress')
                                 </Text>
                               </View>
                             </RCTScrollView>
@@ -1233,102 +1137,6 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
           }
           testID="header"
         >
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
-            <View
-              onLayout={[Function]}
-            >
-              <View
-                style={
-                  {
-                    "alignItems": "flex-start",
-                  }
-                }
-              >
-                <TouchableOpacity
-                  disabled={false}
-                  hitSlop={
-                    {
-                      "bottom": 12,
-                      "left": 12,
-                      "right": 12,
-                      "top": 12,
-                    }
-                  }
-                  onPress={[Function]}
-                  style={
-                    {
-                      "alignItems": "center",
-                      "alignSelf": "flex-start",
-                      "backgroundColor": "#f3f5f9",
-                      "borderRadius": 16,
-                      "flexDirection": "row",
-                      "height": 32,
-                      "marginLeft": 16,
-                      "paddingHorizontal": 8,
-                    }
-                  }
-                  testID="open-networks-button"
-                >
-                  <View
-                    style={
-                      {
-                        "marginRight": 8,
-                      }
-                    }
-                  >
-                    <View
-                      accessibilityLabel="Ethereum Mainnet"
-                      style={
-                        {
-                          "alignItems": "center",
-                          "backgroundColor": "#ffffff",
-                          "borderRadius": 4,
-                          "height": 16,
-                          "justifyContent": "center",
-                          "overflow": "hidden",
-                          "width": 16,
-                        }
-                      }
-                      testID="network-avatar-picker"
-                    >
-                      <Image
-                        onError={[Function]}
-                        resizeMode="contain"
-                        source={1}
-                        style={
-                          {
-                            "height": 16,
-                            "width": 16,
-                          }
-                        }
-                        testID="network-avatar-image"
-                      />
-                    </View>
-                  </View>
-                  <SvgMock
-                    color="#121314"
-                    fill="currentColor"
-                    height={12}
-                    name="ArrowDown"
-                    style={
-                      {
-                        "height": 12,
-                        "width": 12,
-                      }
-                    }
-                    testID="pickernetwork-arrow"
-                    width={12}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
           <View
             style={
               {
@@ -2223,7 +2031,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                                   }
                                 >
                                   View: Wallet
-TypeError: Cannot read properties of undefined (reading 'key')
+TypeError: Cannot read properties of undefined (reading 'isNftFetchingProgress')
                                 </Text>
                               </View>
                             </RCTScrollView>
@@ -2416,102 +2224,6 @@ exports[`Wallet should render correctly 1`] = `
           }
           testID="header"
         >
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
-            <View
-              onLayout={[Function]}
-            >
-              <View
-                style={
-                  {
-                    "alignItems": "flex-start",
-                  }
-                }
-              >
-                <TouchableOpacity
-                  disabled={false}
-                  hitSlop={
-                    {
-                      "bottom": 12,
-                      "left": 12,
-                      "right": 12,
-                      "top": 12,
-                    }
-                  }
-                  onPress={[Function]}
-                  style={
-                    {
-                      "alignItems": "center",
-                      "alignSelf": "flex-start",
-                      "backgroundColor": "#f3f5f9",
-                      "borderRadius": 16,
-                      "flexDirection": "row",
-                      "height": 32,
-                      "marginLeft": 16,
-                      "paddingHorizontal": 8,
-                    }
-                  }
-                  testID="open-networks-button"
-                >
-                  <View
-                    style={
-                      {
-                        "marginRight": 8,
-                      }
-                    }
-                  >
-                    <View
-                      accessibilityLabel="Ethereum Mainnet"
-                      style={
-                        {
-                          "alignItems": "center",
-                          "backgroundColor": "#ffffff",
-                          "borderRadius": 4,
-                          "height": 16,
-                          "justifyContent": "center",
-                          "overflow": "hidden",
-                          "width": 16,
-                        }
-                      }
-                      testID="network-avatar-picker"
-                    >
-                      <Image
-                        onError={[Function]}
-                        resizeMode="contain"
-                        source={1}
-                        style={
-                          {
-                            "height": 16,
-                            "width": 16,
-                          }
-                        }
-                        testID="network-avatar-image"
-                      />
-                    </View>
-                  </View>
-                  <SvgMock
-                    color="#121314"
-                    fill="currentColor"
-                    height={12}
-                    name="ArrowDown"
-                    style={
-                      {
-                        "height": 12,
-                        "width": 12,
-                      }
-                    }
-                    testID="pickernetwork-arrow"
-                    width={12}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
           <View
             style={
               {
@@ -3406,7 +3118,7 @@ exports[`Wallet should render correctly 1`] = `
                                   }
                                 >
                                   View: Wallet
-TypeError: Cannot read properties of undefined (reading 'key')
+TypeError: Cannot read properties of undefined (reading 'isNftFetchingProgress')
                                 </Text>
                               </View>
                             </RCTScrollView>
@@ -3599,102 +3311,6 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
           }
           testID="header"
         >
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
-            <View
-              onLayout={[Function]}
-            >
-              <View
-                style={
-                  {
-                    "alignItems": "flex-start",
-                  }
-                }
-              >
-                <TouchableOpacity
-                  disabled={false}
-                  hitSlop={
-                    {
-                      "bottom": 12,
-                      "left": 12,
-                      "right": 12,
-                      "top": 12,
-                    }
-                  }
-                  onPress={[Function]}
-                  style={
-                    {
-                      "alignItems": "center",
-                      "alignSelf": "flex-start",
-                      "backgroundColor": "#f3f5f9",
-                      "borderRadius": 16,
-                      "flexDirection": "row",
-                      "height": 32,
-                      "marginLeft": 16,
-                      "paddingHorizontal": 8,
-                    }
-                  }
-                  testID="open-networks-button"
-                >
-                  <View
-                    style={
-                      {
-                        "marginRight": 8,
-                      }
-                    }
-                  >
-                    <View
-                      accessibilityLabel="Ethereum Mainnet"
-                      style={
-                        {
-                          "alignItems": "center",
-                          "backgroundColor": "#ffffff",
-                          "borderRadius": 4,
-                          "height": 16,
-                          "justifyContent": "center",
-                          "overflow": "hidden",
-                          "width": 16,
-                        }
-                      }
-                      testID="network-avatar-picker"
-                    >
-                      <Image
-                        onError={[Function]}
-                        resizeMode="contain"
-                        source={1}
-                        style={
-                          {
-                            "height": 16,
-                            "width": 16,
-                          }
-                        }
-                        testID="network-avatar-image"
-                      />
-                    </View>
-                  </View>
-                  <SvgMock
-                    color="#121314"
-                    fill="currentColor"
-                    height={12}
-                    name="ArrowDown"
-                    style={
-                      {
-                        "height": 12,
-                        "width": 12,
-                      }
-                    }
-                    testID="pickernetwork-arrow"
-                    width={12}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
           <View
             style={
               {
@@ -4589,7 +4205,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                                   }
                                 >
                                   View: Wallet
-TypeError: Cannot read properties of undefined (reading 'key')
+TypeError: Cannot read properties of undefined (reading 'isNftFetchingProgress')
                                 </Text>
                               </View>
                             </RCTScrollView>
@@ -4782,102 +4398,6 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
           }
           testID="header"
         >
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
-            <View
-              onLayout={[Function]}
-            >
-              <View
-                style={
-                  {
-                    "alignItems": "flex-start",
-                  }
-                }
-              >
-                <TouchableOpacity
-                  disabled={false}
-                  hitSlop={
-                    {
-                      "bottom": 12,
-                      "left": 12,
-                      "right": 12,
-                      "top": 12,
-                    }
-                  }
-                  onPress={[Function]}
-                  style={
-                    {
-                      "alignItems": "center",
-                      "alignSelf": "flex-start",
-                      "backgroundColor": "#f3f5f9",
-                      "borderRadius": 16,
-                      "flexDirection": "row",
-                      "height": 32,
-                      "marginLeft": 16,
-                      "paddingHorizontal": 8,
-                    }
-                  }
-                  testID="open-networks-button"
-                >
-                  <View
-                    style={
-                      {
-                        "marginRight": 8,
-                      }
-                    }
-                  >
-                    <View
-                      accessibilityLabel="Ethereum Mainnet"
-                      style={
-                        {
-                          "alignItems": "center",
-                          "backgroundColor": "#ffffff",
-                          "borderRadius": 4,
-                          "height": 16,
-                          "justifyContent": "center",
-                          "overflow": "hidden",
-                          "width": 16,
-                        }
-                      }
-                      testID="network-avatar-picker"
-                    >
-                      <Image
-                        onError={[Function]}
-                        resizeMode="contain"
-                        source={1}
-                        style={
-                          {
-                            "height": 16,
-                            "width": 16,
-                          }
-                        }
-                        testID="network-avatar-image"
-                      />
-                    </View>
-                  </View>
-                  <SvgMock
-                    color="#121314"
-                    fill="currentColor"
-                    height={12}
-                    name="ArrowDown"
-                    style={
-                      {
-                        "height": 12,
-                        "width": 12,
-                      }
-                    }
-                    testID="pickernetwork-arrow"
-                    width={12}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
           <View
             style={
               {
@@ -5772,7 +5292,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                                   }
                                 >
                                   View: Wallet
-TypeError: Cannot read properties of undefined (reading 'key')
+TypeError: Cannot read properties of undefined (reading 'isNftFetchingProgress')
                                 </Text>
                               </View>
                             </RCTScrollView>

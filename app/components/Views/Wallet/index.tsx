@@ -102,7 +102,6 @@ import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccou
 import {
   getDecimalChainId,
   getIsNetworkOnboarded,
-  isRemoveGlobalNetworkSelectorEnabled,
   isTestNet,
 } from '../../../util/networks';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
@@ -439,7 +438,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       );
     }
 
-    if (collectiblesEnabled && isRemoveGlobalNetworkSelectorEnabled()) {
+    if (collectiblesEnabled) {
       tabs.push(<NftGrid {...nftsTabProps} key={nftsTabProps.key} />);
     }
 
@@ -561,18 +560,9 @@ const Wallet = ({
       }
       return false;
     }
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      return enabledNetworks.some((network) => isTestNet(network));
-    }
-    return Object.keys(tokenNetworkFilter).some((network) =>
-      isTestNet(network),
-    );
-  }, [
-    enabledNetworks,
-    tokenNetworkFilter,
-    isMultichainAccountsState2Enabled,
-    allEnabledNetworks,
-  ]);
+
+    return enabledNetworks.some((network) => isTestNet(network));
+  }, [enabledNetworks, isMultichainAccountsState2Enabled, allEnabledNetworks]);
 
   const prevChainId = usePrevious(chainId);
 
@@ -997,10 +987,7 @@ const Wallet = ({
       });
     }
 
-    if (
-      isRemoveGlobalNetworkSelectorEnabled() &&
-      enabledEVMNetworks.length === 0
-    ) {
+    if (enabledEVMNetworks.length === 0) {
       selectNetwork(chainId);
     }
   }, [chainId, selectNetwork, enabledEVMNetworks, tokenNetworkFilter]);
