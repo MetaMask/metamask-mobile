@@ -25,6 +25,8 @@ const newOverrides = [
       'app/components/UI/Ramp/Aggregator/sdk/getSdkEnvironment.test.ts',
       'app/components/UI/Ramp/hooks/useRampsUnifiedV1Enabled.ts',
       'app/components/UI/Ramp/hooks/useRampsUnifiedV1Enabled.test.ts',
+      'app/components/UI/Ramp/hooks/useRampsSmartRouting.ts',
+      'app/components/UI/Ramp/hooks/useRampsSmartRouting.test.ts',
       'app/store/migrations/**',
       'app/util/networks/customNetworks.tsx',
     ],
