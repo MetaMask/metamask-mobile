@@ -31,8 +31,8 @@ interface TestDescriptors {
 }
 
 // Force rewards feature flag to be enabled for this test file
-jest.mock('../../../../selectors/featureFlagController/rewards', () => ({
-  selectRewardsEnabledFlag: () => true,
+jest.mock('../../../../components/hooks/FeatureFlags/useFeatureFlag', () => ({
+  useFeatureFlag: () => true,
 }));
 
 // Mock trending tokens feature flag selector
