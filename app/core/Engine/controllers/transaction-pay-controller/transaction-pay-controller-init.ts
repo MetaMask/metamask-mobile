@@ -9,15 +9,20 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { TransactionPayControllerInitMessenger } from '../../messengers/transaction-pay-controller-messenger';
+import { getDelegationTransaction } from '../../../../util/transactions/delegation';
 
 export const TransactionPayControllerInit: ControllerInitFunction<
   TransactionPayController,
-  TransactionPayControllerMessenger
+  TransactionPayControllerMessenger,
+  TransactionPayControllerInitMessenger
 > = (request) => {
-  const { controllerMessenger, persistedState } = request;
+  const { controllerMessenger, initMessenger, persistedState } = request;
 
   try {
     const transactionPayController = new TransactionPayController({
+      getDelegationTransaction: (tx) =>
+        getDelegationTransaction(initMessenger, tx),
       getStrategy,
       messenger: controllerMessenger,
       state: persistedState.TransactionPayController,
@@ -38,5 +43,5 @@ async function getStrategy(
 ): Promise<TransactionPayStrategy> {
   return transaction.type === TransactionType.perpsDeposit
     ? TransactionPayStrategy.Relay
-    : TransactionPayStrategy.Bridge;
+    : TransactionPayStrategy.Relay;
 }

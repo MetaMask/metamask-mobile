@@ -5,6 +5,7 @@ import {
   MessengerActions,
   MessengerEvents,
 } from '@metamask/messenger';
+import { DelegationControllerSignDelegationAction } from '@metamask/delegation-controller';
 
 export function getTransactionPayControllerMessenger(
   rootMessenger: RootMessenger,
@@ -41,6 +42,35 @@ export function getTransactionPayControllerMessenger(
       'TransactionController:stateChange',
       'TransactionController:unapprovedTransactionAdded',
     ],
+    messenger,
+  });
+
+  return messenger;
+}
+
+type InitMessengerActions = DelegationControllerSignDelegationAction;
+type InitMessengerEvents = never;
+
+export type TransactionPayControllerInitMessenger = ReturnType<
+  typeof getTransactionPayControllerInitMessenger
+>;
+
+export function getTransactionPayControllerInitMessenger(
+  rootMessenger: RootMessenger,
+) {
+  const messenger = new Messenger<
+    'TransactionPayControllerInit',
+    InitMessengerActions,
+    InitMessengerEvents,
+    RootMessenger
+  >({
+    namespace: 'TransactionPayControllerInit',
+    parent: rootMessenger,
+  });
+
+  rootMessenger.delegate({
+    actions: ['DelegationController:signDelegation'],
+    events: [],
     messenger,
   });
 
