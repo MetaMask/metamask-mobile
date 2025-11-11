@@ -18,9 +18,16 @@ export interface PopularToken {
   };
 }
 
+export interface IncludeAsset {
+  assetId: CaipAssetType;
+  name: string;
+  symbol: string;
+  decimals: number;
+}
+
 interface UsePopularTokensParams {
   chainIds: CaipChainId[];
-  excludeAssetIds: string; // Stringified array to prevent unnecessary re-renders
+  includeAssets: string; // Stringified array to prevent unnecessary re-renders
 }
 
 interface UsePopularTokensResult {
@@ -77,10 +84,10 @@ const cleanupExpiredEntries = (): void => {
  */
 const getCacheKey = (
   chainIds: CaipChainId[],
-  excludeAssetIds: string,
+  includeAssets: string,
 ): string => {
   const sortedChainIds = [...chainIds].sort();
-  return `${sortedChainIds.join(',')}_${excludeAssetIds}`;
+  return `${sortedChainIds.join(',')}_${includeAssets}`;
 };
 
 /**
@@ -93,12 +100,12 @@ const isCacheValid = (entry: CacheEntry): boolean => {
 
 /**
  * Custom hook to fetch popular tokens from the Bridge API with caching
- * @param params - Configuration object containing chainIds and excludeAssetIds
+ * @param params - Configuration object containing chainIds and includeAssets
  * @returns Object containing popularTokens array and isLoading state
  */
 export const usePopularTokens = ({
   chainIds,
-  excludeAssetIds,
+  includeAssets,
 }: UsePopularTokensParams): UsePopularTokensResult => {
   const [popularTokens, setPopularTokens] = useState<PopularToken[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -111,7 +118,7 @@ export const usePopularTokens = ({
       // Cleanup expired entries before checking cache
       cleanupExpiredEntries();
 
-      const cacheKey = getCacheKey(chainIds, excludeAssetIds);
+      const cacheKey = getCacheKey(chainIds, includeAssets);
       const cachedEntry = popularTokensCache.get(cacheKey);
 
       // Check if we have a valid cached response
@@ -126,8 +133,7 @@ export const usePopularTokens = ({
       }
 
       try {
-        const parsedExcludeAssetIds: CaipAssetType[] =
-          JSON.parse(excludeAssetIds);
+        const parsedIncludeAssets: IncludeAsset[] = JSON.parse(includeAssets);
 
         const response = await fetch(
           `${process.env.BRIDGE_USE_DEV_APIS === 'true' ? BRIDGE_DEV_API_BASE_URL : BRIDGE_PROD_API_BASE_URL}/getTokens/popular`,
@@ -138,7 +144,7 @@ export const usePopularTokens = ({
             },
             body: JSON.stringify({
               chainIds,
-              excludeAssetIds: parsedExcludeAssetIds,
+              includeAssets: parsedIncludeAssets,
             }),
             signal: abortController.signal,
           },
@@ -177,7 +183,7 @@ export const usePopularTokens = ({
       isCancelled = true;
       abortController.abort();
     };
-  }, [chainIds, excludeAssetIds]);
+  }, [chainIds, includeAssets]);
 
   return { popularTokens, isLoading };
 };

@@ -34,8 +34,13 @@ import { TokenSelectorItem } from '../TokenSelectorItem';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { BridgeToken } from '../../types';
 import { useTokensWithBalance } from '../../hooks/useTokensWithBalance';
-import { usePopularTokens, PopularToken } from '../../hooks/usePopularTokens';
+import {
+  usePopularTokens,
+  PopularToken,
+  IncludeAsset,
+} from '../../hooks/usePopularTokens';
 import { useSearchTokens } from '../../hooks/useSearchTokens';
+import { useBalancesByAssetId } from '../../hooks/useBalancesByAssetId';
 import { createStyles } from './BridgeTokenSelector.styles';
 import Engine from '../../../../../core/Engine';
 import { getNetworkName } from '../BridgeDestTokenSelector';
@@ -48,11 +53,11 @@ export interface BridgeTokenSelectorRouteParams {
 
 const convertAPITokensToBridgeTokens = (
   apiTokens: PopularToken[],
-): BridgeToken[] =>
+): (BridgeToken & { assetId?: string })[] =>
   apiTokens.map((token) => ({
     ...token,
+    assetId: token.assetId,
     address: parseCaipAssetType(token.assetId).assetReference,
-    noFee: token.noFee,
   }));
 
 export const BridgeTokenSelector: React.FC = () => {
@@ -120,20 +125,36 @@ export const BridgeTokenSelector: React.FC = () => {
     );
   }, [tokensWithBalance, searchString]);
 
-  // List of assetIds for assets with balance to be excluded from the tokens queries
+  // Get balances indexed by assetId for O(1) lookup when merging with API results
+  const balancesByAssetId = useBalancesByAssetId({
+    chainIds: chainIdsToFetch,
+  });
+
+  // Create includeAssets array from tokens with balance to be sent to API
   // Stringified to avoid triggering the useEffect when only balances change
-  const assetsWithBalanceAssetIds = useMemo(() => {
-    const assetIds = filteredTokensWithBalance.map((token) =>
-      formatAddressToAssetId(token.address, token.chainId),
-    );
-    return JSON.stringify(assetIds);
+  const includeAssets = useMemo(() => {
+    const assets: IncludeAsset[] = filteredTokensWithBalance.reduce<
+      IncludeAsset[]
+    >((acc, token) => {
+      const assetId = formatAddressToAssetId(token.address, token.chainId);
+      if (assetId) {
+        acc.push({
+          assetId,
+          name: token.name ?? '',
+          symbol: token.symbol,
+          decimals: token.decimals,
+        });
+      }
+      return acc;
+    }, []);
+    return JSON.stringify(assets);
   }, [filteredTokensWithBalance]);
 
   // Fetch popular tokens
   const { popularTokens, isLoading: isPopularTokensLoading } = usePopularTokens(
     {
       chainIds: chainIdsToFetch,
-      excludeAssetIds: assetsWithBalanceAssetIds,
+      includeAssets,
     },
   );
 
@@ -148,7 +169,7 @@ export const BridgeTokenSelector: React.FC = () => {
     resetSearch,
   } = useSearchTokens({
     chainIds: chainIdsToFetch,
-    excludeAssetIds: assetsWithBalanceAssetIds,
+    includeAssets,
   });
 
   const displayData = useMemo(() => {
@@ -160,21 +181,43 @@ export const BridgeTokenSelector: React.FC = () => {
 
     let tokensToDisplay: BridgeToken[] = [];
     if (searchString.trim()) {
-      // If we have a search query, show search results
+      // If we have a search query, show search results merged with balances
       const convertedSearchResults =
         convertAPITokensToBridgeTokens(searchResults);
-      tokensToDisplay = [
-        ...filteredTokensWithBalance,
-        ...convertedSearchResults,
-      ];
+      // Merge balances from the selector into search results
+      const searchResultsWithBalance = convertedSearchResults.map((token) => {
+        const balanceData = balancesByAssetId[token.assetId ?? ''];
+        if (balanceData) {
+          return {
+            ...token,
+            balance: balanceData.balance,
+            balanceFiat: balanceData.balanceFiat,
+            tokenFiatAmount: balanceData.tokenFiatAmount,
+            currencyExchangeRate: balanceData.currencyExchangeRate,
+          };
+        }
+        return token;
+      });
+      tokensToDisplay = searchResultsWithBalance;
     } else {
-      // Default: show tokens with balance and popular tokens
+      // Default: show popular tokens merged with balances
       const convertedPopularTokens =
         convertAPITokensToBridgeTokens(popularTokens);
-      tokensToDisplay = [
-        ...filteredTokensWithBalance,
-        ...convertedPopularTokens,
-      ];
+      // Merge balances from the selector into popular tokens
+      const popularTokensWithBalance = convertedPopularTokens.map((token) => {
+        const balanceData = balancesByAssetId[token.assetId ?? ''];
+        if (balanceData) {
+          return {
+            ...token,
+            balance: balanceData.balance,
+            balanceFiat: balanceData.balanceFiat,
+            tokenFiatAmount: balanceData.tokenFiatAmount,
+            currencyExchangeRate: balanceData.currencyExchangeRate,
+          };
+        }
+        return token;
+      });
+      tokensToDisplay = popularTokensWithBalance;
     }
 
     // Filter to avoid matching source and destination tokens
@@ -193,9 +236,9 @@ export const BridgeTokenSelector: React.FC = () => {
     isPopularTokensLoading,
     isSearchLoading,
     searchString,
-    filteredTokensWithBalance,
     searchResults,
     popularTokens,
+    balancesByAssetId,
     route.params?.type,
     sourceToken,
     destToken,

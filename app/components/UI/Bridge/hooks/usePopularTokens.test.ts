@@ -1,6 +1,10 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 import { CaipChainId, CaipAssetType } from '@metamask/utils';
-import { usePopularTokens, clearPopularTokensCache } from './usePopularTokens';
+import {
+  usePopularTokens,
+  clearPopularTokensCache,
+  IncludeAsset,
+} from './usePopularTokens';
 
 // Mock fetch
 global.fetch = jest.fn();
@@ -30,6 +34,16 @@ const mockPopularTokens = [
   },
 ];
 
+const mockIncludeAssets: IncludeAsset[] = [
+  {
+    assetId:
+      'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType,
+    name: 'USD Coin',
+    symbol: 'USDC',
+    decimals: 6,
+  },
+];
+
 describe('usePopularTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -48,7 +62,7 @@ describe('usePopularTokens', () => {
     const { result } = renderHook(() =>
       usePopularTokens({
         chainIds: ['eip155:1' as CaipChainId],
-        excludeAssetIds: '[]',
+        includeAssets: '[]',
       }),
     );
 
@@ -61,7 +75,7 @@ describe('usePopularTokens', () => {
     expect(result.current.popularTokens).toEqual(mockPopularTokens);
     expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(global.fetch).toHaveBeenCalledWith(
-      'https://bridge.dev-api.cx.metamask.io/getTokens/popular',
+      expect.stringContaining('/getTokens/popular'),
       expect.objectContaining({
         method: 'POST',
         headers: {
@@ -69,7 +83,7 @@ describe('usePopularTokens', () => {
         },
         body: JSON.stringify({
           chainIds: ['eip155:1'],
-          excludeAssetIds: [],
+          includeAssets: [],
         }),
         signal: expect.any(AbortSignal),
       }),
@@ -85,7 +99,7 @@ describe('usePopularTokens', () => {
     const { result: result1, unmount: unmount1 } = renderHook(() =>
       usePopularTokens({
         chainIds: ['eip155:1' as CaipChainId],
-        excludeAssetIds: '[]',
+        includeAssets: '[]',
       }),
     );
 
@@ -102,7 +116,7 @@ describe('usePopularTokens', () => {
     const { result: result2 } = renderHook(() =>
       usePopularTokens({
         chainIds: ['eip155:1' as CaipChainId],
-        excludeAssetIds: '[]',
+        includeAssets: '[]',
       }),
     );
 
@@ -142,7 +156,7 @@ describe('usePopularTokens', () => {
     const { result: result1, unmount: unmount1 } = renderHook(() =>
       usePopularTokens({
         chainIds: ['eip155:1' as CaipChainId],
-        excludeAssetIds: '[]',
+        includeAssets: '[]',
       }),
     );
 
@@ -162,7 +176,7 @@ describe('usePopularTokens', () => {
     const { result: result2 } = renderHook(() =>
       usePopularTokens({
         chainIds: ['eip155:1' as CaipChainId],
-        excludeAssetIds: '[]',
+        includeAssets: '[]',
       }),
     );
 
@@ -193,7 +207,7 @@ describe('usePopularTokens', () => {
     const { result: result1, unmount: unmount1 } = renderHook(() =>
       usePopularTokens({
         chainIds: ['eip155:1' as CaipChainId],
-        excludeAssetIds: '[]',
+        includeAssets: '[]',
       }),
     );
 
@@ -209,7 +223,7 @@ describe('usePopularTokens', () => {
     const { result: result2 } = renderHook(() =>
       usePopularTokens({
         chainIds: ['eip155:137' as CaipChainId],
-        excludeAssetIds: '[]',
+        includeAssets: '[]',
       }),
     );
 
@@ -222,7 +236,7 @@ describe('usePopularTokens', () => {
     expect(global.fetch).toHaveBeenCalledTimes(2);
   });
 
-  it('uses different cache keys for different excludeAssetIds', async () => {
+  it('uses different cache keys for different includeAssets', async () => {
     const tokens1 = [mockPopularTokens[0]];
     const tokens2 = [mockPopularTokens[1]];
 
@@ -234,11 +248,11 @@ describe('usePopularTokens', () => {
         json: async () => tokens2,
       });
 
-    // First render with no excluded assets
+    // First render with no included assets
     const { result: result1, unmount: unmount1 } = renderHook(() =>
       usePopularTokens({
         chainIds: ['eip155:1' as CaipChainId],
-        excludeAssetIds: '[]',
+        includeAssets: '[]',
       }),
     );
 
@@ -250,13 +264,11 @@ describe('usePopularTokens', () => {
 
     unmount1();
 
-    // Second render with excluded assets
+    // Second render with included assets
     const { result: result2 } = renderHook(() =>
       usePopularTokens({
         chainIds: ['eip155:1' as CaipChainId],
-        excludeAssetIds: JSON.stringify([
-          'eip155:1/erc20:0x1234567890123456789012345678901234567890',
-        ]),
+        includeAssets: JSON.stringify(mockIncludeAssets),
       }),
     );
 
@@ -265,7 +277,7 @@ describe('usePopularTokens', () => {
     });
 
     expect(result2.current.popularTokens).toEqual(tokens2);
-    // Should have fetched for both different exclude lists
+    // Should have fetched for both different include lists
     expect(global.fetch).toHaveBeenCalledTimes(2);
   });
 
@@ -278,7 +290,7 @@ describe('usePopularTokens', () => {
     const { result: result1, unmount: unmount1 } = renderHook(() =>
       usePopularTokens({
         chainIds: ['eip155:137' as CaipChainId, 'eip155:1' as CaipChainId],
-        excludeAssetIds: '[]',
+        includeAssets: '[]',
       }),
     );
 
@@ -295,7 +307,7 @@ describe('usePopularTokens', () => {
     const { result: result2 } = renderHook(() =>
       usePopularTokens({
         chainIds: ['eip155:1' as CaipChainId, 'eip155:137' as CaipChainId],
-        excludeAssetIds: '[]',
+        includeAssets: '[]',
       }),
     );
 
@@ -308,12 +320,7 @@ describe('usePopularTokens', () => {
     expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
-  it('parses excludeAssetIds correctly', async () => {
-    const excludeAssetIds = [
-      'eip155:1/erc20:0x1234567890123456789012345678901234567890' as CaipAssetType,
-      'eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as CaipAssetType,
-    ];
-
+  it('parses includeAssets correctly', async () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       json: async () => mockPopularTokens,
     });
@@ -321,7 +328,7 @@ describe('usePopularTokens', () => {
     const { result } = renderHook(() =>
       usePopularTokens({
         chainIds: ['eip155:1' as CaipChainId],
-        excludeAssetIds: JSON.stringify(excludeAssetIds),
+        includeAssets: JSON.stringify(mockIncludeAssets),
       }),
     );
 
@@ -330,7 +337,7 @@ describe('usePopularTokens', () => {
     });
 
     expect(global.fetch).toHaveBeenCalledWith(
-      'https://bridge.dev-api.cx.metamask.io/getTokens/popular',
+      expect.stringContaining('/getTokens/popular'),
       expect.objectContaining({
         method: 'POST',
         headers: {
@@ -338,7 +345,7 @@ describe('usePopularTokens', () => {
         },
         body: JSON.stringify({
           chainIds: ['eip155:1'],
-          excludeAssetIds,
+          includeAssets: mockIncludeAssets,
         }),
         signal: expect.any(AbortSignal),
       }),
@@ -356,7 +363,7 @@ describe('usePopularTokens', () => {
     const { result: result1, unmount: unmount1 } = renderHook(() =>
       usePopularTokens({
         chainIds: ['eip155:1' as CaipChainId],
-        excludeAssetIds: '[]',
+        includeAssets: '[]',
       }),
     );
 
@@ -377,7 +384,7 @@ describe('usePopularTokens', () => {
     const { result: result2 } = renderHook(() =>
       usePopularTokens({
         chainIds: ['eip155:137' as CaipChainId],
-        excludeAssetIds: '[]',
+        includeAssets: '[]',
       }),
     );
 
@@ -409,7 +416,7 @@ describe('usePopularTokens', () => {
       ({ chainIds }) =>
         usePopularTokens({
           chainIds,
-          excludeAssetIds: '[]',
+          includeAssets: '[]',
         }),
       {
         initialProps: { chainIds: ['eip155:1' as CaipChainId] },

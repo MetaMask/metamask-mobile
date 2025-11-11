@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { debounce } from 'lodash';
 import { CaipChainId } from '@metamask/utils';
-import { PopularToken } from './usePopularTokens';
+import { PopularToken, IncludeAsset } from './usePopularTokens';
 import {
   BRIDGE_DEV_API_BASE_URL,
   BRIDGE_PROD_API_BASE_URL,
@@ -19,7 +19,7 @@ interface SearchTokensResponse {
 
 interface UseSearchTokensParams {
   chainIds: CaipChainId[];
-  excludeAssetIds: string; // Stringified array to prevent unnecessary re-renders
+  includeAssets: string; // Stringified array to prevent unnecessary re-renders
 }
 
 interface UseSearchTokensResult {
@@ -34,12 +34,12 @@ interface UseSearchTokensResult {
 
 /**
  * Custom hook to search tokens via the Bridge API
- * @param params - Configuration object containing chainIds and excludeAssetIds
+ * @param params - Configuration object containing chainIds and includeAssets
  * @returns Object containing search results, loading states, and search functions
  */
 export const useSearchTokens = ({
   chainIds,
-  excludeAssetIds,
+  includeAssets,
 }: UseSearchTokensParams): UseSearchTokensResult => {
   const [searchResults, setSearchResults] = useState<PopularToken[]>([]);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
@@ -73,13 +73,13 @@ export const useSearchTokens = ({
       }
 
       try {
-        const parsedExcludeAssetIds = JSON.parse(excludeAssetIds);
+        const parsedIncludeAssets: IncludeAsset[] = JSON.parse(includeAssets);
 
         const requestBody: {
           chainIds: CaipChainId[];
           query: string;
           after?: string;
-          excludeAssetIds?: string[];
+          includeAssets?: IncludeAsset[];
         } = {
           chainIds,
           query: query.trim(),
@@ -89,8 +89,8 @@ export const useSearchTokens = ({
           requestBody.after = cursor;
         }
 
-        if (parsedExcludeAssetIds) {
-          requestBody.excludeAssetIds = parsedExcludeAssetIds;
+        if (parsedIncludeAssets) {
+          requestBody.includeAssets = parsedIncludeAssets;
         }
 
         const response = await fetch(
@@ -137,7 +137,7 @@ export const useSearchTokens = ({
         }
       }
     },
-    [chainIds, excludeAssetIds, resetSearch],
+    [chainIds, includeAssets, resetSearch],
   );
 
   // Create debounced search function
