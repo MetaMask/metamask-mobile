@@ -5,6 +5,8 @@ const styleSheet = () =>
     scrollView: {
       flex: 1,
       marginTop: 48,
+      paddingLeft: 16,
+      paddingRight: 16,
     },
   });
 
