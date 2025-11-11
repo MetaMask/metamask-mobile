@@ -54,6 +54,9 @@ export const FeatureFlagOverrideProvider: React.FC<
 > = ({ children }) => {
   // Get the initial feature flags from Redux
   const rawFeatureFlagsSelected = useSelector(selectRemoteFeatureFlags);
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
   const rawFeatureFlags = useMemo(
     () => rawFeatureFlagsSelected || {},
     [rawFeatureFlagsSelected],
@@ -181,7 +184,7 @@ export const FeatureFlagOverrideProvider: React.FC<
    */
   const getFeatureFlag = useCallback(
     (key: string) => {
-      if (!selectBasicFunctionalityEnabled) {
+      if (!isBasicFunctionalityEnabled) {
         return false;
       }
       const flag = featureFlags[key];
@@ -198,7 +201,7 @@ export const FeatureFlagOverrideProvider: React.FC<
 
       return flag.value;
     },
-    [featureFlags, validateMinimumVersion],
+    [featureFlags, validateMinimumVersion, isBasicFunctionalityEnabled],
   );
 
   const getOverrideCount = useCallback(
