@@ -1618,7 +1618,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
               params.priceAtCalculation) *
               10000,
           );
-          const maxSlippageBps = params.maxSlippageBps ?? 100; // Default 1% = 100 bps
+          const maxSlippageBps =
+            params.maxSlippageBps ?? ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS;
 
           if (priceDeltaBps > maxSlippageBps) {
             throw new Error(
@@ -1697,7 +1698,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       if (params.orderType === 'market') {
         // For market orders, use finalPositionSize (recalculated with fresh price) and add slippage
         const slippage =
-          params.slippage ?? ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE;
+          params.slippage ?? ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS / 10000;
         orderPrice = params.isBuy
           ? currentPrice * (1 + slippage) // Buy above market
           : currentPrice * (1 - slippage); // Sell below market
@@ -2065,7 +2066,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
       if (params.newOrder.orderType === 'market') {
         const positionSize = parseFloat(params.newOrder.size);
         const slippage =
-          params.newOrder.slippage ?? ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE;
+          params.newOrder.slippage ??
+          ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS / 10000;
         orderPrice = params.newOrder.isBuy
           ? currentPrice * (1 + slippage)
           : currentPrice * (1 - slippage);
@@ -2384,7 +2386,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         }
 
         // Calculate order price with slippage
-        const slippage = ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE;
+        const slippage = ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS / 10000;
         const orderPrice = isBuy
           ? currentPrice * (1 + slippage)
           : currentPrice * (1 - slippage);
