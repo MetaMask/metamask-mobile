@@ -132,7 +132,7 @@ describe('useTransactionConfirm', () => {
     expect(onApprovalConfirm).toHaveBeenCalled();
   });
 
-  it('sets waitForResult true when not smart tx, no quotes, no fee token', async () => {
+  it('sets waitForResult false to prevent UI hanging', async () => {
     const { result } = renderHook();
 
     await act(async () => {
@@ -141,7 +141,7 @@ describe('useTransactionConfirm', () => {
 
     expect(onApprovalConfirm).toHaveBeenCalledWith(
       expect.objectContaining({
-        waitForResult: true,
+        waitForResult: false,
       }),
       expect.anything(),
     );
