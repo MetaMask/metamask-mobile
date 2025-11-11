@@ -153,10 +153,19 @@ export const formatCents = (dollars: string | number): string => {
     return '0¢';
   }
 
-  // Convert dollars to cents (multiply by 100) and round to whole cents
-  const cents = Math.round(num * 100);
+  // Convert dollars to cents (multiply by 100)
+  const cents = num * 100;
 
-  return `${cents}¢`;
+  // Round to 1 decimal precision to check if decimals are needed
+  const roundedCents = Number(cents.toFixed(1));
+
+  // If it's a whole number, don't show decimals
+  if (roundedCents === Math.floor(roundedCents)) {
+    return `${Math.floor(roundedCents)}¢`;
+  }
+
+  // Otherwise, show decimals up to 1 decimal place
+  return `${cents.toFixed(1)}¢`;
 };
 
 /**
@@ -170,7 +179,10 @@ export const formatCents = (dollars: string | number): string => {
  * @example formatPositionSize(0.5678) => "0.5678"
  * @example formatPositionSize(123.456) => "123.46"
  */
-export const formatPositionSize = (size: string | number): string => {
+export const formatPositionSize = (
+  size: string | number,
+  options?: { minimumDecimals?: number; maximumDecimals?: number },
+): string => {
   const num = typeof size === 'string' ? parseFloat(size) : size;
 
   if (isNaN(num)) {
@@ -178,19 +190,22 @@ export const formatPositionSize = (size: string | number): string => {
   }
 
   const abs = Math.abs(num);
+  const minimumDecimals = options?.minimumDecimals ?? 2;
+  const maximumDecimals = options?.maximumDecimals ?? 4;
 
-  // For very small numbers, use more decimal places
-  if (abs < 0.01) {
-    return num.toFixed(6);
+  // Determine appropriate decimal places based on size
+  const decimals = abs < 1 ? maximumDecimals : minimumDecimals;
+
+  // Round to the target precision to check if decimals are needed
+  const rounded = Number(num.toFixed(decimals));
+
+  // If it's a whole number, don't show decimals
+  if (rounded === Math.floor(rounded)) {
+    return Math.floor(rounded).toString();
   }
 
-  // For small numbers, use 4 decimal places
-  if (abs < 1) {
-    return num.toFixed(4);
-  }
-
-  // For normal numbers, use 2 decimal places
-  return num.toFixed(2);
+  // Otherwise, show decimals up to the determined precision
+  return num.toFixed(decimals);
 };
 
 export const formatCurrencyValue = (
