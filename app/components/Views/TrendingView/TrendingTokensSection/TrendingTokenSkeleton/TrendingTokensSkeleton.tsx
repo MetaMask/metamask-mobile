@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, type ViewStyle } from 'react-native';
-import Skeleton from '../../../../component-library/components/Skeleton/Skeleton';
+import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 
 export interface TrendingTokensSkeletonProps {
   /**

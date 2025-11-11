@@ -8,7 +8,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import TrendingTokensSkeleton from './TrendingTokensSkeleton';
+import TrendingTokensSkeleton from './TrendingTokenSkeleton/TrendingTokensSkeleton';
 import TrendingTokensList from './TrendingTokensList';
 import Card from '../../../../component-library/components/Cards/Card';
 import { useTrendingRequest } from '../../../UI/Assets/hooks/useTrendingRequest';

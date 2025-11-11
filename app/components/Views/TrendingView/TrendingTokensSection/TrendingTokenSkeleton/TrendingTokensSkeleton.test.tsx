@@ -3,18 +3,21 @@ import { render } from '@testing-library/react-native';
 import TrendingTokensSkeleton from './TrendingTokensSkeleton';
 
 // Mock Skeleton component
-jest.mock('../../../../component-library/components/Skeleton/Skeleton', () => {
-  const ReactNative = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: jest.fn(({ height, width, style, testID }) => (
-      <ReactNative.View
-        testID={testID || 'skeleton'}
-        style={[{ height, width }, style]}
-      />
-    )),
-  };
-});
+jest.mock(
+  '../../../../../component-library/components/Skeleton/Skeleton',
+  () => {
+    const ReactNative = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: jest.fn(({ height, width, style, testID }) => (
+        <ReactNative.View
+          testID={testID || 'skeleton'}
+          style={[{ height, width }, style]}
+        />
+      )),
+    };
+  },
+);
 
 describe('TrendingTokensSkeleton', () => {
   it('renders successfully with default props', () => {
