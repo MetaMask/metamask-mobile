@@ -614,7 +614,7 @@ describe('MetaMetrics', () => {
         METAMETRICS_ID,
         '',
       );
-      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(4, METAMETRICS_ID);
+      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(3, METAMETRICS_ID);
       expect(await metaMetrics.getMetaMetricsId()).toEqual(metricsId);
     });
 
