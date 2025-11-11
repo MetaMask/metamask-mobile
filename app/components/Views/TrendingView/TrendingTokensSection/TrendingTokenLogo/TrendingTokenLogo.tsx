@@ -5,10 +5,6 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTokenLogo } from '../../../../hooks/useTokenLogo';
-import {
-  ASSETS_REQUIRING_DARK_BG,
-  ASSETS_REQUIRING_LIGHT_BG,
-} from './TrendingTokenBgConfig.ts';
 
 interface TrendingTokenLogoProps {
   assetId: string;
@@ -52,8 +48,6 @@ const TrendingTokenLogo: React.FC<TrendingTokenLogoProps> = ({
   } = useTokenLogo({
     symbol,
     size,
-    assetsRequiringLightBg: ASSETS_REQUIRING_LIGHT_BG,
-    assetsRequiringDarkBg: ASSETS_REQUIRING_DARK_BG,
   });
 
   if (!imageUri || hasError) {
