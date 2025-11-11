@@ -648,7 +648,7 @@ buildAndroid() {
 	if [ "$METAMASK_BUILD_TYPE" == "release" ] || [ "$METAMASK_BUILD_TYPE" == "main" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
 			buildAndroidMainLocal
-		elif [ "$METAMASK_ENVIRONMENT" = "e2e" ] || [ "$E2E" = "true" ] ; then
+		elif [ "$METAMASK_ENVIRONMENT" = "e2e" ] && [ "$E2E" = "true" ] ; then
 			# E2E builds use a separate function
 			buildAndroidReleaseE2E "Prod"
 		else
@@ -662,7 +662,7 @@ buildAndroid() {
 	elif [ "$METAMASK_BUILD_TYPE" == "flask" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
 			buildAndroidFlaskLocal
-		elif [ "$METAMASK_ENVIRONMENT" = "e2e" ] || [ "$E2E" = "true" ] ; then
+		elif [ "$METAMASK_ENVIRONMENT" = "e2e" ] && [ "$E2E" = "true" ] ; then
 			# E2E builds use a separate function
 			buildAndroidReleaseE2E "Flask"
 		else
