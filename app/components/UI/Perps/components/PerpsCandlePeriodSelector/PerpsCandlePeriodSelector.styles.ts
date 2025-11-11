@@ -1,4 +1,5 @@
 import { Theme } from '../../../../../util/theme/models';
+import { fontStyles } from '../../../../../styles/common';
 import { StyleSheet } from 'react-native';
 
 export const styleSheet = (params: { theme: Theme }) => {
@@ -33,7 +34,7 @@ export const styleSheet = (params: { theme: Theme }) => {
     },
     periodText: {
       fontSize: 14,
-      fontWeight: '400',
+      ...fontStyles.normal,
     },
     periodTextSelected: {
       color: theme.colors.text.default,
@@ -61,7 +62,7 @@ export const styleSheet = (params: { theme: Theme }) => {
     },
     moreText: {
       fontSize: 14,
-      fontWeight: '400',
+      ...fontStyles.normal,
       marginRight: 4,
     },
     moreTextSelected: {

@@ -1,5 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../styles/common';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,7 +21,7 @@ export const createStyles = (colors: any) =>
     optionIcon: { fontSize: 24 },
     optionLabel: {
       fontSize: 14,
-      fontFamily: 'Geist-Regular',
+      ...fontStyles.normal,
       color: colors.primary.default,
     },
     helpOption: { marginVertical: 12 },
@@ -29,14 +30,14 @@ export const createStyles = (colors: any) =>
     questionLabel: {
       fontSize: 18,
       paddingHorizontal: 30,
-      fontFamily: 'Geist-Bold',
+      ...fontStyles.bold,
       textAlign: 'center',
       color: colors.text.default,
       lineHeight: 26,
     },
     description: {
       fontSize: 14,
-      fontFamily: 'Geist-Regular',
+      ...fontStyles.normal,
       color: colors.text.alternative,
       textAlign: 'center',
       lineHeight: 20,

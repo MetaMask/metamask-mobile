@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../../styles/common';
 import type { Theme } from '../../../../../util/theme/models';
 
 const styleSheet = ({ theme }: { theme: Theme }) =>
@@ -55,7 +56,7 @@ const styleSheet = ({ theme }: { theme: Theme }) =>
     },
     statisticsValue: {
       fontSize: 16,
-      fontWeight: '600',
+      ...fontStyles.medium,
     },
     emptyStateContainer: {
       alignItems: 'center',

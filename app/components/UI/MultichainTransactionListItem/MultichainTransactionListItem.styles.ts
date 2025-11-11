@@ -90,7 +90,7 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) =>
     },
     typeText: {
       fontSize: 16,
-      fontWeight: '600',
+      ...fontStyles.medium,
     },
     statusText: {
       fontSize: 12,
@@ -100,7 +100,7 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) =>
     },
     amountText: {
       fontSize: 16,
-      fontWeight: '600',
+      ...fontStyles.medium,
     },
     dateText: {
       fontSize: 12,

@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../../styles/common';
 import { Theme } from '../../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) =>
@@ -25,7 +26,7 @@ const styleSheet = (params: { theme: Theme }) =>
       textAlign: 'center',
       lineHeight: 48,
       fontSize: 20,
-      fontFamily: 'Geist-Bold',
+      ...fontStyles.bold,
     },
 
     skeletonButton: {

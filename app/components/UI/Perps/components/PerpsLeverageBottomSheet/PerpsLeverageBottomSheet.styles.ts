@@ -1,6 +1,7 @@
 /* eslint-disable react-native/no-color-literals */
 /* eslint-disable @metamask/design-tokens/color-no-hex */
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../../styles/common';
 import { Theme } from '../../../../../util/theme/models';
 import {
   LEVERAGE_COLORS,
@@ -21,7 +22,7 @@ export const createStyles = (colors: Theme['colors']) =>
     },
     leverageText: {
       fontSize: 48,
-      fontWeight: '600',
+      ...fontStyles.medium,
       lineHeight: 56,
     },
     leverageTextSafe: {
@@ -136,7 +137,7 @@ export const createStyles = (colors: Theme['colors']) =>
       borderColor: colors.icon.default,
     },
     quickSelectText: {
-      fontWeight: '500',
+      ...fontStyles.medium,
     },
     leverageSliderContainer: {
       paddingVertical: 8,

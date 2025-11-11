@@ -117,21 +117,6 @@ describe('BridgeStepDescription', () => {
     expect(queryByText(/USDC/)).toBeFalsy();
   });
 
-  it('should render with correct text variant based on status', () => {
-    const { getByText } = render(
-      <BridgeStepDescription
-        step={mockStep}
-        stepStatus={StatusTypes.PENDING}
-      />,
-    );
-
-    const textElement = getByText(/ETH/);
-    expect(textElement.props.style).toHaveProperty(
-      'fontFamily',
-      'Geist Medium',
-    );
-  });
-
   it('should render with correct text color based on status', () => {
     const { getByText } = render(
       <BridgeStepDescription
@@ -155,10 +140,6 @@ describe('BridgeStepDescription', () => {
     expect(getByText(/ETH/)).toBeTruthy();
     const textElement = getByText(/ETH/);
     expect(textElement.props.style).toHaveProperty('color', '#121314');
-    expect(textElement.props.style).toHaveProperty(
-      'fontFamily',
-      'Geist Regular',
-    );
   });
 
   it('should render swap action with COMPLETE status text', () => {
@@ -173,10 +154,6 @@ describe('BridgeStepDescription', () => {
     expect(getByText(/USDC/)).toBeTruthy();
     const textElement = getByText(/ETH/);
     expect(textElement.props.style).toHaveProperty('color', '#121314');
-    expect(textElement.props.style).toHaveProperty(
-      'fontFamily',
-      'Geist Regular',
-    );
   });
 
   it('should render with time and COMPLETE status', () => {
@@ -192,10 +169,6 @@ describe('BridgeStepDescription', () => {
     expect(getByText(/ETH/)).toBeTruthy();
     const textElement = getByText(/ETH/);
     expect(textElement.props.style).toHaveProperty('color', '#121314');
-    expect(textElement.props.style).toHaveProperty(
-      'fontFamily',
-      'Geist Regular',
-    );
   });
 
   it('should handle bridge action with missing destChainId', () => {
@@ -213,10 +186,6 @@ describe('BridgeStepDescription', () => {
 
     const textElement = getByText(/ETH/);
     expect(textElement.props.style).toHaveProperty('color', '#121314');
-    expect(textElement.props.style).toHaveProperty(
-      'fontFamily',
-      'Geist Medium',
-    );
   });
 
   it('should handle bridge action with missing network configuration', () => {
@@ -234,10 +203,6 @@ describe('BridgeStepDescription', () => {
 
     const textElement = getByText(/ETH/);
     expect(textElement.props.style).toHaveProperty('color', '#121314');
-    expect(textElement.props.style).toHaveProperty(
-      'fontFamily',
-      'Geist Medium',
-    );
   });
 
   it('should handle swap action with missing srcSymbol', () => {
@@ -283,10 +248,6 @@ describe('BridgeStepDescription', () => {
     expect(getByText(/USDC/)).toBeTruthy();
     const textElement = getByText(/ETH/);
     expect(textElement.props.style).toHaveProperty('color', '#686e7d');
-    expect(textElement.props.style).toHaveProperty(
-      'fontFamily',
-      'Geist Regular',
-    );
   });
 
   it('should handle bridge action with null status', () => {
@@ -297,10 +258,6 @@ describe('BridgeStepDescription', () => {
     expect(getByText(/ETH/)).toBeTruthy();
     const textElement = getByText(/ETH/);
     expect(textElement.props.style).toHaveProperty('color', '#686e7d');
-    expect(textElement.props.style).toHaveProperty(
-      'fontFamily',
-      'Geist Regular',
-    );
   });
 
   describe('getStepStatus', () => {

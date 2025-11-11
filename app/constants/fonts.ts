@@ -19,29 +19,6 @@ export const FONT_FAMILIES = {
   MMPOLY_REGULAR: 'MMPoly-Regular',
 } as const;
 
-// Mapping from old Full Names to new PostScript Names
-export const FONT_NAME_MAPPING = {
-  // Geist fonts
-  'Geist Regular': FONT_FAMILIES.GEIST_REGULAR,
-  'Geist Medium': FONT_FAMILIES.GEIST_MEDIUM,
-  'Geist Bold': FONT_FAMILIES.GEIST_BOLD,
-  'Geist Regular Italic': FONT_FAMILIES.GEIST_REGULAR_ITALIC,
-  'Geist Medium Italic': FONT_FAMILIES.GEIST_MEDIUM_ITALIC,
-  'Geist Bold Italic': FONT_FAMILIES.GEIST_BOLD_ITALIC,
-
-  // MM Sans fonts
-  'MM Sans Regular': FONT_FAMILIES.MMSANS_REGULAR,
-  'MM Sans Medium': FONT_FAMILIES.MMSANS_MEDIUM,
-  'MM Sans Bold': FONT_FAMILIES.MMSANS_BOLD,
-
-  // MM Poly fonts
-  'MM Poly Regular': FONT_FAMILIES.MMPOLY_REGULAR,
-} as const;
-
-// Helper function to get correct PostScript name
-export const getPostScriptFontName = (fullName: string): string =>
-  FONT_NAME_MAPPING[fullName as keyof typeof FONT_NAME_MAPPING] || fullName;
-
 // Weight to font family mapping for Geist fonts
 export const GEIST_WEIGHT_MAPPING = {
   '100': 'Regular',

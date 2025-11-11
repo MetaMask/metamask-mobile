@@ -4,6 +4,7 @@
 /* eslint-disable react-native/no-color-literals */
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { fontStyles } from '../../../../../styles/common';
 import RewardPointsAnimationComponent, { RewardAnimationState } from './index';
 
 /**
@@ -60,7 +61,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: 'white',
-    fontWeight: 'bold',
+    ...fontStyles.bold,
   },
   animationContainer: {
     padding: 20,

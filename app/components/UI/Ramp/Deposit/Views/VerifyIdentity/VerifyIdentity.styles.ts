@@ -1,4 +1,5 @@
 import { Dimensions, StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../../../styles/common';
 import { Theme } from '../../../../../../util/theme/models';
 
 const screenWidth = Dimensions.get('window').width;
@@ -9,7 +10,7 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     title: {
       marginTop: 16,
-      fontWeight: 'bold',
+      ...fontStyles.bold,
     },
     image: {
       width: screenWidth * 0.65,

@@ -1,4 +1,5 @@
 import { ResultComponent } from '@metamask/approval-controller';
+import { fontStyles } from '../../../../../../../styles/common';
 import {
   TemplateRendererComponent,
   TemplateRendererInput,
@@ -105,7 +106,7 @@ function applyBold(message: string): (string | TemplateRendererComponent)[] {
     element: 'Text',
     children: formattedText,
     props: {
-      style: { fontWeight: 'bold' },
+      style: { ...fontStyles.bold },
     },
   }));
 }
