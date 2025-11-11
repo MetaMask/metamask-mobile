@@ -1,11 +1,10 @@
 import React from 'react';
-import { Image } from 'react-native';
-import { Box, ButtonBase } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { Image, TouchableOpacity, View } from 'react-native';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../component-library/hooks';
 import { PredictPosition as PredictPositionType } from '../../types';
 import {
   formatCents,
@@ -13,6 +12,7 @@ import {
   formatPositionSize,
   formatPrice,
 } from '../../utils/format';
+import styleSheet from './PredictPosition.styles';
 import { PredictPositionSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
@@ -37,21 +37,18 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     size,
     optimistic,
   } = position;
-  const tw = useTailwind();
+  const { styles } = useStyles(styleSheet, {});
 
   return (
-    <ButtonBase
+    <TouchableOpacity
       testID={PredictPositionSelectorsIDs.CURRENT_POSITION_CARD}
+      style={styles.positionContainer}
       onPress={() => onPress?.(position)}
-      twClassName="flex-row items-start py-2 gap-4 w-full"
     >
-      <Box twClassName="pt-1">
-        <Image
-          source={{ uri: icon }}
-          style={tw.style('w-10 h-10 rounded-full')}
-        />
-      </Box>
-      <Box twClassName="flex-1 gap-0.5">
+      <View style={styles.positionImageContainer}>
+        <Image source={{ uri: icon }} style={styles.positionImage} />
+      </View>
+      <View style={styles.positionDetails}>
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
           {title}
         </Text>
@@ -74,11 +71,11 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
             },
           )}
         </Text>
-      </Box>
-      <Box twClassName="gap-2 items-end">
+      </View>
+      <View style={styles.positionPnl}>
         {optimistic ? (
           <>
-            <Skeleton width={60} height={20} style={tw.style('mb-1')} />
+            <Skeleton width={60} height={20} style={styles.skeletonSpacing} />
             <Skeleton width={50} height={16} />
           </>
         ) : (
@@ -94,8 +91,8 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
             </Text>
           </>
         )}
-      </Box>
-    </ButtonBase>
+      </View>
+    </TouchableOpacity>
   );
 };
 
