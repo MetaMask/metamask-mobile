@@ -345,4 +345,74 @@ describe('useBridgeQuoteRequest', () => {
     // Reset mock
     (isSolanaChainId as jest.Mock).mockReset();
   });
+
+  describe('gasIncluded parameter', () => {
+    it('includes gasIncluded true in quote request when enabled', async () => {
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          gasIncluded: true,
+        },
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteRequest(), {
+        state: testState,
+      });
+
+      await act(async () => {
+        await result.current();
+        jest.advanceTimersByTime(DEBOUNCE_WAIT);
+      });
+
+      expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+        expect.objectContaining({
+          gasIncluded: true,
+        }),
+        undefined,
+      );
+    });
+
+    it('includes gasIncluded false in quote request when disabled', async () => {
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          gasIncluded: false,
+        },
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteRequest(), {
+        state: testState,
+      });
+
+      await act(async () => {
+        await result.current();
+        jest.advanceTimersByTime(DEBOUNCE_WAIT);
+      });
+
+      expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+        expect.objectContaining({
+          gasIncluded: false,
+        }),
+        undefined,
+      );
+    });
+
+    it('includes gasIncluded7702 false in quote request', async () => {
+      const testState = createBridgeTestState();
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteRequest(), {
+        state: testState,
+      });
+
+      await act(async () => {
+        await result.current();
+        jest.advanceTimersByTime(DEBOUNCE_WAIT);
+      });
+
+      expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+        expect.objectContaining({
+          gasIncluded7702: false,
+        }),
+        undefined,
+      );
+    });
+  });
 });

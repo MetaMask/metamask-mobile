@@ -75,6 +75,7 @@ import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider/PerpsSlider';
 import PerpsCloseSummary from '../../components/PerpsCloseSummary';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
@@ -557,7 +558,7 @@ const PerpsClosePositionView: React.FC = () => {
         {/* Toggle Button for USD/Token Display */}
         <View style={styles.toggleContainer}>
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {`${formatPositionSize(closeAmount, marketData?.szDecimals)} ${position.coin}`}
+            {`${formatPositionSize(closeAmount, marketData?.szDecimals)} ${getPerpsDisplaySymbol(position.coin)}`}
           </Text>
         </View>
 
