@@ -41,9 +41,7 @@ const TrendingTokensSection = () => {
     [theme],
   );
 
-  const { results: trendingTokensResults, isLoading } = useTrendingRequest({
-    chainIds: [],
-  });
+  const { results: trendingTokensResults, isLoading } = useTrendingRequest({});
   const trendingTokens = trendingTokensResults.slice(0, 3);
 
   const handleViewAll = useCallback(() => {
