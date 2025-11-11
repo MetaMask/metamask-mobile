@@ -215,7 +215,7 @@ describe('useTrendingRequest', () => {
 
     expect(spyGetTrendingTokens).not.toHaveBeenCalled();
     expect(result.current.results).toEqual([]);
-    expect(result.current.isLoading).toBe(false);
+    expect(result.current.isLoading).toBe(true);
 
     await act(async () => {
       await result.current.fetch();

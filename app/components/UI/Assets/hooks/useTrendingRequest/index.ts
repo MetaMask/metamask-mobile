@@ -34,7 +34,7 @@ export const useTrendingRequest = (options: {
   const [results, setResults] = useState<Awaited<
     ReturnType<typeof getTrendingTokens>
   > | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   // Track the current request ID to prevent stale results from overwriting current ones
