@@ -160,7 +160,15 @@ export function usePredictOrderPreview(
     }, 100);
 
     return () => clearTimeout(debounceTimer);
-  }, [providerId, marketId, outcomeId, outcomeTokenId, side, size]);
+  }, [
+    providerId,
+    marketId,
+    outcomeId,
+    outcomeTokenId,
+    side,
+    size,
+    autoRefreshTimeout,
+  ]);
 
   return {
     preview,
