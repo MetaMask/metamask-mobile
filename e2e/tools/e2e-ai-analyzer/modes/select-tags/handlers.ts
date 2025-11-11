@@ -4,65 +4,10 @@
 
 import { writeFileSync } from 'node:fs';
 import { SelectTagsAnalysis } from '../../types';
+import { aiE2EConfig } from '../../../../tags';
 
-// TODO to review!!
-export const SELECT_TAGS_CONFIG = [
-  { tag: 'SmokeAccounts', description: 'Multi-account, account management' },
-  {
-    tag: 'SmokeConfirmationsRedesigned',
-    description:
-      'Confirmation flows (redesign), signature requests, transaction approval',
-  },
-  {
-    tag: 'SmokeCore',
-    description:
-      'Wallet creation, network switching, send/receive, core wallet',
-  },
-  {
-    tag: 'SmokeSwaps',
-    description: 'Swaps, token exchange, DEX integration',
-  },
-  {
-    tag: 'SmokeAssets',
-    description: 'Token imports, NFT viewing, asset management',
-  },
-  {
-    tag: 'SmokeIdentity',
-    description: 'Permissions, DApp connections, account switching in DApps',
-  },
-  {
-    tag: 'SmokeTrade',
-    description: 'Trading features, market data',
-  },
-  {
-    tag: 'SmokeWalletUX',
-    description: 'UX improvements, navigation, settings, UI components',
-  },
-  {
-    tag: 'SmokeNetworkAbstractions',
-    description: 'Network abstractions, multi-chain support',
-  },
-  {
-    tag: 'SmokeWalletPlatform',
-    description: 'Wallet platform features',
-  },
-  {
-    tag: 'SmokeNetworkExpansion',
-    description: 'Network expansion features',
-  },
-  {
-    tag: 'SmokeStake',
-    description: 'Staking features',
-  },
-  {
-    tag: 'SmokeNotifications',
-    description: 'Notifications, alerts',
-  },
-  {
-    tag: 'SmokeCard',
-    description: 'Card features',
-  },
-];
+// Single source of truth for tags
+export const SELECT_TAGS_CONFIG = aiE2EConfig;
 
 /**
  * Safe minimum: When no work needed, return empty result

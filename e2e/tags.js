@@ -45,6 +45,7 @@ const tags = {
  * 1. Add the tag to the `tags` object above
  * 2. Add an entry here with the tag name and description
  */
+// TODO
 const aiE2EConfig = [
   { tag: 'SmokeAccounts', description: 'Multi-account, account management' },
   {
@@ -76,6 +77,7 @@ const aiE2EConfig = [
   { tag: 'SmokeStake', description: 'Staking features' },
   { tag: 'SmokeCard', description: 'Card-related features' },
   { tag: 'SmokeNotifications', description: 'Notification system' },
+  { tag: 'SmokeRewards', description: 'Rewards and incentive features' },
 ];
 
 const RegressionAccounts = (testName) =>
