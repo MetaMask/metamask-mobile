@@ -367,11 +367,6 @@ jest.mock('../../../util/address', () => ({
   }),
 }));
 
-jest.mock('../../../util/networks', () => ({
-  ...jest.requireActual('../../../util/networks'),
-  isRemoveGlobalNetworkSelectorEnabled: jest.fn(() => false),
-}));
-
 jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
   useNetworkSelection: jest.fn(() => ({
     selectNetwork: jest.fn(),
@@ -964,10 +959,7 @@ describe('Wallet', () => {
     });
   });
 
-  describe('Feature Flag: isRemoveGlobalNetworkSelectorEnabled', () => {
-    const { isRemoveGlobalNetworkSelectorEnabled } = jest.requireMock(
-      '../../../util/networks',
-    );
+  describe('Network Manager Integration', () => {
     const { useNetworkSelection } = jest.requireMock(
       '../../../components/hooks/useNetworkSelection/useNetworkSelection',
     );
@@ -997,13 +989,7 @@ describe('Wallet', () => {
       },
     });
 
-    const setupMocks = (
-      mockSelectNetwork: jest.Mock,
-      featureFlagEnabled: boolean,
-    ) => {
-      jest
-        .mocked(isRemoveGlobalNetworkSelectorEnabled)
-        .mockReturnValue(featureFlagEnabled);
+    const setupMocks = (mockSelectNetwork: jest.Mock) => {
       jest.mocked(useNetworkSelection).mockReturnValue({
         selectNetwork: mockSelectNetwork,
       });
@@ -1021,40 +1007,27 @@ describe('Wallet', () => {
       jest.clearAllMocks();
     });
 
-    describe('when feature flag is enabled', () => {
-      it('should call selectNetwork when no enabled EVM networks', () => {
-        const mockSelectNetwork = createMockSelectNetwork();
-        setupMocks(mockSelectNetwork, true);
+    it('should call selectNetwork when no enabled EVM networks', () => {
+      const mockSelectNetwork = createMockSelectNetwork();
+      setupMocks(mockSelectNetwork);
 
-        const stateWithNoEnabledNetworks = createStateWithEnabledNetworks([]);
-        renderWalletWithState(stateWithNoEnabledNetworks);
+      const stateWithNoEnabledNetworks = createStateWithEnabledNetworks([]);
+      renderWalletWithState(stateWithNoEnabledNetworks);
 
-        expect(mockSelectNetwork).toHaveBeenCalledWith('0x1');
-      });
-
-      it('should not call selectNetwork when there are enabled EVM networks', () => {
-        const mockSelectNetwork = createMockSelectNetwork();
-        setupMocks(mockSelectNetwork, true);
-
-        const stateWithEnabledNetworks = createStateWithEnabledNetworks([
-          '0x1',
-          '0x5',
-        ]);
-        renderWalletWithState(stateWithEnabledNetworks);
-
-        expect(mockSelectNetwork).not.toHaveBeenCalled();
-      });
+      expect(mockSelectNetwork).toHaveBeenCalledWith('0x1');
     });
 
-    describe('when feature flag is disabled', () => {
-      it('should not call selectNetwork', () => {
-        const mockSelectNetwork = createMockSelectNetwork();
-        setupMocks(mockSelectNetwork, false);
+    it('should not call selectNetwork when there are enabled EVM networks', () => {
+      const mockSelectNetwork = createMockSelectNetwork();
+      setupMocks(mockSelectNetwork);
 
-        renderWalletWithState(mockInitialState);
+      const stateWithEnabledNetworks = createStateWithEnabledNetworks([
+        '0x1',
+        '0x5',
+      ]);
+      renderWalletWithState(stateWithEnabledNetworks);
 
-        expect(mockSelectNetwork).not.toHaveBeenCalled();
-      });
+      expect(mockSelectNetwork).not.toHaveBeenCalled();
     });
   });
 
