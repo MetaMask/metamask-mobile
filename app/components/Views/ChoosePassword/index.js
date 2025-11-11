@@ -247,6 +247,14 @@ class ChoosePassword extends PureComponent {
   // Flag to know if password in keyring was set or not
   keyringControllerPasswordSet = false;
 
+  // Track password values at focus time
+  passwordAtFocusTime = '';
+  confirmPasswordAtFocusTime = '';
+  passwordFieldHasFocus = false;
+  confirmPasswordFieldHasFocus = false;
+  expectingCharAfterClear = false;
+  expectingConfirmCharAfterClear = false;
+
   track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
     eventBuilder.addProperties(properties);
@@ -671,9 +679,59 @@ class ChoosePassword extends PureComponent {
   };
 
   onPasswordChange = (val) => {
-    this.setState((prevState) => ({
-      password: val,
-    }));
+    this.setState((prevState) => {
+      const isSecureTextEntry = prevState.showPasswordIndex.includes(0);
+
+      if (
+        this.passwordFieldHasFocus &&
+        isSecureTextEntry &&
+        prevState.password === this.passwordAtFocusTime &&
+        this.passwordAtFocusTime.length > 1 &&
+        val === ''
+      ) {
+        this.expectingCharAfterClear = true;
+        return { password: prevState.password };
+      }
+
+      if (
+        this.expectingCharAfterClear &&
+        isSecureTextEntry &&
+        val.length > 0 &&
+        val.length <= 2
+      ) {
+        this.expectingCharAfterClear = false;
+        return { password: this.passwordAtFocusTime + val };
+      }
+
+      this.expectingCharAfterClear = false;
+      return { password: val };
+    });
+  };
+
+  onPasswordFocus = () => {
+    this.passwordAtFocusTime = this.state.password;
+    this.passwordFieldHasFocus = true;
+  };
+
+  onPasswordBlur = () => {
+    this.passwordFieldHasFocus = false;
+    this.passwordAtFocusTime = '';
+    this.expectingCharAfterClear = false;
+
+    if (this.state.password === '' && this.state.confirmPassword !== '') {
+      this.setState({ confirmPassword: '' });
+    }
+  };
+
+  onConfirmPasswordFocus = () => {
+    this.confirmPasswordAtFocusTime = this.state.confirmPassword;
+    this.confirmPasswordFieldHasFocus = true;
+  };
+
+  onConfirmPasswordBlur = () => {
+    this.confirmPasswordFieldHasFocus = false;
+    this.confirmPasswordAtFocusTime = '';
+    this.expectingConfirmCharAfterClear = false;
   };
 
   learnMore = () => {
@@ -704,7 +762,35 @@ class ChoosePassword extends PureComponent {
     });
   };
 
-  setConfirmPassword = (val) => this.setState({ confirmPassword: val });
+  setConfirmPassword = (val) => {
+    this.setState((prevState) => {
+      const isSecureTextEntry = prevState.showPasswordIndex.includes(1);
+
+      if (
+        this.confirmPasswordFieldHasFocus &&
+        isSecureTextEntry &&
+        prevState.confirmPassword === this.confirmPasswordAtFocusTime &&
+        this.confirmPasswordAtFocusTime.length > 1 &&
+        val === ''
+      ) {
+        this.expectingConfirmCharAfterClear = true;
+        return { confirmPassword: prevState.confirmPassword };
+      }
+
+      if (
+        this.expectingConfirmCharAfterClear &&
+        isSecureTextEntry &&
+        val.length > 0 &&
+        val.length <= 2
+      ) {
+        this.expectingConfirmCharAfterClear = false;
+        return { confirmPassword: this.confirmPasswordAtFocusTime + val };
+      }
+
+      this.expectingConfirmCharAfterClear = false;
+      return { confirmPassword: val };
+    });
+  };
 
   checkError = () => {
     const { password, confirmPassword } = this.state;
@@ -809,6 +895,9 @@ class ChoosePassword extends PureComponent {
                     secureTextEntry={this.state.showPasswordIndex.includes(0)}
                     value={password}
                     onChangeText={this.onPasswordChange}
+                    onFocus={this.onPasswordFocus}
+                    onBlur={this.onPasswordBlur}
+                    selectTextOnFocus={false}
                     placeholderTextColor={colors.text.muted}
                     testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                     onSubmitEditing={this.jumpToConfirmPassword}
@@ -855,6 +944,9 @@ class ChoosePassword extends PureComponent {
                     ref={this.confirmPasswordInput}
                     value={confirmPassword}
                     onChangeText={this.setConfirmPassword}
+                    onFocus={this.onConfirmPasswordFocus}
+                    onBlur={this.onConfirmPasswordBlur}
+                    selectTextOnFocus={false}
                     secureTextEntry={this.state.showPasswordIndex.includes(1)}
                     placeholderTextColor={colors.text.muted}
                     testID={
