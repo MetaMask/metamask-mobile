@@ -11,11 +11,6 @@ import TrendingTokensSkeleton from './TrendingTokenSkeleton/TrendingTokensSkelet
 import TrendingTokensList from './TrendingTokensList';
 import Card from '../../../../component-library/components/Cards/Card';
 import { useTrendingRequest } from '../../../UI/Assets/hooks/useTrendingRequest';
-import {
-  NetworkType,
-  useNetworksByNamespace,
-} from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
-import { useNetworksToUse } from '../../../hooks/useNetworksToUse/useNetworksToUse';
 
 const TrendingTokensSection = () => {
   const theme = useAppThemeFromContext();
@@ -46,21 +41,8 @@ const TrendingTokensSection = () => {
     [theme],
   );
 
-  const { networks } = useNetworksByNamespace({
-    networkType: NetworkType.Popular,
-  });
-
-  const { networksToUse } = useNetworksToUse({
-    networks,
-    networkType: NetworkType.Popular,
-  });
-  const caipChainIds = useMemo(
-    () => networksToUse.map((network) => network.caipChainId),
-    [networksToUse],
-  );
-
   const { results: trendingTokensResults, isLoading } = useTrendingRequest({
-    chainIds: caipChainIds,
+    chainIds: [],
   });
   const trendingTokens = trendingTokensResults.slice(0, 3);
 
