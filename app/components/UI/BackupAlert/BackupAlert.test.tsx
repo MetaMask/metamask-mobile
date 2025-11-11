@@ -5,7 +5,6 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { fireEvent } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { PROTECT_WALLET_BUTTON } from './BackupAlert.constants';
-import { backgroundState } from '../../../util/test/initial-root-state';
 
 const initialState = {
   user: {
@@ -13,14 +12,18 @@ const initialState = {
     passwordSet: false,
     backUpSeedphraseVisible: true,
   },
-  engine: {
-    backgroundState,
-  },
 };
 const mockNavigation = {
   navigate: jest.fn(),
   dangerouslyGetState: jest.fn(() => ({ routes: [{ name: 'WalletView' }] })),
 };
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest
+    .fn()
+    .mockImplementation((callback) => callback(initialState)),
+}));
 
 describe('BackupAlert', () => {
   beforeEach(() => {
@@ -33,6 +36,8 @@ describe('BackupAlert', () => {
       {
         state: initialState,
       },
+      true,
+      false,
     );
     expect(toJSON()).toMatchSnapshot();
   });
@@ -43,6 +48,8 @@ describe('BackupAlert', () => {
       {
         state: initialState,
       },
+      true,
+      false,
     );
     const rightButton = getByTestId(PROTECT_WALLET_BUTTON);
     fireEvent.press(rightButton);

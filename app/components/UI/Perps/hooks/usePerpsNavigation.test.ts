@@ -3,6 +3,14 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { usePerpsNavigation } from './usePerpsNavigation';
 import Routes from '../../../../constants/navigation/Routes';
+import { useFeatureFlag } from '../../../../components/hooks/FeatureFlags/useFeatureFlag';
+
+jest.mock('../../../../components/hooks/FeatureFlags/useFeatureFlag', () => ({
+  useFeatureFlag: jest.fn().mockReturnValue(true),
+  FeatureFlagNames: {
+    rewardsEnabled: 'rewardsEnabled',
+  },
+}));
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -22,6 +30,9 @@ describe('usePerpsNavigation', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
   >;
+  const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
+    typeof useFeatureFlag
+  >;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -34,6 +45,7 @@ describe('usePerpsNavigation', () => {
       typeof useNavigation
     >);
     mockUseSelector.mockReturnValue(false); // isRewardsEnabled = false
+    mockUseFeatureFlag.mockReturnValue(true); // Reset to default true
   });
 
   describe('Main App Navigation', () => {
@@ -82,7 +94,7 @@ describe('usePerpsNavigation', () => {
     });
 
     it('navigates to settings when rewards disabled', () => {
-      mockUseSelector.mockReturnValue(false);
+      mockUseFeatureFlag.mockReturnValue(false);
       const { result } = renderHook(() => usePerpsNavigation());
 
       result.current.navigateToRewardsOrSettings();
