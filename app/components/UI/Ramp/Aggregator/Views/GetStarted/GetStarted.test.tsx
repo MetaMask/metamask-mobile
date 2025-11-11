@@ -156,9 +156,9 @@ describe('GetStarted', () => {
 
   it('navigates and tracks event on cancel button press', async () => {
     render(GetStarted);
-    fireEvent.press(screen.getByTestId('deposit-close-navbar-button'));
+    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
     expect(mockPop).toHaveBeenCalled();
-    expect(mockTrackEvent).toHaveBeenCalledWith('ONRAMP_CANCELED', {
+    expect(mockTrackEvent).toBeCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '1',
       location: 'Get Started Screen',
     });
@@ -171,8 +171,8 @@ describe('GetStarted', () => {
       rampType: RampType.SELL,
     };
     render(GetStarted);
-    fireEvent.press(screen.getByTestId('deposit-close-navbar-button'));
-    expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_CANCELED', {
+    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
+    expect(mockTrackEvent).toBeCalledWith('OFFRAMP_CANCELED', {
       chain_id_source: '1',
       location: 'Get Started Screen',
     });
@@ -190,7 +190,7 @@ describe('GetStarted', () => {
     };
     render(GetStarted);
     expect(mockReset).toBeCalledTimes(1);
-    expect(mockReset).toHaveBeenCalledWith({
+    expect(mockReset).toBeCalledWith({
       index: 0,
       routes: [
         {

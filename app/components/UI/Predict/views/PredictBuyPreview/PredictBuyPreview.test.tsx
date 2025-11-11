@@ -103,6 +103,16 @@ jest.mock('../../hooks/usePredictDeposit', () => ({
   }),
 }));
 
+// Mock usePredictAgreement hook
+let mockIsAgreementAccepted = true;
+const mockAcceptAgreement = jest.fn();
+jest.mock('../../hooks/usePredictAgreement', () => ({
+  usePredictAgreement: () => ({
+    isAgreementAccepted: mockIsAgreementAccepted,
+    acceptAgreement: mockAcceptAgreement,
+  }),
+}));
+
 // Mock Skeleton component
 jest.mock(
   '../../../../../component-library/components/Skeleton/Skeleton',
@@ -312,6 +322,7 @@ describe('PredictBuyPreview', () => {
     mockBalanceLoading = false;
     mockMetamaskFee = 0.5;
     mockProviderFee = 1.0;
+    mockIsAgreementAccepted = true;
 
     // Setup default mocks
     mockUseNavigation.mockReturnValue(mockNavigation);
@@ -2200,6 +2211,109 @@ describe('PredictBuyPreview', () => {
 
       // Renders custom token (uses preview sharePrice 0.5, not outcomeToken price)
       expect(getByText('Maybe at 50¢')).toBeOnTheScreen();
+    });
+  });
+
+  describe('agreement consent flow', () => {
+    it('places order when agreement is already accepted', async () => {
+      mockIsAgreementAccepted = true;
+      mockBalance = 1000;
+      mockBalanceLoading = false;
+      mockPlaceOrder.mockResolvedValue({ success: true });
+
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Enter valid amount
+      act(() => {
+        capturedOnChange?.({
+          value: '100',
+          valueAsNumber: 100,
+        });
+      });
+
+      // Press done to show button
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
+
+      // Click place bet button
+      const placeBetButton = getByText('Yes · 50¢');
+      await act(async () => {
+        fireEvent.press(placeBetButton);
+      });
+
+      // Order should be placed
+      expect(mockPlaceOrder).toHaveBeenCalledWith({
+        providerId: 'polymarket',
+        preview: expect.objectContaining({
+          marketId: 'market-123',
+          outcomeId: 'outcome-456',
+        }),
+        analyticsProperties: expect.any(Object),
+      });
+    });
+
+    it('does not place order when below minimum', async () => {
+      mockIsAgreementAccepted = true;
+      mockBalance = 1000;
+      mockBalanceLoading = false;
+
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Enter amount below minimum (1)
+      act(() => {
+        capturedOnChange?.({
+          value: '0.5',
+          valueAsNumber: 0.5,
+        });
+      });
+
+      // Press done to show button
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
+
+      // Click place bet button (should be disabled due to below minimum)
+      const placeBetButton = getByText('Yes · 50¢');
+      await act(async () => {
+        fireEvent.press(placeBetButton);
+      });
+
+      // Order should not be placed even if agreement is accepted
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+    });
+
+    it('uses isAgreementAccepted from usePredictAgreement hook', async () => {
+      // Given agreement is accepted
+      mockIsAgreementAccepted = true;
+      mockBalance = 1000;
+      mockBalanceLoading = false;
+      mockPlaceOrder.mockResolvedValue({ success: true });
+
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Enter valid amount and place bet
+      act(() => {
+        capturedOnChange?.({
+          value: '100',
+          valueAsNumber: 100,
+        });
+      });
+
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
+
+      const placeBetButton = getByText('Yes · 50¢');
+      await act(async () => {
+        fireEvent.press(placeBetButton);
+      });
+
+      // Then order should be placed when agreement is accepted
+      expect(mockPlaceOrder).toHaveBeenCalled();
     });
   });
 });

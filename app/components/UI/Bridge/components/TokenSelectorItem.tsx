@@ -99,13 +99,6 @@ const createStyles = ({
       marginLeft: 8,
       paddingHorizontal: 6,
     },
-    selectedItemWrapperReset: {
-      marginLeft: -4,
-    },
-    nativeTokenIcon: {
-      width: 32,
-      height: 32,
-    },
   });
 
 interface TokenSelectorItemProps {
@@ -181,7 +174,6 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
           flexDirection={FlexDirection.Row}
           alignItems={AlignItems.center}
           gap={4}
-          style={isSelected ? styles.selectedItemWrapperReset : {}}
         >
           {/* Token Icon */}
           <BadgeWrapper
@@ -200,7 +192,6 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
                 symbol={token.symbol}
                 icon={token.image}
                 medium
-                style={styles.nativeTokenIcon}
                 testID={`network-logo-${token.symbol}`}
               />
             ) : (

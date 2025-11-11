@@ -293,7 +293,7 @@ describe('useAssetBalances', () => {
       const balanceInfo = result.current.get(key);
 
       expect(balanceInfo).toBeDefined();
-      expect(balanceInfo?.balanceFiat).toBe('250.250000 USDC');
+      expect(balanceInfo?.balanceFiat).toBe('250.25 USDC');
       expect(balanceInfo?.rawFiatNumber).toBeUndefined();
     });
   });
@@ -759,7 +759,7 @@ describe('useAssetBalances', () => {
       const key = `${mockEvmToken.address?.toLowerCase()}-${mockEvmToken.caipChainId}-${mockEvmToken.walletAddress?.toLowerCase()}`;
       const balanceInfo = result.current.get(key);
 
-      expect(balanceInfo?.balanceFiat).toBe('500.500000 USDC');
+      expect(balanceInfo?.balanceFiat).toBe('500.50 USDC');
     });
   });
 
@@ -1179,7 +1179,7 @@ describe('useAssetBalances', () => {
       const key = `${tokenWithBalance.address?.toLowerCase()}-${tokenWithBalance.caipChainId}-${tokenWithBalance.walletAddress?.toLowerCase()}`;
       const balanceInfo = result.current.get(key);
 
-      expect(balanceInfo?.balanceFiat).toBe('100.000000 USDC');
+      expect(balanceInfo?.balanceFiat).toBe('100 USDC');
     });
 
     it('falls back to token symbol when availableBalance is zero', () => {
@@ -1242,7 +1242,7 @@ describe('useAssetBalances', () => {
       const key = `${tokenWithZeroBalance.address?.toLowerCase()}-${tokenWithZeroBalance.caipChainId}-${tokenWithZeroBalance.walletAddress?.toLowerCase()}`;
       const balanceInfo = result.current.get(key);
 
-      expect(balanceInfo?.balanceFiat).toBe('$0.00');
+      expect(balanceInfo?.balanceFiat).toBe('0 USDC');
     });
 
     it('handles walletAsset with special characters in balanceFiat', () => {
@@ -1366,7 +1366,7 @@ describe('useAssetBalances', () => {
       const key = `${tokenWithBalance.address?.toLowerCase()}-${tokenWithBalance.caipChainId}-${tokenWithBalance.walletAddress?.toLowerCase()}`;
       const balanceInfo = result.current.get(key);
 
-      expect(balanceInfo?.balanceFiat).toBe('500.000000 USDC');
+      expect(balanceInfo?.balanceFiat).toBe('500 USDC');
     });
   });
 

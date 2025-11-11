@@ -12,8 +12,6 @@ export enum TokenStandard {
 export interface AssetType extends TokenI {
   assetId?: string;
   accountId?: string;
-  disabled?: boolean;
-  disabledMessage?: string;
   networkBadgeSource?: ImageSourcePropType;
   tokenId?: string;
   isSelected?: boolean;

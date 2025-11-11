@@ -148,24 +148,6 @@ export function renderShortAddress(address: string, chars = 5) {
   )}`;
 }
 
-/**
- * Returns short account name format
- * @param {String} accountName - String corresponding to an account name
- * @param {Number} chars - Number of characters to show at the end and beginning.
- * Defaults to 20.
- * @returns {String} - String corresponding to short account name format
- */
-export function renderShortAccountName(
-  accountName: string,
-  chars: number = 20,
-): string {
-  if (!accountName) return accountName;
-  if (accountName.length <= chars) {
-    return accountName;
-  }
-  return `${accountName.substr(0, chars)}...`;
-}
-
 export function renderSlightlyLongAddress(
   address: string,
   chars = 4,

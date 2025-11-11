@@ -16,8 +16,6 @@ import { calcTokenAmount } from '../../../../../../util/transactions';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './transaction-details-hero.styles';
 import { getTokenTransferData } from '../../../utils/transaction-pay';
-import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
-import { PERPS_CURRENCY } from '../../../constants/perps';
 
 const SUPPORTED_TYPES = [
   TransactionType.perpsDeposit,
@@ -25,7 +23,6 @@ const SUPPORTED_TYPES = [
 ];
 
 export function TransactionDetailsHero() {
-  const formatFiat = useFiatFormatter({ currency: PERPS_CURRENCY });
   const { styles } = useStyles(styleSheet, {});
   const { transactionMeta } = useTransactionDetails();
   const { chainId } = transactionMeta;
@@ -55,7 +52,7 @@ export function TransactionDetailsHero() {
     return null;
   }
 
-  const formattedAmount = formatFiat(calcTokenAmount(amount, decimals));
+  const amountHuman = calcTokenAmount(amount, decimals).toString(10);
 
   return (
     <Box
@@ -64,7 +61,7 @@ export function TransactionDetailsHero() {
       gap={12}
       style={styles.container}
     >
-      <Text variant={TextVariant.DisplayLG}>{formattedAmount}</Text>
+      <Text variant={TextVariant.DisplayLG}>${amountHuman}</Text>
     </Box>
   );
 }

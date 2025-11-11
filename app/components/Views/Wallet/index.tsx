@@ -259,8 +259,8 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   );
   const isPredictFlagEnabled = useSelector(selectPredictEnabledFlag);
   const isPredictEnabled = useMemo(
-    () => isPredictFlagEnabled,
-    [isPredictFlagEnabled],
+    () => isPredictFlagEnabled && isEvmSelected,
+    [isPredictFlagEnabled, isEvmSelected],
   );
 
   const {
@@ -736,7 +736,9 @@ const Wallet = ({
   const collectiblesEnabled = useMemo(() => {
     if (isMultichainAccountsState2Enabled) {
       if (allEnabledNetworks.length === 1) {
-        return isEvmSelected;
+        return allEnabledNetworks.some(
+          (network) => network.chainId !== SolScope.Mainnet,
+        );
       }
       return true;
     }
@@ -1296,7 +1298,7 @@ const Wallet = ({
   }, [navigation]);
 
   const defiEnabled =
-    isEvmSelected &&
+    (isEvmSelected || isMultichainAccountsState2Enabled) &&
     !enabledNetworksHasTestNet &&
     basicFunctionalityEnabled &&
     assetsDefiPositionsEnabled;

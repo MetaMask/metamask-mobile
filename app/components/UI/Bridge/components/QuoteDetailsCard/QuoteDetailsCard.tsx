@@ -36,7 +36,6 @@ import RewardsAnimations, {
 } from '../../../Rewards/components/RewardPointsAnimation';
 import QuoteCountdownTimer from '../QuoteCountdownTimer';
 import QuoteDetailsRecipientKeyValueRow from '../QuoteDetailsRecipientKeyValueRow/QuoteDetailsRecipientKeyValueRow';
-import { toSentenceCase } from '../../../../../util/string';
 
 if (
   Platform.OS === 'android' &&
@@ -142,12 +141,12 @@ const QuoteDetailsCard: React.FC = () => {
             justifyContent={BoxJustifyContent.Between}
           >
             <Text variant={TextVariant.BodyMD}>
-              {toSentenceCase(strings('bridge.network_fee'))}
+              {strings('bridge.network_fee')}
             </Text>
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              gap={2}
+              gap={8}
             >
               <Text
                 variant={TextVariant.BodyMD}
@@ -164,7 +163,7 @@ const QuoteDetailsCard: React.FC = () => {
           <KeyValueRow
             field={{
               label: {
-                text: toSentenceCase(strings('bridge.network_fee')),
+                text: strings('bridge.network_fee'),
                 variant: TextVariant.BodyMD,
               },
               tooltip: {
@@ -204,12 +203,12 @@ const QuoteDetailsCard: React.FC = () => {
                 testID="edit-slippage-button"
                 style={styles.slippageButton}
               >
+                <Text variant={TextVariant.BodyMD}>{slippage}</Text>
                 <Icon
                   name={IconName.Edit}
                   size={IconSize.Sm}
-                  color={IconColor.Alternative}
+                  color={IconColor.Muted}
                 />
-                <Text variant={TextVariant.BodyMD}>{slippage}</Text>
               </TouchableOpacity>
             ),
           }}
@@ -219,7 +218,7 @@ const QuoteDetailsCard: React.FC = () => {
           <KeyValueRow
             field={{
               label: {
-                text: toSentenceCase(strings('bridge.minimum_received')),
+                text: strings('bridge.minimum_received'),
                 variant: TextVariant.BodyMD,
               },
               tooltip: {
@@ -242,7 +241,7 @@ const QuoteDetailsCard: React.FC = () => {
           <KeyValueRow
             field={{
               label: {
-                text: toSentenceCase(strings('bridge.price_impact')),
+                text: strings('bridge.price_impact'),
                 variant: TextVariant.BodyMD,
               },
               tooltip: {
@@ -273,7 +272,7 @@ const QuoteDetailsCard: React.FC = () => {
           <KeyValueRow
             field={{
               label: {
-                text: toSentenceCase(strings('bridge.points')),
+                text: strings('bridge.points'),
                 variant: TextVariant.BodyMD,
               },
               tooltip: {

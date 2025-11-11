@@ -36,7 +36,6 @@ import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import { Json } from '@metamask/utils';
 import { SchedulableBackgroundEvent } from '@metamask/snaps-controllers';
 import { endTrace, trace } from '../../util/trace';
-import { AppState } from 'react-native';
 
 export function getSnapIdFromRequest(
   request: Record<string, unknown>,
@@ -191,9 +190,7 @@ const snapMethodMiddlewareBuilder = (
       engineContext.ApprovalController.addAndShowApprovalRequest.bind(
         engineContext.ApprovalController,
       ),
-    getIsActive: () =>
-      AppState.currentState === 'active' &&
-      engineContext.KeyringController.isUnlocked(),
+    getIsActive: () => true, // For now we consider the app to be always active.
     getIsLocked: () => !engineContext.KeyringController.isUnlocked(),
     getEntropySources: () => {
       const state = controllerMessenger.call('KeyringController:getState');

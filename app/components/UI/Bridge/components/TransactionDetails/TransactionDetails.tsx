@@ -166,10 +166,7 @@ export const BridgeTransactionDetails = (
   // Get source chain explorer data for swaps
   const swapSrcExplorerData = useMultichainBlockExplorerTxUrl({
     chainId: bridgeTxHistoryItem?.quote.srcChainId,
-    // On multi-chain tx, the txHash is the source chain tx hash.
-    // This ensures that swaps on non EVM networks are displayed correctly.
-    // For EVM tx, the txHash is the source chain tx hash.
-    txHash: bridgeTxHistoryItem?.status.srcChain?.txHash || evmTxMeta?.hash,
+    txHash: evmTxMeta?.hash,
   });
 
   const [isStepListExpanded, setIsStepListExpanded] = useState(false);

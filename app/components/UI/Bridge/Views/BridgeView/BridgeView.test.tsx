@@ -24,8 +24,6 @@ import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/te
 import { RootState } from '../../../../../reducers';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { BridgeViewMode } from '../../types';
-import { useGasIncluded } from '../../hooks/useGasIncluded';
-import { useIsSendBundleSupported } from '../../hooks/useIsSendBundleSupported';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -257,16 +255,6 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
     .mockImplementation(() => mockUseBridgeQuoteData),
 }));
 
-// Mock useGasIncluded hook
-jest.mock('../../hooks/useGasIncluded', () => ({
-  useGasIncluded: jest.fn(),
-}));
-
-// Mock useIsSendBundleSupported hook (dependency of useGasIncluded)
-jest.mock('../../hooks/useIsSendBundleSupported', () => ({
-  useIsSendBundleSupported: jest.fn().mockReturnValue(false),
-}));
-
 jest.mock('../../../../../util/address', () => ({
   ...jest.requireActual('../../../../../util/address'),
   isHardwareAccount: jest.fn(),
@@ -278,8 +266,6 @@ describe('BridgeView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Set default mock values
-    (useGasIncluded as jest.Mock).mockReturnValue(undefined);
-    (useIsSendBundleSupported as jest.Mock).mockReturnValue(false);
   });
 
   it('renders', async () => {
@@ -1590,103 +1576,6 @@ describe('BridgeView', () => {
 
       // Should display default ETH token from Redux state
       expect(getByText('ETH')).toBeTruthy();
-    });
-  });
-
-  describe('gasIncluded functionality', () => {
-    it('calls useGasIncluded hook with source chain ID', () => {
-      const testState = createBridgeTestState({
-        bridgeReducerOverrides: {
-          sourceToken: {
-            address: '0x0000000000000000000000000000000000000000',
-            chainId: '0x1',
-            decimals: 18,
-            symbol: 'ETH',
-          },
-        },
-      });
-
-      renderScreen(
-        BridgeView,
-        { name: Routes.BRIDGE.ROOT },
-        { state: testState },
-      );
-
-      expect(useGasIncluded).toHaveBeenCalledWith('0x1');
-    });
-
-    it('calls useGasIncluded with undefined when source token not set', () => {
-      const testState = createBridgeTestState({
-        bridgeReducerOverrides: {
-          sourceToken: undefined,
-        },
-      });
-
-      renderScreen(
-        BridgeView,
-        { name: Routes.BRIDGE.ROOT },
-        { state: testState },
-      );
-
-      expect(useGasIncluded).toHaveBeenCalledWith(undefined);
-    });
-
-    it('updates gasIncluded when source chain changes', () => {
-      const testState = createBridgeTestState({
-        bridgeReducerOverrides: {
-          sourceToken: {
-            address: '0x0000000000000000000000000000000000000000',
-            chainId: '0x1',
-            decimals: 18,
-            symbol: 'ETH',
-          },
-        },
-      });
-
-      const { store } = renderScreen(
-        BridgeView,
-        { name: Routes.BRIDGE.ROOT },
-        { state: testState },
-      );
-
-      // Change source token to different chain
-      act(() => {
-        store.dispatch(
-          setSourceToken({
-            address: '0x0000000000000000000000000000000000000000',
-            chainId: '0xa', // Optimism
-            decimals: 18,
-            symbol: 'ETH',
-          }),
-        );
-      });
-
-      // useGasIncluded should be called with the new chain ID
-      expect(useGasIncluded).toHaveBeenCalledWith('0xa');
-    });
-
-    it('calls useGasIncluded with non-EVM chainId directly', () => {
-      const testState = createBridgeTestState({
-        bridgeReducerOverrides: {
-          sourceToken: {
-            address: 'SomeNonEvmAddress',
-            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-            decimals: 9,
-            symbol: 'SOL',
-          },
-        },
-      });
-
-      renderScreen(
-        BridgeView,
-        { name: Routes.BRIDGE.ROOT },
-        { state: testState },
-      );
-
-      // Hook receives the raw chainId and handles filtering internally
-      expect(useGasIncluded).toHaveBeenCalledWith(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      );
     });
   });
 });

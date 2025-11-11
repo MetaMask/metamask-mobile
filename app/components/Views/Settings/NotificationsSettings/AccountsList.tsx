@@ -6,49 +6,34 @@ import {
 } from './AccountsList.hooks';
 import NotificationOptionToggle from './NotificationOptionToggle';
 import { NotificationSettingsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationSettingsView.selectors';
-import AccountListHeader from '../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/AccountListHeader';
-import { useTheme } from '../../../../util/theme';
-import { useStyles } from '../../../../component-library/hooks';
-import styleSheet from './NotificationsSettings.styles';
+import { toFormattedAddress } from '../../../../util/address';
 
 export const AccountsList = () => {
-  const theme = useTheme();
-  const { styles } = useStyles(styleSheet, { theme });
-
-  const { accountAvatarType, firstHDWalletGroups } = useAccountProps();
+  const { accounts, accountAddresses, accountAvatarType } = useAccountProps();
   const {
     isAnyAccountLoading,
     isAccountLoading,
     isAccountEnabled,
     refetchAccountSettings,
-    getEvmAddress,
-  } = useNotificationAccountListProps();
-
-  if (!firstHDWalletGroups) {
-    return null;
-  }
+  } = useNotificationAccountListProps(accountAddresses);
 
   return (
     <View>
-      <AccountListHeader
-        title={firstHDWalletGroups.title}
-        containerStyle={styles.accountHeader}
-      />
       <FlatList
-        data={firstHDWalletGroups.data}
-        keyExtractor={(item) => `address-${item.id}`}
+        data={accounts}
+        keyExtractor={(item) => `address-${item.address}`}
         renderItem={({ item }) => (
           <NotificationOptionToggle
-            key={item.id}
-            item={item}
-            evmAddress={getEvmAddress(item.accounts)}
+            key={item.address}
             icon={accountAvatarType}
+            title={item.name}
+            address={item.address}
             disabledSwitch={isAnyAccountLoading}
-            isLoading={isAccountLoading(item.accounts)}
-            isEnabled={isAccountEnabled(item.accounts)}
+            isLoading={isAccountLoading(item.address)}
+            isEnabled={isAccountEnabled(item.address)}
             refetchNotificationAccounts={refetchAccountSettings}
             testID={NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATION_TOGGLE(
-              getEvmAddress(item.accounts) ?? '',
+              toFormattedAddress(item.address),
             )}
           />
         )}

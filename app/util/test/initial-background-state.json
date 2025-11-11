@@ -554,9 +554,6 @@
     "isPushEnabled": true,
     "isUpdatingFCMToken": false
   },
-  "TransactionPayController": {
-    "transactionData": {}
-  },
   "UserStorageController": {
     "isBackupAndSyncEnabled": true,
     "isBackupAndSyncUpdateLoading": false,

@@ -13,28 +13,22 @@ import {
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTokenAmount } from '../useTokenAmount';
 import { act } from '@testing-library/react-native';
-import { updateConfirmationMetric } from '../../../../../core/redux/slices/confirmationMetrics';
+import {
+  selectTransactionBridgeQuotesById,
+  updateConfirmationMetric,
+} from '../../../../../core/redux/slices/confirmationMetrics';
 import { TransactionType } from '@metamask/transaction-controller';
+import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
-import {
-  TransactionPayQuote,
-  TransactionPayStrategy,
-} from '@metamask/transaction-pay-controller';
-import { Json } from '@metamask/utils';
-import {
-  useTransactionPayQuotes,
-  useTransactionPayTotals,
-} from './useTransactionPayData';
 
 jest.mock('./useTransactionPayToken');
 jest.mock('./useAutomaticTransactionPayToken');
 jest.mock('../useTokenAmount');
-jest.mock('../../../../../selectors/transactionPayController');
-jest.mock('../pay/useTransactionPayData');
 
 jest.mock('../../../../../core/redux/slices/confirmationMetrics', () => ({
   ...jest.requireActual('../../../../../core/redux/slices/confirmationMetrics'),
   updateConfirmationMetric: jest.fn(),
+  selectTransactionBridgeQuotesById: jest.fn(),
 }));
 
 const CHAIN_ID_MOCK = '0x1';
@@ -45,14 +39,6 @@ const PAY_TOKEN_MOCK = {
   chainId: CHAIN_ID_MOCK,
   symbol: 'TST',
 };
-
-const QUOTE_MOCK = {
-  dust: {
-    fiat: '0.6',
-    usd: '0.5',
-  },
-  strategy: TransactionPayStrategy.Bridge,
-} as TransactionPayQuote<Json>;
 
 function runHook({ type }: { type?: TransactionType } = {}) {
   const state = merge(
@@ -74,11 +60,13 @@ describe('useTransactionPayMetrics', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useTokenAmountMock = jest.mocked(useTokenAmount);
   const updateConfirmationMetricMock = jest.mocked(updateConfirmationMetric);
-  const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
-  const useTransactionPayTotalsMock = jest.mocked(useTransactionPayTotals);
 
   const useAutomaticTransactionPayTokenMock = jest.mocked(
     useAutomaticTransactionPayToken,
+  );
+
+  const selectTransactionBridgeQuotesByIdMock = jest.mocked(
+    selectTransactionBridgeQuotesById,
   );
 
   beforeEach(() => {
@@ -86,7 +74,7 @@ describe('useTransactionPayMetrics', () => {
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: undefined,
-      setPayToken: noop as never,
+      setPayToken: noop,
     });
 
     useTokenAmountMock.mockReturnValue({
@@ -97,7 +85,7 @@ describe('useTransactionPayMetrics', () => {
       type: 'test',
     } as never);
 
-    useTransactionPayQuotesMock.mockReturnValue([]);
+    selectTransactionBridgeQuotesByIdMock.mockReturnValue([] as never[]);
 
     useAutomaticTransactionPayTokenMock.mockReturnValue({
       count: 5,
@@ -149,11 +137,11 @@ describe('useTransactionPayMetrics', () => {
       setPayToken: noop,
     } as ReturnType<typeof useTransactionPayToken>);
 
-    useTransactionPayQuotesMock.mockReturnValue([
-      QUOTE_MOCK,
-      QUOTE_MOCK,
-      QUOTE_MOCK,
-    ]);
+    selectTransactionBridgeQuotesByIdMock.mockReturnValue([
+      {} as never,
+      {} as never,
+      {} as never,
+    ] as never[]);
 
     runHook();
 
@@ -177,11 +165,11 @@ describe('useTransactionPayMetrics', () => {
       setPayToken: noop,
     } as ReturnType<typeof useTransactionPayToken>);
 
-    useTransactionPayQuotesMock.mockReturnValue([
-      QUOTE_MOCK,
-      QUOTE_MOCK,
-      QUOTE_MOCK,
-    ]);
+    selectTransactionBridgeQuotesByIdMock.mockReturnValue([
+      {} as never,
+      {} as never,
+      {} as never,
+    ] as never[]);
 
     runHook();
 
@@ -205,11 +193,11 @@ describe('useTransactionPayMetrics', () => {
       setPayToken: noop,
     } as ReturnType<typeof useTransactionPayToken>);
 
-    useTransactionPayQuotesMock.mockReturnValue([
-      QUOTE_MOCK,
-      QUOTE_MOCK,
-      QUOTE_MOCK,
-    ]);
+    selectTransactionBridgeQuotesByIdMock.mockReturnValue([
+      {} as never,
+      {} as never,
+      {} as never,
+    ] as never[]);
 
     runHook({ type: TransactionType.predictDeposit });
 
@@ -233,7 +221,26 @@ describe('useTransactionPayMetrics', () => {
       setPayToken: noop,
     } as ReturnType<typeof useTransactionPayToken>);
 
-    useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK, QUOTE_MOCK]);
+    selectTransactionBridgeQuotesByIdMock.mockReturnValue([
+      {
+        quote: {
+          minDestTokenAmount: '2000000',
+        },
+        request: {
+          targetAmountMinimum: '1500000',
+          targetTokenAddress: NATIVE_TOKEN_ADDRESS,
+        },
+      },
+      {
+        quote: {
+          minDestTokenAmount: '3000000',
+        },
+        request: {
+          targetAmountMinimum: '2500000',
+          targetTokenAddress: tokenAddress1Mock,
+        },
+      },
+    ] as never[]);
 
     runHook();
 
@@ -265,34 +272,6 @@ describe('useTransactionPayMetrics', () => {
       params: {
         properties: expect.objectContaining({
           mm_pay_payment_token_list_size: 5,
-        }),
-        sensitiveProperties: {},
-      },
-    });
-  });
-
-  it('includes quote metrics', async () => {
-    useTransactionPayTotalsMock.mockReturnValue({
-      fees: {
-        sourceNetwork: { usd: '1.5', fiat: '1.6' },
-        targetNetwork: { usd: '2.5', fiat: '2.6' },
-        provider: { usd: '0.5', fiat: '0.6' },
-      },
-    } as ReturnType<typeof useTransactionPayTotals>);
-
-    useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK]);
-
-    runHook();
-
-    await act(async () => noop());
-
-    expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
-      id: transactionIdMock,
-      params: {
-        properties: expect.objectContaining({
-          mm_pay_network_fee_usd: '4',
-          mm_pay_provider_fee_usd: '0.5',
-          mm_pay_strategy: 'mm_swaps_bridge',
         }),
         sensitiveProperties: {},
       },

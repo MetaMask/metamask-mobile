@@ -38,19 +38,12 @@ const TabsBar: React.FC<TabsBarProps> = ({
   const underlineWidthAnimated = useRef(new Animated.Value(0)).current;
   const tabLayouts = useRef<{ x: number; width: number }[]>([]);
   const currentAnimation = useRef<Animated.CompositeAnimation | null>(null);
-  const rafCallbackId = useRef<number | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [layoutsReady, setLayoutsReady] = useState(false);
-  const activeIndexRef = useRef(activeIndex);
 
   // State for automatic overflow detection
   const [scrollEnabled, setScrollEnabled] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
-
-  // Keep activeIndexRef in sync with activeIndex
-  useEffect(() => {
-    activeIndexRef.current = activeIndex;
-  }, [activeIndex]);
 
   // Reset layout data when tabs change structurally (count or content)
   const tabKeys = useMemo(() => tabs.map((tab) => tab.key).join(','), [tabs]);
@@ -183,8 +176,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
         const gapsWidth = (tabs.length - 1) * 24; // Account for gaps between tabs
         const calculatedContentWidth = totalTabsWidth + gapsWidth;
 
-        // Account for container's px-4 padding (16px * 2 = 32px)
-        const shouldScroll = calculatedContentWidth > containerWidth - 32;
+        const shouldScroll = calculatedContentWidth > containerWidth;
         setScrollEnabled(shouldScroll);
       }
     }
@@ -205,13 +197,6 @@ const TabsBar: React.FC<TabsBarProps> = ({
         return;
       }
 
-      // Check if this is a significant change (more than 1px difference)
-      const previousLayout = tabLayouts.current[index];
-      const hasSignificantChange =
-        !previousLayout ||
-        Math.abs(previousLayout.width - width) > 1 ||
-        Math.abs(previousLayout.x - x) > 1;
-
       // Store layout data
       tabLayouts.current[index] = { x, width };
 
@@ -220,41 +205,22 @@ const TabsBar: React.FC<TabsBarProps> = ({
         (layout, i) => i >= tabs.length || (layout && layout.width > 0),
       );
 
-      if (allLayoutsReady) {
-        // Recalculate scroll detection on initial load OR when any layout changes significantly
-        if (!layoutsReady || hasSignificantChange) {
-          if (!layoutsReady) {
-            setLayoutsReady(true);
-          }
+      if (allLayoutsReady && !layoutsReady) {
+        setLayoutsReady(true);
 
-          // If layouts were already ready and any tab changed, re-animate the active tab
-          // This ensures re-animation triggers regardless of which tab's callback fires last
-          if (layoutsReady && hasSignificantChange) {
-            // Cancel any pending RAF to avoid multiple callbacks
-            if (rafCallbackId.current !== null) {
-              cancelAnimationFrame(rafCallbackId.current);
-            }
-            rafCallbackId.current = requestAnimationFrame(() => {
-              rafCallbackId.current = null;
-              animateToTab(activeIndexRef.current);
-            });
-          }
-
-          // Update scroll detection
-          if (containerWidth > 0) {
-            const totalWidth = tabLayouts.current.reduce(
-              (sum, layout) => sum + (layout?.width || 0),
-              0,
-            );
-            const gapsWidth = (tabs.length - 1) * 24;
-            // Account for container's px-4 padding (16px * 2 = 32px)
-            const shouldScroll = totalWidth + gapsWidth > containerWidth - 32;
-            setScrollEnabled(shouldScroll);
-          }
+        // Update scroll detection
+        if (containerWidth > 0) {
+          const totalWidth = tabLayouts.current.reduce(
+            (sum, layout) => sum + (layout?.width || 0),
+            0,
+          );
+          const gapsWidth = (tabs.length - 1) * 24;
+          const shouldScroll = totalWidth + gapsWidth > containerWidth;
+          setScrollEnabled(shouldScroll);
         }
       }
     },
-    [tabs.length, layoutsReady, containerWidth, animateToTab],
+    [tabs.length, layoutsReady, containerWidth],
   );
 
   // Cleanup effect
@@ -263,10 +229,6 @@ const TabsBar: React.FC<TabsBarProps> = ({
       if (currentAnimation.current) {
         currentAnimation.current.stop();
         currentAnimation.current = null;
-      }
-      if (rafCallbackId.current !== null) {
-        cancelAnimationFrame(rafCallbackId.current);
-        rafCallbackId.current = null;
       }
     },
     [],

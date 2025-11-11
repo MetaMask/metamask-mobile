@@ -2,10 +2,10 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
 import { PREDICT_MINIMUM_DEPOSIT } from '../constants/predict';
 import { hasTransactionType } from './transaction';
 import { Hex } from '@metamask/utils';
-import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
 
 const FOUR_BYTE_TOKEN_TRANSFER = '0xa9059cbb';
 

@@ -1,20 +1,23 @@
 import { rpcErrors } from '@metamask/rpc-errors';
 import validUrl from 'valid-url';
-import { isSafeChainId } from '@metamask/controller-utils';
+import { ApprovalType, isSafeChainId } from '@metamask/controller-utils';
 import { jsonRpcRequest } from '../../../util/jsonRpcRequest';
 import {
   getDecimalChainId,
   isPrefixedFormattedHexString,
+  isPerDappSelectedNetworkEnabled,
 } from '../../../util/networks';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
   getPermittedEthChainIds,
+  setPermittedEthChainIds,
 } from '@metamask/chain-agnostic-permission';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Engine from '../../Engine';
 import { isSnapId } from '@metamask/snaps-utils';
+import Logger from '../../../util/Logger';
 
 const EVM_NATIVE_TOKEN_DECIMALS = 18;
 
@@ -231,7 +234,8 @@ export async function switchToNetwork({
     hasApprovalRequestsForOrigin,
     rejectApprovalRequestsForOrigin,
   } = hooks;
-  const { SelectedNetworkController } = Engine.context;
+  const { MultichainNetworkController, SelectedNetworkController } =
+    Engine.context;
 
   const caip25Caveat = getCaveat({
     target: Caip25EndowmentPermissionName,
@@ -273,10 +277,14 @@ export async function switchToNetwork({
     rejectApprovalRequestsForOrigin?.();
   }
 
-  SelectedNetworkController.setNetworkClientIdForDomain(
-    origin,
-    networkClientId,
-  );
+  if (isPerDappSelectedNetworkEnabled()) {
+    SelectedNetworkController.setNetworkClientIdForDomain(
+      origin,
+      networkClientId,
+    );
+  } else {
+    await MultichainNetworkController.setActiveNetwork(networkClientId);
+  }
 
   const analyticsParams = {
     chain_id: getDecimalChainId(chainId),

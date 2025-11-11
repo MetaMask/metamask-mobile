@@ -61,7 +61,10 @@ import URLParse from 'url-parse';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { RootState } from '../../../reducers';
-import { getNetworkImageSource } from '../../../util/networks';
+import {
+  getNetworkImageSource,
+  isPerDappSelectedNetworkEnabled,
+} from '../../../util/networks';
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
 import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
 import {
@@ -356,7 +359,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         toggleRevokeAllPermissionsModal();
         return;
       }
-      const currentEvmCaipChainId: CaipChainId = `eip155:${parseInt(networkInfo.chainId, 16)}`;
+      const currentEvmCaipChainId: CaipChainId =
+        isPerDappSelectedNetworkEnabled()
+          ? `eip155:${parseInt(networkInfo.chainId, 16)}`
+          : `eip155:${parseInt(currentEvmChainId, 16)}`;
 
       const newSelectedEvmChainId = chainIds.find((chainId) => {
         const { namespace } = parseChainId(chainId);
@@ -392,11 +398,18 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
             config as NetworkConfiguration;
           const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
 
-          // For per-dapp network selection, directly set the network for this domain
-          Engine.context.SelectedNetworkController.setNetworkClientIdForDomain(
-            hostname,
-            networkClientId,
-          );
+          if (isPerDappSelectedNetworkEnabled()) {
+            // For per-dapp network selection, directly set the network for this domain
+            Engine.context.SelectedNetworkController.setNetworkClientIdForDomain(
+              hostname,
+              networkClientId,
+            );
+          } else {
+            // For global network selection, switch the active network
+            await Engine.context.MultichainNetworkController.setActiveNetwork(
+              networkClientId,
+            );
+          }
         }
       }
 
@@ -405,6 +418,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       setNetworkSelectorUserIntent(USER_INTENT.Confirm);
     },
     [
+      currentEvmChainId,
       hostname,
       networkConfigurations,
       permittedCaipChainIds,

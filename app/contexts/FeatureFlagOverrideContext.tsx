@@ -139,16 +139,14 @@ export const FeatureFlagOverrideProvider: React.FC<
     getAllOverrides,
   ]);
 
-  const featureFlagsList = useMemo(
-    () =>
-      Object.values(featureFlags).sort((a, b) => a.key.localeCompare(b.key)),
-    [featureFlags],
+  const featureFlagsList = Object.values(featureFlags).sort((a, b) =>
+    a.key.localeCompare(b.key),
   );
 
   const validateMinimumVersion = useCallback(
     (flagKey: string, flagValue: MinimumVersionFlagValue) => {
       if (
-        process.env.METAMASK_ENVIRONMENT !== 'production' &&
+        process.env.NODE_ENV !== 'production' &&
         !isMinimumRequiredVersionSupported(flagValue.minimumVersion)
       ) {
         toastRef?.current?.showToast({
@@ -174,62 +172,42 @@ export const FeatureFlagOverrideProvider: React.FC<
   /**
    * get a specific feature flag value with overrides applied
    */
-  const getFeatureFlag = useCallback(
-    (key: string) => {
-      const flag = featureFlags[key];
-      if (!flag) {
-        return undefined;
-      }
+  const getFeatureFlag = (key: string) => {
+    const flag = featureFlags[key];
+    if (!flag) {
+      return undefined;
+    }
 
-      if (flag.type === 'boolean with minimumVersion') {
-        return validateMinimumVersion(
-          flag.key,
-          flag.value as unknown as MinimumVersionFlagValue,
-        );
-      }
+    if (flag.type === 'boolean with minimumVersion') {
+      return validateMinimumVersion(
+        flag.key,
+        flag.value as unknown as MinimumVersionFlagValue,
+      );
+    }
 
-      return flag.value;
-    },
-    [featureFlags, validateMinimumVersion],
-  );
+    return flag.value;
+  };
 
   const getOverrideCount = useCallback(
     (): number => Object.keys(overrides).length,
     [overrides],
   );
 
-  const contextValue: FeatureFlagOverrideContextType = useMemo(
-    () => ({
-      featureFlags,
-      originalFlags: rawFeatureFlags,
-      getFeatureFlag,
-      featureFlagsList,
-      overrides,
-      setOverride,
-      removeOverride,
-      clearAllOverrides,
-      hasOverride,
-      getOverride,
-      getAllOverrides,
-      applyOverrides,
-      getOverrideCount,
-    }),
-    [
-      featureFlags,
-      rawFeatureFlags,
-      getFeatureFlag,
-      featureFlagsList,
-      overrides,
-      setOverride,
-      removeOverride,
-      clearAllOverrides,
-      hasOverride,
-      getOverride,
-      getAllOverrides,
-      applyOverrides,
-      getOverrideCount,
-    ],
-  );
+  const contextValue: FeatureFlagOverrideContextType = {
+    featureFlags,
+    originalFlags: rawFeatureFlags,
+    getFeatureFlag,
+    featureFlagsList,
+    overrides,
+    setOverride,
+    removeOverride,
+    clearAllOverrides,
+    hasOverride,
+    getOverride,
+    getAllOverrides,
+    applyOverrides,
+    getOverrideCount,
+  };
 
   return (
     <FeatureFlagOverrideContext.Provider value={contextValue}>

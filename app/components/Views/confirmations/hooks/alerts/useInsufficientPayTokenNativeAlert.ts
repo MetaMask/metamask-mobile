@@ -5,18 +5,18 @@ import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../../locales/i18n';
+import { useTransactionTotalFiat } from '../pay/useTransactionTotalFiat';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 import { useSelector } from 'react-redux';
 import { selectTickerByChainId } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
 import { getNativeTokenAddress } from '../../utils/asset';
-import { useTransactionPayTotals } from '../pay/useTransactionPayData';
 
 export function useInsufficientPayTokenNativeAlert(): Alert[] {
+  const { totalNetworkFeeMax, total } = useTransactionTotalFiat();
   const { payToken } = useTransactionPayToken();
   const { chainId } = payToken ?? {};
   const nativeTokenAddress = getNativeTokenAddress(chainId ?? '0x0');
-  const { fees, total } = useTransactionPayTotals() ?? {};
 
   const ticker = useSelector((state: RootState) =>
     selectTickerByChainId(state, chainId ?? '0x0'),
@@ -26,19 +26,13 @@ export function useInsufficientPayTokenNativeAlert(): Alert[] {
 
   const { tokenFiatAmount } = nativeToken ?? {};
   const isPayTokenNative = payToken?.address === nativeTokenAddress;
+  const requiredAmount = isPayTokenNative ? total : totalNetworkFeeMax;
 
-  const requiredAmount = isPayTokenNative
-    ? total?.fiat
-    : fees?.sourceNetwork.fiat;
-
-  const isInsufficient = useMemo(
-    () =>
-      payToken &&
-      new BigNumber(tokenFiatAmount ?? '0').isLessThan(
-        new BigNumber(requiredAmount ?? '0'),
-      ),
-    [payToken, requiredAmount, tokenFiatAmount],
-  );
+  const isInsufficient =
+    payToken &&
+    new BigNumber(tokenFiatAmount ?? '0').isLessThan(
+      new BigNumber(requiredAmount ?? '0'),
+    );
 
   return useMemo(() => {
     if (!isInsufficient) {

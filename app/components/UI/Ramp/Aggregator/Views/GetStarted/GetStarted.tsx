@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import Text from '../../../../../Base/Text';
 import StyledButton from '../../../../StyledButton';
 import ScreenLayout from '../../components/ScreenLayout';
-import { getDepositNavbarOptions } from '../../../../Navbar';
+import { getFiatOnRampAggNavbar } from '../../../../Navbar';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import { useRampSDK } from '../../sdk';
@@ -34,7 +34,8 @@ const GetStarted: React.FC = () => {
   const [isNetworkRampSupported] = useRampNetwork();
   const trackEvent = useAnalytics();
   const params = useParams<RampIntent>();
-  const theme = useTheme();
+
+  const { colors } = useTheme();
 
   const handleCancelPress = useCallback(() => {
     const chainId = selectedAsset?.network?.chainId;
@@ -61,17 +62,17 @@ const GetStarted: React.FC = () => {
 
   useEffect(() => {
     navigation.setOptions(
-      getDepositNavbarOptions(
+      getFiatOnRampAggNavbar(
         navigation,
         {
           title: strings('fiat_on_ramp_aggregator.onboarding.what_to_expect'),
           showBack: false,
         },
-        theme,
+        colors,
         handleCancelPress,
       ),
     );
-  }, [navigation, theme, handleCancelPress]);
+  }, [navigation, colors, handleCancelPress]);
 
   const handleOnPress = useCallback(() => {
     trackEvent(
