@@ -1548,18 +1548,20 @@ describe('PredictMarketDetails', () => {
         {},
         {
           positions: {
-            positions: [
-              {
-                id: 'position-1',
-                outcomeId: 'outcome-1',
-                outcome: 'Yes',
-                size: 10,
-                initialValue: 10,
-                currentValue: 12,
-                avgPrice: 0.5,
-                percentPnl: 20,
-              },
-            ],
+            claimable: {
+              positions: [
+                {
+                  id: 'position-1',
+                  outcomeId: 'outcome-1',
+                  outcome: 'Yes',
+                  size: 10,
+                  initialValue: 10,
+                  currentValue: 12,
+                  avgPrice: 0.5,
+                  percentPnl: 20,
+                },
+              ],
+            },
           },
         },
       );
@@ -1595,18 +1597,20 @@ describe('PredictMarketDetails', () => {
         {},
         {
           positions: {
-            positions: [
-              {
-                id: 'position-1',
-                outcomeId: 'outcome-1',
-                outcome: 'Yes',
-                size: 10,
-                initialValue: 10,
-                currentValue: 12,
-                avgPrice: 0.5,
-                percentPnl: 20,
-              },
-            ],
+            claimable: {
+              positions: [
+                {
+                  id: 'position-1',
+                  outcomeId: 'outcome-1',
+                  outcome: 'Yes',
+                  size: 10,
+                  initialValue: 10,
+                  currentValue: 12,
+                  avgPrice: 0.5,
+                  percentPnl: 20,
+                },
+              ],
+            },
           },
         },
       );

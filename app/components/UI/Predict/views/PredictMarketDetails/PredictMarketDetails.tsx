@@ -140,7 +140,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     loadPositions: loadActivePositions,
   } = usePredictPositions({
     marketId: resolvedMarketId,
-    claimable: false && !isMarketFetching,
+    claimable: false,
+    loadOnMount: false,
   });
 
   // "claimable" positions
@@ -150,8 +151,22 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     loadPositions: loadClaimablePositions,
   } = usePredictPositions({
     marketId: resolvedMarketId,
-    claimable: true && !isMarketFetching,
+    claimable: true,
+    loadOnMount: false,
   });
+
+  // Load positions when market is ready
+  useEffect(() => {
+    if (!isMarketFetching && resolvedMarketId) {
+      loadActivePositions();
+      loadClaimablePositions();
+    }
+  }, [
+    isMarketFetching,
+    resolvedMarketId,
+    loadActivePositions,
+    loadClaimablePositions,
+  ]);
 
   useEffect(() => {
     // if market is closed
@@ -837,7 +852,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   );
 
   // see if there are any positions with positive percentPnl
-  const hasPositivePnl = activePositions.some(
+  const hasPositivePnl = claimablePositions.some(
     (position) => position.percentPnl > 0,
   );
 
