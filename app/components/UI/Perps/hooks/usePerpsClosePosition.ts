@@ -27,6 +27,10 @@ export const usePerpsClosePosition = (
       limitPrice?: string,
       trackingData?: TrackingData,
       marketPrice?: string, // Used for PnL toast to lock in the market price at time of closing
+      // Slippage parameters for consistent validation
+      usdAmount?: string,
+      priceAtCalculation?: number,
+      maxSlippageBps?: number,
     ) => {
       try {
         setIsClosing(true);
@@ -91,13 +95,17 @@ export const usePerpsClosePosition = (
           }
         }
 
-        // Close position
+        // Close position with slippage parameters for consistent validation
         const result = await closePosition({
           coin: position.coin,
           size, // If undefined, will close full position
           orderType,
           price: limitPrice,
           trackingData,
+          // Pass through slippage parameters
+          usdAmount,
+          priceAtCalculation,
+          maxSlippageBps,
         });
 
         DevLogger.log('usePerpsClosePosition: Close result', result);

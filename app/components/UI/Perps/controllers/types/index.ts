@@ -186,6 +186,12 @@ export type ClosePositionParams = {
   orderType?: OrderType; // Close order type (default: market)
   price?: string; // Limit price (required for limit close)
   currentPrice?: number; // Current market price for validation
+
+  // USD as source of truth (hybrid approach - same as OrderParams)
+  usdAmount?: string; // USD amount (primary source of truth, provider calculates size from this)
+  priceAtCalculation?: number; // Price snapshot when size was calculated (for slippage validation)
+  maxSlippageBps?: number; // Slippage tolerance in basis points (e.g., 100 = 1%, default if not provided)
+
   // Optional tracking data for MetaMetrics events
   trackingData?: TrackingData;
 };

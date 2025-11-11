@@ -2789,7 +2789,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         freedMargin: freedMargin.toFixed(2),
       });
 
-      // Execute position close
+      // Execute position close with consistent slippage handling
       const result = await this.placeOrder({
         coin: params.coin,
         isBuy,
@@ -2797,6 +2797,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
         orderType: params.orderType || 'market',
         price: params.price,
         reduceOnly: true,
+        // Pass through slippage parameters for consistent validation
+        usdAmount: params.usdAmount,
+        priceAtCalculation: params.priceAtCalculation,
+        maxSlippageBps: params.maxSlippageBps,
       });
 
       // Return freed margin using native abstraction or programmatic transfer

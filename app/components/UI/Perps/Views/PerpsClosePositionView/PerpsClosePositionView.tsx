@@ -37,6 +37,7 @@ import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
 import type { InputMethod, OrderType, Position } from '../../controllers/types';
 import type { PerpsNavigationParamList } from '../../types/navigation';
+import { ORDER_SLIPPAGE_CONFIG } from '../../constants/perpsConfig';
 import {
   useMinimumOrderAmount,
   usePerpsClosePosition,
@@ -366,6 +367,10 @@ const PerpsClosePositionView: React.FC = () => {
         inputMethod: inputMethodRef.current,
       },
       priceData[position.coin]?.price,
+      // Slippage parameters for consistent validation (same as PerpsOrderView)
+      closingValueString, // USD amount as source of truth
+      effectivePrice, // Price snapshot when size was calculated
+      ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS, // 1% slippage tolerance
     );
   };
 
