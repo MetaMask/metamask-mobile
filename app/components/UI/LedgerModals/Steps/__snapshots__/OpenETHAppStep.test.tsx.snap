@@ -27,14 +27,14 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 30,
             "marginVertical": 2,
           },
           undefined,
           undefined,
           {
-            "fontFamily": "Geist Bold",
+            "fontFamily": "Geist-Bold",
           },
           undefined,
           undefined,
@@ -80,7 +80,7 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 30,
             "marginVertical": 2,
           },
@@ -116,7 +116,7 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 30,
               "marginVertical": 2,
             },
@@ -154,14 +154,14 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 30,
               "marginVertical": 2,
             },
             undefined,
             undefined,
             {
-              "fontFamily": "Geist Bold",
+              "fontFamily": "Geist-Bold",
             },
             undefined,
             undefined,
@@ -227,7 +227,7 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
           null,
           [
             {
-              "fontFamily": "Geist Bold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 14,
               "textAlign": "center",
             },

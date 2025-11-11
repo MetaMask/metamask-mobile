@@ -203,7 +203,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                               {
                                 "color": "#121314",
                                 "flex": 1,
-                                "fontFamily": "Geist Medium",
+                                "fontFamily": "Geist-Medium",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -247,7 +247,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Medium",
+                                "fontFamily": "Geist-Medium",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -412,7 +412,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                               {
                                 "color": "#121314",
                                 "flex": 1,
-                                "fontFamily": "Geist Medium",
+                                "fontFamily": "Geist-Medium",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -456,7 +456,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "Geist Medium",
+                                "fontFamily": "Geist-Medium",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -549,7 +549,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,

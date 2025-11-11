@@ -330,7 +330,7 @@ exports[`ActivityView should render correctly 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "Geist Bold",
+                            "fontFamily": "Geist-Bold",
                             "fontSize": 18,
                             "fontWeight": "700",
                             "letterSpacing": 0,
@@ -428,7 +428,7 @@ exports[`ActivityView should render correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Medium",
+                                  "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
@@ -618,7 +618,7 @@ exports[`ActivityView should render correctly 1`] = `
                                         style={
                                           {
                                             "color": "#ffffff",
-                                            "fontFamily": "Geist Medium",
+                                            "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -656,7 +656,7 @@ exports[`ActivityView should render correctly 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Medium",
+                                            "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -694,7 +694,7 @@ exports[`ActivityView should render correctly 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "Geist Medium",
+                                            "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
@@ -726,7 +726,7 @@ exports[`ActivityView should render correctly 1`] = `
                                 style={
                                   {
                                     "color": "#b7bbc8",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,

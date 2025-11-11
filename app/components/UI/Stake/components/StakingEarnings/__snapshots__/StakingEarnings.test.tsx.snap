@@ -13,7 +13,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Bold",
+        "fontFamily": "Geist-Bold",
         "fontSize": 18,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -72,7 +72,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -104,7 +104,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -153,7 +153,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
         style={
           {
             "color": "#457a39",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -186,7 +186,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -208,7 +208,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -222,7 +222,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 14,
               "letterSpacing": 0,
               "lineHeight": 22,
@@ -255,7 +255,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -277,7 +277,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -291,7 +291,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 14,
               "letterSpacing": 0,
               "lineHeight": 22,
@@ -332,7 +332,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -360,7 +360,7 @@ exports[`Staking Earnings should render correctly 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Bold",
+        "fontFamily": "Geist-Bold",
         "fontSize": 18,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -392,7 +392,7 @@ exports[`Staking Earnings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -441,7 +441,7 @@ exports[`Staking Earnings should render correctly 1`] = `
         style={
           {
             "color": "#457a39",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -474,7 +474,7 @@ exports[`Staking Earnings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -496,7 +496,7 @@ exports[`Staking Earnings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -510,7 +510,7 @@ exports[`Staking Earnings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 14,
               "letterSpacing": 0,
               "lineHeight": 22,
@@ -543,7 +543,7 @@ exports[`Staking Earnings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -565,7 +565,7 @@ exports[`Staking Earnings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -579,7 +579,7 @@ exports[`Staking Earnings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 14,
               "letterSpacing": 0,
               "lineHeight": 22,
@@ -620,7 +620,7 @@ exports[`Staking Earnings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Medium",
+              "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,

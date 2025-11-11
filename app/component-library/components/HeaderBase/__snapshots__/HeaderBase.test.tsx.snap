@@ -27,7 +27,7 @@ exports[`HeaderBase should render snapshot correctly with Compact variant 1`] = 
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Bold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -69,7 +69,7 @@ exports[`HeaderBase variant functionality renders snapshot correctly with Compac
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Bold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -111,7 +111,7 @@ exports[`HeaderBase variant functionality renders snapshot correctly with Displa
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Bold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 24,
           "letterSpacing": 0,
           "lineHeight": 32,

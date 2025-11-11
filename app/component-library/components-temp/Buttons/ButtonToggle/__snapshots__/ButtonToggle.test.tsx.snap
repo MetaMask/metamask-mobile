@@ -27,7 +27,7 @@ exports[`ButtonToggle renders correctly in active state 1`] = `
     style={
       {
         "color": "#4459ff",
-        "fontFamily": "Geist Medium",
+        "fontFamily": "Geist-Medium",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -66,7 +66,7 @@ exports[`ButtonToggle renders correctly in inactive state 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Medium",
+        "fontFamily": "Geist-Medium",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
