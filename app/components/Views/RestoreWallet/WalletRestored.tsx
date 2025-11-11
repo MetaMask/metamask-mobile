@@ -17,15 +17,12 @@ import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { useDispatch } from 'react-redux';
 import { useAppThemeFromContext } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { setExistingUser } from '../../../actions/user';
-import Logger from '../../../util/Logger';
 
 export const createWalletRestoredNavDetails = createNavigationDetails(
   Routes.VAULT_RECOVERY.WALLET_RESTORED,
@@ -35,7 +32,6 @@ const WalletRestored = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const { colors } = useAppThemeFromContext();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const dispatch = useDispatch();
   const styles = createStyles(colors);
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -53,31 +49,20 @@ const WalletRestored = () => {
     );
   }, [deviceMetaData, trackEvent, createEventBuilder]);
 
-  const finishWalletRestore = useCallback(async (): Promise<void> => {
-    try {
-      // Navigate to login first - existingUser will be set after successful login
-      // This ensures state consistency: existingUser=true only when vault is unlocked
-      // and credentials are stored in keychain
-      navigation.replace(Routes.ONBOARDING.LOGIN, {
-        isVaultRecovery: true, // Signal that this is from vault recovery
-      });
-    } catch (error) {
-      // Defensive: Log error but still navigate to login to allow user to proceed
-      Logger.error(
-        error as Error,
-        'WalletRestored: Error during finishWalletRestore',
-      );
-      navigation.replace(Routes.ONBOARDING.LOGIN, {
-        isVaultRecovery: true,
-      });
-    }
+  const finishWalletRestore = useCallback((): void => {
+    // After vault recovery, navigate to Login for manual password entry
+    // This unlocks the restored vault AND stores credentials in keychain
+    // Note: appTriggeredAuth cannot work here - no credentials exist yet
+    navigation.replace(Routes.ONBOARDING.LOGIN, {
+      isVaultRecovery: true,
+    });
   }, [navigation]);
 
   const onPressBackupSRP = useCallback(async (): Promise<void> => {
     Linking.openURL(SRP_GUIDE_URL);
   }, []);
 
-  const handleOnNext = useCallback(async (): Promise<void> => {
+  const handleOnNext = useCallback((): void => {
     setLoading(true);
     trackEvent(
       createEventBuilder(
@@ -86,7 +71,7 @@ const WalletRestored = () => {
         .addProperties({ ...deviceMetaData })
         .build(),
     );
-    await finishWalletRestore();
+    finishWalletRestore();
   }, [deviceMetaData, finishWalletRestore, trackEvent, createEventBuilder]);
 
   return (

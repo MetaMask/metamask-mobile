@@ -5,7 +5,6 @@ import WalletRestored from './WalletRestored';
 import { useNavigation } from '@react-navigation/native';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
-import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -28,9 +27,7 @@ jest.mock('../../../util/theme', () => ({
   })),
 }));
 jest.mock('../../../components/hooks/useMetrics');
-jest.mock('../../../actions/user');
 jest.mock('../../../util/metrics');
-jest.mock('../../../util/Logger');
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   addEventListener: jest.fn(),
   removeEventListener: jest.fn(),
@@ -99,7 +96,7 @@ describe('WalletRestored', () => {
     });
   });
 
-  it('navigates to LOGIN with vault recovery flag when continue is pressed', async () => {
+  it('navigates to LOGIN with vault recovery flag when continue is pressed', () => {
     // Arrange
     const { getByText } = renderWithProvider(<WalletRestored />);
     const continueButton = getByText('Continue to wallet');
@@ -108,20 +105,14 @@ describe('WalletRestored', () => {
     fireEvent.press(continueButton);
 
     // Assert
-    await waitFor(() => {
-      expect(mockNavigation.replace).toHaveBeenCalledWith(
-        Routes.ONBOARDING.LOGIN,
-        { isVaultRecovery: true },
-      );
-    });
+    expect(mockNavigation.replace).toHaveBeenCalledWith(
+      Routes.ONBOARDING.LOGIN,
+      { isVaultRecovery: true },
+    );
   });
 
-  it('logs error when navigation fails', async () => {
+  it('tracks continue button press event with device metadata', () => {
     // Arrange
-    const testError = new Error('Navigation error');
-    mockNavigation.replace.mockImplementationOnce(() => {
-      throw testError;
-    });
     const { getByText } = renderWithProvider(<WalletRestored />);
     const continueButton = getByText('Continue to wallet');
 
@@ -129,39 +120,11 @@ describe('WalletRestored', () => {
     fireEvent.press(continueButton);
 
     // Assert
-    await waitFor(() => {
-      expect(Logger.error).toHaveBeenCalledWith(
-        testError,
-        'WalletRestored: Error during finishWalletRestore',
-      );
-    });
-  });
-
-  it('attempts to navigate to LOGIN even when first navigation fails', async () => {
-    // Arrange
-    const testError = new Error('Navigation error');
-    let callCount = 0;
-    mockNavigation.replace.mockImplementation(() => {
-      callCount++;
-      if (callCount === 1) {
-        throw testError;
-      }
-    });
-    const { getByText } = renderWithProvider(<WalletRestored />);
-    const continueButton = getByText('Continue to wallet');
-
-    // Act
-    fireEvent.press(continueButton);
-
-    // Assert
-    await waitFor(() => {
-      expect(mockNavigation.replace).toHaveBeenCalledTimes(2);
-      expect(mockNavigation.replace).toHaveBeenNthCalledWith(
-        2,
-        Routes.ONBOARDING.LOGIN,
-        { isVaultRecovery: true },
-      );
-    });
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: expect.any(String),
+      }),
+    );
   });
 
   it('generates device metadata once using useMemo', () => {
