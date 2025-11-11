@@ -30,6 +30,7 @@ export function useAutomaticTransactionPayToken({
   disable?: boolean;
 } = {}) {
   const isUpdated = useRef(false);
+  const previousTransactionId = useRef<string | undefined>();
   const supportedChains = useSelector(selectEnabledSourceChains);
   const { payToken, setPayToken } = useTransactionPayToken();
   const requiredTokens = useTransactionPayRequiredTokens();
@@ -41,6 +42,28 @@ export function useAutomaticTransactionPayToken({
     chainId,
     txParams: { from },
   } = transactionMeta;
+
+  const transactionId = transactionMeta.id;
+
+  // Reset automatic token selection state when switching to a new transaction.
+  //
+  // This fixes a bug where isUpdated.current stays true after visiting one transaction type
+  // (e.g., Perps deposit), preventing proper token selection when visiting a different
+  // transaction type (e.g., mUSD conversion). Without this reset, the automatic selection
+  // useEffect would early-return and skip token selection entirely for the new transaction.
+  //
+  // Example scenario:
+  // 1. User visits Perps deposit -> isUpdated.current = true, USDC on Arbitrum selected
+  // 2. User navigates away and clicks "Convert" for mUSD
+  // 3. Without reset: isUpdated.current still true -> no token selection runs
+  // 4. With reset: isUpdated.current = false -> proper token selection for mUSD conversion
+  useEffect(() => {
+    if (transactionId && transactionId !== previousTransactionId.current) {
+      isUpdated.current = false;
+      previousTransactionId.current = transactionId;
+      log('Reset automatic token selection for new transaction', transactionId);
+    }
+  }, [transactionId]);
 
   const chainIds = useMemo(
     () => (!isUpdated.current ? supportedChains.map((c) => c.chainId) : []),
@@ -108,7 +131,7 @@ export function useAutomaticTransactionPayToken({
       !automaticToken ||
       !requiredTokens?.length ||
       countOnly ||
-      payToken // Skip if payment token already set (e.g., pre-selected in useMusdConversion)
+      payToken // Skip if payment token already set (e.g. pre-selected in useMusdConversion)
     ) {
       return;
     }
