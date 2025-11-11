@@ -1,4 +1,5 @@
 import { Theme } from '../../../../../util/theme/models';
+import { fontStyles } from '../../../../../styles/common';
 import { StyleSheet } from 'react-native';
 
 export const styleSheet = (params: { theme: Theme }) => {
@@ -28,7 +29,7 @@ export const styleSheet = (params: { theme: Theme }) => {
     },
     dropdownTextActive: {
       color: theme.colors.primary.default,
-      fontWeight: '500',
+      ...fontStyles.medium,
     },
   });
 };

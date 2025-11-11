@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../styles/common';
 
 const styles = StyleSheet.create({
   setting: {
@@ -14,7 +15,7 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     marginTop: 10,
     lineHeight: 22,
-    fontWeight: '400',
+    ...fontStyles.normal,
   },
   networkPicker: {
     marginVertical: 16,

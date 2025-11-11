@@ -17,7 +17,6 @@ import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { passwordRequirementsMet } from '../../../util/password';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-
 const createStyles = (colors) =>
   StyleSheet.create({
     mainWrapper: {
@@ -34,6 +33,10 @@ const createStyles = (colors) =>
       borderColor: colors.border.default,
       padding: 10,
       color: colors.text.default,
+<<<<<<< HEAD
+=======
+      ...fontStyles.normal,
+>>>>>>> 98576d96b7 (chore: updating hard coded font weight to use fontStyle for correct bold updates)
     },
     ctaWrapper: {
       marginTop: 10,

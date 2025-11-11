@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../../styles/common';
 import { Theme } from '../../../../../util/theme/models';
 
 const createStyles = (theme: Theme) =>
@@ -72,7 +73,7 @@ const createStyles = (theme: Theme) =>
       width: '100%',
     },
     limitedAllowanceManageCardText: {
-      fontWeight: 'bold',
+      ...fontStyles.bold,
     },
     divider: {
       height: 1,

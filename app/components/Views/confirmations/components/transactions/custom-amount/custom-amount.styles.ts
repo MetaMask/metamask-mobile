@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../../../styles/common';
 import { Theme } from '../../../../../../util/theme/models';
 
 function getFontSize(length: number) {
@@ -25,7 +26,7 @@ const styleSheet = (params: {
       textAlign: 'center',
       fontSize: getFontSize(params.vars.amountLength),
       lineHeight: getFontSize(params.vars.amountLength) * 1.1,
-      fontWeight: '500',
+      ...fontStyles.medium,
       color: params.vars.hasAlert
         ? params.theme.colors.error.default
         : params.vars.disabled

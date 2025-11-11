@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../../styles/common';
 import type { Theme } from '../../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -105,7 +106,7 @@ const styleSheet = (params: { theme: Theme }) => {
       marginTop: 8,
       color: colors.text.alternative,
       fontSize: 14,
-      fontWeight: '500',
+      ...fontStyles.medium,
     },
     quickValuesRow: {
       flexDirection: 'row',

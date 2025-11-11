@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../../styles/common';
 import { Theme } from '../../../../../util/theme/models';
 
 const createStyles = (theme: Theme) =>
@@ -24,13 +25,13 @@ const createStyles = (theme: Theme) =>
     },
     mainText: {
       fontSize: 16,
-      fontWeight: '600',
+      ...fontStyles.medium,
       color: theme.colors.text.default,
       marginBottom: 4,
     },
     subText: {
       fontSize: 14,
-      fontWeight: '400',
+      ...fontStyles.normal,
       color: theme.colors.text.alternative,
     },
     buttonsRow: {
@@ -58,7 +59,7 @@ const createStyles = (theme: Theme) =>
     },
     buttonText: {
       fontSize: 14,
-      fontWeight: '600',
+      ...fontStyles.medium,
       color: theme.colors.text.default,
     },
   });

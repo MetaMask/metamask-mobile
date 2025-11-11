@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../../../styles/common';
 
 import { Theme } from '../../../../../../util/theme/models';
 import {
@@ -64,7 +65,7 @@ export const styleSheet = (params: {
     inputText: {
       fontSize: getFontSizeForInputLength(contentLength),
       lineHeight: 75,
-      fontFamily: 'Geist-Medium',
+      ...fontStyles.medium,
     },
     inputWrapper: {
       alignItems: 'center',

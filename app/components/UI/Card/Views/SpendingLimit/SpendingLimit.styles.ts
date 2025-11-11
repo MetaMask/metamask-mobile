@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../../styles/common';
 import { Theme } from '../../../../../util/theme/models';
 
 const createStyles = (theme: Theme) =>
@@ -41,7 +42,7 @@ const createStyles = (theme: Theme) =>
       marginRight: 8,
     },
     selectedTokenSymbol: {
-      fontWeight: '600',
+      ...fontStyles.medium,
       color: theme.colors.text.default,
     },
     selectedChainName: {
@@ -115,7 +116,7 @@ const createStyles = (theme: Theme) =>
     limitInput: {
       color: theme.colors.text.default,
       fontSize: 18,
-      fontWeight: '600',
+      ...fontStyles.medium,
       paddingHorizontal: 12,
       paddingVertical: 12,
       backgroundColor: theme.colors.background.default,

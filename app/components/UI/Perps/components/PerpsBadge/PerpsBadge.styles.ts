@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../../styles/common';
 import type { Theme } from '../../../../../util/theme/models';
 import type { BadgeType } from './PerpsBadge.types';
 
@@ -54,7 +55,7 @@ export const styleSheet = (params: {
     },
     badgeText: {
       fontSize: 10,
-      fontWeight: '600',
+      ...fontStyles.medium,
       color: style.text,
       letterSpacing: 0.5,
     },
