@@ -198,6 +198,16 @@ export const useRewardsAnimation = ({
       duration: ANIMATION_DURATION.FAST,
     });
 
+    // Ensure animated value is set to current value when entering Idle state
+    // This fixes the issue where transitioning from Loading to Idle with the same value
+    // would leave the display stuck at 0
+    /* istanbul ignore next - Reanimated shared value mutation not tracked by Istanbul */
+    if (animatedValue.value !== currentValue) {
+      animatedValue.value = withTiming(currentValue, {
+        duration: ANIMATION_DURATION.FAST,
+      });
+    }
+
     // Only trigger Rive animation if value changed
     if (currentValue !== previousValue) {
       const trigger =
@@ -208,7 +218,13 @@ export const useRewardsAnimation = ({
       triggerRiveAnimation(trigger);
       previousValueRef.current = currentValue;
     }
-  }, [value, rivePosition, triggerRiveAnimation, clearAllTimeouts]);
+  }, [
+    value,
+    rivePosition,
+    triggerRiveAnimation,
+    clearAllTimeouts,
+    animatedValue,
+  ]);
 
   const handleRefreshLoadingState = useCallback(() => {
     if (!riveRef.current) return;
@@ -250,8 +266,23 @@ export const useRewardsAnimation = ({
       duration: ANIMATION_DURATION.FAST,
     });
 
+    // Ensure animated value is set to current value when entering RefreshFinished state
+    // This ensures the display shows the correct value after a refresh
+    /* istanbul ignore next - Reanimated shared value mutation not tracked by Istanbul */
+    if (animatedValue.value !== value) {
+      animatedValue.value = withTiming(value, {
+        duration: ANIMATION_DURATION.FAST,
+      });
+    }
+
     triggerRiveAnimation(RewardsIconTriggers.RefreshLeft);
-  }, [triggerRiveAnimation, clearAllTimeouts, rivePosition]);
+  }, [
+    triggerRiveAnimation,
+    clearAllTimeouts,
+    rivePosition,
+    animatedValue,
+    value,
+  ]);
 
   // State machine effect - triggers appropriate animation based on state
   useEffect(() => {

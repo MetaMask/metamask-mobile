@@ -4,8 +4,8 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { forwardRef, useImperativeHandle } from 'react';
-import { Linking } from 'react-native';
+import React, { forwardRef, useCallback, useImperativeHandle } from 'react';
+import { InteractionManager, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 
 // Internal dependencies.
@@ -19,6 +19,7 @@ import {
   usePredictBottomSheet,
   type PredictBottomSheetRef,
 } from '../../hooks/usePredictBottomSheet';
+import { useNavigation } from '@react-navigation/native';
 
 interface PredictConsentSheetProps {
   providerId: string;
@@ -33,6 +34,7 @@ const PredictConsentSheet = forwardRef<
   PredictConsentSheetProps
 >(({ providerId, onDismiss, onAgree }, ref) => {
   const tw = useTailwind();
+  const navigation = useNavigation();
   const { acceptAgreement } = usePredictAgreement({ providerId });
   const { sheetRef, isVisible, closeSheet, handleSheetClosed, getRefHandlers } =
     usePredictBottomSheet({ onDismiss });
@@ -48,6 +50,18 @@ const PredictConsentSheet = forwardRef<
   };
 
   useImperativeHandle(ref, getRefHandlers, [getRefHandlers]);
+
+  const handlePolymarketTerms = useCallback(() => {
+    InteractionManager.runAfterInteractions(() => {
+      navigation.navigate('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: 'https://polymarket.com/tos',
+          title: strings('predict.consent_sheet.title'),
+        },
+      });
+    });
+  }, [navigation]);
 
   if (!isVisible) {
     return null;
@@ -66,19 +80,18 @@ const PredictConsentSheet = forwardRef<
         </Text>
       </BottomSheetHeader>
       <Box twClassName="px-6 pb-6">
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-          {strings('predict.consent_sheet.description')}{' '}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMD}
-          style={tw.style('text-info-default')}
-          onPress={() => {
-            Linking.openURL('https://polymarket.com/tos');
-          }}
-          suppressHighlighting
-        >
-          {strings('predict.consent_sheet.learn_more')}
-        </Text>
+        <TouchableOpacity onPress={handlePolymarketTerms}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {strings('predict.consent_sheet.description')}{' '}
+            <Text
+              variant={TextVariant.BodyMD}
+              style={tw.style('text-info-default')}
+              suppressHighlighting
+            >
+              {strings('predict.consent_sheet.learn_more')}
+            </Text>
+          </Text>
+        </TouchableOpacity>
       </Box>
       <BottomSheetFooter
         buttonPropsArray={[
