@@ -67,7 +67,12 @@ const PredictGTMModal = () => {
     await StorageWrapper.setItem(PREDICT_GTM_MODAL_SHOWN, 'true', {
       emitEvent: false,
     });
-    navigate(Routes.PREDICT.MARKET_LIST);
+
+    navigate(Routes.WALLET.HOME);
+
+    navigate(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_LIST,
+    });
   };
 
   return (
