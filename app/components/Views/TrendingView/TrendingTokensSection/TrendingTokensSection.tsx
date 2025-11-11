@@ -91,8 +91,8 @@ const TrendingTokensSection = () => {
     [styles.header, handleViewAll],
   );
 
-  // Show skeleton during initial load
-  if (isLoading) {
+  // Show skeleton during initial load or when there are no tokens
+  if (isLoading || trendingTokens.length === 0) {
     return (
       <View>
         <SectionHeader />
