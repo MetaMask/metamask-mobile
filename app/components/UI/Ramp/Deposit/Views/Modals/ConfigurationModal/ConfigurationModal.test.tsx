@@ -137,7 +137,7 @@ describe('ConfigurationModal', () => {
     const moreWaysToBuyButton = getByText('More ways to buy');
     fireEvent.press(moreWaysToBuyButton);
     expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_BUTTON_CLICKED', {
-      location: 'Configuration Modal',
+      location: 'Deposit Settings Modal',
       ramp_type: 'BUY',
       region: 'us',
     });

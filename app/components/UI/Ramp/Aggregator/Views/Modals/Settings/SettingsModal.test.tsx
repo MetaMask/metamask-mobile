@@ -170,7 +170,7 @@ describe('SettingsModal', () => {
       fireEvent.press(newBuyExperienceButton);
 
       expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_BUTTON_CLICKED', {
-        location: 'Settings Modal',
+        location: 'Buy Settings Modal',
         ramp_type: 'DEPOSIT',
         region: 'us',
       });

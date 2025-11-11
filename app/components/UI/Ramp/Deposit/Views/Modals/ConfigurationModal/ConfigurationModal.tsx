@@ -56,7 +56,7 @@ function ConfigurationModal() {
 
   const handleNavigateToAggregator = useCallback(() => {
     trackEvent('RAMPS_BUTTON_CLICKED', {
-      location: 'Configuration Modal',
+      location: 'Deposit Settings Modal',
       ramp_type: 'BUY',
       region: selectedRegion?.isoCode as string,
     });

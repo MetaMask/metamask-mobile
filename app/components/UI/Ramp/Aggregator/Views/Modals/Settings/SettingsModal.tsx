@@ -41,7 +41,7 @@ function SettingsModal() {
     navigation.navigate(...createDepositNavigationDetails());
 
     trackEvent('RAMPS_BUTTON_CLICKED', {
-      location: 'Settings Modal',
+      location: 'Buy Settings Modal',
       ramp_type: 'DEPOSIT',
       region: selectedRegion?.id as string,
     });
