@@ -1308,21 +1308,6 @@ describe('useNetworkSelection', () => {
       );
       expect(mockEnableNetwork).toHaveBeenCalledWith(bitcoinMainnet);
     });
-
-    it('selectPopularNetwork sets selected address for Bitcoin networks', async () => {
-      const setSelectedAddressSpy = jest.spyOn(Engine, 'setSelectedAddress');
-
-      const { result } = renderHook(() =>
-        useNetworkSelection({ networks: mockNetworks }),
-      );
-
-      await result.current.selectPopularNetwork(bitcoinMainnet);
-
-      expect(setSelectedAddressSpy).toHaveBeenCalledWith(
-        mockBitcoinAccount.address,
-      );
-      expect(mockEnableNetwork).toHaveBeenCalledWith(bitcoinMainnet);
-    });
   });
 
   describe('error handling and edge cases', () => {

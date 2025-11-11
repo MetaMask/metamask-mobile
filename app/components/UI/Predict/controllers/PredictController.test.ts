@@ -770,6 +770,249 @@ describe('PredictController', () => {
     });
   });
 
+  describe('getPrices', () => {
+    const mockPrices = {
+      'token-1': { BUY: 0.65, SELL: 0.64 },
+      'token-2': { BUY: 0.35, SELL: 0.34 },
+    };
+
+    it('get prices successfully with single provider', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPrices = jest
+          .fn()
+          .mockResolvedValue(mockPrices);
+
+        const result = await controller.getPrices({
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+            {
+              marketId: 'market-2',
+              outcomeId: 'outcome-2',
+              outcomeTokenId: 'token-2',
+            },
+          ],
+          providerId: 'polymarket',
+        });
+
+        expect(result).toEqual(mockPrices);
+        expect(controller.state.lastError).toBeNull();
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+        expect(mockPolymarketProvider.getPrices).toHaveBeenCalledWith({
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+            {
+              marketId: 'market-2',
+              outcomeId: 'outcome-2',
+              outcomeTokenId: 'token-2',
+            },
+          ],
+        });
+      });
+    });
+
+    it('default to polymarket provider when providerId is not specified', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPrices = jest
+          .fn()
+          .mockResolvedValue(mockPrices);
+
+        const result = await controller.getPrices({
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+          ],
+          providerId: 'polymarket',
+        });
+
+        expect(result).toEqual(mockPrices);
+        expect(mockPolymarketProvider.getPrices).toHaveBeenCalled();
+      });
+    });
+
+    it('handle empty bookParams array', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPrices = jest
+          .fn()
+          .mockResolvedValue({ providerId: 'polymarket', results: [] });
+
+        const result = await controller.getPrices({
+          queries: [],
+          providerId: 'polymarket',
+        });
+
+        expect(result).toEqual({ providerId: 'polymarket', results: [] });
+        expect(controller.state.lastError).toBeNull();
+      });
+    });
+
+    it('handle prices with only BUY side', async () => {
+      const mockBuyPrices = {
+        'token-1': { BUY: 0.65 },
+        'token-2': { BUY: 0.35 },
+      };
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPrices = jest
+          .fn()
+          .mockResolvedValue(mockBuyPrices);
+
+        const result = await controller.getPrices({
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+            {
+              marketId: 'market-2',
+              outcomeId: 'outcome-2',
+              outcomeTokenId: 'token-2',
+            },
+          ],
+          providerId: 'polymarket',
+        });
+
+        expect(result).toEqual(mockBuyPrices);
+      });
+    });
+
+    it('handle prices with only SELL side', async () => {
+      const mockSellPrices = {
+        'token-1': { SELL: 0.64 },
+        'token-2': { SELL: 0.34 },
+      };
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPrices = jest
+          .fn()
+          .mockResolvedValue(mockSellPrices);
+
+        const result = await controller.getPrices({
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+            {
+              marketId: 'market-2',
+              outcomeId: 'outcome-2',
+              outcomeTokenId: 'token-2',
+            },
+          ],
+          providerId: 'polymarket',
+        });
+
+        expect(result).toEqual(mockSellPrices);
+      });
+    });
+
+    it('throw error when provider is not available', async () => {
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.getPrices({
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
+            providerId: 'nonexistent',
+          }),
+        ).rejects.toThrow('Provider not available');
+
+        expect(controller.state.lastError).toBe('Provider not available');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('handle error when getPrices throws', async () => {
+      await withController(async ({ controller }) => {
+        const errorMessage = 'Failed to fetch prices';
+        mockPolymarketProvider.getPrices = jest
+          .fn()
+          .mockRejectedValue(new Error(errorMessage));
+
+        await expect(
+          controller.getPrices({
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
+            providerId: 'polymarket',
+          }),
+        ).rejects.toThrow(errorMessage);
+
+        expect(controller.state.lastError).toBe(errorMessage);
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('handle non-Error objects thrown by getPrices', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPrices = jest
+          .fn()
+          .mockRejectedValue('String error');
+
+        await expect(
+          controller.getPrices({
+            queries: [
+              {
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 'token-1',
+              },
+            ],
+            providerId: 'polymarket',
+          }),
+        ).rejects.toBe('String error');
+
+        expect(controller.state.lastError).toBe('PREDICT_UNKNOWN_ERROR');
+      });
+    });
+
+    it('clear previous errors on successful call', async () => {
+      await withController(async ({ controller }) => {
+        // First, set an error state
+        controller.updateStateForTesting((state) => {
+          state.lastError = 'Previous error';
+        });
+
+        mockPolymarketProvider.getPrices = jest
+          .fn()
+          .mockResolvedValue(mockPrices);
+
+        await controller.getPrices({
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+          ],
+          providerId: 'polymarket',
+        });
+
+        expect(controller.state.lastError).toBeNull();
+      });
+    });
+  });
+
   describe('placeOrder', () => {
     it('place order successfully via provider', async () => {
       const mockResult = {
@@ -1325,7 +1568,6 @@ describe('PredictController', () => {
             polymarket: {
               '0x123': {
                 isOnboarded: true,
-                acceptedToS: false,
               },
             },
           };
@@ -4387,244 +4629,6 @@ describe('PredictController', () => {
           },
         },
       );
-    });
-  });
-
-  describe('acceptAgreement', () => {
-    it('accepts agreement successfully for provider and address', () => {
-      withController(({ controller }) => {
-        const providerId = 'polymarket';
-        const address = '0x1234567890123456789012345678901234567890';
-
-        const result = controller.acceptAgreement({
-          providerId,
-          address,
-        });
-
-        expect(result).toBe(true);
-        expect(controller.state.accountMeta[providerId][address]).toEqual({
-          isOnboarded: false,
-          acceptedToS: true,
-        });
-      });
-    });
-
-    it('updates state correctly when accepting agreement', () => {
-      withController(({ controller }) => {
-        const providerId = 'polymarket';
-        const address = '0x1234567890123456789012345678901234567890';
-
-        expect(controller.state.accountMeta).toEqual({});
-
-        controller.acceptAgreement({
-          providerId,
-          address,
-        });
-
-        expect(controller.state.accountMeta).toEqual({
-          [providerId]: {
-            [address]: {
-              isOnboarded: false,
-              acceptedToS: true,
-            },
-          },
-        });
-      });
-    });
-
-    it('preserves existing addresses when accepting agreement for different address with same provider', () => {
-      withController(({ controller }) => {
-        const providerId = 'polymarket';
-        const address1 = '0x1234567890123456789012345678901234567890';
-        const address2 = '0x9876543210987654321098765432109876543210';
-
-        controller.acceptAgreement({
-          providerId,
-          address: address1,
-        });
-
-        expect(controller.state.accountMeta[providerId][address1]).toEqual({
-          isOnboarded: false,
-          acceptedToS: true,
-        });
-
-        controller.acceptAgreement({
-          providerId,
-          address: address2,
-        });
-
-        // Both addresses should exist
-        expect(controller.state.accountMeta[providerId][address1]).toEqual({
-          isOnboarded: false,
-          acceptedToS: true,
-        });
-        expect(controller.state.accountMeta[providerId][address2]).toEqual({
-          isOnboarded: false,
-          acceptedToS: true,
-        });
-      });
-    });
-
-    it('accepts agreement for same address with different providers', () => {
-      withController(({ controller }) => {
-        const provider1 = 'polymarket';
-        const provider2 = 'other-provider';
-        const address = '0x1234567890123456789012345678901234567890';
-
-        // Add second provider
-        const mockSecondProvider = { ...mockPolymarketProvider };
-        controller.updateStateForTesting(() => {
-          const providers = (controller as any).providers;
-          providers.set(provider2, mockSecondProvider);
-        });
-
-        controller.acceptAgreement({
-          providerId: provider1,
-          address,
-        });
-
-        controller.acceptAgreement({
-          providerId: provider2,
-          address,
-        });
-
-        expect(controller.state.accountMeta[provider1][address]).toEqual({
-          isOnboarded: false,
-          acceptedToS: true,
-        });
-        expect(controller.state.accountMeta[provider2][address]).toEqual({
-          isOnboarded: false,
-          acceptedToS: true,
-        });
-      });
-    });
-
-    it('throws error when provider is not available', () => {
-      withController(({ controller }) => {
-        const providerId = 'nonexistent-provider';
-        const address = '0x1234567890123456789012345678901234567890';
-
-        expect(() =>
-          controller.acceptAgreement({
-            providerId,
-            address,
-          }),
-        ).toThrow('Provider not available');
-
-        expect(controller.state.accountMeta[providerId]).toBeUndefined();
-      });
-    });
-
-    it('overwrites existing agreement when accepting again', () => {
-      withController(({ controller }) => {
-        const providerId = 'polymarket';
-        const address = '0x1234567890123456789012345678901234567890';
-
-        controller.acceptAgreement({
-          providerId,
-          address,
-        });
-
-        expect(controller.state.accountMeta[providerId][address]).toEqual({
-          isOnboarded: false,
-          acceptedToS: true,
-        });
-
-        // Accept again
-        const result = controller.acceptAgreement({
-          providerId,
-          address,
-        });
-
-        expect(result).toBe(true);
-        expect(controller.state.accountMeta[providerId][address]).toEqual({
-          isOnboarded: false,
-          acceptedToS: true,
-        });
-      });
-    });
-
-    it('returns true on successful agreement acceptance', () => {
-      withController(({ controller }) => {
-        const result = controller.acceptAgreement({
-          providerId: 'polymarket',
-          address: '0x1234567890123456789012345678901234567890',
-        });
-
-        expect(result).toBe(true);
-      });
-    });
-
-    it('does not affect other state properties when accepting agreement', () => {
-      withController(({ controller }) => {
-        controller.updateStateForTesting((state) => {
-          state.eligibility = {
-            polymarket: { eligible: true, country: 'PT' },
-          };
-          state.lastError = 'Previous error';
-        });
-
-        const originalEligibility = controller.state.eligibility;
-        const originalLastError = controller.state.lastError;
-
-        controller.acceptAgreement({
-          providerId: 'polymarket',
-          address: '0x1234567890123456789012345678901234567890',
-        });
-
-        expect(controller.state.eligibility).toEqual(originalEligibility);
-        expect(controller.state.lastError).toBe(originalLastError);
-      });
-    });
-
-    it('preserves first address metadata when accepting agreement for second address', () => {
-      withController(({ controller }) => {
-        const providerId = 'polymarket';
-        const address1 = '0x1111111111111111111111111111111111111111';
-        const address2 = '0x2222222222222222222222222222222222222222';
-
-        controller.acceptAgreement({
-          providerId,
-          address: address1,
-        });
-
-        expect(controller.state.accountMeta[providerId][address1]).toEqual({
-          isOnboarded: false,
-          acceptedToS: true,
-        });
-        expect(
-          controller.state.accountMeta[providerId][address2],
-        ).toBeUndefined();
-
-        controller.acceptAgreement({
-          providerId,
-          address: address2,
-        });
-
-        // Both addresses should exist with their metadata
-        expect(controller.state.accountMeta[providerId][address1]).toEqual({
-          isOnboarded: false,
-          acceptedToS: true,
-        });
-        expect(controller.state.accountMeta[providerId][address2]).toEqual({
-          isOnboarded: false,
-          acceptedToS: true,
-        });
-      });
-    });
-
-    it('handles errors during agreement acceptance gracefully', () => {
-      withController(({ controller }) => {
-        const providerId = 'invalid-provider';
-        const address = '0x1234567890123456789012345678901234567890';
-
-        expect(() =>
-          controller.acceptAgreement({
-            providerId,
-            address,
-          }),
-        ).toThrow();
-      });
     });
   });
 });

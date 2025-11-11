@@ -30,19 +30,13 @@ import { parseChainId } from '@walletconnect/utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { AccountGroupWithInternalAccounts } from '../../../../selectors/multichainAccounts/accounts.type';
 import { AccountGroupId } from '@metamask/account-api';
-import {
-  getNetworkImageSource,
-  isPerDappSelectedNetworkEnabled,
-} from '../../../../util/networks';
+import { getNetworkImageSource } from '../../../../util/networks';
 import {
   AvatarAccountType,
   AvatarSize,
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
-import {
-  selectNetworkConfigurationsByCaipChainId,
-  selectEvmChainId,
-} from '../../../../selectors/networkController';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../../selectors/networkController';
 import { NetworkAvatarProps } from '../../AccountConnect/AccountConnect.types';
 import Engine from '../../../../core/Engine';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
@@ -115,7 +109,7 @@ export const MultichainAccountPermissions = (
   const networkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
-  const currentEvmChainId = useSelector(selectEvmChainId);
+
   const networkInfo = useNetworkInfo(hostInfo?.metadata?.origin);
 
   const [selectedAccountGroupIds, setSelectedAccountGroupIds] = useState<
@@ -318,10 +312,7 @@ export const MultichainAccountPermissions = (
     async (newSelectedChainIds: CaipChainId[]) => {
       // Check if we need to switch networks
       if (newSelectedChainIds.length > 0) {
-        const currentEvmCaipChainId: CaipChainId =
-          isPerDappSelectedNetworkEnabled()
-            ? `eip155:${parseInt(networkInfo.chainId, 16)}`
-            : `eip155:${parseInt(currentEvmChainId, 16)}`;
+        const currentEvmCaipChainId: CaipChainId = `eip155:${parseInt(networkInfo.chainId, 16)}`;
 
         const newSelectedEvmChainId = newSelectedChainIds.find((chainId) => {
           const { namespace } = parseChainId(chainId);
@@ -386,7 +377,6 @@ export const MultichainAccountPermissions = (
       selectedChainIds,
       hostInfo?.metadata?.origin,
       networkConfigurations,
-      currentEvmChainId,
       networkInfo.chainId,
     ],
   );
