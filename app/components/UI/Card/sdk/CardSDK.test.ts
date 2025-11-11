@@ -1753,6 +1753,48 @@ describe('CardSDK', () => {
   });
 
   describe('getCardExternalWalletDetails', () => {
+    const createMockWalletData = (
+      externalWallets: {
+        address: string;
+        currency: string;
+        allowance: string;
+        network?: string;
+      }[],
+    ) => {
+      const mockExternalWalletResponse = externalWallets.map((wallet) => ({
+        address: wallet.address,
+        currency: wallet.currency,
+        balance: '1000.00',
+        allowance: wallet.allowance,
+        network: wallet.network || 'linea',
+      }));
+
+      const mockPriorityWalletResponse = externalWallets.map(
+        (wallet, index) => ({
+          id: index + 1,
+          address: wallet.address,
+          currency: wallet.currency,
+          network: wallet.network || 'linea',
+          priority: index + 1,
+        }),
+      );
+
+      let callCount = 0;
+      (global.fetch as jest.Mock).mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve({
+            ok: true,
+            json: jest.fn().mockResolvedValue(mockExternalWalletResponse),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: jest.fn().mockResolvedValue(mockPriorityWalletResponse),
+        });
+      });
+    };
+
     it('gets external wallet details successfully', async () => {
       const mockExternalWalletResponse = [
         {
@@ -1989,6 +2031,106 @@ describe('CardSDK', () => {
       const result = await cardSDK.getCardExternalWalletDetails([]);
 
       expect(result).toEqual([]);
+    });
+
+    it.each([
+      ['invalid', 'NaN allowance'],
+      ['0', 'string zero allowance'],
+      ['0x0', 'hex zero allowance'],
+    ])(
+      'filters out wallets with %s',
+      async (invalidAllowance, _description) => {
+        createMockWalletData([
+          {
+            address: '0x1234567890123456789012345678901234567890',
+            currency: 'USDC',
+            allowance: invalidAllowance,
+          },
+          {
+            address: '0x0987654321098765432109876543210987654321',
+            currency: 'USDT',
+            allowance: '500',
+          },
+        ]);
+
+        const result = await cardSDK.getCardExternalWalletDetails([]);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].currency).toBe('USDT');
+        expect(result[0].allowance).toBe('500');
+      },
+    );
+
+    it('includes wallets with valid non-zero allowance', async () => {
+      createMockWalletData([
+        {
+          address: '0x1234567890123456789012345678901234567890',
+          currency: 'USDC',
+          allowance: '500',
+        },
+        {
+          address: '0x0987654321098765432109876543210987654321',
+          currency: 'USDT',
+          allowance: '1500',
+        },
+      ]);
+
+      const result = await cardSDK.getCardExternalWalletDetails([]);
+
+      expect(result).toHaveLength(2);
+      expect(result[0].currency).toBe('USDC');
+      expect(result[1].currency).toBe('USDT');
+    });
+
+    it('filters out multiple wallets with mixed invalid allowances', async () => {
+      createMockWalletData([
+        {
+          address: '0x1111111111111111111111111111111111111111',
+          currency: 'USDC',
+          allowance: 'abc',
+        },
+        {
+          address: '0x2222222222222222222222222222222222222222',
+          currency: 'USDT',
+          allowance: '0',
+        },
+        {
+          address: '0x3333333333333333333333333333333333333333',
+          currency: 'DAI',
+          allowance: '0x0',
+        },
+        {
+          address: '0x4444444444444444444444444444444444444444',
+          currency: 'WETH',
+          allowance: '250',
+        },
+      ]);
+
+      const result = await cardSDK.getCardExternalWalletDetails([]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].currency).toBe('WETH');
+    });
+
+    it('filters out wallets with unsupported network', async () => {
+      createMockWalletData([
+        {
+          address: '0x1234567890123456789012345678901234567890',
+          currency: 'USDC',
+          allowance: '500',
+          network: 'ethereum',
+        },
+        {
+          address: '0x0987654321098765432109876543210987654321',
+          currency: 'USDT',
+          allowance: '1000',
+        },
+      ]);
+
+      const result = await cardSDK.getCardExternalWalletDetails([]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].currency).toBe('USDT');
     });
   });
 
