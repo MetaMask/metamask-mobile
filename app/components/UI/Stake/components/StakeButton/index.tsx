@@ -1,7 +1,7 @@
 import { toHex } from '@metamask/controller-utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useMemo, useCallback } from 'react';
-import { Alert, Pressable } from 'react-native';
+import { Alert, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../../../locales/i18n';
@@ -268,7 +268,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     return <></>;
 
   return (
-    <Pressable
+    <TouchableOpacity
       onPress={onEarnButtonPress}
       testID={WalletViewSelectorsIDs.STAKE_BUTTON}
       style={styles.stakeButton}
@@ -290,7 +290,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
           return `${strings('stake.earn')}${aprText}`;
         })()}
       </Text>
-    </Pressable>
+    </TouchableOpacity>
   );
 };
 
