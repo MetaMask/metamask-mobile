@@ -33,6 +33,9 @@ interface TestDescriptors {
 // Force rewards feature flag to be enabled for this test file
 jest.mock('../../../../components/hooks/FeatureFlags/useFeatureFlag', () => ({
   useFeatureFlag: () => true,
+  FeatureFlagNames: {
+    rewardsEnabled: 'rewardsEnabled',
+  },
 }));
 
 // Mock trending tokens feature flag selector
