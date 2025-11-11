@@ -133,15 +133,24 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     [title, market?.title],
   );
 
-  const claimable = market?.status === PredictMarketStatus.CLOSED;
-
+  // active positions
   const {
-    positions,
-    isLoading: isPositionsLoading,
-    loadPositions,
+    positions: activePositions,
+    isLoading: isActivePositionsLoading,
+    loadPositions: loadActivePositions,
   } = usePredictPositions({
     marketId: resolvedMarketId,
-    claimable: claimable && !isMarketFetching,
+    claimable: false && !isMarketFetching,
+  });
+
+  // "claimable" positions
+  const {
+    positions: claimablePositions,
+    isLoading: isClaimablePositionsLoading,
+    loadPositions: loadClaimablePositions,
+  } = usePredictPositions({
+    marketId: resolvedMarketId,
+    claimable: true && !isMarketFetching,
   });
 
   useEffect(() => {
@@ -154,8 +163,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   // Tabs become ready when both market and positions queries have resolved
   const tabsReady = useMemo(
-    () => !isMarketFetching && !isPositionsLoading,
-    [isMarketFetching, isPositionsLoading],
+    () =>
+      !isMarketFetching &&
+      !isActivePositionsLoading &&
+      !isClaimablePositionsLoading,
+    [isMarketFetching, isActivePositionsLoading, isClaimablePositionsLoading],
   );
 
   const { winningOutcomeToken, losingOutcomeToken, resolutionStatus } =
@@ -426,10 +438,16 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     await Promise.allSettled([
       refetchMarket(),
       refetchPriceHistory(),
-      loadPositions({ isRefresh: true }),
+      loadActivePositions({ isRefresh: true }),
+      loadClaimablePositions({ isRefresh: true }),
     ]);
     setIsRefreshing(false);
-  }, [loadPositions, refetchMarket, refetchPriceHistory]);
+  }, [
+    loadActivePositions,
+    refetchMarket,
+    refetchPriceHistory,
+    loadClaimablePositions,
+  ]);
 
   const handlePolymarketResolution = useCallback(() => {
     InteractionManager.runAfterInteractions(() => {
@@ -463,7 +481,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const tabs = useMemo(() => {
     const result: { label: string; key: TabKey }[] = [];
     // positions first if user has any
-    if (positions.length > 0) {
+    if (activePositions.length > 0 || claimablePositions.length > 0) {
       result.push({
         label: strings('predict.tabs.positions'),
         key: 'positions',
@@ -476,7 +494,12 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     // about last (always present)
     result.push({ label: strings('predict.tabs.about'), key: 'about' });
     return result;
-  }, [positions.length, multipleOutcomes, market?.status]);
+  }, [
+    activePositions.length,
+    claimablePositions.length,
+    multipleOutcomes,
+    market?.status,
+  ]);
 
   useEffect(() => {
     if (!tabsReady) return;
@@ -678,15 +701,26 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   );
 
   const renderPositionsSection = () => {
-    if (positions.length > 0 && market) {
+    if (
+      (activePositions.length > 0 || claimablePositions.length > 0) &&
+      market
+    ) {
       return (
         <Box twClassName="space-y-4">
-          {positions.map((position) => (
+          {activePositions.map((position) => (
             <PredictPositionDetail
               key={position.id}
               position={position}
               market={market}
               marketStatus={market?.status as PredictMarketStatus}
+            />
+          ))}
+          {claimablePositions.map((position) => (
+            <PredictPositionDetail
+              key={position.id}
+              position={position}
+              market={market}
+              marketStatus={PredictMarketStatus.CLOSED}
             />
           ))}
         </Box>
@@ -803,7 +837,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   );
 
   // see if there are any positions with positive percentPnl
-  const hasPositivePnl = positions.some((position) => position.percentPnl > 0);
+  const hasPositivePnl = activePositions.some(
+    (position) => position.percentPnl > 0,
+  );
 
   const renderActionButtons = () => (
     <>
