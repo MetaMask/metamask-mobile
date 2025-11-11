@@ -48,7 +48,10 @@ import {
 } from '@metamask/transaction-pay-controller';
 import { trace } from '../../../../util/trace';
 import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
-import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
+import {
+  getSentinelUrl,
+  isSendBundleSupported,
+} from '../../../../util/transactions/sentinel-api';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
@@ -155,6 +158,10 @@ export const TransactionControllerInit: ControllerInitFunction<
         // Expected type mismatch with TransactionControllerOptions['trace']
         trace: trace as unknown as TransactionControllerOptions['trace'],
         publicKeyEIP7702: AppConstants.EIP_7702_PUBLIC_KEY as Hex | undefined,
+        getSimulationConfig: async (url) => {
+          const newUrl = getSentinelUrl(url);
+          return { newUrl };
+        },
       });
 
     return { controller: transactionController };
@@ -198,10 +205,15 @@ async function publishHook({
     return payResult;
   }
 
+  const updatedTransaction =
+    (transactionController.state?.transactions ?? []).find(
+      (tx) => tx.id === transactionMeta.id,
+    ) ?? transactionMeta;
+
   if (
     !shouldUseSmartTransaction ||
     !sendBundleSupport ||
-    transactionMeta.isGasFeeSponsored
+    updatedTransaction.isGasFeeSponsored
   ) {
     const hook = new Delegation7702PublishHook({
       isAtomicBatchSupported: transactionController.isAtomicBatchSupported.bind(
@@ -210,7 +222,7 @@ async function publishHook({
       messenger: initMessenger,
     }).getHook();
 
-    const result = await hook(transactionMeta, signedTransactionInHex);
+    const result = await hook(updatedTransaction, signedTransactionInHex);
     if (result?.transactionHash) {
       return result;
     }
@@ -219,10 +231,10 @@ async function publishHook({
 
   if (
     shouldUseSmartTransaction &&
-    (sendBundleSupport || transactionMeta.selectedGasFeeToken === undefined)
+    (sendBundleSupport || updatedTransaction.selectedGasFeeToken === undefined)
   ) {
     const result = await submitSmartTransactionHook({
-      transactionMeta,
+      transactionMeta: updatedTransaction,
       transactionController,
       smartTransactionsController,
       shouldUseSmartTransaction,

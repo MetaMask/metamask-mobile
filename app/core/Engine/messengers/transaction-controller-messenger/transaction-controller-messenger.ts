@@ -12,6 +12,7 @@ import {
 } from '@metamask/network-controller';
 import {
   TransactionControllerAddTransactionAction,
+  TransactionControllerGetGasFeeTokensAction,
   TransactionControllerGetStateAction,
   TransactionControllerMessenger,
   TransactionControllerStateChangeEvent,
@@ -51,6 +52,7 @@ import {
   MessengerActions,
   MessengerEvents,
 } from '@metamask/messenger';
+import { BridgeControllerActions } from '@metamask/bridge-controller';
 
 export function getTransactionControllerMessenger(
   rootMessenger: RootMessenger,
@@ -85,6 +87,7 @@ type InitMessengerActions =
   | AccountsControllerGetSelectedAccountAction
   | AccountTrackerControllerGetStateAction
   | ApprovalControllerActions
+  | BridgeControllerActions
   | BridgeStatusControllerActions
   | CurrencyRateControllerActions
   | DelegationControllerSignDelegationAction
@@ -95,6 +98,7 @@ type InitMessengerActions =
   | NetworkControllerGetNetworkClientByIdAction
   | RemoteFeatureFlagControllerGetStateAction
   | TransactionControllerAddTransactionAction
+  | TransactionControllerGetGasFeeTokensAction
   | TransactionControllerGetStateAction
   | TransactionControllerUpdateTransactionAction
   | TransactionPayControllerGetStateAction
@@ -138,6 +142,7 @@ export function getTransactionControllerInitMessenger(
       'ApprovalController:endFlow',
       'ApprovalController:startFlow',
       'ApprovalController:updateRequestState',
+      'BridgeController:fetchQuotes',
       'BridgeStatusController:getState',
       'BridgeStatusController:submitTx',
       'CurrencyRateController:getState',
@@ -147,6 +152,7 @@ export function getTransactionControllerInitMessenger(
       'KeyringController:signEip7702Authorization',
       'KeyringController:signTypedMessage',
       'TransactionController:addTransaction',
+      'TransactionController:getGasFeeTokens',
       'TransactionController:getState',
       'TransactionController:updateTransaction',
       'TransactionPayController:getState',

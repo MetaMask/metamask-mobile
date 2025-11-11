@@ -5,6 +5,7 @@ import {
   SentinelNetwork,
   getSendBundleSupportedChains,
   isSendBundleSupported,
+  getSentinelUrl,
 } from './sentinel-api';
 
 const fetchMock = jest.fn();
@@ -14,6 +15,7 @@ beforeAll(() => {
 });
 
 const NETWORK_ETHEREUM_MOCK = 'ethereum-mainnet';
+const URL_MOCK = 'https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io/';
 
 const COMMON_ETH: SentinelNetwork['nativeCurrency'] = {
   name: 'ETH',
@@ -212,6 +214,12 @@ describe('sentinel-api', () => {
       await expect(isSendBundleSupported(mainnetHex)).rejects.toThrow(
         mockError,
       );
+    });
+  });
+
+  describe('getSentinelUrl', () => {
+    it('returns url', () => {
+      expect(getSentinelUrl(URL_MOCK)).toBe(URL_MOCK);
     });
   });
 });
