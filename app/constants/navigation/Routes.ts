@@ -270,6 +270,7 @@ const Routes = {
       CLOSE_ALL_POSITIONS: 'PerpsCloseAllPositions',
       CANCEL_ALL_ORDERS: 'PerpsCancelAllOrders',
       TOOLTIP: 'PerpsTooltip',
+      CROSS_MARGIN_WARNING: 'PerpsCrossMarginWarning',
     },
     POSITION_TRANSACTION: 'PerpsPositionTransaction',
     ORDER_TRANSACTION: 'PerpsOrderTransaction',
