@@ -92,10 +92,13 @@ const TrendingTokenRowItem = ({
     }
   }, []);
 
-  const pricePercentChange1d = 3.44; // TODO ; this should come from the trending hook
+  // TODO: Get pricePercentChange1d from token or trending hook
+  const pricePercentChange1d: number = 3.44; // This should come from the trending hook
 
   // Determine the color for percentage change
-  const isPositiveChange = pricePercentChange1d && pricePercentChange1d > 0;
+  // Handle 0 as neutral (not positive or negative)
+  const isPositiveChange = pricePercentChange1d > 0;
+  const isNeutralChange = pricePercentChange1d === 0;
 
   const handlePress = () => {
     // TODO: Implement token press logic
@@ -154,9 +157,15 @@ const TrendingTokenRowItem = ({
         </Text>
         <Text
           variant={TextVariant.BodySM}
-          color={isPositiveChange ? TextColor.Success : TextColor.Error}
+          color={
+            isNeutralChange
+              ? TextColor.Default
+              : isPositiveChange
+                ? TextColor.Success
+                : TextColor.Error
+          }
         >
-          {isPositiveChange ? '+' : '-'}
+          {isNeutralChange ? '' : isPositiveChange ? '+' : '-'}
           {Math.abs(pricePercentChange1d)}%
         </Text>
       </View>
