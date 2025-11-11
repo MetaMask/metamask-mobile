@@ -18,6 +18,7 @@ interface UsePerpsOrderValidationParams {
   marginRequired: string;
   existingPositionLeverage?: number;
   skipValidation?: boolean;
+  originalUsdAmount?: string; // Original USD input for validation (prevents precision loss from recalculation)
 }
 
 interface ValidationResult {
@@ -49,6 +50,7 @@ export function usePerpsOrderValidation(
     marginRequired,
     existingPositionLeverage,
     skipValidation,
+    originalUsdAmount,
   } = params;
 
   const { validateOrder } = usePerpsTrading();
@@ -87,6 +89,22 @@ export function usePerpsOrderValidation(
           available: availableBalance.toString(),
         }),
       );
+    }
+
+    // Minimum order size validation using original USD input (prevents precision loss)
+    // If originalUsdAmount is provided, validate it directly instead of recalculated value
+    // This prevents validation flash when price updates cause rounding near the $10 minimum
+    if (originalUsdAmount) {
+      const usdAmount = Number.parseFloat(originalUsdAmount || '0');
+      const minimumOrderSize = 10; // TRADING_DEFAULTS.amount.mainnet/testnet
+
+      if (usdAmount > 0 && usdAmount < minimumOrderSize) {
+        immediateErrors.push(
+          strings('perps.order.validation.minimum_amount', {
+            amount: minimumOrderSize.toString(),
+          }),
+        );
+      }
     }
 
     try {
@@ -156,6 +174,7 @@ export function usePerpsOrderValidation(
     availableBalance,
     marginRequired,
     existingPositionLeverage,
+    originalUsdAmount,
     validateOrder,
   ]);
 

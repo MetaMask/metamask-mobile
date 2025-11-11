@@ -162,11 +162,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const { track } = usePerpsEventTracking();
   const { openTooltipModal } = useTooltipModal();
 
-  // Only optimize amounts within 20% above minimum order amount
-  // This prevents unnecessary optimization of amounts that are safely above minimum
-  // e.g., $10 minimum: optimize $10-$12, but leave $13+ unchanged
-  const OPTIMIZATION_THRESHOLD = 1.2;
-
   // Ref to access current orderType in callbacks
   const orderTypeRef = useRef<OrderType>('market');
 
@@ -174,8 +169,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const hasShownSubmittedToastRef = useRef(false);
   const orderStartTimeRef = useRef<number>(0);
   const inputMethodRef = useRef<InputMethod>('default');
-  const hasOptimizedOnBlurRef = useRef(false);
-  const hasInitializedAmountRef = useRef(false);
 
   const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
 
@@ -189,7 +182,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
     orderForm,
     setAmount,
     setLeverage,
-    optimizeOrderAmount,
     setTakeProfitPrice,
     setStopLossPrice,
     setLimitPrice,
@@ -565,6 +557,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
     marginRequired: marginRequired || '0',
     existingPositionLeverage: existingPositionLeverageForValidation,
     skipValidation: isInputFocused,
+    originalUsdAmount: orderForm.amount, // Pass original USD input to prevent validation flash from price updates
   });
 
   // Filter out specific validation error(s) from display (similar to ClosePositionView pattern)
@@ -643,7 +636,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const handlePercentagePress = (percentage: number) => {
     inputMethodRef.current = 'percentage';
     handlePercentageAmount(percentage);
-    optimizeOrderAmount(assetData.price, marketData?.szDecimals);
   };
 
   const handleMaxPress = () => {
@@ -655,47 +647,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
     setIsInputFocused(false);
   };
 
-  // One-time initialization optimization for default amount on page load
-  // Ensures the default amount is valid and consistent with manual input optimization
-  // Only optimizes if amount is close to minimum (within 20% threshold)
-  useEffect(() => {
-    // Only run once after component mounts with initial data loaded
-    if (
-      !hasInitializedAmountRef.current &&
-      !isInputFocused &&
-      orderForm.amount &&
-      assetData.price > 0 &&
-      marketData?.szDecimals !== undefined
-    ) {
-      const currentAmount = parseFloat(orderForm.amount || '0');
-      const optimizationThreshold = minimumOrderAmount * OPTIMIZATION_THRESHOLD;
-
-      // Only optimize if amount is close to minimum (prevents $11→$12, $20→$21)
-      if (currentAmount < optimizationThreshold) {
-        hasInitializedAmountRef.current = true;
-        optimizeOrderAmount(assetData.price, marketData.szDecimals);
-      } else {
-        // Mark as initialized but skip optimization for amounts safely above minimum
-        hasInitializedAmountRef.current = true;
-      }
-    }
-  }, [
-    assetData.price,
-    marketData?.szDecimals,
-    orderForm.amount,
-    isInputFocused,
-    optimizeOrderAmount,
-    minimumOrderAmount,
-    OPTIMIZATION_THRESHOLD,
-  ]);
-
   // Clamp amount to the maximum allowed once the keypad/input is dismissed
-  // Mirrors the PerpsClosePositionView behavior where, after leaving input,
-  // values are normalized to valid limits.
-  // Only optimizes amounts close to minimum to prevent order failures
+  // Mirrors the PerpsClosePositionView behavior where values are normalized to valid limits
   useEffect(() => {
-    if (!isInputFocused && !hasOptimizedOnBlurRef.current) {
-      // Only optimize if input was from keypad (not from percentage/slider/max)
+    if (!isInputFocused) {
+      // Only clamp if input was from keypad (not from percentage/slider/max)
       // This prevents overwriting intentional user selections from other input methods
       if (inputMethodRef.current === 'keypad') {
         const currentAmount = parseFloat(orderForm.amount || '0');
@@ -705,23 +661,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
         if (currentAmount > maxPossibleAmount) {
           setAmount(String(maxPossibleAmount));
         }
-
-        // Only optimize if amount is close to minimum (within 20% threshold)
-        // This prevents unnecessary optimization: $11→$12, $20→$21
-        const optimizationThreshold =
-          minimumOrderAmount * OPTIMIZATION_THRESHOLD;
-        if (currentAmount < optimizationThreshold) {
-          optimizeOrderAmount(assetData.price, marketData?.szDecimals);
-        }
       }
-
-      hasOptimizedOnBlurRef.current = true;
-    } else if (isInputFocused) {
-      // Reset optimization flag when input becomes focused again
-      hasOptimizedOnBlurRef.current = false;
     }
-    // CRITICAL: Only isInputFocused dependency prevents infinite optimization loops
-    // Other dependencies would cause re-optimization on WebSocket updates
+    // CRITICAL: Only isInputFocused dependency prevents infinite loops
+    // Other dependencies would cause re-clamping on WebSocket updates
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isInputFocused]);
 
@@ -785,13 +728,23 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
       // Execute order using the new hook
       // Only include TP/SL if they have valid, non-empty values
+      //
+      // HYBRID APPROACH: Pass both USD amount (source of truth) and size (for backward compatibility)
+      // The provider will:
+      // 1. Validate price hasn't moved beyond maxSlippageBps
+      // 2. Recalculate size with fresh price from usdAmount
+      // 3. Use the recalculated size for order execution
       const orderParams: OrderParams = {
         coin: orderForm.asset,
         isBuy: orderForm.direction === 'long',
-        size: positionSize,
+        size: positionSize, // Kept for backward compatibility, provider recalculates from usdAmount
         orderType: orderForm.type,
         currentPrice: assetData.price,
         leverage: orderForm.leverage,
+        // USD as source of truth (hybrid approach)
+        usdAmount: orderForm.amount, // USD amount (primary source of truth, provider calculates size from this)
+        priceAtCalculation: assetData.price, // Price snapshot when size was calculated (for slippage validation)
+        maxSlippageBps: 100, // Slippage tolerance in basis points (100 = 1%)
         // Only add TP/SL/Limit if they are truthy and/or not empty strings
         ...(orderForm.type === 'limit' && orderForm.limitPrice
           ? { price: orderForm.limitPrice }
@@ -856,6 +809,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
     orderForm.limitPrice,
     orderForm.takeProfitPrice,
     orderForm.stopLossPrice,
+    orderForm.amount,
     positionSize,
     assetData.price,
     navigation,
@@ -954,12 +908,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
               onValueChange={(value) => {
                 inputMethodRef.current = 'slider';
                 const amount = Math.floor(value).toString();
-
                 setAmount(amount);
-                if (amount !== '0') {
-                  // Now using debounced optimizeOrderAmount for all interactions
-                  optimizeOrderAmount(assetData.price, marketData?.szDecimals);
-                }
               }}
               minimumValue={0}
               maximumValue={maxPossibleAmount}

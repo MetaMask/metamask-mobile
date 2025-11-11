@@ -1,13 +1,9 @@
-import { debounce } from 'lodash';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
 import { OrderType } from '../controllers/types';
 import type { OrderFormState } from '../types/perps-types';
-import {
-  findOptimalAmount,
-  getMaxAllowedAmount as getMaxAllowedAmountUtils,
-} from '../utils/orderCalculations';
+import { getMaxAllowedAmount as getMaxAllowedAmountUtils } from '../utils/orderCalculations';
 import {
   usePerpsLiveAccount,
   usePerpsLivePositions,
@@ -40,7 +36,6 @@ export interface UsePerpsOrderFormReturn {
   handlePercentageAmount: (percentage: number) => void;
   handleMaxAmount: () => void;
   handleMinAmount: () => void;
-  optimizeOrderAmount: (price: number, szDecimals?: number) => void;
   maxPossibleAmount: number;
 }
 
@@ -113,17 +108,14 @@ export function usePerpsOrderForm(
       leverage: defaultLeverage, // Use default leverage for initial calculation
     });
 
-    return findOptimalAmount({
-      targetAmount:
-        initialAmount ||
-        (tempMaxAmount < defaultAmount
-          ? tempMaxAmount.toString()
-          : defaultAmount.toString()),
-      price: Number.parseFloat(currentPrice.price),
-      szDecimals: marketData?.szDecimals ?? 6,
-      maxAllowedAmount: tempMaxAmount,
-      minAllowedAmount: defaultAmount,
-    });
+    // Return the target amount directly (USD as source of truth, no optimization)
+    const targetAmount =
+      initialAmount ||
+      (tempMaxAmount < defaultAmount
+        ? tempMaxAmount.toString()
+        : defaultAmount.toString());
+
+    return targetAmount;
   }, [
     initialAmount,
     availableBalance,
@@ -169,50 +161,6 @@ export function usePerpsOrderForm(
       marketData?.szDecimals,
       orderForm.leverage, // Include current leverage in dependencies
     ],
-  );
-
-  // Optimize order amount to get the optimal USD value for the position size
-  const optimizeOrderAmount = useMemo(() => {
-    const optimizeFunction = (price: number, szDecimals?: number) => {
-      setOrderForm((prev) => {
-        if (!prev.amount || Number.parseFloat(prev.amount) === 0) {
-          return prev;
-        }
-
-        const optimizedAmount = findOptimalAmount({
-          targetAmount: prev.amount,
-          price,
-          szDecimals,
-          maxAllowedAmount: maxPossibleAmount,
-          minAllowedAmount: defaultAmount,
-        });
-
-        const optimizedAmountNum = Number.parseFloat(optimizedAmount);
-
-        // Only update if the optimized amount is different
-        if (
-          optimizedAmount !== prev.amount &&
-          optimizedAmountNum <= maxPossibleAmount
-        ) {
-          return {
-            ...prev,
-            amount: optimizedAmount,
-          };
-        }
-
-        return prev;
-      });
-    };
-
-    return debounce(optimizeFunction, 100);
-  }, [maxPossibleAmount, defaultAmount]);
-
-  // Cleanup debounced function on unmount
-  useEffect(
-    () => () => {
-      optimizeOrderAmount.cancel();
-    },
-    [optimizeOrderAmount],
   );
 
   // Update amount only once when the hook first calculates the initial value
@@ -346,7 +294,6 @@ export function usePerpsOrderForm(
     handlePercentageAmount,
     handleMaxAmount,
     handleMinAmount,
-    optimizeOrderAmount,
     maxPossibleAmount,
   };
 }

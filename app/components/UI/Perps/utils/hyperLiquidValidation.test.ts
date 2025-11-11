@@ -712,7 +712,19 @@ describe('hyperLiquidValidation', () => {
       });
     });
 
-    it('should allow missing price', () => {
+    it('should allow missing price for market orders', () => {
+      const params = {
+        coin: 'BTC',
+        size: '0.1',
+        orderType: 'market' as const,
+      };
+
+      const result = validateOrderParams(params);
+
+      expect(result).toEqual({ isValid: true });
+    });
+
+    it('should allow missing price when orderType is not specified', () => {
       const params = {
         coin: 'BTC',
         size: '0.1',
@@ -721,6 +733,21 @@ describe('hyperLiquidValidation', () => {
       const result = validateOrderParams(params);
 
       expect(result).toEqual({ isValid: true });
+    });
+
+    it('should reject limit orders without price', () => {
+      const params = {
+        coin: 'BTC',
+        size: '0.1',
+        orderType: 'limit' as const,
+      };
+
+      const result = validateOrderParams(params);
+
+      expect(result).toEqual({
+        isValid: false,
+        error: 'Price is required for limit orders',
+      });
     });
 
     it('should handle negative size', () => {

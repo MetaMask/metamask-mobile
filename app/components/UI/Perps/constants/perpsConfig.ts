@@ -72,6 +72,18 @@ export const VALIDATION_THRESHOLDS = {
 } as const;
 
 /**
+ * Order slippage configuration
+ * Controls default slippage tolerance for market orders
+ */
+export const ORDER_SLIPPAGE_CONFIG = {
+  // Default slippage for all market orders (open, edit, close)
+  DEFAULT_SLIPPAGE: 0.01, // 1% slippage tolerance
+
+  // Default maximum slippage for price lock validation (basis points)
+  DEFAULT_MAX_SLIPPAGE_BPS: 100, // 1% = 100 basis points
+} as const;
+
+/**
  * Performance optimization constants
  * These values control debouncing and throttling for better performance
  */
