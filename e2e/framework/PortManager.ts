@@ -327,15 +327,15 @@ export default class PortManager {
 
   /**
    * Finds the next available port in the specified range.
-   * @param startPort - Start of port range (default: 40000)
-   * @param maxPort - End of port range (default: 60000, giving 20,000 ports)
+   * @param startPort - Start of port range (default: 32768)
+   * @param maxPort - End of port range (default: 60999, giving 28,232 ports)
    * @param maxAttempts - Maximum number of ports to try (default: 100)
    * @returns Available port number
    * @throws Error if no available port is found after maxAttempts
    */
   private async findNextAvailablePort(
-    startPort: number = 40000,
-    maxPort: number = 60000,
+    startPort: number = 32768,
+    maxPort: number = 60999,
     maxAttempts: number = 100,
   ): Promise<number> {
     const range = maxPort - startPort + 1;
