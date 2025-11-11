@@ -1,20 +1,20 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
-import { useAuthPreferences } from './useAuthPreferences';
-import { Authentication } from '../../../../core';
-import AUTHENTICATION_TYPE from '../../../../constants/userProperties';
-import StorageWrapper from '../../../../store/storage-wrapper';
-import { updateAuthTypeStorageFlags } from '../../../../util/authentication';
+import { useUserAuthPreferences } from './useUserAuthPreferences';
+import { Authentication } from '../../core';
+import AUTHENTICATION_TYPE from '../../constants/userProperties';
+import StorageWrapper from '../../store/storage-wrapper';
+import { updateAuthTypeStorageFlags } from '../../util/authentication';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 
 // Mock dependencies
-jest.mock('../../../../core');
-jest.mock('../../../../store/storage-wrapper');
-jest.mock('../../../../util/authentication');
-jest.mock('../../../../actions/security', () => ({
+jest.mock('../../core');
+jest.mock('../../store/storage-wrapper');
+jest.mock('../../util/authentication');
+jest.mock('../../actions/security', () => ({
   setAllowLoginWithRememberMe: jest.fn(),
 }));
 
-describe('useAuthPreferences', () => {
+describe('useUserAuthPreferences', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
@@ -26,7 +26,9 @@ describe('useAuthPreferences', () => {
       availableBiometryType: null,
     });
 
-    const { result } = renderHook(() => useAuthPreferences({ locked: false }));
+    const { result } = renderHook(() =>
+      useUserAuthPreferences({ locked: false }),
+    );
 
     await waitFor(() => {
       expect(result.current.hasBiometricCredentials).toBe(true);
@@ -40,7 +42,7 @@ describe('useAuthPreferences', () => {
       availableBiometryType: null,
     });
 
-    const { result } = renderHook(() => useAuthPreferences());
+    const { result } = renderHook(() => useUserAuthPreferences());
 
     await waitFor(() => {
       expect(result.current.rememberMe).toBe(true);
@@ -54,7 +56,7 @@ describe('useAuthPreferences', () => {
       availableBiometryType: BIOMETRY_TYPE.FACE_ID,
     });
 
-    const { result } = renderHook(() => useAuthPreferences());
+    const { result } = renderHook(() => useUserAuthPreferences());
 
     await waitFor(() => {
       expect(result.current.biometryType).toBe(BIOMETRY_TYPE.FACE_ID);
@@ -68,9 +70,9 @@ describe('useAuthPreferences', () => {
       currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
       availableBiometryType: BIOMETRY_TYPE.TOUCH_ID,
     });
-    (StorageWrapper.getItem as jest.Mock).mockResolvedValue('true'); // Previously disabled
+    (StorageWrapper.getItem as jest.Mock).mockResolvedValue('true');
 
-    const { result } = renderHook(() => useAuthPreferences());
+    const { result } = renderHook(() => useUserAuthPreferences());
 
     await waitFor(() => {
       expect(result.current.biometryChoice).toBe(false);
@@ -83,7 +85,7 @@ describe('useAuthPreferences', () => {
       availableBiometryType: BIOMETRY_TYPE.FACE_ID,
     });
 
-    const { result } = renderHook(() => useAuthPreferences());
+    const { result } = renderHook(() => useUserAuthPreferences());
 
     await waitFor(() => {
       expect(result.current.biometryChoice).toBe(true);
@@ -104,7 +106,7 @@ describe('useAuthPreferences', () => {
     });
 
     const { rerender } = renderHook(
-      ({ refreshTrigger }) => useAuthPreferences({ refreshTrigger }),
+      ({ refreshTrigger }) => useUserAuthPreferences({ refreshTrigger }),
       { initialProps: { refreshTrigger: false } },
     );
 
@@ -112,7 +114,6 @@ describe('useAuthPreferences', () => {
       expect(Authentication.getType).toHaveBeenCalledTimes(1);
     });
 
-    // Trigger refresh
     rerender({ refreshTrigger: true });
 
     await waitFor(() => {

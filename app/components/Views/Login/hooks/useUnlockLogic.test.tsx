@@ -1,5 +1,5 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
-import { useLoginLogic } from './useLoginLogic';
+import { useUnlockLogic } from './useUnlockLogic';
 import { Authentication } from '../../../../core';
 import { passwordRequirementsMet } from '../../../../util/password';
 import { strings } from '../../../../../locales/i18n';
@@ -18,15 +18,17 @@ jest.mock('../../../../util/password');
 jest.mock('../../../../util/validators');
 jest.mock('../../../../core/BackupVault');
 jest.mock('../../../../util/analytics/vaultCorruptionTracking');
-jest.mock('../../../../util/metrics/TrackOnboarding/trackOnboarding');
 jest.mock('../../../../util/authentication');
 jest.mock('../../../hooks/useMetrics', () => ({
   useMetrics: () => ({ isEnabled: jest.fn().mockReturnValue(true) }),
 }));
+
+let mockPromptSeedlessRelogin: jest.Mock;
+
 jest.mock('../../../hooks/SeedlessHooks', () => ({
   usePromptSeedlessRelogin: () => ({
     isDeletingInProgress: false,
-    promptSeedlessRelogin: jest.fn(),
+    promptSeedlessRelogin: mockPromptSeedlessRelogin,
   }),
 }));
 jest.mock('@react-native-community/netinfo', () => ({
@@ -45,18 +47,14 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn().mockReturnValue(false),
 }));
 
-describe('useLoginLogic', () => {
-  const mockSaveOnboardingEvent = jest.fn();
+describe('useUnlockLogic', () => {
   const mockOnLoginSuccess = jest.fn();
   const mockSetBiometryChoice = jest.fn();
-  const mockSetRehydrationFailedAttempts = jest.fn();
 
   const defaultParams = {
-    isOAuthRehydration: false,
     password: 'validPassword123',
     biometryChoice: false,
     rememberMe: false,
-    saveOnboardingEvent: mockSaveOnboardingEvent,
     onLoginSuccess: mockOnLoginSuccess,
     setBiometryChoice: mockSetBiometryChoice,
   };
@@ -64,6 +62,7 @@ describe('useLoginLogic', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockPromptSeedlessRelogin = jest.fn();
     (passwordRequirementsMet as jest.Mock).mockReturnValue(true);
     (Authentication.userEntryAuth as jest.Mock).mockResolvedValue(true);
     (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue(
@@ -78,9 +77,9 @@ describe('useLoginLogic', () => {
     jest.useRealTimers();
   });
 
-  describe('onLogin - Regular Login Flow', () => {
+  describe('onLogin - Unlock Flow', () => {
     it('authenticates successfully with valid password', async () => {
-      const { result } = renderHook(() => useLoginLogic(defaultParams));
+      const { result } = renderHook(() => useUnlockLogic(defaultParams));
 
       await act(async () => {
         await result.current.onLogin();
@@ -94,10 +93,22 @@ describe('useLoginLogic', () => {
       expect(result.current.error).toBeNull();
     });
 
+    it('does not set oauth2Login flag for unlock flow', async () => {
+      const { result } = renderHook(() => useUnlockLogic(defaultParams));
+
+      await act(async () => {
+        await result.current.onLogin();
+      });
+
+      const authCall = (Authentication.userEntryAuth as jest.Mock).mock
+        .calls[0];
+      expect(authCall[1].oauth2Login).toBeUndefined();
+    });
+
     it('sets error when password requirements are not met', async () => {
       (passwordRequirementsMet as jest.Mock).mockReturnValue(false);
 
-      const { result } = renderHook(() => useLoginLogic(defaultParams));
+      const { result } = renderHook(() => useUnlockLogic(defaultParams));
 
       await act(async () => {
         await result.current.onLogin();
@@ -113,7 +124,7 @@ describe('useLoginLogic', () => {
         new Error('Decrypt failed'),
       );
 
-      const { result } = renderHook(() => useLoginLogic(defaultParams));
+      const { result } = renderHook(() => useUnlockLogic(defaultParams));
 
       await act(async () => {
         await result.current.onLogin();
@@ -124,106 +135,46 @@ describe('useLoginLogic', () => {
     });
   });
 
-  describe('onLogin - OAuth Rehydration Flow', () => {
-    const oauthParams = {
-      ...defaultParams,
-      isOAuthRehydration: true,
-      rehydrationFailedAttempts: 0,
-      setRehydrationFailedAttempts: mockSetRehydrationFailedAttempts,
-    };
-
-    it('handles OAuth rehydration successfully', async () => {
-      const { result } = renderHook(() => useLoginLogic(oauthParams));
-
-      await act(async () => {
-        await result.current.onLogin();
-      });
-
-      expect(Authentication.userEntryAuth).toHaveBeenCalledWith(
-        'validPassword123',
-        { currentAuthType: 'password', oauth2Login: true },
-      );
-      expect(mockOnLoginSuccess).toHaveBeenCalled();
-    });
-
-    it('tracks rehydration failure on password error', async () => {
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error('Decrypt failed'),
-      );
-
-      const { result } = renderHook(() => useLoginLogic(oauthParams));
-
-      await act(async () => {
-        await result.current.onLogin();
-      });
-
-      // The hook tracks the error via analytics
-      expect(result.current.error).toBe(strings('login.invalid_password'));
-      expect(mockOnLoginSuccess).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('Error Handling - Too Many Attempts', () => {
-    it('displays countdown for too many attempts error', async () => {
+  describe('Error Handling - Seedless Errors (Unlock)', () => {
+    it('prompts seedless re-login for seedless errors during unlock', async () => {
       const seedlessError = new SeedlessOnboardingControllerRecoveryError(
-        SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts,
-        { remainingTime: 3, numberOfAttempts: 1 },
+        SeedlessOnboardingControllerErrorMessage.IncorrectPassword,
       );
+
+      seedlessError.message = 'SeedlessOnboardingController - Generic Error';
+
       (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
         seedlessError,
       );
 
-      const { result } = renderHook(() => useLoginLogic(defaultParams));
+      const { result } = renderHook(() => useUnlockLogic(defaultParams));
 
       await act(async () => {
         await result.current.onLogin();
-      });
-
-      expect(result.current.error).toBe(
-        strings('login.too_many_attempts', { remainingTime: '0:00:03' }),
-      );
-      expect(result.current.disabledInput).toBe(true);
-
-      // Advance timer by 1 second
-      await act(async () => {
-        jest.advanceTimersByTime(1000);
-      });
-
-      expect(result.current.error).toBe(
-        strings('login.too_many_attempts', { remainingTime: '0:00:02' }),
-      );
-    });
-
-    it('clears error and enables input when countdown finishes', async () => {
-      const seedlessError = new SeedlessOnboardingControllerRecoveryError(
-        SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts,
-        { remainingTime: 1, numberOfAttempts: 1 },
-      );
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        seedlessError,
-      );
-
-      const { result } = renderHook(() => useLoginLogic(defaultParams));
-
-      await act(async () => {
-        await result.current.onLogin();
-      });
-
-      expect(result.current.disabledInput).toBe(true);
-
-      // Advance timer to finish countdown
-      await act(async () => {
-        jest.advanceTimersByTime(1000);
       });
 
       await waitFor(() => {
-        expect(result.current.error).toBeNull();
-        expect(result.current.disabledInput).toBe(false);
+        expect(mockPromptSeedlessRelogin).toHaveBeenCalled();
       });
     });
-  });
 
-  describe('Error Handling - Password Outdated', () => {
+    it('handles incorrect password error without OAuth tracking', async () => {
+      const seedlessError = new SeedlessOnboardingControllerRecoveryError(
+        SeedlessOnboardingControllerErrorMessage.IncorrectPassword,
+      );
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        seedlessError,
+      );
+
+      const { result } = renderHook(() => useUnlockLogic(defaultParams));
+
+      await act(async () => {
+        await result.current.onLogin();
+      });
+
+      expect(result.current.error).toBe(strings('login.invalid_password'));
+    });
+
     it('handles password recently updated error', async () => {
       const seedlessError = new SeedlessOnboardingControllerError(
         SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
@@ -233,7 +184,7 @@ describe('useLoginLogic', () => {
         seedlessError,
       );
 
-      const { result } = renderHook(() => useLoginLogic(defaultParams));
+      const { result } = renderHook(() => useUnlockLogic(defaultParams));
 
       await act(async () => {
         await result.current.onLogin();
@@ -242,23 +193,6 @@ describe('useLoginLogic', () => {
       expect(result.current.error).toBe(
         strings('login.seedless_password_outdated'),
       );
-    });
-
-    it('handles incorrect password with outdated password', async () => {
-      const seedlessError = new SeedlessOnboardingControllerRecoveryError(
-        SeedlessOnboardingControllerErrorMessage.IncorrectPassword,
-      );
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        seedlessError,
-      );
-
-      const { result } = renderHook(() => useLoginLogic(defaultParams));
-
-      await act(async () => {
-        await result.current.onLogin();
-      });
-
-      expect(result.current.error).toBe(strings('login.invalid_password'));
     });
   });
 
@@ -271,7 +205,7 @@ describe('useLoginLogic', () => {
         biometryChoice: true,
       };
 
-      const { result } = renderHook(() => useLoginLogic(paramsWithBiometry));
+      const { result } = renderHook(() => useUnlockLogic(paramsWithBiometry));
 
       await act(async () => {
         await result.current.tryBiometric();
@@ -291,13 +225,12 @@ describe('useLoginLogic', () => {
         biometryChoice: true,
       };
 
-      const { result } = renderHook(() => useLoginLogic(paramsWithBiometry));
+      const { result } = renderHook(() => useUnlockLogic(paramsWithBiometry));
 
       await act(async () => {
         await result.current.tryBiometric();
       });
 
-      // The hook logs the error but doesn't throw
       expect(mockOnLoginSuccess).not.toHaveBeenCalled();
     });
   });
@@ -310,7 +243,7 @@ describe('useLoginLogic', () => {
       });
       (Authentication.userEntryAuth as jest.Mock).mockReturnValue(authPromise);
 
-      const { result } = renderHook(() => useLoginLogic(defaultParams));
+      const { result } = renderHook(() => useUnlockLogic(defaultParams));
 
       expect(result.current.finalLoading).toBe(false);
 
@@ -318,19 +251,16 @@ describe('useLoginLogic', () => {
         result.current.onLogin();
       });
 
-      // Should be loading now
       await waitFor(() => {
         expect(result.current.finalLoading).toBe(true);
       });
 
-      // Resolve the promise
       await act(async () => {
         if (resolveAuth) {
           resolveAuth(true);
         }
       });
 
-      // Loading should be false after completion
       await waitFor(() => {
         expect(result.current.finalLoading).toBe(false);
       });
@@ -343,7 +273,7 @@ describe('useLoginLogic', () => {
         new Error('Decrypt failed'),
       );
 
-      const { result } = renderHook(() => useLoginLogic(defaultParams));
+      const { result } = renderHook(() => useUnlockLogic(defaultParams));
 
       await act(async () => {
         await result.current.onLogin();
@@ -359,28 +289,49 @@ describe('useLoginLogic', () => {
     });
   });
 
-  describe('Cleanup', () => {
-    it('stops countdown when unmounted', async () => {
+  describe('Network Error Handling', () => {
+    it('shows no internet connection sheet for seedless errors without network', async () => {
+      // Mock no internet connection
+      jest.mock('@react-native-community/netinfo', () => ({
+        useNetInfo: () => ({
+          isConnected: false,
+          isInternetReachable: false,
+        }),
+      }));
+
       const seedlessError = new SeedlessOnboardingControllerRecoveryError(
-        SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts,
-        { remainingTime: 5, numberOfAttempts: 1 },
+        SeedlessOnboardingControllerErrorMessage.IncorrectPassword,
       );
       (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
         seedlessError,
       );
 
-      const { result, unmount } = renderHook(() =>
-        useLoginLogic(defaultParams),
+      const { result } = renderHook(() => useUnlockLogic(defaultParams));
+
+      await act(async () => {
+        await result.current.onLogin();
+      });
+    });
+  });
+
+  describe('Biometry Choice Update', () => {
+    it('updates biometry choice when DENY_PIN_ERROR occurs', async () => {
+      const denyPinError = new Error('Error: Error: Cancel');
+      denyPinError.toString = () => 'Error: Error: Cancel';
+
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        denyPinError,
       );
+
+      const { result } = renderHook(() => useUnlockLogic(defaultParams));
 
       await act(async () => {
         await result.current.onLogin();
       });
 
-      expect(result.current.disabledInput).toBe(true);
-
-      // Unmount while countdown is running
-      unmount();
+      await waitFor(() => {
+        expect(mockSetBiometryChoice).toHaveBeenCalledWith(false);
+      });
     });
   });
 });

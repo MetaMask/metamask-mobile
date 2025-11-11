@@ -60,8 +60,8 @@ import { useMetrics } from '../../hooks/useMetrics';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
-import { useLoginLogic } from '../Login/hooks/useLoginLogic';
-import { useAuthPreferences } from '../Login/hooks/useAuthPreferences';
+import { useRehydrationLogic } from './hooks/useRehydrationLogic';
+import { useUserAuthPreferences } from '../../hooks/useUserAuthPreferences';
 import { usePasswordOutdated } from '../Login/hooks/usePasswordOutdated';
 import { LoginPasswordField } from '../Login/components/LoginPasswordField';
 import { LoginErrorMessage } from '../Login/components/LoginErrorMessage';
@@ -121,7 +121,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     hasBiometricCredentials,
     setHasBiometricCredentials,
     updateBiometryChoice,
-  } = useAuthPreferences({
+  } = useUserAuthPreferences({
     locked: route?.params?.locked,
   });
 
@@ -137,8 +137,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     setError,
     disabledInput,
     isSeedlessPasswordOutdated,
-  } = useLoginLogic({
-    isOAuthRehydration: true,
+  } = useRehydrationLogic({
     password,
     biometryChoice,
     rememberMe,

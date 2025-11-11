@@ -1,29 +1,29 @@
 import { useState, useEffect, useCallback } from 'react';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
-import { Authentication } from '../../../../core';
-import AUTHENTICATION_TYPE from '../../../../constants/userProperties';
-import StorageWrapper from '../../../../store/storage-wrapper';
+import { Authentication } from '../../core';
+import AUTHENTICATION_TYPE from '../../constants/userProperties';
+import StorageWrapper from '../../store/storage-wrapper';
 import {
   BIOMETRY_CHOICE_DISABLED,
   TRUE,
   PASSCODE_DISABLED,
-} from '../../../../constants/storage';
+} from '../../constants/storage';
 import {
   passcodeType,
   updateAuthTypeStorageFlags,
-} from '../../../../util/authentication';
-import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../../actions/security';
-import Logger from '../../../../util/Logger';
+} from '../../util/authentication';
+import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../actions/security';
+import Logger from '../../util/Logger';
 
-interface UseAuthPreferencesParams {
+interface UseUserAuthPreferencesParams {
   locked?: boolean;
   refreshTrigger?: boolean;
 }
 
-export const useAuthPreferences = ({
+export const useUserAuthPreferences = ({
   locked,
   refreshTrigger,
-}: UseAuthPreferencesParams = {}) => {
+}: UseUserAuthPreferencesParams = {}) => {
   const [biometryType, setBiometryType] = useState<
     BIOMETRY_TYPE | AUTHENTICATION_TYPE | string | null
   >(null);

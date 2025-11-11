@@ -58,8 +58,8 @@ import { useMetrics } from '../../hooks/useMetrics';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import FoxAnimation from '../../UI/FoxAnimation';
 import OnboardingAnimation from '../../UI/OnboardingAnimation';
-import { useLoginLogic } from './hooks/useLoginLogic';
-import { useAuthPreferences } from './hooks/useAuthPreferences';
+import { useUnlockLogic } from './hooks/useUnlockLogic';
+import { useUserAuthPreferences } from '../../hooks/useUserAuthPreferences';
 import { usePasswordOutdated } from './hooks/usePasswordOutdated';
 import { LoginPasswordField } from './components/LoginPasswordField';
 import { LoginErrorMessage } from './components/LoginErrorMessage';
@@ -124,7 +124,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     hasBiometricCredentials,
     setHasBiometricCredentials,
     updateBiometryChoice,
-  } = useAuthPreferences({
+  } = useUserAuthPreferences({
     locked: route?.params?.locked,
   });
 
@@ -164,12 +164,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setError,
     disabledInput,
     isSeedlessPasswordOutdated,
-  } = useLoginLogic({
-    isOAuthRehydration: false,
+  } = useUnlockLogic({
     password,
     biometryChoice,
     rememberMe,
-    saveOnboardingEvent,
     onLoginSuccess: checkMetricsUISeen,
     passwordLoginAttemptTraceCtxRef,
     onboardingTraceCtx: route.params?.onboardingTraceCtx,

@@ -353,7 +353,9 @@ describe('Login test suite 2', () => {
     });
 
     afterEach(() => {
-      jest.runOnlyPendingTimers();
+      act(() => {
+        jest.runOnlyPendingTimers();
+      });
       jest.clearAllTimers();
       jest.useRealTimers();
       mockRoute.mockClear();

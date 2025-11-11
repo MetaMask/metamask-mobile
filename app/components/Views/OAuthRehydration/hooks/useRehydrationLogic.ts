@@ -30,7 +30,7 @@ import {
   WRONG_PASSWORD_ERROR_ANDROID_2,
   DENY_PIN_ERROR_ANDROID,
   JSON_PARSE_ERROR_UNEXPECTED_TOKEN,
-} from '../constants';
+} from '../../Login/constants';
 import { createRestoreWalletNavDetailsNested } from '../../RestoreWallet/RestoreWallet';
 import Routes from '../../../../constants/navigation/Routes';
 import { toLowerCaseEquals } from '../../../../util/general';
@@ -55,27 +55,25 @@ import trackOnboarding from '../../../../util/metrics/TrackOnboarding/trackOnboa
 import { useMetrics } from '../../../hooks/useMetrics';
 import { updateAuthTypeStorageFlags } from '../../../../util/authentication';
 
-interface UseLoginLogicParams {
-  isOAuthRehydration: boolean;
+interface UseRehydrationLogicParams {
   password: string;
   biometryChoice: boolean;
   rememberMe: boolean;
-  rehydrationFailedAttempts?: number;
-  setRehydrationFailedAttempts?: (attempts: number) => void;
+  rehydrationFailedAttempts: number;
+  setRehydrationFailedAttempts: (attempts: number) => void;
   saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
   onLoginSuccess: () => Promise<void>;
   passwordLoginAttemptTraceCtxRef?: React.MutableRefObject<TraceContext | null>;
   onboardingTraceCtx?: TraceContext;
   setBiometryChoice: (choice: boolean) => void;
-  setErrorToThrow?: (error: Error | null) => void;
+  setErrorToThrow: (error: Error | null) => void;
 }
 
-export const useLoginLogic = ({
-  isOAuthRehydration,
+export const useRehydrationLogic = ({
   password,
   biometryChoice,
   rememberMe,
-  rehydrationFailedAttempts = 0,
+  rehydrationFailedAttempts,
   setRehydrationFailedAttempts,
   saveOnboardingEvent,
   onLoginSuccess,
@@ -83,15 +81,14 @@ export const useLoginLogic = ({
   onboardingTraceCtx,
   setBiometryChoice,
   setErrorToThrow,
-}: UseLoginLogicParams) => {
+}: UseRehydrationLogicParams) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [disabledInput, setDisabledInput] = useState(false);
 
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const { isEnabled: isMetricsEnabled } = useMetrics();
-  const { isDeletingInProgress, promptSeedlessRelogin } =
-    usePromptSeedlessRelogin();
+  const { isDeletingInProgress } = usePromptSeedlessRelogin();
   const isSeedlessPasswordOutdated = useSelector(
     selectIsSeedlessPasswordOutdated,
   );
@@ -166,12 +163,13 @@ export const useLoginLogic = ({
   );
 
   const handleVaultCorruption = useCallback(async () => {
-    const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
+    const LOGIN_VAULT_CORRUPTION_TAG =
+      'OAuthRehydration/ handleVaultCorruption:';
 
     trackVaultCorruption(VAULT_ERROR, {
       error_type: 'vault_corruption_handling',
       context: 'vault_corruption_recovery_attempt',
-      oauth_login: isOAuthRehydration,
+      oauth_login: true,
     });
 
     try {
@@ -210,14 +208,14 @@ export const useLoginLogic = ({
       trackVaultCorruption((e as Error).message, {
         error_type: 'vault_corruption_handling_failed',
         context: 'vault_corruption_recovery_failed',
-        oauth_login: isOAuthRehydration,
+        oauth_login: true,
       });
 
       Logger.error(e as Error);
       setLoading(false);
       setError(strings('login.invalid_password'));
     }
-  }, [password, biometryChoice, rememberMe, isOAuthRehydration, navigation]);
+  }, [password, biometryChoice, rememberMe, navigation]);
 
   const handleSeedlessOnboardingControllerError = useCallback(
     (
@@ -253,34 +251,26 @@ export const useLoginLogic = ({
           seedlessError.message ===
           SeedlessOnboardingControllerErrorMessage.IncorrectPassword
         ) {
-          if (isOAuthRehydration) {
-            track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-              account_type: 'social',
-              failed_attempts: rehydrationFailedAttempts,
-              error_type: 'incorrect_password',
-            });
-          }
+          track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+            account_type: 'social',
+            failed_attempts: rehydrationFailedAttempts,
+            error_type: 'incorrect_password',
+          });
           setError(strings('login.invalid_password'));
           return;
         } else if (
           seedlessError.message ===
           SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts
         ) {
-          if (
-            seedlessError.data?.numberOfAttempts !== undefined &&
-            setRehydrationFailedAttempts
-          ) {
+          if (seedlessError.data?.numberOfAttempts !== undefined) {
             setRehydrationFailedAttempts(seedlessError.data.numberOfAttempts);
           }
-          if (isOAuthRehydration) {
-            track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-              account_type: 'social',
-              failed_attempts:
-                seedlessError.data?.numberOfAttempts ??
-                rehydrationFailedAttempts,
-              error_type: 'incorrect_password',
-            });
-          }
+          track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+            account_type: 'social',
+            failed_attempts:
+              seedlessError.data?.numberOfAttempts ?? rehydrationFailedAttempts,
+            error_type: 'incorrect_password',
+          });
           if (typeof seedlessError.data?.remainingTime === 'number') {
             tooManyAttemptsError(seedlessError.data?.remainingTime).catch(
               () => null,
@@ -293,65 +283,47 @@ export const useLoginLogic = ({
           seedlessError.code ===
           SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
         ) {
-          if (isOAuthRehydration) {
-            track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-              account_type: 'social',
-              failed_attempts: rehydrationFailedAttempts,
-              error_type: 'unknown_error',
-            });
-          }
+          track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+            account_type: 'social',
+            failed_attempts: rehydrationFailedAttempts,
+            error_type: 'unknown_error',
+          });
           setError(strings('login.seedless_password_outdated'));
           return;
         }
-      } else if (!isOAuthRehydration) {
-        if (isMetricsEnabled()) {
-          captureException(seedlessError, {
-            tags: {
-              view: 'Re-login',
-              context:
-                'seedless flow unlock wallet failed - user consented to analytics',
-            },
-          });
-        }
-        Logger.error(seedlessError, 'Error in Unlock Screen');
-        promptSeedlessRelogin();
-        return;
       }
+
       const errMessage = seedlessError.message.replace(
         'SeedlessOnboardingController - ',
         '',
       );
       setError(errMessage);
 
-      if (isOAuthRehydration) {
-        track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-          account_type: 'social',
-          failed_attempts: rehydrationFailedAttempts,
-          error_type: 'unknown_error',
-        });
+      track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+        account_type: 'social',
+        failed_attempts: rehydrationFailedAttempts,
+        error_type: 'unknown_error',
+      });
 
-        if (isMetricsEnabled()) {
-          captureException(seedlessError, {
-            tags: {
-              view: 'Login',
-              context: 'OAuth rehydration failed - user consented to analytics',
-            },
-          });
-        } else if (setErrorToThrow) {
-          setErrorToThrow(
-            new Error(`OAuth rehydration failed: ${seedlessError.message}`),
-          );
-        }
+      if (isMetricsEnabled()) {
+        captureException(seedlessError, {
+          tags: {
+            view: 'Login',
+            context: 'OAuth rehydration failed - user consented to analytics',
+          },
+        });
+      } else {
+        setErrorToThrow(
+          new Error(`OAuth rehydration failed: ${seedlessError.message}`),
+        );
       }
     },
     [
-      isOAuthRehydration,
       rehydrationFailedAttempts,
       setRehydrationFailedAttempts,
       track,
       tooManyAttemptsError,
       isMetricsEnabled,
-      promptSeedlessRelogin,
       netInfo,
       navigation,
       setErrorToThrow,
@@ -389,7 +361,7 @@ export const useLoginLogic = ({
         toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID) ||
         toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID_2);
 
-      if (isWrongPasswordError && isOAuthRehydration) {
+      if (isWrongPasswordError) {
         track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
           account_type: 'social',
           failed_attempts: rehydrationFailedAttempts,
@@ -418,7 +390,7 @@ export const useLoginLogic = ({
             ? 'vault_error'
             : 'json_parse_error',
           context: 'login_authentication',
-          oauth_login: isOAuthRehydration,
+          oauth_login: true,
         });
 
         await handleVaultCorruption();
@@ -428,19 +400,16 @@ export const useLoginLogic = ({
         setError(loginErrorMessage);
       }
 
-      if (isOAuthRehydration) {
-        track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-          account_type: 'social',
-          failed_attempts: rehydrationFailedAttempts,
-          error_type: 'unknown_error',
-        });
-      }
+      track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+        account_type: 'social',
+        failed_attempts: rehydrationFailedAttempts,
+        error_type: 'unknown_error',
+      });
 
       setLoading(false);
-      Logger.error(loginErr as Error, 'Failed to unlock');
+      Logger.error(loginErr as Error, 'Failed to rehydrate');
     },
     [
-      isOAuthRehydration,
       rehydrationFailedAttempts,
       track,
       handleSeedlessOnboardingControllerError,
@@ -453,12 +422,10 @@ export const useLoginLogic = ({
 
   const onLogin = useCallback(async () => {
     endTrace({ name: TraceName.LoginUserInteraction });
-    if (isOAuthRehydration) {
-      track(MetaMetricsEvents.REHYDRATION_PASSWORD_ATTEMPTED, {
-        account_type: 'social',
-        biometrics: biometryChoice,
-      });
-    }
+    track(MetaMetricsEvents.REHYDRATION_PASSWORD_ATTEMPTED, {
+      account_type: 'social',
+      biometrics: biometryChoice,
+    });
 
     try {
       const locked = !passwordRequirementsMet(password);
@@ -473,9 +440,7 @@ export const useLoginLogic = ({
         biometryChoice,
         rememberMe,
       );
-      if (isOAuthRehydration) {
-        authType.oauth2Login = true;
-      }
+      authType.oauth2Login = true;
 
       await trace(
         {
@@ -487,13 +452,11 @@ export const useLoginLogic = ({
         },
       );
 
-      if (isOAuthRehydration) {
-        track(MetaMetricsEvents.REHYDRATION_COMPLETED, {
-          account_type: 'social',
-          biometrics: biometryChoice,
-          failed_attempts: rehydrationFailedAttempts,
-        });
-      }
+      track(MetaMetricsEvents.REHYDRATION_COMPLETED, {
+        account_type: 'social',
+        biometrics: biometryChoice,
+        failed_attempts: rehydrationFailedAttempts,
+      });
 
       if (passwordLoginAttemptTraceCtxRef?.current) {
         endTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
@@ -510,7 +473,6 @@ export const useLoginLogic = ({
       await handleLoginError(loginErr);
     }
   }, [
-    isOAuthRehydration,
     password,
     biometryChoice,
     rememberMe,
