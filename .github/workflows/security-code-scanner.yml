@@ -17,14 +17,12 @@ jobs:
     with:
       repo: ${{ github.repository }}
       scanner-ref: main
+      # Ignoring java-kotlin and swift until we can get builds working
       languages-config: |
         [
           {
             "language": "java-kotlin",
-            "build_mode": "manual",
-            # "build_command": "export GOOGLE_SERVICES_B64_ANDROID='ewogICJwcm9qZWN0X2luZm8iOiB7CiAgICAicHJvamVjdF9udW1iZXIiOiAiMTIzNDU2Nzg5IiwKICAgICJwcm9qZWN0X2lkIjogImNvZGVxbC1zY2FuLWR1bW15IiwKICAgICJzdG9yYWdlX2J1Y2tldCI6ICJjb2RlcWwtc2Nhbi1kdW1teS5hcHBzcG90LmNvbSIKICB9LAogICJjbGllbnQiOiBbewogICAgImNsaWVudF9pbmZvIjogewogICAgICAibW9iaWxlc2RrX2FwcF9pZCI6ICIxOjEyMzQ1Njc4OTphbmRyb2lkOmFiY2RlZjEyMzQ1NiIsCiAgICAgICJhbmRyb2lkX2NsaWVudF9pbmZvIjogewogICAgICAgICJwYWNrYWdlX25hbWUiOiAiaW8ubWV0YW1hc2siCiAgICAgIH0KICAgIH0sCiAgICAiYXBpX2tleSI6IFt7CiAgICAgICJjdXJyZW50X2tleSI6ICJBSXphRHVtbXlLZXlGb3JDb2RlUUxTY2FubmluZzEyMzQ1Njc4OSIKICAgIH1dCiAgfV0sCiAgImNvbmZpZ3VyYXRpb25fdmVyc2lvbiI6ICIxIgp9Cg==' && yarn install --immutable --mode skip-build && yarn run build:android:main:test",
-            "version": "17",
-            "distribution": "temurin"
+            "ignore": true
           },
           {
             "language": "swift",
