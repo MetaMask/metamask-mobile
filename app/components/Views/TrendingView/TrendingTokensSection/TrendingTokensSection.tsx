@@ -11,8 +11,11 @@ import TrendingTokensSkeleton from './TrendingTokenSkeleton/TrendingTokensSkelet
 import TrendingTokensList from './TrendingTokensList';
 import Card from '../../../../component-library/components/Cards/Card';
 import { useTrendingRequest } from '../../../UI/Assets/hooks/useTrendingRequest';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
+import {
+  NetworkType,
+  useNetworksByNamespace,
+} from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { useNetworksToUse } from '../../../hooks/useNetworksToUse/useNetworksToUse';
 
 const TrendingTokensSection = () => {
   const theme = useAppThemeFromContext();
@@ -43,33 +46,19 @@ const TrendingTokensSection = () => {
     [theme],
   );
 
-  const { enabledNetworksByNamespace } = useNetworkEnablement();
-  const enabledNetworks = useMemo(() => {
-    function getEnabledNetworks(
-      obj: Record<string, boolean | Record<string, boolean>>,
-    ): string[] {
-      const enabled: string[] = [];
+  const { networks } = useNetworksByNamespace({
+    networkType: NetworkType.Popular,
+  });
 
-      Object.entries(obj).forEach(([key, value]) => {
-        if (typeof value === 'object' && value !== null) {
-          // recurse into nested object
-          enabled.push(...getEnabledNetworks(value));
-        } else if (value === true) {
-          // Return just the chain ID, not the full namespace path
-          enabled.push(key);
-        }
-      });
-
-      return enabled;
-    }
-
-    return getEnabledNetworks(enabledNetworksByNamespace);
-  }, [enabledNetworksByNamespace]);
-
+  const { networksToUse } = useNetworksToUse({
+    networks,
+    networkType: NetworkType.Popular,
+  });
   const caipChainIds = useMemo(
-    () => enabledNetworks.map((chainId) => formatChainIdToCaip(chainId)),
-    [enabledNetworks],
+    () => networksToUse.map((network) => network.caipChainId),
+    [networksToUse],
   );
+
   const { results: trendingTokensResults, isLoading } = useTrendingRequest({
     chainIds: caipChainIds,
   });
