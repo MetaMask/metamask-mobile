@@ -198,10 +198,6 @@ async function publishHook({
     return payResult;
   }
 
-  if (payResult?.transactionHash) {
-    return payResult;
-  }
-
   if (!shouldUseSmartTransaction || !sendBundleSupport) {
     const hook = new Delegation7702PublishHook({
       isAtomicBatchSupported: transactionController.isAtomicBatchSupported.bind(
