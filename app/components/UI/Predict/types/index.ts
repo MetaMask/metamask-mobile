@@ -327,12 +327,6 @@ export type PredictWithdraw = {
   amount: number;
 };
 
-export interface AcceptAgreementParams {
-  providerId: string;
-  address: string;
-}
-
 export type PredictAccountMeta = {
   isOnboarded: boolean;
-  acceptedToS: boolean;
 };
