@@ -656,13 +656,13 @@ export class PolymarketProvider implements PredictProvider {
                   expectedSize: update.expectedSize,
                 },
               );
-            } else {
+            } else if (update.optimisticPosition) {
               // API not yet updated, use optimistic position
-              result[apiPositionIndex] = update.optimisticPosition!;
+              result[apiPositionIndex] = update.optimisticPosition;
             }
-          } else {
+          } else if (update.optimisticPosition) {
             // New position not in API yet, add optimistic position
-            result.push(update.optimisticPosition!);
+            result.push(update.optimisticPosition);
           }
           break;
         }
@@ -1080,14 +1080,16 @@ export class PolymarketProvider implements PredictProvider {
               existingPosition,
               preview,
             });
-          } catch (error) {
+          } catch (optimisticError) {
             // Log but don't fail the order
             DevLogger.log(
               'PolymarketProvider: Failed to create optimistic position update',
-              error,
+              optimisticError,
             );
             Logger.error(
-              error instanceof Error ? error : new Error(String(error)),
+              optimisticError instanceof Error
+                ? optimisticError
+                : new Error(String(optimisticError)),
               this.getErrorContext('placeOrder:optimisticUpdate', {
                 operation: 'optimistic_position_update',
                 outcomeTokenId,

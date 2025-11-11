@@ -75,7 +75,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
       <View style={styles.positionPnl}>
         {optimistic ? (
           <>
-            <Skeleton width={60} height={20} style={{ marginBottom: 4 }} />
+            <Skeleton width={60} height={20} style={styles.skeletonSpacing} />
             <Skeleton width={50} height={16} />
           </>
         ) : (
