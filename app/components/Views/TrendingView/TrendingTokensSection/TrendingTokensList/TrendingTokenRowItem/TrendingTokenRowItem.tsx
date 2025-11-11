@@ -93,12 +93,16 @@ const TrendingTokenRowItem = ({
   }, []);
 
   // TODO: Get pricePercentChange1d from token or trending hook
-  const pricePercentChange1d: number = 3.44; // This should come from the trending hook
+  const pricePercentChange1d: number | undefined = 3.44; // This should come from the trending hook
 
   // Determine the color for percentage change
   // Handle 0 as neutral (not positive or negative)
-  const isPositiveChange = pricePercentChange1d > 0;
-  const isNeutralChange = pricePercentChange1d === 0;
+  const hasPercentageChange =
+    pricePercentChange1d !== undefined && pricePercentChange1d !== null;
+  const isPositiveChange =
+    hasPercentageChange && (pricePercentChange1d as number) > 0;
+  const isNeutralChange =
+    hasPercentageChange && (pricePercentChange1d as number) === 0;
 
   const handlePress = () => {
     // TODO: Implement token press logic
@@ -155,19 +159,21 @@ const TrendingTokenRowItem = ({
             maximumDecimals: 2,
           })}
         </Text>
-        <Text
-          variant={TextVariant.BodySM}
-          color={
-            isNeutralChange
-              ? TextColor.Default
-              : isPositiveChange
-                ? TextColor.Success
-                : TextColor.Error
-          }
-        >
-          {isNeutralChange ? '' : isPositiveChange ? '+' : '-'}
-          {Math.abs(pricePercentChange1d)}%
-        </Text>
+        {hasPercentageChange && (
+          <Text
+            variant={TextVariant.BodySM}
+            color={
+              isNeutralChange
+                ? TextColor.Default
+                : isPositiveChange
+                  ? TextColor.Success
+                  : TextColor.Error
+            }
+          >
+            {isNeutralChange ? '' : isPositiveChange ? '+' : '-'}
+            {Math.abs(pricePercentChange1d as number)}%
+          </Text>
+        )}
       </View>
     </TouchableOpacity>
   );

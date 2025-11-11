@@ -199,4 +199,269 @@ describe('TrendingTokenRowItem', () => {
 
     expect(mockOnPress).toHaveBeenCalledTimes(1);
   });
+
+  it('renders token name', () => {
+    const token = createMockToken({ name: 'Ethereum' });
+    const mockOnPress = jest.fn();
+
+    const { getByText } = render(
+      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    );
+
+    expect(getByText('Ethereum')).toBeTruthy();
+  });
+
+  it('renders market stats with formatted values', () => {
+    const token = createMockToken({
+      marketCap: 75641301011.76,
+      aggregatedUsdVolume: 974248822.2,
+    });
+    const mockOnPress = jest.fn();
+
+    const { getByText } = render(
+      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    );
+
+    expect(getByText(/\$76B cap • \$974\.2M vol/)).toBeTruthy();
+  });
+
+  it('renders formatted price', () => {
+    const token = createMockToken({ price: '1.50' });
+    const mockOnPress = jest.fn();
+
+    const { getByText } = render(
+      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    );
+
+    expect(getByText('$1.50')).toBeTruthy();
+  });
+
+  it('renders percentage change with positive indicator', () => {
+    const token = createMockToken();
+    const mockOnPress = jest.fn();
+
+    const { getByText } = render(
+      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    );
+
+    expect(getByText('+3.44%')).toBeTruthy();
+  });
+
+  it('renders token logo with correct props', () => {
+    const token = createMockToken({
+      assetId: 'eip155:1/erc20:0x123',
+      symbol: 'ETH',
+    });
+    const mockOnPress = jest.fn();
+
+    const { getByTestId } = render(
+      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    );
+
+    const logo = getByTestId('trending-token-logo-ETH');
+    expect(logo).toBeTruthy();
+    expect(logo.props['data-size']).toBe(44);
+  });
+
+  it('renders token logo with custom iconSize', () => {
+    const token = createMockToken({ symbol: 'BTC' });
+    const mockOnPress = jest.fn();
+
+    const { getByTestId } = render(
+      <TrendingTokenRowItem
+        token={token}
+        onPress={mockOnPress}
+        iconSize={60}
+      />,
+    );
+
+    const logo = getByTestId('trending-token-logo-BTC');
+    expect(logo.props['data-size']).toBe(60);
+  });
+
+  it('renders network badge with default network image source', () => {
+    const token = createMockToken();
+    const mockOnPress = jest.fn();
+
+    const { getByTestId } = render(
+      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    );
+
+    const badge = getByTestId('network-badge');
+    expect(badge).toBeTruthy();
+    expect(badge.props['data-image-source']).toBe(
+      'https://example.com/ethereum.png',
+    );
+  });
+
+  it('renders network badge with testnet image source when chain is testnet', () => {
+    const { getTestNetImageByChainId } = jest.requireMock(
+      '../../../../../../util/networks',
+    );
+    const mockGetTestNetImageByChainId =
+      getTestNetImageByChainId as jest.MockedFunction<
+        typeof getTestNetImageByChainId
+      >;
+    mockGetTestNetImageByChainId.mockReturnValue('https://testnet.png');
+    mockIsTestNet.mockReturnValue(true);
+
+    const token = createMockToken();
+    const mockOnPress = jest.fn();
+
+    const { getByTestId } = render(
+      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    );
+
+    const badge = getByTestId('network-badge');
+    expect(badge.props['data-image-source']).toBe('https://testnet.png');
+  });
+
+  it('renders network badge with popular network image source', () => {
+    const { PopularList } = jest.requireMock(
+      '../../../../../../util/networks/customNetworks',
+    );
+    PopularList.push({
+      chainId: '0x1' as const,
+      rpcPrefs: {
+        imageSource: 'https://popular-network.png',
+      },
+    } as never);
+    mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
+
+    const token = createMockToken();
+    const mockOnPress = jest.fn();
+
+    const { getByTestId } = render(
+      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    );
+
+    const badge = getByTestId('network-badge');
+    expect(badge.props['data-image-source']).toBe(
+      'https://popular-network.png',
+    );
+
+    PopularList.pop();
+  });
+
+  it('renders network badge with unpopular network image source', () => {
+    const { UnpopularNetworkList } = jest.requireMock(
+      '../../../../../../util/networks/customNetworks',
+    );
+    UnpopularNetworkList.push({
+      chainId: '0x1' as const,
+      rpcPrefs: {
+        imageSource: 'https://unpopular-network.png',
+      },
+    } as never);
+    mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
+
+    const token = createMockToken();
+    const mockOnPress = jest.fn();
+
+    const { getByTestId } = render(
+      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    );
+
+    const badge = getByTestId('network-badge');
+    expect(badge.props['data-image-source']).toBe(
+      'https://unpopular-network.png',
+    );
+
+    UnpopularNetworkList.pop();
+  });
+
+  it('renders network badge with custom network image source', () => {
+    const { CustomNetworkImgMapping } = jest.requireMock(
+      '../../../../../../util/networks/customNetworks',
+    );
+    CustomNetworkImgMapping['0x1'] = 'https://custom-network.png';
+    mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
+
+    const token = createMockToken();
+    const mockOnPress = jest.fn();
+
+    const { getByTestId } = render(
+      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    );
+
+    const badge = getByTestId('network-badge');
+    expect(badge.props['data-image-source']).toBe('https://custom-network.png');
+
+    delete CustomNetworkImgMapping['0x1'];
+  });
+
+  it('renders network badge with non-EVM network image source', () => {
+    const { getNonEvmNetworkImageSourceByChainId } = jest.requireMock(
+      '../../../../../../util/networks/customNetworks',
+    );
+    const mockGetNonEvmNetworkImageSourceByChainId =
+      getNonEvmNetworkImageSourceByChainId as jest.MockedFunction<
+        typeof getNonEvmNetworkImageSourceByChainId
+      >;
+    mockGetNonEvmNetworkImageSourceByChainId.mockReturnValue(
+      'https://non-evm-network.png',
+    );
+
+    const { isCaipChainId } = jest.requireMock('@metamask/utils');
+    const mockIsCaipChainId = isCaipChainId as jest.MockedFunction<
+      typeof isCaipChainId
+    >;
+    mockIsCaipChainId.mockReturnValue(true);
+    mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
+
+    const token = createMockToken();
+    const mockOnPress = jest.fn();
+
+    const { getByTestId } = render(
+      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    );
+
+    const badge = getByTestId('network-badge');
+    expect(badge.props['data-image-source']).toBe(
+      'https://non-evm-network.png',
+    );
+  });
+
+  it('uses correct testID format with assetId', () => {
+    const token = createMockToken({
+      assetId: 'eip155:1/erc20:0xabc123',
+    });
+    const mockOnPress = jest.fn();
+
+    const { getByTestId } = render(
+      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    );
+
+    expect(
+      getByTestId('trending-token-row-item-eip155:1/erc20:0xabc123'),
+    ).toBeTruthy();
+  });
+
+  it('renders with zero market cap and volume', () => {
+    const token = createMockToken({
+      marketCap: 0,
+      aggregatedUsdVolume: 0,
+    });
+    const mockOnPress = jest.fn();
+
+    const { getByText } = render(
+      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    );
+
+    expect(getByText(/\$0\.00 cap • \$0\.00 vol/)).toBeTruthy();
+  });
+
+  it('renders with very large market cap and volume', () => {
+    const token = createMockToken({
+      marketCap: 1500000000000,
+      aggregatedUsdVolume: 5000000000,
+    });
+    const mockOnPress = jest.fn();
+
+    const { getByText } = render(
+      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    );
+
+    expect(getByText(/\$1500B cap • \$5B vol/)).toBeTruthy();
+  });
 });
