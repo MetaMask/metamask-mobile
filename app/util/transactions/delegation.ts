@@ -8,6 +8,7 @@ import {
   DeleGatorEnvironment,
   ExecutionMode,
   ExecutionStruct,
+  SINGLE_DEFAULT_MODE,
   createCaveatBuilder,
   getDeleGatorEnvironment,
 } from '../../core/Delegation';
@@ -60,8 +61,11 @@ export async function getDelegationTransaction<
     messenger,
   );
 
-  const modes: ExecutionMode[] = [BATCH_DEFAULT_MODE];
   const executions = buildExecutions(transaction);
+
+  const modes: ExecutionMode[] = [
+    executions[0].length > 1 ? BATCH_DEFAULT_MODE : SINGLE_DEFAULT_MODE,
+  ];
 
   log('Built delegations', { delegations, modes, executions });
 
