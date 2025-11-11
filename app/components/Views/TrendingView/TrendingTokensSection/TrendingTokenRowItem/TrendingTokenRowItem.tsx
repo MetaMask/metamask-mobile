@@ -134,6 +134,7 @@ const TrendingTokenRowItem = ({
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
             {token.name}
           </Text>
+          {/* TODO: Display verified icon conditionally based on API response */}
           <Icon
             name={IconName.VerifiedFilled}
             size={IconSize.Sm}
