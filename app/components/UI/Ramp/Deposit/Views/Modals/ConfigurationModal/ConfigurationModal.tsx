@@ -9,7 +9,11 @@ import {
 } from '../../../../../../../component-library/components/Icons/Icon';
 
 import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
-import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils';
+import {
+  useRampNavigation,
+  RampMode,
+} from '../../../../hooks/useRampNavigation';
+import { RampType as AggregatorRampType } from '../../../../Aggregator/types';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { TRANSAK_SUPPORT_URL } from '../../../constants/constants';
@@ -35,6 +39,7 @@ function ConfigurationModal() {
   const { toastRef } = useContext(ToastContext);
 
   const { logoutFromProvider, isAuthenticated } = useDepositSDK();
+  const { goToRamps } = useRampNavigation();
 
   const navigateToOrderHistory = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -53,8 +58,12 @@ function ConfigurationModal() {
 
   const handleNavigateToAggregator = useCallback(() => {
     navigation.dangerouslyGetParent()?.dangerouslyGetParent()?.goBack();
-    navigation.navigate(...createBuyNavigationDetails());
-  }, [navigation]);
+    goToRamps({
+      mode: RampMode.AGGREGATOR,
+      params: { rampType: AggregatorRampType.BUY },
+      overrideUnifiedBuyFlag: true,
+    });
+  }, [navigation, goToRamps]);
 
   const handleLogOut = useCallback(async () => {
     try {

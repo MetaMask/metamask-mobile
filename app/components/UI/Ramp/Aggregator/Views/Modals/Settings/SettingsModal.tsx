@@ -9,7 +9,10 @@ import { IconName } from '../../../../../../../component-library/components/Icon
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
 import MenuItem from '../../../../components/MenuItem';
-import { createDepositNavigationDetails } from '../../../../Deposit/routes/utils';
+import {
+  useRampNavigation,
+  RampMode,
+} from '../../../../hooks/useRampNavigation';
 
 export const createBuySettingsModalNavigationDetails = createNavigationDetails(
   Routes.RAMP.MODALS.ID,
@@ -19,6 +22,7 @@ export const createBuySettingsModalNavigationDetails = createNavigationDetails(
 function SettingsModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
+  const { goToRamps } = useRampNavigation();
 
   const handleNavigateToOrderHistory = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -33,8 +37,8 @@ function SettingsModal() {
   const handleDepositPress = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
     navigation.dangerouslyGetParent()?.dangerouslyGetParent()?.goBack();
-    navigation.navigate(...createDepositNavigationDetails());
-  }, [navigation]);
+    goToRamps({ mode: RampMode.DEPOSIT });
+  }, [navigation, goToRamps]);
 
   const handleClosePress = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();

@@ -80,6 +80,7 @@ function UnsupportedStateModal() {
       goToRamps({
         mode: RampMode.AGGREGATOR,
         params: { rampType: AggregatorRampType.BUY },
+        overrideUnifiedBuyFlag: true,
       });
     });
   }, [closeBottomSheetAndNavigate, navigation, goToRamps]);

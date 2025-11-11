@@ -59,6 +59,7 @@ function UnsupportedRegionModal() {
       goToRamps({
         mode: RampMode.AGGREGATOR,
         params: { rampType: AggregatorRampType.BUY },
+        overrideUnifiedBuyFlag: true,
       });
     });
   }, [navigation, goToRamps]);

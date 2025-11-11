@@ -25,11 +25,13 @@ interface AggregatorParams {
 interface AggregatorGoToRampsParams {
   mode: RampMode.AGGREGATOR;
   params?: AggregatorParams;
+  overrideUnifiedBuyFlag?: boolean;
 }
 
 interface DepositGoToRampsParams {
   mode: RampMode.DEPOSIT;
   params?: DepositNavigationParams;
+  overrideUnifiedBuyFlag?: boolean;
 }
 
 type GoToRampsParams = AggregatorGoToRampsParams | DepositGoToRampsParams;
@@ -45,8 +47,8 @@ export const useRampNavigation = () => {
   const isRampsUnifiedV1Enabled = useRampsUnifiedV1Enabled();
 
   const goToRamps = useCallback(
-    ({ mode, params }: GoToRampsParams) => {
-      if (isRampsUnifiedV1Enabled) {
+    ({ mode, params, overrideUnifiedBuyFlag }: GoToRampsParams) => {
+      if (isRampsUnifiedV1Enabled && !overrideUnifiedBuyFlag) {
         // TODO: Implement smart routing hook
         return;
       }
