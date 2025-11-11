@@ -17,6 +17,20 @@ jobs:
     with:
       repo: ${{ github.repository }}
       scanner-ref: v2
+      languages-config: |
+        [
+          {
+            "language": "java",
+            "build_mode": "manual",
+            "build_command": "cd android && ./gradlew assembleDebug -x lint -x test",
+            "version": "17",
+            "distribution": "temurin"
+          },
+          {
+            "language": "cpp",
+            "ignore": true
+          }
+        ]
       paths-ignored: |
         e2e/
         docs/
