@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.58.2]
+
+### Fixed
+
+- fix(card): cp-7.58.2 delegation issues ([#22476](https://github.com/MetaMask/metamask-mobile/pull/22476)
+- fix: pressability measureAsyncOnUI only running on Android cp-7.58.2 ([#22464](https://github.com/MetaMask/metamask-mobile/pull/22464)
+- fix(card): cp-7.58.2 CardHome and SpendingLimit UI issues ([#22448](https://github.com/MetaMask/metamask-mobile/pull/22448)
+- fix(card): UI issues on Authentication/Delegation ([#22433](https://github.com/MetaMask/metamask-mobile/pull/22433)
+- fix: cp-7.58.2 update close position calculation with funding fees and live data ([#22344](https://github.com/MetaMask/metamask-mobile/pull/22344)
+
 ## [7.58.1]
 
 ### Fixed
@@ -8797,7 +8807,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.58.1...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.58.2...HEAD
+[7.58.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.58.1...v7.58.2
 [7.58.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.58.0...v7.58.1
 [7.58.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.57.2...v7.58.0
 [7.57.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.57.1...v7.57.2
