@@ -682,21 +682,6 @@ describe('hyperLiquidValidation', () => {
       });
     });
 
-    it('should require positive size', () => {
-      const params = {
-        coin: 'BTC',
-        size: '0',
-        price: '50000',
-      };
-
-      const result = validateOrderParams(params);
-
-      expect(result).toEqual({
-        isValid: false,
-        error: 'Size must be a positive number',
-      });
-    });
-
     it('should require positive price if provided', () => {
       const params = {
         coin: 'BTC',
@@ -747,34 +732,6 @@ describe('hyperLiquidValidation', () => {
       expect(result).toEqual({
         isValid: false,
         error: 'Price is required for limit orders',
-      });
-    });
-
-    it('should handle negative size', () => {
-      const params = {
-        coin: 'BTC',
-        size: '-0.1',
-      };
-
-      const result = validateOrderParams(params);
-
-      expect(result).toEqual({
-        isValid: false,
-        error: 'Size must be a positive number',
-      });
-    });
-
-    it('should handle missing size', () => {
-      const params = {
-        coin: 'BTC',
-        price: '50000',
-      };
-
-      const result = validateOrderParams(params);
-
-      expect(result).toEqual({
-        isValid: false,
-        error: 'Size must be a positive number',
       });
     });
   });

@@ -2089,6 +2089,10 @@ describe('PerpsClosePositionView', () => {
           inputMethod: 'default',
         },
         '3000.00',
+        // Slippage parameters added in USD-as-source-of-truth refactor
+        '4500', // closingValueString: absSize * currentPrice * (closePercentage / 100) = 1.5 * 3000 * 1.0
+        3000, // effectivePrice: currentPrice for market orders
+        100, // maxSlippageBps: 1% slippage tolerance (100 basis points)
       );
     });
 
@@ -2789,9 +2793,9 @@ describe('PerpsClosePositionView', () => {
     });
 
     it('handles missing market data with undefined szDecimals', () => {
-      // Arrange - Market data is null
+      // Arrange - Market data with minimal required fields (szDecimals is now required)
       usePerpsMarketDataMock.mockReturnValue({
-        marketData: null,
+        marketData: { szDecimals: 4 }, // Provide required szDecimals
         isLoading: false,
         error: null,
       });
@@ -2812,7 +2816,7 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - Component renders and falls back to default formatting
+      // Assert - Component renders with minimal market data
       expect(
         queryByTestId(
           PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
@@ -2844,9 +2848,9 @@ describe('PerpsClosePositionView', () => {
     });
 
     it('handles market data fetch error gracefully', () => {
-      // Arrange - Market data fetch failed
+      // Arrange - Market data fetch failed but provides minimal required data
       usePerpsMarketDataMock.mockReturnValue({
-        marketData: null,
+        marketData: { szDecimals: 4 }, // Provide required szDecimals even in error case
         isLoading: false,
         error: 'Failed to fetch market data',
       });
@@ -2858,7 +2862,7 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - Component still renders with error state
+      // Assert - Component still renders with minimal data despite error
       expect(
         queryByTestId(
           PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
