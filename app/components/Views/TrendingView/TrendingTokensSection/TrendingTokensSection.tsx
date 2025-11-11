@@ -1,9 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { TrendingAsset } from '@metamask/assets-controllers';
-import { useStyles } from '../../../hooks/useStyles';
-import styleSheet from './TrendingTokensSection.styles';
+import { useAppThemeFromContext } from '../../../../util/theme';
 import Text, {
   TextColor,
   TextVariant,
@@ -16,7 +15,33 @@ import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 
 const TrendingTokensSection = () => {
-  const { styles } = useStyles(styleSheet, {});
+  const theme = useAppThemeFromContext();
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        header: {
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingHorizontal: 4,
+          marginBottom: 8,
+        },
+        contentContainer: {
+          marginHorizontal: 16,
+          borderRadius: 16,
+          paddingTop: 12,
+          backgroundColor: theme.colors.background.muted,
+        },
+        cardContainer: {
+          borderRadius: 12,
+          paddingVertical: 16,
+          paddingHorizontal: 16,
+          backgroundColor: theme.colors.background.muted,
+          borderColor: theme.colors.border.muted,
+        },
+      }),
+    [theme],
+  );
 
   const { enabledNetworksByNamespace } = useNetworkEnablement();
   const enabledNetworks = useMemo(() => {

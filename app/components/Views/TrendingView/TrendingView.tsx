@@ -23,9 +23,7 @@ import {
   updateLastTrendingScreen,
 } from '../../Nav/Main/MainNavigator';
 import TrendingTokensSection from './TrendingTokensSection/TrendingTokensSection';
-import { ScrollView } from 'react-native';
-import { useStyles } from '../../hooks/useStyles';
-import styleSheet from './TrendingView.styles';
+import { ScrollView, StyleSheet } from 'react-native';
 
 const Stack = createStackNavigator();
 
@@ -57,7 +55,15 @@ const TrendingFeed: React.FC = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { isEnabled } = useMetrics();
-  const { styles } = useStyles(styleSheet, {});
+
+  const styles = StyleSheet.create({
+    scrollView: {
+      flex: 1,
+      marginTop: 48,
+      paddingLeft: 16,
+      paddingRight: 16,
+    },
+  });
 
   // Update state when returning to TrendingFeed
   useEffect(() => {
