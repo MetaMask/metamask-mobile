@@ -466,9 +466,7 @@ const PerpsMarketListView = ({
               <PerpsMarketFiltersBar
                 selectedOptionId={selectedOptionId}
                 onSortPress={() => setIsSortFieldSheetVisible(true)}
-                showStocksCommoditiesDropdown={
-                  marketTypeFilter === 'stocks_and_commodities'
-                }
+                showStocksCommoditiesDropdown={false}
                 stocksCommoditiesFilter={stocksCommoditiesFilter}
                 onStocksCommoditiesPress={() =>
                   setIsStocksCommoditiesSheetVisible(true)
