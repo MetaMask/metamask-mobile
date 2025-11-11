@@ -13,6 +13,7 @@ import {
   validatePRNumber,
 } from './utils/git-utils';
 import { MODES, validateMode, analyzeWithAgent } from './analysis/analyzer';
+import { identifyCriticalFiles } from './utils/file-utils';
 
 /**
  * Validates provided files against actual git changes
@@ -41,34 +42,6 @@ function validateProvidedFiles(
 
   console.log(`✅ All ${providedFiles.length} provided files validated`);
   return providedFiles;
-}
-
-/**
- * Identifies critical files from the list of changed files
- */
-function identifyCriticalFiles(files: string[]): string[] {
-  const { files: criticalFileNames, keywords, paths } = APP_CONFIG.critical;
-
-  return files.filter((file) => {
-    // Check exact file names
-    if (criticalFileNames.includes(file)) {
-      return true;
-    }
-    // Check keywords
-    for (const keyword of keywords) {
-      if (file.includes(keyword)) {
-        return true;
-      }
-    }
-    // Check critical paths
-    for (const path of paths) {
-      if (file.includes(path)) {
-        return true;
-      }
-    }
-
-    return false;
-  });
 }
 
 /**

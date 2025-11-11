@@ -54,7 +54,7 @@ export function getToolDefinitions(): Anthropic.Tool[] {
     {
       name: 'find_related_files',
       description:
-        'Find files related to a changed file to understand change impact depth. For CI files: finds workflows that call reusable workflows, scripts used in workflows, or workflows using specific scripts. For code files: finds importers, dependencies, tests.',
+        'Find files related to a changed file to understand change impact depth. Example: for CI files finds workflows that call reusable workflows, scripts used in workflows, or workflows using specific scripts. For code files: finds importers, dependencies, tests.',
       input_schema: {
         type: 'object',
         properties: {

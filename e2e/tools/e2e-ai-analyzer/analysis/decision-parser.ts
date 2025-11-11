@@ -4,12 +4,14 @@
  * Parses AI responses and extracts decision information
  */
 
-import { AIAnalysis } from '../types';
+import { SelectTagsAnalysis } from '../types';
 
 /**
  * Parses the agent's decision from its response
  */
-export function parseAgentDecision(response: string): AIAnalysis | null {
+export function parseAgentDecision(
+  response: string,
+): SelectTagsAnalysis | null {
   const jsonMatch = response.match(/\{[\s\S]*"selected_tags"[\s\S]*\}/);
 
   if (jsonMatch) {
@@ -19,11 +21,10 @@ export function parseAgentDecision(response: string): AIAnalysis | null {
       const confidence = parsed.confidence ?? 75;
 
       return {
-        riskLevel: parsed.risk_level || 'medium',
         selectedTags: parsed.selected_tags || [],
-        areas: parsed.areas || [],
-        reasoning: parsed.reasoning || 'Analysis completed',
+        riskLevel: parsed.risk_level || 'medium',
         confidence: Math.min(100, Math.max(0, confidence)),
+        reasoning: parsed.reasoning || 'Analysis completed',
       };
     } catch {
       return null;
