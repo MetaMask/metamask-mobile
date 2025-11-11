@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 import DepositPhoneField from './DepositPhoneField';
 import { DepositRegion } from '@consensys/native-ramps-sdk';
 import {
@@ -115,6 +115,60 @@ describe('DepositPhoneField', () => {
 
     const flagButton = getByRole('button');
     fireEvent.press(flagButton);
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('opens region selector modal when flag is pressed', () => {
+    const testRegions = [MOCK_US_REGION, MOCK_EUR_REGION];
+
+    (mockUseDepositSDK as jest.Mock).mockReturnValue({
+      selectedRegion: MOCK_US_REGION,
+      setSelectedRegion: mockSetSelectedRegion,
+    });
+
+    const { getByRole } = render(
+      <DepositPhoneField {...defaultProps} regions={testRegions} />,
+    );
+
+    const flagButton = getByRole('button');
+    fireEvent.press(flagButton);
+
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('DepositModals', {
+      screen: 'DepositRegionSelectorModal',
+      params: {
+        regions: testRegions,
+        onRegionSelect: expect.any(Function),
+        selectedRegion: MOCK_US_REGION,
+        allRegionsSelectable: true,
+        updateGlobalRegion: false,
+        trackSelection: false,
+      },
+    });
+  });
+
+  it('updates phone region when region is selected from modal', () => {
+    const testRegions = [MOCK_US_REGION, MOCK_EUR_REGION];
+    let capturedOnRegionSelect: ((region: DepositRegion) => void) | undefined;
+
+    mockNavigation.navigate.mockImplementation((_, params) => {
+      if (params?.params?.onRegionSelect) {
+        capturedOnRegionSelect = params.params.onRegionSelect;
+      }
+    });
+
+    const { getByRole, toJSON } = render(
+      <DepositPhoneField {...defaultProps} regions={testRegions} />,
+    );
+
+    const flagButton = getByRole('button');
+    fireEvent.press(flagButton);
+
+    act(() => {
+      if (capturedOnRegionSelect) {
+        capturedOnRegionSelect(MOCK_EUR_REGION);
+      }
+    });
 
     expect(toJSON()).toMatchSnapshot();
   });
@@ -293,6 +347,11 @@ describe('DepositPhoneField', () => {
         screen: 'DepositRegionSelectorModal',
         params: {
           regions: testRegions,
+          onRegionSelect: expect.any(Function),
+          selectedRegion: testRegions[0],
+          allRegionsSelectable: true,
+          updateGlobalRegion: false,
+          trackSelection: false,
         },
       });
     });
@@ -316,6 +375,11 @@ describe('DepositPhoneField', () => {
         screen: 'DepositRegionSelectorModal',
         params: {
           regions: testRegions,
+          onRegionSelect: expect.any(Function),
+          selectedRegion: testRegions[0],
+          allRegionsSelectable: true,
+          updateGlobalRegion: false,
+          trackSelection: false,
         },
       });
     });

@@ -5,10 +5,7 @@ import type {
   PredictedFunding,
 } from '../types/hyperliquid-types';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
-import {
-  HYPERLIQUID_CONFIG,
-  HIP3_DEX_MARKET_TYPES,
-} from '../constants/hyperLiquidConfig';
+import { HYPERLIQUID_CONFIG } from '../constants/hyperLiquidConfig';
 import type { PerpsMarketData, MarketType } from '../controllers/types';
 import {
   formatVolume,
@@ -17,6 +14,35 @@ import {
 } from './formatUtils';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 import { parseAssetName } from './hyperLiquidAdapter';
+
+/**
+ * Calculate open interest in USD
+ * Open interest from HyperLiquid is in contracts/units, not USD
+ * To get USD value, multiply by current price
+ *
+ * @param openInterest - Raw open interest value in contracts/units
+ * @param currentPrice - Current price of the asset
+ * @returns Open interest in USD, or NaN if invalid
+ */
+export function calculateOpenInterestUSD(
+  openInterest: string | number | undefined,
+  currentPrice: string | number | undefined,
+): number {
+  if (openInterest == null || currentPrice == null) {
+    return NaN;
+  }
+
+  const openInterestNum =
+    typeof openInterest === 'string' ? parseFloat(openInterest) : openInterest;
+  const priceNum =
+    typeof currentPrice === 'string' ? parseFloat(currentPrice) : currentPrice;
+
+  if (isNaN(openInterestNum) || isNaN(priceNum)) {
+    return NaN;
+  }
+
+  return openInterestNum * priceNum;
+}
 
 /**
  * HyperLiquid-specific market data structure
@@ -138,6 +164,7 @@ function extractFundingData(params: ExtractFundingDataParams): FundingData {
  */
 export function transformMarketData(
   hyperLiquidData: HyperLiquidMarketData,
+  assetMarketTypes?: Record<string, MarketType>,
 ): PerpsMarketData[] {
   const { universe, assetCtxs, allMids, predictedFundings } = hyperLiquidData;
 
@@ -172,6 +199,12 @@ export function transformMarketData(
     // If assetCtx is missing or dayNtlVlm is not available, use NaN to indicate missing data
     const volume = assetCtx?.dayNtlVlm ? parseFloat(assetCtx.dayNtlVlm) : NaN;
 
+    // Calculate open interest in USD
+    const openInterest = calculateOpenInterestUSD(
+      assetCtx?.openInterest,
+      currentPrice,
+    );
+
     // Get current funding rate from assetCtx - this is the actual current funding rate
     let fundingRate: number | undefined;
 
@@ -194,9 +227,9 @@ export function transformMarketData(
     // Extract DEX and determine market type for badge display
     const { dex } = parseAssetName(symbol);
     const marketSource = dex || undefined;
-    const marketType: MarketType | undefined = dex
-      ? HIP3_DEX_MARKET_TYPES[dex as keyof typeof HIP3_DEX_MARKET_TYPES]
-      : undefined;
+
+    // Simple per-asset lookup from feature flag (e.g., 'xyz:GOLD' → 'commodity')
+    const marketType: MarketType | undefined = assetMarketTypes?.[symbol];
 
     return {
       symbol,
@@ -205,13 +238,18 @@ export function transformMarketData(
       price: isNaN(currentPrice)
         ? PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
         : formatPerpsFiat(currentPrice, { ranges: PRICE_RANGES_UNIVERSAL }),
-      change24h: isNaN(change24h) ? '$0.00' : formatChange(change24h),
+      change24h: isNaN(change24h)
+        ? PERPS_CONSTANTS.ZERO_AMOUNT_DETAILED_DISPLAY
+        : formatChange(change24h),
       change24hPercent: isNaN(change24hPercent)
         ? '0.00%'
         : formatPercentage(change24hPercent),
       volume: isNaN(volume)
         ? PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
         : formatVolume(volume),
+      openInterest: isNaN(openInterest)
+        ? PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
+        : formatVolume(openInterest),
       nextFundingTime: fundingData.nextFundingTime,
       fundingIntervalHours: fundingData.fundingIntervalHours,
       fundingRate,

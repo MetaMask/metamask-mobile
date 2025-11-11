@@ -10,6 +10,14 @@ import PredictMarketOutcome from '.';
 const mockAlert = jest.fn();
 jest.spyOn(Alert, 'alert').mockImplementation(mockAlert);
 
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      trackGeoBlockTriggered: jest.fn(),
+    },
+  },
+}));
+
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -23,6 +31,12 @@ jest.mock('@react-navigation/native', () => {
 const mockUsePredictBalance = jest.fn();
 jest.mock('../../hooks/usePredictBalance', () => ({
   usePredictBalance: () => mockUsePredictBalance(),
+}));
+
+// Mock usePredictEligibility hook
+const mockUsePredictEligibility = jest.fn();
+jest.mock('../../hooks/usePredictEligibility', () => ({
+  usePredictEligibility: () => mockUsePredictEligibility(),
 }));
 
 const mockOutcome: PredictOutcome = {
@@ -60,7 +74,8 @@ const mockMarket: PredictMarket = {
   image: 'https://example.com/bitcoin.png',
   status: 'open',
   recurrence: Recurrence.NONE,
-  categories: ['crypto', 'trending'],
+  category: 'crypto',
+  tags: ['trending'],
   outcomes: [mockOutcome],
   liquidity: 1000000,
   volume: 1000000,
@@ -75,6 +90,11 @@ const initialState = {
 describe('PredictMarketOutcome', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default mock implementation - user is eligible
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: true,
+      refreshEligibility: jest.fn(),
+    });
     // Default mock implementation - user has balance
     mockUsePredictBalance.mockReturnValue({
       hasNoBalance: false,
@@ -104,8 +124,8 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    expect(getByText('Yes • 65.00¢')).toBeOnTheScreen();
-    expect(getByText('No • 35.00¢')).toBeOnTheScreen();
+    expect(getByText(/65¢/)).toBeOnTheScreen();
+    expect(getByText(/35¢/)).toBeOnTheScreen();
   });
 
   it('handles button press events', () => {
@@ -114,8 +134,8 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    const yesButton = getByText('Yes • 65.00¢');
-    const noButton = getByText('No • 35.00¢');
+    const yesButton = getByText(/65¢/);
+    const noButton = getByText(/35¢/);
 
     fireEvent.press(yesButton);
     expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
@@ -198,7 +218,7 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    const yesButton = getByText('Yes • 65.00¢');
+    const yesButton = getByText(/65¢/);
     fireEvent.press(yesButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
@@ -217,10 +237,104 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    const noButton = getByText('No • 35.00¢');
+    const noButton = getByText(/35¢/);
     fireEvent.press(noButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictAddFundsSheet',
+    });
+  });
+
+  it('navigates to unavailable modal when user is not eligible - Yes button', () => {
+    // Mock user is not eligible
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: false,
+      refreshEligibility: jest.fn(),
+    });
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketOutcome outcome={mockOutcome} market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const yesButton = getByText(/65¢/);
+    fireEvent.press(yesButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictUnavailable',
+    });
+  });
+
+  it('navigates to unavailable modal when user is not eligible - No button', () => {
+    // Mock user is not eligible
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: false,
+      refreshEligibility: jest.fn(),
+    });
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketOutcome outcome={mockOutcome} market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const noButton = getByText(/35¢/);
+    fireEvent.press(noButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictUnavailable',
+    });
+  });
+
+  it('checks eligibility before balance for Yes button', () => {
+    // Mock user is not eligible AND has no balance
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: false,
+      refreshEligibility: jest.fn(),
+    });
+    mockUsePredictBalance.mockReturnValue({
+      hasNoBalance: true,
+    });
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketOutcome outcome={mockOutcome} market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const yesButton = getByText(/65¢/);
+    fireEvent.press(yesButton);
+
+    // Should navigate to unavailable (not add funds sheet)
+    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictUnavailable',
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictAddFundsSheet',
+    });
+  });
+
+  it('checks eligibility before balance for No button', () => {
+    // Mock user is not eligible AND has no balance
+    mockUsePredictEligibility.mockReturnValue({
+      isEligible: false,
+      refreshEligibility: jest.fn(),
+    });
+    mockUsePredictBalance.mockReturnValue({
+      hasNoBalance: true,
+    });
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketOutcome outcome={mockOutcome} market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const noButton = getByText(/35¢/);
+    fireEvent.press(noButton);
+
+    // Should navigate to unavailable (not add funds sheet)
+    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictUnavailable',
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith('PredictModals', {
       screen: 'PredictAddFundsSheet',
     });
   });
@@ -234,7 +348,7 @@ describe('PredictMarketOutcome', () => {
       ],
     };
 
-    const { getByText } = renderWithProvider(
+    const { getByText, getAllByText } = renderWithProvider(
       <PredictMarketOutcome
         outcome={outcomeWithZeroPriceTokens}
         market={mockMarket}
@@ -243,9 +357,8 @@ describe('PredictMarketOutcome', () => {
     );
 
     expect(getByText('0%')).toBeOnTheScreen();
-    // Should show buttons with 0.00¢ prices
-    expect(getByText('Yes • 0.00¢')).toBeOnTheScreen();
-    expect(getByText('No • 0.00¢')).toBeOnTheScreen();
+    // Should show two buttons with 0.00¢ prices
+    expect(getAllByText(/0¢/)).toHaveLength(2);
   });
 
   it('displays empty title when groupItemTitle is missing', () => {
@@ -331,8 +444,8 @@ describe('PredictMarketOutcome', () => {
         { state: initialState },
       );
 
-      expect(queryByText('Yes • 65.00¢')).not.toBeOnTheScreen();
-      expect(queryByText('No • 35.00¢')).not.toBeOnTheScreen();
+      expect(queryByText(/65¢/)).not.toBeOnTheScreen();
+      expect(queryByText(/35¢/)).not.toBeOnTheScreen();
     });
 
     it('shows action buttons when market is not closed', () => {
@@ -345,8 +458,8 @@ describe('PredictMarketOutcome', () => {
         { state: initialState },
       );
 
-      expect(getByText('Yes • 65.00¢')).toBeOnTheScreen();
-      expect(getByText('No • 35.00¢')).toBeOnTheScreen();
+      expect(getByText(/65¢/)).toBeOnTheScreen();
+      expect(getByText(/35¢/)).toBeOnTheScreen();
     });
 
     it('uses outcomeToken title when market is closed and outcomeToken is provided', () => {

@@ -28,6 +28,8 @@ import {
   selectSourceAmount,
   selectSelectedDestChainId,
   setSourceAmount,
+  setSourceAmountAsMax,
+  selectIsMaxSourceAmount,
   resetBridgeState,
   selectDestToken,
   selectSourceToken,
@@ -83,6 +85,7 @@ import { RootState } from '../../../../../reducers/index.ts';
 import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
 import { isNullOrUndefined } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
+import { useGasIncluded } from '../../hooks/useGasIncluded';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -111,6 +114,7 @@ const BridgeView = () => {
   useGasFeeEstimates(selectedNetworkClientId);
 
   const sourceAmount = useSelector(selectSourceAmount);
+  const isMaxSourceAmount = useSelector(selectIsMaxSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const destChainId = useSelector(selectSelectedDestChainId);
@@ -137,6 +141,9 @@ const BridgeView = () => {
   const inputRef = useRef<{ blur: () => void }>(null);
 
   const updateQuoteParams = useBridgeQuoteRequest();
+
+  // Update gasIncluded state based on source chain capabilities
+  useGasIncluded(sourceToken?.chainId);
 
   const initialSourceToken = route.params?.sourceToken;
   const initialSourceAmount = route.params?.sourceAmount;
@@ -183,8 +190,6 @@ const BridgeView = () => {
     latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
-  const hasQuoteDetails = activeQuote && !isLoading;
-
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
 
@@ -203,9 +208,8 @@ const BridgeView = () => {
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
-  const shouldDisplayQuoteDetails = hasQuoteDetails && !isInputFocused;
-
   const isSubmitDisabled =
+    isLoading ||
     hasInsufficientBalance ||
     isSubmittingTx ||
     (isHardwareAddress && isSolanaSourced) ||
@@ -227,6 +231,8 @@ const BridgeView = () => {
   // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
   const shouldDisplayKeypad =
     isInputFocused || !hasValidBridgeInputs || (!activeQuote && !isError);
+  // Hide quote whenever the keypad is displayed
+  const shouldDisplayQuoteDetails = activeQuote && !shouldDisplayKeypad;
 
   // Update quote parameters when relevant state changes
   useEffect(() => {
@@ -240,13 +246,13 @@ const BridgeView = () => {
 
   // Blur input when quotes have loaded
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading || activeQuote?.quote?.requestId) {
       setIsInputFocused(false);
       if (inputRef.current) {
         inputRef.current.blur();
       }
     }
-  }, [isLoading]);
+  }, [isLoading, activeQuote?.quote?.requestId]);
 
   // Reset bridge state when component unmounts
   useEffect(
@@ -368,7 +374,7 @@ const BridgeView = () => {
       );
     }
 
-    if (isLoading) {
+    if (isLoading && !activeQuote) {
       return (
         <Box style={styles.buttonContainer}>
           <Text color={TextColor.Alternative}>
@@ -429,6 +435,18 @@ const BridgeView = () => {
               description={blockaidError}
             />
           )}
+
+          {!shouldDisplayKeypad && (
+            <Button
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Lg}
+              label={getButtonLabel()}
+              onPress={handleContinue}
+              style={styles.button}
+              testID="bridge-confirm-button"
+              isDisabled={submitDisabled}
+            />
+          )}
           <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center}>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {hasFee
@@ -436,10 +454,10 @@ const BridgeView = () => {
                     feePercentage,
                   })
                 : !hasFee && isNoFeeDestinationAsset
-                ? strings('bridge.no_mm_fee_disclaimer', {
-                    destTokenSymbol: destToken?.symbol,
-                  })
-                : ''}
+                  ? strings('bridge.no_mm_fee_disclaimer', {
+                      destTokenSymbol: destToken?.symbol,
+                    })
+                  : ''}
               {approval
                 ? ` ${strings('bridge.approval_needed', approval)}`
                 : ''}{' '}
@@ -451,15 +469,6 @@ const BridgeView = () => {
               />
             )}
           </Box>
-          <Button
-            variant={ButtonVariants.Primary}
-            size={ButtonSize.Lg}
-            label={getButtonLabel()}
-            onPress={handleContinue}
-            style={styles.button}
-            testID="bridge-confirm-button"
-            isDisabled={submitDisabled}
-          />
         </Box>
       )
     );
@@ -474,6 +483,7 @@ const BridgeView = () => {
           <TokenInputArea
             ref={inputRef}
             amount={sourceAmount}
+            isMaxAmount={isMaxSourceAmount}
             token={sourceToken}
             tokenBalance={latestSourceBalance?.displayBalance}
             networkImageSource={
@@ -491,7 +501,9 @@ const BridgeView = () => {
             onInputPress={() => setIsInputFocused(true)}
             onMaxPress={() => {
               if (latestSourceBalance?.displayBalance) {
-                dispatch(setSourceAmount(latestSourceBalance.displayBalance));
+                dispatch(
+                  setSourceAmountAsMax(latestSourceBalance.displayBalance),
+                );
               }
             }}
             latestAtomicBalance={latestSourceBalance?.atomicBalance}
@@ -519,7 +531,7 @@ const BridgeView = () => {
             testID="dest-token-area"
             tokenType={TokenInputAreaType.Destination}
             onTokenPress={handleDestTokenPress}
-            isLoading={isLoading}
+            isLoading={!destTokenAmount && isLoading}
             style={styles.destTokenArea}
           />
         </Box>

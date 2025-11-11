@@ -19,10 +19,9 @@ export interface ListItemSelectProps
    */
   isDisabled?: boolean;
   /**
-   * Optional prop to enable Android press handling.
-   * @default false
+   * Optional prop to configure the prop of nested ListItem
    */
-  shouldEnableAndroidPressIn?: boolean;
+  listItemProps?: Partial<ListItemProps>;
 }
 
 /**

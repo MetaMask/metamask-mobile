@@ -24,6 +24,7 @@ import type { RootState } from '../';
 import { getDecimalChainId } from '../../util/networks';
 
 export type { FiatOrder } from './types';
+export { UnifiedRampRoutingType } from './types';
 
 /** Action Creators */
 
@@ -132,6 +133,18 @@ export const setFiatSellTxHash = (orderId: string, txHash: string) => ({
 export const removeFiatSellTxHash = (orderId: string) => ({
   type: ACTIONS.FIAT_REMOVE_SELL_TX_HASH,
   payload: orderId,
+});
+
+export const setDetectedGeolocation = (geolocation: string | undefined) => ({
+  type: ACTIONS.FIAT_SET_DETECTED_GEOLOCATION,
+  payload: geolocation,
+});
+
+export const setRampRoutingDecision = (
+  routingDecision: FiatOrdersState['rampRoutingDecision'],
+) => ({
+  type: ACTIONS.FIAT_SET_RAMP_ROUTING_DECISION,
+  payload: routingDecision,
 });
 
 /**
@@ -298,6 +311,16 @@ export const networkShortNameSelector = createSelector(
   },
 );
 
+export const getDetectedGeolocation: (
+  state: RootState,
+) => string | undefined = (state: RootState) =>
+  state.fiatOrders.detectedGeolocation;
+
+export const getRampRoutingDecision: (
+  state: RootState,
+) => FiatOrdersState['rampRoutingDecision'] = (state: RootState) =>
+  state.fiatOrders.rampRoutingDecision;
+
 export const initialState: FiatOrdersState = {
   orders: [],
   customOrderIds: [],
@@ -312,6 +335,8 @@ export const initialState: FiatOrdersState = {
   getStartedDeposit: false,
   authenticationUrls: [],
   activationKeys: [],
+  detectedGeolocation: undefined,
+  rampRoutingDecision: null,
 };
 
 const findOrderIndex = (
@@ -598,6 +623,18 @@ const fiatOrderReducer: (
           },
           ...orders.slice(index + 1),
         ],
+      };
+    }
+    case ACTIONS.FIAT_SET_DETECTED_GEOLOCATION: {
+      return {
+        ...state,
+        detectedGeolocation: action.payload,
+      };
+    }
+    case ACTIONS.FIAT_SET_RAMP_ROUTING_DECISION: {
+      return {
+        ...state,
+        rampRoutingDecision: action.payload,
       };
     }
 

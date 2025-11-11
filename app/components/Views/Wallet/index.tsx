@@ -49,6 +49,7 @@ import { ButtonVariants } from '../../../component-library/components/Buttons/Bu
 import CustomText, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
+import ConditionalScrollView from '../../../component-library/components-temp/ConditionalScrollView';
 import {
   ToastContext,
   ToastVariants,
@@ -101,7 +102,6 @@ import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccou
 import {
   getDecimalChainId,
   getIsNetworkOnboarded,
-  isPortfolioViewEnabled,
   isRemoveGlobalNetworkSelectorEnabled,
   isTestNet,
 } from '../../../util/networks';
@@ -118,6 +118,7 @@ import { Hex, KnownCaipNamespace } from '@metamask/utils';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
@@ -184,7 +185,7 @@ import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 import { useRewardsIntroModal } from '../../UI/Rewards/hooks/useRewardsIntroModal';
-import NftGrid from '../../UI/NftGrid';
+import NftGrid from '../../UI/NftGrid/NftGrid';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 
@@ -247,6 +248,9 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
   );
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
   const isPerpsEnabled = useMemo(
     () =>
       isPerpsFlagEnabled &&
@@ -255,8 +259,8 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   );
   const isPredictFlagEnabled = useSelector(selectPredictEnabledFlag);
   const isPredictEnabled = useMemo(
-    () => isPredictFlagEnabled && isEvmSelected,
-    [isPredictFlagEnabled, isEvmSelected],
+    () => isPredictFlagEnabled,
+    [isPredictFlagEnabled],
   );
 
   const {
@@ -343,6 +347,11 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const perpsTabIndex = isPerpsEnabled ? 1 : -1;
   const isPerpsTabVisible = currentTabIndex === perpsTabIndex;
 
+  // Calculate Predict tab visibility
+  const predictTabIndex =
+    isPerpsEnabled && isPredictEnabled ? 2 : isPredictEnabled ? 1 : -1;
+  const isPredictTabVisible = currentTabIndex === predictTabIndex;
+
   // Store the visibility update callback from PerpsTabView
   const perpsVisibilityCallback = useRef<((visible: boolean) => void) | null>(
     null,
@@ -409,7 +418,11 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
 
     if (isPredictEnabled) {
       tabs.push(
-        <PredictTabView {...predictTabProps} key={predictTabProps.key} />,
+        <PredictTabView
+          {...predictTabProps}
+          key={predictTabProps.key}
+          isVisible={isPredictTabVisible}
+        />,
       );
     }
 
@@ -438,6 +451,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     isPerpsTabVisible,
     isPredictEnabled,
     predictTabProps,
+    isPredictTabVisible,
     defiEnabled,
     defiPositionsTabProps,
     collectiblesEnabled,
@@ -467,7 +481,14 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
 
   return (
     <View style={styles.tabContainer}>
-      <TabsList key={tabsKey} ref={tabsListRef} onChangeTab={handleTabChange}>
+      <TabsList
+        key={tabsKey}
+        ref={tabsListRef}
+        onChangeTab={handleTabChange}
+        tabsListContentTwClassName={
+          isHomepageRedesignV1Enabled ? '!flex-initial' : ''
+        }
+      >
         {tabsToRender}
       </TabsList>
     </View>
@@ -715,9 +736,7 @@ const Wallet = ({
   const collectiblesEnabled = useMemo(() => {
     if (isMultichainAccountsState2Enabled) {
       if (allEnabledNetworks.length === 1) {
-        return allEnabledNetworks.some(
-          (network) => network.chainId !== SolScope.Mainnet,
-        );
+        return isEvmSelected;
       }
       return true;
     }
@@ -922,9 +941,7 @@ const Wallet = ({
     selectAllDetectedTokensFlat,
   ) as TokenI[];
   const currentDetectedTokens =
-    isPortfolioViewEnabled() && isAllNetworks && isPopularNetworks
-      ? allDetectedTokens
-      : detectedTokens;
+    isAllNetworks && isPopularNetworks ? allDetectedTokens : detectedTokens;
   const selectedNetworkClientId = useSelector(selectNetworkClientId);
 
   const chainIdsToDetectNftsFor = useNftDetectionChainIds();
@@ -1057,6 +1074,9 @@ const Wallet = ({
 
   const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
 
   useEffect(() => {
     if (!selectedInternalAccount) return;
@@ -1125,41 +1145,34 @@ const Wallet = ({
         Array.isArray(currentDetectedTokens) &&
         currentDetectedTokens.length > 0
       ) {
-        if (isPortfolioViewEnabled()) {
-          // Group tokens by their `chainId` using a plain object
-          const tokensByChainId: Record<Hex, Token[]> = {};
+        // Group tokens by their `chainId` using a plain object
+        const tokensByChainId: Record<Hex, Token[]> = {};
 
-          for (const token of currentDetectedTokens) {
-            // TODO: [SOLANA] Check if this logic supports non evm networks before shipping Solana
-            const tokenChainId: Hex =
-              (token as TokenI & { chainId: Hex }).chainId ?? chainId;
+        for (const token of currentDetectedTokens) {
+          // TODO: [SOLANA] Check if this logic supports non evm networks before shipping Solana
+          const tokenChainId: Hex =
+            (token as TokenI & { chainId: Hex }).chainId ?? chainId;
 
-            if (!tokensByChainId[tokenChainId]) {
-              tokensByChainId[tokenChainId] = [];
-            }
-
-            tokensByChainId[tokenChainId].push(token);
+          if (!tokensByChainId[tokenChainId]) {
+            tokensByChainId[tokenChainId] = [];
           }
 
-          // Process grouped tokens in parallel
-          const importPromises = Object.entries(tokensByChainId).map(
-            async ([networkId, allTokens]) => {
-              const chainConfig = evmNetworkConfigurations[networkId as Hex];
-              const { defaultRpcEndpointIndex } = chainConfig;
-              const { networkClientId: networkInstanceId } =
-                chainConfig.rpcEndpoints[defaultRpcEndpointIndex];
-
-              await TokensController.addTokens(allTokens, networkInstanceId);
-            },
-          );
-
-          await Promise.all(importPromises);
-        } else {
-          await TokensController.addTokens(
-            currentDetectedTokens,
-            selectedNetworkClientId,
-          );
+          tokensByChainId[tokenChainId].push(token);
         }
+
+        // Process grouped tokens in parallel
+        const importPromises = Object.entries(tokensByChainId).map(
+          async ([networkId, allTokens]) => {
+            const chainConfig = evmNetworkConfigurations[networkId as Hex];
+            const { defaultRpcEndpointIndex } = chainConfig;
+            const { networkClientId: networkInstanceId } =
+              chainConfig.rpcEndpoints[defaultRpcEndpointIndex];
+
+            await TokensController.addTokens(allTokens, networkInstanceId);
+          },
+        );
+
+        await Promise.all(importPromises);
 
         currentDetectedTokens.forEach(
           ({ address, symbol }: { address: string; symbol: string }) => {
@@ -1283,85 +1296,69 @@ const Wallet = ({
   }, [navigation]);
 
   const defiEnabled =
-    (isEvmSelected || isMultichainAccountsState2Enabled) &&
+    isEvmSelected &&
     !enabledNetworksHasTestNet &&
     basicFunctionalityEnabled &&
     assetsDefiPositionsEnabled;
 
-  const renderContent = useCallback(
-    () => (
-      <View
-        style={styles.wrapper}
-        testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
-      >
-        <AssetPollingProvider />
-        <View style={styles.banner}>
-          {!basicFunctionalityEnabled ? (
-            <BannerAlert
-              severity={BannerAlertSeverity.Error}
-              title={strings('wallet.banner.title')}
-              description={
-                <CustomText
-                  color={TextColor.Info}
-                  onPress={turnOnBasicFunctionality}
-                >
-                  {strings('wallet.banner.link')}
-                </CustomText>
-              }
-            />
-          ) : null}
-          <NetworkConnectionBanner />
-        </View>
-        <>
-          {isMultichainAccountsState2Enabled ? (
-            <AccountGroupBalance />
-          ) : (
-            <PortfolioBalance />
-          )}
-
-          <AssetDetailsActions
-            displayBuyButton={displayBuyButton}
-            displaySwapsButton={displaySwapsButton}
-            goToSwaps={goToSwaps}
-            onReceive={onReceive}
-            onSend={onSend}
-            buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-            swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-            sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-            receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
-          />
-
-          {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
-
-          <WalletTokensTabView
-            navigation={navigation}
-            onChangeTab={onChangeTab}
-            defiEnabled={defiEnabled}
-            collectiblesEnabled={collectiblesEnabled}
-            navigationParams={route.params}
-          />
-        </>
-      </View>
-    ),
-    [
-      styles.banner,
-      styles.carousel,
+  const scrollViewContentStyle = useMemo(
+    () => [
       styles.wrapper,
-      basicFunctionalityEnabled,
-      defiEnabled,
-      isMultichainAccountsState2Enabled,
-      turnOnBasicFunctionality,
-      onChangeTab,
-      navigation,
-      goToSwaps,
-      displayBuyButton,
-      displaySwapsButton,
-      onReceive,
-      onSend,
-      route.params,
-      isCarouselBannersEnabled,
-      collectiblesEnabled,
+      isHomepageRedesignV1Enabled && { flex: undefined, flexGrow: 0 },
     ],
+    [styles.wrapper, isHomepageRedesignV1Enabled],
+  );
+
+  const content = (
+    <>
+      <AssetPollingProvider />
+      <View style={styles.banner}>
+        {!basicFunctionalityEnabled ? (
+          <BannerAlert
+            severity={BannerAlertSeverity.Error}
+            title={strings('wallet.banner.title')}
+            description={
+              <CustomText
+                color={TextColor.Info}
+                onPress={turnOnBasicFunctionality}
+              >
+                {strings('wallet.banner.link')}
+              </CustomText>
+            }
+          />
+        ) : null}
+        <NetworkConnectionBanner />
+      </View>
+      <>
+        {isMultichainAccountsState2Enabled ? (
+          <AccountGroupBalance />
+        ) : (
+          <PortfolioBalance />
+        )}
+
+        <AssetDetailsActions
+          displayBuyButton={displayBuyButton}
+          displaySwapsButton={displaySwapsButton}
+          goToSwaps={goToSwaps}
+          onReceive={onReceive}
+          onSend={onSend}
+          buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+          swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+          sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+          receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+        />
+
+        {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+
+        <WalletTokensTabView
+          navigation={navigation}
+          onChangeTab={onChangeTab}
+          defiEnabled={defiEnabled}
+          collectiblesEnabled={collectiblesEnabled}
+          navigationParams={route.params}
+        />
+      </>
+    </>
   );
   const renderLoader = useCallback(
     () => (
@@ -1375,7 +1372,24 @@ const Wallet = ({
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
       <View style={baseStyles.flexGrow}>
-        {selectedInternalAccount ? renderContent() : renderLoader()}
+        {selectedInternalAccount ? (
+          <View
+            style={styles.wrapper}
+            testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+          >
+            <ConditionalScrollView
+              isScrollEnabled={isHomepageRedesignV1Enabled}
+              scrollViewProps={{
+                contentContainerStyle: scrollViewContentStyle,
+                showsVerticalScrollIndicator: false,
+              }}
+            >
+              {content}
+            </ConditionalScrollView>
+          </View>
+        ) : (
+          renderLoader()
+        )}
       </View>
     </ErrorBoundary>
   );

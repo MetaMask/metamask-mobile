@@ -24,6 +24,18 @@ import cardReducer, {
   setAuthenticatedPriorityToken,
   setAuthenticatedPriorityTokenLastFetched,
   verifyCardAuthentication,
+  setOnboardingId,
+  setSelectedCountry,
+  setContactVerificationId,
+  setConsentSetId,
+  resetOnboardingState,
+  setCacheData,
+  clearCacheData,
+  clearAllCache,
+  selectOnboardingId,
+  selectSelectedCountry,
+  selectContactVerificationId,
+  selectConsentSetId,
 } from '.';
 import {
   CardTokenAllowance,
@@ -94,8 +106,7 @@ const CARDHOLDER_ACCOUNTS_MOCK: string[] = [
 
 const MOCK_PRIORITY_TOKEN: CardTokenAllowance = {
   address: '0xToken1',
-  chainId: '1',
-  isStaked: false,
+  caipChainId: 'eip155:1' as const,
   decimals: 18,
   symbol: 'USDC',
   name: 'USD Coin',
@@ -121,6 +132,16 @@ const CARD_STATE_MOCK: CardSliceState = {
   geoLocation: 'US',
   isAuthenticated: false,
   userCardLocation: 'international',
+  onboarding: {
+    onboardingId: null,
+    selectedCountry: null,
+    contactVerificationId: null,
+    consentSetId: null,
+  },
+  cache: {
+    data: {},
+    timestamps: {},
+  },
 };
 
 const EMPTY_CARD_STATE_MOCK: CardSliceState = {
@@ -135,6 +156,16 @@ const EMPTY_CARD_STATE_MOCK: CardSliceState = {
   geoLocation: 'UNKNOWN',
   isAuthenticated: false,
   userCardLocation: 'international',
+  onboarding: {
+    onboardingId: null,
+    selectedCountry: null,
+    contactVerificationId: null,
+    consentSetId: null,
+  },
+  cache: {
+    data: {},
+    timestamps: {},
+  },
 };
 
 // Mock account object that matches the expected structure
@@ -301,6 +332,116 @@ describe('Card Selectors', () => {
       expect(selectIsCardholder(mockRootState)).toBe(false);
     });
   });
+
+  describe('Onboarding Selectors', () => {
+    describe('selectOnboardingId', () => {
+      it('should return null by default from initial state', () => {
+        const mockRootState = { card: initialState } as unknown as RootState;
+        expect(selectOnboardingId(mockRootState)).toBe(null);
+      });
+
+      it('should return the onboarding ID when set', () => {
+        const onboardingId = 'test-onboarding-123';
+        const stateWithOnboardingId: CardSliceState = {
+          ...initialState,
+          onboarding: {
+            ...initialState.onboarding,
+            onboardingId,
+          },
+        };
+        const mockRootState = {
+          card: stateWithOnboardingId,
+        } as unknown as RootState;
+        expect(selectOnboardingId(mockRootState)).toBe(onboardingId);
+      });
+    });
+
+    describe('selectSelectedCountry', () => {
+      it('should return null by default from initial state', () => {
+        const mockRootState = { card: initialState } as unknown as RootState;
+        expect(selectSelectedCountry(mockRootState)).toBe(null);
+      });
+
+      it('should return the selected country when set', () => {
+        const selectedCountry = 'US';
+        const stateWithCountry: CardSliceState = {
+          ...initialState,
+          onboarding: {
+            ...initialState.onboarding,
+            selectedCountry,
+          },
+        };
+        const mockRootState = {
+          card: stateWithCountry,
+        } as unknown as RootState;
+        expect(selectSelectedCountry(mockRootState)).toBe(selectedCountry);
+      });
+
+      it('should handle different country codes', () => {
+        const countryCodes = ['US', 'GB', 'CA', 'DE', 'FR', 'JP'];
+
+        countryCodes.forEach((countryCode) => {
+          const stateWithCountry: CardSliceState = {
+            ...initialState,
+            onboarding: {
+              ...initialState.onboarding,
+              selectedCountry: countryCode,
+            },
+          };
+          const mockRootState = {
+            card: stateWithCountry,
+          } as unknown as RootState;
+          expect(selectSelectedCountry(mockRootState)).toBe(countryCode);
+        });
+      });
+    });
+
+    describe('selectContactVerificationId', () => {
+      it('should return null by default from initial state', () => {
+        const mockRootState = { card: initialState } as unknown as RootState;
+        expect(selectContactVerificationId(mockRootState)).toBe(null);
+      });
+
+      it('should return the contact verification ID when set', () => {
+        const contactVerificationId = 'verification-456';
+        const stateWithVerificationId: CardSliceState = {
+          ...initialState,
+          onboarding: {
+            ...initialState.onboarding,
+            contactVerificationId,
+          },
+        };
+        const mockRootState = {
+          card: stateWithVerificationId,
+        } as unknown as RootState;
+        expect(selectContactVerificationId(mockRootState)).toBe(
+          contactVerificationId,
+        );
+      });
+    });
+
+    describe('selectConsentSetId', () => {
+      it('should return null by default from initial state', () => {
+        const mockRootState = { card: initialState } as unknown as RootState;
+        expect(selectConsentSetId(mockRootState)).toBe(null);
+      });
+
+      it('should return the consent set ID when set', () => {
+        const consentSetId = 'consent-789';
+        const stateWithConsentSetId: CardSliceState = {
+          ...initialState,
+          onboarding: {
+            ...initialState.onboarding,
+            consentSetId,
+          },
+        };
+        const mockRootState = {
+          card: stateWithConsentSetId,
+        } as unknown as RootState;
+        expect(selectConsentSetId(mockRootState)).toBe(consentSetId);
+      });
+    });
+  });
 });
 
 describe('Card Reducer', () => {
@@ -407,6 +548,16 @@ describe('Card Reducer', () => {
         geoLocation: 'US',
         isAuthenticated: false,
         userCardLocation: 'us',
+        onboarding: {
+          onboardingId: null,
+          selectedCountry: null,
+          contactVerificationId: null,
+          consentSetId: null,
+        },
+        cache: {
+          data: {},
+          timestamps: {},
+        },
       };
 
       const state = cardReducer(currentState, resetCardState());
@@ -433,6 +584,439 @@ describe('Card Reducer', () => {
         };
         const state = cardReducer(current, setHasViewedCardButton(false));
         expect(state.hasViewedCardButton).toBe(false);
+      });
+    });
+
+    describe('onboarding actions', () => {
+      describe('setOnboardingId', () => {
+        it('should set onboardingId', () => {
+          const onboardingId = 'test-onboarding-123';
+          const state = cardReducer(
+            initialState,
+            setOnboardingId(onboardingId),
+          );
+          expect(state.onboarding.onboardingId).toBe(onboardingId);
+          // ensure other parts of state untouched
+          expect(state.onboarding.selectedCountry).toBe(null);
+          expect(state.onboarding.contactVerificationId).toBe(null);
+          expect(state.onboarding.consentSetId).toBe(null);
+        });
+
+        it('should update onboardingId when previously set', () => {
+          const current: CardSliceState = {
+            ...initialState,
+            onboarding: {
+              ...initialState.onboarding,
+              onboardingId: 'old-id',
+            },
+          };
+          const newId = 'new-onboarding-456';
+          const state = cardReducer(current, setOnboardingId(newId));
+          expect(state.onboarding.onboardingId).toBe(newId);
+        });
+
+        it('should set onboardingId to null', () => {
+          const current: CardSliceState = {
+            ...initialState,
+            onboarding: {
+              ...initialState.onboarding,
+              onboardingId: 'existing-id',
+            },
+          };
+          const state = cardReducer(current, setOnboardingId(null));
+          expect(state.onboarding.onboardingId).toBe(null);
+        });
+      });
+
+      describe('setSelectedCountry', () => {
+        it('should set selectedCountry', () => {
+          const country = 'US';
+          const state = cardReducer(initialState, setSelectedCountry(country));
+          expect(state.onboarding.selectedCountry).toBe(country);
+          // ensure other parts of state untouched
+          expect(state.onboarding.onboardingId).toBe(null);
+          expect(state.onboarding.contactVerificationId).toBe(null);
+          expect(state.onboarding.consentSetId).toBe(null);
+        });
+
+        it('should update selectedCountry when previously set', () => {
+          const current: CardSliceState = {
+            ...initialState,
+            onboarding: {
+              ...initialState.onboarding,
+              selectedCountry: 'GB',
+            },
+          };
+          const newCountry = 'CA';
+          const state = cardReducer(current, setSelectedCountry(newCountry));
+          expect(state.onboarding.selectedCountry).toBe(newCountry);
+        });
+
+        it('should set selectedCountry to null', () => {
+          const current: CardSliceState = {
+            ...initialState,
+            onboarding: {
+              ...initialState.onboarding,
+              selectedCountry: 'US',
+            },
+          };
+          const state = cardReducer(current, setSelectedCountry(null));
+          expect(state.onboarding.selectedCountry).toBe(null);
+        });
+      });
+
+      describe('setContactVerificationId', () => {
+        it('should set contactVerificationId', () => {
+          const verificationId = 'verification-123';
+          const state = cardReducer(
+            initialState,
+            setContactVerificationId(verificationId),
+          );
+          expect(state.onboarding.contactVerificationId).toBe(verificationId);
+          // ensure other parts of state untouched
+          expect(state.onboarding.onboardingId).toBe(null);
+          expect(state.onboarding.selectedCountry).toBe(null);
+          expect(state.onboarding.consentSetId).toBe(null);
+        });
+
+        it('should update contactVerificationId when previously set', () => {
+          const current: CardSliceState = {
+            ...initialState,
+            onboarding: {
+              ...initialState.onboarding,
+              contactVerificationId: 'old-verification',
+            },
+          };
+          const newVerificationId = 'new-verification-456';
+          const state = cardReducer(
+            current,
+            setContactVerificationId(newVerificationId),
+          );
+          expect(state.onboarding.contactVerificationId).toBe(
+            newVerificationId,
+          );
+        });
+
+        it('should set contactVerificationId to null', () => {
+          const current: CardSliceState = {
+            ...initialState,
+            onboarding: {
+              ...initialState.onboarding,
+              contactVerificationId: 'existing-verification',
+            },
+          };
+          const state = cardReducer(current, setContactVerificationId(null));
+          expect(state.onboarding.contactVerificationId).toBe(null);
+        });
+      });
+
+      describe('setConsentSetId', () => {
+        it('should set consentSetId', () => {
+          const consentSetId = 'consent-123';
+          const state = cardReducer(
+            initialState,
+            setConsentSetId(consentSetId),
+          );
+          expect(state.onboarding.consentSetId).toBe(consentSetId);
+          // ensure other parts of state untouched
+          expect(state.onboarding.onboardingId).toBe(null);
+          expect(state.onboarding.selectedCountry).toBe(null);
+          expect(state.onboarding.contactVerificationId).toBe(null);
+        });
+
+        it('should update consentSetId when previously set', () => {
+          const current: CardSliceState = {
+            ...initialState,
+            onboarding: {
+              ...initialState.onboarding,
+              consentSetId: 'old-consent',
+            },
+          };
+          const newConsentSetId = 'new-consent-456';
+          const state = cardReducer(current, setConsentSetId(newConsentSetId));
+          expect(state.onboarding.consentSetId).toBe(newConsentSetId);
+        });
+
+        it('should set consentSetId to null', () => {
+          const current: CardSliceState = {
+            ...initialState,
+            onboarding: {
+              ...initialState.onboarding,
+              consentSetId: 'existing-consent',
+            },
+          };
+          const state = cardReducer(current, setConsentSetId(null));
+          expect(state.onboarding.consentSetId).toBe(null);
+        });
+      });
+
+      describe('resetOnboardingState', () => {
+        it('should reset all onboarding state to initial values', () => {
+          const current: CardSliceState = {
+            ...initialState,
+            onboarding: {
+              onboardingId: 'test-id',
+              selectedCountry: 'US',
+              contactVerificationId: 'verification-123',
+              consentSetId: 'consent-456',
+            },
+          };
+          const state = cardReducer(current, resetOnboardingState());
+          expect(state.onboarding).toEqual({
+            onboardingId: null,
+            selectedCountry: null,
+            contactVerificationId: null,
+            consentSetId: null,
+          });
+          // ensure other parts of state untouched
+          expect(state.cardholderAccounts).toEqual(current.cardholderAccounts);
+          expect(state.geoLocation).toBe(current.geoLocation);
+        });
+
+        it('should reset onboarding state when already at initial values', () => {
+          const state = cardReducer(initialState, resetOnboardingState());
+          expect(state.onboarding).toEqual({
+            onboardingId: null,
+            selectedCountry: null,
+            contactVerificationId: null,
+            consentSetId: null,
+          });
+        });
+      });
+    });
+
+    describe('Cache Actions', () => {
+      describe('setCacheData', () => {
+        it('should set cache data with key, data, and timestamp', () => {
+          const cacheKey = 'test-key';
+          const cacheData = { value: 'test-data' };
+          const timestamp = Date.now();
+
+          const state = cardReducer(
+            initialState,
+            setCacheData({
+              key: cacheKey,
+              data: cacheData,
+              timestamp,
+            }),
+          );
+
+          expect(state.cache.data[cacheKey]).toEqual(cacheData);
+          expect(state.cache.timestamps[cacheKey]).toBe(timestamp);
+        });
+
+        it('should handle different data types', () => {
+          const testCases = [
+            { key: 'string-data', data: 'test string', timestamp: 1000 },
+            { key: 'number-data', data: 42, timestamp: 2000 },
+            { key: 'boolean-data', data: true, timestamp: 3000 },
+            { key: 'array-data', data: [1, 2, 3], timestamp: 4000 },
+            {
+              key: 'object-data',
+              data: { nested: { value: 'test' } },
+              timestamp: 5000,
+            },
+            { key: 'null-data', data: null, timestamp: 6000 },
+          ];
+
+          let state = initialState;
+          testCases.forEach(({ key, data, timestamp }) => {
+            state = cardReducer(state, setCacheData({ key, data, timestamp }));
+          });
+
+          testCases.forEach(({ key, data, timestamp }) => {
+            expect(state.cache.data[key]).toEqual(data);
+            expect(state.cache.timestamps[key]).toBe(timestamp);
+          });
+        });
+
+        it('should overwrite existing cache data for the same key', () => {
+          const cacheKey = 'overwrite-test';
+          const oldData = { value: 'old' };
+          const newData = { value: 'new' };
+          const oldTimestamp = 1000;
+          const newTimestamp = 2000;
+
+          let state = cardReducer(
+            initialState,
+            setCacheData({
+              key: cacheKey,
+              data: oldData,
+              timestamp: oldTimestamp,
+            }),
+          );
+
+          state = cardReducer(
+            state,
+            setCacheData({
+              key: cacheKey,
+              data: newData,
+              timestamp: newTimestamp,
+            }),
+          );
+
+          expect(state.cache.data[cacheKey]).toEqual(newData);
+          expect(state.cache.timestamps[cacheKey]).toBe(newTimestamp);
+        });
+
+        it('should not affect other cache entries', () => {
+          const existingKey = 'existing';
+          const existingData = { value: 'existing' };
+          const existingTimestamp = 1000;
+
+          const newKey = 'new';
+          const newData = { value: 'new' };
+          const newTimestamp = 2000;
+
+          let state = cardReducer(
+            initialState,
+            setCacheData({
+              key: existingKey,
+              data: existingData,
+              timestamp: existingTimestamp,
+            }),
+          );
+
+          state = cardReducer(
+            state,
+            setCacheData({
+              key: newKey,
+              data: newData,
+              timestamp: newTimestamp,
+            }),
+          );
+
+          expect(state.cache.data[existingKey]).toEqual(existingData);
+          expect(state.cache.timestamps[existingKey]).toBe(existingTimestamp);
+          expect(state.cache.data[newKey]).toEqual(newData);
+          expect(state.cache.timestamps[newKey]).toBe(newTimestamp);
+        });
+      });
+
+      describe('clearCacheData', () => {
+        it('should clear cache data for specific key', () => {
+          const cacheKey = 'test-key';
+          const cacheData = { value: 'test-data' };
+          const timestamp = Date.now();
+
+          let state = cardReducer(
+            initialState,
+            setCacheData({
+              key: cacheKey,
+              data: cacheData,
+              timestamp,
+            }),
+          );
+
+          state = cardReducer(state, clearCacheData(cacheKey));
+
+          expect(state.cache.data[cacheKey]).toBeUndefined();
+          expect(state.cache.timestamps[cacheKey]).toBeUndefined();
+        });
+
+        it('should only clear the specified key, not others', () => {
+          const key1 = 'key1';
+          const key2 = 'key2';
+          const data1 = { value: 'data1' };
+          const data2 = { value: 'data2' };
+          const timestamp1 = 1000;
+          const timestamp2 = 2000;
+
+          let state = cardReducer(
+            initialState,
+            setCacheData({ key: key1, data: data1, timestamp: timestamp1 }),
+          );
+
+          state = cardReducer(
+            state,
+            setCacheData({ key: key2, data: data2, timestamp: timestamp2 }),
+          );
+
+          state = cardReducer(state, clearCacheData(key1));
+
+          expect(state.cache.data[key1]).toBeUndefined();
+          expect(state.cache.timestamps[key1]).toBeUndefined();
+          expect(state.cache.data[key2]).toEqual(data2);
+          expect(state.cache.timestamps[key2]).toBe(timestamp2);
+        });
+
+        it('should handle clearing non-existent key gracefully', () => {
+          const nonExistentKey = 'non-existent';
+          const existingKey = 'existing';
+          const existingData = { value: 'existing' };
+          const existingTimestamp = 1000;
+
+          let state = cardReducer(
+            initialState,
+            setCacheData({
+              key: existingKey,
+              data: existingData,
+              timestamp: existingTimestamp,
+            }),
+          );
+
+          state = cardReducer(state, clearCacheData(nonExistentKey));
+
+          expect(state.cache.data[existingKey]).toEqual(existingData);
+          expect(state.cache.timestamps[existingKey]).toBe(existingTimestamp);
+          expect(state.cache.data[nonExistentKey]).toBeUndefined();
+          expect(state.cache.timestamps[nonExistentKey]).toBeUndefined();
+        });
+      });
+
+      describe('clearAllCache', () => {
+        it('should clear all cache data and timestamps', () => {
+          const testData = [
+            { key: 'key1', data: { value: 'data1' }, timestamp: 1000 },
+            { key: 'key2', data: { value: 'data2' }, timestamp: 2000 },
+            { key: 'key3', data: { value: 'data3' }, timestamp: 3000 },
+          ];
+
+          let state = initialState;
+          testData.forEach(({ key, data, timestamp }) => {
+            state = cardReducer(state, setCacheData({ key, data, timestamp }));
+          });
+
+          // Verify data was set
+          testData.forEach(({ key, data, timestamp }) => {
+            expect(state.cache.data[key]).toEqual(data);
+            expect(state.cache.timestamps[key]).toBe(timestamp);
+          });
+
+          state = cardReducer(state, clearAllCache());
+
+          expect(state.cache.data).toEqual({});
+          expect(state.cache.timestamps).toEqual({});
+        });
+
+        it('should not affect other state properties', () => {
+          const testData = {
+            key: 'test',
+            data: { value: 'test' },
+            timestamp: 1000,
+          };
+
+          let state = cardReducer(initialState, setCacheData(testData));
+
+          state = cardReducer(state, clearAllCache());
+
+          expect(state.cache.data).toEqual({});
+          expect(state.cache.timestamps).toEqual({});
+          expect(state.cardholderAccounts).toEqual(
+            initialState.cardholderAccounts,
+          );
+          expect(state.priorityTokensByAddress).toEqual(
+            initialState.priorityTokensByAddress,
+          );
+          expect(state.onboarding).toEqual(initialState.onboarding);
+        });
+
+        it('should work when cache is already empty', () => {
+          const state = cardReducer(initialState, clearAllCache());
+
+          expect(state.cache.data).toEqual({});
+          expect(state.cache.timestamps).toEqual({});
+        });
       });
     });
   });

@@ -51,12 +51,10 @@ test('Account creation after fresh install', async ({
 
   await CreateNewWalletScreen.tapSubmitButton();
   await CreateNewWalletScreen.tapRemindMeLater();
-  await SkipAccountSecurityModal.isVisible();
 
-  await SkipAccountSecurityModal.proceedWithoutWalletSecure();
   await MetaMetricsScreen.isScreenTitleVisible();
 
-  await MetaMetricsScreen.tapIAgreeButton();
+  await MetaMetricsScreen.tapContinueButton();
   await OnboardingSucessScreen.isVisible();
 
   await OnboardingSucessScreen.tapDone();

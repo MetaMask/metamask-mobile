@@ -68,7 +68,7 @@ const createMockAccountGroup = (
     type: AccountGroupType.SingleAccount,
     accounts: accounts as [string, ...string[]],
     metadata: { name },
-  } as unknown as AccountGroupObject);
+  }) as unknown as AccountGroupObject;
 
 const createMockGroup = (accounts: string[]) => ({ accounts });
 
@@ -112,7 +112,7 @@ const createMockState = (
         },
       },
     },
-  } as unknown as RootState);
+  }) as unknown as RootState;
 
 const createStateWithSelectedAccount = (
   accountTreeController: Record<string, unknown> | undefined,
@@ -153,7 +153,7 @@ const createStateWithSelectedAccount = (
         },
       },
     },
-  } as unknown as RootState);
+  }) as unknown as RootState;
 
 // Common test data
 const mockWallet1 = createMockWallet(WALLET_ID_1, 'Wallet 1', {

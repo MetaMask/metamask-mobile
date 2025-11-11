@@ -171,6 +171,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           activeOpacity={1}
           onPress={[Function]}
           onPressIn={[Function]}
+          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",
@@ -245,6 +246,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           activeOpacity={1}
           onPress={[Function]}
           onPressIn={[Function]}
+          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",
@@ -534,6 +536,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           activeOpacity={1}
           onPress={[Function]}
           onPressIn={[Function]}
+          onPressOut={[Function]}
           style={
             {
               "alignItems": "center",
@@ -844,6 +847,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             activeOpacity={1}
             onPress={[Function]}
             onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -929,6 +933,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             activeOpacity={1}
             onPress={[Function]}
             onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -1013,6 +1018,9 @@ exports[`SecuritySettings should render correctly 1`] = `
             accessible={true}
             activeOpacity={1}
             disabled={true}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -1095,6 +1103,9 @@ exports[`SecuritySettings should render correctly 1`] = `
             accessible={true}
             activeOpacity={1}
             disabled={true}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -2146,6 +2157,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             disabled={false}
             onPress={[Function]}
             onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -2233,6 +2245,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             disabled={false}
             onPress={[Function]}
             onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",

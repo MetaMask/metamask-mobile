@@ -201,6 +201,20 @@ describe('useContacts', () => {
     expect(result.current).toEqual([]);
   });
 
+  it('returns empty array when isNonEvmSendType is true', () => {
+    mockUseSendType.mockReturnValue({
+      isEvmSendType: true,
+      isSolanaSendType: false,
+      isEvmNativeSendType: false,
+      isNonEvmSendType: true,
+      isNonEvmNativeSendType: false,
+      isBitcoinSendType: false,
+      isTronSendType: false,
+    });
+    const { result } = renderHook(() => useContacts());
+    expect(result.current).toEqual([]);
+  });
+
   it('handles address book with empty chains', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectAddressBook) {
@@ -291,6 +305,34 @@ describe('useContacts', () => {
       expect(result.current[0].address).toBe(
         '0x1234567890123456789012345678901234567890',
       );
+    });
+
+    it('filters out zero address burn address', () => {
+      const burnAddressBook = {
+        '1': {
+          contact1: mockEvmContact1,
+          burnContact: {
+            name: 'Burn Address',
+            address: '0x0000000000000000000000000000000000000000',
+          },
+        },
+      };
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAddressBook) {
+          return burnAddressBook;
+        }
+        return {};
+      });
+
+      const { result } = renderHook(() => useContacts());
+
+      expect(result.current).toHaveLength(1);
+      expect(result.current[0].address).toBe(mockEvmContact1.address);
+      expect(
+        result.current.find(
+          (c) => c.address === '0x0000000000000000000000000000000000000000',
+        ),
+      ).toBeUndefined();
     });
   });
 });

@@ -96,7 +96,7 @@ export const ADD_CUSTOM_NETWORK_ARTCILE =
   'https://support.metamask.io/networks-and-sidechains/managing-networks/verifying-custom-network-information/';
 
 export const LEDGER_SUPPORT_LINK =
-  'https://support.ledger.com/hc/en-us/articles/360009576554-Ethereum-ETH-?docs=true';
+  'https://support.ledger.com/article/16748796611613-zd';
 
 export const GOERLI_DEPRECATED_ARTICLE =
   'https://github.com/eth-clients/goerli#goerli-goerlitzer-testnet';

@@ -11,7 +11,9 @@ import {
   PerpsOrderTransactionStatusType,
   PerpsTransaction,
 } from '../types/transactionHistory';
+import { formatOrderLabel } from './orderUtils';
 import { strings } from '../../../../../locales/i18n';
+import { getPerpsDisplaySymbol } from './marketUtils';
 
 export interface WithdrawalRequest {
   id: string;
@@ -158,7 +160,7 @@ export function transformFillsToTransactions(
       type: 'trade',
       category: isOpened ? 'position_open' : 'position_close',
       title,
-      subtitle: `${size} ${symbol}`,
+      subtitle: `${size} ${getPerpsDisplaySymbol(symbol)}`,
       timestamp,
       asset: symbol,
       fill: {
@@ -199,7 +201,6 @@ export function transformOrdersToTransactions(
     const {
       orderId,
       symbol,
-      side,
       orderType,
       size,
       originalSize,
@@ -214,8 +215,9 @@ export function transformOrdersToTransactions(
     const isRejected = status === 'rejected';
     const isTriggered = status === 'triggered';
 
-    const title = `${side === 'buy' ? 'Long' : 'Short'} ${orderType}`;
-    const subtitle = `${originalSize || '0'} ${symbol}`;
+    // Use centralized order label formatting
+    const title = formatOrderLabel(order);
+    const subtitle = `${originalSize || '0'} ${getPerpsDisplaySymbol(symbol)}`;
 
     const orderTypeSlug = orderType.toLowerCase().split(' ').join('_');
 
@@ -297,7 +299,7 @@ export function transformFundingToTransactions(
       type: 'funding',
       category: 'funding_fee',
       title: `${isPositive ? 'Received' : 'Paid'} funding fee`,
-      subtitle: symbol,
+      subtitle: getPerpsDisplaySymbol(symbol),
       timestamp,
       asset: symbol,
       fundingAmount: {

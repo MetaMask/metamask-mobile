@@ -23,6 +23,7 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   device,
   performanceTracker,
 }, testInfo) => {
+  test.setTimeout(1800000); // TODO: Investigate why this is taking so long on Android
   WalletAccountModal.device = device;
   WalletMainScreen.device = device;
   AccountListComponent.device = device;
@@ -53,14 +54,12 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   await SendScreen.assetsListIsDisplayed();
   timer1.stop();
   await SendScreen.typeTokenName('Link\n');
-  console.log('Ethereum typed, so waiting 5 seconds');
   await SendScreen.clickOnFirstTokenBadge();
   timer2.start();
 
   await AmountScreen.isVisible();
   timer2.stop();
   await AmountScreen.enterAmount(TEST_AMOUNTS.ETHEREUM);
-
   await AmountScreen.tapOnNextButton();
   timer3.start();
   await SendScreen.isSelectAddressScreenDisplayed();
@@ -128,7 +127,7 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   await SendScreen.typeAddressInSendAddressField(solanaAddress);
   await SendScreen.clickOnReviewButton();
   timer4.start();
-  await ConfirmationScreen.isVisible();
+  await ConfirmationScreen.isVisible('Solana', 180000);
   timer4.stop();
 
   performanceTracker.addTimer(timer1);

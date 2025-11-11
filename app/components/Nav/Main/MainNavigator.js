@@ -13,7 +13,6 @@ import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
 import BackupAndSyncSettings from '../../Views/Settings/Identity/BackupAndSyncSettings';
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
-import NetworksSettings from '../../Views/Settings/NetworksSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
 import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
@@ -21,11 +20,14 @@ import OptIn from '../../Views/Notifications/OptIn';
 import AppInformation from '../../Views/Settings/AppInformation';
 import DeveloperOptions from '../../Views/Settings/DeveloperOptions';
 import Contacts from '../../Views/Settings/Contacts';
+import FeatureFlagOverride from '../../Views/FeatureFlagOverride';
 import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
+import NftFullView from '../../Views/NftFullView';
+import TokensFullView from '../../Views/TokensFullView';
 import SendLegacy from '../../Views/confirmations/legacy/Send';
 import SendTo from '../../Views/confirmations/legacy/SendFlow/SendTo';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
@@ -48,6 +50,7 @@ import { Confirm as RedesignedConfirm } from '../../Views/confirmations/componen
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
+import TrendingView from '../../Views/TrendingView';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
@@ -57,6 +60,7 @@ import RampRoutes from '../../UI/Ramp/Aggregator/routes';
 import { RampType } from '../../UI/Ramp/Aggregator/types';
 import RampSettings from '../../UI/Ramp/Aggregator/Views/Settings';
 import RampActivationKeyForm from '../../UI/Ramp/Aggregator/Views/Settings/ActivationKeyForm';
+import RampTokenSelection from '../../UI/Ramp/components/TokenSelection';
 
 import DepositOrderDetails from '../../UI/Ramp/Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import DepositRoutes from '../../UI/Ramp/Deposit/routes';
@@ -104,6 +108,7 @@ import {
   selectPredictEnabledFlag,
 } from '../../UI/Predict';
 import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
+import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
 import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
@@ -124,6 +129,13 @@ import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/Level
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import ReferralBottomSheetModal from '../../UI/Rewards/components/ReferralBottomSheetModal';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
+import { getImportTokenNavbarOptions } from '../../UI/Navbar';
+import {
+  TOKEN_TITLE,
+  NFT_TITLE,
+  TOKEN,
+} from '../../Views/AddAsset/AddAsset.constants';
+import { strings } from '../../../../locales/i18n';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -197,19 +209,9 @@ const WalletTabStackFlow = () => (
       options={{ headerShown: false }}
     />
     <Stack.Screen
-      name="AddAsset"
-      component={AddAsset}
-      options={AddAsset.navigationOptions}
-    />
-    <Stack.Screen
       name="Collectible"
       component={Collectible}
       options={Collectible.navigationOptions}
-    />
-    <Stack.Screen
-      name="ConfirmAddAsset"
-      component={ConfirmAddAsset}
-      options={ConfirmAddAsset.navigationOptions}
     />
     <Stack.Screen
       name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
@@ -273,6 +275,25 @@ const RewardsHome = () => (
     <Stack.Screen
       name={Routes.MODAL.REWARDS_REFERRAL_BOTTOM_SHEET_MODAL}
       component={ReferralBottomSheetModal}
+    />
+  </Stack.Navigator>
+);
+
+// Persist the last trending screen across unmounts
+export const lastTrendingScreenRef = { current: 'TrendingFeed' };
+
+// Callback to update the last trending screen (outside component to persist)
+export const updateLastTrendingScreen = (screenName) => {
+  // eslint-disable-next-line react-compiler/react-compiler
+  lastTrendingScreenRef.current = screenName;
+};
+
+const TrendingHome = () => (
+  <Stack.Navigator mode="modal" screenOptions={clearStackNavigatorOptions}>
+    <Stack.Screen
+      name={Routes.TRENDING_VIEW}
+      component={TrendingView}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
@@ -398,11 +419,6 @@ const SettingsFlow = () => (
       options={ExperimentalSettings.navigationOptions}
     />
     <Stack.Screen
-      name="NetworksSettings"
-      component={NetworksSettings}
-      options={NetworksSettings.navigationOptions}
-    />
-    <Stack.Screen
       name="CompanySettings"
       component={AppInformation}
       options={AppInformation.navigationOptions}
@@ -512,6 +528,9 @@ const HomeTabs = () => {
   const accountsLength = useSelector(selectAccountsLength);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
   const rewardsSubscription = useSelector(selectRewardsSubscriptionId);
+  const isAssetsTrendingTokensEnabled = useSelector(
+    selectAssetsTrendingTokensEnabled,
+  );
 
   const chainId = useSelector((state) => {
     const providerConfig = selectProviderConfig(state);
@@ -580,6 +599,18 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.REWARDS_VIEW,
+      unmountOnBlur: true,
+    },
+    trending: {
+      tabBarIconKey: TabBarIconKey.Trending,
+      callback: () => {
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.NAVIGATION_TAPS_TRENDING,
+          ).build(),
+        );
+      },
+      rootScreenName: Routes.TRENDING_VIEW,
       unmountOnBlur: true,
     },
     settings: {
@@ -653,12 +684,26 @@ const HomeTabs = () => {
         options={options.home}
         component={WalletTabModalFlow}
       />
-      <Tab.Screen
-        name={Routes.BROWSER.HOME}
-        options={options.browser}
-        component={BrowserFlow}
-        layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
-      />
+      {isAssetsTrendingTokensEnabled ? (
+        <Tab.Screen
+          name={Routes.TRENDING_VIEW}
+          options={options.trending}
+          component={TrendingHome}
+          layout={({ children }) => UnmountOnBlurComponent(children)}
+        />
+      ) : (
+        <Tab.Screen
+          name={Routes.BROWSER.HOME}
+          options={{
+            ...options.browser,
+            tabBarButton: isAssetsTrendingTokensEnabled
+              ? () => null
+              : undefined,
+          }}
+          component={BrowserFlow}
+          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+        />
+      )}
       <Tab.Screen
         name={Routes.MODAL.TRADE_WALLET_ACTIONS}
         options={options.trade}
@@ -943,6 +988,29 @@ const MainNavigator = () => {
         }}
       />
       <Stack.Screen name="Home" component={HomeTabs} />
+      <Stack.Screen
+        name={Routes.WALLET.TOKENS_FULL_VIEW}
+        component={TokensFullView}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AddAsset"
+        component={AddAsset}
+        options={({ route, navigation }) => ({
+          ...getImportTokenNavbarOptions(
+            navigation,
+            strings(
+              `add_asset.${route.params?.assetType === TOKEN ? TOKEN_TITLE : NFT_TITLE}`,
+            ),
+          ),
+          headerShown: true,
+        })}
+      />
+      <Stack.Screen
+        name="ConfirmAddAsset"
+        component={ConfirmAddAsset}
+        options={{ headerShown: true }}
+      />
       {isRewardsEnabled && (
         <Stack.Screen
           name={Routes.SETTINGS_VIEW}
@@ -992,7 +1060,16 @@ const MainNavigator = () => {
         name="NftDetailsFullImage"
         component={NftDetailsFullImageModeView}
       />
+      <Stack.Screen
+        name={Routes.WALLET.NFTS_FULL_VIEW}
+        component={NftFullView}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
+      <Stack.Screen
+        name={Routes.RAMP.TOKEN_SELECTION}
+        component={RampTokenSelection}
+      />
       <Stack.Screen name={Routes.RAMP.BUY}>
         {() => <RampRoutes rampType={RampType.BUY} />}
       </Stack.Screen>
@@ -1094,11 +1171,7 @@ const MainNavigator = () => {
           <Stack.Screen
             name={Routes.PREDICT.MODALS.ROOT}
             component={PredictModalStack}
-            options={{
-              ...clearStackNavigatorOptions,
-              presentation: 'transparentModal',
-              animationEnabled: true,
-            }}
+            options={clearStackNavigatorOptions}
           />
         </>
       )}
@@ -1124,6 +1197,15 @@ const MainNavigator = () => {
           ...GeneralSettings.navigationOptions,
         }}
       />
+      {process.env.METAMASK_ENVIRONMENT !== 'production' && (
+        <Stack.Screen
+          name={Routes.FEATURE_FLAG_OVERRIDE}
+          component={FeatureFlagOverride}
+          options={{
+            headerShown: true,
+          }}
+        />
+      )}
       <Stack.Screen
         name={Routes.NOTIFICATIONS.OPT_IN_STACK}
         component={NotificationsOptInStack}

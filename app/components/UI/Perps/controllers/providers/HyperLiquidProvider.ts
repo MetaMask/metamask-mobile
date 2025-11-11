@@ -2,7 +2,7 @@ import { CaipAccountId, type Hex } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import Logger from '../../../../../util/Logger';
+import Logger, { type LoggerErrorOptions } from '../../../../../util/Logger';
 import { ensureError } from '../../utils/perpsErrorHandler';
 import {
   BASIS_POINTS_DIVISOR,
@@ -10,6 +10,8 @@ import {
   FEE_RATES,
   getBridgeInfo,
   getChainId,
+  HIP3_ASSET_MARKET_TYPES,
+  HIP3_FEE_CONFIG,
   HIP3_MARGIN_CONFIG,
   HYPERLIQUID_WITHDRAWAL_MINUTES,
   REFERRAL_CONFIG,
@@ -37,6 +39,11 @@ import {
   parseAssetName,
   type RawHyperLiquidLedgerUpdate,
 } from '../../utils/hyperLiquidAdapter';
+import {
+  compileMarketPattern,
+  shouldIncludeMarket,
+  type CompiledMarketPattern,
+} from '../../utils/marketUtils';
 import type {
   SDKOrderParams,
   MetaResponse,
@@ -59,9 +66,13 @@ import { transformMarketData } from '../../utils/marketDataTransform';
 import type {
   AccountState,
   AssetRoute,
+  BatchCancelOrdersParams,
   CancelOrderParams,
   CancelOrderResult,
+  CancelOrdersResult,
   ClosePositionParams,
+  ClosePositionsParams,
+  ClosePositionsResult,
   DepositParams,
   DisconnectResult,
   EditOrderParams,
@@ -90,6 +101,7 @@ import type {
   Position,
   ReadyToTradeResult,
   SubscribeAccountParams,
+  SubscribeOICapsParams,
   SubscribeOrderFillsParams,
   SubscribeOrdersParams,
   SubscribePositionsParams,
@@ -147,12 +159,29 @@ export class HyperLiquidProvider implements IPerpsProvider {
     { value: number; timestamp: number }
   >();
 
+  // Cache for raw meta responses (shared across methods to avoid redundant API calls)
+  // Filtering is applied on-demand (cheap array operations) - no need for separate processed cache
+  private cachedMetaByDex = new Map<string, MetaResponse>();
+
+  // Session cache for referral state (cleared on disconnect/reconnect)
+  // Key: `network:userAddress`, Value: true if referral is set
+  private referralCheckCache = new Map<string, boolean>();
+
+  // Session cache for builder fee approval state (cleared on disconnect/reconnect)
+  // Key: `network:userAddress`, Value: true if builder fee is approved
+  private builderFeeCheckCache = new Map<string, boolean>();
+
+  // Pre-compiled patterns for fast filtering
+  private compiledAllowlistPatterns: CompiledMarketPattern[] = [];
+  private compiledBlocklistPatterns: CompiledMarketPattern[] = [];
+
   // Fee discount context for MetaMask reward discounts (in basis points)
   private userFeeDiscountBips?: number;
 
-  // Feature flag configuration for HIP-3 DEX support
-  private equityEnabled: boolean;
-  private enabledDexs: string[];
+  // Feature flag configuration for HIP-3 market filtering
+  private hip3Enabled: boolean;
+  private allowlistMarkets: string[];
+  private blocklistMarkets: string[];
   private useDexAbstraction: boolean;
 
   // Cache for validated DEXs to avoid redundant perpDexs() API calls
@@ -170,19 +199,24 @@ export class HyperLiquidProvider implements IPerpsProvider {
       PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED,
   };
 
+  // Track whether clients have been initialized (lazy initialization)
+  private clientsInitialized = false;
+
   constructor(
     options: {
       isTestnet?: boolean;
-      equityEnabled?: boolean;
-      enabledDexs?: string[];
+      hip3Enabled?: boolean;
+      allowlistMarkets?: string[];
+      blocklistMarkets?: string[];
       useDexAbstraction?: boolean;
     } = {},
   ) {
     const isTestnet = options.isTestnet || false;
 
-    // Dev-friendly defaults: Enable all DEXs by default for easier testing
-    this.equityEnabled = options.equityEnabled ?? __DEV__;
-    this.enabledDexs = options.enabledDexs ?? [];
+    // Dev-friendly defaults: Enable all markets by default for easier testing (discovery mode)
+    this.hip3Enabled = options.hip3Enabled ?? __DEV__;
+    this.allowlistMarkets = options.allowlistMarkets ?? [];
+    this.blocklistMarkets = options.blocklistMarkets ?? [];
 
     // Attempt native balance abstraction, fallback to programmatic transfer if unsupported
     this.useDexAbstraction = options.useDexAbstraction ?? true;
@@ -193,20 +227,56 @@ export class HyperLiquidProvider implements IPerpsProvider {
     this.subscriptionService = new HyperLiquidSubscriptionService(
       this.clientService,
       this.walletService,
-      this.equityEnabled,
-      this.enabledDexs,
+      this.hip3Enabled,
+      [], // enabledDexs - will be populated after DEX discovery in buildAssetMapping
+      this.allowlistMarkets,
+      this.blocklistMarkets,
     );
 
-    // Initialize clients
-    this.initializeClients();
+    // NOTE: Clients are NOT initialized here - they'll be initialized lazily
+    // when first needed. This avoids accessing Engine.context before it's ready.
+
+    // Pre-compile filter patterns for performance
+    this.compiledAllowlistPatterns = this.allowlistMarkets.map((pattern) => ({
+      pattern,
+      matcher: compileMarketPattern(pattern),
+    }));
+    this.compiledBlocklistPatterns = this.blocklistMarkets.map((pattern) => ({
+      pattern,
+      matcher: compileMarketPattern(pattern),
+    }));
+
+    // Debug: Confirm batch methods exist and show HIP-3 config
+    DevLogger.log('[HyperLiquidProvider] Constructor complete', {
+      hasBatchCancel: typeof this.cancelOrders === 'function',
+      hasBatchClose: typeof this.closePositions === 'function',
+      protocolId: this.protocolId,
+      hip3Enabled: this.hip3Enabled,
+      allowlistMarkets: this.allowlistMarkets,
+      blocklistMarkets: this.blocklistMarkets,
+      isTestnet,
+    });
   }
 
   /**
-   * Initialize HyperLiquid SDK clients
+   * Initialize HyperLiquid SDK clients (lazy initialization)
+   *
+   * This is called on first API operation to ensure Engine.context is ready.
+   * Creating the wallet adapter requires accessing Engine.context.AccountTreeController,
+   * which may not be available during early app initialization.
    */
-  private initializeClients(): void {
+  private ensureClientsInitialized(): void {
+    if (this.clientsInitialized) {
+      return; // Already initialized
+    }
+
     const wallet = this.walletService.createWalletAdapter();
     this.clientService.initialize(wallet);
+
+    // Only set flag AFTER successful initialization
+    this.clientsInitialized = true;
+
+    DevLogger.log('[HyperLiquidProvider] Clients initialized lazily');
   }
 
   /**
@@ -251,16 +321,15 @@ export class HyperLiquidProvider implements IPerpsProvider {
         '✅ HyperLiquidProvider: DEX abstraction enabled successfully',
       );
     } catch (error) {
-      // Disable DEX abstraction flag to trigger automatic fallback to manual transfer
-      // This handles cases where the backend restricts DEX abstraction (e.g., gradual rollout)
-      this.useDexAbstraction = false;
-
+      // Don't blindly disable the flag on any error
+      // Network errors or unknown issues shouldn't trigger fallback to manual transfer
       Logger.error(
         ensureError(error),
         this.getErrorContext('ensureDexAbstractionEnabled', {
-          note: 'Disabled DEX abstraction, will use manual auto-transfer',
+          note: 'Could not enable DEX abstraction (may already be enabled or network error), will verify on first order',
         }),
       );
+      // Keep useDexAbstraction flag as-is, let placeOrder() verify actual status if needed
     }
   }
 
@@ -270,30 +339,89 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * since HIP-3 configuration is immutable after construction
    */
   private async ensureReady(): Promise<void> {
+    // Lazy initialization: ensure clients are created (safe after Engine.context is ready)
+    this.ensureClientsInitialized();
+
+    // Verify clients are properly initialized
     this.clientService.ensureInitialized();
 
     // Build asset mapping on first call only (flags are immutable)
     if (this.coinToAssetId.size === 0) {
       DevLogger.log('HyperLiquidProvider: Building asset mapping', {
-        equityEnabled: this.equityEnabled,
-        enabledDexs: this.enabledDexs,
+        hip3Enabled: this.hip3Enabled,
+        allowlistMarkets: this.allowlistMarkets,
+        blocklistMarkets: this.blocklistMarkets,
       });
       await this.buildAssetMapping();
     }
 
     // Attempt to enable native balance abstraction
     await this.ensureDexAbstractionEnabled();
+
+    // Set up builder fee approval (blocking, required for trading)
+    // This happens once per session and is cached until disconnect/reconnect
+    await this.ensureBuilderFeeApproval();
+
+    // Set up referral code (blocks initialization to ensure attribution attempt)
+    // Non-throwing: errors caught internally, logged to Sentry, retry next session
+    // User can trade immediately after init even if referral setup failed
+    await this.ensureReferralSet();
   }
 
   /**
-   * Get validated list of DEXs to use based on feature flags
+   * Get all available DEXs without allowlist filtering
+   * Used when skipFilters=true in getMarkets()
+   * @returns Array of all DEX names (null for main DEX, strings for HIP-3 DEXs)
+   */
+  private async getAllAvailableDexs(): Promise<(string | null)[]> {
+    // If already cached by getValidatedDexs, use that
+    if (
+      this.cachedAllPerpDexs !== null &&
+      Array.isArray(this.cachedAllPerpDexs)
+    ) {
+      const availableHip3Dexs: string[] = [];
+      this.cachedAllPerpDexs.forEach((dex) => {
+        if (dex !== null) {
+          availableHip3Dexs.push(dex.name);
+        }
+      });
+      return [null, ...availableHip3Dexs];
+    }
+
+    // Fetch fresh from API
+    const infoClient = this.clientService.getInfoClient();
+    try {
+      const allDexs = await infoClient.perpDexs();
+      if (!allDexs || !Array.isArray(allDexs)) {
+        return [null]; // Fallback to main DEX only
+      }
+
+      this.cachedAllPerpDexs = allDexs;
+      const availableHip3Dexs: string[] = [];
+      allDexs.forEach((dex) => {
+        if (dex !== null) {
+          availableHip3Dexs.push(dex.name);
+        }
+      });
+      return [null, ...availableHip3Dexs];
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getAllAvailableDexs'),
+      );
+      return [null]; // Fallback to main DEX only
+    }
+  }
+
+  /**
+   * Get validated list of DEXs to use based on feature flags and allowlist
    * Implements Step 3b from HIP-3-IMPLEMENTATION.md (lines 108-134)
    *
    * Logic Flow:
-   * 1. If equityEnabled === false → Return [null] (main DEX only)
+   * 1. If hip3Enabled === false → Return [null] (main DEX only)
    * 2. Fetch available DEXs via SDK: infoClient.perpDexs()
    * 3. If enabledDexs is empty [] → Return [null, ...allDiscoveredDexs] (auto-discover)
-   * 4. Else filter enabledDexs against available DEXs → Return [null, ...validatedDexs] (whitelist)
+   * 4. Else filter enabledDexs against available DEXs → Return [null, ...validatedDexs] (allowlist)
    *
    * Invalid DEX names are silently filtered with DevLogger warning.
    *
@@ -306,10 +434,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
     }
 
     // Kill switch: HIP-3 disabled, return main DEX only
-    if (!this.equityEnabled) {
-      DevLogger.log(
-        'HyperLiquidProvider: HIP-3 disabled via equityEnabled flag',
-      );
+    if (!this.hip3Enabled) {
+      DevLogger.log('HyperLiquidProvider: HIP-3 disabled via hip3Enabled flag');
       this.cachedAllPerpDexs = [null];
       this.cachedValidatedDexs = [null];
       return this.cachedValidatedDexs;
@@ -352,43 +478,142 @@ export class HyperLiquidProvider implements IPerpsProvider {
       }
     });
 
-    DevLogger.log('HyperLiquidProvider: Available HIP-3 DEXs', {
-      count: availableHip3Dexs.length,
-      dexNames: availableHip3Dexs,
-    });
+    DevLogger.log(
+      'HyperLiquidProvider: Available DEXs (market filtering applied at data layer)',
+      {
+        count: availableHip3Dexs.length,
+        dexNames: availableHip3Dexs,
+      },
+    );
 
-    // Auto-discovery mode: Show all available DEXs
-    if (this.enabledDexs.length === 0) {
-      DevLogger.log(
-        'HyperLiquidProvider: Auto-discovery mode - all DEXs enabled',
-        {
-          mainDex: true,
-          hip3Dexs: availableHip3Dexs,
-          totalDexCount: availableHip3Dexs.length + 1,
-        },
-      );
-      this.cachedValidatedDexs = [null, ...availableHip3Dexs];
-      return this.cachedValidatedDexs;
+    // Return all DEXs - market filtering is applied at subscription data layer
+    // webData3 automatically connects to ALL DEXs
+    DevLogger.log(
+      'HyperLiquidProvider: All DEXs enabled (market filtering at data layer)',
+      {
+        mainDex: true,
+        hip3Dexs: availableHip3Dexs,
+        totalDexCount: availableHip3Dexs.length + 1,
+      },
+    );
+    this.cachedValidatedDexs = [null, ...availableHip3Dexs];
+    return this.cachedValidatedDexs;
+  }
+
+  /**
+   * Get cached meta response for a DEX, fetching from API if not cached
+   * This helper consolidates cache logic to avoid redundant API calls across the provider
+   * @param params.dexName - DEX name (null for main DEX)
+   * @param params.skipCache - If true, bypass cache and fetch fresh data
+   * @returns MetaResponse with universe data
+   * @throws Error if API returns invalid data
+   */
+  private async getCachedMeta(params: {
+    dexName: string | null;
+    skipCache?: boolean;
+  }): Promise<MetaResponse> {
+    const { dexName, skipCache } = params;
+    const dexKey = dexName || 'main';
+
+    // Skip cache if requested (forces fresh fetch)
+    if (!skipCache) {
+      const cached = this.cachedMetaByDex.get(dexKey);
+      if (cached) {
+        DevLogger.log('[getCachedMeta] Using cached meta response', {
+          dex: dexKey,
+          universeSize: cached.universe.length,
+        });
+        return cached;
+      }
     }
 
-    // Whitelist mode: Filter to only specified DEXs
-    const validatedDexs = this.enabledDexs.filter((dex) => {
-      const isValid = availableHip3Dexs.includes(dex);
-      if (!isValid) {
-        DevLogger.log(
-          `HyperLiquidProvider: Invalid DEX name '${dex}' in whitelist - skipping`,
-        );
-      }
-      return isValid;
+    // Cache miss or skipCache=true - fetch from API
+    const infoClient = this.clientService.getInfoClient();
+    const meta = await infoClient.meta({ dex: dexName ?? '' });
+
+    // Defensive validation before caching
+    if (!meta?.universe || !Array.isArray(meta.universe)) {
+      throw new Error(
+        `[HyperLiquidProvider] Invalid meta response for DEX ${
+          dexName || 'main'
+        }: universe is ${meta?.universe ? 'not an array' : 'missing'}`,
+      );
+    }
+
+    // Store raw meta response for reuse
+    this.cachedMetaByDex.set(dexKey, meta);
+
+    DevLogger.log('[getCachedMeta] Fetched and cached meta response', {
+      dex: dexKey,
+      universeSize: meta.universe.length,
+      skipCache,
     });
 
-    DevLogger.log('HyperLiquidProvider: Whitelist mode', {
-      requested: this.enabledDexs,
-      validated: validatedDexs,
+    return meta;
+  }
+
+  /**
+   * Generate session cache key for user-specific caches
+   * Format: "network:userAddress" (address normalized to lowercase)
+   * @param network - 'mainnet' or 'testnet'
+   * @param userAddress - User's Ethereum address
+   * @returns Cache key for session-based caches
+   */
+  private getCacheKey(network: string, userAddress: string): string {
+    return `${network}:${userAddress.toLowerCase()}`;
+  }
+
+  /**
+   * Fetch markets for a specific DEX with optional filtering
+   * Uses session-based caching via getCachedMeta() - no TTL, cleared on disconnect
+   * @param params.dex - DEX name (null for main DEX)
+   * @param params.skipFilters - If true, skip HIP-3 filtering (return all markets)
+   * @param params.skipCache - If true, bypass cache and fetch fresh data
+   * @returns Array of MarketInfo objects
+   */
+  private async fetchMarketsForDex(params: {
+    dex: string | null;
+    skipFilters?: boolean;
+    skipCache?: boolean;
+  }): Promise<MarketInfo[]> {
+    const { dex, skipFilters = false, skipCache = false } = params;
+
+    // Get raw meta response (uses session cache unless skipCache=true)
+    const meta = await this.getCachedMeta({ dexName: dex, skipCache });
+
+    if (!meta.universe || !Array.isArray(meta.universe)) {
+      DevLogger.log(
+        `HyperLiquidProvider: Invalid universe data for DEX ${dex || 'main'}`,
+      );
+      return [];
+    }
+
+    // Transform to MarketInfo format
+    const markets = meta.universe.map((asset) => adaptMarketFromSDK(asset));
+
+    // Apply HIP-3 filtering on-demand (cheap array operation)
+    // Skip filtering for main DEX (null) or if explicitly requested
+    const filteredMarkets =
+      skipFilters || dex === null
+        ? markets
+        : markets.filter((market) =>
+            shouldIncludeMarket(
+              market.name,
+              dex,
+              this.hip3Enabled,
+              this.compiledAllowlistPatterns,
+              this.compiledBlocklistPatterns,
+            ),
+          );
+
+    DevLogger.log('HyperLiquidProvider: Fetched markets for DEX', {
+      dex: dex || 'main',
+      marketCount: filteredMarkets.length,
+      skipFilters,
+      skipCache,
     });
 
-    this.cachedValidatedDexs = [null, ...validatedDexs];
-    return this.cachedValidatedDexs;
+    return filteredMarkets;
   }
 
   /**
@@ -430,9 +655,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * the asset ID lookup succeeds and the order routes to the correct DEX.
    */
   private async buildAssetMapping(): Promise<void> {
-    const infoClient = this.clientService.getInfoClient();
-
-    // Get feature-flag-validated DEXs to map (respects equityEnabled and enabledDexs)
+    // Get feature-flag-validated DEXs to map (respects hip3Enabled and enabledDexs)
     const dexsToMap = await this.getValidatedDexs();
 
     // Use cached perpDexs array (populated by getValidatedDexs)
@@ -446,25 +669,27 @@ export class HyperLiquidProvider implements IPerpsProvider {
     DevLogger.log('HyperLiquidProvider: Starting asset mapping rebuild', {
       dexs: dexsToMap,
       previousMapSize: this.coinToAssetId.size,
-      equityEnabled: this.equityEnabled,
-      enabledDexs: this.enabledDexs,
+      hip3Enabled: this.hip3Enabled,
+      allowlistMarkets: this.allowlistMarkets,
+      blocklistMarkets: this.blocklistMarkets,
       timestamp: new Date().toISOString(),
     });
 
-    // Notify subscription service of discovered HIP-3 DEXs for position subscriptions
-    const hip3Dexs = dexsToMap.filter((d): d is string => d !== null);
-    if (hip3Dexs.length > 0) {
-      await this.subscriptionService.updateFeatureFlags(
-        this.equityEnabled,
-        hip3Dexs,
-      );
-    }
+    // Update subscription service with current feature flags
+    // Extract HIP-3 DEX names (filter out null which represents main DEX)
+    const enabledDexs = dexsToMap.filter((dex): dex is string => dex !== null);
 
-    // Fetch metadata for each DEX in parallel
+    await this.subscriptionService.updateFeatureFlags(
+      this.hip3Enabled,
+      enabledDexs,
+      this.allowlistMarkets,
+      this.blocklistMarkets,
+    );
+
+    // Fetch metadata for each DEX in parallel with skipCache (feature flags changed, need fresh data)
     const allMetas = await Promise.allSettled(
       dexsToMap.map((dex) =>
-        infoClient
-          .meta({ dex: dex ?? '' })
+        this.getCachedMeta({ dexName: dex, skipCache: true })
           .then((meta) => ({ dex, meta, success: true as const }))
           .catch((error) => {
             DevLogger.log(
@@ -621,21 +846,36 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Get error context for logging with consistent metadata
+   * Get error context for logging with searchable tags and context.
+   * Enables Sentry dashboard filtering by feature, provider, and network.
+   *
    * @param method - The method name where the error occurred
-   * @param extra - Additional context to include
-   * @returns Object with standardized error context
+   * @param extra - Optional additional context fields (becomes searchable context data)
+   * @returns LoggerErrorOptions with tags (searchable) and context (searchable)
+   * @private
+   *
+   * @example
+   * Logger.error(error, this.getErrorContext('placeOrder', { coin: 'BTC', orderType: 'limit' }));
+   * // Creates searchable tags: feature:perps, provider:hyperliquid, network:mainnet
+   * // Creates searchable context: perps_provider.method:placeOrder, perps_provider.coin:BTC, perps_provider.orderType:limit
    */
   private getErrorContext(
     method: string,
     extra?: Record<string, unknown>,
-  ): Record<string, unknown> {
+  ): LoggerErrorOptions {
     return {
-      feature: PERPS_CONSTANTS.FEATURE_NAME,
-      context: `HyperLiquidProvider.${method}`,
-      provider: this.protocolId,
-      network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
-      ...extra,
+      tags: {
+        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        provider: this.protocolId,
+        network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
+      },
+      context: {
+        name: 'HyperLiquidProvider',
+        data: {
+          method,
+          ...extra,
+        },
+      },
     };
   }
 
@@ -696,16 +936,37 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Ensure builder fee approval before placing orders
+   * Ensure builder fee is approved for MetaMask
+   * Called once during initialization (ensureReady) to set up builder fee for the session
+   * Uses session cache to avoid redundant API calls until disconnect/reconnect
+   *
+   * Cache semantics: Only caches successful approvals (never caches "not approved" state)
+   * This allows detection of external approvals between retries while avoiding redundant checks
+   *
+   * Note: This is network-specific - testnet and mainnet have separate builder fee states
    */
   private async ensureBuilderFeeApproval(): Promise<void> {
+    const isTestnet = this.clientService.isTestnetMode();
+    const network = isTestnet ? 'testnet' : 'mainnet';
+    const builderAddress = this.getBuilderAddress(isTestnet);
+    const userAddress = await this.walletService.getUserAddressWithDefault();
+
+    // Check session cache first to avoid redundant API calls
+    // Cache only stores true (approval confirmed), never false
+    const cacheKey = this.getCacheKey(network, userAddress);
+    const cached = this.builderFeeCheckCache.get(cacheKey);
+
+    if (cached === true) {
+      DevLogger.log('[ensureBuilderFeeApproval] Using session cache', {
+        network,
+      });
+      return; // Already approved this session, skip
+    }
+
     const { isApproved, requiredDecimal } = await this.checkBuilderFeeStatus();
-    const builderAddress = this.getBuilderAddress(
-      this.clientService.isTestnetMode(),
-    );
 
     if (!isApproved) {
-      DevLogger.log('Builder fee approval required', {
+      DevLogger.log('[ensureBuilderFeeApproval] Approval required', {
         builder: builderAddress,
         currentApproval: isApproved,
         requiredDecimal,
@@ -722,19 +983,30 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Verify approval was successful
       const afterApprovalDecimal = await this.checkBuilderFeeApproval();
 
-      // this throw will block the order from being placed
-      // this should ideally never happen
       if (
         afterApprovalDecimal === null ||
         afterApprovalDecimal < requiredDecimal
       ) {
-        throw new Error('Builder fee approval failed or insufficient');
+        throw new Error(
+          '[HyperLiquidProvider] Builder fee approval verification failed',
+        );
       }
 
-      DevLogger.log('Builder fee approval successful', {
+      // Update cache to reflect successful approval
+      this.builderFeeCheckCache.set(cacheKey, true);
+
+      DevLogger.log('[ensureBuilderFeeApproval] Approval successful', {
         builder: builderAddress,
         approvedDecimal: afterApprovalDecimal,
         maxFeeRate,
+      });
+    } else {
+      // User already has approval (possibly from external approval or previous session)
+      // Cache success to avoid redundant checks
+      this.builderFeeCheckCache.set(cacheKey, true);
+
+      DevLogger.log('[ensureBuilderFeeApproval] Already approved', {
+        network,
       });
     }
   }
@@ -808,7 +1080,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
     }
 
     // Try other HIP-3 DEXs
-    for (const dex of this.enabledDexs) {
+    // Get all available DEXs from cache (includes all HIP-3 DEXs since we no longer filter)
+    const availableDexs =
+      this.cachedValidatedDexs?.filter((d): d is string => d !== null) ?? [];
+    for (const dex of availableDexs) {
       if (dex === targetDex) continue;
 
       try {
@@ -1280,30 +1555,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
         totalAssetsInMap: this.coinToAssetId.size,
         hip3AssetsCount: hip3Keys.length,
         hip3AssetsSample: hip3Keys.slice(0, 10),
-        equityEnabled: this.equityEnabled,
-        enabledDexs: this.enabledDexs,
+        hip3Enabled: this.hip3Enabled,
+        allowlistMarkets: this.allowlistMarkets,
+        blocklistMarkets: this.blocklistMarkets,
       });
 
-      // Ensure builder fee approval and referral code are set before placing any order
-      await Promise.all([
-        this.ensureBuilderFeeApproval(),
-        this.ensureReferralSet(),
-      ]);
+      // See ensureReady() - builder fee and referral are session-cached
 
       // Extract DEX name for API calls (main DEX = null)
       const { dex: dexName } = parseAssetName(params.coin);
 
-      // Get asset info from the correct DEX
+      // Get asset info from the correct DEX (uses cache to avoid redundant API calls)
       const infoClient = this.clientService.getInfoClient();
-      const meta = await infoClient.meta({ dex: dexName ?? '' });
-
-      if (!meta.universe || !Array.isArray(meta.universe)) {
-        throw new Error(
-          `Invalid universe data for DEX ${
-            dexName || 'main'
-          } when placing order for ${params.coin}`,
-        );
-      }
+      const meta = await this.getCachedMeta({ dexName });
 
       // asset.name format: "BTC" for main DEX, "xyz:XYZ100" for HIP-3
       const assetInfo = meta.universe.find(
@@ -1443,10 +1707,32 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
         // Transfer funds to reach required TOTAL margin in available balance
         // autoTransferForHip3Order checks current balance and only transfers shortfall
-        transferInfo = await this.autoTransferForHip3Order({
-          targetDex: dexName,
-          requiredMargin: requiredMarginWithBuffer,
-        });
+        try {
+          transferInfo = await this.autoTransferForHip3Order({
+            targetDex: dexName,
+            requiredMargin: requiredMarginWithBuffer,
+          });
+        } catch (transferError) {
+          // Reactive fix: Check if transfer failed because DEX abstraction is actually enabled
+          const errorMsg = (transferError as Error)?.message || '';
+
+          if (
+            errorMsg.includes('Cannot transfer with DEX abstraction enabled')
+          ) {
+            DevLogger.log(
+              'HyperLiquidProvider: Detected DEX abstraction is enabled, switching to abstraction mode',
+            );
+
+            // Update flag to prevent this issue on future orders
+            this.useDexAbstraction = true;
+
+            // Continue without manual transfer - let DEX abstraction handle it
+            transferInfo = null;
+          } else {
+            // Different error - rethrow
+            throw transferError;
+          }
+        }
       } else if (isHip3Order && this.useDexAbstraction) {
         DevLogger.log(
           'HyperLiquidProvider: Using DEX abstraction (no manual transfer)',
@@ -1642,18 +1928,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Extract DEX name for API calls (main DEX = null)
       const { dex: dexName } = parseAssetName(params.newOrder.coin);
 
-      // Get asset info and prices
+      // Get asset info and prices (uses cache to avoid redundant API calls)
       const infoClient = this.clientService.getInfoClient();
-      const meta = await infoClient.meta({ dex: dexName ?? '' });
+      const meta = await this.getCachedMeta({ dexName });
       const mids = await infoClient.allMids({ dex: dexName ?? '' });
-
-      if (!meta.universe || !Array.isArray(meta.universe)) {
-        throw new Error(
-          `Invalid universe data for DEX ${
-            dexName || 'main'
-          } when editing order for ${params.newOrder.coin}`,
-        );
-      }
 
       // asset.name format: "BTC" for main DEX, "xyz:XYZ100" for HIP-3
       const assetInfo = meta.universe.find(
@@ -1804,6 +2082,301 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Cancel multiple orders in a single batch API call
+   * Optimized implementation that uses HyperLiquid's batch cancel endpoint
+   */
+  async cancelOrders(
+    params: BatchCancelOrdersParams,
+  ): Promise<CancelOrdersResult> {
+    try {
+      DevLogger.log('Batch canceling orders:', {
+        count: params.length,
+      });
+
+      if (params.length === 0) {
+        return {
+          success: false,
+          successCount: 0,
+          failureCount: 0,
+          results: [],
+        };
+      }
+
+      await this.ensureReady();
+
+      const exchangeClient = this.clientService.getExchangeClient();
+
+      // Map orders to SDK format and validate coins
+      const cancelRequests = params.map((order) => {
+        const asset = this.coinToAssetId.get(order.coin);
+        if (asset === undefined) {
+          throw new Error(`Asset not found for coin: ${order.coin}`);
+        }
+        return {
+          a: asset,
+          o: parseInt(order.orderId, 10),
+        };
+      });
+
+      // Single batch API call
+      const result = await exchangeClient.cancel({
+        cancels: cancelRequests,
+      });
+
+      // Parse response statuses (one per order)
+      const statuses = result.response.data.statuses;
+      const successCount = statuses.filter((s) => s === 'success').length;
+      const failureCount = statuses.length - successCount;
+
+      return {
+        success: successCount > 0,
+        successCount,
+        failureCount,
+        results: statuses.map((status, index) => ({
+          orderId: params[index].orderId,
+          coin: params[index].coin,
+          success: status === 'success',
+          error:
+            status !== 'success'
+              ? (status as { error: string }).error
+              : undefined,
+        })),
+      };
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('cancelOrders', {
+          orderCount: params.length,
+        }),
+      );
+      // Return all orders as failed
+      return {
+        success: false,
+        successCount: 0,
+        failureCount: params.length,
+        results: params.map((order) => ({
+          orderId: order.orderId,
+          coin: order.coin,
+          success: false,
+          error: error instanceof Error ? error.message : 'Batch cancel failed',
+        })),
+      };
+    }
+  }
+
+  async closePositions(
+    params: ClosePositionsParams,
+  ): Promise<ClosePositionsResult> {
+    // Declare outside try block so it's accessible in catch block
+    let positionsToClose: Position[] = [];
+
+    try {
+      await this.ensureReady();
+
+      // Get all current positions
+      // Force fresh API data (not WebSocket cache) since we're about to mutate positions
+      const positions = await this.getPositions({ skipCache: true });
+
+      // Filter positions based on params
+      positionsToClose =
+        params.closeAll || !params.coins || params.coins.length === 0
+          ? positions
+          : positions.filter((p) => params.coins?.includes(p.coin));
+
+      DevLogger.log('Batch closing positions:', {
+        count: positionsToClose.length,
+        closeAll: params.closeAll,
+        coins: params.coins,
+      });
+
+      if (positionsToClose.length === 0) {
+        return {
+          success: false,
+          successCount: 0,
+          failureCount: 0,
+          results: [],
+        };
+      }
+
+      // Get exchange client and meta for price/size formatting
+      const exchangeClient = this.clientService.getExchangeClient();
+      const infoClient = this.clientService.getInfoClient();
+
+      // Pre-fetch meta for all unique DEXs to avoid N API calls in loop
+      const uniqueDexs = [
+        ...new Set(
+          positionsToClose.map((p) => parseAssetName(p.coin).dex || 'main'),
+        ),
+      ];
+      await Promise.all(
+        uniqueDexs.map((dex) =>
+          this.getCachedMeta({ dexName: dex === 'main' ? null : dex }),
+        ),
+      );
+
+      // Track HIP-3 positions and freed margins for post-close transfers
+      const hip3Transfers: {
+        sourceDex: string;
+        freedMargin: number;
+      }[] = [];
+
+      // Build orders array
+      const orders: SDKOrderParams[] = [];
+
+      for (const position of positionsToClose) {
+        // Extract DEX name for HIP-3 positions
+        const { dex: dexName } = parseAssetName(position.coin);
+        const isHip3Position = position.coin.includes(':');
+
+        // Get asset info for formatting (uses cache populated above)
+        const meta = await this.getCachedMeta({ dexName });
+
+        const assetInfo = meta.universe.find(
+          (asset) => asset.name === position.coin,
+        );
+        if (!assetInfo) {
+          throw new Error(
+            `Asset ${position.coin} not found in ${
+              dexName || 'main'
+            } DEX universe`,
+          );
+        }
+
+        // Get asset ID
+        const assetId = this.coinToAssetId.get(position.coin);
+        if (assetId === undefined) {
+          throw new Error(`Asset ID not found for ${position.coin}`);
+        }
+
+        // Calculate position details (always full close)
+        const positionSize = parseFloat(position.size);
+        const isBuy = positionSize < 0; // Close opposite side
+        const closeSize = Math.abs(positionSize);
+        const totalMarginUsed = parseFloat(position.marginUsed);
+
+        // Track HIP-3 transfers (full position close means all margin is freed)
+        if (isHip3Position && dexName && !this.useDexAbstraction) {
+          hip3Transfers.push({
+            sourceDex: dexName,
+            freedMargin: totalMarginUsed,
+          });
+        }
+
+        // Get current price for market order slippage
+        const mids = await infoClient.allMids({ dex: dexName ?? '' });
+        const currentPrice = parseFloat(mids[position.coin] || '0');
+        if (currentPrice === 0) {
+          throw new Error(`No price available for ${position.coin}`);
+        }
+
+        // Calculate order price with slippage
+        const slippage = TRADING_DEFAULTS.slippage;
+        const orderPrice = isBuy
+          ? currentPrice * (1 + slippage)
+          : currentPrice * (1 - slippage);
+
+        // Format size and price
+        const formattedSize = formatHyperLiquidSize({
+          size: closeSize,
+          szDecimals: assetInfo.szDecimals,
+        });
+
+        const formattedPrice = formatHyperLiquidPrice({
+          price: orderPrice,
+          szDecimals: assetInfo.szDecimals,
+        });
+
+        // Build reduce-only order
+        orders.push({
+          a: assetId,
+          b: isBuy,
+          p: formattedPrice,
+          s: formattedSize,
+          r: true, // reduceOnly
+          t: { limit: { tif: 'Ioc' } }, // Immediate or cancel for market-like execution
+        });
+      }
+
+      // Calculate discounted builder fee if reward discount is active
+      let builderFee = BUILDER_FEE_CONFIG.maxFeeTenthsBps;
+      if (this.userFeeDiscountBips !== undefined) {
+        builderFee = Math.floor(
+          builderFee * (1 - this.userFeeDiscountBips / BASIS_POINTS_DIVISOR),
+        );
+      }
+
+      // Single batch API call
+      const result = await exchangeClient.order({
+        orders,
+        grouping: 'na',
+        builder: {
+          b: this.getBuilderAddress(this.clientService.isTestnetMode()),
+          f: builderFee,
+        },
+      });
+
+      // Parse response statuses (one per order)
+      const statuses = result.response.data.statuses;
+      const successCount = statuses.filter(
+        (s) => 'filled' in s || 'resting' in s,
+      ).length;
+      const failureCount = statuses.length - successCount;
+
+      // Handle HIP-3 margin transfers for successful closes
+      if (!this.useDexAbstraction) {
+        for (let i = 0; i < statuses.length; i++) {
+          const status = statuses[i];
+          const isSuccess = 'filled' in status || 'resting' in status;
+
+          if (isSuccess && hip3Transfers[i]) {
+            const { sourceDex, freedMargin } = hip3Transfers[i];
+            DevLogger.log(
+              'Position closed successfully, initiating manual auto-transfer back',
+              { coin: positionsToClose[i].coin, freedMargin },
+            );
+
+            // Non-blocking: Transfer freed margin back to main DEX
+            await this.autoTransferBackAfterClose({
+              sourceDex,
+              freedMargin,
+            });
+          }
+        }
+      }
+
+      return {
+        success: successCount > 0,
+        successCount,
+        failureCount,
+        results: statuses.map((status, index) => ({
+          coin: positionsToClose[index].coin,
+          success: 'filled' in status || 'resting' in status,
+          error:
+            'error' in status ? (status as { error: string }).error : undefined,
+        })),
+      };
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('closePositions', {
+          positionCount: positionsToClose.length,
+        }),
+      );
+      // Return all positions as failed
+      return {
+        success: false,
+        successCount: 0,
+        failureCount: positionsToClose.length,
+        results: positionsToClose.map((position) => ({
+          coin: position.coin,
+          success: false,
+          error: error instanceof Error ? error.message : 'Batch close failed',
+        })),
+      };
+    }
+  }
+
+  /**
    * Update TP/SL for an existing position
    *
    * This creates new TP/SL orders for the position using 'positionTpsl' grouping.
@@ -1830,9 +2403,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const { coin, takeProfitPrice, stopLossPrice } = params;
 
       // Get current position to validate it exists
+      // Force fresh API data (not WebSocket cache) since we're about to mutate the position
       let positions: Position[];
       try {
-        positions = await this.getPositions();
+        positions = await this.getPositions({ skipCache: true });
       } catch (error) {
         Logger.error(
           ensureError(error),
@@ -1854,10 +2428,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       await this.ensureReady();
 
-      await Promise.all([
-        this.ensureBuilderFeeApproval(),
-        this.ensureReferralSet(),
-      ]);
+      // See ensureReady() - builder fee and referral are session-cached
 
       // Get current price for the asset
       const infoClient = this.clientService.getInfoClient();
@@ -1916,8 +2487,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
         DevLogger.log('Cancel result:', cancelResult);
       }
 
-      // Get asset info (dexName already extracted above)
-      const meta = await infoClient.meta({ dex: dexName ?? '' });
+      // Get asset info (dexName already extracted above) - uses cache
+      const meta = await this.getCachedMeta({ dexName });
 
       // Check if meta is an error response (string) or doesn't have universe property
       if (
@@ -2070,7 +2641,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
     try {
       DevLogger.log('Closing position:', params);
 
-      const positions = await this.getPositions();
+      // Force fresh API data (not WebSocket cache) since we're about to mutate the position
+      const positions = await this.getPositions({ skipCache: true });
       const position = positions.find((p) => p.coin === params.coin);
 
       if (!position) {
@@ -2169,7 +2741,24 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   async getPositions(params?: GetPositionsParams): Promise<Position[]> {
     try {
-      DevLogger.log('Getting positions via HyperLiquid SDK');
+      // Try WebSocket cache first (unless explicitly bypassed)
+      if (
+        !params?.skipCache &&
+        this.subscriptionService.isPositionsCacheInitialized()
+      ) {
+        const cachedPositions =
+          this.subscriptionService.getCachedPositions() || [];
+        DevLogger.log('Using cached positions from WebSocket', {
+          count: cachedPositions.length,
+        });
+        return cachedPositions;
+      }
+
+      // Fallback to API call
+      DevLogger.log(
+        'Fetching positions via API',
+        params?.skipCache ? '(skipCache requested)' : '(cache not initialized)',
+      );
 
       await this.ensureReady();
 
@@ -2456,6 +3045,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
           timestamp: statusTimestamp,
           lastUpdated: statusTimestamp,
           detailedOrderType: order.orderType, // Full order type from exchange (e.g., 'Take Profit Limit', 'Stop Market')
+          isTrigger: order.isTrigger,
+          reduceOnly: order.reduceOnly,
         };
       });
 
@@ -2473,9 +3064,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
     try {
+      // Try WebSocket cache first (unless explicitly bypassed)
+      if (
+        !params?.skipCache &&
+        this.subscriptionService.isOrdersCacheInitialized()
+      ) {
+        const cachedOrders = this.subscriptionService.getCachedOrders() || [];
+        DevLogger.log('Using cached open orders from WebSocket', {
+          count: cachedOrders.length,
+        });
+        return cachedOrders;
+      }
+
+      // Fallback to API call
       DevLogger.log(
-        'Getting currently open orders via HyperLiquid SDK',
-        params || '(no params)',
+        'Fetching open orders via API',
+        params?.skipCache ? '(skipCache requested)' : '(cache not initialized)',
       );
       await this.ensureReady();
 
@@ -2847,7 +3451,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]> {
     try {
       await this.ensureReady();
-      const infoClient = this.clientService.getInfoClient();
 
       // Path 1: Symbol filtering - group by DEX and fetch in parallel
       if (params?.symbols && params.symbols.length > 0) {
@@ -2870,17 +3473,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
           }
         });
 
-        // Query each unique DEX in parallel
+        // Query each unique DEX in parallel (with caching)
         const marketArrays = await Promise.all(
-          Array.from(symbolsByDex.keys()).map(async (dex) => {
-            const dexParam = dex ?? ''; // Empty string for main DEX
-            const meta = await infoClient.meta(
-              dexParam ? { dex: dexParam } : undefined,
-            );
-            return (
-              meta.universe?.map((asset) => adaptMarketFromSDK(asset)) || []
-            );
-          }),
+          Array.from(symbolsByDex.keys()).map(async (dex) =>
+            this.fetchMarketsForDex({
+              dex,
+              skipFilters: params?.skipFilters,
+            }),
+          ),
         );
 
         // Combine and filter by requested symbols
@@ -2893,34 +3493,26 @@ export class HyperLiquidProvider implements IPerpsProvider {
       }
 
       // Path 2: Multi-DEX aggregation - fetch from all enabled DEXs
-      if (!params?.dex && this.equityEnabled) {
-        const enabledDexs = await this.getValidatedDexs();
+      if (!params?.dex && this.hip3Enabled) {
+        // Determine which DEXs to query based on skipFilters flag
+        const dexsToQuery = params?.skipFilters
+          ? await this.getAllAvailableDexs()
+          : await this.getValidatedDexs();
 
-        if (enabledDexs.length > 1) {
+        if (dexsToQuery.length > 1) {
           // More than just main DEX
-          DevLogger.log(
-            'HyperLiquidProvider: Fetching markets from all enabled DEXs',
-            {
-              dexCount: enabledDexs.length,
-            },
-          );
+          DevLogger.log('HyperLiquidProvider: Fetching markets from DEXs', {
+            dexCount: dexsToQuery.length,
+            skipFilters: params?.skipFilters || false,
+          });
 
           const marketArrays = await Promise.all(
-            enabledDexs.map(async (dex) => {
+            dexsToQuery.map(async (dex) => {
               try {
-                const dexParam = dex ?? '';
-                const meta = await infoClient.meta(
-                  dexParam ? { dex: dexParam } : undefined,
-                );
-                if (!meta.universe || !Array.isArray(meta.universe)) {
-                  DevLogger.log(
-                    `HyperLiquidProvider: Invalid universe data for DEX ${
-                      dex || 'main'
-                    }`,
-                  );
-                  return [];
-                }
-                return meta.universe.map((asset) => adaptMarketFromSDK(asset));
+                return await this.fetchMarketsForDex({
+                  dex,
+                  skipFilters: params?.skipFilters,
+                });
               } catch (error) {
                 Logger.error(
                   ensureError(error),
@@ -2937,26 +3529,15 @@ export class HyperLiquidProvider implements IPerpsProvider {
         }
       }
 
-      // Path 3: Single DEX query (main DEX or specific DEX)
+      // Path 3: Single DEX query (main DEX or specific DEX) - with caching
       DevLogger.log('HyperLiquidProvider: Getting markets for single DEX', {
         dex: params?.dex || 'main',
       });
 
-      const meta = await infoClient.meta(
-        params?.dex !== undefined ? { dex: params.dex } : undefined,
-      );
-
-      if (!meta.universe || !Array.isArray(meta.universe)) {
-        DevLogger.log(
-          `HyperLiquidProvider: Invalid universe data for DEX ${
-            params?.dex || 'main'
-          }`,
-          { hasUniverse: !!meta.universe },
-        );
-        return [];
-      }
-
-      return meta.universe.map((asset) => adaptMarketFromSDK(asset));
+      return await this.fetchMarketsForDex({
+        dex: params?.dex ?? null,
+        skipFilters: params?.skipFilters,
+      });
     } catch (error) {
       Logger.error(
         ensureError(error),
@@ -2978,7 +3559,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     try {
       await this.ensureReady();
 
-      if (!this.equityEnabled) {
+      if (!this.hip3Enabled) {
         DevLogger.log('HIP-3 disabled, no DEXs available');
         return [];
       }
@@ -3010,7 +3591,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       await Promise.all(
         hip3DexNames.map(async (dexName) => {
           try {
-            const meta = await infoClient.meta({ dex: dexName });
+            const meta = await this.getCachedMeta({ dexName });
             if (
               meta.universe &&
               Array.isArray(meta.universe) &&
@@ -3044,6 +3625,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
   /**
    * Get market data with prices, volumes, and 24h changes
    * Aggregates data from all enabled DEXs (main + HIP-3) when equity is enabled
+   *
+   * Note: This is called once during initialization and cached by PerpsStreamManager.
+   * Real-time price updates come from WebSocket subscriptions, not this method.
    */
   async getMarketDataWithPrices(): Promise<PerpsMarketData[]> {
     DevLogger.log('Getting market data with prices via HyperLiquid SDK');
@@ -3100,7 +3684,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
     dexDataResults.forEach((result) => {
       if (result.success && result.meta?.universe) {
-        combinedUniverse.push(...result.meta.universe);
+        // Apply market filtering for HIP-3 DEXs only (main DEX returns all markets)
+        const marketsFromDex = result.meta.universe;
+        const filteredMarkets =
+          result.dex === null
+            ? marketsFromDex // Main DEX: no filtering
+            : marketsFromDex.filter((asset) =>
+                shouldIncludeMarket(
+                  asset.name,
+                  result.dex,
+                  this.hip3Enabled,
+                  this.compiledAllowlistPatterns,
+                  this.compiledBlocklistPatterns,
+                ),
+              );
+
+        combinedUniverse.push(...filteredMarkets);
         combinedAssetCtxs.push(...result.assetCtxs);
         // Merge price data from this DEX into combined prices
         Object.assign(combinedAllMids, result.allMids);
@@ -3137,11 +3736,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
     });
 
     // Transform to UI-friendly format using standalone utility
-    return transformMarketData({
-      universe: combinedUniverse,
-      assetCtxs: combinedAssetCtxs,
-      allMids: combinedAllMids,
-    });
+    return transformMarketData(
+      {
+        universe: combinedUniverse,
+        assetCtxs: combinedAssetCtxs,
+        allMids: combinedAllMids,
+      },
+      HIP3_ASSET_MARKET_TYPES,
+    );
   }
 
   /**
@@ -3233,11 +3835,18 @@ export class HyperLiquidProvider implements IPerpsProvider {
         }
       }
 
-      // Validate limit orders have a price
-      if (params.orderType === 'limit' && !params.price) {
+      // Check if order leverage meets existing position requirement (HyperLiquid protocol constraint)
+      if (
+        params.leverage &&
+        params.existingPositionLeverage &&
+        params.leverage < params.existingPositionLeverage
+      ) {
         return {
           isValid: false,
-          error: strings('perps.order.validation.limit_price_required'),
+          error: strings('perps.order.validation.leverage_below_position', {
+            required: params.existingPositionLeverage.toString(),
+            provided: params.leverage.toString(),
+          }),
         };
       }
 
@@ -3747,6 +4356,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Subscribe to open interest cap updates
+   * Zero additional overhead - data extracted from existing webData2 subscription
+   */
+  subscribeToOICaps(params: SubscribeOICapsParams): () => void {
+    return this.subscriptionService.subscribeToOICaps(params);
+  }
+
+  /**
    * Configure live data settings
    */
   setLiveDataConfig(config: Partial<LiveDataConfig>): void {
@@ -3764,8 +4381,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
       this.clientService.setTestnetMode(newIsTestnet);
       this.walletService.setTestnetMode(newIsTestnet);
 
-      // Reinitialize clients
-      this.initializeClients();
+      // Reset initialization flag so clients will be recreated on next use
+      this.clientsInitialized = false;
 
       return {
         success: true,
@@ -3780,11 +4397,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Initialize provider
+   * Initialize provider (ensures clients are ready)
    */
   async initialize(): Promise<InitializeResult> {
     try {
-      this.initializeClients();
+      // Ensure clients are initialized (lazy initialization)
+      this.ensureClientsInitialized();
       return {
         success: true,
         chainId: getChainId(this.clientService.isTestnetMode()),
@@ -3955,16 +4573,21 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Extract DEX name for API calls (main DEX = null)
       const { dex: dexName } = parseAssetName(asset);
 
-      // Get asset info
-      const infoClient = this.clientService.getInfoClient();
-      const meta = await infoClient.meta({ dex: dexName ?? '' });
+      // Get asset info (uses cache to avoid redundant API calls)
+      const meta = await this.getCachedMeta({ dexName });
 
       // Check if meta and universe exist and is valid
+      // This should never happen since getCachedMeta validates, but defensive check
       if (!meta?.universe || !Array.isArray(meta.universe)) {
-        console.warn(
-          `Meta or universe not available for DEX ${
-            dexName || 'main'
-          }, using default max leverage`,
+        Logger.error(
+          new Error(
+            '[HyperLiquidProvider] Invalid meta response in getMaxLeverage',
+          ),
+          this.getErrorContext('getMaxLeverage', {
+            asset,
+            dexName: dexName || 'main',
+            note: 'Meta or universe not available, using default max leverage',
+          }),
         );
         return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
       }
@@ -3997,24 +4620,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * TODO: Fetch user's 14-day rolling volume when API available
-   * @private
-   */
-  private async getUserVolume(): Promise<number> {
-    // Placeholder - return 0 (base tier)
-    return 0;
-  }
-
-  /**
-   * TODO: Fetch user's $HYPE staking info when API available
-   * @private
-   */
-  private async getUserStaking(): Promise<number> {
-    // Placeholder - return 0 (no staking discount)
-    return 0;
-  }
-
-  /**
    * Calculate fees based on HyperLiquid's fee structure
    * Returns fee rate as decimal (e.g., 0.00045 for 0.045%)
    *
@@ -4024,16 +4629,36 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async calculateFees(
     params: FeeCalculationParams,
   ): Promise<FeeCalculationResult> {
-    const { orderType, isMaker = false, amount } = params;
+    const { orderType, isMaker = false, amount, coin } = params;
 
     // Start with base rates from config
     let feeRate =
       orderType === 'market' || !isMaker ? FEE_RATES.taker : FEE_RATES.maker;
 
+    // HIP-3 assets have 2× base fees (per fees.md line 9)
+    // Parse coin to detect HIP-3 DEX (e.g., "xyz:TSLA" → dex="xyz")
+    const { dex } = parseAssetName(coin);
+    const isHip3Asset = dex !== null;
+
+    if (isHip3Asset) {
+      const originalRate = feeRate;
+      feeRate *= HIP3_FEE_CONFIG.FEE_MULTIPLIER;
+
+      DevLogger.log('HIP-3 Fee Multiplier Applied', {
+        coin,
+        dex,
+        originalBaseRate: originalRate,
+        hip3BaseRate: feeRate,
+        multiplier: HIP3_FEE_CONFIG.FEE_MULTIPLIER,
+      });
+    }
+
     DevLogger.log('HyperLiquid Fee Calculation Started', {
       orderType,
       isMaker,
       amount,
+      coin,
+      isHip3Asset,
       baseFeeRate: feeRate,
       baseTakerRate: FEE_RATES.taker,
       baseMakerRate: FEE_RATES.maker,
@@ -4053,10 +4678,17 @@ export class HyperLiquidProvider implements IPerpsProvider {
         const cached = this.userFeeCache.get(userAddress);
         if (cached) {
           // Market orders always use taker rate, limit orders check isMaker
-          feeRate =
+          let userFeeRate =
             orderType === 'market' || !isMaker
               ? cached.perpsTakerRate
               : cached.perpsMakerRate;
+
+          // Apply HIP-3 multiplier to user-specific rates
+          if (isHip3Asset) {
+            userFeeRate *= HIP3_FEE_CONFIG.FEE_MULTIPLIER;
+          }
+
+          feeRate = userFeeRate;
 
           DevLogger.log('📦 Using Cached Fee Rates', {
             cacheHit: true,
@@ -4065,6 +4697,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
             spotTakerRate: cached.spotTakerRate,
             spotMakerRate: cached.spotMakerRate,
             selectedRate: feeRate,
+            isHip3Asset,
             cacheExpiry: new Date(cached.timestamp + cached.ttl).toISOString(),
             cacheAge: `${Math.round((Date.now() - cached.timestamp) / 1000)}s`,
           });
@@ -4169,15 +4802,23 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
         this.userFeeCache.set(userAddress, rates);
         // Market orders always use taker rate, limit orders check isMaker
-        feeRate =
+        let userFeeRate =
           orderType === 'market' || !isMaker
             ? rates.perpsTakerRate
             : rates.perpsMakerRate;
+
+        // Apply HIP-3 multiplier to API-fetched rates
+        if (isHip3Asset) {
+          userFeeRate *= HIP3_FEE_CONFIG.FEE_MULTIPLIER;
+        }
+
+        feeRate = userFeeRate;
 
         DevLogger.log('Fee Rates Validated and Cached', {
           selectedRate: feeRate,
           selectedRatePercentage: `${(feeRate * 100).toFixed(4)}%`,
           discountApplied: perpsTakerRate < FEE_RATES.taker,
+          isHip3Asset,
           cacheExpiry: new Date(rates.timestamp + rates.ttl).toISOString(),
         });
       }
@@ -4306,6 +4947,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Clear fee cache
       this.clearFeeCache();
 
+      // Clear session caches (ensures fresh state on reconnect/account switch)
+      this.referralCheckCache.clear();
+      this.builderFeeCheckCache.clear();
+      this.cachedMetaByDex.clear();
+
       // Disconnect client service
       await this.clientService.disconnect();
 
@@ -4427,13 +5073,17 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
   /**
    * Ensure user has a MetaMask referral code set
-   * If user doesn't have a referral set, set MetaMask as referrer
-   * This is called before every order to maximize referral capture
+   * Called once during initialization (ensureReady) to set up referral for the session
+   * Uses session cache to avoid redundant API calls until disconnect/reconnect
+   *
+   * Cache semantics: Only caches successful referral sets (never caches "not set" state)
+   * This allows detection of external referral changes between retries while avoiding redundant checks
    *
    * Note: This is network-specific - testnet and mainnet have separate referral states
+   * Note: Non-blocking - failures are logged to Sentry but don't prevent trading
+   * Note: Will automatically retry on next session if failed (cache cleared on disconnect)
    */
   private async ensureReferralSet(): Promise<void> {
-    const errorMessage = 'Error ensuring referral code is set';
     try {
       const isTestnet = this.clientService.isTestnetMode();
       const network = isTestnet ? 'testnet' : 'mainnet';
@@ -4442,40 +5092,76 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const userAddress = await this.walletService.getUserAddressWithDefault();
 
       if (userAddress.toLowerCase() === referrerAddress.toLowerCase()) {
-        // if the user is the builder, we don't need to set a referral code
+        DevLogger.log('[ensureReferralSet] User is builder, skipping', {
+          network,
+        });
         return;
+      }
+
+      // Check session cache first to avoid redundant API calls
+      // Cache only stores true (referral confirmed), never false
+      const cacheKey = this.getCacheKey(network, userAddress);
+      const cached = this.referralCheckCache.get(cacheKey);
+
+      if (cached === true) {
+        DevLogger.log('[ensureReferralSet] Using session cache', {
+          network,
+        });
+        return; // Already has referral set this session, skip
       }
 
       const isReady = await this.isReferralCodeReady();
       if (!isReady) {
-        // if the referrer code is not ready, we can't set the referral code on the user
-        // so we just return and the error will be logged
-        // we may want to block this completely, but for now we just log the error
-        // as the referrer may need to address an issue first and we may not want to completely
-        // block orders for this
+        DevLogger.log(
+          '[ensureReferralSet] Builder referral not ready yet, skipping',
+          { network },
+        );
         return;
       }
+
       // Check if user already has a referral set on this network
       const hasReferral = await this.checkReferralSet();
 
       if (!hasReferral) {
-        DevLogger.log('No referral set - setting MetaMask as referrer', {
-          network,
-          referralCode: expectedReferralCode,
-        });
+        DevLogger.log(
+          '[ensureReferralSet] No referral set - setting MetaMask',
+          {
+            network,
+            referralCode: expectedReferralCode,
+          },
+        );
         const result = await this.setReferralCode();
         if (result === true) {
-          DevLogger.log('Referral code set', {
+          DevLogger.log('[ensureReferralSet] Referral code set successfully', {
             network,
             referralCode: expectedReferralCode,
           });
+          // Update cache to reflect successful set
+          this.referralCheckCache.set(cacheKey, true);
         } else {
-          throw new Error('Failed to set referral code');
+          DevLogger.log(
+            '[ensureReferralSet] Failed to set referral code (will retry next session)',
+            { network },
+          );
         }
+      } else {
+        // User already has referral set (possibly from external setup or previous session)
+        // Cache success to avoid redundant checks
+        this.referralCheckCache.set(cacheKey, true);
+
+        DevLogger.log('[ensureReferralSet] User already has referral set', {
+          network,
+        });
       }
     } catch (error) {
-      console.error(errorMessage, error);
-      throw new Error(errorMessage);
+      // Non-blocking: Log to Sentry but don't throw
+      // Will retry automatically on next session (cache cleared on disconnect)
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('ensureReferralSet', {
+          note: 'Referral setup failed (non-blocking, will retry next session)',
+        }),
+      );
     }
   }
 
@@ -4484,7 +5170,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * @returns Promise resolving to true if referral code is ready
    */
   private async isReferralCodeReady(): Promise<boolean> {
-    const errorMessage = 'Error checking if referral code is ready';
     try {
       const infoClient = this.clientService.getInfoClient();
       const isTestnet = this.clientService.isTestnetMode();
@@ -4504,15 +5189,24 @@ export class HyperLiquidProvider implements IPerpsProvider {
         }
         return true;
       }
-      console.error('Referral code not ready', {
+
+      // Not ready yet - log as DevLogger since this is expected during setup phase
+      DevLogger.log('[isReferralCodeReady] Referral code not ready', {
         stage,
         code,
         referrerAddr,
-        referral,
       });
       return false;
     } catch (error) {
-      console.error(errorMessage, error);
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('isReferralCodeReady', {
+          code: this.getReferralCode(this.clientService.isTestnetMode()),
+          referrerAddress: this.getBuilderAddress(
+            this.clientService.isTestnetMode(),
+          ),
+        }),
+      );
       return false;
     }
   }
@@ -4538,7 +5232,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       return !!referralData?.referredBy?.code;
     } catch (error) {
-      DevLogger.log('Error checking referral status:', error);
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('checkReferralSet', {
+          note: 'Error checking referral status, will retry',
+        }),
+      );
       // do not throw here, return false as we can try to set it again
       return false;
     }
@@ -4548,14 +5247,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Set MetaMask as the user's referrer on HyperLiquid
    */
   private async setReferralCode(): Promise<boolean> {
-    const errorMessage = 'Error setting referral code';
     try {
       const exchangeClient = this.clientService.getExchangeClient();
       const referralCode = this.getReferralCode(
         this.clientService.isTestnetMode(),
       );
 
-      DevLogger.log('Setting referral code:', {
+      DevLogger.log('[setReferralCode] Setting referral code', {
         code: referralCode,
         network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
       });
@@ -4565,12 +5263,18 @@ export class HyperLiquidProvider implements IPerpsProvider {
         code: referralCode,
       });
 
-      DevLogger.log('Referral code set result:', result);
+      DevLogger.log('[setReferralCode] Referral code set result', result);
 
       return result?.status === 'ok';
     } catch (error) {
-      console.error(errorMessage, error);
-      throw new Error(errorMessage);
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('setReferralCode', {
+          code: this.getReferralCode(this.clientService.isTestnetMode()),
+        }),
+      );
+      // Rethrow to be caught by retry logic in ensureReferralSet
+      throw error;
     }
   }
 }
