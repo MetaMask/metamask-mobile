@@ -5,6 +5,14 @@ import { render } from '@testing-library/react-native';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import Routes from '../../../constants/navigation/Routes';
 
+// Mock useFeatureFlag before mocking MainNavigator
+jest.mock('../../../components/hooks/FeatureFlags/useFeatureFlag', () => ({
+  useFeatureFlag: jest.fn().mockReturnValue(true),
+  FeatureFlagNames: {
+    rewardsEnabled: 'rewardsEnabled',
+  },
+}));
+
 // Mock the MainNavigator component directly
 jest.mock('./MainNavigator', () => {
   const React = require('react');
@@ -13,11 +21,12 @@ jest.mock('./MainNavigator', () => {
     TabBarIconKey,
   } = require('../../../component-library/components/Navigation/TabBar/TabBar.types');
   const {
-    selectRewardsEnabledFlag,
-  } = require('../../../selectors/featureFlagController/rewards');
-  const {
     selectAssetsTrendingTokensEnabled,
   } = require('../../../selectors/featureFlagController/assetsTrendingTokens');
+  const {
+    selectRewardsEnabledFlag,
+  } = require('../../../selectors/featureFlagController/rewards');
+
   const { selectBrowserFullscreen } = require('../../../selectors/browser');
   const Routes = require('../../../constants/navigation/Routes').default;
 

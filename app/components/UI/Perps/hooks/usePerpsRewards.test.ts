@@ -15,8 +15,18 @@ jest.mock('../constants/perpsConfig', () => ({
   },
 }));
 
-import { useSelector } from 'react-redux';
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+import { useFeatureFlag } from '../../../hooks/FeatureFlags/useFeatureFlag';
+jest.mock('../../../../components/hooks/FeatureFlags/useFeatureFlag', () => ({
+  useFeatureFlag: jest.fn().mockReturnValue(true),
+  FeatureFlagNames: {
+    rewardsEnabled: 'rewardsEnabled',
+  },
+}));
+
+const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
+  typeof useFeatureFlag
+>;
+mockUseFeatureFlag.mockReturnValue(true);
 
 describe('usePerpsRewards', () => {
   // Mock fee results for testing
@@ -40,13 +50,13 @@ describe('usePerpsRewards', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Default: rewards enabled
-    mockUseSelector.mockReturnValue(true);
+    mockUseFeatureFlag.mockReturnValue(true);
   });
 
   describe('Feature flag scenarios', () => {
     it('should not show rewards row when feature flag is disabled', () => {
       // Arrange
-      mockUseSelector.mockReturnValue(false);
+      mockUseFeatureFlag.mockReturnValue(false);
       const feeResults = createMockFeeResults({ estimatedPoints: 100 });
 
       // Act
@@ -67,7 +77,7 @@ describe('usePerpsRewards', () => {
 
     it('should show rewards row when feature flag is enabled and has valid amount', () => {
       // Arrange
-      mockUseSelector.mockReturnValue(true);
+      mockUseFeatureFlag.mockReturnValue(true);
       const feeResults = createMockFeeResults({ estimatedPoints: 100 });
 
       // Act
@@ -87,7 +97,7 @@ describe('usePerpsRewards', () => {
 
     it('should not show rewards row when hasValidAmount is false', () => {
       // Arrange
-      mockUseSelector.mockReturnValue(true);
+      mockUseFeatureFlag.mockReturnValue(true);
       const feeResults = createMockFeeResults({ estimatedPoints: 100 });
 
       // Act

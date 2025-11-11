@@ -4,6 +4,9 @@ import type { Json } from '@metamask/utils';
 // Import StorageWrapper mock from global testSetup - this provides StorageWrapper.getItem
 import StorageWrapper from '../../../store/storage-wrapper';
 
+// Ensure StorageWrapper.getItem returns a promise by default
+jest.mocked(StorageWrapper.getItem).mockResolvedValue(null);
+
 // Local mocks specific to this test file to avoid affecting other tests
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.50.1'),
@@ -805,28 +808,20 @@ describe('Wallet', () => {
     });
 
     it('should handle errors in onSend callback gracefully', async () => {
-      // Mock dispatch to throw an error
-      const mockDispatch = jest.fn().mockImplementation(() => {
-        throw new Error('Transaction initialization failed');
-      });
-
-      jest
-        .mocked(useSelector)
-        .mockImplementation((callback: (state: unknown) => unknown) => {
-          const selectorString = callback.toString();
-          if (selectorString.includes('useDispatch')) {
-            return mockDispatch;
-          }
-          return callback(mockInitialState);
-        });
+      const mockAssetDetailsActions = jest.mocked(
+        jest.requireMock('../AssetDetails/AssetDetailsActions'),
+      );
+      mockAssetDetailsActions.mockClear();
 
       //@ts-expect-error we are ignoring the navigation params on purpose
       render(Wallet);
 
-      const mockAssetDetailsActions = jest.mocked(
-        jest.requireMock('../AssetDetails/AssetDetailsActions'),
-      );
+      // Ensure the component rendered and AssetDetailsActions was called
+      expect(mockAssetDetailsActions).toHaveBeenCalled();
+      expect(mockAssetDetailsActions.mock.calls.length).toBeGreaterThan(0);
+
       const onSend = mockAssetDetailsActions.mock.calls[0][0].onSend;
+      expect(onSend).toBeDefined();
 
       await onSend();
 
@@ -950,6 +945,8 @@ describe('Wallet', () => {
         {
           state: mockInitialStateWithConnectionRemoved,
         },
+        true,
+        true, // Include FeatureFlagOverrideProvider
       );
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
