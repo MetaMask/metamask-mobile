@@ -3948,7 +3948,7 @@ describe('PolymarketProvider', () => {
     });
 
     describe('confirmClaim', () => {
-      it('adds claimed positions to recently sold list', async () => {
+      it('marks claimed positions for optimistic removal', async () => {
         // Arrange
         const provider = createProvider();
         const mockAddress = '0x1234567890123456789012345678901234567890';
@@ -3960,12 +3960,16 @@ describe('PolymarketProvider', () => {
         const mockPositions = [
           createMockPosition({
             id: 'position-1',
+            outcomeTokenId: 'token-1',
+            marketId: 'market-1',
             status: PredictPositionStatus.WON,
             currentValue: 100,
             cashPnl: 50,
           }),
           createMockPosition({
             id: 'position-2',
+            outcomeTokenId: 'token-2',
+            marketId: 'market-1',
             status: PredictPositionStatus.WON,
             currentValue: 200,
             cashPnl: 100,
@@ -3997,6 +4001,7 @@ describe('PolymarketProvider', () => {
         mockParsePolymarketPositions.mockResolvedValue([
           {
             id: 'position-1',
+            outcomeTokenId: 'token-1',
             marketId: 'market-1',
             status: PredictPositionStatus.WON,
             currentValue: 100,
@@ -4004,6 +4009,7 @@ describe('PolymarketProvider', () => {
           },
           {
             id: 'position-2',
+            outcomeTokenId: 'token-2',
             marketId: 'market-1',
             status: PredictPositionStatus.WON,
             currentValue: 200,
@@ -4030,6 +4036,8 @@ describe('PolymarketProvider', () => {
         };
         const mockPosition = createMockPosition({
           id: 'position-1',
+          outcomeTokenId: 'token-1',
+          marketId: 'market-1',
           status: PredictPositionStatus.WON,
           currentValue: 100,
           cashPnl: 50,
@@ -4053,6 +4061,7 @@ describe('PolymarketProvider', () => {
         mockParsePolymarketPositions.mockResolvedValue([
           {
             id: 'position-1',
+            outcomeTokenId: 'token-1',
             marketId: 'market-1',
             status: PredictPositionStatus.WON,
             currentValue: 100,
@@ -4072,8 +4081,8 @@ describe('PolymarketProvider', () => {
       });
     });
 
-    describe('getPositions with recently sold filtering', () => {
-      it('filters out recently sold positions when calling getPositions', async () => {
+    describe('getPositions with optimistic removal filtering', () => {
+      it('filters out positions marked for optimistic removal', async () => {
         // Arrange
         const provider = createProvider();
         const mockAddress = '0x1234567890123456789012345678901234567890';
@@ -4083,11 +4092,13 @@ describe('PolymarketProvider', () => {
           signPersonalMessage: jest.fn(),
         };
 
-        // First, mark position-2 as sold
+        // First, mark position-2 (token-2) for removal
         provider.confirmClaim({
           positions: [
             createMockPosition({
               id: 'position-2',
+              outcomeTokenId: 'token-2',
+              marketId: 'market-1',
               status: PredictPositionStatus.OPEN,
               currentValue: 0,
               cashPnl: 0,
@@ -4127,16 +4138,19 @@ describe('PolymarketProvider', () => {
         mockParsePolymarketPositions.mockResolvedValue([
           {
             id: 'position-1',
+            outcomeTokenId: 'token-1',
             marketId: 'market-1',
             providerId: 'polymarket',
           },
           {
             id: 'position-2',
+            outcomeTokenId: 'token-2',
             marketId: 'market-1',
             providerId: 'polymarket',
           },
           {
             id: 'position-3',
+            outcomeTokenId: 'token-3',
             marketId: 'market-1',
             providerId: 'polymarket',
           },
@@ -4149,18 +4163,18 @@ describe('PolymarketProvider', () => {
         expect(result).toHaveLength(2);
         expect(result).toEqual(
           expect.arrayContaining([
-            expect.objectContaining({ id: 'position-1' }),
-            expect.objectContaining({ id: 'position-3' }),
+            expect.objectContaining({ outcomeTokenId: 'token-1' }),
+            expect.objectContaining({ outcomeTokenId: 'token-3' }),
           ]),
         );
         expect(result).not.toEqual(
           expect.arrayContaining([
-            expect.objectContaining({ id: 'position-2' }),
+            expect.objectContaining({ outcomeTokenId: 'token-2' }),
           ]),
         );
       });
 
-      it('cleans up sold positions older than 5 minutes when adding new positions', async () => {
+      it('cleans up optimistic updates older than 1 minute', async () => {
         // Arrange
         const provider = createProvider();
         const mockAddress = '0x1234567890123456789012345678901234567890';
@@ -4172,18 +4186,20 @@ describe('PolymarketProvider', () => {
 
         // Save the original Date.now
         const realDateNow = Date.now.bind(global.Date);
-        const sixMinutesAgo = realDateNow() - 6 * 60 * 1000;
+        const twoMinutesAgo = realDateNow() - 2 * 60 * 1000;
 
-        // Mock Date.now to return 6 minutes ago for the first confirmClaim
+        // Mock Date.now to return 2 minutes ago for the first confirmClaim
         const dateNowStub = jest.fn();
         global.Date.now = dateNowStub;
-        dateNowStub.mockReturnValueOnce(sixMinutesAgo);
+        dateNowStub.mockReturnValueOnce(twoMinutesAgo);
 
-        // Mark a position as sold 6 minutes ago
+        // Mark a position for removal 2 minutes ago (should be cleaned up)
         provider.confirmClaim({
           positions: [
             createMockPosition({
               id: 'old-position',
+              outcomeTokenId: 'token-old',
+              marketId: 'market-1',
               status: PredictPositionStatus.OPEN,
               currentValue: 0,
               cashPnl: 0,
@@ -4195,11 +4211,13 @@ describe('PolymarketProvider', () => {
         // Now make Date.now return current time
         dateNowStub.mockImplementation(realDateNow);
 
-        // Add a new position (this should trigger cleanup of old positions)
+        // Add a new position for removal (this should trigger cleanup of old updates)
         provider.confirmClaim({
           positions: [
             createMockPosition({
               id: 'new-sold-position',
+              outcomeTokenId: 'token-new',
+              marketId: 'market-1',
               status: PredictPositionStatus.OPEN,
               currentValue: 0,
               cashPnl: 0,
@@ -4239,16 +4257,19 @@ describe('PolymarketProvider', () => {
         mockParsePolymarketPositions.mockResolvedValue([
           {
             id: 'old-position',
+            outcomeTokenId: 'token-old',
             marketId: 'market-1',
             providerId: 'polymarket',
           },
           {
             id: 'new-sold-position',
+            outcomeTokenId: 'token-new',
             marketId: 'market-1',
             providerId: 'polymarket',
           },
           {
             id: 'visible-position',
+            outcomeTokenId: 'token-visible',
             marketId: 'market-1',
             providerId: 'polymarket',
           },
@@ -4257,17 +4278,17 @@ describe('PolymarketProvider', () => {
         // Act
         const result = await provider.getPositions({ address: mockAddress });
 
-        // Assert - old position should NOT be filtered (cleaned up), new-sold-position SHOULD be filtered
+        // Assert - old position should NOT be filtered (cleaned up by timeout), new-sold-position SHOULD be filtered
         expect(result).toHaveLength(2);
         expect(result).toEqual(
           expect.arrayContaining([
-            expect.objectContaining({ id: 'old-position' }),
-            expect.objectContaining({ id: 'visible-position' }),
+            expect.objectContaining({ outcomeTokenId: 'token-old' }),
+            expect.objectContaining({ outcomeTokenId: 'token-visible' }),
           ]),
         );
         expect(result).not.toEqual(
           expect.arrayContaining([
-            expect.objectContaining({ id: 'new-sold-position' }),
+            expect.objectContaining({ outcomeTokenId: 'token-new' }),
           ]),
         );
 
@@ -4275,7 +4296,7 @@ describe('PolymarketProvider', () => {
         global.Date.now = realDateNow;
       });
 
-      it('tracks multiple sold positions for same address', async () => {
+      it('tracks multiple optimistic removals for same address', async () => {
         // Arrange
         const provider = createProvider();
         const mockAddress = '0x1234567890123456789012345678901234567890';
@@ -4285,23 +4306,29 @@ describe('PolymarketProvider', () => {
           signPersonalMessage: jest.fn(),
         };
 
-        // Mark 3 positions as sold
+        // Mark 3 positions for removal
         provider.confirmClaim({
           positions: [
             createMockPosition({
               id: 'position-1',
+              outcomeTokenId: 'token-1',
+              marketId: 'market-1',
               status: PredictPositionStatus.OPEN,
               currentValue: 0,
               cashPnl: 0,
             }),
             createMockPosition({
               id: 'position-2',
+              outcomeTokenId: 'token-2',
+              marketId: 'market-1',
               status: PredictPositionStatus.OPEN,
               currentValue: 0,
               cashPnl: 0,
             }),
             createMockPosition({
               id: 'position-3',
+              outcomeTokenId: 'token-3',
+              marketId: 'market-1',
               status: PredictPositionStatus.OPEN,
               currentValue: 0,
               cashPnl: 0,
@@ -4324,10 +4351,30 @@ describe('PolymarketProvider', () => {
 
         mockComputeProxyAddress.mockReturnValue('0xproxy');
         mockParsePolymarketPositions.mockResolvedValue([
-          { id: 'position-1', marketId: 'market-1', providerId: 'polymarket' },
-          { id: 'position-2', marketId: 'market-1', providerId: 'polymarket' },
-          { id: 'position-3', marketId: 'market-1', providerId: 'polymarket' },
-          { id: 'position-4', marketId: 'market-1', providerId: 'polymarket' },
+          {
+            id: 'position-1',
+            outcomeTokenId: 'token-1',
+            marketId: 'market-1',
+            providerId: 'polymarket',
+          },
+          {
+            id: 'position-2',
+            outcomeTokenId: 'token-2',
+            marketId: 'market-1',
+            providerId: 'polymarket',
+          },
+          {
+            id: 'position-3',
+            outcomeTokenId: 'token-3',
+            marketId: 'market-1',
+            providerId: 'polymarket',
+          },
+          {
+            id: 'position-4',
+            outcomeTokenId: 'token-4',
+            marketId: 'market-1',
+            providerId: 'polymarket',
+          },
         ]);
 
         // Act
@@ -4335,7 +4382,7 @@ describe('PolymarketProvider', () => {
 
         // Assert - only position-4 should remain
         expect(result).toHaveLength(1);
-        expect(result[0]).toMatchObject({ id: 'position-4' });
+        expect(result[0]).toMatchObject({ outcomeTokenId: 'token-4' });
       });
 
       it('handles multiple addresses independently', async () => {
@@ -4344,11 +4391,13 @@ describe('PolymarketProvider', () => {
         const addressA = '0x1111111111111111111111111111111111111111';
         const addressB = '0x2222222222222222222222222222222222222222';
 
-        // Mark position-1 as sold for address A
+        // Mark position-1 (token-1) for removal for address A
         provider.confirmClaim({
           positions: [
             createMockPosition({
               id: 'position-1',
+              outcomeTokenId: 'token-1',
+              marketId: 'market-1',
               status: PredictPositionStatus.OPEN,
               currentValue: 0,
               cashPnl: 0,
@@ -4361,11 +4410,13 @@ describe('PolymarketProvider', () => {
           },
         });
 
-        // Mark position-2 as sold for address B
+        // Mark position-2 (token-2) for removal for address B
         provider.confirmClaim({
           positions: [
             createMockPosition({
               id: 'position-2',
+              outcomeTokenId: 'token-2',
+              marketId: 'market-1',
               status: PredictPositionStatus.OPEN,
               currentValue: 0,
               cashPnl: 0,
@@ -4391,8 +4442,18 @@ describe('PolymarketProvider', () => {
 
         mockComputeProxyAddress.mockReturnValue('0xproxy');
         mockParsePolymarketPositions.mockResolvedValue([
-          { id: 'position-1', marketId: 'market-1', providerId: 'polymarket' },
-          { id: 'position-2', marketId: 'market-1', providerId: 'polymarket' },
+          {
+            id: 'position-1',
+            outcomeTokenId: 'token-1',
+            marketId: 'market-1',
+            providerId: 'polymarket',
+          },
+          {
+            id: 'position-2',
+            outcomeTokenId: 'token-2',
+            marketId: 'market-1',
+            providerId: 'polymarket',
+          },
         ]);
 
         // Act - get positions for address A
@@ -4400,10 +4461,10 @@ describe('PolymarketProvider', () => {
 
         // Assert - only position-2 should be returned (position-1 filtered for addressA)
         expect(resultA).toHaveLength(1);
-        expect(resultA[0]).toMatchObject({ id: 'position-2' });
+        expect(resultA[0]).toMatchObject({ outcomeTokenId: 'token-2' });
       });
 
-      it('returns all positions when no positions are marked as sold', async () => {
+      it('returns all positions when no optimistic updates exist', async () => {
         // Arrange
         const provider = createProvider();
         const mockAddress = '0x1234567890123456789012345678901234567890';
@@ -4423,11 +4484,36 @@ describe('PolymarketProvider', () => {
 
         mockComputeProxyAddress.mockReturnValue('0xproxy');
         mockParsePolymarketPositions.mockResolvedValue([
-          { id: 'position-1', marketId: 'market-1', providerId: 'polymarket' },
-          { id: 'position-2', marketId: 'market-1', providerId: 'polymarket' },
-          { id: 'position-3', marketId: 'market-1', providerId: 'polymarket' },
-          { id: 'position-4', marketId: 'market-1', providerId: 'polymarket' },
-          { id: 'position-5', marketId: 'market-1', providerId: 'polymarket' },
+          {
+            id: 'position-1',
+            outcomeTokenId: 'token-1',
+            marketId: 'market-1',
+            providerId: 'polymarket',
+          },
+          {
+            id: 'position-2',
+            outcomeTokenId: 'token-2',
+            marketId: 'market-1',
+            providerId: 'polymarket',
+          },
+          {
+            id: 'position-3',
+            outcomeTokenId: 'token-3',
+            marketId: 'market-1',
+            providerId: 'polymarket',
+          },
+          {
+            id: 'position-4',
+            outcomeTokenId: 'token-4',
+            marketId: 'market-1',
+            providerId: 'polymarket',
+          },
+          {
+            id: 'position-5',
+            outcomeTokenId: 'token-5',
+            marketId: 'market-1',
+            providerId: 'polymarket',
+          },
         ]);
 
         // Act
@@ -4437,7 +4523,7 @@ describe('PolymarketProvider', () => {
         expect(result).toHaveLength(5);
       });
 
-      it('handles empty sold positions list gracefully', async () => {
+      it('handles empty optimistic updates list gracefully', async () => {
         // Arrange
         const provider = createProvider();
         const mockAddress = '0x1234567890123456789012345678901234567890';
@@ -4453,7 +4539,12 @@ describe('PolymarketProvider', () => {
 
         mockComputeProxyAddress.mockReturnValue('0xproxy');
         mockParsePolymarketPositions.mockResolvedValue([
-          { id: 'position-1', marketId: 'market-1', providerId: 'polymarket' },
+          {
+            id: 'position-1',
+            outcomeTokenId: 'token-1',
+            marketId: 'market-1',
+            providerId: 'polymarket',
+          },
         ]);
 
         // Act
@@ -4461,18 +4552,18 @@ describe('PolymarketProvider', () => {
 
         // Assert - no errors, returns all positions
         expect(result).toHaveLength(1);
-        expect(result[0]).toMatchObject({ id: 'position-1' });
+        expect(result[0]).toMatchObject({ outcomeTokenId: 'token-1' });
       });
     });
 
-    describe('placeOrder with optimistic sold tracking', () => {
-      it('adds position to sold list when selling', async () => {
+    describe('placeOrder with optimistic updates', () => {
+      it('marks position for optimistic removal when selling', async () => {
         // Arrange
         const { provider, mockSigner } = setupPlaceOrderTest();
         const preview = createMockOrderPreview({
           side: Side.SELL,
           outcomeTokenId: 'token-123',
-          positionId: 'token-123', // positionId is required for tracking sold positions
+          positionId: 'position-123',
         });
         const orderParams = {
           signer: mockSigner,
@@ -4490,12 +4581,17 @@ describe('PolymarketProvider', () => {
             ok: true,
             json: jest
               .fn()
-              .mockResolvedValue([{ id: 'token-123', market: 'market-1' }]),
+              .mockResolvedValue([{ id: 'position-123', market: 'market-1' }]),
           });
 
         mockComputeProxyAddress.mockReturnValue('0xproxy');
         mockParsePolymarketPositions.mockResolvedValue([
-          { id: 'token-123', marketId: 'market-1', providerId: 'polymarket' },
+          {
+            id: 'position-123',
+            outcomeTokenId: 'token-123',
+            marketId: 'market-1',
+            providerId: 'polymarket',
+          },
         ]);
 
         const positions = await provider.getPositions({
@@ -4504,12 +4600,14 @@ describe('PolymarketProvider', () => {
         expect(positions).toHaveLength(0);
       });
 
-      it('does not add to sold list when buying', async () => {
+      it('creates optimistic position when buying', async () => {
         // Arrange
         const { provider, mockSigner } = setupPlaceOrderTest();
         const preview = createMockOrderPreview({
           side: Side.BUY,
           outcomeTokenId: 'token-456',
+          outcomeId: 'outcome-456',
+          marketId: 'market-1',
         });
         const orderParams = {
           signer: mockSigner,
@@ -4517,29 +4615,64 @@ describe('PolymarketProvider', () => {
           preview,
         };
 
+        // Mock getMarketDetails for optimistic position creation
+        mockGetMarketDetailsFromGammaApi.mockResolvedValue({
+          id: 'market-1',
+          question: 'Test Market',
+          markets: [],
+        });
+        mockParsePolymarketEvents.mockReturnValue([
+          {
+            id: 'market-1',
+            outcomes: [
+              {
+                id: 'outcome-456',
+                title: 'Yes',
+                tokens: [{ id: 'token-456', title: 'Yes', price: 0.5 }],
+              },
+            ],
+          },
+        ]);
+
+        // Mock submitClobOrder to return transaction amounts
+        mockSubmitClobOrder.mockResolvedValue({
+          success: true,
+          response: {
+            success: true,
+            makingAmount: '1000000', // $1 USDC (6 decimals)
+            takingAmount: '2000000', // 2 shares
+            orderID: 'order-123',
+            status: 'success',
+            transactionsHashes: [],
+          },
+          error: undefined,
+        });
+
         // Act
         await provider.placeOrder(orderParams);
 
-        // Assert - getPositions should not filter anything
+        // Assert - getPositions should return API position OR optimistic position
         (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
           .fn()
           .mockResolvedValue({
             ok: true,
-            json: jest
-              .fn()
-              .mockResolvedValue([{ id: 'token-456', market: 'market-1' }]),
+            json: jest.fn().mockResolvedValue([]),
           });
 
         mockComputeProxyAddress.mockReturnValue('0xproxy');
-        mockParsePolymarketPositions.mockResolvedValue([
-          { id: 'token-456', marketId: 'market-1', providerId: 'polymarket' },
-        ]);
+        mockParsePolymarketPositions.mockResolvedValue([]);
 
         const positions = await provider.getPositions({
           address: mockSigner.address,
         });
-        expect(positions).toHaveLength(1);
-        expect(positions[0]).toMatchObject({ id: 'token-456' });
+
+        // Should have the optimistic position
+        expect(positions.length).toBeGreaterThanOrEqual(1);
+        const optimisticPos = positions.find(
+          (p) => p.outcomeTokenId === 'token-456',
+        );
+        expect(optimisticPos).toBeDefined();
+        expect(optimisticPos?.optimistic).toBe(true);
       });
     });
   });
