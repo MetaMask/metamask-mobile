@@ -156,7 +156,8 @@ const TrendingTokenRowItem = ({
           variant={TextVariant.BodySM}
           color={isPositiveChange ? TextColor.Success : TextColor.Error}
         >
-          +{pricePercentChange1d}%
+          {isPositiveChange ? '+' : '-'}
+          {Math.abs(pricePercentChange1d)}%
         </Text>
       </View>
     </TouchableOpacity>
