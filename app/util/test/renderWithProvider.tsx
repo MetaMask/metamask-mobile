@@ -46,14 +46,8 @@ export default function renderWithProvider(
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   require('../../store')._updateMockState(state);
 
-  const InnerProvider = ({ children }: { children: React.ReactElement }) => (
-    <Provider store={store}>
-      <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>
-    </Provider>
-  );
-
-  const AllProviders = ({ children }: { children: React.ReactElement }) => {
-    let wrappedChildren = <InnerProvider>{children}</InnerProvider>;
+  const InnerProvider = ({ children }: { children: React.ReactElement }) => {
+    let wrappedChildren = children;
     if (includeFeatureFlagOverrideProvider) {
       wrappedChildren = (
         <FeatureFlagOverrideProvider>
@@ -61,6 +55,17 @@ export default function renderWithProvider(
         </FeatureFlagOverrideProvider>
       );
     }
+    return (
+      <Provider store={store}>
+        <ThemeContext.Provider value={theme}>
+          {wrappedChildren}
+        </ThemeContext.Provider>
+      </Provider>
+    );
+  };
+
+  const AllProviders = ({ children }: { children: React.ReactElement }) => {
+    let wrappedChildren = <InnerProvider>{children}</InnerProvider>;
     if (includeNavigationContainer) {
       wrappedChildren = (
         <NavigationContainer>{wrappedChildren}</NavigationContainer>
