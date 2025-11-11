@@ -59,16 +59,16 @@ describe(SmokeConfirmationsRedesigned('Send native asset'), () => {
         await Assertions.expectTextDisplayed('Confirmed');
 
         // send 50% ETH
-        // await TabBarComponent.tapWallet();
-        // await WalletView.tapWalletSendButton();
-        // await SendView.selectEthereumToken();
-        // await SendView.pressFiftyPercentButton();
-        // await SendView.pressContinueButton();
-        // await SendView.inputRecipientAddress(RECIPIENT);
-        // await SendView.pressReviewButton();
-        // await FooterActions.tapConfirmButton();
-        // await TabBarComponent.tapActivity();
-        // await Assertions.expectTextDisplayed('Confirmed');
+        await TabBarComponent.tapWallet();
+        await WalletView.tapWalletSendButton();
+        await SendView.selectEthereumToken();
+        await SendView.pressFiftyPercentButton();
+        await SendView.pressContinueButton();
+        await SendView.inputRecipientAddress(RECIPIENT);
+        await SendView.pressReviewButton();
+        await FooterActions.tapConfirmButton();
+        await TabBarComponent.tapActivity();
+        await Assertions.expectTextDisplayed('Confirmed');
 
         // send Max ETH
         await TabBarComponent.tapWallet();
