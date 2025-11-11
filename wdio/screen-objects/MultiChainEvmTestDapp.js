@@ -1,6 +1,6 @@
 import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
-import { expect as appwrightExpect } from 'appwright';
+import { expect } from 'appwright';
 class MultiChainEvmTestDapp {
     constructor() {}
 
@@ -29,7 +29,7 @@ class MultiChainEvmTestDapp {
         }
 
         if (AppwrightSelectors.isAndroid(this._device)) {
-            return AppwrightSelectors.getElementByXpath(this._device, '//div[@id="root"]/div/div[2]/button[1]');
+            return AppwrightSelectors.getElementByID(this._device, 'connect-button');
         }
     }
 
@@ -39,7 +39,7 @@ class MultiChainEvmTestDapp {
         }
 
         if (AppwrightSelectors.isAndroid(this._device)) {
-            return AppwrightSelectors.getElementByID(this._device, 'connected');
+            return AppwrightSelectors.getElementByID(this._device, 'connected-status');
         }
     }
 
@@ -66,8 +66,13 @@ class MultiChainEvmTestDapp {
             return false;
         }
 
-        const element = await this.connectedStatusHeader;
-        await appwrightExpect(element).toBeVisible({ timeout: 10000 });
+        const connectedStatusHeader = await this.connectedStatusHeader;
+        if (!connectedStatusHeader) {
+            return false;
+        }
+
+        const text = await connectedStatusHeader.getText();
+        expect(text).toContain('Connected: true');
     }
 }
 

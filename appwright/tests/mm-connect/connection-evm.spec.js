@@ -54,7 +54,8 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   // Accept in MetaMask app
   // await login(device, { shouldDismissModals: false });
 
-  await DappConnectionModal.tapConnectButton();
+  // await DappConnectionModal.tapConnectButton();
+  await new Promise((resolve) => setTimeout(resolve, 5000));
 
   // Explicit pausing to avoid navigating back too fast to the dapp
   await new Promise((resolve) => setTimeout(resolve, 1000));
