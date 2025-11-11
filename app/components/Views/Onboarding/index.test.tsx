@@ -121,7 +121,6 @@ jest.mock('../../../util/trace', () => ({
 const mockMetricsIsEnabled = jest.fn().mockReturnValue(false);
 const mockTrackEvent = jest.fn();
 const mockEnable = jest.fn();
-const mockEnableSocialLogin = jest.fn();
 const mockCreateEventBuilder = jest.fn().mockReturnValue({
   addProperties: jest.fn().mockReturnThis(),
   build: jest.fn().mockReturnValue({}),
@@ -131,7 +130,6 @@ jest.mock('../../../core/Analytics/MetaMetrics', () => ({
     isEnabled: mockMetricsIsEnabled,
     trackEvent: mockTrackEvent,
     enable: mockEnable,
-    enableSocialLogin: mockEnableSocialLogin,
     createEventBuilder: mockCreateEventBuilder,
   }),
 }));
@@ -146,7 +144,6 @@ interface MetricsProps {
     isEnabled: () => boolean;
     trackEvent: (...args: unknown[]) => void;
     enable: (...args: unknown[]) => void;
-    enableSocialLogin: (...args: unknown[]) => void;
     createEventBuilder: () => EventBuilder;
   };
 }
@@ -162,7 +159,6 @@ jest.mock(
           isEnabled: mockMetricsIsEnabled,
           trackEvent: mockTrackEvent,
           enable: mockEnable,
-          enableSocialLogin: mockEnableSocialLogin,
           createEventBuilder: mockCreateEventBuilder,
         }}
       />
@@ -232,7 +228,6 @@ describe('Onboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockEnable.mockClear();
-    mockEnableSocialLogin.mockClear();
     mockCreateEventBuilder.mockClear();
 
     jest.spyOn(BackHandler, 'addEventListener').mockImplementation(() => ({
@@ -1202,7 +1197,6 @@ describe('Onboarding', () => {
         existingUser: false,
         accountName: 'test@example.com',
       });
-      mockEnableSocialLogin.mockClear();
 
       const { getByTestId } = renderScreen(
         Onboarding,
@@ -1231,7 +1225,7 @@ describe('Onboarding', () => {
         await googleOAuthFunction(true);
       });
 
-      expect(mockEnableSocialLogin).toHaveBeenCalledWith(true);
+      expect(mockEnable).toHaveBeenCalledWith(true);
     });
   });
 
@@ -1252,9 +1246,9 @@ describe('Onboarding', () => {
       mockOAuthService.getMetricStateBeforeOauth.mockReturnValue(false);
     });
 
-    it('should disable social login metrics when non-OAuth user creates wallet', async () => {
+    it('disable login metrics when non-OAuth user creates wallet', async () => {
       mockOAuthService.getMetricStateBeforeOauth.mockReturnValue(false);
-      mockEnableSocialLogin.mockClear();
+      mockEnable.mockClear();
 
       const { getByTestId } = renderScreen(
         Onboarding,
@@ -1271,12 +1265,12 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      expect(mockEnableSocialLogin).toHaveBeenCalledWith(false);
+      expect(mockEnable).toHaveBeenCalledWith(false);
     });
 
-    it('should disable social login metrics when non-OAuth user imports wallet', async () => {
+    it('should disable metrics when non-OAuth user imports wallet', async () => {
       mockOAuthService.getMetricStateBeforeOauth.mockReturnValue(false);
-      mockEnableSocialLogin.mockClear();
+      mockEnable.mockClear();
 
       const { getByTestId } = renderScreen(
         Onboarding,
@@ -1293,12 +1287,12 @@ describe('Onboarding', () => {
         fireEvent.press(importWalletButton);
       });
 
-      expect(mockEnableSocialLogin).toHaveBeenCalledWith(false);
+      expect(mockEnable).toHaveBeenCalledWith(false);
     });
 
-    it('should disable social login metrics when non-OAuth user creates wallet', async () => {
+    it('disables metrics when non-OAuth user creates wallet', async () => {
       mockOAuthService.getMetricStateBeforeOauth.mockReturnValue(true);
-      mockEnableSocialLogin.mockClear();
+      mockEnable.mockClear();
 
       const { getByTestId } = renderScreen(
         Onboarding,
@@ -1315,12 +1309,12 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      expect(mockEnableSocialLogin).toHaveBeenCalledWith(false);
+      expect(mockEnable).toHaveBeenCalledWith(false);
     });
 
     it('should disable social login metrics when OAuth user imports wallet', async () => {
       mockOAuthService.getMetricStateBeforeOauth.mockReturnValue(true);
-      mockEnableSocialLogin.mockClear();
+      mockEnable.mockClear();
 
       const { getByTestId } = renderScreen(
         Onboarding,
@@ -1337,7 +1331,7 @@ describe('Onboarding', () => {
         fireEvent.press(importWalletButton);
       });
 
-      expect(mockEnableSocialLogin).toHaveBeenCalledWith(false);
+      expect(mockEnable).toHaveBeenCalledWith(false);
     });
   });
 

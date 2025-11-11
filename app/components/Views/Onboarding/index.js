@@ -64,6 +64,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import FoxAnimation from './FoxAnimation';
 import OnboardingAnimation from './OnboardingAnimation';
+import storageWrapper from '../../../store/storage-wrapper';
+import { AGREED, METRICS_OPT_IN_PRIOR_RESET } from '../../../constants/storage';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -372,7 +374,7 @@ class Onboarding extends PureComponent {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
-    await this.props.metrics.enableSocialLogin(false);
+    await this.props.metrics.enable(false);
     // need to call hasMetricConset to update the cached consent state
     await hasMetricsConsent();
 
@@ -401,8 +403,14 @@ class Onboarding extends PureComponent {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
-    await this.props.metrics.enableSocialLogin(false);
-    await hasMetricsConsent();
+    // get metrics state prior reset from storage
+    const metricsPriorReset = storageWrapper.getItem(
+      METRICS_OPT_IN_PRIOR_RESET,
+    );
+    if (metricsPriorReset) {
+      await this.props.metrics.enable(metricsPriorReset === AGREED);
+      await hasMetricsConsent();
+    }
 
     const action = async () => {
       trace({
@@ -537,7 +545,7 @@ class Onboarding extends PureComponent {
     this.props.navigation.navigate('Onboarding');
 
     // Enable metrics for OAuth users
-    await this.props.metrics.enableSocialLogin(true);
+    await this.props.metrics.enable(true);
     discardBufferedTraces();
     await setupSentry();
 
