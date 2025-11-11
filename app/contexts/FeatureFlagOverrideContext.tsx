@@ -19,7 +19,6 @@ import {
   ToastVariants,
 } from '../component-library/components/Toast';
 import { MinimumVersionFlagValue } from '../components/Views/FeatureFlagOverride/FeatureFlagOverride';
-import { selectBasicFunctionalityEnabled } from '../selectors/settings';
 
 interface FeatureFlagOverrides {
   [key: string]: unknown;
@@ -54,9 +53,6 @@ export const FeatureFlagOverrideProvider: React.FC<
 > = ({ children }) => {
   // Get the initial feature flags from Redux
   const rawFeatureFlagsSelected = useSelector(selectRemoteFeatureFlags);
-  const isBasicFunctionalityEnabled = useSelector(
-    selectBasicFunctionalityEnabled,
-  );
   const rawFeatureFlags = useMemo(
     () => rawFeatureFlagsSelected || {},
     [rawFeatureFlagsSelected],
@@ -184,9 +180,6 @@ export const FeatureFlagOverrideProvider: React.FC<
    */
   const getFeatureFlag = useCallback(
     (key: string) => {
-      if (!isBasicFunctionalityEnabled) {
-        return false;
-      }
       const flag = featureFlags[key];
       if (!flag) {
         return undefined;
@@ -201,7 +194,7 @@ export const FeatureFlagOverrideProvider: React.FC<
 
       return flag.value;
     },
-    [featureFlags, validateMinimumVersion, isBasicFunctionalityEnabled],
+    [featureFlags, validateMinimumVersion],
   );
 
   const getOverrideCount = useCallback(
