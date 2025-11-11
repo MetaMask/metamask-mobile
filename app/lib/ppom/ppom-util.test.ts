@@ -502,6 +502,33 @@ describe('PPOM Utils', () => {
         );
       },
     );
+
+    it('should validate wallet_sendCalls requests', async () => {
+      const walletSendCallsRequest = {
+        ...mockRequest,
+        method: 'wallet_sendCalls',
+        params: [
+          {
+            from: '0x0c54FcCd2e384b4BB6f2E405Bf5Cbc15a017AaFb',
+            to: '0x0c54FcCd2e384b4BB6f2E405Bf5Cbc15a017AaFb',
+            value: '0x0',
+            data: '0x',
+          },
+        ],
+      };
+
+      await PPOMUtil.validateRequest(walletSendCallsRequest, {
+        transactionMeta: mockTransactionMeta,
+      });
+
+      expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledTimes(1);
+      expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledWith(
+        CHAIN_ID_TRANSACTION_MOCK,
+        expect.objectContaining({
+          method: 'wallet_sendCalls',
+        }),
+      );
+    });
   });
 
   describe('clearSignatureSecurityAlertResponse', () => {

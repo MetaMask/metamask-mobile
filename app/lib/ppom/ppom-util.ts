@@ -45,6 +45,7 @@ export type PPOMMessenger = Messenger<
 const log = createProjectLogger('ppom-util');
 
 const METHOD_SEND_TRANSACTION = 'eth_sendTransaction';
+const METHOD_WALLET_SEND_CALLS = 'wallet_sendCalls';
 const TRANSACTION_METHODS = [METHOD_SEND_TRANSACTION, 'eth_sendRawTransaction'];
 export const METHOD_SIGN_TYPED_DATA_V3 = 'eth_signTypedData_v3';
 export const METHOD_SIGN_TYPED_DATA_V4 = 'eth_signTypedData_v4';
@@ -52,6 +53,7 @@ export const METHOD_SIGN_TYPED_DATA_V4 = 'eth_signTypedData_v4';
 const CONFIRMATION_METHODS = Object.freeze([
   'eth_sendRawTransaction',
   METHOD_SEND_TRANSACTION,
+  METHOD_WALLET_SEND_CALLS,
   'eth_signTypedData',
   'eth_signTypedData_v1',
   'eth_signTypedData_v3',
@@ -300,6 +302,11 @@ function normalizeRequest(
     transactionMeta,
   );
 
+  normalizedRequest = normalizeWalletSendCallsRequest(
+    normalizedRequest,
+    transactionMeta,
+  );
+
   return normalizedRequest;
 }
 
@@ -335,6 +342,47 @@ function normalizeTransactionRequest(
   const normalizedParams = normalizeTransactionParams(txParams);
 
   log('Normalized transaction params', normalizedParams);
+
+  return {
+    ...request,
+    params: [normalizedParams],
+  };
+}
+
+function normalizeWalletSendCallsRequest(
+  request: PPOMRequest,
+  transactionMeta?: TransactionMeta,
+): PPOMRequest {
+  if (request.method !== METHOD_WALLET_SEND_CALLS) {
+    return request;
+  }
+
+  request.origin = request.origin
+    ?.replace(WALLET_CONNECT_ORIGIN, '')
+    ?.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '')
+    ?.replace(AppConstants.MM_SDK.SDK_CONNECT_V2_ORIGIN, '');
+
+  // For wallet_sendCalls, validate the main transaction parameters
+  // The nested transactions will be validated when they're converted to eth_sendTransaction
+  const txParams = (
+    Array.isArray(request.params) ? request.params[0] : {}
+  ) as TransactionParams;
+
+  // Provide the estimated gas to PPOM
+  txParams.gas = transactionMeta?.txParams?.gas;
+  txParams.gasPrice =
+    transactionMeta?.txParams?.maxFeePerGas ??
+    transactionMeta?.txParams?.gasPrice;
+
+  // Remove unused request params for PPOM
+  delete txParams.gasLimit;
+  delete txParams.maxFeePerGas;
+  delete txParams.maxPriorityFeePerGas;
+  delete txParams.type;
+
+  const normalizedParams = normalizeTransactionParams(txParams);
+
+  log('Normalized wallet_sendCalls params', normalizedParams);
 
   return {
     ...request,
