@@ -1787,4 +1787,457 @@ describe('ChoosePassword', () => {
       });
     });
   });
+
+  describe('Password Field Focus/Blur/Selection Handling', () => {
+    it('tracks password at focus time when password field is focused', async () => {
+      const component = renderWithProviders(
+        <ChoosePassword {...defaultProps} />,
+      );
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'test1234');
+      });
+
+      await act(async () => {
+        fireEvent(passwordInput, 'focus');
+      });
+
+      expect(passwordInput.props.value).toBe('test1234');
+    });
+
+    it('clears confirm password when password field is blurred and password is empty', async () => {
+      const component = renderWithProviders(
+        <ChoosePassword {...defaultProps} />,
+      );
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'test1234');
+      });
+
+      expect(confirmPasswordInput.props.value).toBe('test1234');
+
+      await act(async () => {
+        fireEvent(passwordInput, 'blur');
+      });
+
+      await waitFor(() => {
+        expect(confirmPasswordInput.props.value).toBe('');
+      });
+    });
+
+    it('detects select all in password field', async () => {
+      const component = renderWithProviders(
+        <ChoosePassword {...defaultProps} />,
+      );
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'test1234');
+      });
+
+      await act(async () => {
+        fireEvent(passwordInput, 'selectionChange', {
+          nativeEvent: {
+            selection: { start: 0, end: 8 },
+          },
+        });
+      });
+
+      expect(passwordInput.props.value).toBe('test1234');
+    });
+
+    it('detects select all in confirm password field', async () => {
+      const component = renderWithProviders(
+        <ChoosePassword {...defaultProps} />,
+      );
+
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'test1234');
+      });
+
+      await act(async () => {
+        fireEvent(confirmPasswordInput, 'selectionChange', {
+          nativeEvent: {
+            selection: { start: 0, end: 8 },
+          },
+        });
+      });
+
+      expect(confirmPasswordInput.props.value).toBe('test1234');
+    });
+
+    it('handles iOS secure text entry clear-then-type sequence for password field', async () => {
+      const component = renderWithProviders(
+        <ChoosePassword {...defaultProps} />,
+      );
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'test1234');
+      });
+
+      await act(async () => {
+        fireEvent(passwordInput, 'focus');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, '');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'a');
+      });
+
+      expect(passwordInput.props.value).toBe('test1234a');
+    });
+
+    it('handles iOS secure text entry clear-then-type sequence for confirm password field', async () => {
+      const component = renderWithProviders(
+        <ChoosePassword {...defaultProps} />,
+      );
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      // Set password first to enable confirm password field
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'test1234');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'test1234');
+      });
+
+      await act(async () => {
+        fireEvent(confirmPasswordInput, 'focus');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, '');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'b');
+      });
+
+      expect(confirmPasswordInput.props.value).toBe('test1234b');
+    });
+
+    it('allows intentional clearing when user selects all and deletes password', async () => {
+      const component = renderWithProviders(
+        <ChoosePassword {...defaultProps} />,
+      );
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'test1234');
+      });
+
+      await act(async () => {
+        fireEvent(passwordInput, 'focus');
+      });
+
+      await act(async () => {
+        fireEvent(passwordInput, 'selectionChange', {
+          nativeEvent: {
+            selection: { start: 0, end: 8 },
+          },
+        });
+      });
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, '');
+      });
+
+      expect(passwordInput.props.value).toBe('');
+    });
+
+    it('allows intentional clearing when user selects all and deletes confirm password', async () => {
+      const component = renderWithProviders(
+        <ChoosePassword {...defaultProps} />,
+      );
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      // Set password first to enable confirm password field
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'test1234');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'test1234');
+      });
+
+      await act(async () => {
+        fireEvent(confirmPasswordInput, 'focus');
+      });
+
+      await act(async () => {
+        fireEvent(confirmPasswordInput, 'selectionChange', {
+          nativeEvent: {
+            selection: { start: 0, end: 8 },
+          },
+        });
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, '');
+      });
+
+      expect(confirmPasswordInput.props.value).toBe('');
+    });
+
+    it('resets expectingCharAfterClear flag on password blur', async () => {
+      const component = renderWithProviders(
+        <ChoosePassword {...defaultProps} />,
+      );
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'test1234');
+      });
+
+      await act(async () => {
+        fireEvent(passwordInput, 'focus');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, '');
+      });
+
+      await act(async () => {
+        fireEvent(passwordInput, 'blur');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'a');
+      });
+
+      expect(passwordInput.props.value).toBe('a');
+    });
+
+    it('resets expectingConfirmCharAfterClear flag on confirm password blur', async () => {
+      const component = renderWithProviders(
+        <ChoosePassword {...defaultProps} />,
+      );
+
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'test1234');
+      });
+
+      await act(async () => {
+        fireEvent(confirmPasswordInput, 'focus');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, '');
+      });
+
+      await act(async () => {
+        fireEvent(confirmPasswordInput, 'blur');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'a');
+      });
+
+      expect(confirmPasswordInput.props.value).toBe('a');
+    });
+
+    it('handles normal typing in password field without workaround', async () => {
+      const component = renderWithProviders(
+        <ChoosePassword {...defaultProps} />,
+      );
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent(passwordInput, 'focus');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 't');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'te');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'tes');
+      });
+
+      expect(passwordInput.props.value).toBe('tes');
+    });
+
+    it('handles normal typing in confirm password field without workaround', async () => {
+      const component = renderWithProviders(
+        <ChoosePassword {...defaultProps} />,
+      );
+
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent(confirmPasswordInput, 'focus');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 't');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'te');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'tes');
+      });
+
+      expect(confirmPasswordInput.props.value).toBe('tes');
+    });
+
+    it('does not apply workaround when password is less than 2 characters', async () => {
+      const component = renderWithProviders(
+        <ChoosePassword {...defaultProps} />,
+      );
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'a');
+      });
+
+      await act(async () => {
+        fireEvent(passwordInput, 'focus');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, '');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'b');
+      });
+
+      expect(passwordInput.props.value).toBe('b');
+    });
+
+    it('does not apply workaround when confirm password is less than 2 characters', async () => {
+      const component = renderWithProviders(
+        <ChoosePassword {...defaultProps} />,
+      );
+
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'a');
+      });
+
+      await act(async () => {
+        fireEvent(confirmPasswordInput, 'focus');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, '');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'b');
+      });
+
+      expect(confirmPasswordInput.props.value).toBe('b');
+    });
+
+    it('handles selection change with empty password', async () => {
+      const component = renderWithProviders(
+        <ChoosePassword {...defaultProps} />,
+      );
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent(passwordInput, 'selectionChange', {
+          nativeEvent: {
+            selection: { start: 0, end: 0 },
+          },
+        });
+      });
+
+      expect(passwordInput.props.value).toBe('');
+    });
+
+    it('handles selection change with partial selection in password', async () => {
+      const component = renderWithProviders(
+        <ChoosePassword {...defaultProps} />,
+      );
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'test1234');
+      });
+
+      await act(async () => {
+        fireEvent(passwordInput, 'selectionChange', {
+          nativeEvent: {
+            selection: { start: 0, end: 4 },
+          },
+        });
+      });
+
+      expect(passwordInput.props.value).toBe('test1234');
+    });
+  });
 });
