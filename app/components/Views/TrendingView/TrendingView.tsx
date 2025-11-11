@@ -27,6 +27,15 @@ import { ScrollView, StyleSheet } from 'react-native';
 
 const Stack = createStackNavigator();
 
+const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+    marginTop: 48,
+    paddingLeft: 16,
+    paddingRight: 16,
+  },
+});
+
 // Wrapper component to intercept navigation
 const BrowserWrapper: React.FC<{ route: object }> = ({ route }) => {
   const navigation = useNavigation();
@@ -55,15 +64,6 @@ const TrendingFeed: React.FC = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { isEnabled } = useMetrics();
-
-  const styles = StyleSheet.create({
-    scrollView: {
-      flex: 1,
-      marginTop: 48,
-      paddingLeft: 16,
-      paddingRight: 16,
-    },
-  });
 
   // Update state when returning to TrendingFeed
   useEffect(() => {

@@ -3,6 +3,7 @@ import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { TrendingAsset } from '@metamask/assets-controllers';
 import { useAppThemeFromContext } from '../../../../util/theme';
+import { Theme } from '../../../../util/theme/models';
 import Text, {
   TextColor,
   TextVariant,
@@ -12,34 +13,33 @@ import TrendingTokensList from './TrendingTokensList';
 import Card from '../../../../component-library/components/Cards/Card';
 import { useTrendingRequest } from '../../../UI/Assets/hooks/useTrendingRequest';
 
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 4,
+      marginBottom: 8,
+    },
+    contentContainer: {
+      marginHorizontal: 16,
+      borderRadius: 16,
+      paddingTop: 12,
+      backgroundColor: theme.colors.background.muted,
+    },
+    cardContainer: {
+      borderRadius: 12,
+      paddingVertical: 16,
+      paddingHorizontal: 16,
+      backgroundColor: theme.colors.background.muted,
+      borderColor: theme.colors.border.muted,
+    },
+  });
+
 const TrendingTokensSection = () => {
   const theme = useAppThemeFromContext();
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        header: {
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          paddingHorizontal: 4,
-          marginBottom: 8,
-        },
-        contentContainer: {
-          marginHorizontal: 16,
-          borderRadius: 16,
-          paddingTop: 12,
-          backgroundColor: theme.colors.background.muted,
-        },
-        cardContainer: {
-          borderRadius: 12,
-          paddingVertical: 16,
-          paddingHorizontal: 16,
-          backgroundColor: theme.colors.background.muted,
-          borderColor: theme.colors.border.muted,
-        },
-      }),
-    [theme],
-  );
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const { results: trendingTokensResults, isLoading } = useTrendingRequest({});
   const trendingTokens = trendingTokensResults.slice(0, 3);
