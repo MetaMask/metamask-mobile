@@ -1,6 +1,6 @@
 import { BridgeToken } from '../../types';
 
-export const includeOnlyTradableTokens = (token: BridgeToken) => {
+export const isTradableToken = (token: BridgeToken) => {
   if (
     token.chainId?.includes('tron:') &&
     (token.name?.toLowerCase() === 'energy' ||
