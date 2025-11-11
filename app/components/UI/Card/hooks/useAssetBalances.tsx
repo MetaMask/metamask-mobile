@@ -1,11 +1,13 @@
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../../reducers';
 import { useMemo, useCallback } from 'react';
 import { Hex } from '@metamask/utils';
 import { AllowanceState, CardTokenAllowance } from '../types';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import { isSolanaChainId } from '@metamask/bridge-controller';
-import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import {
+  selectCurrentCurrency,
+  selectCurrencyRates,
+} from '../../../../selectors/currencyRateController';
 import { SOLANA_MAINNET } from '../../Ramp/Deposit/constants/networks';
 import Engine from '../../../../core/Engine';
 import { balanceToFiatNumber } from '../../../../util/number';
@@ -13,12 +15,13 @@ import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
 import { TokenI } from '../../Tokens/types';
 import { MarketDataDetails } from '@metamask/assets-controllers';
-import { selectAsset } from '../../../../selectors/assets/assets-list';
 import { formatWithThreshold } from '../../../../util/assets';
 import I18n from '../../../../../locales/i18n';
 import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
-
+import { makeSelectWalletAssets } from '../../../../core/redux/slices/card';
+import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 export interface AssetBalanceInfo {
   asset: TokenI | undefined;
   balanceFiat: string;
@@ -39,43 +42,28 @@ export interface AssetBalanceInfo {
 export const useAssetBalances = (
   tokens: CardTokenAllowance[],
 ): Map<string, AssetBalanceInfo> => {
-  const { MultichainAssetsRatesController, TokenRatesController } =
-    Engine.context;
+  const { MultichainAssetsRatesController } = Engine.context;
   const chainIds = [LINEA_CHAIN_ID, SOLANA_MAINNET.chainId];
 
   const tokensWithBalance = useTokensWithBalance({
     chainIds,
+    hasShallowEqual: true,
   });
 
-  // Get all assets from wallet for fallback balance lookup
-  const walletAssetsMap = useSelector((state: RootState) => {
-    const map = new Map<string, TokenI>();
-    tokens
-      .filter((token) => token !== undefined)
-      .forEach((token) => {
-        if (token?.caipChainId && token?.address) {
-          const isSolana = isSolanaChainId(token.caipChainId);
-          const chainId = isSolana
-            ? token.caipChainId
-            : (safeFormatChainIdToHex(token.caipChainId) as string);
+  // Memoized selector for wallet assets - uses createSelector for optimal performance
+  const selectWalletAssets = useMemo(
+    () => makeSelectWalletAssets(tokens),
+    [tokens],
+  );
+  const walletAssetsFromState = useSelector(selectWalletAssets);
 
-          const asset = selectAsset(state, {
-            address: token.address,
-            chainId,
-          });
-
-          if (asset) {
-            // Key should use the same address used for balance lookups
-            const key = `${token.address.toLowerCase()}-${token.caipChainId}`;
-            map.set(key, asset);
-          }
-        }
-      });
-    return map;
-  });
+  // Get state from Redux selectors to ensure updates when state changes
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const currencyRates = useSelector(selectCurrencyRates);
+  const tokenMarketData = useSelector(selectTokenMarketData);
 
   // Get all exchange rates and token rates for EVM chains
-  const exchangeRatesMap = useSelector((state: RootState) => {
+  const exchangeRatesMap = useMemo(() => {
     const map = new Map<
       string,
       { conversionRate: number; marketData: MarketDataDetails }
@@ -86,25 +74,19 @@ export const useAssetBalances = (
         const chainId = safeFormatChainIdToHex(token.caipChainId) as Hex;
 
         // Get network configuration to find the native currency symbol
-        const networkConfig =
-          state.engine.backgroundState.NetworkController
-            .networkConfigurationsByChainId[chainId];
+        const networkConfig = networkConfigurations[chainId];
         const nativeCurrency = networkConfig?.nativeCurrency;
 
         // Use native currency symbol (e.g., "ETH") to look up conversion rate
         // The conversionRate property already converts to the user's selected currency
         const currencyRateEntry = nativeCurrency
-          ? state.engine.backgroundState.CurrencyRateController.currencyRates[
-              nativeCurrency
-            ]
+          ? currencyRates[nativeCurrency]
           : undefined;
 
         const conversionRate = currencyRateEntry?.conversionRate;
 
         const marketData =
-          TokenRatesController?.state?.marketData?.[chainId]?.[
-            token.address?.toLowerCase() as Hex
-          ];
+          tokenMarketData?.[chainId]?.[token.address?.toLowerCase() as Hex];
 
         if (conversionRate !== undefined && conversionRate !== null) {
           map.set(`${chainId}-${token.address?.toLowerCase()}`, {
@@ -115,7 +97,7 @@ export const useAssetBalances = (
       }
     });
     return map;
-  });
+  }, [tokens, networkConfigurations, currencyRates, tokenMarketData]);
 
   const currentCurrency = useSelector(selectCurrentCurrency);
 
@@ -363,8 +345,7 @@ export const useAssetBalances = (
               logo: buildTokenIconUrl(_token.caipChainId, _token.address ?? ''),
             } as TokenI);
 
-        const allMarketDataForChain =
-          TokenRatesController?.state?.marketData?.[chainId] || {};
+        const allMarketDataForChain = tokenMarketData?.[chainId] || {};
 
         const derivedBalance = deriveBalanceFromAssetMarketDetails(
           mockAsset,
@@ -432,7 +413,7 @@ export const useAssetBalances = (
     [
       calculateFiatFromMarketData,
       calculateProportionalFiat,
-      TokenRatesController?.state?.marketData,
+      tokenMarketData,
       currentCurrency,
     ],
   );
@@ -493,7 +474,7 @@ export const useAssetBalances = (
 
       // Get wallet asset as fallback
       const walletAssetKey = `${token.address?.toLowerCase()}-${token.caipChainId}`;
-      const walletAsset = walletAssetsMap.get(walletAssetKey);
+      const walletAsset = walletAssetsFromState.get(walletAssetKey);
 
       // Determine which balance to use
       const { balance: balanceToUse, source: balanceSource } =
@@ -556,7 +537,7 @@ export const useAssetBalances = (
     tokens,
     tokensWithBalance,
     exchangeRatesMap,
-    walletAssetsMap,
+    walletAssetsFromState,
     determineBalanceToUse,
     calculateSolanaFiat,
     calculateEvmFiat,

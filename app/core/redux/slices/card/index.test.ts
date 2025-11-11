@@ -36,6 +36,7 @@ import cardReducer, {
   selectSelectedCountry,
   selectContactVerificationId,
   selectConsentSetId,
+  makeSelectWalletAssets,
 } from '.';
 import {
   CardTokenAllowance,
@@ -67,6 +68,21 @@ jest.mock(
   }),
 );
 
+// Mock selectAsset
+jest.mock('../../../../selectors/assets/assets-list', () => ({
+  selectAsset: jest.fn(),
+}));
+
+// Mock isSolanaChainId
+jest.mock('@metamask/bridge-controller', () => ({
+  isSolanaChainId: jest.fn(),
+}));
+
+// Mock safeFormatChainIdToHex
+jest.mock('../../../../components/UI/Card/util/safeFormatChainIdToHex', () => ({
+  safeFormatChainIdToHex: jest.fn(),
+}));
+
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { isEthAccount } from '../../../Multichain/utils';
 import {
@@ -74,6 +90,10 @@ import {
   selectCardSupportedCountries,
   selectDisplayCardButtonFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
+import { selectAsset } from '../../../../selectors/assets/assets-list';
+import { isSolanaChainId } from '@metamask/bridge-controller';
+import { safeFormatChainIdToHex } from '../../../../components/UI/Card/util/safeFormatChainIdToHex';
+import { TokenI } from '../../../../components/UI/Tokens/types';
 
 const mockSelectSelectedInternalAccountByScope =
   selectSelectedInternalAccountByScope as jest.MockedFunction<
@@ -98,6 +118,15 @@ const mockSelectDisplayCardButtonFeatureFlag =
   selectDisplayCardButtonFeatureFlag as jest.MockedFunction<
     typeof selectDisplayCardButtonFeatureFlag
   >;
+
+const mockSelectAsset = selectAsset as jest.MockedFunction<typeof selectAsset>;
+
+const mockIsSolanaChainId = isSolanaChainId as jest.MockedFunction<
+  typeof isSolanaChainId
+>;
+
+const mockSafeFormatChainIdToHex =
+  safeFormatChainIdToHex as jest.MockedFunction<typeof safeFormatChainIdToHex>;
 
 const CARDHOLDER_ACCOUNTS_MOCK: string[] = [
   '0x1234567890123456789012345678901234567890',
@@ -2385,6 +2414,392 @@ describe('Authenticated Priority Token Selectors', () => {
         testAddress,
       );
       expect(unauthenticatedSelector(mockRootState)).toBe(true);
+    });
+  });
+});
+
+describe('makeSelectWalletAssets', () => {
+  const mockEthAddress = '0xToken1';
+  const mockSolAddress = 'SoLToken2';
+  const mockEvmChainId = 'eip155:1';
+  const mockSolanaChainId = 'solana:mainnet';
+
+  const createMockToken = (
+    overrides: Partial<CardTokenAllowance> = {},
+  ): CardTokenAllowance => ({
+    address: mockEthAddress,
+    caipChainId: mockEvmChainId,
+    decimals: 18,
+    symbol: 'USDC',
+    name: 'USD Coin',
+    allowanceState: AllowanceState.Enabled,
+    allowance: '5000000000000',
+    ...overrides,
+  });
+
+  const createMockAsset = (overrides: Partial<TokenI> = {}): TokenI =>
+    ({
+      address: mockEthAddress,
+      symbol: 'USDC',
+      decimals: 18,
+      image: 'https://example.com/usdc.png',
+      balance: '1000000',
+      ...overrides,
+    }) as TokenI;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockSelectAsset.mockReturnValue(undefined);
+    mockIsSolanaChainId.mockReturnValue(false);
+    mockSafeFormatChainIdToHex.mockReturnValue('0x1');
+  });
+
+  describe('selector creation', () => {
+    it('returns empty Map when no tokens provided', () => {
+      const tokens: CardTokenAllowance[] = [];
+      const mockRootState = {} as RootState;
+
+      const selector = makeSelectWalletAssets(tokens);
+      const result = selector(mockRootState);
+
+      expect(result).toBeInstanceOf(Map);
+      expect(result.size).toBe(0);
+    });
+
+    it('returns empty Map when all tokens are undefined', () => {
+      const tokens = [undefined, undefined] as unknown as CardTokenAllowance[];
+      const mockRootState = {} as RootState;
+
+      const selector = makeSelectWalletAssets(tokens);
+      const result = selector(mockRootState);
+
+      expect(result).toBeInstanceOf(Map);
+      expect(result.size).toBe(0);
+    });
+
+    it('filters out undefined tokens', () => {
+      const mockToken = createMockToken();
+      const mockAsset = createMockAsset();
+      const tokens = [
+        mockToken,
+        undefined,
+        mockToken,
+      ] as unknown as CardTokenAllowance[];
+      mockSelectAsset.mockReturnValue(mockAsset);
+      mockSafeFormatChainIdToHex.mockReturnValue('0x1');
+      const mockRootState = {} as RootState;
+
+      const selector = makeSelectWalletAssets(tokens);
+      const result = selector(mockRootState);
+
+      expect(result.size).toBe(1);
+    });
+  });
+
+  describe('EVM chain handling', () => {
+    it('returns correct Map for single EVM token', () => {
+      const mockToken = createMockToken();
+      const mockAsset = createMockAsset();
+      const tokens = [mockToken];
+      mockSelectAsset.mockReturnValue(mockAsset);
+      mockIsSolanaChainId.mockReturnValue(false);
+      mockSafeFormatChainIdToHex.mockReturnValue('0x1');
+      const mockRootState = {} as RootState;
+
+      const selector = makeSelectWalletAssets(tokens);
+      const result = selector(mockRootState);
+
+      const expectedKey = `${mockEthAddress.toLowerCase()}-${mockEvmChainId}`;
+      expect(result.size).toBe(1);
+      expect(result.get(expectedKey)).toEqual(mockAsset);
+      expect(mockIsSolanaChainId).toHaveBeenCalledWith(mockEvmChainId);
+      expect(mockSafeFormatChainIdToHex).toHaveBeenCalledWith(mockEvmChainId);
+    });
+
+    it('formats EVM chain ID using safeFormatChainIdToHex', () => {
+      const mockToken = createMockToken();
+      const mockAsset = createMockAsset();
+      const tokens = [mockToken];
+      mockSelectAsset.mockReturnValue(mockAsset);
+      mockIsSolanaChainId.mockReturnValue(false);
+      mockSafeFormatChainIdToHex.mockReturnValue('0x89');
+      const mockRootState = {} as RootState;
+
+      const selector = makeSelectWalletAssets(tokens);
+      selector(mockRootState);
+
+      expect(mockSafeFormatChainIdToHex).toHaveBeenCalledWith(mockEvmChainId);
+      expect(mockSelectAsset).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          chainId: '0x89',
+        }),
+      );
+    });
+  });
+
+  describe('Solana chain handling', () => {
+    it('returns correct Map for single Solana token', () => {
+      const mockToken = createMockToken({
+        address: mockSolAddress,
+        caipChainId: mockSolanaChainId,
+      });
+      const mockAsset = createMockAsset({ address: mockSolAddress });
+      const tokens = [mockToken];
+      mockSelectAsset.mockReturnValue(mockAsset);
+      mockIsSolanaChainId.mockReturnValue(true);
+      const mockRootState = {} as RootState;
+
+      const selector = makeSelectWalletAssets(tokens);
+      const result = selector(mockRootState);
+
+      const expectedKey = `${mockSolAddress.toLowerCase()}-${mockSolanaChainId}`;
+      expect(result.size).toBe(1);
+      expect(result.get(expectedKey)).toEqual(mockAsset);
+      expect(mockIsSolanaChainId).toHaveBeenCalledWith(mockSolanaChainId);
+      expect(mockSafeFormatChainIdToHex).not.toHaveBeenCalled();
+    });
+
+    it('uses caipChainId directly for Solana tokens without formatting', () => {
+      const mockToken = createMockToken({
+        address: mockSolAddress,
+        caipChainId: mockSolanaChainId,
+      });
+      const mockAsset = createMockAsset({ address: mockSolAddress });
+      const tokens = [mockToken];
+      mockSelectAsset.mockReturnValue(mockAsset);
+      mockIsSolanaChainId.mockReturnValue(true);
+      const mockRootState = {} as RootState;
+
+      const selector = makeSelectWalletAssets(tokens);
+      selector(mockRootState);
+
+      expect(mockSelectAsset).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          chainId: mockSolanaChainId,
+        }),
+      );
+    });
+  });
+
+  describe('multiple tokens', () => {
+    it('returns correct Map for multiple tokens from different chains', () => {
+      const evmToken = createMockToken();
+      const solToken = createMockToken({
+        address: mockSolAddress,
+        caipChainId: mockSolanaChainId,
+      });
+      const evmAsset = createMockAsset();
+      const solAsset = createMockAsset({ address: mockSolAddress });
+      const tokens = [evmToken, solToken];
+      mockSelectAsset
+        .mockReturnValueOnce(evmAsset)
+        .mockReturnValueOnce(solAsset);
+      mockIsSolanaChainId.mockReturnValueOnce(false).mockReturnValueOnce(true);
+      mockSafeFormatChainIdToHex.mockReturnValue('0x1');
+      const mockRootState = {} as RootState;
+
+      const selector = makeSelectWalletAssets(tokens);
+      const result = selector(mockRootState);
+
+      expect(result.size).toBe(2);
+      expect(
+        result.get(`${mockEthAddress.toLowerCase()}-${mockEvmChainId}`),
+      ).toEqual(evmAsset);
+      expect(
+        result.get(`${mockSolAddress.toLowerCase()}-${mockSolanaChainId}`),
+      ).toEqual(solAsset);
+    });
+
+    it('handles multiple tokens on same chain', () => {
+      const token1 = createMockToken({ address: '0xToken1' });
+      const token2 = createMockToken({ address: '0xToken2' });
+      const asset1 = createMockAsset({ address: '0xToken1' });
+      const asset2 = createMockAsset({ address: '0xToken2' });
+      const tokens = [token1, token2];
+      mockSelectAsset.mockReturnValueOnce(asset1).mockReturnValueOnce(asset2);
+      mockIsSolanaChainId.mockReturnValue(false);
+      mockSafeFormatChainIdToHex.mockReturnValue('0x1');
+      const mockRootState = {} as RootState;
+
+      const selector = makeSelectWalletAssets(tokens);
+      const result = selector(mockRootState);
+
+      expect(result.size).toBe(2);
+      expect(result.get(`0xtoken1-${mockEvmChainId}`)).toEqual(asset1);
+      expect(result.get(`0xtoken2-${mockEvmChainId}`)).toEqual(asset2);
+    });
+  });
+
+  describe('edge cases', () => {
+    it('skips tokens without caipChainId', () => {
+      const mockToken = createMockToken({ caipChainId: undefined as never });
+      const tokens = [mockToken];
+      const mockRootState = {} as RootState;
+
+      const selector = makeSelectWalletAssets(tokens);
+      const result = selector(mockRootState);
+
+      expect(result.size).toBe(0);
+      expect(mockSelectAsset).not.toHaveBeenCalled();
+    });
+
+    it('skips tokens without address', () => {
+      const mockToken = createMockToken({ address: undefined as never });
+      const tokens = [mockToken];
+      const mockRootState = {} as RootState;
+
+      const selector = makeSelectWalletAssets(tokens);
+      const result = selector(mockRootState);
+
+      expect(result.size).toBe(0);
+      expect(mockSelectAsset).not.toHaveBeenCalled();
+    });
+
+    it('skips tokens when selectAsset returns undefined', () => {
+      const mockToken = createMockToken();
+      const tokens = [mockToken];
+      mockSelectAsset.mockReturnValue(undefined);
+      mockSafeFormatChainIdToHex.mockReturnValue('0x1');
+      const mockRootState = {} as RootState;
+
+      const selector = makeSelectWalletAssets(tokens);
+      const result = selector(mockRootState);
+
+      expect(result.size).toBe(0);
+      expect(mockSelectAsset).toHaveBeenCalled();
+    });
+
+    it('skips tokens when selectAsset returns null', () => {
+      const mockToken = createMockToken();
+      const tokens = [mockToken];
+      mockSelectAsset.mockReturnValue(null as never);
+      mockSafeFormatChainIdToHex.mockReturnValue('0x1');
+      const mockRootState = {} as RootState;
+
+      const selector = makeSelectWalletAssets(tokens);
+      const result = selector(mockRootState);
+
+      expect(result.size).toBe(0);
+    });
+  });
+
+  describe('key formatting', () => {
+    it('uses lowercase address in Map keys', () => {
+      const upperCaseAddress = '0xABCDEF123456';
+      const mockToken = createMockToken({ address: upperCaseAddress });
+      const mockAsset = createMockAsset({ address: upperCaseAddress });
+      const tokens = [mockToken];
+      mockSelectAsset.mockReturnValue(mockAsset);
+      mockSafeFormatChainIdToHex.mockReturnValue('0x1');
+      const mockRootState = {} as RootState;
+
+      const selector = makeSelectWalletAssets(tokens);
+      const result = selector(mockRootState);
+
+      const expectedKey = `${upperCaseAddress.toLowerCase()}-${mockEvmChainId}`;
+      expect(result.has(expectedKey)).toBe(true);
+      expect(result.has(`${upperCaseAddress}-${mockEvmChainId}`)).toBe(false);
+    });
+
+    it('combines address and caipChainId with hyphen', () => {
+      const mockToken = createMockToken();
+      const mockAsset = createMockAsset();
+      const tokens = [mockToken];
+      mockSelectAsset.mockReturnValue(mockAsset);
+      mockSafeFormatChainIdToHex.mockReturnValue('0x1');
+      const mockRootState = {} as RootState;
+
+      const selector = makeSelectWalletAssets(tokens);
+      const result = selector(mockRootState);
+
+      const keys = Array.from(result.keys());
+      expect(keys[0]).toContain('-');
+      expect(keys[0]).toBe(`${mockEthAddress.toLowerCase()}-${mockEvmChainId}`);
+    });
+  });
+
+  describe('memoization', () => {
+    it('returns same Map instance when called with same state', () => {
+      const mockToken = createMockToken();
+      const mockAsset = createMockAsset();
+      const tokens = [mockToken];
+      mockSelectAsset.mockReturnValue(mockAsset);
+      mockSafeFormatChainIdToHex.mockReturnValue('0x1');
+      const mockRootState = {} as RootState;
+
+      const selector = makeSelectWalletAssets(tokens);
+      const result1 = selector(mockRootState);
+      const result2 = selector(mockRootState);
+
+      expect(result1).toBe(result2);
+    });
+
+    it('creates new selector for different token arrays', () => {
+      const token1 = createMockToken({ address: '0xToken1' });
+      const token2 = createMockToken({ address: '0xToken2' });
+
+      const selector1 = makeSelectWalletAssets([token1]);
+      const selector2 = makeSelectWalletAssets([token2]);
+
+      expect(selector1).not.toBe(selector2);
+    });
+
+    it('uses mapEqual for result equality checking', () => {
+      const mockToken = createMockToken();
+      const mockAsset = createMockAsset();
+      const tokens = [mockToken];
+      mockSelectAsset.mockReturnValue(mockAsset);
+      mockSafeFormatChainIdToHex.mockReturnValue('0x1');
+      const mockRootState1 = { version: 1 } as unknown as RootState;
+      const mockRootState2 = { version: 2 } as unknown as RootState;
+
+      const selector = makeSelectWalletAssets(tokens);
+      const result1 = selector(mockRootState1);
+      const result2 = selector(mockRootState2);
+
+      expect(result1).toBe(result2);
+    });
+  });
+
+  describe('selectAsset integration', () => {
+    it('calls selectAsset with correct parameters for EVM tokens', () => {
+      const mockToken = createMockToken();
+      const mockAsset = createMockAsset();
+      const tokens = [mockToken];
+      mockSelectAsset.mockReturnValue(mockAsset);
+      mockIsSolanaChainId.mockReturnValue(false);
+      mockSafeFormatChainIdToHex.mockReturnValue('0x1');
+      const mockRootState = {} as RootState;
+
+      const selector = makeSelectWalletAssets(tokens);
+      selector(mockRootState);
+
+      expect(mockSelectAsset).toHaveBeenCalledWith(mockRootState, {
+        address: mockEthAddress,
+        chainId: '0x1',
+      });
+    });
+
+    it('calls selectAsset with correct parameters for Solana tokens', () => {
+      const mockToken = createMockToken({
+        address: mockSolAddress,
+        caipChainId: mockSolanaChainId,
+      });
+      const mockAsset = createMockAsset({ address: mockSolAddress });
+      const tokens = [mockToken];
+      mockSelectAsset.mockReturnValue(mockAsset);
+      mockIsSolanaChainId.mockReturnValue(true);
+      const mockRootState = {} as RootState;
+
+      const selector = makeSelectWalletAssets(tokens);
+      selector(mockRootState);
+
+      expect(mockSelectAsset).toHaveBeenCalledWith(mockRootState, {
+        address: mockSolAddress,
+        chainId: mockSolanaChainId,
+      });
     });
   });
 });

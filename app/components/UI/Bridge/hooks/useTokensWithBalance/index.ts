@@ -137,9 +137,11 @@ export const calculateEvmBalances = ({
  */
 export const useTokensWithBalance: ({
   chainIds,
+  hasShallowEqual,
 }: {
   chainIds: (Hex | CaipChainId)[] | undefined;
-}) => BridgeToken[] = ({ chainIds }) => {
+  hasShallowEqual?: boolean;
+}) => BridgeToken[] = ({ chainIds, hasShallowEqual }) => {
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const networkConfigurationsByChainId = useSelector(
@@ -169,7 +171,7 @@ export const useTokensWithBalance: ({
 
   // Already contains balance and fiat values for native SOL and SPL tokens
   // Balance and fiat values are not truncated
-  const nonEvmTokens = useNonEvmTokensWithBalance();
+  const nonEvmTokens = useNonEvmTokensWithBalance(hasShallowEqual);
 
   const sortedTokens = useMemo(() => {
     if (!chainIds) {
