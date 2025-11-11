@@ -235,11 +235,12 @@ export function* handleSnapsRegistry() {
         ? result.completedOnboarding
         : state;
 
-    if (completedOnboarding) {
-      const { SnapController } = Engine.context;
-      yield call([SnapController, SnapController.updateRegistry]);
-      break;
+    if (!completedOnboarding) {
+      continue;
     }
+
+    const { SnapController } = Engine.context;
+    yield call([SnapController, SnapController.updateRegistry]);
   }
 }
 ///: END:ONLY_INCLUDE_IF
