@@ -404,7 +404,7 @@ class Onboarding extends PureComponent {
       OAuthLoginService.resetOauthState();
     }
     // get metrics state prior reset from storage
-    const metricsPriorReset = storageWrapper.getItem(
+    const metricsPriorReset = await storageWrapper.getItem(
       METRICS_OPT_IN_PRIOR_RESET,
     );
     if (metricsPriorReset) {
