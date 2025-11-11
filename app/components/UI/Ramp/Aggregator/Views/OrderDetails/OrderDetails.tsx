@@ -17,7 +17,7 @@ import {
   updateFiatOrder,
 } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
-import { getDepositNavbarOptions } from '../../../../Navbar';
+import { getFiatOnRampAggNavbar } from '../../../../Navbar';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { processFiatOrder } from '../../../index';
 import {
@@ -55,8 +55,7 @@ const OrderDetails = () => {
     order?.state === FIAT_ORDER_STATES.CREATED,
   );
   const [error, setError] = useState<string | null>(null);
-  const theme = useTheme();
-  const { colors } = theme;
+  const { colors } = useTheme();
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
@@ -67,16 +66,17 @@ const OrderDetails = () => {
 
   useEffect(() => {
     navigation.setOptions(
-      getDepositNavbarOptions(
+      getFiatOnRampAggNavbar(
         navigation,
         {
           title: strings('fiat_on_ramp_aggregator.order_details.details_main'),
-          showClose: false,
+          showCancel: false,
+          showNetwork: false,
         },
-        theme,
+        colors,
       ),
     );
-  }, [theme, navigation]);
+  }, [colors, navigation]);
 
   const navigateToSendTransaction = useCallback(() => {
     if (order?.id) {

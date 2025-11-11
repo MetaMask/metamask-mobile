@@ -14,11 +14,10 @@ import { Token } from '../UI/token';
 
 const TOKEN_COUNT_PER_PAGE = 20;
 interface TokenListProps {
-  onSelect?: (token: AssetType) => void;
   tokens: AssetType[];
 }
 
-export function TokenList({ onSelect, tokens }: TokenListProps) {
+export function TokenList({ tokens }: TokenListProps) {
   const { gotToSendScreen } = useSendScreenNavigation();
   const { updateAsset } = useSendContext();
   const { captureAssetSelected } = useAssetSelectionMetrics();
@@ -27,20 +26,14 @@ export function TokenList({ onSelect, tokens }: TokenListProps) {
 
   const handleTokenPress = useCallback(
     (asset: AssetType) => {
-      if (onSelect) {
-        onSelect(asset);
-        return;
-      }
-
       const position = tokens.findIndex(
         ({ address }) => address === asset.address,
       );
-
       captureAssetSelected(asset, position.toString());
       updateAsset(asset);
       gotToSendScreen(Routes.SEND.AMOUNT);
     },
-    [captureAssetSelected, gotToSendScreen, onSelect, tokens, updateAsset],
+    [captureAssetSelected, gotToSendScreen, tokens, updateAsset],
   );
 
   const handleShowMore = useCallback(() => {

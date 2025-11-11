@@ -1,6 +1,6 @@
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import React, { useCallback, useMemo } from 'react';
-import { type ImageSourcePropType, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../hooks';
@@ -36,24 +36,18 @@ interface AccountCellProps {
   avatarAccountType: AvatarAccountType;
   hideMenu?: boolean;
   startAccessory?: React.ReactNode;
-  endContainer?: React.ReactNode;
   chainId?: string;
   onSelectAccount?: () => void;
 }
 
-type BalanceEndContainerProps = Pick<
-  AccountCellProps,
-  'accountGroup' | 'hideMenu' | 'onSelectAccount'
-> & {
-  networkImageSource?: ImageSourcePropType;
-};
-
-const BalanceEndContainer = ({
+const AccountCell = ({
   accountGroup,
-  hideMenu,
+  avatarAccountType,
+  hideMenu = false,
+  startAccessory,
+  chainId,
   onSelectAccount,
-  networkImageSource,
-}: BalanceEndContainerProps) => {
+}: AccountCellProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
 
@@ -69,6 +63,12 @@ const BalanceEndContainer = ({
   const totalBalance = groupBalance?.totalBalanceInUserCurrency;
   const userCurrency = groupBalance?.userCurrency;
 
+  const selectEvmAddress = useMemo(
+    () => selectIconSeedAddressByAccountGroupId(accountGroup.id),
+    [accountGroup.id],
+  );
+  const evmAddress = useSelector(selectEvmAddress);
+
   const displayBalance = useMemo(() => {
     if (totalBalance == null || !userCurrency) {
       return undefined;
@@ -78,61 +78,6 @@ const BalanceEndContainer = ({
       currency: userCurrency.toUpperCase(),
     });
   }, [totalBalance, userCurrency]);
-
-  return (
-    <>
-      <TouchableOpacity onPress={onSelectAccount}>
-        <View style={styles.balanceContainer}>
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Default}
-            testID={AccountCellIds.BALANCE}
-          >
-            {totalBalance ? displayBalance : null}
-          </Text>
-          {networkImageSource && (
-            <Avatar
-              variant={AvatarVariant.Network}
-              size={AvatarSize.Xs}
-              style={styles.networkBadge}
-              imageSource={networkImageSource}
-            />
-          )}
-        </View>
-      </TouchableOpacity>
-      {!hideMenu && (
-        <TouchableOpacity
-          testID={AccountCellIds.MENU}
-          style={styles.menuButton}
-          onPress={handleMenuPress}
-        >
-          <Icon
-            name={IconName.MoreVertical}
-            size={IconSize.Md}
-            color={TextColor.Alternative}
-          />
-        </TouchableOpacity>
-      )}
-    </>
-  );
-};
-
-const AccountCell = ({
-  accountGroup,
-  avatarAccountType,
-  hideMenu = false,
-  startAccessory,
-  endContainer,
-  chainId,
-  onSelectAccount,
-}: AccountCellProps) => {
-  const { styles } = useStyles(styleSheet, {});
-
-  const selectEvmAddress = useMemo(
-    () => selectIconSeedAddressByAccountGroupId(accountGroup.id),
-    [accountGroup.id],
-  );
-  const evmAddress = useSelector(selectEvmAddress);
 
   // Determine which account address and network avatar to display based on the chainId
   let networkAccountAddress;
@@ -193,13 +138,37 @@ const AccountCell = ({
         </View>
       </TouchableOpacity>
       <View style={styles.endContainer}>
-        {endContainer || (
-          <BalanceEndContainer
-            accountGroup={accountGroup}
-            hideMenu={hideMenu}
-            onSelectAccount={onSelectAccount}
-            networkImageSource={networkImageSource}
-          />
+        <TouchableOpacity onPress={onSelectAccount}>
+          <View style={styles.balanceContainer}>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Default}
+              testID={AccountCellIds.BALANCE}
+            >
+              {totalBalance ? displayBalance : null}
+            </Text>
+            {networkImageSource && (
+              <Avatar
+                variant={AvatarVariant.Network}
+                size={AvatarSize.Xs}
+                style={styles.networkBadge}
+                imageSource={networkImageSource}
+              />
+            )}
+          </View>
+        </TouchableOpacity>
+        {!hideMenu && (
+          <TouchableOpacity
+            testID={AccountCellIds.MENU}
+            style={styles.menuButton}
+            onPress={handleMenuPress}
+          >
+            <Icon
+              name={IconName.MoreVertical}
+              size={IconSize.Md}
+              color={TextColor.Alternative}
+            />
+          </TouchableOpacity>
         )}
       </View>
     </Box>

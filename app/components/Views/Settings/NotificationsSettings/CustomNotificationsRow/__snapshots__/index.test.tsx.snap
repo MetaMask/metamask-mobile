@@ -6,6 +6,7 @@ exports[`CustomNotificationsRow should render correctly 1`] = `
     {
       "alignItems": "center",
       "flexDirection": "row",
+      "marginBottom": 24,
     }
   }
   testID="notifications-switch--container"

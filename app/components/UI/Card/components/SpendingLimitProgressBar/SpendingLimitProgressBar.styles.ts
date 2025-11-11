@@ -19,9 +19,6 @@ const createStyles = (theme: Theme) =>
       justifyContent: 'space-between',
       alignItems: 'center',
     },
-    skeletonRounded: {
-      borderRadius: 12,
-    },
   });
 
 export default createStyles;

@@ -13,11 +13,11 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import { debounce } from 'lodash';
 import { useSelector } from 'react-redux';
 import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import { useTransactionRequiredTokens } from '../pay/useTransactionRequiredTokens';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionPayFiat } from '../pay/useTransactionPayFiat';
 import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
-import { useTransactionPayRequiredTokens } from '../pay/useTransactionPayData';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 500;
@@ -45,7 +45,7 @@ export function useTransactionCustomAmount({
 
   const tokenAddress = getTokenAddress(transactionMeta);
   const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId, currency);
-  const balanceUsd = useTokenBalance();
+  const tokenBalanceFiat = useTokenBalance();
 
   const { updateTokenAmount: updateTokenAmountCallback } =
     useUpdateTokenAmount();
@@ -88,7 +88,7 @@ export function useTransactionCustomAmount({
 
   const updatePendingAmountPercentage = useCallback(
     (percentage: number) => {
-      if (!balanceUsd) {
+      if (!tokenBalanceFiat) {
         return;
       }
 
@@ -96,13 +96,13 @@ export function useTransactionCustomAmount({
 
       const newAmount = new BigNumber(finalPercentage)
         .dividedBy(100)
-        .multipliedBy(balanceUsd)
+        .multipliedBy(tokenBalanceFiat)
         .decimalPlaces(2, BigNumber.ROUND_DOWN)
         .toString(10);
 
       setAmountFiat(newAmount);
     },
-    [balanceUsd, maxPercentage],
+    [maxPercentage, tokenBalanceFiat],
   );
 
   const updateTokenAmount = useCallback(() => {
@@ -123,9 +123,9 @@ export function useTransactionCustomAmount({
 
 function useMaxPercentage() {
   const featureFlags = useSelector(selectMetaMaskPayFlags);
+  const requiredTokens = useTransactionRequiredTokens();
   const { payToken } = useTransactionPayToken();
   const { chainId } = useTransactionMetadataRequest() ?? { chainId: '0x0' };
-  const requiredTokens = useTransactionPayRequiredTokens();
 
   return useMemo(() => {
     // Assumes we're not targetting native tokens.
@@ -167,7 +167,7 @@ function useTokenBalance() {
   const { convertFiat } = useTransactionPayFiat();
 
   const { payToken } = useTransactionPayToken();
-  const payTokenBalance = convertFiat(payToken?.balanceUsd ?? 0);
+  const payTokenBalance = convertFiat(payToken?.tokenFiatAmount ?? 0);
   const { balance: predictBalance } = usePredictBalance({ loadOnMount: true });
 
   return hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])

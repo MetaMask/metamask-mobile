@@ -30,7 +30,6 @@ import {
   PerpsTransaction,
 } from '../../types/transactionHistory';
 import {
-  formatFee,
   formatPerpsFiat,
   formatTransactionDate,
   PRICE_RANGES_UNIVERSAL,
@@ -116,7 +115,9 @@ const PerpsPositionTransactionView: React.FC = () => {
     transaction.fill?.fee !== undefined &&
       transaction.fill?.fee !== null && {
         label: strings('perps.transactions.position.fees'),
-        value: formatFee(transaction.fill.fee),
+        value: BigNumber(transaction.fill.fee).isGreaterThan(0.01)
+          ? formatPerpsFiat(transaction.fill.fee)
+          : `$${transaction.fill.fee}`,
         textColor: TextColor.Default,
       },
   ].filter(Boolean);

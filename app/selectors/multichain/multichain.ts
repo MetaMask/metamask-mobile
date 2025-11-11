@@ -177,7 +177,7 @@ export const selectMultichainAssetsMetadata = createDeepEqualSelector(
 export const selectMultichainAssetsAllIgnoredAssets = createDeepEqualSelector(
   selectMultichainAssetsControllerState,
   (multichainAssetsControllerState) =>
-    multichainAssetsControllerState.allIgnoredAssets ?? {},
+    multichainAssetsControllerState.allIgnoredAssets,
 );
 
 function selectMultichainAssetsRatesState(state: RootState) {

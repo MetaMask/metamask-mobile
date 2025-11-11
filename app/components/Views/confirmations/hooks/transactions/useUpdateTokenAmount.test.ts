@@ -13,6 +13,8 @@ import {
 } from '../../__mocks__/controllers/other-controllers-mock';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { toHex } from 'viem';
+import { setTransactionUpdating } from '../../../../../core/redux/slices/confirmationMetrics';
+import { act } from '@testing-library/react-native';
 
 jest.mock('../../../../../util/transaction-controller');
 
@@ -55,11 +57,13 @@ function runHook({
 describe('useUpdateTokenAmount', () => {
   const updateEditableParamsMock = jest.mocked(updateEditableParams);
   const updateAtomicBatchDataMock = jest.mocked(updateAtomicBatchData);
+  const setTransactionUpdatingMock = jest.mocked(setTransactionUpdating);
 
   beforeEach(() => {
     jest.resetAllMocks();
 
     updateAtomicBatchDataMock.mockResolvedValue('0x0');
+    setTransactionUpdatingMock.mockReturnValue({ type: 'test' } as never);
   });
 
   it('updates all transaction data with new amount', () => {
@@ -110,6 +114,27 @@ describe('useUpdateTokenAmount', () => {
           0,
           TOKEN_TRANSFER_DATA_MOCK.length - 4,
         ) + toHex(15000).substring(2),
+    });
+  });
+
+  it('sets updating', async () => {
+    const { result } = runHook({
+      transactionMeta: {
+        txParams: {
+          data: TOKEN_TRANSFER_DATA_MOCK,
+          from: '0x13',
+          to: tokenAddress1Mock,
+        },
+      },
+    });
+
+    await act(async () => {
+      result.current.updateTokenAmount('1.5');
+    });
+
+    expect(setTransactionUpdatingMock).toHaveBeenCalledWith({
+      transactionId: expect.any(String),
+      isUpdating: true,
     });
   });
 });

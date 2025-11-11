@@ -1,12 +1,14 @@
 import {
   ExchangeClient,
-  HttpTransport,
   InfoClient,
   SubscriptionClient,
   WebSocketTransport,
 } from '@nktkas/hyperliquid';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { HYPERLIQUID_TRANSPORT_CONFIG } from '../constants/hyperLiquidConfig';
+import {
+  getWebSocketEndpoint,
+  HYPERLIQUID_TRANSPORT_CONFIG,
+} from '../constants/hyperLiquidConfig';
 import type { HyperLiquidNetwork } from '../types/config';
 import { strings } from '../../../../../locales/i18n';
 import type { CandleData } from '../types/perps-types';
@@ -40,8 +42,7 @@ export class HyperLiquidClientService {
   private exchangeClient?: ExchangeClient;
   private infoClient?: InfoClient;
   private subscriptionClient?: SubscriptionClient<WebSocketTransport>;
-  private wsTransport?: WebSocketTransport;
-  private httpTransport?: HttpTransport;
+  private transport?: WebSocketTransport;
   private isTestnet: boolean;
   private connectionState: WebSocketConnectionState =
     WebSocketConnectionState.DISCONNECTED;
@@ -72,35 +73,26 @@ export class HyperLiquidClientService {
   }): void {
     try {
       this.connectionState = WebSocketConnectionState.CONNECTING;
-      this.createTransports();
-
-      // Ensure transports are created
-      if (!this.httpTransport || !this.wsTransport) {
-        throw new Error('Failed to create transports');
-      }
+      this.transport = this.createTransport();
 
       // Wallet adapter implements AbstractViemJsonRpcAccount interface with signTypedData method
-      // ExchangeClient uses HTTP transport for write operations (orders, approvals, etc.)
       this.exchangeClient = new ExchangeClient({
         wallet: wallet as any, // eslint-disable-line @typescript-eslint/no-explicit-any -- Type widening for SDK compatibility
-        transport: this.httpTransport,
+        transport: this.transport,
       });
 
-      // InfoClient uses HTTP transport for read operations (queries, metadata, etc.)
-      this.infoClient = new InfoClient({ transport: this.httpTransport });
-
-      // SubscriptionClient uses WebSocket transport for real-time pub/sub (price feeds, position updates)
+      this.infoClient = new InfoClient({ transport: this.transport });
       this.subscriptionClient = new SubscriptionClient({
-        transport: this.wsTransport,
+        transport: this.transport,
       });
 
       this.connectionState = WebSocketConnectionState.CONNECTED;
 
       DevLogger.log('HyperLiquid SDK clients initialized', {
         testnet: this.isTestnet,
+        endpoint: getWebSocketEndpoint(this.isTestnet),
         timestamp: new Date().toISOString(),
         connectionState: this.connectionState,
-        note: 'Using HTTP for InfoClient/ExchangeClient, WebSocket for SubscriptionClient',
       });
     } catch (error) {
       this.connectionState = WebSocketConnectionState.DISCONNECTED;
@@ -110,33 +102,21 @@ export class HyperLiquidClientService {
   }
 
   /**
-   * Create HTTP and WebSocket transports
-   * - HTTP for InfoClient and ExchangeClient (request/response operations)
-   * - WebSocket for SubscriptionClient (real-time pub/sub)
-   *
-   * Both transports use SDK's built-in endpoint resolution via isTestnet flag
+   * Create WebSocket transport with configuration
    */
-  private createTransports(): void {
-    DevLogger.log('HyperLiquid: Creating transports', {
+  private createTransport(): WebSocketTransport {
+    const wsUrl = getWebSocketEndpoint(this.isTestnet);
+
+    DevLogger.log('HyperLiquid: Creating WebSocket transport', {
+      endpoint: wsUrl,
       isTestnet: this.isTestnet,
       timestamp: new Date().toISOString(),
-      note: 'SDK will auto-select endpoints based on isTestnet flag',
     });
 
-    // HTTP transport for request/response operations (InfoClient, ExchangeClient)
-    // SDK automatically selects: mainnet (https://api.hyperliquid.xyz) or testnet (https://api.hyperliquid-testnet.xyz)
-    this.httpTransport = new HttpTransport({
-      isTestnet: this.isTestnet,
-      timeout: HYPERLIQUID_TRANSPORT_CONFIG.timeout,
-    });
-
-    // WebSocket transport for real-time subscriptions (SubscriptionClient)
-    // SDK automatically selects: mainnet (wss://api.hyperliquid.xyz/ws) or testnet (wss://api.hyperliquid-testnet.xyz/ws)
-    this.wsTransport = new WebSocketTransport({
-      isTestnet: this.isTestnet,
+    return new WebSocketTransport({
+      url: wsUrl,
       ...HYPERLIQUID_TRANSPORT_CONFIG,
       reconnect: {
-        ...HYPERLIQUID_TRANSPORT_CONFIG.reconnect,
         WebSocket, // Use React Native's global WebSocket
       },
     });
@@ -381,14 +361,15 @@ export class HyperLiquidClientService {
 
       DevLogger.log('HyperLiquid: Disconnecting SDK clients', {
         isTestnet: this.isTestnet,
+        endpoint: getWebSocketEndpoint(this.isTestnet),
         timestamp: new Date().toISOString(),
         connectionState: this.connectionState,
       });
 
-      // Close WebSocket transport only (HTTP is stateless)
-      if (this.wsTransport) {
+      // Close the WebSocket connection via transport
+      if (this.transport) {
         try {
-          await this.wsTransport.close();
+          await this.transport.close();
           DevLogger.log('HyperLiquid: Closed WebSocket transport', {
             timestamp: new Date().toISOString(),
           });
@@ -403,8 +384,7 @@ export class HyperLiquidClientService {
       this.subscriptionClient = undefined;
       this.exchangeClient = undefined;
       this.infoClient = undefined;
-      this.wsTransport = undefined;
-      this.httpTransport = undefined;
+      this.transport = undefined;
 
       this.connectionState = WebSocketConnectionState.DISCONNECTED;
 

@@ -1,28 +1,16 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import TrendingView from './TrendingView';
 
 const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
 const mockIsEnabled = jest.fn();
-const mockAddListener = jest.fn(() => jest.fn());
-
-jest.mock('../../Nav/Main/MainNavigator', () => ({
-  lastTrendingScreenRef: { current: 'TrendingFeed' },
-  updateLastTrendingScreen: jest.fn(),
-}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
-    goBack: mockGoBack,
-    addListener: mockAddListener,
   }),
 }));
-
-import TrendingView from './TrendingView';
-import { updateLastTrendingScreen } from '../../Nav/Main/MainNavigator';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -46,88 +34,59 @@ jest.mock('../../../util/browser', () => ({
   })),
 }));
 
-jest.mock('../Browser', () => ({
-  __esModule: true,
-  default: jest.fn(() => null),
-}));
-
 describe('TrendingView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsEnabled.mockReturnValue(true);
-    mockAddListener.mockReturnValue(jest.fn());
   });
 
-  it('renders native coming soon view', () => {
-    const { getByTestId } = render(
-      <NavigationContainer>
-        <TrendingView />
-      </NavigationContainer>,
-    );
+  it('renders webview with HTML content', () => {
+    const { getByTestId } = render(<TrendingView />);
 
-    const comingSoonText = getByTestId('trending-view-coming-soon');
+    const webview = getByTestId('trending-view-webview');
 
-    expect(comingSoonText).toBeDefined();
+    expect(webview).toBeDefined();
+    expect(webview.props.source.html).toBeDefined();
+    expect(webview.props.source.html).toContain('Trending tokens coming soon');
   });
 
   it('renders browser button in header', () => {
-    const { getByTestId } = render(
-      <NavigationContainer>
-        <TrendingView />
-      </NavigationContainer>,
-    );
+    const { getByTestId } = render(<TrendingView />);
 
     const browserButton = getByTestId('trending-view-browser-button');
 
     expect(browserButton).toBeDefined();
   });
 
-  it('renders title in header', () => {
-    const { getByText } = render(
-      <NavigationContainer>
-        <TrendingView />
-      </NavigationContainer>,
-    );
+  it('renders title in native header', () => {
+    const { getByText } = render(<TrendingView />);
 
     expect(getByText('Trending')).toBeDefined();
   });
 
-  it('navigates to TrendingBrowser route when browser button is pressed', () => {
-    const { getByTestId } = render(
-      <NavigationContainer>
-        <TrendingView />
-      </NavigationContainer>,
-    );
+  it('includes theme colors in HTML', () => {
+    const { getByTestId } = render(<TrendingView />);
 
-    const browserButton = getByTestId('trending-view-browser-button');
+    const webview = getByTestId('trending-view-webview');
+    const htmlContent = webview.props.source.html;
 
-    fireEvent.press(browserButton);
-
-    expect(mockNavigate).toHaveBeenCalledWith('TrendingBrowser', {
-      newTabUrl: expect.stringContaining('?metamaskEntry=mobile'),
-      timestamp: expect.any(Number),
-      fromTrending: true,
-    });
-    expect(updateLastTrendingScreen).toHaveBeenCalledWith('TrendingBrowser');
+    expect(htmlContent).toContain('background-color');
+    expect(htmlContent).toContain('color');
   });
 
-  it('includes portfolio URL with correct parameters when browser button is pressed', () => {
-    const { getByTestId } = render(
-      <NavigationContainer>
-        <TrendingView />
-      </NavigationContainer>,
-    );
-
+  it('navigates to browser with portfolio URL when browser button is pressed', () => {
+    const { getByTestId } = render(<TrendingView />);
     const browserButton = getByTestId('trending-view-browser-button');
 
     fireEvent.press(browserButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'TrendingBrowser',
-      expect.objectContaining({
-        newTabUrl: expect.stringContaining('metamaskEntry=mobile'),
+    expect(mockNavigate).toHaveBeenCalledWith('BrowserTabHome', {
+      screen: 'BrowserView',
+      params: {
+        newTabUrl: expect.stringContaining('?metamaskEntry=mobile'),
+        timestamp: expect.any(Number),
         fromTrending: true,
-      }),
-    );
+      },
+    });
   });
 });

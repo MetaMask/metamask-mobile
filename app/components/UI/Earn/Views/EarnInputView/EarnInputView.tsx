@@ -646,27 +646,26 @@ const EarnInputView = () => {
     // Call the original handler first
     handleCurrencySwitch();
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.EARN_INPUT_CURRENCY_SWITCH_CLICKED)
-        .addProperties({
-          selected_provider: EVENT_PROVIDERS.CONSENSYS,
-          text: 'Currency Switch Clicked',
-          location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
-          currency_type: !isFiat ? 'fiat' : 'native',
-          experience: earnToken?.experience?.type,
-          token_symbol: earnToken?.symbol,
-          chain_id: earnToken?.chainId ? toHex(earnToken.chainId) : undefined,
-        })
-        .build(),
-    );
+    if (shouldLogStablecoinEvent()) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.EARN_INPUT_CURRENCY_SWITCH_CLICKED)
+          .addProperties({
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            text: 'Currency Switch Clicked',
+            location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+            currency_type: !isFiat ? 'fiat' : 'native',
+            experience: earnToken?.experience?.type,
+          })
+          .build(),
+      );
+    }
   }, [
+    shouldLogStablecoinEvent,
     handleCurrencySwitch,
     trackEvent,
     createEventBuilder,
     isFiat,
     earnToken?.experience?.type,
-    earnToken?.symbol,
-    earnToken?.chainId,
   ]);
 
   const getButtonLabel = () => {

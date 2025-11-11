@@ -127,30 +127,6 @@ class WalletMainScreen {
     return Selectors.getXpathElementByText('Localhost 8545 now active.');
   }
 
-  get totalBalanceText() {
-    if (!this._device) {
-      return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
-    } else {
-      return AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
-    }
-  }
-
-  get balanceContainer() {
-    if (!this._device) {
-      return Selectors.getXpathElementByResourceId('balance-container');
-    } else {
-      return AppwrightSelectors.getElementByID(this._device, 'balance-container');
-    }
-  }
-
-  get tokenBalancesLoadedMarker() {
-    if (!this._device) {
-      return Selectors.getXpathElementByResourceId('token-balances-loaded-marker');
-    } else {
-      return AppwrightSelectors.getElementByID(this._device, 'token-balances-loaded-marker');
-    }
-  }
-
   async tapImportTokensButton() {
     const importToken = await this.ImportToken;
     await importToken.waitForDisplayed();
@@ -172,23 +148,7 @@ class WalletMainScreen {
   }
 
   async tapNFTTab() {
-    if (!this._device) {
-      await Gestures.tapTextByXpath('NFTs');
-    } else {
-      // For Appwright, tap by text
-      const nftTabText = AppwrightSelectors.getElementByText(this._device, 'NFTs');
-      await AppwrightGestures.tap(nftTabText);
-    }
-  }
-
-  async tapTokensTab() {
-    if (!this._device) {
-      await Gestures.tapTextByXpath('Tokens');
-    } else {
-      // For Appwright, tap by text
-      const tokensTabText = AppwrightSelectors.getElementByText(this._device, 'Tokens');
-      await AppwrightGestures.tap(tokensTabText);
-    }
+    await Gestures.tapTextByXpath('NFTs');
   }
 
   async tapOnToken(token) {

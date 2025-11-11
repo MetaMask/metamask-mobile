@@ -25,7 +25,6 @@ import {
   createEnterAddressNavDetails,
 } from '../EnterAddress/EnterAddress';
 import { createSsnInfoModalNavigationDetails } from '../Modals/SsnInfoModal';
-import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { useDepositSDK } from '../../sdk';
 import { VALIDATION_REGEX } from '../../constants/constants';
@@ -71,10 +70,9 @@ const BasicInfo = (): JSX.Element => {
   const { styles, theme } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
   const { quote, previousFormData } = useParams<BasicInfoParams>();
-  const { selectedRegion, logoutFromProvider } = useDepositSDK();
+  const { selectedRegion } = useDepositSDK();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isPhoneRegisteredError, setIsPhoneRegisteredError] = useState(false);
 
   const firstNameInputRef = useRef<TextInput>(null);
   const lastNameInputRef = useRef<TextInput>(null);
@@ -199,7 +197,6 @@ const BasicInfo = (): JSX.Element => {
 
     // Clear any previous errors when retrying
     setError(null);
-    setIsPhoneRegisteredError(false);
 
     trackEvent('RAMPS_BASIC_INFO_ENTERED', {
       region: selectedRegion?.isoCode || '',
@@ -230,34 +227,11 @@ const BasicInfo = (): JSX.Element => {
         }),
       );
     } catch (submissionError) {
-      // Check for Transak error code 2020 (phone already registered)
-      // API returns: { error: { errorCode: 2020, message: "..." } }
-      const errorWithCode = submissionError as unknown as {
-        error?: { errorCode?: number; message?: string };
-      };
-      const isPhoneError = errorWithCode?.error?.errorCode === 2020;
-
-      setIsPhoneRegisteredError(isPhoneError);
-
-      // For error code 2020, extract email from message and format it
-      let errorMessage = '';
-      if (isPhoneError && errorWithCode?.error?.message) {
-        // Extract email from message like "...created with k****@pedalsup.com..."
-        const emailMatch = errorWithCode.error.message.match(
-          /[\w*]+@[\w*]+(?:\.[\w*]+)*/,
-        );
-        const email = emailMatch ? emailMatch[0] : '';
-        errorMessage = email
-          ? strings('deposit.basic_info.phone_already_registered', { email })
-          : errorWithCode.error.message;
-      } else {
-        errorMessage =
-          submissionError instanceof Error && submissionError.message
-            ? submissionError.message
-            : strings('deposit.basic_info.unexpected_error');
-      }
-
-      setError(errorMessage);
+      setError(
+        submissionError instanceof Error && submissionError.message
+          ? submissionError.message
+          : strings('deposit.basic_info.unexpected_error'),
+      );
       Logger.error(
         submissionError as Error,
         'Unexpected error during basic info form submission',
@@ -266,31 +240,16 @@ const BasicInfo = (): JSX.Element => {
       setLoading(false);
     }
   }, [
+    previousFormData,
     validateFormData,
     formData,
     postKycForm,
     submitSsnDetails,
     navigation,
     quote,
-    previousFormData,
     selectedRegion?.isoCode,
     trackEvent,
   ]);
-
-  const handleLogout = useCallback(async () => {
-    try {
-      await logoutFromProvider(false); // false = no server invalidation needed
-
-      // Navigate back to email entry screen
-      navigation.navigate(...createEnterEmailNavDetails());
-    } catch (logoutError) {
-      Logger.error(
-        logoutError as Error,
-        'Error logging out from BasicInfo error banner',
-      );
-      // Keep error visible if logout fails
-    }
-  }, [logoutFromProvider, navigation]);
 
   const focusNextField = useCallback(
     (nextRef: React.RefObject<TextInput>) => () => {
@@ -303,7 +262,6 @@ const BasicInfo = (): JSX.Element => {
     (field: keyof BasicInfoFormData, nextAction?: () => void) =>
       (value: string) => {
         setError(null);
-        setIsPhoneRegisteredError(false);
         const currentValue = formData[field] || '';
         const isAutofill = value.length - currentValue.length > 1;
 
@@ -340,17 +298,6 @@ const BasicInfo = (): JSX.Element => {
                 <BannerAlert
                   description={error}
                   severity={BannerAlertSeverity.Error}
-                  actionButtonProps={
-                    isPhoneRegisteredError
-                      ? {
-                          variant: ButtonVariants.Link,
-                          label: strings('deposit.basic_info.login_with_email'),
-                          onPress: handleLogout,
-                          labelTextVariant: TextVariant.BodyMD,
-                          testID: 'basic-info-logout-button',
-                        }
-                      : undefined
-                  }
                 />
               </View>
             )}

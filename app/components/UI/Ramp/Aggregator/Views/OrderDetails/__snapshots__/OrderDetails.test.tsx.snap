@@ -58,12 +58,12 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
+                "shadowColor": "transparent",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0,
+                "shadowOpacity": 0.85,
                 "shadowRadius": 0,
               }
             }
@@ -116,87 +116,29 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <Text
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 23.57142857142857,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                >
+                  Back
+                </Text>
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -234,6 +176,23 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                   Order Details
                 </Text>
               </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <View />
             </View>
           </View>
         </View>
@@ -1551,12 +1510,12 @@ exports[`OrderDetails renders a completed order 1`] = `
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
+                "shadowColor": "transparent",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0,
+                "shadowOpacity": 0.85,
                 "shadowRadius": 0,
               }
             }
@@ -1609,87 +1568,29 @@ exports[`OrderDetails renders a completed order 1`] = `
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <Text
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 23.57142857142857,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                >
+                  Back
+                </Text>
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -1727,6 +1628,23 @@ exports[`OrderDetails renders a completed order 1`] = `
                   Order Details
                 </Text>
               </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <View />
             </View>
           </View>
         </View>
@@ -3062,12 +2980,12 @@ exports[`OrderDetails renders a created order 1`] = `
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
+                "shadowColor": "transparent",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0,
+                "shadowOpacity": 0.85,
                 "shadowRadius": 0,
               }
             }
@@ -3120,87 +3038,29 @@ exports[`OrderDetails renders a created order 1`] = `
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <Text
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 23.57142857142857,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                >
+                  Back
+                </Text>
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -3238,6 +3098,23 @@ exports[`OrderDetails renders a created order 1`] = `
                   Order Details
                 </Text>
               </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <View />
             </View>
           </View>
         </View>
@@ -4536,12 +4413,12 @@ exports[`OrderDetails renders a failed order 1`] = `
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
+                "shadowColor": "transparent",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0,
+                "shadowOpacity": 0.85,
                 "shadowRadius": 0,
               }
             }
@@ -4594,87 +4471,29 @@ exports[`OrderDetails renders a failed order 1`] = `
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <Text
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 23.57142857142857,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                >
+                  Back
+                </Text>
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -4712,6 +4531,23 @@ exports[`OrderDetails renders a failed order 1`] = `
                   Order Details
                 </Text>
               </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <View />
             </View>
           </View>
         </View>
@@ -6029,12 +5865,12 @@ exports[`OrderDetails renders a pending order 1`] = `
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
+                "shadowColor": "transparent",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0,
+                "shadowOpacity": 0.85,
                 "shadowRadius": 0,
               }
             }
@@ -6087,87 +5923,29 @@ exports[`OrderDetails renders a pending order 1`] = `
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <Text
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 23.57142857142857,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                >
+                  Back
+                </Text>
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -6205,6 +5983,23 @@ exports[`OrderDetails renders a pending order 1`] = `
                   Order Details
                 </Text>
               </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <View />
             </View>
           </View>
         </View>
@@ -7503,12 +7298,12 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
+                "shadowColor": "transparent",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0,
+                "shadowOpacity": 0.85,
                 "shadowRadius": 0,
               }
             }
@@ -7561,87 +7356,29 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <Text
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 23.57142857142857,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                >
+                  Back
+                </Text>
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -7679,6 +7416,23 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                   Order Details
                 </Text>
               </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <View />
             </View>
           </View>
         </View>
@@ -7962,12 +7716,12 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
+                "shadowColor": "transparent",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0,
+                "shadowOpacity": 0.85,
                 "shadowRadius": 0,
               }
             }
@@ -8020,87 +7774,29 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <Text
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 23.57142857142857,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                >
+                  Back
+                </Text>
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -8138,6 +7834,23 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                   Order Details
                 </Text>
               </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <View />
             </View>
           </View>
         </View>
@@ -8625,12 +8338,12 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
+                "shadowColor": "transparent",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0,
+                "shadowOpacity": 0.85,
                 "shadowRadius": 0,
               }
             }
@@ -8683,87 +8396,29 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <Text
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 23.57142857142857,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                >
+                  Back
+                </Text>
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -8801,6 +8456,23 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                   Order Details
                 </Text>
               </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <View />
             </View>
           </View>
         </View>
@@ -10179,12 +9851,12 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
+                "shadowColor": "transparent",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0,
+                "shadowOpacity": 0.85,
                 "shadowRadius": 0,
               }
             }
@@ -10237,87 +9909,29 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <Text
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 23.57142857142857,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                >
+                  Back
+                </Text>
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -10355,6 +9969,23 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                   Order Details
                 </Text>
               </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <View />
             </View>
           </View>
         </View>
@@ -11736,12 +11367,12 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
+                "shadowColor": "transparent",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0,
+                "shadowOpacity": 0.85,
                 "shadowRadius": 0,
               }
             }
@@ -11794,87 +11425,29 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <Text
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 23.57142857142857,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                >
+                  Back
+                </Text>
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -11912,6 +11485,23 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                   Order Details
                 </Text>
               </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <View />
             </View>
           </View>
         </View>
@@ -13210,12 +12800,12 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
+                "shadowColor": "transparent",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0,
+                "shadowOpacity": 0.85,
                 "shadowRadius": 0,
               }
             }
@@ -13268,87 +12858,29 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <Text
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 23.57142857142857,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                >
+                  Back
+                </Text>
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -13386,6 +12918,23 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                   Order Details
                 </Text>
               </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <View />
             </View>
           </View>
         </View>

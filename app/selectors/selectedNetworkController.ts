@@ -3,7 +3,11 @@ import { useSelector } from 'react-redux';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { SelectedNetworkControllerState } from '@metamask/selected-network-controller';
-import { getNetworkImageSource, NetworkList } from '../util/networks';
+import {
+  getNetworkImageSource,
+  isPerDappSelectedNetworkEnabled,
+  NetworkList,
+} from '../util/networks';
 import { strings } from '../../locales/i18n';
 import {
   selectProviderConfig,
@@ -142,7 +146,8 @@ export const makeSelectNetworkName = () =>
       hostname,
       chainIdToUse,
     ) => {
-      if (!hostname) return providerNetworkName;
+      if (!hostname || !isPerDappSelectedNetworkEnabled())
+        return providerNetworkName;
       const relevantNetworkClientId =
         domainNetworkClientId || globalNetworkClientId;
 
@@ -181,7 +186,8 @@ export const makeSelectNetworkImageSource = () =>
       hostname,
       chainIdToUse,
     ) => {
-      if (!hostname) return providerNetworkImageSource;
+      if (!hostname || !isPerDappSelectedNetworkEnabled())
+        return providerNetworkImageSource;
 
       const relevantNetworkClientId =
         activeDappNetwork || domainNetworkClientId || globalNetworkClientId;
@@ -221,7 +227,7 @@ export const makeSelectChainId = () =>
       hostname,
       chainIdToUse,
     ) => {
-      if (!hostname) {
+      if (!hostname || !isPerDappSelectedNetworkEnabled()) {
         return providerChainId;
       }
 
@@ -262,7 +268,8 @@ export const makeSelectRpcUrl = () =>
       if (isNonEvmChainId(chainId)) {
         return;
       }
-      if (!hostname) return providerRpcUrl;
+      if (!hostname || !isPerDappSelectedNetworkEnabled())
+        return providerRpcUrl;
 
       const relevantNetworkClientId =
         activeDappNetwork || domainNetworkClientId || globalNetworkClientId;

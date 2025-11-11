@@ -1,4 +1,3 @@
-import { createSelector } from 'reselect';
 import type { PerpsControllerState } from './PerpsController';
 import {
   MARKET_SORTING_CONFIG,
@@ -63,28 +62,21 @@ export const selectIsWatchlistMarket = (
 
 /**
  * Select trade configuration for a specific market on the current network
- * Uses memoization to return stable object references and prevent unnecessary re-renders
  * @param state - PerpsController state
  * @param coin - Market symbol (e.g., 'BTC', 'ETH')
- * @returns Trade configuration object with leverage, or undefined
+ * @returns Trade configuration object or undefined
  */
-export const selectTradeConfiguration = createSelector(
-  [
-    (state: PerpsControllerState) => state?.isTestnet,
-    (state: PerpsControllerState, _coin: string) => state?.tradeConfigurations,
-    (_state: PerpsControllerState, coin: string) => coin,
-  ],
-  (isTestnet, configs, coin): { leverage?: number } | undefined => {
-    const network = isTestnet ? 'testnet' : 'mainnet';
-    const config = configs?.[network]?.[coin];
+export const selectTradeConfiguration = (
+  state: PerpsControllerState,
+  coin: string,
+): { leverage?: number } | undefined => {
+  const network = state?.isTestnet ? 'testnet' : 'mainnet';
+  const config = state?.tradeConfigurations?.[network]?.[coin];
 
-    if (!config?.leverage) {
-      return undefined;
-    }
+  if (!config?.leverage) return undefined;
 
-    return { leverage: config.leverage };
-  },
-);
+  return { leverage: config.leverage };
+};
 
 /**
  * Select market filter preferences (network-independent)

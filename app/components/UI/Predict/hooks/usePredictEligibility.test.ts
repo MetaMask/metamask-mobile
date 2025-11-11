@@ -45,8 +45,8 @@ describe('usePredictEligibility', () => {
 
   it('returns isEligible for the specified provider', () => {
     mockState.engine.backgroundState.PredictController.eligibility = {
-      polymarket: { eligible: true, country: 'US' },
-      example: { eligible: false, country: 'UK' },
+      polymarket: true,
+      example: false,
     };
 
     const { result } = renderHook(() =>
@@ -54,13 +54,12 @@ describe('usePredictEligibility', () => {
     );
 
     expect(result.current.isEligible).toBe(true);
-    expect(result.current.country).toBe('US');
   });
 
   it('returns false when provider is not eligible', () => {
     mockState.engine.backgroundState.PredictController.eligibility = {
-      polymarket: { eligible: true, country: 'US' },
-      example: { eligible: false, country: 'UK' },
+      polymarket: true,
+      example: false,
     };
 
     const { result } = renderHook(() =>
@@ -68,16 +67,14 @@ describe('usePredictEligibility', () => {
     );
 
     expect(result.current.isEligible).toBe(false);
-    expect(result.current.country).toBe('UK');
   });
 
-  it('returns false when provider eligibility is not set', () => {
+  it('returns undefined when provider eligibility is not set', () => {
     const { result } = renderHook(() =>
       usePredictEligibility({ providerId: 'unknown' }),
     );
 
-    expect(result.current.isEligible).toBe(false);
-    expect(result.current.country).toBeUndefined();
+    expect(result.current.isEligible).toBeUndefined();
   });
 
   it('calls refreshEligibility on the controller', async () => {

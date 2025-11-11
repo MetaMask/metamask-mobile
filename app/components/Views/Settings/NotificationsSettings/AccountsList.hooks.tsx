@@ -1,101 +1,65 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { useAccounts } from '../../../hooks/useAccounts';
 import { useFetchAccountNotifications } from '../../../../util/notifications/hooks/useSwitchNotifications';
 import { getValidNotificationAccounts } from '../../../../selectors/notifications';
-import { toFormattedAddress } from '../../../../util/address';
+import {
+  areAddressesEqual,
+  toFormattedAddress,
+} from '../../../../util/address';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
-import { selectAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { AccountWalletType } from '@metamask/account-api';
-import { selectInternalAccountsById } from '../../../../selectors/accountsController';
-import { isEvmAccountType } from '@metamask/keyring-api';
 
-export function useNotificationAccountListProps() {
-  const accountAddresses = useSelector(getValidNotificationAccounts);
-  const accountsMap = useSelector(selectInternalAccountsById);
+export function useNotificationAccountListProps(addresses: string[]) {
   const { update, initialLoading, accountsBeingUpdated, data } =
-    useFetchAccountNotifications(accountAddresses);
+    useFetchAccountNotifications(addresses);
 
-  const isAnyAccountLoading = initialLoading || accountsBeingUpdated.length > 0;
+  // Loading is determined on initial fetch or if any account is being updated
+  const updatingAccounts = accountsBeingUpdated.length > 0;
+  const isAnyAccountLoading = initialLoading || updatingAccounts;
 
   const refetchAccountSettings = useCallback(async () => {
-    await update(accountAddresses);
-  }, [accountAddresses, update]);
+    await update(addresses);
+  }, [addresses, update]);
 
-  // Helper to get addresses from account IDs
-  const getEvmAddressesFromAccountIds = useCallback(
-    (accountIds: string[]) =>
-      accountIds
-        .filter(
-          (id) =>
-            Boolean(accountsMap?.[id]?.address) &&
-            isEvmAccountType(accountsMap[id].type),
-        )
-        .map((id) => accountsMap[id].address),
-    [accountsMap],
-  );
+  const isAccountLoading = (address: string) =>
+    accountsBeingUpdated.some(
+      (addr) => toFormattedAddress(addr) === toFormattedAddress(address),
+    );
 
-  // Helper to normalize address lookup in data
-  const isAddressEnabled = useCallback(
-    (address: string) =>
-      data?.[toFormattedAddress(address)] ??
-      data?.[address.toLowerCase()] ??
-      false,
-    [data],
-  );
-
-  const isAccountLoading = useCallback(
-    (accountIds: string[]) => {
-      const addresses = getEvmAddressesFromAccountIds(accountIds);
-      return accountsBeingUpdated.some((updatingAddr) =>
-        addresses.some(
-          (addr) =>
-            toFormattedAddress(updatingAddr) === toFormattedAddress(addr),
-        ),
-      );
-    },
-    [accountsBeingUpdated, getEvmAddressesFromAccountIds],
-  );
-
-  const isAccountEnabled = useCallback(
-    (accountIds: string[]) => {
-      const addresses = getEvmAddressesFromAccountIds(accountIds);
-      return addresses.some(isAddressEnabled);
-    },
-    [getEvmAddressesFromAccountIds, isAddressEnabled],
-  );
-
-  const getEvmAddress = useCallback(
-    (accountIds: string[]) => {
-      const addresses = getEvmAddressesFromAccountIds(accountIds);
-      const address = addresses.at(0); // get first evm address - keyring only contains 1 EVM address
-      return address && toFormattedAddress(address);
-    },
-    [getEvmAddressesFromAccountIds],
-  );
+  const isAccountEnabled = (address: string) =>
+    data?.[toFormattedAddress(address)] ??
+    data?.[address.toLowerCase()] ?? // fallback to lowercase address lookup
+    false;
 
   return {
     isAnyAccountLoading,
     refetchAccountSettings,
     isAccountLoading,
     isAccountEnabled,
-    getEvmAddress,
   };
 }
 
-export function useFirstHDWalletAccounts() {
-  const accountGroupsByWallet = useSelector(selectAccountGroupsByWallet);
-  const firstHDWalletGroup = accountGroupsByWallet.find(
-    (w) => w.wallet.type === AccountWalletType.Entropy,
-  );
-  return firstHDWalletGroup;
-}
-
 export function useAccountProps() {
-  const firstHDWalletGroups = useFirstHDWalletAccounts();
+  const accountAddresses = useSelector(getValidNotificationAccounts);
+  const { accounts: allAccounts } = useAccounts();
   const accountAvatarType = useSelector(selectAvatarAccountType);
 
+  const accounts = useMemo(
+    () =>
+      accountAddresses
+        .map((addr) => {
+          const account = allAccounts.find((a) =>
+            areAddressesEqual(a.address, addr),
+          );
+          return account;
+        })
+        .filter(<T,>(val: T | undefined): val is T => Boolean(val)),
+    [accountAddresses, allAccounts],
+  );
+
   return {
-    firstHDWalletGroups,
+    accounts,
     accountAvatarType,
+    accountAddresses,
   };
 }

@@ -18,10 +18,6 @@ export interface ListItemSelectProps
    * Optional prop to determine if the item is disabled.
    */
   isDisabled?: boolean;
-  /**
-   * Optional prop to configure the prop of nested ListItem
-   */
-  listItemProps?: Partial<ListItemProps>;
 }
 
 /**

@@ -29,7 +29,7 @@ import Row from '../../components/Row';
 import Quote from '../../components/Quote';
 import CustomAction from '../../components/CustomAction';
 import InfoAlert from '../../components/InfoAlert';
-import { getDepositNavbarOptions } from '../../../../Navbar';
+import { getFiatOnRampAggNavbar } from '../../../../Navbar';
 import {
   ButtonSize,
   ButtonVariants,
@@ -55,7 +55,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import LoadingAnimation from '../../components/LoadingAnimation';
 import useInterval from '../../../../../hooks/useInterval';
 import useInAppBrowser from '../../hooks/useInAppBrowser';
-import { createCheckoutNavDetails } from '../Checkout/Checkout';
+import { createCheckoutNavDetails } from '../Checkout';
 import { PROVIDER_LINKS, ScreenLocation } from '../../types';
 import Logger from '../../../../../../util/Logger';
 import { isBuyQuote } from '../../utils';
@@ -579,14 +579,14 @@ function Quotes() {
 
   useEffect(() => {
     navigation.setOptions(
-      getDepositNavbarOptions(
+      getFiatOnRampAggNavbar(
         navigation,
         { title: strings('fiat_on_ramp_aggregator.select_a_quote') },
-        theme,
+        theme.colors,
         handleCancelPress,
       ),
     );
-  }, [navigation, theme, handleCancelPress]);
+  }, [navigation, theme.colors, handleCancelPress]);
 
   useEffect(() => {
     if (isFetchingQuotes) return;
