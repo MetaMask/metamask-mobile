@@ -116,7 +116,7 @@ export async function importSRPFlow(device, srp) {
 
 export async function login(device, options = {}) {
   LoginScreen.device = device;
-  const { scenarioType = 'login' } = options;
+  const { scenarioType = 'login', shouldDismissModals = true } = options;
 
   const password = getPasswordForScenario(scenarioType);
 
@@ -128,7 +128,7 @@ export async function login(device, options = {}) {
   // if (shouldDismissModals) {
   //   await dissmissAllModals(device);
   // }
-  console.log("Manually dismiss modals now!")
+  console.log('Manually dismiss modals now!');
   await AppwrightGestures.wait(5000);
 }
 export async function tapPerpsBottomSheetGotItButton(device) {
