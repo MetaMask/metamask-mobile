@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
@@ -60,6 +60,7 @@ import RampRoutes from '../../UI/Ramp/Aggregator/routes';
 import { RampType } from '../../UI/Ramp/Aggregator/types';
 import RampSettings from '../../UI/Ramp/Aggregator/Views/Settings';
 import RampActivationKeyForm from '../../UI/Ramp/Aggregator/Views/Settings/ActivationKeyForm';
+import RampTokenSelection from '../../UI/Ramp/components/TokenSelection';
 
 import DepositOrderDetails from '../../UI/Ramp/Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import DepositRoutes from '../../UI/Ramp/Deposit/routes';
@@ -1065,6 +1066,10 @@ const MainNavigator = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
+      <Stack.Screen
+        name={Routes.RAMP.TOKEN_SELECTION}
+        component={RampTokenSelection}
+      />
       <Stack.Screen name={Routes.RAMP.BUY}>
         {() => <RampRoutes rampType={RampType.BUY} />}
       </Stack.Screen>
@@ -1192,7 +1197,7 @@ const MainNavigator = () => {
           ...GeneralSettings.navigationOptions,
         }}
       />
-      {process.env.NODE_ENV !== 'production' && (
+      {process.env.METAMASK_ENVIRONMENT !== 'production' && (
         <Stack.Screen
           name={Routes.FEATURE_FLAG_OVERRIDE}
           component={FeatureFlagOverride}

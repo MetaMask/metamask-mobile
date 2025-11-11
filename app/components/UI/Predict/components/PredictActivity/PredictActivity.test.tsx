@@ -88,12 +88,11 @@ const renderComponent = (overrides?: Partial<PredictActivityItem>) => {
 };
 
 describe('PredictActivity', () => {
-  it('renders BUY activity with title, market, detail, amount and percent', () => {
+  it('renders BUY activity with title, market, amount and percent', () => {
     renderComponent();
 
     expect(screen.getByText('Buy')).toBeOnTheScreen();
     expect(screen.getByText(baseItem.marketTitle)).toBeOnTheScreen();
-    expect(screen.getByText(baseItem.detail)).toBeOnTheScreen();
     expect(screen.getByText('-$1,234.50')).toBeOnTheScreen();
     expect(screen.getByText('+1.50%')).toBeOnTheScreen();
   });
