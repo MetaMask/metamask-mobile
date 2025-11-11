@@ -266,7 +266,7 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
   },
   {
     predictTradingEnabled: {
-      enabled: true,
+      enabled: false,
       minimumVersion: '7.60.0',
     },
   },
