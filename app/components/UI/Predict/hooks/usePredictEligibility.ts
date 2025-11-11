@@ -29,6 +29,7 @@ export const usePredictEligibility = ({
 }) => {
   const eligibility = useSelector(selectPredictEligibility);
   const lastRefreshTimeRef = useRef<number>(0);
+  const refreshPromiseRef = useRef<Promise<void> | null>(null);
 
   // Manual refresh - bypasses debounce and updates timestamp
   const refreshEligibility = useCallback(async () => {
@@ -38,7 +39,19 @@ export const usePredictEligibility = ({
   }, []);
 
   // Auto-refresh with debouncing - used by AppState listener
+  // Prevents race conditions by reusing in-flight promises
   const autoRefreshEligibility = useCallback(async () => {
+    // If a refresh is already in progress, reuse that promise
+    if (refreshPromiseRef.current) {
+      DevLogger.log(
+        'PredictController: Refresh already in progress, reusing promise',
+        {
+          providerId,
+        },
+      );
+      return refreshPromiseRef.current;
+    }
+
     const now = Date.now();
     const timeSinceLastRefresh = now - lastRefreshTimeRef.current;
 
@@ -56,12 +69,15 @@ export const usePredictEligibility = ({
       DevLogger.log('PredictController: Auto-refreshing eligibility', {
         providerId,
       });
-      await refreshEligibility();
+      refreshPromiseRef.current = refreshEligibility();
+      await refreshPromiseRef.current;
     } catch (error) {
       DevLogger.log('PredictController: Auto-refresh failed', {
         providerId,
         error: error instanceof Error ? error.message : 'Unknown',
       });
+    } finally {
+      refreshPromiseRef.current = null;
     }
   }, [providerId, refreshEligibility]);
 

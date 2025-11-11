@@ -463,4 +463,144 @@ describe('usePredictEligibility', () => {
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(2);
     });
   });
+
+  describe('race condition prevention', () => {
+    it('reuses in-flight promise when refresh is already in progress', async () => {
+      let resolveRefresh: (() => void) | undefined;
+      const refreshPromise = new Promise<void>((resolve) => {
+        resolveRefresh = resolve;
+      });
+      mockRefreshEligibility.mockReturnValueOnce(refreshPromise);
+
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
+
+      const handleAppStateChange = mockAppStateAddEventListener.mock
+        .calls[0][1] as (nextState: AppStateStatus) => void;
+
+      await act(async () => {
+        handleAppStateChange('background');
+        handleAppStateChange('active');
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        handleAppStateChange('background');
+        handleAppStateChange('active');
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
+      expect(mockDevLogger).toHaveBeenCalledWith(
+        'PredictController: Refresh already in progress, reusing promise',
+        expect.objectContaining({
+          providerId: 'polymarket',
+        }),
+      );
+
+      resolveRefresh?.();
+    });
+
+    it('prevents concurrent API calls when multiple state changes occur rapidly', async () => {
+      let resolveRefresh: (() => void) | undefined;
+      const refreshPromise = new Promise<void>((resolve) => {
+        resolveRefresh = resolve;
+      });
+      mockRefreshEligibility.mockReturnValueOnce(refreshPromise);
+
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
+
+      const handleAppStateChange = mockAppStateAddEventListener.mock
+        .calls[0][1] as (nextState: AppStateStatus) => void;
+
+      await act(async () => {
+        handleAppStateChange('background');
+        handleAppStateChange('active');
+        handleAppStateChange('background');
+        handleAppStateChange('active');
+        handleAppStateChange('background');
+        handleAppStateChange('active');
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
+
+      resolveRefresh?.();
+      await act(async () => {
+        await refreshPromise;
+      });
+    });
+
+    it('allows new refresh after previous one completes', async () => {
+      let resolveFirstRefresh: (() => void) | undefined;
+      const firstRefreshPromise = new Promise<void>((resolve) => {
+        resolveFirstRefresh = resolve;
+      });
+      mockRefreshEligibility.mockReturnValueOnce(firstRefreshPromise);
+
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
+
+      const handleAppStateChange = mockAppStateAddEventListener.mock
+        .calls[0][1] as (nextState: AppStateStatus) => void;
+
+      await act(async () => {
+        handleAppStateChange('background');
+        handleAppStateChange('active');
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
+
+      resolveFirstRefresh?.();
+      await act(async () => {
+        await firstRefreshPromise;
+      });
+
+      mockRefreshEligibility.mockResolvedValueOnce(undefined);
+      jest.advanceTimersByTime(60000);
+
+      await act(async () => {
+        handleAppStateChange('background');
+        handleAppStateChange('active');
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(2);
+    });
+
+    it('clears in-flight promise after error', async () => {
+      let rejectRefresh: ((error: Error) => void) | undefined;
+      const refreshPromise = new Promise<void>((_resolve, reject) => {
+        rejectRefresh = reject;
+      });
+      mockRefreshEligibility.mockReturnValueOnce(refreshPromise);
+
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
+
+      const handleAppStateChange = mockAppStateAddEventListener.mock
+        .calls[0][1] as (nextState: AppStateStatus) => void;
+
+      await act(async () => {
+        handleAppStateChange('background');
+        handleAppStateChange('active');
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
+
+      rejectRefresh?.(new Error('Network error'));
+      await act(async () => {
+        try {
+          await refreshPromise;
+        } catch {
+          // Expected error
+        }
+      });
+
+      mockRefreshEligibility.mockResolvedValueOnce(undefined);
+      jest.advanceTimersByTime(60000);
+
+      await act(async () => {
+        handleAppStateChange('background');
+        handleAppStateChange('active');
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(2);
+    });
+  });
 });
