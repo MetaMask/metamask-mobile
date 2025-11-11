@@ -14,6 +14,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsRecentActivityList.styles';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 
 interface PerpsRecentActivityListProps {
   transactions: PerpsTransaction[];
@@ -95,7 +96,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
                   variant={TextVariant.BodySM}
                   style={styles.activityAmount}
                 >
-                  {item.subtitle}
+                  {getPerpsDisplaySymbol(item.subtitle)}
                 </Text>
               )}
             </View>
