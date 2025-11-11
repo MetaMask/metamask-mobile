@@ -3,6 +3,7 @@ export const channel = 'test-channel';
 export const runtimeVersion = '1.0.0';
 export const isEmbeddedLaunch = true;
 export const isEnabled = true;
+export const updateId = 'mock-update-id';
 
 export const checkForUpdateAsync = jest.fn();
 export const fetchUpdateAsync = jest.fn();
@@ -25,6 +26,7 @@ export default {
   runtimeVersion,
   isEmbeddedLaunch,
   isEnabled,
+  updateId,
   checkForUpdateAsync,
   fetchUpdateAsync,
   reloadAsync,
