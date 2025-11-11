@@ -34,17 +34,13 @@ const scaleVertical = (size: number) => {
 
 const scaleHorizontal = (size: number) => Math.ceil(size * widthScale);
 
-const createStyles = (
-  theme: Theme,
-  isDarkMode: boolean,
-  titleFontSize?: number | null,
-  subtitleFontSize?: number | null,
-  useSystemFont?: boolean,
-) =>
+const createStyles = (theme: Theme) =>
   StyleSheet.create({
     pageContainer: {
       flex: 1,
       position: 'relative',
+      maxHeight: '100%',
+      width: '100%',
     },
     backgroundImage: {
       position: 'absolute',
@@ -52,7 +48,7 @@ const createStyles = (
       left: 0,
       right: 0,
       bottom: 0,
-      width: Dimensions.get('window').width + 20,
+      width: Dimensions.get('window').width + 25,
       height: Dimensions.get('window').height + 100,
       resizeMode: 'cover',
     },
@@ -62,68 +58,53 @@ const createStyles = (
     headerContainer: {
       alignItems: 'center',
       paddingHorizontal: scaleHorizontal(16),
-      paddingBottom: scaleVertical(20),
+      paddingVertical: scaleVertical(16),
     },
     spacer: {
       flex: 1,
     },
     title: {
-      fontSize: titleFontSize || scaleFont(useSystemFont ? 44 : 47),
-      lineHeight: titleFontSize
-        ? titleFontSize + 1
-        : scaleFont(useSystemFont ? 46 : 48),
+      fontFamily: Platform.OS === 'ios' ? 'MM Poly' : 'MM Poly Regular',
+      fontWeight: '400',
+      fontSize: 50,
+      lineHeight: 50, // 100% of font size
+      letterSpacing: 0,
       textAlign: 'center',
       paddingTop: scaleVertical(12),
-      fontFamily: useSystemFont
-        ? Platform.OS === 'ios'
-          ? 'System'
-          : 'Roboto'
-        : Platform.OS === 'ios'
-          ? 'MM Poly'
-          : 'MM Poly Regular',
-      fontWeight: useSystemFont
-        ? '700'
-        : Platform.OS === 'ios'
-          ? '900'
-          : 'normal',
+      color: theme.colors.accent02.light,
     },
     titleDescription: {
       paddingTop: scaleVertical(10),
       paddingHorizontal: scaleHorizontal(8),
       textAlign: 'center',
-      fontSize: subtitleFontSize || scaleFont(16),
-      lineHeight: subtitleFontSize ? subtitleFontSize + 4 : scaleFont(20),
-      fontFamily: useSystemFont
-        ? Platform.OS === 'ios'
-          ? 'System'
-          : 'Roboto'
-        : 'Geist-Regular',
+      fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto', // Default system font
       fontWeight: '500',
+      fontSize: 16, // BodyMd
+      lineHeight: 24, // Line Height BodyMd
+      letterSpacing: 0,
+      color: theme.colors.accent02.light,
     },
     footerContainer: {
       display: 'flex',
       rowGap: scaleVertical(8),
       paddingHorizontal: scaleHorizontal(30),
-      paddingBottom: scaleVertical(12),
     },
     getStartedButton: {
       borderRadius: scaleSize(12),
-      backgroundColor: isDarkMode
-        ? importedColors.white
-        : importedColors.btnBlack,
+      backgroundColor: importedColors.white,
     },
     getStartedButtonText: {
-      color: isDarkMode ? importedColors.btnBlack : importedColors.white,
+      color: importedColors.btnBlack,
       fontWeight: '600',
       fontSize: scaleFont(16),
     },
     notNowButton: {
       borderRadius: scaleSize(12),
-      backgroundColor: theme.colors.background.default,
-      borderWidth: 1,
-      borderColor: importedColors.transparent,
+      backgroundColor: importedColors.transparent,
+      borderWidth: 0,
     },
     notNowButtonText: {
+      color: importedColors.white,
       fontWeight: '500',
       fontSize: scaleFont(16),
     },

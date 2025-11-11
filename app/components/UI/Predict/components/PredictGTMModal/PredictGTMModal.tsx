@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
-import { Image, View, useColorScheme } from 'react-native';
+import React from 'react';
+import { Image, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonBase from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
@@ -26,48 +26,16 @@ import {
   PREDICT_GTM_MODAL_ENGAGE,
   PREDICT_GTM_WHATS_NEW_MODAL,
 } from '../../constants/eventNames';
-import {
-  createFontScaleHandler,
-  hasNonLatinCharacters,
-} from '../../../Perps/utils/textUtils';
 
 const PredictGTMModal = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { navigate } = useNavigation();
   const theme = useTheme();
 
-  const isDarkMode = useColorScheme() === 'dark';
-  const [titleFontSize, setTitleFontSize] = useState<number | null>(null);
-  const [subtitleFontSize, setSubtitleFontSize] = useState<number | null>(null);
-
   const titleText = strings('predict.gtm_content.title');
   const subtitleText = strings('predict.gtm_content.title_description');
-  const useSystemFont =
-    hasNonLatinCharacters(titleText) || hasNonLatinCharacters(subtitleText);
 
-  const styles = createStyles(
-    theme,
-    isDarkMode,
-    titleFontSize,
-    subtitleFontSize,
-    useSystemFont,
-  );
-
-  const handleTitleLayout = createFontScaleHandler({
-    maxHeight: useSystemFont ? 100 : 120,
-    currentFontSize: styles.title.fontSize,
-    setter: setTitleFontSize,
-    minFontSize: useSystemFont ? 28 : 32,
-    currentValue: titleFontSize,
-  });
-
-  const handleSubtitleLayout = createFontScaleHandler({
-    maxHeight: useSystemFont ? 70 : 80,
-    currentFontSize: styles.titleDescription.fontSize,
-    setter: setSubtitleFontSize,
-    minFontSize: useSystemFont ? 12 : 14,
-    currentValue: subtitleFontSize,
-  });
+  const styles = createStyles(theme);
 
   const handleClose = async () => {
     await StorageWrapper.setItem(PREDICT_GTM_MODAL_SHOWN, 'true');
@@ -111,18 +79,10 @@ const PredictGTMModal = () => {
       <SafeAreaView style={styles.contentContainer}>
         {/* Header Section */}
         <View style={styles.headerContainer}>
-          <Text
-            style={styles.title}
-            variant={TextVariant.HeadingLG}
-            onLayout={handleTitleLayout}
-          >
+          <Text style={styles.title} variant={TextVariant.HeadingLG}>
             {titleText}
           </Text>
-          <Text
-            variant={TextVariant.BodyMD}
-            style={styles.titleDescription}
-            onLayout={handleSubtitleLayout}
-          >
+          <Text variant={TextVariant.BodyMD} style={styles.titleDescription}>
             {subtitleText}
           </Text>
         </View>
