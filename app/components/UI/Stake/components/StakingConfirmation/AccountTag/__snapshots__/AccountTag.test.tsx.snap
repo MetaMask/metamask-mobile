@@ -62,7 +62,7 @@ exports[`AccountTag render matches snapshot when name prop is defined 1`] = `
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -138,7 +138,7 @@ exports[`AccountTag render matches snapshot when name prop isn't defined 1`] = `
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,

@@ -10,12 +10,19 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
       "paddingHorizontal": 16,
     }
   }
-  handlerTag={-1}
+  handlerTag={2}
   handlerType="NativeViewGestureHandler"
   horizontal={true}
   onGestureHandlerEvent={[Function]}
   onGestureHandlerStateChange={[Function]}
   showsHorizontalScrollIndicator={false}
+  waitFor={
+    [
+      {
+        "current": null,
+      },
+    ]
+  }
 >
   <View>
     <TouchableOpacity
@@ -44,7 +51,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -109,7 +116,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -174,7 +181,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -239,7 +246,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -263,12 +270,19 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
       "paddingHorizontal": 16,
     }
   }
-  handlerTag={-1}
+  handlerTag={1}
   handlerType="NativeViewGestureHandler"
   horizontal={true}
   onGestureHandlerEvent={[Function]}
   onGestureHandlerStateChange={[Function]}
   showsHorizontalScrollIndicator={false}
+  waitFor={
+    [
+      {
+        "current": null,
+      },
+    ]
+  }
 >
   <View>
     <TouchableOpacity
@@ -297,7 +311,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -362,7 +376,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -427,7 +441,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -492,7 +506,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -516,12 +530,19 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
       "paddingHorizontal": 16,
     }
   }
-  handlerTag={-1}
+  handlerTag={3}
   handlerType="NativeViewGestureHandler"
   horizontal={true}
   onGestureHandlerEvent={[Function]}
   onGestureHandlerStateChange={[Function]}
   showsHorizontalScrollIndicator={false}
+  waitFor={
+    [
+      {
+        "current": null,
+      },
+    ]
+  }
 >
   <View>
     <TouchableOpacity
@@ -552,7 +573,7 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -615,7 +636,7 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -680,7 +701,7 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -745,7 +766,7 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,

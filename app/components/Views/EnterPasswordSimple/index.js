@@ -33,10 +33,7 @@ const createStyles = (colors) =>
       borderColor: colors.border.default,
       padding: 10,
       color: colors.text.default,
-<<<<<<< HEAD
-=======
       ...fontStyles.normal,
->>>>>>> 98576d96b7 (chore: updating hard coded font weight to use fontStyle for correct bold updates)
     },
     ctaWrapper: {
       marginTop: 10,

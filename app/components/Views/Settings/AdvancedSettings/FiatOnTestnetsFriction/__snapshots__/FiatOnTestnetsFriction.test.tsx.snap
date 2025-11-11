@@ -145,7 +145,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 30,
                 "marginVertical": 2,
               },
@@ -173,7 +173,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               undefined,
               undefined,
               {
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 18,
                 "fontWeight": "700",
                 "letterSpacing": 0,
@@ -189,7 +189,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 30,
                 "marginVertical": 2,
               },
@@ -227,7 +227,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               [
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 30,
                   "marginVertical": 2,
                 },
@@ -269,7 +269,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               [
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 30,
                   "marginVertical": 2,
                 },
@@ -349,7 +349,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Medium",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -387,7 +387,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               style={
                 {
                   "color": "#ffffff",
-                  "fontFamily": "Geist Medium",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,

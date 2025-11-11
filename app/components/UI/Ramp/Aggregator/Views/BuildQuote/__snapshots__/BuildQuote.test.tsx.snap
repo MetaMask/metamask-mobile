@@ -224,7 +224,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -667,7 +667,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                         {
                                           "color": "#121314",
                                           "flexShrink": 1,
-                                          "fontFamily": "Geist Medium",
+                                          "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -735,7 +735,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -780,7 +780,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -992,7 +992,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -1025,7 +1025,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 30,
                                                     "marginVertical": 2,
                                                   },
@@ -1065,14 +1065,14 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                                   [
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 30,
                                                       "marginVertical": 2,
                                                     },
                                                     undefined,
                                                     undefined,
                                                     {
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                     },
                                                     undefined,
                                                     {
@@ -1154,7 +1154,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                   style={
                                     {
                                       "color": "#686e7d",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
@@ -1173,7 +1173,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -1252,7 +1252,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 24,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 32,
@@ -1303,7 +1303,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 30,
                                                     "marginVertical": 2,
                                                   },
@@ -1343,14 +1343,14 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                                   [
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 30,
                                                       "marginVertical": 2,
                                                     },
                                                     undefined,
                                                     undefined,
                                                     {
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                     },
                                                     undefined,
                                                     {
@@ -1432,7 +1432,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                   style={
                                     {
                                       "color": "#ca3542",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
@@ -1463,7 +1463,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -1567,7 +1567,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -1592,7 +1592,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                               [
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 30,
                                                   "marginVertical": 2,
                                                 },
@@ -1632,14 +1632,14 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 30,
                                                     "marginVertical": 2,
                                                   },
                                                   undefined,
                                                   undefined,
                                                   {
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                   },
                                                   undefined,
                                                   {
@@ -1833,7 +1833,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       },
                                       [
                                         {
-                                          "fontFamily": "Geist Bold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 14,
                                           "textAlign": "center",
                                         },
@@ -1917,7 +1917,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
                                         },
@@ -1981,7 +1981,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
                                         },
@@ -2045,7 +2045,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
                                         },
@@ -2830,7 +2830,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                     null,
                                     [
                                       {
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 14,
                                         "textAlign": "center",
                                       },
@@ -3086,7 +3086,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -3484,7 +3484,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -3508,7 +3508,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 30,
                                         "marginVertical": 2,
                                       },
@@ -3588,7 +3588,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                         null,
                                         [
                                           {
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 14,
                                             "textAlign": "center",
                                           },
@@ -3749,7 +3749,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -4147,7 +4147,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -4171,7 +4171,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 30,
                                         "marginVertical": 2,
                                       },
@@ -4251,7 +4251,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                         null,
                                         [
                                           {
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 14,
                                             "textAlign": "center",
                                           },
@@ -4509,7 +4509,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -4907,7 +4907,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -4931,7 +4931,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 30,
                                         "marginVertical": 2,
                                       },
@@ -5011,7 +5011,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                                         null,
                                         [
                                           {
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 14,
                                             "textAlign": "center",
                                           },
@@ -5269,7 +5269,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -5712,7 +5712,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                         {
                                           "color": "#121314",
                                           "flexShrink": 1,
-                                          "fontFamily": "Geist Medium",
+                                          "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -5780,7 +5780,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -5825,7 +5825,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -6043,7 +6043,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -6122,7 +6122,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 24,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 32,
@@ -6173,7 +6173,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 30,
                                                     "marginVertical": 2,
                                                   },
@@ -6213,14 +6213,14 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                                   [
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 30,
                                                       "marginVertical": 2,
                                                     },
                                                     undefined,
                                                     undefined,
                                                     {
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                     },
                                                     undefined,
                                                     {
@@ -6302,7 +6302,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                   style={
                                     {
                                       "color": "#ca3542",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
@@ -6333,7 +6333,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -6582,7 +6582,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       },
                                       [
                                         {
-                                          "fontFamily": "Geist Bold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 14,
                                           "textAlign": "center",
                                         },
@@ -6666,7 +6666,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
                                         },
@@ -6730,7 +6730,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
                                         },
@@ -6794,7 +6794,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
                                         },
@@ -7579,7 +7579,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                     null,
                                     [
                                       {
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 14,
                                         "textAlign": "center",
                                       },
@@ -7835,7 +7835,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -8233,7 +8233,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -8257,7 +8257,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 30,
                                         "marginVertical": 2,
                                       },
@@ -8337,7 +8337,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                                         null,
                                         [
                                           {
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 14,
                                             "textAlign": "center",
                                           },
@@ -8595,7 +8595,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -9038,7 +9038,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                         {
                                           "color": "#121314",
                                           "flexShrink": 1,
-                                          "fontFamily": "Geist Medium",
+                                          "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -9106,7 +9106,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -9151,7 +9151,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -9369,7 +9369,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -9537,7 +9537,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                   style={
                                     {
                                       "color": "#ca3542",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
@@ -9568,7 +9568,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -9817,7 +9817,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       },
                                       [
                                         {
-                                          "fontFamily": "Geist Bold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 14,
                                           "textAlign": "center",
                                         },
@@ -9901,7 +9901,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
                                         },
@@ -9965,7 +9965,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
                                         },
@@ -10029,7 +10029,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
                                         },
@@ -10814,7 +10814,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                     null,
                                     [
                                       {
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 14,
                                         "textAlign": "center",
                                       },
@@ -11070,7 +11070,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -11468,7 +11468,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -11492,7 +11492,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 30,
                                         "marginVertical": 2,
                                       },
@@ -11572,7 +11572,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                                         null,
                                         [
                                           {
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 14,
                                             "textAlign": "center",
                                           },
@@ -11830,7 +11830,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -12273,7 +12273,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                         {
                                           "color": "#121314",
                                           "flexShrink": 1,
-                                          "fontFamily": "Geist Medium",
+                                          "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -12341,7 +12341,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -12386,7 +12386,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -12598,7 +12598,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -12631,7 +12631,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 30,
                                                     "marginVertical": 2,
                                                   },
@@ -12671,14 +12671,14 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                                   [
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 30,
                                                       "marginVertical": 2,
                                                     },
                                                     undefined,
                                                     undefined,
                                                     {
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                     },
                                                     undefined,
                                                     {
@@ -12760,7 +12760,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                   style={
                                     {
                                       "color": "#686e7d",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
@@ -12779,7 +12779,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -12858,7 +12858,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 24,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 32,
@@ -12909,7 +12909,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 30,
                                                     "marginVertical": 2,
                                                   },
@@ -12949,14 +12949,14 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                                   [
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 30,
                                                       "marginVertical": 2,
                                                     },
                                                     undefined,
                                                     undefined,
                                                     {
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                     },
                                                     undefined,
                                                     {
@@ -13038,7 +13038,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                   style={
                                     {
                                       "color": "#ca3542",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
@@ -13069,7 +13069,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -13173,7 +13173,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -13198,7 +13198,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                               [
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 30,
                                                   "marginVertical": 2,
                                                 },
@@ -13238,14 +13238,14 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 30,
                                                     "marginVertical": 2,
                                                   },
                                                   undefined,
                                                   undefined,
                                                   {
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                   },
                                                   undefined,
                                                   {
@@ -13396,7 +13396,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       },
                                       [
                                         {
-                                          "fontFamily": "Geist Bold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 14,
                                           "textAlign": "center",
                                         },
@@ -13480,7 +13480,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
                                         },
@@ -13544,7 +13544,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
                                         },
@@ -13608,7 +13608,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
                                         },
@@ -14393,7 +14393,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                     null,
                                     [
                                       {
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 14,
                                         "textAlign": "center",
                                       },
@@ -14649,7 +14649,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -15092,7 +15092,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                         {
                                           "color": "#121314",
                                           "flexShrink": 1,
-                                          "fontFamily": "Geist Medium",
+                                          "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -15160,7 +15160,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -15205,7 +15205,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -15417,7 +15417,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -15450,7 +15450,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 30,
                                                     "marginVertical": 2,
                                                   },
@@ -15490,14 +15490,14 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                                   [
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 30,
                                                       "marginVertical": 2,
                                                     },
                                                     undefined,
                                                     undefined,
                                                     {
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                     },
                                                     undefined,
                                                     {
@@ -15579,7 +15579,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                   style={
                                     {
                                       "color": "#686e7d",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
@@ -15598,7 +15598,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -15677,7 +15677,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 24,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 32,
@@ -15728,7 +15728,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 30,
                                                     "marginVertical": 2,
                                                   },
@@ -15768,14 +15768,14 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                                   [
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 30,
                                                       "marginVertical": 2,
                                                     },
                                                     undefined,
                                                     undefined,
                                                     {
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                     },
                                                     undefined,
                                                     {
@@ -15857,7 +15857,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                   style={
                                     {
                                       "color": "#ca3542",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
@@ -15888,7 +15888,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -16137,7 +16137,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       },
                                       [
                                         {
-                                          "fontFamily": "Geist Bold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 14,
                                           "textAlign": "center",
                                         },
@@ -16221,7 +16221,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
                                         },
@@ -16285,7 +16285,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
                                         },
@@ -16349,7 +16349,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
                                         },
@@ -17134,7 +17134,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                     null,
                                     [
                                       {
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 14,
                                         "textAlign": "center",
                                       },
@@ -17390,7 +17390,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -17788,7 +17788,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -17812,7 +17812,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 30,
                                         "marginVertical": 2,
                                       },
@@ -17892,7 +17892,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                                         null,
                                         [
                                           {
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 14,
                                             "textAlign": "center",
                                           },
@@ -18150,7 +18150,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -18593,7 +18593,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                         {
                                           "color": "#121314",
                                           "flexShrink": 1,
-                                          "fontFamily": "Geist Medium",
+                                          "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -18670,7 +18670,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -18888,7 +18888,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -19056,7 +19056,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                   style={
                                     {
                                       "color": "#ca3542",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
@@ -19087,7 +19087,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -19336,7 +19336,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       },
                                       [
                                         {
-                                          "fontFamily": "Geist Bold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 14,
                                           "textAlign": "center",
                                         },
@@ -19420,7 +19420,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
                                         },
@@ -19484,7 +19484,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
                                         },
@@ -19548,7 +19548,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
                                         },
@@ -20333,7 +20333,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                     null,
                                     [
                                       {
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 14,
                                         "textAlign": "center",
                                       },
@@ -20589,7 +20589,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -21032,7 +21032,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         {
                                           "color": "#121314",
                                           "flexShrink": 1,
-                                          "fontFamily": "Geist Medium",
+                                          "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -21100,7 +21100,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -21145,7 +21145,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -21357,7 +21357,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -21390,7 +21390,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 30,
                                                     "marginVertical": 2,
                                                   },
@@ -21430,14 +21430,14 @@ exports[`BuildQuote View renders correctly 1`] = `
                                                   [
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 30,
                                                       "marginVertical": 2,
                                                     },
                                                     undefined,
                                                     undefined,
                                                     {
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                     },
                                                     undefined,
                                                     {
@@ -21519,7 +21519,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   style={
                                     {
                                       "color": "#686e7d",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
@@ -21538,7 +21538,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -21617,7 +21617,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 24,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 32,
@@ -21668,7 +21668,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 30,
                                                     "marginVertical": 2,
                                                   },
@@ -21708,14 +21708,14 @@ exports[`BuildQuote View renders correctly 1`] = `
                                                   [
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 30,
                                                       "marginVertical": 2,
                                                     },
                                                     undefined,
                                                     undefined,
                                                     {
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                     },
                                                     undefined,
                                                     {
@@ -21797,7 +21797,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   style={
                                     {
                                       "color": "#ca3542",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
@@ -21828,7 +21828,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -21932,7 +21932,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -21957,7 +21957,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                               [
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 30,
                                                   "marginVertical": 2,
                                                 },
@@ -21997,14 +21997,14 @@ exports[`BuildQuote View renders correctly 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 30,
                                                     "marginVertical": 2,
                                                   },
                                                   undefined,
                                                   undefined,
                                                   {
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                   },
                                                   undefined,
                                                   {
@@ -22198,7 +22198,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       },
                                       [
                                         {
-                                          "fontFamily": "Geist Bold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 14,
                                           "textAlign": "center",
                                         },
@@ -22282,7 +22282,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
                                         },
@@ -22346,7 +22346,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
                                         },
@@ -22410,7 +22410,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
                                         },
@@ -23195,7 +23195,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                     null,
                                     [
                                       {
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 14,
                                         "textAlign": "center",
                                       },
@@ -23354,7 +23354,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -23797,7 +23797,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         {
                                           "color": "#121314",
                                           "flexShrink": 1,
-                                          "fontFamily": "Geist Medium",
+                                          "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -23865,7 +23865,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -23934,7 +23934,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Medium",
+                                          "fontFamily": "Geist-Medium",
                                           "fontSize": 18,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -23977,7 +23977,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -24189,7 +24189,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -24222,7 +24222,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 30,
                                                     "marginVertical": 2,
                                                   },
@@ -24262,14 +24262,14 @@ exports[`BuildQuote View renders correctly 2`] = `
                                                   [
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "Geist Regular",
+                                                      "fontFamily": "Geist-Regular",
                                                       "fontSize": 30,
                                                       "marginVertical": 2,
                                                     },
                                                     undefined,
                                                     undefined,
                                                     {
-                                                      "fontFamily": "Geist Bold",
+                                                      "fontFamily": "Geist-Bold",
                                                     },
                                                     undefined,
                                                     {
@@ -24351,7 +24351,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   style={
                                     {
                                       "color": "#686e7d",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
@@ -24370,7 +24370,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -24449,7 +24449,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 24,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 32,
@@ -24481,7 +24481,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   style={
                                     {
                                       "color": "#ca3542",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
@@ -24509,7 +24509,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -24613,7 +24613,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "Geist Medium",
+                                                "fontFamily": "Geist-Medium",
                                                 "fontSize": 18,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -24638,7 +24638,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                               [
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "Geist Regular",
+                                                  "fontFamily": "Geist-Regular",
                                                   "fontSize": 30,
                                                   "marginVertical": 2,
                                                 },
@@ -24678,14 +24678,14 @@ exports[`BuildQuote View renders correctly 2`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "Geist Regular",
+                                                    "fontFamily": "Geist-Regular",
                                                     "fontSize": 30,
                                                     "marginVertical": 2,
                                                   },
                                                   undefined,
                                                   undefined,
                                                   {
-                                                    "fontFamily": "Geist Bold",
+                                                    "fontFamily": "Geist-Bold",
                                                   },
                                                   undefined,
                                                   {
@@ -24879,7 +24879,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       },
                                       [
                                         {
-                                          "fontFamily": "Geist Bold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 14,
                                           "textAlign": "center",
                                         },
@@ -24963,7 +24963,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
                                         },
@@ -25027,7 +25027,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
                                         },
@@ -25091,7 +25091,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
                                         },
@@ -25155,7 +25155,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Regular",
+                                          "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
                                         },
@@ -25940,7 +25940,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     null,
                                     [
                                       {
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 14,
                                         "textAlign": "center",
                                       },
@@ -26196,7 +26196,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -26594,7 +26594,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -26618,7 +26618,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 30,
                                         "marginVertical": 2,
                                       },
@@ -26698,7 +26698,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                                         null,
                                         [
                                           {
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 14,
                                             "textAlign": "center",
                                           },
@@ -26859,7 +26859,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "Geist Bold",
+                      "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -27257,7 +27257,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Bold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -27281,7 +27281,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 30,
                                         "marginVertical": 2,
                                       },
@@ -27361,7 +27361,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                                         null,
                                         [
                                           {
-                                            "fontFamily": "Geist Bold",
+                                            "fontFamily": "Geist-Bold",
                                             "fontSize": 14,
                                             "textAlign": "center",
                                           },
