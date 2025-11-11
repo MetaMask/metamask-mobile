@@ -123,8 +123,14 @@ const PredictBuyPreview = () => {
   const [currentValue, setCurrentValue] = useState(0);
   const [currentValueUSDString, setCurrentValueUSDString] = useState('');
   const [isInputFocused, setIsInputFocused] = useState(true);
+  const [isUserInputChange, setIsUserInputChange] = useState(false);
+  const previousValueRef = useRef(0);
 
-  const { preview, error: previewError } = usePredictOrderPreview({
+  const {
+    preview,
+    error: previewError,
+    isCalculating,
+  } = usePredictOrderPreview({
     providerId: outcome.providerId,
     marketId: market.id,
     outcomeId: outcome.id,
@@ -133,6 +139,27 @@ const PredictBuyPreview = () => {
     size: currentValue,
     autoRefreshTimeout: 1000,
   });
+
+  // Track when user changes input to show skeleton only during user input changes
+  useEffect(() => {
+    if (!isCalculating) {
+      setIsUserInputChange(false);
+      if (currentValue === 0) {
+        previousValueRef.current = 0;
+      }
+      return;
+    }
+
+    if (
+      currentValue > 0 &&
+      currentValue !== previousValueRef.current &&
+      isCalculating
+    ) {
+      setIsUserInputChange(true);
+    }
+
+    previousValueRef.current = currentValue;
+  }, [currentValue, isCalculating]);
 
   const errorMessage = previewError ?? placeOrderError;
 
@@ -305,14 +332,25 @@ const PredictBuyPreview = () => {
             </Text>
           )}
         </Box>
-        <Box twClassName="text-center mt-2">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="mt-2"
+        >
           <Text variant={TextVariant.BodyLGMedium} color={TextColor.Success}>
             {`${strings('predict.order.to_win')} `}
-            {formatPrice(toWin, {
-              minimumDecimals: 2,
-              maximumDecimals: 2,
-            })}
           </Text>
+          {isCalculating && isUserInputChange ? (
+            <Skeleton width={80} height={24} style={tw.style('rounded-md')} />
+          ) : (
+            <Text variant={TextVariant.BodyLGMedium} color={TextColor.Success}>
+              {formatPrice(toWin, {
+                minimumDecimals: 2,
+                maximumDecimals: 2,
+              })}
+            </Text>
+          )}
         </Box>
       </Box>
     </ScrollView>
