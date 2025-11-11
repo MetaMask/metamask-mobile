@@ -1,3 +1,4 @@
+import { TrxScope } from '@metamask/keyring-api';
 import { isTradableToken } from './index';
 import { BridgeToken } from '../../types';
 
@@ -38,7 +39,7 @@ describe('isTradableToken', () => {
 
     it('returns true for Tron chain token with standard name', () => {
       const token = createTestToken({
-        chainId: 'tron:0x2b6653dc',
+        chainId: TrxScope.Mainnet,
         name: 'USDT',
       });
 
@@ -49,7 +50,7 @@ describe('isTradableToken', () => {
 
     it('returns true for Tron token without name', () => {
       const token = createTestToken({
-        chainId: 'tron:0x2b6653dc',
+        chainId: TrxScope.Mainnet,
         name: undefined,
       });
 
@@ -60,7 +61,7 @@ describe('isTradableToken', () => {
 
     it('returns true for Tron token with empty name', () => {
       const token = createTestToken({
-        chainId: 'tron:0x2b6653dc',
+        chainId: TrxScope.Mainnet,
         name: '',
       });
 
@@ -104,7 +105,7 @@ describe('isTradableToken', () => {
 
     it('returns true for Tron token with Energy substring in name', () => {
       const token = createTestToken({
-        chainId: 'tron:0x2b6653dc',
+        chainId: TrxScope.Mainnet,
         name: 'Solar Energy Token',
       });
 
@@ -115,7 +116,7 @@ describe('isTradableToken', () => {
 
     it('returns true for Tron token with Bandwidth substring in name', () => {
       const token = createTestToken({
-        chainId: 'tron:0x2b6653dc',
+        chainId: TrxScope.Mainnet,
         name: 'High Bandwidth Network',
       });
 
@@ -126,7 +127,7 @@ describe('isTradableToken', () => {
 
     it('returns true for Tron token with whitespace around Energy', () => {
       const token = createTestToken({
-        chainId: 'tron:0x2b6653dc',
+        chainId: TrxScope.Mainnet,
         name: '  Energy  ',
       });
 
@@ -158,12 +159,23 @@ describe('isTradableToken', () => {
 
       expect(result).toBe(true);
     });
+
+    it('returns true for Energy token with Tron testnet chainId', () => {
+      const token = createTestToken({
+        chainId: TrxScope.Nile,
+        name: 'Energy',
+      });
+
+      const result = isTradableToken(token);
+
+      expect(result).toBe(true);
+    });
   });
 
   describe('non-tradable Tron resource tokens', () => {
     it('returns false for Tron Energy token', () => {
       const token = createTestToken({
-        chainId: 'tron:0x2b6653dc',
+        chainId: TrxScope.Mainnet,
         name: 'Energy',
       });
 
@@ -174,7 +186,7 @@ describe('isTradableToken', () => {
 
     it('returns false for Tron Bandwidth token', () => {
       const token = createTestToken({
-        chainId: 'tron:0x2b6653dc',
+        chainId: TrxScope.Mainnet,
         name: 'Bandwidth',
       });
 
@@ -185,7 +197,7 @@ describe('isTradableToken', () => {
 
     it('returns false for Tron Max Bandwidth token', () => {
       const token = createTestToken({
-        chainId: 'tron:0x2b6653dc',
+        chainId: TrxScope.Mainnet,
         name: 'Max Bandwidth',
       });
 
@@ -196,7 +208,7 @@ describe('isTradableToken', () => {
 
     it('returns false for Tron energy token with lowercase', () => {
       const token = createTestToken({
-        chainId: 'tron:0x2b6653dc',
+        chainId: TrxScope.Mainnet,
         name: 'energy',
       });
 
@@ -207,7 +219,7 @@ describe('isTradableToken', () => {
 
     it('returns false for Tron bandwidth token with uppercase', () => {
       const token = createTestToken({
-        chainId: 'tron:0x2b6653dc',
+        chainId: TrxScope.Mainnet,
         name: 'BANDWIDTH',
       });
 
@@ -218,19 +230,8 @@ describe('isTradableToken', () => {
 
     it('returns false for Tron max bandwidth token with mixed case', () => {
       const token = createTestToken({
-        chainId: 'tron:0x2b6653dc',
+        chainId: TrxScope.Mainnet,
         name: 'mAx BaNdWiDtH',
-      });
-
-      const result = isTradableToken(token);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false for Tron Energy with chainId containing tron prefix anywhere', () => {
-      const token = createTestToken({
-        chainId: 'eip155:tron:123',
-        name: 'Energy',
       });
 
       const result = isTradableToken(token);
