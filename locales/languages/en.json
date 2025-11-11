@@ -5451,7 +5451,11 @@
       "lending": "Position history",
       "staking": "Payout history"
     },
-    "allowance_reset": "Allowance Reset"
+    "allowance_reset": "Allowance Reset",
+    "musd_conversion": {
+      "title": "Convert to mUSD",
+      "currency": "mUSD"
+    }
   },
   "stake": {
     "stake": "Stake",

@@ -24,6 +24,7 @@ import { PredictDepositInfo } from '../info/predict-deposit-info';
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfo } from '../info/predict-claim-info';
 import { PredictWithdrawInfo } from '../info/predict-withdraw-info';
+import { MusdConversionInfo } from '../info/musd-conversion-info';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -74,6 +75,7 @@ interface InfoProps {
 }
 
 const Info = ({ route }: InfoProps) => {
+  console.log('[InfoRoot] made it');
   const { approvalRequest } = useApprovalRequest();
   const transactionMetadata = useTransactionMetadataRequest();
   const { isSigningQRObject } = useQRHardwareContext();
@@ -89,6 +91,22 @@ const Info = ({ route }: InfoProps) => {
 
   if (isSigningQRObject) {
     return <QRInfo />;
+  }
+
+  console.log('[InfoRoot] transactionMetadata:', transactionMetadata);
+  console.log(
+    'hasTransactionType(transactionMetadata: ',
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    hasTransactionType(transactionMetadata, ['musdConversion' as any]),
+  );
+
+  if (
+    transactionMetadata &&
+    // TODO: Add type for musdConversion to TransactionType.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    hasTransactionType(transactionMetadata, ['musdConversion' as any])
+  ) {
+    return <MusdConversionInfo />;
   }
 
   if (

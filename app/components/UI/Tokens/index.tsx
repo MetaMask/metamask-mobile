@@ -45,6 +45,7 @@ import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagC
 import { TokensEmptyState } from '../TokensEmptyState';
 import { convertStablecoinToMUSD } from './util/convertToMUSD';
 import Logger from '../../../util/Logger';
+import Routes from '../../../constants/navigation/Routes';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -92,7 +93,6 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
 
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
   const [hasInitialLoad, setHasInitialLoad] = useState(false);
-  const [isConverting, setIsConverting] = useState(false);
 
   // BIP44 MAINTENANCE: Once stable, only use selectSortedAssetsBySelectedAccountGroup
   const isMultichainAccountsState2Enabled = useSelector(
@@ -198,18 +198,20 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
 
   const convertToMUSD = useCallback(async () => {
     try {
-      setIsConverting(true);
-      Logger.log('[mUSD Conversion] Starting conversion...');
+      Logger.log('[mUSD Conversion] Starting conversion flow...');
 
-      const transactionId = await convertStablecoinToMUSD();
+      await convertStablecoinToMUSD();
 
-      Logger.log('[mUSD Conversion] Transaction created:', transactionId);
-      Logger.log('[mUSD Conversion] User will now see approval screen');
-      Logger.log(
-        '[mUSD Conversion] MetaMask Pay will handle the cross-chain flow via Relay',
-      );
+      Logger.log('[mUSD Conversion] Navigating to confirmation screen...');
+
+      navigation.navigate(Routes.EARN.ROOT, {
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      });
     } catch (error) {
-      Logger.error(error as Error, '[mUSD Conversion] Failed');
+      Logger.error(
+        error as Error,
+        '[mUSD Conversion] Failed to initiate conversion',
+      );
 
       // Show user-friendly error alert
       const errorMessage =
@@ -219,10 +221,8 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
         `Unable to start mUSD conversion: ${errorMessage}`,
         [{ text: 'OK' }],
       );
-    } finally {
-      setIsConverting(false);
     }
-  }, []);
+  }, [navigation]);
 
   const maxItems = useMemo(() => {
     if (isFullView) {
@@ -244,13 +244,7 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
         goToAddToken={goToAddToken}
         style={isFullView ? tw`px-4 pb-4` : undefined}
       />
-      <Button
-        onPress={convertToMUSD}
-        isLoading={isConverting}
-        isDisabled={isConverting}
-      >
-        Convert to mUSD
-      </Button>
+      <Button onPress={convertToMUSD}>Convert to mUSD</Button>
       {!hasInitialLoad ? (
         <Box twClassName={isFullView ? 'px-4' : undefined}>
           <TokenListSkeleton />

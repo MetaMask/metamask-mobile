@@ -15,6 +15,8 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.deployContract,
   TransactionType.lendingDeposit,
   TransactionType.lendingWithdraw,
+  // TODO: Add type for musdConversion to TransactionType.
+  'musdConversion',
   'perpsDeposit',
   TransactionType.revokeDelegation,
   TransactionType.simpleSend,
@@ -46,10 +48,14 @@ export const REDESIGNED_CONTRACT_INTERACTION_TYPES = [
   TransactionType.contractInteraction,
   TransactionType.lendingDeposit,
   TransactionType.lendingWithdraw,
+  // TODO: Add type for musdConversion to TransactionType.
+  'musdConversion',
   TransactionType.perpsDeposit,
 ];
 
 export const FULL_SCREEN_CONFIRMATIONS = [
+  // TODO: Add type for musdConversion to TransactionType.
+  'musdConversion',
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
   TransactionType.predictClaim,
