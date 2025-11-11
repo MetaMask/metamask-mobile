@@ -43,7 +43,7 @@ import {
   MUSD_CONVERTIBLE_STABLECOINS_ETHEREUM,
   ETHEREUM_MAINNET_CHAIN_ID,
 } from '../../../Earn/constants/musd';
-import { convertStablecoinToMUSD } from '../../../Tokens/util/convertToMUSD';
+import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import Logger from '../../../../../util/Logger';
 
 interface StakeButtonProps {
@@ -85,6 +85,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const primaryExperienceType = useSelector((state: RootState) =>
     earnSelectors.selectPrimaryEarnExperienceTypeForAsset(state, asset),
   );
+
+  const { initiateConversion } = useMusdConversion();
 
   const areEarnExperiencesDisabled =
     !isPooledStakingEnabled && !isStablecoinLendingEnabled;
@@ -220,8 +222,13 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     try {
       Logger.log('[mUSD Conversion] Starting conversion flow...');
 
-      // TODO: Rename convertStablecoinToMUSD to initiateMusdConversion to be more descriptive of what it's actually doing.
-      await convertStablecoinToMUSD();
+      if (!earnToken?.address) {
+        throw new Error('Earn token address is not set');
+      }
+
+      await initiateConversion({
+        address: toHex(earnToken.address),
+      });
 
       Logger.log('[mUSD Conversion] Navigating to confirmation screen...');
 
@@ -242,7 +249,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         [{ text: 'OK' }],
       );
     }
-  }, [navigation]);
+  }, [earnToken?.address, initiateConversion, navigation]);
 
   const onEarnButtonPress = async () => {
     if (primaryExperienceType === EARN_EXPERIENCES.POOLED_STAKING) {

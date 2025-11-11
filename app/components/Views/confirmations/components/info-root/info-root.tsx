@@ -75,7 +75,6 @@ interface InfoProps {
 }
 
 const Info = ({ route }: InfoProps) => {
-  console.log('[InfoRoot] made it');
   const { approvalRequest } = useApprovalRequest();
   const transactionMetadata = useTransactionMetadataRequest();
   const { isSigningQRObject } = useQRHardwareContext();
@@ -92,13 +91,6 @@ const Info = ({ route }: InfoProps) => {
   if (isSigningQRObject) {
     return <QRInfo />;
   }
-
-  console.log('[InfoRoot] transactionMetadata:', transactionMetadata);
-  console.log(
-    'hasTransactionType(transactionMetadata: ',
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    hasTransactionType(transactionMetadata, ['musdConversion' as any]),
-  );
 
   if (
     transactionMetadata &&

@@ -31,7 +31,7 @@ export function useAutomaticTransactionPayToken({
 } = {}) {
   const isUpdated = useRef(false);
   const supportedChains = useSelector(selectEnabledSourceChains);
-  const { setPayToken } = useTransactionPayToken();
+  const { payToken, setPayToken } = useTransactionPayToken();
   const requiredTokens = useTransactionPayRequiredTokens();
 
   const transactionMeta =
@@ -107,7 +107,8 @@ export function useAutomaticTransactionPayToken({
       isUpdated.current ||
       !automaticToken ||
       !requiredTokens?.length ||
-      countOnly
+      countOnly ||
+      payToken // Skip if payment token already set (e.g., pre-selected in useMusdConversion)
     ) {
       return;
     }
@@ -120,7 +121,14 @@ export function useAutomaticTransactionPayToken({
     isUpdated.current = true;
 
     log('Automatically selected pay token', automaticToken);
-  }, [automaticToken, countOnly, isUpdated, requiredTokens, setPayToken]);
+  }, [
+    automaticToken,
+    countOnly,
+    isUpdated,
+    requiredTokens,
+    setPayToken,
+    payToken,
+  ]);
 
   return { count };
 }
