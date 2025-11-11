@@ -22,7 +22,7 @@ jobs:
           {
             "language": "java-kotlin",
             "build_mode": "manual",
-            "build_command": "yarn install --immutable --mode skip-build && cd android && ./gradlew assembleDebug -x lint -x test",
+            "build_command": "yarn install --immutable --mode skip-build && yarn run build:android:main:test",
             "version": "17",
             "distribution": "temurin"
           },
