@@ -159,6 +159,10 @@ describe('Login test suite 2', () => {
   });
 
   afterAll(() => {
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
+    jest.clearAllTimers();
     jest.useRealTimers();
   });
 
@@ -480,7 +484,7 @@ describe('Login test suite 2', () => {
     });
 
     it('handle generic SeedlessOnboardingControllerRecoveryError (else case)', async () => {
-      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+      mockPromptSeedlessRelogin.mockClear();
       const seedlessError = new SeedlessOnboardingControllerRecoveryError(
         'generic error cases',
       );
@@ -488,7 +492,7 @@ describe('Login test suite 2', () => {
         .spyOn(Authentication, 'userEntryAuth')
         .mockRejectedValue(seedlessError);
 
-      const { getByTestId, unmount } = renderWithProvider(<Login />);
+      const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
       await act(async () => {
@@ -498,17 +502,10 @@ describe('Login test suite 2', () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
-      expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
-      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement.props.children).toEqual('generic error cases');
-
-      await act(async () => {
-        unmount();
+      // For unlock flow, generic recovery errors prompt seedless re-login
+      await waitFor(() => {
+        expect(mockPromptSeedlessRelogin).toHaveBeenCalled();
       });
-
-      expect(clearTimeoutSpy).toHaveBeenCalled();
-
-      clearTimeoutSpy.mockRestore();
     });
   });
 
