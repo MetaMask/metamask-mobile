@@ -346,7 +346,8 @@ describe('PredictBuyPreview', () => {
 
       expect(getByText('Will Bitcoin reach $150,000?')).toBeOnTheScreen();
       expect(getByText('Yes at 50¢')).toBeOnTheScreen();
-      expect(getByText('To win $120.00')).toBeOnTheScreen();
+      expect(getByText('To win')).toBeOnTheScreen();
+      expect(getByText('$120.00')).toBeOnTheScreen();
       expect(getByTestId('amount-display-active')).toBeOnTheScreen();
       expect(getByTestId('keypad')).toBeOnTheScreen();
     });
@@ -445,7 +446,8 @@ describe('PredictBuyPreview', () => {
         state: initialState,
       });
 
-      expect(getByText('To win $240.00')).toBeOnTheScreen();
+      expect(getByText('To win')).toBeOnTheScreen();
+      expect(getByText('$240.00')).toBeOnTheScreen();
     });
   });
 
