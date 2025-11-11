@@ -10,6 +10,14 @@ import PredictMarketOutcome from '.';
 const mockAlert = jest.fn();
 jest.spyOn(Alert, 'alert').mockImplementation(mockAlert);
 
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      trackGeoBlockTriggered: jest.fn(),
+    },
+  },
+}));
+
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -116,8 +124,8 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    expect(getByText(/65\.00¢/)).toBeOnTheScreen();
-    expect(getByText(/35\.00¢/)).toBeOnTheScreen();
+    expect(getByText(/65¢/)).toBeOnTheScreen();
+    expect(getByText(/35¢/)).toBeOnTheScreen();
   });
 
   it('handles button press events', () => {
@@ -126,8 +134,8 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    const yesButton = getByText(/65\.00¢/);
-    const noButton = getByText(/35\.00¢/);
+    const yesButton = getByText(/65¢/);
+    const noButton = getByText(/35¢/);
 
     fireEvent.press(yesButton);
     expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
@@ -210,7 +218,7 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    const yesButton = getByText(/65\.00¢/);
+    const yesButton = getByText(/65¢/);
     fireEvent.press(yesButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
@@ -229,7 +237,7 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    const noButton = getByText(/35\.00¢/);
+    const noButton = getByText(/35¢/);
     fireEvent.press(noButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
@@ -249,7 +257,7 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    const yesButton = getByText(/65\.00¢/);
+    const yesButton = getByText(/65¢/);
     fireEvent.press(yesButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
@@ -269,7 +277,7 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    const noButton = getByText(/35\.00¢/);
+    const noButton = getByText(/35¢/);
     fireEvent.press(noButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
@@ -292,7 +300,7 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    const yesButton = getByText(/65\.00¢/);
+    const yesButton = getByText(/65¢/);
     fireEvent.press(yesButton);
 
     // Should navigate to unavailable (not add funds sheet)
@@ -319,7 +327,7 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    const noButton = getByText(/35\.00¢/);
+    const noButton = getByText(/35¢/);
     fireEvent.press(noButton);
 
     // Should navigate to unavailable (not add funds sheet)
@@ -350,7 +358,7 @@ describe('PredictMarketOutcome', () => {
 
     expect(getByText('0%')).toBeOnTheScreen();
     // Should show two buttons with 0.00¢ prices
-    expect(getAllByText(/0\.00¢/)).toHaveLength(2);
+    expect(getAllByText(/0¢/)).toHaveLength(2);
   });
 
   it('displays empty title when groupItemTitle is missing', () => {
@@ -436,8 +444,8 @@ describe('PredictMarketOutcome', () => {
         { state: initialState },
       );
 
-      expect(queryByText(/65\.00¢/)).not.toBeOnTheScreen();
-      expect(queryByText(/35\.00¢/)).not.toBeOnTheScreen();
+      expect(queryByText(/65¢/)).not.toBeOnTheScreen();
+      expect(queryByText(/35¢/)).not.toBeOnTheScreen();
     });
 
     it('shows action buttons when market is not closed', () => {
@@ -450,8 +458,8 @@ describe('PredictMarketOutcome', () => {
         { state: initialState },
       );
 
-      expect(getByText(/65\.00¢/)).toBeOnTheScreen();
-      expect(getByText(/35\.00¢/)).toBeOnTheScreen();
+      expect(getByText(/65¢/)).toBeOnTheScreen();
+      expect(getByText(/35¢/)).toBeOnTheScreen();
     });
 
     it('uses outcomeToken title when market is closed and outcomeToken is provided', () => {

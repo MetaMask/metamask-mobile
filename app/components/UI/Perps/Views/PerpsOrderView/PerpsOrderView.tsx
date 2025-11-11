@@ -701,6 +701,23 @@ const PerpsOrderViewContentBase: React.FC = () => {
         return;
       }
 
+      // Check for cross-margin position (MetaMask only supports isolated margin)
+      if (existingPosition?.leverage?.type === 'cross') {
+        navigation.navigate(Routes.PERPS.MODALS.ROOT, {
+          screen: Routes.PERPS.MODALS.CROSS_MARGIN_WARNING,
+        });
+
+        track(MetaMetricsEvents.PERPS_ERROR, {
+          [PerpsEventProperties.ERROR_TYPE]:
+            PerpsEventValues.ERROR_TYPE.VALIDATION,
+          [PerpsEventProperties.ERROR_MESSAGE]:
+            'Cross margin position detected',
+        });
+
+        isSubmittingRef.current = false;
+        return;
+      }
+
       // Navigate immediately BEFORE order execution (enhanced with monitoring parameters for data-driven tab selection)
       // Always monitor both orders and positions because:
       // - Market orders: Usually create positions immediately
@@ -847,7 +864,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
     !isLoadingAccount && amountTimesLeverage < minimumOrderAmount;
   const placeOrderLabel = isInsufficientFunds
     ? strings('perps.order.validation.insufficient_funds')
-    : strings(orderButtonKey, { asset: orderForm.asset });
+    : strings(orderButtonKey, {
+        asset: getPerpsDisplaySymbol(orderForm.asset),
+      });
 
   const doesStopLossRiskLiquidation = Boolean(
     orderForm.stopLossPrice &&
@@ -890,6 +909,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
           tokenAmount={positionSize}
           tokenSymbol={getPerpsDisplaySymbol(orderForm.asset)}
           hasError={availableBalance > 0 && !!filteredErrors.length}
+          isLoading={isLoadingAccount}
         />
 
         {/* Amount Slider - Hide when keypad is active */}
@@ -1124,53 +1144,54 @@ const PerpsOrderViewContentBase: React.FC = () => {
             <PerpsFeesDisplay
               feeDiscountPercentage={rewardsState.feeDiscountPercentage}
               formatFeeText={
-                hasValidAmount
-                  ? formatPerpsFiat(estimatedFees, {
+                !hasValidAmount || feeResults.isLoadingMetamaskFee
+                  ? PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY
+                  : formatPerpsFiat(estimatedFees, {
                       ranges: PRICE_RANGES_MINIMAL_VIEW,
                     })
-                  : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY
               }
               variant={TextVariant.BodySM}
             />
           </View>
 
           {/* Rewards Points Estimation */}
-          {rewardsState.shouldShowRewardsRow && (
-            <View style={styles.infoRow}>
-              <View style={styles.detailLeft}>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {strings('perps.estimated_points')}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => handleTooltipPress('points')}
-                  style={styles.infoIcon}
-                >
-                  <Icon
-                    name={IconName.Info}
-                    size={IconSize.Sm}
-                    color={IconColor.Alternative}
+          {rewardsState.shouldShowRewardsRow &&
+            rewardsState.estimatedPoints !== undefined && (
+              <View style={styles.infoRow}>
+                <View style={styles.detailLeft}>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                  >
+                    {strings('perps.estimated_points')}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => handleTooltipPress('points')}
+                    style={styles.infoIcon}
+                  >
+                    <Icon
+                      name={IconName.Info}
+                      size={IconSize.Sm}
+                      color={IconColor.Alternative}
+                    />
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.pointsRightContainer}>
+                  <RewardsAnimations
+                    value={rewardsState.estimatedPoints ?? 0}
+                    bonusBips={rewardsState.bonusBips}
+                    shouldShow={rewardsState.shouldShowRewardsRow}
+                    infoOnPress={() =>
+                      openTooltipModal(
+                        strings('perps.points_error'),
+                        strings('perps.points_error_content'),
+                      )
+                    }
+                    state={rewardAnimationState}
                   />
-                </TouchableOpacity>
+                </View>
               </View>
-              <View style={styles.pointsRightContainer}>
-                <RewardsAnimations
-                  value={rewardsState.estimatedPoints ?? 0}
-                  bonusBips={rewardsState.bonusBips}
-                  shouldShow={rewardsState.shouldShowRewardsRow}
-                  infoOnPress={() =>
-                    openTooltipModal(
-                      strings('perps.points_error'),
-                      strings('perps.points_error_content'),
-                    )
-                  }
-                  state={rewardAnimationState}
-                />
-              </View>
-            </View>
-          )}
+            )}
         </View>
       </ScrollView>
       {/* Keypad Section - Show when input is focused */}
@@ -1219,8 +1240,12 @@ const PerpsOrderViewContentBase: React.FC = () => {
           />
         </View>
       )}
-      {/* Fixed Place Order Button - Hide when keypad is active */}
-      {!isInputFocused && (
+      {/* OI Cap Warning - Shows when market is at capacity */}
+      {!isInputFocused && isAtOICap && (
+        <PerpsOICapWarning symbol={orderForm.asset} variant="banner" />
+      )}
+      {/* Fixed Place Order Button - Hide when keypad is active or at OI cap */}
+      {!isInputFocused && !isAtOICap && (
         <View style={fixedBottomContainerStyle}>
           {filteredErrors.length > 0 &&
             !isLoadingMarketData &&
@@ -1238,9 +1263,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
                 ))}
               </View>
             )}
-
-          {/* OI Cap Warning - Only shows when market is at capacity */}
-          <PerpsOICapWarning symbol={orderForm.asset} variant="inline" />
 
           <ButtonSemantic
             severity={

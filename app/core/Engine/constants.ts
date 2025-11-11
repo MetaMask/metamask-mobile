@@ -32,7 +32,6 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'NftController:stateChange',
   'PermissionController:stateChange',
   'PhishingController:stateChange',
-  'PPOMController:stateChange',
   'PreferencesController:stateChange',
   'RemoteFeatureFlagController:stateChange',
   'SelectedNetworkController:stateChange',
@@ -46,6 +45,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'TokenSearchDiscoveryController:stateChange',
   'TokenSearchDiscoveryDataController:stateChange',
   'TransactionController:stateChange',
+  'TransactionPayController:stateChange',
   'MultichainNetworkController:stateChange',
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   'SnapController:stateChange',

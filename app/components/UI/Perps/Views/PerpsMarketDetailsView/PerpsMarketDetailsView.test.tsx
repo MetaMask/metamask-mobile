@@ -39,7 +39,10 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 // Mock PerpsStreamManager
 jest.mock('../../providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => ({
-    prices: { subscribeToSymbols: jest.fn(() => jest.fn()) },
+    prices: {
+      subscribeToSymbols: jest.fn(() => jest.fn()),
+      subscribe: jest.fn(() => jest.fn()),
+    },
     positions: { subscribe: jest.fn(() => jest.fn()) },
     orders: { subscribe: jest.fn(() => jest.fn()) },
     fills: { subscribe: jest.fn(() => jest.fn()) },
@@ -1423,8 +1426,8 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Find and press the Trading View link
-      const tradingViewLink = getByText('Trading View.');
+      // Find and press the TradingView link
+      const tradingViewLink = getByText('TradingView.');
       fireEvent.press(tradingViewLink);
 
       // Verify Linking.openURL was called with correct URL
@@ -1453,8 +1456,8 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Find and press the Trading View link
-      const tradingViewLink = getByText('Trading View.');
+      // Find and press the TradingView link
+      const tradingViewLink = getByText('TradingView.');
       fireEvent.press(tradingViewLink);
 
       // Wait for the error to be logged
