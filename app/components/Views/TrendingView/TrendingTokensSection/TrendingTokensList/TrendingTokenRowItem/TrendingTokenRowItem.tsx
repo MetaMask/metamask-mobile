@@ -3,21 +3,21 @@ import { TouchableOpacity, View } from 'react-native';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../component-library/hooks';
+} from '../../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './TrendingTokenRowItem.styles';
 import { TrendingAsset } from '@metamask/assets-controllers';
-import TrendingTokenLogo from '../TrendingTokenLogo';
+import TrendingTokenLogo from '../../TrendingTokenLogo';
 import Icon, {
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '../../../../../../component-library/components/Icons/Icon';
 import Badge, {
   BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
+} from '../../../../../../component-library/components/Badges/Badge';
 import BadgeWrapper, {
   BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
+} from '../../../../../../component-library/components/Badges/BadgeWrapper';
 import {
   parseCaipChainId,
   CaipChainId,
@@ -28,16 +28,16 @@ import {
   getDefaultNetworkByChainId,
   getTestNetImageByChainId,
   isTestNet,
-} from '../../../../../util/networks';
+} from '../../../../../../util/networks';
 import {
   CustomNetworkImgMapping,
   PopularList,
   UnpopularNetworkList,
   getNonEvmNetworkImageSourceByChainId,
-} from '../../../../../util/networks/customNetworks';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+} from '../../../../../../util/networks/customNetworks';
+import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import { formatMarketStats } from './utils';
-import { formatPrice } from '../../../../UI/Predict/utils/format';
+import { formatPrice } from '../../../../../UI/Predict/utils/format';
 
 interface TrendingTokenRowItemProps {
   token: TrendingAsset;
