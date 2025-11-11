@@ -7054,9 +7054,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-controller@npm:^56.0.3":
-  version: 56.0.3
-  resolution: "@metamask/bridge-controller@npm:56.0.3"
+"@metamask/bridge-controller@npm:^59.0.0":
+  version: 59.0.0
+  resolution: "@metamask/bridge-controller@npm:59.0.0"
   dependencies:
     "@ethersproject/address": "npm:^5.7.0"
     "@ethersproject/bignumber": "npm:^5.7.0"
@@ -7064,7 +7064,7 @@ __metadata:
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.0"
     "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/controller-utils": "npm:^11.14.1"
+    "@metamask/controller-utils": "npm:^11.15.0"
     "@metamask/gas-fee-controller": "npm:^25.0.0"
     "@metamask/keyring-api": "npm:^21.0.0"
     "@metamask/messenger": "npm:^0.3.0"
@@ -7077,21 +7077,21 @@ __metadata:
     uuid: "npm:^8.3.2"
   peerDependencies:
     "@metamask/accounts-controller": ^34.0.0
-    "@metamask/assets-controllers": ^84.0.0
+    "@metamask/assets-controllers": ^87.0.0
     "@metamask/network-controller": ^25.0.0
     "@metamask/remote-feature-flag-controller": ^2.0.0
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^61.0.0
-  checksum: 10/399a53ec01e18a9b9add4242b12c42ace472372fc04ed6e21d6e65f277ecc4aa220456933547d8d838e8834927602e7b1c149a8264de8742367d051801573bbd
+  checksum: 10/311e1a835f48ae1ff9ee03f856ccd4925395810b435478a140c7776e5eec3c4a6f7f3d411e0fe4a271ab73ed3d07dd09fb4a8491469d6c967940f83e39b81a2d
   languageName: node
   linkType: hard
 
-"@metamask/bridge-status-controller@npm:^56.0.0":
-  version: 56.0.0
-  resolution: "@metamask/bridge-status-controller@npm:56.0.0"
+"@metamask/bridge-status-controller@npm:^59.0.0":
+  version: 59.0.0
+  resolution: "@metamask/bridge-status-controller@npm:59.0.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/controller-utils": "npm:^11.14.1"
+    "@metamask/controller-utils": "npm:^11.15.0"
     "@metamask/polling-controller": "npm:^15.0.0"
     "@metamask/superstruct": "npm:^3.1.0"
     "@metamask/utils": "npm:^11.8.1"
@@ -7099,12 +7099,12 @@ __metadata:
     uuid: "npm:^8.3.2"
   peerDependencies:
     "@metamask/accounts-controller": ^34.0.0
-    "@metamask/bridge-controller": ^56.0.0
+    "@metamask/bridge-controller": ^59.0.0
     "@metamask/gas-fee-controller": ^25.0.0
     "@metamask/network-controller": ^25.0.0
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^61.0.0
-  checksum: 10/2767945645a935d9906777ff50a47688295b2a22413696e66a7b021374a8a738fea211d932d0d60ece31d4b38153bb52f895c0046963658dde0134ed9f6f67ae
+  checksum: 10/fed1e394efad6be8bcb2c196e96ff8e1fa4230b2145a489d4b585a57654a36a7c977441c2214497e3356eb51fb92b168696eb548b892fc3631a5a30c395d037d
   languageName: node
   linkType: hard
 
@@ -34283,8 +34283,8 @@ __metadata:
     "@metamask/auto-changelog": "npm:^5.1.0"
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/bitcoin-wallet-snap": "npm:^1.4.5"
-    "@metamask/bridge-controller": "npm:^56.0.3"
-    "@metamask/bridge-status-controller": "npm:^56.0.0"
+    "@metamask/bridge-controller": "npm:^59.0.0"
+    "@metamask/bridge-status-controller": "npm:^59.0.0"
     "@metamask/browser-passworder": "npm:^5.0.0"
     "@metamask/build-utils": "npm:^3.0.0"
     "@metamask/chain-agnostic-permission": "npm:^1.2.2"
@@ -34582,6 +34582,7 @@ __metadata:
     path: "npm:0.12.7"
     pbkdf2: "npm:3.1.3"
     pify: "npm:6.1.0"
+    pressto: "npm:^0.6.0"
     prettier: "npm:^3.6.2"
     prettier-2: "npm:prettier@^2.8.8"
     prettier-plugin-gherkin: "npm:^1.1.1"
@@ -37925,6 +37926,19 @@ __metadata:
   version: 1.2.1
   resolution: "prelude-ls@npm:1.2.1"
   checksum: 10/0b9d2c76801ca652a7f64892dd37b7e3fab149a37d2424920099bf894acccc62abb4424af2155ab36dea8744843060a2d8ddc983518d0b1e22265a22324b72ed
+  languageName: node
+  linkType: hard
+
+"pressto@npm:^0.6.0":
+  version: 0.6.0
+  resolution: "pressto@npm:0.6.0"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-gesture-handler: "*"
+    react-native-reanimated: "*"
+    react-native-worklets: "*"
+  checksum: 10/dc89d2bee4ca4b2a23389b397a49262bbe198ac060cb6da9f9c8c8687c0a6b271b7af040ab330f6fee771205d3af1acb09e008a88826b899932cb04bdc1895d7
   languageName: node
   linkType: hard
 
