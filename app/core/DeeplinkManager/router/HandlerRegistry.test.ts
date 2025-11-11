@@ -117,6 +117,19 @@ describe('HandlerRegistry', () => {
 
       expect(handlers).toHaveLength(0);
     });
+
+    it('deduplicates handler registered both globally and for specific action', () => {
+      const handler = new MockHandler(['action1'], 10);
+
+      registry.registerGlobal(handler);
+      registry.register(handler);
+
+      const handlers = registry.findHandlers(createMockLink('action1'));
+
+      // Should only appear once, not twice
+      expect(handlers).toHaveLength(1);
+      expect(handlers[0]).toBe(handler);
+    });
   });
 
   describe('unregister', () => {

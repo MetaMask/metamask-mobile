@@ -51,8 +51,11 @@ export class HandlerRegistry {
     const actionHandlers = this.handlers.get(link.action) || [];
     const allHandlers = [...this.globalHandlers, ...actionHandlers];
 
+    // Deduplicate handlers (remove duplicates by reference)
+    const uniqueHandlers = Array.from(new Set(allHandlers));
+
     // Filter handlers that can handle this specific link
-    const capable = allHandlers.filter((h) => h.canHandle(link));
+    const capable = uniqueHandlers.filter((h) => h.canHandle(link));
 
     // Sort by priority
     capable.sort((a, b) => a.priority - b.priority);
