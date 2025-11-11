@@ -25,7 +25,7 @@ import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
-  selectIsMusdConversionFlowEnabled,
+  selectIsMusdConversionFlowEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 import createStyles from '../../../Tokens/styles';
 import { BrowserTab, TokenI } from '../../../Tokens/types';
@@ -67,7 +67,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     selectStablecoinLendingEnabledFlag,
   );
   const isMusdConversionFlowEnabled = useSelector(
-    selectIsMusdConversionFlowEnabled,
+    selectIsMusdConversionFlowEnabledFlag,
   );
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
