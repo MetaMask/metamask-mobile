@@ -719,7 +719,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           ${formatVolume(market?.outcomes[0].volume || 0)}
         </Text>
       </Box>
-
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -788,15 +787,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         </Box>
       </Box>
       <Box twClassName="w-full border-t border-muted py-2" />
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="gap-1 p-y"
-      >
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-          {market?.description}
-        </Text>
-      </Box>
+      <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+        {market?.description}
+      </Text>
     </Box>
   );
 
