@@ -1258,7 +1258,10 @@ describe('Wallet', () => {
                   string,
                   Json
                 >),
-                predictEnabled: true,
+                predictTradingEnabled: {
+                  enabled: true,
+                  minimumVersion: '7.60.0',
+                },
               },
             },
           },
@@ -1296,7 +1299,10 @@ describe('Wallet', () => {
                   string,
                   Json
                 >),
-                predictEnabled: true,
+                predictTradingEnabled: {
+                  enabled: true,
+                  minimumVersion: '7.60.0',
+                },
               },
             },
           },
@@ -1331,7 +1337,10 @@ describe('Wallet', () => {
                   enabled: false,
                   minimumVersion: '1.0.0',
                 },
-                predictEnabled: true,
+                predictTradingEnabled: {
+                  enabled: true,
+                  minimumVersion: '7.60.0',
+                },
               },
             },
           },
@@ -1366,7 +1375,10 @@ describe('Wallet', () => {
                   string,
                   Json
                 >),
-                predictEnabled: false,
+                predictTradingEnabled: {
+                  enabled: false,
+                  minimumVersion: '7.60.0',
+                },
               },
             },
           },
@@ -1400,7 +1412,10 @@ describe('Wallet', () => {
                   string,
                   Json
                 >),
-                predictEnabled: false,
+                predictTradingEnabled: {
+                  enabled: false,
+                  minimumVersion: '7.60.0',
+                },
               },
             },
           },
