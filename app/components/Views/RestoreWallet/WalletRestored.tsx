@@ -55,23 +55,23 @@ const WalletRestored = () => {
 
   const finishWalletRestore = useCallback(async (): Promise<void> => {
     try {
-      // CRITICAL: Set existingUser = true after successful vault restore
-      // This prevents the vault recovery screen from appearing again on app restart
-      dispatch(setExistingUser(true));
-
-      // Trying to call appTriggeredAuth() will fail because no password is stored yet.
-      // The vault has been restored from backup, but it's still LOCKED.
-      // The user MUST enter their password to unlock it and save credentials to keychain.
-      navigation.replace(Routes.ONBOARDING.LOGIN);
+      // Navigate to login first - existingUser will be set after successful login
+      // This ensures state consistency: existingUser=true only when vault is unlocked
+      // and credentials are stored in keychain
+      navigation.replace(Routes.ONBOARDING.LOGIN, {
+        isVaultRecovery: true, // Signal that this is from vault recovery
+      });
     } catch (error) {
       // Defensive: Log error but still navigate to login to allow user to proceed
       Logger.error(
         error as Error,
         'WalletRestored: Error during finishWalletRestore',
       );
-      navigation.replace(Routes.ONBOARDING.LOGIN);
+      navigation.replace(Routes.ONBOARDING.LOGIN, {
+        isVaultRecovery: true,
+      });
     }
-  }, [dispatch, navigation]);
+  }, [navigation]);
 
   const onPressBackupSRP = useCallback(async (): Promise<void> => {
     Linking.openURL(SRP_GUIDE_URL);

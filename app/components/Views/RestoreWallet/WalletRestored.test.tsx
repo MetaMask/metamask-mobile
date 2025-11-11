@@ -3,9 +3,7 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import WalletRestored from './WalletRestored';
 import { useNavigation } from '@react-navigation/native';
-import { useDispatch } from 'react-redux';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { setExistingUser } from '../../../actions/user';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
@@ -16,10 +14,6 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
-}));
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useDispatch: jest.fn(),
 }));
 jest.mock('../../../util/theme', () => ({
   useAppThemeFromContext: jest.fn(() => ({
@@ -52,7 +46,6 @@ describe('WalletRestored', () => {
     goBack: jest.fn(),
   };
 
-  const mockDispatch = jest.fn();
   const mockTrackEvent = jest.fn();
 
   beforeEach(() => {
@@ -68,7 +61,6 @@ describe('WalletRestored', () => {
     });
 
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
-    (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
     (useMetrics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
@@ -107,21 +99,7 @@ describe('WalletRestored', () => {
     });
   });
 
-  it('dispatches setExistingUser when continue is pressed', async () => {
-    // Arrange
-    const { getByText } = renderWithProvider(<WalletRestored />);
-    const continueButton = getByText('Continue to wallet');
-
-    // Act
-    fireEvent.press(continueButton);
-
-    // Assert
-    await waitFor(() => {
-      expect(mockDispatch).toHaveBeenCalledWith(setExistingUser(true));
-    });
-  });
-
-  it('navigates to LOGIN route after continue is pressed', async () => {
+  it('navigates to LOGIN with vault recovery flag when continue is pressed', async () => {
     // Arrange
     const { getByText } = renderWithProvider(<WalletRestored />);
     const continueButton = getByText('Continue to wallet');
@@ -133,14 +111,15 @@ describe('WalletRestored', () => {
     await waitFor(() => {
       expect(mockNavigation.replace).toHaveBeenCalledWith(
         Routes.ONBOARDING.LOGIN,
+        { isVaultRecovery: true },
       );
     });
   });
 
-  it('logs error when finishWalletRestore fails', async () => {
+  it('logs error when navigation fails', async () => {
     // Arrange
-    const testError = new Error('Test dispatch error');
-    mockDispatch.mockImplementationOnce(() => {
+    const testError = new Error('Navigation error');
+    mockNavigation.replace.mockImplementationOnce(() => {
       throw testError;
     });
     const { getByText } = renderWithProvider(<WalletRestored />);
@@ -158,11 +137,15 @@ describe('WalletRestored', () => {
     });
   });
 
-  it('navigates to LOGIN even when error occurs', async () => {
+  it('attempts to navigate to LOGIN even when first navigation fails', async () => {
     // Arrange
-    const testError = new Error('Test dispatch error');
-    mockDispatch.mockImplementationOnce(() => {
-      throw testError;
+    const testError = new Error('Navigation error');
+    let callCount = 0;
+    mockNavigation.replace.mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        throw testError;
+      }
     });
     const { getByText } = renderWithProvider(<WalletRestored />);
     const continueButton = getByText('Continue to wallet');
@@ -172,8 +155,11 @@ describe('WalletRestored', () => {
 
     // Assert
     await waitFor(() => {
-      expect(mockNavigation.replace).toHaveBeenCalledWith(
+      expect(mockNavigation.replace).toHaveBeenCalledTimes(2);
+      expect(mockNavigation.replace).toHaveBeenNthCalledWith(
+        2,
         Routes.ONBOARDING.LOGIN,
+        { isVaultRecovery: true },
       );
     });
   });
@@ -186,12 +172,11 @@ describe('WalletRestored', () => {
     expect(generateDeviceAnalyticsMetaData).toHaveBeenCalledTimes(1);
   });
 
-  it('does not call navigation or dispatch on mount', () => {
+  it('does not call navigation on mount', () => {
     // Arrange & Act
     renderWithProvider(<WalletRestored />);
 
     // Assert
     expect(mockNavigation.replace).not.toHaveBeenCalled();
-    expect(mockDispatch).not.toHaveBeenCalled();
   });
 });
