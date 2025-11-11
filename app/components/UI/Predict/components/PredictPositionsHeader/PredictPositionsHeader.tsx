@@ -271,19 +271,19 @@ const PredictPositionsHeader = forwardRef<
                     style={tw.style('rounded-md')}
                   />
                 ) : (
-                <Text
-                  variant={TextVariant.BodyMd}
-                  twClassName={
-                    unrealizedAmount >= 0
-                      ? 'text-success-default'
-                      : 'text-error-default'
-                  }
-                >
-                  {strings('predict.unrealized_pnl_value', {
-                    amount: formatAmount(unrealizedAmount),
-                    percent: formatPercent(unrealizedPercent),
-                  })}
-                </Text>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    twClassName={
+                      unrealizedAmount >= 0
+                        ? 'text-success-default'
+                        : 'text-error-default'
+                    }
+                  >
+                    {strings('predict.unrealized_pnl_value', {
+                      amount: formatAmount(unrealizedAmount),
+                      percent: formatPercent(unrealizedPercent),
+                    })}
+                  </Text>
                 )}
               </Box>
             </>
