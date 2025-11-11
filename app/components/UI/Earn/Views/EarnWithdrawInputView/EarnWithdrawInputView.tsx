@@ -66,6 +66,7 @@ import { toTokenMinimalUnit, normalizeToDotDecimal } from '../../../../../util/n
 import useTronUnstake from '../../hooks/useTronUnstake';
 import ResourceToggle, { type ResourceType } from '../../components/Tron/ResourceToggle';
 import { TRON_RESOURCE, TronResourceType } from '../../../../../core/Multichain/constants';
+import { isTronChainId } from '../../../../../core/Multichain/utils';
 ///: END:ONLY_INCLUDE_IF
 
 const EarnWithdrawInputView = () => {
@@ -84,7 +85,7 @@ const EarnWithdrawInputView = () => {
   const earnTokenFromMap = getEarnToken(token);
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const isTronAsset = token.chainId?.startsWith('tron:');
+  const isTronAsset = isTronChainId(String(token.chainId));
   const [resourceType, setResourceType] = useState<ResourceType>(TRON_RESOURCE.ENERGY);
   const {
     validate: tronValidateUnstake,

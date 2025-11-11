@@ -72,6 +72,10 @@ export async function validateTronStakeAmount(
   fromAccount: InternalAccount,
   params: TronStakeValidateParams,
 ): Promise<TronStakeResult> {
+
+
+console.log('validateTronStakeAmount 0', fromAccount.metadata?.snap?.id, params);
+
   return (await handleSnapRequest(controllerMessenger, {
     snapId: fromAccount.metadata?.snap?.id as SnapId,
     origin: 'metamask',
@@ -87,6 +91,10 @@ export async function confirmTronStake(
   fromAccount: InternalAccount,
   params: TronStakeConfirmParams,
 ): Promise<TronStakeResult> {
+
+console.log('confirmTronStake confirmTronStake', fromAccount.metadata?.snap?.id, params);
+
+
   return (await handleSnapRequest(controllerMessenger, {
     snapId: fromAccount.metadata?.snap?.id as SnapId,
     origin: 'metamask',

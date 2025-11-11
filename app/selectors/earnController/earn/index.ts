@@ -13,14 +13,19 @@ import { TokenI } from '../../../components/UI/Tokens/types';
 import { deriveBalanceFromAssetMarketDetails } from '../../../components/UI/Tokens/util/deriveBalanceFromAssetMarketDetails';
 import { RootState } from '../../../reducers';
 import { getDecimalChainId } from '../../../util/networks';
-import { hexToBN, renderFiat, weiToFiatNumber } from '../../../util/number';
+import {
+  hexToBN,
+  renderFiat,
+  weiToFiatNumber,
+  toTokenMinimalUnit,
+} from '../../../util/number';
 import { selectSelectedInternalAccountByScope } from '../../multichainAccounts/accounts';
 import { selectAccountsByChainId } from '../../accountTrackerController';
 import {
   selectCurrencyRates,
   selectCurrentCurrency,
 } from '../../currencyRateController';
-import { selectAccountTokensAcrossChains } from '../../multichain';
+import { selectAccountTokensAcrossChainsUnified } from '../../multichain';
 import { selectNetworkConfigurations } from '../../networkController';
 import { selectTokensBalances } from '../../tokenBalancesController';
 import { selectTokenMarketData } from '../../tokenRatesController';
@@ -33,6 +38,7 @@ import { EarnTokenDetails } from '../../../components/UI/Earn/types/lending.type
 import { createDeepEqualSelector } from '../../util';
 import { toFormattedAddress } from '../../../util/address';
 import { EVM_SCOPE } from '../../../components/UI/Earn/constants/networks';
+import { isTronChainId } from '../../../core/Multichain/utils';
 
 import { selectTrxStakingEnabled } from '../../featureFlagController/trxStakingEnabled';
 
@@ -51,7 +57,7 @@ const selectEarnTokenBaseData = createSelector(
     selectSelectedInternalAccountByScope,
     selectCurrentCurrency,
     selectNetworkConfigurations,
-    selectAccountTokensAcrossChains,
+    selectAccountTokensAcrossChainsUnified,
     selectCurrencyRates,
     selectAccountsByChainId,
     selectTrxStakingEnabled,
@@ -180,9 +186,7 @@ const selectEarnTokens = createDeepEqualSelector(
       const isLendingOutputToken = lendingMarketsForOutputToken.length > 0;
 
       const isTronNative =
-        token.isNative &&
-        token.chainId?.startsWith('tron:') &&
-        token.ticker === 'TRX';
+        token.isNative && isTronChainId(token.chainId as Hex);
 
       const isStakingToken =
         (token.isETH && !token.isStaked && isStakingSupportedChain) ||
@@ -209,15 +213,25 @@ const selectEarnTokens = createDeepEqualSelector(
       const balanceWei = hexToBN(rawAccountBalance);
       const stakedBalanceWei = hexToBN(rawStakedAccountBalance);
 
-      const tokenBalanceMinimalUnit = token.isETH
-        ? token.isStaked
-          ? stakedBalanceWei
-          : balanceWei
-        : hexToBN(
-            tokenBalances?.[selectedAddress as Hex]?.[token.chainId as Hex]?.[
-              token.address as Hex
-            ],
-          );
+      const tokenBalanceMinimalUnit = (() => {
+        if (token.isETH) {
+          return token.isStaked ? stakedBalanceWei : balanceWei;
+        }
+        if (isTronNative) {
+          // For non-EVM native (e.g., TRX), convert decimal balance to minimal unit
+          const decimalBalance = token.balance ?? '0';
+          try {
+            return toTokenMinimalUnit(decimalBalance, token.decimals ?? 0);
+          } catch {
+            return new BN4(0);
+          }
+        }
+        return hexToBN(
+          tokenBalances?.[selectedAddress as Hex]?.[token.chainId as Hex]?.[
+            token.address as Hex
+          ],
+        );
+      })();
 
       const nativeCurrency =
         networkConfigs?.[token.chainId as Hex]?.nativeCurrency;
@@ -241,17 +255,30 @@ const selectEarnTokens = createDeepEqualSelector(
         ethToUsdConversionRate,
         2,
       );
-      const { balanceValueFormatted, balanceFiat, balanceFiatCalculation } =
-        deriveBalanceFromAssetMarketDetails(
-          token,
-          tokenExchangeRates,
-          tokenBalances?.[selectedAddress as Hex]?.[token.chainId as Hex] || {},
-          ethToUserSelectedFiatConversionRate,
-          currentCurrency || '',
-        );
+      const tronOrDerived =
+        isTronNative
+          ? {
+              balanceValueFormatted: token.balance ?? '0',
+              balanceFiat: token.balanceFiat ?? '0',
+              balanceFiatCalculation: parseFloat(token.balanceFiat ?? '0'),
+            }
+          : deriveBalanceFromAssetMarketDetails(
+              token,
+              tokenExchangeRates,
+              tokenBalances?.[selectedAddress as Hex]?.[
+                token.chainId as Hex
+              ] || {},
+              ethToUserSelectedFiatConversionRate,
+              currentCurrency || '',
+            );
+      const balanceValueFormatted = tronOrDerived.balanceValueFormatted || '0';
+      const balanceFiat = tronOrDerived.balanceFiat || '0';
+      const balanceFiatCalculation = tronOrDerived.balanceFiatCalculation;
 
-      let assetBalanceFiatNumber = balanceFiatNumber;
-      if (!token.isETH) {
+      let assetBalanceFiatNumber = isTronNative
+        ? parseFloat(token.balanceFiat ?? '0') || 0
+        : balanceFiatNumber;
+      if (!token.isETH && !isTronNative) {
         assetBalanceFiatNumber =
           !balanceFiatCalculation || isNaN(balanceFiatCalculation)
             ? 0
@@ -478,7 +505,7 @@ const selectPairedEarnOutputToken = createSelector(
     if (!earnToken.address) return;
     const pairedEarnOutputToken =
       earnTokensData.earnTokenPairsByChainIdAndAddress?.[
-        Number(earnToken.chainId)
+        getDecimalChainId(earnToken.chainId)
       ]?.[earnToken.address.toLowerCase()]?.[0];
     if (
       earnToken.isETH &&
@@ -498,7 +525,7 @@ const selectPairedEarnToken = createSelector(
     if (!earnOutputToken.address) return;
     const pairedEarnToken =
       earnTokensData.earnOutputTokenPairsByChainIdAndAddress?.[
-        Number(earnOutputToken.chainId)
+        getDecimalChainId(earnOutputToken.chainId)
       ]?.[earnOutputToken.address.toLowerCase()]?.[0];
     if (
       earnOutputToken.isETH &&

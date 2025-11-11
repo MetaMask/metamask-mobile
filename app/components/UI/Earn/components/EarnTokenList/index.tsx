@@ -38,6 +38,8 @@ import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../selectors/featureFlags';
+import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
+import { isTronChainId } from '../../../../../core/Multichain/utils';
 import useEarnNetworkPolling from '../../hooks/useEarnNetworkPolling';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../Views/EarnInputView/EarnInputView.types';
 import EarnDepositTokenListItem from '../EarnDepositTokenListItem';
@@ -100,6 +102,7 @@ const EarnTokenList = () => {
   const traceEndedRef = useRef(false);
 
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+  const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
   const { includeReceiptTokens } = params?.tokenFilter ?? {};
 
   const { earnTokens, earnOutputTokens, earnableTotalFiatFormatted } =
@@ -155,6 +158,27 @@ const EarnTokenList = () => {
 
   const handleRedirectToInputScreen = async (token: TokenI) => {
     const { NetworkController } = Engine.context;
+
+    // For non-EVM do not try to switch EVM network and just navigate directly
+    if (isTronChainId(String(token.chainId))) {
+      const onItemPressScreen = params?.onItemPressScreen ?? '';
+      if (onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.DEPOSIT) {
+        return closeBottomSheetAndNavigate(() => {
+          navigate('StakeScreens', {
+            screen: Routes.STAKING.STAKE,
+            params: { token },
+          });
+        });
+      }
+      if (onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.WITHDRAW) {
+        return closeBottomSheetAndNavigate(() => {
+          navigate('StakeScreens', {
+            screen: Routes.STAKING.UNSTAKE,
+            params: { token },
+          });
+        });
+      }
+    }
 
     const networkClientId = NetworkController.findNetworkClientIdByChainId(
       token.chainId as Hex,
@@ -220,8 +244,14 @@ const EarnTokenList = () => {
 
     tokens?.forEach((token) => {
       const hasTokenBalance = new BN4(token.balanceMinimalUnit).gt(new BN4(0));
-      // show at least ETH if no other tokens have balance
-      if (hasTokenBalance || token.isETH) {
+      // show ETH always (existing behavior). Also show TRX native when TRX staking is enabled.
+      const isTrxNative =
+        Boolean(token.isNative) && isTronChainId(String(token.chainId));
+      if (
+        hasTokenBalance ||
+        token.isETH ||
+        (isTrxNative && isTrxStakingEnabled)
+      ) {
         tokensWithBalance.push(token);
       }
     });

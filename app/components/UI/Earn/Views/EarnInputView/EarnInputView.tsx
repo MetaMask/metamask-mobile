@@ -83,6 +83,7 @@ import useTronStake from '../../hooks/useTronStake';
 import TronStakePreview from '../../components/Tron/StakePreview/TronStakePreview';
 import { TRON_RESOURCE, TronResourceType } from '../../../../../core/Multichain/constants';
 import { ComputeFeeResult } from '../../utils/tron-staking';
+import { isTronChainId } from '../../../../../core/Multichain/utils';
 ///: END:ONLY_INCLUDE_IF
 
 const EarnInputView = () => {
@@ -137,7 +138,7 @@ const EarnInputView = () => {
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const [resourceType, setResourceType] = useState<ResourceType>(TRON_RESOURCE.ENERGY);
   const isTronNative =
-    token.ticker === 'TRX' && String(token.chainId).startsWith('tron:');
+    token.isNative && isTronChainId(String(token.chainId));
 
   const {
     validate: tronValidate,
