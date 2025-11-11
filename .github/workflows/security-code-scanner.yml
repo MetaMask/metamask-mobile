@@ -20,7 +20,7 @@ jobs:
       languages-config: |
         [
           {
-            "language": "java",
+            "language": "java-kotlin",
             "build_mode": "manual",
             "build_command": "cd android && ./gradlew assembleDebug -x lint -x test",
             "version": "17",
