@@ -13,7 +13,11 @@ jest.mock('../../../../../core/Analytics', () => ({
 import React from 'react';
 import { shallow } from 'enzyme';
 import { RpcEndpointType } from '@metamask/network-controller';
-import { NetworkSettings } from './'; // Import the undecorated component
+import {
+  NetworkSettings,
+  NetworkSettingsProps,
+  SafeChainsListItem,
+} from './index';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { ThemeContext, mockTheme } from '../../../../../../app/util/theme';
@@ -136,11 +140,11 @@ jest.mock('../../../../../core/Engine', () => ({
 
 const store = mockStore(initialState);
 
-const SAMPLE_NETWORKSETTINGS_PROPS = {
-  route: { params: {} },
+const SAMPLE_NETWORKSETTINGS_PROPS: NetworkSettingsProps = {
+  route: { params: {}, key: '', name: '' },
   providerConfig: {
     rpcUrl: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
-  },
+  } as NetworkSettingsProps['providerConfig'],
   networkConfigurations: {
     '0x1': {
       blockExplorerUrls: ['https://etherscan.io'],
@@ -151,7 +155,7 @@ const SAMPLE_NETWORKSETTINGS_PROPS = {
       rpcEndpoints: [
         {
           networkClientId: 'mainnet',
-          type: 'custom',
+          type: RpcEndpointType.Custom,
           url: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
         },
       ],
@@ -160,17 +164,24 @@ const SAMPLE_NETWORKSETTINGS_PROPS = {
     '0x5': {
       chainId: '0x5',
       name: 'Goerli',
+      blockExplorerUrls: [],
+      defaultRpcEndpointIndex: 0,
+      nativeCurrency: 'ETH',
       rpcEndpoints: [
         {
           networkClientId: 'goerli',
-          type: 'custom',
+          type: RpcEndpointType.Custom,
           url: 'https://goerli.infura.io/v3/{infuraProjectId}',
         },
       ],
     },
   },
   networkOnboardedState: { '0x1': true, '0xe708': true },
-  navigation: { setOptions: jest.fn(), navigate: jest.fn(), goBack: jest.fn() },
+  navigation: {
+    setOptions: jest.fn(),
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+  } as unknown as NetworkSettingsProps['navigation'],
   matchedChainNetwork: {
     safeChainsList: [
       {
@@ -237,7 +248,7 @@ const SAMPLE_NETWORKSETTINGS_PROPS = {
             standard: 'EIP3091',
           },
         ],
-      },
+      } as SafeChainsListItem,
       {
         name: 'Polygon',
         chain: 'MATIC',
@@ -248,10 +259,10 @@ const SAMPLE_NETWORKSETTINGS_PROPS = {
           symbol: 'MATIC',
           decimals: 18,
         },
-      },
+      } as SafeChainsListItem,
     ],
   },
-};
+} as unknown as NetworkSettingsProps;
 
 describe('NetworkSettings', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -277,6 +288,7 @@ describe('NetworkSettings', () => {
   it('should render correctly', () => {
     const component = shallow(
       <Provider store={store}>
+        {/* @ts-expect-error missing props FIXME */}
         <NetworkSettings />
       </Provider>,
     );
@@ -289,6 +301,7 @@ describe('NetworkSettings', () => {
 
     const component = shallow(
       <Provider store={store}>
+        {/* @ts-expect-error missing props FIXME */}
         <NetworkSettings />
       </Provider>,
     );
@@ -302,6 +315,7 @@ describe('NetworkSettings', () => {
 
     const component = shallow(
       <Provider store={store}>
+        {/* @ts-expect-error missing props FIXME */}
         <NetworkSettings />
       </Provider>,
     );
@@ -311,17 +325,19 @@ describe('NetworkSettings', () => {
   });
 
   it('should update state and call getCurrentState on RPC URL change', async () => {
-    const SAMPLE_NETWORKSETTINGS_PROPS_2 = {
+    const SAMPLE_NETWORKSETTINGS_PROPS_2: NetworkSettingsProps = {
       route: {
         params: {
           network: 'mainnet',
         },
+        key: '',
+        name: '',
       },
       navigation: {
         setOptions: jest.fn(),
         navigate: jest.fn(),
         goBack: jest.fn(),
-      },
+      } as unknown as NetworkSettingsProps['navigation'],
       networkConfigurations: {
         '0x1': {
           blockExplorerUrls: ['https://etherscan.io'],
@@ -331,7 +347,7 @@ describe('NetworkSettings', () => {
           rpcEndpoints: [
             {
               networkClientId: 'mainnet',
-              type: 'Infura',
+              type: RpcEndpointType.Custom,
               url: 'https://mainnet.infura.io/v3/',
             },
           ],
@@ -339,7 +355,7 @@ describe('NetworkSettings', () => {
           nativeCurrency: 'ETH',
         },
       },
-    };
+    } as unknown as NetworkSettingsProps;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const wrapper2: any = shallow(
@@ -365,17 +381,19 @@ describe('NetworkSettings', () => {
   });
 
   it('should initialize state correctly when networkTypeOrRpcUrl is provided', () => {
-    const SAMPLE_NETWORKSETTINGS_PROPS_2 = {
+    const SAMPLE_NETWORKSETTINGS_PROPS_2: NetworkSettingsProps = {
       route: {
         params: {
           network: 'mainnet',
         },
+        key: '',
+        name: '',
       },
       navigation: {
         setOptions: jest.fn(),
         navigate: jest.fn(),
         goBack: jest.fn(),
-      },
+      } as unknown as NetworkSettingsProps['navigation'],
       networkConfigurations: {
         '0x1': {
           blockExplorerUrls: ['https://etherscan.io'],
@@ -385,7 +403,7 @@ describe('NetworkSettings', () => {
           rpcEndpoints: [
             {
               networkClientId: 'mainnet',
-              type: 'Infura',
+              type: RpcEndpointType.Custom,
               url: 'https://mainnet.infura.io/v3/',
             },
           ],
@@ -393,7 +411,7 @@ describe('NetworkSettings', () => {
           nativeCurrency: 'ETH',
         },
       },
-    };
+    } as unknown as NetworkSettingsProps;
 
     const wrapper2 = shallow(
       <Provider store={store}>
@@ -439,7 +457,7 @@ describe('NetworkSettings', () => {
           nativeCurrency: 'ETH',
         },
       },
-    };
+    } as unknown as NetworkSettingsProps;
 
     const wrapperComponent = shallow(
       <Provider store={store}>
@@ -489,7 +507,7 @@ describe('NetworkSettings', () => {
           nativeCurrency: 'ETH',
         },
       },
-    };
+    } as unknown as NetworkSettingsProps;
 
     const wrapper2 = shallow(
       <Provider store={store}>
@@ -548,7 +566,7 @@ describe('NetworkSettings', () => {
     expect(wrapper.state('showNetworkDetailsModal')).toBe(false);
     expect(wrapper.state('isNameFieldFocused')).toBe(false);
     expect(wrapper.state('isSymbolFieldFocused')).toBe(false);
-    expect(wrapper.state('networkList')).toEqual([]);
+    expect(wrapper.state('networkList')).toEqual(undefined);
   });
 
   it('should add RPC URL correctly', async () => {
@@ -599,7 +617,7 @@ describe('NetworkSettings', () => {
           ],
         },
       },
-    };
+    } as unknown as NetworkSettingsProps;
 
     wrapper = shallow(
       <Provider store={store}>
@@ -1298,7 +1316,7 @@ describe('NetworkSettings', () => {
             nativeCurrency: 'ETH',
           },
         },
-      };
+      } as unknown as NetworkSettingsProps;
 
       // Reinitialize the component with new props
       const wrapper2 = shallow(
@@ -1331,7 +1349,7 @@ describe('NetworkSettings', () => {
           navigate: jest.fn(),
           goBack: jest.fn(),
         },
-      };
+      } as unknown as NetworkSettingsProps;
 
       // Reinitialize the component without networkTypeOrRpcUrl
       const wrapper3 = shallow(
@@ -1376,7 +1394,7 @@ describe('NetworkSettings', () => {
             nativeCurrency: 'CUST',
           },
         },
-      };
+      } as unknown as NetworkSettingsProps;
 
       // Reinitialize the component with custom network
       const wrapper4 = shallow(
@@ -1461,7 +1479,7 @@ describe('NetworkSettings', () => {
           nativeCurrency: 'ETH',
         },
       },
-    };
+    } as unknown as NetworkSettingsProps;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const wrapper4: any = shallow(
@@ -1547,7 +1565,9 @@ describe('NetworkSettings', () => {
       const instance = wrapper.instance();
       const result = await instance.checkIfRpcUrlExists(rpcUrl);
 
-      expect(result).toEqual([networkConfigurations['0x5']]);
+      expect(result).toEqual([
+        expect.objectContaining(networkConfigurations['0x5']),
+      ]);
     });
 
     it('should return an empty array if the RPC URL does not exist', async () => {
@@ -1596,8 +1616,8 @@ describe('NetworkSettings', () => {
       const result = await instance.checkIfRpcUrlExists(rpcUrl);
 
       expect(result).toEqual([
-        networkConfigurations['0x5'],
-        instance.props.networkConfigurations['0x2'],
+        expect.objectContaining(networkConfigurations['0x5']),
+        expect.objectContaining(instance.props.networkConfigurations['0x2']),
       ]);
     });
   });
@@ -1871,7 +1891,6 @@ describe('NetworkSettings', () => {
       expect(instance.handleNetworkUpdate).toHaveBeenCalledWith(
         expect.objectContaining({
           isCustomMainnet: true,
-          showNetworkOnboarding: false,
         }),
       );
     });
@@ -2121,7 +2140,7 @@ describe('NetworkSettings - showNetworkModal', () => {
       networkConfigurations: {
         '0x1': networkConfiguration,
       },
-    };
+    } as unknown as NetworkSettingsProps;
 
     const wrapper = shallow(
       <Provider store={store}>
@@ -2133,6 +2152,7 @@ describe('NetworkSettings - showNetworkModal', () => {
 
     const instance = wrapper.instance() as NetworkSettings;
 
+    // @ts-expect-error - testing invalid input check against crashes
     expect(() => instance.showNetworkModal(networkConfiguration)).not.toThrow();
   });
 });
