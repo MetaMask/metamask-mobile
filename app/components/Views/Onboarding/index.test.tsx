@@ -31,6 +31,15 @@ import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 // Mock netinfo - using existing mock
 jest.mock('@react-native-community/netinfo');
 
+// Create a mutable mock for isE2E that can be controlled per test
+let mockIsE2E = false;
+jest.mock('../../../util/test/utils', () => ({
+  ...jest.requireActual('../../../util/test/utils'),
+  get isE2E() {
+    return mockIsE2E;
+  },
+}));
+
 import { fetch as netInfoFetch } from '@react-native-community/netinfo';
 
 const mockNetInfoFetch = netInfoFetch as jest.Mock;
@@ -1365,6 +1374,30 @@ describe('Onboarding', () => {
 
       // Assert - When delete param is true, vault backup check is skipped
       expect(StorageWrapper.getItem).not.toHaveBeenCalled();
+    });
+
+    it('skips vault backup check when running in E2E test environment', async () => {
+      // Arrange
+      mockIsE2E = true;
+
+      // Act
+      renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Assert
+      expect(StorageWrapper.getItem).not.toHaveBeenCalled();
+
+      // Cleanup
+      mockIsE2E = false;
     });
 
     it('accesses existingUser prop from Redux state', async () => {

@@ -32,6 +32,7 @@ import { Authentication } from '../../../core';
 import { getVaultFromBackup } from '../../../core/BackupVault';
 import Logger from '../../../util/Logger';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { isE2E } from '../../../util/test/utils';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
 import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
@@ -365,6 +366,13 @@ class Onboarding extends PureComponent {
     }
 
     this.hasCheckedVaultBackup = true;
+
+    // Skip check in E2E test environment
+    // E2E tests start with fresh state but may have vault backups from fixtures/previous runs
+    // This would trigger false positive vault recovery redirects and break onboarding tests
+    if (isE2E) {
+      return;
+    }
 
     // Skip check if this is an intentional wallet reset
     // (route.params.delete is set when user explicitly resets their wallet)
