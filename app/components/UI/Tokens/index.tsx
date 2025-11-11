@@ -7,7 +7,7 @@ import React, {
   useEffect,
   useMemo,
 } from 'react';
-import { InteractionManager } from 'react-native';
+import { InteractionManager, Alert } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -29,7 +29,7 @@ import {
 } from './util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, Button } from '@metamask/design-system-react-native';
 import { TokenListControlBar } from './TokenListControlBar';
 import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
 import { ScamWarningModal } from './TokenList/ScamWarningModal';
@@ -43,6 +43,8 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import { TokensEmptyState } from '../TokensEmptyState';
+import { convertStablecoinToMUSD } from './util/convertToMUSD';
+import Logger from '../../../util/Logger';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -90,6 +92,7 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
 
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
   const [hasInitialLoad, setHasInitialLoad] = useState(false);
+  const [isConverting, setIsConverting] = useState(false);
 
   // BIP44 MAINTENANCE: Once stable, only use selectSortedAssetsBySelectedAccountGroup
   const isMultichainAccountsState2Enabled = useSelector(
@@ -193,6 +196,34 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
     setShowScamWarningModal((prev) => !prev);
   }, []);
 
+  const convertToMUSD = useCallback(async () => {
+    try {
+      setIsConverting(true);
+      Logger.log('[mUSD Conversion] Starting conversion...');
+
+      const transactionId = await convertStablecoinToMUSD();
+
+      Logger.log('[mUSD Conversion] Transaction created:', transactionId);
+      Logger.log('[mUSD Conversion] User will now see approval screen');
+      Logger.log(
+        '[mUSD Conversion] MetaMask Pay will handle the cross-chain flow via Relay',
+      );
+    } catch (error) {
+      Logger.error(error as Error, '[mUSD Conversion] Failed');
+
+      // Show user-friendly error alert
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred';
+      Alert.alert(
+        'Conversion Failed',
+        `Unable to start mUSD conversion: ${errorMessage}`,
+        [{ text: 'OK' }],
+      );
+    } finally {
+      setIsConverting(false);
+    }
+  }, []);
+
   const maxItems = useMemo(() => {
     if (isFullView) {
       return undefined;
@@ -213,6 +244,13 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
         goToAddToken={goToAddToken}
         style={isFullView ? tw`px-4 pb-4` : undefined}
       />
+      <Button
+        onPress={convertToMUSD}
+        isLoading={isConverting}
+        isDisabled={isConverting}
+      >
+        Convert to mUSD
+      </Button>
       {!hasInitialLoad ? (
         <Box twClassName={isFullView ? 'px-4' : undefined}>
           <TokenListSkeleton />
