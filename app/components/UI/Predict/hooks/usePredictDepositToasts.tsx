@@ -7,6 +7,7 @@ import { usePredictBalance } from './usePredictBalance';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
+import { formatPrice } from '../utils/format';
 
 interface UsePredictDepositToastsParams {
   providerId?: string;
@@ -37,7 +38,9 @@ export const usePredictDepositToasts = ({
         amount: '{amount}',
       }),
       getAmount: (transactionMeta) =>
-        transactionMeta.metamaskPay?.totalFiat ?? 'Balance',
+        formatPrice(transactionMeta.metamaskPay?.totalFiat ?? 0, {
+          maximumDecimals: 2,
+        }) ?? 'Balance',
     },
     errorToastConfig: {
       title: strings('predict.deposit.error_title'),
