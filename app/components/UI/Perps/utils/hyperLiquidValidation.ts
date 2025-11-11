@@ -461,6 +461,8 @@ export function getMaxOrderValue(
 
 /**
  * Validate order parameters
+ * Basic validation - checks required fields are present
+ * Amount validation (size/USD) is handled by validateOrder
  */
 export function validateOrderParams(params: {
   coin?: string;
@@ -475,12 +477,7 @@ export function validateOrderParams(params: {
     };
   }
 
-  if (!params.size || parseFloat(params.size) <= 0) {
-    return {
-      isValid: false,
-      error: strings('perps.errors.orderValidation.sizePositive'),
-    };
-  }
+  // Note: Size validation removed - validateOrder handles amount validation using USD as source of truth
 
   // Require price for limit orders
   if (params.orderType === 'limit' && !params.price) {

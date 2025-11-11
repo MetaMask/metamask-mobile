@@ -78,6 +78,7 @@ export const VALIDATION_THRESHOLDS = {
 export const ORDER_SLIPPAGE_CONFIG = {
   // Default slippage for all market orders (basis points)
   // 100 basis points = 1% = 0.01 decimal
+  // Used when price moves between calculation and execution
   DEFAULT_SLIPPAGE_BPS: 100,
 } as const;
 

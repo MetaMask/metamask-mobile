@@ -3901,30 +3901,44 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // Check minimum order size using consistent defaults (matching useMinimumOrderAmount hook)
       // Note: For full validation with market-specific limits, use async methods
-      const coinAmount = parseFloat(params.size || '0');
       const minimumOrderSize = this.clientService.isTestnetMode()
         ? TRADING_DEFAULTS.amount.testnet
         : TRADING_DEFAULTS.amount.mainnet;
 
-      // Convert coin amount to USD value for comparison with minimum
-      // Price is required for proper validation
-      if (!params.currentPrice) {
-        return {
-          isValid: false,
-          error: strings('perps.order.validation.price_required'),
-        };
+      // Calculate order value in USD for minimum validation
+      let orderValueUSD: number;
+
+      if (params.usdAmount) {
+        // Preferred: Use provided USD amount (source of truth, no rounding loss)
+        orderValueUSD = parseFloat(params.usdAmount);
+
+        DevLogger.log('Validating USD amount (source of truth):', {
+          usdAmount: orderValueUSD,
+          minimumRequired: minimumOrderSize,
+        });
+      } else {
+        // Fallback: Calculate from size × currentPrice (backward compatibility)
+        const size = parseFloat(params.size || '0');
+
+        if (!params.currentPrice) {
+          return {
+            isValid: false,
+            error: strings('perps.order.validation.price_required'),
+          };
+        }
+
+        orderValueUSD = size * params.currentPrice;
+
+        DevLogger.log('Validating calculated USD from size:', {
+          size,
+          price: params.currentPrice,
+          calculatedUsd: orderValueUSD,
+          minimumRequired: minimumOrderSize,
+        });
       }
 
-      const orderValueUSD = coinAmount * params.currentPrice;
-
-      // Apply 1% tolerance to prevent validation flash on low-priced tokens
-      // Small price changes + rounding can cause calculated value to hover around minimum
-      // Example: kPEPE at $0.006119: 1634 tokens = $9.998 (FAIL) vs $0.006120 = $10.00 (PASS)
-      const MINIMUM_TOLERANCE_PERCENT = 0.01; // 1% tolerance for rounding precision
-      const minimumWithTolerance =
-        minimumOrderSize * (1 - MINIMUM_TOLERANCE_PERCENT);
-
-      if (orderValueUSD < minimumWithTolerance) {
+      // Validate minimum order size for all orders
+      if (orderValueUSD < minimumOrderSize) {
         return {
           isValid: false,
           error: strings('perps.order.validation.minimum_amount', {
