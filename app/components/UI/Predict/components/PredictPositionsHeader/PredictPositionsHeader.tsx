@@ -258,17 +258,12 @@ const PredictPositionsHeader = forwardRef<
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
               >
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
+                <Text
+                  variant={TextVariant.BodyMd}
+                  twClassName="text-alternative"
                 >
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    twClassName="text-alternative"
-                  >
-                    {strings('predict.unrealized_pnl_label')}
-                  </Text>
-                </Box>
+                  {strings('predict.unrealized_pnl_label')}
+                </Text>
                 {isUnrealizedPnLLoading ? (
                   <Skeleton
                     width={120}
@@ -276,19 +271,19 @@ const PredictPositionsHeader = forwardRef<
                     style={tw.style('rounded-md')}
                   />
                 ) : (
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    twClassName={
-                      unrealizedAmount >= 0
-                        ? 'text-success-default'
-                        : 'text-error-default'
-                    }
-                  >
-                    {strings('predict.unrealized_pnl_value', {
-                      amount: formatAmount(unrealizedAmount),
-                      percent: formatPercent(unrealizedPercent),
-                    })}
-                  </Text>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  twClassName={
+                    unrealizedAmount >= 0
+                      ? 'text-success-default'
+                      : 'text-error-default'
+                  }
+                >
+                  {strings('predict.unrealized_pnl_value', {
+                    amount: formatAmount(unrealizedAmount),
+                    percent: formatPercent(unrealizedPercent),
+                  })}
+                </Text>
                 )}
               </Box>
             </>
