@@ -30,6 +30,7 @@ export function setupIntegrationNetworkInterceptors(): RestoreFn {
           typeof init?.body === 'string' ? JSON.parse(init.body) : undefined;
         const { method, id } = body ?? {};
         const twoEthHex = '0x1bc16d674ec80000'; // 2 ETH
+        const hundredEthHex = '0x56BC75E2D63100000'; // 100 ETH
 
         if (method === 'eth_chainId') {
           return Promise.resolve({
@@ -50,7 +51,7 @@ export function setupIntegrationNetworkInterceptors(): RestoreFn {
             json: async () => ({
               jsonrpc: '2.0',
               id: id ?? 1,
-              result: twoEthHex,
+              result: hundredEthHex,
             }),
           } as Response as unknown as {
             ok: true;
