@@ -5865,6 +5865,407 @@ describe('PolymarketProvider', () => {
         expect(updatedPos?.title).toBe(firstPos?.title);
       });
     });
+
+    describe('integration tests - end-to-end flows', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+        jest.useFakeTimers();
+      });
+
+      afterEach(() => {
+        jest.useRealTimers();
+      });
+
+      it('creates optimistic position on BUY then removes when API confirms', async () => {
+        // Arrange
+        const { provider, mockSigner, mockFetch } = setupOptimisticUpdateTest();
+
+        mockMarketDetailsForOptimistic({
+          marketId: 'market-integration',
+          outcomes: [
+            {
+              id: 'outcome-integration',
+              title: 'Yes',
+              tokenId: 'token-integration',
+              price: 0.5,
+            },
+          ],
+        });
+
+        const preview = createMockOrderPreview({
+          side: Side.BUY,
+          outcomeTokenId: 'token-integration',
+          outcomeId: 'outcome-integration',
+          marketId: 'market-integration',
+        });
+
+        mockSignTypedMessage.mockResolvedValue('0xsignature');
+        mockCreateApiKey.mockResolvedValue({
+          apiKey: 'test-api-key',
+          secret: 'test-secret',
+          passphrase: 'test-passphrase',
+        });
+        mockPriceValid.mockReturnValue(true);
+        mockGetContractConfig.mockReturnValue({
+          exchange: '0x1234567890123456789012345678901234567890',
+          negRiskExchange: '0x0987654321098765432109876543210987654321',
+          collateral: '0xCollateralAddress',
+          conditionalTokens: '0xConditionalTokensAddress',
+          negRiskAdapter: '0xNegRiskAdapterAddress',
+        });
+        mockGetOrderTypedData.mockReturnValue({
+          types: {},
+          primaryType: 'Order',
+          domain: {},
+          message: {},
+        });
+        mockGetL2Headers.mockReturnValue({
+          POLY_ADDRESS: 'address',
+          POLY_SIGNATURE: 'signature',
+          POLY_TIMESTAMP: 'timestamp',
+          POLY_API_KEY: 'apiKey',
+          POLY_PASSPHRASE: 'passphrase',
+        });
+        mockCreateSafeFeeAuthorization.mockResolvedValue({
+          type: 'safe-transaction',
+          authorization: {
+            tx: {
+              to: '0xCollateralAddress',
+              operation: 0,
+              data: '0xdata',
+              value: '0',
+            },
+            sig: '0xsig',
+          },
+        });
+
+        mockSubmitClobOrder.mockResolvedValue({
+          success: true,
+          response: {
+            success: true,
+            makingAmount: '1000000',
+            takingAmount: '2000000',
+            orderID: 'order-123',
+            status: 'success',
+            transactionsHashes: [],
+          },
+          error: undefined,
+        });
+
+        // Act - Place order
+        await provider.placeOrder({ signer: mockSigner, preview });
+
+        // Assert - Position is optimistic
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue([]),
+        });
+        mockParsePolymarketPositions.mockResolvedValue([]);
+
+        let positions = await provider.getPositions({
+          address: mockSigner.address,
+        });
+
+        let optimisticPos = positions.find(
+          (p) => p.outcomeTokenId === 'token-integration',
+        );
+        expect(optimisticPos?.optimistic).toBe(true);
+
+        // Act - API now returns the confirmed position
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue([
+            {
+              id: 'position-123',
+              market: 'market-integration',
+              size: '2000000',
+              value: '100',
+            },
+          ]),
+        });
+        mockParsePolymarketPositions.mockResolvedValue([
+          createMockPosition({
+            id: 'position-123',
+            outcomeTokenId: 'token-integration',
+            size: 2000000,
+            optimistic: false,
+          }),
+        ]);
+
+        positions = await provider.getPositions({
+          address: mockSigner.address,
+        });
+
+        // Assert - Optimistic update removed, API position returned
+        optimisticPos = positions.find(
+          (p) => p.outcomeTokenId === 'token-integration',
+        );
+        expect(optimisticPos?.optimistic).toBeFalsy();
+      });
+
+      it('cleans up after timeout if API never confirms', async () => {
+        // Arrange
+        const { provider, mockSigner, mockFetch } = setupOptimisticUpdateTest();
+
+        mockMarketDetailsForOptimistic({
+          marketId: 'market-timeout',
+          outcomes: [
+            {
+              id: 'outcome-timeout',
+              title: 'Yes',
+              tokenId: 'token-timeout',
+              price: 0.5,
+            },
+          ],
+        });
+
+        const preview = createMockOrderPreview({
+          side: Side.BUY,
+          outcomeTokenId: 'token-timeout',
+          outcomeId: 'outcome-timeout',
+          marketId: 'market-timeout',
+        });
+
+        mockSignTypedMessage.mockResolvedValue('0xsignature');
+        mockCreateApiKey.mockResolvedValue({
+          apiKey: 'test-api-key',
+          secret: 'test-secret',
+          passphrase: 'test-passphrase',
+        });
+        mockPriceValid.mockReturnValue(true);
+        mockGetContractConfig.mockReturnValue({
+          exchange: '0x1234567890123456789012345678901234567890',
+          negRiskExchange: '0x0987654321098765432109876543210987654321',
+          collateral: '0xCollateralAddress',
+          conditionalTokens: '0xConditionalTokensAddress',
+          negRiskAdapter: '0xNegRiskAdapterAddress',
+        });
+        mockGetOrderTypedData.mockReturnValue({
+          types: {},
+          primaryType: 'Order',
+          domain: {},
+          message: {},
+        });
+        mockGetL2Headers.mockReturnValue({
+          POLY_ADDRESS: 'address',
+          POLY_SIGNATURE: 'signature',
+          POLY_TIMESTAMP: 'timestamp',
+          POLY_API_KEY: 'apiKey',
+          POLY_PASSPHRASE: 'passphrase',
+        });
+        mockCreateSafeFeeAuthorization.mockResolvedValue({
+          type: 'safe-transaction',
+          authorization: {
+            tx: {
+              to: '0xCollateralAddress',
+              operation: 0,
+              data: '0xdata',
+              value: '0',
+            },
+            sig: '0xsig',
+          },
+        });
+
+        mockSubmitClobOrder.mockResolvedValue({
+          success: true,
+          response: {
+            success: true,
+            makingAmount: '1000000',
+            takingAmount: '2000000',
+            orderID: 'order-123',
+            status: 'success',
+            transactionsHashes: [],
+          },
+          error: undefined,
+        });
+
+        // Act - Place order
+        await provider.placeOrder({ signer: mockSigner, preview });
+
+        // Assert - Position is optimistic
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue([]),
+        });
+        mockParsePolymarketPositions.mockResolvedValue([]);
+
+        let positions = await provider.getPositions({
+          address: mockSigner.address,
+        });
+
+        expect(
+          positions.find((p) => p.outcomeTokenId === 'token-timeout')
+            ?.optimistic,
+        ).toBe(true);
+
+        // Act - Advance time by 2 minutes (past 1 minute timeout)
+        jest.advanceTimersByTime(2 * 60 * 1000);
+
+        // Act - getPositions should clean up expired optimistic updates
+        positions = await provider.getPositions({
+          address: mockSigner.address,
+        });
+
+        // Assert - Optimistic position should not be returned (expired)
+        const optimisticPos = positions.find(
+          (p) => p.outcomeTokenId === 'token-timeout',
+        );
+        expect(optimisticPos).toBeUndefined();
+      });
+
+      it('handles BUY order followed by SELL order on same position', async () => {
+        // Arrange
+        const { provider, mockSigner, mockFetch } = setupOptimisticUpdateTest();
+
+        mockMarketDetailsForOptimistic({
+          marketId: 'market-buysell',
+          outcomes: [
+            {
+              id: 'outcome-buysell',
+              title: 'Yes',
+              tokenId: 'token-buysell',
+              price: 0.5,
+            },
+          ],
+        });
+
+        mockSignTypedMessage.mockResolvedValue('0xsignature');
+        mockCreateApiKey.mockResolvedValue({
+          apiKey: 'test-api-key',
+          secret: 'test-secret',
+          passphrase: 'test-passphrase',
+        });
+        mockPriceValid.mockReturnValue(true);
+        mockGetContractConfig.mockReturnValue({
+          exchange: '0x1234567890123456789012345678901234567890',
+          negRiskExchange: '0x0987654321098765432109876543210987654321',
+          collateral: '0xCollateralAddress',
+          conditionalTokens: '0xConditionalTokensAddress',
+          negRiskAdapter: '0xNegRiskAdapterAddress',
+        });
+        mockGetOrderTypedData.mockReturnValue({
+          types: {},
+          primaryType: 'Order',
+          domain: {},
+          message: {},
+        });
+        mockGetL2Headers.mockReturnValue({
+          POLY_ADDRESS: 'address',
+          POLY_SIGNATURE: 'signature',
+          POLY_TIMESTAMP: 'timestamp',
+          POLY_API_KEY: 'apiKey',
+          POLY_PASSPHRASE: 'passphrase',
+        });
+        mockCreateSafeFeeAuthorization.mockResolvedValue({
+          type: 'safe-transaction',
+          authorization: {
+            tx: {
+              to: '0xCollateralAddress',
+              operation: 0,
+              data: '0xdata',
+              value: '0',
+            },
+            sig: '0xsig',
+          },
+        });
+
+        // Act - BUY order
+        const buyPreview = createMockOrderPreview({
+          side: Side.BUY,
+          outcomeTokenId: 'token-buysell',
+          outcomeId: 'outcome-buysell',
+          marketId: 'market-buysell',
+        });
+
+        mockSubmitClobOrder.mockResolvedValueOnce({
+          success: true,
+          response: {
+            success: true,
+            makingAmount: '1000000',
+            takingAmount: '2000000',
+            orderID: 'order-buy',
+            status: 'success',
+            transactionsHashes: [],
+          },
+          error: undefined,
+        });
+
+        await provider.placeOrder({ signer: mockSigner, preview: buyPreview });
+
+        // API returns the bought position
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue([
+            {
+              id: 'position-buysell',
+              market: 'market-buysell',
+              size: '2000000',
+              value: '100',
+            },
+          ]),
+        });
+        mockParsePolymarketPositions.mockResolvedValue([
+          createMockPosition({
+            id: 'position-buysell',
+            outcomeTokenId: 'token-buysell',
+            size: 2000000,
+          }),
+        ]);
+
+        let positions = await provider.getPositions({
+          address: mockSigner.address,
+        });
+        expect(positions).toHaveLength(1);
+
+        // Act - SELL order
+        const sellPreview = createMockOrderPreview({
+          side: Side.SELL,
+          outcomeTokenId: 'token-buysell',
+          positionId: 'position-buysell',
+        });
+
+        mockSubmitClobOrder.mockResolvedValueOnce({
+          success: true,
+          response: {
+            success: true,
+            makingAmount: '2000000',
+            takingAmount: '1000000',
+            orderID: 'order-sell',
+            status: 'success',
+            transactionsHashes: [],
+          },
+          error: undefined,
+        });
+
+        await provider.placeOrder({ signer: mockSigner, preview: sellPreview });
+
+        // Assert - Position should be marked for removal
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue([
+            {
+              id: 'position-buysell',
+              market: 'market-buysell',
+              size: '2000000',
+              value: '100',
+            },
+          ]),
+        });
+        mockParsePolymarketPositions.mockResolvedValue([
+          createMockPosition({
+            id: 'position-buysell',
+            outcomeTokenId: 'token-buysell',
+            size: 2000000,
+          }),
+        ]);
+
+        positions = await provider.getPositions({
+          address: mockSigner.address,
+        });
+
+        expect(positions).toHaveLength(0);
+      });
+    });
   });
 
   describe('provider interface properties', () => {
