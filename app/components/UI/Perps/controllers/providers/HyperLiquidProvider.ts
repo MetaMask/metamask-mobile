@@ -1988,6 +1988,15 @@ export class HyperLiquidProvider implements IPerpsProvider {
     try {
       DevLogger.log('Editing order:', params);
 
+      // Validate size is positive (validateOrderParams no longer validates size)
+      const size = parseFloat(params.newOrder.size || '0');
+      if (size <= 0) {
+        return {
+          success: false,
+          error: strings('perps.errors.orderValidation.sizePositive'),
+        };
+      }
+
       // Validate new order parameters
       const validation = validateOrderParams({
         coin: params.newOrder.coin,
