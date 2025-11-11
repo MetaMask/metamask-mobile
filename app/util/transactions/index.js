@@ -215,6 +215,8 @@ const actionKeys = {
   [TransactionType.predictWithdraw]: strings(
     'transactions.tx_review_predict_withdraw',
   ),
+  // TODO: Add type for musdConversion to TransactionType.
+  musdConversion: strings('transactions.tx_review_musd_conversion'),
 };
 
 /**
@@ -544,6 +546,7 @@ export async function getTransactionActionKey(transaction, chainId) {
       TransactionType.lendingDeposit,
       TransactionType.lendingWithdraw,
       TransactionType.perpsDeposit,
+      'musdConversion',
     ].includes(type)
   ) {
     return type;
