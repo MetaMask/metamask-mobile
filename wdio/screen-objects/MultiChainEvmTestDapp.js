@@ -18,6 +18,7 @@ class MultiChainEvmTestDapp {
         }
 
         if (AppwrightSelectors.isAndroid(this._device)) {
+            // fix this
             return AppwrightSelectors.getElementByXpath(this._device, '//android.widget.Button[@text="Terminate"]');
         }
     }
@@ -28,7 +29,7 @@ class MultiChainEvmTestDapp {
         }
 
         if (AppwrightSelectors.isAndroid(this._device)) {
-            return AppwrightSelectors.getElementByXpath(this._device, '//android.widget.Button[@text="Connect"]');
+            return AppwrightSelectors.getElementByXpath(this._device, '//div[@id="root"]/div/div[2]/button[1]');
         }
     }
 
@@ -38,7 +39,7 @@ class MultiChainEvmTestDapp {
         }
 
         if (AppwrightSelectors.isAndroid(this._device)) {
-            return AppwrightSelectors.getElementByXpath(this._device, '//android.widget.TextView[@text="Connected: true"]');
+            return AppwrightSelectors.getElementByID(this._device, 'connected');
         }
     }
 

@@ -9,6 +9,7 @@ import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 import MultiChainEvmTestDapp from '../../../wdio/screen-objects/MultiChainEvmTestDapp.js';
 import AndroidScreenHelpers from '../../../wdio/screen-objects/Native/Android.js';
 import DappConnectionModal from '../../../wdio/screen-objects/Modals/DappConnectionModal.js';
+import AppwrightHelpers from '../../../e2e/framework/AppwrightHelpers.js';
 
 const EVM_LEGACY_TEST_DAPP_URL = 'http://10.0.2.2:5173/';
 const EVM_LEGACY_TEST_DAPP_NAME = 'Connect | Legacy EVM';
@@ -20,6 +21,8 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   MultiChainEvmTestDapp.device = device;
   AndroidScreenHelpers.device = device;
   DappConnectionModal.device = device;
+
+  await AppwrightHelpers.switchToNativeContext(device);
 
   await login(device);
   // commenting this out because we're manually dismissing modals and this check so slow
@@ -38,7 +41,14 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   // Connect to the dapp
   // This might make things worse?
   // await MultiChainEvmTestDapp.tapTerminateButton();
+
+  await AppwrightHelpers.switchToWebViewContext(
+    device,
+    EVM_LEGACY_TEST_DAPP_URL,
+  );
   await MultiChainEvmTestDapp.tapConnectButton();
+
+  await AppwrightHelpers.switchToNativeContext(device);
   await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
 
   // Accept in MetaMask app
@@ -53,5 +63,9 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
+  await AppwrightHelpers.switchToWebViewContext(
+    device,
+    EVM_LEGACY_TEST_DAPP_URL,
+  );
   await MultiChainEvmTestDapp.isDappConnected();
 });
