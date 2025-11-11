@@ -42,6 +42,7 @@ export const snapControllerInit: ControllerInitFunction<
   const requireAllowlist = process.env.METAMASK_BUILD_TYPE !== 'flask';
   const disableSnapInstallation = process.env.METAMASK_BUILD_TYPE !== 'flask';
   const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
+  const autoUpdatePreinstalledSnaps = true;
 
   ///: BEGIN:ONLY_INCLUDE_IF(flask)
   const forcePreinstalledSnaps =
@@ -106,6 +107,7 @@ export const snapControllerInit: ControllerInitFunction<
       allowLocalSnaps,
       disableSnapInstallation,
       requireAllowlist,
+      autoUpdatePreinstalledSnaps,
       ///: BEGIN:ONLY_INCLUDE_IF(flask)
       forcePreinstalledSnaps,
       ///: END:ONLY_INCLUDE_IF

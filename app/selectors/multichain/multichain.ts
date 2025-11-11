@@ -521,7 +521,9 @@ export const selectNonEvmTransactionsForSelectedAccountGroup =
       }
 
       const aggregated = {
-        ...DEFAULT_TRANSACTION_STATE_ENTRY,
+        transactions: [],
+        next: null,
+        lastUpdated: 0,
       } as NonEvmTransactionStateEntry;
 
       for (const account of selectedGroupAccounts) {
