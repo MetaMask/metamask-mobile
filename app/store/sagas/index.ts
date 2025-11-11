@@ -239,8 +239,12 @@ export function* handleSnapsRegistry() {
       continue;
     }
 
-    const { SnapController } = Engine.context;
-    yield call([SnapController, SnapController.updateRegistry]);
+    try {
+      const { SnapController } = Engine.context;
+      yield call([SnapController, SnapController.updateRegistry]);
+    } catch {
+      // Ignore
+    }
   }
 }
 ///: END:ONLY_INCLUDE_IF
