@@ -48,8 +48,8 @@ const createStyles = (theme: Theme) =>
       left: 0,
       right: 0,
       bottom: 0,
-      width: Dimensions.get('window').width + 25,
-      height: Dimensions.get('window').height + 100,
+      width: screenWidth * 1.07, // 7% wider for edge coverage
+      height: screenHeight * 1.12, // 12% taller for edge coverage
       resizeMode: 'cover',
     },
     contentContainer: {
