@@ -903,14 +903,18 @@ export class PolymarketProvider implements PredictProvider {
             claimable: existingPosition.claimable,
           },
         );
-        this.#buyOrderInProgressByAddress.set(signer.address, false);
+        if (side === Side.BUY) {
+          this.#buyOrderInProgressByAddress.set(signer.address, false);
+        }
         return {
           success: false,
           error,
         } as OrderResult;
       }
     } catch (error) {
-      this.#buyOrderInProgressByAddress.set(signer.address, false);
+      if (side === Side.BUY) {
+        this.#buyOrderInProgressByAddress.set(signer.address, false);
+      }
       DevLogger.log(
         'PolymarketProvider: Failed to fetch existing position',
         error,
