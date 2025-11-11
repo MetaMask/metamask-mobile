@@ -1,4 +1,5 @@
 import BN from 'bnjs4';
+import { BigNumber } from 'bignumber.js';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { useCallback } from 'react';
@@ -11,6 +12,7 @@ import { useSendContext } from '../../context/send-context';
 import { useBalance } from './useBalance';
 import { useGasFeeEstimatesForSend } from './useGasFeeEstimatesForSend';
 import { useSendType } from './useSendType';
+import { MINIMUM_BITCOIN_TRANSACTION_AMOUNT } from './constants';
 
 export interface GasFeeEstimatesType {
   medium: {
@@ -38,6 +40,7 @@ export const getEstimatedTotalGas = (
 export const getPercentageValueFn = ({
   asset,
   gasFeeEstimates,
+  isBitcoinSendType,
   isEvmNativeSendType,
   layer1GasFee,
   percentage,
@@ -45,6 +48,7 @@ export const getPercentageValueFn = ({
 }: {
   asset?: AssetType;
   gasFeeEstimates: GasFeeEstimatesType;
+  isBitcoinSendType?: boolean;
   isEvmNativeSendType?: boolean;
   layer1GasFee: Hex;
   percentage: number;
@@ -70,12 +74,23 @@ export const getPercentageValueFn = ({
     percentageValue = percentageValue.mul(new BN(percentage)).div(new BN(100));
   }
 
-  return fromBNWithDecimals(percentageValue, asset.decimals);
+  const result = fromBNWithDecimals(percentageValue, asset.decimals);
+
+  // For Bitcoin, ensure the calculated amount meets the minimum transaction requirement
+  if (isBitcoinSendType) {
+    const resultBN = new BigNumber(result);
+    if (resultBN.lt(MINIMUM_BITCOIN_TRANSACTION_AMOUNT)) {
+      return '0';
+    }
+  }
+
+  return result;
 };
 
 export const usePercentageAmount = () => {
   const { asset, chainId, from, value } = useSendContext();
-  const { isEvmNativeSendType, isNonEvmNativeSendType } = useSendType();
+  const { isBitcoinSendType, isEvmNativeSendType, isNonEvmNativeSendType } =
+    useSendType();
   const { rawBalanceBN } = useBalance();
   const { gasFeeEstimates } = useGasFeeEstimatesForSend();
 
@@ -97,6 +112,7 @@ export const usePercentageAmount = () => {
       return getPercentageValueFn({
         asset: asset as AssetType,
         gasFeeEstimates: gasFeeEstimates as unknown as GasFeeEstimatesType,
+        isBitcoinSendType,
         isEvmNativeSendType,
         layer1GasFee: layer1GasFee ?? '0x0',
         percentage,
@@ -106,6 +122,7 @@ export const usePercentageAmount = () => {
     [
       asset,
       gasFeeEstimates,
+      isBitcoinSendType,
       isEvmNativeSendType,
       isNonEvmNativeSendType,
       layer1GasFee,

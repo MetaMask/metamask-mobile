@@ -10,8 +10,8 @@ import {
 import { useSendContext } from '../../context/send-context';
 import { useBalance } from './useBalance';
 import { useSendType } from './useSendType';
+import { MINIMUM_BITCOIN_TRANSACTION_AMOUNT } from './constants';
 
-const MINIMUM_BITCOIN_TRANSACTION_AMOUNT = new BigNumber('0.0001');
 const isValidBitcoinAmount = (value: string) => {
   const valueBN = new BigNumber(value);
   return valueBN.gte(MINIMUM_BITCOIN_TRANSACTION_AMOUNT);
