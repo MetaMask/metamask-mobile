@@ -28,9 +28,15 @@ jest.mock('react-redux', () => ({
 
 import TrendingView from './TrendingView';
 import { updateLastTrendingScreen } from '../../Nav/Main/MainNavigator';
-import { selectChainId } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectPopularNetworkConfigurationsByCaipChainId,
+  selectCustomNetworkConfigurationsByCaipChainId,
+} from '../../../selectors/networkController';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { useSelector } from 'react-redux';
 
 jest.mock('../../../components/hooks/useMetrics', () => ({
@@ -48,6 +54,52 @@ jest.mock('../../../util/browser', () => ({
 jest.mock('../Browser', () => ({
   __esModule: true,
   default: jest.fn(() => null),
+}));
+
+// Mock the network hooks used by useTrendingRequest
+jest.mock(
+  '../../../components/hooks/useNetworksByNamespace/useNetworksByNamespace',
+  () => ({
+    useNetworksByNamespace: jest.fn(() => ({
+      networks: [],
+      selectedNetworks: [],
+      areAllNetworksSelected: false,
+      areAnyNetworksSelected: false,
+      networkCount: 0,
+      selectedCount: 0,
+    })),
+    NetworkType: {
+      Popular: 'popular',
+      Custom: 'custom',
+    },
+  }),
+);
+
+jest.mock(
+  '../../../components/hooks/useNetworksToUse/useNetworksToUse',
+  () => ({
+    useNetworksToUse: jest.fn(() => ({
+      networksToUse: [],
+      evmNetworks: [],
+      solanaNetworks: [],
+      selectedEvmAccount: null,
+      selectedSolanaAccount: null,
+      isMultichainAccountsState2Enabled: false,
+      areAllNetworksSelectedCombined: false,
+      areAllEvmNetworksSelected: false,
+      areAllSolanaNetworksSelected: false,
+    })),
+  }),
+);
+
+// Mock useTrendingRequest to return empty results
+jest.mock('../../../components/UI/Assets/hooks/useTrendingRequest', () => ({
+  useTrendingRequest: jest.fn(() => ({
+    results: [],
+    isLoading: false,
+    error: null,
+    fetch: jest.fn(),
+  })),
 }));
 
 describe('TrendingView', () => {
@@ -74,6 +126,34 @@ describe('TrendingView', () => {
             '0x1': true,
           },
         };
+      }
+      if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
+        // Return empty array to prevent Object.entries() error
+        return [];
+      }
+      if (selector === selectCustomNetworkConfigurationsByCaipChainId) {
+        // Return empty array to prevent Object.entries() error
+        return [];
+      }
+      if (selector === selectMultichainAccountsState2Enabled) {
+        // Return false to use default networks behavior
+        return false;
+      }
+      // Handle selectSelectedInternalAccountByScope which is a selector factory
+      // It returns a function that takes a scope and returns an account
+      if (selector === selectSelectedInternalAccountByScope) {
+        // Return a function that returns null (no account selected)
+        return (_scope: string) => null;
+      }
+      // Fallback: if selector is a function and might be a selector factory, return a function
+      if (typeof selector === 'function') {
+        const selectorStr = selector.toString();
+        if (
+          selectorStr.includes('selectSelectedInternalAccountByScope') ||
+          selectorStr.includes('SelectedInternalAccountByScope')
+        ) {
+          return (_scope: string) => null;
+        }
       }
       return undefined;
     });
