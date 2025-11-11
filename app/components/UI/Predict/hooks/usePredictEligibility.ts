@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { createSelector } from 'reselect';
 import { useSelector } from 'react-redux';
@@ -19,70 +19,101 @@ export type PredictEligibilityState = ReturnType<
 const DEBOUNCE_INTERVAL_MS = 60000;
 
 /**
- * Hook to access Predict eligibility state and trigger refreshes via the controller.
- * Automatically refreshes eligibility when the app comes to foreground.
+ * Singleton manager to coordinate eligibility refreshes across multiple hook instances.
+ * This ensures that only one AppState listener is active and only one refresh happens
+ * at a time, regardless of how many components use the usePredictEligibility hook.
  */
-export const usePredictEligibility = ({
-  providerId,
-}: {
-  providerId: string;
-}) => {
-  const eligibility = useSelector(selectPredictEligibility);
-  const lastRefreshTimeRef = useRef<number>(0);
-  const refreshPromiseRef = useRef<Promise<void> | null>(null);
+class EligibilityRefreshManager {
+  private static instance: EligibilityRefreshManager | null = null;
+  private activeListeners = 0;
+  private appStateSubscription: { remove: () => void } | null = null;
+  private lastRefreshTime = 0;
+  private refreshPromise: Promise<void> | null = null;
 
-  // Manual refresh - bypasses debounce and updates timestamp
-  const refreshEligibility = useCallback(async () => {
-    const controller = Engine.context.PredictController;
-    await controller.refreshEligibility();
-    lastRefreshTimeRef.current = Date.now();
-  }, []);
+  private constructor() {
+    // Private constructor for singleton
+  }
 
-  // Auto-refresh with debouncing - used by AppState listener
-  // Prevents race conditions by reusing in-flight promises
-  const autoRefreshEligibility = useCallback(async () => {
+  static getInstance(): EligibilityRefreshManager {
+    if (!EligibilityRefreshManager.instance) {
+      EligibilityRefreshManager.instance = new EligibilityRefreshManager();
+    }
+    return EligibilityRefreshManager.instance;
+  }
+
+  /**
+   * Register a hook instance
+   */
+  register(): void {
+    this.activeListeners++;
+
+    if (this.activeListeners === 1) {
+      DevLogger.log('PredictController: Starting eligibility refresh manager', {
+        activeListeners: this.activeListeners,
+      });
+      this.setupAppStateListener();
+    } else {
+      DevLogger.log('PredictController: Additional listener registered', {
+        activeListeners: this.activeListeners,
+      });
+    }
+  }
+
+  /**
+   * Unregister a hook instance
+   */
+  unregister(): void {
+    this.activeListeners--;
+
+    if (this.activeListeners === 0) {
+      DevLogger.log('PredictController: Stopping eligibility refresh manager');
+      this.cleanupAppStateListener();
+    } else {
+      DevLogger.log('PredictController: Listener unregistered', {
+        activeListeners: this.activeListeners,
+      });
+    }
+  }
+
+  /**
+   * Refresh eligibility with debouncing and race condition prevention
+   * @param force - If true, bypasses debouncing
+   */
+  async refresh(force = false): Promise<void> {
     // If a refresh is already in progress, reuse that promise
-    if (refreshPromiseRef.current) {
+    if (this.refreshPromise) {
       DevLogger.log(
         'PredictController: Refresh already in progress, reusing promise',
-        {
-          providerId,
-        },
       );
-      return refreshPromiseRef.current;
+      return this.refreshPromise;
     }
 
     const now = Date.now();
-    const timeSinceLastRefresh = now - lastRefreshTimeRef.current;
+    const timeSinceLastRefresh = now - this.lastRefreshTime;
 
-    // Skip if within debounce interval
-    if (timeSinceLastRefresh < DEBOUNCE_INTERVAL_MS) {
+    // Check if we're within the debounce interval (unless forced)
+    if (!force && timeSinceLastRefresh < DEBOUNCE_INTERVAL_MS) {
       DevLogger.log('PredictController: Skipping refresh due to debounce', {
-        providerId,
         timeSinceLastRefresh,
         minimumInterval: DEBOUNCE_INTERVAL_MS,
       });
       return;
     }
 
-    try {
-      DevLogger.log('PredictController: Auto-refreshing eligibility', {
-        providerId,
-      });
-      refreshPromiseRef.current = refreshEligibility();
-      await refreshPromiseRef.current;
-    } catch (error) {
-      DevLogger.log('PredictController: Auto-refresh failed', {
-        providerId,
-        error: error instanceof Error ? error.message : 'Unknown',
-      });
-    } finally {
-      refreshPromiseRef.current = null;
-    }
-  }, [providerId, refreshEligibility]);
+    this.lastRefreshTime = now;
+    const controller = Engine.context.PredictController;
 
-  // Set up AppState listener to refresh eligibility when app comes to foreground
-  useEffect(() => {
+    this.refreshPromise = controller.refreshEligibility().finally(() => {
+      this.refreshPromise = null;
+    });
+
+    return this.refreshPromise;
+  }
+
+  /**
+   * Set up AppState listener
+   */
+  private setupAppStateListener(): void {
     let previousAppState = AppState.currentState;
 
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
@@ -94,24 +125,91 @@ export const usePredictEligibility = ({
         DevLogger.log(
           'PredictController: App became active, refreshing eligibility',
           {
-            providerId,
             previousState: previousAppState,
           },
         );
-        autoRefreshEligibility();
+        this.refresh().catch((error) => {
+          DevLogger.log('PredictController: Auto-refresh failed', {
+            error: error instanceof Error ? error.message : 'Unknown',
+          });
+        });
       }
       previousAppState = nextAppState;
     };
 
-    const subscription = AppState.addEventListener(
+    this.appStateSubscription = AppState.addEventListener(
       'change',
       handleAppStateChange,
     );
+  }
+
+  /**
+   * Clean up AppState listener
+   */
+  private cleanupAppStateListener(): void {
+    if (this.appStateSubscription) {
+      this.appStateSubscription.remove();
+      this.appStateSubscription = null;
+    }
+  }
+
+  /**
+   * Reset the manager (for testing purposes)
+   */
+  reset(): void {
+    this.cleanupAppStateListener();
+    this.activeListeners = 0;
+    this.lastRefreshTime = 0;
+    this.refreshPromise = null;
+  }
+
+  /**
+   * Get instance for testing
+   */
+  static getInstanceForTesting(): EligibilityRefreshManager | null {
+    return EligibilityRefreshManager.instance;
+  }
+}
+
+// Singleton instance shared across all hook usages
+const refreshManager = EligibilityRefreshManager.getInstance();
+
+// Export for testing purposes
+export const getRefreshManagerForTesting = (): EligibilityRefreshManager =>
+  refreshManager;
+
+/**
+ * Hook to access Predict eligibility state and trigger refreshes via the controller.
+ * Automatically refreshes eligibility when the app comes to foreground.
+ * Multiple components can safely use this hook without causing duplicate refreshes.
+ */
+export const usePredictEligibility = ({
+  providerId,
+}: {
+  providerId: string;
+}) => {
+  const eligibility = useSelector(selectPredictEligibility);
+
+  // Manual refresh - bypasses debounce (force = true)
+  const refreshEligibility = useCallback(async () => {
+    await refreshManager.refresh(true);
+  }, []);
+
+  // Register this hook instance with the singleton manager
+  useEffect(() => {
+    DevLogger.log('PredictController: Mounting eligibility hook', {
+      providerId,
+    });
+
+    refreshManager.register();
 
     return () => {
-      subscription.remove();
+      DevLogger.log('PredictController: Unmounting eligibility hook', {
+        providerId,
+      });
+      refreshManager.unregister();
     };
-  }, [providerId, autoRefreshEligibility]);
+  }, [providerId]);
 
   return {
     isEligible: eligibility[providerId]?.eligible ?? false,

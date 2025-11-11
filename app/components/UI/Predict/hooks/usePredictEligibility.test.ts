@@ -3,7 +3,10 @@ import { AppState, AppStateStatus } from 'react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { usePredictEligibility } from './usePredictEligibility';
+import {
+  usePredictEligibility,
+  getRefreshManagerForTesting,
+} from './usePredictEligibility';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -50,6 +53,10 @@ describe('usePredictEligibility', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
+
+    // Reset the singleton manager FIRST, before setting up mocks
+    const manager = getRefreshManagerForTesting();
+    manager.reset();
 
     // Reset AppState mock
     (AppState as jest.Mocked<typeof AppState>).currentState = 'active';
@@ -118,8 +125,8 @@ describe('usePredictEligibility', () => {
     });
   });
 
-  describe('AppState listener setup', () => {
-    it('sets up AppState listener on mount', () => {
+  describe('singleton manager registration', () => {
+    it('sets up AppState listener when first hook mounts', () => {
       renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
 
       expect(mockAppStateAddEventListener).toHaveBeenCalledTimes(1);
@@ -127,9 +134,35 @@ describe('usePredictEligibility', () => {
         'change',
         expect.any(Function),
       );
+      expect(mockDevLogger).toHaveBeenCalledWith(
+        'PredictController: Starting eligibility refresh manager',
+        expect.objectContaining({
+          activeListeners: 1,
+        }),
+      );
     });
 
-    it('removes AppState listener on unmount', () => {
+    it('does not create additional listeners when second hook mounts', () => {
+      const { unmount: unmount1 } = renderHook(() =>
+        usePredictEligibility({ providerId: 'polymarket' }),
+      );
+
+      jest.clearAllMocks();
+
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
+
+      expect(mockAppStateAddEventListener).not.toHaveBeenCalled();
+      expect(mockDevLogger).toHaveBeenCalledWith(
+        'PredictController: Additional listener registered',
+        expect.objectContaining({
+          activeListeners: 2,
+        }),
+      );
+
+      unmount1();
+    });
+
+    it('removes AppState listener when last hook unmounts', () => {
       const { unmount } = renderHook(() =>
         usePredictEligibility({ providerId: 'polymarket' }),
       );
@@ -137,6 +170,29 @@ describe('usePredictEligibility', () => {
       unmount();
 
       expect(mockSubscriptionRemove).toHaveBeenCalledTimes(1);
+      expect(mockDevLogger).toHaveBeenCalledWith(
+        'PredictController: Stopping eligibility refresh manager',
+      );
+    });
+
+    it('keeps listener active when one of multiple hooks unmounts', () => {
+      const { unmount: unmount1 } = renderHook(() =>
+        usePredictEligibility({ providerId: 'polymarket' }),
+      );
+
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
+
+      jest.clearAllMocks();
+
+      unmount1();
+
+      expect(mockSubscriptionRemove).not.toHaveBeenCalled();
+      expect(mockDevLogger).toHaveBeenCalledWith(
+        'PredictController: Listener unregistered',
+        expect.objectContaining({
+          activeListeners: 1,
+        }),
+      );
     });
   });
 
@@ -156,7 +212,7 @@ describe('usePredictEligibility', () => {
       expect(mockDevLogger).toHaveBeenCalledWith(
         'PredictController: App became active, refreshing eligibility',
         expect.objectContaining({
-          providerId: 'polymarket',
+          previousState: 'background',
         }),
       );
     });
@@ -243,7 +299,6 @@ describe('usePredictEligibility', () => {
       expect(mockDevLogger).toHaveBeenCalledWith(
         'PredictController: Skipping refresh due to debounce',
         expect.objectContaining({
-          providerId: 'polymarket',
           timeSinceLastRefresh: expect.any(Number),
           minimumInterval: 60000,
         }),
@@ -409,7 +464,6 @@ describe('usePredictEligibility', () => {
       expect(mockDevLogger).toHaveBeenCalledWith(
         'PredictController: Auto-refresh failed',
         expect.objectContaining({
-          providerId: 'polymarket',
           error: 'Network error',
         }),
       );
@@ -431,7 +485,6 @@ describe('usePredictEligibility', () => {
       expect(mockDevLogger).toHaveBeenCalledWith(
         'PredictController: Auto-refresh failed',
         expect.objectContaining({
-          providerId: 'polymarket',
           error: 'Unknown',
         }),
       );
@@ -492,9 +545,6 @@ describe('usePredictEligibility', () => {
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
       expect(mockDevLogger).toHaveBeenCalledWith(
         'PredictController: Refresh already in progress, reusing promise',
-        expect.objectContaining({
-          providerId: 'polymarket',
-        }),
       );
 
       resolveRefresh?.();
@@ -517,6 +567,33 @@ describe('usePredictEligibility', () => {
         handleAppStateChange('active');
         handleAppStateChange('background');
         handleAppStateChange('active');
+        handleAppStateChange('background');
+        handleAppStateChange('active');
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
+
+      resolveRefresh?.();
+      await act(async () => {
+        await refreshPromise;
+      });
+    });
+
+    it('prevents concurrent calls from multiple hook instances', async () => {
+      let resolveRefresh: (() => void) | undefined;
+      const refreshPromise = new Promise<void>((resolve) => {
+        resolveRefresh = resolve;
+      });
+      mockRefreshEligibility.mockReturnValueOnce(refreshPromise);
+
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
+      renderHook(() => usePredictEligibility({ providerId: 'polymarket' }));
+
+      const handleAppStateChange = mockAppStateAddEventListener.mock
+        .calls[0][1] as (nextState: AppStateStatus) => void;
+
+      await act(async () => {
         handleAppStateChange('background');
         handleAppStateChange('active');
       });
