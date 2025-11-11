@@ -21,8 +21,8 @@ export const TransactionPayControllerInit: ControllerInitFunction<
 
   try {
     const transactionPayController = new TransactionPayController({
-      getDelegationTransaction: (tx) =>
-        getDelegationTransaction(initMessenger, tx),
+      getDelegationTransaction: ({ transaction }) =>
+        getDelegationTransaction(initMessenger, transaction),
       getStrategy,
       messenger: controllerMessenger,
       state: persistedState.TransactionPayController,
