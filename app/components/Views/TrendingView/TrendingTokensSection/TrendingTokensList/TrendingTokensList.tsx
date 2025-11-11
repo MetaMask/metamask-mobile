@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { FlashList } from '@shopify/flash-list';
 import { TrendingAsset } from '@metamask/assets-controllers';
-import TrendingTokenRowItem from './TrendingTokenRowItem';
+import TrendingTokenRowItem from './TrendingTokenRowItem/TrendingTokenRowItem';
 
 export interface TrendingTokensListProps {
   /**
