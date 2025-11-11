@@ -22,7 +22,7 @@ import {
   lastTrendingScreenRef,
   updateLastTrendingScreen,
 } from '../../Nav/Main/MainNavigator';
-import TrendingTokensSection from './TrendingTokensSection';
+import TrendingTokensSection from './TrendingTokensSection/TrendingTokensSection';
 import { ScrollView } from 'react-native';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './TrendingView.styles';
