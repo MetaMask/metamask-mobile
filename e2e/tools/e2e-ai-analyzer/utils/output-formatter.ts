@@ -4,13 +4,13 @@
  * Formats analysis results for different output modes (console, json)
  */
 
-import { AIAnalysis, FileCategorization, ParsedArgs } from '../types';
+import { SelectTagsAnalysis, FileCategorization, ParsedArgs } from '../types';
 
 /**
  * Formats and outputs the analysis results based on the output mode
  */
 export function formatAndOutput(
-  analysis: AIAnalysis,
+  analysis: SelectTagsAnalysis,
   options: ParsedArgs,
   categorization: FileCategorization,
 ): void {
@@ -25,7 +25,7 @@ export function formatAndOutput(
  * Outputs results in JSON format for CI/CD consumption
  */
 function outputJSON(
-  analysis: AIAnalysis,
+  analysis: SelectTagsAnalysis,
   categorization: FileCategorization,
 ): void {
   console.log(
@@ -56,7 +56,7 @@ function outputJSON(
 /**
  * Outputs human-readable format with all details
  */
-function outputDefault(analysis: AIAnalysis): void {
+function outputDefault(analysis: SelectTagsAnalysis): void {
   console.log('🤖 AI E2E Tag Selector');
   console.log('===================================');
   console.log(`🎯 Risk level: ${analysis.riskLevel}`);
@@ -77,15 +77,4 @@ function outputDefault(analysis: AIAnalysis): void {
     });
     console.log(`🔢 Total splits: ${analysis.totalSplits}`);
   }
-}
-
-/**
- * Simple log function that respects quiet mode
- */
-export function createLogger(isQuiet: boolean) {
-  return (message: string): void => {
-    if (!isQuiet) {
-      console.log(message);
-    }
-  };
 }

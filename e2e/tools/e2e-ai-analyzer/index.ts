@@ -5,14 +5,13 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
-import { ParsedArgs, FileCategorization } from './types';
+import { ParsedArgs } from './types';
 import { APP_CONFIG } from './config';
 import {
   getAllChangedFiles,
   getPRFiles,
   validatePRNumber,
 } from './utils/git-utils';
-import { createLogger } from './utils/output-formatter';
 import { MODES, validateMode, analyzeWithAgent } from './analysis/analyzer';
 
 /**
@@ -22,9 +21,8 @@ function validateProvidedFiles(
   providedFiles: string[],
   baseBranch: string,
   baseDir: string,
-  log: (msg: string) => void,
 ): string[] {
-  log('🔍 Validating provided files have changes...');
+  console.log('🔍 Validating provided files have changes...');
   const actuallyChangedFiles = getAllChangedFiles(baseBranch, baseDir);
   const invalidFiles = providedFiles.filter(
     (f) => !actuallyChangedFiles.includes(f),
@@ -41,7 +39,7 @@ function validateProvidedFiles(
     process.exit(1);
   }
 
-  log(`✅ All ${providedFiles.length} provided files validated`);
+  console.log(`✅ All ${providedFiles.length} provided files validated`);
   return providedFiles;
 }
 
@@ -79,7 +77,6 @@ function identifyCriticalFiles(files: string[]): string[] {
 function parseArgs(args: string[]): ParsedArgs {
   const options: ParsedArgs = {
     baseBranch: APP_CONFIG.defaultBaseBranch,
-    output: 'console',
     mode: 'select-tags',
   };
 
@@ -93,10 +90,6 @@ function parseArgs(args: string[]): ParsedArgs {
       case '--base-branch':
       case '-b':
         options.baseBranch = args[++i];
-        break;
-      case '--output':
-      case '-o':
-        options.output = args[++i] as ParsedArgs['output'];
         break;
       case '--changed-files':
         options.changedFiles = args[++i];
@@ -134,7 +127,7 @@ AVAILABLE MODES:
 ${modeList}
 
 AI AGENTIC FLOW:
-1. AI gets list of changed files
+1. AI gets list of changed files and act depending on the mode
 2. AI calls tools to investigate (get_git_diff, find_related_files, etc.)
 3. AI thinks deeply about impacts and provides a decision
 
@@ -143,27 +136,21 @@ Usage: node -r esbuild-register e2e/tools/e2e-ai-analyzer [options]
 Options:
   -m, --mode <mode>             Analysis mode (default: select-tags)
   -b, --base-branch <branch>    Base branch for comparison (default: origin/main)
-  -o, --output <mode>           Output mode: console|json (default: console)
   --changed-files <files>       Provide changed files directly
   --pr <number>                 Get changed files from a specific PR
   -h, --help                    Show this help message
 
+Output:
+  - each mode defines its own output format
+
 Examples:
-  # Analyze current branch (default: select-tags mode)
   E2E_CLAUDE_API_KEY=sk-... node -r esbuild-register e2e/tools/e2e-ai-analyzer
-
-  # Specific mode
-  E2E_CLAUDE_API_KEY=sk-... node -r esbuild-register e2e/tools/e2e-ai-analyzer --mode select-tags
-
-  # Analyze PR (requires gh CLI authenticated)
   E2E_CLAUDE_API_KEY=sk-... node -r esbuild-register e2e/tools/e2e-ai-analyzer --pr 12345
-
-  # JSON output for CI/CD
-  E2E_CLAUDE_API_KEY=sk-... node -r esbuild-register e2e/tools/e2e-ai-analyzer --output json
-    `);
+`);
 }
 
 async function main() {
+  console.log('🤖 Starting E2E AI analysis...');
   const apiKey = process.env.E2E_CLAUDE_API_KEY;
   if (!apiKey) {
     console.error('❌ E2E_CLAUDE_API_KEY not set');
@@ -185,62 +172,48 @@ async function main() {
   const baseBranch = options.baseBranch;
   const baseDir = process.cwd();
   const githubRepo = APP_CONFIG.githubRepo;
-  const isQuietMode = options.output === 'json';
-  const log = createLogger(isQuietMode);
 
-  log(`🎯 Mode: ${mode}`);
+  console.log(`🎯 Mode: ${mode}`);
 
   // Get changed files
   let allChangedFiles: string[];
   if (options.changedFiles) {
     const providedFiles = options.changedFiles.split(/\s+/).filter((f) => f);
-    allChangedFiles = validateProvidedFiles(
-      providedFiles,
-      baseBranch,
-      baseDir,
-      log,
-    );
+    allChangedFiles = validateProvidedFiles(providedFiles, baseBranch, baseDir);
   } else if (options.prNumber) {
     allChangedFiles = getPRFiles(options.prNumber, githubRepo);
   } else {
     allChangedFiles = getAllChangedFiles(baseBranch, baseDir);
   }
-  log(`📁 Found ${allChangedFiles.length} modified files`);
+  console.log(`📁 Found ${allChangedFiles.length} modified files`);
 
   // Validate we have files to analyze
   if (allChangedFiles.length === 0) {
-    log(
+    console.log(
       '💡 Tip: Make sure you have uncommitted changes or are on a branch with commits',
     );
-
     const analysis = MODES[mode].createEmptyResult();
-    MODES[mode].outputAnalysis(analysis, options.output);
+    MODES[mode].outputAnalysis(analysis);
     return;
   }
 
   const criticalFiles = identifyCriticalFiles(allChangedFiles);
   if (criticalFiles.length > 0) {
-    log(`⚠️  ${criticalFiles.length} critical files detected`);
+    console.log(`⚠️  ${criticalFiles.length} critical files detected`);
   }
-
-  const categorization: FileCategorization = {
-    allFiles: allChangedFiles,
-    criticalFiles,
-  };
 
   // Run AI analysis
   const analysis = await analyzeWithAgent(
     anthropic,
-    categorization,
+    allChangedFiles,
+    criticalFiles,
     mode,
     baseDir,
     baseBranch,
-    isQuietMode,
-    log,
   );
 
   // Output results
-  MODES[mode].outputAnalysis(analysis, options.output);
+  MODES[mode].outputAnalysis(analysis);
 }
 
 main().catch((error) => {

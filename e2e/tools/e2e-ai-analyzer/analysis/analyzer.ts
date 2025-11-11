@@ -6,13 +6,15 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
-import { SelectTagsAnalysis, FileCategorization, ToolInput } from '../types';
+import { ToolInput, ModeAnalysisTypes } from '../types';
 import { CLAUDE_CONFIG } from '../config';
 import { parseAgentDecision } from './decision-parser';
 import { getToolDefinitions } from '../ai-tools/tool-registry';
 import { executeTool } from '../ai-tools/tool-executor';
-import { buildSystemPrompt as buildSelectTagsSystemPrompt } from '../modes/select-tags/system-prompt';
-import { buildTaskPrompt as buildSelectTagsTaskPrompt } from '../modes/select-tags/task-prompt';
+import {
+  buildSystemPrompt as buildSelectTagsSystemPrompt,
+  buildTaskPrompt as buildSelectTagsTaskPrompt,
+} from '../modes/select-tags/prompt';
 import {
   processAnalysis as processSelectTagsAnalysis,
   createConservativeResult as createSelectTagsConservativeResult,
@@ -46,7 +48,9 @@ export const MODES = {
   // },
 };
 
-export type ModeKey = keyof typeof MODES;
+// Type aliases for mode keys and analysis results
+type ModeKey = keyof typeof MODES;
+type ModeAnalysisResult<M extends ModeKey> = ModeAnalysisTypes[M];
 
 /**
  * Validates and returns the mode
@@ -65,19 +69,21 @@ export function validateMode(modeInput?: string): ModeKey {
 /**
  * Main AI analysis using agentic loop with tools
  */
-export async function analyzeWithAgent(
+export async function analyzeWithAgent<M extends ModeKey>(
   anthropic: Anthropic,
-  categorization: FileCategorization,
-  mode: ModeKey,
+  allChangedFiles: string[],
+  criticalFiles: string[],
+  mode: M,
   baseDir: string,
   baseBranch: string,
-  isQuietMode: boolean,
-  log: (msg: string) => void,
-): Promise<SelectTagsAnalysis> {
+): Promise<ModeAnalysisResult<M>> {
   // Get mode configuration with prompt builders
   const modeConfig = MODES[mode];
   const systemPrompt = modeConfig.systemPromptBuilder();
-  const taskPrompt = modeConfig.taskPromptBuilder(categorization);
+  const taskPrompt = modeConfig.taskPromptBuilder(
+    allChangedFiles,
+    criticalFiles,
+  );
 
   const tools = getToolDefinitions();
   let currentMessage: string | Anthropic.MessageParam['content'] = taskPrompt;
@@ -88,7 +94,9 @@ export async function analyzeWithAgent(
     iteration < CLAUDE_CONFIG.maxIterations;
     iteration++
   ) {
-    log(`🔄 Iteration ${iteration + 1}/${CLAUDE_CONFIG.maxIterations}...`);
+    console.log(
+      `🔄 Iteration ${iteration + 1}/${CLAUDE_CONFIG.maxIterations}...`,
+    );
 
     const response: Anthropic.Message = await anthropic.messages.create({
       model: CLAUDE_CONFIG.model,
@@ -110,7 +118,7 @@ export async function analyzeWithAgent(
       (block: Anthropic.ContentBlock) => block.type === 'thinking',
     );
     if (thinking && 'thinking' in thinking) {
-      log(`💭 ${thinking.thinking.substring(0, 200)}...`);
+      console.log(`💭 ${thinking.thinking.substring(0, 200)}...`);
     }
 
     // Handle tool uses
@@ -123,7 +131,7 @@ export async function analyzeWithAgent(
 
       for (const toolUse of toolUseBlocks) {
         if (toolUse.type === 'tool_use') {
-          log(`🔧 Tool: ${toolUse.name}`);
+          console.log(`🔧 Tool: ${toolUse.name}`);
 
           const toolResult = await executeTool(
             toolUse.name,
@@ -136,17 +144,15 @@ export async function analyzeWithAgent(
 
           // Handle finalize_decision
           if (toolUse.name === 'finalize_decision') {
-            if (!isQuietMode) {
-              try {
-                const parsed = JSON.parse(toolResult);
-                log(
-                  `📝 Agent decision: confidence=${parsed.confidence}%, risk=${
-                    parsed.risk_level
-                  }, tags=${parsed.selected_tags?.length || 0}`,
-                );
-              } catch {
-                // Ignore parse errors in logging
-              }
+            try {
+              const parsed = JSON.parse(toolResult);
+              console.log(
+                `📝 Agent decision: confidence=${parsed.confidence}%, risk=${
+                  parsed.risk_level
+                }, tags=${parsed.selected_tags?.length || 0}`,
+              );
+            } catch {
+              // Ignore parse errors in logging
             }
 
             const analysis = parseAgentDecision(toolResult);
@@ -155,15 +161,14 @@ export async function analyzeWithAgent(
               const processedAnalysis = await modeConfig.processAnalysis(
                 analysis,
                 baseDir,
-                log,
               );
 
-              log(`✅ Analysis complete!`);
-              return processedAnalysis;
+              console.log(`✅ Analysis complete!`);
+              return processedAnalysis as ModeAnalysisResult<M>;
             }
 
-            log('⚠️ Failed to parse finalize_decision');
-            return modeConfig.createConservativeResult();
+            console.log('⚠️ Failed to parse finalize_decision');
+            return modeConfig.createConservativeResult() as ModeAnalysisResult<M>;
           }
 
           toolResults.push({
@@ -201,17 +206,16 @@ export async function analyzeWithAgent(
         const processedAnalysis = await modeConfig.processAnalysis(
           analysis,
           baseDir,
-          log,
         );
 
-        log(`✅ Analysis complete!`);
-        return processedAnalysis;
+        console.log(`✅ Analysis complete!`);
+        return processedAnalysis as ModeAnalysisResult<M>;
       }
     }
 
     break;
   }
 
-  log('⚠️ Using fallback analysis');
-  return modeConfig.createConservativeResult();
+  console.log('⚠️ Using fallback analysis');
+  return modeConfig.createConservativeResult() as ModeAnalysisResult<M>;
 }

@@ -9,6 +9,10 @@ export interface SelectTagsAnalysis {
   reasoning: string;
 }
 
+export interface ModeAnalysisTypes {
+  'select-tags': SelectTagsAnalysis;
+}
+
 export interface TagTestInfo {
   tag: string;
   testFiles: string[];
@@ -18,15 +22,9 @@ export interface TagTestInfo {
 
 export interface ParsedArgs {
   baseBranch: string;
-  output: 'console' | 'json';
   changedFiles?: string;
   prNumber?: number;
   mode?: string;
-}
-
-export interface FileCategorization {
-  allFiles: string[];
-  criticalFiles: string[];
 }
 
 export interface ToolInput {

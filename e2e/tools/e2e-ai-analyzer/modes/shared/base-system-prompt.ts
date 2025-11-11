@@ -37,3 +37,19 @@ You have extended thinking enabled (${CLAUDE_CONFIG.thinkingBudgetTokens} tokens
 - Reason about risk levels
 - Evaluate change significance`;
 }
+
+export function buildConfidenceGuidanceSection(): string {
+  return `CONFIDENCE:
+Provide an honest confidence score (0-100) for your decision.
+- Higher confidence: Clear impact, used tools to investigate, straightforward changes
+- Lower confidence: Uncertain impact, couldn't fully investigate, complex changes
+Be truthful about uncertainty - it's okay to have low confidence.`;
+}
+
+export function buildRiskAssessmentSection(): string {
+  return `RISK ASSESSMENT:
+- Low: Pure documentation, README, comments
+- Medium: Standard code changes with clear impact assessment
+- High: Core modules, controllers, Engine, critical dependencies, critical paths, security
+Still consider tests for low/medium changes if they affect user flows or testing infrastructure`;
+}

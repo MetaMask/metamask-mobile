@@ -2,10 +2,11 @@
  * Mode-specific logic for processing analysis results and creating fallbacks
  */
 
+import { writeFileSync } from 'node:fs';
 import { SelectTagsAnalysis } from '../../types';
 
-//TODO
-const SELECT_TAGS_CONFIG = [
+// TODO to review!!
+export const SELECT_TAGS_CONFIG = [
   { tag: 'SmokeAccounts', description: 'Multi-account, account management' },
   {
     tag: 'SmokeConfirmationsRedesigned',
@@ -68,7 +69,7 @@ const SELECT_TAGS_CONFIG = [
  */
 export function createEmptyResult(): SelectTagsAnalysis {
   return {
-    selectedTags: [],
+    selectedTags: ['None (no tests recommended)'],
     confidence: 100,
     riskLevel: 'low',
     reasoning: 'No files changed - no analysis needed',
@@ -81,7 +82,6 @@ export function createEmptyResult(): SelectTagsAnalysis {
 export async function processAnalysis(
   analysis: SelectTagsAnalysis,
   _baseDir: string,
-  _log: (msg: string) => void,
 ): Promise<SelectTagsAnalysis> {
   return analysis;
 }
@@ -101,36 +101,26 @@ export function createConservativeResult(): SelectTagsAnalysis {
 }
 
 /**
- * Outputs analysis results
+ * Outputs analysis results to both JSON file and console
  */
-export function outputAnalysis(
-  analysis: SelectTagsAnalysis,
-  outputMode: 'console' | 'json',
-): void {
-  if (outputMode === 'json') {
-    console.log(
-      JSON.stringify(
-        {
-          selectedTags: analysis.selectedTags,
-          riskLevel: analysis.riskLevel,
-          reasoning: analysis.reasoning,
-          confidence: analysis.confidence,
-        },
-        null,
-        2,
-      ),
-    );
-  } else {
-    // Human-readable console output
-    console.log('🤖 AI E2E Tag Selector');
-    console.log('===================================');
-    console.log(`🎯 Risk level: ${analysis.riskLevel}`);
-    console.log(
-      `✅ Selected ${
-        analysis.selectedTags.length
-      } tags: ${analysis.selectedTags.join(', ')}`,
-    );
-    console.log(`📊 Confidence: ${analysis.confidence}%`);
-    console.log(`💭 Reasoning: ${analysis.reasoning}`);
+export function outputAnalysis(analysis: SelectTagsAnalysis): void {
+  const outputFile = 'e2e-ai-analysis.json';
+
+  console.log('\n🤖 AI E2E Tag Selector');
+  console.log('===================================');
+  console.log(`✅ Selected E2E tags: ${analysis.selectedTags.join(', ')}`);
+  console.log(`🎯 Risk level: ${analysis.riskLevel}`);
+  console.log(`📊 Confidence: ${analysis.confidence}%`);
+  console.log(`💭 Reasoning: ${analysis.reasoning}`);
+
+  // If running in CI, write the results to a JSON file
+  if (process.env.CI === 'true') {
+    const jsonOutput = {
+      selectedTags: analysis.selectedTags,
+      riskLevel: analysis.riskLevel,
+      confidence: analysis.confidence,
+      reasoning: analysis.reasoning,
+    };
+    writeFileSync(outputFile, JSON.stringify(jsonOutput, null, 2));
   }
 }

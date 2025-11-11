@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { execSync } from 'child_process';
-import { appendFileSync, writeFileSync } from 'fs';
+import { appendFileSync, writeFileSync, readFileSync } from 'fs';
 
 /**
  * Runs the Smart E2E selection script,
@@ -14,21 +14,6 @@ const env = {
 };
 
 const PR_COMMENT_FILE = 'pr_comment.md';
-
-function execCommand(command, options = {}) {
-  try {
-    return execSync(command, {
-      encoding: 'utf8',
-      stdio: options.silent ? 'pipe' : 'inherit',
-      ...options
-    }).toString().trim();
-  } catch (error) {
-    if (!options.ignoreError) {
-      throw error;
-    }
-    return options.defaultValue || 'ERROR';
-  }
-}
 
 function setGithubOutputs(key, value) {
   if (!env.GITHUB_OUTPUT) return;
@@ -47,15 +32,10 @@ function appendGithubSummary(content) {
 }
 
 function generateAnalysisSummary(analysis) {
-  const { tagDisplay, tagCount, riskLevel, confidence, reasoning } = analysis;
+  const { tagDisplay, riskLevel, confidence, reasoning } = analysis;
 
   let summary = '';
-
-  if (tagCount === 0) {
-    summary += '- **Selected E2E tags**: None (no tests recommended)\n';
-  } else {
-    summary += `- **Selected E2E tags**: ${tagDisplay}\n`;
-  }
+  summary += `- **Selected E2E tags**: ${tagDisplay}\n`;
   summary += `- **Risk Level**: ${riskLevel}\n`;
   summary += `- **AI Confidence**: ${confidence}%\n`;
 
@@ -84,8 +64,8 @@ function setGitHubOutputs(analysis) {
   setGithubOutputs('ai_e2e_test_tags', tags);
   setGithubOutputs('ai_tags_display', tagDisplay);
   setGithubOutputs('ai_risk_level', riskLevel);
-  setGithubOutputs('ai_reasoning', reasoning);
   setGithubOutputs('ai_confidence', confidence);
+  setGithubOutputs('ai_reasoning', reasoning);
 }
 
 async function main() {
@@ -95,34 +75,36 @@ async function main() {
       return;
     }
 
-    console.log('🤖 Starting AI analysis...');
-    // Build command
-    const baseCmd = `node -r esbuild-register e2e/tools/e2e-ai-analyzer --mode select-tags --output json --pr ${env.PR_NUMBER}`;
-    const result = execCommand(baseCmd, { silent: true });
-    console.log('🤖 AI analysis completed\n');
-
-    // Validate JSON output
-    let parsedResult;
+    const baseCmd = `node -r esbuild-register e2e/tools/e2e-ai-analyzer --mode select-tags --pr ${env.PR_NUMBER}`;
     try {
-      parsedResult = JSON.parse(result);
+      execSync(baseCmd, {
+        encoding: 'utf8',
+        stdio: 'inherit',
+      });
     } catch (error) {
-      console.error('❌ Invalid JSON output from AI analysis');
-      console.error(`Raw output: ${result}`);
+      console.error('❌ AI analyzer failed');
       process.exit(1);
     }
-    // Parse results
+
+    // Read JSON output from file (written by analyzer)
+    let parsedResult;
+    try {
+      const resultFile = readFileSync('e2e-ai-analysis.json', 'utf8');
+      parsedResult = JSON.parse(resultFile);
+    } catch (error) {
+      console.error('❌ Failed to read e2e-ai-analysis.json');
+      console.error(`Error: ${error.message}`);
+      process.exit(1);
+    }
+
+    // Parse results for GitHub outputs
     const analysis = {
       tags: parsedResult.selectedTags?.join('|') || '',
-      tagCount: parsedResult.selectedTags?.length || 0,
-      riskLevel: parsedResult.riskLevel || '',
       tagDisplay: parsedResult.selectedTags?.join(', ') || '',
+      riskLevel: parsedResult.riskLevel || '',
+      confidence: parsedResult.confidence || '',
       reasoning: parsedResult.reasoning || '',
-      confidence: parsedResult.confidence || ''
     };
-
-    console.log(`🧪 Selected E2E tags: ${analysis.tagDisplay}`);
-    console.log(`📈 Risk Level: ${analysis.riskLevel}`);
-    console.log(`🔢 AI Confidence: ${analysis.confidence}`);
 
     setGitHubOutputs(analysis);
     const summaryContent = generateAnalysisSummary(analysis);
