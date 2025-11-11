@@ -65,6 +65,9 @@ import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
+import PredictDetailsHeaderSkeleton from '../../components/PredictDetailsHeaderSkeleton';
+import PredictDetailsContentSkeleton from '../../components/PredictDetailsContentSkeleton';
+import PredictDetailsButtonsSkeleton from '../../components/PredictDetailsButtonsSkeleton';
 
 const PRICE_HISTORY_TIMEFRAMES: PredictPriceHistoryInterval[] = [
   PredictPriceHistoryInterval.ONE_HOUR,
@@ -550,55 +553,61 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     </Box>
   );
 
-  const renderHeader = () => (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Start}
-      twClassName="gap-3 pb-4"
-      style={{ paddingTop: insets.top + 12 }}
-    >
-      <Box twClassName="flex-row items-center gap-3 px-1">
-        <Pressable
-          onPress={handleBackPress}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel={strings('back')}
-          style={tw.style('items-center justify-center rounded-full')}
-          testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
-        >
-          <Icon
-            name={IconName.ArrowLeft}
-            size={IconSize.Lg}
-            color={colors.icon.default}
-          />
-        </Pressable>
-        <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
-          {image || market?.image ? (
-            <Image
-              source={{ uri: image || market?.image }}
-              style={tw.style('w-full h-full')}
-              resizeMode="cover"
+  const renderHeader = () => {
+    // Show skeleton header if no title/market data available
+    if (!title && !market?.title) {
+      return <PredictDetailsHeaderSkeleton />;
+    }
+
+    // Show real header
+    return (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Start}
+        twClassName="gap-3 pb-4"
+        style={{ paddingTop: insets.top + 12 }}
+      >
+        <Box twClassName="flex-row items-center gap-3 px-1">
+          <Pressable
+            onPress={handleBackPress}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel={strings('back')}
+            style={tw.style('items-center justify-center rounded-full')}
+            testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
+          >
+            <Icon
+              name={IconName.ArrowLeft}
+              size={IconSize.Lg}
+              color={colors.icon.default}
             />
-          ) : (
-            <Box twClassName="w-full h-full bg-muted" />
-          )}
+          </Pressable>
+          <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
+            {image || market?.image ? (
+              <Image
+                source={{ uri: image || market?.image }}
+                style={tw.style('w-full h-full')}
+                resizeMode="cover"
+              />
+            ) : (
+              <Box twClassName="w-full h-full bg-muted" />
+            )}
+          </Box>
+        </Box>
+        <Box
+          twClassName="flex-1 min-h-[40px]"
+          justifyContent={
+            titleLineCount >= 2 ? undefined : BoxJustifyContent.Center
+          }
+          style={titleLineCount >= 2 ? tw.style('mt-[-5px]') : undefined}
+        >
+          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+            {title || market?.title || ''}
+          </Text>
         </Box>
       </Box>
-      <Box
-        twClassName="flex-1 min-h-[40px]"
-        justifyContent={
-          titleLineCount >= 2 ? undefined : BoxJustifyContent.Center
-        }
-        style={titleLineCount >= 2 ? tw.style('mt-[-5px]') : undefined}
-      >
-        <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-          {title ||
-            market?.title ||
-            (isMarketFetching ? strings('predict.loading') : '')}
-        </Text>
-      </Box>
-    </Box>
-  );
+    );
+  };
 
   const renderMarketStatus = () => (
     <Box twClassName="gap-2">
@@ -869,6 +878,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           );
         }
 
+        // Show skeleton buttons while loading
+        if (isMarketFetching && !market) {
+          return <PredictDetailsButtonsSkeleton />;
+        }
+
         return null;
       })()}
     </>
@@ -1046,6 +1060,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       testID={PredictMarketDetailsSelectorsIDs.SCREEN}
     >
       <Box twClassName="px-3 gap-4">{renderHeader()}</Box>
+
       <ScrollView
         testID={PredictMarketDetailsSelectorsIDs.SCROLLABLE_TAB_VIEW}
         stickyHeaderIndices={[1]}
@@ -1075,11 +1090,20 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           )}
         </Box>
 
-        {/* Sticky tab bar */}
-        {renderCustomTabBar()}
+        {/* Show content skeleton while initial market data is fetching */}
+        {isMarketFetching && !market ? (
+          <Box twClassName="px-3">
+            <PredictDetailsContentSkeleton />
+          </Box>
+        ) : (
+          <>
+            {/* Sticky tab bar */}
+            {renderCustomTabBar()}
 
-        {/* Tab content */}
-        {renderTabContent()}
+            {/* Tab content */}
+            {renderTabContent()}
+          </>
+        )}
       </ScrollView>
 
       <Box twClassName="px-3 bg-default border-t border-muted">

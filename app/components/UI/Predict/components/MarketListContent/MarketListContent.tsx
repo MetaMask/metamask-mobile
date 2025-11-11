@@ -9,7 +9,6 @@ import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { FlashList, FlashListProps } from '@shopify/flash-list';
 import styleSheet from './MarketListContent.styles';
 import {
@@ -19,6 +18,7 @@ import {
 import { PredictEntryPoint } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import PredictMarket from '../PredictMarket';
+import PredictMarketSkeleton from '../PredictMarketSkeleton';
 import { getPredictMarketListSelector } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { ScrollCoordinator } from '../../types/scrollCoordinator';
 
@@ -92,62 +92,20 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
     if (!isFetchingMore) return null;
 
     return (
-      <Box twClassName="py-4">
-        <Skeleton
-          testID="skeleton-footer-1"
-          height={40}
-          width={'80%'}
-          style={styles.skeleton}
-        />
-        <Skeleton
-          testID="skeleton-footer-2"
-          height={40}
-          width={'60%'}
-          style={styles.skeleton}
-        />
-        <Skeleton
-          testID="skeleton-footer-3"
-          height={40}
-          width={'40%'}
-          style={styles.skeleton}
-        />
-        <Skeleton
-          testID="skeleton-footer-4"
-          height={40}
-          width={'20%'}
-          style={styles.skeleton}
-        />
+      <Box twClassName="py-2">
+        <PredictMarketSkeleton testID="skeleton-footer-1" />
+        <PredictMarketSkeleton testID="skeleton-footer-2" />
       </Box>
     );
-  }, [isFetchingMore, styles.skeleton]);
+  }, [isFetchingMore]);
 
   if (isFetching) {
     return (
       <Box style={styles.loadingContainer} twClassName="py-2 px-4">
-        <Skeleton
-          testID="skeleton-loading-1"
-          height={60}
-          width={'100%'}
-          style={styles.skeleton}
-        />
-        <Skeleton
-          testID="skeleton-loading-2"
-          height={60}
-          width={'60%'}
-          style={styles.skeleton}
-        />
-        <Skeleton
-          testID="skeleton-loading-3"
-          height={60}
-          width={'40%'}
-          style={styles.skeleton}
-        />
-        <Skeleton
-          testID="skeleton-loading-4"
-          height={60}
-          width={'20%'}
-          style={styles.skeleton}
-        />
+        <PredictMarketSkeleton testID="skeleton-loading-1" />
+        <PredictMarketSkeleton testID="skeleton-loading-2" />
+        <PredictMarketSkeleton testID="skeleton-loading-3" />
+        <PredictMarketSkeleton testID="skeleton-loading-4" />
       </Box>
     );
   }
