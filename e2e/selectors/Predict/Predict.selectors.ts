@@ -161,7 +161,9 @@ export const PredictBalanceSelectorsIDs = {
   BALANCE_CARD: 'predict-balance-card',
 } as const;
 
-// Text labels used within Predict Balance actions
+// ========================================
+// PREDICT ADD FUNDS SELECTORS
+// ========================================
 export const PredictAddFundsSelectorsIDs = {
   ADD_FUNDS: enContent.predict.deposit.add_funds,
 } as const;
