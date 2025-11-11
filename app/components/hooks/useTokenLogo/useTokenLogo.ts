@@ -5,8 +5,8 @@ import { useTheme } from '../../../util/theme';
 export interface UseTokenLogoConfig {
   symbol: string;
   size?: number;
-  assetsRequiringLightBg: Set<string>;
-  assetsRequiringDarkBg: Set<string>;
+  assetsRequiringLightBg?: Set<string>;
+  assetsRequiringDarkBg?: Set<string>;
 }
 
 export interface UseTokenLogoReturn {
@@ -35,8 +35,8 @@ export interface UseTokenLogoReturn {
 export const useTokenLogo = ({
   symbol,
   size = 44,
-  assetsRequiringLightBg,
-  assetsRequiringDarkBg,
+  assetsRequiringLightBg = new Set<string>(),
+  assetsRequiringDarkBg = new Set<string>(),
 }: UseTokenLogoConfig): UseTokenLogoReturn => {
   const { colors, themeAppearance } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
