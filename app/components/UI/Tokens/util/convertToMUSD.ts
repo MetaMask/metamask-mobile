@@ -94,6 +94,7 @@ export async function convertStablecoinToMUSD(): Promise<string> {
 
     Logger.log('[mUSD Conversion] Setting default payment token to USDC...');
 
+    // TODO: When converting this to a hook, we should try using setPayToken from useTransactionPayToken hook instead of calling TransactionPayController.updatePaymentToken directly.
     TransactionPayController.updatePaymentToken({
       transactionId,
       tokenAddress: USDC_ADDRESS_ETHEREUM as Hex,

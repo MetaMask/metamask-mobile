@@ -56,10 +56,17 @@ export interface CustomAmountInfoProps {
   children?: ReactNode;
   currency?: string;
   disablePay?: boolean;
+  /**
+   * Optional map of allowed token addresses by chain ID.
+   * When provided, restricts token selection in PayWithModal to only these tokens.
+   */
+  allowedTokenAddresses?: {
+    [chainId: string]: string[];
+  };
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
-  ({ children, currency, disablePay }) => {
+  ({ children, currency, disablePay, allowedTokenAddresses }) => {
     useClearConfirmationOnBackSwipe();
     useAutomaticTransactionPayToken({ disable: disablePay });
     useTransactionPayMetrics();
@@ -114,7 +121,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             <PayTokenAmount amountHuman={amountHuman} disabled={!hasTokens} />
           )}
           {children}
-          {disablePay !== true && hasTokens && <PayWithRow />}
+          {disablePay !== true && hasTokens && (
+            <PayWithRow allowedTokenAddresses={allowedTokenAddresses} />
+          )}
         </Box>
         <Box gap={25}>
           <AlertMessage alertMessage={alertMessage} />

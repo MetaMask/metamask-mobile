@@ -27,7 +27,19 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 import { useTransactionPayFiat } from '../../../hooks/pay/useTransactionPayFiat';
 
-export function PayWithRow() {
+export interface PayWithRowProps {
+  /**
+   * Optional map of allowed token addresses by chain ID.
+   * When provided, only tokens matching these addresses will be shown in PayWithModal.
+   */
+  allowedTokenAddresses?: {
+    [chainId: string]: string[];
+  };
+}
+
+export const PayWithRow: React.FC<PayWithRowProps> = ({
+  allowedTokenAddresses,
+}) => {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
   const { formatFiat } = useTransactionPayFiat();
@@ -42,8 +54,10 @@ export function PayWithRow() {
   const handleClick = useCallback(() => {
     if (!canEdit) return;
 
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
-  }, [canEdit, navigation]);
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
+      allowedTokenAddresses,
+    });
+  }, [canEdit, navigation, allowedTokenAddresses]);
 
   const balanceUsdFormatted = useMemo(
     () => formatFiat(new BigNumber(payToken?.balanceFiat ?? '0')),
@@ -79,7 +93,7 @@ export function PayWithRow() {
       </Box>
     </TouchableOpacity>
   );
-}
+};
 
 export function PayWithRowSkeleton() {
   const { styles } = useStyles(styleSheet, {});
