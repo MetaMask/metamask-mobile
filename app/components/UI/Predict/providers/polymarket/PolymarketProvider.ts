@@ -711,7 +711,10 @@ export class PolymarketProvider implements PredictProvider {
         if (error.includes(`order couldn't be fully filled`)) {
           throw new Error(PREDICT_ERROR_CODES.ORDER_NOT_FULLY_FILLED);
         }
-        if (error.includes(`not available in your region`)) {
+        if (
+          error.includes(`not available in your region`) ||
+          error.includes(`unable to access this provider`)
+        ) {
           throw new Error(PREDICT_ERROR_CODES.NOT_ELIGIBLE);
         }
         throw new Error(error ?? PREDICT_ERROR_CODES.PLACE_ORDER_FAILED);

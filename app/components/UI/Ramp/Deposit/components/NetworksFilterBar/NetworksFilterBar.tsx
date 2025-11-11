@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
 import { ScrollView } from 'react-native-gesture-handler';
 
@@ -22,11 +21,9 @@ import Icon, {
 
 import styleSheet from './NetworksFilterBar.styles';
 
-import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
 import { useStyles } from '../../../../../hooks/useStyles';
-import { DEPOSIT_NETWORKS_BY_CHAIN_ID } from '../../constants/networks';
 import { excludeFromArray } from '../../utils';
-import { getNetworkImageSource } from '../../../../../../util/networks';
+import { useTokenNetworkInfo } from '../../../hooks/useTokenNetworkInfo';
 import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
 
@@ -45,29 +42,30 @@ function NetworksFilterBar({
 }: Readonly<NetworksFilterBarProps>) {
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
-
-  const allNetworkConfigurations = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
-  );
+  const getTokenNetworkInfo = useTokenNetworkInfo();
 
   const allNetworksIcons = useMemo(() => {
     const headSize = 3;
     const reversedHead = networks.slice(0, headSize).reverse();
     return (
       <Box flexDirection={FlexDirection.RowReverse} gap={0}>
-        {reversedHead.map((chainId) => (
-          <AvatarNetwork
-            key={chainId}
-            imageSource={getNetworkImageSource({ chainId })}
-            name={allNetworkConfigurations[chainId]?.name}
-            size={AvatarSize.Xs}
-            style={styles.overlappedNetworkIcon}
-            includesBorder
-          />
-        ))}
+        {reversedHead.map((chainId) => {
+          const { depositNetworkName, networkName, networkImageSource } =
+            getTokenNetworkInfo(chainId);
+          return (
+            <AvatarNetwork
+              key={chainId}
+              imageSource={networkImageSource}
+              name={depositNetworkName ?? networkName}
+              size={AvatarSize.Xs}
+              style={styles.overlappedNetworkIcon}
+              includesBorder
+            />
+          );
+        })}
       </Box>
     );
-  }, [allNetworkConfigurations, styles.overlappedNetworkIcon, networks]);
+  }, [getTokenNetworkInfo, styles.overlappedNetworkIcon, networks]);
 
   return (
     <ScrollView
@@ -98,9 +96,9 @@ function NetworksFilterBar({
           />
           {networks.map((chainId) => {
             const isSelected = networkFilter.includes(chainId);
-            const networkName =
-              DEPOSIT_NETWORKS_BY_CHAIN_ID[chainId]?.name ??
-              allNetworkConfigurations[chainId]?.name;
+            const { depositNetworkName, networkName, networkImageSource } =
+              getTokenNetworkInfo(chainId);
+            const displayName = depositNetworkName ?? networkName;
             return (
               <Button
                 key={chainId}
@@ -113,8 +111,8 @@ function NetworksFilterBar({
                     {isSelected && (
                       <AvatarNetwork
                         key={chainId}
-                        imageSource={getNetworkImageSource({ chainId })}
-                        name={networkName}
+                        imageSource={networkImageSource}
+                        name={displayName}
                         size={AvatarSize.Xs}
                         style={styles.selectedNetworkIcon}
                       />
@@ -122,7 +120,7 @@ function NetworksFilterBar({
                     <Text
                       color={isSelected ? TextColor.Inverse : TextColor.Default}
                     >
-                      {networkName}
+                      {displayName}
                     </Text>
                   </>
                 }
