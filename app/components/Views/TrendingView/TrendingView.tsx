@@ -24,6 +24,8 @@ import {
 } from '../../Nav/Main/MainNavigator';
 import TrendingTokensSection from './TrendingTokensSection';
 import { ScrollView } from 'react-native';
+import { useStyles } from '../../hooks/useStyles';
+import styleSheet from './TrendingView.styles';
 
 const Stack = createStackNavigator();
 
@@ -55,6 +57,7 @@ const TrendingFeed: React.FC = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { isEnabled } = useMetrics();
+  const { styles } = useStyles(styleSheet, {});
 
   // Update state when returning to TrendingFeed
   useEffect(() => {
@@ -103,8 +106,7 @@ const TrendingFeed: React.FC = () => {
       </Box>
 
       <ScrollView
-        // eslint-disable-next-line react-native/no-inline-styles
-        style={{ flex: 1, marginTop: 48 }}
+        style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
         <TrendingTokensSection />

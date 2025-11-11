@@ -50,12 +50,9 @@ const TrendingTokenRowItem = ({
   iconSize = 44,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
-
-  // Extract chainId from assetId (format: "eip155:1/erc20:0x...")
   const chainId = token.assetId.split('/')[0] as CaipChainId;
 
   const networkBadgeSource = useCallback((currentChainId: CaipChainId) => {
-    // Convert CAIP chainId to Hex for testnet check
     const { reference } = parseCaipChainId(currentChainId);
     const hexChainId = `0x${Number(reference).toString(16)}` as Hex;
 
