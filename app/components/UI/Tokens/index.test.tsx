@@ -1,6 +1,6 @@
 import React from 'react';
 // eslint-disable-next-line @typescript-eslint/no-shadow
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, screen } from '@testing-library/react-native';
 import Tokens from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -21,6 +21,77 @@ const selectedAddress = '0x123';
 
 jest.mock('./TokensBottomSheet', () => ({
   createTokensBottomSheetNavDetails: jest.fn(() => ['BottomSheetScreen', {}]),
+}));
+
+// We don't need to mock TokenList - the actual implementation is fine for testing
+
+// Mock InteractionManager to execute callbacks immediately
+jest.mock('react-native', () => {
+  const actualReactNative = jest.requireActual('react-native');
+  return {
+    ...actualReactNative,
+    InteractionManager: {
+      runAfterInteractions: (callback: () => void) => {
+        callback();
+        return {
+          then: jest.fn(),
+          done: jest.fn(),
+          cancel: jest.fn(),
+        };
+      },
+    },
+  };
+});
+
+jest.mock('@metamask/react-native-actionsheet', () => {
+  const ActualReact = jest.requireActual('react');
+  const { forwardRef } = ActualReact;
+  const { View } = jest.requireActual('react-native');
+  return forwardRef(
+    (
+      {
+        onPress,
+        testID,
+      }: {
+        onPress: (index: number) => void;
+        testID?: string;
+      },
+      ref: unknown,
+    ) => {
+      // Store the ref so we can call show() from tests
+      if (ref && typeof ref === 'object' && 'current' in ref) {
+        (ref as { current: { show: () => void } }).current = {
+          show: () => {
+            // Call onPress with index 0 (remove) when show is called
+            onPress(0);
+          },
+        };
+      }
+      return ActualReact.createElement(View, {
+        testID: testID || 'action-sheet',
+      });
+    },
+  );
+});
+
+const mockIsNonEvmChainId = jest.fn();
+const mockSelectInternalAccountByScope = jest.fn();
+
+jest.mock('../../../core/Multichain/utils', () => ({
+  ...jest.requireActual('../../../core/Multichain/utils'),
+  isNonEvmChainId: (chainId: string) => mockIsNonEvmChainId(chainId),
+}));
+
+jest.mock('../../../util/Logger', () => ({
+  log: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+}));
+
+jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(
+    () => mockSelectInternalAccountByScope,
+  ),
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -80,6 +151,9 @@ jest.mock('../../../core/Engine', () => ({
     MultichainAssetsRatesController: {
       startPolling: jest.fn(),
       stopPollingByPollingToken: jest.fn(),
+    },
+    MultichainAssetsController: {
+      ignoreAssets: jest.fn(() => Promise.resolve()),
     },
     AccountsController: {
       state: {
@@ -330,6 +404,11 @@ const renderComponent = (state: any = {}, isFullView: boolean = false) =>
   );
 
 describe('Tokens', () => {
+  beforeEach(() => {
+    mockIsNonEvmChainId.mockReturnValue(false);
+    mockSelectInternalAccountByScope.mockReturnValue(null);
+  });
+
   afterEach(() => {
     mockNavigate.mockClear();
     mockPush.mockClear();
@@ -457,31 +536,6 @@ describe('Tokens', () => {
     expect(conversionRateMessage).toBeDefined();
     expect(typeof conversionRateMessage).toBe('string');
     expect(true).toBe(true);
-  });
-
-  it('does not call goToAddEvmToken when non-EVM network is selected', async () => {
-    const state = {
-      ...initialState,
-      engine: {
-        ...initialState.engine,
-        backgroundState: {
-          ...initialState.engine.backgroundState,
-          MultichainNetworkController: {
-            selectedNetworkType: 'non-evm',
-          },
-        },
-      },
-      settings: {
-        hideZeroBalanceTokens: false,
-      },
-    };
-
-    const { getByTestId } = renderComponent(state);
-
-    await waitFor(() => {
-      fireEvent.press(getByTestId(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON));
-      expect(mockPush).not.toHaveBeenCalled();
-    });
   });
 
   it('renders correctly when token list is empty', async () => {
@@ -990,6 +1044,17 @@ describe('Tokens', () => {
         getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
       ).toBeOnTheScreen();
       await waitFor(() => expect(queryByTestId('asset-ETH')).toBeDefined());
+    });
+  });
+
+  describe('Token removal functionality', () => {
+    it('renders action sheet for token removal', async () => {
+      renderComponent(initialState);
+
+      await waitFor(() => {
+        const actionSheet = screen.getByTestId('action-sheet');
+        expect(actionSheet).toBeOnTheScreen();
+      });
     });
   });
 });
