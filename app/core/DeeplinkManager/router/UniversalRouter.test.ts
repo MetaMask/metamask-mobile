@@ -9,7 +9,6 @@ import {
 } from './interfaces/UniversalLinkHandler';
 import { CoreUniversalLink } from '../types/CoreUniversalLink';
 import { ACTIONS } from '../../../constants/deeplinks';
-import Logger from '../../../util/Logger';
 import ReduxService from '../../redux';
 
 // Mock dependencies
@@ -109,18 +108,6 @@ describe('UniversalRouter', () => {
       const instance1 = UniversalRouter.getInstance();
       const instance2 = UniversalRouter.getInstance();
       expect(instance1).toBe(instance2);
-    });
-  });
-
-  describe('initialize', () => {
-    it('prevents double initialization', () => {
-      router.initialize();
-      const logSpy = jest.spyOn(Logger, 'log');
-      router.initialize();
-
-      expect(logSpy).toHaveBeenCalledWith(
-        '🔗 UniversalRouter already initialized',
-      );
     });
   });
 

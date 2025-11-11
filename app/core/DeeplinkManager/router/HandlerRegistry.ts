@@ -6,6 +6,11 @@ import Logger from '../../../util/Logger';
  * Registry for managing deep link handlers
  */
 export class HandlerRegistry {
+  // handlers: {
+  //   'swap': [handler1, handler2],
+  //   'send': [handler3, handler4],
+  //   'home': [handler5, handler6]
+  // }
   private handlers: Map<string, UniversalLinkHandler[]> = new Map();
   private globalHandlers: UniversalLinkHandler[] = [];
 
@@ -13,8 +18,11 @@ export class HandlerRegistry {
    * Register a handler for its supported actions
    */
   register(handler: UniversalLinkHandler): void {
+    // for each action that the handler supports
     handler.supportedActions.forEach((action) => {
       const existing = this.handlers.get(action) || [];
+      // look for existing handlers for the action
+      // and add the handler to the end
       existing.push(handler);
       // Sort by priority (lower number = higher priority)
       existing.sort((a, b) => a.priority - b.priority);
@@ -27,8 +35,10 @@ export class HandlerRegistry {
 
   /**
    * Register a global handler that runs for all actions
+   * good for auth handlers, URL validation, etc
    */
   registerGlobal(handler: UniversalLinkHandler): void {
+    // no need for loop because global is applied to all actions
     this.globalHandlers.push(handler);
     this.globalHandlers.sort((a, b) => a.priority - b.priority);
     Logger.log('Registered global handler');
@@ -57,7 +67,9 @@ export class HandlerRegistry {
   unregister(handler: UniversalLinkHandler): void {
     // Remove from action-specific handlers
     this.handlers.forEach((handlers, action) => {
-      const filtered = handlers.filter((h) => h !== handler);
+      const filtered = handlers.filter(
+        (handlerItem) => handlerItem !== handler,
+      );
       if (filtered.length > 0) {
         this.handlers.set(action, filtered);
       } else {
@@ -66,7 +78,9 @@ export class HandlerRegistry {
     });
 
     // Remove from global handlers
-    this.globalHandlers = this.globalHandlers.filter((h) => h !== handler);
+    this.globalHandlers = this.globalHandlers.filter(
+      (handlerItem) => handlerItem !== handler,
+    );
   }
 
   /**
@@ -82,12 +96,5 @@ export class HandlerRegistry {
    */
   getRegisteredActions(): string[] {
     return Array.from(this.handlers.keys());
-  }
-
-  /**
-   * Get handler count for an action
-   */
-  getHandlerCount(action: string): number {
-    return (this.handlers.get(action) || []).length;
   }
 }

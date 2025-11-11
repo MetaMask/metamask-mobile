@@ -14,7 +14,7 @@ export interface HandlerContext {
 }
 
 /**
- * Result returned by handlers after processing
+ * Result returned by *handlers* after processing
  */
 export interface HandlerResult {
   handled: boolean;
@@ -24,7 +24,7 @@ export interface HandlerResult {
 }
 
 /**
- * Abstract base class for all link handlers
+ * Abstract base class template for all link handlers
  */
 export abstract class UniversalLinkHandler {
   /**

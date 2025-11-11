@@ -76,8 +76,6 @@ describe('HandlerRegistry', () => {
 
       expect(registry.getRegisteredActions()).toContain('action1');
       expect(registry.getRegisteredActions()).toContain('action2');
-      expect(registry.getHandlerCount('action1')).toBe(1);
-      expect(registry.getHandlerCount('action2')).toBe(1);
     });
 
     it('sorts handlers by priority', () => {
@@ -126,11 +124,12 @@ describe('HandlerRegistry', () => {
       const handler = new MockHandler(['action1', 'action2'], 10);
 
       registry.register(handler);
-      expect(registry.getHandlerCount('action1')).toBe(1);
+      expect(registry.getRegisteredActions()).toContain('action1');
+      expect(registry.getRegisteredActions()).toContain('action2');
 
       registry.unregister(handler);
-      expect(registry.getHandlerCount('action1')).toBe(0);
-      expect(registry.getHandlerCount('action2')).toBe(0);
+      expect(registry.getRegisteredActions()).not.toContain('action1');
+      expect(registry.getRegisteredActions()).not.toContain('action2');
     });
   });
 
