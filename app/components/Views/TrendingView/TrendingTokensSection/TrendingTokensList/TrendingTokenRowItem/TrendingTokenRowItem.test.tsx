@@ -4,7 +4,7 @@ import { TouchableOpacity } from 'react-native';
 import TrendingTokenRowItem from './TrendingTokenRowItem';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 
-jest.mock('../../../../../component-library/hooks', () => ({
+jest.mock('../../../../../../component-library/hooks', () => ({
   useStyles: jest.fn(() => {
     const actualStyleSheet = jest.requireActual(
       './TrendingTokenRowItem.styles',
@@ -22,7 +22,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
-jest.mock('../TrendingTokenLogo', () => {
+jest.mock('../../TrendingTokenLogo', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -44,7 +44,7 @@ jest.mock('../TrendingTokenLogo', () => {
 });
 
 jest.mock(
-  '../../../../../component-library/components/Badges/BadgeWrapper',
+  '../../../../../../component-library/components/Badges/BadgeWrapper',
   () => {
     const { View: RNView } = jest.requireActual('react-native');
     return {
@@ -72,7 +72,7 @@ jest.mock(
   },
 );
 
-jest.mock('../../../../../component-library/components/Badges/Badge', () => {
+jest.mock('../../../../../../component-library/components/Badges/Badge', () => {
   const { View: RNView } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -103,13 +103,13 @@ jest.mock('../../../../../component-library/components/Badges/Badge', () => {
   };
 });
 
-jest.mock('../../../../../util/networks', () => ({
+jest.mock('../../../../../../util/networks', () => ({
   getDefaultNetworkByChainId: jest.fn(),
   getTestNetImageByChainId: jest.fn(),
   isTestNet: jest.fn(() => false),
 }));
 
-jest.mock('../../../../../util/networks/customNetworks', () => ({
+jest.mock('../../../../../../util/networks/customNetworks', () => ({
   CustomNetworkImgMapping: {},
   PopularList: [],
   UnpopularNetworkList: [],
@@ -132,7 +132,7 @@ jest.mock('@metamask/utils', () => {
 });
 
 const { getDefaultNetworkByChainId, isTestNet } = jest.requireMock(
-  '../../../../../util/networks',
+  '../../../../../../util/networks',
 );
 const { parseCaipChainId } = jest.requireMock('@metamask/utils');
 
