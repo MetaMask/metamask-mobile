@@ -2072,12 +2072,12 @@ describe('PerpsClosePositionView', () => {
       // HyperLiquid's marginUsed already includes PnL
       // receivedAmount = marginUsed - fees = 1450 - 45 = 1405
       // realizedPnl = unrealizedPnl = 150 (from defaultPerpsPositionMock)
-      expect(handleClosePosition).toHaveBeenCalledWith(
-        defaultPerpsPositionMock,
-        '',
-        'market',
-        undefined,
-        {
+      expect(handleClosePosition).toHaveBeenCalledWith({
+        position: defaultPerpsPositionMock,
+        size: '',
+        orderType: 'market',
+        limitPrice: undefined,
+        trackingData: {
           totalFee: 45,
           marketPrice: 3000,
           receivedAmount: 1405,
@@ -2088,12 +2088,14 @@ describe('PerpsClosePositionView', () => {
           estimatedPoints: undefined,
           inputMethod: 'default',
         },
-        '3000.00',
+        marketPrice: '3000.00',
         // Slippage parameters added in USD-as-source-of-truth refactor
-        '4500', // closingValueString: absSize * currentPrice * (closePercentage / 100) = 1.5 * 3000 * 1.0
-        3000, // effectivePrice: currentPrice for market orders
-        100, // maxSlippageBps: 1% slippage tolerance (100 basis points)
-      );
+        slippage: {
+          usdAmount: '4500', // closingValueString: absSize * currentPrice * (closePercentage / 100) = 1.5 * 3000 * 1.0
+          priceAtCalculation: 3000, // effectivePrice: currentPrice for market orders
+          maxSlippageBps: 100, // maxSlippageBps: 1% slippage tolerance (100 basis points)
+        },
+      });
     });
 
     it('validates limit order requires price before confirmation', async () => {
@@ -2158,12 +2160,12 @@ describe('PerpsClosePositionView', () => {
                 if (orderType === 'limit' && !limitPrice) {
                   return; // Should not proceed without price
                 }
-                await handleClosePosition(
-                  defaultPerpsPositionMock,
-                  '',
+                await handleClosePosition({
+                  position: defaultPerpsPositionMock,
+                  size: '',
                   orderType,
-                  orderType === 'limit' ? limitPrice : undefined,
-                  {
+                  limitPrice: orderType === 'limit' ? limitPrice : undefined,
+                  trackingData: {
                     totalFee: 45,
                     marketPrice: 3000,
                     receivedAmount: 1405,
@@ -2174,7 +2176,13 @@ describe('PerpsClosePositionView', () => {
                     estimatedPoints: undefined,
                     inputMethod: 'default',
                   },
-                );
+                  marketPrice: '3000.00',
+                  slippage: {
+                    usdAmount: '4500',
+                    priceAtCalculation: 3000,
+                    maxSlippageBps: 100,
+                  },
+                });
               }}
             >
               <Text>Confirm</Text>
@@ -2190,12 +2198,12 @@ describe('PerpsClosePositionView', () => {
 
       // Assert - Should call with limit price and specific calculated values
       await waitFor(() => {
-        expect(handleClosePosition).toHaveBeenCalledWith(
-          defaultPerpsPositionMock,
-          '',
-          'limit',
-          '50000',
-          {
+        expect(handleClosePosition).toHaveBeenCalledWith({
+          position: defaultPerpsPositionMock,
+          size: '',
+          orderType: 'limit',
+          limitPrice: '50000',
+          trackingData: {
             totalFee: 45,
             marketPrice: 3000,
             receivedAmount: 1405,
@@ -2206,7 +2214,13 @@ describe('PerpsClosePositionView', () => {
             estimatedPoints: undefined,
             inputMethod: 'default',
           },
-        );
+          marketPrice: '3000.00',
+          slippage: {
+            usdAmount: '4500',
+            priceAtCalculation: 3000,
+            maxSlippageBps: 100,
+          },
+        });
       });
     });
   });
@@ -2746,7 +2760,10 @@ describe('PerpsClosePositionView', () => {
       );
 
       // Assert - Component renders without error and uses market data
-      expect(usePerpsMarketDataMock).toHaveBeenCalledWith('BTC');
+      expect(usePerpsMarketDataMock).toHaveBeenCalledWith({
+        asset: 'BTC',
+        showErrorToast: true,
+      });
     });
 
     it('formats position size with different szDecimals values', () => {
@@ -2788,7 +2805,10 @@ describe('PerpsClosePositionView', () => {
             PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
           ),
         ).toBeDefined();
-        expect(usePerpsMarketDataMock).toHaveBeenCalledWith(coin);
+        expect(usePerpsMarketDataMock).toHaveBeenCalledWith({
+          asset: coin,
+          showErrorToast: true,
+        });
       });
     });
 
@@ -2904,7 +2924,10 @@ describe('PerpsClosePositionView', () => {
         );
 
         // Assert - Fetches market data for specific asset
-        expect(usePerpsMarketDataMock).toHaveBeenCalledWith(coin);
+        expect(usePerpsMarketDataMock).toHaveBeenCalledWith({
+          asset: coin,
+          showErrorToast: true,
+        });
       });
     });
 
@@ -2990,7 +3013,10 @@ describe('PerpsClosePositionView', () => {
       );
 
       // Assert - Hook called with correct asset symbol
-      expect(usePerpsMarketDataMock).toHaveBeenCalledWith('ETH');
+      expect(usePerpsMarketDataMock).toHaveBeenCalledWith({
+        asset: 'ETH',
+        showErrorToast: true,
+      });
     });
   });
 
