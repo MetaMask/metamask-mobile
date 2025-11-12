@@ -8,6 +8,9 @@ import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { formatPrice } from '../utils/format';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
+import { useSelector } from 'react-redux';
+import { selectPredictPendingDepositByAddress } from '../selectors/predictController';
 
 interface UsePredictDepositToastsParams {
   providerId?: string;
@@ -20,11 +23,23 @@ export const usePredictDepositToasts = ({
   const { deposit } = usePredictDeposit();
   const navigation = useNavigation();
 
+  const selectedInternalAccountAddress =
+    getEvmAccountFromSelectedAccountGroup();
+
+  const depositBatchId = useSelector(
+    selectPredictPendingDepositByAddress({
+      providerId,
+      address: selectedInternalAccountAddress?.address ?? '',
+    }),
+  );
+
   usePredictToasts({
     onConfirmed: () => {
       loadBalance({ isRefresh: true });
     },
     transactionType: TransactionType.predictDeposit,
+    transactionBatchId:
+      depositBatchId !== 'pending' ? depositBatchId : undefined,
     pendingToastConfig: {
       title: strings('predict.deposit.adding_funds'),
       description: strings('predict.deposit.in_progress_description'),
