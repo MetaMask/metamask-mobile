@@ -67,9 +67,7 @@ exports[`PredictionSection carousel with data matches snapshot with market data 
         {
           "display": "flex",
         },
-        {
-          "height": 250,
-        },
+        undefined,
       ]
     }
   >
@@ -207,38 +205,14 @@ exports[`PredictionSection carousel with data matches snapshot with market data 
               [
                 {
                   "display": "flex",
-                  "marginLeft": 8,
-                  "marginRight": 8,
                 },
                 {
-                  "width": 718,
-                },
-              ]
-            }
-          />
-        </View>
-        <View
-          onFocusCapture={[Function]}
-          onLayout={[Function]}
-          style={
-            [
-              {
-                "flexDirection": "row",
-              },
-              null,
-            ]
-          }
-        >
-          <View
-            style={
-              [
-                {
-                  "display": "flex",
-                  "marginLeft": 8,
-                  "marginRight": 8,
-                },
-                {
-                  "width": 718,
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 16,
+                  "overflow": "hidden",
+                  "paddingHorizontal": 8,
+                  "shadowColor": "#0000001a",
+                  "width": 610.3,
                 },
               ]
             }
@@ -261,38 +235,14 @@ exports[`PredictionSection carousel with data matches snapshot with market data 
               [
                 {
                   "display": "flex",
-                  "marginLeft": 8,
-                  "marginRight": 8,
                 },
                 {
-                  "width": 718,
-                },
-              ]
-            }
-          />
-        </View>
-        <View
-          onFocusCapture={[Function]}
-          onLayout={[Function]}
-          style={
-            [
-              {
-                "flexDirection": "row",
-              },
-              null,
-            ]
-          }
-        >
-          <View
-            style={
-              [
-                {
-                  "display": "flex",
-                  "marginLeft": 8,
-                  "marginRight": 8,
-                },
-                {
-                  "width": 718,
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 16,
+                  "overflow": "hidden",
+                  "paddingHorizontal": 8,
+                  "shadowColor": "#0000001a",
+                  "width": 610.3,
                 },
               ]
             }
@@ -315,11 +265,14 @@ exports[`PredictionSection carousel with data matches snapshot with market data 
               [
                 {
                   "display": "flex",
-                  "marginLeft": 8,
-                  "marginRight": 8,
                 },
                 {
-                  "width": 718,
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 16,
+                  "overflow": "hidden",
+                  "paddingHorizontal": 8,
+                  "shadowColor": "#0000001a",
+                  "width": 610.3,
                 },
               ]
             }
@@ -342,11 +295,74 @@ exports[`PredictionSection carousel with data matches snapshot with market data 
               [
                 {
                   "display": "flex",
-                  "marginLeft": 8,
-                  "marginRight": 8,
                 },
                 {
-                  "width": 718,
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 16,
+                  "overflow": "hidden",
+                  "paddingHorizontal": 8,
+                  "shadowColor": "#0000001a",
+                  "width": 610.3,
+                },
+              ]
+            }
+          />
+        </View>
+        <View
+          onFocusCapture={[Function]}
+          onLayout={[Function]}
+          style={
+            [
+              {
+                "flexDirection": "row",
+              },
+              null,
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "display": "flex",
+                },
+                {
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 16,
+                  "overflow": "hidden",
+                  "paddingHorizontal": 8,
+                  "shadowColor": "#0000001a",
+                  "width": 610.3,
+                },
+              ]
+            }
+          />
+        </View>
+        <View
+          onFocusCapture={[Function]}
+          onLayout={[Function]}
+          style={
+            [
+              {
+                "flexDirection": "row",
+              },
+              null,
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "display": "flex",
+                },
+                {
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 16,
+                  "overflow": "hidden",
+                  "paddingHorizontal": 8,
+                  "shadowColor": "#0000001a",
+                  "width": 610.3,
                 },
               ]
             }
@@ -374,11 +390,12 @@ exports[`PredictionSection carousel with data matches snapshot with market data 
             "alignItems": "center",
             "display": "flex",
             "flexDirection": "row",
-            "gap": 8,
             "justifyContent": "center",
+          },
+          {
+            "gap": 8,
             "marginTop": 16,
           },
-          undefined,
         ]
       }
     >
@@ -425,12 +442,12 @@ exports[`PredictionSection carousel with data matches snapshot with market data 
           style={
             [
               {
-                "borderRadius": 9999,
                 "display": "flex",
-                "height": 8,
               },
               {
-                "backgroundColor": "#000000",
+                "backgroundColor": "#121314",
+                "borderRadius": 4,
+                "height": 8,
                 "width": 24,
               },
             ]
@@ -480,12 +497,12 @@ exports[`PredictionSection carousel with data matches snapshot with market data 
           style={
             [
               {
-                "borderRadius": 9999,
                 "display": "flex",
-                "height": 8,
               },
               {
                 "backgroundColor": "#b7bbc866",
+                "borderRadius": 4,
+                "height": 8,
                 "width": 8,
               },
             ]
@@ -535,12 +552,12 @@ exports[`PredictionSection carousel with data matches snapshot with market data 
           style={
             [
               {
-                "borderRadius": 9999,
                 "display": "flex",
-                "height": 8,
               },
               {
                 "backgroundColor": "#b7bbc866",
+                "borderRadius": 4,
+                "height": 8,
                 "width": 8,
               },
             ]
@@ -590,12 +607,12 @@ exports[`PredictionSection carousel with data matches snapshot with market data 
           style={
             [
               {
-                "borderRadius": 9999,
                 "display": "flex",
-                "height": 8,
               },
               {
                 "backgroundColor": "#b7bbc866",
+                "borderRadius": 4,
+                "height": 8,
                 "width": 8,
               },
             ]
@@ -645,12 +662,12 @@ exports[`PredictionSection carousel with data matches snapshot with market data 
           style={
             [
               {
-                "borderRadius": 9999,
                 "display": "flex",
-                "height": 8,
               },
               {
                 "backgroundColor": "#b7bbc866",
+                "borderRadius": 4,
+                "height": 8,
                 "width": 8,
               },
             ]
@@ -700,12 +717,12 @@ exports[`PredictionSection carousel with data matches snapshot with market data 
           style={
             [
               {
-                "borderRadius": 9999,
                 "display": "flex",
-                "height": 8,
               },
               {
                 "backgroundColor": "#b7bbc866",
+                "borderRadius": 4,
+                "height": 8,
                 "width": 8,
               },
             ]
@@ -784,9 +801,7 @@ exports[`PredictionSection loading state matches snapshot when loading 1`] = `
         {
           "display": "flex",
         },
-        {
-          "height": 250,
-        },
+        undefined,
       ]
     }
   >
@@ -834,38 +849,14 @@ exports[`PredictionSection loading state matches snapshot when loading 1`] = `
               [
                 {
                   "display": "flex",
-                  "marginLeft": 8,
-                  "marginRight": 8,
                 },
                 {
-                  "width": 718,
-                },
-              ]
-            }
-          />
-        </View>
-        <View
-          onFocusCapture={[Function]}
-          onLayout={[Function]}
-          style={
-            [
-              {
-                "flexDirection": "row",
-              },
-              null,
-            ]
-          }
-        >
-          <View
-            style={
-              [
-                {
-                  "display": "flex",
-                  "marginLeft": 8,
-                  "marginRight": 8,
-                },
-                {
-                  "width": 718,
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 16,
+                  "overflow": "hidden",
+                  "paddingHorizontal": 8,
+                  "shadowColor": "#0000001a",
+                  "width": 610.3,
                 },
               ]
             }
@@ -888,11 +879,44 @@ exports[`PredictionSection loading state matches snapshot when loading 1`] = `
               [
                 {
                   "display": "flex",
-                  "marginLeft": 8,
-                  "marginRight": 8,
                 },
                 {
-                  "width": 718,
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 16,
+                  "overflow": "hidden",
+                  "paddingHorizontal": 8,
+                  "shadowColor": "#0000001a",
+                  "width": 610.3,
+                },
+              ]
+            }
+          />
+        </View>
+        <View
+          onFocusCapture={[Function]}
+          onLayout={[Function]}
+          style={
+            [
+              {
+                "flexDirection": "row",
+              },
+              null,
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "display": "flex",
+                },
+                {
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 16,
+                  "overflow": "hidden",
+                  "paddingHorizontal": 8,
+                  "shadowColor": "#0000001a",
+                  "width": 610.3,
                 },
               ]
             }

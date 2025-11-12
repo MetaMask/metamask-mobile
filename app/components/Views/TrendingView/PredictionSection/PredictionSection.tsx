@@ -4,7 +4,6 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   Dimensions,
@@ -12,9 +11,7 @@ import {
   NativeSyntheticEvent,
   Pressable,
   TouchableOpacity,
-  useColorScheme,
 } from 'react-native';
-import { useSelector } from 'react-redux';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { strings } from '../../../../../locales/i18n';
 import Text, {
@@ -26,26 +23,21 @@ import PredictMarket from '../../../UI/Predict/components/PredictMarket';
 import { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
 import { PredictEventValues } from '../../../UI/Predict/constants/eventNames';
 import PredictMarketSkeleton from '../../../UI/Predict/components/PredictMarketSkeleton';
-import { AppThemeKey } from '../../../../util/theme/models';
-import { RootState } from '../../../../reducers';
+import { useStyles } from '../../../../component-library/hooks';
+import styleSheet from './PredictionSection.styles';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32; // 16px padding on each side
 const CARD_SPACING = 16;
 
 const PredictionSection = () => {
-  const tw = useTailwind();
   const [activeIndex, setActiveIndex] = useState(0);
   const flashListRef = useRef<FlashListRef<PredictMarketType>>(null);
 
-  const appTheme: AppThemeKey = useSelector(
-    (state: RootState) => state.user.appTheme,
-  );
-  const osColorScheme = useColorScheme();
-  const activeColor =
-    appTheme === AppThemeKey.dark || osColorScheme === 'dark'
-      ? 'bg-white'
-      : 'bg-black';
+  const { styles } = useStyles(styleSheet, {
+    activeIndex,
+    cardWidth: CARD_WIDTH,
+  });
 
   // Fetch prediction market data with limit of 6
   const { marketData, isFetching } = usePredictMarketData({
@@ -84,7 +76,7 @@ const PredictionSection = () => {
 
   const renderCarouselItem = useCallback(
     ({ item, index }: { item: PredictMarketType; index: number }) => (
-      <Box twClassName="mx-2" style={tw.style({ width: CARD_WIDTH })}>
+      <Box style={styles.carouselItem}>
         <PredictMarket
           market={item}
           entryPoint={PredictEventValues.ENTRY_POINT.PREDICT_FEED}
@@ -92,7 +84,7 @@ const PredictionSection = () => {
         />
       </Box>
     ),
-    [tw],
+    [styles],
   );
 
   const renderPaginationDots = useCallback(
@@ -101,27 +93,23 @@ const PredictionSection = () => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="mt-4 gap-2"
+        style={styles.paginationContainer}
       >
-        {carouselData.map((_, index) => (
-          <Pressable
-            key={`dot-${index}`}
-            onPress={() => scrollToIndex(index)}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Box
-              twClassName="h-2 rounded-full transition-all"
-              style={tw.style(
-                activeIndex === index
-                  ? `w-6 ${activeColor}`
-                  : 'w-2 bg-border-muted',
-              )}
-            />
-          </Pressable>
-        ))}
+        {carouselData.map((_, index) => {
+          const isActive = activeIndex === index;
+          return (
+            <Pressable
+              key={`dot-${index}`}
+              onPress={() => scrollToIndex(index)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Box style={isActive ? styles.dotActive : styles.dot} />
+            </Pressable>
+          );
+        })}
       </Box>
     ),
-    [carouselData, activeIndex, tw, scrollToIndex, activeColor],
+    [carouselData, activeIndex, scrollToIndex, styles],
   );
 
   // Show loading state while fetching
@@ -143,13 +131,13 @@ const PredictionSection = () => {
             </Text>
           </TouchableOpacity>
         </Box>
-        <Box style={tw.style({ height: 250 })}>
+        <Box>
           <FlashList
             data={[1, 2, 3]}
             horizontal
             showsHorizontalScrollIndicator={false}
             renderItem={() => (
-              <Box twClassName="mx-2" style={tw.style({ width: CARD_WIDTH })}>
+              <Box style={styles.carouselItem}>
                 <PredictMarketSkeleton testID="prediction-carousel-skeleton" />
               </Box>
             )}
@@ -183,7 +171,7 @@ const PredictionSection = () => {
         </TouchableOpacity>
       </Box>
 
-      <Box style={tw.style({ height: 250 })}>
+      <Box>
         <FlashList
           ref={flashListRef}
           data={carouselData}
