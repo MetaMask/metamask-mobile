@@ -16,19 +16,22 @@ import { MultichainNetworkConfiguration } from '@metamask/multichain-network-con
 import { ScrollView } from 'react-native-gesture-handler';
 import { useStyles } from '../../../../../component-library/hooks';
 import { Theme } from '../../../../../util/theme/models';
+import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
 
 const getNetworkName = (
   chainId: Hex | CaipChainId,
   networkConfigurations: Record<string, MultichainNetworkConfiguration>,
 ) => {
   // Convert CAIP chain ID to hex format for network configurations lookup
-  const hexChainId = chainId.startsWith('eip155:')
+  const convertedChainId = chainId.startsWith('eip155:')
     ? `0x${parseInt(chainId.split(':')[1]).toString(16)}`
     : chainId;
 
   return (
-    networkConfigurations?.[hexChainId as Hex]?.name ??
-    PopularList.find((network) => network.chainId === hexChainId)?.nickname ??
+    NETWORK_TO_SHORT_NETWORK_NAME_MAP[convertedChainId as CaipChainId | Hex] ??
+    networkConfigurations?.[convertedChainId as Hex]?.name ??
+    PopularList.find((network) => network.chainId === convertedChainId)
+      ?.nickname ??
     'Unknown Network'
   );
 };
