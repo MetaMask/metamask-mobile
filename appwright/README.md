@@ -96,27 +96,14 @@ npx appwright test --project browserstack-android --config appwright/appwright.c
 
 ### Running a Single Test
 
-To run a single test file instead of the entire suite, specify the test file path:
+To run a single test file, specify the test file path:
 
 ```bash
-# Run a single test on local Android emulator
+# Run a single test
 npx appwright test appwright/tests/performance/login/asset-balances.spec.js --project android --config appwright/appwright.config.ts
 
-# Run a single test on BrowserStack iOS
-npx appwright test appwright/tests/performance/onboarding/new-wallet-account-creation.spec.js --project browserstack-ios --config appwright/appwright.config.ts
-
-# Run a single test on local iOS simulator
-npx appwright test appwright/tests/performance/login/eth-swap-flow.spec.js --project ios --config appwright/appwright.config.ts
-```
-
-You can also use glob patterns to run multiple related tests:
-
-```bash
-# Run all login tests on Android
+# Run all tests in a category (using glob pattern)
 npx appwright test appwright/tests/performance/login/*.spec.js --project android --config appwright/appwright.config.ts
-
-# Run all onboarding tests on BrowserStack
-npx appwright test appwright/tests/performance/onboarding/*.spec.js --project ios-onboarding --config appwright/appwright.config.ts
 ```
 
 ### Command Options
@@ -126,48 +113,11 @@ npx appwright test appwright/tests/performance/onboarding/*.spec.js --project io
 
 ## Test Categories
 
-### Login Tests (`tests/performance/login/`)
+Tests are organized in three main categories:
 
-Tests for users with existing wallets. These tests measure performance of:
-
-- **Asset Operations**
-  - `asset-balances.spec.js`: Asset balance loading and display
-  - `asset-view.spec.js`: Viewing individual asset details
-
-- **Swap Flows**
-  - `eth-swap-flow.spec.js`: Ethereum token swap operations
-  - `cross-chain-swap-flow.spec.js`: Cross-chain swap operations
-
-- **Account Management**
-  - `import-multiple-srps.spec.js`: Importing multiple Secret Recovery Phrases
-  - `send-flows.spec.js`: Sending tokens and transactions
-
-- **Launch Times**
-  - `cold-start-to-login.spec.js`: App cold start to login screen
-  - `warm-start-to-login.skip.js`: App warm start to login screen (skipped)
-  - `warm-start-login-to-wallet.skip.js`: Login to wallet view (skipped)
-
-### Onboarding Tests (`tests/performance/onboarding/`)
-
-Tests for new users setting up wallets:
-
-- **Wallet Creation**
-  - `new-wallet-account-creation.spec.js`: Creating a new wallet and first account
-  - `imported-wallet-account-creation.spec.js`: Creating accounts after importing wallet
-  - `import-wallet.spec.js`: Importing existing wallet via SRP
-
-- **Launch Times**
-  - `cold-start-to-onboarding.spec.js`: App cold start to onboarding screen
-  - `cold-start-after-wallet-import.spec.js`: App start after wallet import
-
-- **Feature Onboarding**
-  - `perps-onboarding.spec.js`: Perps feature onboarding flow
-
-### Predict Tests (`tests/performance/predict/`)
-
-Tests for prediction market features:
-
-- `predict-market-details.spec.js`: Viewing prediction market details
+- **Login Tests** (`tests/performance/login/`): Tests for users with existing wallets (asset operations, swaps, account management, launch times)
+- **Onboarding Tests** (`tests/performance/onboarding/`): Tests for new users setting up wallets (wallet creation, import, feature onboarding)
+- **Predict Tests** (`tests/performance/predict/`): Tests for prediction market features
 
 ## Page Object Model
 
