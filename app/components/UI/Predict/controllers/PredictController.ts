@@ -1162,6 +1162,7 @@ export class PredictController extends BaseController<
       let realSharePrice = sharePrice;
       try {
         if (preview.side === Side.BUY) {
+          const totalFee = params.preview.fees?.totalFee ?? 0;
           realAmountUsd = parseFloat(spentAmount);
           realSharePrice = parseFloat(spentAmount) / parseFloat(receivedAmount);
 
@@ -1169,7 +1170,7 @@ export class PredictController extends BaseController<
           this.update((state) => {
             state.balances[providerId] = state.balances[providerId] || {};
             state.balances[providerId][signer.address] = {
-              balance: cachedBalance - realAmountUsd,
+              balance: cachedBalance - (realAmountUsd + totalFee),
               // valid for 5 seconds (since it takes some time to reflect balance on-chain)
               validUntil: Date.now() + 5000,
             };

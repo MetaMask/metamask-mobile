@@ -2,7 +2,6 @@ import React, { useCallback, useMemo, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Box } from '../../Box/Box';
 import Text, {
-  TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
@@ -227,9 +226,7 @@ export const BridgeTokenSelectorBase: React.FC<
           size: ButtonIconSizes.Lg,
         }}
       >
-        <Text variant={TextVariant.HeadingMD}>
-          {title ?? strings('bridge.select_token')}
-        </Text>
+        {title ?? strings('bridge.select_token')}
       </BottomSheetHeader>
 
       <Box style={styles.buttonContainer} gap={20}>
