@@ -106,4 +106,36 @@ describe('TokenSelection Component', () => {
       );
     });
   });
+
+  describe('token selection navigation', () => {
+    it('renders correctly when rampType is DEPOSIT', () => {
+      (useParams as jest.Mock).mockReturnValue({
+        rampType: 'DEPOSIT',
+      });
+
+      const { toJSON } = renderWithProvider(TokenSelection);
+
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('renders correctly when rampType is BUY', () => {
+      (useParams as jest.Mock).mockReturnValue({
+        rampType: 'BUY',
+      });
+
+      const { toJSON } = renderWithProvider(TokenSelection);
+
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('renders correctly when rampType is undefined', () => {
+      (useParams as jest.Mock).mockReturnValue({
+        rampType: undefined,
+      });
+
+      const { toJSON } = renderWithProvider(TokenSelection);
+
+      expect(toJSON()).toMatchSnapshot();
+    });
+  });
 });

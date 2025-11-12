@@ -9,9 +9,11 @@ import {
   FIAT_ORDER_STATES,
 } from '../../../../../../constants/on-ramp';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
+import { useParams } from '../../../../../../util/navigation/navUtils';
 
 const mockReset = jest.fn();
 const mockCheckExistingToken = jest.fn();
+const mockSetIntent = jest.fn();
 let mockGetStarted = true;
 const mockSelectedRegion = {
   isoCode: 'US',
@@ -30,6 +32,11 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../../util/navigation/navUtils'),
+  useParams: jest.fn(),
+}));
+
 jest.mock('../../sdk', () => {
   const actual = jest.requireActual('../../sdk');
   return {
@@ -38,6 +45,7 @@ jest.mock('../../sdk', () => {
       checkExistingToken: mockCheckExistingToken,
       getStarted: mockGetStarted,
       selectedRegion: mockSelectedRegion,
+      setIntent: mockSetIntent,
     }),
   };
 });
@@ -76,6 +84,7 @@ describe('Root Component', () => {
     (
       getAllDepositOrders as jest.MockedFunction<typeof getAllDepositOrders>
     ).mockReturnValue([]);
+    (useParams as jest.Mock).mockReturnValue(undefined);
   });
 
   it('render matches snapshot', () => {
@@ -175,6 +184,25 @@ describe('Root Component', () => {
           },
         ],
       });
+    });
+  });
+
+  describe('intent handling', () => {
+    it('calls setIntent with params when params are provided', () => {
+      const mockParams = { assetId: 'eip155:1/0x123' };
+      (useParams as jest.Mock).mockReturnValue(mockParams);
+
+      render(Root);
+
+      expect(mockSetIntent).toHaveBeenCalledWith(mockParams);
+    });
+
+    it('does not call setIntent when params are undefined', () => {
+      (useParams as jest.Mock).mockReturnValue(undefined);
+
+      render(Root);
+
+      expect(mockSetIntent).not.toHaveBeenCalled();
     });
   });
 });

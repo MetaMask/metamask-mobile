@@ -8,13 +8,23 @@ import { getAllDepositOrders } from '../../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import { createBankDetailsNavDetails } from '../BankDetails/BankDetails';
 import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
+import { DepositNavigationParams } from '../../types';
+import { useParams } from '../../../../../../util/navigation/navUtils';
 
 const Root = () => {
   const navigation = useNavigation();
+  const params = useParams<DepositNavigationParams>();
   const [initialRoute] = useState<string>(Routes.DEPOSIT.BUILD_QUOTE);
-  const { checkExistingToken, getStarted } = useDepositSDK();
+  const { checkExistingToken, getStarted, setIntent } = useDepositSDK();
+
   const hasCheckedToken = useRef(false);
   const orders = useSelector(getAllDepositOrders);
+
+  useEffect(() => {
+    if (params) {
+      setIntent(params);
+    }
+  }, [params, setIntent]);
 
   useEffect(() => {
     const initializeFlow = async () => {

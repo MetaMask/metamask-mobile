@@ -28,12 +28,18 @@ import TextFieldSearch from '../../../../../component-library/components/Form/Te
 import styleSheet from './TokenSelection.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import useSearchTokenResults from '../../Deposit/hooks/useSearchTokenResults';
+import { createBuyNavigationDetails } from '../../Aggregator/routes/utils';
 
-import { useParams } from '../../../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../util/navigation/navUtils';
 import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import { MOCK_CRYPTOCURRENCIES } from '../../Deposit/constants/mockCryptoCurrencies';
+import Routes from '../../../../../constants/navigation/Routes';
+import { createDepositNavigationDetails } from '../../Deposit/routes/utils';
 // TODO: Fetch these tokens from the API new enpoint for top 25 with supported status
 //https://consensyssoftware.atlassian.net/browse/TRAM-2816
 
@@ -41,6 +47,9 @@ interface TokenSelectionParams {
   rampType: 'BUY' | 'DEPOSIT';
   selectedCryptoAssetId?: string;
 }
+
+export const createTokenSelectionNavigationDetails =
+  createNavigationDetails<TokenSelectionParams>(Routes.RAMP.TOKEN_SELECTION);
 
 function TokenSelection() {
   const listRef = useRef<FlatList>(null);
@@ -54,7 +63,7 @@ function TokenSelection() {
   const theme = useTheme();
   const navigation = useNavigation();
 
-  const { selectedCryptoAssetId } = useParams<TokenSelectionParams>();
+  const { selectedCryptoAssetId, rampType } = useParams<TokenSelectionParams>();
 
   const supportedTokens = MOCK_CRYPTOCURRENCIES;
 
@@ -64,10 +73,24 @@ function TokenSelection() {
     searchString,
   });
 
-  const handleSelectAssetIdCallback = useCallback((_assetId: string) => {
-    // TODO: Handle token by routing to the appropriate agg or deposit screen with asset id as param and pre-select it
-    // https://consensyssoftware.atlassian.net/browse/TRAM-2795
-  }, []);
+  const handleSelectAssetIdCallback = useCallback(
+    (_assetId: string) => {
+      if (rampType === 'BUY') {
+        navigation.navigate(
+          ...createBuyNavigationDetails({
+            assetId: _assetId,
+          }),
+        );
+      } else {
+        navigation.navigate(
+          ...createDepositNavigationDetails({
+            assetId: _assetId,
+          }),
+        );
+      }
+    },
+    [rampType, navigation],
+  );
 
   const scrollToTop = useCallback(() => {
     if (listRef?.current) {
