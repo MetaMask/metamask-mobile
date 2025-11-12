@@ -18,7 +18,8 @@ class DappConnectionModal {
         }
 
         if (AppwrightSelectors.isAndroid(this._device)) {
-            return AppwrightSelectors.getElementByXpath(this._device, '//android.widget.Button[@content-desc="connect-button"]');
+            // Use getElementByID which is more efficient than XPath
+            return AppwrightSelectors.getElementByID(this._device, 'connect-button');
         }
     }
 
@@ -27,8 +28,11 @@ class DappConnectionModal {
             return;
         }
 
-        const element = await this.connectButton;
-        await AppwrightGestures.tap(element)
+        // const element = await this.connectButton;
+        // await AppwrightGestures.tap(element)
+
+        // Temporarily tapping by coordinates
+        await AppwrightGestures.tapByCoordinates(this._device, { x: 815, y: 2160 }, { delay: 1500 });
     }
 }
 

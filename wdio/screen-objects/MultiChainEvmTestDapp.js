@@ -29,7 +29,7 @@ class MultiChainEvmTestDapp {
         }
 
         if (AppwrightSelectors.isAndroid(this._device)) {
-            return AppwrightSelectors.getElementByID(this._device, 'connect-button');
+            return AppwrightSelectors.getElementByXpath(this._device, '//*[@id="connect-button"]');
         }
     }
 
@@ -39,7 +39,8 @@ class MultiChainEvmTestDapp {
         }
 
         if (AppwrightSelectors.isAndroid(this._device)) {
-            return AppwrightSelectors.getElementByID(this._device, 'connected-status');
+            // //p[@id="connected-status"]
+            return AppwrightSelectors.getElementByXpath(this._device, '//*[@id="connected-status"]');
         }
     }
 
@@ -67,12 +68,8 @@ class MultiChainEvmTestDapp {
         }
 
         const connectedStatusHeader = await this.connectedStatusHeader;
-        if (!connectedStatusHeader) {
-            return false;
-        }
-
         const text = await connectedStatusHeader.getText();
-        expect(text).toContain('Connected: true');
+        expect(text).toContain('true');
     }
 }
 

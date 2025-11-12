@@ -556,6 +556,7 @@
     "@welldone-software/why-did-you-render": "^8.0.1",
     "appium": "^2.12.1",
     "appium-adb": "^9.11.4",
+    "appium-chromium-driver": "^2.0.2",
     "appium-uiautomator2-driver": "4.2.7",
     "appium-xcuitest-driver": "5.16.1",
     "appwright": "patch:appwright@patch%3Aappwright@npm%253A0.1.45%23./.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=7499a8&locator=metamask%2540workspace%253A.#~/.yarn/patches/appwright-patch-55afb81fc2.patch",
