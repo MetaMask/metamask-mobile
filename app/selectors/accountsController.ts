@@ -12,8 +12,8 @@ import {
   EthMethod,
   SolAccountType,
   SolMethod,
-  isEvmAccountType,
   TrxMethod,
+  isEvmAccountType,
 } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
