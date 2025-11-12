@@ -1102,6 +1102,7 @@
         "invalid_stop_loss": "Stop loss must be {{direction}} current price for {{positionType}} positions",
         "liquidation_warning": "Position is close to liquidation price",
         "limit_price_required": "Please set a limit price for limit orders",
+        "price_required": "Price is required",
         "please_set_a_limit_price": "Please set a limit price",
         "limit_price_must_be_set_before_configuring_tpsl": "Limit price must be set before configuring TP/SL",
         "only_hyperliquid_usdc": "Only USDC on Hyperliquid is currently supported for payment",
@@ -1314,7 +1315,8 @@
         "coinRequired": "Coin is required for orders",
         "sizePositive": "Size must be a positive number",
         "pricePositive": "Price must be a positive number if provided",
-        "unknownCoin": "Unknown coin: {{coin}}"
+        "unknownCoin": "Unknown coin: {{coin}}",
+        "limitPriceRequired": "Price is required for limit orders"
       },
       "networkToggleFailed": "Failed to toggle network: {{error}}",
       "accountBalanceFailed": "Failed to get account balance: {{error}}",
@@ -1476,6 +1478,10 @@
       "funding_rate": {
         "title": "Funding rate",
         "content": "An hourly fee paid between traders to keep prices in line with the market. If the rate is positive, longs pay shorts. If negative, shorts pay longs."
+      },
+      "funding_payments": {
+        "title": "Funding payments",
+        "content": "This is the amount you've paid in funding fees since the position was opened. Funding is paid or received every hour to keep the perp price close to the actual token price."
       },
       "geo_block": {
         "title": "Perps unavailable in your region",
@@ -1789,6 +1795,8 @@
     "cash_out_info": "Funds will be added to your available balance",
     "at_price_per_share": "At price: {{price}}¢ per share",
     "cashout_info": "{{amount}} on {{outcome}} at {{initialPrice}}¢",
+    "position_info_plural": "{{amount}} on {{outcome}} · {{shares}} shares at {{priceCents}}",
+    "position_info_singular": "{{amount}} on {{outcome}} · {{shares}} share at {{priceCents}}",
     "buy_yes": "Yes",
     "buy_no": "No",
     "outcomes": "outcomes",
@@ -3256,6 +3264,7 @@
     "failed": "Failed",
     "cancelled": "Cancelled",
     "signed": "Pending",
+    "unconfirmed": "Pending",
     "tokenContractAddressWarning_1": "This address is a ",
     "tokenContractAddressWarning_2": "token contract address",
     "tokenContractAddressWarning_3": ". If you send tokens to this address, you will lose them.",
@@ -5348,6 +5357,7 @@
     "service_interruption_banner": {
       "maintenance_message": "We're down for maintenance. We'll be back online soon!"
     },
+    "supply": "Supply",
     "deposit": "Deposit",
     "approve": "Approve",
     "approval": "Approval",
@@ -6821,6 +6831,7 @@
   },
   "trending": {
     "title": "Trending",
-    "coming_soon": "Trending tokens coming soon"
+    "view_all": "View all",
+    "tokens": "Tokens"
   }
 }
