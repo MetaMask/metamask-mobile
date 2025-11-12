@@ -163,6 +163,14 @@ jest.mock('../../utils/format', () => ({
     // Simple mock implementation - returns 1 for short text, 2 for longer
     return text.length > 50 ? 2 : 1;
   }),
+  formatCents: jest.fn((dollars: number) => {
+    const cents = dollars * 100;
+    const roundedCents = Number(cents.toFixed(1));
+    if (roundedCents === Math.floor(roundedCents)) {
+      return `${Math.floor(roundedCents)}¢`;
+    }
+    return `${cents.toFixed(1)}¢`;
+  }),
 }));
 
 jest.mock('../../hooks/usePredictMarket', () => ({
