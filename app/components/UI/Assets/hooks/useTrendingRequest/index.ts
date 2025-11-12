@@ -6,6 +6,12 @@ import {
   SortTrendingBy,
 } from '@metamask/assets-controllers';
 import { useStableArray } from '../../../Perps/hooks/useStableArray';
+import {
+  NetworkType,
+  useNetworksByNamespace,
+  ProcessedNetwork,
+} from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { useNetworksToUse } from '../../../../hooks/useNetworksToUse/useNetworksToUse';
 export const DEBOUNCE_WAIT = 500;
 
 /**
@@ -13,7 +19,7 @@ export const DEBOUNCE_WAIT = 500;
  * @returns {Object} An object containing the trending tokens results, loading state, error, and a function to trigger fetch
  */
 export const useTrendingRequest = (options: {
-  chainIds: CaipChainId[];
+  chainIds?: CaipChainId[];
   sortBy?: SortTrendingBy;
   minLiquidity?: number;
   minVolume24hUsd?: number;
@@ -22,7 +28,7 @@ export const useTrendingRequest = (options: {
   maxMarketCap?: number;
 }) => {
   const {
-    chainIds,
+    chainIds: providedChainIds = [],
     sortBy,
     minLiquidity,
     minVolume24hUsd,
@@ -31,10 +37,30 @@ export const useTrendingRequest = (options: {
     maxMarketCap,
   } = options;
 
+  // Get default networks when chainIds is empty
+  const { networks } = useNetworksByNamespace({
+    networkType: NetworkType.Popular,
+  });
+
+  const { networksToUse } = useNetworksToUse({
+    networks,
+    networkType: NetworkType.Popular,
+  });
+
+  // Use provided chainIds or default to popular networks
+  const chainIds = useMemo((): CaipChainId[] => {
+    if (providedChainIds.length > 0) {
+      return providedChainIds;
+    }
+    return networksToUse.map(
+      (network: ProcessedNetwork) => network.caipChainId,
+    );
+  }, [providedChainIds, networksToUse]);
+
   const [results, setResults] = useState<Awaited<
     ReturnType<typeof getTrendingTokens>
   > | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   // Track the current request ID to prevent stale results from overwriting current ones
@@ -111,7 +137,7 @@ export const useTrendingRequest = (options: {
     debouncedFetchTrendingTokens.cancel();
 
     // If chainIds is empty, don't trigger fetch
-    if (!memoizedOptions.chainIds.length) {
+    if (!stableChainIds.length) {
       return;
     }
 
@@ -122,7 +148,7 @@ export const useTrendingRequest = (options: {
     return () => {
       debouncedFetchTrendingTokens.cancel();
     };
-  }, [debouncedFetchTrendingTokens, memoizedOptions.chainIds.length]);
+  }, [debouncedFetchTrendingTokens, stableChainIds]);
 
   return {
     results: results || [],

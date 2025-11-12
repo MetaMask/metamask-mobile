@@ -218,7 +218,10 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   );
 
   // Subscribe to data internally (marketStats moved to StatisticsTabContent to isolate price updates)
-  const { positions } = usePerpsLivePositions({ throttleMs: 0 });
+  const { positions } = usePerpsLivePositions({
+    throttleMs: 0,
+    useLivePnl: true,
+  });
   const { orders: allOrders } = usePerpsLiveOrders({ throttleMs: 0 });
 
   const position = useMemo(
@@ -669,7 +672,10 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   }, [selectedTooltip, handleTooltipClose]);
 
   // Key for TabsList to force remount when tab count changes
-  const tabsKey = useMemo(() => `tabs-${tabs.length}`, [tabs.length]);
+  const tabsKey = useMemo(
+    () => `tabs-${tabs.length}-${tabsToRender.length}`,
+    [tabs.length, tabsToRender.length],
+  );
 
   // Calculate active index for TabsList
   const activeIndex = useMemo(() => {

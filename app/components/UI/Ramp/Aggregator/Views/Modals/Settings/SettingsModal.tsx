@@ -10,6 +10,8 @@ import Routes from '../../../../../../../constants/navigation/Routes';
 import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
 import MenuItem from '../../../../components/MenuItem';
 import { createDepositNavigationDetails } from '../../../../Deposit/routes/utils';
+import useAnalytics from '../../../../hooks/useAnalytics';
+import { useRampSDK } from '../../../sdk';
 
 export const createBuySettingsModalNavigationDetails = createNavigationDetails(
   Routes.RAMP.MODALS.ID,
@@ -19,6 +21,9 @@ export const createBuySettingsModalNavigationDetails = createNavigationDetails(
 function SettingsModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
+  const { selectedRegion } = useRampSDK();
+
+  const trackEvent = useAnalytics();
 
   const handleNavigateToOrderHistory = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -31,10 +36,15 @@ function SettingsModal() {
   }, [navigation]);
 
   const handleDepositPress = useCallback(() => {
+    trackEvent('RAMPS_BUTTON_CLICKED', {
+      location: 'Buy Settings Modal',
+      ramp_type: 'DEPOSIT',
+      region: selectedRegion?.id as string,
+    });
     sheetRef.current?.onCloseBottomSheet();
     navigation.dangerouslyGetParent()?.dangerouslyGetParent()?.goBack();
     navigation.navigate(...createDepositNavigationDetails());
-  }, [navigation]);
+  }, [navigation, selectedRegion?.id, trackEvent]);
 
   const handleClosePress = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
