@@ -2210,10 +2210,6 @@ describe('PredictBuyPreview', () => {
       mockMetamaskFee = 0.5;
       const mockStore = {
         ...initialState,
-        featureFlags: {
-          ...initialState.featureFlags,
-          rewardsEnabled: true,
-        },
       };
 
       const { rerender } = renderWithProvider(<PredictBuyPreview />, {
@@ -2236,16 +2232,9 @@ describe('PredictBuyPreview', () => {
 
     it('rounds estimated points to nearest integer', () => {
       mockMetamaskFee = 1.234;
-      const mockStore = {
-        ...initialState,
-        featureFlags: {
-          ...initialState.featureFlags,
-          rewardsEnabled: true,
-        },
-      };
 
       renderWithProvider(<PredictBuyPreview />, {
-        state: mockStore,
+        state: initialState,
       });
 
       // Expected: 1.234 * 100 = 123.4 → 123 points
@@ -2253,16 +2242,9 @@ describe('PredictBuyPreview', () => {
 
     it('calculates zero points when metamask fee is zero', () => {
       mockMetamaskFee = 0;
-      const mockStore = {
-        ...initialState,
-        featureFlags: {
-          ...initialState.featureFlags,
-          rewardsEnabled: true,
-        },
-      };
 
       renderWithProvider(<PredictBuyPreview />, {
-        state: mockStore,
+        state: initialState,
       });
 
       // Expected: 0 * 100 = 0 points
@@ -2270,16 +2252,9 @@ describe('PredictBuyPreview', () => {
 
     it('recalculates points when metamask fee changes', () => {
       mockMetamaskFee = 0.5;
-      const mockStore = {
-        ...initialState,
-        featureFlags: {
-          ...initialState.featureFlags,
-          rewardsEnabled: true,
-        },
-      };
 
       const { rerender } = renderWithProvider(<PredictBuyPreview />, {
-        state: mockStore,
+        state: initialState,
       });
 
       // Change fee
@@ -2294,16 +2269,9 @@ describe('PredictBuyPreview', () => {
   describe('Rewards Display', () => {
     it('shows rewards when feature flag is enabled and amount is entered', () => {
       mockMetamaskFee = 0.5;
-      const mockStore = {
-        ...initialState,
-        featureFlags: {
-          ...initialState.featureFlags,
-          rewardsEnabled: true,
-        },
-      };
 
       renderWithProvider(<PredictBuyPreview />, {
-        state: mockStore,
+        state: initialState,
       });
 
       // Enter amount
@@ -2319,16 +2287,9 @@ describe('PredictBuyPreview', () => {
 
     it('does not show rewards when feature flag is disabled', () => {
       mockMetamaskFee = 0.5;
-      const mockStore = {
-        ...initialState,
-        featureFlags: {
-          ...initialState.featureFlags,
-          rewardsEnabled: false,
-        },
-      };
 
       renderWithProvider(<PredictBuyPreview />, {
-        state: mockStore,
+        state: initialState,
       });
 
       // Enter amount
@@ -2343,16 +2304,8 @@ describe('PredictBuyPreview', () => {
     });
 
     it('does not show rewards when amount is zero', () => {
-      const mockStore = {
-        ...initialState,
-        featureFlags: {
-          ...initialState.featureFlags,
-          rewardsEnabled: true,
-        },
-      };
-
       renderWithProvider(<PredictBuyPreview />, {
-        state: mockStore,
+        state: initialState,
       });
 
       // No amount entered (currentValue = 0)
@@ -2385,43 +2338,8 @@ describe('PredictBuyPreview', () => {
 
   describe('Rewards Loading State', () => {
     it('passes loading state to PredictFeeSummary when calculating', () => {
-      const mockCalculatingState = true;
-      jest.mock('../../hooks/usePredictOrderPreview', () => ({
-        usePredictOrderPreview: () => ({
-          preview: {
-            marketId: 'market-123',
-            outcomeId: 'outcome-456',
-            outcomeTokenId: 'outcome-token-789',
-            timestamp: Date.now(),
-            side: 'BUY',
-            sharePrice: 0.5,
-            maxAmountSpent: 100,
-            minAmountReceived: 120,
-            slippage: 0.005,
-            tickSize: 0.01,
-            minOrderSize: 1,
-            negRisk: false,
-            fees: {
-              metamaskFee: 0.5,
-              providerFee: 1.0,
-              totalFee: 1.5,
-            },
-          },
-          isCalculating: mockCalculatingState,
-          error: null,
-        }),
-      }));
-
-      const mockStore = {
-        ...initialState,
-        featureFlags: {
-          ...initialState.featureFlags,
-          rewardsEnabled: true,
-        },
-      };
-
       renderWithProvider(<PredictBuyPreview />, {
-        state: mockStore,
+        state: initialState,
       });
 
       // isLoadingRewards should be isCalculating && isUserInputChange

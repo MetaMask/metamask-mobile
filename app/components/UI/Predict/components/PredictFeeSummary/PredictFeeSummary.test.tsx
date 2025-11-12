@@ -17,7 +17,10 @@ jest.mock(
     const React = jest.requireActual('react');
     const { TouchableOpacity } = jest.requireActual('react-native');
     return React.forwardRef(
-      ({ onPress, testID }: { onPress?: () => void; testID?: string }, ref) =>
+      (
+        { onPress, testID }: { onPress?: () => void; testID?: string },
+        ref: React.Ref<unknown>,
+      ) =>
         React.createElement(TouchableOpacity, {
           onPress,
           testID: testID || 'button-icon',
