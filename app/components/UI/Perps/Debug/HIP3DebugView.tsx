@@ -385,12 +385,18 @@ const HIP3DebugView: React.FC = () => {
       });
 
       // Place order with calculated size
+      // USD-as-source-of-truth: provide currentPrice and usdAmount for validation
       const result = await provider.placeOrder({
         coin: selectedMarket,
         isBuy: true,
         size: roundedPositionSize.toFixed(szDecimals),
         orderType: 'market',
         leverage: 5,
+        // Required by USD-as-source-of-truth validation
+        currentPrice,
+        usdAmount: targetUsdAmount.toString(),
+        priceAtCalculation: currentPrice,
+        maxSlippageBps: 100, // 1% slippage tolerance
       });
 
       if (result.success) {
