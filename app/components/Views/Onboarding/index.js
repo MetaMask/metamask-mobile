@@ -35,9 +35,11 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import { isE2E } from '../../../util/test/utils';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
 import Routes from '../../../constants/navigation/Routes';
+import { ControllerStorage } from '../../../store/persistConfig';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { store } from '../../../store';
 import NetInfo from '@react-native-community/netinfo';
 import {
   TraceName,
@@ -48,7 +50,6 @@ import {
   discardBufferedTraces,
 } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
-import { store } from '../../../store';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Button, {
   ButtonVariants,
@@ -385,18 +386,45 @@ class Onboarding extends PureComponent {
     try {
       const vaultBackupResult = await getVaultFromBackup();
 
-      // Detect migration failure scenario - ALL conditions must be true:
-      // 1. existingUser is false (Redux state was corrupted/reset during migration)
-      // 2. passwordSet is true (user had completed onboarding and had a working wallet)
-      // 3. vault backup exists (their wallet data is still recoverable)
+      // Check for persisted controller data (survives Redux corruption)
+      const persistedState = await ControllerStorage.getAllPersistedState();
+      const hasPersistedControllers =
+        persistedState?.backgroundState &&
+        Object.keys(persistedState.backgroundState).length > 0;
+
+      // Also check Redux state for engine.backgroundState
+      // This catches cases where:
+      // 1. Old Redux persist structure exists (pre-migration 104)
+      // 2. Migration inflated controllers but deflation failed
+      // 3. Redux-persist still has old state that wasn't overwritten
+      const reduxState = store.getState();
+      const hasReduxEngineState =
+        reduxState.engine?.backgroundState &&
+        Object.keys(reduxState.engine.backgroundState).length > 0;
+
+      // Detect migration failure scenario:
+      // When migrations fail, Redux state gets corrupted (existingUser=false, passwordSet=false)
+      // BUT we can detect the user had a wallet through multiple signals:
       //
-      // This avoids false positives from:
-      // - Fresh app installs (passwordSet=false, but keychain persists on iOS)
-      // - First-time users (passwordSet=false)
-      // - Intentional wallet deletions (caught by route.params.delete check above)
+      // Conditions for migration failure detection:
+      // 1. existingUser is false (Redux state corrupted/reset)
+      // 2. vault backup exists in keychain (user previously had a wallet)
+      // 3. ANY of these signals indicate the user had a wallet:
+      //    a) passwordSet is true (Redux user state survived)
+      //    b) hasPersistedControllers is true (filesystem controller data exists)
+      //    c) hasReduxEngineState is true (engine.backgroundState in Redux - either old structure or inflated during migration)
+      //
+      // This filters out iOS fresh installs where:
+      // - Keychain persists across app uninstalls (vault exists from old install)
+      // - But no controller data exists anywhere (fresh install, never onboarded on THIS install)
+      // - And passwordSet is false (never completed onboarding)
+      // - And no engine.backgroundState (no wallet data)
+      const hadWallet =
+        passwordSet || hasPersistedControllers || hasReduxEngineState;
+
       const migrationFailureDetected =
         !existingUser &&
-        passwordSet &&
+        hadWallet &&
         vaultBackupResult.success &&
         vaultBackupResult.vault;
 
