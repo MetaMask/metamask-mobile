@@ -103,9 +103,11 @@ import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import { useUserAuthPreferences } from '../../hooks/useUserAuthPreferences';
 import { usePasswordOutdated } from '../Login/hooks/usePasswordOutdated';
-import { LoginPasswordField } from '../Login/components/LoginPasswordField';
 import { LoginErrorMessage } from '../Login/components/LoginErrorMessage';
 import Label from '../../../component-library/components/Form/Label';
+import TextField, {
+  TextFieldSize,
+} from '../../../component-library/components/Form/TextField';
 
 const EmptyRecordConstant = {};
 
@@ -720,23 +722,28 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                 >
                   {strings('login.password')}
                 </Label>
-                <LoginPasswordField
-                  password={password}
-                  onPasswordChange={handlePasswordChange}
-                  onSubmit={handleLogin}
-                  error={error}
-                  disabled={disabledInput}
-                  fieldRef={fieldRef}
-                  biometryButton={
+                <TextField
+                  size={TextFieldSize.Lg}
+                  placeholder={strings('login.password_placeholder')}
+                  placeholderTextColor={colors.text.alternative}
+                  testID={LoginViewSelectors.PASSWORD_INPUT}
+                  returnKeyType={'done'}
+                  autoCapitalize="none"
+                  secureTextEntry
+                  ref={fieldRef}
+                  onChangeText={handlePasswordChange}
+                  value={password}
+                  onSubmitEditing={handleLogin}
+                  endAccessory={
                     <BiometryButton
                       onPress={handleTryBiometric}
                       hidden={shouldHideBiometricAccessoryButton}
                       biometryType={biometryType as BIOMETRY_TYPE}
                     />
                   }
-                  themeAppearance={themeAppearance}
-                  colors={colors}
-                  testID={LoginViewSelectors.PASSWORD_INPUT}
+                  keyboardAppearance={themeAppearance || undefined}
+                  isDisabled={disabledInput}
+                  isError={!!error}
                 />
               </View>
 
