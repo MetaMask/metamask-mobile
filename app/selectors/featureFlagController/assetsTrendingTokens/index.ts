@@ -89,6 +89,7 @@ export const isAssetsTrendingTokensFeatureEnabled = (
 export const selectAssetsTrendingTokensEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): boolean => {
+    return true; // TODO: Remove this once the feature is ready
     const { trendingTokens: assetsTrendingTokensEnabled } = remoteFeatureFlags;
     const envOverride =
       process.env.OVERRIDE_REMOTE_FEATURE_FLAGS &&

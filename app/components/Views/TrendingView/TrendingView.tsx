@@ -25,6 +25,7 @@ import {
 import TrendingTokensSection from './TrendingTokensSection/TrendingTokensSection';
 import { ScrollView, StyleSheet } from 'react-native';
 import PredictionSection from './PredictionSection/PredictionSection';
+import { PredictModalStack } from '../../UI/Predict/routes';
 
 const Stack = createStackNavigator();
 
@@ -135,6 +136,17 @@ const TrendingView: React.FC = () => {
     >
       <Stack.Screen name="TrendingFeed" component={TrendingFeed} />
       <Stack.Screen name="TrendingBrowser" component={BrowserWrapper} />
+      <Stack.Screen
+        name={Routes.PREDICT.MODALS.ROOT}
+        component={PredictModalStack}
+        options={{
+          headerShown: false,
+          cardStyle: {
+            backgroundColor: 'transparent',
+          },
+          animationEnabled: false,
+        }}
+      />
     </Stack.Navigator>
   );
 };
