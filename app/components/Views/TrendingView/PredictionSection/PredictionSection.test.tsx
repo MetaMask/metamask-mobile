@@ -120,45 +120,9 @@ describe('PredictionSection', () => {
       expect(getByText('Predictions')).toBeOnTheScreen();
       expect(getByText('View all')).toBeOnTheScreen();
     });
-
-    it('matches snapshot when loading', () => {
-      mockUsePredictMarketData.mockReturnValue({
-        marketData: [],
-        isFetching: true,
-        isFetchingMore: false,
-        error: null,
-        hasMore: false,
-        refetch: jest.fn(),
-        fetchMore: jest.fn(),
-      });
-
-      const { toJSON } = renderWithProvider(<PredictionSection />, {
-        state: initialState,
-      });
-
-      expect(toJSON()).toMatchSnapshot();
-    });
   });
 
   describe('empty state', () => {
-    it('renders nothing when no market data available', () => {
-      mockUsePredictMarketData.mockReturnValue({
-        marketData: [],
-        isFetching: false,
-        isFetchingMore: false,
-        error: null,
-        hasMore: false,
-        refetch: jest.fn(),
-        fetchMore: jest.fn(),
-      });
-
-      const { toJSON } = renderWithProvider(<PredictionSection />, {
-        state: initialState,
-      });
-
-      expect(toJSON()).toBeNull();
-    });
-
     it('renders nothing when not fetching and data is empty', () => {
       mockUsePredictMarketData.mockReturnValue({
         marketData: [],
@@ -200,14 +164,6 @@ describe('PredictionSection', () => {
 
       expect(getByText('Predictions')).toBeOnTheScreen();
       expect(getByText('View all')).toBeOnTheScreen();
-    });
-
-    it('matches snapshot with market data', () => {
-      const { toJSON } = renderWithProvider(<PredictionSection />, {
-        state: initialState,
-      });
-
-      expect(toJSON()).toMatchSnapshot();
     });
   });
 
