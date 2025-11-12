@@ -131,24 +131,6 @@ if (typeof global.Promise.withResolvers === 'undefined') {
   };
 }
 
-// FinalizationRegistry polyfill for Hyperliquid SDK
-// The SDK uses this for automatic cleanup of request queues when they're garbage collected
-// In React Native, we provide a no-op implementation since the GC behavior differs
-if (typeof global.FinalizationRegistry === 'undefined') {
-  global.FinalizationRegistry = class FinalizationRegistry {
-    constructor(callback) {
-      this.callback = callback;
-    }
-    register() {
-      // No-op: React Native doesn't need GC-based cleanup
-      // Request queues are short-lived and will be cleaned up naturally
-    }
-    unregister() {
-      // No-op
-    }
-  };
-}
-
 // global.location = global.location || { port: 80 }
 const isDev = typeof __DEV__ === 'boolean' && __DEV__;
 Object.assign(process.env, { NODE_ENV: isDev ? 'development' : 'production' });
