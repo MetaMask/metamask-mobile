@@ -376,12 +376,12 @@ const PerpsClosePositionView: React.FC = () => {
     // Go back immediately to close the position screen
     navigation.goBack();
 
-    await handleClosePosition(
-      livePosition,
-      sizeToClose || '',
+    await handleClosePosition({
+      position: livePosition,
+      size: sizeToClose || '',
       orderType,
-      orderType === 'limit' ? limitPrice : undefined,
-      {
+      limitPrice: orderType === 'limit' ? limitPrice : undefined,
+      trackingData: {
         totalFee: feeResults.totalFee,
         marketPrice: currentPrice,
         receivedAmount: receiveAmount,
@@ -392,12 +392,14 @@ const PerpsClosePositionView: React.FC = () => {
         estimatedPoints: rewardsState.estimatedPoints,
         inputMethod: inputMethodRef.current,
       },
-      priceData[position.coin]?.price,
+      marketPrice: priceData[position.coin]?.price,
       // Slippage parameters for consistent validation (same as PerpsOrderView)
-      closingValueString, // USD amount as source of truth
-      effectivePrice, // Price snapshot when size was calculated
-      ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS, // 1% slippage tolerance
-    );
+      slippage: {
+        usdAmount: closingValueString,
+        priceAtCalculation: effectivePrice,
+        maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS,
+      },
+    });
   };
 
   const handleAmountPress = () => {

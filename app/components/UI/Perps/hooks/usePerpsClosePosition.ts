@@ -11,6 +11,27 @@ interface UsePerpsClosePositionOptions {
   onError?: (error: Error) => void;
 }
 
+interface ClosePositionParams {
+  // Required
+  position: Position;
+
+  // Core parameters
+  size?: string;
+  orderType?: 'market' | 'limit';
+  limitPrice?: string;
+
+  // Tracking data
+  trackingData?: TrackingData;
+  marketPrice?: string; // Used for PnL toast to lock in the market price at time of closing
+
+  // Slippage validation (grouped for clarity)
+  slippage?: {
+    usdAmount?: string;
+    priceAtCalculation?: number;
+    maxSlippageBps?: number;
+  };
+}
+
 export const usePerpsClosePosition = (
   options?: UsePerpsClosePositionOptions,
 ) => {
@@ -20,18 +41,17 @@ export const usePerpsClosePosition = (
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const handleClosePosition = useCallback(
-    async (
-      position: Position,
-      size?: string,
-      orderType: 'market' | 'limit' = 'market',
-      limitPrice?: string,
-      trackingData?: TrackingData,
-      marketPrice?: string, // Used for PnL toast to lock in the market price at time of closing
-      // Slippage parameters for consistent validation
-      usdAmount?: string,
-      priceAtCalculation?: number,
-      maxSlippageBps?: number,
-    ) => {
+    async (params: ClosePositionParams) => {
+      const {
+        position,
+        size,
+        orderType = 'market',
+        limitPrice,
+        trackingData,
+        marketPrice,
+        slippage,
+      } = params;
+
       try {
         setIsClosing(true);
         setError(null);
@@ -103,9 +123,9 @@ export const usePerpsClosePosition = (
           price: limitPrice,
           trackingData,
           // Pass through slippage parameters
-          usdAmount,
-          priceAtCalculation,
-          maxSlippageBps,
+          usdAmount: slippage?.usdAmount,
+          priceAtCalculation: slippage?.priceAtCalculation,
+          maxSlippageBps: slippage?.maxSlippageBps,
         });
 
         DevLogger.log('usePerpsClosePosition: Close result', result);
