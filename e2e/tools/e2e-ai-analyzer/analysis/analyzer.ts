@@ -8,7 +8,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { ToolInput, ModeAnalysisTypes } from '../types';
 import { CLAUDE_CONFIG } from '../config';
-import { parseAgentDecision } from './decision-parser';
 import { getToolDefinitions } from '../ai-tools/tool-registry';
 import { executeTool } from '../ai-tools/tool-executor';
 import {
@@ -118,21 +117,18 @@ export async function analyzeWithAgent<M extends ModeKey>(
       (block: Anthropic.ContentBlock) => block.type === 'thinking',
     );
     if (thinking && 'thinking' in thinking) {
-      console.log(`💭 ${thinking.thinking.substring(0, 200)}...`);
+      console.log(`💭 ${thinking.thinking}`);
     }
 
     // Handle tool uses
     const toolUseBlocks = response.content.filter(
       (block: Anthropic.ContentBlock) => block.type === 'tool_use',
     );
-
     if (toolUseBlocks.length > 0) {
       const toolResults: Anthropic.MessageParam['content'] = [];
-
       for (const toolUse of toolUseBlocks) {
         if (toolUse.type === 'tool_use') {
           console.log(`🔧 Tool: ${toolUse.name}`);
-
           const toolResult = await executeTool(
             toolUse.name,
             toolUse.input as ToolInput,
@@ -155,16 +151,14 @@ export async function analyzeWithAgent<M extends ModeKey>(
               // Ignore parse errors in logging
             }
 
-            const analysis = parseAgentDecision(toolResult);
-            if (analysis) {
-              // Process analysis using mode-specific logic
-              const processedAnalysis = await modeConfig.processAnalysis(
-                analysis,
-                baseDir,
-              );
+            const analysis = await modeConfig.processAnalysis(
+              toolResult,
+              baseDir,
+            );
 
+            if (analysis) {
               console.log(`✅ Analysis complete!`);
-              return processedAnalysis as ModeAnalysisResult<M>;
+              return analysis as ModeAnalysisResult<M>;
             }
 
             console.log('⚠️ Failed to parse finalize_decision');
@@ -197,19 +191,14 @@ export async function analyzeWithAgent<M extends ModeKey>(
     const textContent = response.content.find(
       (block: Anthropic.ContentBlock) => block.type === 'text',
     );
-
     if (textContent && textContent.type === 'text') {
-      const analysis = parseAgentDecision(textContent.text);
-
+      const analysis = await modeConfig.processAnalysis(
+        textContent.text,
+        baseDir,
+      );
       if (analysis) {
-        // Process analysis using mode-specific logic
-        const processedAnalysis = await modeConfig.processAnalysis(
-          analysis,
-          baseDir,
-        );
-
         console.log(`✅ Analysis complete!`);
-        return processedAnalysis as ModeAnalysisResult<M>;
+        return analysis as ModeAnalysisResult<M>;
       }
     }
 

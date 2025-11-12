@@ -28,13 +28,40 @@ export function createEmptyResult(): SelectTagsAnalysis {
 }
 
 /**
- * Processes analysis results from the AI (middle case - normal operation)
+ * Processes AI response: parses JSON and returns analysis
  */
 export async function processAnalysis(
-  analysis: SelectTagsAnalysis,
+  aiResponse: string,
   _baseDir: string,
-): Promise<SelectTagsAnalysis> {
-  return analysis;
+): Promise<SelectTagsAnalysis | null> {
+  // Parse JSON from AI response
+  const jsonMatch = aiResponse.match(/\{[\s\S]*"selected_tags"[\s\S]*\}/);
+
+  if (!jsonMatch) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(jsonMatch[0]);
+
+    // Validate required fields
+    if (
+      !Array.isArray(parsed.selected_tags) ||
+      !parsed.risk_level ||
+      !parsed.reasoning
+    ) {
+      return null;
+    }
+
+    return {
+      selectedTags: parsed.selected_tags,
+      riskLevel: parsed.risk_level,
+      confidence: Math.min(100, Math.max(0, parsed.confidence || 0)),
+      reasoning: parsed.reasoning,
+    };
+  } catch {
+    return null;
+  }
 }
 
 /**
