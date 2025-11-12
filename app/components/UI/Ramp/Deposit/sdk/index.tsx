@@ -61,7 +61,9 @@ export interface DepositSDK {
   setIntent: (
     intentOrSetter:
       | DepositNavigationParams
-      | ((previousIntent: DepositNavigationParams | undefined) => void)
+      | ((
+          previousIntent: DepositNavigationParams | undefined,
+        ) => DepositNavigationParams | undefined)
       | undefined,
   ) => void;
 }
