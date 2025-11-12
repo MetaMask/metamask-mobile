@@ -51,7 +51,7 @@ interface OAuthServiceLocalState {
   loginInProgress: boolean;
   oauthLoginSuccess: boolean;
   oauthLoginError: string | null;
-  isRehydration?: boolean;
+  userClickedRehydration?: boolean;
 }
 export class OAuthService {
   public localState: OAuthServiceLocalState;
@@ -158,9 +158,9 @@ export class OAuthService {
       (error.code === OAuthErrorType.UserCancelled ||
         error.code === OAuthErrorType.UserDismissed);
 
-    let isRehydration: 'true' | 'false' | 'unknown' = 'unknown';
-    if (this.localState.isRehydration !== undefined) {
-      isRehydration = this.localState.isRehydration ? 'true' : 'false';
+    let userClickedRehydration: 'true' | 'false' | 'unknown' = 'unknown';
+    if (this.localState.userClickedRehydration !== undefined) {
+      userClickedRehydration = this.localState.userClickedRehydration ? 'true' : 'false';
     }
 
     MetaMetrics.getInstance().trackEvent(
@@ -169,7 +169,7 @@ export class OAuthService {
       )
         .addProperties({
           account_type: `default_${authConnection}`,
-          is_rehydration: isRehydration,
+          is_rehydration: userClickedRehydration,
           failure_type: isUserCancelled ? 'user_cancelled' : 'error',
           error_category: errorCategory,
         })
@@ -179,7 +179,7 @@ export class OAuthService {
 
   handleOAuthLogin = async (
     loginHandler: BaseLoginHandler,
-    isRehydration: boolean,
+    userClickedRehydration: boolean,
   ): Promise<HandleOAuthLoginResult> => {
     const web3AuthNetwork = this.config.web3AuthNetwork;
 
@@ -189,7 +189,7 @@ export class OAuthService {
         OAuthErrorType.LoginInProgress,
       );
     }
-    this.updateLocalState({ isRehydration });
+    this.updateLocalState({ userClickedRehydration });
     this.#dispatchLogin();
 
     try {
