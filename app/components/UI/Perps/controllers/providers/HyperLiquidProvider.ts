@@ -230,6 +230,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
   // Key: `network:userAddress`, Value: true if builder fee is approved
   private builderFeeCheckCache = new Map<string, boolean>();
 
+  // Pending promise trackers for deduplicating concurrent calls
+  // Prevents multiple signature requests when methods called simultaneously
+  private ensureReadyPromise: Promise<void> | null = null;
+  private pendingBuilderFeeApprovals = new Map<string, Promise<void>>();
+
   // Pre-compiled patterns for fast filtering
   private compiledAllowlistPatterns: CompiledMarketPattern[] = [];
   private compiledBlocklistPatterns: CompiledMarketPattern[] = [];
@@ -398,42 +403,58 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * since HIP-3 configuration is immutable after construction
    */
   private async ensureReady(): Promise<void> {
-    // Lazy initialization: ensure clients are created (safe after Engine.context is ready)
-    this.ensureClientsInitialized();
-
-    // Verify clients are properly initialized
-    this.clientService.ensureInitialized();
-
-    // Build asset mapping on first call only (flags are immutable)
-    if (this.coinToAssetId.size === 0) {
-      DevLogger.log('HyperLiquidProvider: Building asset mapping', {
-        hip3Enabled: this.hip3Enabled,
-        allowlistMarkets: this.allowlistMarkets,
-        blocklistMarkets: this.blocklistMarkets,
-      });
-      await this.buildAssetMapping();
+    // If already initializing, wait for that to complete
+    // This prevents duplicate initialization flows when multiple methods called concurrently
+    if (this.ensureReadyPromise) {
+      return this.ensureReadyPromise;
     }
 
-    // Attempt to enable native balance abstraction
-    await this.ensureDexAbstractionEnabled();
+    // Create and track initialization promise
+    this.ensureReadyPromise = (async () => {
+      // Lazy initialization: ensure clients are created (safe after Engine.context is ready)
+      this.ensureClientsInitialized();
 
-    // Set up builder fee approval (non-blocking for viewing data)
-    // This happens once per session and is cached until disconnect/reconnect
-    // Note: Wrapped in try-catch so accounts without deposits can still view markets
+      // Verify clients are properly initialized
+      this.clientService.ensureInitialized();
+
+      // Build asset mapping on first call only (flags are immutable)
+      if (this.coinToAssetId.size === 0) {
+        DevLogger.log('HyperLiquidProvider: Building asset mapping', {
+          hip3Enabled: this.hip3Enabled,
+          allowlistMarkets: this.allowlistMarkets,
+          blocklistMarkets: this.blocklistMarkets,
+        });
+        await this.buildAssetMapping();
+      }
+
+      // Attempt to enable native balance abstraction
+      await this.ensureDexAbstractionEnabled();
+
+      // Set up builder fee approval (non-blocking for viewing data)
+      // This happens once per session and is cached until disconnect/reconnect
+      // Note: Wrapped in try-catch so accounts without deposits can still view markets
+      try {
+        await this.ensureBuilderFeeApproval();
+      } catch (error) {
+        // Log but don't throw - builder fee is only needed for trading, not viewing
+        DevLogger.log(
+          'HyperLiquidProvider: Builder fee approval failed (will retry on first trade)',
+          error,
+        );
+      }
+
+      // Set up referral code (blocks initialization to ensure attribution attempt)
+      // Non-throwing: errors caught internally, logged to Sentry, retry next session
+      // User can trade immediately after init even if referral setup failed
+      await this.ensureReferralSet();
+    })();
+
     try {
-      await this.ensureBuilderFeeApproval();
-    } catch (error) {
-      // Log but don't throw - builder fee is only needed for trading, not viewing
-      DevLogger.log(
-        'HyperLiquidProvider: Builder fee approval failed (will retry on first trade)',
-        error,
-      );
+      await this.ensureReadyPromise;
+    } finally {
+      // Clean up tracking after completion
+      this.ensureReadyPromise = null;
     }
-
-    // Set up referral code (blocks initialization to ensure attribution attempt)
-    // Non-throwing: errors caught internally, logged to Sentry, retry next session
-    // User can trade immediately after init even if referral setup failed
-    await this.ensureReferralSet();
   }
 
   /**
@@ -1031,51 +1052,78 @@ export class HyperLiquidProvider implements IPerpsProvider {
       return; // Already approved this session, skip
     }
 
-    const { isApproved, requiredDecimal } = await this.checkBuilderFeeStatus();
+    // Check if approval already in-flight for this cache key
+    // This prevents race conditions when multiple concurrent calls happen
+    const pendingApproval = this.pendingBuilderFeeApprovals.get(cacheKey);
+    if (pendingApproval) {
+      DevLogger.log(
+        '[ensureBuilderFeeApproval] Waiting for in-flight approval',
+        {
+          network,
+        },
+      );
+      return pendingApproval; // Wait for existing approval to complete
+    }
 
-    if (!isApproved) {
-      DevLogger.log('[ensureBuilderFeeApproval] Approval required', {
-        builder: builderAddress,
-        currentApproval: isApproved,
-        requiredDecimal,
-      });
+    // Create promise for this approval and track it to prevent duplicates
+    const approvalPromise = (async () => {
+      const { isApproved, requiredDecimal } =
+        await this.checkBuilderFeeStatus();
 
-      const exchangeClient = this.clientService.getExchangeClient();
-      const maxFeeRate = BUILDER_FEE_CONFIG.maxFeeRate;
+      if (!isApproved) {
+        DevLogger.log('[ensureBuilderFeeApproval] Approval required', {
+          builder: builderAddress,
+          currentApproval: isApproved,
+          requiredDecimal,
+        });
 
-      await exchangeClient.approveBuilderFee({
-        builder: builderAddress,
-        maxFeeRate,
-      });
+        const exchangeClient = this.clientService.getExchangeClient();
+        const maxFeeRate = BUILDER_FEE_CONFIG.maxFeeRate;
 
-      // Verify approval was successful
-      const afterApprovalDecimal = await this.checkBuilderFeeApproval();
+        await exchangeClient.approveBuilderFee({
+          builder: builderAddress,
+          maxFeeRate,
+        });
 
-      if (
-        afterApprovalDecimal === null ||
-        afterApprovalDecimal < requiredDecimal
-      ) {
-        throw new Error(
-          '[HyperLiquidProvider] Builder fee approval verification failed',
-        );
+        // Verify approval was successful before caching
+        const afterApprovalDecimal = await this.checkBuilderFeeApproval();
+
+        if (
+          afterApprovalDecimal === null ||
+          afterApprovalDecimal < requiredDecimal
+        ) {
+          throw new Error(
+            '[HyperLiquidProvider] Builder fee approval verification failed',
+          );
+        }
+
+        // Only cache after verification succeeds
+        this.builderFeeCheckCache.set(cacheKey, true);
+
+        DevLogger.log('[ensureBuilderFeeApproval] Approval successful', {
+          builder: builderAddress,
+          approvedDecimal: afterApprovalDecimal,
+          maxFeeRate,
+        });
+      } else {
+        // User already has approval (possibly from external approval or previous session)
+        // Cache success to avoid redundant checks
+        this.builderFeeCheckCache.set(cacheKey, true);
+
+        DevLogger.log('[ensureBuilderFeeApproval] Already approved', {
+          network,
+        });
       }
+    })();
 
-      // Update cache to reflect successful approval
-      this.builderFeeCheckCache.set(cacheKey, true);
+    // Track the pending approval promise
+    this.pendingBuilderFeeApprovals.set(cacheKey, approvalPromise);
 
-      DevLogger.log('[ensureBuilderFeeApproval] Approval successful', {
-        builder: builderAddress,
-        approvedDecimal: afterApprovalDecimal,
-        maxFeeRate,
-      });
-    } else {
-      // User already has approval (possibly from external approval or previous session)
-      // Cache success to avoid redundant checks
-      this.builderFeeCheckCache.set(cacheKey, true);
-
-      DevLogger.log('[ensureBuilderFeeApproval] Already approved', {
-        network,
-      });
+    try {
+      await approvalPromise;
+    } finally {
+      // Clean up tracking after completion (success or failure)
+      this.pendingBuilderFeeApprovals.delete(cacheKey);
     }
   }
 
@@ -2911,7 +2959,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
         params?.skipCache ? '(skipCache requested)' : '(cache not initialized)',
       );
 
-      await this.ensureReady();
+      // Read-only operation: only need client initialization
+      this.ensureClientsInitialized();
+      this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
       const userAddress = await this.walletService.getUserAddressWithDefault(
@@ -3066,7 +3116,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]> {
     try {
       DevLogger.log('Getting user fills via HyperLiquid SDK:', params);
-      await this.ensureReady();
+
+      // Read-only operation: only need client initialization
+      this.ensureClientsInitialized();
+      this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
       const userAddress = await this.walletService.getUserAddressWithDefault(
@@ -3123,7 +3176,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async getOrders(params?: GetOrdersParams): Promise<Order[]> {
     try {
       DevLogger.log('Getting user orders via HyperLiquid SDK:', params);
-      await this.ensureReady();
+
+      // Read-only operation: only need client initialization
+      this.ensureClientsInitialized();
+      this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
       const userAddress = await this.walletService.getUserAddressWithDefault(
@@ -3232,7 +3288,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
         'Fetching open orders via API',
         params?.skipCache ? '(skipCache requested)' : '(cache not initialized)',
       );
-      await this.ensureReady();
+
+      // Read-only operation: only need client initialization
+      this.ensureClientsInitialized();
+      this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
       const userAddress = await this.walletService.getUserAddressWithDefault(
@@ -3274,7 +3333,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async getFunding(params?: GetFundingParams): Promise<Funding[]> {
     try {
       DevLogger.log('Getting user funding via HyperLiquid SDK:', params);
-      await this.ensureReady();
+
+      // Read-only operation: only need client initialization
+      this.ensureClientsInitialized();
+      this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
       const userAddress = await this.walletService.getUserAddressWithDefault(
@@ -3318,7 +3380,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
     endTime?: number;
   }): Promise<RawHyperLiquidLedgerUpdate[]> {
     try {
-      await this.ensureReady();
+      // Read-only operation: only need client initialization
+      this.ensureClientsInitialized();
+      this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
       const userAddress = await this.walletService.getUserAddressWithDefault(
@@ -3350,7 +3414,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
     endTime?: number;
   }): Promise<UserHistoryItem[]> {
     try {
-      await this.ensureReady();
+      // Read-only operation: only need client initialization
+      this.ensureClientsInitialized();
+      this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
       const userAddress = await this.walletService.getUserAddressWithDefault(
@@ -3379,7 +3445,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
         'Getting historical portfolio via HyperLiquid SDK:',
         params,
       );
-      await this.ensureReady();
+
+      // Read-only operation: only need client initialization
+      this.ensureClientsInitialized();
+      this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
       const userAddress = await this.walletService.getUserAddressWithDefault(
@@ -3449,7 +3518,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
     try {
       DevLogger.log('Getting account state via HyperLiquid SDK');
 
-      await this.ensureReady();
+      // Read-only operation: only need client initialization
+      this.ensureClientsInitialized();
+      this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
       const userAddress = await this.walletService.getUserAddressWithDefault(
@@ -3601,7 +3672,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   async getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]> {
     try {
-      await this.ensureReady();
+      // Read-only operation: only need client initialization
+      this.ensureClientsInitialized();
+      this.clientService.ensureInitialized();
 
       // Path 1: Symbol filtering - group by DEX and fetch in parallel
       if (params?.symbols && params.symbols.length > 0) {
@@ -3708,7 +3781,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   async getAvailableHip3Dexs(): Promise<string[]> {
     try {
-      await this.ensureReady();
+      // Read-only operation: only need client initialization
+      this.ensureClientsInitialized();
+      this.clientService.ensureInitialized();
 
       if (!this.hip3Enabled) {
         DevLogger.log('HIP-3 disabled, no DEXs available');
@@ -3783,7 +3858,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async getMarketDataWithPrices(): Promise<PerpsMarketData[]> {
     DevLogger.log('Getting market data with prices via HyperLiquid SDK');
 
-    await this.ensureReady();
+    // Read-only operation: only need client initialization
+    this.ensureClientsInitialized();
+    this.clientService.ensureInitialized();
 
     const infoClient = this.clientService.getInfoClient();
 
@@ -4765,7 +4842,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
         return cached.value;
       }
 
-      await this.ensureReady();
+      // Read-only operation: only need client initialization, not full ensureReady()
+      // (no DEX abstraction, referral, or builder fee needed for metadata)
+      this.ensureClientsInitialized();
+      this.clientService.ensureInitialized();
 
       // Extract DEX name for API calls (main DEX = null)
       const { dex: dexName } = parseAssetName(asset);
@@ -4906,7 +4986,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
         });
 
         // Fetch fresh rates from SDK
-        await this.ensureReady();
+        // Read-only operation: only need client initialization
+        this.ensureClientsInitialized();
+        this.clientService.ensureInitialized();
         const infoClient = this.clientService.getInfoClient();
         const userFees = await infoClient.userFees({
           user: userAddress as `0x${string}`,
@@ -5149,6 +5231,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
       this.builderFeeCheckCache.clear();
       this.cachedMetaByDex.clear();
 
+      // Clear pending promise trackers to prevent memory leaks and ensure clean state
+      this.ensureReadyPromise = null;
+      this.pendingBuilderFeeApprovals.clear();
+
       // Disconnect client service
       await this.clientService.disconnect();
 
@@ -5170,7 +5256,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * @throws {Error} If WebSocket connection times out or fails
    */
   async ping(timeoutMs?: number): Promise<void> {
-    await this.ensureReady();
+    // Read-only operation: only need client initialization
+    this.ensureClientsInitialized();
+    this.clientService.ensureInitialized();
 
     const subscriptionClient = this.clientService.getSubscriptionClient();
     if (!subscriptionClient) {
@@ -5221,7 +5309,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   async getAvailableDexs(_params?: GetAvailableDexsParams): Promise<string[]> {
     try {
-      await this.ensureReady();
+      // Read-only operation: only need client initialization
+      this.ensureClientsInitialized();
+      this.clientService.ensureInitialized();
 
       const infoClient = this.clientService.getInfoClient();
       const dexs = await infoClient.perpDexs();
