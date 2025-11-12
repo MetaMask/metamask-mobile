@@ -3,7 +3,7 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
 import { OrderType } from '../controllers/types';
 import type { OrderFormState } from '../types/perps-types';
-import { getMaxAllowedAmount as getMaxAllowedAmountUtils } from '../utils/orderCalculations';
+import { getMaxAllowedAmount } from '../utils/orderCalculations';
 import {
   usePerpsLiveAccount,
   usePerpsLivePositions,
@@ -101,7 +101,7 @@ export function usePerpsOrderForm(
       return defaultAmount.toString();
     }
 
-    const tempMaxAmount = getMaxAllowedAmountUtils({
+    const tempMaxAmount = getMaxAllowedAmount({
       availableBalance,
       assetPrice: Number.parseFloat(currentPrice.price),
       assetSzDecimals: marketData?.szDecimals ?? 6,
@@ -149,7 +149,7 @@ export function usePerpsOrderForm(
   // Calculate the maximum possible amount based on available balance and current leverage
   const maxPossibleAmount = useMemo(
     () =>
-      getMaxAllowedAmountUtils({
+      getMaxAllowedAmount({
         availableBalance,
         assetPrice: Number.parseFloat(currentPrice?.price) || 0,
         assetSzDecimals: marketData?.szDecimals ?? 6,
