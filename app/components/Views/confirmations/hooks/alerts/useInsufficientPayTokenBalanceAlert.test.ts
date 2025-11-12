@@ -96,4 +96,24 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
 
     expect(result.current).toStrictEqual([]);
   });
+
+  it('ignores tokens with skipIfBalance when calculating total', () => {
+    useTransactionPayRequiredTokensMock.mockReturnValue([
+      {
+        amountUsd: '100.00',
+      },
+      {
+        amountUsd: '50.00',
+        skipIfBalance: true,
+      },
+    ] as TransactionPayRequiredToken[]);
+
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: { balanceUsd: '100.00', symbol: 'TST' },
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    const { result } = runHook();
+
+    expect(result.current).toEqual([]);
+  });
 });

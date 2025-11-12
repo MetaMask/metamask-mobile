@@ -586,6 +586,12 @@ export class PolymarketProvider implements PredictProvider {
     apiPosition: PredictPosition,
     update: OptimisticPositionUpdate,
   ): boolean {
+    // If API position is claimable, it's always updated since we cannot
+    // perform updates on claimable positions, other than REMOVE
+    if (apiPosition.claimable) {
+      return true;
+    }
+
     const { expectedSize } = update;
 
     // Use a small tolerance for floating point comparison (0.1%)
@@ -603,9 +609,11 @@ export class PolymarketProvider implements PredictProvider {
   private applyOptimisticPositionUpdates({
     address,
     positions,
+    claimable,
   }: {
     address: string;
     positions: PredictPosition[];
+    claimable: boolean;
   }): PredictPosition[] {
     const optimisticUpdates =
       this.#optimisticPositionUpdatesByAddress.get(address);
@@ -660,7 +668,7 @@ export class PolymarketProvider implements PredictProvider {
               // API not yet updated, use optimistic position
               result[apiPositionIndex] = update.optimisticPosition;
             }
-          } else if (update.optimisticPosition) {
+          } else if (update.optimisticPosition && !claimable) {
             // New position not in API yet, add optimistic position
             result.push(update.optimisticPosition);
           }
@@ -751,6 +759,7 @@ export class PolymarketProvider implements PredictProvider {
     const positionsWithOptimisticUpdates = this.applyOptimisticPositionUpdates({
       address,
       positions: parsedPositions,
+      claimable,
     });
 
     return positionsWithOptimisticUpdates;
@@ -1461,7 +1470,7 @@ export class PolymarketProvider implements PredictProvider {
       transaction: {
         params: {
           to: MATIC_CONTRACTS.collateral as Hex,
-          data: callData as Hex,
+          data: callData,
         },
         type: TransactionType.predictWithdraw,
       },
