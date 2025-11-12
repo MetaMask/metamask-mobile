@@ -38,11 +38,6 @@ export interface NotificationMenuItem {
   createdAt: string;
 
   /**
-   * A boolean that indicates if the notification is read or not
-   */
-  isRead?: boolean;
-
-  /**
    * A CTA Link for a notification item
    */
   cta?: {

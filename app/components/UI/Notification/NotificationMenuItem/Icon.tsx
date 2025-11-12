@@ -18,8 +18,8 @@ import { View } from 'react-native';
 
 type NotificationIconProps = Pick<
   NotificationMenuItem,
-  'image' | 'badgeIcon' | 'isRead'
->;
+  'image' | 'badgeIcon'
+> & { isRead: boolean };
 
 function MenuIcon(props: NotificationIconProps) {
   const { styles } = useStyles();
