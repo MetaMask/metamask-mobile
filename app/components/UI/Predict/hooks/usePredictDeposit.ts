@@ -35,7 +35,7 @@ export const usePredictDeposit = ({
 
   const { deposit: depositWithConfirmation } = usePredictTrading();
 
-  const isDepositPending = useSelector(
+  const depositBatchId = useSelector(
     selectPredictPendingDepositByAddress({
       providerId,
       address: selectedInternalAccountAddress,
@@ -144,6 +144,6 @@ export const usePredictDeposit = ({
 
   return {
     deposit,
-    isDepositPending,
+    isDepositPending: !!depositBatchId,
   };
 };
