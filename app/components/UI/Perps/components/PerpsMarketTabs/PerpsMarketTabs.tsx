@@ -669,7 +669,10 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   }, [selectedTooltip, handleTooltipClose]);
 
   // Key for TabsList to force remount when tab count changes
-  const tabsKey = useMemo(() => `tabs-${tabs.length}`, [tabs.length]);
+  const tabsKey = useMemo(
+    () => `tabs-${tabs.length}-${tabsToRender.length}`,
+    [tabs.length, tabsToRender.length],
+  );
 
   // Calculate active index for TabsList
   const activeIndex = useMemo(() => {
