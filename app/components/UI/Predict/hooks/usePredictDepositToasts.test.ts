@@ -81,6 +81,23 @@ jest.mock('../../../../core/Engine', () => ({
       clearPendingDeposit: jest.fn(),
       depositWithConfirmation: jest.fn(() => Promise.resolve()),
     },
+    AccountTreeController: {
+      getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
+        {
+          address: '0x1234567890123456789012345678901234567890',
+          id: 'mock-account-id',
+          type: 'eip155:eoa',
+          options: {},
+          metadata: {
+            name: 'Test Account',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1'],
+          methods: ['eth_sendTransaction'],
+        },
+      ]),
+    },
   },
   controllerMessenger: {
     subscribe: jest.fn(),

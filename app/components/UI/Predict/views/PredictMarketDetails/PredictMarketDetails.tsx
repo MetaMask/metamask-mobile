@@ -128,6 +128,14 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     enabled: Boolean(resolvedMarketId),
   });
 
+  // calculate sticky header indices based on content structure
+  const stickyHeaderIndices = useMemo(() => {
+    if (isMarketFetching && !market) {
+      return [];
+    }
+    return [1];
+  }, [isMarketFetching, market]);
+
   const titleLineCount = useMemo(
     () => estimateLineCount(title ?? market?.title),
     [title, market?.title],
@@ -1114,7 +1122,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
       <ScrollView
         testID={PredictMarketDetailsSelectorsIDs.SCROLLABLE_TAB_VIEW}
-        stickyHeaderIndices={[1]}
+        stickyHeaderIndices={stickyHeaderIndices}
         showsVerticalScrollIndicator={false}
         style={tw.style('flex-1')}
         refreshControl={
@@ -1147,14 +1155,12 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             <PredictDetailsContentSkeleton />
           </Box>
         ) : (
-          <>
-            {/* Sticky tab bar */}
-            {renderCustomTabBar()}
-
-            {/* Tab content */}
-            {renderTabContent()}
-          </>
+          /* Sticky tab bar */
+          renderCustomTabBar()
         )}
+
+        {/* Tab content - only show when market is loaded */}
+        {!isMarketFetching && market && renderTabContent()}
       </ScrollView>
 
       <Box twClassName="px-3 bg-default border-t border-muted">

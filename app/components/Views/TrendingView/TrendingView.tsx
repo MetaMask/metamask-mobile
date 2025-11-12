@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
+import { ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -15,7 +16,7 @@ import {
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { appendURLParams } from '../../../util/browser';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useMetrics } from '../../hooks/useMetrics';
 import Browser from '../Browser';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -23,14 +24,16 @@ import {
   updateLastTrendingScreen,
 } from '../../Nav/Main/MainNavigator';
 import TrendingTokensSection from './TrendingTokensSection/TrendingTokensSection';
-import { ScrollView, StyleSheet } from 'react-native';
+import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
+import ExploreSearchScreen from './ExploreSearchScreen/ExploreSearchScreen';
+import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
 
 const Stack = createStackNavigator();
 
 const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
-    marginTop: 48,
+    marginTop: 10,
     paddingLeft: 16,
     paddingRight: 16,
   },
@@ -94,9 +97,13 @@ const TrendingFeed: React.FC = () => {
     });
   }, [navigation, portfolioUrl.href]);
 
+  const handleSearchPress = useCallback(() => {
+    navigation.navigate(Routes.EXPLORE_SEARCH);
+  }, [navigation]);
+
   return (
     <Box style={{ paddingTop: insets.top }} twClassName="flex-1 bg-default">
-      <Box twClassName="flex-row justify-between items-center px-4 py-3 bg-default border-b border-muted">
+      <Box twClassName="flex-row justify-between items-center px-4 py-3">
         <Text variant={TextVariant.HeadingLg} twClassName="text-default">
           {strings('trending.title')}
         </Text>
@@ -110,6 +117,8 @@ const TrendingFeed: React.FC = () => {
           />
         </Box>
       </Box>
+
+      <ExploreSearchBar type="button" onPress={handleSearchPress} />
 
       <ScrollView
         style={styles.scrollView}
@@ -125,15 +134,21 @@ const TrendingView: React.FC = () => {
   const initialRoot = lastTrendingScreenRef.current || 'TrendingFeed';
 
   return (
-    <Stack.Navigator
-      initialRouteName={initialRoot}
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="TrendingFeed" component={TrendingFeed} />
-      <Stack.Screen name="TrendingBrowser" component={BrowserWrapper} />
-    </Stack.Navigator>
+    <PerpsStreamProvider>
+      <Stack.Navigator
+        initialRouteName={initialRoot}
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        <Stack.Screen name="TrendingFeed" component={TrendingFeed} />
+        <Stack.Screen name="TrendingBrowser" component={BrowserWrapper} />
+        <Stack.Screen
+          name={Routes.EXPLORE_SEARCH}
+          component={ExploreSearchScreen}
+        />
+      </Stack.Navigator>
+    </PerpsStreamProvider>
   );
 };
 

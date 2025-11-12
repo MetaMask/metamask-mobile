@@ -108,3 +108,10 @@ export const PredictEventType = {
 
 export type PredictEventTypeValue =
   (typeof PredictEventType)[keyof typeof PredictEventType];
+
+/**
+ * GTM Modal constants for analytics tracking
+ */
+export const PREDICT_GTM_WHATS_NEW_MODAL = 'predict-gtm-whats-new-modal';
+export const PREDICT_GTM_MODAL_ENGAGE = 'engage';
+export const PREDICT_GTM_MODAL_DECLINE = 'decline';
