@@ -6,8 +6,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import {
   Box,
   BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
   Text,
   TextVariant,
   ButtonIcon,
@@ -24,8 +22,19 @@ import {
   lastTrendingScreenRef,
   updateLastTrendingScreen,
 } from '../../Nav/Main/MainNavigator';
+import TrendingTokensSection from './TrendingTokensSection/TrendingTokensSection';
+import { ScrollView, StyleSheet } from 'react-native';
 
 const Stack = createStackNavigator();
+
+const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+    marginTop: 48,
+    paddingLeft: 16,
+    paddingRight: 16,
+  },
+});
 
 // Wrapper component to intercept navigation
 const BrowserWrapper: React.FC<{ route: object }> = ({ route }) => {
@@ -88,7 +97,7 @@ const TrendingFeed: React.FC = () => {
   return (
     <Box style={{ paddingTop: insets.top }} twClassName="flex-1 bg-default">
       <Box twClassName="flex-row justify-between items-center px-4 py-3 bg-default border-b border-muted">
-        <Text variant={TextVariant.HeadingMd} twClassName="text-default">
+        <Text variant={TextVariant.HeadingLg} twClassName="text-default">
           {strings('trending.title')}
         </Text>
 
@@ -102,19 +111,12 @@ const TrendingFeed: React.FC = () => {
         </Box>
       </Box>
 
-      <Box
-        twClassName="flex-1 bg-default px-5"
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
       >
-        <Text
-          variant={TextVariant.BodyMd}
-          twClassName="text-muted text-center"
-          testID="trending-view-coming-soon"
-        >
-          {strings('trending.coming_soon')}
-        </Text>
-      </Box>
+        <TrendingTokensSection />
+      </ScrollView>
     </Box>
   );
 };
