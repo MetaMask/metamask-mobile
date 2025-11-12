@@ -1,5 +1,5 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { LocalNodeType } from '../../framework/types';
+import { LocalNode, LocalNodeType } from '../../framework/types';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import QuoteView from '../../pages/swaps/QuoteView';
@@ -12,6 +12,8 @@ import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
 import { testSpecificMock } from './helpers/bridge-mocks';
 import SoftAssert from '../../framework/SoftAssert';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 enum eventsToCheck {
   BRIDGE_BUTTON_CLICKED = 'Bridge Button Clicked',
@@ -39,13 +41,29 @@ describe(SmokeTrade('Bridge functionality'), () => {
 
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork(chainId)
-          .withDisabledSmartTransactions()
-          .build(),
+        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+          const node = localNodes?.[0] as unknown as AnvilManager;
+          const rpcPort =
+            node instanceof AnvilManager
+              ? (node.getPort() ?? AnvilPort())
+              : undefined;
+
+          return new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: {
+                chainId,
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Localhost',
+                ticker: 'ETH',
+              },
+            })
+            .withDisabledSmartTransactions()
+            .build();
+        },
         localNodeOptions: [
           {
-            type: LocalNodeType.ganache,
+            type: LocalNodeType.anvil,
             options: {
               chainId: 1,
             },
@@ -63,7 +81,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
         await device.disableSynchronization();
         await QuoteView.tapDestinationToken();
         await TestHelpers.delay(2000); // wait until tokens are displayed
-        await QuoteView.swipeNetwork(destNetwork, 0.3);
+        await QuoteView.swipeNetwork('Ethereum', 0.8);
         await TestHelpers.delay(2000); // allow scroll to take place
         await QuoteView.selectNetwork(destNetwork);
         await QuoteView.tapToken(destChainId, sourceSymbol);

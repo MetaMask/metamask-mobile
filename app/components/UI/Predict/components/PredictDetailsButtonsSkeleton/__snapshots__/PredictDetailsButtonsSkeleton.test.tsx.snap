@@ -1,0 +1,105 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PredictDetailsButtonsSkeleton matches snapshot 1`] = `
+<View
+  style={
+    [
+      {
+        "display": "flex",
+        "flexDirection": "row",
+        "gap": 12,
+        "marginTop": 16,
+        "width": "100%",
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        {
+          "backgroundColor": "#457a391a",
+          "borderRadius": 8,
+          "height": 48,
+          "overflow": "hidden",
+          "width": "100%",
+        }
+      }
+      testID="predict-details-buttons-skeleton-button-yes"
+    >
+      <View
+        collapsable={false}
+        pointerEvents="none"
+        style={
+          {
+            "backgroundColor": "#686e7d",
+            "borderRadius": 4,
+            "bottom": 0,
+            "left": 0,
+            "opacity": 0.2,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+      />
+    </View>
+  </View>
+  <View
+    style={
+      [
+        {
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        {
+          "backgroundColor": "#ca35421a",
+          "borderRadius": 8,
+          "height": 48,
+          "overflow": "hidden",
+          "width": "100%",
+        }
+      }
+      testID="predict-details-buttons-skeleton-button-no"
+    >
+      <View
+        collapsable={false}
+        pointerEvents="none"
+        style={
+          {
+            "backgroundColor": "#686e7d",
+            "borderRadius": 4,
+            "bottom": 0,
+            "left": 0,
+            "opacity": 0.2,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+      />
+    </View>
+  </View>
+</View>
+`;

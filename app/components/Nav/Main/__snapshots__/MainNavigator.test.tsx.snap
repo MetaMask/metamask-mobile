@@ -129,6 +129,10 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
     name="PaymentRequestView"
   />
   <Screen
+    component={[Function]}
+    name="RampTokenSelection"
+  />
+  <Screen
     name="RampBuy"
   />
   <Screen
