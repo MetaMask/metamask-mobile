@@ -19,21 +19,27 @@ const mockUseExploreSearch = useExploreSearch as jest.MockedFunction<
 
 // Mock child components that render individual items
 jest.mock(
-  '../TrendingTokensSection/TrendingTokensList/TrendingTokenRowItem/TrendingTokenRowItem',
-  () => () => null,
-);
-
-jest.mock('../../../UI/Perps/components/PerpsMarketRowItem', () => () => null);
-
-jest.mock('../../../UI/Predict/components/PredictMarket', () => () => null);
-
-jest.mock(
-  '../TrendingTokensSection/TrendingTokenSkeleton/TrendingTokensSkeleton',
+  '../../../TrendingTokensSection/TrendingTokensList/TrendingTokenRowItem/TrendingTokenRowItem',
   () => () => null,
 );
 
 jest.mock(
-  '../../../UI/Perps/Views/PerpsMarketListView/components/PerpsMarketRowSkeleton',
+  '../../../../../UI/Perps/components/PerpsMarketRowItem',
+  () => () => null,
+);
+
+jest.mock(
+  '../../../../../UI/Predict/components/PredictMarket',
+  () => () => null,
+);
+
+jest.mock(
+  '../../../TrendingTokensSection/TrendingTokenSkeleton/TrendingTokensSkeleton',
+  () => () => null,
+);
+
+jest.mock(
+  '../../../../../UI/Perps/Views/PerpsMarketListView/components/PerpsMarketRowSkeleton',
   () => () => null,
 );
 
