@@ -55,6 +55,19 @@ jest.mock('../../../../core/Engine', () => ({
         metadata: { name: 'Test Account' },
       }),
     },
+    AccountTreeController: {
+      getAccountsFromSelectedAccountGroup: jest.fn(() => [
+        {
+          id: 'mock-account-id',
+          address: '0x1234567890123456789012345678901234567890',
+          type: 'eip155:eoa',
+          name: 'Test Account',
+          metadata: {
+            lastSelected: 0,
+          },
+        },
+      ]),
+    },
     NetworkController: {
       getState: jest.fn().mockReturnValue({
         selectedNetworkClientId: 'mainnet',
