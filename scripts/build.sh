@@ -555,7 +555,7 @@ generateAndroidBinary() {
 	if [ "$configuration" = "Release" ] ; then
 		testConfiguration="app:assemble${flavor}${configuration}AndroidTest"
 		# Generate Android binary only
-		./gradlew $flavorConfiguration --build-cache --parallel
+		./gradlew $flavorConfiguration $testConfiguration --build-cache --parallel
 		
 		# Generate AAB bundle (not needed for E2E)
 		bundleConfiguration="bundle${flavor}Release"
