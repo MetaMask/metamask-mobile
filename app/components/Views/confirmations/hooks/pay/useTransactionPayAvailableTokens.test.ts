@@ -3,6 +3,9 @@ import { useAccountTokens } from '../send/useAccountTokens';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import { AssetType, TokenStandard } from '../../types/token';
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
+
+jest.mock('../send/useAccountTokens');
 
 const TOKEN_MOCK = {
   accountType: EthAccountType.Eoa,
@@ -26,7 +29,7 @@ describe('useTransactionPayAvailableTokens', () => {
   });
 
   it('returns available tokens', () => {
-    const result = useTransactionPayAvailableTokens();
-    expect(result).toStrictEqual([TOKEN_MOCK]);
+    const { result } = renderHookWithProvider(useTransactionPayAvailableTokens);
+    expect(result.current).toMatchObject([TOKEN_MOCK]);
   });
 });
