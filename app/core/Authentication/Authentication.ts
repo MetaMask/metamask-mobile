@@ -1,5 +1,6 @@
 import SecureKeychain from '../SecureKeychain';
 import Engine from '../Engine';
+import { Engine as EngineClass } from '../Engine/Engine';
 import {
   BIOMETRY_CHOICE_DISABLED,
   TRUE,
@@ -761,10 +762,21 @@ class AuthenticationService {
 
       this.dispatchOauthReset();
     } catch (error) {
-      await this.newWalletAndKeychain(`${Date.now()}`, {
-        currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
-      });
+      // Clear vault backups BEFORE creating temporary wallet
       await clearAllVaultBackups();
+
+      // Disable automatic vault backups during OAuth error recovery
+      EngineClass.disableAutomaticVaultBackup = true;
+
+      try {
+        await this.newWalletAndKeychain(`${Date.now()}`, {
+          currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
+        });
+      } finally {
+        // ALWAYS re-enable automatic backups, even if error occurs
+        EngineClass.disableAutomaticVaultBackup = false;
+      }
+
       SeedlessOnboardingController.clearState();
       throw error;
     }
