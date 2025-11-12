@@ -1,0 +1,72 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`RampUnsupportedModal renders the modal with the correct title and description 1`] = `
+<View>
+  <View
+    style={
+      {
+        "paddingBottom": 24,
+        "paddingHorizontal": 24,
+      }
+    }
+  >
+    <Text
+      color="alternative"
+      variant="BodyMD"
+    >
+      Buying crypto isn't available in your region due to limitations with local payment providers or regulatory restrictions.
+    </Text>
+  </View>
+  <View
+    style={
+      {
+        "gap": 16,
+        "paddingBottom": 24,
+        "paddingHorizontal": 24,
+      }
+    }
+  >
+    <View
+      accessible={true}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        {
+          "opacity": 1,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "borderRadius": 100,
+            "flexDirection": "row",
+            "gap": 8,
+            "height": 48,
+            "justifyContent": "center",
+            "opacity": 1,
+            "paddingHorizontal": 16,
+            "paddingVertical": 12,
+            "width": "100%",
+          }
+        }
+      >
+        <Text
+          color="primary-inverse"
+          variant="BodyMDMedium"
+        >
+          Got It
+        </Text>
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
