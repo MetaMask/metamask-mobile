@@ -24,6 +24,7 @@ import { PredictEventValues } from '../../constants/eventNames';
 import { strings } from '../../../../../../locales/i18n';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -46,6 +47,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     avgPrice,
     currentValue,
     title,
+    optimistic,
   } = position;
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -60,23 +62,31 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   )?.groupItemTitle;
 
   const onCashOut = () => {
-    executeGuardedAction(() => {
-      const _outcome = market?.outcomes.find(
-        (o) => o.id === position.outcomeId,
-      );
-      navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
-        params: {
-          market,
-          position,
-          outcome: _outcome,
-          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-        },
-      });
-    });
+    executeGuardedAction(
+      () => {
+        const _outcome = market?.outcomes.find(
+          (o) => o.id === position.outcomeId,
+        );
+        navigate(Routes.PREDICT.MODALS.ROOT, {
+          screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
+          params: {
+            market,
+            position,
+            outcome: _outcome,
+            entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+          },
+        });
+      },
+      { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CASHOUT },
+    );
   };
 
   const renderValueText = () => {
+    // Show skeleton for optimistic positions
+    if (optimistic) {
+      return <Skeleton width={70} height={20} />;
+    }
+
     if (marketStatus === PredictMarketStatus.OPEN) {
       return (
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
@@ -132,14 +142,17 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
         </Box>
         <Box twClassName="items-end justify-end ml-auto shrink-0">
           {renderValueText()}
-          {marketStatus === PredictMarketStatus.OPEN && (
-            <Text
-              variant={TextVariant.BodySMMedium}
-              color={percentPnl > 0 ? TextColor.Success : TextColor.Error}
-            >
-              {formatPercentage(percentPnl)}
-            </Text>
-          )}
+          {marketStatus === PredictMarketStatus.OPEN &&
+            (optimistic ? (
+              <Skeleton width={55} height={16} style={tw.style('mt-1')} />
+            ) : (
+              <Text
+                variant={TextVariant.BodySMMedium}
+                color={percentPnl > 0 ? TextColor.Success : TextColor.Error}
+              >
+                {formatPercentage(percentPnl)}
+              </Text>
+            ))}
         </Box>
       </Box>
       {marketStatus === PredictMarketStatus.OPEN && (
@@ -153,6 +166,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
             width={ButtonWidthTypes.Full}
             label={strings('predict.cash_out')}
             onPress={onCashOut}
+            isDisabled={optimistic}
           />
         </Box>
       )}

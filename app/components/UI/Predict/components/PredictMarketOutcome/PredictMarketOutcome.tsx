@@ -33,7 +33,11 @@ import {
   PredictEntryPoint,
 } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
-import { formatPercentage, formatVolume } from '../../utils/format';
+import {
+  formatCents,
+  formatPercentage,
+  formatVolume,
+} from '../../utils/format';
 import styleSheet from './PredictMarketOutcome.styles';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 interface PredictMarketOutcomeProps {
@@ -96,7 +100,10 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
           },
         });
       },
-      { checkBalance: true },
+      {
+        checkBalance: true,
+        attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
+      },
     );
   };
 
@@ -108,7 +115,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
           alignItems={BoxAlignItems.Center}
           twClassName="flex-1 gap-3"
         >
-          <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
+          <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden self-start">
             {getImageUrl() ? (
               <Image
                 source={{ uri: getImageUrl() }}
@@ -119,25 +126,19 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
               <Box twClassName="w-full h-full bg-muted" />
             )}
           </Box>
-          <View style={tw.style('flex-1')}>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName="gap-2"
+          <Box twClassName="flex-1 -mt-1">
+            <Text
+              variant={TextVariant.HeadingMD}
+              color={TextColor.Default}
+              style={tw.style('font-medium')}
             >
-              <Text
-                variant={TextVariant.HeadingMD}
-                color={TextColor.Default}
-                style={tw.style('font-medium')}
-              >
-                {getTitle()}
-              </Text>
-            </Box>
+              {getTitle()}
+            </Text>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               ${getVolumeDisplay()} {strings('predict.volume_abbreviated')}
             </Text>
-          </View>
-          <Text>
+          </Box>
+          <Box>
             {isClosed && outcomeToken ? (
               <Box
                 flexDirection={BoxFlexDirection.Row}
@@ -176,7 +177,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
                 {getYesPercentage()}
               </Text>
             )}
-          </Text>
+          </Box>
         </Box>
       </View>
       {!isClosed && (
@@ -188,7 +189,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
             label={
               <Text style={tw.style('font-medium')} color={TextColor.Success}>
                 {outcome.tokens[0].title} •{' '}
-                {(outcome.tokens[0].price * 100).toFixed(2)}¢
+                {formatCents(outcome.tokens[0].price)}
               </Text>
             }
             onPress={() => handleBuy(outcome.tokens[0])}
@@ -201,7 +202,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
             label={
               <Text style={tw.style('font-medium')} color={TextColor.Error}>
                 {outcome.tokens[1].title} •{' '}
-                {(outcome.tokens[1].price * 100).toFixed(2)}¢
+                {formatCents(outcome.tokens[1].price)}
               </Text>
             }
             onPress={() => handleBuy(outcome.tokens[1])}

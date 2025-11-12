@@ -21,7 +21,9 @@ import {
   OnboardingActionTypes,
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
-import { connect } from 'react-redux';
+import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
+import { setExistingUser } from '../../../actions/user';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
 import { BiometryButton } from '../../UI/BiometryButton';
 import { OPTIN_META_METRICS_UI_SEEN } from '../../../constants/storage';
@@ -69,6 +71,7 @@ const EmptyRecordConstant = {};
 interface LoginRouteParams {
   locked: boolean;
   onboardingTraceCtx?: TraceContext;
+  isVaultRecovery?: boolean;
 }
 
 interface LoginProps {
@@ -92,10 +95,19 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
+  const dispatch = useDispatch();
   const {
     styles,
     theme: { colors, themeAppearance },
   } = useStyles(stylesheet, EmptyRecordConstant);
+  const setAllowLoginWithRememberMe = (enabled: boolean) =>
+    setAllowLoginWithRememberMeUtil(enabled);
+  const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
+
+  // coming from oauth onboarding flow flag
+  const isComingFromOauthOnboarding = route?.params?.oauthLoginSuccess ?? false;
+  // coming from vault recovery flow flag
+  const isComingFromVaultRecovery = route?.params?.isVaultRecovery ?? false;
 
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
@@ -207,6 +219,177 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         op: TraceOperation.OnboardingUserJourney,
         parentContext: onboardingTraceCtxFromRoute,
       });
+      endTrace({ name: TraceName.OnboardingPasswordLoginError });
+    }
+
+    if (loginErrorMessage.includes('SeedlessOnboardingController')) {
+      handleSeedlessOnboardingControllerError(loginError);
+      return;
+    }
+
+    const isWrongPasswordError =
+      toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR) ||
+      toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID) ||
+      toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID_2);
+
+    if (isWrongPasswordError && isComingFromOauthOnboarding) {
+      track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+        account_type: 'social',
+        failed_attempts: rehydrationFailedAttempts,
+        error_type: 'incorrect_password',
+      });
+    }
+
+    const isPasswordError =
+      isWrongPasswordError ||
+      loginErrorMessage.includes(PASSWORD_REQUIREMENTS_NOT_MET);
+
+    if (isPasswordError) {
+      handlePasswordError(loginErrorMessage);
+      // return and skip capture error to sentry
+      return;
+    } else if (loginErrorMessage === PASSCODE_NOT_SET_ERROR) {
+      Alert.alert(
+        strings('login.security_alert_title'),
+        strings('login.security_alert_desc'),
+      );
+    } else if (
+      containsErrorMessage(loginError, VAULT_ERROR) ||
+      containsErrorMessage(loginError, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
+    ) {
+      // Track vault corruption detected
+      trackVaultCorruption(loginErrorMessage, {
+        error_type: containsErrorMessage(loginError, VAULT_ERROR)
+          ? 'vault_error'
+          : 'json_parse_error',
+        context: 'login_authentication',
+        oauth_login: isComingFromOauthOnboarding,
+      });
+
+      await handleVaultCorruption();
+    } else if (toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID)) {
+      updateBiometryChoice(false);
+    } else {
+      setError(loginErrorMessage);
+    }
+
+    if (isComingFromOauthOnboarding) {
+      track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+        account_type: 'social',
+        failed_attempts: rehydrationFailedAttempts,
+        error_type: 'unknown_error',
+      });
+    }
+
+    setLoading(false);
+    Logger.error(loginErr as Error, 'Failed to unlock');
+  };
+
+  const onLogin = async () => {
+    endTrace({ name: TraceName.LoginUserInteraction });
+    if (isComingFromOauthOnboarding) {
+      track(MetaMetricsEvents.REHYDRATION_PASSWORD_ATTEMPTED, {
+        account_type: 'social',
+        biometrics: biometryChoice,
+      });
+    }
+
+    try {
+      const locked = !passwordRequirementsMet(password);
+      if (locked) {
+        throw new Error(PASSWORD_REQUIREMENTS_NOT_MET);
+      }
+      if (finalLoading || locked) return;
+
+      setLoading(true);
+
+      // latest ux changes - we are forcing user to enable biometric by default
+      const authType = await Authentication.componentAuthenticationType(
+        biometryChoice,
+        rememberMe,
+      );
+      if (isComingFromOauthOnboarding) {
+        authType.oauth2Login = true;
+      }
+
+      await trace(
+        {
+          name: TraceName.AuthenticateUser,
+          op: TraceOperation.Login,
+        },
+        async () => {
+          await Authentication.userEntryAuth(password, authType);
+        },
+      );
+
+      // CRITICAL: Set existingUser = true after successful vault unlock from recovery
+      // This prevents the vault recovery screen from appearing again on app restart
+      // Only set after successful unlock to ensure vault is unlocked and credentials are stored
+      if (isComingFromVaultRecovery) {
+        dispatch(setExistingUser(true));
+      }
+
+      if (isComingFromOauthOnboarding) {
+        track(MetaMetricsEvents.REHYDRATION_COMPLETED, {
+          account_type: 'social',
+          biometrics: biometryChoice,
+          failed_attempts: rehydrationFailedAttempts,
+        });
+      }
+
+      if (passwordLoginAttemptTraceCtxRef.current) {
+        endTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
+        passwordLoginAttemptTraceCtxRef.current = null;
+      }
+      endTrace({ name: TraceName.OnboardingExistingSocialLogin });
+      endTrace({ name: TraceName.OnboardingJourneyOverall });
+
+      if (isComingFromOauthOnboarding) {
+        await navigateToHome();
+      } else {
+        await checkMetricsUISeen();
+      }
+
+      // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
+      setPassword('');
+      setLoading(false);
+      setHasBiometricCredentials(false);
+      setError(null);
+      fieldRef.current?.clear();
+    } catch (loginErr: unknown) {
+      await handleLoginError(loginErr);
+    }
+  };
+
+  const tryBiometric = async () => {
+    fieldRef.current?.blur();
+    try {
+      setLoading(true);
+      await trace(
+        {
+          name: TraceName.LoginBiometricAuthentication,
+          op: TraceOperation.Login,
+        },
+        async () => {
+          await Authentication.appTriggeredAuth();
+        },
+      );
+
+      if (isComingFromOauthOnboarding) {
+        await navigateToHome();
+      } else {
+        await checkMetricsUISeen();
+      }
+
+      // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
+      setPassword('');
+      setHasBiometricCredentials(false);
+      setLoading(false);
+      fieldRef.current?.clear();
+    } catch (tryBiometricError) {
+      setHasBiometricCredentials(true);
+      setLoading(false);
+      Logger.log(tryBiometricError);
     }
   }, [route.params?.onboardingTraceCtx]);
 

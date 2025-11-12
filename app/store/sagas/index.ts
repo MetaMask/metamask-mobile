@@ -218,6 +218,37 @@ export function* handleDeeplinkSaga() {
   }
 }
 
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+/**
+ * Handles updating the Snaps registry when the user has booted the app and is onboarded
+ */
+export function* handleSnapsRegistry() {
+  while (true) {
+    const result = (yield take([
+      UserActionType.LOGIN,
+      SET_COMPLETED_ONBOARDING,
+    ])) as LoginAction | SetCompletedOnboardingAction;
+
+    const state: boolean = yield select(selectCompletedOnboarding);
+    const completedOnboarding =
+      result.type === 'SET_COMPLETED_ONBOARDING'
+        ? result.completedOnboarding
+        : state;
+
+    if (!completedOnboarding) {
+      continue;
+    }
+
+    try {
+      const { SnapController } = Engine.context;
+      yield call([SnapController, SnapController.updateRegistry]);
+    } catch {
+      // Ignore
+    }
+  }
+}
+///: END:ONLY_INCLUDE_IF
+
 /**
  * Handles initializing app services on start up
  */
@@ -248,4 +279,7 @@ export function* rootSaga() {
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
   yield fork(handleDeeplinkSaga);
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  yield fork(handleSnapsRegistry);
+  ///: END:ONLY_INCLUDE_IF
 }
