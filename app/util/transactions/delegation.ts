@@ -26,6 +26,8 @@ import { DelegationControllerSignDelegationAction } from '@metamask/delegation-c
 import { KeyringControllerSignEip7702AuthorizationAction } from '@metamask/keyring-controller';
 import { toHex } from '@metamask/controller-utils';
 import Engine from '../../core/Engine';
+import { exactExecutionBatch } from '../../core/Delegation/caveatBuilder/exactExecutionBatchBuilder';
+import { exactExecution } from '../../core/Delegation/caveatBuilder/exactExecutionBuilder';
 
 const log = createProjectLogger('transaction-delegation');
 
@@ -214,7 +216,7 @@ function buildUnsignedDelegation(
   environment: DeleGatorEnvironment,
   transactionMeta: TransactionMeta,
 ): UnsignedDelegation {
-  const caveats = buildCaveats(environment);
+  const caveats = buildCaveats(environment, transactionMeta);
 
   log('Caveats', caveats);
 
@@ -229,8 +231,29 @@ function buildUnsignedDelegation(
   return delegation;
 }
 
-function buildCaveats(environment: DeleGatorEnvironment): Caveat[] {
+function buildCaveats(
+  environment: DeleGatorEnvironment,
+  transaction: TransactionMeta,
+): Caveat[] {
   const caveatBuilder = createCaveatBuilder(environment);
+  const { nestedTransactions } = transaction;
+
+  const executions = (transaction.nestedTransactions ?? []).map((tx) => ({
+    to: tx.to as string,
+    value: tx.value ?? '0x0',
+    data: tx.data as string | undefined,
+  }));
+
+  if ((nestedTransactions ?? []).length > 1) {
+    caveatBuilder.addCaveat(exactExecutionBatch, executions);
+  } else {
+    caveatBuilder.addCaveat(
+      exactExecution,
+      executions[0].to,
+      executions[0].value,
+      executions[0].data,
+    );
+  }
 
   caveatBuilder.addCaveat(limitedCalls, 1);
 
