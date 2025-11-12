@@ -586,6 +586,12 @@ export class PolymarketProvider implements PredictProvider {
     apiPosition: PredictPosition,
     update: OptimisticPositionUpdate,
   ): boolean {
+    // If API position is claimable, it's always updated since we cannot
+    // perform updates on claimable positions, other than REMOVE
+    if (apiPosition.claimable) {
+      return true;
+    }
+
     const { expectedSize } = update;
 
     // Use a small tolerance for floating point comparison (0.1%)
