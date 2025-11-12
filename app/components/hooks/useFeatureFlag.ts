@@ -1,8 +1,10 @@
 import { useSelector } from 'react-redux';
-import { useFeatureFlagOverride } from '../../../contexts/FeatureFlagOverrideContext';
-import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { useFeatureFlagOverride } from '../../contexts/FeatureFlagOverrideContext';
+import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 
-export enum FeatureFlagNames {}
+export enum FeatureFlagNames {
+  rewardsEnabled = 'rewardsEnabled',
+}
 
 export const useFeatureFlag = (key: FeatureFlagNames) => {
   const { getFeatureFlag } = useFeatureFlagOverride();
