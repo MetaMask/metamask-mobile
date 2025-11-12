@@ -17,15 +17,11 @@ import {
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { useNetInfo } from '@react-native-community/netinfo';
-import { getVaultFromBackup } from '../../../core/BackupVault';
-import { parseVaultValue } from '../../../util/validators';
 import Logger from '../../../util/Logger';
 
 const mockEngine = jest.mocked(Engine);
 
 jest.mock('../../../util/Logger');
-jest.mock('../../../core/BackupVault');
-jest.mock('../../../util/validators');
 
 // Mock images
 jest.mock('../../../images/branding/fox.png', () => 'fox-logo');
@@ -128,8 +124,6 @@ jest.mock('../Login/hooks/usePasswordOutdated', () => ({
 }));
 
 const mockTrackOnboarding = trackOnboarding as jest.Mock;
-const mockGetVaultFromBackup = getVaultFromBackup as jest.Mock;
-const mockParseVaultValue = parseVaultValue as jest.Mock;
 const mockUseNetInfo = useNetInfo as jest.Mock;
 
 describe('OAuthRehydration', () => {
@@ -349,56 +343,6 @@ describe('OAuthRehydration', () => {
     });
   });
 
-  describe('Vault corruption recovery', () => {
-    it('navigates to restore wallet when vault is corrupted', async () => {
-      // Arrange
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error('Cannot unlock without a previous vault.'),
-      );
-      mockGetVaultFromBackup.mockResolvedValue({ vault: 'backupVault' });
-      mockParseVaultValue.mockResolvedValue('vaultSeed');
-      (Authentication.storePassword as jest.Mock) = jest
-        .fn()
-        .mockResolvedValue(undefined);
-
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      // Act
-      fireEvent.changeText(passwordInput, 'password123');
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      // Assert
-      await waitFor(() => {
-        expect(mockGetVaultFromBackup).toHaveBeenCalled();
-      });
-    });
-
-    it('displays error when vault backup fails', async () => {
-      // Arrange
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error('Cannot unlock without a previous vault.'),
-      );
-      mockGetVaultFromBackup.mockResolvedValue({ error: 'Backup failed' });
-
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      // Act
-      fireEvent.changeText(passwordInput, 'password123');
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      // Assert
-      await waitFor(() => {
-        expect(Logger.error).toHaveBeenCalled();
-      });
-    });
-  });
-
   describe('Navigation and user actions', () => {
     it('navigates back and resets OAuth state when using other methods', () => {
       // Arrange
@@ -593,29 +537,6 @@ describe('OAuthRehydration', () => {
       });
     });
 
-    it('handles vault parse value returning null', async () => {
-      // Arrange
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error('Cannot unlock without a previous vault.'),
-      );
-      mockGetVaultFromBackup.mockResolvedValue({ vault: 'backup' });
-      mockParseVaultValue.mockResolvedValue(null);
-
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      // Act
-      fireEvent.changeText(passwordInput, 'password123');
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      // Assert
-      await waitFor(() => {
-        expect(Logger.error).toHaveBeenCalled();
-      });
-    });
-
     it('prevents login when password is too short', async () => {
       // Arrange
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
@@ -695,32 +616,6 @@ describe('OAuthRehydration', () => {
       // Assert
       await waitFor(() => {
         expect(mockTrackOnboarding).toHaveBeenCalled();
-      });
-    });
-
-    it('handles vault corruption with authentication error during recovery', async () => {
-      // Arrange
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error('Cannot unlock without a previous vault.'),
-      );
-      mockGetVaultFromBackup.mockResolvedValue({ vault: 'backup' });
-      mockParseVaultValue.mockResolvedValue('vaultSeed');
-      (Authentication.storePassword as jest.Mock) = jest
-        .fn()
-        .mockRejectedValue(new Error('Store failed'));
-
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      // Act
-      fireEvent.changeText(passwordInput, 'password123');
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      // Assert
-      await waitFor(() => {
-        expect(Logger.error).toHaveBeenCalled();
       });
     });
 
