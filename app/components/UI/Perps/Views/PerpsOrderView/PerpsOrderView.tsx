@@ -19,6 +19,7 @@ import {
 import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
+import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
@@ -32,7 +33,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import PerpsFeesDisplay from '../../components/PerpsFeesDisplay';
 import ListItem from '../../../../../component-library/components/List/ListItem';
 import ListItemColumn, {
   WidthType,
@@ -41,28 +41,34 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../../util/theme';
+import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import Routes from '../../../../../constants/navigation/Routes';
+import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
 import Keypad from '../../../../Base/Keypad';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import RewardsAnimations, {
+  RewardAnimationState,
+} from '../../../Rewards/components/RewardPointsAnimation';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
+import PerpsFeesDisplay from '../../components/PerpsFeesDisplay';
 import PerpsLeverageBottomSheet from '../../components/PerpsLeverageBottomSheet';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
 import PerpsOICapWarning from '../../components/PerpsOICapWarning';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider';
-import RewardsAnimations, {
-  RewardAnimationState,
-} from '../../../Rewards/components/RewardPointsAnimation';
 import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import {
+  DECIMAL_PRECISION_CONFIG,
+  ORDER_SLIPPAGE_CONFIG,
+  PERPS_CONSTANTS,
+} from '../../constants/perpsConfig';
 import {
   PerpsOrderProvider,
   usePerpsOrderContext,
@@ -99,19 +105,17 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import {
   calculateMarginRequired,
   calculatePositionSize,
 } from '../../utils/orderCalculations';
+import { willFlipPosition } from '../../utils/orderUtils';
 import {
   calculateRoEForPrice,
   isStopLossSafeFromLiquidation,
 } from '../../utils/tpslValidation';
 import createStyles from './PerpsOrderView.styles';
-import { willFlipPosition } from '../../utils/orderUtils';
-import { BigNumber } from 'bignumber.js';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
-import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -372,26 +376,19 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
   // Real-time position size calculation - memoized to prevent recalculation
   const positionSize = useMemo(() => {
-    // During loading, return '0' as temporary state (not a default - this is intentional for loading UX)
+    // During loading, show '--' placeholder (consistent with other unavailable data displays)
     if (isLoadingMarketData) {
-      return '0';
-    }
-
-    // After loading completes, szDecimals MUST be present - throw error if missing
-    if (marketData?.szDecimals === undefined) {
-      throw new Error(
-        `Market data szDecimals is required for position calculation (asset: ${orderForm.asset})`,
-      );
+      return PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY;
     }
 
     return calculatePositionSize({
       amount: orderForm.amount,
       price: assetData.price,
-      szDecimals: marketData.szDecimals,
+      szDecimals:
+        marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS,
     });
   }, [
     orderForm.amount,
-    orderForm.asset,
     assetData.price,
     marketData?.szDecimals,
     isLoadingMarketData,
@@ -777,7 +774,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
         // USD as source of truth (hybrid approach)
         usdAmount: orderForm.amount, // USD amount (primary source of truth, provider calculates size from this)
         priceAtCalculation: assetData.price, // Price snapshot when size was calculated (for slippage validation)
-        maxSlippageBps: 100, // Slippage tolerance in basis points (100 = 1%)
+        maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS, // Slippage tolerance in basis points (100 = 1%)
         // Only add TP/SL/Limit if they are truthy and/or not empty strings
         ...(orderForm.type === 'limit' && orderForm.limitPrice
           ? { price: orderForm.limitPrice }
