@@ -7,7 +7,7 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '../../../../../../../locales/i18n';
 import {
   SEARCH_SECTION_ARRAY,
   type SectionId,
@@ -150,7 +150,11 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         twClassName="flex-1 items-center justify-center px-5 py-10"
         alignItems={BoxAlignItems.Center}
       >
-        <Text variant={TextVariant.BodyMd} twClassName="text-muted text-center">
+        <Text
+          variant={TextVariant.BodyMd}
+          twClassName="text-muted text-center"
+          testID="trending-search-no-results"
+        >
           {strings('trending.no_results')}
         </Text>
       </Box>

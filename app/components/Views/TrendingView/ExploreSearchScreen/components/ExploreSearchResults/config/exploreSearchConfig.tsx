@@ -1,17 +1,17 @@
 import React from 'react';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
-import TrendingTokenRowItem from '../../TrendingTokensSection/TrendingTokensList/TrendingTokenRowItem/TrendingTokenRowItem';
-import TrendingTokensSkeleton from '../../TrendingTokensSection/TrendingTokenSkeleton/TrendingTokensSkeleton';
-import PerpsMarketRowItem from '../../../../UI/Perps/components/PerpsMarketRowItem';
-import PerpsMarketRowSkeleton from '../../../../UI/Perps/Views/PerpsMarketListView/components/PerpsMarketRowSkeleton';
-import type { PerpsMarketData } from '../../../../UI/Perps/controllers/types';
-import PredictMarket from '../../../../UI/Predict/components/PredictMarket';
-import type { PredictMarket as PredictMarketType } from '../../../../UI/Predict/types';
-import type { PerpsNavigationParamList } from '../../../../UI/Perps/types/navigation';
+import TrendingTokenRowItem from '../../../../TrendingTokensSection/TrendingTokensList/TrendingTokenRowItem/TrendingTokenRowItem';
+import TrendingTokensSkeleton from '../../../../TrendingTokensSection/TrendingTokenSkeleton/TrendingTokensSkeleton';
+import PerpsMarketRowItem from '../../../../../../UI/Perps/components/PerpsMarketRowItem';
+import PerpsMarketRowSkeleton from '../../../../../../UI/Perps/Views/PerpsMarketListView/components/PerpsMarketRowSkeleton';
+import type { PerpsMarketData } from '../../../../../../UI/Perps/controllers/types';
+import PredictMarket from '../../../../../../UI/Predict/components/PredictMarket';
+import type { PredictMarket as PredictMarketType } from '../../../../../../UI/Predict/types';
+import type { PerpsNavigationParamList } from '../../../../../../UI/Perps/types/navigation';
 import { Box } from '@metamask/design-system-react-native';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import Routes from '../../../../../constants/navigation/Routes';
+import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
+import Routes from '../../../../../../../constants/navigation/Routes';
 
 export type SectionId = 'tokens' | 'perps' | 'predictions';
 

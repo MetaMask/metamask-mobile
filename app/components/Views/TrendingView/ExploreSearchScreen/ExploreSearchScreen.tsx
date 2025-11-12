@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
 import ExploreSearchBar from '../ExploreSearchBar/ExploreSearchBar';
-import ExploreSearchResults from '../ExploreSearchResults/ExploreSearchResults';
+import ExploreSearchResults from './components/ExploreSearchResults/ExploreSearchResults';
 
 const ExploreSearchScreen: React.FC = () => {
   const insets = useSafeAreaInsets();

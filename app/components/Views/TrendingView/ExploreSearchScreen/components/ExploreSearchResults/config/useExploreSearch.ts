@@ -4,9 +4,9 @@ import {
   type SectionId,
   type SectionData,
 } from './exploreSearchConfig';
-import { usePerpsMarkets } from '../../../../UI/Perps/hooks/usePerpsMarkets';
-import { usePredictMarketData } from '../../../../UI/Predict/hooks/usePredictMarketData';
-import { useTrendingRequest } from '../../../../UI/Assets/hooks/useTrendingRequest';
+import { usePerpsMarkets } from '../../../../../../UI/Perps/hooks/usePerpsMarkets';
+import { usePredictMarketData } from '../../../../../../UI/Predict/hooks/usePredictMarketData';
+import { useTrendingRequest } from '../../../../../../UI/Assets/hooks/useTrendingRequest';
 
 export interface ExploreSearchResult {
   data: Record<SectionId, unknown[]>;
