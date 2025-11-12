@@ -160,7 +160,9 @@ export class OAuthService {
 
     let userClickedRehydration: 'true' | 'false' | 'unknown' = 'unknown';
     if (this.localState.userClickedRehydration !== undefined) {
-      userClickedRehydration = this.localState.userClickedRehydration ? 'true' : 'false';
+      userClickedRehydration = this.localState.userClickedRehydration
+        ? 'true'
+        : 'false';
     }
 
     MetaMetrics.getInstance().trackEvent(
