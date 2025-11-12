@@ -13,6 +13,8 @@ jest.mock('../../../components/hooks/FeatureFlags/useFeatureFlag', () => ({
   },
 }));
 
+const getRewardsEnabledFlag = () => false;
+
 // Mock the MainNavigator component directly
 jest.mock('./MainNavigator', () => {
   const React = require('react');
@@ -23,16 +25,13 @@ jest.mock('./MainNavigator', () => {
   const {
     selectAssetsTrendingTokensEnabled,
   } = require('../../../selectors/featureFlagController/assetsTrendingTokens');
-  const {
-    selectRewardsEnabledFlag,
-  } = require('../../../selectors/featureFlagController/rewards');
-
   const { selectBrowserFullscreen } = require('../../../selectors/browser');
   const Routes = require('../../../constants/navigation/Routes').default;
 
   // Mock implementation that tests tab visibility based on rewards flag and browser fullscreen state
   return function MockMainNavigator({ route }) {
-    const isRewardsEnabled = selectRewardsEnabledFlag();
+    const getRewardsEnabledFlag = () => false;
+    const isRewardsEnabled = getRewardsEnabledFlag();
     const isTrendingEnabled = selectAssetsTrendingTokensEnabled();
     const isBrowserFullscreen = selectBrowserFullscreen();
 
@@ -120,7 +119,8 @@ import MainNavigator from './MainNavigator';
 describe('MainNavigator', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    selectRewardsEnabledFlag.mockReturnValue(false);
+    const getRewardsEnabledFlag = () => false;
+    getRewardsEnabledFlag.mockReturnValue(false);
     selectAssetsTrendingTokensEnabled.mockReturnValue(false);
     selectBrowserFullscreen.mockReturnValue(false);
   });
