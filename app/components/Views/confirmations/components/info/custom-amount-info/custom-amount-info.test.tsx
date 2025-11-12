@@ -11,7 +11,6 @@ import { useConfirmationContext } from '../../../context/confirmation-context';
 import { AlertKeys } from '../../../constants/alerts';
 import { Alert, Severity } from '../../../types/alerts';
 import { act, fireEvent } from '@testing-library/react-native';
-import { useTransactionTotalFiat } from '../../../hooks/pay/useTransactionTotalFiat';
 import {
   AlertsContextParams,
   useAlerts,
@@ -21,12 +20,11 @@ import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/us
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/pay/useAutomaticTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayToken');
-jest.mock('../../../hooks/pay/useTransactionBridgeQuotes');
 jest.mock('../../../hooks/transactions/useTransactionCustomAmount');
 jest.mock('../../../context/confirmation-context');
-jest.mock('../../../hooks/pay/useTransactionTotalFiat');
 jest.mock('../../../context/alert-system-context');
 jest.mock('../../../hooks/transactions/useTransactionCustomAmountAlerts');
+jest.mock('../../../hooks/pay/useTransactionPayMetrics');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -48,7 +46,6 @@ describe('CustomAmountInfo', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useConfirmationContextMock = jest.mocked(useConfirmationContext);
   const useAlertsMock = jest.mocked(useAlerts);
-  const useTransactionTotalFiatMock = jest.mocked(useTransactionTotalFiat);
   const useTransactionCustomAmountAlertsMock = jest.mocked(
     useTransactionCustomAmountAlerts,
   );
@@ -63,15 +60,15 @@ describe('CustomAmountInfo', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: {
         address: '0x123',
-        balance: '0',
+        balanceHuman: '0',
         balanceFiat: '0',
         balanceRaw: '0',
+        balanceUsd: '0',
         chainId: '0x1',
         decimals: 18,
         symbol: 'TST',
-        tokenFiatAmount: 0,
       },
-      setPayToken: noop,
+      setPayToken: noop as never,
     });
 
     useTransactionCustomAmountMock.mockReturnValue({
@@ -89,10 +86,6 @@ describe('CustomAmountInfo', () => {
       setIsFooterVisible: noop,
     } as ReturnType<typeof useConfirmationContext>);
 
-    useTransactionTotalFiatMock.mockReturnValue(
-      {} as ReturnType<typeof useTransactionTotalFiat>,
-    );
-
     useAlertsMock.mockReturnValue({
       alerts: [] as Alert[],
       generalAlerts: [] as Alert[],
@@ -107,12 +100,9 @@ describe('CustomAmountInfo', () => {
   });
 
   it('renders amount', () => {
-    const { getByTestId } = render();
+    const { getByText } = render();
 
-    expect(getByTestId('custom-amount-input')).toHaveProp(
-      'defaultValue',
-      '123.45',
-    );
+    expect(getByText('123.45')).toBeOnTheScreen();
   });
 
   it('renders payment token', () => {
@@ -158,22 +148,6 @@ describe('CustomAmountInfo', () => {
     const { getByText } = render();
 
     expect(getByText('Test Alert Message')).toBeDefined();
-  });
-
-  it('renders quote data', async () => {
-    useTransactionTotalFiatMock.mockReturnValue({
-      totalFormatted: '$456.78',
-      totalTransactionFeeFormatted: '$3.21',
-    } as ReturnType<typeof useTransactionTotalFiat>);
-
-    const { getByText } = render();
-
-    await act(async () => {
-      fireEvent.press(getByText('Continue'));
-    });
-
-    expect(getByText('$456.78')).toBeDefined();
-    expect(getByText('$3.21')).toBeDefined();
   });
 
   it('renders keyboard', () => {

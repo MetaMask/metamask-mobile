@@ -22,7 +22,7 @@ module.exports = {
       $0: 'jest',
       config: 'e2e/jest.e2e.config.js',
     },
-    detached: true,
+    detached: process.env.CI ? true : false,
     jest: {
       setupTimeout: 220000,
       teardownTimeout: 60000, // Increase teardown timeout from default 30s to 60s
@@ -65,8 +65,12 @@ module.exports = {
     },
     'ios.sim.main.ci': {
       device: 'ios.simulator',
-      app: 'ios.debug',
-    }
+      app: 'ios.main.release',
+    },
+    'ios.sim.flask.ci': {
+      device: 'ios.simulator',
+      app: 'ios.flask.release',
+    },
   },
   devices: {
     'ios.simulator': {
@@ -110,42 +114,44 @@ module.exports = {
     'ios.main.release': {
       type: 'ios.app',
       binaryPath:
-        'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app',
-      build: `yarn build:ios:main:e2e`,
+        process.env.PREBUILT_IOS_APP_PATH || 'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app',
+      build: `export CONFIGURATION="Release" && yarn build:ios:main:e2e`,
     },
     'ios.flask.debug': {
       type: 'ios.app',
       binaryPath:
-        'ios/build/Build/Products/Debug-iphonesimulator/MetaMask-Flask.app',
-      build: 'yarn start:ios:e2e:flask',
+        process.env.PREBUILT_IOS_APP_PATH || 'ios/build/Build/Products/Debug-iphonesimulator/MetaMask-Flask.app',
+        build: 'export CONFIGURATION="Debug" && yarn build:ios:flask:e2e',
     },
     'ios.flask.release': {
       type: 'ios.app',
       binaryPath:
-        'ios/build/Build/Products/Release-iphonesimulator/MetaMask-Flask.app',
-      build: `yarn build:ios:flask:e2e`,
+        process.env.PREBUILT_IOS_APP_PATH || 'ios/build/Build/Products/Release-iphonesimulator/MetaMask-Flask.app',
+      build: `export CONFIGURATION="Release" && yarn build:ios:flask:e2e`,
     },
     'android.debug': {
       type: 'android.apk',
       binaryPath: process.env.PREBUILT_ANDROID_APK_PATH || 'android/app/build/outputs/apk/prod/debug/app-prod-debug.apk',
-      testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH,
-      build: 'yarn start:android:e2e',
-    },
-    'android.flask.debug': {
-      type: 'android.apk',
-      binaryPath: 'android/app/build/outputs/apk/flask/debug/app-flask-debug.apk',
-      testBinaryPath: 'android/app/build/outputs/apk/androidTest/flask/debug/app-flask-debug-androidTest.apk',
-      build: 'yarn start:android:e2e:flask',
+      testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH || 'android/app/build/outputs/apk/androidTest/prod/debug/app-prod-debug-androidTest.apk',
+      build: 'export CONFIGURATION="Debug" && yarn build:android:main:e2e',
     },
     'android.release': {
       type: 'android.apk',
-      binaryPath: 'android/app/build/outputs/apk/prod/release/app-prod-release.apk',
-      build: `yarn build:android:main:e2e`,
+      binaryPath: process.env.PREBUILT_ANDROID_APK_PATH || 'android/app/build/outputs/apk/prod/release/app-prod-release.apk',
+      testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH || 'android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk',
+      build: `export CONFIGURATION="Release" && yarn build:android:main:e2e`,
+    },
+    'android.flask.debug': {
+      type: 'android.apk',
+      binaryPath: process.env.PREBUILT_ANDROID_APK_PATH || 'android/app/build/outputs/apk/flask/debug/app-flask-debug.apk',
+      testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH || 'android/app/build/outputs/apk/androidTest/flask/debug/app-flask-debug-androidTest.apk',
+      build: 'export CONFIGURATION="Debug" && yarn build:android:flask:e2e',
     },
     'android.flask.release': {
       type: 'android.apk',
-      binaryPath: 'android/app/build/outputs/apk/flask/release/app-flask-release.apk',
-      build: `yarn build:android:flask:e2e`,
+      binaryPath: process.env.PREBUILT_ANDROID_APK_PATH || 'android/app/build/outputs/apk/flask/release/app-flask-release.apk',
+      testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH || 'android/app/build/outputs/apk/androidTest/flask/release/app-flask-release-androidTest.apk',
+      build: `export CONFIGURATION="Release" && yarn build:android:flask:e2e`,
     },
   },
 };

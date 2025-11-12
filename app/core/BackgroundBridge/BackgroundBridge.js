@@ -140,8 +140,8 @@ export class BackgroundBridge extends EventEmitter {
     this.port = isRemoteConn
       ? new RemotePort(sendMessage)
       : this.isWalletConnect
-      ? new WalletConnectPort(wcRequestActions)
-      : new Port(this._webviewRef, isMainFrame);
+        ? new WalletConnectPort(wcRequestActions)
+        : new Port(this._webviewRef, isMainFrame);
 
     this.engine = null;
     this.multichainEngine = null;
@@ -184,6 +184,11 @@ export class BackgroundBridge extends EventEmitter {
 
     Engine.controllerMessenger.subscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
+      this.sendStateUpdate,
+    );
+
+    Engine.controllerMessenger.subscribe(
+      'AccountsController:selectedAccountChange',
       this.sendStateUpdate,
     );
 
@@ -423,13 +428,16 @@ export class BackgroundBridge extends EventEmitter {
     }
     // ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
     if (this.isWalletConnect || this.isRemoteConn) {
+      const accountControllerSelectedAddress = toFormattedAddress(
+        Engine.context.AccountsController.getSelectedAccount().address,
+      );
       if (
         this.addressSent != null &&
-        memState.selectedAddress != null &&
-        !areAddressesEqual(this.addressSent, memState.selectedAddress)
+        accountControllerSelectedAddress != null &&
+        !areAddressesEqual(this.addressSent, accountControllerSelectedAddress)
       ) {
-        this.addressSent = memState.selectedAddress;
-        this.notifySelectedAddressChanged(memState.selectedAddress);
+        this.addressSent = accountControllerSelectedAddress;
+        this.notifySelectedAddressChanged(accountControllerSelectedAddress);
       }
     }
   }
@@ -478,6 +486,10 @@ export class BackgroundBridge extends EventEmitter {
     );
     controllerMessenger.tryUnsubscribe(
       'PreferencesController:stateChange',
+      this.sendStateUpdate,
+    );
+    controllerMessenger.tryUnsubscribe(
+      'AccountsController:selectedAccountChange',
       this.sendStateUpdate,
     );
 
@@ -1133,14 +1145,14 @@ export class BackgroundBridge extends EventEmitter {
    */
   getState() {
     const vault = Engine.context.KeyringController.state.vault;
-    const {
-      PreferencesController: { selectedAddress },
-    } = Engine.datamodel.state;
+    const accountControllerSelectedAddress = toFormattedAddress(
+      Engine.context.AccountsController.getSelectedAccount().address,
+    );
     return {
       isInitialized: !!vault,
       isUnlocked: true,
       network: legacyNetworkId(),
-      selectedAddress,
+      selectedAddress: accountControllerSelectedAddress,
     };
   }
 

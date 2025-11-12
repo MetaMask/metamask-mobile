@@ -31,10 +31,13 @@ import { isStakingConfirmation } from '../../utils/confirm';
 import styleSheet from './footer.styles';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TransactionType } from '@metamask/transaction-controller';
-import { REDESIGNED_TRANSFER_TYPES } from '../../constants/confirmations';
+import {
+  MMM_ORIGIN,
+  REDESIGNED_TRANSFER_TYPES,
+} from '../../constants/confirmations';
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimFooter } from '../predict-confirmations/predict-claim-footer/predict-claim-footer';
-import { useIsTransactionPayLoading } from '../../hooks/pay/useIsTransactionPayLoading';
+import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
 
 const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.perpsDeposit,
@@ -58,8 +61,10 @@ export const Footer = () => {
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const transactionType = transactionMetadata?.type as TransactionType;
   const isStakingConfirmationBool = isStakingConfirmation(transactionType);
-  const isSendReq = REDESIGNED_TRANSFER_TYPES.includes(transactionType);
-  const { isLoading: isPayLoading } = useIsTransactionPayLoading();
+  const isMMSendReq =
+    REDESIGNED_TRANSFER_TYPES.includes(transactionType) &&
+    transactionMetadata?.origin === MMM_ORIGIN;
+  const isPayLoading = useIsTransactionPayLoading();
 
   const { isFooterVisible: isFooterVisibleFlag, isTransactionValueUpdating } =
     useConfirmationContext();
@@ -156,7 +161,7 @@ export const Footer = () => {
       label: strings('confirm.cancel'),
       size: ButtonSize.Lg,
       onPress: () =>
-        onReject(providerErrors.userRejectedRequest(), undefined, isSendReq),
+        onReject(providerErrors.userRejectedRequest(), undefined, isMMSendReq),
       testID: ConfirmationFooterSelectorIDs.CANCEL_BUTTON,
     },
     {

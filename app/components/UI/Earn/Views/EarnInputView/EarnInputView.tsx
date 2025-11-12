@@ -20,6 +20,11 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
+///: BEGIN:ONLY_INCLUDE_IF(tron)
+import ResourceToggle, {
+  type ResourceType,
+} from '../../components/Tron/ResourceToggle';
+///: END:ONLY_INCLUDE_IF
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
@@ -71,6 +76,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useEndTraceOnMount } from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
+import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -107,11 +113,13 @@ const EarnInputView = () => {
     selectStablecoinLendingEnabledFlag,
   );
 
+  const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
+
   // if token is ETH, use 1 as the exchange rate
   // otherwise, use the contract exchange rate or 0 if undefined
   const exchangeRate = token.isETH
     ? 1
-    : contractExchangeRates?.[token.address as Hex]?.price ?? 0;
+    : (contractExchangeRates?.[token.address as Hex]?.price ?? 0);
 
   // other hooks
   const { styles, theme } = useStyles(styleSheet, {});
@@ -150,6 +158,12 @@ const EarnInputView = () => {
     conversionRate,
     exchangeRate,
   });
+
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const [resourceType, setResourceType] = useState<ResourceType>('energy');
+  const isTronNative =
+    token.ticker === 'TRX' && String(token.chainId).startsWith('tron:');
+  ///: END:ONLY_INCLUDE_IF
 
   const { shouldLogStablecoinEvent, shouldLogStakingEvent } =
     useEarnAnalyticsEventLogging({
@@ -632,26 +646,27 @@ const EarnInputView = () => {
     // Call the original handler first
     handleCurrencySwitch();
 
-    if (shouldLogStablecoinEvent()) {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.EARN_INPUT_CURRENCY_SWITCH_CLICKED)
-          .addProperties({
-            selected_provider: EVENT_PROVIDERS.CONSENSYS,
-            text: 'Currency Switch Clicked',
-            location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
-            currency_type: !isFiat ? 'fiat' : 'native',
-            experience: earnToken?.experience?.type,
-          })
-          .build(),
-      );
-    }
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EARN_INPUT_CURRENCY_SWITCH_CLICKED)
+        .addProperties({
+          selected_provider: EVENT_PROVIDERS.CONSENSYS,
+          text: 'Currency Switch Clicked',
+          location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+          currency_type: !isFiat ? 'fiat' : 'native',
+          experience: earnToken?.experience?.type,
+          token_symbol: earnToken?.symbol,
+          chain_id: earnToken?.chainId ? toHex(earnToken.chainId) : undefined,
+        })
+        .build(),
+    );
   }, [
-    shouldLogStablecoinEvent,
     handleCurrencySwitch,
     trackEvent,
     createEventBuilder,
     isFiat,
     earnToken?.experience?.type,
+    earnToken?.symbol,
+    earnToken?.chainId,
   ]);
 
   const getButtonLabel = () => {
@@ -730,16 +745,39 @@ const EarnInputView = () => {
     : stakingNavBarEventOptions;
 
   useEffect(() => {
+    const isLending =
+      earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING;
+    const tokenLabel =
+      earnToken?.ticker ?? earnToken?.symbol ?? earnToken?.name ?? '';
+
+    const title = isLending
+      ? `${strings('earn.supply')} ${tokenLabel}`
+      : `${strings('stake.stake')} ${tokenLabel}`;
+
     navigation.setOptions(
       getStakingNavbar(
-        strings('earn.deposit'),
+        title,
         navigation,
         theme.colors,
         navBarOptions,
         navBarEventOptions,
+        ///: BEGIN:ONLY_INCLUDE_IF(tron)
+        earnToken,
+        ///: END:ONLY_INCLUDE_IF
       ),
     );
-  }, [navigation, token, theme.colors, navBarEventOptions, navBarOptions]);
+  }, [
+    navigation,
+    token,
+    theme.colors,
+    navBarEventOptions,
+    navBarOptions,
+    earnToken?.experience?.type,
+    earnToken?.ticker,
+    earnToken?.symbol,
+    earnToken?.name,
+    earnToken,
+  ]);
 
   useEffect(() => {
     calculateEstimatedAnnualRewards();
@@ -796,6 +834,13 @@ const EarnInputView = () => {
 
   return (
     <ScreenLayout style={styles.container}>
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(tron)
+        isTrxStakingEnabled && isTronNative && (
+          <ResourceToggle value={resourceType} onChange={setResourceType} />
+        )
+        ///: END:ONLY_INCLUDE_IF
+      }
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
@@ -813,7 +858,7 @@ const EarnInputView = () => {
           currencyToggleValue={currencyToggleValue}
         />
         <View style={styles.rewardsRateContainer}>
-          {isStablecoinLendingEnabled ? (
+          {isStablecoinLendingEnabled && !isTrxStakingEnabled ? (
             <>
               <View style={styles.spacer} />
               <EarnTokenSelector

@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import { PREDICT_CONSTANTS } from '../constants/errors';
+import { ensureError } from '../utils/predictErrorHandler';
 import {
   PredictPriceHistoryInterval,
   PredictPriceHistoryPoint,
@@ -108,6 +111,27 @@ export const usePredictPriceHistory = (
             `usePredictPriceHistory: Error fetching price history for market ${marketId}`,
             err,
           );
+
+          // Capture exception with price history loading context (single market)
+          Logger.error(ensureError(err), {
+            tags: {
+              feature: PREDICT_CONSTANTS.FEATURE_NAME,
+              component: 'usePredictPriceHistory',
+            },
+            context: {
+              name: 'usePredictPriceHistory',
+              data: {
+                method: 'loadPriceHistory',
+                action: 'price_history_load_single',
+                operation: 'data_fetching',
+                marketId,
+                providerId,
+                interval,
+                fidelity,
+              },
+            },
+          });
+
           return { index, data: [], error: errorMessage };
         }
       });
@@ -132,6 +156,26 @@ export const usePredictPriceHistory = (
 
       DevLogger.log('usePredictPriceHistory: Error in batch fetching', err);
 
+      // Capture exception with price history batch loading context
+      Logger.error(ensureError(err), {
+        tags: {
+          feature: PREDICT_CONSTANTS.FEATURE_NAME,
+          component: 'usePredictPriceHistory',
+        },
+        context: {
+          name: 'usePredictPriceHistory',
+          data: {
+            method: 'loadPriceHistory',
+            action: 'price_history_load_batch',
+            operation: 'data_fetching',
+            marketCount: marketIds.length,
+            providerId,
+            interval,
+            fidelity,
+          },
+        },
+      });
+
       if (isMountedRef.current) {
         setErrors(new Array(marketIds.length).fill(errorMessage));
         setPriceHistories(new Array(marketIds.length).fill([]));
@@ -141,6 +185,7 @@ export const usePredictPriceHistory = (
         setIsFetching(false);
       }
     }
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, marketIdsKey, fidelity, interval, providerId]);
 

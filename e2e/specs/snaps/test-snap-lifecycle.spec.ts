@@ -1,7 +1,5 @@
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { getFixturesServerPort } from '../../framework/fixtures/FixtureUtils';
-import TestHelpers from '../../helpers';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import { FlaskBuildTests } from '../../tags';
@@ -34,15 +32,13 @@ describe(FlaskBuildTests('Lifecycle hooks Snap Tests'), () => {
   it('runs the onStart lifecycle hook when the client is started', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().build(),
+        fixture: new FixtureBuilder()
+          .withSnapControllerOnStartLifecycleSnap()
+          .build(),
+        restartDevice: true,
         skipReactNativeReload: true,
       },
       async () => {
-        await TestHelpers.terminateApp();
-        await TestHelpers.launchApp({
-          launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
-        });
-
         try {
           await loginToApp();
         } catch {

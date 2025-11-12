@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
-import type { OrderType, ClosePositionParams } from '../controllers/types';
-import { usePerpsTrading } from './usePerpsTrading';
-import { VALIDATION_THRESHOLDS } from '../constants/perpsConfig';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import { VALIDATION_THRESHOLDS } from '../constants/perpsConfig';
+import type { ClosePositionParams, OrderType } from '../controllers/types';
+import { usePerpsTrading } from './usePerpsTrading';
 
 interface UsePerpsClosePositionValidationParams {
   coin: string;
@@ -19,6 +19,7 @@ interface UsePerpsClosePositionValidationParams {
   remainingPositionValue: number; // Value remaining after close (kept for interface completeness)
   receiveAmount: number; // Amount user will receive after fees
   isPartialClose: boolean;
+  skipValidation?: boolean;
 }
 
 interface ValidationResult {
@@ -107,6 +108,7 @@ export function usePerpsClosePositionValidation(
     receiveAmount,
     isPartialClose,
     positionValue,
+    skipValidation,
   } = params;
 
   const { validateClosePosition } = usePerpsTrading();
@@ -143,11 +145,10 @@ export function usePerpsClosePositionValidation(
       );
 
       // Start with protocol validation results
-      const errors: string[] = protocolValidation.isValid
-        ? []
-        : protocolValidation.error
-        ? [protocolValidation.error]
-        : [];
+      const errors: string[] = [];
+      if (!protocolValidation.isValid && protocolValidation.error) {
+        errors.push(protocolValidation.error);
+      }
       const warnings: string[] = [];
 
       // UI-specific validations that don't belong in the provider
@@ -178,8 +179,12 @@ export function usePerpsClosePositionValidation(
       }
 
       // Limit order specific validation (price warning only - required check is done by protocol)
-      if (orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0) {
-        const limitPriceNum = parseFloat(limitPrice);
+      if (
+        orderType === 'limit' &&
+        limitPrice &&
+        Number.parseFloat(limitPrice) > 0
+      ) {
+        const limitPriceNum = Number.parseFloat(limitPrice);
         // Add warning if limit price is far from current price
         const priceDifference = Math.abs(
           (limitPriceNum - currentPrice) / currentPrice,
@@ -232,6 +237,11 @@ export function usePerpsClosePositionValidation(
   ]);
 
   useEffect(() => {
+    // Skip validation during keypad input to prevent flickering
+    if (skipValidation) {
+      return;
+    }
+
     // Skip validation if critical data is missing
     if (!coin || currentPrice === 0) {
       setValidation({
@@ -244,7 +254,7 @@ export function usePerpsClosePositionValidation(
     }
 
     performValidation();
-  }, [performValidation, coin, currentPrice]);
+  }, [performValidation, coin, currentPrice, skipValidation]);
 
   return validation;
 }

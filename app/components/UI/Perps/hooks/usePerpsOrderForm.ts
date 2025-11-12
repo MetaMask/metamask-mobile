@@ -1,16 +1,18 @@
-import { debounce } from 'lodash';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
 import { OrderType } from '../controllers/types';
 import type { OrderFormState } from '../types/perps-types';
+import { getMaxAllowedAmount } from '../utils/orderCalculations';
 import {
-  findOptimalAmount,
-  getMaxAllowedAmount as getMaxAllowedAmountUtils,
-} from '../utils/orderCalculations';
-import { usePerpsLiveAccount, usePerpsLivePrices } from './stream';
+  usePerpsLiveAccount,
+  usePerpsLivePositions,
+  usePerpsLivePrices,
+} from './stream';
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsNetwork } from './usePerpsNetwork';
+import { selectTradeConfiguration } from '../controllers/selectors';
+import { usePerpsSelector } from './usePerpsSelector';
 
 interface UsePerpsOrderFormParams {
   initialAsset?: string;
@@ -34,7 +36,6 @@ export interface UsePerpsOrderFormReturn {
   handlePercentageAmount: (percentage: number) => void;
   handleMaxAmount: () => void;
   handleMinAmount: () => void;
-  optimizeOrderAmount: (price: number, szDecimals?: number) => void;
   maxPossibleAmount: number;
 }
 
@@ -55,6 +56,7 @@ export function usePerpsOrderForm(
 
   const currentNetwork = usePerpsNetwork();
   const { account } = usePerpsLiveAccount();
+  const { positions } = usePerpsLivePositions();
   const prices = usePerpsLivePrices({
     symbols: [initialAsset],
     throttleMs: 1000,
@@ -62,8 +64,20 @@ export function usePerpsOrderForm(
   const currentPrice = prices[initialAsset];
   const { marketData } = usePerpsMarketData(initialAsset);
 
+  // Get existing position leverage for this asset (protocol constraint)
+  // Positions load asynchronously via WebSocket, so this may be undefined initially
+  const existingPositionLeverage = useMemo(
+    () => positions.find((p) => p.coin === initialAsset)?.leverage?.value,
+    [positions, initialAsset],
+  );
+
+  // Get saved trade configuration for this asset (user preference for new positions)
+  const savedConfig = usePerpsSelector((state) =>
+    selectTradeConfiguration(state, initialAsset),
+  );
+
   // Get available balance from live account data
-  const availableBalance = parseFloat(
+  const availableBalance = Number.parseFloat(
     account?.availableBalance?.toString() || '0',
   );
 
@@ -73,8 +87,12 @@ export function usePerpsOrderForm(
       ? TRADING_DEFAULTS.amount.mainnet
       : TRADING_DEFAULTS.amount.testnet;
 
-  // Calculate the maximum possible amount based on available balance and leverage
-  const defaultLeverage = initialLeverage || TRADING_DEFAULTS.leverage;
+  // Priority: navigation param > existing position leverage > saved config > default (3x)
+  const defaultLeverage =
+    initialLeverage ||
+    existingPositionLeverage ||
+    savedConfig?.leverage ||
+    TRADING_DEFAULTS.leverage;
 
   // Use memoized calculation for initial amount to ensure it updates when dependencies change
   const initialAmountValue = useMemo(() => {
@@ -83,26 +101,21 @@ export function usePerpsOrderForm(
       return defaultAmount.toString();
     }
 
-    const tempMaxAmount = getMaxAllowedAmountUtils({
+    const tempMaxAmount = getMaxAllowedAmount({
       availableBalance,
-      assetPrice: parseFloat(currentPrice.price),
-      assetSzDecimals:
-        marketData?.szDecimals !== undefined ? marketData?.szDecimals : 6,
+      assetPrice: Number.parseFloat(currentPrice.price),
+      assetSzDecimals: marketData?.szDecimals ?? 6,
       leverage: defaultLeverage, // Use default leverage for initial calculation
     });
 
-    return findOptimalAmount({
-      targetAmount:
-        initialAmount ||
-        (tempMaxAmount < defaultAmount
-          ? tempMaxAmount.toString()
-          : defaultAmount.toString()),
-      price: parseFloat(currentPrice.price),
-      szDecimals:
-        marketData?.szDecimals !== undefined ? marketData?.szDecimals : 6,
-      maxAllowedAmount: tempMaxAmount,
-      minAllowedAmount: defaultAmount,
-    });
+    // Return the target amount directly (USD as source of truth, no optimization)
+    const targetAmount =
+      initialAmount ||
+      (tempMaxAmount < defaultAmount
+        ? tempMaxAmount.toString()
+        : defaultAmount.toString());
+
+    return targetAmount;
   }, [
     initialAmount,
     availableBalance,
@@ -114,7 +127,7 @@ export function usePerpsOrderForm(
 
   // Calculate initial balance percentage
   const initialMarginRequired =
-    parseFloat(initialAmountValue) / defaultLeverage;
+    Number.parseFloat(initialAmountValue) / defaultLeverage;
   const initialBalancePercent =
     availableBalance > 0
       ? Math.min((initialMarginRequired / availableBalance) * 100, 100)
@@ -136,11 +149,10 @@ export function usePerpsOrderForm(
   // Calculate the maximum possible amount based on available balance and current leverage
   const maxPossibleAmount = useMemo(
     () =>
-      getMaxAllowedAmountUtils({
+      getMaxAllowedAmount({
         availableBalance,
-        assetPrice: parseFloat(currentPrice?.price) || 0,
-        assetSzDecimals:
-          marketData?.szDecimals !== undefined ? marketData?.szDecimals : 6,
+        assetPrice: Number.parseFloat(currentPrice?.price) || 0,
+        assetSzDecimals: marketData?.szDecimals ?? 6,
         leverage: orderForm.leverage, // Use current leverage instead of default
       }),
     [
@@ -149,50 +161,6 @@ export function usePerpsOrderForm(
       marketData?.szDecimals,
       orderForm.leverage, // Include current leverage in dependencies
     ],
-  );
-
-  // Optimize order amount to get the optimal USD value for the position size
-  const optimizeOrderAmount = useMemo(() => {
-    const optimizeFunction = (price: number, szDecimals?: number) => {
-      setOrderForm((prev) => {
-        if (!prev.amount || parseFloat(prev.amount) === 0) {
-          return prev;
-        }
-
-        const optimizedAmount = findOptimalAmount({
-          targetAmount: prev.amount,
-          price,
-          szDecimals,
-          maxAllowedAmount: maxPossibleAmount,
-          minAllowedAmount: defaultAmount,
-        });
-
-        const optimizedAmountNum = parseFloat(optimizedAmount);
-
-        // Only update if the optimized amount is different
-        if (
-          optimizedAmount !== prev.amount &&
-          optimizedAmountNum <= maxPossibleAmount
-        ) {
-          return {
-            ...prev,
-            amount: optimizedAmount,
-          };
-        }
-
-        return prev;
-      });
-    };
-
-    return debounce(optimizeFunction, 100);
-  }, [maxPossibleAmount, defaultAmount]);
-
-  // Cleanup debounced function on unmount
-  useEffect(
-    () => () => {
-      optimizeOrderAmount.cancel();
-    },
-    [optimizeOrderAmount],
   );
 
   // Update amount only once when the hook first calculates the initial value
@@ -204,6 +172,26 @@ export function usePerpsOrderForm(
       hasSetInitialAmount.current = true;
     }
   }, [initialAmountValue]);
+
+  // Sync leverage from existing position when it loads asynchronously
+  // This handles the case where positions haven't loaded yet when form initializes
+  const hasSyncedLeverage = useRef(false);
+  useEffect(() => {
+    // Only update if:
+    // 1. Haven't synced yet (avoid fighting with user input)
+    // 2. No explicit initialLeverage was provided (respect navigation params)
+    // 3. existingPositionLeverage loaded (was undefined, now has value)
+    // 4. Current leverage would cause protocol violation (< existing)
+    if (
+      !hasSyncedLeverage.current &&
+      !initialLeverage &&
+      existingPositionLeverage &&
+      orderForm.leverage < existingPositionLeverage
+    ) {
+      setOrderForm((prev) => ({ ...prev, leverage: existingPositionLeverage }));
+      hasSyncedLeverage.current = true;
+    }
+  }, [existingPositionLeverage, initialLeverage, orderForm.leverage]);
 
   // Update entire form
   const updateOrderForm = (updates: Partial<OrderFormState>) => {
@@ -306,7 +294,6 @@ export function usePerpsOrderForm(
     handlePercentageAmount,
     handleMaxAmount,
     handleMinAmount,
-    optimizeOrderAmount,
     maxPossibleAmount,
   };
 }

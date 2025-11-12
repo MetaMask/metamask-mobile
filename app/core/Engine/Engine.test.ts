@@ -2,6 +2,7 @@ import { MarketDataDetails } from '@metamask/assets-controllers';
 import Engine, { Engine as EngineClass } from './Engine';
 import { EngineState } from './types';
 import { backgroundState } from '../../util/test/initial-root-state';
+import { InitializationState } from '../../components/UI/Perps/controllers';
 import { zeroAddress } from 'ethereumjs-util';
 import {
   createMockAccountsControllerState,
@@ -60,6 +61,18 @@ jest.mock('../../util/phishingDetection', () => ({
   isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
   getPhishingTestResult: jest.fn().mockReturnValue({ result: true }),
 }));
+
+jest.mock('@metamask/assets-controllers', () => {
+  const actualControllers = jest.requireActual('@metamask/assets-controllers');
+  // Mock the RatesController start method since it takes a while to run and causes timeouts in tests
+  class MockRatesController extends actualControllers.RatesController {
+    start = jest.fn().mockImplementation(() => Promise.resolve());
+  }
+  return {
+    ...actualControllers,
+    RatesController: MockRatesController,
+  };
+});
 
 jest.mock('@metamask/remote-feature-flag-controller', () => ({
   ...jest.requireActual('@metamask/remote-feature-flag-controller'),
@@ -146,7 +159,8 @@ describe('Engine', () => {
     const engine = Engine.init({});
     const newEngine = Engine.init({});
     expect(engine).toStrictEqual(newEngine);
-    engine.controllerMessenger.publish(
+    // @ts-expect-error accessing protected property for testing
+    engine.keyringController.messenger.publish(
       'KeyringController:stateChange',
       {
         vault: 'vault',
@@ -164,7 +178,8 @@ describe('Engine', () => {
     const engine = Engine.init({});
     const newEngine = Engine.init({});
     expect(engine).toStrictEqual(newEngine);
-    engine.controllerMessenger.publish(
+    // @ts-expect-error accessing protected property for testing
+    engine.keyringController.messenger.publish(
       'KeyringController:stateChange',
       {
         vault: undefined,
@@ -211,10 +226,11 @@ describe('Engine', () => {
         eligibility: {},
         lastError: null,
         lastUpdateTimestamp: 0,
-        claimTransaction: null,
-        claimablePositions: [],
-        depositTransaction: null,
-        isOnboarded: {},
+        balances: {},
+        claimablePositions: {},
+        pendingDeposits: {},
+        withdrawTransaction: null,
+        accountMeta: {},
       },
       GatorPermissionsController: {
         gatorPermissionsMapSerialized: JSON.stringify({
@@ -227,6 +243,29 @@ describe('Engine', () => {
         gatorPermissionsProviderSnapId: 'npm:@metamask/gator-permissions-snap',
         isFetchingGatorPermissions: false,
         isGatorPermissionsEnabled: false,
+      },
+      PerpsController: {
+        ...backgroundState.PerpsController,
+        depositRequests: [],
+        withdrawalRequests: [],
+        withdrawalProgress: {
+          progress: 0,
+          lastUpdated: 0,
+          activeWithdrawalId: null,
+        },
+        marketFilterPreferences: 'volume',
+        tradeConfigurations: {
+          mainnet: {},
+          testnet: {},
+        },
+        watchlistMarkets: {
+          mainnet: [],
+          testnet: [],
+        },
+        hip3ConfigVersion: 0,
+        initializationState: InitializationState.UNINITIALIZED,
+        initializationError: null,
+        initializationAttempts: 0,
       },
     };
 
@@ -798,7 +837,15 @@ describe('Engine', () => {
         return { remove: jest.fn() };
       },
     );
-    const engine = Engine.init(backgroundState);
+
+    const engine = Engine.init({
+      ...backgroundState,
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        isUnlocked: true,
+      },
+    });
+
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
     // Simulate app state change to active
@@ -817,7 +864,15 @@ describe('Engine', () => {
         return { remove: jest.fn() };
       },
     );
-    const engine = Engine.init(backgroundState);
+
+    const engine = Engine.init({
+      ...backgroundState,
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        isUnlocked: true,
+      },
+    });
+
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
     // Simulate app state change to background
@@ -841,6 +896,33 @@ describe('Engine', () => {
 
     // Simulate app state change to inactive
     mockAppStateListener('inactive');
+
+    expect(messengerSpy).not.toHaveBeenCalledWith(
+      'SnapController:setClientActive',
+      expect.anything(),
+    );
+  });
+
+  it('does not call `SnapController:setClientActive` when the app is locked', () => {
+    (AppState.addEventListener as jest.Mock).mockImplementation(
+      (_, listener) => {
+        mockAppStateListener = listener;
+        return { remove: jest.fn() };
+      },
+    );
+
+    const engine = Engine.init({
+      ...backgroundState,
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        isUnlocked: false,
+      },
+    });
+
+    const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
+
+    // Simulate app state change to active
+    mockAppStateListener('active');
 
     expect(messengerSpy).not.toHaveBeenCalledWith(
       'SnapController:setClientActive',

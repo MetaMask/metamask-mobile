@@ -21,7 +21,6 @@ import {
   getFeatureFlagChainId,
   setSwapsLiveness,
   swapsTokensMultiChainObjectSelector,
-  swapsTokensObjectSelector,
 } from '../../../reducers/swaps';
 import {
   selectChainId,
@@ -39,7 +38,6 @@ import {
   findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
   isMainnetByChainId,
-  isPortfolioViewEnabled,
 } from '../../../util/networks';
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
@@ -78,7 +76,7 @@ import { selectSupportedSwapTokenAddressesForChainId } from '../../../selectors/
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { selectNonEvmTransactions } from '../../../selectors/multichain';
+import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF
 import { getIsSwapsAssetAllowed } from './utils';
 import MultichainTransactionsView from '../MultichainTransactionsView/MultichainTransactionsView';
@@ -670,8 +668,12 @@ const mapStateToProps = (state, { route }) => {
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   if (asset?.chainId && isNonEvmChainId(asset.chainId)) {
-    const nonEvmTransactions = selectNonEvmTransactions(state);
-    const txs = nonEvmTransactions?.transactions || [];
+    const nonEvmTransactions =
+      selectNonEvmTransactionsForSelectedAccountGroup(state);
+    const txs =
+      nonEvmTransactions?.transactions?.filter(
+        (tx) => tx.chain === asset.chainId,
+      ) || [];
 
     const assetAddress = route.params?.address?.toLowerCase();
     const assetSymbol = route.params?.symbol?.toLowerCase();
@@ -761,9 +763,7 @@ const mapStateToProps = (state, { route }) => {
 
   return {
     swapsIsLive: selectIsSwapsLive(state, route.params.chainId),
-    swapsTokens: isPortfolioViewEnabled()
-      ? swapsTokensMultiChainObjectSelector(state)
-      : swapsTokensObjectSelector(state),
+    swapsTokens: swapsTokensMultiChainObjectSelector(state),
     searchDiscoverySwapsTokens: selectSupportedSwapTokenAddressesForChainId(
       state,
       route.params.chainId,

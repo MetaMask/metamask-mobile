@@ -1,3 +1,4 @@
+import { Dimensions } from 'react-native';
 import { formatWithThreshold } from '../../../../util/assets';
 import { PredictSeries, Recurrence } from '../types';
 
@@ -152,10 +153,19 @@ export const formatCents = (dollars: string | number): string => {
     return '0¢';
   }
 
-  // Convert dollars to cents (multiply by 100) and round to whole cents
-  const cents = Math.round(num * 100);
+  // Convert dollars to cents (multiply by 100)
+  const cents = num * 100;
 
-  return `${cents}¢`;
+  // Round to 1 decimal precision to check if decimals are needed
+  const roundedCents = Number(cents.toFixed(1));
+
+  // If it's a whole number, don't show decimals
+  if (roundedCents === Math.floor(roundedCents)) {
+    return `${Math.floor(roundedCents)}¢`;
+  }
+
+  // Otherwise, show decimals up to 1 decimal place
+  return `${cents.toFixed(1)}¢`;
 };
 
 /**
@@ -169,7 +179,10 @@ export const formatCents = (dollars: string | number): string => {
  * @example formatPositionSize(0.5678) => "0.5678"
  * @example formatPositionSize(123.456) => "123.46"
  */
-export const formatPositionSize = (size: string | number): string => {
+export const formatPositionSize = (
+  size: string | number,
+  options?: { minimumDecimals?: number; maximumDecimals?: number },
+): string => {
   const num = typeof size === 'string' ? parseFloat(size) : size;
 
   if (isNaN(num)) {
@@ -177,19 +190,22 @@ export const formatPositionSize = (size: string | number): string => {
   }
 
   const abs = Math.abs(num);
+  const minimumDecimals = options?.minimumDecimals ?? 2;
+  const maximumDecimals = options?.maximumDecimals ?? 4;
 
-  // For very small numbers, use more decimal places
-  if (abs < 0.01) {
-    return num.toFixed(6);
+  // Determine appropriate decimal places based on size
+  const decimals = abs < 1 ? maximumDecimals : minimumDecimals;
+
+  // Round to the target precision to check if decimals are needed
+  const rounded = Number(num.toFixed(decimals));
+
+  // If it's a whole number, don't show decimals
+  if (rounded === Math.floor(rounded)) {
+    return Math.floor(rounded).toString();
   }
 
-  // For small numbers, use 4 decimal places
-  if (abs < 1) {
-    return num.toFixed(4);
-  }
-
-  // For normal numbers, use 2 decimal places
-  return num.toFixed(2);
+  // Otherwise, show decimals up to the determined precision
+  return num.toFixed(decimals);
 };
 
 export const formatCurrencyValue = (
@@ -218,4 +234,44 @@ export const formatCurrencyValue = (
   }
 
   return formatted;
+};
+
+/**
+ * Estimates the number of lines a title will occupy in the header
+ * Based on available width and average character width for HeadingMD variant
+ * HeadingMD: fontSize 18px, lineHeight 24px
+ */
+export const estimateLineCount = (text: string | undefined): number => {
+  if (!text) return 1;
+
+  const screenWidth = Dimensions.get('window').width;
+  // Calculate available width: screen - horizontal padding - back button - icon - gaps
+  // 32px (horizontal padding) + 8px (px-1 on container) + 40px (back button) + 12px (gap) + 40px (icon) + 12px (gap) = ~144px
+  const usedWidth = 144;
+  const availableWidth = screenWidth - usedWidth;
+
+  // HeadingMD font size is 18px with average character width of ~8.5px (accounting for proportional font)
+  const avgCharWidth = 8.5;
+  const charsPerLine = Math.floor(availableWidth / avgCharWidth);
+
+  // Split text into words and simulate word wrapping
+  const words = text.split(' ');
+  let lines = 1;
+  let currentLineLength = 0;
+
+  for (const word of words) {
+    const wordLength = word.length;
+    // Add 1 for space between words
+    const neededLength =
+      currentLineLength === 0 ? wordLength : currentLineLength + 1 + wordLength;
+
+    if (neededLength > charsPerLine) {
+      lines++;
+      currentLineLength = wordLength;
+    } else {
+      currentLineLength = neededLength;
+    }
+  }
+
+  return lines;
 };

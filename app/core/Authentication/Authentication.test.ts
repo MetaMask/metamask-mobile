@@ -124,6 +124,13 @@ jest.mock('../Engine', () => ({
   },
 }));
 
+// Mock for Engine class (used in error recovery)
+jest.mock('../Engine/Engine', () => ({
+  Engine: class MockEngine {
+    static disableAutomaticVaultBackup = false;
+  },
+}));
+
 jest.mock('../NavigationService', () => ({
   navigation: {
     reset: jest.fn(),
@@ -2101,9 +2108,8 @@ describe('Authentication', () => {
       } as unknown as ReduxStore);
 
       // Act
-      const result = await Authentication.importSeedlessMnemonicToVault(
-        mnemonic,
-      );
+      const result =
+        await Authentication.importSeedlessMnemonicToVault(mnemonic);
 
       // Assert
       expect(
