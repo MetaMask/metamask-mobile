@@ -1,11 +1,8 @@
 import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { StyleSheet } from 'react-native';
-import {
-  Text,
-  Button,
-  ButtonVariant,
-} from '@metamask/design-system-react-native';
+import { Pressable } from 'react-native';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { selectBridgeFeatureFlags } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
@@ -14,8 +11,6 @@ import { selectNetworkConfigurations } from '../../../../../selectors/networkCon
 import { PopularList } from '../../../../../util/networks/customNetworks';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import { ScrollView } from 'react-native-gesture-handler';
-import { useStyles } from '../../../../../component-library/hooks';
-import { Theme } from '../../../../../util/theme/models';
 import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
 
 const getNetworkName = (
@@ -36,31 +31,6 @@ const getNetworkName = (
   );
 };
 
-const createStyles = (params: { theme: Theme }) => {
-  const { theme } = params;
-  return StyleSheet.create({
-    networksButton: {
-      borderColor: theme.colors.border.muted,
-      backgroundColor: theme.colors.background.default,
-      borderRadius: 10,
-    },
-    selectedNetworkIcon: {
-      borderColor: theme.colors.border.muted,
-      backgroundColor: theme.colors.background.muted,
-      borderRadius: 10,
-    },
-    scrollView: {
-      flexGrow: 0,
-    },
-    contentContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 10,
-      marginHorizontal: 8,
-    },
-  });
-};
-
 interface NetworkPillsProps {
   selectedChainId?: CaipChainId;
   onChainSelect: (chainId?: CaipChainId) => void;
@@ -70,7 +40,7 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
   selectedChainId,
   onChainSelect,
 }) => {
-  const { styles } = useStyles(createStyles, {});
+  const tw = useTailwind();
   const bridgeFeatureFlags = useSelector((state: RootState) =>
     selectBridgeFeatureFlags(state),
   );
@@ -102,16 +72,19 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
       const isSelected = selectedChainId === chain.chainId;
 
       return (
-        <Button
+        <Pressable
           key={chain.chainId}
-          variant={ButtonVariant.Secondary}
-          style={
-            isSelected ? styles.selectedNetworkIcon : styles.networksButton
+          style={({ pressed }) =>
+            tw.style(
+              'rounded-lg border border-border-muted px-3 py-1.5',
+              isSelected ? 'bg-background-muted' : 'bg-background-default',
+              pressed && 'opacity-70',
+            )
           }
           onPress={() => handleChainPress(chain.chainId)}
         >
-          <Text>{chain.name}</Text>
-        </Button>
+          <Text variant={TextVariant.BodySm}>{chain.name}</Text>
+        </Pressable>
       );
     });
 
@@ -119,19 +92,22 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      style={styles.scrollView}
-      contentContainerStyle={styles.contentContainer}
+      style={tw.style('flex-grow-0')}
+      contentContainerStyle={tw.style('flex-row items-center gap-2 mx-2')}
     >
       {/* All CTA - First pill */}
-      <Button
-        variant={ButtonVariant.Secondary}
-        style={
-          !selectedChainId ? styles.selectedNetworkIcon : styles.networksButton
+      <Pressable
+        style={({ pressed }) =>
+          tw.style(
+            'rounded-lg border border-border-muted px-3 py-1.5',
+            !selectedChainId ? 'bg-background-muted' : 'bg-background-default',
+            pressed && 'opacity-70',
+          )
         }
         onPress={handleAllPress}
       >
-        <Text>{strings('bridge.all')}</Text>
-      </Button>
+        <Text variant={TextVariant.BodySm}>{strings('bridge.all')}</Text>
+      </Pressable>
       {renderChainPills()}
     </ScrollView>
   );
