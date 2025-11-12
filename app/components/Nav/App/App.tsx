@@ -148,7 +148,6 @@ import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
-import { PayWithNetworkModal } from '../../Views/confirmations/components/modals/pay-with-network-modal/pay-with-network-modal';
 import { useMetrics } from '../../hooks/useMetrics';
 import { State2AccountConnectWrapper } from '../../Views/MultichainAccounts/MultichainAccountConnect/State2AccountConnectWrapper';
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
@@ -614,6 +613,11 @@ const ImportSRPView = () => (
       component={SeedphraseModal}
       options={{
         cardStyle: { backgroundColor: 'transparent' },
+        cardStyleInterpolator: () => ({
+          overlayStyle: {
+            opacity: 0,
+          },
+        }),
       }}
     />
   </Stack.Navigator>
@@ -1053,10 +1057,6 @@ const AppFlow = () => {
         <Stack.Screen
           name={Routes.CONFIRMATION_PAY_WITH_MODAL}
           component={PayWithModal}
-        />
-        <Stack.Screen
-          name={Routes.CONFIRMATION_PAY_WITH_NETWORK_MODAL}
-          component={PayWithNetworkModal}
         />
       </Stack.Navigator>
     </>

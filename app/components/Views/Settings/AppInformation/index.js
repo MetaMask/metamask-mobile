@@ -24,7 +24,7 @@ import {
   updateId,
   checkAutomatically,
 } from 'expo-updates';
-import { PROJECT_ID , getFullVersion } from '../../../../constants/ota';
+import { PROJECT_ID, getFullVersion } from '../../../../constants/ota';
 import { fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
@@ -244,6 +244,9 @@ export default class AppInformation extends PureComponent {
                   <>
                     <Text style={styles.branchInfo}>
                       {`Expo Project ID: ${PROJECT_ID}`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`Update ID: ${updateId || 'N/A'}`}
                     </Text>
                     <Text style={styles.branchInfo}>
                       {`OTA Update Channel: ${channel}`}

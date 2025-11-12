@@ -12,6 +12,7 @@ import {
   useMetrics,
 } from '../../../hooks/useMetrics';
 import { toTokenMinimalUnit } from '../../../../util/number';
+import { safeToChecksumAddress } from '../../../../util/address';
 import { ARBITRARY_ALLOWANCE } from '../constants';
 import {
   TransactionType,
@@ -47,6 +48,10 @@ jest.mock('../../../../util/number', () => ({
   toTokenMinimalUnit: jest.fn(),
 }));
 
+jest.mock('../../../../util/address', () => ({
+  safeToChecksumAddress: jest.fn(),
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   context: {
     KeyringController: {
@@ -69,6 +74,9 @@ const mockUseCardSDK = useCardSDK as jest.MockedFunction<typeof useCardSDK>;
 const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
 const mockToTokenMinimalUnit = toTokenMinimalUnit as jest.MockedFunction<
   typeof toTokenMinimalUnit
+>;
+const mockSafeToChecksumAddress = safeToChecksumAddress as jest.MockedFunction<
+  typeof safeToChecksumAddress
 >;
 
 // Helper functions
@@ -191,6 +199,9 @@ describe('useCardDelegation', () => {
 
     // Setup utility mocks
     mockToTokenMinimalUnit.mockReturnValue('100000000000000000000');
+    mockSafeToChecksumAddress.mockImplementation(
+      (address?: string) => (address as `0x${string}`) || undefined,
+    );
 
     // Setup SDK method mocks
     mockSDK.generateDelegationToken.mockResolvedValue({
@@ -574,6 +585,42 @@ describe('useCardDelegation', () => {
       expect(result.current.error).toBe('Delegation completion failed');
     });
 
+    it('handles delegation completion failure after transaction confirmation', async () => {
+      const completionError = new Error('API delegation completion failed');
+      mockSDK.completeEVMDelegation.mockRejectedValue(completionError);
+
+      const mockToken = createMockToken();
+      const params = createMockDelegationParams();
+
+      Engine.controllerMessenger.subscribeOnceIf = jest
+        .fn()
+        .mockImplementation((_eventName, callback) => {
+          // Immediately call the callback with a confirmed transaction
+          setImmediate(() => {
+            callback({
+              id: 'transaction-meta-id-123',
+              status: TransactionStatus.confirmed,
+            });
+          });
+        });
+
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      await act(async () => {
+        await expect(result.current.submitDelegation(params)).rejects.toThrow(
+          'API delegation completion failed',
+        );
+      });
+
+      expect(result.current.error).toBe('API delegation completion failed');
+      expect(Logger.error).toHaveBeenCalledWith(
+        completionError,
+        'Failed to complete EVM delegation',
+      );
+      // Transaction was confirmed but completion failed
+      expect(mockSDK.completeEVMDelegation).toHaveBeenCalled();
+    });
+
     it('handles non-Error objects thrown during delegation', async () => {
       mockSDK.generateDelegationToken.mockRejectedValue('String error');
 
@@ -947,7 +994,10 @@ describe('useCardDelegation', () => {
       const { result } = renderHook(() => useCardDelegation(mockToken));
 
       // Start delegation (don't await yet)
-      const delegationPromise = result.current.submitDelegation(params);
+      let delegationPromise: Promise<void> = Promise.resolve();
+      act(() => {
+        delegationPromise = result.current.submitDelegation(params);
+      });
 
       // Wait a bit to ensure subscription is set up
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -970,6 +1020,70 @@ describe('useCardDelegation', () => {
       // Now it should be called
       expect(mockSDK.completeEVMDelegation).toHaveBeenCalled();
     });
+
+    it('handles transaction failure in confirmation listener', async () => {
+      const mockToken = createMockToken();
+      const params = createMockDelegationParams();
+
+      Engine.controllerMessenger.subscribeOnceIf = jest
+        .fn()
+        .mockImplementation((_eventName, callback) => {
+          // Immediately call the callback with a failed transaction
+          setImmediate(() => {
+            callback({
+              id: 'transaction-meta-id-123',
+              status: TransactionStatus.failed,
+              error: {
+                message: 'Transaction execution failed',
+              },
+            });
+          });
+        });
+
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      await act(async () => {
+        await expect(result.current.submitDelegation(params)).rejects.toThrow(
+          'Transaction execution failed',
+        );
+      });
+
+      expect(result.current.error).toBe('Transaction execution failed');
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        'Transaction failed',
+      );
+      expect(mockSDK.completeEVMDelegation).not.toHaveBeenCalled();
+    });
+
+    it('handles transaction failure with generic message when error details not provided', async () => {
+      const mockToken = createMockToken();
+      const params = createMockDelegationParams();
+
+      Engine.controllerMessenger.subscribeOnceIf = jest
+        .fn()
+        .mockImplementation((_eventName, callback) => {
+          // Immediately call the callback with a failed transaction without error details
+          setImmediate(() => {
+            callback({
+              id: 'transaction-meta-id-123',
+              status: TransactionStatus.failed,
+              error: undefined,
+            });
+          });
+        });
+
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      await act(async () => {
+        await expect(result.current.submitDelegation(params)).rejects.toThrow(
+          'Transaction failed',
+        );
+      });
+
+      expect(result.current.error).toBe('Transaction failed');
+      expect(mockSDK.completeEVMDelegation).not.toHaveBeenCalled();
+    });
   });
 
   describe('edge cases', () => {
@@ -983,8 +1097,9 @@ describe('useCardDelegation', () => {
       });
     });
 
-    it('handles solana network selection', async () => {
+    it('uses raw address for solana network without checksum', async () => {
       const mockToken = createMockToken();
+      const mockSolanaAddress = 'SolanaAddress123ABC';
       const params = {
         ...createMockDelegationParams(),
         network: 'solana' as const,
@@ -992,7 +1107,7 @@ describe('useCardDelegation', () => {
 
       mockUseSelector.mockReturnValue(
         jest.fn().mockReturnValue({
-          address: mockAddress,
+          address: mockSolanaAddress,
         }),
       );
 
@@ -1002,7 +1117,71 @@ describe('useCardDelegation', () => {
         await result.current.submitDelegation(params);
       });
 
-      expect(mockUseSelector).toHaveBeenCalled();
+      expect(mockSafeToChecksumAddress).not.toHaveBeenCalled();
+      expect(mockSDK.generateDelegationToken).toHaveBeenCalledWith(
+        'solana',
+        mockSolanaAddress,
+      );
+    });
+
+    it('uses checksummed address for linea network', async () => {
+      const mockToken = createMockToken();
+      const mockRawAddress = '0xABCDEF123456';
+      const mockChecksummedAddress = '0xabcdef123456' as `0x${string}`;
+      const params = createMockDelegationParams();
+
+      mockUseSelector.mockReturnValue(
+        jest.fn().mockReturnValue({
+          address: mockRawAddress,
+        }),
+      );
+
+      mockSafeToChecksumAddress.mockReturnValue(mockChecksummedAddress);
+
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      await act(async () => {
+        await result.current.submitDelegation(params);
+      });
+
+      expect(mockSafeToChecksumAddress).toHaveBeenCalledWith(mockRawAddress);
+      expect(mockSDK.generateDelegationToken).toHaveBeenCalledWith(
+        'linea',
+        mockChecksummedAddress,
+      );
+    });
+
+    it('uses checksummed address for non-solana networks', async () => {
+      const mockToken = createMockToken();
+      const mockRawAddress = '0x1234567890ABCDEF';
+      const mockChecksummedAddress = '0x1234567890abcdef' as `0x${string}`;
+      const params = {
+        ...createMockDelegationParams(),
+        network: 'linea' as const,
+      };
+
+      mockUseSelector.mockReturnValue(
+        jest.fn().mockReturnValue({
+          address: mockRawAddress,
+        }),
+      );
+
+      mockSafeToChecksumAddress.mockReturnValue(mockChecksummedAddress);
+
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      await act(async () => {
+        await result.current.submitDelegation(params);
+      });
+
+      expect(mockSafeToChecksumAddress).toHaveBeenCalledWith(mockRawAddress);
+      expect(
+        Engine.context.KeyringController.signPersonalMessage,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          from: mockChecksummedAddress,
+        }),
+      );
     });
 
     it('handles very large allowance amounts', async () => {

@@ -4,8 +4,8 @@ export const runtimeVersion = '1.0.0';
 export const isEmbeddedLaunch = true;
 export const isEnabled = true;
 export const url = 'https://example.com';
-export const updateId = 'test-update-id';
 export const checkAutomatically = 'NEVER';
+export const updateId = 'mock-update-id';
 
 export const checkForUpdateAsync = jest.fn().mockResolvedValue({
   isAvailable: false,

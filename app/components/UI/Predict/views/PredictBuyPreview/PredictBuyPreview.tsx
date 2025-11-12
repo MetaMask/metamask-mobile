@@ -30,6 +30,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { useSelector } from 'react-redux';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -39,6 +40,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import Engine from '../../../../../core/Engine';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
@@ -51,6 +53,7 @@ import {
 import { formatCents, formatPrice } from '../../utils/format';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
 import PredictFeeSummary from '../../components/PredictFeeSummary';
+import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
 import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
@@ -60,21 +63,21 @@ import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
-import PredictConsentSheet, {
-  type PredictConsentSheetRef,
-} from '../../components/PredictConsentSheet';
-import { usePredictAgreement } from '../../hooks/usePredictAgreement';
+import { selectRewardsEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
-  const consentSheetRef = useRef<PredictConsentSheetRef>(null);
+  const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
   const { goBack, dispatch } =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
   const { market, outcome, outcomeToken, entryPoint } = route.params;
+
+  // Rewards feature flag
+  const rewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   // Prepare analytics properties
   const analyticsProperties = useMemo(
@@ -116,15 +119,18 @@ const PredictBuyPreview = () => {
     providerId: outcome.providerId,
   });
 
-  const { isAgreementAccepted } = usePredictAgreement({
-    providerId: outcome.providerId,
-  });
-
   const [currentValue, setCurrentValue] = useState(0);
   const [currentValueUSDString, setCurrentValueUSDString] = useState('');
   const [isInputFocused, setIsInputFocused] = useState(true);
+  const [isUserInputChange, setIsUserInputChange] = useState(false);
+  const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
+  const previousValueRef = useRef(0);
 
-  const { preview, error: previewError } = usePredictOrderPreview({
+  const {
+    preview,
+    error: previewError,
+    isCalculating,
+  } = usePredictOrderPreview({
     providerId: outcome.providerId,
     marketId: market.id,
     outcomeId: outcome.id,
@@ -133,6 +139,27 @@ const PredictBuyPreview = () => {
     size: currentValue,
     autoRefreshTimeout: 1000,
   });
+
+  // Track when user changes input to show skeleton only during user input changes
+  useEffect(() => {
+    if (!isCalculating) {
+      setIsUserInputChange(false);
+      if (currentValue === 0) {
+        previousValueRef.current = 0;
+      }
+      return;
+    }
+
+    if (
+      currentValue > 0 &&
+      currentValue !== previousValueRef.current &&
+      isCalculating
+    ) {
+      setIsUserInputChange(true);
+    }
+
+    previousValueRef.current = currentValue;
+  }, [currentValue, isCalculating]);
 
   const errorMessage = previewError ?? placeOrderError;
 
@@ -156,6 +183,16 @@ const PredictBuyPreview = () => {
   const metamaskFee = preview?.fees?.metamaskFee ?? 0;
   const providerFee = preview?.fees?.providerFee ?? 0;
   const total = currentValue + providerFee + metamaskFee;
+
+  // Calculate estimated rewards points: 1 point per cent spent on MM fee
+  // Formula: MM fee (in dollars) * 100 = points (rounded)
+  const estimatedPoints = useMemo(
+    () => Math.round(metamaskFee * 100),
+    [metamaskFee],
+  );
+
+  // Show rewards row if feature is enabled and we have a valid amount
+  const shouldShowRewards = rewardsEnabled && currentValue > 0;
 
   // Validation constants and states
   const MINIMUM_BET = 1; // $1 minimum bet
@@ -188,12 +225,6 @@ const PredictBuyPreview = () => {
   const onPlaceBet = useCallback(async () => {
     if (!preview || hasInsufficientFunds || isBelowMinimum) return;
 
-    // Check if user has accepted the agreement
-    if (!isAgreementAccepted) {
-      consentSheetRef.current?.onOpenBottomSheet();
-      return;
-    }
-
     await placeOrder({
       providerId: outcome.providerId,
       analyticsProperties,
@@ -203,11 +234,24 @@ const PredictBuyPreview = () => {
     preview,
     hasInsufficientFunds,
     isBelowMinimum,
-    isAgreementAccepted,
     placeOrder,
     outcome.providerId,
     analyticsProperties,
   ]);
+
+  const handleFeesInfoPress = useCallback(() => {
+    setIsFeeBreakdownVisible(true);
+  }, []);
+
+  const handleFeeBreakdownClose = useCallback(() => {
+    setIsFeeBreakdownVisible(false);
+  }, []);
+
+  useEffect(() => {
+    if (isFeeBreakdownVisible) {
+      feeBreakdownSheetRef.current?.onOpenBottomSheet();
+    }
+  }, [isFeeBreakdownVisible]);
 
   const renderHeader = () => (
     <Box
@@ -305,14 +349,25 @@ const PredictBuyPreview = () => {
             </Text>
           )}
         </Box>
-        <Box twClassName="text-center mt-2">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="mt-2"
+        >
           <Text variant={TextVariant.BodyLGMedium} color={TextColor.Success}>
             {`${strings('predict.order.to_win')} `}
-            {formatPrice(toWin, {
-              minimumDecimals: 2,
-              maximumDecimals: 2,
-            })}
           </Text>
+          {isCalculating && isUserInputChange ? (
+            <Skeleton width={80} height={24} style={tw.style('rounded-md')} />
+          ) : (
+            <Text variant={TextVariant.BodyLGMedium} color={TextColor.Success}>
+              {formatPrice(toWin, {
+                minimumDecimals: 2,
+                maximumDecimals: 2,
+              })}
+            </Text>
+          )}
         </Box>
       </Box>
     </ScrollView>
@@ -458,6 +513,11 @@ const PredictBuyPreview = () => {
         total={total}
         metamaskFee={metamaskFee}
         providerFee={providerFee}
+        shouldShowRewards={shouldShowRewards}
+        estimatedPoints={estimatedPoints}
+        isLoadingRewards={isCalculating && isUserInputChange}
+        hasRewardsError={false}
+        onFeesInfoPress={handleFeesInfoPress}
       />
       {renderErrorMessage()}
       <PredictKeypad
@@ -472,11 +532,14 @@ const PredictBuyPreview = () => {
         onAddFunds={deposit}
       />
       {renderBottomContent()}
-      <PredictConsentSheet
-        ref={consentSheetRef}
-        providerId={outcome.providerId}
-        onAgree={onPlaceBet}
-      />
+      {isFeeBreakdownVisible && (
+        <PredictFeeBreakdownSheet
+          ref={feeBreakdownSheetRef}
+          providerFee={providerFee}
+          metamaskFee={metamaskFee}
+          onClose={handleFeeBreakdownClose}
+        />
+      )}
     </SafeAreaView>
   );
 };
