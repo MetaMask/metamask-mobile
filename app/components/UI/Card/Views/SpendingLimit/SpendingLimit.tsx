@@ -244,7 +244,7 @@ const SpendingLimit = ({
 
     try {
       setIsProcessing(true);
-      if (sdk && (isFullAccess || isRestricted)) {
+      if (sdk) {
         const currentLimit = parseFloat(
           spendingLimitSettings.limitAmount || '0',
         );
@@ -292,15 +292,18 @@ const SpendingLimit = ({
 
           // Allow navigation and go back
           setAllowNavigation(true);
-          setIsProcessing(false);
           // Use setTimeout to ensure the state update is processed
           setTimeout(() => {
             navigation.goBack();
           }, 0);
+        } else {
+          // No changes made, just close the modal
+          navigation.goBack();
         }
       }
 
       setShowOptions(false);
+      setIsProcessing(false);
     } catch (error) {
       // Reset navigation flag and processing state on error
       setAllowNavigation(false);
