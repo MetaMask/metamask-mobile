@@ -1,7 +1,6 @@
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { isRelaySupported } from '../../../../../util/transactions/transaction-relay';
-import { isAtomicBatchSupported } from '../../../../../util/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { useGaslessSupportedSmartTransactions } from './useGaslessSupportedSmartTransactions';
 
@@ -20,7 +19,6 @@ export function useIsGaslessSupported() {
   const transactionMeta = useTransactionMetadataRequest();
 
   const { chainId, txParams } = transactionMeta ?? {};
-  const { from } = txParams ?? {};
 
   const {
     isSmartTransaction,
@@ -31,17 +29,6 @@ export function useIsGaslessSupported() {
   const shouldCheck7702Eligibility =
     !pending && !isSmartTransactionAndBundleSupported;
 
-  const { value: atomicBatchSupportResult } = useAsyncResult(async () => {
-    if (!shouldCheck7702Eligibility) {
-      return undefined;
-    }
-
-    return isAtomicBatchSupported({
-      address: from as Hex,
-      chainIds: [chainId as Hex],
-    });
-  }, [chainId, from, shouldCheck7702Eligibility]);
-
   const { value: relaySupportsChain } = useAsyncResult(async () => {
     if (!shouldCheck7702Eligibility) {
       return undefined;
@@ -50,14 +37,8 @@ export function useIsGaslessSupported() {
     return isRelaySupported(chainId as Hex);
   }, [chainId, shouldCheck7702Eligibility]);
 
-  const atomicBatchChainSupport = atomicBatchSupportResult?.find(
-    (result) => result.chainId.toLowerCase() === chainId?.toLowerCase(),
-  );
-
-  // Currently requires upgraded account, can also support no `delegationAddress` in future.
   const is7702Supported = Boolean(
-    atomicBatchChainSupport?.isSupported &&
-      relaySupportsChain &&
+    relaySupportsChain &&
       // contract deployments can't be delegated
       txParams?.to !== undefined,
   );

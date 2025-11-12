@@ -1,6 +1,6 @@
 interface RampsButtonClicked {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT';
+  ramp_type: 'DEPOSIT' | 'BUY';
   user_id?: string;
   region: string;
   location: string;
