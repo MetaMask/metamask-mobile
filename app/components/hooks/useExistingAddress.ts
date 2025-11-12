@@ -5,32 +5,27 @@ import { areAddressesEqual, toChecksumAddress } from '../../util/address';
 import { AddressBookEntry } from '@metamask/address-book-controller';
 import { selectAddressBook } from '../../selectors/addressBookController';
 import { selectIsEvmNetworkSelected } from '../../selectors/multichainNetworkController';
-import { selectEvmChainId } from '../../selectors/networkController';
 import { useMemo } from 'react';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../util/networks';
 
 type AccountInfo = Pick<AddressBookEntry, 'name' | 'address'>;
 
 const useExistingAddress = (address?: string): AccountInfo | undefined => {
-  const chainId = useSelector(selectEvmChainId);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const addressBook = useSelector(selectAddressBook);
   const internalAccounts = useSelector(selectInternalAccounts);
 
-  const filteredAddressBook = useMemo(() => {
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      return Object.values(addressBook).reduce(
+  const filteredAddressBook = useMemo(
+    () =>
+      Object.values(addressBook).reduce(
         (acc, networkAddressBook) => ({
           ...acc,
           ...networkAddressBook,
         }),
         {},
-      );
-    }
-
-    return addressBook[chainId] || {};
-  }, [addressBook, chainId]);
+      ),
+    [addressBook],
+  );
 
   if (!address || !isEvmSelected) return;
 
