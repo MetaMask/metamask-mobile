@@ -2335,14 +2335,4 @@ describe('PredictBuyPreview', () => {
       // which sets isFeeBreakdownVisible to true
     });
   });
-
-  describe('Rewards Loading State', () => {
-    it('passes loading state to PredictFeeSummary when calculating', () => {
-      renderWithProvider(<PredictBuyPreview />, {
-        state: initialState,
-      });
-
-      // isLoadingRewards should be isCalculating && isUserInputChange
-    });
-  });
 });
