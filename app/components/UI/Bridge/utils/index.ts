@@ -1,6 +1,6 @@
 import { CaipChainId, SolScope } from '@metamask/keyring-api';
 import AppConstants from '../../../../core/AppConstants';
-import { Hex } from '@metamask/utils';
+import { CaipAssetType, Hex } from '@metamask/utils';
 import {
   ARBITRUM_CHAIN_ID,
   AVALANCHE_CHAIN_ID,
@@ -14,10 +14,7 @@ import {
   SEI_CHAIN_ID,
 } from '@metamask/swaps-controller/dist/constants';
 import Engine from '../../../../core/Engine';
-import {
-  formatAddressToAssetId,
-  isNonEvmChainId,
-} from '@metamask/bridge-controller';
+import { isNonEvmChainId } from '@metamask/bridge-controller';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const ALLOWED_CHAIN_IDS: (Hex | CaipChainId)[] = [
@@ -62,17 +59,14 @@ export const wipeBridgeStatus = (
 };
 
 export const getTokenIconUrl = (
-  address: string,
-  chainId: Hex | CaipChainId,
+  assetId: CaipAssetType | undefined,
+  isNonEvmChain: boolean,
 ) => {
-  const isEvmChain = !isNonEvmChainId(chainId);
-  const formattedAddress = isEvmChain ? address.toLowerCase() : address;
-
-  const assetId = formatAddressToAssetId(formattedAddress, chainId);
   if (!assetId) {
     return undefined;
   }
-  return `https://static.cx.metamask.io/api/v2/tokenIcons/assets/${assetId
+  const formattedAddress = isNonEvmChain ? assetId : assetId.toLowerCase();
+  return `https://static.cx.metamask.io/api/v2/tokenIcons/assets/${formattedAddress
     .split(':')
     .join('/')}.png`;
 };

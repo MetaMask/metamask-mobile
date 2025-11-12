@@ -34,7 +34,7 @@ export const selectConversionRate = createSelector(
   },
 );
 
-export const selectCurrencyRates = createSelector(
+export const selectCurrencyRates = createDeepEqualSelector(
   selectCurrencyRateControllerState,
   (currencyRateControllerState: CurrencyRateState) =>
     currencyRateControllerState?.currencyRates,
