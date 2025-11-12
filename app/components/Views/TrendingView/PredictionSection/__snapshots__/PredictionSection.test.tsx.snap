@@ -20,11 +20,11 @@ exports[`PredictionSection carousel with data matches snapshot with market data 
           "display": "flex",
           "flexDirection": "row",
           "justifyContent": "space-between",
-          "marginBottom": 8,
-          "paddingLeft": 4,
-          "paddingRight": 4,
         },
-        undefined,
+        {
+          "marginBottom": 8,
+          "paddingHorizontal": 4,
+        },
       ]
     }
   >
@@ -183,7 +183,7 @@ exports[`PredictionSection carousel with data matches snapshot with market data 
       renderItem={[Function]}
       scrollEventThrottle={16}
       showsHorizontalScrollIndicator={false}
-      snapToInterval={734}
+      snapToInterval={626.3}
       stickyHeaderIndices={[]}
       viewabilityConfigCallbackPairs={[]}
     >
@@ -754,11 +754,11 @@ exports[`PredictionSection loading state matches snapshot when loading 1`] = `
           "display": "flex",
           "flexDirection": "row",
           "justifyContent": "space-between",
-          "marginBottom": 8,
-          "paddingLeft": 4,
-          "paddingRight": 4,
         },
-        undefined,
+        {
+          "marginBottom": 8,
+          "paddingHorizontal": 4,
+        },
       ]
     }
   >
