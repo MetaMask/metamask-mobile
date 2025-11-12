@@ -610,10 +610,14 @@ export class PolymarketProvider implements PredictProvider {
     address,
     positions,
     claimable,
+    marketId,
+    outcomeId,
   }: {
     address: string;
     positions: PredictPosition[];
     claimable: boolean;
+    marketId?: string;
+    outcomeId?: string;
   }): PredictPosition[] {
     const optimisticUpdates =
       this.#optimisticPositionUpdatesByAddress.get(address);
@@ -642,6 +646,11 @@ export class PolymarketProvider implements PredictProvider {
         return;
       }
 
+      // Check if this update matches the query filters
+      const matchesFilter =
+        (!outcomeId || update.outcomeTokenId === outcomeId) &&
+        (!marketId || outcomeId || update.marketId === marketId);
+
       const apiPositionIndex = result.findIndex(
         (p) => p.outcomeTokenId === outcomeTokenId,
       );
@@ -664,12 +673,16 @@ export class PolymarketProvider implements PredictProvider {
                   expectedSize: update.expectedSize,
                 },
               );
-            } else if (update.optimisticPosition) {
-              // API not yet updated, use optimistic position
+            } else if (
+              update.optimisticPosition &&
+              !claimable &&
+              matchesFilter
+            ) {
+              // API not yet updated, use optimistic position (only if matches filter)
               result[apiPositionIndex] = update.optimisticPosition;
             }
-          } else if (update.optimisticPosition && !claimable) {
-            // New position not in API yet, add optimistic position
+          } else if (update.optimisticPosition && !claimable && matchesFilter) {
+            // New position not in API yet, add optimistic position (only if matches filter)
             result.push(update.optimisticPosition);
           }
           break;
@@ -760,6 +773,8 @@ export class PolymarketProvider implements PredictProvider {
       address,
       positions: parsedPositions,
       claimable,
+      marketId,
+      outcomeId,
     });
 
     return positionsWithOptimisticUpdates;
