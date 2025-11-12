@@ -41,7 +41,12 @@ function EligibilityFailedModal() {
   }, []);
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack isInteractable={false}>
+    <BottomSheet
+      ref={sheetRef}
+      shouldNavigateBack
+      isInteractable={false}
+      testID="eligibility-failed-modal"
+    >
       <BottomSheetHeader
         onClose={handleClose}
         closeButtonProps={{ testID: 'bottomsheetheader-close-button' }}
