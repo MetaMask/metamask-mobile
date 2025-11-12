@@ -40,7 +40,10 @@ import AddressSelector from '../../../components/Views/AddressSelector';
 import { TokenSortBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenSortBottomSheet';
 import ProfilerManager from '../../../components/UI/ProfilerManager';
 import { TokenFilterBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenFilterBottomSheet';
-import { TrendingTokenTimeBottomSheet } from '../../../components/Views/TrendingView/TrendingTokensBottomSheet';
+import {
+  TrendingTokenTimeBottomSheet,
+  TrendingTokenNetworkBottomSheet,
+} from '../../../components/Views/TrendingView/TrendingTokensBottomSheet';
 import NetworkManager from '../../../components/UI/NetworkManager';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import AccountPermissionsConfirmRevokeAll from '../../../components/Views/AccountPermissions/AccountPermissionsConfirmRevokeAll';
@@ -470,6 +473,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.TRENDING_TOKEN_TIME}
       component={TrendingTokenTimeBottomSheet}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.TRENDING_TOKEN_NETWORK}
+      component={TrendingTokenNetworkBottomSheet}
     />
     <Stack.Screen
       name={Routes.SHEET.NETWORK_MANAGER}

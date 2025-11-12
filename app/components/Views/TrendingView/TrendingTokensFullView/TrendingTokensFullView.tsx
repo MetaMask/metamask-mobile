@@ -21,8 +21,10 @@ import TrendingTokensList from '../TrendingTokensSection/TrendingTokensList/Tren
 import TrendingTokensSkeleton from '../TrendingTokensSection/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import { useTrendingRequest } from '../../../UI/Assets/hooks/useTrendingRequest';
 import { TrendingAsset, SortTrendingBy } from '@metamask/assets-controllers';
+import { CaipChainId } from '@metamask/utils';
 import {
   createTrendingTokenTimeBottomSheetNavDetails,
+  createTrendingTokenNetworkBottomSheetNavDetails,
   TimeOption,
 } from '../TrendingTokensBottomSheet';
 import Text, {
@@ -119,6 +121,9 @@ const TrendingTokensFullView = () => {
   const [selectedTimeOption, setSelectedTimeOption] = useState<TimeOption>(
     TimeOption.TwentyFourHours,
   );
+  const [selectedNetwork, setSelectedNetwork] = useState<CaipChainId[] | null>(
+    null,
+  );
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -126,6 +131,7 @@ const TrendingTokensFullView = () => {
 
   const { results: trendingTokensResults, isLoading } = useTrendingRequest({
     sortBy,
+    chainIds: selectedNetwork ?? undefined,
   });
   // display only top 100 tokens
   const trendingTokens = useMemo(
@@ -143,9 +149,18 @@ const TrendingTokensFullView = () => {
     // TODO: Implement price change filter logic
   }, []);
 
-  const handleAllNetworksPress = useCallback(() => {
-    // TODO: Implement network filter logic
+  const handleNetworkSelect = useCallback((chainIds: CaipChainId[] | null) => {
+    setSelectedNetwork(chainIds);
   }, []);
+
+  const handleAllNetworksPress = useCallback(() => {
+    navigation.navigate(
+      ...createTrendingTokenNetworkBottomSheetNavDetails({
+        onNetworkSelect: handleNetworkSelect,
+        selectedNetwork,
+      }),
+    );
+  }, [navigation, handleNetworkSelect, selectedNetwork]);
 
   const handleTimeSelect = useCallback(
     (selectedSortBy: SortTrendingBy, timeOption: TimeOption) => {
