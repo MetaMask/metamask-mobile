@@ -2,7 +2,6 @@ import {
   TransactionParams,
   TransactionController,
   TransactionMeta,
-  TransactionType,
   type PublishBatchHookTransaction,
 } from '@metamask/transaction-controller';
 import {
@@ -27,7 +26,6 @@ import { RAMPS_SEND } from '../../components/UI/Ramp/Aggregator/constants';
 import { Messenger } from '@metamask/messenger';
 import { addSwapsTransaction } from '../swaps/swaps-transactions';
 import { Hex } from '@metamask/utils';
-import { isPerDappSelectedNetworkEnabled } from '../networks';
 import { isLegacyTransaction } from '../transactions';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 
@@ -184,9 +182,7 @@ class SmartTransactionHook {
     if (
       !this.#shouldUseSmartTransaction ||
       this.#transactionMeta.origin === RAMPS_SEND ||
-      isLegacyTransaction(this.#transactionMeta) ||
-      this.#transactionMeta.type === TransactionType.bridge ||
-      this.#transactionMeta.type === TransactionType.bridgeApproval
+      isLegacyTransaction(this.#transactionMeta)
     ) {
       return useRegularTransactionSubmit;
     }
@@ -357,9 +353,7 @@ class SmartTransactionHook {
       return await this.#smartTransactionsController.getFees(
         { ...this.#txParams, chainId: this.#chainId },
         undefined,
-        isPerDappSelectedNetworkEnabled()
-          ? { networkClientId: this.#transactionMeta.networkClientId }
-          : undefined,
+        { networkClientId: this.#transactionMeta.networkClientId },
       );
     } catch (error) {
       return undefined;

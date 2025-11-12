@@ -5,7 +5,7 @@ import React, {
   useContext,
   useMemo,
 } from 'react';
-import { ScrollView, TouchableOpacity, View, TextInput } from 'react-native';
+import { TouchableOpacity, View, TextInput } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
 import {
@@ -52,6 +52,9 @@ import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName'
 import { clearCacheData } from '../../../../../core/redux/slices/card';
 import { useDispatch } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { isZeroValue } from '../../../../../util/number';
 
 const getNetworkFromCaipChainId = (caipChainId: string): CardNetwork => {
   if (caipChainId === SolScope.Mainnet || caipChainId.startsWith('solana:')) {
@@ -269,10 +272,11 @@ const SpendingLimit = ({
             network,
           });
 
-          // Update token priority if external wallet details are available
+          // Update token priority if external wallet details are available and delegation is more than 0
           if (
             externalWalletDetailsData?.walletDetails &&
-            externalWalletDetailsData.walletDetails.length > 0
+            externalWalletDetailsData.walletDetails.length > 0 &&
+            !isZeroValue(parseFloat(delegationAmount))
           ) {
             const tokenWithWallet = tokenToUse || priorityToken;
             if (tokenWithWallet) {
@@ -282,7 +286,6 @@ const SpendingLimit = ({
               );
             }
           } else {
-            // If no external wallet details, just invalidate cache
             dispatch(clearCacheData('card-external-wallet-details'));
           }
 
@@ -472,174 +475,184 @@ const SpendingLimit = ({
   }, [tempSelectedOption, isSolanaSelected, customLimit]);
 
   return (
-    <ScrollView
-      style={styles.wrapper}
-      showsVerticalScrollIndicator={false}
-      alwaysBounceVertical={false}
-      contentContainerStyle={styles.contentContainer}
-    >
-      <View style={styles.assetContainer}>
-        <TouchableOpacity
-          style={styles.dropdownButton}
-          onPress={handleOpenAssetSelection}
-        >
-          {renderSelectedToken()}
-        </TouchableOpacity>
-      </View>
+    <SafeAreaView style={styles.safeAreaView} edges={['bottom']}>
+      <KeyboardAwareScrollView
+        style={styles.wrapper}
+        showsVerticalScrollIndicator={false}
+        alwaysBounceVertical={false}
+        enableOnAndroid
+        enableAutomaticScroll
+        contentContainerStyle={styles.contentContainer}
+      >
+        <View style={styles.assetContainer}>
+          <TouchableOpacity
+            style={styles.dropdownButton}
+            onPress={handleOpenAssetSelection}
+          >
+            {renderSelectedToken()}
+          </TouchableOpacity>
+        </View>
 
-      <View style={styles.optionsContainer}>
-        {!showOptions ? (
-          // Initial view - only show full access option without radio button
-          <View style={styles.optionCard}>
-            <Text variant={TextVariant.BodyMDMedium} style={styles.optionTitle}>
-              {strings('card.card_spending_limit.full_access_title')}
-            </Text>
-            <Text variant={TextVariant.BodySM} style={styles.optionDescription}>
-              {strings('card.card_spending_limit.full_access_description')}
-            </Text>
-            <TouchableOpacity
-              style={styles.editLimitButton}
-              onPress={handleEditLimit}
-            >
-              <Text variant={TextVariant.BodySM} style={styles.editLimitText}>
-                {strings('card.card_spending_limit.set_new_limit')}
+        <View style={styles.optionsContainer}>
+          {!showOptions ? (
+            // Initial view - only show full access option without radio button
+            <View style={styles.optionCard}>
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                style={styles.optionTitle}
+              >
+                {strings('card.card_spending_limit.full_access_title')}
               </Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          // Options view - show both options with radio buttons in a single container
-          <View style={styles.optionCard}>
-            <TouchableOpacity
-              style={styles.optionItem}
-              onPress={() => {
-                handleOptionSelect('full');
-                trackEvent(
-                  createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-                    .addProperties({
-                      action: CardActions.ENABLE_TOKEN_FULL_ACCESS_BUTTON,
-                    })
-                    .build(),
-                );
-              }}
-            >
-              <View style={styles.optionHeader}>
-                <View style={styles.radioButton}>
-                  {tempSelectedOption === 'full' && (
-                    <View style={styles.radioButtonSelected} />
-                  )}
-                </View>
-                <Text
-                  variant={TextVariant.BodyMDMedium}
-                  style={styles.optionTitle}
-                >
-                  {strings('card.card_spending_limit.full_access_title')}
-                </Text>
-              </View>
               <Text
                 variant={TextVariant.BodySM}
                 style={styles.optionDescription}
               >
                 {strings('card.card_spending_limit.full_access_description')}
               </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.optionItem}
-              onPress={() => handleOptionSelect('restricted')}
-            >
-              <View style={styles.optionHeader}>
-                <View style={styles.radioButton}>
-                  {tempSelectedOption === 'restricted' && (
-                    <View style={styles.radioButtonSelected} />
-                  )}
+              <TouchableOpacity
+                style={styles.editLimitButton}
+                onPress={handleEditLimit}
+              >
+                <Text variant={TextVariant.BodySM} style={styles.editLimitText}>
+                  {strings('card.card_spending_limit.set_new_limit')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            // Options view - show both options with radio buttons in a single container
+            <View style={styles.optionCard}>
+              <TouchableOpacity
+                style={styles.optionItem}
+                onPress={() => {
+                  handleOptionSelect('full');
+                  trackEvent(
+                    createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+                      .addProperties({
+                        action: CardActions.ENABLE_TOKEN_FULL_ACCESS_BUTTON,
+                      })
+                      .build(),
+                  );
+                }}
+              >
+                <View style={styles.optionHeader}>
+                  <View style={styles.radioButton}>
+                    {tempSelectedOption === 'full' && (
+                      <View style={styles.radioButtonSelected} />
+                    )}
+                  </View>
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    style={styles.optionTitle}
+                  >
+                    {strings('card.card_spending_limit.full_access_title')}
+                  </Text>
                 </View>
                 <Text
-                  variant={TextVariant.BodyMDMedium}
-                  style={styles.optionTitle}
+                  variant={TextVariant.BodySM}
+                  style={styles.optionDescription}
                 >
-                  {strings('card.card_spending_limit.restricted_limit_title')}
+                  {strings('card.card_spending_limit.full_access_description')}
                 </Text>
-              </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.optionItem}
+                onPress={() => handleOptionSelect('restricted')}
+              >
+                <View style={styles.optionHeader}>
+                  <View style={styles.radioButton}>
+                    {tempSelectedOption === 'restricted' && (
+                      <View style={styles.radioButtonSelected} />
+                    )}
+                  </View>
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    style={styles.optionTitle}
+                  >
+                    {strings('card.card_spending_limit.restricted_limit_title')}
+                  </Text>
+                </View>
+                <Text
+                  variant={TextVariant.BodySM}
+                  style={styles.optionDescription}
+                >
+                  {strings(
+                    'card.card_spending_limit.restricted_limit_description',
+                  )}
+                </Text>
+                {tempSelectedOption === 'restricted' && (
+                  <View style={styles.limitInputContainer}>
+                    <TextInput
+                      style={styles.limitInput}
+                      value={customLimit}
+                      onChangeText={(text) => {
+                        // Allow only numbers and decimal point
+                        const sanitized = text.replace(/[^0-9.]/g, '');
+                        // Prevent multiple decimal points
+                        const parts = sanitized.split('.');
+                        const formatted =
+                          parts.length > 2
+                            ? parts[0] + '.' + parts.slice(1).join('')
+                            : sanitized;
+                        setCustomLimit(formatted);
+                      }}
+                      placeholder="0"
+                      placeholderTextColor={theme.colors.text.muted}
+                      keyboardType="decimal-pad"
+                      returnKeyType="done"
+                    />
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.buttonsContainer}>
+          {isSolanaSelected && (
+            <View style={styles.warningContainer}>
+              <Icon
+                name={IconName.Info}
+                size={IconSize.Sm}
+                color={theme.colors.warning.default}
+                style={styles.warningIcon}
+              />
               <Text
                 variant={TextVariant.BodySM}
-                style={styles.optionDescription}
+                style={[
+                  styles.warningText,
+                  { color: theme.colors.warning.default },
+                ]}
               >
-                {strings(
-                  'card.card_spending_limit.restricted_limit_description',
-                )}
+                {strings('card.card_spending_limit.solana_not_supported')}
               </Text>
-              {tempSelectedOption === 'restricted' && (
-                <View style={styles.limitInputContainer}>
-                  <TextInput
-                    style={styles.limitInput}
-                    value={customLimit}
-                    onChangeText={(text) => {
-                      // Allow only numbers and decimal point
-                      const sanitized = text.replace(/[^0-9.]/g, '');
-                      // Prevent multiple decimal points
-                      const parts = sanitized.split('.');
-                      const formatted =
-                        parts.length > 2
-                          ? parts[0] + '.' + parts.slice(1).join('')
-                          : sanitized;
-                      setCustomLimit(formatted);
-                    }}
-                    placeholder="0"
-                    placeholderTextColor={theme.colors.text.muted}
-                    keyboardType="decimal-pad"
-                    returnKeyType="done"
-                  />
-                </View>
-              )}
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
-
-      <View style={styles.buttonsContainer}>
-        {isSolanaSelected && (
-          <View style={styles.warningContainer}>
-            <Icon
-              name={IconName.Info}
-              size={IconSize.Sm}
-              color={theme.colors.warning.default}
-              style={styles.warningIcon}
-            />
-            <Text
-              variant={TextVariant.BodySM}
-              style={[
-                styles.warningText,
-                { color: theme.colors.warning.default },
-              ]}
-            >
-              {strings('card.card_spending_limit.solana_not_supported')}
-            </Text>
-          </View>
-        )}
-        <Button
-          variant={ButtonVariants.Primary}
-          label={strings('card.card_spending_limit.confirm_new_limit')}
-          size={ButtonSize.Lg}
-          onPress={handleConfirm}
-          width={ButtonWidthTypes.Full}
-          disabled={isConfirmDisabled || isDelegationLoading}
-          style={
-            isConfirmDisabled || isDelegationLoading
-              ? styles.disabledButton
-              : undefined
-          }
-          loading={isDelegationLoading}
-        />
-        <Button
-          variant={ButtonVariants.Secondary}
-          label={strings('card.card_spending_limit.cancel')}
-          size={ButtonSize.Lg}
-          onPress={handleCancel}
-          width={ButtonWidthTypes.Full}
-          disabled={isDelegationLoading}
-        />
-      </View>
-    </ScrollView>
+            </View>
+          )}
+          <Button
+            variant={ButtonVariants.Primary}
+            label={strings('card.card_spending_limit.confirm_new_limit')}
+            size={ButtonSize.Lg}
+            onPress={handleConfirm}
+            width={ButtonWidthTypes.Full}
+            disabled={isConfirmDisabled || isDelegationLoading}
+            style={
+              isConfirmDisabled || isDelegationLoading
+                ? styles.disabledButton
+                : undefined
+            }
+            loading={isDelegationLoading}
+          />
+          <Button
+            variant={ButtonVariants.Secondary}
+            label={strings('card.card_spending_limit.cancel')}
+            size={ButtonSize.Lg}
+            onPress={handleCancel}
+            width={ButtonWidthTypes.Full}
+            disabled={isDelegationLoading}
+          />
+        </View>
+      </KeyboardAwareScrollView>
+    </SafeAreaView>
   );
 };
 
