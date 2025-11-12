@@ -41,7 +41,7 @@ export const CLAUDE_CONFIG = {
    * - Iteration 2: AI investigates dependencies (2-3 tool calls)
    * - Iteration 3: AI calls finalize tool (e.g., finalize_tag_selection) → DONE
    */
-  maxIterations: 12,
+  maxIterations: 15,
 };
 
 /**
@@ -105,6 +105,6 @@ export const APP_CONFIG = {
     keywords: ['Controller', 'Engine'],
 
     /** Path segments that indicate critical areas (checked with file.includes(path)) */
-    paths: ['app/core/'],
+    paths: ['app/core/', 'e2e/framework/', 'e2e/api-mocking/', 'e2e/fixtures/'],
   },
 };

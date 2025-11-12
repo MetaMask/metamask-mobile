@@ -21,7 +21,8 @@ export function buildSystemPrompt(): string {
   const guidanceSection = `GUIDANCE:
 Use your judgment - selecting 0 tags is acceptable for non-functional changes.
 Critical files (marked in file list) typically warrant testing. Use tools to investigate when uncertain.
-Balance thoroughness with efficiency.`;
+For E2E test infrastructure related changes, consider running the necessary tests or all of them in case the changes are wide-ranging.
+Balance thoroughness with efficiency, and be conservative in the assessment of risk and tags to run.`;
 
   const prompt = [
     role,
