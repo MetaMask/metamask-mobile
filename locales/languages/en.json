@@ -6831,6 +6831,12 @@
     "6_hours": "6 hours",
     "1_hour": "1 hour",
     "5_minutes": "5 minutes",
-    "networks": "Networks"
+    "networks": "Networks",
+    "sort_by": "Sort by",
+    "volume": "Volume",
+    "market_cap": "Market cap",
+    "high_to_low": "High to low",
+    "low_to_high": "Low to high",
+    "apply": "Apply"
   }
 }

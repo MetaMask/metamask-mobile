@@ -13,6 +13,12 @@ export const createTrendingTokenNetworkBottomSheetNavDetails =
     Routes.SHEET.TRENDING_TOKEN_NETWORK,
   );
 
+export const createTrendingTokenPriceChangeBottomSheetNavDetails =
+  createNavigationDetails(
+    Routes.MODAL.ROOT_MODAL_FLOW,
+    Routes.SHEET.TRENDING_TOKEN_PRICE_CHANGE,
+  );
+
 export {
   TrendingTokenTimeBottomSheet,
   TimeOption,
@@ -23,3 +29,9 @@ export {
   TrendingTokenNetworkBottomSheet,
   NetworkOption,
 } from './TrendingTokenNetworkBottomSheet';
+
+export {
+  TrendingTokenPriceChangeBottomSheet,
+  PriceChangeOption,
+  SortDirection,
+} from './TrendingTokenPriceChangeBottomSheet';

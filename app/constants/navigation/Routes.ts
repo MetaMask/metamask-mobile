@@ -184,6 +184,7 @@ const Routes = {
     TOKEN_FILTER: 'TokenFilter',
     TRENDING_TOKEN_TIME: 'TrendingTokenTime',
     TRENDING_TOKEN_NETWORK: 'TrendingTokenNetwork',
+    TRENDING_TOKEN_PRICE_CHANGE: 'TrendingTokenPriceChange',
     NETWORK_MANAGER: 'NetworkManager',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
     SELECT_SRP: 'SelectSRP',

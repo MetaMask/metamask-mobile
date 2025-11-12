@@ -25,7 +25,9 @@ import { CaipChainId } from '@metamask/utils';
 import {
   createTrendingTokenTimeBottomSheetNavDetails,
   createTrendingTokenNetworkBottomSheetNavDetails,
+  createTrendingTokenPriceChangeBottomSheetNavDetails,
   TimeOption,
+  PriceChangeOption,
 } from '../TrendingTokensBottomSheet';
 import Text, {
   TextColor,
@@ -124,6 +126,9 @@ const TrendingTokensFullView = () => {
   const [selectedNetwork, setSelectedNetwork] = useState<CaipChainId[] | null>(
     null,
   );
+  const [selectedPriceChangeOption, setSelectedPriceChangeOption] = useState<
+    PriceChangeOption | undefined
+  >(PriceChangeOption.PriceChange);
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -145,9 +150,19 @@ const TrendingTokensFullView = () => {
     console.log('🚀 ~ TrendingTokensFullView ~ token:', token);
   }, []);
 
-  const handlePriceChangePress = useCallback(() => {
+  const handlePriceChangeSelect = useCallback((option: PriceChangeOption) => {
+    setSelectedPriceChangeOption(option);
     // TODO: Implement price change filter logic
   }, []);
+
+  const handlePriceChangePress = useCallback(() => {
+    navigation.navigate(
+      ...createTrendingTokenPriceChangeBottomSheetNavDetails({
+        onPriceChangeSelect: handlePriceChangeSelect,
+        selectedOption: selectedPriceChangeOption,
+      }),
+    );
+  }, [navigation, handlePriceChangeSelect, selectedPriceChangeOption]);
 
   const handleNetworkSelect = useCallback((chainIds: CaipChainId[] | null) => {
     setSelectedNetwork(chainIds);

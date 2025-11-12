@@ -43,6 +43,7 @@ import { TokenFilterBottomSheet } from '../../../components/UI/Tokens/TokensBott
 import {
   TrendingTokenTimeBottomSheet,
   TrendingTokenNetworkBottomSheet,
+  TrendingTokenPriceChangeBottomSheet,
 } from '../../../components/Views/TrendingView/TrendingTokensBottomSheet';
 import NetworkManager from '../../../components/UI/NetworkManager';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
@@ -477,6 +478,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.TRENDING_TOKEN_NETWORK}
       component={TrendingTokenNetworkBottomSheet}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.TRENDING_TOKEN_PRICE_CHANGE}
+      component={TrendingTokenPriceChangeBottomSheet}
     />
     <Stack.Screen
       name={Routes.SHEET.NETWORK_MANAGER}
