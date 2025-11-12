@@ -107,11 +107,8 @@ import {
   PredictModalStack,
   selectPredictEnabledFlag,
 } from '../../UI/Predict';
+import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
-import {
-  useFeatureFlag,
-  FeatureFlagNames,
-} from '../../hooks/FeatureFlags/useFeatureFlag';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
 import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
@@ -529,7 +526,7 @@ const HomeTabs = () => {
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const accountsLength = useSelector(selectAccountsLength);
-  const isRewardsEnabled = useFeatureFlag(FeatureFlagNames.rewardsEnabled);
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
   const rewardsSubscription = useSelector(selectRewardsSubscriptionId);
   const isAssetsTrendingTokensEnabled = useSelector(
     selectAssetsTrendingTokensEnabled,
@@ -954,7 +951,7 @@ const MainNavigator = () => {
   const { enabled: isSendRedesignEnabled } = useSelector(
     selectSendRedesignFlags,
   );
-  const isRewardsEnabled = useFeatureFlag(FeatureFlagNames.rewardsEnabled);
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   return (
     <Stack.Navigator

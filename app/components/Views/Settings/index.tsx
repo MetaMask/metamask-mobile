@@ -22,10 +22,7 @@ import { isTest } from '../../../util/test/utils';
 import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
-import {
-  useFeatureFlag,
-  FeatureFlagNames,
-} from '../../hooks/FeatureFlags/useFeatureFlag';
+import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -40,9 +37,7 @@ const Settings = () => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
-  const isRewardsEnabled = useFeatureFlag(
-    FeatureFlagNames.rewardsEnabled,
-  ) as boolean;
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<any>();

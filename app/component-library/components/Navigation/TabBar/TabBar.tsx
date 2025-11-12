@@ -28,18 +28,13 @@ import {
 } from './TabBar.constants';
 import { selectChainId } from '../../../../selectors/networkController';
 import { selectAssetsTrendingTokensEnabled } from '../../../../selectors/featureFlagController/assetsTrendingTokens';
-import {
-  useFeatureFlag,
-  FeatureFlagNames,
-} from '../../../../components/hooks/FeatureFlags/useFeatureFlag';
+import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const chainId = useSelector(selectChainId);
-  const isRewardsEnabled = useFeatureFlag(
-    FeatureFlagNames.rewardsEnabled,
-  ) as boolean;
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   const isAssetsTrendingTokensEnabled = useSelector(
     selectAssetsTrendingTokensEnabled,
