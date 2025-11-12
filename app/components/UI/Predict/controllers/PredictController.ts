@@ -1500,9 +1500,9 @@ export class PredictController extends BaseController<
       }
 
       this.update((state) => {
-        state.pendingDeposits[params.providerId] = {
-          [signer.address]: 'pending',
-        };
+        state.pendingDeposits[params.providerId] =
+          state.pendingDeposits[params.providerId] || {};
+        state.pendingDeposits[params.providerId][signer.address] = 'pending';
       });
 
       const batchResult = await addTransactionBatch({
@@ -1527,9 +1527,9 @@ export class PredictController extends BaseController<
       }
 
       this.update((state) => {
-        state.pendingDeposits[params.providerId] = {
-          [signer.address]: batchId,
-        };
+        state.pendingDeposits[params.providerId] =
+          state.pendingDeposits[params.providerId] || {};
+        state.pendingDeposits[params.providerId][signer.address] = batchId;
       });
 
       return {
