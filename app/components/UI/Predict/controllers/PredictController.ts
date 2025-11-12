@@ -1541,6 +1541,8 @@ export class PredictController extends BaseController<
     } catch (error) {
       const e = ensureError(error);
       if (e.message.includes('User denied transaction signature')) {
+        // Clear pending state before returning
+        this.clearPendingDeposit({ providerId: params.providerId });
         // ignore error, as the user cancelled the tx
         return {
           success: true,
