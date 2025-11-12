@@ -73,6 +73,19 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
         </Text>
       </Box>
 
+      <Box twClassName="flex-row justify-between items-center">
+        <Box twClassName="flex-row gap-2 items-center">
+          <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+            {strings('predict.fee_summary.total')}
+          </Text>
+        </Box>
+        <Text color={TextColor.Alternative}>
+          {formatPrice(total, {
+            maximumDecimals: 2,
+          })}
+        </Text>
+      </Box>
+
       {/* Estimated Points Row */}
       {shouldShowRewards && (
         <KeyValueRow
@@ -80,7 +93,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
             label: {
               text: strings('predict.fee_summary.estimated_points'),
               variant: TextVariant.BodyMD,
-              color: TextColor.Alternative,
+              color: TextColor.Default,
             },
             tooltip: {
               title: strings('predict.fee_summary.points_tooltip'),
@@ -122,19 +135,6 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
           }}
         />
       )}
-
-      <Box twClassName="flex-row justify-between items-center">
-        <Box twClassName="flex-row gap-2 items-center">
-          <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-            {strings('predict.fee_summary.total')}
-          </Text>
-        </Box>
-        <Text color={TextColor.Alternative}>
-          {formatPrice(total, {
-            maximumDecimals: 2,
-          })}
-        </Text>
-      </Box>
     </Box>
   );
 };
