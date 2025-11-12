@@ -8,7 +8,8 @@ export interface HandlerContext {
     navigate: (routeName: string, params?: Record<string, unknown>) => void;
   };
   dispatch: (action: Record<string, unknown>) => void;
-  instance: Record<string, unknown>; // DeeplinkManager instance
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  instance: any; // DeeplinkManager instance
   featureFlags?: Record<string, boolean>;
   browserCallBack?: (url: string) => void;
 }

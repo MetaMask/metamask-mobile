@@ -9,6 +9,7 @@ import {
 import Logger from '../../../util/Logger';
 import { MetaMetrics } from '../../Analytics';
 import { MetricsEventBuilder } from '../../Analytics/MetricsEventBuilder';
+import { NavigationHandler, SwapHandler, SendHandler } from './handlers';
 
 /**
  * Universal Router for handling deep links
@@ -43,10 +44,14 @@ export class UniversalRouter {
 
     // Register built-in handlers
     try {
-      // Register handlers here in subsequent PRs here
-      // Example:
-      // const { NavigationHandler } = require('./handlers/NavigationHandler');
-      // this.registry.register(new NavigationHandler());
+      // Core functionality handlers (priority 50)
+      this.registry.register(new SwapHandler());
+      this.registry.register(new SendHandler());
+
+      // Navigation handlers (priority 10)
+      this.registry.register(new NavigationHandler());
+
+      Logger.log('✅ Universal Router initialized with handlers');
     } catch (error) {
       Logger.error(error as Error, 'Failed to register handlers');
     }
