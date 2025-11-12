@@ -25,6 +25,8 @@ import SectionHeader from '../SectionHeader';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32; // 16px padding on each side
 const CARD_SPACING = 16;
+const ACTUAL_CARD_WIDTH = CARD_WIDTH * 0.85; // Actual rendered card width
+const SNAP_INTERVAL = ACTUAL_CARD_WIDTH + CARD_SPACING;
 
 const PredictionSection = () => {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -50,7 +52,7 @@ const PredictionSection = () => {
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const scrollPosition = event.nativeEvent.contentOffset.x;
-      const index = Math.round(scrollPosition / (CARD_WIDTH + CARD_SPACING));
+      const index = Math.round(scrollPosition / SNAP_INTERVAL);
       setActiveIndex(index);
     },
     [],
@@ -156,7 +158,7 @@ const PredictionSection = () => {
           horizontal
           pagingEnabled={false}
           showsHorizontalScrollIndicator={false}
-          snapToInterval={CARD_WIDTH + CARD_SPACING}
+          snapToInterval={SNAP_INTERVAL}
           decelerationRate="fast"
           onScroll={handleScroll}
           scrollEventThrottle={16}
