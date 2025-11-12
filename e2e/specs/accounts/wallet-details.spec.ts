@@ -11,13 +11,17 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 describe(SmokeAccounts('Wallet details'), () => {
   const FIRST = 0;
 
   it('goes to the wallet details, creates an account and exports srp', async () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
-      await setupRemoteFeatureFlagsMock(mockServer);
+      await setupRemoteFeatureFlagsMock(
+        mockServer,
+        remoteFeatureMultichainAccountsAccountDetailsV2(), // TODO: remove it after account details v2 will be enabled by default
+      );
     };
 
     await withFixtures(
