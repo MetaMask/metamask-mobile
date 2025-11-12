@@ -11,6 +11,7 @@ import PredictActivityDetail from '../components/PredictActivityDetail/PredictAc
 import { PredictNavigationParamList } from '../types/navigation';
 import PredictAddFundsModal from '../views/PredictAddFundsModal/PredictAddFundsModal';
 import PredictFeed from '../views/PredictFeed/PredictFeed';
+import PredictGTMModal from '../components/PredictGTMModal';
 
 const Stack = createStackNavigator<PredictNavigationParamList>();
 const ModalStack = createStackNavigator<PredictNavigationParamList>();
@@ -25,6 +26,10 @@ const PredictModalStack = () => (
       },
     }}
   >
+    <ModalStack.Screen
+      name={Routes.PREDICT.MODALS.GTM_MODAL}
+      component={PredictGTMModal}
+    />
     <ModalStack.Screen
       name={Routes.PREDICT.MODALS.UNAVAILABLE}
       component={PredictUnavailableModal}

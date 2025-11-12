@@ -138,6 +138,7 @@ enum EVENT_NAME {
   WALLET_SETUP_FAILURE = 'Wallet Setup Failure',
   WALLET_SETUP_COMPLETED = 'Wallet Setup Completed',
   SOCIAL_LOGIN_COMPLETED = 'Social Login Completed',
+  SOCIAL_LOGIN_FAILED = 'Social Login Failed',
   ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED = 'Account Already Exists Page Viewed',
   ACCOUNT_NOT_FOUND_PAGE_VIEWED = 'Account Not Found Page Viewed',
   REHYDRATION_PASSWORD_ATTEMPTED = 'Rehydration Password Attempted',
@@ -589,6 +590,10 @@ enum EVENT_NAME {
 
   // Share
   SHARE_ACTION = 'Share Action',
+
+  // QR Scanner
+  QR_SCANNER_OPENED = 'QR Scanner Opened',
+  QR_SCANNED = 'QR Scanned',
 }
 
 enum ACTIONS {
@@ -756,6 +761,7 @@ const events = {
   WALLET_SETUP_FAILURE: generateOpt(EVENT_NAME.WALLET_SETUP_FAILURE),
   WALLET_SETUP_COMPLETED: generateOpt(EVENT_NAME.WALLET_SETUP_COMPLETED),
   SOCIAL_LOGIN_COMPLETED: generateOpt(EVENT_NAME.SOCIAL_LOGIN_COMPLETED),
+  SOCIAL_LOGIN_FAILED: generateOpt(EVENT_NAME.SOCIAL_LOGIN_FAILED),
   ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED: generateOpt(
     EVENT_NAME.ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED,
   ),
@@ -1477,6 +1483,10 @@ const events = {
 
   // Share
   SHARE_ACTION: generateOpt(EVENT_NAME.SHARE_ACTION),
+
+  // QR Scanner
+  QR_SCANNER_OPENED: generateOpt(EVENT_NAME.QR_SCANNER_OPENED),
+  QR_SCANNED: generateOpt(EVENT_NAME.QR_SCANNED),
 };
 
 /**

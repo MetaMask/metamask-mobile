@@ -7,7 +7,6 @@ import { ToastContext } from '../../../../component-library/components/Toast';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
@@ -16,6 +15,7 @@ import { selectPredictPendingDepositByAddress } from '../selectors/predictContro
 import { PredictNavigationParamList } from '../types/navigation';
 import { ensureError } from '../utils/predictErrorHandler';
 import { usePredictTrading } from './usePredictTrading';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 
 interface UsePredictDepositParams {
   providerId?: string;
@@ -30,16 +30,15 @@ export const usePredictDeposit = ({
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
 
-  const selectedInternalAccountAddress = useSelector(
-    selectSelectedInternalAccountAddress,
-  );
+  const evmAccount = getEvmAccountFromSelectedAccountGroup();
+  const selectedInternalAccountAddress = evmAccount?.address ?? '0x0';
 
   const { deposit: depositWithConfirmation } = usePredictTrading();
 
   const isDepositPending = useSelector(
     selectPredictPendingDepositByAddress({
       providerId,
-      address: selectedInternalAccountAddress ?? '',
+      address: selectedInternalAccountAddress,
     }),
   );
 

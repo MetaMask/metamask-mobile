@@ -50,6 +50,7 @@ import { Colors } from '../../../util/theme/models';
 import { Hex } from '@metamask/utils';
 import { selectLastSelectedEvmAccount } from '../../../selectors/accountsController';
 import { TokenI } from '../../UI/Tokens/types';
+import { areAddressesEqual } from '../../../util/address';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -110,15 +111,17 @@ interface Props {
   };
 }
 
-const AssetDetails = (props: Props) => {
+type InnerProps = Props & { token: TokenType };
+
+const AssetDetails = (props: InnerProps) => {
   const { address, chainId: networkId, asset } = props.route.params;
+  const { token } = props;
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const providerConfig = useSelector(selectProviderConfig);
-  const allTokens = useSelector(selectAllTokens);
   const selectedAccountAddressEvm = useSelector(selectLastSelectedEvmAccount);
 
   const selectedAccountAddress = selectedAccountAddressEvm?.address;
@@ -130,11 +133,6 @@ const AssetDetails = (props: Props) => {
   const isAllNetworks = useSelector(selectIsAllNetworks);
 
   const tokenNetworkConfig = networkConfigurations[networkId]?.name;
-
-  const tokensByChain = useMemo(
-    () => allTokens?.[networkId as Hex]?.[selectedAccountAddress as Hex] ?? [],
-    [allTokens, networkId, selectedAccountAddress],
-  );
 
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, chainId),
@@ -155,14 +153,7 @@ const AssetDetails = (props: Props) => {
   );
   const allTokenBalances = useSelector(selectTokensBalances);
 
-  const portfolioToken = useMemo(
-    () => tokensByChain.find((rawToken) => rawToken.address === address),
-    [tokensByChain, address],
-  );
-
-  const token: TokenType | undefined = portfolioToken;
-
-  const { symbol, decimals, aggregators = [] } = token as TokenType;
+  const { symbol, decimals, aggregators = [] } = token;
 
   const getNetworkName = useCallback(() => {
     let name = '';
@@ -398,4 +389,34 @@ const AssetDetails = (props: Props) => {
   );
 };
 
-export default AssetDetails;
+const AssetDetailsContainer = (props: Props) => {
+  const { address, chainId: networkId } = props.route.params;
+
+  const allTokens = useSelector(selectAllTokens);
+  const selectedAccountAddressEvm = useSelector(selectLastSelectedEvmAccount);
+
+  const selectedAccountAddress = selectedAccountAddressEvm?.address;
+
+  const tokensByChain = useMemo(
+    () => allTokens?.[networkId as Hex]?.[selectedAccountAddress as Hex] ?? [],
+    [allTokens, networkId, selectedAccountAddress],
+  );
+
+  const portfolioToken = useMemo(
+    () =>
+      tokensByChain.find((rawToken) =>
+        areAddressesEqual(rawToken.address, address),
+      ),
+    [tokensByChain, address],
+  );
+
+  const token: TokenType | undefined = portfolioToken;
+
+  if (!token) {
+    return null;
+  }
+
+  return <AssetDetails {...props} token={token} />;
+};
+
+export default AssetDetailsContainer;
