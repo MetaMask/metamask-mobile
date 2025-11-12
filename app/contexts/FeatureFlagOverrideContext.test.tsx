@@ -666,8 +666,8 @@ describe('FeatureFlagOverrideContext', () => {
     });
 
     it('returns false for boolean with minimumVersion flags when version is not supported in non-production', () => {
-      const originalNodeEnv = process.env.NODE_ENV;
-      Object.defineProperty(process.env, 'NODE_ENV', {
+      const originalNodeEnv = process.env.METAMASK_ENVIRONMENT;
+      Object.defineProperty(process.env, 'METAMASK_ENVIRONMENT', {
         value: 'development',
         configurable: true,
       });
@@ -685,15 +685,15 @@ describe('FeatureFlagOverrideContext', () => {
 
       expect(result.current.getFeatureFlag('testFlag')).toBe(false);
 
-      Object.defineProperty(process.env, 'NODE_ENV', {
+      Object.defineProperty(process.env, 'METAMASK_ENVIRONMENT', {
         value: originalNodeEnv,
         configurable: true,
       });
     });
 
     it('returns false for boolean with minimumVersion flags when version is not supported in production', () => {
-      const originalNodeEnv = process.env.NODE_ENV;
-      Object.defineProperty(process.env, 'NODE_ENV', {
+      const originalNodeEnv = process.env.METAMASK_ENVIRONMENT;
+      Object.defineProperty(process.env, 'METAMASK_ENVIRONMENT', {
         value: 'production',
         configurable: true,
       });
@@ -711,7 +711,7 @@ describe('FeatureFlagOverrideContext', () => {
 
       expect(result.current.getFeatureFlag('testFlag')).toBe(false);
 
-      Object.defineProperty(process.env, 'NODE_ENV', {
+      Object.defineProperty(process.env, 'METAMASK_ENVIRONMENT', {
         value: originalNodeEnv,
         configurable: true,
       });
@@ -828,8 +828,8 @@ describe('FeatureFlagOverrideContext', () => {
 
     describe('Version Support Logic', () => {
       it('returns false for unsupported minimumVersion in development environment', () => {
-        const originalNodeEnv = process.env.NODE_ENV;
-        Object.defineProperty(process.env, 'NODE_ENV', {
+        const originalNodeEnv = process.env.METAMASK_ENVIRONMENT;
+        Object.defineProperty(process.env, 'METAMASK_ENVIRONMENT', {
           value: 'development',
           configurable: true,
         });
@@ -847,7 +847,7 @@ describe('FeatureFlagOverrideContext', () => {
 
         expect(result.current.getFeatureFlag('myFeatureFlag')).toBe(false);
 
-        Object.defineProperty(process.env, 'NODE_ENV', {
+        Object.defineProperty(process.env, 'METAMASK_ENVIRONMENT', {
           value: originalNodeEnv,
           configurable: true,
         });
@@ -1037,8 +1037,8 @@ describe('FeatureFlagOverrideContext', () => {
     });
 
     it('takes snapshot with false value for boolean with minimumVersion when version is not supported', async () => {
-      const originalNodeEnv = process.env.NODE_ENV;
-      Object.defineProperty(process.env, 'NODE_ENV', {
+      const originalNodeEnv = process.env.METAMASK_ENVIRONMENT;
+      Object.defineProperty(process.env, 'METAMASK_ENVIRONMENT', {
         value: 'development',
         configurable: true,
       });
@@ -1064,7 +1064,7 @@ describe('FeatureFlagOverrideContext', () => {
         });
       });
 
-      Object.defineProperty(process.env, 'NODE_ENV', {
+      Object.defineProperty(process.env, 'METAMASK_ENVIRONMENT', {
         value: originalNodeEnv,
         configurable: true,
       });
