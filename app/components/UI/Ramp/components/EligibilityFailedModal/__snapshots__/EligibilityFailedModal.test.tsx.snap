@@ -381,10 +381,10 @@ exports[`EligibilityFailedModal renders the modal with the correct title and des
                               {
                                 "alignItems": "center",
                                 "borderRadius": 8,
-                                "height": 28,
+                                "height": 32,
                                 "justifyContent": "center",
                                 "opacity": 1,
-                                "width": 28,
+                                "width": 32,
                               }
                             }
                             testID="bottomsheetheader-close-button"
@@ -392,15 +392,15 @@ exports[`EligibilityFailedModal renders the modal with the correct title and des
                             <SvgMock
                               color="#121314"
                               fill="currentColor"
-                              height={20}
+                              height={24}
                               name="Close"
                               style={
                                 {
-                                  "height": 20,
-                                  "width": 20,
+                                  "height": 24,
+                                  "width": 24,
                                 }
                               }
-                              width={20}
+                              width={24}
                             />
                           </TouchableOpacity>
                         </View>
