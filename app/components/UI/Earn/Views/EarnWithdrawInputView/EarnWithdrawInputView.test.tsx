@@ -554,11 +554,11 @@ describe('EarnWithdrawInputView', () => {
   });
 
   describe('title bar', () => {
-    it('renders "Withdraw" for pooled-staking withdrawals', () => {
+    it('renders "Unstake <token name>" for pooled-staking withdrawals', () => {
       render(EarnWithdrawInputView);
 
       expect(mockGetStakingNavbar).toHaveBeenCalledWith(
-        'Withdraw',
+        'Unstake ETH',
         expect.anything(),
         expect.anything(),
         expect.anything(),
@@ -566,7 +566,7 @@ describe('EarnWithdrawInputView', () => {
       );
     });
 
-    it('renders "Withdraw" for supported stablecoin lending assets', () => {
+    it('renders "Withdraw <token name>" for supported stablecoin lending assets', () => {
       (
         selectStablecoinLendingEnabledFlag as jest.MockedFunction<
           typeof selectStablecoinLendingEnabledFlag
@@ -602,7 +602,7 @@ describe('EarnWithdrawInputView', () => {
       render(EarnWithdrawInputView, mockLendingToken);
 
       expect(mockGetStakingNavbar).toHaveBeenCalledWith(
-        'Withdraw',
+        'Withdraw USDC',
         expect.anything(),
         expect.anything(),
         expect.anything(),
