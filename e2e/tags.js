@@ -14,16 +14,16 @@ const smokeTags = {
     description: 'User identity, authentication',
   },
   smokeNetworkAbstractions: {
-    tag: 'NetworkAbstractions:',
+    tag: 'SmokeNetworkAbstractions:',
     description: 'Network layer, multi-chain',
   },
   smokeNetworkExpansion: {
-    tag: 'NetworkExpansion:',
+    tag: 'SmokeNetworkExpansion:',
     description: 'New networks, network config (Solana, Bitcoin, etc)',
   },
-  smokeTrade: { tag: 'Trade:', description: 'Token swaps, DEX trading' },
+  smokeTrade: { tag: 'SmokeTrade:', description: 'Token swaps, DEX trading' },
   smokeWalletPlatform: {
-    tag: 'WalletPlatform:',
+    tag: 'SmokeWalletPlatform:',
     description: 'Core wallet, accounts, network switching',
   },
   smokeWalletUX: {
@@ -57,7 +57,7 @@ const smokeTags = {
     description: 'Multi-chain API',
   },
   smokePredictions: {
-    tag: 'SmokePredictions',
+    tag: 'SmokePredictions:',
     description: 'Predictions features',
   },
 };
