@@ -101,7 +101,8 @@ describe('UnsupportedRegionModal', () => {
     expect(mockPop).toHaveBeenCalled();
     expect(mockGoToRamps).toHaveBeenCalledWith({
       mode: 'AGGREGATOR',
-      params: { rampType: expect.anything() },
+      overrideUnifiedBuyFlag: true,
+      params: { rampType: 'buy' },
     });
   });
 
