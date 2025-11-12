@@ -1,40 +1,39 @@
 import { Image } from 'expo-image';
 import React, { memo, useMemo } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, ViewStyle } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTokenLogo } from '../../../../hooks/useTokenLogo';
-import {
-  getAssetIconUrl,
-  getPerpsDisplaySymbol,
-} from '../../utils/marketUtils';
-import {
-  ASSETS_REQUIRING_DARK_BG,
-  ASSETS_REQUIRING_LIGHT_BG,
-  K_PREFIX_ASSETS,
-} from './PerpsAssetBgConfig';
-import { PerpsTokenLogoProps } from './PerpsTokenLogo.types';
 
-const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
+interface TrendingTokenLogoProps {
+  assetId: string;
+  symbol: string;
+  size?: number;
+  style?: ViewStyle;
+  testID?: string;
+  recyclingKey?: string; // For FlashList optimization
+}
+
+const TrendingTokenLogo: React.FC<TrendingTokenLogoProps> = ({
+  assetId,
   symbol,
-  size = 32,
+  size = 44,
   style,
   testID,
   recyclingKey,
 }) => {
-  // SVG URL - expo-image handles SVG rendering properly
   const imageUri = useMemo(() => {
-    if (!symbol) return null;
-    return getAssetIconUrl(symbol, K_PREFIX_ASSETS);
-  }, [symbol]);
+    const imageUrl = `https://static.cx.metamask.io/api/v2/tokenIcons/assets/${assetId
+      .split(':')
+      .join('/')}.png`;
+    return imageUrl;
+  }, [assetId]);
 
-  // Extract display symbol (e.g., "TSLA" from "xyz:TSLA")
-  const fallbackText = useMemo(() => {
-    const displaySymbol = getPerpsDisplaySymbol(symbol || '');
-    // Get first 2 letters, uppercase
-    return displaySymbol.substring(0, 2).toUpperCase();
-  }, [symbol]);
+  const fallbackText = useMemo(
+    () => symbol.substring(0, 2).toUpperCase(),
+    [symbol],
+  );
 
   const {
     isLoading,
@@ -47,14 +46,11 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
     handleLoadEnd,
     handleError,
   } = useTokenLogo({
-    symbol: symbol || '',
+    symbol,
     size,
-    assetsRequiringLightBg: ASSETS_REQUIRING_LIGHT_BG,
-    assetsRequiringDarkBg: ASSETS_REQUIRING_DARK_BG,
   });
 
-  // Show custom two-letter fallback if no symbol or error
-  if (!symbol || !imageUri || hasError) {
+  if (!imageUri || hasError) {
     return (
       <View style={[containerStyle, style]} testID={testID}>
         <Text variant={TextVariant.BodyMD} style={fallbackTextStyle}>
@@ -91,4 +87,4 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
   );
 };
 
-export default memo(PerpsTokenLogo);
+export default memo(TrendingTokenLogo);
