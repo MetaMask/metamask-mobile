@@ -12,6 +12,8 @@ import TrendingTokensSkeleton from './TrendingTokenSkeleton/TrendingTokensSkelet
 import TrendingTokensList from './TrendingTokensList';
 import Card from '../../../../component-library/components/Cards/Card';
 import { useTrendingRequest } from '../../../UI/Assets/hooks/useTrendingRequest';
+import Routes from '../../../../constants/navigation/Routes';
+import { useNavigation } from '@react-navigation/native';
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -40,13 +42,14 @@ const createStyles = (theme: Theme) =>
 const TrendingTokensSection = () => {
   const theme = useAppThemeFromContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
-
+  const navigation = useNavigation();
   const { results: trendingTokensResults, isLoading } = useTrendingRequest({});
   const trendingTokens = trendingTokensResults.slice(0, 3);
 
   const handleViewAll = useCallback(() => {
     // TODO: Implement view all logic
-  }, []);
+    navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW);
+  }, [navigation]);
 
   const handleTokenPress = useCallback((token: TrendingAsset) => {
     // eslint-disable-next-line no-console

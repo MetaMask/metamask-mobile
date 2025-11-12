@@ -6821,6 +6821,7 @@
   "trending": {
     "title": "Trending",
     "view_all": "View all",
-    "tokens": "Tokens"
+    "tokens": "Tokens",
+    "trending_tokens": "Trending Tokens"
   }
 }

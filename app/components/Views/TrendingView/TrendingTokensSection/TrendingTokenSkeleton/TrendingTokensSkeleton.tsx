@@ -83,21 +83,21 @@ const TrendingTokensSkeleton: React.FC<TrendingTokensSkeletonProps> = ({
           <View style={[styles.leftContainer, { minHeight: iconSize }]}>
             <View style={styles.tokenHeaderRow}>
               <Skeleton
-                height={16}
+                height={20}
                 width="60%"
                 style={styles.tokenNameSkeleton}
               />
             </View>
             <Skeleton
-              height={14}
+              height={18}
               width="80%"
               style={styles.marketStatsSkeleton}
             />
           </View>
           <View style={[styles.rightContainer, { minHeight: iconSize }]}>
-            <Skeleton height={16} width={80} style={styles.priceSkeleton} />
+            <Skeleton height={20} width={80} style={styles.priceSkeleton} />
             <Skeleton
-              height={14}
+              height={18}
               width={60}
               style={styles.percentageSkeleton}
             />
