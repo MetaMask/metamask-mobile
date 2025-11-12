@@ -16,6 +16,11 @@ import {
 } from './helpers/mockHelpers';
 import { getLocalHost } from '../framework/fixtures/FixtureUtils';
 import PortManager, { ResourceType } from '../framework/PortManager';
+import {
+  FALLBACK_GANACHE_PORT,
+  FALLBACK_DAPP_SERVER_PORT,
+} from '../framework/Constants';
+import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager';
 
 const logger = createLogger({
   name: 'MockServer',
@@ -30,6 +35,61 @@ interface LiveRequest {
 export interface InternalMockServer extends Mockttp {
   _liveRequests?: LiveRequest[];
 }
+
+/**
+ * Translates fallback ports to actual allocated ports in URLs.
+ * This allows the MockServer (running on host) to forward requests to dynamically allocated local resources.
+ *
+ * @param url - The URL that may contain a fallback port
+ * @returns The URL with fallback port replaced by actual allocated port, or original URL
+ */
+const translateFallbackPortToActual = (url: string): string => {
+  try {
+    const parsedUrl = new URL(url);
+    const port = parsedUrl.port;
+
+    if (!port) {
+      return url;
+    }
+
+    const portNum = parseInt(port, 10);
+    const portManager = PortManager.getInstance();
+    let actualPort: number | undefined;
+
+    // Map fallback ports to actual allocated ports
+    // Try Ganache first, fallback to Anvil if Ganache not running
+    if (portNum === FALLBACK_GANACHE_PORT) {
+      actualPort = portManager.getPort(ResourceType.GANACHE);
+      if (actualPort === undefined) {
+        actualPort = portManager.getPort(ResourceType.ANVIL);
+      }
+    } else if (portNum === DEFAULT_ANVIL_PORT) {
+      actualPort = portManager.getPort(ResourceType.ANVIL);
+    } else if (
+      portNum >= FALLBACK_DAPP_SERVER_PORT &&
+      portNum < FALLBACK_DAPP_SERVER_PORT + 100
+    ) {
+      // Dapp server ports start at FALLBACK_DAPP_SERVER_PORT (8085, 8086, etc.)
+      const dappIndex = portNum - FALLBACK_DAPP_SERVER_PORT;
+      actualPort = portManager.getMultiInstancePort(
+        ResourceType.DAPP_SERVER,
+        `dapp-server-${dappIndex}`,
+      );
+    }
+
+    if (actualPort !== undefined) {
+      parsedUrl.port = actualPort.toString();
+      const translatedUrl = parsedUrl.toString();
+      logger.info(`Port translation: ${url} → ${translatedUrl}`);
+      return translatedUrl;
+    }
+
+    return url;
+  } catch (error) {
+    logger.warn('Failed to parse URL for port translation:', url, error);
+    return url;
+  }
+};
 
 const isUrlAllowed = (url: string): boolean => {
   try {
@@ -251,10 +311,13 @@ export default class MockServerE2E implements Resource {
           };
         }
 
-        const updatedUrl =
+        let updatedUrl =
           device.getPlatform() === 'android'
             ? urlEndpoint.replace('localhost', '127.0.0.1')
             : urlEndpoint;
+
+        // Translate fallback ports to actual allocated ports (host-side forwarding)
+        updatedUrl = translateFallbackPortToActual(updatedUrl);
 
         if (!isUrlAllowed(updatedUrl)) {
           const errorMessage = `Request going to live server: ${updatedUrl}`;
@@ -281,25 +344,43 @@ export default class MockServerE2E implements Resource {
 
     await this._server.forUnmatchedRequest().thenCallback(async (request) => {
       // Check for MockServer self-reference to prevent ECONNREFUSED
-      const url = new URL(request.url).toString();
+      try {
+        const url = new URL(request.url);
+        const isLocalhost =
+          url.hostname === 'localhost' ||
+          url.hostname === '127.0.0.1' ||
+          url.hostname === '10.0.2.2';
+        const isMockServerPort =
+          url.port === '8000' || url.port === this._serverPort.toString();
 
-      if (!isUrlAllowed(url)) {
-        const errorMessage = `Request going to live server: ${url}`;
+        if (isLocalhost && isMockServerPort) {
+          logger.debug(`Ignoring MockServer self-reference: ${request.url}`);
+          return { statusCode: 204, body: '' };
+        }
+      } catch (e) {
+        // Ignore URL parsing errors
+      }
+
+      // Translate fallback ports to actual allocated ports (host-side forwarding)
+      const translatedUrl = translateFallbackPortToActual(request.url);
+
+      if (!isUrlAllowed(translatedUrl)) {
+        const errorMessage = `Request going to live server: ${translatedUrl}`;
         logger.warn(errorMessage);
         this._server?._liveRequests?.push({
-          url: url.toString(),
+          url: translatedUrl,
           method: request.method,
           timestamp: new Date().toISOString(),
         });
-      } else if (ALLOWLISTED_URLS.includes(url)) {
-        logger.warn(`Allowed URL: ${url.toString()}`);
+      } else if (ALLOWLISTED_URLS.includes(translatedUrl)) {
+        logger.warn(`Allowed URL: ${translatedUrl}`);
         if (request.method === 'POST') {
           logger.warn(`Request Body: ${await request.body.getText()}`);
         }
       }
 
       return handleDirectFetch(
-        url,
+        translatedUrl,
         request.method,
         request.headers,
         await request.body.getText(),
