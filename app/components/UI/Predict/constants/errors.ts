@@ -7,8 +7,36 @@ export type PredictErrorCode =
  * Predict feature constants for error handling and logging
  */
 export const PREDICT_CONSTANTS = {
-  FEATURE_NAME: 'Predict',
+  FEATURE_NAME: 'Predict', // For Sentry error filtering - enables "feature:Predict" queries
   CONTROLLER_NAME: 'PredictController',
+} as const;
+
+/**
+ * Performance logging configuration
+ */
+export const PREDICT_PERFORMANCE_CONFIG = {
+  /**
+   * Performance logging markers for filtering logs during development and debugging
+   * These markers help isolate performance-related logs from general application logs
+   * Usage: Use in DevLogger calls to easily filter specific performance areas
+   * Impact: Development only (uses DevLogger) - zero production performance cost
+   *
+   * Examples:
+   * - Filter Sentry performance logs: `adb logcat | grep PREDICTMARK_SENTRY`
+   * - Filter MetaMetrics events: `adb logcat | grep PREDICTMARK_METRICS`
+   * - Filter API performance: `adb logcat | grep PREDICTMARK_API`
+   * - Filter all Predict performance: `adb logcat | grep PREDICTMARK_`
+   */
+  LOGGING_MARKERS: {
+    // Sentry performance measurement logs (screen loads, components, API timing)
+    SENTRY_PERFORMANCE: 'PREDICTMARK_SENTRY',
+
+    // MetaMetrics event tracking logs (user interactions, business analytics)
+    METAMETRICS_EVENTS: 'PREDICTMARK_METRICS',
+
+    // API performance logs (external API call timing, data operations)
+    API_PERFORMANCE: 'PREDICTMARK_API',
+  } as const,
 } as const;
 
 export const PREDICT_ERROR_CODES = {
