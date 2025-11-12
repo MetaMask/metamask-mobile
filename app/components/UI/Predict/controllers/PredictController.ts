@@ -97,7 +97,7 @@ export type PredictControllerState = {
   claimablePositions: { [address: string]: PredictPosition[] };
 
   // Deposit management
-  pendingDeposits: { [providerId: string]: { [address: string]: boolean } };
+  pendingDeposits: { [providerId: string]: { [address: string]: string } };
 
   // Withdraw management
   // TODO: change to be per-account basis
@@ -1467,9 +1467,9 @@ export class PredictController extends BaseController<
 
       // Clear any previous deposit transaction
       this.update((state) => {
-        state.pendingDeposits[params.providerId] = {
-          [signer.address]: false,
-        };
+        if (state.pendingDeposits[params.providerId]?.[signer.address]) {
+          delete state.pendingDeposits[params.providerId][signer.address];
+        }
       });
 
       const depositPreparation = await provider.prepareDeposit({
@@ -1499,6 +1499,12 @@ export class PredictController extends BaseController<
         throw new Error(`Network client not found for chain ID: ${chainId}`);
       }
 
+      this.update((state) => {
+        state.pendingDeposits[params.providerId] =
+          state.pendingDeposits[params.providerId] || {};
+        state.pendingDeposits[params.providerId][signer.address] = 'pending';
+      });
+
       const batchResult = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
@@ -1521,9 +1527,9 @@ export class PredictController extends BaseController<
       }
 
       this.update((state) => {
-        state.pendingDeposits[params.providerId] = {
-          [signer.address]: true,
-        };
+        state.pendingDeposits[params.providerId] =
+          state.pendingDeposits[params.providerId] || {};
+        state.pendingDeposits[params.providerId][signer.address] = batchId;
       });
 
       return {
@@ -1535,6 +1541,8 @@ export class PredictController extends BaseController<
     } catch (error) {
       const e = ensureError(error);
       if (e.message.includes('User denied transaction signature')) {
+        // Clear pending state before returning
+        this.clearPendingDeposit({ providerId: params.providerId });
         // ignore error, as the user cancelled the tx
         return {
           success: true,
@@ -1549,6 +1557,8 @@ export class PredictController extends BaseController<
         }),
       );
 
+      this.clearPendingDeposit({ providerId: params.providerId });
+
       throw new Error(
         error instanceof Error
           ? error.message
@@ -1560,9 +1570,9 @@ export class PredictController extends BaseController<
   public clearPendingDeposit({ providerId }: { providerId: string }): void {
     const selectedAddress = this.getSigner().address;
     this.update((state) => {
-      state.pendingDeposits[providerId] = {
-        [selectedAddress]: false,
-      };
+      if (state.pendingDeposits[providerId]?.[selectedAddress]) {
+        delete state.pendingDeposits[providerId][selectedAddress];
+      }
     });
   }
 
