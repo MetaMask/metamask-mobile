@@ -99,7 +99,7 @@ async function main() {
 
     // Parse results for GitHub outputs
     const analysis = {
-      tags: parsedResult.selectedTags?.join('|') || '',
+      tags: parsedResult.selectedTags?.join('|') || 'None (no tests recommended)',
       tagDisplay: parsedResult.selectedTags?.join(', ') || '',
       riskLevel: parsedResult.riskLevel || '',
       confidence: parsedResult.confidence || '',

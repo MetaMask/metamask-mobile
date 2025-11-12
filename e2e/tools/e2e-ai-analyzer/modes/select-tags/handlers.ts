@@ -20,7 +20,7 @@ export const SELECT_TAGS_CONFIG = Object.values(smokeTags).map((config) => ({
  */
 export function createEmptyResult(): SelectTagsAnalysis {
   return {
-    selectedTags: ['None (no tests recommended)'],
+    selectedTags: [],
     confidence: 100,
     riskLevel: 'low',
     reasoning: 'No files changed - no analysis needed',
