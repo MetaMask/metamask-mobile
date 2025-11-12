@@ -236,7 +236,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text style={tw.style('font-medium')} color={TextColor.Success}>
-                {strings('predict.buy_yes')}
+                {outcome.tokens[0].title}
               </Text>
             }
             onPress={() => handleBuy(outcome.tokens[0])}
@@ -248,7 +248,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text style={tw.style('font-medium')} color={TextColor.Error}>
-                {strings('predict.buy_no')}
+                {outcome.tokens[1].title}
               </Text>
             }
             onPress={() => handleBuy(outcome.tokens[1])}
