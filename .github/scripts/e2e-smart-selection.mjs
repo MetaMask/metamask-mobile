@@ -60,12 +60,9 @@ function generatePRComment(summaryContent) {
 }
 
 function setGitHubOutputs(analysis) {
-  const { tags, tagDisplay, riskLevel, reasoning, confidence } = analysis;
+  const { tags, confidence } = analysis;
   setGithubOutputs('ai_e2e_test_tags', tags);
-  setGithubOutputs('ai_tags_display', tagDisplay);
-  setGithubOutputs('ai_risk_level', riskLevel);
   setGithubOutputs('ai_confidence', confidence);
-  setGithubOutputs('ai_reasoning', reasoning);
 }
 
 async function main() {
@@ -100,7 +97,7 @@ async function main() {
     // Parse results for GitHub outputs
     const selectedTags = parsedResult.selectedTags || [];
     const analysis = {
-      tags: selectedTags.length > 0 ? selectedTags.join('|') : '',
+      tags: JSON.stringify(selectedTags),  // JSON array format: [] or ["SmokeCore", "SmokeAccounts"]
       tagDisplay: selectedTags.length > 0 ? selectedTags.join(', ') : 'None (no tests recommended)',
       tagCount: selectedTags.length,
       riskLevel: parsedResult.riskLevel || '',

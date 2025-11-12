@@ -22,9 +22,12 @@ inputs:
     default: 'false'
 
 outputs:
-  e2e_test_tags:
-    description: 'E2E test tags to run'
+  ai_e2e_test_tags:
+    description: 'E2E test tags to run (JSON array format)'
     value: ${{ steps.ai-analysis.outputs.ai_e2e_test_tags }}
+  ai_confidence:
+    description: 'AI confidence score (0-100)'
+    value: ${{ steps.ai-analysis.outputs.ai_confidence }}
 
 runs:
   using: 'composite'
@@ -116,6 +119,15 @@ runs:
           # The script will generate the GH output variables
           node .github/scripts/e2e-smart-selection.mjs 
         fi
+
+    - name: Display AI Analysis Outputs
+      shell: bash
+      run: |
+        echo "📊 Final GitHub Action Outputs:"
+        echo "================================"
+        echo "ai_e2e_test_tags: ${{ steps.ai-analysis.outputs.ai_e2e_test_tags }}"
+        echo "ai_confidence: ${{ steps.ai-analysis.outputs.ai_confidence }}"
+        echo "================================"
 
     - name: Delete previous comments
       if: inputs.post-comment == 'true' && inputs.pr-number != '' && inputs.github-token != ''

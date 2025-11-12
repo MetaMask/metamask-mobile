@@ -235,7 +235,8 @@ jobs:
       contents: read
       pull-requests: write
     outputs:
-      e2e_test_tags: ${{ steps.e2e-selection.outputs.e2e_test_tags }}
+      ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
+      ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence }}
     steps:
       - name: Checkout for action definition
         uses: actions/checkout@v4
