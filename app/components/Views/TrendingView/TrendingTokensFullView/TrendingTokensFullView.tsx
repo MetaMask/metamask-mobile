@@ -5,7 +5,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { Theme } from '../../../../util/theme/models';
-import HeaderBase from '../../../../component-library/components/HeaderBase';
+import HeaderBase, {
+  HeaderBaseVariant,
+} from '../../../../component-library/components/HeaderBase';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
@@ -41,8 +43,11 @@ const createStyles = (theme: Theme) =>
     },
     header: {
       paddingTop: 16,
-      paddingHorizontal: 16,
       paddingBottom: 0,
+      paddingHorizontal: 16,
+      alignItems: 'center',
+      gap: 8,
+      alignSelf: 'stretch',
     },
     cardContainer: {
       margin: 16,
@@ -162,12 +167,23 @@ const TrendingTokensFullView = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <HeaderBase
+        variant={HeaderBaseVariant.Display}
         startAccessory={
           <ButtonIcon
             size={ButtonIconSizes.Lg}
             onPress={handleBackPress}
             iconName={IconName.ArrowLeft}
             testID="back-button"
+          />
+        }
+        endAccessory={
+          <ButtonIcon
+            size={ButtonIconSizes.Lg}
+            onPress={() => {
+              // TODO: Implement search functionality
+            }}
+            iconName={IconName.Search}
+            testID="search-button"
           />
         }
         style={styles.header}
