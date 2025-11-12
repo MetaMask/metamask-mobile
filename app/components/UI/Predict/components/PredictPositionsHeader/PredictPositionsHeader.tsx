@@ -251,7 +251,7 @@ const PredictPositionsHeader = forwardRef<
           )}
           {(hasUnrealizedPnL || isUnrealizedPnLLoading) && (
             <>
-              <Box twClassName="h-px bg-alternative" />
+              <Box twClassName="h-px bg-default" />
               <Box
                 twClassName="px-4 pb-3 mt-3"
                 flexDirection={BoxFlexDirection.Row}
