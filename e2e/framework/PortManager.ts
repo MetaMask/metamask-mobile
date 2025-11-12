@@ -31,15 +31,6 @@ export interface AllocatedPort {
 }
 
 /**
- * Determines if tests are running on BrowserStack with local tunnel enabled.
- *
- * @returns True when BrowserStack local tunnel is enabled
- */
-function isBrowserStack(): boolean {
-  return process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
-}
-
-/**
  * Maps ResourceType to fallback port.
  * These static ports are used on BrowserStack where dynamic port allocation
  * is not possible due to lack of adb access.
@@ -75,6 +66,16 @@ export default class PortManager {
 
   private constructor() {
     logger.debug('PortManager singleton instance created');
+  }
+
+  /**
+   * Determines if tests are running on BrowserStack with local tunnel enabled.
+   * Protected to allow mocking in tests.
+   *
+   * @returns True when BrowserStack local tunnel is enabled
+   */
+  protected isBrowserStack(): boolean {
+    return process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
   }
 
   public static getInstance(): PortManager {
@@ -114,7 +115,7 @@ export default class PortManager {
     }
 
     // On BrowserStack, use static fallback ports (no adb access for dynamic mapping)
-    if (isBrowserStack()) {
+    if (this.isBrowserStack()) {
       const fallbackPort = getFallbackPortForResource(resourceType);
       logger.info(
         `BrowserStack mode: Using static fallback port ${fallbackPort} for ${resourceType}`,
@@ -159,7 +160,7 @@ export default class PortManager {
     }
 
     // On BrowserStack, use static fallback ports + instance offset
-    if (isBrowserStack()) {
+    if (this.isBrowserStack()) {
       const baseFallbackPort = getFallbackPortForResource(resourceType);
       // Extract instance number from instanceId (e.g., "dapp-server-0" -> 0)
       const instanceIndex = parseInt(instanceId.split('-').pop() || '0', 10);

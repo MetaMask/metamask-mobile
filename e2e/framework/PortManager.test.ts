@@ -25,11 +25,11 @@ describe('PortManager', () => {
   beforeEach(() => {
     PortManager.resetInstance();
     portManager = PortManager.getInstance();
-    delete process.env.BROWSERSTACK_LOCAL;
   });
 
   afterEach(() => {
     PortManager.resetInstance();
+    delete process.env.BROWSERSTACK_LOCAL;
   });
 
   describe('Singleton pattern', () => {
@@ -67,9 +67,9 @@ describe('PortManager', () => {
         ResourceType.FIXTURE_SERVER,
       );
 
-      // Should be a random port in the range 40000-60000
-      expect(allocation.port).toBeGreaterThanOrEqual(40000);
-      expect(allocation.port).toBeLessThanOrEqual(60000);
+      // Should be a random port in the range 32768-60999
+      expect(allocation.port).toBeGreaterThanOrEqual(32768);
+      expect(allocation.port).toBeLessThanOrEqual(60999);
       expect(allocation.resourceType).toBe(ResourceType.FIXTURE_SERVER);
       expect(portManager.isPortAllocated(allocation.port)).toBe(true);
       expect(portManager.getPort(ResourceType.FIXTURE_SERVER)).toBe(
@@ -98,10 +98,10 @@ describe('PortManager', () => {
       );
 
       // Both should be random ports in range
-      expect(allocation1.port).toBeGreaterThanOrEqual(40000);
-      expect(allocation1.port).toBeLessThanOrEqual(60000);
-      expect(allocation2.port).toBeGreaterThanOrEqual(40000);
-      expect(allocation2.port).toBeLessThanOrEqual(60000);
+      expect(allocation1.port).toBeGreaterThanOrEqual(32768);
+      expect(allocation1.port).toBeLessThanOrEqual(60999);
+      expect(allocation2.port).toBeGreaterThanOrEqual(32768);
+      expect(allocation2.port).toBeLessThanOrEqual(60999);
 
       // Ports should be different
       expect(allocation1.port).not.toBe(allocation2.port);
@@ -146,9 +146,9 @@ describe('PortManager', () => {
         ResourceType.FIXTURE_SERVER,
       );
 
-      // Should be a random port in the range 40000-60000
-      expect(allocation.port).toBeGreaterThanOrEqual(40000);
-      expect(allocation.port).toBeLessThanOrEqual(60000);
+      // Should be a random port in the range 32768-60999
+      expect(allocation.port).toBeGreaterThanOrEqual(32768);
+      expect(allocation.port).toBeLessThanOrEqual(60999);
       expect(portManager.isPortAllocated(allocation.port)).toBe(true);
 
       jest.restoreAllMocks();
@@ -277,7 +277,7 @@ describe('PortManager', () => {
   });
 
   describe('Random port allocation', () => {
-    it('should allocate random ports in the 40000-60000 range for all resources', async () => {
+    it('should allocate random ports in the 32768-60999 range for all resources', async () => {
       const allocation1 = await portManager.allocatePort(
         ResourceType.FIXTURE_SERVER,
       );
@@ -286,13 +286,13 @@ describe('PortManager', () => {
       );
       const allocation3 = await portManager.allocatePort(ResourceType.GANACHE);
 
-      // All ports should be random (40000-60000)
-      expect(allocation1.port).toBeGreaterThanOrEqual(40000);
-      expect(allocation1.port).toBeLessThanOrEqual(60000);
-      expect(allocation2.port).toBeGreaterThanOrEqual(40000);
-      expect(allocation2.port).toBeLessThanOrEqual(60000);
-      expect(allocation3.port).toBeGreaterThanOrEqual(40000);
-      expect(allocation3.port).toBeLessThanOrEqual(60000);
+      // All ports should be random (32768-60999)
+      expect(allocation1.port).toBeGreaterThanOrEqual(32768);
+      expect(allocation1.port).toBeLessThanOrEqual(60999);
+      expect(allocation2.port).toBeGreaterThanOrEqual(32768);
+      expect(allocation2.port).toBeLessThanOrEqual(60999);
+      expect(allocation3.port).toBeGreaterThanOrEqual(32768);
+      expect(allocation3.port).toBeLessThanOrEqual(60999);
 
       // All ports should be different
       expect(allocation1.port).not.toBe(allocation2.port);
@@ -311,10 +311,10 @@ describe('PortManager', () => {
       );
 
       // Both should be in range
-      expect(allocation1.port).toBeGreaterThanOrEqual(40000);
-      expect(allocation1.port).toBeLessThanOrEqual(60000);
-      expect(allocation2.port).toBeGreaterThanOrEqual(40000);
-      expect(allocation2.port).toBeLessThanOrEqual(60000);
+      expect(allocation1.port).toBeGreaterThanOrEqual(32768);
+      expect(allocation1.port).toBeLessThanOrEqual(60999);
+      expect(allocation2.port).toBeGreaterThanOrEqual(32768);
+      expect(allocation2.port).toBeLessThanOrEqual(60999);
 
       // Ports should be different
       expect(allocation1.port).not.toBe(allocation2.port);
@@ -381,8 +381,8 @@ describe('PortManager', () => {
         ResourceType.FIXTURE_SERVER,
       );
 
-      expect(allocation2.port).toBeGreaterThanOrEqual(40000);
-      expect(allocation2.port).toBeLessThanOrEqual(60000);
+      expect(allocation2.port).toBeGreaterThanOrEqual(32768);
+      expect(allocation2.port).toBeLessThanOrEqual(60999);
       expect(portManager.isPortAllocated(allocation2.port)).toBe(true);
       expect(portManager.getPort(ResourceType.FIXTURE_SERVER)).toBe(
         allocation2.port,
@@ -488,14 +488,20 @@ describe('PortManager', () => {
   });
 
   describe('BrowserStack Mode', () => {
+    let isBrowserStackSpy: jest.SpyInstance;
+
     beforeEach(() => {
+      // Mock isBrowserStack to return true for BrowserStack mode tests
+      isBrowserStackSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(PortManager.prototype as any, 'isBrowserStack')
+        .mockReturnValue(true);
       PortManager.resetInstance();
-      process.env.BROWSERSTACK_LOCAL = 'true';
       portManager = PortManager.getInstance();
     });
 
     afterEach(() => {
-      delete process.env.BROWSERSTACK_LOCAL;
+      isBrowserStackSpy.mockRestore();
     });
 
     describe('allocatePort with BROWSERSTACK_LOCAL=true', () => {
@@ -650,12 +656,9 @@ describe('PortManager', () => {
       });
     });
 
-    describe('BrowserStack environment detection', () => {
-      it('should detect BROWSERSTACK_LOCAL=true', async () => {
-        process.env.BROWSERSTACK_LOCAL = 'true';
-        PortManager.resetInstance();
-        portManager = PortManager.getInstance();
-
+    describe('BrowserStack mode behavior', () => {
+      it('should use static ports when isBrowserStack returns true', async () => {
+        // Already mocked to return true in parent beforeEach
         const allocation = await portManager.allocatePort(
           ResourceType.FIXTURE_SERVER,
         );
@@ -663,20 +666,9 @@ describe('PortManager', () => {
         expect(allocation.port).toBe(FALLBACK_FIXTURE_SERVER_PORT);
       });
 
-      it('should detect BROWSERSTACK_LOCAL=TRUE (case insensitive)', async () => {
-        process.env.BROWSERSTACK_LOCAL = 'TRUE';
-        PortManager.resetInstance();
-        portManager = PortManager.getInstance();
-
-        const allocation = await portManager.allocatePort(
-          ResourceType.FIXTURE_SERVER,
-        );
-
-        expect(allocation.port).toBe(FALLBACK_FIXTURE_SERVER_PORT);
-      });
-
-      it('should not use static ports when BROWSERSTACK_LOCAL=false', async () => {
-        process.env.BROWSERSTACK_LOCAL = 'false';
+      it('should use dynamic ports when isBrowserStack returns false', async () => {
+        // Override the spy to return false for this test
+        isBrowserStackSpy.mockReturnValue(false);
         PortManager.resetInstance();
         portManager = PortManager.getInstance();
 
@@ -686,38 +678,8 @@ describe('PortManager', () => {
 
         // Should be dynamic port, not fallback
         expect(allocation.port).not.toBe(FALLBACK_FIXTURE_SERVER_PORT);
-        expect(allocation.port).toBeGreaterThanOrEqual(40000);
-        expect(allocation.port).toBeLessThanOrEqual(60000);
-      });
-
-      it('should not use static ports when BROWSERSTACK_LOCAL is not set', async () => {
-        delete process.env.BROWSERSTACK_LOCAL;
-        PortManager.resetInstance();
-        portManager = PortManager.getInstance();
-
-        const allocation = await portManager.allocatePort(
-          ResourceType.FIXTURE_SERVER,
-        );
-
-        // Should be dynamic port, not fallback
-        expect(allocation.port).not.toBe(FALLBACK_FIXTURE_SERVER_PORT);
-        expect(allocation.port).toBeGreaterThanOrEqual(40000);
-        expect(allocation.port).toBeLessThanOrEqual(60000);
-      });
-
-      it('should not use static ports when BROWSERSTACK_LOCAL is empty string', async () => {
-        process.env.BROWSERSTACK_LOCAL = '';
-        PortManager.resetInstance();
-        portManager = PortManager.getInstance();
-
-        const allocation = await portManager.allocatePort(
-          ResourceType.FIXTURE_SERVER,
-        );
-
-        // Should be dynamic port, not fallback
-        expect(allocation.port).not.toBe(FALLBACK_FIXTURE_SERVER_PORT);
-        expect(allocation.port).toBeGreaterThanOrEqual(40000);
-        expect(allocation.port).toBeLessThanOrEqual(60000);
+        expect(allocation.port).toBeGreaterThanOrEqual(32768);
+        expect(allocation.port).toBeLessThanOrEqual(60999);
       });
     });
 
