@@ -34,7 +34,6 @@ const createStyles = (colors) =>
       borderColor: colors.border.default,
       padding: 10,
       color: colors.text.default,
-      fontFamily: 'Geist Regular',
     },
     ctaWrapper: {
       marginTop: 10,

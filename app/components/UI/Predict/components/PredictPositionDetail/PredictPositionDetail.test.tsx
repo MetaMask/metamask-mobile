@@ -250,4 +250,26 @@ describe('PredictPositionDetail', () => {
       }),
     });
   });
+
+  describe('optimistic updates UI', () => {
+    it('hides current value when position is optimistic and market is open', () => {
+      renderComponent({ optimistic: true, currentValue: 500 });
+
+      expect(screen.queryByText('$500.00')).toBeNull();
+    });
+
+    it('hides percent PnL when position is optimistic and market is open', () => {
+      renderComponent({ optimistic: true, percentPnl: 12.34 });
+
+      expect(screen.queryByText('+12.34%')).toBeNull();
+    });
+
+    it('shows initial value and outcome when position is optimistic', () => {
+      renderComponent({ optimistic: true, initialValue: 123.45 });
+
+      expect(
+        screen.getByText('$123.45 on Yes • 34¢', { exact: false }),
+      ).toBeOnTheScreen();
+    });
+  });
 });

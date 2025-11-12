@@ -38,6 +38,7 @@ import { PredictPosition } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPrice } from '../../utils/format';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
+import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { PredictEventValues } from '../../constants/eventNames';
 
 export interface PredictPositionsHeaderHandle {
@@ -142,7 +143,6 @@ const PredictPositionsHeader = forwardRef<
     wonPositions.length > 0 && totalClaimableAmount !== undefined;
   const hasAvailableBalance = balance !== undefined && balance > 0;
   const hasUnrealizedPnL = unrealizedPnL?.cashUpnl !== undefined;
-  const shouldShowMainCard = hasAvailableBalance || hasUnrealizedPnL;
 
   const handleClaim = async () => {
     await executeGuardedAction(
@@ -153,10 +153,13 @@ const PredictPositionsHeader = forwardRef<
     );
   };
 
+  // Show component if there's a claimable amount, or if we have/are loading balance or P&L data
   if (
-    isBalanceLoading ||
-    isUnrealizedPnLLoading ||
-    (!hasClaimableAmount && !shouldShowMainCard)
+    !hasClaimableAmount &&
+    !hasAvailableBalance &&
+    !hasUnrealizedPnL &&
+    !isBalanceLoading &&
+    !isUnrealizedPnLLoading
   ) {
     return null;
   }
@@ -178,18 +181,27 @@ const PredictPositionsHeader = forwardRef<
         </ButtonHero>
       )}
 
-      {shouldShowMainCard && (
+      {(hasAvailableBalance ||
+        hasUnrealizedPnL ||
+        isBalanceLoading ||
+        isUnrealizedPnLLoading) && (
         <Box
           style={tw.style(
             'bg-muted rounded-xl pt-3',
-            !hasUnrealizedPnL && 'pb-3',
+            !(hasUnrealizedPnL || isUnrealizedPnLLoading) && 'pb-3',
           )}
           testID="markets-won-card"
         >
-          {hasAvailableBalance && (
-            <TouchableOpacity onPress={handleBalanceTouch}>
+          {(hasAvailableBalance || isBalanceLoading) && (
+            <TouchableOpacity
+              onPress={handleBalanceTouch}
+              disabled={isBalanceLoading}
+            >
               <Box
-                style={tw.style('px-4', hasUnrealizedPnL && 'pb-3')}
+                style={tw.style(
+                  'px-4',
+                  (hasUnrealizedPnL || isUnrealizedPnLLoading) && 'pb-3',
+                )}
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
@@ -211,23 +223,33 @@ const PredictPositionsHeader = forwardRef<
                   alignItems={BoxAlignItems.Center}
                   twClassName="flex-row items-center"
                 >
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    twClassName="text-primary mr-1"
-                    testID="claimable-amount"
-                  >
-                    {formatPrice(balance, { maximumDecimals: 2 })}
-                  </Text>
-                  <Icon
-                    name={IconName.ArrowRight}
-                    size={IconSize.Sm}
-                    color={IconColor.Alternative}
-                  />
+                  {isBalanceLoading ? (
+                    <Skeleton
+                      width={80}
+                      height={20}
+                      style={tw.style('rounded-md mr-1')}
+                    />
+                  ) : (
+                    <>
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        twClassName="text-primary mr-1"
+                        testID="claimable-amount"
+                      >
+                        {formatPrice(balance, { maximumDecimals: 2 })}
+                      </Text>
+                      <Icon
+                        name={IconName.ArrowRight}
+                        size={IconSize.Sm}
+                        color={IconColor.Alternative}
+                      />
+                    </>
+                  )}
                 </Box>
               </Box>
             </TouchableOpacity>
           )}
-          {hasUnrealizedPnL && (
+          {(hasUnrealizedPnL || isUnrealizedPnLLoading) && (
             <>
               <Box twClassName="h-px bg-alternative" />
               <Box
@@ -242,19 +264,27 @@ const PredictPositionsHeader = forwardRef<
                 >
                   {strings('predict.unrealized_pnl_label')}
                 </Text>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  twClassName={
-                    unrealizedAmount >= 0
-                      ? 'text-success-default'
-                      : 'text-error-default'
-                  }
-                >
-                  {strings('predict.unrealized_pnl_value', {
-                    amount: formatAmount(unrealizedAmount),
-                    percent: formatPercent(unrealizedPercent),
-                  })}
-                </Text>
+                {isUnrealizedPnLLoading ? (
+                  <Skeleton
+                    width={120}
+                    height={20}
+                    style={tw.style('rounded-md')}
+                  />
+                ) : (
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    twClassName={
+                      unrealizedAmount >= 0
+                        ? 'text-success-default'
+                        : 'text-error-default'
+                    }
+                  >
+                    {strings('predict.unrealized_pnl_value', {
+                      amount: formatAmount(unrealizedAmount),
+                      percent: formatPercent(unrealizedPercent),
+                    })}
+                  </Text>
+                )}
               </Box>
             </>
           )}

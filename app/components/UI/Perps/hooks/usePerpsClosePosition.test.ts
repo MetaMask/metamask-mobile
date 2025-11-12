@@ -106,8 +106,9 @@ describe('usePerpsClosePosition', () => {
       const { result } = renderHook(() => usePerpsClosePosition({ onSuccess }));
 
       await act(async () => {
-        const closeResult =
-          await result.current.handleClosePosition(mockPosition);
+        const closeResult = await result.current.handleClosePosition({
+          position: mockPosition,
+        });
         expect(closeResult).toEqual(successResult);
       });
 
@@ -116,6 +117,10 @@ describe('usePerpsClosePosition', () => {
         size: undefined,
         orderType: 'market',
         price: undefined,
+        trackingData: undefined,
+        usdAmount: undefined,
+        priceAtCalculation: undefined,
+        maxSlippageBps: undefined,
       });
 
       expect(onSuccess).toHaveBeenCalledWith(successResult);
@@ -145,12 +150,12 @@ describe('usePerpsClosePosition', () => {
       const { result } = renderHook(() => usePerpsClosePosition({ onSuccess }));
 
       await act(async () => {
-        const closeResult = await result.current.handleClosePosition(
-          mockPosition,
-          '0.05',
-          'limit',
-          '51000',
-        );
+        const closeResult = await result.current.handleClosePosition({
+          position: mockPosition,
+          size: '0.05',
+          orderType: 'limit',
+          limitPrice: '51000',
+        });
         expect(closeResult).toEqual(successResult);
       });
 
@@ -159,6 +164,10 @@ describe('usePerpsClosePosition', () => {
         size: '0.05',
         orderType: 'limit',
         price: '51000',
+        trackingData: undefined,
+        usdAmount: undefined,
+        priceAtCalculation: undefined,
+        maxSlippageBps: undefined,
       });
 
       expect(onSuccess).toHaveBeenCalledWith(successResult);
@@ -185,7 +194,7 @@ describe('usePerpsClosePosition', () => {
 
       await act(async () => {
         await expect(
-          result.current.handleClosePosition(mockPosition),
+          result.current.handleClosePosition({ position: mockPosition }),
         ).rejects.toThrow('perps.close_position.error_unknown');
       });
 
@@ -214,7 +223,7 @@ describe('usePerpsClosePosition', () => {
 
       await act(async () => {
         await expect(
-          result.current.handleClosePosition(mockPosition),
+          result.current.handleClosePosition({ position: mockPosition }),
         ).rejects.toThrow('perps.close_position.error_unknown');
       });
     });
@@ -228,7 +237,7 @@ describe('usePerpsClosePosition', () => {
 
       await act(async () => {
         await expect(
-          result.current.handleClosePosition(mockPosition),
+          result.current.handleClosePosition({ position: mockPosition }),
         ).rejects.toThrow('Network error');
       });
 
@@ -248,7 +257,7 @@ describe('usePerpsClosePosition', () => {
 
       await act(async () => {
         await expect(
-          result.current.handleClosePosition(mockPosition),
+          result.current.handleClosePosition({ position: mockPosition }),
         ).rejects.toThrow('perps.close_position.error_unknown');
       });
 
@@ -271,7 +280,9 @@ describe('usePerpsClosePosition', () => {
       // Start closing
       let closePromise: Promise<OrderResult>;
       act(() => {
-        closePromise = result.current.handleClosePosition(mockPosition);
+        closePromise = result.current.handleClosePosition({
+          position: mockPosition,
+        });
       });
 
       // Check loading state
@@ -297,11 +308,11 @@ describe('usePerpsClosePosition', () => {
       const { result } = renderHook(() => usePerpsClosePosition());
 
       await act(async () => {
-        const closeResult = await result.current.handleClosePosition(
-          mockPosition,
-          '0.1',
-          'market',
-        );
+        const closeResult = await result.current.handleClosePosition({
+          position: mockPosition,
+          size: '0.1',
+          orderType: 'market',
+        });
         expect(closeResult).toEqual(successResult);
       });
 
@@ -310,6 +321,10 @@ describe('usePerpsClosePosition', () => {
         size: '0.1',
         orderType: 'market',
         price: undefined,
+        trackingData: undefined,
+        usdAmount: undefined,
+        priceAtCalculation: undefined,
+        maxSlippageBps: undefined,
       });
     });
 
@@ -325,7 +340,7 @@ describe('usePerpsClosePosition', () => {
       const { result } = renderHook(() => usePerpsClosePosition());
 
       await act(async () => {
-        await result.current.handleClosePosition(mockPosition);
+        await result.current.handleClosePosition({ position: mockPosition });
       });
 
       // Check logging calls
@@ -361,8 +376,9 @@ describe('usePerpsClosePosition', () => {
       const { result } = renderHook(() => usePerpsClosePosition());
 
       await act(async () => {
-        const closeResult =
-          await result.current.handleClosePosition(positionWithTPSL);
+        const closeResult = await result.current.handleClosePosition({
+          position: positionWithTPSL,
+        });
         expect(closeResult).toEqual(successResult);
       });
 
@@ -372,6 +388,10 @@ describe('usePerpsClosePosition', () => {
         size: undefined,
         orderType: 'market',
         price: undefined,
+        trackingData: undefined,
+        usdAmount: undefined,
+        priceAtCalculation: undefined,
+        maxSlippageBps: undefined,
       });
     });
 
@@ -383,7 +403,7 @@ describe('usePerpsClosePosition', () => {
 
       await act(async () => {
         await expect(
-          result.current.handleClosePosition(mockPosition),
+          result.current.handleClosePosition({ position: mockPosition }),
         ).rejects.toThrow('First error');
       });
 
@@ -398,7 +418,7 @@ describe('usePerpsClosePosition', () => {
       });
 
       await act(async () => {
-        await result.current.handleClosePosition(mockPosition);
+        await result.current.handleClosePosition({ position: mockPosition });
       });
 
       expect(result.current.error).toBeNull();
@@ -416,11 +436,10 @@ describe('usePerpsClosePosition', () => {
           const { result } = renderHook(() => usePerpsClosePosition());
 
           await act(async () => {
-            await result.current.handleClosePosition(
-              mockPosition,
-              undefined,
-              'market',
-            );
+            await result.current.handleClosePosition({
+              position: mockPosition,
+              orderType: 'market',
+            });
           });
 
           // Verify progress toast is called with correct parameters
@@ -440,11 +459,11 @@ describe('usePerpsClosePosition', () => {
           const { result } = renderHook(() => usePerpsClosePosition());
 
           await act(async () => {
-            await result.current.handleClosePosition(
-              mockPosition,
-              '0.05',
-              'market',
-            );
+            await result.current.handleClosePosition({
+              position: mockPosition,
+              size: '0.05',
+              orderType: 'market',
+            });
           });
 
           // Verify progress toast is called with correct parameters
@@ -469,11 +488,10 @@ describe('usePerpsClosePosition', () => {
           const { result } = renderHook(() => usePerpsClosePosition());
 
           await act(async () => {
-            await result.current.handleClosePosition(
-              shortPosition,
-              undefined,
-              'market',
-            );
+            await result.current.handleClosePosition({
+              position: shortPosition,
+              orderType: 'market',
+            });
           });
 
           // Verify progress toast is called with correct direction for short position
@@ -495,11 +513,10 @@ describe('usePerpsClosePosition', () => {
           const { result } = renderHook(() => usePerpsClosePosition());
 
           await act(async () => {
-            await result.current.handleClosePosition(
-              mockPosition,
-              undefined,
-              'market',
-            );
+            await result.current.handleClosePosition({
+              position: mockPosition,
+              orderType: 'market',
+            });
           });
 
           // Should show progress toast first, then success toast
@@ -520,11 +537,11 @@ describe('usePerpsClosePosition', () => {
           const { result } = renderHook(() => usePerpsClosePosition());
 
           await act(async () => {
-            await result.current.handleClosePosition(
-              mockPosition,
-              '0.05',
-              'market',
-            );
+            await result.current.handleClosePosition({
+              position: mockPosition,
+              size: '0.05',
+              orderType: 'market',
+            });
           });
 
           // Should show progress toast first, then success toast
@@ -545,11 +562,11 @@ describe('usePerpsClosePosition', () => {
           const { result } = renderHook(() => usePerpsClosePosition());
 
           await act(async () => {
-            await result.current.handleClosePosition(
-              mockPosition,
-              '',
-              'market',
-            );
+            await result.current.handleClosePosition({
+              position: mockPosition,
+              size: '',
+              orderType: 'market',
+            });
           });
 
           expect(
@@ -571,11 +588,10 @@ describe('usePerpsClosePosition', () => {
 
           await act(async () => {
             await expect(
-              result.current.handleClosePosition(
-                mockPosition,
-                undefined,
-                'market',
-              ),
+              result.current.handleClosePosition({
+                position: mockPosition,
+                orderType: 'market',
+              }),
             ).rejects.toThrow();
           });
 
@@ -599,11 +615,11 @@ describe('usePerpsClosePosition', () => {
 
           await act(async () => {
             await expect(
-              result.current.handleClosePosition(
-                mockPosition,
-                '0.05',
-                'market',
-              ),
+              result.current.handleClosePosition({
+                position: mockPosition,
+                size: '0.05',
+                orderType: 'market',
+              }),
             ).rejects.toThrow();
           });
 
@@ -627,7 +643,11 @@ describe('usePerpsClosePosition', () => {
 
           await act(async () => {
             await expect(
-              result.current.handleClosePosition(mockPosition, '', 'market'),
+              result.current.handleClosePosition({
+                position: mockPosition,
+                size: '',
+                orderType: 'market',
+              }),
             ).rejects.toThrow();
           });
 
@@ -649,11 +669,11 @@ describe('usePerpsClosePosition', () => {
 
           await act(async () => {
             await expect(
-              result.current.handleClosePosition(
-                mockPosition,
-                '0.05',
-                'market',
-              ),
+              result.current.handleClosePosition({
+                position: mockPosition,
+                size: '0.05',
+                orderType: 'market',
+              }),
             ).rejects.toThrow();
           });
 
@@ -677,12 +697,11 @@ describe('usePerpsClosePosition', () => {
           const { result } = renderHook(() => usePerpsClosePosition());
 
           await act(async () => {
-            await result.current.handleClosePosition(
-              mockPosition,
-              undefined,
-              'limit',
-              '51000',
-            );
+            await result.current.handleClosePosition({
+              position: mockPosition,
+              orderType: 'limit',
+              limitPrice: '51000',
+            });
           });
 
           // Should only show submission toast for limit orders, not success toast
@@ -703,12 +722,12 @@ describe('usePerpsClosePosition', () => {
           const { result } = renderHook(() => usePerpsClosePosition());
 
           await act(async () => {
-            await result.current.handleClosePosition(
-              mockPosition,
-              '0.05',
-              'limit',
-              '51000',
-            );
+            await result.current.handleClosePosition({
+              position: mockPosition,
+              size: '0.05',
+              orderType: 'limit',
+              limitPrice: '51000',
+            });
           });
 
           // Should only show submission toast for limit orders, not success toast
@@ -730,12 +749,12 @@ describe('usePerpsClosePosition', () => {
 
           await act(async () => {
             await expect(
-              result.current.handleClosePosition(
-                mockPosition,
-                '0.05',
-                'limit',
-                '51000',
-              ),
+              result.current.handleClosePosition({
+                position: mockPosition,
+                size: '0.05',
+                orderType: 'limit',
+                limitPrice: '51000',
+              }),
             ).rejects.toThrow();
           });
 
@@ -759,11 +778,10 @@ describe('usePerpsClosePosition', () => {
           const { result } = renderHook(() => usePerpsClosePosition());
 
           await act(async () => {
-            await result.current.handleClosePosition(
-              mockPosition,
-              undefined,
-              'market',
-            );
+            await result.current.handleClosePosition({
+              position: mockPosition,
+              orderType: 'market',
+            });
           });
 
           // Verify exact sequence: progress first, then success
@@ -799,11 +817,11 @@ describe('usePerpsClosePosition', () => {
 
           await act(async () => {
             await expect(
-              result.current.handleClosePosition(
-                mockPosition,
-                '0.05',
-                'market',
-              ),
+              result.current.handleClosePosition({
+                position: mockPosition,
+                size: '0.05',
+                orderType: 'market',
+              }),
             ).rejects.toThrow();
           });
 
@@ -844,14 +862,11 @@ describe('usePerpsClosePosition', () => {
       const { result } = renderHook(() => usePerpsClosePosition());
 
       await act(async () => {
-        await result.current.handleClosePosition(
-          mockPosition,
-          undefined,
-          'market',
-          undefined,
-          undefined,
-          '$55000',
-        );
+        await result.current.handleClosePosition({
+          position: mockPosition,
+          orderType: 'market',
+          marketPrice: '$55000',
+        });
       });
 
       expect(mockClosePosition).toHaveBeenCalled();
@@ -867,14 +882,11 @@ describe('usePerpsClosePosition', () => {
       const { result } = renderHook(() => usePerpsClosePosition());
 
       await act(async () => {
-        await result.current.handleClosePosition(
-          mockPosition,
-          undefined,
-          'market',
-          undefined,
-          undefined,
-          '$55000',
-        );
+        await result.current.handleClosePosition({
+          position: mockPosition,
+          orderType: 'market',
+          marketPrice: '$55000',
+        });
       });
 
       expect(
@@ -893,14 +905,12 @@ describe('usePerpsClosePosition', () => {
       const { result } = renderHook(() => usePerpsClosePosition());
 
       await act(async () => {
-        await result.current.handleClosePosition(
-          mockPosition,
-          '0.05',
-          'market',
-          undefined,
-          undefined,
-          '$55000',
-        );
+        await result.current.handleClosePosition({
+          position: mockPosition,
+          size: '0.05',
+          orderType: 'market',
+          marketPrice: '$55000',
+        });
       });
 
       expect(
@@ -919,14 +929,11 @@ describe('usePerpsClosePosition', () => {
       const { result } = renderHook(() => usePerpsClosePosition());
 
       await act(async () => {
-        await result.current.handleClosePosition(
-          mockPosition,
-          undefined,
-          'market',
-          undefined,
-          undefined,
-          '$50000',
-        );
+        await result.current.handleClosePosition({
+          position: mockPosition,
+          orderType: 'market',
+          marketPrice: '$50000',
+        });
       });
 
       expect(
@@ -948,11 +955,10 @@ describe('usePerpsClosePosition', () => {
       const { result } = renderHook(() => usePerpsClosePosition());
 
       await act(async () => {
-        await result.current.handleClosePosition(
-          mockPosition,
-          undefined,
-          'market',
-        );
+        await result.current.handleClosePosition({
+          position: mockPosition,
+          orderType: 'market',
+        });
       });
 
       expect(
@@ -973,7 +979,7 @@ describe('usePerpsClosePosition', () => {
       const { result, rerender } = renderHook(() => usePerpsClosePosition());
 
       await act(async () => {
-        await result.current.handleClosePosition(mockPosition);
+        await result.current.handleClosePosition({ position: mockPosition });
       });
 
       const handleClosePositionBefore = result.current.handleClosePosition;
@@ -1010,7 +1016,7 @@ describe('usePerpsClosePosition', () => {
       mockClosePosition.mockResolvedValue({ success: true, orderId: '555' });
 
       await act(async () => {
-        await result.current.handleClosePosition(mockPosition);
+        await result.current.handleClosePosition({ position: mockPosition });
       });
 
       expect(onSuccess1).not.toHaveBeenCalled();
