@@ -1470,7 +1470,7 @@ export class PolymarketProvider implements PredictProvider {
       transaction: {
         params: {
           to: MATIC_CONTRACTS.collateral as Hex,
-          data: callData as Hex,
+          data: callData,
         },
         type: TransactionType.predictWithdraw,
       },
