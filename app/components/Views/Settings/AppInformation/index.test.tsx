@@ -419,8 +419,6 @@ describe('AppInformation', () => {
       expect(queryByText(/Update ID:/)).toBeNull();
       expect(queryByText(/OTA Update Channel:/)).toBeNull();
       expect(queryByText(/OTA Update runtime version:/)).toBeNull();
-      expect(queryByText(/OTA Update URL:/)).toBeNull();
-      expect(queryByText(/Check Automatically:/)).toBeNull();
       expect(queryByText(/OTA Update status:/)).toBeNull();
     });
 
@@ -444,8 +442,6 @@ describe('AppInformation', () => {
         expect(getByText(/Update ID: mock-update-id/)).toBeTruthy();
         expect(getByText(/OTA Update Channel: test-channel/)).toBeTruthy();
         expect(getByText(/OTA Update runtime version: 1.0.0/)).toBeTruthy();
-        expect(getByText(/OTA Update URL: https:\/\/example.com/)).toBeTruthy();
-        expect(getByText(/Check Automatically: NEVER/)).toBeTruthy();
         expect(getByText(/OTA Update status:/)).toBeTruthy();
       });
     });
