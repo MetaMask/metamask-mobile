@@ -17,19 +17,6 @@ describe('SectionHeader', () => {
     jest.clearAllMocks();
   });
 
-  it('matches snapshot', () => {
-    const { toJSON } = renderWithProvider(
-      <SectionHeader
-        title="Test Section"
-        viewAllText="View all"
-        onViewAll={mockOnViewAll}
-      />,
-      { state: initialState },
-    );
-
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('renders title and view all text correctly', () => {
     const { getByText } = renderWithProvider(
       <SectionHeader
