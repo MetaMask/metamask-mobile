@@ -12,7 +12,9 @@ describe('NotificationCta', () => {
   const ctaExternalLink = 'https://www.google.com';
 
   it('does not render CTA when not available', () => {
-    const { root } = renderWithProvider(<NotificationCta cta={undefined} />);
+    const { root } = renderWithProvider(
+      <NotificationCta onClick={jest.fn()} cta={undefined} />,
+    );
     expect(root).toBeUndefined();
   });
 
@@ -21,7 +23,10 @@ describe('NotificationCta', () => {
       .spyOn(SharedDeeplinkManager, 'parse')
       .mockImplementation(jest.fn());
     const { root, getByText } = renderWithProvider(
-      <NotificationCta cta={{ content: ctaContent, link: ctaDeeplink }} />,
+      <NotificationCta
+        onClick={jest.fn()}
+        cta={{ content: ctaContent, link: ctaDeeplink }}
+      />,
     );
 
     expect(root).toBeOnTheScreen();
@@ -35,7 +40,10 @@ describe('NotificationCta', () => {
       .mockImplementation(jest.fn());
 
     const { root, getByText } = renderWithProvider(
-      <NotificationCta cta={{ content: ctaContent, link: ctaExternalLink }} />,
+      <NotificationCta
+        onClick={jest.fn()}
+        cta={{ content: ctaContent, link: ctaExternalLink }}
+      />,
     );
 
     expect(root).toBeOnTheScreen();
