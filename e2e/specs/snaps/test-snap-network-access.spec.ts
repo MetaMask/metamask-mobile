@@ -22,7 +22,6 @@ describe(FlaskBuildTests('Network Access Snap Tests'), () => {
             type: LocalNodeType.anvil,
             options: {
               ...defaultOptions,
-              port: AnvilPort(),
               blockTime: 2,
             },
           },
