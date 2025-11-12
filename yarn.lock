@@ -34703,7 +34703,7 @@ __metadata:
     redux-thunk: "npm:^2.4.2"
     regenerator-runtime: "npm:0.13.9"
     reselect: "npm:^5.1.1"
-    rive-react-native: "npm:^9.3.4"
+    rive-react-native: "patch:rive-react-native@npm%3A9.3.4#~/.yarn/patches/rive-react-native-npm-9.3.4-8082feca90.patch"
     rxjs: "npm:^7.8.1"
     serve-handler: "npm:^6.1.5"
     simple-git: "npm:^3.25.0"
@@ -41088,13 +41088,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rive-react-native@npm:^9.3.4":
+"rive-react-native@npm:9.3.4":
   version: 9.3.4
   resolution: "rive-react-native@npm:9.3.4"
   peerDependencies:
     react: "*"
     react-native: "*"
   checksum: 10/dd8be7921fdb6fa5b72a786417202e4ef7ae279898c82a13e257bbfb9fd9d232b798a4b127914195ee59ee11633568a8d2938a397efe93354e39b78b4368e11b
+  languageName: node
+  linkType: hard
+
+"rive-react-native@patch:rive-react-native@npm%3A9.3.4#~/.yarn/patches/rive-react-native-npm-9.3.4-8082feca90.patch":
+  version: 9.3.4
+  resolution: "rive-react-native@patch:rive-react-native@npm%3A9.3.4#~/.yarn/patches/rive-react-native-npm-9.3.4-8082feca90.patch::version=9.3.4&hash=8583ee"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10/f8aaa7e08d08501bc9995ae4b3bb7bfca5afcc848a3a0d5460a41e3a34a0fbdc24c2e67af0c4284b423f23e781a6f18e9ace6d80d57092cdf93c4c3ab09d3fc8
   languageName: node
   linkType: hard
 
