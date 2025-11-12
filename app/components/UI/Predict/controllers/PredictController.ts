@@ -71,6 +71,7 @@ import {
 } from '../types';
 import { ensureError } from '../utils/predictErrorHandler';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 
 /**
  * State shape for PredictController
@@ -382,9 +383,9 @@ export class PredictController extends BaseController<
    * @private
    */
   private getSigner(address?: string): Signer {
-    const { AccountsController, KeyringController } = Engine.context;
+    const { KeyringController } = Engine.context;
     const selectedAddress =
-      address ?? AccountsController.getSelectedAccount().address;
+      address ?? getEvmAccountFromSelectedAccountGroup()?.address ?? '0x0';
     return {
       address: selectedAddress,
       signTypedMessage: (
@@ -656,10 +657,8 @@ export class PredictController extends BaseController<
   async getPositions(params: GetPositionsParams): Promise<PredictPosition[]> {
     try {
       const { address, providerId = 'polymarket' } = params;
-      const { AccountsController } = Engine.context;
 
-      const selectedAddress =
-        address ?? AccountsController.getSelectedAccount().address;
+      const selectedAddress = address ?? this.getSigner().address;
 
       const provider = this.providers.get(providerId);
 
@@ -718,10 +717,7 @@ export class PredictController extends BaseController<
   }): Promise<PredictActivity[]> {
     try {
       const { address, providerId } = params;
-      const { AccountsController } = Engine.context;
-
-      const selectedAddress =
-        address ?? AccountsController.getSelectedAccount().address;
+      const selectedAddress = address ?? this.getSigner().address;
 
       const providerIds = providerId
         ? [providerId]
@@ -779,9 +775,7 @@ export class PredictController extends BaseController<
     providerId?: string;
   }): Promise<UnrealizedPnL> {
     try {
-      const { AccountsController } = Engine.context;
-      const selectedAddress =
-        address ?? AccountsController.getSelectedAccount().address;
+      const selectedAddress = address ?? this.getSigner().address;
 
       const provider = this.providers.get(providerId);
       if (!provider) {
@@ -1564,8 +1558,7 @@ export class PredictController extends BaseController<
   }
 
   public clearPendingDeposit({ providerId }: { providerId: string }): void {
-    const { AccountsController } = Engine.context;
-    const selectedAddress = AccountsController.getSelectedAccount().address;
+    const selectedAddress = this.getSigner().address;
     this.update((state) => {
       state.pendingDeposits[providerId] = {
         [selectedAddress]: false,
@@ -1581,8 +1574,7 @@ export class PredictController extends BaseController<
       if (!provider) {
         throw new Error('Provider not available');
       }
-      const { AccountsController } = Engine.context;
-      const selectedAddress = AccountsController.getSelectedAccount().address;
+      const selectedAddress = this.getSigner().address;
 
       return provider.getAccountState({
         ...params,
@@ -1607,8 +1599,7 @@ export class PredictController extends BaseController<
       if (!provider) {
         throw new Error('Provider not available');
       }
-      const { AccountsController } = Engine.context;
-      const selectedAddress = AccountsController.getSelectedAccount().address;
+      const selectedAddress = this.getSigner().address;
       const address = params.address ?? selectedAddress;
 
       const cachedBalance = this.state.balances[params.providerId]?.[address];

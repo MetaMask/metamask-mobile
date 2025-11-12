@@ -33,13 +33,13 @@ import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 import { selectPredictWonPositions } from '../../selectors/predictController';
-import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import { PredictPosition } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPrice } from '../../utils/format';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { PredictEventValues } from '../../constants/eventNames';
+import { getEvmAccountFromSelectedAccountGroup } from '../../utils/accounts';
 
 export interface PredictPositionsHeaderHandle {
   refresh: () => Promise<void>;
@@ -74,8 +74,8 @@ const PredictPositionsHeader = forwardRef<
     loadOnMount: true,
     refreshOnFocus: true,
   });
-  const selectedAddress =
-    useSelector(selectSelectedInternalAccountAddress) ?? '0x0';
+  const evmAccount = getEvmAccountFromSelectedAccountGroup();
+  const selectedAddress = evmAccount?.address ?? '0x0';
   const { isDepositPending } = usePredictDeposit();
   const wonPositions = useSelector(
     selectPredictWonPositions({ address: selectedAddress }),

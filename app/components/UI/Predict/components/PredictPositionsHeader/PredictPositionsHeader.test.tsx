@@ -1,10 +1,29 @@
-import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
-import MarketsWonCard from './PredictPositionsHeader';
+import React from 'react';
+import Routes from '../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
-import Routes from '../../../../../constants/navigation/Routes';
-import { PredictPositionStatus, PredictPosition } from '../../types';
+import { PredictPosition, PredictPositionStatus } from '../../types';
+import MarketsWonCard from './PredictPositionsHeader';
+
+// Mock Engine with AccountTreeController - MUST BE FIRST
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    AccountTreeController: {
+      getAccountsFromSelectedAccountGroup: jest.fn(() => [
+        {
+          id: 'test-account-id',
+          address: '0x1234567890123456789012345678901234567890',
+          type: 'eip155:eoa',
+          name: 'Test Account',
+          metadata: {
+            lastSelected: 0,
+          },
+        },
+      ]),
+    },
+  },
+}));
 
 // Mock dependencies
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
