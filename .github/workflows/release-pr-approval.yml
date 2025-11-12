@@ -5,6 +5,8 @@ on:
     branches:
       - Version-v*
       - release/*
+  pull_request_review:
+    types: [submitted]
 
 jobs:
   release-pr-approval:
