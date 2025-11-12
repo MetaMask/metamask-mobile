@@ -64,6 +64,9 @@ function getFallbackPort(resourceType: ResourceType): number {
  * IMPORTANT: We only forward LaunchArgs ports (fixture server, command queue server, mock server).
  * Other resources (Ganache, Anvil, Dapps) are accessed through MockServer proxy which handles
  * port translation, so they don't need adb reverse.
+ * References:
+ * https://github.com/expo/expo/issues/31830
+ * https://github.com/expo/expo/pull/37172
  *
  * @param resourceType - The type of resource
  * @param actualPort - The actual port allocated by PortManager
