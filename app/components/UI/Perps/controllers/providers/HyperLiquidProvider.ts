@@ -1935,9 +1935,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
       }
 
       // 2. Calculate final position size with USD reconciliation
-      // For full closes (100%), don't use USD amount to prevent minimum order validation
       const { finalPositionSize } = calculateFinalPositionSize({
-        usdAmount: params.isFullClose ? undefined : params.usdAmount,
+        usdAmount: params.usdAmount,
         size: params.size,
         currentPrice: effectivePrice,
         priceAtCalculation: params.priceAtCalculation,
@@ -5235,6 +5234,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Clear pending promise trackers to prevent memory leaks and ensure clean state
       this.ensureReadyPromise = null;
       this.pendingBuilderFeeApprovals.clear();
+
+      // Reset client initialization flag so wallet adapter will be recreated with new account
+      // This fixes account synchronization issue where old account's address persists in wallet adapter
+      this.clientsInitialized = false;
 
       // Disconnect client service
       await this.clientService.disconnect();

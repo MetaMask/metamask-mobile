@@ -395,15 +395,13 @@ const PerpsClosePositionView: React.FC = () => {
         inputMethod: inputMethodRef.current,
       },
       marketPrice: priceData[position.coin]?.price,
-      // Slippage parameters for partial closes only
-      // For 100% closes, don't pass USD amount to prevent minimum order validation
-      slippage: isFullClose
-        ? undefined
-        : {
-            usdAmount: closingValueString,
-            priceAtCalculation: effectivePrice,
-            maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS,
-          },
+      // Always pass slippage parameters for price context
+      // For 100% closes, omit usdAmount to bypass $10 minimum validation
+      slippage: {
+        usdAmount: isFullClose ? undefined : closingValueString,
+        priceAtCalculation: effectivePrice,
+        maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS,
+      },
     });
   };
 
