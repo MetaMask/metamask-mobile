@@ -57,7 +57,7 @@ export async function getSentinelNetworkFlags(
  * @returns The complete URL with the subdomain.
  */
 export function buildUrl(subdomain: string): string {
-  return BASE_URL.replace('{0}', subdomain);
+  return getSentinelUrl(BASE_URL).replace('{0}', subdomain);
 }
 
 /**
@@ -89,4 +89,16 @@ export async function getSendBundleSupportedChains(
     acc[chainId] = Boolean(network?.sendBundle);
     return acc;
   }, {});
+}
+
+export function getSentinelUrl(url: string): string {
+  if (isDev()) {
+    return url.replace('.api.', '.dev-api.');
+  }
+
+  return url;
+}
+
+function isDev(): boolean {
+  return process.env.MM_SENTINEL_DEV === 'true';
 }
