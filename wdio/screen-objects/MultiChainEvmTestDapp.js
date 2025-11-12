@@ -85,6 +85,16 @@ class MultiChainEvmTestDapp {
         }
     }
 
+    get switchToEthereumMainnetButton() {
+        if (!this._device) {
+            return null;
+        }
+
+        if (AppwrightSelectors.isAndroid(this._device)) {
+            return AppwrightSelectors.getElementByXpath(this._device, '//*[@id="switch-to-mainnet-button"]');
+        }
+    }
+
     get connectedChainHeader() {
         if (!this._device) {
             return null;
@@ -137,6 +147,15 @@ class MultiChainEvmTestDapp {
         }
 
         const element = await this.switchToPolygonButton;
+        await AppwrightGestures.tap(element)
+    }
+
+    async tapSwitchToEthereumMainnetButton() {
+        if (!this._device) {
+            return;
+        }
+
+        const element = await this.switchToEthereumMainnetButton;
         await AppwrightGestures.tap(element)
     }
 

@@ -176,4 +176,30 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
     await SignModal.assertNetworkText('Polygon');
     await SignModal.tapRejectButton();
   });
+
+  // Explicit pausing to avoid navigating back too fast to the dapp
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await launchMobileBrowser(device);
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await MultiChainEvmTestDapp.tapSwitchToEthereumMainnetButton();
+      await MultiChainEvmTestDapp.assertConnectedChainValue('0x1');
+      await MultiChainEvmTestDapp.tapSendTransactionButton();
+    },
+    EVM_LEGACY_TEST_DAPP_URL,
+  );
+
+  // Switch back to native context to interact with Android system dialog
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    // Accept in MetaMask app
+    // await login(device, { shouldDismissModals: false });
+    await SignModal.assertNetworkText('Ethereum');
+    await SignModal.tapRejectButton();
+  });
 });
