@@ -39,6 +39,10 @@ export function PredictClaimFooter({ onPress }: PredictClaimFooterProps) {
     }),
   );
 
+  if (!wonPositions?.length) {
+    return null;
+  }
+
   return (
     <Box style={styles.container} testID="predict-claim-footer">
       {wonPositions.length > 1 ? (
