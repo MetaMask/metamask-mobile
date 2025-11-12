@@ -78,13 +78,26 @@ export function useNotificationOnClick(
         }
       });
 
+      const otherNotificationProperties = () => {
+        if (
+          'notification_type' in item &&
+          item.notification_type === 'on-chain' &&
+          item.payload?.chain_id
+        ) {
+          return { chain_id: item.payload.chain_id };
+        }
+
+        return undefined;
+      };
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NOTIFICATION_CLICKED)
           .addProperties({
             notification_id: item.id,
             notification_type: item.type,
             previously_read: item.isRead,
-            ...('chain_id' in item && { chain_id: item.chain_id }),
+            ...otherNotificationProperties(),
+            data: item, // data blob for feature teams to analyse their notification shapes
           })
           .build(),
       );
