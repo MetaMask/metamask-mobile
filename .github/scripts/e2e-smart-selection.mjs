@@ -98,9 +98,11 @@ async function main() {
     }
 
     // Parse results for GitHub outputs
+    const selectedTags = parsedResult.selectedTags || [];
     const analysis = {
-      tags: parsedResult.selectedTags?.join('|') || 'None (no tests recommended)',
-      tagDisplay: parsedResult.selectedTags?.join(', ') || '',
+      tags: selectedTags.length > 0 ? selectedTags.join('|') : '',
+      tagDisplay: selectedTags.length > 0 ? selectedTags.join(', ') : 'None (no tests recommended)',
+      tagCount: selectedTags.length,
       riskLevel: parsedResult.riskLevel || '',
       confidence: parsedResult.confidence || '',
       reasoning: parsedResult.reasoning || '',
