@@ -1,5 +1,11 @@
 import React from 'react';
-import { renderHook, act, render, screen } from '@testing-library/react-native';
+import {
+  renderHook,
+  act,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { Text } from 'react-native';
 import {
@@ -43,6 +49,15 @@ jest.mock('../component-library/components/Toast', () => {
   };
 });
 
+// Mock useMetrics hook
+const mockAddTraitsToUser = jest.fn();
+jest.mock('../components/hooks/useMetrics/useMetrics', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    addTraitsToUser: mockAddTraitsToUser,
+  })),
+}));
+
 describe('FeatureFlagOverrideContext', () => {
   let mockUseSelector: jest.MockedFunction<typeof useSelector>;
   let mockGetFeatureFlagDescription: jest.MockedFunction<
@@ -55,6 +70,7 @@ describe('FeatureFlagOverrideContext', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAddTraitsToUser.mockClear();
     mockUseSelector = jest.mocked(useSelector);
     mockGetFeatureFlagDescription = jest.mocked(getFeatureFlagDescription);
     mockGetFeatureFlagType = jest.mocked(getFeatureFlagType);
@@ -866,6 +882,204 @@ describe('FeatureFlagOverrideContext', () => {
 
         expect(result.current.getFeatureFlag('stringFlag')).toBe('test value');
       });
+    });
+  });
+
+  describe('Snapshot Functionality', () => {
+    it('takes snapshot when getFeatureFlag is called for boolean flag', async () => {
+      const mockFlags = { testBooleanFlag: true };
+      mockUseSelector.mockReturnValue(mockFlags);
+      mockGetFeatureFlagType.mockReturnValue('boolean');
+
+      const { result } = renderHook(() => useFeatureFlagOverride(), {
+        wrapper: createWrapper,
+      });
+
+      await act(async () => {
+        result.current.getFeatureFlag('testBooleanFlag');
+      });
+
+      await waitFor(() => {
+        expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+          testBooleanFlag: true,
+        });
+      });
+    });
+
+    it('takes snapshot when getFeatureFlag is called for boolean with minimumVersion flag', async () => {
+      const mockFlags = {
+        testVersionFlag: { enabled: true, minimumVersion: '1.0.0' },
+      };
+      mockUseSelector.mockReturnValue(mockFlags);
+      mockGetFeatureFlagType.mockReturnValue('boolean with minimumVersion');
+      mockIsMinimumRequiredVersionSupported.mockReturnValue(true);
+
+      const { result } = renderHook(() => useFeatureFlagOverride(), {
+        wrapper: createWrapper,
+      });
+
+      await act(async () => {
+        result.current.getFeatureFlag('testVersionFlag');
+      });
+
+      await waitFor(() => {
+        expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+          testVersionFlag: true,
+        });
+      });
+    });
+
+    it('takes snapshot for each boolean flag when multiple flags are accessed', async () => {
+      const mockFlags = {
+        flag1: true,
+        flag2: false,
+        flag3: true,
+      };
+      mockUseSelector.mockReturnValue(mockFlags);
+      mockGetFeatureFlagType.mockReturnValue('boolean');
+
+      const { result } = renderHook(() => useFeatureFlagOverride(), {
+        wrapper: createWrapper,
+      });
+
+      await act(async () => {
+        result.current.getFeatureFlag('flag1');
+      });
+
+      await waitFor(() => {
+        expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+          flag1: true,
+        });
+      });
+
+      await act(async () => {
+        result.current.getFeatureFlag('flag2');
+      });
+
+      await waitFor(() => {
+        expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+          flag2: false,
+        });
+      });
+
+      await act(async () => {
+        result.current.getFeatureFlag('flag3');
+      });
+
+      await waitFor(() => {
+        expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+          flag3: true,
+        });
+      });
+
+      expect(mockAddTraitsToUser).toHaveBeenCalledTimes(3);
+    });
+
+    it('does not take snapshot for non-boolean flags', async () => {
+      const mockFlags = {
+        stringFlag: 'test value',
+        numberFlag: 42,
+      };
+      mockUseSelector.mockReturnValue(mockFlags);
+      mockGetFeatureFlagType
+        .mockReturnValueOnce('string')
+        .mockReturnValueOnce('number');
+
+      const { result } = renderHook(() => useFeatureFlagOverride(), {
+        wrapper: createWrapper,
+      });
+
+      await act(async () => {
+        result.current.getFeatureFlag('stringFlag');
+        result.current.getFeatureFlag('numberFlag');
+      });
+
+      await waitFor(
+        () => {
+          expect(mockAddTraitsToUser).not.toHaveBeenCalled();
+        },
+        { timeout: 200 },
+      );
+    });
+
+    it('updates snapshot when same boolean flag is accessed with different value after override', async () => {
+      const mockFlags = { testFlag: true };
+      mockUseSelector.mockReturnValue(mockFlags);
+      mockGetFeatureFlagType.mockReturnValue('boolean');
+
+      const { result } = renderHook(() => useFeatureFlagOverride(), {
+        wrapper: createWrapper,
+      });
+
+      await act(async () => {
+        result.current.getFeatureFlag('testFlag');
+      });
+
+      await waitFor(() => {
+        expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+          testFlag: true,
+        });
+      });
+
+      act(() => {
+        result.current.setOverride('testFlag', false);
+      });
+
+      await act(async () => {
+        result.current.getFeatureFlag('testFlag');
+      });
+
+      await waitFor(() => {
+        expect(mockAddTraitsToUser).toHaveBeenLastCalledWith({
+          testFlag: false,
+        });
+      });
+    });
+
+    it('takes snapshot with false value for boolean with minimumVersion when version is not supported', async () => {
+      const originalNodeEnv = process.env.NODE_ENV;
+      Object.defineProperty(process.env, 'NODE_ENV', {
+        value: 'development',
+        configurable: true,
+      });
+
+      const mockFlags = {
+        testVersionFlag: { enabled: true, minimumVersion: '99.0.0' },
+      };
+      mockUseSelector.mockReturnValue(mockFlags);
+      mockGetFeatureFlagType.mockReturnValue('boolean with minimumVersion');
+      mockIsMinimumRequiredVersionSupported.mockReturnValue(false);
+
+      const { result } = renderHook(() => useFeatureFlagOverride(), {
+        wrapper: createWrapper,
+      });
+
+      await act(async () => {
+        result.current.getFeatureFlag('testVersionFlag');
+      });
+
+      await waitFor(() => {
+        expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+          testVersionFlag: false,
+        });
+      });
+
+      Object.defineProperty(process.env, 'NODE_ENV', {
+        value: originalNodeEnv,
+        configurable: true,
+      });
+    });
+
+    it('does not call addTraitsToUser when no snapshots are taken', () => {
+      const mockFlags = { stringFlag: 'test' };
+      mockUseSelector.mockReturnValue(mockFlags);
+      mockGetFeatureFlagType.mockReturnValue('string');
+
+      renderHook(() => useFeatureFlagOverride(), {
+        wrapper: createWrapper,
+      });
+
+      expect(mockAddTraitsToUser).not.toHaveBeenCalled();
     });
   });
 });

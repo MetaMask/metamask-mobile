@@ -5,7 +5,6 @@ import React, {
   useCallback,
   ReactNode,
   useMemo,
-  useEffect,
 } from 'react';
 import { useSelector } from 'react-redux';
 import { selectRemoteFeatureFlags } from '../selectors/featureFlagController';
@@ -61,29 +60,11 @@ export const FeatureFlagOverrideProvider: React.FC<
 
   // Local state for overrides
   const [overrides, setOverrides] = useState<FeatureFlagOverrides>({});
-  const [featureFlagSnapshots, setFeatureFlagSnapshots] = useState<{
-    [key: string]: boolean;
-  }>({});
-
-  useEffect(() => {
-    if (Object.keys(featureFlagSnapshots).length > 0) {
-      addTraitsToUser({
-        ...featureFlagSnapshots,
-      });
-    }
-  }, [featureFlagSnapshots, addTraitsToUser]);
 
   const setOverride = useCallback((key: string, value: unknown) => {
     setOverrides((prev) => ({
       ...prev,
       [key]: value,
-    }));
-  }, []);
-
-  const takeSnapshot = useCallback((flagName: string, flagValue: boolean) => {
-    setFeatureFlagSnapshots((prev) => ({
-      ...prev,
-      [flagName]: flagValue,
     }));
   }, []);
 
@@ -207,16 +188,20 @@ export const FeatureFlagOverrideProvider: React.FC<
           flag.key,
           flag.value as unknown as MinimumVersionFlagValue,
         );
-        takeSnapshot(flag.key, flagValue);
+        addTraitsToUser({
+          [flag.key]: flagValue,
+        });
         return flagValue;
       }
       if (flag.type === 'boolean') {
-        takeSnapshot(flag.key, flag.value as boolean);
+        addTraitsToUser({
+          [flag.key]: flag.value as boolean,
+        });
       }
 
       return flag.value;
     },
-    [featureFlags, validateMinimumVersion, takeSnapshot],
+    [featureFlags, validateMinimumVersion, addTraitsToUser],
   );
 
   const getOverrideCount = useCallback(
