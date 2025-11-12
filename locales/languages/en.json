@@ -6822,6 +6822,9 @@
     "title": "Trending",
     "view_all": "View all",
     "tokens": "Tokens",
-    "trending_tokens": "Trending Tokens"
+    "trending_tokens": "Trending Tokens",
+    "price_change": "Price change",
+    "all_networks": "All networks",
+    "24h": "24h"
   }
 }
