@@ -8,10 +8,6 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './TrendingTokenRowItem.styles';
 import { TrendingAsset } from '@metamask/assets-controllers';
 import TrendingTokenLogo from '../../TrendingTokenLogo';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
 import Badge, {
   BadgeVariant,
 } from '../../../../../../component-library/components/Badges/Badge';
@@ -141,12 +137,6 @@ const TrendingTokenRowItem = ({
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
             {token.name}
           </Text>
-          {/* TODO: Display verified icon conditionally based on API response */}
-          <Icon
-            name={IconName.VerifiedFilled}
-            size={IconSize.Sm}
-            color={TextColor.Alternative}
-          />
         </View>
         <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
           {formatMarketStats(token.marketCap, token.aggregatedUsdVolume)}
