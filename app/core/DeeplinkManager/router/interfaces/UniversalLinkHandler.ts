@@ -8,6 +8,7 @@ export interface HandlerContext {
     navigate: (routeName: string, params?: Record<string, unknown>) => void;
   };
   dispatch: (action: Record<string, unknown>) => void;
+  // linting issues due to legacy DeeplinkManager, which we will be replacing in subsequent PRs
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   instance: any; // DeeplinkManager instance
   featureFlags?: Record<string, boolean>;
