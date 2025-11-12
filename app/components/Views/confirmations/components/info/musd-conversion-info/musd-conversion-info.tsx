@@ -11,7 +11,7 @@ import {
 } from '../../../../../UI/Earn/constants/musd';
 
 export function MusdConversionInfo() {
-  useNavbar(strings('earn.musd_conversion.title'));
+  useNavbar(strings('earn.musd.title'));
 
   useAddToken({
     chainId: MUSD_TOKEN.chainId,

@@ -5454,9 +5454,13 @@
       "staking": "Payout history"
     },
     "allowance_reset": "Allowance Reset",
-    "musd_conversion": {
+    "musd": {
       "title": "Convert to mUSD",
-      "currency": "mUSD"
+      "toasts": {
+        "in_progress": "mUSD conversion in progress",
+        "success": "mUSD conversion succeeded",
+        "failed": "mUSD conversion failed"
+      }
     }
   },
   "stake": {
