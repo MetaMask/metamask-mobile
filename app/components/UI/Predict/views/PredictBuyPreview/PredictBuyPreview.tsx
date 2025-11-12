@@ -30,6 +30,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { useSelector } from 'react-redux';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -39,6 +40,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import Engine from '../../../../../core/Engine';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
@@ -51,6 +53,7 @@ import {
 import { formatCents, formatPrice } from '../../utils/format';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
 import PredictFeeSummary from '../../components/PredictFeeSummary';
+import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
 import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
@@ -60,16 +63,21 @@ import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
+import { selectRewardsEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
+  const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
   const { goBack, dispatch } =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
   const { market, outcome, outcomeToken, entryPoint } = route.params;
+
+  // Rewards feature flag
+  const rewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   // Prepare analytics properties
   const analyticsProperties = useMemo(
@@ -115,6 +123,7 @@ const PredictBuyPreview = () => {
   const [currentValueUSDString, setCurrentValueUSDString] = useState('');
   const [isInputFocused, setIsInputFocused] = useState(true);
   const [isUserInputChange, setIsUserInputChange] = useState(false);
+  const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
   const previousValueRef = useRef(0);
 
   const {
@@ -175,6 +184,16 @@ const PredictBuyPreview = () => {
   const providerFee = preview?.fees?.providerFee ?? 0;
   const total = currentValue + providerFee + metamaskFee;
 
+  // Calculate estimated rewards points: 1 point per cent spent on MM fee
+  // Formula: MM fee (in dollars) * 100 = points (rounded)
+  const estimatedPoints = useMemo(
+    () => Math.round(metamaskFee * 100),
+    [metamaskFee],
+  );
+
+  // Show rewards row if feature is enabled and we have a valid amount
+  const shouldShowRewards = rewardsEnabled && currentValue > 0;
+
   // Validation constants and states
   const MINIMUM_BET = 1; // $1 minimum bet
   const hasInsufficientFunds = total > balance;
@@ -219,6 +238,20 @@ const PredictBuyPreview = () => {
     outcome.providerId,
     analyticsProperties,
   ]);
+
+  const handleFeesInfoPress = useCallback(() => {
+    setIsFeeBreakdownVisible(true);
+  }, []);
+
+  const handleFeeBreakdownClose = useCallback(() => {
+    setIsFeeBreakdownVisible(false);
+  }, []);
+
+  useEffect(() => {
+    if (isFeeBreakdownVisible) {
+      feeBreakdownSheetRef.current?.onOpenBottomSheet();
+    }
+  }, [isFeeBreakdownVisible]);
 
   const renderHeader = () => (
     <Box
@@ -480,6 +513,11 @@ const PredictBuyPreview = () => {
         total={total}
         metamaskFee={metamaskFee}
         providerFee={providerFee}
+        shouldShowRewards={shouldShowRewards}
+        estimatedPoints={estimatedPoints}
+        isLoadingRewards={isCalculating && isUserInputChange}
+        hasRewardsError={false}
+        onFeesInfoPress={handleFeesInfoPress}
       />
       {renderErrorMessage()}
       <PredictKeypad
@@ -494,6 +532,14 @@ const PredictBuyPreview = () => {
         onAddFunds={deposit}
       />
       {renderBottomContent()}
+      {isFeeBreakdownVisible && (
+        <PredictFeeBreakdownSheet
+          ref={feeBreakdownSheetRef}
+          providerFee={providerFee}
+          metamaskFee={metamaskFee}
+          onClose={handleFeeBreakdownClose}
+        />
+      )}
     </SafeAreaView>
   );
 };
