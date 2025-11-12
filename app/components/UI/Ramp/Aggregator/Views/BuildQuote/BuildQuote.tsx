@@ -100,6 +100,7 @@ import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { createUnsupportedRegionModalNavigationDetails } from '../../components/UnsupportedRegionModal';
 import { regex } from '../../../../../../util/regex';
+import { createBuySettingsModalNavigationDetails } from '../Modals/Settings/SettingsModal';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -417,6 +418,10 @@ const BuildQuote = () => {
     }
   }, [screenLocation, isBuy, selectedAsset?.network?.chainId, trackEvent]);
 
+  const handleConfigurationPress = useCallback(() => {
+    navigation.navigate(...createBuySettingsModalNavigationDetails());
+  }, [navigation]);
+
   useEffect(() => {
     navigation.setOptions(
       getDepositNavbarOptions(
@@ -426,12 +431,21 @@ const BuildQuote = () => {
             ? strings('fiat_on_ramp_aggregator.amount_to_buy')
             : strings('fiat_on_ramp_aggregator.amount_to_sell'),
           showBack: params.showBack,
+          showConfiguration: isBuy,
+          onConfigurationPress: handleConfigurationPress,
         },
         theme,
         handleCancelPress,
       ),
     );
-  }, [navigation, theme, handleCancelPress, params.showBack, isBuy]);
+  }, [
+    navigation,
+    theme,
+    handleCancelPress,
+    params.showBack,
+    isBuy,
+    handleConfigurationPress,
+  ]);
 
   /**
    * * Keypad style, handlers and effects

@@ -452,15 +452,43 @@ function createMockMarket(overrides = {}) {
   };
 }
 
+type HookOverrideShape = Record<string, unknown>;
+
+interface PredictPositionsHookResultMock {
+  positions: Record<string, unknown>[];
+  isLoading: boolean;
+  isRefreshing: boolean;
+  error: unknown;
+  loadPositions: jest.Mock;
+}
+
+interface SplitPositionsOverrides {
+  active?: Partial<PredictPositionsHookResultMock>;
+  claimable?: Partial<PredictPositionsHookResultMock>;
+}
+
+type PositionsOverride =
+  | Partial<PredictPositionsHookResultMock>
+  | SplitPositionsOverrides;
+
+const isSplitPositionsOverride = (
+  override: PositionsOverride,
+): override is SplitPositionsOverrides =>
+  override !== null &&
+  typeof override === 'object' &&
+  ('active' in override || 'claimable' in override);
+
+interface HookOverrides {
+  market?: HookOverrideShape;
+  priceHistory?: HookOverrideShape;
+  positions?: PositionsOverride;
+  eligibility?: HookOverrideShape;
+}
+
 function setupPredictMarketDetailsTest(
-  marketOverrides = {},
-  routeOverrides = {},
-  hookOverrides: {
-    market?: object;
-    priceHistory?: object;
-    positions?: object;
-    eligibility?: object;
-  } = {},
+  marketOverrides: HookOverrideShape = {},
+  routeOverrides: HookOverrideShape = {},
+  hookOverrides: HookOverrides = {},
 ) {
   jest.clearAllMocks();
   runAfterInteractionsCallbacks.length = 0;
@@ -533,14 +561,42 @@ function setupPredictMarketDetailsTest(
     ...hookOverrides.priceHistory,
   });
 
-  usePredictPositions.mockReturnValue({
+  const positionsOverridesValue = (hookOverrides.positions ??
+    {}) as PositionsOverride;
+
+  let activeOverride: Partial<PredictPositionsHookResultMock> = {};
+  let claimableOverride: Partial<PredictPositionsHookResultMock> = {};
+
+  if (isSplitPositionsOverride(positionsOverridesValue)) {
+    activeOverride = positionsOverridesValue.active ?? {};
+    claimableOverride = positionsOverridesValue.claimable ?? {};
+  } else {
+    activeOverride =
+      positionsOverridesValue as Partial<PredictPositionsHookResultMock>;
+  }
+
+  const activePositionsHook: PredictPositionsHookResultMock = {
     positions: [],
     isLoading: false,
     isRefreshing: false,
     error: null,
     loadPositions: jest.fn(),
-    ...hookOverrides.positions,
-  });
+    ...activeOverride,
+  };
+
+  const claimablePositionsHook: PredictPositionsHookResultMock = {
+    positions: [],
+    isLoading: false,
+    isRefreshing: false,
+    error: null,
+    loadPositions: jest.fn(),
+    ...claimableOverride,
+  };
+
+  usePredictPositions.mockImplementation(
+    ({ claimable }: { claimable?: boolean }) =>
+      claimable ? claimablePositionsHook : activePositionsHook,
+  );
 
   const result = renderWithProvider(<PredictMarketDetails />);
 
@@ -588,9 +644,16 @@ describe('PredictMarketDetails', () => {
         { market: { isFetching: true, market: null } },
       );
 
-      // Check that loading text appears (there may be multiple instances)
-      const loadingTexts = screen.getAllByText('predict.loading');
-      expect(loadingTexts.length).toBeGreaterThan(0);
+      // Check that skeleton loaders appear
+      expect(
+        screen.getByTestId('predict-details-header-skeleton-back-button'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-details-content-skeleton-option-1'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-details-buttons-skeleton-button-yes'),
+      ).toBeOnTheScreen();
     });
 
     it('displays fallback title when market data is unavailable', () => {
@@ -1079,10 +1142,10 @@ describe('PredictMarketDetails', () => {
       expect(refreshControlProps.refreshing).toBe(false);
     });
 
-    it('triggers market, price history, and positions refresh', async () => {
+    it('triggers market, price history, and active positions refresh', async () => {
       const mockRefetchMarket = jest.fn(() => Promise.resolve());
       const mockRefetchPriceHistory = jest.fn(() => Promise.resolve());
-      const mockLoadPositions = jest.fn(() => Promise.resolve());
+      const mockLoadActivePositions = jest.fn(() => Promise.resolve());
 
       setupPredictMarketDetailsTest(
         {},
@@ -1090,7 +1153,7 @@ describe('PredictMarketDetails', () => {
         {
           market: { refetch: mockRefetchMarket },
           priceHistory: { refetch: mockRefetchPriceHistory },
-          positions: { loadPositions: mockLoadPositions },
+          positions: { loadPositions: mockLoadActivePositions },
         },
       );
 
@@ -1105,8 +1168,10 @@ describe('PredictMarketDetails', () => {
       await waitFor(() => {
         expect(mockRefetchMarket).toHaveBeenCalledTimes(1);
         expect(mockRefetchPriceHistory).toHaveBeenCalledTimes(1);
-        expect(mockLoadPositions).toHaveBeenCalledTimes(1);
-        expect(mockLoadPositions).toHaveBeenCalledWith({ isRefresh: true });
+        expect(mockLoadActivePositions).toHaveBeenCalled();
+        expect(mockLoadActivePositions).toHaveBeenCalledWith({
+          isRefresh: true,
+        });
       });
     });
   });
@@ -1483,18 +1548,20 @@ describe('PredictMarketDetails', () => {
         {},
         {
           positions: {
-            positions: [
-              {
-                id: 'position-1',
-                outcomeId: 'outcome-1',
-                outcome: 'Yes',
-                size: 10,
-                initialValue: 10,
-                currentValue: 12,
-                avgPrice: 0.5,
-                percentPnl: 20,
-              },
-            ],
+            claimable: {
+              positions: [
+                {
+                  id: 'position-1',
+                  outcomeId: 'outcome-1',
+                  outcome: 'Yes',
+                  size: 10,
+                  initialValue: 10,
+                  currentValue: 12,
+                  avgPrice: 0.5,
+                  percentPnl: 20,
+                },
+              ],
+            },
           },
         },
       );
@@ -1530,18 +1597,20 @@ describe('PredictMarketDetails', () => {
         {},
         {
           positions: {
-            positions: [
-              {
-                id: 'position-1',
-                outcomeId: 'outcome-1',
-                outcome: 'Yes',
-                size: 10,
-                initialValue: 10,
-                currentValue: 12,
-                avgPrice: 0.5,
-                percentPnl: 20,
-              },
-            ],
+            claimable: {
+              positions: [
+                {
+                  id: 'position-1',
+                  outcomeId: 'outcome-1',
+                  outcome: 'Yes',
+                  size: 10,
+                  initialValue: 10,
+                  currentValue: 12,
+                  avgPrice: 0.5,
+                  percentPnl: 20,
+                },
+              ],
+            },
           },
         },
       );

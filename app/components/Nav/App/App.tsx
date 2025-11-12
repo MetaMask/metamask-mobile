@@ -611,6 +611,11 @@ const ImportSRPView = () => (
       component={SeedphraseModal}
       options={{
         cardStyle: { backgroundColor: 'transparent' },
+        cardStyleInterpolator: () => ({
+          overlayStyle: {
+            opacity: 0,
+          },
+        }),
       }}
     />
   </Stack.Navigator>

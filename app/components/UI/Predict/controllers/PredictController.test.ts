@@ -55,6 +55,19 @@ jest.mock('../../../../core/Engine', () => ({
         metadata: { name: 'Test Account' },
       }),
     },
+    AccountTreeController: {
+      getAccountsFromSelectedAccountGroup: jest.fn(() => [
+        {
+          id: 'mock-account-id',
+          address: '0x1234567890123456789012345678901234567890',
+          type: 'eip155:eoa',
+          name: 'Test Account',
+          metadata: {
+            lastSelected: 0,
+          },
+        },
+      ]),
+    },
     NetworkController: {
       getState: jest.fn().mockReturnValue({
         selectedNetworkClientId: 'mainnet',
@@ -1568,7 +1581,6 @@ describe('PredictController', () => {
             polymarket: {
               '0x123': {
                 isOnboarded: true,
-                acceptedToS: false,
               },
             },
           };
@@ -2745,22 +2757,22 @@ describe('PredictController', () => {
         controller.updateStateForTesting((state) => {
           state.pendingDeposits = {
             [providerId]: {
-              [address]: true,
+              [address]: 'batch-id-123',
             },
           };
         });
 
         // Verify transaction exists
         expect(controller.state.pendingDeposits[providerId][address]).toBe(
-          true,
+          'batch-id-123',
         );
 
         // Clear deposit transaction
         controller.clearPendingDeposit({ providerId });
 
-        // Verify transaction is cleared
-        expect(controller.state.pendingDeposits[providerId][address]).toBe(
-          false,
+        // Verify transaction is cleared (deleted, not set to false)
+        expect(controller.state.pendingDeposits[providerId]?.[address]).toBe(
+          undefined,
         );
       });
     });
@@ -2779,10 +2791,10 @@ describe('PredictController', () => {
           controller.clearPendingDeposit({ providerId }),
         ).not.toThrow();
 
-        // Should set to false
+        // Verify deposit transaction remains undefined
         const address = '0x1234567890123456789012345678901234567890';
-        expect(controller.state.pendingDeposits[providerId][address]).toBe(
-          false,
+        expect(controller.state.pendingDeposits[providerId]?.[address]).toBe(
+          undefined,
         );
       });
     });
@@ -2796,12 +2808,13 @@ describe('PredictController', () => {
       withController(({ controller, messenger }) => {
         const providerId = 'polymarket';
         const address = '0x1234567890123456789012345678901234567890';
+        const existingBatchId = 'existing-batch-id';
 
         // Set up deposit transaction
         controller.updateStateForTesting((state) => {
           state.pendingDeposits = {
             [providerId]: {
-              [address]: true,
+              [address]: existingBatchId,
             },
           };
         });
@@ -2861,14 +2874,15 @@ describe('PredictController', () => {
           providerId,
         });
 
-        // Verify depositTransaction was stored with correct structure
+        // Verify depositTransaction was stored with batch ID
         expect(controller.state.pendingDeposits[providerId][address]).toBe(
-          true,
+          mockBatchId,
         );
       });
     });
 
     it('clears previous deposit transaction when starting new deposit', async () => {
+      const oldBatchId = 'old-batch';
       const newBatchId = 'new-batch';
       const providerId = 'polymarket';
       const address = '0x1234567890123456789012345678901234567890';
@@ -2894,24 +2908,24 @@ describe('PredictController', () => {
         controller.updateStateForTesting((state) => {
           state.pendingDeposits = {
             [providerId]: {
-              [address]: true,
+              [address]: oldBatchId,
             },
           };
         });
 
         // Verify old transaction exists
         expect(controller.state.pendingDeposits[providerId][address]).toBe(
-          true,
+          oldBatchId,
         );
 
-        // Start new deposit (should clear and set to false first, then true)
+        // Start new deposit (should clear old batch and set to new batch ID)
         await controller.depositWithConfirmation({
           providerId,
         });
 
-        // Verify new transaction is set
+        // Verify new transaction is set with new batch ID
         expect(controller.state.pendingDeposits[providerId][address]).toBe(
-          true,
+          newBatchId,
         );
       });
     });
@@ -4630,244 +4644,6 @@ describe('PredictController', () => {
           },
         },
       );
-    });
-  });
-
-  describe('acceptAgreement', () => {
-    it('accepts agreement successfully for provider and address', () => {
-      withController(({ controller }) => {
-        const providerId = 'polymarket';
-        const address = '0x1234567890123456789012345678901234567890';
-
-        const result = controller.acceptAgreement({
-          providerId,
-          address,
-        });
-
-        expect(result).toBe(true);
-        expect(controller.state.accountMeta[providerId][address]).toEqual({
-          isOnboarded: false,
-          acceptedToS: true,
-        });
-      });
-    });
-
-    it('updates state correctly when accepting agreement', () => {
-      withController(({ controller }) => {
-        const providerId = 'polymarket';
-        const address = '0x1234567890123456789012345678901234567890';
-
-        expect(controller.state.accountMeta).toEqual({});
-
-        controller.acceptAgreement({
-          providerId,
-          address,
-        });
-
-        expect(controller.state.accountMeta).toEqual({
-          [providerId]: {
-            [address]: {
-              isOnboarded: false,
-              acceptedToS: true,
-            },
-          },
-        });
-      });
-    });
-
-    it('preserves existing addresses when accepting agreement for different address with same provider', () => {
-      withController(({ controller }) => {
-        const providerId = 'polymarket';
-        const address1 = '0x1234567890123456789012345678901234567890';
-        const address2 = '0x9876543210987654321098765432109876543210';
-
-        controller.acceptAgreement({
-          providerId,
-          address: address1,
-        });
-
-        expect(controller.state.accountMeta[providerId][address1]).toEqual({
-          isOnboarded: false,
-          acceptedToS: true,
-        });
-
-        controller.acceptAgreement({
-          providerId,
-          address: address2,
-        });
-
-        // Both addresses should exist
-        expect(controller.state.accountMeta[providerId][address1]).toEqual({
-          isOnboarded: false,
-          acceptedToS: true,
-        });
-        expect(controller.state.accountMeta[providerId][address2]).toEqual({
-          isOnboarded: false,
-          acceptedToS: true,
-        });
-      });
-    });
-
-    it('accepts agreement for same address with different providers', () => {
-      withController(({ controller }) => {
-        const provider1 = 'polymarket';
-        const provider2 = 'other-provider';
-        const address = '0x1234567890123456789012345678901234567890';
-
-        // Add second provider
-        const mockSecondProvider = { ...mockPolymarketProvider };
-        controller.updateStateForTesting(() => {
-          const providers = (controller as any).providers;
-          providers.set(provider2, mockSecondProvider);
-        });
-
-        controller.acceptAgreement({
-          providerId: provider1,
-          address,
-        });
-
-        controller.acceptAgreement({
-          providerId: provider2,
-          address,
-        });
-
-        expect(controller.state.accountMeta[provider1][address]).toEqual({
-          isOnboarded: false,
-          acceptedToS: true,
-        });
-        expect(controller.state.accountMeta[provider2][address]).toEqual({
-          isOnboarded: false,
-          acceptedToS: true,
-        });
-      });
-    });
-
-    it('throws error when provider is not available', () => {
-      withController(({ controller }) => {
-        const providerId = 'nonexistent-provider';
-        const address = '0x1234567890123456789012345678901234567890';
-
-        expect(() =>
-          controller.acceptAgreement({
-            providerId,
-            address,
-          }),
-        ).toThrow('Provider not available');
-
-        expect(controller.state.accountMeta[providerId]).toBeUndefined();
-      });
-    });
-
-    it('overwrites existing agreement when accepting again', () => {
-      withController(({ controller }) => {
-        const providerId = 'polymarket';
-        const address = '0x1234567890123456789012345678901234567890';
-
-        controller.acceptAgreement({
-          providerId,
-          address,
-        });
-
-        expect(controller.state.accountMeta[providerId][address]).toEqual({
-          isOnboarded: false,
-          acceptedToS: true,
-        });
-
-        // Accept again
-        const result = controller.acceptAgreement({
-          providerId,
-          address,
-        });
-
-        expect(result).toBe(true);
-        expect(controller.state.accountMeta[providerId][address]).toEqual({
-          isOnboarded: false,
-          acceptedToS: true,
-        });
-      });
-    });
-
-    it('returns true on successful agreement acceptance', () => {
-      withController(({ controller }) => {
-        const result = controller.acceptAgreement({
-          providerId: 'polymarket',
-          address: '0x1234567890123456789012345678901234567890',
-        });
-
-        expect(result).toBe(true);
-      });
-    });
-
-    it('does not affect other state properties when accepting agreement', () => {
-      withController(({ controller }) => {
-        controller.updateStateForTesting((state) => {
-          state.eligibility = {
-            polymarket: { eligible: true, country: 'PT' },
-          };
-          state.lastError = 'Previous error';
-        });
-
-        const originalEligibility = controller.state.eligibility;
-        const originalLastError = controller.state.lastError;
-
-        controller.acceptAgreement({
-          providerId: 'polymarket',
-          address: '0x1234567890123456789012345678901234567890',
-        });
-
-        expect(controller.state.eligibility).toEqual(originalEligibility);
-        expect(controller.state.lastError).toBe(originalLastError);
-      });
-    });
-
-    it('preserves first address metadata when accepting agreement for second address', () => {
-      withController(({ controller }) => {
-        const providerId = 'polymarket';
-        const address1 = '0x1111111111111111111111111111111111111111';
-        const address2 = '0x2222222222222222222222222222222222222222';
-
-        controller.acceptAgreement({
-          providerId,
-          address: address1,
-        });
-
-        expect(controller.state.accountMeta[providerId][address1]).toEqual({
-          isOnboarded: false,
-          acceptedToS: true,
-        });
-        expect(
-          controller.state.accountMeta[providerId][address2],
-        ).toBeUndefined();
-
-        controller.acceptAgreement({
-          providerId,
-          address: address2,
-        });
-
-        // Both addresses should exist with their metadata
-        expect(controller.state.accountMeta[providerId][address1]).toEqual({
-          isOnboarded: false,
-          acceptedToS: true,
-        });
-        expect(controller.state.accountMeta[providerId][address2]).toEqual({
-          isOnboarded: false,
-          acceptedToS: true,
-        });
-      });
-    });
-
-    it('handles errors during agreement acceptance gracefully', () => {
-      withController(({ controller }) => {
-        const providerId = 'invalid-provider';
-        const address = '0x1234567890123456789012345678901234567890';
-
-        expect(() =>
-          controller.acceptAgreement({
-            providerId,
-            address,
-          }),
-        ).toThrow();
-      });
     });
   });
 });

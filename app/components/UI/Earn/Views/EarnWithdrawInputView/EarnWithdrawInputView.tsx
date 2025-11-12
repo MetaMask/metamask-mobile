@@ -246,19 +246,33 @@ const EarnWithdrawInputView = () => {
     ? earnNavBarEventOptions
     : stakingNavBarEventOptions;
 
+  const isLending =
+    receiptToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING;
+  const tokenLabel = token?.ticker ?? token?.symbol ?? token?.name ?? '';
+
   useEffect(() => {
+    const title = isLending
+      ? `${strings('earn.withdraw')} ${tokenLabel}`
+      : `${strings('stake.unstake')} ${tokenLabel}`;
+
     navigation.setOptions(
       // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
-      // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
       getStakingNavbar(
-        strings('earn.withdraw'),
+        title,
         navigation,
         theme.colors,
         navBarOptions,
         navBarEventOptions,
       ),
     );
-  }, [navigation, theme.colors, navBarOptions, navBarEventOptions]);
+  }, [
+    navigation,
+    theme.colors,
+    navBarOptions,
+    navBarEventOptions,
+    isLending,
+    tokenLabel,
+  ]);
 
   // This component rerenders to recalculate gas estimate which causes duplicate events to fire.
   // This ref will allow one insufficient funds error to fire per visit to the page.
