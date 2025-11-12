@@ -1,6 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { View , Linking } from 'react-native';
-
+import { View, Linking } from 'react-native';
 import Text, {
   TextVariant,
   TextColor,
