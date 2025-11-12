@@ -7,4 +7,8 @@ export const createTrendingTokenTimeBottomSheetNavDetails =
     Routes.SHEET.TRENDING_TOKEN_TIME,
   );
 
-export { TrendingTokenTimeBottomSheet } from './TrendingTokenTimeBottomSheet';
+export {
+  TrendingTokenTimeBottomSheet,
+  TimeOption,
+  mapSortByToTimeOption,
+} from './TrendingTokenTimeBottomSheet';

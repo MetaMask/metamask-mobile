@@ -1,6 +1,7 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTheme } from '../../../../util/theme';
+import { useParams } from '../../../../util/navigation/navUtils';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
@@ -13,13 +14,57 @@ import Icon, {
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../locales/i18n';
+import { SortTrendingBy } from '@metamask/assets-controllers';
 
-enum TimeOption {
+export enum TimeOption {
   TwentyFourHours = '24h',
   SixHours = '6h',
   OneHour = '1h',
   FiveMinutes = '5m',
 }
+
+export interface TrendingTokenTimeBottomSheetParams {
+  onTimeSelect?: (sortBy: SortTrendingBy, timeOption: TimeOption) => void;
+  selectedTime?: TimeOption;
+}
+
+/**
+ * Maps TimeOption to SortTrendingBy
+ */
+const mapTimeOptionToSortBy = (option: TimeOption): SortTrendingBy => {
+  switch (option) {
+    case TimeOption.TwentyFourHours:
+      return 'h24_trending' as SortTrendingBy;
+    case TimeOption.SixHours:
+      return 'h6_trending' as SortTrendingBy;
+    case TimeOption.OneHour:
+      return 'h1_trending' as SortTrendingBy;
+    case TimeOption.FiveMinutes:
+      return 'm5_trending' as SortTrendingBy;
+    default:
+      return 'h24_trending' as SortTrendingBy;
+  }
+};
+
+/**
+ * Maps SortTrendingBy back to TimeOption
+ */
+export const mapSortByToTimeOption = (
+  sortBy: SortTrendingBy | undefined,
+): TimeOption | undefined => {
+  switch (sortBy) {
+    case 'h24_trending':
+      return TimeOption.TwentyFourHours;
+    case 'h6_trending':
+      return TimeOption.SixHours;
+    case 'h1_trending':
+      return TimeOption.OneHour;
+    case 'm5_trending':
+      return TimeOption.FiveMinutes;
+    default:
+      return undefined;
+  }
+};
 
 const closeButtonStyle = StyleSheet.create({
   closeButton: {
@@ -33,10 +78,19 @@ const closeButtonStyle = StyleSheet.create({
 const TrendingTokenTimeBottomSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { colors } = useTheme();
+  const { onTimeSelect, selectedTime: initialSelectedTime } =
+    useParams<TrendingTokenTimeBottomSheetParams>();
   // make default selected time 24 hours
   const [selectedTime, setSelectedTime] = useState<TimeOption>(
-    TimeOption.TwentyFourHours,
+    initialSelectedTime || TimeOption.TwentyFourHours,
   );
+
+  // Sync selectedTime when initialSelectedTime changes (e.g., when reopening the sheet)
+  useEffect(() => {
+    if (initialSelectedTime) {
+      setSelectedTime(initialSelectedTime);
+    }
+  }, [initialSelectedTime]);
 
   const optionStyles = StyleSheet.create({
     optionsList: {
@@ -59,11 +113,17 @@ const TrendingTokenTimeBottomSheet = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  const onTimeOptionPress = (option: TimeOption) => {
-    setSelectedTime(option);
-    // TODO: Implement time period filter logic
-    //sheetRef.current?.onCloseBottomSheet();
-  };
+  const onTimeOptionPress = useCallback(
+    (option: TimeOption) => {
+      setSelectedTime(option);
+      const sortBy = mapTimeOptionToSortBy(option);
+      if (onTimeSelect) {
+        onTimeSelect(sortBy, option);
+      }
+      sheetRef.current?.onCloseBottomSheet();
+    },
+    [onTimeSelect],
+  );
 
   return (
     <BottomSheet shouldNavigateBack ref={sheetRef}>

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,8 +18,11 @@ import { strings } from '../../../../../locales/i18n';
 import TrendingTokensList from '../TrendingTokensSection/TrendingTokensList/TrendingTokensList';
 import TrendingTokensSkeleton from '../TrendingTokensSection/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import { useTrendingRequest } from '../../../UI/Assets/hooks/useTrendingRequest';
-import { TrendingAsset } from '@metamask/assets-controllers';
-import { createTrendingTokenTimeBottomSheetNavDetails } from '../TrendingTokensBottomSheet';
+import { TrendingAsset, SortTrendingBy } from '@metamask/assets-controllers';
+import {
+  createTrendingTokenTimeBottomSheetNavDetails,
+  TimeOption,
+} from '../TrendingTokensBottomSheet';
 import Text, {
   TextColor,
   TextVariant,
@@ -107,12 +110,18 @@ const TrendingTokensFullView = () => {
     useNavigation<StackNavigationProp<TrendingTokensNavigationParamList>>();
   const theme = useAppThemeFromContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const [sortBy, setSortBy] = useState<SortTrendingBy | undefined>(undefined);
+  const [selectedTimeOption, setSelectedTimeOption] = useState<TimeOption>(
+    TimeOption.TwentyFourHours,
+  );
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  const { results: trendingTokensResults, isLoading } = useTrendingRequest({});
+  const { results: trendingTokensResults, isLoading } = useTrendingRequest({
+    sortBy,
+  });
   // display only top 100 tokens
   const trendingTokens = useMemo(
     () => trendingTokensResults.slice(0, MAX_TOKENS),
@@ -133,9 +142,22 @@ const TrendingTokensFullView = () => {
     // TODO: Implement network filter logic
   }, []);
 
+  const handleTimeSelect = useCallback(
+    (selectedSortBy: SortTrendingBy, timeOption: TimeOption) => {
+      setSortBy(selectedSortBy);
+      setSelectedTimeOption(timeOption);
+    },
+    [],
+  );
+
   const handle24hPress = useCallback(() => {
-    navigation.navigate(...createTrendingTokenTimeBottomSheetNavDetails({}));
-  }, [navigation]);
+    navigation.navigate(
+      ...createTrendingTokenTimeBottomSheetNavDetails({
+        onTimeSelect: handleTimeSelect,
+        selectedTime: selectedTimeOption,
+      }),
+    );
+  }, [navigation, handleTimeSelect, selectedTimeOption]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
