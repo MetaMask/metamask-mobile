@@ -29,7 +29,7 @@ import Engine from '../../core/Engine';
 
 const log = createProjectLogger('transaction-delegation');
 
-type SignMessenger = Messenger<
+export type SignMessenger = Messenger<
   string,
   | DelegationControllerSignDelegationAction
   | KeyringControllerSignEip7702AuthorizationAction,
@@ -106,11 +106,10 @@ async function buildAuthorizationList<MessengerType extends SignMessenger>(
 
   log('Including authorization as not upgraded');
 
-  const atomicBatchResult =
-    await Engine.context.TransactionController.isAtomicBatchSupported({
-      address: from as Hex,
-      chainIds: [chainId],
-    });
+  const atomicBatchResult = await TransactionController.isAtomicBatchSupported({
+    address: from as Hex,
+    chainIds: [chainId],
+  });
 
   const upgradeContractAddress = atomicBatchResult.find(
     (r) => r.chainId.toLowerCase() === chainId.toLowerCase(),
