@@ -28,6 +28,7 @@ import {
 export const MODES = {
   'select-tags': {
     description: 'Analyze code changes and select E2E test tags to run',
+    finalizeToolName: 'finalize_tag_selection',
     systemPromptBuilder: buildSelectTagsSystemPrompt,
     taskPromptBuilder: buildSelectTagsTaskPrompt,
     processAnalysis: processSelectTagsAnalysis,
@@ -38,6 +39,7 @@ export const MODES = {
   // Future modes (add imports and register here):
   // 'suggest-migration': {
   //   description: 'Identify E2E tests that could be unit/integration tests',
+  //   finalizeToolName: 'finalize_migration_suggestions',
   //   systemPromptBuilder: buildMigrationSystemPrompt,
   //   taskPromptBuilder: buildMigrationTaskPrompt,
   //   processAnalysis: migrationHandlers.processAnalysis,
@@ -139,18 +141,7 @@ export async function analyzeWithAgent<M extends ModeKey>(
           );
 
           // Handle finalize tool (mode-specific)
-          if (toolUse.name === 'finalize_tag_selection') {
-            try {
-              const parsed = JSON.parse(toolResult);
-              console.log(
-                `📝 Agent decision: confidence=${parsed.confidence}%, risk=${
-                  parsed.risk_level
-                }, tags=${parsed.selected_tags?.length || 0}`,
-              );
-            } catch {
-              // Ignore parse errors in logging
-            }
-
+          if (toolUse.name === modeConfig.finalizeToolName) {
             const analysis = await modeConfig.processAnalysis(
               toolResult,
               baseDir,
