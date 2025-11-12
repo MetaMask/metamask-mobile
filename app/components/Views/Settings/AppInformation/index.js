@@ -258,9 +258,6 @@ export default class AppInformation extends PureComponent {
                       {`OTA Update URL: ${otaUpdateUrl}`}
                     </Text>
                     <Text style={styles.branchInfo}>
-                      {`Update ID: ${updateId || 'N/A'}`}
-                    </Text>
-                    <Text style={styles.branchInfo}>
                       {`Check Automatically: ${checkAutomatically || 'N/A'}`}
                     </Text>
                     <Text style={styles.branchInfo}>
