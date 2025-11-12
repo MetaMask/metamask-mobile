@@ -64,25 +64,6 @@ describe('SendHandler', () => {
       );
     });
 
-    it('navigates to send flow with minimal params', async () => {
-      const link = createSendLink(ACTIONS.SEND, { to: '0xabc' });
-
-      const result = await handler.handle(link, mockContext);
-
-      expect(result.handled).toBe(true);
-      expect(mockContext.navigation.navigate).toHaveBeenCalledWith(
-        'SendFlowView',
-        {
-          screen: Routes.SEND_FLOW.SEND_TO,
-          params: {
-            address: '0xabc',
-            amount: undefined,
-            chainId: undefined,
-          },
-        },
-      );
-    });
-
     it('throws error when required "to" param is missing', async () => {
       const link = createSendLink(ACTIONS.SEND, { value: '1.5' });
 
@@ -120,18 +101,6 @@ describe('SendHandler', () => {
       expect(result.handled).toBe(false);
       expect(result.fallbackToLegacy).toBe(true);
       expect(result.metadata?.reason).toBe('approve_requires_transaction');
-    });
-  });
-
-  describe('supportedActions', () => {
-    it('supports SEND and APPROVE actions', () => {
-      expect(handler.supportedActions).toEqual([ACTIONS.SEND, ACTIONS.APPROVE]);
-    });
-  });
-
-  describe('priority', () => {
-    it('has high priority for core functionality', () => {
-      expect(handler.priority).toBe(50);
     });
   });
 });

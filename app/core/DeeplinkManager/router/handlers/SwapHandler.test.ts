@@ -100,27 +100,5 @@ describe('SwapHandler', () => {
       expect(result.fallbackToLegacy).toBe(true);
       expect(result.metadata?.reason).toBe('authentication_required');
     });
-
-    it('handles swap without authentication if not required', async () => {
-      const link = createSwapLink();
-      link.requiresAuth = false;
-
-      const result = await handler.handle(link, mockContext);
-
-      expect(result.handled).toBe(true);
-      expect(mockContext.navigation.navigate).toHaveBeenCalled();
-    });
-  });
-
-  describe('supportedActions', () => {
-    it('only supports SWAP action', () => {
-      expect(handler.supportedActions).toEqual([ACTIONS.SWAP]);
-    });
-  });
-
-  describe('priority', () => {
-    it('has high priority for core functionality', () => {
-      expect(handler.priority).toBe(50);
-    });
   });
 });

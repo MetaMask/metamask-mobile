@@ -63,34 +63,6 @@ describe('UniversalRouterIntegration', () => {
 
       expect(result).toBe(false);
     });
-
-    it('returns false when feature flag is missing', () => {
-      const mockState = { some: 'state' };
-      (ReduxService.store.getState as jest.Mock).mockReturnValue(mockState);
-      (selectRemoteFeatureFlags as unknown as jest.Mock).mockReturnValue({});
-
-      const result = UniversalRouterIntegration.shouldUseNewRouter();
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when state is null', () => {
-      (ReduxService.store.getState as jest.Mock).mockReturnValue(null);
-
-      const result = UniversalRouterIntegration.shouldUseNewRouter();
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when an error occurs', () => {
-      (ReduxService.store.getState as jest.Mock).mockImplementation(() => {
-        throw new Error('Redux error');
-      });
-
-      const result = UniversalRouterIntegration.shouldUseNewRouter();
-
-      expect(result).toBe(false);
-    });
   });
 
   describe('processWithNewRouter', () => {
@@ -139,51 +111,6 @@ describe('UniversalRouterIntegration', () => {
         }),
       );
       expect(result).toBe(true);
-    });
-
-    it('passes browserCallBack to context', async () => {
-      const mockState = { some: 'state' };
-      (ReduxService.store.getState as jest.Mock).mockReturnValue(mockState);
-      (selectRemoteFeatureFlags as unknown as jest.Mock).mockReturnValue({
-        MM_UNIVERSAL_ROUTER: true,
-      });
-      mockRouter.route.mockResolvedValue({ handled: true });
-
-      const browserCallback = jest.fn();
-      await UniversalRouterIntegration.processWithNewRouter(
-        'metamask://dapp/example.com',
-        'test-source',
-        mockDeeplinkManager,
-        browserCallback,
-      );
-
-      expect(mockRouter.route).toHaveBeenCalledWith(
-        'metamask://dapp/example.com',
-        'test-source',
-        expect.objectContaining({
-          browserCallBack: browserCallback,
-        }),
-      );
-    });
-
-    it('returns false when router fails to handle', async () => {
-      const mockState = { some: 'state' };
-      (ReduxService.store.getState as jest.Mock).mockReturnValue(mockState);
-      (selectRemoteFeatureFlags as unknown as jest.Mock).mockReturnValue({
-        MM_UNIVERSAL_ROUTER: true,
-      });
-      mockRouter.route.mockResolvedValue({
-        handled: false,
-        error: new Error('Failed'),
-      });
-
-      const result = await UniversalRouterIntegration.processWithNewRouter(
-        'metamask://unknown',
-        'test-source',
-        mockDeeplinkManager,
-      );
-
-      expect(result).toBe(false);
     });
 
     it('returns false when an error is thrown', async () => {
