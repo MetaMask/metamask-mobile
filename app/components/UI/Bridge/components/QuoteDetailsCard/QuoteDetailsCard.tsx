@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TouchableOpacity, Platform, UIManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import I18n, { strings } from '../../../../../../locales/i18n';
@@ -103,8 +103,6 @@ const QuoteDetailsCard: React.FC = () => {
 
   const { networkFee, rate, priceImpact, slippage } = formattedQuoteData;
 
-  // TODO: remove this once controller types are updated
-  // @ts-expect-error: controller types are not up to date yet
   const gasSponsored = activeQuote?.quote?.gasSponsored ?? false;
 
   const gasIncluded = !!activeQuote?.quote.gasIncluded;
