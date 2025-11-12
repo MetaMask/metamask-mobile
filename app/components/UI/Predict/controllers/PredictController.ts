@@ -51,7 +51,6 @@ import {
   Signer,
 } from '../providers/types';
 import {
-  AcceptAgreementParams,
   ClaimParams,
   GetPriceHistoryParams,
   GetPriceParams,
@@ -1169,6 +1168,7 @@ export class PredictController extends BaseController<
       let realSharePrice = sharePrice;
       try {
         if (preview.side === Side.BUY) {
+          const totalFee = params.preview.fees?.totalFee ?? 0;
           realAmountUsd = parseFloat(spentAmount);
           realSharePrice = parseFloat(spentAmount) / parseFloat(receivedAmount);
 
@@ -1176,7 +1176,7 @@ export class PredictController extends BaseController<
           this.update((state) => {
             state.balances[providerId] = state.balances[providerId] || {};
             state.balances[providerId][signer.address] = {
-              balance: cachedBalance - realAmountUsd,
+              balance: cachedBalance - (realAmountUsd + totalFee),
               // valid for 5 seconds (since it takes some time to reflect balance on-chain)
               validUntil: Date.now() + 5000,
             };
@@ -1844,39 +1844,5 @@ export class PredictController extends BaseController<
     this.update((state) => {
       state.withdrawTransaction = null;
     });
-  }
-
-  public acceptAgreement(params: AcceptAgreementParams): boolean {
-    try {
-      const provider = this.providers.get(params.providerId);
-      if (!provider) {
-        throw new Error('Provider not available');
-      }
-      this.update((state) => {
-        const accountMeta = state.accountMeta[params.providerId]?.[
-          params.address
-        ] || {
-          isOnboarded: false,
-          acceptedToS: false,
-        };
-
-        state.accountMeta[params.providerId] = {
-          ...(state.accountMeta[params.providerId] || {}),
-          [params.address]: {
-            ...accountMeta,
-            acceptedToS: true,
-          },
-        };
-      });
-      return true;
-    } catch (error) {
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('acceptAgreement', {
-          providerId: params.providerId,
-        }),
-      );
-      throw error;
-    }
   }
 }

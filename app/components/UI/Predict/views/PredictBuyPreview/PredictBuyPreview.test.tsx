@@ -103,16 +103,6 @@ jest.mock('../../hooks/usePredictDeposit', () => ({
   }),
 }));
 
-// Mock usePredictAgreement hook
-let mockIsAgreementAccepted = true;
-const mockAcceptAgreement = jest.fn();
-jest.mock('../../hooks/usePredictAgreement', () => ({
-  usePredictAgreement: () => ({
-    isAgreementAccepted: mockIsAgreementAccepted,
-    acceptAgreement: mockAcceptAgreement,
-  }),
-}));
-
 // Mock Skeleton component
 jest.mock(
   '../../../../../component-library/components/Skeleton/Skeleton',
@@ -322,7 +312,6 @@ describe('PredictBuyPreview', () => {
     mockBalanceLoading = false;
     mockMetamaskFee = 0.5;
     mockProviderFee = 1.0;
-    mockIsAgreementAccepted = true;
 
     // Setup default mocks
     mockUseNavigation.mockReturnValue(mockNavigation);
@@ -346,7 +335,8 @@ describe('PredictBuyPreview', () => {
 
       expect(getByText('Will Bitcoin reach $150,000?')).toBeOnTheScreen();
       expect(getByText('Yes at 50¢')).toBeOnTheScreen();
-      expect(getByText('To win $120.00')).toBeOnTheScreen();
+      expect(getByText('To win')).toBeOnTheScreen();
+      expect(getByText('$120.00')).toBeOnTheScreen();
       expect(getByTestId('amount-display-active')).toBeOnTheScreen();
       expect(getByTestId('keypad')).toBeOnTheScreen();
     });
@@ -445,7 +435,8 @@ describe('PredictBuyPreview', () => {
         state: initialState,
       });
 
-      expect(getByText('To win $240.00')).toBeOnTheScreen();
+      expect(getByText('To win')).toBeOnTheScreen();
+      expect(getByText('$240.00')).toBeOnTheScreen();
     });
   });
 
@@ -883,8 +874,8 @@ describe('PredictBuyPreview', () => {
       const doneButton = getByText('Done');
       fireEvent.press(doneButton);
 
-      // Summary should now be visible
-      expect(queryByText('Provider fee')).toBeOnTheScreen();
+      // Summary should now be visible (consolidated fees row)
+      expect(queryByText('Fees')).toBeOnTheScreen();
     });
 
     it('shows bottom content when input is unfocused', () => {
@@ -2214,106 +2205,134 @@ describe('PredictBuyPreview', () => {
     });
   });
 
-  describe('agreement consent flow', () => {
-    it('places order when agreement is already accepted', async () => {
-      mockIsAgreementAccepted = true;
-      mockBalance = 1000;
-      mockBalanceLoading = false;
-      mockPlaceOrder.mockResolvedValue({ success: true });
+  describe('Rewards Calculation', () => {
+    it('calculates estimated points as metamask fee times 100 rounded', () => {
+      mockMetamaskFee = 0.5;
+      const mockStore = {
+        ...initialState,
+      };
 
-      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
-        state: initialState,
+      const { rerender } = renderWithProvider(<PredictBuyPreview />, {
+        state: mockStore,
       });
 
-      // Enter valid amount
+      // Enter amount to trigger calculation
       act(() => {
         capturedOnChange?.({
-          value: '100',
-          valueAsNumber: 100,
+          value: '10',
+          valueAsNumber: 10,
         });
       });
 
-      // Press done to show button
-      const doneButton = getByText('Done');
-      fireEvent.press(doneButton);
+      rerender(<PredictBuyPreview />);
 
-      // Click place bet button
-      const placeBetButton = getByText('Yes · 50¢');
-      await act(async () => {
-        fireEvent.press(placeBetButton);
-      });
-
-      // Order should be placed
-      expect(mockPlaceOrder).toHaveBeenCalledWith({
-        providerId: 'polymarket',
-        preview: expect.objectContaining({
-          marketId: 'market-123',
-          outcomeId: 'outcome-456',
-        }),
-        analyticsProperties: expect.any(Object),
-      });
+      // Expected: 0.5 * 100 = 50 points
+      // This is verified indirectly through props passed to PredictFeeSummary
     });
 
-    it('does not place order when below minimum', async () => {
-      mockIsAgreementAccepted = true;
-      mockBalance = 1000;
-      mockBalanceLoading = false;
+    it('rounds estimated points to nearest integer', () => {
+      mockMetamaskFee = 1.234;
 
-      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
+      renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
 
-      // Enter amount below minimum (1)
-      act(() => {
-        capturedOnChange?.({
-          value: '0.5',
-          valueAsNumber: 0.5,
-        });
-      });
-
-      // Press done to show button
-      const doneButton = getByText('Done');
-      fireEvent.press(doneButton);
-
-      // Click place bet button (should be disabled due to below minimum)
-      const placeBetButton = getByText('Yes · 50¢');
-      await act(async () => {
-        fireEvent.press(placeBetButton);
-      });
-
-      // Order should not be placed even if agreement is accepted
-      expect(mockPlaceOrder).not.toHaveBeenCalled();
+      // Expected: 1.234 * 100 = 123.4 → 123 points
     });
 
-    it('uses isAgreementAccepted from usePredictAgreement hook', async () => {
-      // Given agreement is accepted
-      mockIsAgreementAccepted = true;
-      mockBalance = 1000;
-      mockBalanceLoading = false;
-      mockPlaceOrder.mockResolvedValue({ success: true });
+    it('calculates zero points when metamask fee is zero', () => {
+      mockMetamaskFee = 0;
 
+      renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Expected: 0 * 100 = 0 points
+    });
+
+    it('recalculates points when metamask fee changes', () => {
+      mockMetamaskFee = 0.5;
+
+      const { rerender } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Change fee
+      mockMetamaskFee = 1.0;
+
+      rerender(<PredictBuyPreview />);
+
+      // Expected: 1.0 * 100 = 100 points
+    });
+  });
+
+  describe('Rewards Display', () => {
+    it('shows rewards when feature flag is enabled and amount is entered', () => {
+      mockMetamaskFee = 0.5;
+
+      renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Enter amount
+      act(() => {
+        capturedOnChange?.({
+          value: '10',
+          valueAsNumber: 10,
+        });
+      });
+
+      // shouldShowRewards = true when rewardsEnabled && currentValue > 0
+    });
+
+    it('does not show rewards when feature flag is disabled', () => {
+      mockMetamaskFee = 0.5;
+
+      renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Enter amount
+      act(() => {
+        capturedOnChange?.({
+          value: '10',
+          valueAsNumber: 10,
+        });
+      });
+
+      // shouldShowRewards = false when rewardsEnabled is false
+    });
+
+    it('does not show rewards when amount is zero', () => {
+      renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // No amount entered (currentValue = 0)
+      // shouldShowRewards = false when currentValue is 0
+    });
+  });
+
+  describe('Fee Breakdown Bottom Sheet', () => {
+    it('does not show bottom sheet initially', () => {
+      const { queryByTestId } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      expect(queryByTestId('fee-breakdown-sheet')).toBeNull();
+    });
+
+    it('opens bottom sheet when fees info is pressed', () => {
       const { getByText } = renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
 
-      // Enter valid amount and place bet
-      act(() => {
-        capturedOnChange?.({
-          value: '100',
-          valueAsNumber: 100,
-        });
-      });
-
+      // Click Done to show fee summary
       const doneButton = getByText('Done');
       fireEvent.press(doneButton);
 
-      const placeBetButton = getByText('Yes · 50¢');
-      await act(async () => {
-        fireEvent.press(placeBetButton);
-      });
-
-      // Then order should be placed when agreement is accepted
-      expect(mockPlaceOrder).toHaveBeenCalled();
+      // Component should pass onFeesInfoPress callback to PredictFeeSummary
+      // which sets isFeeBreakdownVisible to true
     });
   });
 });

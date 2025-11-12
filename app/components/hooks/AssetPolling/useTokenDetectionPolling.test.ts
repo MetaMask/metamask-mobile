@@ -417,7 +417,7 @@ describe('useTokenDetectionPolling', () => {
   });
 
   describe('Network Manager Integration', () => {
-    it('should poll enabled EVM networks portfolio view is enabled', () => {
+    it('should poll enabled EVM networks', () => {
       const { unmount } = renderHookWithProvider(
         () => useTokenDetectionPolling(),
         {
@@ -444,7 +444,7 @@ describe('useTokenDetectionPolling', () => {
       ).toHaveBeenCalledTimes(1);
     });
 
-    it('polls current chain when portfolio view is disabled', () => {
+    it('should poll all enabled networks by default', () => {
       const { unmount } = renderHookWithProvider(
         () => useTokenDetectionPolling(),
         {

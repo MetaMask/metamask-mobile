@@ -817,7 +817,7 @@ describe('Multichain Selectors', () => {
         },
       }) as unknown as RootState;
 
-    it('filters tokens by enabled networks', () => {
+    it('should filter tokens by enabled networks', () => {
       const testState = createTestStateWithEnabledNetworks({
         '0x1': true, // Only Ethereum enabled
         '0x89': false, // Polygon disabled
@@ -828,7 +828,7 @@ describe('Multichain Selectors', () => {
       expect(result.every((token) => token.chainId === '0x1')).toBe(true);
     });
 
-    it('falls back to default behavior when enabledNetworksByNamespace is undefined', () => {
+    it('should fall back to default behavior when enabledNetworksByNamespace is undefined', () => {
       const testState = {
         ...mockState,
         engine: {
@@ -842,12 +842,13 @@ describe('Multichain Selectors', () => {
 
       const result = selectEvmTokens(testState);
 
+      // Should return all tokens as fallback behavior (same as when feature flag is disabled)
       expect(result.length).toBeGreaterThan(0);
       expect(result.some((token) => token.chainId === '0x1')).toBe(true);
       expect(result.some((token) => token.chainId === '0x89')).toBe(true);
     });
 
-    it('falls back to default behavior when NetworkEnablementController is missing', () => {
+    it('should fall back to default behavior when NetworkEnablementController is missing', () => {
       const testState = {
         ...mockState,
         engine: {
@@ -861,12 +862,13 @@ describe('Multichain Selectors', () => {
 
       const result = selectEvmTokens(testState);
 
+      // Should return all tokens as fallback behavior
       expect(result.length).toBeGreaterThan(0);
       expect(result.some((token) => token.chainId === '0x1')).toBe(true);
       expect(result.some((token) => token.chainId === '0x89')).toBe(true);
     });
 
-    it('falls back to default behavior when enabledNetworkMap is undefined', () => {
+    it('should fall back to default behavior when enabledNetworkMap is undefined', () => {
       const testState = {
         ...mockState,
         engine: {
@@ -882,12 +884,13 @@ describe('Multichain Selectors', () => {
 
       const result = selectEvmTokens(testState);
 
+      // Should return all tokens as fallback behavior
       expect(result.length).toBeGreaterThan(0);
       expect(result.some((token) => token.chainId === '0x1')).toBe(true);
       expect(result.some((token) => token.chainId === '0x89')).toBe(true);
     });
 
-    it('falls back to default behavior when EIP-155 entry is missing from enabledNetworkMap', () => {
+    it('should fall back to default behavior when EIP-155 entry is missing from enabledNetworkMap', () => {
       const testState = {
         ...mockState,
         engine: {
@@ -908,12 +911,13 @@ describe('Multichain Selectors', () => {
 
       const result = selectEvmTokens(testState);
 
+      // Should return all tokens as fallback behavior
       expect(result.length).toBeGreaterThan(0);
       expect(result.some((token) => token.chainId === '0x1')).toBe(true);
       expect(result.some((token) => token.chainId === '0x89')).toBe(true);
     });
 
-    it('falls back to default behavior when EIP-155 entry is null', () => {
+    it('should fall back to default behavior when EIP-155 entry is null', () => {
       const testState = {
         ...mockState,
         engine: {
@@ -931,6 +935,7 @@ describe('Multichain Selectors', () => {
 
       const result = selectEvmTokens(testState);
 
+      // Should return all tokens as fallback behavior
       expect(result.length).toBeGreaterThan(0);
       expect(result.some((token) => token.chainId === '0x1')).toBe(true);
       expect(result.some((token) => token.chainId === '0x89')).toBe(true);

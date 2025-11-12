@@ -142,6 +142,7 @@ export interface GetPositionsParams {
   address?: string;
   claimable?: boolean;
   marketId?: string;
+  outcomeId?: string;
   limit?: number;
   offset?: number;
 }

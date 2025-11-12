@@ -379,10 +379,6 @@ jest.mock('../../../util/address', () => ({
   }),
 }));
 
-jest.mock('../../../util/networks', () => ({
-  ...jest.requireActual('../../../util/networks'),
-}));
-
 jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
   useNetworkSelection: jest.fn(() => ({
     selectNetwork: jest.fn(),
@@ -1023,7 +1019,7 @@ describe('Wallet', () => {
       jest.clearAllMocks();
     });
 
-    it('calls selectNetwork when no enabled EVM networks exist', () => {
+    it('should call selectNetwork when no enabled EVM networks', () => {
       const mockSelectNetwork = createMockSelectNetwork();
       setupMocks(mockSelectNetwork);
 
@@ -1262,7 +1258,10 @@ describe('Wallet', () => {
                   string,
                   Json
                 >),
-                predictEnabled: true,
+                predictTradingEnabled: {
+                  enabled: true,
+                  minimumVersion: '7.60.0',
+                },
               },
             },
           },
@@ -1300,7 +1299,10 @@ describe('Wallet', () => {
                   string,
                   Json
                 >),
-                predictEnabled: true,
+                predictTradingEnabled: {
+                  enabled: true,
+                  minimumVersion: '7.60.0',
+                },
               },
             },
           },
@@ -1335,7 +1337,10 @@ describe('Wallet', () => {
                   enabled: false,
                   minimumVersion: '1.0.0',
                 },
-                predictEnabled: true,
+                predictTradingEnabled: {
+                  enabled: true,
+                  minimumVersion: '7.60.0',
+                },
               },
             },
           },
@@ -1370,7 +1375,10 @@ describe('Wallet', () => {
                   string,
                   Json
                 >),
-                predictEnabled: false,
+                predictTradingEnabled: {
+                  enabled: false,
+                  minimumVersion: '7.60.0',
+                },
               },
             },
           },
@@ -1404,7 +1412,10 @@ describe('Wallet', () => {
                   string,
                   Json
                 >),
-                predictEnabled: false,
+                predictTradingEnabled: {
+                  enabled: false,
+                  minimumVersion: '7.60.0',
+                },
               },
             },
           },
