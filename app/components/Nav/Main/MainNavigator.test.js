@@ -66,14 +66,6 @@ jest.mock('./MainNavigator', () => {
       }),
     );
 
-    // Add Settings tab (always shown at the end)
-    tabs.push(
-      React.createElement(View, {
-        key: 'settings',
-        testID: `tab-bar-item-${TabBarIconKey.Setting}`,
-      }),
-    );
-
     return React.createElement(View, { testID: 'main-navigator' }, tabs);
   };
 });
