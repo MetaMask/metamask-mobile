@@ -72,6 +72,7 @@ import {
 import { ensureError } from '../utils/predictErrorHandler';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
+import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
 
 /**
  * State shape for PredictController
@@ -1400,6 +1401,12 @@ export class PredictController extends BaseController<
     });
   }
 
+  private isLocallyGeoblocked(region: { country: string }): boolean {
+    return GEO_BLOCKED_COUNTRIES.some(
+      ({ country }) => country === region.country,
+    );
+  }
+
   /**
    * Refresh eligibility status
    */
@@ -1411,6 +1418,13 @@ export class PredictController extends BaseController<
       }
       try {
         const geoBlockResponse = await provider.isEligible();
+        if (geoBlockResponse.isEligible && geoBlockResponse.country) {
+          // Check if country is blocked by local geo-blocking
+          const isLocallyGeoblocked = this.isLocallyGeoblocked({
+            country: geoBlockResponse.country,
+          });
+          geoBlockResponse.isEligible = !isLocallyGeoblocked;
+        }
         this.update((state) => {
           state.eligibility[providerId] = {
             eligible: geoBlockResponse.isEligible,
