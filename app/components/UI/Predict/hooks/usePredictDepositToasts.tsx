@@ -20,11 +20,24 @@ export const usePredictDepositToasts = ({
   const { deposit } = usePredictDeposit();
   const navigation = useNavigation();
 
+  const selectedInternalAccountAddress = useSelector(
+    selectSelectedInternalAccountAddress,
+  );
+
+  const depositBatchId = useSelector(
+    selectPredictPendingDepositByAddress({
+      providerId,
+      address: selectedInternalAccountAddress ?? '',
+    }),
+  );
+
   usePredictToasts({
     onConfirmed: () => {
       loadBalance({ isRefresh: true });
     },
     transactionType: TransactionType.predictDeposit,
+    transactionBatchId:
+      depositBatchId !== 'pending' ? depositBatchId : undefined,
     pendingToastConfig: {
       title: strings('predict.deposit.adding_funds'),
       description: strings('predict.deposit.in_progress_description'),
