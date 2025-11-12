@@ -31,7 +31,7 @@ import {
   OnboardingActionTypes,
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
-import { connect , useSelector } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
 import { BiometryButton } from '../../UI/BiometryButton';
 import Routes from '../../../constants/navigation/Routes';
