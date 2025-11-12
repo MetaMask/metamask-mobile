@@ -1,3 +1,7 @@
+# Release process
+This diagram below represents the release process for MetaMask Extension and MetaMask Mobile clients.
+
+```mermaid
 graph TD
 
 %% Nodes outside subgraphs %%
