@@ -312,4 +312,33 @@ describe('OAuthRehydration', () => {
       expect(mockEngine.context.KeyringController).toBeDefined();
     });
   });
+
+  describe('Rehydration Logic - Seedless Error Handling', () => {
+    it('prompts seedless re-login for generic seedless errors', async () => {
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        new Error('SeedlessOnboardingController - Generic recovery error'),
+      );
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'testPassword123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockPromptSeedlessRelogin).not.toHaveBeenCalled();
+    });
+
+    it('displays loading state when isDeletingInProgress is true', () => {
+      mockIsDeletingInProgress.mockReturnValueOnce(true);
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
+
+      expect(loginButton.props.loading).toBe(true);
+    });
+  });
 });

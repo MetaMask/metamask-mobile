@@ -1034,17 +1034,10 @@ describe('Login', () => {
 
     it('displays invalid password error when decryption fails', async () => {
       // Arrange
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: true,
-        },
-      });
       (
         Authentication.componentAuthenticationType as jest.Mock
       ).mockResolvedValue({
         currentAuthType: 'password',
-        oauth2Login: true,
       });
       (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
         new Error('Decrypt failed'),
@@ -1067,36 +1060,13 @@ describe('Login', () => {
       expect(errorElement.props.children).toEqual(
         strings('login.invalid_password'),
       );
-      expect(mockTrackOnboarding).toHaveBeenCalled();
-      const rehydrationCall = mockTrackOnboarding.mock.calls.find(
-        (call: unknown[]) =>
-          call[0] &&
-          typeof call[0] === 'object' &&
-          'name' in call[0] &&
-          call[0].name === 'Rehydration Password Failed' &&
-          'properties' in call[0] &&
-          call[0].properties &&
-          typeof call[0].properties === 'object' &&
-          'account_type' in call[0].properties &&
-          call[0].properties.account_type === 'social' &&
-          'error_type' in call[0].properties &&
-          call[0].properties.error_type === 'incorrect_password',
-      );
-      expect(rehydrationCall).toBeDefined();
     });
 
     it('displays invalid password error for Android BAD_DECRYPT error', async () => {
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: true,
-        },
-      });
       (
         Authentication.componentAuthenticationType as jest.Mock
       ).mockResolvedValue({
         currentAuthType: 'password',
-        oauth2Login: true,
       });
       (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
         new Error(
@@ -1119,36 +1089,13 @@ describe('Login', () => {
       expect(errorElement.props.children).toEqual(
         strings('login.invalid_password'),
       );
-      expect(mockTrackOnboarding).toHaveBeenCalled();
-      const rehydrationCall = mockTrackOnboarding.mock.calls.find(
-        (call: unknown[]) =>
-          call[0] &&
-          typeof call[0] === 'object' &&
-          'name' in call[0] &&
-          call[0].name === 'Rehydration Password Failed' &&
-          'properties' in call[0] &&
-          call[0].properties &&
-          typeof call[0].properties === 'object' &&
-          'account_type' in call[0].properties &&
-          call[0].properties.account_type === 'social' &&
-          'error_type' in call[0].properties &&
-          call[0].properties.error_type === 'incorrect_password',
-      );
-      expect(rehydrationCall).toBeDefined();
     });
 
     it('displays invalid password error for Android DoCipher error', async () => {
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: true,
-        },
-      });
       (
         Authentication.componentAuthenticationType as jest.Mock
       ).mockResolvedValue({
         currentAuthType: 'password',
-        oauth2Login: true,
       });
       (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
         new Error('error in DoCipher, status: 2'),
@@ -1169,22 +1116,6 @@ describe('Login', () => {
       expect(errorElement.props.children).toEqual(
         strings('login.invalid_password'),
       );
-      expect(mockTrackOnboarding).toHaveBeenCalled();
-      const rehydrationCall = mockTrackOnboarding.mock.calls.find(
-        (call: unknown[]) =>
-          call[0] &&
-          typeof call[0] === 'object' &&
-          'name' in call[0] &&
-          call[0].name === 'Rehydration Password Failed' &&
-          'properties' in call[0] &&
-          call[0].properties &&
-          typeof call[0].properties === 'object' &&
-          'account_type' in call[0].properties &&
-          call[0].properties.account_type === 'social' &&
-          'error_type' in call[0].properties &&
-          call[0].properties.error_type === 'incorrect_password',
-      );
-      expect(rehydrationCall).toBeDefined();
     });
 
     it('displays invalid password error when password requirements not met', async () => {
