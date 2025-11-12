@@ -1789,6 +1789,8 @@
     "cash_out_info": "Funds will be added to your available balance",
     "at_price_per_share": "At price: {{price}}¢ per share",
     "cashout_info": "{{amount}} on {{outcome}} at {{initialPrice}}¢",
+    "position_info_plural": "{{amount}} on {{outcome}} · {{shares}} shares at {{priceCents}}",
+    "position_info_singular": "{{amount}} on {{outcome}} · {{shares}} share at {{priceCents}}",
     "buy_yes": "Yes",
     "buy_no": "No",
     "outcomes": "outcomes",
@@ -3256,6 +3258,7 @@
     "failed": "Failed",
     "cancelled": "Cancelled",
     "signed": "Pending",
+    "unconfirmed": "Pending",
     "tokenContractAddressWarning_1": "This address is a ",
     "tokenContractAddressWarning_2": "token contract address",
     "tokenContractAddressWarning_3": ". If you send tokens to this address, you will lose them.",
@@ -5343,6 +5346,7 @@
     "service_interruption_banner": {
       "maintenance_message": "We're down for maintenance. We'll be back online soon!"
     },
+    "supply": "Supply",
     "deposit": "Deposit",
     "approve": "Approve",
     "approval": "Approval",
@@ -6816,6 +6820,7 @@
   },
   "trending": {
     "title": "Trending",
-    "coming_soon": "Trending tokens coming soon"
+    "view_all": "View all",
+    "tokens": "Tokens"
   }
 }
