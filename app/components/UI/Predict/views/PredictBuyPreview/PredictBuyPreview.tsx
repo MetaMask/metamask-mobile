@@ -40,6 +40,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import Engine from '../../../../../core/Engine';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
@@ -52,6 +53,7 @@ import {
 import { formatCents, formatPrice } from '../../utils/format';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
 import PredictFeeSummary from '../../components/PredictFeeSummary';
+import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
 import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
@@ -66,6 +68,7 @@ import { selectRewardsEnabledFlag } from '../../../../../selectors/featureFlagCo
 const PredictBuyPreview = () => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
+  const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
   const { goBack, dispatch } =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const route =
@@ -120,6 +123,7 @@ const PredictBuyPreview = () => {
   const [currentValueUSDString, setCurrentValueUSDString] = useState('');
   const [isInputFocused, setIsInputFocused] = useState(true);
   const [isUserInputChange, setIsUserInputChange] = useState(false);
+  const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
   const previousValueRef = useRef(0);
 
   const {
@@ -234,6 +238,20 @@ const PredictBuyPreview = () => {
     outcome.providerId,
     analyticsProperties,
   ]);
+
+  const handleFeesInfoPress = useCallback(() => {
+    setIsFeeBreakdownVisible(true);
+  }, []);
+
+  const handleFeeBreakdownClose = useCallback(() => {
+    setIsFeeBreakdownVisible(false);
+  }, []);
+
+  useEffect(() => {
+    if (isFeeBreakdownVisible) {
+      feeBreakdownSheetRef.current?.onOpenBottomSheet();
+    }
+  }, [isFeeBreakdownVisible]);
 
   const renderHeader = () => (
     <Box
@@ -499,6 +517,7 @@ const PredictBuyPreview = () => {
         estimatedPoints={estimatedPoints}
         isLoadingRewards={isCalculating && isUserInputChange}
         hasRewardsError={false}
+        onFeesInfoPress={handleFeesInfoPress}
       />
       {renderErrorMessage()}
       <PredictKeypad
@@ -513,6 +532,14 @@ const PredictBuyPreview = () => {
         onAddFunds={deposit}
       />
       {renderBottomContent()}
+      {isFeeBreakdownVisible && (
+        <PredictFeeBreakdownSheet
+          ref={feeBreakdownSheetRef}
+          providerFee={providerFee}
+          metamaskFee={metamaskFee}
+          onClose={handleFeeBreakdownClose}
+        />
+      )}
     </SafeAreaView>
   );
 };

@@ -10,9 +10,13 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
+import {
+  IconColor,
+  IconName,
+} from '../../../../../component-library/components/Icons/Icon';
 import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
 import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../Rewards/components/RewardPointsAnimation';
@@ -27,6 +31,7 @@ interface PredictFeeSummaryProps {
   estimatedPoints?: number;
   isLoadingRewards?: boolean;
   hasRewardsError?: boolean;
+  onFeesInfoPress?: () => void;
 }
 
 const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
@@ -38,32 +43,31 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
   estimatedPoints = 0,
   isLoadingRewards = false,
   hasRewardsError = false,
+  onFeesInfoPress,
 }) => {
   if (disabled) {
     return null;
   }
+
+  const totalFees = providerFee + metamaskFee;
+
   return (
     <Box twClassName="pt-4 px-4 pb-6 flex-col gap-4">
+      {/* Fees Row with Info Icon */}
       <Box twClassName="flex-row justify-between items-center">
-        <Box twClassName=" flex-row gap-2 items-center">
+        <Box twClassName="flex-row items-center gap-1">
           <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-            {strings('predict.fee_summary.provider_fee')}
+            {strings('predict.fee_summary.fees')}
           </Text>
+          <ButtonIcon
+            size={TooltipSizes.Sm}
+            iconColor={IconColor.Alternative}
+            iconName={IconName.Info}
+            onPress={onFeesInfoPress}
+          />
         </Box>
         <Text color={TextColor.Alternative}>
-          {formatPrice(providerFee, {
-            maximumDecimals: 2,
-          })}
-        </Text>
-      </Box>
-      <Box twClassName="flex-row justify-between items-center">
-        <Box twClassName="flex-row gap-2 items-center">
-          <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-            {strings('predict.fee_summary.metamask_fee')}
-          </Text>
-        </Box>
-        <Text color={TextColor.Alternative}>
-          {formatPrice(metamaskFee, {
+          {formatPrice(totalFees, {
             maximumDecimals: 2,
           })}
         </Text>
@@ -104,7 +108,6 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
                         ? RewardAnimationState.ErrorState
                         : RewardAnimationState.Idle
                   }
-                  variant={TextVariant.BodyMD}
                 />
               </Box>
             ),

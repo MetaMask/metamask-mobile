@@ -1933,6 +1933,8 @@
       "try_again": "Try again"
     },
     "fee_summary": {
+      "fees": "Fees",
+      "provider_fee_label": "Polymarket fee",
       "provider_fee": "Provider fee",
       "metamask_fee": "MetaMask fee",
       "total": "Total",
