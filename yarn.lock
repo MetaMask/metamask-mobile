@@ -8057,9 +8057,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/network-enablement-controller@npm:3.0.0":
-  version: 3.0.0
-  resolution: "@metamask/network-enablement-controller@npm:3.0.0"
+"@metamask/network-enablement-controller@npm:3.1.0":
+  version: 3.1.0
+  resolution: "@metamask/network-enablement-controller@npm:3.1.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.14.1"
@@ -8071,13 +8071,13 @@ __metadata:
     "@metamask/multichain-network-controller": ^2.0.0
     "@metamask/network-controller": ^25.0.0
     "@metamask/transaction-controller": ^61.0.0
-  checksum: 10/1e44c1a13d02f1c68601aea308c915d897f7df344e04954b2c7ba7cc0400c81bbab75526572085d17279014b0510bd2a081d828468c5468cbf84c8a4ab52498e
+  checksum: 10/3cb56dd859580e7fb613677c193cc4af377e59e9d76b86ae54c71b0e732dffbdd41b96825de2413bce7f1c57184c1bfed6dc1070641d7848d47ae559f2f915c5
   languageName: node
   linkType: hard
 
-"@metamask/network-enablement-controller@patch:@metamask/network-enablement-controller@npm%3A3.0.0#~/.yarn/patches/@metamask-network-enablement-controller-npm-3.0.0-cfba64ad39.patch":
-  version: 3.0.0
-  resolution: "@metamask/network-enablement-controller@patch:@metamask/network-enablement-controller@npm%3A3.0.0#~/.yarn/patches/@metamask-network-enablement-controller-npm-3.0.0-cfba64ad39.patch::version=3.0.0&hash=0805d0"
+"@metamask/network-enablement-controller@patch:@metamask/network-enablement-controller@npm%3A3.1.0#~/.yarn/patches/@metamask-network-enablement-controller-npm-3.1.0-1c0cfefdc3.patch":
+  version: 3.1.0
+  resolution: "@metamask/network-enablement-controller@patch:@metamask/network-enablement-controller@npm%3A3.1.0#~/.yarn/patches/@metamask-network-enablement-controller-npm-3.1.0-1c0cfefdc3.patch::version=3.1.0&hash=0805d0"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.14.1"
@@ -8089,7 +8089,7 @@ __metadata:
     "@metamask/multichain-network-controller": ^2.0.0
     "@metamask/network-controller": ^25.0.0
     "@metamask/transaction-controller": ^61.0.0
-  checksum: 10/3bbb6a13e2f1c08df6f79cbe5d619df20524e13e986307b2fb120e4950f3244b039a0f93710c1cfe9ce4b42b39f7a02d943bba7a93eaaa895e081af5324cfea4
+  checksum: 10/97b00477ec1550b19c7863991cd377ae73936ac466faf149cd2903325a28462f50647cdce9cd9c7aee4395e6cbf0aec8d5417012942c595d8aa3bb69682e8dc9
   languageName: node
   linkType: hard
 
@@ -8572,9 +8572,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snaps-controllers@npm:^16.1.0":
-  version: 16.1.0
-  resolution: "@metamask/snaps-controllers@npm:16.1.0"
+"@metamask/snaps-controllers@npm:^16.1.1":
+  version: 16.1.1
+  resolution: "@metamask/snaps-controllers@npm:16.1.1"
   dependencies:
     "@metamask/approval-controller": "npm:^8.0.0"
     "@metamask/base-controller": "npm:^9.0.0"
@@ -8610,7 +8610,7 @@ __metadata:
   peerDependenciesMeta:
     "@metamask/snaps-execution-environments":
       optional: true
-  checksum: 10/9af230904002608d73de7d9b87e9e63dda304da2f68fc1cf813b0d43a222edb1d359ba82921f7f88b1e066b39c72a7a73fab90c824907e0b3bcfe84de6b1bc46
+  checksum: 10/c7a01e952ae8d5ac98532c76fd7a02053885d55e0c3800fc621e728844e855c08cca4634a5c6e679ce3ada7ec5176452b2e18d0edd81d065bf4a4ea8e183ea07
   languageName: node
   linkType: hard
 
@@ -34291,7 +34291,7 @@ __metadata:
     "@metamask/multichain-transactions-controller": "npm:^6.0.0"
     "@metamask/native-utils": "npm:^0.5.0"
     "@metamask/network-controller": "npm:^25.0.0"
-    "@metamask/network-enablement-controller": "patch:@metamask/network-enablement-controller@npm%3A3.0.0#~/.yarn/patches/@metamask-network-enablement-controller-npm-3.0.0-cfba64ad39.patch"
+    "@metamask/network-enablement-controller": "patch:@metamask/network-enablement-controller@npm%3A3.1.0#~/.yarn/patches/@metamask-network-enablement-controller-npm-3.1.0-1c0cfefdc3.patch"
     "@metamask/notification-services-controller": "npm:^19.0.0"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^12.1.0"
@@ -34318,7 +34318,7 @@ __metadata:
     "@metamask/signature-controller": "npm:^35.0.0"
     "@metamask/slip44": "npm:^4.2.0"
     "@metamask/smart-transactions-controller": "npm:^20.1.0"
-    "@metamask/snaps-controllers": "npm:^16.1.0"
+    "@metamask/snaps-controllers": "npm:^16.1.1"
     "@metamask/snaps-execution-environments": "npm:^10.2.3"
     "@metamask/snaps-rpc-methods": "npm:^14.1.0"
     "@metamask/snaps-sdk": "npm:^10.1.0"
