@@ -380,16 +380,25 @@ class Onboarding extends PureComponent {
       return;
     }
 
-    const { existingUser } = this.props;
+    const { existingUser, passwordSet } = this.props;
 
     try {
       const vaultBackupResult = await getVaultFromBackup();
 
-      // Detect migration failure scenario:
-      // - existingUser is false (Redux state was corrupted/reset)
-      // - BUT vault backup exists (user previously had a wallet)
+      // Detect migration failure scenario - ALL conditions must be true:
+      // 1. existingUser is false (Redux state was corrupted/reset during migration)
+      // 2. passwordSet is true (user had completed onboarding and had a working wallet)
+      // 3. vault backup exists (their wallet data is still recoverable)
+      //
+      // This avoids false positives from:
+      // - Fresh app installs (passwordSet=false, but keychain persists on iOS)
+      // - First-time users (passwordSet=false)
+      // - Intentional wallet deletions (caught by route.params.delete check above)
       const migrationFailureDetected =
-        !existingUser && vaultBackupResult.success && vaultBackupResult.vault;
+        !existingUser &&
+        passwordSet &&
+        vaultBackupResult.success &&
+        vaultBackupResult.vault;
 
       if (migrationFailureDetected) {
         this.props.navigation.reset({

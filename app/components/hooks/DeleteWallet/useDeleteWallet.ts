@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import Logger from '../../../util/Logger';
-import { setExistingUser } from '../../../actions/user';
+import { setExistingUser, passwordUnset } from '../../../actions/user';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { clearAllVaultBackups } from '../../../core/BackupVault';
@@ -49,9 +49,10 @@ const useDeleteWallet = () => {
   const deleteUser = async () => {
     try {
       dispatch(setExistingUser(false));
+      dispatch(passwordUnset());
       await metrics.createDataDeletionTask();
     } catch (error) {
-      const errorMsg = `Failed to reset existingUser state in Redux`;
+      const errorMsg = `Failed to reset user state in Redux`;
       Logger.log(error, errorMsg);
     }
   };
