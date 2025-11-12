@@ -184,10 +184,10 @@ describe('BaseLoginHandler', () => {
         id_token: 'mock-id-token',
         refresh_token: 'mock-refresh-token',
         revoke_token: 'mock-revoke-token',
-        indexes: [1, 2, 3],
-        endpoints: { endpoint1: 'value1' },
-        message: 'Success',
-        jwt_tokens: { token1: 'value1' },
+        access_token: 'mock-access-token',
+        metadata_access_token: 'mock-metadata-access-token',
+        token_type: 'Bearer',
+        expires_in: 3600,
       };
 
       (global.fetch as jest.Mock).mockResolvedValueOnce({
@@ -226,6 +226,18 @@ describe('BaseLoginHandler', () => {
       );
 
       expect(result).toEqual(mockResponse);
+    });
+
+    it('successfully refreshes auth token', async () => {
+      const mockResponse = {
+        id_token: 'mock-id-token',
+        refresh_token: 'mock-refresh-token',
+        revoke_token: 'mock-revoke-token',
+        access_token: 'mock-access-token',
+        metadata_access_token: 'mock-metadata-access-token',
+        token_type: 'Bearer',
+        expires_in: 3600,
+      };
 
       jest
         .spyOn(global, 'fetch')
@@ -234,7 +246,9 @@ describe('BaseLoginHandler', () => {
       const refreshResult = await mockHandler.refreshAuthToken('refresh-token');
 
       expect(refreshResult).toEqual(mockResponse);
+    });
 
+    it('successfully revokes refresh token', async () => {
       const mockRevokeResponse = {
         new_refresh_token: 'refresh-token',
         new_revoke_token: 'revoke-token',
@@ -257,14 +271,12 @@ describe('BaseLoginHandler', () => {
 
     it('successfully gets auth tokens with idToken', async () => {
       const mockResponse = {
-        success: true,
         id_token: 'mock-id-token',
         refresh_token: 'mock-refresh-token',
         revoke_token: 'mock-revoke-token',
-        indexes: [1, 2, 3],
-        endpoints: { endpoint1: 'value1' },
-        message: 'Success',
-        jwt_tokens: { token1: 'value1' },
+        access_token: 'mock-access-token',
+        metadata_access_token: 'mock-metadata-access-token',
+        expires_in: 3600,
       };
 
       (global.fetch as jest.Mock).mockResolvedValueOnce({
@@ -365,6 +377,8 @@ describe('BaseLoginHandler', () => {
         id_token: 'mock-id-token',
         refresh_token: 'mock-refresh-token',
         revoke_token: 'mock-revoke-token',
+        access_token: 'mock-access-token',
+        metadata_access_token: 'mock-metadata-access-token',
         message: 'Success',
       };
 
@@ -416,6 +430,8 @@ describe('BaseLoginHandler', () => {
         id_token: 'mock-id-token',
         refresh_token: 'mock-refresh-token',
         revoke_token: 'mock-revoke-token',
+        access_token: 'mock-access-token',
+        metadata_access_token: 'mock-metadata-access-token',
         message: 'Success',
       };
 
@@ -534,6 +550,77 @@ describe('BaseLoginHandler', () => {
         success: true,
         id_token: 'mock-id-token',
         refresh_token: 'mock-refresh-token',
+        message: 'Success',
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        status: 200,
+        json: () => Promise.resolve(mockResponse),
+      });
+
+      const params: HandleFlowParams = {
+        authConnection: AuthConnection.Google,
+        code: 'mock-code',
+        clientId: 'mock-client-id',
+        redirectUri: 'mock-redirect-uri',
+        codeVerifier: 'mock-code-verifier',
+        web3AuthNetwork: Web3AuthNetwork.Mainnet,
+      };
+
+      await expect(
+        getAuthTokens(
+          mockHandler.getAuthTokenRequestData(params),
+          mockPathname,
+          mockAuthServerUrl,
+        ),
+      ).rejects.toMatchObject({
+        message: 'Auth server error - Invalid auth response',
+        code: OAuthErrorType.AuthServerError,
+      });
+    });
+
+    it('throws error when access_token is missing from response', async () => {
+      const mockResponse = {
+        success: true,
+        id_token: 'mock-id-token',
+        refresh_token: 'mock-refresh-token',
+        revoke_token: 'mock-revoke-token',
+        message: 'Success',
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        status: 200,
+        json: () => Promise.resolve(mockResponse),
+      });
+
+      const params: HandleFlowParams = {
+        authConnection: AuthConnection.Google,
+        code: 'mock-code',
+        clientId: 'mock-client-id',
+        redirectUri: 'mock-redirect-uri',
+        codeVerifier: 'mock-code-verifier',
+        web3AuthNetwork: Web3AuthNetwork.Mainnet,
+      };
+
+      await expect(
+        getAuthTokens(
+          mockHandler.getAuthTokenRequestData(params),
+          mockPathname,
+          mockAuthServerUrl,
+        ),
+      ).rejects.toMatchObject({
+        message: 'Auth server error - Invalid auth response',
+        code: OAuthErrorType.AuthServerError,
+      });
+    });
+
+    it('throws error when metadata_access_token is missing from response', async () => {
+      const mockResponse = {
+        success: true,
+        id_token: 'mock-id-token',
+        refresh_token: 'mock-refresh-token',
+        revoke_token: 'mock-revoke-token',
+        access_token: 'mock-access-token',
         message: 'Success',
       };
 
