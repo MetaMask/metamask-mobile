@@ -1935,8 +1935,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
       }
 
       // 2. Calculate final position size with USD reconciliation
+      // For full closes (100%), don't use USD amount to prevent minimum order validation
       const { finalPositionSize } = calculateFinalPositionSize({
-        usdAmount: params.usdAmount,
+        usdAmount: params.isFullClose ? undefined : params.usdAmount,
         size: params.size,
         currentPrice: effectivePrice,
         priceAtCalculation: params.priceAtCalculation,

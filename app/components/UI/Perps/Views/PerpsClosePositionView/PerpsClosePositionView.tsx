@@ -368,6 +368,7 @@ const PerpsClosePositionView: React.FC = () => {
   const handleConfirm = async () => {
     // For full close, don't send size parameter
     const sizeToClose = closePercentage === 100 ? undefined : closeAmount;
+    const isFullClose = closePercentage === 100;
 
     // For limit orders, validate price
     if (orderType === 'limit' && !limitPrice) {
@@ -394,12 +395,15 @@ const PerpsClosePositionView: React.FC = () => {
         inputMethod: inputMethodRef.current,
       },
       marketPrice: priceData[position.coin]?.price,
-      // Slippage parameters for consistent validation (same as PerpsOrderView)
-      slippage: {
-        usdAmount: closingValueString,
-        priceAtCalculation: effectivePrice,
-        maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS,
-      },
+      // Slippage parameters for partial closes only
+      // For 100% closes, don't pass USD amount to prevent minimum order validation
+      slippage: isFullClose
+        ? undefined
+        : {
+            usdAmount: closingValueString,
+            priceAtCalculation: effectivePrice,
+            maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS,
+          },
     });
   };
 
