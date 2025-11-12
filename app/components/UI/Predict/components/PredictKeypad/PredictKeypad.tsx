@@ -143,7 +143,7 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
 
     return (
       <View style={tw.style('py-4')}>
-        <View style={tw.style('px-4 mb-4')}>
+        <View style={tw.style('px-4 mb-3')}>
           {hasInsufficientFunds && onAddFunds ? (
             <Button
               variant={ButtonVariants.Primary}
@@ -159,28 +159,28 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
                 size={ButtonSize.Md}
                 label="$20"
                 onPress={() => handleKeypadAmountPress(20)}
-                style={tw.style('flex-1')}
+                style={tw.style('flex-1 h-12')}
               />
               <Button
                 variant={ButtonVariants.Secondary}
                 size={ButtonSize.Md}
                 label="$50"
                 onPress={() => handleKeypadAmountPress(50)}
-                style={tw.style('flex-1')}
+                style={tw.style('flex-1 h-12')}
               />
               <Button
                 variant={ButtonVariants.Secondary}
                 size={ButtonSize.Md}
                 label="$100"
                 onPress={() => handleKeypadAmountPress(100)}
-                style={tw.style('flex-1')}
+                style={tw.style('flex-1 h-12')}
               />
               <Button
                 variant={ButtonVariants.Primary}
                 size={ButtonSize.Md}
                 label="Done"
                 onPress={handleDonePress}
-                style={tw.style('flex-1')}
+                style={tw.style('flex-1 h-12')}
               />
             </View>
           )}
