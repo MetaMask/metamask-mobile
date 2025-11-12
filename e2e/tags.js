@@ -1,172 +1,179 @@
-const tags = {
-  SmokePerps: 'SmokePerps:',
-  smokeAccounts: 'SmokeAccounts:',
-  regressionAccounts: 'RegressionAccounts:',
-  smokeCore: 'SmokeCore:',
-  regressionConfirmations: 'RegressionConfirmations:',
-  smokeConfirmationsRedesigned: 'SmokeConfirmationsRedesigned:',
-  regressionConfirmationsRedesigned: 'RegressionConfirmationsRedesigned:',
-  SmokeSwaps: 'SmokeSwaps:',
-  smokeWalletUX: 'SmokeWalletUX:',
-  regressionWalletUX: 'RegressionWalletUX:',
-  SmokeRest: 'SmokeRest:',
-  smokeAssets: 'SmokeAssets:',
-  regressionAssets: 'RegressionAssets:',
-  smokeIdentity: 'SmokeIdentity:',
-  regressionIdentity: 'RegressionIdentity:',
-  smokeMultiChainPermissions: 'SmokeMultiChainPermissions:',
-  SmokeTrade: 'Trade:',
-  RegressionTrade: 'RegressionTrade:',
-  SmokeNetworkAbstractions: 'NetworkAbstractions:',
-  regressionNetworkAbstractions: 'RegressionNetworkAbstractions:',
-  SmokeWalletPlatform: 'WalletPlatform:',
-  regressionWalletPlatform: 'RegressionWalletPlatform:',
-  SmokeNetworkExpansion: 'NetworkExpansion:',
-  regressionNetworkExpansion: 'RegressionNetworkExpansion:',
-  smokeStake: 'SmokeStake:',
-  smokeNotifications: 'SmokeNotifications:',
-  smokeAnalytics: 'SmokeAnalytics:',
-  smokeMultiChainAPI: 'SmokeMultiChainAPI:',
-  FlaskBuildTests: 'FlaskBuildTests:',
-  performance: 'Performance:',
-  smokeCard: 'SmokeCard:',
-  SmokePredictions: 'SmokePredictions',
-  smokeRewards: 'SmokeRewards:',
-  regressionSampleFeature: 'RegressionSampleFeature:',
-};
-
-/**
- * AI E2E Tag Selector Configuration
- *
- * Single source of truth for AI-powered E2E tag selection.
- * Each entry defines a smoke test tag and what it covers.
- *
- * When adding a new smoke tag for AI selection:
- * 1. Add the tag to the `tags` object above
- * 2. Add an entry here with the tag name and description
- */
-// TODO
-const aiE2EConfig = [
-  { tag: 'SmokeAccounts', description: 'Multi-account, account management' },
-  {
-    tag: 'SmokeConfirmations',
-    description: 'Transaction confirmations, send/receive, signatures',
+// Smoke tests to run on every PR.
+const smokeTags = {
+  smokeAccounts: {
+    tag: 'SmokeAccounts:',
+    description: 'Multi-account, account management',
   },
-  {
-    tag: 'SmokeConfirmationsRedesigned',
+  smokeCore: { tag: 'SmokeCore:', description: 'Core wallet functionality' },
+  smokeConfirmationsRedesigned: {
+    tag: 'SmokeConfirmationsRedesigned:',
     description: 'New confirmation UI as well as all confirmation flows',
   },
-  { tag: 'SmokeIdentity', description: 'User identity, authentication' },
-  {
-    tag: 'SmokeNetworkAbstractions',
+  smokeIdentity: {
+    tag: 'SmokeIdentity:',
+    description: 'User identity, authentication',
+  },
+  smokeNetworkAbstractions: {
+    tag: 'NetworkAbstractions:',
     description: 'Network layer, multi-chain',
   },
-  {
-    tag: 'SmokeNetworkExpansion',
+  smokeNetworkExpansion: {
+    tag: 'NetworkExpansion:',
     description: 'New networks, network config (Solana, Bitcoin, etc)',
   },
-  { tag: 'SmokeTrade', description: 'Token swaps, DEX trading' },
-  {
-    tag: 'SmokeWalletPlatform',
+  smokeTrade: { tag: 'Trade:', description: 'Token swaps, DEX trading' },
+  smokeWalletPlatform: {
+    tag: 'WalletPlatform:',
     description: 'Core wallet, accounts, network switching',
   },
-  { tag: 'SmokeCore', description: 'Core wallet functionality' },
-  { tag: 'SmokeWalletUX', description: 'Wallet user experience and UI' },
-  { tag: 'SmokeAssets', description: 'Asset management and display' },
-  { tag: 'SmokeSwaps', description: 'Token swap functionality' },
-  { tag: 'SmokeStake', description: 'Staking features' },
-  { tag: 'SmokeCard', description: 'Card-related features' },
-  { tag: 'SmokeNotifications', description: 'Notification system' },
-  { tag: 'SmokeRewards', description: 'Rewards and incentive features' },
-];
+  smokeWalletUX: {
+    tag: 'SmokeWalletUX:',
+    description: 'Wallet user experience and UI',
+  },
+  smokeAssets: {
+    tag: 'SmokeAssets:',
+    description: 'Asset management and display',
+  },
+  smokeSwaps: { tag: 'SmokeSwaps:', description: 'Token swap functionality' },
+  smokeStake: { tag: 'SmokeStake:', description: 'Staking features' },
+  smokeCard: { tag: 'SmokeCard:', description: 'Card-related features' },
+  smokeNotifications: {
+    tag: 'SmokeNotifications:',
+    description: 'Notification system',
+  },
+  smokeRewards: {
+    tag: 'SmokeRewards:',
+    description: 'Rewards and incentive features',
+  },
+  smokePerps: { tag: 'SmokePerps:', description: 'Perpetuals trading' },
+  smokeRamps: { tag: 'SmokeRamps:', description: 'On/off ramp features' },
+  smokeMultiChainPermissions: {
+    tag: 'SmokeMultiChainPermissions:',
+    description: 'Multi-chain permissions',
+  },
+  smokeAnalytics: { tag: 'SmokeAnalytics:', description: 'Analytics' },
+  smokeMultiChainAPI: {
+    tag: 'SmokeMultiChainAPI:',
+    description: 'Multi-chain API',
+  },
+  smokePredictions: {
+    tag: 'SmokePredictions',
+    description: 'Predictions features',
+  },
+};
 
-const RegressionAccounts = (testName) =>
-  `${tags.regressionAccounts} ${testName}`;
-const SmokeAccounts = (testName) => `${tags.smokeAccounts} ${testName}`;
-const SmokeCore = (testName) => `${tags.smokeCore} ${testName}`;
-const RegressionConfirmations = (testName) =>
-  `${tags.regressionConfirmations} ${testName}`;
+// Other tags to run on demand or for specific purposes.
+const otherTags = {
+  regressionAccounts: 'RegressionAccounts:',
+  regressionConfirmations: 'RegressionConfirmations:',
+  regressionConfirmationsRedesigned: 'RegressionConfirmationsRedesigned:',
+  regressionIdentity: 'RegressionIdentity:',
+  regressionNetworkAbstractions: 'RegressionNetworkAbstractions:',
+  regressionWalletPlatform: 'RegressionWalletPlatform:',
+  regressionNetworkExpansion: 'RegressionNetworkExpansion:',
+  regressionAssets: 'RegressionAssets:',
+  regressionWalletUX: 'RegressionWalletUX:',
+  regressionTrade: 'RegressionTrade:',
+  regressionSampleFeature: 'RegressionSampleFeature:',
+  flaskBuildTests: 'FlaskBuildTests:',
+  performance: 'Performance:',
+};
+
+// Smoke test tag functions
+const SmokeAccounts = (testName) =>
+  `${smokeTags.smokeAccounts.tag} ${testName}`;
+const SmokeCore = (testName) => `${smokeTags.smokeCore.tag} ${testName}`;
 const SmokeConfirmationsRedesigned = (testName) =>
-  `${tags.smokeConfirmationsRedesigned} ${testName}`;
-const RegressionConfirmationsRedesigned = (testName) =>
-  `${tags.regressionConfirmationsRedesigned} ${testName}`;
-const SmokeSwaps = (testName) => `${tags.SmokeSwaps} ${testName}`;
-const SmokeStake = (testName) => `${tags.smokeStake} ${testName}`;
-const SmokeAssets = (testName) => `${tags.smokeAssets} ${testName}`;
-const RegressionAssets = (testName) => `${tags.regressionAssets} ${testName}`;
-const SmokeIdentity = (testName) => `${tags.smokeIdentity} ${testName}`;
-const RegressionIdentity = (testName) =>
-  `${tags.regressionIdentity} ${testName}`;
-const SmokeRamps = (testName) => `${tags.smokeRamps} ${testName}`;
-const SmokeMultiChainPermissions = (testName) =>
-  `${tags.smokeMultiChainPermissions} ${testName}`;
-const SmokeMultiChainAPI = (testName) =>
-  `${tags.smokeMultiChainAPI} ${testName}`;
-const SmokeNotifications = (testName) =>
-  `${tags.smokeNotifications} ${testName}`;
-const SmokeAnalytics = (testName) => `${tags.smokeAnalytics} ${testName}`;
-
-const SmokeTrade = (testName) => `${tags.SmokeTrade} ${testName}`;
-const SmokePerps = (testName) => `${tags.SmokePerps} ${testName}`;
-const RegressionTrade = (testName) => `${tags.RegressionTrade} ${testName}`;
-const SmokeWalletPlatform = (testName) =>
-  `${tags.SmokeWalletPlatform} ${testName}`;
-const RegressionWalletPlatform = (testName) =>
-  `${tags.regressionWalletPlatform} ${testName}`;
-const RegressionNetworkAbstractions = (testName) =>
-  `${tags.regressionNetworkAbstractions} ${testName}`;
+  `${smokeTags.smokeConfirmationsRedesigned.tag} ${testName}`;
+const SmokeIdentity = (testName) =>
+  `${smokeTags.smokeIdentity.tag} ${testName}`;
 const SmokeNetworkAbstractions = (testName) =>
-  `${tags.SmokeNetworkAbstractions} ${testName}`;
+  `${smokeTags.smokeNetworkAbstractions.tag} ${testName}`;
 const SmokeNetworkExpansion = (testName) =>
-  `${tags.SmokeNetworkExpansion} ${testName}`;
+  `${smokeTags.smokeNetworkExpansion.tag} ${testName}`;
+const SmokeTrade = (testName) => `${smokeTags.smokeTrade.tag} ${testName}`;
+const SmokeWalletPlatform = (testName) =>
+  `${smokeTags.smokeWalletPlatform.tag} ${testName}`;
+const SmokeWalletUX = (testName) =>
+  `${smokeTags.smokeWalletUX.tag} ${testName}`;
+const SmokeAssets = (testName) => `${smokeTags.smokeAssets.tag} ${testName}`;
+const SmokeSwaps = (testName) => `${smokeTags.smokeSwaps.tag} ${testName}`;
+const SmokeStake = (testName) => `${smokeTags.smokeStake.tag} ${testName}`;
+const SmokeCard = (testName) => `${smokeTags.smokeCard.tag} ${testName}`;
+const SmokeNotifications = (testName) =>
+  `${smokeTags.smokeNotifications.tag} ${testName}`;
+const SmokeRewards = (testName) => `${smokeTags.smokeRewards.tag} ${testName}`;
+const SmokePerps = (testName) => `${smokeTags.smokePerps.tag} ${testName}`;
+const SmokeRamps = (testName) => `${smokeTags.smokeRamps.tag} ${testName}`;
+const SmokeMultiChainPermissions = (testName) =>
+  `${smokeTags.smokeMultiChainPermissions.tag} ${testName}`;
+const SmokeAnalytics = (testName) =>
+  `${smokeTags.smokeAnalytics.tag} ${testName}`;
+const SmokeMultiChainAPI = (testName) =>
+  `${smokeTags.smokeMultiChainAPI.tag} ${testName}`;
+const SmokePredictions = (testName) =>
+  `${smokeTags.smokePredictions.tag} ${testName}`;
+// Other test tags functions.
+const RegressionAccounts = (testName) =>
+  `${otherTags.regressionAccounts} ${testName}`;
+const RegressionConfirmations = (testName) =>
+  `${otherTags.regressionConfirmations} ${testName}`;
+const RegressionConfirmationsRedesigned = (testName) =>
+  `${otherTags.regressionConfirmationsRedesigned} ${testName}`;
+const RegressionIdentity = (testName) =>
+  `${otherTags.regressionIdentity} ${testName}`;
+const RegressionNetworkAbstractions = (testName) =>
+  `${otherTags.regressionNetworkAbstractions} ${testName}`;
+const RegressionWalletPlatform = (testName) =>
+  `${otherTags.regressionWalletPlatform} ${testName}`;
 const RegressionNetworkExpansion = (testName) =>
-  `${tags.regressionNetworkExpansion} ${testName}`;
-const SmokeCard = (testName) => `${tags.smokeCard} ${testName}`;
-const SmokePredictions = (testName) => `${tags.SmokePredictions} ${testName}`;
-const SmokeWalletUX = (testName) => `${tags.smokeWalletUX} ${testName}`;
+  `${otherTags.regressionNetworkExpansion} ${testName}`;
+const RegressionAssets = (testName) =>
+  `${otherTags.regressionAssets} ${testName}`;
 const RegressionWalletUX = (testName) =>
-  `${tags.regressionWalletUX} ${testName}`;
-const FlaskBuildTests = (testName) => `${tags.FlaskBuildTests} ${testName}`;
+  `${otherTags.regressionWalletUX} ${testName}`;
+const RegressionTrade = (testName) =>
+  `${otherTags.regressionTrade} ${testName}`;
 const RegressionSampleFeature = (testName) =>
-  `${tags.regressionSampleFeature} ${testName}`;
-const SmokePerformance = (testName) => `${tags.performance} ${testName}`;
-const SmokeRewards = (testName) => `${tags.smokeRewards} ${testName}`;
+  `${otherTags.regressionSampleFeature} ${testName}`;
+const FlaskBuildTests = (testName) =>
+  `${otherTags.flaskBuildTests} ${testName}`;
+const SmokePerformance = (testName) => `${otherTags.performance} ${testName}`;
 
 export {
-  FlaskBuildTests,
-  SmokePerps,
-  RegressionAccounts,
+  smokeTags,
   SmokeAccounts,
   SmokeCore,
-  RegressionConfirmations,
   SmokeConfirmationsRedesigned,
-  RegressionConfirmationsRedesigned,
-  SmokeSwaps,
-  SmokeStake,
-  SmokeAssets,
-  RegressionAssets,
   SmokeIdentity,
-  RegressionIdentity,
-  SmokeMultiChainPermissions,
-  SmokeTrade,
-  RegressionNetworkAbstractions,
   SmokeNetworkAbstractions,
   SmokeNetworkExpansion,
-  RegressionNetworkExpansion,
+  SmokeTrade,
   SmokeWalletPlatform,
-  RegressionWalletPlatform,
-  RegressionTrade,
-  SmokeRamps,
+  SmokeWalletUX,
+  SmokeAssets,
+  SmokeSwaps,
+  SmokeStake,
+  SmokeCard,
   SmokeNotifications,
+  SmokeRewards,
+  SmokePerps,
+  SmokeRamps,
+  SmokeMultiChainPermissions,
   SmokeAnalytics,
   SmokeMultiChainAPI,
-  SmokePerformance,
-  SmokeCard,
   SmokePredictions,
-  SmokeWalletUX,
+  RegressionAccounts,
+  RegressionConfirmations,
+  RegressionConfirmationsRedesigned,
+  RegressionIdentity,
+  RegressionNetworkAbstractions,
+  RegressionWalletPlatform,
+  RegressionNetworkExpansion,
+  RegressionAssets,
   RegressionWalletUX,
-  SmokeRewards,
+  RegressionTrade,
   RegressionSampleFeature,
-  tags,
-  aiE2EConfig,
+  FlaskBuildTests,
+  SmokePerformance,
 };

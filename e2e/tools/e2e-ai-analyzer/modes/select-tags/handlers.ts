@@ -4,10 +4,16 @@
 
 import { writeFileSync } from 'node:fs';
 import { SelectTagsAnalysis } from '../../types';
-import { aiE2EConfig } from '../../../../tags';
+import { smokeTags } from '../../../../tags';
 
-// Single source of truth for tags
-export const SELECT_TAGS_CONFIG = aiE2EConfig;
+/**
+ * Derive AI config from E2EsmokeTags
+ * Converts smokeTags object to array format for AI
+ */
+export const SELECT_TAGS_CONFIG = Object.values(smokeTags).map((config) => ({
+  tag: config.tag.replace(':', ''), // Remove trailing colon for AI
+  description: config.description,
+}));
 
 /**
  * Safe minimum: When no work needed, return empty result

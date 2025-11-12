@@ -64,7 +64,7 @@ export function buildTaskPrompt(
     otherFiles.forEach((f) => fileList.push(`  ${f}`));
   }
 
-  const instruction = `Analyze these changes and select the E2E test tags to run so the tests can verify the changes.`;
+  const instruction = `Analyze the changed files and select the E2E test tags to run so the tests can verify the changes.`;
   const tagsSection = `AVAILABLE TEST TAGS:\n${tagCoverageList}`;
   const filesSection = `CHANGED FILES (${
     allFiles.length
