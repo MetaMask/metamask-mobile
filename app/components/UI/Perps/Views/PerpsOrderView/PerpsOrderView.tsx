@@ -216,12 +216,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
    * updating leverage after positions load to prevent protocol violations.
    */
 
-  // Market data hook - now uses orderForm.asset from context
-  const {
-    marketData,
-    isLoading: isLoadingMarketData,
-    error: marketDataError,
-  } = usePerpsMarketData(orderForm.asset);
+  // Market data hook with automatic error toast handling
+  const { marketData, isLoading: isLoadingMarketData } = usePerpsMarketData({
+    asset: orderForm.asset,
+    showErrorToast: true,
+  });
 
   // Check if user has an existing position for this market
   const { existingPosition } = useHasExistingPosition({
@@ -354,25 +353,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
       [PerpsEventProperties.ORDER_TYPE]: orderForm.type,
     },
   });
-
-  // Show error toast if market data is not available
-  useEffect(() => {
-    // Don't show error during initial load - only for persistent failures
-    if (marketDataError && !isLoadingMarketData) {
-      showToast(
-        PerpsToastOptions.dataFetching.market.error.marketDataUnavailable(
-          orderForm.asset,
-        ),
-      );
-    }
-  }, [
-    marketDataError,
-    isLoadingMarketData,
-    orderForm.asset,
-    navigation,
-    showToast,
-    PerpsToastOptions.dataFetching.market.error,
-  ]);
 
   // Real-time position size calculation - memoized to prevent recalculation
   const positionSize = useMemo(() => {

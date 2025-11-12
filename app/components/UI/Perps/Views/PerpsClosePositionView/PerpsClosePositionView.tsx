@@ -37,7 +37,10 @@ import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
 import type { InputMethod, OrderType, Position } from '../../controllers/types';
 import type { PerpsNavigationParamList } from '../../types/navigation';
-import { ORDER_SLIPPAGE_CONFIG } from '../../constants/perpsConfig';
+import {
+  DECIMAL_PRECISION_CONFIG,
+  ORDER_SLIPPAGE_CONFIG,
+} from '../../constants/perpsConfig';
 import {
   useMinimumOrderAmount,
   usePerpsClosePosition,
@@ -91,10 +94,11 @@ const PerpsClosePositionView: React.FC = () => {
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
-  // Get market data for szDecimals
-  const { marketData, isLoading: isLoadingMarketData } = usePerpsMarketData(
-    position.coin,
-  );
+  // Get market data for szDecimals with automatic error toast handling
+  const { marketData, isLoading: isLoadingMarketData } = usePerpsMarketData({
+    asset: position.coin,
+    showErrorToast: true,
+  });
 
   // Track screen load performance with unified hook (immediate measurement)
   usePerpsMeasurement({
@@ -168,18 +172,15 @@ const PerpsClosePositionView: React.FC = () => {
       };
     }
 
-    // After loading completes, szDecimals MUST be present - throw error if missing
-    if (marketData?.szDecimals === undefined) {
-      throw new Error(
-        `Market data szDecimals is required for close position calculation (asset: ${position.coin})`,
-      );
-    }
+    // Use fallback if szDecimals missing (shouldn't happen, but prevent crash)
+    const szDecimals =
+      marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS;
 
     const { tokenAmount, usdValue } = calculateCloseAmountFromPercentage({
       percentage: closePercentage,
       positionSize: absSize,
       currentPrice: effectivePrice,
-      szDecimals: marketData.szDecimals,
+      szDecimals,
     });
 
     return {
@@ -191,7 +192,6 @@ const PerpsClosePositionView: React.FC = () => {
     absSize,
     effectivePrice,
     marketData?.szDecimals,
-    position.coin,
     isLoadingMarketData,
   ]);
 
