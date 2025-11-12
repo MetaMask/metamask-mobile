@@ -5,7 +5,15 @@ import Routes from '../../../../../constants/navigation/Routes';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import { fireEvent } from '@testing-library/react-native';
 import { Linking } from 'react-native';
+
 const mockOnCloseBottomSheet = jest.fn();
+
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn(),
+  addEventListener: jest.fn(() => ({ remove: jest.fn() })),
+  removeEventListener: jest.fn(),
+  canOpenURL: jest.fn().mockResolvedValue(true),
+}));
 
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheet',
