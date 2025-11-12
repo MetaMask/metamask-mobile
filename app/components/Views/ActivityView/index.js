@@ -184,8 +184,8 @@ const ActivityView = () => {
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
   const isPredictEnabled = useMemo(
-    () => predictEnabledFlag && isEvmSelected,
-    [predictEnabledFlag, isEvmSelected],
+    () => predictEnabledFlag,
+    [predictEnabledFlag],
   );
 
   const openAccountSelector = useCallback(() => {
