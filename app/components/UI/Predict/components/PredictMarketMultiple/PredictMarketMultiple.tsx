@@ -39,7 +39,7 @@ import {
   PredictEntryPoint,
 } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
-import { formatVolume } from '../../utils/format';
+import { formatPercentage, formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketMultiple.styles';
 interface PredictMarketMultipleProps {
   market: PredictMarket;
@@ -67,7 +67,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     (outcome) => outcome.tokens[0].price !== 0 && outcome.tokens[0].price !== 1,
   );
 
-  const getFirstOutcomePrice = (
+  const getOutcomePercentage = (
     outcomePrices?: number[],
   ): string | undefined => {
     if (!outcomePrices) {
@@ -78,7 +78,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
       const parsed = outcomePrices;
       if (Array.isArray(parsed) && parsed.length > 0) {
         const firstValue = parsed[0];
-        return (firstValue * 100).toFixed(2);
+        return formatPercentage(firstValue * 100);
       }
     } catch (error) {
       DevLogger.log('PredictMarketMultiple: Failed to parse outcomePrices', {
@@ -212,10 +212,9 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                     variant={TextVariant.BodySMMedium}
                     color={TextColor.Alternative}
                   >
-                    {getFirstOutcomePrice(
+                    {getOutcomePercentage(
                       outcome.tokens.map((token) => token.price),
                     ) ?? '0'}
-                    %
                   </Text>
                 </Box>
 

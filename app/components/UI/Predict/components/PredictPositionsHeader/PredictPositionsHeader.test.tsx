@@ -509,7 +509,7 @@ describe('MarketsWonCard', () => {
       expect(screen.getByText('Available Balance')).toBeOnTheScreen();
       expect(screen.getByText('$100.50')).toBeOnTheScreen();
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
-      expect(screen.getByText('+$8.63 (+3.9%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$8.63 (+4%)')).toBeOnTheScreen();
     });
     it('renders claim button without loading indicator when isLoading is false', () => {
       setupMarketsWonCardTest({ isLoading: false });
@@ -532,7 +532,7 @@ describe('MarketsWonCard', () => {
         },
       );
 
-      expect(screen.getByText('+$123.46 (+5.7%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$123.46 (+6%)')).toBeOnTheScreen();
     });
 
     it('formats negative unrealized amount correctly', () => {
@@ -547,7 +547,7 @@ describe('MarketsWonCard', () => {
         },
       );
 
-      expect(screen.getByText('-$50.25 (-2.1%)')).toBeOnTheScreen();
+      expect(screen.getByText('-$50.25 (-2%)')).toBeOnTheScreen();
     });
 
     it('handles zero unrealized amount correctly', () => {
@@ -562,7 +562,7 @@ describe('MarketsWonCard', () => {
         },
       );
 
-      expect(screen.getByText('+$0.00 (+0.0%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$0.00 (+0%)')).toBeOnTheScreen();
     });
 
     it('formats available balance to 2 decimal places', () => {
@@ -632,7 +632,7 @@ describe('MarketsWonCard', () => {
       expect(screen.getByText('Available Balance')).toBeOnTheScreen();
       expect(screen.getByText('$75.50')).toBeOnTheScreen();
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
-      expect(screen.getByText('+$100.00 (+10.0%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$100.00 (+10%)')).toBeOnTheScreen();
     });
   });
 
@@ -649,7 +649,7 @@ describe('MarketsWonCard', () => {
         },
       );
 
-      expect(screen.getByText('+$999999.99 (+999.9%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$999999.99 (+>99%)')).toBeOnTheScreen();
     });
 
     it('handles very small unrealized amounts', () => {
@@ -664,7 +664,7 @@ describe('MarketsWonCard', () => {
         },
       );
 
-      expect(screen.getByText('+$0.01 (+0.1%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$0.01 (+<1%)')).toBeOnTheScreen();
     });
 
     it('handles very large available balance', () => {
@@ -692,7 +692,7 @@ describe('MarketsWonCard', () => {
       );
 
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
-      expect(screen.getByText('+$50.00 (+5.0%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$50.00 (+5%)')).toBeOnTheScreen();
     });
   });
 
@@ -720,7 +720,7 @@ describe('MarketsWonCard', () => {
 
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
       // Should show fallback values when there's an error
-      expect(screen.getByText('+$0.00 (+0.0%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$0.00 (+0%)')).toBeOnTheScreen();
     });
 
     it('handles null unrealized P&L data gracefully', () => {
@@ -739,7 +739,7 @@ describe('MarketsWonCard', () => {
 
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
       // Should show fallback values when data is null
-      expect(screen.getByText('+$0.00 (+0.0%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$0.00 (+0%)')).toBeOnTheScreen();
     });
 
     it('displays correct unrealized P&L data from hook', () => {
@@ -757,7 +757,7 @@ describe('MarketsWonCard', () => {
       );
 
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
-      expect(screen.getByText('-$15.75 (-8.2%)')).toBeOnTheScreen();
+      expect(screen.getByText('-$15.75 (-8%)')).toBeOnTheScreen();
     });
 
     it('does not show unrealized P&L section when hook returns null data', () => {
