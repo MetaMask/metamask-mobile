@@ -44,6 +44,27 @@ class MultiChainEvmTestDapp {
         }
     }
 
+    get personalSignButton() {
+        if (!this._device) {
+            return null;
+        }
+
+        if (AppwrightSelectors.isAndroid(this._device)) {
+            // //p[@id="connected-status"]
+            return AppwrightSelectors.getElementByXpath(this._device, '//*[@id="personal-sign-button"]');
+        }
+    }
+
+    get requestResponseHeader() {
+        if (!this._device) {
+            return null;
+        }
+
+        if (AppwrightSelectors.isAndroid(this._device)) {
+            return AppwrightSelectors.getElementByXpath(this._device, '//*[@id="request-response"]');
+        }
+    }
+
     async tapTerminateButton() {
         if (!this._device) {
             return;
@@ -62,6 +83,15 @@ class MultiChainEvmTestDapp {
         await AppwrightGestures.tap(element)
     }
 
+    async tapPersonalSignButton() {
+        if (!this._device) {
+            return;
+        }
+
+        const element = await this.personalSignButton;
+        await AppwrightGestures.tap(element)
+    }
+
     async isDappConnected() {
         if (!this._device) {
             return false;
@@ -70,6 +100,16 @@ class MultiChainEvmTestDapp {
         const connectedStatusHeader = await this.connectedStatusHeader;
         const text = await connectedStatusHeader.getText();
         expect(text).toContain('true');
+    }
+
+    async assertRequestResponseValue(value ) {
+        if (!this._device) {
+            return false;
+        }
+
+        const requestResponseHeader = await this.requestResponseHeader;
+        const text = await requestResponseHeader.getText();
+        expect(text).toContain(value);
     }
 }
 
