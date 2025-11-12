@@ -20,7 +20,6 @@ import { FeatureFlagOverrideProvider } from '../../../contexts/FeatureFlagOverri
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
-import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 
 /**
  * Top level of the component hierarchy
@@ -28,7 +27,6 @@ import { useOTAUpdates } from '../../hooks/useOTAUpdates';
  */
 const Root = ({ foxCode }: RootProps) => {
   const [isStoreLoading, setIsStoreLoading] = useState(true);
-  const { isCheckingUpdates } = useOTAUpdates();
 
   /**
    * Wait for store to be initialized in Detox tests
@@ -63,11 +61,6 @@ const Root = ({ foxCode }: RootProps) => {
 
   // Only wait for store in test mode, fonts are handled inside theme context
   if (isTest && isStoreLoading) {
-    return null;
-  }
-
-  // Don't render app while checking for OTA updates to prevent visual glitches
-  if (isCheckingUpdates) {
     return null;
   }
 
