@@ -10,6 +10,9 @@ on:
 
 jobs:
   release-pr-approval:
+    if: >
+      startsWith(github.event.pull_request.base.ref, 'Version-v') ||
+      startsWith(github.event.pull_request.base.ref, 'release/')
     runs-on: ubuntu-latest
     steps:
       - name: Require Release Team approval
