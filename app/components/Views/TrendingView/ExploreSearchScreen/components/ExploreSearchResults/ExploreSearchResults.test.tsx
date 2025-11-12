@@ -33,44 +33,6 @@ jest.mock(
   () => () => null,
 );
 
-jest.mock(
-  '../../../TrendingTokensSection/TrendingTokenSkeleton/TrendingTokensSkeleton',
-  () => () => null,
-);
-
-jest.mock(
-  '../../../../../UI/Perps/Views/PerpsMarketListView/components/PerpsMarketRowSkeleton',
-  () => () => null,
-);
-
-// Mock FlashList since it requires native dependencies
-jest.mock('@shopify/flash-list', () => {
-  const { View: RNView } = jest.requireActual('react-native');
-  return {
-    FlashList: ({
-      data,
-      renderItem,
-      testID,
-    }: {
-      data: unknown[];
-      renderItem: ({
-        item,
-        index,
-      }: {
-        item: unknown;
-        index: number;
-      }) => React.ReactElement | null;
-      testID: string;
-    }) => (
-      <RNView testID={testID}>
-        {data.map((item, index) => (
-          <RNView key={index}>{renderItem({ item, index })}</RNView>
-        ))}
-      </RNView>
-    ),
-  };
-});
-
 describe('ExploreSearchResults', () => {
   beforeEach(() => {
     jest.clearAllMocks();
