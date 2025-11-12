@@ -468,11 +468,13 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                   {
                                     "color": "#121314",
                                     "fontFamily": "Geist Bold",
-                                    "fontSize": 18,
+                                    "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
+                                    "textAlign": "center",
                                   }
                                 }
+                                testID="header-title"
                               >
                                 Select a region
                               </Text>
@@ -1175,11 +1177,13 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                   {
                                     "color": "#121314",
                                     "fontFamily": "Geist Bold",
-                                    "fontSize": 18,
+                                    "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
+                                    "textAlign": "center",
                                   }
                                 }
+                                testID="header-title"
                               >
                                 Select a region
                               </Text>
@@ -2078,11 +2082,13 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                   {
                                     "color": "#121314",
                                     "fontFamily": "Geist Bold",
-                                    "fontSize": 18,
+                                    "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
+                                    "textAlign": "center",
                                   }
                                 }
+                                testID="header-title"
                               >
                                 Select a region
                               </Text>
@@ -3225,11 +3231,13 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                   {
                                     "color": "#121314",
                                     "fontFamily": "Geist Bold",
-                                    "fontSize": 18,
+                                    "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
+                                    "textAlign": "center",
                                   }
                                 }
+                                testID="header-title"
                               >
                                 Select a region
                               </Text>
@@ -3973,11 +3981,13 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                   {
                                     "color": "#121314",
                                     "fontFamily": "Geist Bold",
-                                    "fontSize": 18,
+                                    "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
+                                    "textAlign": "center",
                                   }
                                 }
+                                testID="header-title"
                               >
                                 Select a region
                               </Text>
@@ -4809,11 +4819,13 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                   {
                                     "color": "#121314",
                                     "fontFamily": "Geist Bold",
-                                    "fontSize": 18,
+                                    "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
+                                    "textAlign": "center",
                                   }
                                 }
+                                testID="header-title"
                               >
                                 Select a region
                               </Text>
@@ -5956,11 +5968,13 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                   {
                                     "color": "#121314",
                                     "fontFamily": "Geist Bold",
-                                    "fontSize": 18,
+                                    "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
+                                    "textAlign": "center",
                                   }
                                 }
+                                testID="header-title"
                               >
                                 Select a region
                               </Text>
@@ -7103,11 +7117,13 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                   {
                                     "color": "#121314",
                                     "fontFamily": "Geist Bold",
-                                    "fontSize": 18,
+                                    "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
+                                    "textAlign": "center",
                                   }
                                 }
+                                testID="header-title"
                               >
                                 Select a region
                               </Text>
