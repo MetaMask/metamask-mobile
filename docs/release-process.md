@@ -58,13 +58,7 @@ subgraph Current [Current release branch: 'release/x.y.z']
     CURRENT11 --> CURRENT12[Release engineer merges x.y.z release PR into 'stable' branch]
 end
 
-subgraph Stable [Release branch: 'release/x.y.z']
-    style Stable fill:#26084d,stroke:#000,stroke-width:2px,color:#fff
-    CURRENT12 -->|merge PR| STABLE1[A new production build is automatically created and posted on the repo's releases page]
-    STABLE1 --> STABLE2[Release Engineer submits x.y.z production build to the store]
-end
-
 subgraph Next [Next release branch: 'release/x.y+1.z']
     style Next fill:#08084d,stroke:#000,stroke-width:2px,color:#fff
-    STABLE2 --> NEXT1[Runway automatically creates a new release branch from main, called 'release/x.y+1.z']
+    CURRENT12 --> STABLE1[Runway automatically creates a new release branch from main, called 'release/x.y+1.z']
 end
