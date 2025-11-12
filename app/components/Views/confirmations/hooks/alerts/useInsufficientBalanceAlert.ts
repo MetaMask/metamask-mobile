@@ -22,6 +22,7 @@ import { useAccountNativeBalance } from '../useAccountNativeBalance';
 import { useConfirmActions } from '../useConfirmActions';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useConfirmationContext } from '../../context/confirmation-context';
+import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 
 const HEX_ZERO = '0x0';
 
@@ -40,6 +41,7 @@ export const useInsufficientBalanceAlert = ({
   const { isTransactionValueUpdating } = useConfirmationContext();
   const { onReject } = useConfirmActions();
   const { payToken } = useTransactionPayToken();
+  const { isSupported: isGaslessSupported } = useIsGaslessSupported();
 
   return useMemo(() => {
     if (!transactionMetadata || isTransactionValueUpdating) {
@@ -68,11 +70,13 @@ export const useInsufficientBalanceAlert = ({
       totalTransactionValueBN,
     );
 
+    const isSponsoredTransaction = isGasFeeSponsored && isGaslessSupported;
+
     const showAlert =
       hasInsufficientBalance &&
       (ignoreGasFeeToken || !selectedGasFeeToken) &&
       !payToken &&
-      !isGasFeeSponsored;
+      !isSponsoredTransaction;
 
     if (!showAlert) {
       return [];
@@ -106,6 +110,7 @@ export const useInsufficientBalanceAlert = ({
   }, [
     balanceWeiInHex,
     ignoreGasFeeToken,
+    isGaslessSupported,
     isTransactionValueUpdating,
     networkConfigurations,
     onReject,

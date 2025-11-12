@@ -3,14 +3,19 @@ import { fireEvent } from '@testing-library/react-native';
 
 // Internal dependencies.
 import SettingsModal from './SettingsModal';
-import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
+import {
+  DeepPartial,
+  renderScreen,
+} from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import Routes from '../../../../../../../constants/navigation/Routes';
+import { RampSDK } from '../../../sdk';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockDangerouslyGetParent = jest.fn();
 const mockGoToRamps = jest.fn();
+const mockTrackEvent = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -25,9 +30,15 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../../hooks/useRampNavigation', () => ({
-  useRampNavigation: jest.fn(() => ({ goToRamps: mockGoToRamps })),
-  RampMode: { AGGREGATOR: 'AGGREGATOR', DEPOSIT: 'DEPOSIT' },
+jest.mock('../../../../hooks/useAnalytics', () => () => mockTrackEvent);
+
+const mockUseRampSDKValues: DeepPartial<RampSDK> = {
+  selectedRegion: { id: 'us' },
+};
+
+jest.mock('../../../sdk', () => ({
+  ...jest.requireActual('../../../sdk'),
+  useRampSDK: () => mockUseRampSDKValues,
 }));
 
 function render() {
@@ -150,6 +161,19 @@ describe('SettingsModal', () => {
 
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockDangerouslyGetParent).not.toHaveBeenCalled();
+    });
+
+    it('tracks event when deposit is pressed', () => {
+      const { getByText } = render();
+      const newBuyExperienceButton = getByText('Use new buy experience');
+
+      fireEvent.press(newBuyExperienceButton);
+
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_BUTTON_CLICKED', {
+        location: 'Buy Settings Modal',
+        ramp_type: 'DEPOSIT',
+        region: 'us',
+      });
     });
   });
 });
