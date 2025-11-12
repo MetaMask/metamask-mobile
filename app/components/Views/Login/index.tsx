@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useRef,
-  useState,
-  useMemo,
-  useCallback,
-} from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View,
   SafeAreaView,
@@ -29,7 +23,7 @@ import {
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
 import { setExistingUser } from '../../../actions/user';
-import { connect, useDispatch, useSelector } from 'react-redux';
+import { connect, useDispatch } from 'react-redux';
 import { Dispatch } from 'redux';
 import { BiometryButton } from '../../UI/BiometryButton';
 import { OPTIN_META_METRICS_UI_SEEN } from '../../../constants/storage';
@@ -66,8 +60,6 @@ import {
   JSON_PARSE_ERROR_UNEXPECTED_TOKEN,
 } from './constants';
 import { toLowerCaseEquals } from '../../../util/general';
-import { usePromptSeedlessRelogin } from '../../hooks/SeedlessHooks';
-import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 import {
   ParamListBase,
   RouteProp,
@@ -118,7 +110,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const fieldRef = useRef<TextInput>(null);
 
   const [password, setPassword] = useState('');
-  // Login logic state (previously in useUnlockLogic hook)
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -139,16 +130,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   // coming from vault recovery flow flag
   const isComingFromVaultRecovery = route?.params?.isVaultRecovery ?? false;
-
-  const { isDeletingInProgress } = usePromptSeedlessRelogin();
-  const isSeedlessPasswordOutdated = useSelector(
-    selectIsSeedlessPasswordOutdated,
-  );
-
-  const finalLoading = useMemo(
-    () => loading || isDeletingInProgress,
-    [loading, isDeletingInProgress],
-  );
 
   const setStartFoxAnimationCallback = () => {
     setStartFoxAnimation('Start');
@@ -220,8 +201,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       isMountedRef.current = false;
     };
   }, []);
-
-  // --- Login Logic Functions (previously in useUnlockLogic hook) ---
 
   const handleVaultCorruption = useCallback(async () => {
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
@@ -321,6 +300,16 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       const loginError = loginErr as Error;
       const loginErrorMessage = loginError.toString();
 
+      if (route.params?.onboardingTraceCtx) {
+        trace({
+          name: TraceName.OnboardingPasswordLoginError,
+          op: TraceOperation.OnboardingError,
+          tags: { errorMessage: loginErrorMessage },
+          parentContext: route.params.onboardingTraceCtx,
+        });
+        endTrace({ name: TraceName.OnboardingPasswordLoginError });
+      }
+
       const isWrongPasswordError =
         toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR) ||
         toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID) ||
@@ -360,7 +349,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       setLoading(false);
       Logger.error(loginErr as Error, 'Failed to unlock');
     },
-    [handlePasswordError, handleVaultCorruption, updateBiometryChoice],
+    [
+      handlePasswordError,
+      handleVaultCorruption,
+      updateBiometryChoice,
+      route.params?.onboardingTraceCtx,
+    ],
   );
 
   const onLogin = useCallback(async () => {
@@ -371,7 +365,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       if (locked) {
         throw new Error(PASSWORD_REQUIREMENTS_NOT_MET);
       }
-      if (finalLoading || locked) return;
+      if (loading || locked) return;
 
       setLoading(true);
 
@@ -415,7 +409,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     password,
     biometryChoice,
     rememberMe,
-    finalLoading,
+    loading,
     handleLoginError,
     passwordLoginAttemptTraceCtxRef,
     checkMetricsUISeen,
@@ -463,7 +457,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const shouldHideBiometricAccessoryButton = !(
-    !isSeedlessPasswordOutdated &&
     biometryChoice &&
     biometryType &&
     hasBiometricCredentials &&
@@ -564,11 +557,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                   size={ButtonSize.Lg}
                   onPress={handleLogin}
                   label={strings('login.unlock_button')}
-                  isDisabled={
-                    password.length === 0 || disabledInput || finalLoading
-                  }
+                  isDisabled={password.length === 0 || disabledInput || loading}
                   testID={LoginViewSelectors.LOGIN_BUTTON_ID}
-                  loading={finalLoading}
+                  loading={loading}
                 />
 
                 <Button
@@ -577,7 +568,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                   onPress={toggleWarningModal}
                   testID={LoginViewSelectors.RESET_WALLET}
                   label={strings('login.forgot_password')}
-                  isDisabled={finalLoading}
+                  isDisabled={loading}
                   size={ButtonSize.Lg}
                 />
               </View>
