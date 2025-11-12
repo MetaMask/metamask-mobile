@@ -1,10 +1,5 @@
 import React, { useEffect } from 'react';
-import {
-  BackHandler,
-  StyleSheet,
-  TouchableWithoutFeedback,
-  View,
-} from 'react-native';
+import { BackHandler, TouchableWithoutFeedback, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 
@@ -31,6 +26,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import { CustomAmountInfoSkeleton } from '../info/custom-amount-info';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export enum ConfirmationLoader {
   Default = 'default',
@@ -46,7 +42,7 @@ const ConfirmWrapped = ({
   styles,
   route,
 }: {
-  styles: StyleSheet.NamedStyles<Record<string, unknown>>;
+  styles: ReturnType<typeof styleSheet>;
   route?: UnstakeConfirmationViewProps['route'];
 }) => {
   const alerts = useConfirmationAlerts();
@@ -59,11 +55,7 @@ const ConfirmWrapped = ({
             <LedgerContextProvider>
               <Title />
               <ScrollView
-                // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
-                // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
                 style={styles.scrollView}
-                // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
-                // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
                 contentContainerStyle={styles.scrollViewContent}
                 nestedScrollEnabled
               >
@@ -133,9 +125,13 @@ export const Confirm = ({ route }: ConfirmProps) => {
   // Show confirmation in a flat container if the confirmation is full screen
   if (isFullScreenConfirmation) {
     return (
-      <View style={styles.flatContainer} testID={ConfirmationUIType.FLAT}>
+      <SafeAreaView
+        edges={['right', 'bottom', 'left']}
+        style={styles.flatContainer}
+        testID={ConfirmationUIType.FLAT}
+      >
         <ConfirmWrapped styles={styles} route={route} />
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -160,14 +156,18 @@ function Loader() {
 
   if (loader === ConfirmationLoader.CustomAmount) {
     return (
-      <View style={styles.flatContainer} testID="confirm-loader-custom-amount">
+      <SafeAreaView
+        edges={['right', 'bottom', 'left']}
+        style={styles.flatContainer}
+        testID="confirm-loader-custom-amount"
+      >
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollViewContent}
         >
           <CustomAmountInfoSkeleton />
         </ScrollView>
-      </View>
+      </SafeAreaView>
     );
   }
 
