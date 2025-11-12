@@ -43,6 +43,7 @@ class DappConnectionModal {
         }
     }
 
+    // TODO: Might be able to use the AccountListComponent instead of this
     getAccountButton(accountName) {
         if (!this._device) {
             return null;

@@ -12,6 +12,7 @@ import DappConnectionModal from '../../../wdio/screen-objects/Modals/DappConnect
 import SignModal from '../../../wdio/screen-objects/Modals/SignModal.js';
 import SwitchChainModal from '../../../wdio/screen-objects/Modals/SwitchChainModal.js';
 import AppwrightHelpers from '../../../e2e/framework/AppwrightHelpers.js';
+import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
 
 const EVM_LEGACY_TEST_DAPP_URL = 'http://10.0.2.2:5173/';
 const EVM_LEGACY_TEST_DAPP_NAME = 'Connect | Legacy EVM';
@@ -25,6 +26,7 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   DappConnectionModal.device = device;
   SignModal.device = device;
   SwitchChainModal.device = device;
+  AccountListComponent.device = device;
 
   await AppwrightHelpers.switchToNativeContext(device);
 
@@ -207,5 +209,29 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
     // await login(device, { shouldDismissModals: false });
     await SignModal.assertNetworkText('Ethereum');
     await SignModal.tapRejectButton();
+
+    // Change to a specific account
+    await WalletMainScreen.tapIdenticon();
+    await AccountListComponent.isComponentDisplayed(); // Optional: verify modal opened
+    await AccountListComponent.tapOnAccountByName('Account 3');
   });
+
+  // Explicit pausing to avoid navigating back too fast to the dapp
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await launchMobileBrowser(device);
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await MultiChainEvmTestDapp.assertConnectedAccountsValue(
+        // Account 3 is now the first account connected
+        // Note that this is checksummed but the initial connection is not checksummed. Fix this
+        '0xE2bEca5CaDC60b61368987728b4229822e6CDa83,0x19a7ad8256ab119655f1d758348501d598fc1c94',
+      );
+    },
+    EVM_LEGACY_TEST_DAPP_URL,
+  );
 });
