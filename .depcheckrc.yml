@@ -71,6 +71,8 @@ ignores:
   - 'react-native-svg-asset-plugin'
   - 'regenerator-runtime'
   - 'prettier-2'
+    # Used for testing Pressable components but not directly imported
+  - 'pressto'
 
   ## Unused devDependencies to investigate
   - '@metamask/swappable-obj-proxy'
