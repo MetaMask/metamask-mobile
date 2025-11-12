@@ -10,14 +10,9 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
   Pressable,
-  TouchableOpacity,
 } from 'react-native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { strings } from '../../../../../locales/i18n';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
 import { usePredictMarketData } from '../../../UI/Predict/hooks/usePredictMarketData';
 import PredictMarket from '../../../UI/Predict/components/PredictMarket';
 import { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
@@ -25,6 +20,7 @@ import { PredictEventValues } from '../../../UI/Predict/constants/eventNames';
 import PredictMarketSkeleton from '../../../UI/Predict/components/PredictMarketSkeleton';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './PredictionSection.styles';
+import SectionHeader from '../SectionHeader';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32; // 16px padding on each side
@@ -116,21 +112,11 @@ const PredictionSection = () => {
   if (isFetching) {
     return (
       <Box twClassName="mb-6">
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          justifyContent={BoxJustifyContent.Between}
-          alignItems={BoxAlignItems.Center}
-          twClassName="px-1 mb-2"
-        >
-          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-            {strings('wallet.predict')}
-          </Text>
-          <TouchableOpacity onPress={handleViewAll}>
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Primary}>
-              {strings('trending.view_all')}
-            </Text>
-          </TouchableOpacity>
-        </Box>
+        <SectionHeader
+          title={strings('wallet.predict')}
+          viewAllText={strings('trending.view_all')}
+          onViewAll={handleViewAll}
+        />
         <Box>
           <FlashList
             data={[1, 2, 3]}
@@ -155,21 +141,11 @@ const PredictionSection = () => {
 
   return (
     <Box twClassName="mb-6">
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        justifyContent={BoxJustifyContent.Between}
-        alignItems={BoxAlignItems.Center}
-        twClassName="px-1 mb-2"
-      >
-        <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-          {strings('wallet.predict')}
-        </Text>
-        <TouchableOpacity onPress={handleViewAll}>
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Primary}>
-            {strings('trending.view_all')}
-          </Text>
-        </TouchableOpacity>
-      </Box>
+      <SectionHeader
+        title={strings('wallet.predict')}
+        viewAllText={strings('trending.view_all')}
+        onViewAll={handleViewAll}
+      />
 
       <Box>
         <FlashList
