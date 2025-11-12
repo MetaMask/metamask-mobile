@@ -34,10 +34,18 @@ import { Dispatch } from 'redux';
 import { BiometryButton } from '../../UI/BiometryButton';
 import { OPTIN_META_METRICS_UI_SEEN } from '../../../constants/storage';
 import Routes from '../../../constants/navigation/Routes';
+import { passwordRequirementsMet } from '../../../util/password';
 import ErrorBoundary from '../ErrorBoundary';
 import { Authentication } from '../../../core';
+
+import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
+import { parseVaultValue } from '../../../util/validators';
+import { getVaultFromBackup } from '../../../core/BackupVault';
+import { containsErrorMessage } from '../../../util/errorHandling';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
+import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
+import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import { downloadStateLogs } from '../../../util/logs';
 import {
   trace,
@@ -46,14 +54,7 @@ import {
   TraceContext,
   endTrace,
 } from '../../../util/trace';
-import { captureException } from '@sentry/react-native';
 import Logger from '../../../util/Logger';
-import { passwordRequirementsMet } from '../../../util/password';
-import { parseVaultValue } from '../../../util/validators';
-import { getVaultFromBackup } from '../../../core/BackupVault';
-import { containsErrorMessage } from '../../../util/errorHandling';
-import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
-import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import {
   PASSWORD_REQUIREMENTS_NOT_MET,
   VAULT_ERROR,
@@ -64,18 +65,7 @@ import {
   DENY_PIN_ERROR_ANDROID,
   JSON_PARSE_ERROR_UNEXPECTED_TOKEN,
 } from './constants';
-import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { toLowerCaseEquals } from '../../../util/general';
-import {
-  SeedlessOnboardingControllerErrorMessage,
-  RecoveryError as SeedlessOnboardingControllerRecoveryError,
-} from '@metamask/seedless-onboarding-controller';
-import {
-  SeedlessOnboardingControllerError,
-  SeedlessOnboardingControllerErrorType,
-} from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
-import { useNetInfo } from '@react-native-community/netinfo';
-import { SuccessErrorSheetParams } from '../SuccessErrorSheet/interface';
 import { usePromptSeedlessRelogin } from '../../hooks/SeedlessHooks';
 import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 import {
@@ -122,11 +112,16 @@ interface LoginProps {
  * View where returning users can authenticate
  */
 const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
+  const [disabledInput] = useState(false);
   const { isEnabled: isMetricsEnabled } = useMetrics();
 
   const fieldRef = useRef<TextInput>(null);
 
   const [password, setPassword] = useState('');
+  // Login logic state (previously in useUnlockLogic hook)
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const [startOnboardingAnimation, setStartOnboardingAnimation] =
     useState(false);
   const [startFoxAnimation, setStartFoxAnimation] = useState<
@@ -145,18 +140,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   // coming from vault recovery flow flag
   const isComingFromVaultRecovery = route?.params?.isVaultRecovery ?? false;
 
-  // Login logic state (previously in useUnlockLogic hook)
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [disabledInput, setDisabledInput] = useState(false);
-
-  const { isDeletingInProgress, promptSeedlessRelogin } =
-    usePromptSeedlessRelogin();
+  const { isDeletingInProgress } = usePromptSeedlessRelogin();
   const isSeedlessPasswordOutdated = useSelector(
     selectIsSeedlessPasswordOutdated,
   );
-  const netInfo = useNetInfo();
-  const isMountedRef = useRef(true);
 
   const finalLoading = useMemo(
     () => loading || isDeletingInProgress,
@@ -179,6 +166,40 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     );
   };
 
+  const handleBackPress = () => {
+    Authentication.lockApp();
+    return false;
+  };
+
+  useEffect(() => {
+    trace({
+      name: TraceName.LoginUserInteraction,
+      op: TraceOperation.Login,
+    });
+    track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
+    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+
+    setTimeout(() => {
+      setStartOnboardingAnimation(true);
+    }, 100);
+
+    return () => {
+      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;
+    if (onboardingTraceCtxFromRoute) {
+      passwordLoginAttemptTraceCtxRef.current = trace({
+        name: TraceName.OnboardingPasswordLoginAttempt,
+        op: TraceOperation.OnboardingUserJourney,
+        parentContext: onboardingTraceCtxFromRoute,
+      });
+    }
+  }, [route.params?.onboardingTraceCtx]);
+
   const {
     biometryType,
     rememberMe,
@@ -190,6 +211,76 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   } = useUserAuthPreferences({
     locked: route?.params?.locked,
   });
+
+  const isMountedRef = useRef(true);
+  // Cleanup for isMountedRef tracking
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  // --- Login Logic Functions (previously in useUnlockLogic hook) ---
+
+  const handleVaultCorruption = useCallback(async () => {
+    const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
+
+    // Track vault corruption handling attempt
+    trackVaultCorruption(VAULT_ERROR, {
+      error_type: 'vault_corruption_handling',
+      context: 'vault_corruption_recovery_attempt',
+      oauth_login: false,
+    });
+
+    // No need to check password requirements here, it will be checked in onLogin
+    try {
+      setLoading(true);
+      const backupResult = await getVaultFromBackup();
+      if (backupResult.vault) {
+        const vaultSeed = await parseVaultValue(password, backupResult.vault);
+        if (vaultSeed) {
+          // get authType
+          const authData = await Authentication.componentAuthenticationType(
+            biometryChoice,
+            rememberMe,
+          );
+          try {
+            await Authentication.storePassword(
+              password,
+              authData.currentAuthType,
+            );
+            navigation.replace(
+              ...createRestoreWalletNavDetailsNested({
+                previousScreen: Routes.ONBOARDING.LOGIN,
+              }),
+            );
+            setLoading(false);
+            setError(null);
+            return;
+          } catch (e) {
+            throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${e}`);
+          }
+        } else {
+          throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} Invalid Password`);
+        }
+      } else if (backupResult.error) {
+        throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${backupResult.error}`);
+      }
+    } catch (e: unknown) {
+      // Track vault corruption handling failure
+      trackVaultCorruption((e as Error).message, {
+        error_type: 'vault_corruption_handling_failed',
+        context: 'vault_corruption_recovery_failed',
+        oauth_login: false,
+      });
+
+      Logger.error(e as Error);
+      setLoading(false);
+
+      setError(strings('login.invalid_password'));
+    }
+  }, [password, biometryChoice, rememberMe, navigation]);
 
   const navigateToHome = useCallback(async () => {
     navigation.replace(Routes.ONBOARDING.HOME_NAV);
@@ -219,179 +310,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     }
   }, [navigation, navigateToHome, isMetricsEnabled]);
 
-  // --- Login Logic Functions (previously in useUnlockLogic hook) ---
-
-  const tooManyAttemptsError = useCallback(
-    async (initialRemainingTime: number) => {
-      const lockEnd = Date.now() + initialRemainingTime * 1000;
-
-      setDisabledInput(true);
-      while (Date.now() < lockEnd) {
-        const remainingTime = Math.floor((lockEnd - Date.now()) / 1000);
-        if (remainingTime <= 0) {
-          break;
-        }
-
-        if (!isMountedRef.current) {
-          setError(null);
-          setDisabledInput(false);
-          return;
-        }
-
-        const remainingHours = Math.floor(remainingTime / 3600);
-        const remainingMinutes = Math.floor((remainingTime % 3600) / 60);
-        const remainingSeconds = remainingTime % 60;
-        const displayRemainingTime = `${remainingHours}:${remainingMinutes
-          .toString()
-          .padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-
-        setError(
-          strings('login.too_many_attempts', {
-            remainingTime: displayRemainingTime,
-          }),
-        );
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
-      if (isMountedRef.current) {
-        setError(null);
-        setDisabledInput(false);
-      }
-    },
-    [],
-  );
-
-  const handleVaultCorruption = useCallback(async () => {
-    const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
-
-    trackVaultCorruption(VAULT_ERROR, {
-      error_type: 'vault_corruption_handling',
-      context: 'vault_corruption_recovery_attempt',
-      oauth_login: false,
-    });
-
-    try {
-      setLoading(true);
-      const backupResult = await getVaultFromBackup();
-      if (backupResult.vault) {
-        const vaultSeed = await parseVaultValue(password, backupResult.vault);
-        if (vaultSeed) {
-          const authData = await Authentication.componentAuthenticationType(
-            biometryChoice,
-            rememberMe,
-          );
-          try {
-            await Authentication.storePassword(
-              password,
-              authData.currentAuthType,
-            );
-            navigation.replace(
-              ...createRestoreWalletNavDetailsNested({
-                previousScreen: Routes.ONBOARDING.LOGIN,
-              }),
-            );
-            setLoading(false);
-            setError(null);
-            return;
-          } catch (e) {
-            throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${e}`);
-          }
-        } else {
-          throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} Invalid Password`);
-        }
-      } else if (backupResult.error) {
-        throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${backupResult.error}`);
-      }
-    } catch (e: unknown) {
-      trackVaultCorruption((e as Error).message, {
-        error_type: 'vault_corruption_handling_failed',
-        context: 'vault_corruption_recovery_failed',
-        oauth_login: false,
-      });
-
-      Logger.error(e as Error);
-      setLoading(false);
-      setError(strings('login.invalid_password'));
-    }
-  }, [password, biometryChoice, rememberMe, navigation]);
-
-  const handleSeedlessOnboardingControllerError = useCallback(
-    (
-      seedlessError:
-        | Error
-        | SeedlessOnboardingControllerRecoveryError
-        | SeedlessOnboardingControllerError,
-    ) => {
-      setLoading(false);
-
-      if (!netInfo.isConnected || !netInfo.isInternetReachable) {
-        const params: SuccessErrorSheetParams = {
-          title: strings(`error_sheet.no_internet_connection_title`),
-          description: strings(
-            `error_sheet.no_internet_connection_description`,
-          ),
-          descriptionAlign: 'left',
-          primaryButtonLabel: strings(
-            `error_sheet.no_internet_connection_button`,
-          ),
-          closeOnPrimaryButtonPress: true,
-          type: 'error',
-        };
-        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params,
-        });
-        return;
-      }
-
-      if (seedlessError instanceof SeedlessOnboardingControllerRecoveryError) {
-        if (
-          seedlessError.message ===
-          SeedlessOnboardingControllerErrorMessage.IncorrectPassword
-        ) {
-          setError(strings('login.invalid_password'));
-          return;
-        } else if (
-          seedlessError.message ===
-          SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts
-        ) {
-          if (typeof seedlessError.data?.remainingTime === 'number') {
-            tooManyAttemptsError(seedlessError.data?.remainingTime).catch(
-              () => null,
-            );
-          }
-          return;
-        }
-      } else if (seedlessError instanceof SeedlessOnboardingControllerError) {
-        if (
-          seedlessError.code ===
-          SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
-        ) {
-          setError(strings('login.seedless_password_outdated'));
-          return;
-        }
-      }
-
-      if (isMetricsEnabled()) {
-        captureException(seedlessError, {
-          tags: {
-            view: 'Re-login',
-            context:
-              'seedless flow unlock wallet failed - user consented to analytics',
-          },
-        });
-      }
-      Logger.error(seedlessError, 'Error in Unlock Screen');
-      promptSeedlessRelogin();
-    },
-    [
-      isMetricsEnabled,
-      promptSeedlessRelogin,
-      netInfo,
-      navigation,
-      tooManyAttemptsError,
-    ],
-  );
-
   const handlePasswordError = useCallback((loginErrorMessage: string) => {
     setLoading(false);
     setError(strings('login.invalid_password'));
@@ -402,21 +320,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     async (loginErr: unknown) => {
       const loginError = loginErr as Error;
       const loginErrorMessage = loginError.toString();
-
-      if (route.params?.onboardingTraceCtx) {
-        trace({
-          name: TraceName.OnboardingPasswordLoginError,
-          op: TraceOperation.OnboardingError,
-          tags: { errorMessage: loginErrorMessage },
-          parentContext: route.params.onboardingTraceCtx,
-        });
-        endTrace({ name: TraceName.OnboardingPasswordLoginError });
-      }
-
-      if (loginErrorMessage.includes('SeedlessOnboardingController')) {
-        handleSeedlessOnboardingControllerError(loginError);
-        return;
-      }
 
       const isWrongPasswordError =
         toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR) ||
@@ -457,13 +360,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       setLoading(false);
       Logger.error(loginErr as Error, 'Failed to unlock');
     },
-    [
-      handleSeedlessOnboardingControllerError,
-      handlePasswordError,
-      handleVaultCorruption,
-      updateBiometryChoice,
-      route.params?.onboardingTraceCtx,
-    ],
+    [handlePasswordError, handleVaultCorruption, updateBiometryChoice],
   );
 
   const onLogin = useCallback(async () => {
@@ -550,48 +447,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   usePasswordOutdated(setError);
 
-  // Cleanup for isMountedRef tracking
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-
-  const handleBackPress = () => {
-    Authentication.lockApp();
-    return false;
-  };
-
-  useEffect(() => {
-    trace({
-      name: TraceName.LoginUserInteraction,
-      op: TraceOperation.Login,
-    });
-    track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
-    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
-
-    setTimeout(() => {
-      setStartOnboardingAnimation(true);
-    }, 100);
-
-    return () => {
-      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;
-    if (onboardingTraceCtxFromRoute) {
-      passwordLoginAttemptTraceCtxRef.current = trace({
-        name: TraceName.OnboardingPasswordLoginAttempt,
-        op: TraceOperation.OnboardingUserJourney,
-        parentContext: onboardingTraceCtxFromRoute,
-      });
-    }
-  }, [route.params?.onboardingTraceCtx]);
-
   const toggleWarningModal = () => {
     track(MetaMetricsEvents.FORGOT_PASSWORD_CLICKED, {});
 
@@ -618,10 +473,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const handlePasswordChange = (newPassword: string) => {
     setPassword(newPassword);
     setError(null);
-  };
-
-  const handleUpdateRememberMe = (rememberMeChoice: boolean) => {
-    setRememberMe(rememberMeChoice);
   };
 
   const handleTryBiometric = async () => {
@@ -705,7 +556,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                   shouldRenderBiometricOption={shouldRenderBiometricLogin}
                   biometryChoiceState={biometryChoice}
                   onUpdateBiometryChoice={updateBiometryChoice}
-                  onUpdateRememberMe={handleUpdateRememberMe}
+                  onUpdateRememberMe={setRememberMe}
                 />
                 <Button
                   variant={ButtonVariants.Primary}
