@@ -83,6 +83,7 @@ import ApprovalTooltip from '../../components/ApprovalText';
 import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
 import { isNullOrUndefined } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
+import { useGasIncluded } from '../../hooks/useGasIncluded';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -135,6 +136,9 @@ const BridgeView = () => {
   const inputRef = useRef<{ blur: () => void }>(null);
 
   const updateQuoteParams = useBridgeQuoteRequest();
+
+  // Update gasIncluded state based on source chain capabilities
+  useGasIncluded(sourceToken?.chainId);
 
   const initialSourceToken = route.params?.sourceToken;
   const initialSourceAmount = route.params?.sourceAmount;
