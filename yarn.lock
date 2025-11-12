@@ -7682,6 +7682,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/delegation-deployments@npm:^0.15.0":
+  version: 0.15.0
+  resolution: "@metamask/delegation-deployments@npm:0.15.0"
+  checksum: 10/b37933e4b1c7d5cad5b6ec8861dc0b883eb4dd17cc29a9d804b3fbdb2c39aadb7ff47b8a42d1195b637eefbae15e7e3cea6bde3e7ff34f64eee11c1026767413
+  languageName: node
+  linkType: hard
+
 "@metamask/design-system-react-native@npm:^0.4.0":
   version: 0.4.0
   resolution: "@metamask/design-system-react-native@npm:0.4.0"
@@ -35356,7 +35363,7 @@ __metadata:
     "@metamask/controller-utils": "npm:^11.11.0"
     "@metamask/core-backend": "npm:^4.1.0"
     "@metamask/delegation-controller": "npm:^1.0.0"
-    "@metamask/delegation-deployments": "npm:^0.12.0"
+    "@metamask/delegation-deployments": "npm:^0.15.0"
     "@metamask/design-system-react-native": "npm:^0.4.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.2.1"
     "@metamask/design-tokens": "npm:^8.1.1"
@@ -35444,7 +35451,7 @@ __metadata:
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/token-search-discovery-controller": "npm:^4.0.0"
-    "@metamask/transaction-controller": "patch:@metamask/transaction-controller@npm%3A62.1.0#~/.yarn/patches/@metamask-transaction-controller-npm-61.0.0-cccac388c7.patch"
+    "@metamask/transaction-controller": "npm:^62.2.0"
     "@metamask/transaction-pay-controller": "npm:^10.0.0"
     "@metamask/tron-wallet-snap": "npm:^1.10.0"
     "@metamask/utils": "npm:^11.8.1"
