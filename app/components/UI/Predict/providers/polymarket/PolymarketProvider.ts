@@ -603,9 +603,11 @@ export class PolymarketProvider implements PredictProvider {
   private applyOptimisticPositionUpdates({
     address,
     positions,
+    claimable,
   }: {
     address: string;
     positions: PredictPosition[];
+    claimable: boolean;
   }): PredictPosition[] {
     const optimisticUpdates =
       this.#optimisticPositionUpdatesByAddress.get(address);
@@ -660,7 +662,7 @@ export class PolymarketProvider implements PredictProvider {
               // API not yet updated, use optimistic position
               result[apiPositionIndex] = update.optimisticPosition;
             }
-          } else if (update.optimisticPosition) {
+          } else if (update.optimisticPosition && !claimable) {
             // New position not in API yet, add optimistic position
             result.push(update.optimisticPosition);
           }
@@ -751,6 +753,7 @@ export class PolymarketProvider implements PredictProvider {
     const positionsWithOptimisticUpdates = this.applyOptimisticPositionUpdates({
       address,
       positions: parsedPositions,
+      claimable,
     });
 
     return positionsWithOptimisticUpdates;
