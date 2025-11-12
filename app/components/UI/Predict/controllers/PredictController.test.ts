@@ -55,6 +55,19 @@ jest.mock('../../../../core/Engine', () => ({
         metadata: { name: 'Test Account' },
       }),
     },
+    AccountTreeController: {
+      getAccountsFromSelectedAccountGroup: jest.fn(() => [
+        {
+          id: 'mock-account-id',
+          address: '0x1234567890123456789012345678901234567890',
+          type: 'eip155:eoa',
+          name: 'Test Account',
+          metadata: {
+            lastSelected: 0,
+          },
+        },
+      ]),
+    },
     NetworkController: {
       getState: jest.fn().mockReturnValue({
         selectedNetworkClientId: 'mainnet',
@@ -2744,22 +2757,22 @@ describe('PredictController', () => {
         controller.updateStateForTesting((state) => {
           state.pendingDeposits = {
             [providerId]: {
-              [address]: true,
+              [address]: 'batch-id-123',
             },
           };
         });
 
         // Verify transaction exists
         expect(controller.state.pendingDeposits[providerId][address]).toBe(
-          true,
+          'batch-id-123',
         );
 
         // Clear deposit transaction
         controller.clearPendingDeposit({ providerId });
 
-        // Verify transaction is cleared
-        expect(controller.state.pendingDeposits[providerId][address]).toBe(
-          false,
+        // Verify transaction is cleared (deleted, not set to false)
+        expect(controller.state.pendingDeposits[providerId]?.[address]).toBe(
+          undefined,
         );
       });
     });
@@ -2778,10 +2791,10 @@ describe('PredictController', () => {
           controller.clearPendingDeposit({ providerId }),
         ).not.toThrow();
 
-        // Should set to false
+        // Verify deposit transaction remains undefined
         const address = '0x1234567890123456789012345678901234567890';
-        expect(controller.state.pendingDeposits[providerId][address]).toBe(
-          false,
+        expect(controller.state.pendingDeposits[providerId]?.[address]).toBe(
+          undefined,
         );
       });
     });
@@ -2795,12 +2808,13 @@ describe('PredictController', () => {
       withController(({ controller, messenger }) => {
         const providerId = 'polymarket';
         const address = '0x1234567890123456789012345678901234567890';
+        const existingBatchId = 'existing-batch-id';
 
         // Set up deposit transaction
         controller.updateStateForTesting((state) => {
           state.pendingDeposits = {
             [providerId]: {
-              [address]: true,
+              [address]: existingBatchId,
             },
           };
         });
@@ -2860,14 +2874,15 @@ describe('PredictController', () => {
           providerId,
         });
 
-        // Verify depositTransaction was stored with correct structure
+        // Verify depositTransaction was stored with batch ID
         expect(controller.state.pendingDeposits[providerId][address]).toBe(
-          true,
+          mockBatchId,
         );
       });
     });
 
     it('clears previous deposit transaction when starting new deposit', async () => {
+      const oldBatchId = 'old-batch';
       const newBatchId = 'new-batch';
       const providerId = 'polymarket';
       const address = '0x1234567890123456789012345678901234567890';
@@ -2893,24 +2908,24 @@ describe('PredictController', () => {
         controller.updateStateForTesting((state) => {
           state.pendingDeposits = {
             [providerId]: {
-              [address]: true,
+              [address]: oldBatchId,
             },
           };
         });
 
         // Verify old transaction exists
         expect(controller.state.pendingDeposits[providerId][address]).toBe(
-          true,
+          oldBatchId,
         );
 
-        // Start new deposit (should clear and set to false first, then true)
+        // Start new deposit (should clear old batch and set to new batch ID)
         await controller.depositWithConfirmation({
           providerId,
         });
 
-        // Verify new transaction is set
+        // Verify new transaction is set with new batch ID
         expect(controller.state.pendingDeposits[providerId][address]).toBe(
-          true,
+          newBatchId,
         );
       });
     });
