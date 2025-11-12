@@ -1,7 +1,8 @@
-import { getCommandQueueServerPort, getLocalHost } from './FixtureUtils';
+import { getLocalHost } from './FixtureUtils';
 import Koa, { Context } from 'koa';
 import { createLogger } from '../logger';
 import { CommandType, Resource, ServerStatus } from '../types';
+import PortManager, { ResourceType } from '../PortManager';
 
 const logger = createLogger({
   name: 'CommandQueueServer',
@@ -28,7 +29,7 @@ class CommandQueueServer implements Resource {
   constructor() {
     this._app = new Koa();
     this._queue = [];
-    this._serverPort = getCommandQueueServerPort();
+    this._serverPort = 0; // will be set with setServerPort()
     this._app.use(async (ctx: Context) => {
       // Middleware to handle requests
       ctx.set('Access-Control-Allow-Origin', '*');
@@ -65,6 +66,10 @@ class CommandQueueServer implements Resource {
     return this._serverStatus;
   }
 
+  setServerPort(port: number): void {
+    this._serverPort = port;
+  }
+
   // Start the fixture server
   async start(): Promise<void> {
     if (this._serverStatus === ServerStatus.STARTED) {
@@ -78,7 +83,7 @@ class CommandQueueServer implements Resource {
       exclusive: true,
     };
 
-    return new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       logger.debug('Starting command queue server on port', this._serverPort);
       this._server = this._app.listen(options);
       if (!this._server) {
@@ -137,7 +142,15 @@ class CommandQueueServer implements Resource {
       }
       this._server.close();
       this._server.once('error', reject);
-      this._server.once('close', resolve);
+      this._server.once('close', () => {
+        // Release the port after server is stopped
+        if (this._serverPort > 0) {
+          PortManager.getInstance().releasePort(
+            ResourceType.COMMAND_QUEUE_SERVER,
+          );
+        }
+        resolve(undefined);
+      });
       this._server = undefined;
       this._serverStatus = ServerStatus.STOPPED;
     });
