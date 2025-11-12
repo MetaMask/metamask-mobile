@@ -164,6 +164,6 @@ export const PredictBalanceSelectorsIDs = {
 // ========================================
 // PREDICT ADD FUNDS SELECTORS
 // ========================================
-export const PredictAddFundsSelectorsIDs = {
+export const PredictAddFundsSelectorText = {
   ADD_FUNDS: enContent.predict.deposit.add_funds,
 } as const;

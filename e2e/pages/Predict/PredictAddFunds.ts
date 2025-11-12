@@ -1,9 +1,9 @@
 import { Matchers, Gestures } from '../../framework';
-import { PredictAddFundsSelectorsIDs } from '../../selectors/Predict/Predict.selectors';
+import { PredictAddFundsSelectorText } from '../../selectors/Predict/Predict.selectors';
 
 class PredictAddFunds {
   get addFundsButton(): DetoxElement {
-    return Matchers.getElementByText(PredictAddFundsSelectorsIDs.ADD_FUNDS);
+    return Matchers.getElementByText(PredictAddFundsSelectorText.ADD_FUNDS);
   }
 
   async tapAddFunds(): Promise<void> {
