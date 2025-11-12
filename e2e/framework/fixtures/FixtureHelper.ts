@@ -620,11 +620,15 @@ export async function withFixtures(
   } finally {
     const cleanupErrors: Error[] = [];
 
-    if (endTestfn && mockServerInstance) {
+    if (endTestfn) {
       try {
         // Pass the mockServer to the endTestfn if it exists as we may want
         // to capture events before cleanup
-        await endTestfn({ mockServer: mockServerInstance.server });
+        if (mockServerInstance) {
+          await endTestfn({ mockServer: mockServerInstance.server });
+        } else {
+          await endTestfn({});
+        }
       } catch (endTestError) {
         logger.error('Error in endTestfn:', endTestError);
         cleanupErrors.push(endTestError as Error);
