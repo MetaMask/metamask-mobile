@@ -31,9 +31,8 @@ import {
   OnboardingActionTypes,
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
-import { connect, useSelector } from 'react-redux';
+import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
-import { BiometryButton } from '../../UI/BiometryButton';
 import Routes from '../../../constants/navigation/Routes';
 import ErrorBoundary from '../ErrorBoundary';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -49,22 +48,15 @@ import {
 import { captureException } from '@sentry/react-native';
 import Logger from '../../../util/Logger';
 import { passwordRequirementsMet } from '../../../util/password';
-import { parseVaultValue } from '../../../util/validators';
-import { getVaultFromBackup } from '../../../core/BackupVault';
-import { containsErrorMessage } from '../../../util/errorHandling';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
-import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import {
   PASSWORD_REQUIREMENTS_NOT_MET,
-  VAULT_ERROR,
   PASSCODE_NOT_SET_ERROR,
   WRONG_PASSWORD_ERROR,
   WRONG_PASSWORD_ERROR_ANDROID,
   WRONG_PASSWORD_ERROR_ANDROID_2,
   DENY_PIN_ERROR_ANDROID,
-  JSON_PARSE_ERROR_UNEXPECTED_TOKEN,
 } from '../Login/constants';
-import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { toLowerCaseEquals } from '../../../util/general';
 import {
   SeedlessOnboardingControllerErrorMessage,
@@ -77,7 +69,6 @@ import {
 import { useNetInfo } from '@react-native-community/netinfo';
 import { SuccessErrorSheetParams } from '../SuccessErrorSheet/interface';
 import { usePromptSeedlessRelogin } from '../../hooks/SeedlessHooks';
-import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 import { Authentication } from '../../../core';
 import {
   ParamListBase,
@@ -89,7 +80,6 @@ import { useStyles } from '../../../component-library/hooks/useStyles';
 import stylesheet from './styles';
 import ReduxService from '../../../core/redux';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { BIOMETRY_TYPE } from 'react-native-keychain';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import {
@@ -162,7 +152,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     rememberMe,
     setRememberMe,
     biometryChoice,
-    hasBiometricCredentials,
     setHasBiometricCredentials,
     updateBiometryChoice,
   } = useUserAuthPreferences({
@@ -178,9 +167,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const [disabledInput, setDisabledInput] = useState(false);
 
   const { isDeletingInProgress } = usePromptSeedlessRelogin();
-  const isSeedlessPasswordOutdated = useSelector(
-    selectIsSeedlessPasswordOutdated,
-  );
   const netInfo = useNetInfo();
   const isMountedRef = useRef(true);
 
@@ -227,61 +213,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     },
     [],
   );
-
-  const handleVaultCorruption = useCallback(async () => {
-    const LOGIN_VAULT_CORRUPTION_TAG =
-      'OAuthRehydration/ handleVaultCorruption:';
-
-    trackVaultCorruption(VAULT_ERROR, {
-      error_type: 'vault_corruption_handling',
-      context: 'vault_corruption_recovery_attempt',
-      oauth_login: true,
-    });
-
-    try {
-      setLoading(true);
-      const backupResult = await getVaultFromBackup();
-      if (backupResult.vault) {
-        const vaultSeed = await parseVaultValue(password, backupResult.vault);
-        if (vaultSeed) {
-          const authData = await Authentication.componentAuthenticationType(
-            biometryChoice,
-            rememberMe,
-          );
-          try {
-            await Authentication.storePassword(
-              password,
-              authData.currentAuthType,
-            );
-            navigation.replace(
-              ...createRestoreWalletNavDetailsNested({
-                previousScreen: Routes.ONBOARDING.LOGIN,
-              }),
-            );
-            setLoading(false);
-            setError(null);
-            return;
-          } catch (e) {
-            throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${e}`);
-          }
-        } else {
-          throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} Invalid Password`);
-        }
-      } else if (backupResult.error) {
-        throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${backupResult.error}`);
-      }
-    } catch (e: unknown) {
-      trackVaultCorruption((e as Error).message, {
-        error_type: 'vault_corruption_handling_failed',
-        context: 'vault_corruption_recovery_failed',
-        oauth_login: true,
-      });
-
-      Logger.error(e as Error);
-      setLoading(false);
-      setError(strings('login.invalid_password'));
-    }
-  }, [password, biometryChoice, rememberMe, navigation]);
 
   const handleSeedlessOnboardingControllerError = useCallback(
     (
@@ -447,19 +378,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           strings('login.security_alert_title'),
           strings('login.security_alert_desc'),
         );
-      } else if (
-        containsErrorMessage(loginError, VAULT_ERROR) ||
-        containsErrorMessage(loginError, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
-      ) {
-        trackVaultCorruption(loginErrorMessage, {
-          error_type: containsErrorMessage(loginError, VAULT_ERROR)
-            ? 'vault_error'
-            : 'json_parse_error',
-          context: 'login_authentication',
-          oauth_login: true,
-        });
-
-        await handleVaultCorruption();
       } else if (toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID)) {
         updateBiometryChoice(false);
       } else {
@@ -480,7 +398,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       track,
       handleSeedlessOnboardingControllerError,
       handlePasswordError,
-      handleVaultCorruption,
       updateBiometryChoice,
       route.params?.onboardingTraceCtx,
     ],
@@ -550,28 +467,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     track,
   ]);
 
-  const tryBiometric = useCallback(async () => {
-    try {
-      setLoading(true);
-      await trace(
-        {
-          name: TraceName.LoginBiometricAuthentication,
-          op: TraceOperation.Login,
-        },
-        async () => {
-          await Authentication.appTriggeredAuth();
-        },
-      );
-
-      await navigateToHome();
-
-      setLoading(false);
-    } catch (tryBiometricError) {
-      setLoading(false);
-      Logger.log(tryBiometricError);
-    }
-  }, [navigateToHome]);
-
   usePasswordOutdated(setError);
 
   // Cleanup for isMountedRef tracking
@@ -626,14 +521,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     downloadStateLogs(fullState, false);
   };
 
-  const shouldHideBiometricAccessoryButton = !(
-    !isSeedlessPasswordOutdated &&
-    biometryChoice &&
-    biometryType &&
-    hasBiometricCredentials &&
-    !route?.params?.locked
-  );
-
   const ThrowErrorIfNeeded = () => {
     if (errorToThrow) {
       throw errorToThrow;
@@ -648,14 +535,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
   const handleUpdateRememberMe = (rememberMeChoice: boolean) => {
     setRememberMe(rememberMeChoice);
-  };
-
-  const handleTryBiometric = async () => {
-    fieldRef.current?.blur();
-    await tryBiometric();
-    setPassword('');
-    setHasBiometricCredentials(false);
-    fieldRef.current?.clear();
   };
 
   const handleLogin = async () => {
@@ -734,13 +613,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                   onChangeText={handlePasswordChange}
                   value={password}
                   onSubmitEditing={handleLogin}
-                  endAccessory={
-                    <BiometryButton
-                      onPress={handleTryBiometric}
-                      hidden={shouldHideBiometricAccessoryButton}
-                      biometryType={biometryType as BIOMETRY_TYPE}
-                    />
-                  }
                   keyboardAppearance={themeAppearance || undefined}
                   isDisabled={disabledInput}
                   isError={!!error}

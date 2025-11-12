@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
+  Alert,
   View,
   SafeAreaView,
   BackHandler,
   TouchableOpacity,
   TextInput,
   Platform,
-  Alert,
 } from 'react-native';
 import { colors as importedColors } from '../../../styles/common';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -30,6 +30,7 @@ import { OPTIN_META_METRICS_UI_SEEN } from '../../../constants/storage';
 import Routes from '../../../constants/navigation/Routes';
 import { passwordRequirementsMet } from '../../../util/password';
 import ErrorBoundary from '../ErrorBoundary';
+import { toLowerCaseEquals } from '../../../util/general';
 import { Authentication } from '../../../core';
 
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
@@ -48,18 +49,20 @@ import {
   TraceContext,
   endTrace,
 } from '../../../util/trace';
+import TextField, {
+  TextFieldSize,
+} from '../../../component-library/components/Form/TextField';
 import Logger from '../../../util/Logger';
 import {
+  DENY_PIN_ERROR_ANDROID,
+  JSON_PARSE_ERROR_UNEXPECTED_TOKEN,
   PASSWORD_REQUIREMENTS_NOT_MET,
   VAULT_ERROR,
   PASSCODE_NOT_SET_ERROR,
   WRONG_PASSWORD_ERROR,
   WRONG_PASSWORD_ERROR_ANDROID,
   WRONG_PASSWORD_ERROR_ANDROID_2,
-  DENY_PIN_ERROR_ANDROID,
-  JSON_PARSE_ERROR_UNEXPECTED_TOKEN,
 } from './constants';
-import { toLowerCaseEquals } from '../../../util/general';
 import {
   ParamListBase,
   RouteProp,
@@ -84,9 +87,6 @@ import OnboardingAnimation from '../../UI/OnboardingAnimation';
 import { useUserAuthPreferences } from '../../hooks/useUserAuthPreferences';
 import { usePasswordOutdated } from './hooks/usePasswordOutdated';
 import { LoginErrorMessage } from './components/LoginErrorMessage';
-import TextField, {
-  TextFieldSize,
-} from '../../../component-library/components/Form/TextField';
 
 const EmptyRecordConstant = {};
 
@@ -104,7 +104,6 @@ interface LoginProps {
  * View where returning users can authenticate
  */
 const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
-  const [disabledInput] = useState(false);
   const { isEnabled: isMetricsEnabled } = useMetrics();
 
   const fieldRef = useRef<TextInput>(null);
@@ -116,8 +115,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const [startOnboardingAnimation, setStartOnboardingAnimation] =
     useState(false);
   const [startFoxAnimation, setStartFoxAnimation] = useState<
-    false | 'Start' | 'Loader'
-  >(false);
+    undefined | 'Start' | 'Loader'
+  >(undefined);
 
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
@@ -331,6 +330,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         containsErrorMessage(loginError, VAULT_ERROR) ||
         containsErrorMessage(loginError, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
       ) {
+        // Track vault corruption detected
         trackVaultCorruption(loginErrorMessage, {
           error_type: containsErrorMessage(loginError, VAULT_ERROR)
             ? 'vault_error'
@@ -531,8 +531,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                       biometryType={biometryType as BIOMETRY_TYPE}
                     />
                   }
-                  keyboardAppearance={themeAppearance || undefined}
-                  isDisabled={disabledInput}
+                  keyboardAppearance={themeAppearance}
                   isError={!!error}
                   style={styles.textField}
                 />
@@ -557,7 +556,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                   size={ButtonSize.Lg}
                   onPress={handleLogin}
                   label={strings('login.unlock_button')}
-                  isDisabled={password.length === 0 || disabledInput || loading}
+                  isDisabled={password.length === 0 || loading}
                   testID={LoginViewSelectors.LOGIN_BUTTON_ID}
                   loading={loading}
                 />
@@ -582,10 +581,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           onLongPress={handleDownloadStateLogs}
           activeOpacity={1}
         >
-          <FoxAnimation
-            hasFooter={false}
-            trigger={startFoxAnimation || undefined}
-          />
+          <FoxAnimation hasFooter={false} trigger={startFoxAnimation} />
         </TouchableOpacity>
       </SafeAreaView>
     </ErrorBoundary>
