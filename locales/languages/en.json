@@ -105,7 +105,7 @@
         "title": "Malicious token",
         "message": "This token has been identified as malicious. Interacting with this token may result in a loss of funds."
       },
-      "suspicious": {
+      "warning": {
         "title": "Suspicious token",
         "message": "This token shows strong signs of malicious behavior. Continuing may result in loss of funds."
       }
