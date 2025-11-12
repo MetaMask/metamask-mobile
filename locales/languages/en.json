@@ -3519,7 +3519,7 @@
     "transaction_id": "Transaction ID",
     "network": "Network",
     "request_from": "Request from",
-    "network_fee": "Network Fee",
+    "network_fee": "Network fee",
     "network_fee_tooltip": "Amount paid to process the transaction on network.",
     "confirm_gas_fee_token_tooltip": "This is paid to the network to process your transaction. It includes a {{metamaskFeeFiat}} MetaMask fee for non-ETH tokens or pre-funded ETH.",
     "paid_by_metamask": "Paid by MetaMask",
