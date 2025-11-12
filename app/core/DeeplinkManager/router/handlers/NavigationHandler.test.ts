@@ -38,6 +38,24 @@ describe('NavigationHandler', () => {
     );
   });
 
+  it('navigates to rewards with referral code params', async () => {
+    const link = createMockLink(ACTIONS.REWARDS, {
+      code: 'REFER123',
+      campaign: 'twitter2024',
+    });
+
+    const result = await handler.handle(link, mockContext);
+
+    expect(result.handled).toBe(true);
+    expect(mockContext.navigation.navigate).toHaveBeenCalledWith(
+      'RewardsScreen',
+      {
+        code: 'REFER123',
+        campaign: 'twitter2024',
+      },
+    );
+  });
+
   it('returns error for unknown action', async () => {
     const link = createMockLink('unknown-action');
 

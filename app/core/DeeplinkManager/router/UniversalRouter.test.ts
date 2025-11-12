@@ -197,6 +197,24 @@ describe('UniversalRouter', () => {
       expect(result.handled).toBe(false);
       expect(result.error).toBeDefined();
     });
+
+    it('delegates to legacy when handler requests fallback', async () => {
+      const handleFn = jest.fn(() => ({
+        handled: false,
+        fallbackToLegacy: true,
+        metadata: { reason: 'authentication_required' },
+      }));
+      const handler = new MockHandler([ACTIONS.HOME], 10, handleFn);
+
+      router.getRegistry().register(handler);
+      router.initialize();
+
+      const result = await router.route('metamask://home', 'test', mockContext);
+
+      expect(handleFn).toHaveBeenCalled();
+      expect(result.handled).toBe(true);
+      expect(result.metadata?.usedLegacy).toBe(true);
+    });
   });
 
   describe('getRegistry', () => {
