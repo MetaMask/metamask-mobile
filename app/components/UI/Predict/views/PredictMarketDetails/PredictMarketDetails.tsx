@@ -1107,7 +1107,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-default')}
-      edges={['left', 'right', 'bottom']}
+      edges={['left', 'right']}
       testID={PredictMarketDetailsSelectorsIDs.SCREEN}
     >
       <Box twClassName="px-3 gap-4">{renderHeader()}</Box>
