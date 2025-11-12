@@ -94,6 +94,31 @@ npx appwright test --project browserstack-android --config appwright/appwright.c
 
 ```
 
+### Running a Single Test
+
+To run a single test file instead of the entire suite, specify the test file path:
+
+```bash
+# Run a single test on local Android emulator
+npx appwright test appwright/tests/performance/login/asset-balances.spec.js --project android --config appwright/appwright.config.ts
+
+# Run a single test on BrowserStack iOS
+npx appwright test appwright/tests/performance/onboarding/new-wallet-account-creation.spec.js --project browserstack-ios --config appwright/appwright.config.ts
+
+# Run a single test on local iOS simulator
+npx appwright test appwright/tests/performance/login/eth-swap-flow.spec.js --project ios --config appwright/appwright.config.ts
+```
+
+You can also use glob patterns to run multiple related tests:
+
+```bash
+# Run all login tests on Android
+npx appwright test appwright/tests/performance/login/*.spec.js --project android --config appwright/appwright.config.ts
+
+# Run all onboarding tests on BrowserStack
+npx appwright test appwright/tests/performance/onboarding/*.spec.js --project ios-onboarding --config appwright/appwright.config.ts
+```
+
 ### Command Options
 
 - `--project`: Specify which project configuration to use (see [Available Projects](#available-projects))
