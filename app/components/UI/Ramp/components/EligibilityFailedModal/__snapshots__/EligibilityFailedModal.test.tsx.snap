@@ -505,7 +505,8 @@ exports[`EligibilityFailedModal renders the modal with the correct title and des
                           <View
                             style={
                               {
-                                "padding": 24,
+                                "paddingBottom": 24,
+                                "paddingHorizontal": 24,
                               }
                             }
                           >
@@ -527,11 +528,50 @@ exports[`EligibilityFailedModal renders the modal with the correct title and des
                           <View
                             style={
                               {
-                                "padding": 24,
-                                "paddingTop": 0,
+                                "gap": 16,
+                                "paddingBottom": 24,
+                                "paddingHorizontal": 24,
                               }
                             }
                           >
+                            <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#3c4d9d0f",
+                                  "borderColor": "transparent",
+                                  "borderRadius": 12,
+                                  "borderWidth": 1,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Contact Support
+                              </Text>
+                            </TouchableOpacity>
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}

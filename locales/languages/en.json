@@ -4563,6 +4563,7 @@
     "eligibility_failed_modal": {
       "title": "Eligibility Check Failed",
       "description": "We couldn't confirm access based on your region. Please try again. If the issue continues, contact support.",
+      "contact_support": "Contact Support",
       "got_it": "Got It"
     },
     "region": {

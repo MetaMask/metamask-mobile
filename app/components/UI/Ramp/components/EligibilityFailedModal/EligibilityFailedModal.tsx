@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { View } from 'react-native';
+import { View , Linking } from 'react-native';
 
 import Text, {
   TextVariant,
@@ -21,6 +21,8 @@ import { createNavigationDetails } from '../../../../../util/navigation/navUtils
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 
+const SUPPORT_URL = 'https://support.metamask.io';
+
 export const createEligibilityFailedModalNavigationDetails =
   createNavigationDetails(
     Routes.MODAL.ROOT_MODAL_FLOW,
@@ -30,6 +32,10 @@ export const createEligibilityFailedModalNavigationDetails =
 function EligibilityFailedModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(styleSheet, {});
+
+  const navigateToContactSupport = useCallback(() => {
+    Linking.openURL(SUPPORT_URL);
+  }, []);
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -52,6 +58,15 @@ function EligibilityFailedModal() {
       </View>
 
       <View style={styles.footer}>
+        <Button
+          size={ButtonSize.Lg}
+          onPress={navigateToContactSupport}
+          label={strings(
+            'fiat_on_ramp_aggregator.eligibility_failed_modal.contact_support',
+          )}
+          variant={ButtonVariants.Secondary}
+          width={ButtonWidthTypes.Full}
+        />
         <Button
           size={ButtonSize.Lg}
           onPress={handleClose}

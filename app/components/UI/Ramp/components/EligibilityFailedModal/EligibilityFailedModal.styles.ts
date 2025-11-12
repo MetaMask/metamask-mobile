@@ -3,11 +3,13 @@ import { StyleSheet } from 'react-native';
 const styleSheet = () =>
   StyleSheet.create({
     content: {
-      padding: 24,
+      paddingHorizontal: 24,
+      paddingBottom: 24,
     },
     footer: {
-      padding: 24,
-      paddingTop: 0,
+      gap: 16,
+      paddingHorizontal: 24,
+      paddingBottom: 24,
     },
   });
 
