@@ -6,7 +6,7 @@ import Text, {
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import BottomSheet from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../../locales/i18n';
-import { ButtonIconSizes } from '../../../../component-library/components/Buttons/ButtonIcon';
+
 import { useNavigation } from '@react-navigation/native';
 
 const styles = StyleSheet.create({
@@ -31,7 +31,6 @@ export const BridgeNetworkSelectorBase: React.FC<
         onClose={() => navigation.goBack()}
         closeButtonProps={{
           testID: 'bridge-network-selector-close-button',
-          size: ButtonIconSizes.Lg,
         }}
       >
         <Text variant={TextVariant.HeadingMD} style={styles.headerTitle}>
