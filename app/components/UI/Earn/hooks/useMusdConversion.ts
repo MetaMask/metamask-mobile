@@ -128,41 +128,6 @@ export const useMusdConversion = () => {
         const newTransactionId = transactionMeta.id;
         Logger.log('[mUSD Conversion] Transaction created:', newTransactionId);
 
-        // Set payment token following the pattern from useTransactionPayToken.setPayToken
-        // This includes gas fee estimation for better UX
-        const { GasFeeController, TransactionPayController } = Engine.context;
-
-        Logger.log(
-          '[mUSD Conversion] Setting payment token:',
-          paymentToken.address,
-        );
-
-        const paymentNetworkClientId =
-          NetworkController.findNetworkClientIdByChainId(
-            ETHEREUM_MAINNET_CHAIN_ID,
-          );
-
-        if (paymentNetworkClientId) {
-          await GasFeeController.fetchGasFeeEstimates({
-            networkClientId: paymentNetworkClientId,
-          });
-        }
-
-        try {
-          TransactionPayController.updatePaymentToken({
-            transactionId: newTransactionId,
-            tokenAddress: paymentToken.address,
-            chainId: ETHEREUM_MAINNET_CHAIN_ID,
-          });
-
-          Logger.log('[mUSD Conversion] Payment token set successfully');
-        } catch (updateError) {
-          Logger.error(
-            updateError as Error,
-            '[mUSD Conversion] Error updating payment token',
-          );
-        }
-
         // Update state with transaction ID
         setTransactionId(newTransactionId);
         setIsLoading(false);

@@ -234,6 +234,12 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
       navigation.navigate(Routes.EARN.ROOT, {
         screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        params: {
+          preferredPaymentToken: {
+            address: toHex(earnToken.address),
+            chainId: ETHEREUM_MAINNET_CHAIN_ID,
+          },
+        },
       });
     } catch (error) {
       Logger.error(

@@ -39,7 +39,7 @@ import {
 import { RampType } from '../../../../../../reducers/fiatOrders/types';
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { getNativeTokenAddress } from '../../../utils/asset';
-import { toCaipAssetType } from '@metamask/utils';
+import { toCaipAssetType, Hex } from '@metamask/utils';
 import { AlignItems } from '../../../../../UI/Box/box.types';
 import { strings } from '../../../../../../../locales/i18n';
 import { hasTransactionType } from '../../../utils/transaction';
@@ -63,12 +63,29 @@ export interface CustomAmountInfoProps {
   allowedTokenAddresses?: {
     [chainId: string]: string[];
   };
+  /**
+   * Optional preferred payment token to pre-select.
+   * When provided, this token will be prioritized in automatic selection if available.
+   */
+  preferredPaymentToken?: {
+    address: Hex;
+    chainId: Hex;
+  };
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
-  ({ children, currency, disablePay, allowedTokenAddresses }) => {
+  ({
+    children,
+    currency,
+    disablePay,
+    allowedTokenAddresses,
+    preferredPaymentToken,
+  }) => {
     useClearConfirmationOnBackSwipe();
-    useAutomaticTransactionPayToken({ disable: disablePay });
+    useAutomaticTransactionPayToken({
+      disable: disablePay,
+      preferredPaymentToken,
+    });
     useTransactionPayMetrics();
 
     const { styles } = useStyles(styleSheet, {});

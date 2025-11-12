@@ -25,9 +25,11 @@ export interface BalanceOverride {
 export function useAutomaticTransactionPayToken({
   countOnly = false,
   disable = false,
+  preferredPaymentToken,
 }: {
   countOnly?: boolean;
   disable?: boolean;
+  preferredPaymentToken?: { address: Hex; chainId: Hex };
 } = {}) {
   const isUpdated = useRef(false);
   const previousTransactionId = useRef<string | undefined>();
@@ -94,34 +96,53 @@ export function useAutomaticTransactionPayToken({
 
     count = sufficientBalanceTokens.length;
 
-    const requiredToken = sufficientBalanceTokens.find(
-      (token) =>
-        token.address === targetToken?.address && token.chainId === chainId,
-    );
+    // Use preferred payment token if set.
+    if (preferredPaymentToken) {
+      const preferredToken = sufficientBalanceTokens.find(
+        (token) =>
+          token.address.toLowerCase() ===
+            preferredPaymentToken.address.toLowerCase() &&
+          token.chainId === preferredPaymentToken.chainId,
+      );
 
-    const sameChainHighestBalanceToken = sufficientBalanceTokens?.find(
-      (token) => token.chainId === chainId,
-    );
+      if (preferredToken) {
+        automaticToken = {
+          address: preferredToken.address,
+          chainId: preferredToken.chainId,
+        };
+      }
+    }
 
-    const alternateChainHighestBalanceToken = sufficientBalanceTokens?.find(
-      (token) => token.chainId !== chainId,
-    );
+    if (!automaticToken) {
+      const requiredToken = sufficientBalanceTokens.find(
+        (token) =>
+          token.address === targetToken?.address && token.chainId === chainId,
+      );
 
-    const targetTokenFallback = targetToken
-      ? {
-          address: targetToken.address,
-          chainId,
-        }
-      : undefined;
+      const sameChainHighestBalanceToken = sufficientBalanceTokens?.find(
+        (token) => token.chainId === chainId,
+      );
 
-    automaticToken =
-      requiredToken ??
-      sameChainHighestBalanceToken ??
-      alternateChainHighestBalanceToken ??
-      targetTokenFallback;
+      const alternateChainHighestBalanceToken = sufficientBalanceTokens?.find(
+        (token) => token.chainId !== chainId,
+      );
 
-    if (isHardwareWallet) {
-      automaticToken = targetTokenFallback;
+      const targetTokenFallback = targetToken
+        ? {
+            address: targetToken.address,
+            chainId,
+          }
+        : undefined;
+
+      automaticToken =
+        requiredToken ??
+        sameChainHighestBalanceToken ??
+        alternateChainHighestBalanceToken ??
+        targetTokenFallback;
+
+      if (isHardwareWallet) {
+        automaticToken = targetTokenFallback;
+      }
     }
   }
 
@@ -151,6 +172,7 @@ export function useAutomaticTransactionPayToken({
     requiredTokens,
     setPayToken,
     payToken,
+    preferredPaymentToken,
   ]);
 
   return { count };

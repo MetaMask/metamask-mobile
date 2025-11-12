@@ -9,9 +9,21 @@ import {
   ETHEREUM_MAINNET_CHAIN_ID,
   MUSD_CONVERTIBLE_STABLECOINS_ETHEREUM,
 } from '../../../../../UI/Earn/constants/musd';
+import { useRoute, RouteProp } from '@react-navigation/native';
+
+interface MusdConversionParams {
+  preferredPaymentToken?: {
+    address: Hex;
+    chainId: Hex;
+  };
+}
 
 export function MusdConversionInfo() {
   useNavbar(strings('earn.musd.title'));
+
+  const route =
+    useRoute<RouteProp<Record<string, MusdConversionParams>, string>>();
+  const preferredPaymentToken = route.params?.preferredPaymentToken;
 
   useAddToken({
     chainId: MUSD_TOKEN.chainId,
@@ -30,7 +42,10 @@ export function MusdConversionInfo() {
   );
 
   // TODO: Fix broken "Transaction fee" tooltip (currently empty tooltip bottom-sheet).
-  // TODO: Fix bug where dead state isn't cleared between CustomAmountInfo uses across Perps and mUSD Conversion.
-  // E.g. If user clicks perps deposit screen, selects a token to pay with, then changes to the mUSD conversion screen, the perps deposit screen is still shown.
-  return <CustomAmountInfo allowedTokenAddresses={allowedTokenAddresses} />;
+  return (
+    <CustomAmountInfo
+      allowedTokenAddresses={allowedTokenAddresses}
+      preferredPaymentToken={preferredPaymentToken}
+    />
+  );
 }
