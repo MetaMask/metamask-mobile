@@ -10,6 +10,7 @@ import MultiChainEvmTestDapp from '../../../wdio/screen-objects/MultiChainEvmTes
 import AndroidScreenHelpers from '../../../wdio/screen-objects/Native/Android.js';
 import DappConnectionModal from '../../../wdio/screen-objects/Modals/DappConnectionModal.js';
 import SignModal from '../../../wdio/screen-objects/Modals/SignModal.js';
+import SwitchChainModal from '../../../wdio/screen-objects/Modals/SwitchChainModal.js';
 import AppwrightHelpers from '../../../e2e/framework/AppwrightHelpers.js';
 
 const EVM_LEGACY_TEST_DAPP_URL = 'http://10.0.2.2:5173/';
@@ -23,6 +24,7 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   AndroidScreenHelpers.device = device;
   DappConnectionModal.device = device;
   SignModal.device = device;
+  SwitchChainModal.device = device;
 
   await AppwrightHelpers.switchToNativeContext(device);
 
@@ -79,6 +81,7 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
     device,
     async () => {
       await MultiChainEvmTestDapp.isDappConnected();
+      await MultiChainEvmTestDapp.assertConnectedChainValue('0x1');
       await MultiChainEvmTestDapp.tapPersonalSignButton();
     },
     EVM_LEGACY_TEST_DAPP_URL,
@@ -116,6 +119,7 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     // Accept in MetaMask app
     // await login(device, { shouldDismissModals: false });
+    await SignModal.assertNetworkText('Ethereum');
     await SignModal.tapRejectButton();
   });
 
@@ -133,7 +137,43 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
       await MultiChainEvmTestDapp.assertRequestResponseValue(
         'User denied transaction signature.',
       );
+      await MultiChainEvmTestDapp.tapSwitchToPolygonButton();
     },
     EVM_LEGACY_TEST_DAPP_URL,
   );
+
+  // Switch back to native context to interact with Android system dialog
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    // Accept in MetaMask app
+    // await login(device, { shouldDismissModals: false });
+    await SwitchChainModal.assertNetworkText('Polygon');
+    await SwitchChainModal.tapConfirmButton();
+  });
+
+  // Explicit pausing to avoid navigating back too fast to the dapp
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await launchMobileBrowser(device);
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      // This requires the SRP account to be used
+      await MultiChainEvmTestDapp.assertConnectedChainValue('0x89');
+      await MultiChainEvmTestDapp.tapSendTransactionButton();
+    },
+    EVM_LEGACY_TEST_DAPP_URL,
+  );
+
+  // Switch back to native context to interact with Android system dialog
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    // Accept in MetaMask app
+    // await login(device, { shouldDismissModals: false });
+    await SignModal.assertNetworkText('Polygon');
+    await SignModal.tapRejectButton();
+  });
 });

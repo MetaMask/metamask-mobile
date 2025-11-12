@@ -75,6 +75,26 @@ class MultiChainEvmTestDapp {
         }
     }
 
+    get switchToPolygonButton() {
+        if (!this._device) {
+            return null;
+        }
+
+        if (AppwrightSelectors.isAndroid(this._device)) {
+            return AppwrightSelectors.getElementByXpath(this._device, '//*[@id="switch-to-polygon-button"]');
+        }
+    }
+
+    get connectedChainHeader() {
+        if (!this._device) {
+            return null;
+        }
+
+        if (AppwrightSelectors.isAndroid(this._device)) {
+            return AppwrightSelectors.getElementByXpath(this._device, '//*[@id="connected-chain"]');
+        }
+    }
+
     async tapTerminateButton() {
         if (!this._device) {
             return;
@@ -111,6 +131,15 @@ class MultiChainEvmTestDapp {
         await AppwrightGestures.tap(element)
     }
 
+    async tapSwitchToPolygonButton() {
+        if (!this._device) {
+            return;
+        }
+
+        const element = await this.switchToPolygonButton;
+        await AppwrightGestures.tap(element)
+    }
+
     async isDappConnected() {
         if (!this._device) {
             return false;
@@ -128,6 +157,16 @@ class MultiChainEvmTestDapp {
 
         const requestResponseHeader = await this.requestResponseHeader;
         const text = await requestResponseHeader.getText();
+        expect(text).toContain(value);
+    }
+
+    async assertConnectedChainValue(value) {
+        if (!this._device) {
+            return false;
+        }
+
+        const connectedChainHeader = await this.connectedChainHeader;
+        const text = await connectedChainHeader.getText();
         expect(text).toContain(value);
     }
 }

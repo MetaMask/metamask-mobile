@@ -2,7 +2,7 @@ import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
 import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
 import { expect } from 'appwright';
 
-class SignModal {
+class SwitchChainModal {
     constructor() {}
 
     get device() {
@@ -13,24 +13,13 @@ class SignModal {
         this._device = device;
     }
 
-    get confirmButton() {
-        if (!this._device) {
-            return null;
-        }
-
-        if (AppwrightSelectors.isAndroid(this._device)) {
-            // Use getElementByID which is more efficient than XPath
-            return AppwrightSelectors.getElementByID(this._device, 'confirm-button');
-        }
-    }
-
     getNetworkText(network) {
         if (!this._device) {
             return null;
         }
 
         if (AppwrightSelectors.isAndroid(this._device)) {
-            return AppwrightSelectors.getElementByXpath(this._device, `(//android.widget.TextView[@text="${network}"])[1]`);
+            return AppwrightSelectors.getElementByXpath(this._device, `//android.widget.TextView[@text="Requesting for ${network}"]`);
         }
     }
 
@@ -43,20 +32,9 @@ class SignModal {
         // await AppwrightGestures.tap(element)
 
         // Temporarily tapping by coordinates
-        await AppwrightGestures.tapByCoordinates(this._device, { x: 815, y: 2060 }, { delay: 1500 });
+        await AppwrightGestures.tapByCoordinates(this._device, { x: 815, y: 2160 }, { delay: 1500 });
     }
 
-    async tapRejectButton() {
-        if (!this._device) {
-            return;
-        }
-
-        // const element = await this.connectButton;
-        // await AppwrightGestures.tap(element)
-
-        // Temporarily tapping by coordinates
-        await AppwrightGestures.tapByCoordinates(this._device, { x: 165, y: 2060 }, { delay: 1500 });
-    }
 
     async assertNetworkText(network) {
         if (!this._device) {
@@ -68,4 +46,4 @@ class SignModal {
     }
 }
 
-export default new SignModal();
+export default new SwitchChainModal();
