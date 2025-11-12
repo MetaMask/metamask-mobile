@@ -19,7 +19,6 @@ import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmation
 import { merge } from 'lodash';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
-import { TransactionType } from '@metamask/transaction-controller';
 import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
 
 const mockConfirmSpy = jest.fn();
