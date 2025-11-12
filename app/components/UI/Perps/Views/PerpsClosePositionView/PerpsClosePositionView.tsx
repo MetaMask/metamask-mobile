@@ -172,9 +172,10 @@ const PerpsClosePositionView: React.FC = () => {
       };
     }
 
-    // Use fallback if szDecimals missing (shouldn't happen, but prevent crash)
+    // Defensive fallback if market data fails to load - prevents crashes
+    // Real szDecimals should come from market data (varies by asset)
     const szDecimals =
-      marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS;
+      marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FALLBACK_SIZE_DECIMALS;
 
     const { tokenAmount, usdValue } = calculateCloseAmountFromPercentage({
       percentage: closePercentage,

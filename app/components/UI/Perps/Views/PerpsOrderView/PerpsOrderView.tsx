@@ -364,8 +364,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
     return calculatePositionSize({
       amount: orderForm.amount,
       price: assetData.price,
+      // Defensive fallback if market data fails to load - prevents crashes
+      // Real szDecimals should come from market data (varies by asset)
       szDecimals:
-        marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS,
+        marketData?.szDecimals ??
+        DECIMAL_PRECISION_CONFIG.FALLBACK_SIZE_DECIMALS,
     });
   }, [
     orderForm.amount,
