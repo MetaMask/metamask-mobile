@@ -48,10 +48,7 @@ import {
 } from '@metamask/transaction-pay-controller';
 import { trace } from '../../../../util/trace';
 import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
-import {
-  getSentinelUrl,
-  isSendBundleSupported,
-} from '../../../../util/transactions/sentinel-api';
+import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
 import { NetworkClientId } from '@metamask/network-controller';
 import { toHex } from '@metamask/controller-utils';
 
@@ -100,10 +97,6 @@ export const TransactionControllerInit: ControllerInitFunction<
         getNetworkClientRegistry: (...args) =>
           networkController.getNetworkClientRegistry(...args),
         getNetworkState: () => networkController.state,
-        getSimulationConfig: async (url) => {
-          const newUrl = getSentinelUrl(url);
-          return { newUrl };
-        },
         hooks: {
           // @ts-expect-error - TransactionController actually sends a signedTx as a second argument, but its type doesn't reflect that.
           publish: (
