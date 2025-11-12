@@ -12,7 +12,9 @@ import {
   NativeSyntheticEvent,
   Pressable,
   TouchableOpacity,
+  useColorScheme,
 } from 'react-native';
+import { useSelector } from 'react-redux';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { strings } from '../../../../../locales/i18n';
 import Text, {
@@ -24,6 +26,8 @@ import PredictMarket from '../../../UI/Predict/components/PredictMarket';
 import { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
 import { PredictEventValues } from '../../../UI/Predict/constants/eventNames';
 import PredictMarketSkeleton from '../../../UI/Predict/components/PredictMarketSkeleton';
+import { AppThemeKey } from '../../../../util/theme/models';
+import { RootState } from '../../../../reducers';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32; // 16px padding on each side
@@ -33,6 +37,15 @@ const PredictionSection = () => {
   const tw = useTailwind();
   const [activeIndex, setActiveIndex] = useState(0);
   const flashListRef = useRef<FlashListRef<PredictMarketType>>(null);
+
+  const appTheme: AppThemeKey = useSelector(
+    (state: RootState) => state.user.appTheme,
+  );
+  const osColorScheme = useColorScheme();
+  const activeColor =
+    appTheme === AppThemeKey.dark || osColorScheme === 'dark'
+      ? 'bg-white'
+      : 'bg-black';
 
   // Fetch prediction market data with limit of 6
   const { marketData, isFetching } = usePredictMarketData({
@@ -100,15 +113,15 @@ const PredictionSection = () => {
               twClassName="h-2 rounded-full transition-all"
               style={tw.style(
                 activeIndex === index
-                  ? 'w-6 bg-primary-default'
-                  : 'w-2 bg-muted',
+                  ? `w-6 ${activeColor}`
+                  : 'w-2 bg-border-muted',
               )}
             />
           </Pressable>
         ))}
       </Box>
     ),
-    [carouselData, activeIndex, tw, scrollToIndex],
+    [carouselData, activeIndex, tw, scrollToIndex, activeColor],
   );
 
   // Show loading state while fetching

@@ -430,7 +430,7 @@ exports[`PredictionSection carousel with data matches snapshot with market data 
                 "height": 8,
               },
               {
-                "backgroundColor": "#4459ff",
+                "backgroundColor": "#000000",
                 "width": 24,
               },
             ]
@@ -485,7 +485,7 @@ exports[`PredictionSection carousel with data matches snapshot with market data 
                 "height": 8,
               },
               {
-                "backgroundColor": "#3c4d9d0f",
+                "backgroundColor": "#b7bbc866",
                 "width": 8,
               },
             ]
@@ -540,7 +540,7 @@ exports[`PredictionSection carousel with data matches snapshot with market data 
                 "height": 8,
               },
               {
-                "backgroundColor": "#3c4d9d0f",
+                "backgroundColor": "#b7bbc866",
                 "width": 8,
               },
             ]
@@ -595,7 +595,7 @@ exports[`PredictionSection carousel with data matches snapshot with market data 
                 "height": 8,
               },
               {
-                "backgroundColor": "#3c4d9d0f",
+                "backgroundColor": "#b7bbc866",
                 "width": 8,
               },
             ]
@@ -650,7 +650,7 @@ exports[`PredictionSection carousel with data matches snapshot with market data 
                 "height": 8,
               },
               {
-                "backgroundColor": "#3c4d9d0f",
+                "backgroundColor": "#b7bbc866",
                 "width": 8,
               },
             ]
@@ -705,7 +705,7 @@ exports[`PredictionSection carousel with data matches snapshot with market data 
                 "height": 8,
               },
               {
-                "backgroundColor": "#3c4d9d0f",
+                "backgroundColor": "#b7bbc866",
                 "width": 8,
               },
             ]
