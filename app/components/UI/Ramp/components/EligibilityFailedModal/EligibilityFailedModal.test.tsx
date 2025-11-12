@@ -5,6 +5,29 @@ import Routes from '../../../../../constants/navigation/Routes';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import { fireEvent } from '@testing-library/react-native';
 import { Linking } from 'react-native';
+const mockOnCloseBottomSheet = jest.fn();
+
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    return ReactActual.forwardRef(
+      (
+        {
+          children,
+        }: {
+          children: React.ReactNode;
+        },
+        ref: React.Ref<{ onCloseBottomSheet: () => void }>,
+      ) => {
+        ReactActual.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: mockOnCloseBottomSheet,
+        }));
+        return <>{children}</>;
+      },
+    );
+  },
+);
 
 function render(component: React.ComponentType) {
   return renderScreen(
@@ -30,7 +53,27 @@ describe('EligibilityFailedModal', () => {
   it('navigates to contact support when the contact support button is pressed', () => {
     const { getByText } = render(EligibilityFailedModal);
     const contactSupportButton = getByText('Contact Support');
+
     fireEvent.press(contactSupportButton);
+
     expect(Linking.openURL).toHaveBeenCalledWith('https://support.metamask.io');
+  });
+
+  it('closes the modal when the close button is pressed', () => {
+    const { getByTestId } = render(EligibilityFailedModal);
+    const closeButton = getByTestId('bottomsheetheader-close-button');
+
+    fireEvent.press(closeButton);
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes the modal when the got it button is pressed', () => {
+    const { getByText } = render(EligibilityFailedModal);
+    const gotItButton = getByText('Got It');
+
+    fireEvent.press(gotItButton);
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
   });
 });

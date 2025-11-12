@@ -42,7 +42,10 @@ function EligibilityFailedModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack isInteractable={false}>
-      <BottomSheetHeader onClose={handleClose}>
+      <BottomSheetHeader
+        onClose={handleClose}
+        closeButtonProps={{ testID: 'bottomsheetheader-close-button' }}
+      >
         <Text variant={TextVariant.HeadingMD}>
           {strings('fiat_on_ramp_aggregator.eligibility_failed_modal.title')}
         </Text>
