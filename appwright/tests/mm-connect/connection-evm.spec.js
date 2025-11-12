@@ -106,6 +106,33 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
       await MultiChainEvmTestDapp.assertRequestResponseValue(
         '0x361c13288b4ab02d50974efddf9e4e7ca651b81c298b614be908c4754abb1dd8328224645a1a8d0fab561c4b855c7bdcebea15db5ae8d1778a1ea791dbd05c2a1b',
       );
+      await MultiChainEvmTestDapp.tapSendTransactionButton();
+    },
+    EVM_LEGACY_TEST_DAPP_URL,
+  );
+
+  // Switch back to native context to interact with Android system dialog
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    // Accept in MetaMask app
+    // await login(device, { shouldDismissModals: false });
+    await SignModal.tapRejectButton();
+  });
+
+  // Explicit pausing to avoid navigating back too fast to the dapp
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await launchMobileBrowser(device);
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      // This requires the SRP account to be used
+      await MultiChainEvmTestDapp.assertRequestResponseValue(
+        'User denied transaction signature.',
+      );
     },
     EVM_LEGACY_TEST_DAPP_URL,
   );

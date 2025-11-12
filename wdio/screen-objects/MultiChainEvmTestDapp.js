@@ -65,6 +65,16 @@ class MultiChainEvmTestDapp {
         }
     }
 
+    get sendTransactionButton() {
+        if (!this._device) {
+            return null;
+        }
+
+        if (AppwrightSelectors.isAndroid(this._device)) {
+            return AppwrightSelectors.getElementByXpath(this._device, '//*[@id="send-transaction-button"]');
+        }
+    }
+
     async tapTerminateButton() {
         if (!this._device) {
             return;
@@ -89,6 +99,15 @@ class MultiChainEvmTestDapp {
         }
 
         const element = await this.personalSignButton;
+        await AppwrightGestures.tap(element)
+    }
+
+    async tapSendTransactionButton() {
+        if (!this._device) {
+            return;
+        }
+
+        const element = await this.sendTransactionButton;
         await AppwrightGestures.tap(element)
     }
 

@@ -34,6 +34,18 @@ class SignModal {
         // Temporarily tapping by coordinates
         await AppwrightGestures.tapByCoordinates(this._device, { x: 815, y: 2060 }, { delay: 1500 });
     }
+
+    async tapRejectButton() {
+        if (!this._device) {
+            return;
+        }
+
+        // const element = await this.connectButton;
+        // await AppwrightGestures.tap(element)
+
+        // Temporarily tapping by coordinates
+        await AppwrightGestures.tapByCoordinates(this._device, { x: 165, y: 2060 }, { delay: 1500 });
+    }
 }
 
 export default new SignModal();
