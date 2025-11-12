@@ -553,6 +553,7 @@ generateAndroidBinary() {
 
 	echo "Generating Android binary for ($flavor) flavor with ($configuration) configuration"
 	if [ "$configuration" = "Release" ] ; then
+		testConfiguration="app:assemble${flavor}${configuration}AndroidTest"
 		# Generate Android binary only
 		./gradlew $flavorConfiguration --build-cache --parallel
 		
