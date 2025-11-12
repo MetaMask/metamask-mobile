@@ -69,7 +69,7 @@ export function buildTaskPrompt(
   const filesSection = `CHANGED FILES (${
     allFiles.length
   } total):\n${fileList.join('\n')}`;
-  const closing = `Use tools to investigate. Call finalize_decision when ready.`;
+  const closing = `Use tools to investigate. Call finalize_tag_selection when ready.`;
 
   const prompt = [instruction, tagsSection, filesSection, closing].join('\n\n');
 

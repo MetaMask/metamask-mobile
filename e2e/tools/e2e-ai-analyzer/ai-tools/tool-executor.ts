@@ -10,7 +10,7 @@ import { handleGitDiff } from './handlers/git-diff';
 import { handleRelatedFiles } from './handlers/related-files';
 import { handleListDirectory } from './handlers/list-directory';
 import { handleGrepCodebase } from './handlers/grep-codebase';
-import { handleFinalizeDecision } from './handlers/finalize-decision';
+import { handleFinalizeTagSelection } from './handlers/finalize-tag-selection';
 
 /**
  * Executes a tool call and returns the result
@@ -40,8 +40,8 @@ export async function executeTool(
       case 'grep_codebase':
         return handleGrepCodebase(input, context.baseDir);
 
-      case 'finalize_decision':
-        return handleFinalizeDecision(input);
+      case 'finalize_tag_selection':
+        return handleFinalizeTagSelection(input);
 
       default:
         return `Unknown tool: ${toolName}`;

@@ -40,10 +40,9 @@ export interface ToolInput {
   pattern?: string;
   file_pattern?: string;
 
-  // finalize_decision
+  // finalize_tag_selection (select-tags mode)
   selected_tags?: string[];
   risk_level?: 'low' | 'medium' | 'high';
   confidence?: number;
   reasoning?: string;
-  areas?: string[];
 }

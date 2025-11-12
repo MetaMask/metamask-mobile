@@ -39,7 +39,7 @@ export const CLAUDE_CONFIG = {
    * Typical flow example:
    * - Iteration 1: AI examines critical files (3-5 tool calls)
    * - Iteration 2: AI investigates dependencies (2-3 tool calls)
-   * - Iteration 3: AI calls finalize_decision → DONE
+   * - Iteration 3: AI calls finalize tool (e.g., finalize_tag_selection) → DONE
    */
   maxIterations: 12,
 };

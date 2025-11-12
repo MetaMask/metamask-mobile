@@ -120,7 +120,7 @@ export function getToolDefinitions(): Anthropic.Tool[] {
       },
     },
     {
-      name: 'finalize_decision',
+      name: 'finalize_tag_selection',
       description: 'Submit final tag selection decision',
       input_schema: {
         type: 'object',
@@ -145,7 +145,7 @@ export function getToolDefinitions(): Anthropic.Tool[] {
           areas: {
             type: 'array',
             items: { type: 'string' },
-            description: 'Affected areas',
+            description: 'Impacted areas',
           },
         },
         required: [

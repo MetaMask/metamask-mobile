@@ -138,8 +138,8 @@ export async function analyzeWithAgent<M extends ModeKey>(
             },
           );
 
-          // Handle finalize_decision
-          if (toolUse.name === 'finalize_decision') {
+          // Handle finalize tool (mode-specific)
+          if (toolUse.name === 'finalize_tag_selection') {
             try {
               const parsed = JSON.parse(toolResult);
               console.log(
@@ -161,7 +161,7 @@ export async function analyzeWithAgent<M extends ModeKey>(
               return analysis as ModeAnalysisResult<M>;
             }
 
-            console.log('⚠️ Failed to parse finalize_decision');
+            console.log('⚠️ Failed to parse finalize_tag_selection');
             return modeConfig.createConservativeResult() as ModeAnalysisResult<M>;
           }
 
