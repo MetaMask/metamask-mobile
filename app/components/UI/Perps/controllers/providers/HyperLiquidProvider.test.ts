@@ -1937,6 +1937,7 @@ describe('HyperLiquidProvider', () => {
         isBuy: true,
         size: '0.1',
         orderType: 'market',
+        currentPrice: 50000, // Add price so validation passes, then fails on asset lookup
       };
 
       const result = await provider.placeOrder(orderParams);
@@ -1960,7 +1961,7 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.placeOrder(orderParams);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('No price available for BTC');
+      expect(result.error).toContain('perps.order.validation.price_required');
     });
 
     it('should handle missing position in close operation', async () => {
@@ -2590,6 +2591,7 @@ describe('HyperLiquidProvider', () => {
           isBuy: true,
           size: '0.1',
           orderType: 'market',
+          currentPrice: 50000, // Add price for validation
         };
 
         const result = await freshProvider.placeOrder(orderParams);
@@ -2616,7 +2618,7 @@ describe('HyperLiquidProvider', () => {
         const result = await provider.updatePositionTPSL(updateParams);
 
         expect(result.success).toBe(false);
-        expect(result.error).toContain('Failed to fetch market metadata');
+        expect(result.error).toContain('Invalid meta response');
       });
 
       it('should handle meta response without universe property', async () => {
@@ -2634,7 +2636,7 @@ describe('HyperLiquidProvider', () => {
         const result = await provider.updatePositionTPSL(updateParams);
 
         expect(result.success).toBe(false);
-        expect(result.error).toContain('Failed to fetch market metadata');
+        expect(result.error).toContain('Invalid meta response');
       });
     });
 
@@ -2664,19 +2666,19 @@ describe('HyperLiquidProvider', () => {
         expect(result.error).toContain('Failed to update leverage');
       });
 
-      it('should handle market order without current price (fallback to API)', async () => {
+      it('should fail market order without current price or usdAmount', async () => {
         const orderParams: OrderParams = {
           coin: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
-          // No currentPrice provided - should fetch from API
+          // No currentPrice or usdAmount provided - should fail validation
         };
 
         const result = await provider.placeOrder(orderParams);
 
-        expect(result.success).toBe(true);
-        expect(mockClientService.getInfoClient().allMids).toHaveBeenCalled();
+        expect(result.success).toBe(false);
+        expect(result.error).toContain('perps.order.validation.price_required');
       });
 
       it('should handle order with custom slippage', async () => {
@@ -3709,6 +3711,7 @@ describe('HyperLiquidProvider', () => {
             isBuy: true,
             size: '0.001',
             orderType: 'market',
+            currentPrice: 50000, // Add price for validation
           });
 
           // Assert: Verify exchangeClient.order called with discounted fee
@@ -3986,6 +3989,7 @@ describe('HyperLiquidProvider', () => {
         coin: 'BTC',
         size: '0.1',
         price: undefined,
+        orderType: 'market',
       });
     });
 
@@ -4060,6 +4064,7 @@ describe('HyperLiquidProvider', () => {
         coin: 'ETH',
         size: '1',
         price: '3000',
+        orderType: 'limit',
       });
     });
 
@@ -4266,7 +4271,8 @@ describe('HyperLiquidProvider', () => {
 
       expect(result.success).toBe(true);
 
-      // Verify builder fee approval was called
+      // Builder fee approval is set once during ensureReady() initialization
+      // With session caching, it should be called once (during first ensureReady)
       expect(
         mockClientService.getExchangeClient().approveBuilderFee,
       ).toHaveBeenCalledWith({
@@ -4274,12 +4280,18 @@ describe('HyperLiquidProvider', () => {
         maxFeeRate: expect.stringContaining('%'),
       });
 
-      // Verify referral code was set
-      expect(
-        mockClientService.getExchangeClient().setReferrer,
-      ).toHaveBeenCalledWith({
-        code: expect.any(String),
-      });
+      // Note: Referral setup is fire-and-forget (non-blocking), so we can't reliably
+      // test it synchronously. It's tested separately in dedicated referral tests.
+
+      // Place a second order to verify caching (should NOT call builder fee approval again)
+      const mockExchangeClient = mockClientService.getExchangeClient();
+      (mockExchangeClient.approveBuilderFee as jest.Mock).mockClear();
+
+      const result2 = await provider.placeOrder(orderParams);
+
+      expect(result2.success).toBe(true);
+      // Session cache prevents redundant builder fee approval calls
+      expect(mockExchangeClient.approveBuilderFee).not.toHaveBeenCalled();
 
       // Verify order was placed with builder fee
       expect(mockClientService.getExchangeClient().order).toHaveBeenCalledWith(
@@ -4450,7 +4462,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toContain('Builder fee approval failed');
     });
 
-    it('should handle referral code setup failure', async () => {
+    it('should handle referral code setup failure (non-blocking)', async () => {
       // Mock builder fee already approved
       mockClientService.getInfoClient = jest
         .fn()
@@ -4483,8 +4495,9 @@ describe('HyperLiquidProvider', () => {
 
       const result = await provider.placeOrder(orderParams);
 
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('Error ensuring referral code is set');
+      // Referral setup is now non-blocking (fire-and-forget), so order should succeed
+      expect(result.success).toBe(true);
+      expect(result.orderId).toBeDefined();
     });
 
     it('should skip referral setup when referral code is not ready', async () => {
@@ -4574,6 +4587,11 @@ describe('HyperLiquidProvider', () => {
 
     it('should properly transform getOrders with reduceOnly and isTrigger fields', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        maxBuilderFee: jest.fn().mockResolvedValue(1),
+        referral: jest.fn().mockResolvedValue({
+          referrerState: { stage: 'ready', data: { code: 'MMCSI' } },
+          referredBy: { code: 'MMCSI' },
+        }),
         historicalOrders: jest.fn().mockResolvedValue([
           {
             order: {
@@ -4675,6 +4693,11 @@ describe('HyperLiquidProvider', () => {
 
     it('should properly transform getOpenOrders with reduceOnly and isTrigger fields', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        maxBuilderFee: jest.fn().mockResolvedValue(1),
+        referral: jest.fn().mockResolvedValue({
+          referrerState: { stage: 'ready', data: { code: 'MMCSI' } },
+          referredBy: { code: 'MMCSI' },
+        }),
         clearinghouseState: jest.fn().mockResolvedValue({
           marginSummary: { totalMarginUsed: '500', accountValue: '10500' },
           withdrawable: '9500',
@@ -4993,6 +5016,11 @@ describe('HyperLiquidProvider', () => {
         },
       ]);
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        maxBuilderFee: jest.fn().mockResolvedValue(1),
+        referral: jest.fn().mockResolvedValue({
+          referrerState: { stage: 'ready', data: { code: 'MMCSI' } },
+          referredBy: { code: 'MMCSI' },
+        }),
         frontendOpenOrders: mockFrontendOpenOrders,
         clearinghouseState: jest.fn().mockResolvedValue({
           marginSummary: { totalMarginUsed: '0', accountValue: '1000' },
@@ -5073,6 +5101,11 @@ describe('HyperLiquidProvider', () => {
           ]);
         });
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        maxBuilderFee: jest.fn().mockResolvedValue(1),
+        referral: jest.fn().mockResolvedValue({
+          referrerState: { stage: 'ready', data: { code: 'MMCSI' } },
+          referredBy: { code: 'MMCSI' },
+        }),
         frontendOpenOrders: mockFrontendOpenOrders,
         clearinghouseState: jest.fn().mockResolvedValue({
           marginSummary: { totalMarginUsed: '0', accountValue: '1000' },

@@ -335,7 +335,8 @@ describe('PredictBuyPreview', () => {
 
       expect(getByText('Will Bitcoin reach $150,000?')).toBeOnTheScreen();
       expect(getByText('Yes at 50¢')).toBeOnTheScreen();
-      expect(getByText('To win $120.00')).toBeOnTheScreen();
+      expect(getByText('To win')).toBeOnTheScreen();
+      expect(getByText('$120.00')).toBeOnTheScreen();
       expect(getByTestId('amount-display-active')).toBeOnTheScreen();
       expect(getByTestId('keypad')).toBeOnTheScreen();
     });
@@ -352,7 +353,7 @@ describe('PredictBuyPreview', () => {
       // Fee calculations are tested by the rendered text content
     });
 
-    it('shows "All payments are made in USDC" text after pressing done', () => {
+    it('shows disclaimer text after pressing done', () => {
       const { getByText } = renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
@@ -361,7 +362,9 @@ describe('PredictBuyPreview', () => {
       const doneButton = getByText('Done');
       fireEvent.press(doneButton);
 
-      expect(getByText('All payments are made in USDC')).toBeOnTheScreen();
+      expect(
+        getByText(/By continuing, you accept Polymarket.s terms\./),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -432,7 +435,8 @@ describe('PredictBuyPreview', () => {
         state: initialState,
       });
 
-      expect(getByText('To win $240.00')).toBeOnTheScreen();
+      expect(getByText('To win')).toBeOnTheScreen();
+      expect(getByText('$240.00')).toBeOnTheScreen();
     });
   });
 
@@ -524,8 +528,10 @@ describe('PredictBuyPreview', () => {
       const doneButton = getByText('Done');
       fireEvent.press(doneButton);
 
-      // Now the button and USDC text should be visible
-      expect(getByText('All payments are made in USDC')).toBeOnTheScreen();
+      // Now the button and disclaimer text should be visible
+      expect(
+        getByText(/By continuing, you accept Polymarket.s terms\./),
+      ).toBeOnTheScreen();
     });
 
     it('shows loading state on place bet button when loading', () => {
@@ -539,8 +545,10 @@ describe('PredictBuyPreview', () => {
       const doneButton = getByText('Done');
       fireEvent.press(doneButton);
 
-      // When loading, the button area should still show the USDC text
-      expect(getByText('All payments are made in USDC')).toBeOnTheScreen();
+      // When loading, the button area should still show the disclaimer text
+      expect(
+        getByText(/By continuing, you accept Polymarket.s terms\./),
+      ).toBeOnTheScreen();
       // The loading state is tested implicitly by the component behavior
     });
   });
@@ -880,7 +888,7 @@ describe('PredictBuyPreview', () => {
 
       // Initially focused, bottom content should be hidden
       expect(
-        queryByText('All payments are made in USDC'),
+        queryByText(/By continuing, you accept Polymarket.s terms\./),
       ).not.toBeOnTheScreen();
 
       // Press done to unfocus
@@ -888,7 +896,9 @@ describe('PredictBuyPreview', () => {
       fireEvent.press(doneButton);
 
       // Bottom content should now be visible
-      expect(queryByText('All payments are made in USDC')).toBeOnTheScreen();
+      expect(
+        queryByText(/By continuing, you accept Polymarket.s terms\./),
+      ).toBeOnTheScreen();
     });
 
     it('hides keypad when input is unfocused', () => {
