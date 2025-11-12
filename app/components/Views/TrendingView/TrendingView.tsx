@@ -24,6 +24,7 @@ import {
 } from '../../Nav/Main/MainNavigator';
 import TrendingTokensSection from './TrendingTokensSection/TrendingTokensSection';
 import { ScrollView, StyleSheet } from 'react-native';
+import PredictionSection from './PredictionSection/PredictionSection';
 
 const Stack = createStackNavigator();
 
@@ -115,6 +116,7 @@ const TrendingFeed: React.FC = () => {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
+        <PredictionSection />
         <TrendingTokensSection />
       </ScrollView>
     </Box>

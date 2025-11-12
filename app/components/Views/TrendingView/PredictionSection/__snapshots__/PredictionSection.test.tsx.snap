@@ -1,0 +1,905 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PredictionSection carousel with data matches snapshot with market data 1`] = `
+<View
+  style={
+    [
+      {
+        "display": "flex",
+        "marginBottom": 24,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "display": "flex",
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "marginBottom": 8,
+          "paddingLeft": 4,
+          "paddingRight": 4,
+        },
+        undefined,
+      ]
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "Geist Bold",
+          "fontSize": 18,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      Predictions
+    </Text>
+    <TouchableOpacity
+      onPress={[Function]}
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "Geist Medium",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        View all
+      </Text>
+    </TouchableOpacity>
+  </View>
+  <View
+    style={
+      [
+        {
+          "display": "flex",
+        },
+        {
+          "height": 250,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      data={
+        [
+          {
+            "category": "crypto",
+            "description": "Description for market 1",
+            "id": "1",
+            "image": "https://example.com/image-1.png",
+            "liquidity": 10000,
+            "outcomes": [],
+            "providerId": "test-provider",
+            "recurrence": "none",
+            "slug": "market-1",
+            "status": "open",
+            "tags": [],
+            "title": "Market 1",
+            "volume": 50000,
+          },
+          {
+            "category": "crypto",
+            "description": "Description for market 2",
+            "id": "2",
+            "image": "https://example.com/image-2.png",
+            "liquidity": 10000,
+            "outcomes": [],
+            "providerId": "test-provider",
+            "recurrence": "none",
+            "slug": "market-2",
+            "status": "open",
+            "tags": [],
+            "title": "Market 2",
+            "volume": 50000,
+          },
+          {
+            "category": "crypto",
+            "description": "Description for market 3",
+            "id": "3",
+            "image": "https://example.com/image-3.png",
+            "liquidity": 10000,
+            "outcomes": [],
+            "providerId": "test-provider",
+            "recurrence": "none",
+            "slug": "market-3",
+            "status": "open",
+            "tags": [],
+            "title": "Market 3",
+            "volume": 50000,
+          },
+          {
+            "category": "crypto",
+            "description": "Description for market 4",
+            "id": "4",
+            "image": "https://example.com/image-4.png",
+            "liquidity": 10000,
+            "outcomes": [],
+            "providerId": "test-provider",
+            "recurrence": "none",
+            "slug": "market-4",
+            "status": "open",
+            "tags": [],
+            "title": "Market 4",
+            "volume": 50000,
+          },
+          {
+            "category": "crypto",
+            "description": "Description for market 5",
+            "id": "5",
+            "image": "https://example.com/image-5.png",
+            "liquidity": 10000,
+            "outcomes": [],
+            "providerId": "test-provider",
+            "recurrence": "none",
+            "slug": "market-5",
+            "status": "open",
+            "tags": [],
+            "title": "Market 5",
+            "volume": 50000,
+          },
+          {
+            "category": "crypto",
+            "description": "Description for market 6",
+            "id": "6",
+            "image": "https://example.com/image-6.png",
+            "liquidity": 10000,
+            "outcomes": [],
+            "providerId": "test-provider",
+            "recurrence": "none",
+            "slug": "market-6",
+            "status": "open",
+            "tags": [],
+            "title": "Market 6",
+            "volume": 50000,
+          },
+        ]
+      }
+      decelerationRate="fast"
+      getItem={[Function]}
+      getItemCount={[Function]}
+      horizontal={true}
+      keyExtractor={[Function]}
+      onContentSizeChange={[Function]}
+      onLayout={[Function]}
+      onMomentumScrollBegin={[Function]}
+      onMomentumScrollEnd={[Function]}
+      onScroll={[Function]}
+      onScrollBeginDrag={[Function]}
+      onScrollEndDrag={[Function]}
+      pagingEnabled={false}
+      removeClippedSubviews={false}
+      renderItem={[Function]}
+      scrollEventThrottle={16}
+      showsHorizontalScrollIndicator={false}
+      snapToInterval={734}
+      stickyHeaderIndices={[]}
+      viewabilityConfigCallbackPairs={[]}
+    >
+      <View>
+        <View
+          onFocusCapture={[Function]}
+          onLayout={[Function]}
+          style={
+            [
+              {
+                "flexDirection": "row",
+              },
+              null,
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "display": "flex",
+                  "marginLeft": 8,
+                  "marginRight": 8,
+                },
+                {
+                  "width": 718,
+                },
+              ]
+            }
+          />
+        </View>
+        <View
+          onFocusCapture={[Function]}
+          onLayout={[Function]}
+          style={
+            [
+              {
+                "flexDirection": "row",
+              },
+              null,
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "display": "flex",
+                  "marginLeft": 8,
+                  "marginRight": 8,
+                },
+                {
+                  "width": 718,
+                },
+              ]
+            }
+          />
+        </View>
+        <View
+          onFocusCapture={[Function]}
+          onLayout={[Function]}
+          style={
+            [
+              {
+                "flexDirection": "row",
+              },
+              null,
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "display": "flex",
+                  "marginLeft": 8,
+                  "marginRight": 8,
+                },
+                {
+                  "width": 718,
+                },
+              ]
+            }
+          />
+        </View>
+        <View
+          onFocusCapture={[Function]}
+          onLayout={[Function]}
+          style={
+            [
+              {
+                "flexDirection": "row",
+              },
+              null,
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "display": "flex",
+                  "marginLeft": 8,
+                  "marginRight": 8,
+                },
+                {
+                  "width": 718,
+                },
+              ]
+            }
+          />
+        </View>
+        <View
+          onFocusCapture={[Function]}
+          onLayout={[Function]}
+          style={
+            [
+              {
+                "flexDirection": "row",
+              },
+              null,
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "display": "flex",
+                  "marginLeft": 8,
+                  "marginRight": 8,
+                },
+                {
+                  "width": 718,
+                },
+              ]
+            }
+          />
+        </View>
+        <View
+          onFocusCapture={[Function]}
+          onLayout={[Function]}
+          style={
+            [
+              {
+                "flexDirection": "row",
+              },
+              null,
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "display": "flex",
+                  "marginLeft": 8,
+                  "marginRight": 8,
+                },
+                {
+                  "width": 718,
+                },
+              ]
+            }
+          />
+        </View>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    style={
+      [
+        {
+          "display": "flex",
+          "paddingLeft": 4,
+          "paddingRight": 4,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "gap": 8,
+            "justifyContent": "center",
+            "marginTop": 16,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        hitSlop={
+          {
+            "bottom": 10,
+            "left": 10,
+            "right": 10,
+            "top": 10,
+          }
+        }
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+      >
+        <View
+          style={
+            [
+              {
+                "borderRadius": 9999,
+                "display": "flex",
+                "height": 8,
+              },
+              {
+                "backgroundColor": "#4459ff",
+                "width": 24,
+              },
+            ]
+          }
+        />
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        hitSlop={
+          {
+            "bottom": 10,
+            "left": 10,
+            "right": 10,
+            "top": 10,
+          }
+        }
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+      >
+        <View
+          style={
+            [
+              {
+                "borderRadius": 9999,
+                "display": "flex",
+                "height": 8,
+              },
+              {
+                "backgroundColor": "#3c4d9d0f",
+                "width": 8,
+              },
+            ]
+          }
+        />
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        hitSlop={
+          {
+            "bottom": 10,
+            "left": 10,
+            "right": 10,
+            "top": 10,
+          }
+        }
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+      >
+        <View
+          style={
+            [
+              {
+                "borderRadius": 9999,
+                "display": "flex",
+                "height": 8,
+              },
+              {
+                "backgroundColor": "#3c4d9d0f",
+                "width": 8,
+              },
+            ]
+          }
+        />
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        hitSlop={
+          {
+            "bottom": 10,
+            "left": 10,
+            "right": 10,
+            "top": 10,
+          }
+        }
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+      >
+        <View
+          style={
+            [
+              {
+                "borderRadius": 9999,
+                "display": "flex",
+                "height": 8,
+              },
+              {
+                "backgroundColor": "#3c4d9d0f",
+                "width": 8,
+              },
+            ]
+          }
+        />
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        hitSlop={
+          {
+            "bottom": 10,
+            "left": 10,
+            "right": 10,
+            "top": 10,
+          }
+        }
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+      >
+        <View
+          style={
+            [
+              {
+                "borderRadius": 9999,
+                "display": "flex",
+                "height": 8,
+              },
+              {
+                "backgroundColor": "#3c4d9d0f",
+                "width": 8,
+              },
+            ]
+          }
+        />
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        hitSlop={
+          {
+            "bottom": 10,
+            "left": 10,
+            "right": 10,
+            "top": 10,
+          }
+        }
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+      >
+        <View
+          style={
+            [
+              {
+                "borderRadius": 9999,
+                "display": "flex",
+                "height": 8,
+              },
+              {
+                "backgroundColor": "#3c4d9d0f",
+                "width": 8,
+              },
+            ]
+          }
+        />
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`PredictionSection loading state matches snapshot when loading 1`] = `
+<View
+  style={
+    [
+      {
+        "display": "flex",
+        "marginBottom": 24,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "display": "flex",
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "marginBottom": 8,
+          "paddingLeft": 4,
+          "paddingRight": 4,
+        },
+        undefined,
+      ]
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "Geist Bold",
+          "fontSize": 18,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      Predictions
+    </Text>
+    <TouchableOpacity
+      onPress={[Function]}
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "Geist Medium",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        View all
+      </Text>
+    </TouchableOpacity>
+  </View>
+  <View
+    style={
+      [
+        {
+          "display": "flex",
+        },
+        {
+          "height": 250,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      data={
+        [
+          1,
+          2,
+          3,
+        ]
+      }
+      getItem={[Function]}
+      getItemCount={[Function]}
+      horizontal={true}
+      keyExtractor={[Function]}
+      onContentSizeChange={[Function]}
+      onLayout={[Function]}
+      onMomentumScrollBegin={[Function]}
+      onMomentumScrollEnd={[Function]}
+      onScroll={[Function]}
+      onScrollBeginDrag={[Function]}
+      onScrollEndDrag={[Function]}
+      removeClippedSubviews={false}
+      renderItem={[Function]}
+      scrollEventThrottle={0.0001}
+      showsHorizontalScrollIndicator={false}
+      stickyHeaderIndices={[]}
+      viewabilityConfigCallbackPairs={[]}
+    >
+      <View>
+        <View
+          onFocusCapture={[Function]}
+          onLayout={[Function]}
+          style={
+            [
+              {
+                "flexDirection": "row",
+              },
+              null,
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "display": "flex",
+                  "marginLeft": 8,
+                  "marginRight": 8,
+                },
+                {
+                  "width": 718,
+                },
+              ]
+            }
+          />
+        </View>
+        <View
+          onFocusCapture={[Function]}
+          onLayout={[Function]}
+          style={
+            [
+              {
+                "flexDirection": "row",
+              },
+              null,
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "display": "flex",
+                  "marginLeft": 8,
+                  "marginRight": 8,
+                },
+                {
+                  "width": 718,
+                },
+              ]
+            }
+          />
+        </View>
+        <View
+          onFocusCapture={[Function]}
+          onLayout={[Function]}
+          style={
+            [
+              {
+                "flexDirection": "row",
+              },
+              null,
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "display": "flex",
+                  "marginLeft": 8,
+                  "marginRight": 8,
+                },
+                {
+                  "width": 718,
+                },
+              ]
+            }
+          />
+        </View>
+      </View>
+    </RCTScrollView>
+  </View>
+</View>
+`;
