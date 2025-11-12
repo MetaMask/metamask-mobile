@@ -134,12 +134,21 @@ describe('SecureKeychain - setGenericPassword', () => {
     );
   });
 
-  it('should reset password when no type is provided', async () => {
-    const resetSpy = jest.spyOn(SecureKeychain, 'resetGenericPassword');
+  it('stores password without access control when no type is provided', async () => {
     await SecureKeychain.setGenericPassword(mockPassword);
 
-    expect(resetSpy).toHaveBeenCalled();
-    expect(Keychain.setGenericPassword).not.toHaveBeenCalled();
+    expect(Keychain.setGenericPassword).toHaveBeenCalledWith(
+      'metamask-user',
+      expect.any(String),
+      expect.not.objectContaining({
+        accessControl: expect.anything(),
+      }),
+    );
+    expect(mockAddTraitsToUser).toHaveBeenCalledWith(
+      expect.objectContaining({
+        [UserProfileProperty.AUTHENTICATION_TYPE]: AUTHENTICATION_TYPE.PASSWORD,
+      }),
+    );
   });
 
   describe('iOS Biometric Handling', () => {
