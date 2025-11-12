@@ -21,6 +21,7 @@ import {
   selectOnboardingId,
   resetOnboardingState,
   resetAuthenticatedData,
+  clearAllCache,
 } from '../../../../core/redux/slices/card';
 import { UserResponse } from '../types';
 
@@ -110,6 +111,9 @@ export const CardSDKProvider = ({
     await removeCardBaanxToken();
     removeAuthenticatedData();
 
+    // Clear all cached data (card details, priority tokens, etc.)
+    dispatch(clearAllCache());
+
     // reset onboarding state
     dispatch(resetOnboardingState());
 
@@ -148,12 +152,11 @@ export const useCardSDK = () => {
  * Higher-order component that wraps a component with CardSDKProvider.
  */
 export const withCardSDK =
-  (Component: React.ComponentType) => (props: Record<string, unknown>) =>
-    (
-      <CardSDKProvider>
-        <Component {...props} />
-      </CardSDKProvider>
-    );
+  (Component: React.ComponentType) => (props: Record<string, unknown>) => (
+    <CardSDKProvider>
+      <Component {...props} />
+    </CardSDKProvider>
+  );
 
 /**
  * Component that performs cardholder verification.

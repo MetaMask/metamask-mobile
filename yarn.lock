@@ -7024,7 +7024,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-controller@npm:^50.0.0":
+"@metamask/bridge-controller@npm:50.0.0":
   version: 50.0.0
   resolution: "@metamask/bridge-controller@npm:50.0.0"
   dependencies:
@@ -7052,6 +7052,68 @@ __metadata:
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^60.0.0
   checksum: 10/3c3bae89d09ec7936a05c13472c68d3be796ef07d3bff597150f94bc9f8be0d3d7d7776145c3d97d5e7fa4e5cf77685c051be52843bae6ae54710f0f793b048f
+  languageName: node
+  linkType: hard
+
+"@metamask/bridge-controller@patch:@metamask/bridge-controller@npm%3A50.0.0#~/.yarn/patches/@metamask-bridge-controller-npm-50.0.0-8ce3ec5114.patch::version=50.0.0&hash=ced23e":
+  version: 50.0.0
+  resolution: "@metamask/bridge-controller@patch:@metamask/bridge-controller@npm%3A50.0.0#~/.yarn/patches/@metamask-bridge-controller-npm-50.0.0-8ce3ec5114.patch::version=50.0.0&hash=ced23e"
+  dependencies:
+    "@ethersproject/address": "npm:^5.7.0"
+    "@ethersproject/bignumber": "npm:^5.7.0"
+    "@ethersproject/constants": "npm:^5.7.0"
+    "@ethersproject/contracts": "npm:^5.7.0"
+    "@ethersproject/providers": "npm:^5.7.0"
+    "@metamask/base-controller": "npm:^8.4.1"
+    "@metamask/controller-utils": "npm:^11.14.1"
+    "@metamask/gas-fee-controller": "npm:^24.1.0"
+    "@metamask/keyring-api": "npm:^21.0.0"
+    "@metamask/metamask-eth-abis": "npm:^3.1.1"
+    "@metamask/multichain-network-controller": "npm:^1.0.1"
+    "@metamask/polling-controller": "npm:^14.0.1"
+    "@metamask/utils": "npm:^11.8.1"
+    bignumber.js: "npm:^9.1.2"
+    reselect: "npm:^5.1.1"
+    uuid: "npm:^8.3.2"
+  peerDependencies:
+    "@metamask/accounts-controller": ^33.0.0
+    "@metamask/assets-controllers": ^80.0.0
+    "@metamask/network-controller": ^24.0.0
+    "@metamask/remote-feature-flag-controller": ^1.6.0
+    "@metamask/snaps-controllers": ^14.0.0
+    "@metamask/transaction-controller": ^60.0.0
+  checksum: 10/fe7b2eee1de300cfd1cedc69e1183931443cb0fa225c83d023e26ba32c035b1d306e728d34ef4d578a2a2067dfc2b6898de85d48ba3921905ed85b6f52f23544
+  languageName: node
+  linkType: hard
+
+"@metamask/bridge-controller@patch:@metamask/bridge-controller@patch%3A@metamask/bridge-controller@npm%253A50.0.0%23~/.yarn/patches/@metamask-bridge-controller-npm-50.0.0-8ce3ec5114.patch%3A%3Aversion=50.0.0&hash=ced23e#~/.yarn/patches/@metamask-bridge-controller-patch-bdae2b6e6d.patch":
+  version: 50.0.0
+  resolution: "@metamask/bridge-controller@patch:@metamask/bridge-controller@patch%3A@metamask/bridge-controller@npm%253A50.0.0%23~/.yarn/patches/@metamask-bridge-controller-npm-50.0.0-8ce3ec5114.patch%3A%3Aversion=50.0.0&hash=ced23e#~/.yarn/patches/@metamask-bridge-controller-patch-bdae2b6e6d.patch::version=50.0.0&hash=960aa9"
+  dependencies:
+    "@ethersproject/address": "npm:^5.7.0"
+    "@ethersproject/bignumber": "npm:^5.7.0"
+    "@ethersproject/constants": "npm:^5.7.0"
+    "@ethersproject/contracts": "npm:^5.7.0"
+    "@ethersproject/providers": "npm:^5.7.0"
+    "@metamask/base-controller": "npm:^8.4.1"
+    "@metamask/controller-utils": "npm:^11.14.1"
+    "@metamask/gas-fee-controller": "npm:^24.1.0"
+    "@metamask/keyring-api": "npm:^21.0.0"
+    "@metamask/metamask-eth-abis": "npm:^3.1.1"
+    "@metamask/multichain-network-controller": "npm:^1.0.1"
+    "@metamask/polling-controller": "npm:^14.0.1"
+    "@metamask/utils": "npm:^11.8.1"
+    bignumber.js: "npm:^9.1.2"
+    reselect: "npm:^5.1.1"
+    uuid: "npm:^8.3.2"
+  peerDependencies:
+    "@metamask/accounts-controller": ^33.0.0
+    "@metamask/assets-controllers": ^80.0.0
+    "@metamask/network-controller": ^24.0.0
+    "@metamask/remote-feature-flag-controller": ^1.6.0
+    "@metamask/snaps-controllers": ^14.0.0
+    "@metamask/transaction-controller": ^60.0.0
+  checksum: 10/0457c56ff7d57dcf771f8fac86008aca02b6041a14352f6d077d686b85106b69dff20880d1f92b2f4a980f221bcc5146a9432261dfb3a616ebc76ff5eec67174
   languageName: node
   linkType: hard
 
@@ -8390,7 +8452,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/react-native-webview@npm:^14.5.0":
+"@metamask/react-native-webview@npm:14.5.0":
   version: 14.5.0
   resolution: "@metamask/react-native-webview@npm:14.5.0"
   dependencies:
@@ -8400,6 +8462,19 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10/c78b2d059af8172c64b6be599cd1576c5a8649f96a5ab1fcdf43254c880e50108c6884de78d05fc516a7c00a48a21f0533f65cf3e7b583bbe0f3bef88f5ad928
+  languageName: node
+  linkType: hard
+
+"@metamask/react-native-webview@patch:@metamask/react-native-webview@npm%3A14.5.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.5.0-b34fed6d50.patch":
+  version: 14.5.0
+  resolution: "@metamask/react-native-webview@patch:@metamask/react-native-webview@npm%3A14.5.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.5.0-b34fed6d50.patch::version=14.5.0&hash=c64f43"
+  dependencies:
+    escape-string-regexp: "npm:^4.0.0"
+    invariant: "npm:2.2.4"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10/ea801ba7e33c39df045bbe6dd882792b96b89f32b391c7a46c1a2878a5987f275549682b308c7014fba46fc07d1c5605b0499c0425d21076c98f65bb4bb56b05
   languageName: node
   linkType: hard
 
@@ -34103,7 +34178,7 @@ __metadata:
     "@metamask/assets-controllers": "npm:^81.0.1"
     "@metamask/base-controller": "npm:^8.3.0"
     "@metamask/bitcoin-wallet-snap": "npm:^1.3.0"
-    "@metamask/bridge-controller": "npm:^50.0.0"
+    "@metamask/bridge-controller": "patch:@metamask/bridge-controller@patch%3A@metamask/bridge-controller@npm%253A50.0.0%23~/.yarn/patches/@metamask-bridge-controller-npm-50.0.0-8ce3ec5114.patch%3A%3Aversion=50.0.0&hash=ced23e#~/.yarn/patches/@metamask-bridge-controller-patch-bdae2b6e6d.patch"
     "@metamask/bridge-status-controller": "npm:^50.0.0"
     "@metamask/browser-passworder": "npm:^5.0.0"
     "@metamask/build-utils": "npm:^3.0.0"
@@ -34174,7 +34249,7 @@ __metadata:
     "@metamask/react-native-button": "npm:^3.0.0"
     "@metamask/react-native-payments": "npm:^2.0.0"
     "@metamask/react-native-search-api": "npm:1.0.1"
-    "@metamask/react-native-webview": "npm:^14.5.0"
+    "@metamask/react-native-webview": "patch:@metamask/react-native-webview@npm%3A14.5.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.5.0-b34fed6d50.patch"
     "@metamask/remote-feature-flag-controller": "npm:^1.9.0"
     "@metamask/rpc-errors": "npm:^7.0.2"
     "@metamask/scure-bip39": "npm:^2.1.0"
@@ -34410,7 +34485,7 @@ __metadata:
     react: "npm:18.3.1"
     react-compiler-runtime: "npm:^19.1.0-rc.2"
     react-dom: "npm:18.2.0"
-    react-native: "npm:0.76.9"
+    react-native: "patch:react-native@npm%3A0.76.9#~/.yarn/patches/react-native-npm-0.76.9-1c25352097.patch"
     react-native-aes-crypto: "npm:3.0.3"
     react-native-aes-crypto-forked: "MetaMask/react-native-aes-crypto-forked#397d5db5250e8e7408294807965b5b9fd4ca6a25"
     react-native-animatable: "npm:^1.3.3"
@@ -39590,9 +39665,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native@patch:react-native@npm%3A0.76.9#./.yarn/patches/react-native-npm-0.76.9-1c25352097.patch::locator=metamask%40workspace%3A.":
+"react-native@patch:react-native@npm%3A0.76.9#~/.yarn/patches/react-native-npm-0.76.9-1c25352097.patch":
   version: 0.76.9
-  resolution: "react-native@patch:react-native@npm%3A0.76.9#./.yarn/patches/react-native-npm-0.76.9-1c25352097.patch::version=0.76.9&hash=41f5c4&locator=metamask%40workspace%3A."
+  resolution: "react-native@patch:react-native@npm%3A0.76.9#~/.yarn/patches/react-native-npm-0.76.9-1c25352097.patch::version=0.76.9&hash=9739da"
   dependencies:
     "@jest/create-cache-key-function": "npm:^29.6.3"
     "@react-native/assets-registry": "npm:0.76.9"
@@ -39640,7 +39715,7 @@ __metadata:
       optional: true
   bin:
     react-native: cli.js
-  checksum: 10/d15726f97d6f343c2389f3a2490c5cc6f5e6f36a34b96cbbe7a9e540b085d119f0876842063a2fd68e315bf85239c948959e6c2564b9b60e8faf9ce880947107
+  checksum: 10/9bd945b3aac6ed36bb83a90de84e4c440d0812b4783a5cf5ea6da1bcb5d43fe2b102ec5c163b03e3cc9efb782e55d0492df780e2227b58ec577ded9e4462d1b8
   languageName: node
   linkType: hard
 
