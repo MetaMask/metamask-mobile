@@ -6825,6 +6825,11 @@
     "trending_tokens": "Trending Tokens",
     "price_change": "Price change",
     "all_networks": "All networks",
-    "24h": "24h"
+    "24h": "24h",
+    "time": "Time",
+    "24_hours": "24 hours",
+    "6_hours": "6 hours",
+    "1_hour": "1 hour",
+    "5_minutes": "5 minutes"
   }
 }

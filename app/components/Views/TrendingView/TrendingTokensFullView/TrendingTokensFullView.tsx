@@ -19,6 +19,7 @@ import TrendingTokensList from '../TrendingTokensSection/TrendingTokensList/Tren
 import TrendingTokensSkeleton from '../TrendingTokensSection/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import { useTrendingRequest } from '../../../UI/Assets/hooks/useTrendingRequest';
 import { TrendingAsset } from '@metamask/assets-controllers';
+import { createTrendingTokenTimeBottomSheetNavDetails } from '../TrendingTokensBottomSheet';
 import Text, {
   TextColor,
   TextVariant,
@@ -133,8 +134,8 @@ const TrendingTokensFullView = () => {
   }, []);
 
   const handle24hPress = useCallback(() => {
-    // TODO: Implement time period filter logic
-  }, []);
+    navigation.navigate(...createTrendingTokenTimeBottomSheetNavDetails({}));
+  }, [navigation]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
