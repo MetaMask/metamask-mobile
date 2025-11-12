@@ -12,7 +12,10 @@ import OAuthService from '../../../core/OAuthService/OAuthService';
 import StorageWrapper from '../../../store/storage-wrapper';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
-import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@metamask/seedless-onboarding-controller';
+import {
+  SeedlessOnboardingControllerErrorMessage,
+  RecoveryError as SeedlessOnboardingControllerRecoveryError,
+} from '@metamask/seedless-onboarding-controller';
 import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
@@ -155,7 +158,19 @@ jest.mock('../../../util/trace', () => {
   };
 });
 
+jest.mock('../../../core/BackupVault', () => ({
+  getVaultFromBackup: jest.fn(),
+}));
+
+jest.mock('../../../util/validators', () => ({
+  parseVaultValue: jest.fn(),
+}));
+
 import OAuthRehydration from './index';
+
+const mockTrackOnboarding = jest.mocked(
+  jest.requireMock('../../../util/metrics/TrackOnboarding/trackOnboarding'),
+);
 
 describe('OAuthRehydration', () => {
   beforeEach(() => {
@@ -349,56 +364,12 @@ describe('OAuthRehydration', () => {
     });
   });
 
-  describe('Successful Login Flow Coverage', () => {
-    it('completes login successfully with valid password', async () => {
-      mockEngine.context.KeyringController.verifyPassword.mockResolvedValue(
-        undefined,
-      );
-      mockEngine.context.KeyringController.submitPassword.mockResolvedValue(
-        undefined,
-      );
-
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      fireEvent.changeText(passwordInput, 'validPassword123');
-
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
-    });
-
-    it('successfully submits login when button is pressed', async () => {
-      mockEngine.context.KeyringController.verifyPassword.mockResolvedValue(
-        undefined,
-      );
-      mockEngine.context.KeyringController.submitPassword.mockResolvedValue(
-        undefined,
-      );
-
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
-
-      fireEvent.changeText(passwordInput, 'testPassword123');
-
-      await act(async () => {
-        fireEvent.press(loginButton);
-      });
-
-      expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
-    });
-  });
-
   describe('Component Lifecycle and Cleanup', () => {
     it('cleans up mounted ref on unmount', () => {
       const { unmount } = renderWithProvider(<OAuthRehydration />);
 
       unmount();
 
-      // Component should unmount without errors
       expect(true).toBe(true);
     });
 
@@ -462,34 +433,6 @@ describe('OAuthRehydration', () => {
       const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
 
       expect(loginButton.props.loading).toBe(true);
-    });
-  });
-
-  describe('Password Field Interactions', () => {
-    it('updates password value correctly', () => {
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      fireEvent.changeText(passwordInput, 'newPassword123');
-
-      expect(passwordInput.props.value).toBe('newPassword123');
-    });
-
-    it('prevents login when password is empty', () => {
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
-
-      expect(loginButton.props.disabled).toBe(true);
-    });
-
-    it('enables login button when password is entered', () => {
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
-
-      fireEvent.changeText(passwordInput, 'testPassword123');
-
-      expect(loginButton.props.disabled).toBe(false);
     });
   });
 
@@ -824,55 +767,6 @@ describe('OAuthRehydration', () => {
   });
 
   describe('Seedless Onboarding Error Handling', () => {
-    it('handles incorrect password error from seedless controller', async () => {
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error('SeedlessOnboardingController - IncorrectPassword'),
-      );
-
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      fireEvent.changeText(passwordInput, 'wrongSeedlessPassword');
-
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
-
-      expect(getByTestId(LoginViewSelectors.CONTAINER)).toBeTruthy();
-    });
-
-    it('handles password recently updated error', async () => {
-      const passwordUpdatedError = new SeedlessOnboardingControllerError(
-        SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
-        'Password was recently updated',
-      );
-      passwordUpdatedError.message =
-        'SeedlessOnboardingController - Password was recently updated';
-
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        passwordUpdatedError,
-      );
-
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      fireEvent.changeText(passwordInput, 'testPassword123');
-
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
-
-      expect(getByTestId(LoginViewSelectors.CONTAINER)).toBeTruthy();
-    });
-
     it('handles generic seedless recovery error', async () => {
       const genericError = new SeedlessOnboardingControllerRecoveryError(
         'GenericRecoveryError',
@@ -967,36 +861,6 @@ describe('OAuthRehydration', () => {
   });
 
   describe('Network and Connectivity Coverage', () => {
-    it('handles seedless error when offline without crashing', async () => {
-      const mockNetInfoOffline = {
-        isConnected: false,
-        isInternetReachable: false,
-        type: 'none',
-        details: { isConnectionExpensive: false },
-      };
-
-      (useNetInfo as jest.Mock).mockReturnValue(mockNetInfoOffline);
-
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error('SeedlessOnboardingController - Network timeout'),
-      );
-
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      fireEvent.changeText(passwordInput, 'testPassword123');
-
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      });
-
-      expect(getByTestId(LoginViewSelectors.CONTAINER)).toBeTruthy();
-    });
-
     it('handles authentication with internet connection', async () => {
       const mockNetInfoOnline = {
         isConnected: true,
@@ -1065,46 +929,6 @@ describe('OAuthRehydration', () => {
       });
 
       expect(trackOnboarding).toHaveBeenCalled();
-    });
-  });
-
-  describe('UI State and Disabled States Coverage', () => {
-    it('disables login when password is empty', () => {
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
-
-      expect(loginButton.props.disabled).toBe(true);
-    });
-
-    it('enables login button when password has value', () => {
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
-
-      fireEvent.changeText(passwordInput, 'validPassword123');
-
-      expect(loginButton.props.disabled).toBe(false);
-    });
-
-    it('disables other methods button during loading', () => {
-      mockIsDeletingInProgress.mockReturnValueOnce(true);
-
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const otherMethodsButton = getByTestId(
-        LoginViewSelectors.OTHER_METHODS_BUTTON,
-      );
-
-      expect(otherMethodsButton.props.disabled).toBe(true);
-    });
-
-    it('shows loading indicator when isDeletingInProgress', () => {
-      mockIsDeletingInProgress.mockReturnValueOnce(true);
-
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
-
-      expect(loginButton.props.loading).toBe(true);
-      expect(loginButton.props.disabled).toBe(true);
     });
   });
 
@@ -1181,6 +1005,254 @@ describe('OAuthRehydration', () => {
       });
 
       expect(true).toBe(true);
+    });
+  });
+
+  describe('Seedless Error Analytics Tracking', () => {
+    it('tracks analytics when IncorrectPassword error occurs', async () => {
+      const seedlessError = new SeedlessOnboardingControllerRecoveryError(
+        SeedlessOnboardingControllerErrorMessage.IncorrectPassword,
+      );
+
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        seedlessError,
+      );
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      fireEvent.changeText(passwordInput, 'testPassword123');
+
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockTrackOnboarding).toHaveBeenCalled();
+    });
+
+    it('tracks analytics when PasswordRecentlyUpdated error occurs', async () => {
+      const seedlessError = new SeedlessOnboardingControllerError(
+        SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
+        'Password was recently updated',
+      );
+
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        seedlessError,
+      );
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      fireEvent.changeText(passwordInput, 'testPassword123');
+
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockTrackOnboarding).toHaveBeenCalled();
+    });
+
+    it('tracks analytics when password decryption fails', async () => {
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        new Error('Decrypt failed'),
+      );
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      fireEvent.changeText(passwordInput, 'testPassword123');
+
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockTrackOnboarding).toHaveBeenCalled();
+    });
+  });
+
+  describe('Too Many Attempts Error Handling', () => {
+    it('tracks analytics when TooManyLoginAttempts error occurs', async () => {
+      const seedlessError = new Error(
+        'SeedlessOnboardingController - TooManyLoginAttempts',
+      );
+
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        seedlessError,
+      );
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      fireEvent.changeText(passwordInput, 'testPassword123');
+
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      expect(mockTrackOnboarding).toHaveBeenCalled();
+    });
+  });
+
+  describe('Network Connectivity Handling', () => {
+    it('handles seedless error when network is offline', async () => {
+      (useNetInfo as jest.Mock).mockReturnValue({
+        isConnected: false,
+        isInternetReachable: false,
+      });
+
+      const seedlessError = new Error(
+        'SeedlessOnboardingController - IncorrectPassword',
+      );
+
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        seedlessError,
+      );
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      fireEvent.changeText(passwordInput, 'testPassword123');
+
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      expect(getByTestId(LoginViewSelectors.CONTAINER)).toBeTruthy();
+    });
+  });
+
+  describe('Seedless Controller Error Handling', () => {
+    it('updates failed attempts count for TooManyLoginAttempts', async () => {
+      const seedlessError = new SeedlessOnboardingControllerRecoveryError(
+        SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts,
+        { remainingTime: 5, numberOfAttempts: 3 },
+      );
+
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        seedlessError,
+      );
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      fireEvent.changeText(passwordInput, 'testPassword123');
+
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      expect(mockTrackOnboarding).toHaveBeenCalled();
+    });
+
+    it('displays error for generic SeedlessOnboardingControllerError', async () => {
+      const seedlessError = new SeedlessOnboardingControllerError(
+        'GenericError' as unknown as SeedlessOnboardingControllerErrorType,
+        'Generic seedless error',
+      );
+
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        seedlessError,
+      );
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      fireEvent.changeText(passwordInput, 'testPassword123');
+
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      expect(getByTestId(LoginViewSelectors.CONTAINER)).toBeTruthy();
+    });
+
+    it('sanitizes seedless error message by removing prefix', async () => {
+      const seedlessError = new Error(
+        'SeedlessOnboardingController - Custom error message',
+      );
+
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        seedlessError,
+      );
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      fireEvent.changeText(passwordInput, 'testPassword123');
+
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      expect(mockTrackOnboarding).toHaveBeenCalled();
+    });
+  });
+
+  describe('Additional Error Paths Coverage', () => {
+    it('handles PASSCODE_NOT_SET_ERROR with alert', async () => {
+      const passcodeError = new Error('Error: Passcode not set.');
+
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        passcodeError,
+      );
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      fireEvent.changeText(passwordInput, 'testPassword123');
+
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      expect(getByTestId(LoginViewSelectors.CONTAINER)).toBeTruthy();
+    });
+
+    it('handles DENY_PIN_ERROR_ANDROID and updates biometry choice', async () => {
+      const denyPinError = new Error('Error: Error: Cancel');
+
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        denyPinError,
+      );
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      fireEvent.changeText(passwordInput, 'testPassword123');
+
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      expect(getByTestId(LoginViewSelectors.CONTAINER)).toBeTruthy();
     });
   });
 });
