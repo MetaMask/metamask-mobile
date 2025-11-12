@@ -358,9 +358,18 @@ export class HyperLiquidProvider implements IPerpsProvider {
     // Attempt to enable native balance abstraction
     await this.ensureDexAbstractionEnabled();
 
-    // Set up builder fee approval (blocking, required for trading)
+    // Set up builder fee approval (non-blocking for viewing data)
     // This happens once per session and is cached until disconnect/reconnect
-    await this.ensureBuilderFeeApproval();
+    // Note: Wrapped in try-catch so accounts without deposits can still view markets
+    try {
+      await this.ensureBuilderFeeApproval();
+    } catch (error) {
+      // Log but don't throw - builder fee is only needed for trading, not viewing
+      DevLogger.log(
+        'HyperLiquidProvider: Builder fee approval failed (will retry on first trade)',
+        error,
+      );
+    }
 
     // Set up referral code (blocks initialization to ensure attribution attempt)
     // Non-throwing: errors caught internally, logged to Sentry, retry next session
@@ -1545,6 +1554,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       await this.ensureReady();
 
+      // Explicitly ensure builder fee approval for trading
+      // This is critical for orders and will throw if not approved or if account has no deposits
+      await this.ensureBuilderFeeApproval();
+
       // Debug: Log asset map state before order placement
       const allMapKeys = Array.from(this.coinToAssetId.keys());
       const hip3Keys = allMapKeys.filter((k) => k.includes(':'));
@@ -1560,7 +1573,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         blocklistMarkets: this.blocklistMarkets,
       });
 
-      // See ensureReady() - builder fee and referral are session-cached
+      // Builder fee and referral are session-cached via ensureBuilderFeeApproval()
 
       // Extract DEX name for API calls (main DEX = null)
       const { dex: dexName } = parseAssetName(params.coin);
@@ -1925,6 +1938,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       await this.ensureReady();
 
+      // Explicitly ensure builder fee approval for trading
+      await this.ensureBuilderFeeApproval();
+
       // Extract DEX name for API calls (main DEX = null)
       const { dex: dexName } = parseAssetName(params.newOrder.coin);
 
@@ -2047,6 +2063,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       await this.ensureReady();
 
+      // Explicitly ensure builder fee approval for trading
+      await this.ensureBuilderFeeApproval();
+
       const exchangeClient = this.clientService.getExchangeClient();
       const asset = this.coinToAssetId.get(params.coin);
       if (asset === undefined) {
@@ -2103,6 +2122,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
       }
 
       await this.ensureReady();
+
+      // Explicitly ensure builder fee approval for trading
+      await this.ensureBuilderFeeApproval();
 
       const exchangeClient = this.clientService.getExchangeClient();
 
@@ -2172,6 +2194,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
     try {
       await this.ensureReady();
+
+      // Explicitly ensure builder fee approval for trading
+      await this.ensureBuilderFeeApproval();
 
       // Get all current positions
       // Force fresh API data (not WebSocket cache) since we're about to mutate positions
@@ -2401,6 +2426,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
       DevLogger.log('Updating position TP/SL:', params);
 
       const { coin, takeProfitPrice, stopLossPrice } = params;
+
+      // Explicitly ensure builder fee approval for trading
+      await this.ensureReady();
+      await this.ensureBuilderFeeApproval();
 
       // Get current position to validate it exists
       // Force fresh API data (not WebSocket cache) since we're about to mutate the position
@@ -2640,6 +2669,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async closePosition(params: ClosePositionParams): Promise<OrderResult> {
     try {
       DevLogger.log('Closing position:', params);
+
+      // Explicitly ensure builder fee approval for trading
+      await this.ensureReady();
+      await this.ensureBuilderFeeApproval();
 
       // Force fresh API data (not WebSocket cache) since we're about to mutate the position
       const positions = await this.getPositions({ skipCache: true });
