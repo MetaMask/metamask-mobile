@@ -6821,6 +6821,10 @@
   "trending": {
     "title": "Trending",
     "view_all": "View all",
-    "tokens": "Tokens"
+    "search_placeholder": "Search tokens, sites, URLs",
+    "tokens": "Tokens",
+    "perps": "Perps",
+    "predictions": "Predictions",
+    "no_results": "No results found"
   }
 }
