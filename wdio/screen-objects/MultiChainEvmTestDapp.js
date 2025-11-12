@@ -105,6 +105,16 @@ class MultiChainEvmTestDapp {
         }
     }
 
+    get connectedAccountsHeader() {
+        if (!this._device) {
+            return null;
+        }
+
+        if (AppwrightSelectors.isAndroid(this._device)) {
+            return AppwrightSelectors.getElementByXpath(this._device, '//*[@id="connected-accounts"]');
+        }
+    }
+
     async tapTerminateButton() {
         if (!this._device) {
             return;
@@ -186,6 +196,16 @@ class MultiChainEvmTestDapp {
 
         const connectedChainHeader = await this.connectedChainHeader;
         const text = await connectedChainHeader.getText();
+        expect(text).toContain(value);
+    }
+
+    async assertConnectedAccountsValue(value) {
+        if (!this._device) {
+            return false;
+        }
+
+        const connectedAccountsHeader = await this.connectedAccountsHeader;
+        const text = await connectedAccountsHeader.getText();
         expect(text).toContain(value);
     }
 }

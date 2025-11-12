@@ -67,6 +67,9 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     // Accept in MetaMask app
     // await login(device, { shouldDismissModals: false });
+    await DappConnectionModal.tapEditAccountsButton();
+    await DappConnectionModal.tapAccountButton('Account 3');
+    await DappConnectionModal.tapUpdateButton();
     await DappConnectionModal.tapConnectButton();
   });
 
@@ -82,6 +85,9 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
     async () => {
       await MultiChainEvmTestDapp.isDappConnected();
       await MultiChainEvmTestDapp.assertConnectedChainValue('0x1');
+      await MultiChainEvmTestDapp.assertConnectedAccountsValue(
+        '0x19a7ad8256ab119655f1d758348501d598fc1c94,0xe2beca5cadc60b61368987728b4229822e6cda83',
+      ); // 2 accounts connected
       await MultiChainEvmTestDapp.tapPersonalSignButton();
     },
     EVM_LEGACY_TEST_DAPP_URL,
