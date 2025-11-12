@@ -1,1 +1,0 @@
-export { checkForUpdates } from './checkForUpdates';

@@ -156,8 +156,6 @@ import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/Mu
 import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
-import { checkForUpdates } from '../../../util/updates/checkForUpdates';
-import { selectOTAUpdatesEnabled } from '../../../selectors/featureFlagController/otaUpdatesEnabled';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -1072,7 +1070,6 @@ const App: React.FC = () => {
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
-  const isOTAUpdatesEnabled = useSelector(selectOTAUpdatesEnabled);
 
   if (isFirstRender.current) {
     trace({
@@ -1088,13 +1085,6 @@ const App: React.FC = () => {
     // End trace when first render is complete
     endTrace({ name: TraceName.UIStartup });
   }, []);
-
-  useEffect(() => {
-    // Check for OTA updates on app start
-    checkForUpdates(isOTAUpdatesEnabled).catch((error) => {
-      Logger.error(error, 'App: Error in checkForUpdates');
-    });
-  }, [isOTAUpdatesEnabled]);
 
   const firstLoad = useRef(true);
   // periodically check seedless password outdated when app UI is open
