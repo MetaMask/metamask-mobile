@@ -1,7 +1,8 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
-import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import { ActivityIndicator, FlatList, FlatListProps, View } from 'react-native';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { Box } from '@metamask/design-system-react-native';
+import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/NotificationsView.selectors';
 import {
   hasNotificationComponents,
@@ -131,11 +132,14 @@ export function NotificationsListItem(props: NotificationsListItemProps) {
       isRead={props.notification.isRead}
       testID={NotificationMenuViewSelectorsIDs.ITEM(props.notification.id)}
     >
-      <NotificationMenuItem.Icon
-        isRead={props.notification.isRead}
-        {...menuItemState}
-      />
-      <NotificationMenuItem.Content {...menuItemState} />
+      <Box>
+        <NotificationMenuItem.Icon
+          isRead={props.notification.isRead}
+          {...menuItemState}
+        />
+        <NotificationMenuItem.Content {...menuItemState} />
+      </Box>
+      <NotificationMenuItem.Cta cta={menuItemState.cta} />
     </NotificationMenuItem.Root>
   );
 }

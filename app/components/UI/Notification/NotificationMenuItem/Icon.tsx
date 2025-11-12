@@ -1,5 +1,10 @@
 import { NotificationMenuItem } from '../../../../util/notifications/notification-states/types/NotificationMenuItem';
-import React, { useMemo } from 'react';
+import React, {
+  type FC,
+  type PropsWithChildren,
+  useCallback,
+  useMemo,
+} from 'react';
 import useStyles from '../List/useStyles';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
 import Badge, {
@@ -49,9 +54,9 @@ function MenuIcon(props: NotificationIconProps) {
 function NotificationIcon(props: NotificationIconProps) {
   const { styles } = useStyles();
 
-  return (
-    <React.Fragment>
-      <View style={styles.itemLogoSize}>
+  const MaybeBadgeContainer: FC<PropsWithChildren> = useCallback(
+    ({ children }) =>
+      props.badgeIcon ? (
         <BadgeWrapper
           badgePosition={BOTTOM_BADGEWRAPPER_BADGEPOSITION}
           badgeElement={
@@ -62,8 +67,20 @@ function NotificationIcon(props: NotificationIconProps) {
           }
           style={styles.badgeWrapper}
         >
-          <MenuIcon {...props} />
+          {children}
         </BadgeWrapper>
+      ) : (
+        <>{children}</>
+      ),
+    [props.badgeIcon, styles.badgeWrapper],
+  );
+
+  return (
+    <React.Fragment>
+      <View style={styles.itemLogoSize}>
+        <MaybeBadgeContainer>
+          <MenuIcon {...props} />
+        </MaybeBadgeContainer>
       </View>
       <View style={props.isRead ? styles.readDot : styles.unreadDot} />
     </React.Fragment>
