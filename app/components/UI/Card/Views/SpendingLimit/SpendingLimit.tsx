@@ -243,69 +243,83 @@ const SpendingLimit = ({
     const isRestricted = tempSelectedOption === 'restricted';
 
     try {
-      setIsProcessing(true);
-      if (sdk) {
-        const currentLimit = parseFloat(
-          spendingLimitSettings.limitAmount || '0',
+      // Check if SDK is available before proceeding
+      if (!sdk) {
+        Logger.error(
+          new Error('SDK not available'),
+          'Cannot update spending limit',
         );
-        const newLimit = parseFloat(BAANX_MAX_LIMIT);
-
-        const isSwitchingFromFullAccess =
-          spendingLimitSettings.isFullAccess && !isFullAccess;
-
-        const isLimitChange = Math.abs(newLimit - currentLimit) > 0.01;
-
-        // Determine the amount to use based on selected option
-        const delegationAmount = isFullAccess
-          ? BAANX_MAX_LIMIT
-          : customLimit || '0';
-
-        if (isSwitchingFromFullAccess || isLimitChange || isRestricted) {
-          // Use selectedToken if available, otherwise fall back to priorityToken
-          const tokenToUse = selectedToken || priorityToken;
-          const currency = tokenToUse?.symbol;
-          const network = tokenToUse?.caipChainId
-            ? getNetworkFromCaipChainId(tokenToUse.caipChainId)
-            : 'linea';
-
-          await submitDelegation({
-            amount: delegationAmount,
-            currency: currency || '',
-            network,
-          });
-
-          // Add delay to ensure the delegation is complete
-          await new Promise((resolve) => setTimeout(resolve, 3000));
-          dispatch(clearCacheData('card-external-wallet-details'));
-
-          // Show success toast
-          toastRef?.current?.showToast({
-            variant: ToastVariants.Icon,
-            labelOptions: [
-              { label: strings('card.card_spending_limit.update_success') },
-            ],
-            iconName: IconName.Confirmation,
-            iconColor: theme.colors.success.default,
-            backgroundColor: theme.colors.success.muted,
-            hasNoTimeout: false,
-          });
-
-          // Allow navigation and go back
-          setAllowNavigation(true);
-          // Use setTimeout to ensure the state update is processed
-          setTimeout(() => {
-            navigation.goBack();
-          }, 0);
-        } else {
-          // No changes made, just close the modal
-          navigation.goBack();
-        }
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          labelOptions: [
+            { label: strings('card.card_spending_limit.update_error') },
+          ],
+          iconName: IconName.Danger,
+          iconColor: theme.colors.error.default,
+          backgroundColor: theme.colors.error.muted,
+          hasNoTimeout: false,
+        });
+        return;
       }
 
-      setShowOptions(false);
-      setIsProcessing(false);
+      setIsProcessing(true);
+
+      const currentLimit = parseFloat(spendingLimitSettings.limitAmount || '0');
+      const newLimit = parseFloat(BAANX_MAX_LIMIT);
+
+      const isSwitchingFromFullAccess =
+        spendingLimitSettings.isFullAccess && !isFullAccess;
+
+      const isLimitChange = Math.abs(newLimit - currentLimit) > 0.01;
+
+      // Determine the amount to use based on selected option
+      const delegationAmount = isFullAccess
+        ? BAANX_MAX_LIMIT
+        : customLimit || '0';
+
+      if (isSwitchingFromFullAccess || isLimitChange || isRestricted) {
+        // Use selectedToken if available, otherwise fall back to priorityToken
+        const tokenToUse = selectedToken || priorityToken;
+        const currency = tokenToUse?.symbol;
+        const network = tokenToUse?.caipChainId
+          ? getNetworkFromCaipChainId(tokenToUse.caipChainId)
+          : 'linea';
+
+        await submitDelegation({
+          amount: delegationAmount,
+          currency: currency || '',
+          network,
+        });
+
+        // Add delay to ensure the delegation is complete
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        dispatch(clearCacheData('card-external-wallet-details'));
+
+        // Show success toast
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          labelOptions: [
+            { label: strings('card.card_spending_limit.update_success') },
+          ],
+          iconName: IconName.Confirmation,
+          iconColor: theme.colors.success.default,
+          backgroundColor: theme.colors.success.muted,
+          hasNoTimeout: false,
+        });
+
+        setAllowNavigation(true);
+        setIsProcessing(false);
+        setShowOptions(false);
+
+        setTimeout(() => {
+          navigation.goBack();
+        }, 0);
+      } else {
+        setIsProcessing(false);
+        setShowOptions(false);
+        navigation.goBack();
+      }
     } catch (error) {
-      // Reset navigation flag and processing state on error
       setAllowNavigation(false);
       setIsProcessing(false);
 
