@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 
 import TokenNetworkFilterBar from '../TokenNetworkFilterBar';
 import TokenListItem from '../TokenListItem';
+import UnsupportedTokenModal from '../UnsupportedTokenModal';
 
 import Text, {
   TextVariant,
@@ -30,10 +31,12 @@ import { useStyles } from '../../../../hooks/useStyles';
 import useSearchTokenResults from '../../Deposit/hooks/useSearchTokenResults';
 
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
-import { MOCK_CRYPTOCURRENCIES } from '../../Deposit/constants/mockCryptoCurrencies';
+import {
+  MOCK_CRYPTOCURRENCIES,
+  MockDepositCryptoCurrency,
+} from '../../Deposit/constants/mockCryptoCurrencies';
 // TODO: Fetch these tokens from the API new enpoint for top 25 with supported status
 //https://consensyssoftware.atlassian.net/browse/TRAM-2816
 
@@ -48,6 +51,8 @@ function TokenSelection() {
   const [networkFilter, setNetworkFilter] = useState<CaipChainId[] | null>(
     null,
   );
+  const [isUnsupportedModalVisible, setIsUnsupportedModalVisible] =
+    useState(false);
   const { styles } = useStyles(styleSheet, {});
 
   const { colors } = useTheme();
@@ -90,19 +95,30 @@ function TokenSelection() {
     handleSearchTextChange('');
   }, [handleSearchTextChange]);
 
+  const handleUnsupportedInfoPress = useCallback(() => {
+    setIsUnsupportedModalVisible(true);
+  }, []);
+
+  const handleCloseUnsupportedModal = useCallback(() => {
+    setIsUnsupportedModalVisible(false);
+  }, []);
+
   const renderToken = useCallback(
-    ({ item: token }: { item: DepositCryptoCurrency }) => (
+    ({ item: token }: { item: MockDepositCryptoCurrency }) => (
       <TokenListItem
         token={token}
         isSelected={selectedCryptoAssetId === token.assetId}
         onPress={() => handleSelectAssetIdCallback(token.assetId)}
         textColor={colors.text.alternative}
+        isDisabled={token.unsupported}
+        onInfoPress={handleUnsupportedInfoPress}
       />
     ),
     [
       colors.text.alternative,
       handleSelectAssetIdCallback,
       selectedCryptoAssetId,
+      handleUnsupportedInfoPress,
     ],
   );
 
@@ -182,6 +198,10 @@ function TokenSelection() {
         ListEmptyComponent={renderEmptyList}
         keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="always"
+      />
+      <UnsupportedTokenModal
+        isVisible={isUnsupportedModalVisible}
+        onClose={handleCloseUnsupportedModal}
       />
     </SafeAreaView>
   );
