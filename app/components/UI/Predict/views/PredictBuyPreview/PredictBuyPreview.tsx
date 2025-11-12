@@ -192,6 +192,8 @@ const PredictBuyPreview = () => {
     ? outcome.groupItemTitle
     : '';
 
+  const maxBetAmount = balance - (providerFee + metamaskFee);
+
   const separator = '·';
   const outcomeTokenLabel = `${outcomeToken?.title} at ${formatCents(
     preview?.sharePrice ?? outcomeToken?.price ?? 0,
@@ -351,7 +353,12 @@ const PredictBuyPreview = () => {
             color={TextColor.Error}
             style={tw.style('text-center')}
           >
-            {strings('predict.order.prediction_insufficient_funds')}
+            {strings('predict.order.prediction_insufficient_funds', {
+              amount: formatPrice(maxBetAmount, {
+                minimumDecimals: 2,
+                maximumDecimals: 2,
+              }),
+            })}
           </Text>
         </Box>
       );
