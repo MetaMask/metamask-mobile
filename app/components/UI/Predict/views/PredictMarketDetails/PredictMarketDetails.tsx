@@ -65,6 +65,9 @@ import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
+import PredictDetailsHeaderSkeleton from '../../components/PredictDetailsHeaderSkeleton';
+import PredictDetailsContentSkeleton from '../../components/PredictDetailsContentSkeleton';
+import PredictDetailsButtonsSkeleton from '../../components/PredictDetailsButtonsSkeleton';
 
 const PRICE_HISTORY_TIMEFRAMES: PredictPriceHistoryInterval[] = [
   PredictPriceHistoryInterval.ONE_HOUR,
@@ -130,16 +133,40 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     [title, market?.title],
   );
 
-  const claimable = market?.status === PredictMarketStatus.CLOSED;
-
+  // active positions
   const {
-    positions,
-    isLoading: isPositionsLoading,
-    loadPositions,
+    positions: activePositions,
+    isLoading: isActivePositionsLoading,
+    loadPositions: loadActivePositions,
   } = usePredictPositions({
     marketId: resolvedMarketId,
-    claimable: claimable && !isMarketFetching,
+    claimable: false,
+    loadOnMount: false,
   });
+
+  // "claimable" positions
+  const {
+    positions: claimablePositions,
+    isLoading: isClaimablePositionsLoading,
+    loadPositions: loadClaimablePositions,
+  } = usePredictPositions({
+    marketId: resolvedMarketId,
+    claimable: true,
+    loadOnMount: false,
+  });
+
+  // Load positions when market is ready
+  useEffect(() => {
+    if (!isMarketFetching && resolvedMarketId) {
+      loadActivePositions();
+      loadClaimablePositions();
+    }
+  }, [
+    isMarketFetching,
+    resolvedMarketId,
+    loadActivePositions,
+    loadClaimablePositions,
+  ]);
 
   useEffect(() => {
     // if market is closed
@@ -151,8 +178,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   // Tabs become ready when both market and positions queries have resolved
   const tabsReady = useMemo(
-    () => !isMarketFetching && !isPositionsLoading,
-    [isMarketFetching, isPositionsLoading],
+    () =>
+      !isMarketFetching &&
+      !isActivePositionsLoading &&
+      !isClaimablePositionsLoading,
+    [isMarketFetching, isActivePositionsLoading, isClaimablePositionsLoading],
   );
 
   const { winningOutcomeToken, losingOutcomeToken, resolutionStatus } =
@@ -423,10 +453,16 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     await Promise.allSettled([
       refetchMarket(),
       refetchPriceHistory(),
-      loadPositions({ isRefresh: true }),
+      loadActivePositions({ isRefresh: true }),
+      loadClaimablePositions({ isRefresh: true }),
     ]);
     setIsRefreshing(false);
-  }, [loadPositions, refetchMarket, refetchPriceHistory]);
+  }, [
+    loadActivePositions,
+    refetchMarket,
+    refetchPriceHistory,
+    loadClaimablePositions,
+  ]);
 
   const handlePolymarketResolution = useCallback(() => {
     InteractionManager.runAfterInteractions(() => {
@@ -460,7 +496,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const tabs = useMemo(() => {
     const result: { label: string; key: TabKey }[] = [];
     // positions first if user has any
-    if (positions.length > 0) {
+    if (activePositions.length > 0 || claimablePositions.length > 0) {
       result.push({
         label: strings('predict.tabs.positions'),
         key: 'positions',
@@ -473,7 +509,12 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     // about last (always present)
     result.push({ label: strings('predict.tabs.about'), key: 'about' });
     return result;
-  }, [positions.length, multipleOutcomes, market?.status]);
+  }, [
+    activePositions.length,
+    claimablePositions.length,
+    multipleOutcomes,
+    market?.status,
+  ]);
 
   useEffect(() => {
     if (!tabsReady) return;
@@ -550,55 +591,61 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     </Box>
   );
 
-  const renderHeader = () => (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Start}
-      twClassName="gap-3 pb-4"
-      style={{ paddingTop: insets.top + 12 }}
-    >
-      <Box twClassName="flex-row items-center gap-3 px-1">
-        <Pressable
-          onPress={handleBackPress}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel={strings('back')}
-          style={tw.style('items-center justify-center rounded-full')}
-          testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
-        >
-          <Icon
-            name={IconName.ArrowLeft}
-            size={IconSize.Lg}
-            color={colors.icon.default}
-          />
-        </Pressable>
-        <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
-          {image || market?.image ? (
-            <Image
-              source={{ uri: image || market?.image }}
-              style={tw.style('w-full h-full')}
-              resizeMode="cover"
+  const renderHeader = () => {
+    // Show skeleton header if no title/market data available
+    if (!title && !market?.title) {
+      return <PredictDetailsHeaderSkeleton />;
+    }
+
+    // Show real header
+    return (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Start}
+        twClassName="gap-3 pb-4"
+        style={{ paddingTop: insets.top + 12 }}
+      >
+        <Box twClassName="flex-row items-center gap-3 px-1">
+          <Pressable
+            onPress={handleBackPress}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel={strings('back')}
+            style={tw.style('items-center justify-center rounded-full')}
+            testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
+          >
+            <Icon
+              name={IconName.ArrowLeft}
+              size={IconSize.Lg}
+              color={colors.icon.default}
             />
-          ) : (
-            <Box twClassName="w-full h-full bg-muted" />
-          )}
+          </Pressable>
+          <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
+            {image || market?.image ? (
+              <Image
+                source={{ uri: image || market?.image }}
+                style={tw.style('w-full h-full')}
+                resizeMode="cover"
+              />
+            ) : (
+              <Box twClassName="w-full h-full bg-muted" />
+            )}
+          </Box>
+        </Box>
+        <Box
+          twClassName="flex-1 min-h-[40px]"
+          justifyContent={
+            titleLineCount >= 2 ? undefined : BoxJustifyContent.Center
+          }
+          style={titleLineCount >= 2 ? tw.style('mt-[-5px]') : undefined}
+        >
+          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+            {title || market?.title || ''}
+          </Text>
         </Box>
       </Box>
-      <Box
-        twClassName="flex-1 min-h-[40px]"
-        justifyContent={
-          titleLineCount >= 2 ? undefined : BoxJustifyContent.Center
-        }
-        style={titleLineCount >= 2 ? tw.style('mt-[-5px]') : undefined}
-      >
-        <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-          {title ||
-            market?.title ||
-            (isMarketFetching ? strings('predict.loading') : '')}
-        </Text>
-      </Box>
-    </Box>
-  );
+    );
+  };
 
   const renderMarketStatus = () => (
     <Box twClassName="gap-2">
@@ -669,15 +716,26 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   );
 
   const renderPositionsSection = () => {
-    if (positions.length > 0 && market) {
+    if (
+      (activePositions.length > 0 || claimablePositions.length > 0) &&
+      market
+    ) {
       return (
         <Box twClassName="space-y-4">
-          {positions.map((position) => (
+          {activePositions.map((position) => (
             <PredictPositionDetail
               key={position.id}
               position={position}
               market={market}
               marketStatus={market?.status as PredictMarketStatus}
+            />
+          ))}
+          {claimablePositions.map((position) => (
+            <PredictPositionDetail
+              key={position.id}
+              position={position}
+              market={market}
+              marketStatus={PredictMarketStatus.CLOSED}
             />
           ))}
         </Box>
@@ -794,7 +852,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   );
 
   // see if there are any positions with positive percentPnl
-  const hasPositivePnl = positions.some((position) => position.percentPnl > 0);
+  const hasPositivePnl = claimablePositions.some(
+    (position) => position.percentPnl > 0,
+  );
 
   const renderActionButtons = () => (
     <>
@@ -867,6 +927,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
               />
             </Box>
           );
+        }
+
+        // Show skeleton buttons while loading
+        if (isMarketFetching && !market) {
+          return <PredictDetailsButtonsSkeleton />;
         }
 
         return null;
@@ -1046,6 +1111,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       testID={PredictMarketDetailsSelectorsIDs.SCREEN}
     >
       <Box twClassName="px-3 gap-4">{renderHeader()}</Box>
+
       <ScrollView
         testID={PredictMarketDetailsSelectorsIDs.SCROLLABLE_TAB_VIEW}
         stickyHeaderIndices={[1]}
@@ -1075,11 +1141,20 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           )}
         </Box>
 
-        {/* Sticky tab bar */}
-        {renderCustomTabBar()}
+        {/* Show content skeleton while initial market data is fetching */}
+        {isMarketFetching && !market ? (
+          <Box twClassName="px-3">
+            <PredictDetailsContentSkeleton />
+          </Box>
+        ) : (
+          <>
+            {/* Sticky tab bar */}
+            {renderCustomTabBar()}
 
-        {/* Tab content */}
-        {renderTabContent()}
+            {/* Tab content */}
+            {renderTabContent()}
+          </>
+        )}
       </ScrollView>
 
       <Box twClassName="px-3 bg-default border-t border-muted">

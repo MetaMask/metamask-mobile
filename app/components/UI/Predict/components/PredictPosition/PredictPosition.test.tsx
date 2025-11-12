@@ -211,4 +211,33 @@ describe('PredictPosition', () => {
     expect(screen.getByText('$100.75')).toBeOnTheScreen();
     expect(screen.getByText('+15.75%')).toBeOnTheScreen();
   });
+
+  describe('optimistic updates UI', () => {
+    it('hides current value when position is optimistic', () => {
+      renderComponent({ optimistic: true, currentValue: 2345.67 });
+
+      expect(screen.queryByText('$2,345.67')).toBeNull();
+    });
+
+    it('hides percent PnL when position is optimistic', () => {
+      renderComponent({ optimistic: true, percentPnl: 5.25 });
+
+      expect(screen.queryByText('+5.25%')).toBeNull();
+    });
+
+    it('shows actual values when position is not optimistic', () => {
+      renderComponent({ optimistic: false });
+
+      expect(screen.getByText('$2,345.67')).toBeOnTheScreen();
+      expect(screen.getByText('+5.25%')).toBeOnTheScreen();
+    });
+
+    it('shows initial value line when optimistic', () => {
+      renderComponent({ optimistic: true, initialValue: 123.45 });
+
+      expect(
+        screen.getByText('$123.45 on Yes · 10 shares at 34¢'),
+      ).toBeOnTheScreen();
+    });
+  });
 });

@@ -1,4 +1,5 @@
 import React from 'react';
+import { act } from '@testing-library/react-native';
 import MarketListContent from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -33,6 +34,22 @@ jest.mock('../PredictMarket', () => {
   const { View } = jest.requireActual('react-native');
   return jest.fn(({ market }) => (
     <View testID={`predict-market-${market.id}`}>PredictMarket</View>
+  ));
+});
+
+jest.mock('../PredictOffline', () => {
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+  return jest.fn(({ onRetry }) => (
+    <View testID="predict-error-state">
+      <Text>Unable to connect to predictions</Text>
+      <Text>
+        Prediction markets are temporarily offline. Please check you have a
+        stable connection and try again.
+      </Text>
+      <TouchableOpacity testID="retry-button" onPress={onRetry}>
+        <Text>Retry</Text>
+      </TouchableOpacity>
+    </View>
   ));
 });
 
@@ -192,11 +209,31 @@ describe('MarketListContent', () => {
 
   describe('Error States', () => {
     it('renders error state when there is an error', () => {
-      const { getByText } = setupMarketListContentTest({
+      const { getByText, getByTestId } = setupMarketListContentTest({
         error: 'Failed to fetch markets',
       });
 
-      expect(getByText('Error: Failed to fetch markets')).toBeOnTheScreen();
+      expect(getByTestId('predict-error-state')).toBeOnTheScreen();
+      expect(getByText('Unable to connect to predictions')).toBeOnTheScreen();
+      expect(
+        getByText(
+          'Prediction markets are temporarily offline. Please check you have a stable connection and try again.',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls refetch when retry button is pressed', async () => {
+      const { getByTestId } = setupMarketListContentTest({
+        error: 'Failed to fetch markets',
+      });
+
+      const retryButton = getByTestId('retry-button');
+
+      await act(async () => {
+        await retryButton.props.onPress();
+      });
+
+      expect(mockRefetch).toHaveBeenCalledTimes(1);
     });
   });
 
