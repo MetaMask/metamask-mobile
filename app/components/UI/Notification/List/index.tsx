@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import { ActivityIndicator, FlatList, FlatListProps, View } from 'react-native';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/NotificationsView.selectors';
 import {
@@ -56,7 +57,8 @@ export function useNotificationOnClick(
 ) {
   const { markNotificationAsRead } = useMarkNotificationAsRead();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const onNotificationClick = useCallback(
+
+  const handleNotificationClickMetricsAndUpdates = useCallback(
     (item: INotification) => {
       markNotificationAsRead([
         {
@@ -65,19 +67,6 @@ export function useNotificationOnClick(
           isRead: item.isRead,
         },
       ]);
-      if (hasNotificationModal(item?.type)) {
-        props.navigation.navigate(Routes.NOTIFICATIONS.DETAILS, {
-          notification: item,
-        });
-      }
-
-      NotificationsService.getBadgeCount().then((count) => {
-        if (count > 0) {
-          NotificationsService.decrementBadgeCount(count - 1);
-        } else {
-          NotificationsService.setBadgeCount(0);
-        }
-      });
 
       const otherNotificationProperties = () => {
         if (
@@ -102,15 +91,44 @@ export function useNotificationOnClick(
           })
           .build(),
       );
+
+      NotificationsService.getBadgeCount().then((count) => {
+        if (count > 0) {
+          NotificationsService.decrementBadgeCount(count - 1);
+        } else {
+          NotificationsService.setBadgeCount(0);
+        }
+      });
     },
-    [markNotificationAsRead, props.navigation, trackEvent, createEventBuilder],
+    [createEventBuilder, markNotificationAsRead, trackEvent],
   );
 
-  return onNotificationClick;
+  const onNavigation = useCallback(
+    (item: INotification) => {
+      if (hasNotificationModal(item?.type)) {
+        props.navigation.navigate(Routes.NOTIFICATIONS.DETAILS, {
+          notification: item,
+        });
+      }
+    },
+    [props.navigation],
+  );
+
+  const onNotificationClick = useCallback(
+    (item: INotification) => {
+      handleNotificationClickMetricsAndUpdates(item);
+      onNavigation(item);
+    },
+    [handleNotificationClickMetricsAndUpdates, onNavigation],
+  );
+
+  return { onNotificationClick, handleNotificationClickMetricsAndUpdates };
 }
 
 export function NotificationsListItem(props: NotificationsListItemProps) {
-  const onNotificationClick = useNotificationOnClick(props);
+  const { onNotificationClick, handleNotificationClickMetricsAndUpdates } =
+    useNotificationOnClick(props);
+  const tw = useTailwind();
 
   const menuItemState = useMemo(() => {
     const notificationState =
@@ -131,15 +149,21 @@ export function NotificationsListItem(props: NotificationsListItemProps) {
       handleOnPress={() => onNotificationClick(props.notification)}
       isRead={props.notification.isRead}
       testID={NotificationMenuViewSelectorsIDs.ITEM(props.notification.id)}
+      style={tw`gap-2`}
     >
-      <Box>
+      <Box style={tw`flex-row gap-4`}>
         <NotificationMenuItem.Icon
           isRead={props.notification.isRead}
           {...menuItemState}
         />
         <NotificationMenuItem.Content {...menuItemState} />
       </Box>
-      <NotificationMenuItem.Cta cta={menuItemState.cta} />
+      <NotificationMenuItem.Cta
+        cta={menuItemState.cta}
+        onClick={() =>
+          handleNotificationClickMetricsAndUpdates(props.notification)
+        }
+      />
     </NotificationMenuItem.Root>
   );
 }

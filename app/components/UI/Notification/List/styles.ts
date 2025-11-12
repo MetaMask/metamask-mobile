@@ -59,10 +59,6 @@ export const createStyles = ({ colors }: Theme) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    menuItemContainer: {
-      flexDirection: 'row',
-      gap: 16,
-    },
     loader: {
       backgroundColor: colors.background.default,
       flex: 1,

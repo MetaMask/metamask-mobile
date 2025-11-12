@@ -17,6 +17,7 @@ const state: NotificationState<PlatformNotification> = {
       url: notification.template.image_url,
     },
     createdAt: notification.createdAt.toString(),
+    cta: notification.template.cta,
   }),
 };
 

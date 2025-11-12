@@ -10,31 +10,35 @@ import AppConstants from '../../../../core/AppConstants';
 import SharedDeeplinkManager from '../../../../core/DeeplinkManager/SharedDeeplinkManager';
 import { Linking } from 'react-native';
 
-type NotificationCtaProps = Pick<NotificationMenuItem, 'cta'>;
+type NotificationCtaProps = Pick<NotificationMenuItem, 'cta'> & {
+  onClick: () => void;
+};
 
-function NotificationCta(props: NotificationCtaProps) {
+function NotificationCta({ cta, onClick }: NotificationCtaProps) {
   const handleClick = useCallback(() => {
-    if (!props.cta?.link) {
+    if (!cta?.link) {
       return;
     }
 
     try {
+      onClick();
+
       // Handle deeplinks
-      if (props.cta.link.includes(AppConstants.MM_IO_UNIVERSAL_LINK_HOST)) {
-        SharedDeeplinkManager.parse(props.cta.link, {
+      if (cta.link.includes(AppConstants.MM_IO_UNIVERSAL_LINK_HOST)) {
+        SharedDeeplinkManager.parse(cta.link, {
           origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
         });
         return;
       }
 
       // Fallback to native link opening
-      Linking.openURL(props.cta.link);
+      Linking.openURL(cta.link);
     } catch (e) {
-      console.warn(`Failed to open NotificationCTA link ${props.cta.link}`, e);
+      console.warn(`Failed to open NotificationCTA link ${cta.link}`, e);
     }
-  }, [props.cta?.link]);
+  }, [cta?.link, onClick]);
 
-  if (!props.cta?.content || !props.cta?.link) {
+  if (!cta?.content || !cta?.link) {
     return null;
   }
 
@@ -46,7 +50,7 @@ function NotificationCta(props: NotificationCtaProps) {
       endIconName={IconName.Arrow2UpRight}
       onPress={handleClick}
     >
-      {props.cta.content}
+      {cta.content}
     </Button>
   );
 }
