@@ -243,6 +243,9 @@ export class OAuthService {
             { ...result, web3AuthNetwork },
             this.config.authServerUrl,
           );
+          if (!data.id_token) {
+            throw new OAuthError('No token found', OAuthErrorType.LoginError);
+          }
           getAuthTokensSuccess = true;
         } catch (error) {
           const errorMessage =
@@ -269,10 +272,6 @@ export class OAuthService {
             name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
             data: { success: getAuthTokensSuccess },
           });
-        }
-
-        if (!data.id_token) {
-          throw new OAuthError('No token found', OAuthErrorType.LoginError);
         }
 
         const jwtPayload = JSON.parse(
