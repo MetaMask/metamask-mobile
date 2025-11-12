@@ -152,7 +152,15 @@ const FundActionMenu = () => {
             region: rampGeodetectedRegion,
           },
           traceName: TraceName.LoadDepositExperience,
-          navigationAction: () => navigate(...createDepositNavigationDetails()),
+          navigationAction: () =>
+            navigate(
+              ...createDepositNavigationDetails({
+                assetId:
+                  'eip155:1/erc20:0x0000000000000000000000000000000000000000',
+                amount: '234',
+                currency: 'USD',
+              }),
+            ),
         },
         {
           type: 'buy',

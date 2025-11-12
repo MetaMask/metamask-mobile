@@ -47,6 +47,7 @@ import { usePaymentMethods } from '../../hooks/usePaymentMethods';
 import SdkErrorAlert from '../../components/SdkErrorAlert/SdkErrorAlert';
 import TruncatedError from '../../components/TruncatedError/TruncatedError';
 import { useDepositCryptoCurrencyNetworkName } from '../../hooks/useDepositCryptoCurrencyNetworkName';
+import useDepositIntentAmount from '../../hooks/useDepositIntentAmount';
 
 import { createTokenSelectorModalNavigationDetails } from '../Modals/TokenSelectorModal/TokenSelectorModal';
 import { createPaymentMethodSelectorModalNavigationDetails } from '../Modals/PaymentMethodSelectorModal/PaymentMethodSelectorModal';
@@ -134,6 +135,8 @@ const BuildQuote = () => {
     useDepositRouting();
 
   const getNetworkName = useDepositCryptoCurrencyNetworkName();
+
+  useDepositIntentAmount(setAmount, setAmountAsNumber);
 
   const [, getQuote] = useDepositSdkMethod(
     { method: 'getBuyQuote', onMount: false, throws: true },

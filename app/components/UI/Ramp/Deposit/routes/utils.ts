@@ -1,9 +1,9 @@
-import { DepositNavigationParams } from '../types';
+import { DepositIntent, DepositNavigationParams } from '../types';
 import Routes from '../../../../../constants/navigation/Routes';
 // import useRampsUnifiedV1Enabled from '../../hooks/useRampsUnifiedV1Enabled';
 
 export function createDepositNavigationDetails(
-  params?: DepositNavigationParams,
+  params?: DepositNavigationParams | DepositIntent,
 ) {
   // const isRampsUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   // // TODO: Use goToRamps hook for managing ramps navigation to the token selection screen
@@ -22,5 +22,14 @@ export function createDepositNavigationDetails(
     return [route] as const;
   }
 
-  return [route, { screen: route, params }] as const;
+  return [
+    route,
+    {
+      screen: Routes.DEPOSIT.ROOT,
+      params: {
+        screen: Routes.DEPOSIT.ROOT,
+        params,
+      },
+    },
+  ] as const;
 }

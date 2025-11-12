@@ -37,6 +37,7 @@ import {
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
+import { DepositIntent } from '../types';
 
 export interface DepositSDK {
   sdk?: NativeRampsSdk;
@@ -56,6 +57,15 @@ export interface DepositSDK {
   setSelectedPaymentMethod: (paymentMethod: DepositPaymentMethod) => void;
   selectedCryptoCurrency: DepositCryptoCurrency | null;
   setSelectedCryptoCurrency: (cryptoCurrency: DepositCryptoCurrency) => void;
+  intent: DepositIntent | undefined;
+  setIntent: (
+    intentOrSetter:
+      | DepositIntent
+      | ((
+          previousIntent: DepositIntent | undefined,
+        ) => DepositIntent | undefined)
+      | undefined,
+  ) => void;
 }
 
 const environment = getSdkEnvironment();
@@ -104,6 +114,8 @@ export const DepositSDKProvider = ({
     useState<DepositPaymentMethod | null>(INITIAL_SELECTED_PAYMENT_METHOD);
   const [selectedCryptoCurrency, setSelectedCryptoCurrency] =
     useState<DepositCryptoCurrency | null>(INITIAL_SELECTED_CRYPTO_CURRENCY);
+
+  const [intent, setIntent] = useState<DepositIntent | undefined>(undefined);
 
   const selectedWalletAddress = useRampAccountAddress(
     selectedCryptoCurrency?.chainId,
@@ -249,6 +261,8 @@ export const DepositSDKProvider = ({
       setSelectedPaymentMethod: setSelectedPaymentMethodCallback,
       selectedCryptoCurrency,
       setSelectedCryptoCurrency: setSelectedCryptoCurrencyCallback,
+      intent,
+      setIntent,
     }),
     [
       sdk,
@@ -268,6 +282,8 @@ export const DepositSDKProvider = ({
       setSelectedPaymentMethodCallback,
       selectedCryptoCurrency,
       setSelectedCryptoCurrencyCallback,
+      intent,
+      setIntent,
     ],
   );
 

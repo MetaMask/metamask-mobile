@@ -28,9 +28,12 @@ describe('handleDepositUrl', () => {
       navigation,
     });
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.DEPOSIT.ID, {
-      screen: Routes.DEPOSIT.ID,
+      screen: Routes.DEPOSIT.ROOT,
       params: {
-        assetId: 'eip155:1/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+        screen: Routes.DEPOSIT.ROOT,
+        params: {
+          assetId: 'eip155:1/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+        },
       },
     });
   });
@@ -42,9 +45,12 @@ describe('handleDepositUrl', () => {
       navigation,
     });
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.DEPOSIT.ID, {
-      screen: Routes.DEPOSIT.ID,
+      screen: Routes.DEPOSIT.ROOT,
       params: {
-        assetId: 'eip155:1/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+        screen: Routes.DEPOSIT.ROOT,
+        params: {
+          assetId: 'eip155:1/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+        },
       },
     });
   });
