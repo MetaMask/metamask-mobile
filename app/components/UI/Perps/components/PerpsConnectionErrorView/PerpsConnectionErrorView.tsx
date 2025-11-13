@@ -85,7 +85,7 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
     <View style={styles.container}>
       <View style={styles.errorContainer}>
         <Icon
-          name={IconName.SignalCellular}
+          name={IconName.WifiOff}
           color={IconColor.Muted}
           size={IconSize.Xl}
           style={styles.errorIcon}
