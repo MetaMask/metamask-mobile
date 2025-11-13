@@ -65,7 +65,7 @@
     },
     "signed_or_submitted_perps_deposit": {
       "title": "Deposit in progress",
-      "message": "You already have a deposit in progress. You'll need to wait for it to go through before depositing again."
+      "message": "Wait for the last deposit to finish before making another."
     },
     "pending_transaction": {
       "title": "Pending transaction",
@@ -87,14 +87,15 @@
       "title": "Insufficient funds"
     },
     "insufficient_pay_token_native": {
-      "message": "Insufficient {{ticker}} to cover fees. Select a token on a different network to continue."
+      "message": "Not enough {{ticker}} to cover fees. Use a token on another network or add more {{ticker}} to continue.",
+      "title": "Insufficient funds"
     },
     "no_pay_token_quotes": {
       "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option."
     },
     "perps_hardware_account": {
       "title": "Wallet not supported",
-      "message": "Perps doesn't support hardware wallets.\nSwitch accounts to continue funding."
+      "message": "Hardware wallets aren't supported.\nSwitch wallets to continue."
     },
     "burn_address": {
       "message": "You're sending your assets to a burn address. If you continue, you'll lose your assets.",
@@ -5838,7 +5839,7 @@
     "transaction": "Transaction",
     "available_balance": "Available: ",
     "edit_amount_done": "Done",
-    "deposit_edit_amount_done": "Continue"
+    "deposit_edit_amount_done": "Add funds"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
