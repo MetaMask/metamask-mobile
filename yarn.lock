@@ -7117,6 +7117,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/browser-passworder@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "@metamask/browser-passworder@npm:6.0.0"
+  dependencies:
+    "@metamask/utils": "npm:^11.0.1"
+  checksum: 10/44b31729ccd52e62df27a948fbea2320a11861d6465128b1626a723fc47e25f9e3a8c3bdc09329f3f270b5d9e023107cb439cfb6961a3614c6daa58ea4524f00
+  languageName: node
+  linkType: hard
+
 "@metamask/build-utils@npm:^3.0.0":
   version: 3.0.4
   resolution: "@metamask/build-utils@npm:3.0.4"
@@ -7746,12 +7755,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-controller@npm:@metamask-previews/keyring-controller@24.0.0-preview-70abd50a":
-  version: 24.0.0-preview-70abd50a
-  resolution: "@metamask-previews/keyring-controller@npm:24.0.0-preview-70abd50a"
+"@metamask/keyring-controller@npm:@metamask-previews/keyring-controller@24.0.0-preview-20df3e99":
+  version: 24.0.0-preview-20df3e99
+  resolution: "@metamask-previews/keyring-controller@npm:24.0.0-preview-20df3e99"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@metamask/base-controller": "npm:^9.0.0"
+    "@metamask/browser-passworder": "npm:^6.0.0"
     "@metamask/eth-hd-keyring": "npm:^13.0.0"
     "@metamask/eth-sig-util": "npm:^8.2.0"
     "@metamask/eth-simple-keyring": "npm:^11.0.0"
@@ -7764,7 +7774,7 @@ __metadata:
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
     ulid: "npm:^2.3.0"
-  checksum: 10/3941c3158ea5bbb91b375b44f6efebe55feaf60ee16864d1bd976120e3fde5a102c60bddda5896962e1d4ce9cb5412ea2d07989f12b73de2917b5844033bc4bc
+  checksum: 10/f5332805b9ff74cefeae49b5b3b4cf9b6b1617535e78f30e052ccf79a8eaff9cef49527873b28f0249cd6528f3a823c4b9e1e4b3b1124854886eb8ace1540372
   languageName: node
   linkType: hard
 
