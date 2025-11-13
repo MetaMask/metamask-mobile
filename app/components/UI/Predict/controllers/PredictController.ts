@@ -38,8 +38,8 @@ import {
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import {
   PredictEventProperties,
-  PredictEventType,
-  PredictEventTypeValue,
+  PredictTradeStatus,
+  PredictTradeStatusValue,
 } from '../constants/eventNames';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
@@ -77,6 +77,8 @@ import {
 } from '../types';
 import { ensureError } from '../utils/predictErrorHandler';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
+import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
 
 /**
  * State shape for PredictController
@@ -102,7 +104,7 @@ export type PredictControllerState = {
   claimablePositions: { [address: string]: PredictPosition[] };
 
   // Deposit management
-  pendingDeposits: { [providerId: string]: { [address: string]: boolean } };
+  pendingDeposits: { [providerId: string]: { [address: string]: string } };
 
   // Withdraw management
   // TODO: change to be per-account basis
@@ -388,9 +390,9 @@ export class PredictController extends BaseController<
    * @private
    */
   private getSigner(address?: string): Signer {
-    const { AccountsController, KeyringController } = Engine.context;
+    const { KeyringController } = Engine.context;
     const selectedAddress =
-      address ?? AccountsController.getSelectedAccount().address;
+      address ?? getEvmAccountFromSelectedAccountGroup()?.address ?? '0x0';
     return {
       address: selectedAddress,
       signTypedMessage: (
@@ -782,10 +784,8 @@ export class PredictController extends BaseController<
 
     try {
       const { address, providerId = 'polymarket' } = params;
-      const { AccountsController } = Engine.context;
 
-      const selectedAddress =
-        address ?? AccountsController.getSelectedAccount().address;
+      const selectedAddress = address ?? this.getSigner().address;
 
       const provider = this.providers.get(providerId);
 
@@ -869,10 +869,7 @@ export class PredictController extends BaseController<
 
     try {
       const { address, providerId } = params;
-      const { AccountsController } = Engine.context;
-
-      const selectedAddress =
-        address ?? AccountsController.getSelectedAccount().address;
+      const selectedAddress = address ?? this.getSigner().address;
 
       const providerIds = providerId
         ? [providerId]
@@ -956,9 +953,7 @@ export class PredictController extends BaseController<
     });
 
     try {
-      const { AccountsController } = Engine.context;
-      const selectedAddress =
-        address ?? AccountsController.getSelectedAccount().address;
+      const selectedAddress = address ?? this.getSigner().address;
 
       const provider = this.providers.get(providerId);
       if (!provider) {
@@ -1010,11 +1005,12 @@ export class PredictController extends BaseController<
   }
 
   /**
-   * Track Predict order analytics events
+   * Track Predict trade transaction analytics event
+   * Uses a single consolidated event with status discriminator
    * @public
    */
   public async trackPredictOrderEvent({
-    eventType,
+    status,
     amountUsd,
     analyticsProperties,
     providerId,
@@ -1023,7 +1019,7 @@ export class PredictController extends BaseController<
     sharePrice,
     pnl,
   }: {
-    eventType: PredictEventTypeValue;
+    status: PredictTradeStatusValue;
     amountUsd?: number;
     analyticsProperties?: PlaceOrderParams['analyticsProperties'];
     providerId: string;
@@ -1036,8 +1032,9 @@ export class PredictController extends BaseController<
       return;
     }
 
-    // Build regular properties (common to all events)
+    // Build regular properties (common to all statuses)
     const regularProperties = {
+      [PredictEventProperties.STATUS]: status,
       [PredictEventProperties.MARKET_ID]: analyticsProperties.marketId,
       [PredictEventProperties.MARKET_TITLE]: analyticsProperties.marketTitle,
       [PredictEventProperties.MARKET_CATEGORY]:
@@ -1056,11 +1053,11 @@ export class PredictController extends BaseController<
       ...(analyticsProperties.outcome && {
         [PredictEventProperties.OUTCOME]: analyticsProperties.outcome,
       }),
-      // Add completion duration for COMPLETED and FAILED events
+      // Add completion duration for succeeded and failed status
       ...(completionDuration !== undefined && {
         [PredictEventProperties.COMPLETION_DURATION]: completionDuration,
       }),
-      // Add failure reason for FAILED events
+      // Add failure reason for failed status
       ...(failureReason && {
         [PredictEventProperties.FAILURE_REASON]: failureReason,
       }),
@@ -1077,37 +1074,16 @@ export class PredictController extends BaseController<
       }),
     };
 
-    // Determine event name based on type
-    let metaMetricsEvent: (typeof MetaMetricsEvents)[keyof typeof MetaMetricsEvents];
-    let eventLabel: string;
-
-    switch (eventType) {
-      case PredictEventType.INITIATED:
-        metaMetricsEvent = MetaMetricsEvents.PREDICT_ACTION_INITIATED;
-        eventLabel = 'PREDICT_ACTION_INITIATED';
-        break;
-      case PredictEventType.SUBMITTED:
-        metaMetricsEvent = MetaMetricsEvents.PREDICT_ACTION_SUBMITTED;
-        eventLabel = 'PREDICT_ACTION_SUBMITTED';
-        break;
-      case PredictEventType.COMPLETED:
-        metaMetricsEvent = MetaMetricsEvents.PREDICT_ACTION_COMPLETED;
-        eventLabel = 'PREDICT_ACTION_COMPLETED';
-        break;
-      case PredictEventType.FAILED:
-        metaMetricsEvent = MetaMetricsEvents.PREDICT_ACTION_FAILED;
-        eventLabel = 'PREDICT_ACTION_FAILED';
-        break;
-    }
-
-    DevLogger.log(`📊 [Analytics] ${eventLabel}`, {
+    DevLogger.log(`📊 [Analytics] PREDICT_TRADE_TRANSACTION [${status}]`, {
       providerId,
       regularProperties,
       sensitiveProperties,
     });
 
     MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(metaMetricsEvent)
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PREDICT_TRADE_TRANSACTION,
+      )
         .addProperties(regularProperties)
         .addSensitiveProperties(sensitiveProperties)
         .build(),
@@ -1347,9 +1323,9 @@ export class PredictController extends BaseController<
 
       const signer = this.getSigner();
 
-      // Track Predict Action Submitted (fire and forget)
+      // Track Predict Trade Transaction with submitted status (fire and forget)
       this.trackPredictOrderEvent({
-        eventType: PredictEventType.SUBMITTED,
+        status: PredictTradeStatus.SUBMITTED,
         amountUsd,
         analyticsProperties,
         providerId,
@@ -1407,9 +1383,9 @@ export class PredictController extends BaseController<
         // If we can't get real share price, continue without it
       }
 
-      // Track Predict Action Completed (fire and forget)
+      // Track Predict Trade Transaction with succeeded status (fire and forget)
       this.trackPredictOrderEvent({
-        eventType: PredictEventType.COMPLETED,
+        status: PredictTradeStatus.SUCCEEDED,
         amountUsd: realAmountUsd,
         analyticsProperties,
         providerId,
@@ -1426,9 +1402,9 @@ export class PredictController extends BaseController<
           ? error.message
           : PREDICT_ERROR_CODES.PLACE_ORDER_FAILED;
 
-      // Track Predict Action Failed (fire and forget)
+      // Track Predict Trade Transaction with failed status (fire and forget)
       this.trackPredictOrderEvent({
-        eventType: PredictEventType.FAILED,
+        status: PredictTradeStatus.FAILED,
         amountUsd,
         analyticsProperties,
         providerId,
@@ -1640,6 +1616,12 @@ export class PredictController extends BaseController<
     });
   }
 
+  private isLocallyGeoblocked(region: { country: string }): boolean {
+    return GEO_BLOCKED_COUNTRIES.some(
+      ({ country }) => country === region.country,
+    );
+  }
+
   /**
    * Refresh eligibility status
    */
@@ -1651,6 +1633,13 @@ export class PredictController extends BaseController<
       }
       try {
         const geoBlockResponse = await provider.isEligible();
+        if (geoBlockResponse.isEligible && geoBlockResponse.country) {
+          // Check if country is blocked by local geo-blocking
+          const isLocallyGeoblocked = this.isLocallyGeoblocked({
+            country: geoBlockResponse.country,
+          });
+          geoBlockResponse.isEligible = !isLocallyGeoblocked;
+        }
         this.update((state) => {
           state.eligibility[providerId] = {
             eligible: geoBlockResponse.isEligible,
@@ -1707,9 +1696,9 @@ export class PredictController extends BaseController<
 
       // Clear any previous deposit transaction
       this.update((state) => {
-        state.pendingDeposits[params.providerId] = {
-          [signer.address]: false,
-        };
+        if (state.pendingDeposits[params.providerId]?.[signer.address]) {
+          delete state.pendingDeposits[params.providerId][signer.address];
+        }
       });
 
       const depositPreparation = await provider.prepareDeposit({
@@ -1739,6 +1728,12 @@ export class PredictController extends BaseController<
         throw new Error(`Network client not found for chain ID: ${chainId}`);
       }
 
+      this.update((state) => {
+        state.pendingDeposits[params.providerId] =
+          state.pendingDeposits[params.providerId] || {};
+        state.pendingDeposits[params.providerId][signer.address] = 'pending';
+      });
+
       const batchResult = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
@@ -1761,9 +1756,9 @@ export class PredictController extends BaseController<
       }
 
       this.update((state) => {
-        state.pendingDeposits[params.providerId] = {
-          [signer.address]: true,
-        };
+        state.pendingDeposits[params.providerId] =
+          state.pendingDeposits[params.providerId] || {};
+        state.pendingDeposits[params.providerId][signer.address] = batchId;
       });
 
       return {
@@ -1775,6 +1770,8 @@ export class PredictController extends BaseController<
     } catch (error) {
       const e = ensureError(error);
       if (e.message.includes('User denied transaction signature')) {
+        // Clear pending state before returning
+        this.clearPendingDeposit({ providerId: params.providerId });
         // ignore error, as the user cancelled the tx
         return {
           success: true,
@@ -1789,6 +1786,8 @@ export class PredictController extends BaseController<
         }),
       );
 
+      this.clearPendingDeposit({ providerId: params.providerId });
+
       throw new Error(
         error instanceof Error
           ? error.message
@@ -1798,12 +1797,11 @@ export class PredictController extends BaseController<
   }
 
   public clearPendingDeposit({ providerId }: { providerId: string }): void {
-    const { AccountsController } = Engine.context;
-    const selectedAddress = AccountsController.getSelectedAccount().address;
+    const selectedAddress = this.getSigner().address;
     this.update((state) => {
-      state.pendingDeposits[providerId] = {
-        [selectedAddress]: false,
-      };
+      if (state.pendingDeposits[providerId]?.[selectedAddress]) {
+        delete state.pendingDeposits[providerId][selectedAddress];
+      }
     });
   }
 
@@ -1829,8 +1827,7 @@ export class PredictController extends BaseController<
       if (!provider) {
         throw new Error('Provider not available');
       }
-      const { AccountsController } = Engine.context;
-      const selectedAddress = AccountsController.getSelectedAccount().address;
+      const selectedAddress = this.getSigner().address;
 
       const accountState = await provider.getAccountState({
         ...params,
@@ -1885,8 +1882,7 @@ export class PredictController extends BaseController<
       if (!provider) {
         throw new Error('Provider not available');
       }
-      const { AccountsController } = Engine.context;
-      const selectedAddress = AccountsController.getSelectedAccount().address;
+      const selectedAddress = this.getSigner().address;
       const address = params.address ?? selectedAddress;
 
       const cachedBalance = this.state.balances[params.providerId]?.[address];

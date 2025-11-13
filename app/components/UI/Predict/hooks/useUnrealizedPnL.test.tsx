@@ -27,6 +27,19 @@ jest.mock('../../../../core/Engine', () => ({
     PredictController: {
       getUnrealizedPnL: mockGetUnrealizedPnL,
     },
+    AccountTreeController: {
+      getAccountsFromSelectedAccountGroup: jest.fn(() => [
+        {
+          id: 'test-account-id',
+          address: '0x1234567890123456789012345678901234567890',
+          type: 'eip155:eoa',
+          name: 'Test Account',
+          metadata: {
+            lastSelected: 0,
+          },
+        },
+      ]),
+    },
   },
 }));
 
@@ -37,6 +50,9 @@ interface MockEngine {
   context: {
     PredictController?: {
       getUnrealizedPnL: jest.Mock;
+    };
+    AccountTreeController?: {
+      getAccountsFromSelectedAccountGroup: jest.Mock;
     };
   } | null;
 }
@@ -55,6 +71,19 @@ describe('useUnrealizedPnL', () => {
     engine.context = {
       PredictController: {
         getUnrealizedPnL: mockGetUnrealizedPnL,
+      },
+      AccountTreeController: {
+        getAccountsFromSelectedAccountGroup: jest.fn(() => [
+          {
+            id: 'test-account-id',
+            address: '0x1234567890123456789012345678901234567890',
+            type: 'eip155:eoa',
+            name: 'Test Account',
+            metadata: {
+              lastSelected: 0,
+            },
+          },
+        ]),
       },
     };
   });

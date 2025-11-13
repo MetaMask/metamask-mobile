@@ -11,7 +11,7 @@ import {
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 
-const SAME_CHAIN_DURATION_SECONDS = 2;
+const SAME_CHAIN_DURATION_SECONDS = '< 10';
 
 export function BridgeTimeRow() {
   const isLoading = useIsTransactionPayLoading();

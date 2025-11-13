@@ -20,9 +20,9 @@ const PAY_TOKEN_SYMBOL_MOCK = 'TST';
 const CHAIN_ID_2_MOCK = '0x456';
 const ADDRESS_2_MOCK = '0xdef';
 
-function render() {
+function render({ disabled = false } = {}) {
   return renderWithProvider(
-    <PayTokenAmount amountHuman={ASSET_AMOUNT_MOCK} />,
+    <PayTokenAmount amountHuman={ASSET_AMOUNT_MOCK} disabled={disabled} />,
     {
       state: merge(
         simpleSendTransactionControllerMock,
@@ -70,5 +70,10 @@ describe('PayTokenAmount', () => {
     const { getByTestId } = render();
 
     expect(getByTestId('pay-token-amount-skeleton')).toBeDefined();
+  });
+
+  it('returns fixed value if disabled', () => {
+    const { getByText } = render({ disabled: true });
+    expect(getByText('0 ETH')).toBeDefined();
   });
 });

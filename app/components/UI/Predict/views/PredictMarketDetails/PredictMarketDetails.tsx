@@ -140,6 +140,14 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       loadingStates: { isMarketFetching, isRefreshing },
     },
   });
+  
+  // calculate sticky header indices based on content structure
+  const stickyHeaderIndices = useMemo(() => {
+    if (isMarketFetching && !market) {
+      return [];
+    }
+    return [1];
+  }, [isMarketFetching, market]);
 
   const titleLineCount = useMemo(
     () => estimateLineCount(title ?? market?.title),
@@ -909,8 +917,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                 style={tw.style('flex-1 bg-success-muted')}
                 label={
                   <Text style={tw.style('font-bold')} color={TextColor.Success}>
-                    {strings('predict.market_details.yes')} •{' '}
-                    {getYesPercentage()}¢
+                    {firstOpenOutcome?.tokens[0].title} • {getYesPercentage()}¢
                   </Text>
                 }
                 onPress={() =>
@@ -927,7 +934,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                 style={tw.style('flex-1 bg-error-muted')}
                 label={
                   <Text style={tw.style('font-bold')} color={TextColor.Error}>
-                    {strings('predict.market_details.no')} •{' '}
+                    {firstOpenOutcome?.tokens[1].title} •{' '}
                     {100 - getYesPercentage()}¢
                   </Text>
                 }
@@ -1127,7 +1134,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
       <ScrollView
         testID={PredictMarketDetailsSelectorsIDs.SCROLLABLE_TAB_VIEW}
-        stickyHeaderIndices={[1]}
+        stickyHeaderIndices={stickyHeaderIndices}
         showsVerticalScrollIndicator={false}
         style={tw.style('flex-1')}
         refreshControl={
@@ -1142,16 +1149,14 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         {/* Header content - scrollable */}
         <Box twClassName="px-3 gap-4">
           {renderMarketStatus()}
-          {!multipleOpenOutcomesPartiallyResolved && (
-            <PredictDetailsChart
-              data={chartData}
-              timeframes={PRICE_HISTORY_TIMEFRAMES}
-              selectedTimeframe={selectedTimeframe}
-              onTimeframeChange={handleTimeframeChange}
-              isLoading={isPriceHistoryFetching}
-              emptyLabel={chartEmptyLabel}
-            />
-          )}
+          <PredictDetailsChart
+            data={chartData}
+            timeframes={PRICE_HISTORY_TIMEFRAMES}
+            selectedTimeframe={selectedTimeframe}
+            onTimeframeChange={handleTimeframeChange}
+            isLoading={isPriceHistoryFetching}
+            emptyLabel={chartEmptyLabel}
+          />
         </Box>
 
         {/* Show content skeleton while initial market data is fetching */}
@@ -1160,14 +1165,12 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             <PredictDetailsContentSkeleton />
           </Box>
         ) : (
-          <>
-            {/* Sticky tab bar */}
-            {renderCustomTabBar()}
-
-            {/* Tab content */}
-            {renderTabContent()}
-          </>
+          /* Sticky tab bar */
+          renderCustomTabBar()
         )}
+
+        {/* Tab content - only show when market is loaded */}
+        {!isMarketFetching && market && renderTabContent()}
       </ScrollView>
 
       <Box twClassName="px-3 bg-default border-t border-muted">
