@@ -757,7 +757,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
         // USD as source of truth (hybrid approach)
         usdAmount: orderForm.amount, // USD amount (primary source of truth, provider calculates size from this)
         priceAtCalculation: assetData.price, // Price snapshot when size was calculated (for slippage validation)
-        maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS, // Slippage tolerance in basis points (100 = 1%)
+        maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS, // Slippage tolerance in basis points (800 = 8%)
         // Only add TP/SL/Limit if they are truthy and/or not empty strings
         ...(orderForm.type === 'limit' && orderForm.limitPrice
           ? { price: orderForm.limitPrice }

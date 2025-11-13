@@ -261,6 +261,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   private readonly ERROR_MAPPINGS = {
     'isolated position does not have sufficient margin available to decrease leverage':
       PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED,
+    'could not immediately match': PERPS_ERROR_CODES.IOC_CANCEL,
   };
 
   // Track whether clients have been initialized (lazy initialization)
@@ -2107,7 +2108,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         const positionSize = parseFloat(params.newOrder.size);
         const slippage =
           params.newOrder.slippage ??
-          ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS / 10000;
+          ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS / 10000;
         orderPrice = params.newOrder.isBuy
           ? currentPrice * (1 + slippage)
           : currentPrice * (1 - slippage);
@@ -2434,8 +2435,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
           throw new Error(`No price available for ${position.coin}`);
         }
 
-        // Calculate order price with slippage
-        const slippage = ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS / 10000;
+        // Calculate order price with slippage (8% for IOC market-like execution)
+        const slippage =
+          ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS / 10000;
         const orderPrice = isBuy
           ? currentPrice * (1 + slippage)
           : currentPrice * (1 - slippage);
