@@ -7,11 +7,13 @@ import {
 } from './TrendingTokenPriceChangeBottomSheet';
 
 const mockGoBack = jest.fn();
+const mockCanGoBack = jest.fn(() => true);
 const mockOnCloseBottomSheet = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
+    canGoBack: mockCanGoBack,
   }),
 }));
 

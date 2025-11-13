@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { TouchableOpacity, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextColor,
   TextVariant,
@@ -46,6 +47,7 @@ const TrendingTokenRowItem = ({
   iconSize = 44,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
+  const navigation = useNavigation();
   const chainId = token.assetId.split('/')[0] as CaipChainId;
 
   const networkBadgeSource = useCallback((currentChainId: CaipChainId) => {
@@ -102,10 +104,35 @@ const TrendingTokenRowItem = ({
   const isNeutralChange =
     hasPercentageChange && (pricePercentChange1d as number) === 0;
 
-  const handlePress = () => {
-    // TODO: Implement token press logic
+  const handlePress = useCallback(() => {
+    // Parse assetId to extract chainId and address
+    // Format: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
+    const [caipChainId, assetIdentifier] = token.assetId.split('/');
+    const address = assetIdentifier?.split(':')[1] as Hex | undefined;
+
+    if (!address || !isCaipChainId(caipChainId)) {
+      onPress?.();
+      return;
+    }
+
+    // Convert CAIP chainId to Hex format
+    const { namespace, reference } = parseCaipChainId(caipChainId);
+    const hexChainId =
+      namespace === 'eip155'
+        ? (`0x${Number(reference).toString(16)}` as Hex)
+        : (caipChainId as Hex);
+
+    // Navigate to Asset page with token data
+    navigation.navigate('Asset', {
+      chainId: hexChainId,
+      address,
+      symbol: token.symbol,
+      name: token.name,
+      decimals: token.decimals,
+    });
+
     onPress?.();
-  };
+  }, [token, navigation, onPress]);
 
   return (
     <TouchableOpacity
