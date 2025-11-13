@@ -1,10 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import {
-  TRIGGER_TYPES,
-  INotification,
-} from '@metamask/notification-services-controller/notification-services';
+import { INotification } from '@metamask/notification-services-controller/notification-services';
 
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/wallet/NotificationsView.selectors';
@@ -82,30 +79,7 @@ export function useNotificationFilters(props: {
     return sortedNotifications;
   }, [notifications]);
 
-  // Wallet notifications
-  const walletNotifications = useMemo(
-    () =>
-      (allNotifications ?? []).filter(
-        (n) =>
-          n.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT &&
-          n.type !== TRIGGER_TYPES.SNAP,
-      ),
-    [allNotifications],
-  );
-
-  const announcementNotifications = useMemo(
-    () =>
-      (allNotifications ?? []).filter(
-        (n) => n.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT,
-      ),
-    [allNotifications],
-  );
-
-  return {
-    allNotifications,
-    walletNotifications,
-    announcementNotifications,
-  };
+  return { allNotifications };
 }
 
 const NotificationsView = ({
@@ -123,8 +97,7 @@ const NotificationsView = ({
     notifications,
   });
 
-  const { allNotifications, walletNotifications, announcementNotifications } =
-    useNotificationFilters({ notifications });
+  const { allNotifications } = useNotificationFilters({ notifications });
 
   const unreadCount = useMemo(
     () => allNotifications.filter((n) => !n.isRead).length,
@@ -141,8 +114,6 @@ const NotificationsView = ({
           <Notifications
             navigation={navigation}
             allNotifications={allNotifications}
-            walletNotifications={walletNotifications}
-            web3Notifications={announcementNotifications}
             loading={isLoading}
           />
           {!isLoading && unreadCount > 0 && (

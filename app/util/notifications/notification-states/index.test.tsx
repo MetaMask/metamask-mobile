@@ -1,96 +1,13 @@
-import {
-  TRIGGER_TYPES,
-  processNotification,
-} from '@metamask/notification-services-controller/notification-services';
-import {
-  createMockNotificationEthSent,
-  createMockNotificationEthReceived,
-  createMockNotificationERC20Sent,
-  createMockNotificationERC20Received,
-  createMockNotificationERC721Sent,
-  createMockNotificationERC721Received,
-  createMockNotificationERC1155Sent,
-  createMockNotificationERC1155Received,
-  createMockNotificationMetaMaskSwapsCompleted,
-  createMockNotificationRocketPoolStakeCompleted,
-  createMockNotificationRocketPoolUnStakeCompleted,
-  createMockNotificationLidoStakeCompleted,
-  createMockNotificationLidoWithdrawalRequested,
-  createMockNotificationLidoReadyToBeWithdrawn,
-  createMockNotificationLidoWithdrawalCompleted,
-  createMockPlatformNotification,
-  createMockFeatureAnnouncementRaw,
-} from '@metamask/notification-services-controller/notification-services/mocks';
+import { TRIGGER_TYPES } from '@metamask/notification-services-controller/notification-services';
 import {
   hasNotificationComponents,
   hasNotificationModal,
   NotificationComponentState,
 } from '.';
-
-const mockAllNotifications = [
-  { n: processNotification(createMockNotificationEthSent()), hasModal: true },
-  {
-    n: processNotification(createMockNotificationEthReceived()),
-    hasModal: true,
-  },
-  { n: processNotification(createMockNotificationERC20Sent()), hasModal: true },
-  {
-    n: processNotification(createMockNotificationERC20Received()),
-    hasModal: true,
-  },
-  {
-    n: processNotification(createMockNotificationERC721Sent()),
-    hasModal: true,
-  },
-  {
-    n: processNotification(createMockNotificationERC721Received()),
-    hasModal: true,
-  },
-  {
-    n: processNotification(createMockNotificationERC1155Sent()),
-    hasModal: true,
-  },
-  {
-    n: processNotification(createMockNotificationERC1155Received()),
-    hasModal: true,
-  },
-  {
-    n: processNotification(createMockNotificationMetaMaskSwapsCompleted()),
-    hasModal: true,
-  },
-  {
-    n: processNotification(createMockNotificationRocketPoolStakeCompleted()),
-    hasModal: true,
-  },
-  {
-    n: processNotification(createMockNotificationRocketPoolUnStakeCompleted()),
-    hasModal: true,
-  },
-  {
-    n: processNotification(createMockNotificationLidoStakeCompleted()),
-    hasModal: true,
-  },
-  {
-    n: processNotification(createMockNotificationLidoWithdrawalRequested()),
-    hasModal: true,
-  },
-  {
-    n: processNotification(createMockNotificationLidoReadyToBeWithdrawn()),
-    hasModal: true,
-  },
-  {
-    n: processNotification(createMockNotificationLidoWithdrawalCompleted()),
-    hasModal: true,
-  },
-  {
-    n: processNotification(createMockFeatureAnnouncementRaw()),
-    hasModal: true,
-  },
-  { n: processNotification(createMockPlatformNotification()), hasModal: false },
-].map((x) => ({ ...x, type: x.n.type }));
+import { mockNotificationsWithMetaData } from '../../../components/UI/Notification/__mocks__/mock_notifications';
 
 describe('hasNotificationComponents()', () => {
-  it.each(mockAllNotifications)(
+  it.each(mockNotificationsWithMetaData)(
     'returns true for all supported notifications - $type',
     ({ type }) => {
       expect(hasNotificationComponents(type)).toBe(true);
@@ -105,14 +22,14 @@ describe('hasNotificationComponents()', () => {
 });
 
 describe('hasNotificationModal()', () => {
-  it.each(mockAllNotifications.filter((x) => x.hasModal))(
+  it.each(mockNotificationsWithMetaData.filter((x) => x.hasModal))(
     'returns true for all notifications that should render a modal details screen - $type',
     ({ type }) => {
       expect(hasNotificationModal(type)).toBe(true);
     },
   );
 
-  it.each(mockAllNotifications.filter((x) => !x.hasModal))(
+  it.each(mockNotificationsWithMetaData.filter((x) => !x.hasModal))(
     'returns false for all notifications that should not render a modal details screen - $type',
     ({ type }) => {
       expect(hasNotificationModal(type)).toBe(false);
@@ -127,15 +44,15 @@ describe('hasNotificationModal()', () => {
 });
 
 describe('NotificationComponentState', () => {
-  it.each(mockAllNotifications)(
+  it.each(mockNotificationsWithMetaData)(
     'computes notification component state for each notification type - $type',
-    ({ n, hasModal }) => {
-      if (!hasNotificationComponents(n.type)) {
+    ({ notification, hasModal }) => {
+      if (!hasNotificationComponents(notification.type)) {
         throw new Error('UNSUPPORTED NOTIFICATION');
       }
 
-      const notificationState = NotificationComponentState[n.type];
-      expect(notificationState.createMenuItem(n)).toStrictEqual(
+      const notificationState = NotificationComponentState[notification.type];
+      expect(notificationState.createMenuItem(notification)).toStrictEqual(
         expect.objectContaining({
           title: expect.any(String),
           description: expect.objectContaining({
@@ -145,7 +62,9 @@ describe('NotificationComponentState', () => {
         }),
       );
 
-      expect(notificationState.createModalDetails?.(n)).toStrictEqual(
+      expect(
+        notificationState.createModalDetails?.(notification),
+      ).toStrictEqual(
         !hasModal
           ? undefined
           : expect.objectContaining({
