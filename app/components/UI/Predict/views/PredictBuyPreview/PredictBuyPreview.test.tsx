@@ -103,20 +103,6 @@ jest.mock('../../hooks/usePredictDeposit', () => ({
   }),
 }));
 
-// Mock rewards feature flag selector
-const mockRewardsPredictEnabledState = { value: false };
-jest.mock('../../../../../selectors/featureFlagController/rewards', () => {
-  const actual = jest.requireActual(
-    '../../../../../selectors/featureFlagController/rewards',
-  );
-  return {
-    ...actual,
-    selectRewardsPredictEnabledFlag: jest.fn(
-      () => mockRewardsPredictEnabledState.value,
-    ),
-  };
-});
-
 // Mock Skeleton component
 jest.mock(
   '../../../../../component-library/components/Skeleton/Skeleton',
@@ -326,7 +312,6 @@ describe('PredictBuyPreview', () => {
     mockBalanceLoading = false;
     mockMetamaskFee = 0.5;
     mockProviderFee = 1.0;
-    mockRewardsPredictEnabledState.value = false;
 
     // Setup default mocks
     mockUseNavigation.mockReturnValue(mockNavigation);
@@ -2198,122 +2183,6 @@ describe('PredictBuyPreview', () => {
 
       // Renders custom token (uses preview sharePrice 0.5, not outcomeToken price)
       expect(getByText('Maybe at 50¢')).toBeOnTheScreen();
-    });
-  });
-
-  describe('Rewards Calculation', () => {
-    it('calculates estimated points as metamask fee times 100 rounded', () => {
-      mockRewardsPredictEnabledState.value = true;
-      mockMetamaskFee = 0.5;
-      const mockStore = {
-        ...initialState,
-      };
-
-      const { rerender } = renderWithProvider(<PredictBuyPreview />, {
-        state: mockStore,
-      });
-
-      // Enter amount to trigger calculation
-      act(() => {
-        capturedOnChange?.({
-          value: '10',
-          valueAsNumber: 10,
-        });
-      });
-
-      rerender(<PredictBuyPreview />);
-
-      // Expected: 0.5 * 100 = 50 points
-      // This is verified indirectly through props passed to PredictFeeSummary
-    });
-
-    it('rounds estimated points to nearest integer', () => {
-      mockRewardsPredictEnabledState.value = true;
-      mockMetamaskFee = 1.234;
-
-      renderWithProvider(<PredictBuyPreview />, {
-        state: initialState,
-      });
-
-      // Expected: 1.234 * 100 = 123.4 → 123 points
-    });
-
-    it('calculates zero points when metamask fee is zero', () => {
-      mockRewardsPredictEnabledState.value = true;
-      mockMetamaskFee = 0;
-
-      renderWithProvider(<PredictBuyPreview />, {
-        state: initialState,
-      });
-
-      // Expected: 0 * 100 = 0 points
-    });
-
-    it('recalculates points when metamask fee changes', () => {
-      mockRewardsPredictEnabledState.value = true;
-      mockMetamaskFee = 0.5;
-
-      const { rerender } = renderWithProvider(<PredictBuyPreview />, {
-        state: initialState,
-      });
-
-      // Change fee
-      mockMetamaskFee = 1.0;
-
-      rerender(<PredictBuyPreview />);
-
-      // Expected: 1.0 * 100 = 100 points
-    });
-  });
-
-  describe('Rewards Display', () => {
-    it('shows rewards when feature flag is enabled and amount is entered', () => {
-      mockRewardsPredictEnabledState.value = true;
-      mockMetamaskFee = 0.5;
-
-      renderWithProvider(<PredictBuyPreview />, {
-        state: initialState,
-      });
-
-      // Enter amount
-      act(() => {
-        capturedOnChange?.({
-          value: '10',
-          valueAsNumber: 10,
-        });
-      });
-
-      // shouldShowRewards = true when rewardsEnabled && currentValue > 0
-    });
-
-    it('does not show rewards when feature flag is disabled', () => {
-      mockRewardsPredictEnabledState.value = false;
-      mockMetamaskFee = 0.5;
-
-      renderWithProvider(<PredictBuyPreview />, {
-        state: initialState,
-      });
-
-      // Enter amount
-      act(() => {
-        capturedOnChange?.({
-          value: '10',
-          valueAsNumber: 10,
-        });
-      });
-
-      // shouldShowRewards = false when rewardsEnabled is false
-    });
-
-    it('does not show rewards when amount is zero', () => {
-      mockRewardsPredictEnabledState.value = true;
-
-      renderWithProvider(<PredictBuyPreview />, {
-        state: initialState,
-      });
-
-      // No amount entered (currentValue = 0)
-      // shouldShowRewards = false when currentValue is 0
     });
   });
 

@@ -173,25 +173,9 @@ describe('PredictFeeSummary', () => {
   });
 
   describe('Rewards Row', () => {
-    it('does not display rewards row when shouldShowRewards is false', () => {
+    it('displays rewards row', () => {
       const props = {
         ...defaultProps,
-        shouldShowRewards: false,
-        estimatedPoints: 100,
-      };
-
-      const { queryByText, queryByTestId } = render(
-        <PredictFeeSummary {...props} />,
-      );
-
-      expect(queryByText('Est. points')).toBeNull();
-      expect(queryByTestId('rewards-animation')).toBeNull();
-    });
-
-    it('displays rewards row when shouldShowRewards is true', () => {
-      const props = {
-        ...defaultProps,
-        shouldShowRewards: true,
         estimatedPoints: 50,
       };
 
@@ -206,7 +190,6 @@ describe('PredictFeeSummary', () => {
     it('displays correct estimated points value', () => {
       const props = {
         ...defaultProps,
-        shouldShowRewards: true,
         estimatedPoints: 123,
       };
 
@@ -218,7 +201,6 @@ describe('PredictFeeSummary', () => {
     it('displays zero points when estimatedPoints is 0', () => {
       const props = {
         ...defaultProps,
-        shouldShowRewards: true,
         estimatedPoints: 0,
       };
 
@@ -232,7 +214,6 @@ describe('PredictFeeSummary', () => {
     it('renders rewards row after Total row', () => {
       const props = {
         ...defaultProps,
-        shouldShowRewards: true,
         estimatedPoints: 50,
       };
 
