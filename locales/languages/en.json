@@ -5841,7 +5841,8 @@
     "transaction": "Transaction",
     "available_balance": "Available: ",
     "edit_amount_done": "Done",
-    "deposit_edit_amount_done": "Add funds"
+    "deposit_edit_amount_done": "Add funds",
+    "deposit_edit_amount_predict_withdraw": "Withdraw"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
@@ -6841,7 +6842,9 @@
   "transaction_details": {
     "title": {
       "perps_deposit": "Funded Perps account",
+      "predict_claim": "Claimed winnings",
       "predict_deposit": "Funded Predict account",
+      "predict_withdraw": "Withdrawal",
       "default": "Transaction details"
     },
     "label": {
@@ -6849,7 +6852,9 @@
       "network_fee": "Network fee",
       "paid_with": "Paid with",
       "retry_button": "Try again",
-      "total": "Total"
+      "total": "Total",
+      "account": "Account",
+      "received_total": "Received total"
     },
     "summary_title": {
       "bridge_approval": "Approve {{approveSymbol}}",

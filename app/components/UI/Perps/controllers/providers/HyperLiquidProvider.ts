@@ -3676,6 +3676,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
       this.ensureClientsInitialized();
       this.clientService.ensureInitialized();
 
+      // CRITICAL: Build asset mapping on first call to ensure DEX discovery
+      // This must happen BEFORE any WebSocket subscriptions receive data
+      // Otherwise HIP-3 positions will be filtered out due to empty discoveredDexNames
+      if (this.coinToAssetId.size === 0) {
+        await this.buildAssetMapping();
+      }
+
       // Path 1: Symbol filtering - group by DEX and fetch in parallel
       if (params?.symbols && params.symbols.length > 0) {
         DevLogger.log(
