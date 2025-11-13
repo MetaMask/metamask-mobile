@@ -1,6 +1,5 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../../util/theme';
 import { useParams } from '../../../../util/navigation/navUtils';
 import BottomSheet, {
@@ -46,7 +45,6 @@ const closeButtonStyle = StyleSheet.create({
 
 const TrendingTokenNetworkBottomSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
   const { colors } = useTheme();
   const { onNetworkSelect, selectedNetwork: initialSelectedNetwork } =
     useParams<TrendingTokenNetworkBottomSheetParams>();
@@ -90,15 +88,8 @@ const TrendingTokenNetworkBottomSheet = () => {
   });
 
   const handleClose = useCallback(() => {
-    // Navigate back immediately to remove overlay quickly
-    navigation.goBack();
     sheetRef.current?.onCloseBottomSheet();
-  }, [navigation]);
-
-  const handleSheetClose = useCallback(() => {
-    // Handle close when clicking outside the sheet
-    navigation.goBack();
-  }, [navigation]);
+  }, []);
 
   const isAllNetworksSelected =
     selectedNetwork === NetworkOption.AllNetworks || selectedNetwork === null;
@@ -131,11 +122,7 @@ const TrendingTokenNetworkBottomSheet = () => {
   };
 
   return (
-    <BottomSheet
-      shouldNavigateBack={false}
-      ref={sheetRef}
-      onClose={handleSheetClose}
-    >
+    <BottomSheet shouldNavigateBack={false} ref={sheetRef}>
       <BottomSheetHeader
         onClose={handleClose}
         closeButtonProps={{ style: closeButtonStyle.closeButton }}
