@@ -547,6 +547,7 @@ const CardAuthentication = () => {
                   placeholder={strings(
                     'card.card_authentication.email_placeholder',
                   )}
+                  testID={CardAuthenticationSelectors.EMAIL_INPUT}
                   numberOfLines={1}
                   size={TextFieldSize.Lg}
                   value={email}
@@ -568,6 +569,7 @@ const CardAuthentication = () => {
                   placeholder={strings(
                     'card.card_authentication.password_placeholder',
                   )}
+                  testID={CardAuthenticationSelectors.PASSWORD_INPUT}
                   numberOfLines={1}
                   size={TextFieldSize.Lg}
                   value={password}

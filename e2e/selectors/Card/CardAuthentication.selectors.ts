@@ -4,4 +4,6 @@ export const CardAuthenticationSelectors = {
   WELCOME_TO_CARD_TITLE_TEXT: 'welcome-to-card-title-text',
   WELCOME_TO_CARD_DESCRIPTION_TEXT: 'welcome-to-card-description-text',
   FOX_IMAGE: 'fox-image',
+  EMAIL_INPUT: 'email-input',
+  PASSWORD_INPUT: 'password-input',
 };
