@@ -199,10 +199,9 @@ function TokenSelection() {
         keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="always"
       />
-      <UnsupportedTokenModal
-        isVisible={isUnsupportedModalVisible}
-        onClose={handleCloseUnsupportedModal}
-      />
+      {isUnsupportedModalVisible && (
+        <UnsupportedTokenModal onClose={handleCloseUnsupportedModal} />
+      )}
     </SafeAreaView>
   );
 }

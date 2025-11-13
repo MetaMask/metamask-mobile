@@ -2,13 +2,22 @@ import { StyleSheet } from 'react-native';
 
 const styleSheet = () =>
   StyleSheet.create({
-    content: {
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
       padding: 24,
-      gap: 16,
+      paddingBottom: 16,
+      position: 'relative',
     },
-    footer: {
-      padding: 24,
-      paddingTop: 0,
+    closeButton: {
+      position: 'absolute',
+      right: 16,
+      top: 16,
+    },
+    content: {
+      paddingHorizontal: 24,
+      paddingBottom: 24,
     },
   });
 
