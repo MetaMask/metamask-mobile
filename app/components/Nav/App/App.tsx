@@ -6,6 +6,7 @@ import {
 } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
+import OAuthRehydration from '../../Views/OAuthRehydration';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
 import DataCollectionModal from '../../Views/DataCollectionModal';
 import Onboarding from '../../Views/Onboarding';
@@ -283,7 +284,7 @@ const OnboardingNav = () => (
     />
     <Stack.Screen
       name="Rehydrate"
-      component={Login}
+      component={OAuthRehydration}
       options={{ headerShown: false }}
     />
   </Stack.Navigator>
@@ -923,6 +924,11 @@ const AppFlow = () => {
         <Stack.Screen
           name={Routes.ONBOARDING.LOGIN}
           component={Login}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Rehydrate"
+          component={OAuthRehydration}
           options={{ headerShown: false }}
         />
         <Stack.Screen

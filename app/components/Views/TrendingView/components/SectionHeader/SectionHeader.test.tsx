@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../util/test/initial-root-state';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import SectionHeader from './SectionHeader';
 
 const initialState = {
@@ -19,11 +19,7 @@ describe('SectionHeader', () => {
 
   it('renders title and view all text correctly', () => {
     const { getByText } = renderWithProvider(
-      <SectionHeader
-        title="Predictions"
-        viewAllText="View all"
-        onViewAll={mockOnViewAll}
-      />,
+      <SectionHeader title="Predictions" onViewAll={mockOnViewAll} />,
       { state: initialState },
     );
 
@@ -33,11 +29,7 @@ describe('SectionHeader', () => {
 
   it('calls onViewAll when view all button is pressed', () => {
     const { getByText } = renderWithProvider(
-      <SectionHeader
-        title="Predictions"
-        viewAllText="View all"
-        onViewAll={mockOnViewAll}
-      />,
+      <SectionHeader title="Predictions" onViewAll={mockOnViewAll} />,
       { state: initialState },
     );
 

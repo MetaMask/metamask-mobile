@@ -125,7 +125,7 @@ const OnboardingAnimation = ({
 
   return (
     <>
-      <View style={styles.titleWrapper}>
+      <View style={styles.titleWrapper} pointerEvents="box-none">
         <Animated.View
           style={[
             styles.largeFoxWrapper,
@@ -133,6 +133,7 @@ const OnboardingAnimation = ({
               transform: [{ translateY: logoPosition }],
             },
           ]}
+          pointerEvents="none"
         >
           <Rive
             ref={logoRef}
@@ -155,6 +156,7 @@ const OnboardingAnimation = ({
             transform: [{ translateY: logoPosition }],
           },
         ]}
+        pointerEvents="box-none"
       >
         {children}
       </Animated.View>
