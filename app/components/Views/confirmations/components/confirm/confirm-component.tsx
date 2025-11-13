@@ -27,6 +27,8 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import { CustomAmountInfoSkeleton } from '../info/custom-amount-info';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
+import { hasTransactionType } from '../../utils/transaction';
 
 export enum ConfirmationLoader {
   Default = 'default',
@@ -46,6 +48,7 @@ const ConfirmWrapped = ({
   route?: UnstakeConfirmationViewProps['route'];
 }) => {
   const alerts = useConfirmationAlerts();
+  const isScrollDisabled = useDisableScroll();
 
   return (
     <ConfirmationContextProvider>
@@ -58,6 +61,7 @@ const ConfirmWrapped = ({
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollViewContent}
                 nestedScrollEnabled
+                scrollEnabled={!isScrollDisabled}
               >
                 <TouchableWithoutFeedback>
                   <>
@@ -176,4 +180,9 @@ function Loader() {
       <AnimatedSpinner size={SpinnerSize.MD} />
     </View>
   );
+}
+
+function useDisableScroll() {
+  const transaction = useTransactionMetadataRequest();
+  return hasTransactionType(transaction, [TransactionType.predictClaim]);
 }
