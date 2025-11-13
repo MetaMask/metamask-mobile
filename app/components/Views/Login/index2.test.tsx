@@ -15,7 +15,6 @@ import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { updateAuthTypeStorageFlags } from '../../../util/authentication';
 
-import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import StorageWrapper from '../../../store/storage-wrapper';
 import {
@@ -132,7 +131,12 @@ jest.mock('../../../multichain-accounts/remote-feature-flag', () => ({
 }));
 
 describe('Login test suite 2', () => {
+  beforeAll(() => {
+    jest.useFakeTimers();
+  });
+
   afterEach(() => {
+    jest.runOnlyPendingTimers();
     jest.clearAllTimers();
     jest.clearAllMocks();
   });
@@ -466,64 +470,6 @@ describe('Login test suite 2', () => {
         },
         { timeout: 4000 },
       );
-    });
-
-    it('show error and disable biometric accesory when password is outdated', async () => {
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: false,
-        },
-      });
-      const mockState: RecursivePartial<RootState> = {
-        engine: {
-          backgroundState: {
-            SeedlessOnboardingController: {
-              vault: 'mock-vault',
-              passwordOutdatedCache: {
-                isExpiredPwd: true,
-                timestamp: 1718332800,
-              },
-            },
-          },
-        },
-      };
-
-      // mock storage wrapper
-      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
-        if (key === BIOMETRY_CHOICE_DISABLED) return false;
-        return null;
-      });
-
-      jest.spyOn(Authentication, 'resetPassword').mockResolvedValue();
-
-      jest.spyOn(Authentication, 'getType').mockImplementation(async () => ({
-        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
-        availableBiometryType: BIOMETRY_TYPE.FACE_ID,
-      }));
-
-      renderWithProvider(<Login />, {
-        // @ts-expect-error - mock state
-        state: mockState,
-      });
-
-      const errorElement = screen.queryByTestId(
-        LoginViewSelectors.PASSWORD_ERROR,
-      );
-      expect(errorElement).toBeTruthy();
-      expect(errorElement?.children[0]).toEqual(
-        strings('login.seedless_password_outdated'),
-      );
-
-      expect(
-        screen.queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON),
-      ).not.toBeTruthy();
-
-      await waitFor(() => {
-        expect(
-          screen.queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON),
-        ).not.toBeTruthy();
-      });
     });
   });
 });

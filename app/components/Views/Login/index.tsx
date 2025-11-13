@@ -24,7 +24,7 @@ import {
 } from '../../../actions/onboarding';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
 import { setExistingUser } from '../../../actions/user';
-import { connect, useDispatch } from 'react-redux';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
 import {
   passcodeType,
@@ -44,6 +44,7 @@ import ErrorBoundary from '../ErrorBoundary';
 import { toLowerCaseEquals } from '../../../util/general';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { parseVaultValue } from '../../../util/validators';
@@ -95,7 +96,6 @@ import { useMetrics } from '../../hooks/useMetrics';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import OnboardingAnimation from '../../UI/OnboardingAnimation/OnboardingAnimation';
-import { usePasswordOutdated } from './hooks/usePasswordOutdated';
 import { LoginErrorMessage } from './components/LoginErrorMessage';
 
 // In android, having {} will cause the styles to update state
@@ -105,6 +105,7 @@ const EmptyRecordConstant = {};
 interface LoginRouteParams {
   locked: boolean;
   isVaultRecovery?: boolean;
+  onboardingTraceCtx?: TraceContext;
 }
 
 interface LoginProps {
@@ -148,6 +149,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   // coming from vault recovery flow flag
   const isComingFromVaultRecovery = route?.params?.isVaultRecovery ?? false;
+
+  const isSeedlessPasswordOutdated = useSelector(
+    selectIsSeedlessPasswordOutdated,
+  );
 
   const setStartFoxAnimationCallback = () => {
     setStartFoxAnimation('Start');
@@ -472,7 +477,23 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   // show biometric switch to true even if biometric is disabled
   const shouldRenderBiometricLogin = biometryType;
 
-  usePasswordOutdated(setError);
+  // Redirect users to OAuthRehydration screen
+  useEffect(() => {
+    if (isSeedlessPasswordOutdated) {
+      // User with outdated password
+      navigation.replace('Rehydrate', {
+        locked: route?.params?.locked,
+        oauthLoginSuccess: true,
+        onboardingTraceCtx: route?.params?.onboardingTraceCtx,
+        isSeedlessPasswordOutdated: true,
+      });
+    }
+  }, [
+    isSeedlessPasswordOutdated,
+    navigation,
+    route?.params?.locked,
+    route?.params?.onboardingTraceCtx,
+  ]);
 
   const toggleWarningModal = () => {
     track(MetaMetricsEvents.FORGOT_PASSWORD_CLICKED, {});

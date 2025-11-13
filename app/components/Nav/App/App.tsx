@@ -905,6 +905,11 @@ const AppFlow = () => {
           options={{ headerShown: false }}
         />
         <Stack.Screen
+          name="Rehydrate"
+          component={OAuthRehydration}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
           name={Routes.MODAL.MAX_BROWSER_TABS_MODAL}
           component={MaxBrowserTabsModal}
         />

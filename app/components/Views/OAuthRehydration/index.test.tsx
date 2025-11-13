@@ -7,6 +7,7 @@ import { Authentication } from '../../../core';
 import Engine from '../../../core/Engine';
 import OAuthRehydration from './index';
 import OAuthService from '../../../core/OAuthService/OAuthService';
+import { strings } from '../../../../locales/i18n';
 import {
   SeedlessOnboardingControllerErrorMessage,
   RecoveryError as SeedlessOnboardingControllerRecoveryError,
@@ -105,10 +106,6 @@ jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 // Mock useNetInfo
 jest.mock('@react-native-community/netinfo', () => ({
   useNetInfo: jest.fn(),
-}));
-
-jest.mock('../Login/hooks/usePasswordOutdated', () => ({
-  usePasswordOutdated: jest.fn(),
 }));
 
 // mock storage
@@ -468,7 +465,7 @@ describe('OAuthRehydration', () => {
     });
   });
 
-  describe('Additional coverage for uncovered branches', () => {
+  describe('Error Handling and Validation', () => {
     it('handles DoCipher error for Android', async () => {
       // Arrange
       (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
@@ -706,10 +703,40 @@ describe('OAuthRehydration', () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
-      // Assert - Component handles countdown without crashing
+      // Assert
       await waitFor(() => {
         expect(mockTrackOnboarding).toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('Global Password changed', () => {
+    it('shows error when password is outdated via route param', async () => {
+      // Arrange
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+          isSeedlessPasswordOutdated: true,
+        },
+      });
+
+      jest.spyOn(Authentication, 'resetPassword').mockResolvedValue();
+
+      // Act
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+
+      // Assert - Error should be displayed
+      await waitFor(() => {
+        const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+        expect(errorElement).toBeTruthy();
+        expect(errorElement.props.children).toContain(
+          strings('login.seedless_password_outdated'),
+        );
+      });
+
+      // Assert
+      expect(Authentication.resetPassword).toHaveBeenCalled();
     });
   });
 });

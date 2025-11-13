@@ -103,6 +103,7 @@ interface OAuthRehydrationRouteParams {
   locked: boolean;
   oauthLoginSuccess: boolean;
   onboardingTraceCtx?: TraceContext;
+  isSeedlessPasswordOutdated?: boolean;
 }
 
 interface OAuthRehydrationProps {
@@ -166,6 +167,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [disabledInput, setDisabledInput] = useState(false);
+
+  const isSeedlessPasswordOutdated = route?.params?.isSeedlessPasswordOutdated;
 
   const { isDeletingInProgress, promptSeedlessRelogin } =
     usePromptSeedlessRelogin();
@@ -444,7 +447,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         biometryChoice,
         false,
       );
-      authType.oauth2Login = true;
+
+      // Only set oauth2Login for normal rehydration, not when password is outdated
+      authType.oauth2Login = !isSeedlessPasswordOutdated;
 
       await trace(
         {
@@ -479,6 +484,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   }, [
     password,
     biometryChoice,
+    isSeedlessPasswordOutdated,
     finalLoading,
     rehydrationFailedAttempts,
     handleLoginError,
@@ -524,6 +530,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       });
     }
   }, [route.params?.onboardingTraceCtx]);
+
+  // Handle password outdated state
+  useEffect(() => {
+    if (isSeedlessPasswordOutdated) {
+      setError(strings('login.seedless_password_outdated'));
+      Authentication.resetPassword().catch((e) => {
+        Logger.error(e);
+      });
+    }
+  }, [isSeedlessPasswordOutdated]);
 
   const handleUseOtherMethod = () => {
     track(MetaMetricsEvents.USE_DIFFERENT_LOGIN_METHOD_CLICKED, {
