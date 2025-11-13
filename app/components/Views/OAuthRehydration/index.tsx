@@ -169,6 +169,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const [disabledInput, setDisabledInput] = useState(false);
 
   const isSeedlessPasswordOutdated = route?.params?.isSeedlessPasswordOutdated;
+  const isComingFromOauthOnboarding = route?.params?.oauthLoginSuccess;
 
   const { isDeletingInProgress, promptSeedlessRelogin } =
     usePromptSeedlessRelogin();
@@ -293,7 +294,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           setError(strings('login.seedless_password_outdated'));
           return;
         }
-      } else if (!route.params?.oauthLoginSuccess) {
+      } else if (!isComingFromOauthOnboarding) {
         // new password relogin failed
         // for non oauth login (rehydration) failure, prompt user to reset and rehydrate
         // do we want to capture and report the error?
@@ -346,7 +347,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       navigation,
       setErrorToThrow,
       promptSeedlessRelogin,
-      route.params?.oauthLoginSuccess,
+      isComingFromOauthOnboarding,
     ],
   );
 
@@ -426,7 +427,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     ],
   );
 
-  const onLogin = useCallback(async () => {
+  const onRehydrateLogin = useCallback(async () => {
     endTrace({ name: TraceName.LoginUserInteraction });
     track(MetaMetricsEvents.REHYDRATION_PASSWORD_ATTEMPTED, {
       account_type: 'social',
@@ -449,7 +450,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       );
 
       // Only set oauth2Login for normal rehydration, not when password is outdated
-      authType.oauth2Login = !isSeedlessPasswordOutdated;
+      authType.oauth2Login = true;
 
       await trace(
         {
@@ -484,13 +485,55 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   }, [
     password,
     biometryChoice,
-    isSeedlessPasswordOutdated,
     finalLoading,
     rehydrationFailedAttempts,
     handleLoginError,
     passwordLoginAttemptTraceCtxRef,
     navigateToHome,
     track,
+  ]);
+
+  const newGlobalPasswordLogin = useCallback(async () => {
+    try {
+      const locked = !passwordRequirementsMet(password);
+      if (locked) {
+        throw new Error(PASSWORD_REQUIREMENTS_NOT_MET);
+      }
+      if (finalLoading || locked) return;
+
+      setLoading(true);
+
+      // try default with biometric if available and no remember me flag
+      const authType = await Authentication.componentAuthenticationType(
+        biometryChoice,
+        false,
+      );
+
+      // Only set oauth2Login for normal rehydration, not when password is outdated
+      authType.oauth2Login = false;
+
+      await trace(
+        {
+          name: TraceName.AuthenticateUser,
+          op: TraceOperation.Login,
+        },
+        async () => {
+          await Authentication.userEntryAuth(password, authType);
+        },
+      );
+      await navigateToHome();
+
+      setLoading(false);
+      setError(null);
+    } catch (loginErr: unknown) {
+      await handleLoginError(loginErr);
+    }
+  }, [
+    password,
+    biometryChoice,
+    finalLoading,
+    handleLoginError,
+    navigateToHome,
   ]);
 
   // Cleanup for isMountedRef tracking
@@ -568,11 +611,25 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   };
 
   const handleLogin = async () => {
-    await onLogin();
+    if (isSeedlessPasswordOutdated) {
+      await newGlobalPasswordLogin();
+    } else {
+      await onRehydrateLogin();
+    }
     setPassword('');
     fieldRef.current?.clear();
   };
 
+  const toggleWarningModal = () => {
+    track(MetaMetricsEvents.FORGOT_PASSWORD_CLICKED, {});
+
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.DELETE_WALLET,
+      params: {
+        oauthLoginSuccess: isComingFromOauthOnboarding,
+      },
+    });
+  };
   return (
     <ErrorBoundary
       navigation={navigation}
@@ -667,20 +724,32 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                 />
               </View>
 
-              <View style={styles.footer}>
-                <TouchableOpacity
-                  onPress={handleUseOtherMethod}
-                  disabled={finalLoading}
-                  testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
-                >
-                  <Text
-                    variant={TextVariant.BodyMDMedium}
-                    color={TextColor.Primary}
+              {isSeedlessPasswordOutdated ? (
+                <Button
+                  style={styles.goBack}
+                  variant={ButtonVariants.Link}
+                  onPress={toggleWarningModal}
+                  testID={LoginViewSelectors.RESET_WALLET}
+                  label={strings('login.forgot_password')}
+                  isDisabled={loading}
+                  size={ButtonSize.Lg}
+                />
+              ) : (
+                <View style={styles.footer}>
+                  <TouchableOpacity
+                    onPress={handleUseOtherMethod}
+                    disabled={finalLoading}
+                    testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
                   >
-                    {strings('login.other_methods')}
-                  </Text>
-                </TouchableOpacity>
-              </View>
+                    <Text
+                      variant={TextVariant.BodyMDMedium}
+                      color={TextColor.Primary}
+                    >
+                      {strings('login.other_methods')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           </View>
         </KeyboardAwareScrollView>

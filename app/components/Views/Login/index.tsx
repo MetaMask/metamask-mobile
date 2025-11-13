@@ -44,7 +44,6 @@ import ErrorBoundary from '../ErrorBoundary';
 import { toLowerCaseEquals } from '../../../util/general';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { parseVaultValue } from '../../../util/validators';
@@ -93,6 +92,7 @@ import {
 } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { useMetrics } from '../../hooks/useMetrics';
+import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import OnboardingAnimation from '../../UI/OnboardingAnimation/OnboardingAnimation';
@@ -105,7 +105,6 @@ const EmptyRecordConstant = {};
 interface LoginRouteParams {
   locked: boolean;
   isVaultRecovery?: boolean;
-  onboardingTraceCtx?: TraceContext;
 }
 
 interface LoginProps {
@@ -482,18 +481,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     if (isSeedlessPasswordOutdated) {
       // User with outdated password
       navigation.replace('Rehydrate', {
-        locked: route?.params?.locked,
-        oauthLoginSuccess: true,
-        onboardingTraceCtx: route?.params?.onboardingTraceCtx,
         isSeedlessPasswordOutdated: true,
       });
     }
-  }, [
-    isSeedlessPasswordOutdated,
-    navigation,
-    route?.params?.locked,
-    route?.params?.onboardingTraceCtx,
-  ]);
+  }, [isSeedlessPasswordOutdated, navigation]);
 
   const toggleWarningModal = () => {
     track(MetaMetricsEvents.FORGOT_PASSWORD_CLICKED, {});

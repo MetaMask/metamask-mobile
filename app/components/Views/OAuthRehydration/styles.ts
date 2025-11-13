@@ -103,6 +103,10 @@ const styleSheet = (params: { theme: Theme }) => {
     biometrySwitch: {
       flex: 0,
     },
+    goBack: {
+      marginVertical: 14,
+      alignSelf: 'center',
+    },
   });
 };
 
