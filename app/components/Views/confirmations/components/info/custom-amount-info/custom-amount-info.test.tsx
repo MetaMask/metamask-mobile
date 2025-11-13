@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { act } from 'react';
 import { merge, noop } from 'lodash';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { CustomAmountInfo, CustomAmountInfoProps } from './custom-amount-info';
@@ -24,6 +24,8 @@ import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controlle
 import { RampMode } from '../../../../../UI/Ramp/hooks/useRampNavigation';
 import { RampType } from '../../../../../UI/Ramp/Aggregator/types';
 import { fireEvent } from '@testing-library/react-native';
+import { TransactionType } from '@metamask/transaction-controller';
+import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/pay/useAutomaticTransactionPayToken');
@@ -36,6 +38,7 @@ jest.mock('../../../hooks/pay/useTransactionPayMetrics');
 jest.mock('../../../hooks/send/useAccountTokens');
 jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens');
 jest.mock('../../../hooks/pay/useTransactionPayData');
+jest.mock('../../../hooks/transactions/useTransactionConfirm');
 
 const mockGoToRamps = jest.fn();
 
@@ -54,13 +57,30 @@ jest.mock('../../../../../UI/Ramp/hooks/useRampNavigation', () => ({
 const TOKEN_ADDRESS_MOCK = '0x123' as Hex;
 const CHAIN_ID_MOCK = '0x1' as Hex;
 
-function render(props: CustomAmountInfoProps = {}) {
+function render(
+  props: CustomAmountInfoProps & { transactionType?: TransactionType } = {},
+) {
   return renderWithProvider(<CustomAmountInfo {...props} />, {
     state: merge(
       {},
       simpleSendTransactionControllerMock,
       transactionApprovalControllerMock,
       otherControllersMock,
+      {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  type:
+                    props.transactionType ||
+                    TransactionType.contractInteraction,
+                },
+              ],
+            },
+          },
+        },
+      },
     ),
   });
 }
@@ -70,6 +90,7 @@ describe('CustomAmountInfo', () => {
   const useConfirmationContextMock = jest.mocked(useConfirmationContext);
   const useAlertsMock = jest.mocked(useAlerts);
   const useAccountTokensMock = jest.mocked(useAccountTokens);
+  const useTransactionConfirmMock = jest.mocked(useTransactionConfirm);
 
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
@@ -133,6 +154,7 @@ describe('CustomAmountInfo', () => {
     useAccountTokensMock.mockReturnValue([]);
     useTransactionPayAvailableTokensMock.mockReturnValue([{}] as AssetType[]);
     useTransactionPayRequiredTokensMock.mockReturnValue([]);
+    useTransactionConfirmMock.mockReturnValue({} as never);
   });
 
   it('renders amount', () => {
@@ -210,5 +232,21 @@ describe('CustomAmountInfo', () => {
         },
       },
     });
+  });
+
+  it('renders alternate confirm label if predict withdraw', async () => {
+    const { getByText } = render({
+      transactionType: TransactionType.predictWithdraw,
+    });
+
+    await act(async () => {
+      fireEvent.press(
+        getByText(strings('confirm.deposit_edit_amount_predict_withdraw')),
+      );
+    });
+
+    expect(
+      getByText(strings('confirm.deposit_edit_amount_predict_withdraw')),
+    ).toBeDefined();
   });
 });
