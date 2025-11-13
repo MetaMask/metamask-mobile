@@ -100,6 +100,8 @@ class AuthenticationService {
     const { MultichainAccountService } = Engine.context;
     await MultichainAccountService.init();
 
+    await MultichainAccountService.alignWallets();
+
     ReduxService.store.dispatch(logIn());
   }
 
