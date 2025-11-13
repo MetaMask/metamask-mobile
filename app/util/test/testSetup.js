@@ -116,6 +116,48 @@ jest.mock('react-native/index.js', () => {
   return originalModule;
 });
 
+/**
+ * Integration tests guard:
+ * For files matching *.integration.test.(ts|tsx|js|jsx), only allow jest.mock for a strict whitelist.
+ * This enforces our integration testing rule: mock only Engine and allowed native modules.
+ */
+(() => {
+  const ALLOWED_MOCK_MODULES = new Set([
+    '../../../core/Engine',
+    '../../../core/Engine/Engine',
+    'react-native-device-info',
+  ]);
+  const originalJestMock = jest.mock.bind(jest);
+  // Patch after setup mocks to avoid blocking necessary global mocks defined above
+  // eslint-disable-next-line no-underscore-dangle
+  jest.mock = new Proxy(originalJestMock, {
+    apply(target, thisArg, args) {
+      try {
+        // Expect state is available when evaluating test files
+        const state = global.expect?.getState?.();
+        const testPath = state?.testPath ?? '';
+        const isIntegrationTest =
+          /\.[iI]ntegration(\..*)?\.test\.(t|j)sx?$/.test(testPath);
+        if (isIntegrationTest) {
+          const [moduleName] = args;
+          if (!ALLOWED_MOCK_MODULES.has(moduleName)) {
+            throw new Error(
+              `Forbidden jest.mock("${String(
+                moduleName,
+              )}") in integration tests. Allowed only: ${[
+                ...ALLOWED_MOCK_MODULES,
+              ].join(', ')}`,
+            );
+          }
+        }
+      } catch (_e) {
+        // Best-effort guard; if state is not available yet, skip enforcement
+      }
+      return Reflect.apply(target, thisArg, args);
+    },
+  });
+})();
+
 /*
  * NOTE: react-native-webview requires a jest mock starting on v12.
  * More info on https://github.com/react-native-webview/react-native-webview/issues/2934

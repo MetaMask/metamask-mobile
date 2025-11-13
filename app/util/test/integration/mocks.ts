@@ -80,6 +80,16 @@ jest.mock('../../../core/Engine', () => {
           return undefined;
         },
       },
+      MultichainNetworkController: {
+        async setActiveNetwork() {
+          return undefined;
+        },
+      },
+      NetworkEnablementController: {
+        enableNetworkInNamespace() {
+          return undefined;
+        },
+      },
       MultichainAssetsRatesController: {
         startPolling() {
           return undefined;
@@ -142,6 +152,9 @@ jest.mock('../../../core/Engine/Engine', () => {
     get context() {
       return {
         MultichainNetworkController: {
+          async setActiveNetwork() {
+            return undefined;
+          },
           async getNetworksWithTransactionActivityByAccounts() {
             return undefined;
           },
