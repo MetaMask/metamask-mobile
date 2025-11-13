@@ -1,0 +1,16 @@
+diff --git a/dist/providers/browserstack/index.js b/dist/providers/browserstack/index.js
+index 61ecd1508400f59302d6139a805e7a912e9a1036..c7772bec15413478dd0d446f7c9f805e16b00851 100644
+--- a/dist/providers/browserstack/index.js
++++ b/dist/providers/browserstack/index.js
+@@ -104,6 +104,11 @@ class BrowserStackDeviceProvider {
+     async createDriver(config) {
+         const WebDriver = (await import("webdriver")).default;
+         const webDriverClient = await WebDriver.newSession(config);
++        await webDriverClient.updateSettings({
++            waitForIdleTimeout: 100,
++            waitForSelectorTimeout: 0,
++            shouldWaitForQuiescence: false
++        });
+         this.sessionId = webDriverClient.sessionId;
+         const bundleId = await this.getAppBundleIdFromSession();
+         const testOptions = {
