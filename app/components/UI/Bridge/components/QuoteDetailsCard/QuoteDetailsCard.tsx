@@ -82,8 +82,8 @@ const QuoteDetailsCard: React.FC = () => {
     const chainId = sourceToken?.chainId;
     if (!chainId) return undefined;
     const native = getNativeSourceToken(chainId);
-    return native.symbol;
-  }, [sourceToken?.chainId]);
+    return native?.symbol ?? sourceToken?.symbol ?? '';
+  }, [sourceToken?.chainId, sourceToken?.symbol]);
 
   const handleSlippagePress = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
