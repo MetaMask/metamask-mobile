@@ -62,6 +62,7 @@ export const PredictEventProperties = {
  */
 export const PredictEventValues = {
   ENTRY_POINT: {
+    CAROUSEL: 'carousel',
     PREDICT_FEED: 'predict_feed',
     PREDICT_MARKET_DETAILS: 'predict_market_details',
     SEARCH: 'search',
