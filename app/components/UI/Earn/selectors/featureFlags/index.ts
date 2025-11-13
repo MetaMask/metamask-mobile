@@ -4,6 +4,11 @@ import {
   validatedVersionGatedFeatureFlag,
   VersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
+import { Hex } from '@metamask/utils';
+import {
+  CONVERTIBLE_STABLECOINS_BY_CHAIN,
+  convertSymbolAllowlistToAddresses,
+} from '../../constants/musd';
 
 export const selectPooledStakingEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
@@ -61,5 +66,67 @@ export const selectIsMusdConversionFlowEnabledFlag = createSelector(
 
     // Fallback to local flag if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Selects the convertible tokens allowlist from remote config or local fallback.
+ * Returns a mapping of chain IDs to arrays of token addresses that are eligible for mUSD conversion.
+ *
+ * The flag uses JSON format: { "hexChainId": ["tokenSymbol1", "tokenSymbol2"] }
+ *
+ * Example: { "0x1": ["USDC", "USDT"], "0xa4b1": ["USDC", "DAI"] }
+ *
+ * If both remote and local are unavailable, falls back to CONVERTIBLE_STABLECOINS_BY_CHAIN.
+ */
+export const selectConvertibleTokensAllowlist = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): Record<Hex, Hex[]> => {
+    let localAllowlist: Record<Hex, Hex[]> | null = null;
+    try {
+      const localEnvValue = process.env.MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST;
+
+      if (localEnvValue) {
+        const parsed = JSON.parse(localEnvValue);
+        localAllowlist = convertSymbolAllowlistToAddresses(parsed);
+      }
+    } catch (error) {
+      console.warn(
+        'Failed to parse MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST:',
+        error,
+      );
+    }
+
+    // RemoteFeatureFlagController already parses the flag.
+    const remoteAllowlist =
+      remoteFeatureFlags?.earnMusdConvertibleTokensAllowlist;
+
+    if (remoteAllowlist) {
+      try {
+        const parsedRemote =
+          typeof remoteAllowlist === 'string'
+            ? JSON.parse(remoteAllowlist)
+            : remoteAllowlist;
+
+        // Validate it's an object (not array) before passing to converter
+        if (
+          parsedRemote &&
+          typeof parsedRemote === 'object' &&
+          !Array.isArray(parsedRemote)
+        ) {
+          return convertSymbolAllowlistToAddresses(
+            parsedRemote as Record<string, string[]>,
+          );
+        }
+      } catch (error) {
+        console.warn(
+          'Failed to parse remote earnMusdConvertibleTokensAllowlist. ' +
+            'Expected JSON string format: {"0x1":["USDC","USDT"]}',
+          error,
+        );
+      }
+    }
+
+    return localAllowlist || CONVERTIBLE_STABLECOINS_BY_CHAIN;
   },
 );

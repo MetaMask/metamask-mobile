@@ -1,4 +1,4 @@
-import { Hex } from '@metamask/utils';
+import { Hex, isHexString } from '@metamask/utils';
 import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
@@ -9,6 +9,29 @@ import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../constants/musd';
 import { MMM_ORIGIN } from '../../../Views/confirmations/constants/confirmations';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
+
+/**
+ * Type guard to validate allowedTokenAddresses structure.
+ * Checks if the value is a valid Record<Hex, Hex[]> mapping.
+ * Validates that both keys (chain IDs) and values (token addresses) are hex strings.
+ *
+ * @param value - Value to validate
+ * @returns true if valid, false otherwise
+ */
+export const isValidAllowedTokenAddresses = (
+  value: unknown,
+): value is Record<Hex, Hex[]> => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+
+  return Object.entries(value).every(
+    ([key, val]) =>
+      isHexString(key) &&
+      Array.isArray(val) &&
+      val.every((addr) => isHexString(addr)),
+  );
+};
 
 /**
  * Configuration for token conversion
@@ -31,6 +54,12 @@ export interface TokenConversionConfig {
     address: Hex;
     chainId: Hex;
   };
+  /**
+   * Optional allowlist of tokens that can be used to pay for the conversion, organized by chain ID.
+   * Maps chain IDs to arrays of allowed token addresses.
+   * If not provided, all tokens will be available for selection.
+   */
+  allowedTokenAddresses?: Record<Hex, Hex[]>;
   /**
    * Optional navigation stack to use (defaults to Routes.EARN.ROOT)
    */
@@ -118,6 +147,7 @@ export const useEvmTokenConversion = () => {
               name: outputToken.name,
               decimals: outputToken.decimals,
             },
+            allowedTokenAddresses: config.allowedTokenAddresses,
           },
         });
 

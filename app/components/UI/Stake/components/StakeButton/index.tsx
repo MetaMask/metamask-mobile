@@ -26,6 +26,7 @@ import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
   selectIsMusdConversionFlowEnabledFlag,
+  selectConvertibleTokensAllowlist,
 } from '../../../Earn/selectors/featureFlags';
 import createStyles from '../../../Tokens/styles';
 import { BrowserTab, TokenI } from '../../../Tokens/types';
@@ -71,6 +72,9 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const isMusdConversionFlowEnabled = useSelector(
     selectIsMusdConversionFlowEnabledFlag,
   );
+  const convertibleTokensAllowlist = useSelector(
+    selectConvertibleTokensAllowlist,
+  );
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
@@ -98,8 +102,17 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       isMusdConversionFlowEnabled &&
       asset?.chainId &&
       asset?.address &&
-      isConvertibleToken(asset.address, asset.chainId),
-    [isMusdConversionFlowEnabled, asset?.chainId, asset?.address],
+      isConvertibleToken(
+        asset.address,
+        asset.chainId,
+        convertibleTokensAllowlist,
+      ),
+    [
+      isMusdConversionFlowEnabled,
+      asset?.chainId,
+      asset?.address,
+      convertibleTokensAllowlist,
+    ],
   );
 
   const handleStakeRedirect = async () => {
@@ -238,6 +251,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
           address: toHex(earnToken.address),
           chainId: toHex(earnToken.chainId),
         },
+        allowedTokenAddresses: convertibleTokensAllowlist,
         navigationStack: Routes.EARN.ROOT,
       });
     } catch (error) {
@@ -254,7 +268,12 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         [{ text: 'OK' }],
       );
     }
-  }, [earnToken?.address, earnToken?.chainId, initiateConversion]);
+  }, [
+    earnToken?.address,
+    earnToken?.chainId,
+    initiateConversion,
+    convertibleTokensAllowlist,
+  ]);
 
   const onEarnButtonPress = async () => {
     if (primaryExperienceType === EARN_EXPERIENCES.POOLED_STAKING) {
