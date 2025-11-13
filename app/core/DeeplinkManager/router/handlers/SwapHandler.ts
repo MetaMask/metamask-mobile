@@ -7,6 +7,7 @@ import {
 // Routes are accessed as needed - no import to avoid circular deps
 import { ACTIONS } from '../../../../constants/deeplinks';
 import Logger from '../../../../util/Logger';
+import Routes from '../../../../constants/navigation/Routes';
 
 /**
  * Handles swap deep links for token exchanges
@@ -33,17 +34,16 @@ export class SwapHandler extends BaseHandler {
       }
 
       // Extract swap parameters
-      const { sourceToken, destinationToken, sourceAmount, slippage, chain } =
+      const { sourceToken, destinationToken, sourceAmount, chain } =
         link.params;
 
       // Navigate to swap screen with parameters
-      this.navigate(context, 'SwapsView', {
-        screen: 'SwapsAmountView',
+      this.navigate(context, Routes.SWAPS, {
+        screen: Routes.SWAPS_AMOUNT_VIEW,
         params: {
           sourceToken,
           destinationToken,
           sourceAmount,
-          slippage: slippage || '0.5', // Default 0.5% slippage
           chainId: chain,
         },
       });

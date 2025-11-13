@@ -36,6 +36,7 @@ export abstract class UniversalLinkHandler {
 
   /**
    * Priority for handler execution (lower = higher priority)
+   * For example auth is highest priority
    */
   abstract readonly priority: number;
 

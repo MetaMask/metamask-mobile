@@ -60,12 +60,6 @@ export class UniversalRouterIntegration {
       // Route the deep link
       const result = await router.route(url, source, context);
 
-      Logger.log('🔗 Universal Router result:', {
-        handled: result.handled,
-        usedLegacy: result.metadata?.usedLegacy,
-        error: result.error?.message,
-      });
-
       return result.handled;
     } catch (error) {
       Logger.error(error as Error, 'UniversalRouter integration failed');

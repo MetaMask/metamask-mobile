@@ -48,7 +48,7 @@ describe('NavigationHandler', () => {
 
     expect(result.handled).toBe(true);
     expect(mockContext.navigation.navigate).toHaveBeenCalledWith(
-      'RewardsScreen',
+      Routes.REWARDS_VIEW,
       {
         code: 'REFER123',
         campaign: 'twitter2024',

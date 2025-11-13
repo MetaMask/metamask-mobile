@@ -39,6 +39,7 @@ export class SendHandler extends BaseHandler {
         this.validateParams(link, ['to']);
 
         // Navigate to send flow
+        // currently *no constants* for send flow route
         this.navigate(context, 'SendFlowView', {
           screen: Routes.SEND_FLOW.SEND_TO,
           params: {

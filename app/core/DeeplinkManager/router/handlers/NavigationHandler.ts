@@ -44,18 +44,18 @@ export class NavigationHandler extends BaseHandler {
           break;
 
         case ACTIONS.REWARDS:
-          this.navigate(context, 'RewardsScreen', link.params);
+          this.navigate(context, Routes.REWARDS_VIEW, link.params);
           break;
 
         case ACTIONS.PREDICT:
-          this.navigate(context, 'PredictScreen', link.params);
+          this.navigate(context, Routes.PREDICT.ROOT, link.params);
           break;
 
         case ACTIONS.PERPS:
         case ACTIONS.PERPS_MARKETS:
         case ACTIONS.PERPS_ASSET: {
           const perpsPath = link.params.perpsPath || '/markets';
-          this.navigate(context, 'PerpsScreen', { path: perpsPath });
+          this.navigate(context, Routes.PERPS.ROOT, { path: perpsPath });
           break;
         }
 

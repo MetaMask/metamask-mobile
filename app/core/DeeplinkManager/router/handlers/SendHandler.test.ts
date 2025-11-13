@@ -30,7 +30,7 @@ describe('SendHandler', () => {
 
       expect(result.handled).toBe(true);
       expect(mockContext.navigation.navigate).toHaveBeenCalledWith(
-        'SendFlowView',
+        'SendFlowView', // currently no route
         {
           screen: Routes.SEND_FLOW.SEND_TO,
           params: { address: '0x123', amount: '1.5', chainId: undefined },
