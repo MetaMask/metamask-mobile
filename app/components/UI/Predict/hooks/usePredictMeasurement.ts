@@ -112,7 +112,7 @@ export const usePredictMeasurement = ({
       // Advanced API: explicit control
       return {
         actualStartConditions: startConditions || [],
-        actualEndConditions: endConditions || [],
+        actualEndConditions: endConditions || [true], // Default to immediate completion
         actualResetConditions: resetConditions || [],
       };
     }, [conditions, startConditions, endConditions, resetConditions]);
