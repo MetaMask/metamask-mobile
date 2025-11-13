@@ -134,14 +134,16 @@ describe('AccountSelector', () => {
       'multichain-address-row-network-name',
     ).map((node) => node.props.children);
 
+    // Networks are sorted: Ethereum (priority 0), Linea (priority 4), then alphabetically
     expect(networkNames).toEqual([
       MAINNET_DISPLAY_NAME,
-      BNB_DISPLAY_NAME,
-      POLYGON_DISPLAY_NAME,
-      OPTIMISM_DISPLAY_NAME,
-      ARBITRUM_DISPLAY_NAME,
       LINEA_MAINNET_DISPLAY_NAME,
+      ARBITRUM_DISPLAY_NAME,
       BASE_DISPLAY_NAME,
+      BNB_DISPLAY_NAME,
+      OPTIMISM_DISPLAY_NAME,
+      POLYGON_DISPLAY_NAME,
+      SEI_DISPLAY_NAME,
     ]);
     expect(networkNames).not.toContain('Solana');
   });
