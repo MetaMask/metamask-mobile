@@ -839,6 +839,7 @@ workflows:
 
                   if [ "$TOTAL_COUNT" = "0" ]; then
                     echo "Workflow finished result: https://github.com/MetaMask/metamask-mobile/actions/workflows/update-latest-build-version.yml"
+                    envman add --key BITRISE_GIT_COMMIT --value ""
                     exit 0
                   else
                     # Get the status and conclusion of the most recent run
