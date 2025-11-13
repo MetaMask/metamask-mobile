@@ -8,6 +8,7 @@ import {
   getRecurrence,
   formatCents,
   formatPositionSize,
+  calculateNetAmount,
 } from './format';
 import { Recurrence, PredictSeries } from '../types';
 
@@ -1253,6 +1254,203 @@ describe('format utils', () => {
       });
 
       expect(result).toBe('5');
+    });
+  });
+
+  describe('calculateNetAmount', () => {
+    it('calculates net amount by subtracting fees from total', () => {
+      const params = {
+        totalFiat: '10.00',
+        bridgeFeeFiat: '0.50',
+        networkFeeFiat: '0.25',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('9.25');
+    });
+
+    it('calculates net amount with high precision decimal values', () => {
+      const params = {
+        totalFiat: '1.04361142938843253220839271649743403',
+        bridgeFeeFiat: '0.036399',
+        networkFeeFiat: '0.008024478270232503211154803918368',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0.9991879511181999');
+    });
+
+    it('returns "0" when total equals sum of fees', () => {
+      const params = {
+        totalFiat: '1.00',
+        bridgeFeeFiat: '0.50',
+        networkFeeFiat: '0.50',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0');
+    });
+
+    it('returns "0" when fees exceed total', () => {
+      const params = {
+        totalFiat: '1.00',
+        bridgeFeeFiat: '0.75',
+        networkFeeFiat: '0.50',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0');
+    });
+
+    it('returns "0" when totalFiat is undefined', () => {
+      const params = {
+        bridgeFeeFiat: '0.50',
+        networkFeeFiat: '0.25',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0');
+    });
+
+    it('treats missing bridgeFeeFiat as zero', () => {
+      const params = {
+        totalFiat: '10.00',
+        networkFeeFiat: '0.25',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('9.75');
+    });
+
+    it('treats missing networkFeeFiat as zero', () => {
+      const params = {
+        totalFiat: '10.00',
+        bridgeFeeFiat: '0.50',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('9.5');
+    });
+
+    it('returns full total when both fees are missing', () => {
+      const params = {
+        totalFiat: '10.00',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('10');
+    });
+
+    it('returns "0" when all parameters are undefined', () => {
+      const params = {};
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0');
+    });
+
+    it('returns "0" when totalFiat is invalid string', () => {
+      const params = {
+        totalFiat: 'invalid',
+        bridgeFeeFiat: '0.50',
+        networkFeeFiat: '0.25',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0');
+    });
+
+    it('returns "0" when bridgeFeeFiat is invalid string', () => {
+      const params = {
+        totalFiat: '10.00',
+        bridgeFeeFiat: 'invalid',
+        networkFeeFiat: '0.25',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0');
+    });
+
+    it('returns "0" when networkFeeFiat is invalid string', () => {
+      const params = {
+        totalFiat: '10.00',
+        bridgeFeeFiat: '0.50',
+        networkFeeFiat: 'invalid',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0');
+    });
+
+    it('calculates correctly when fees are zero', () => {
+      const params = {
+        totalFiat: '10.00',
+        bridgeFeeFiat: '0',
+        networkFeeFiat: '0',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('10');
+    });
+
+    it('calculates correctly when only bridge fee exists', () => {
+      const params = {
+        totalFiat: '10.00',
+        bridgeFeeFiat: '2.50',
+        networkFeeFiat: '0',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('7.5');
+    });
+
+    it('calculates correctly when only network fee exists', () => {
+      const params = {
+        totalFiat: '10.00',
+        bridgeFeeFiat: '0',
+        networkFeeFiat: '3.25',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('6.75');
+    });
+
+    it('handles very small decimal amounts precisely', () => {
+      const params = {
+        totalFiat: '0.001',
+        bridgeFeeFiat: '0.0001',
+        networkFeeFiat: '0.0002',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0.0007');
+    });
+
+    it('handles large amounts correctly', () => {
+      const params = {
+        totalFiat: '1000000.00',
+        bridgeFeeFiat: '50.00',
+        networkFeeFiat: '25.00',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('999925');
     });
   });
 });

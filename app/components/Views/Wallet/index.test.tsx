@@ -63,8 +63,12 @@ jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
 
 // Mock the Predict feature flag selector - will be controlled per test
 let mockPredictEnabled = true;
+let mockPredictGTMModalEnabled = false;
 jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   selectPredictEnabledFlag: jest.fn(() => mockPredictEnabled),
+  selectPredictGtmOnboardingModalEnabledFlag: jest.fn(
+    () => mockPredictGTMModalEnabled,
+  ),
 }));
 
 // Create shared mock reference for TabsList
@@ -1062,13 +1066,17 @@ describe('Wallet', () => {
 
       // Default to enabled
       mockPerpsEnabled = true;
+      mockPerpsGTMModalEnabled = false;
       mockPredictEnabled = true;
+      mockPredictGTMModalEnabled = false;
     });
 
     afterEach(() => {
       jest.clearAllMocks();
       mockPerpsEnabled = true; // Reset to default
+      mockPerpsGTMModalEnabled = false; // Reset to default
       mockPredictEnabled = true; // Reset to default
+      mockPredictGTMModalEnabled = false; // Reset to default
     });
 
     it('should register visibility callback when Perps is enabled', () => {
@@ -1234,13 +1242,17 @@ describe('Wallet', () => {
 
       // Default to enabled
       mockPerpsEnabled = true;
+      mockPerpsGTMModalEnabled = false;
       mockPredictEnabled = true;
+      mockPredictGTMModalEnabled = false;
     });
 
     afterEach(() => {
       jest.clearAllMocks();
       mockPerpsEnabled = true; // Reset to default
+      mockPerpsGTMModalEnabled = false; // Reset to default
       mockPredictEnabled = true; // Reset to default
+      mockPredictGTMModalEnabled = false; // Reset to default
     });
 
     it('should render PredictTabView when Predict is enabled', () => {
@@ -1457,6 +1469,7 @@ describe('Wallet', () => {
       mockPerpsEnabled = true;
       mockPerpsGTMModalEnabled = false;
       mockPredictEnabled = true;
+      mockPredictGTMModalEnabled = false;
     });
 
     afterEach(() => {
@@ -1464,6 +1477,7 @@ describe('Wallet', () => {
       mockPerpsEnabled = true;
       mockPerpsGTMModalEnabled = false;
       mockPredictEnabled = true;
+      mockPredictGTMModalEnabled = false;
       jest.clearAllMocks();
     });
 

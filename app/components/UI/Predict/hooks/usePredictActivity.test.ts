@@ -1,19 +1,14 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { usePredictActivity } from './usePredictActivity';
 import Engine from '../../../../core/Engine';
-import { useSelector } from 'react-redux';
 
-// Mock Engine and redux selector
+// Mock Engine
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
       getActivity: jest.fn(),
     },
   },
-}));
-
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
 }));
 
 // Mock navigation focus effect without auto-invocation; provide manual trigger
@@ -34,15 +29,11 @@ jest.mock('@react-navigation/native', () => {
 
 describe('usePredictActivity', () => {
   const mockGetActivity = jest.fn();
-  const mockAddress = '0xabc';
 
   beforeEach(() => {
     jest.clearAllMocks();
     (Engine.context.PredictController.getActivity as jest.Mock) =
       mockGetActivity;
-    (useSelector as jest.Mock).mockImplementation(
-      (_selector: unknown) => mockAddress,
-    );
   });
 
   afterEach(() => {
@@ -67,7 +58,6 @@ describe('usePredictActivity', () => {
     expect(result.current.activity).toEqual(data);
     expect(result.current.error).toBe(null);
     expect(mockGetActivity).toHaveBeenCalledWith({
-      address: mockAddress,
       providerId: undefined,
     });
   });
@@ -82,7 +72,6 @@ describe('usePredictActivity', () => {
     await waitForNextUpdate();
 
     expect(mockGetActivity).toHaveBeenCalledWith({
-      address: mockAddress,
       providerId: 'polymarket',
     });
   });
