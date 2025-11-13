@@ -18,7 +18,6 @@ import { getTokenTransferData } from '../../../utils/transaction-pay';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { PERPS_CURRENCY } from '../../../constants/perps';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
-import { Hex } from '@metamask/utils';
 
 const SUPPORTED_TYPES = [
   TransactionType.perpsDeposit,
@@ -32,7 +31,7 @@ export function TransactionDetailsHero() {
   const { transactionMeta } = useTransactionDetails();
   const { chainId } = transactionMeta;
   const { data, to } = getTokenTransferData(transactionMeta) ?? {};
-  const token = useTokenWithBalance(to as Hex, chainId);
+  const token = useTokenWithBalance(to ?? '0x0', chainId);
 
   if (!hasTransactionType(transactionMeta, SUPPORTED_TYPES)) {
     return null;
