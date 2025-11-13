@@ -543,7 +543,8 @@
     "trade": "Trade",
     "settings": "Settings",
     "rewards": "Rewards",
-    "trending": "Trending"
+    "trending": "Trending",
+    "xstocks": "xStocks"
   },
   "drawer": {
     "send_button": "Send",
@@ -6853,5 +6854,11 @@
     "perps": "Perps",
     "predictions": "Predictions",
     "no_results": "No results found"
+  },
+  "xstocks": {
+    "title": "xStocks",
+    "section_title": "Stocks",
+    "description": "Trade tokenized stocks on Solana. All xStocks are backed 1:1 by real securities.",
+    "buy": "Buy"
   }
 }

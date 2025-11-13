@@ -95,7 +95,7 @@ export const selectAssetsTrendingTokensEnabled = createSelector(
       process.env.ASSETS_TRENDING_TOKENS_ENABLED;
     return isAssetsTrendingTokensFeatureEnabled(
       assetsTrendingTokensEnabled,
-      envOverride || undefined,
+      envOverride,
     );
   },
 );

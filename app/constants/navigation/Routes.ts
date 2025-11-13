@@ -404,6 +404,7 @@ const Routes = {
     RETURN_TO_DAPP_NOTIFICATION: 'ReturnToDappToast',
   },
   FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
+  XSTOCKS_VIEW: 'XStocksView',
 };
 
 export default Routes;

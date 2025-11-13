@@ -24,6 +24,8 @@ import {
   updateLastTrendingScreen,
 } from '../../Nav/Main/MainNavigator';
 import TrendingTokensSection from './TrendingTokensSection/TrendingTokensSection';
+import XStocksSection from './XStocksSection/XStocksSection';
+import XStocksView from '../XStocksView';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import ExploreSearchScreen from './ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
@@ -125,6 +127,7 @@ const TrendingFeed: React.FC = () => {
         showsVerticalScrollIndicator={false}
       >
         <TrendingTokensSection />
+        <XStocksSection />
       </ScrollView>
     </Box>
   );
@@ -147,6 +150,7 @@ const TrendingView: React.FC = () => {
           name={Routes.EXPLORE_SEARCH}
           component={ExploreSearchScreen}
         />
+        <Stack.Screen name={Routes.XSTOCKS_VIEW} component={XStocksView} />
       </Stack.Navigator>
     </PerpsStreamProvider>
   );
