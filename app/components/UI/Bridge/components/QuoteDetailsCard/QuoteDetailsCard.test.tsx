@@ -363,6 +363,47 @@ describe('QuoteDetailsCard', () => {
     mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
   });
 
+  it('displays "Included" fee when gasIncluded7702 is true', () => {
+    // Temporarily replace the mock with one that has gasIncluded7702 = true
+    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
+    const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
+
+    mockModule.useBridgeQuoteData.mockImplementation(() => ({
+      quoteFetchError: null,
+      activeQuote: {
+        ...mockQuotes[0],
+        quote: {
+          ...mockQuotes[0].quote,
+          gasIncluded: false,
+          gasIncluded7702: true,
+        },
+      },
+      destTokenAmount: '24.44',
+      isLoading: false,
+      formattedQuoteData: {
+        networkFee: '0.01',
+        estimatedTime: '1 min',
+        rate: '1 ETH = 24.4 USDC',
+        priceImpact: '-0.06%',
+        slippage: '0.5%',
+      },
+    }));
+
+    const { getByText } = renderScreen(
+      QuoteDetailsCard,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: testState },
+    );
+
+    // Verify "Included" text is displayed
+    expect(getByText(strings('bridge.included'))).toBeDefined();
+
+    // Restore original implementation
+    mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
+  });
+
   // Minimal tests to hit missing branches for 80% coverage
   it('handles early return when formattedQuoteData is missing', () => {
     const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
@@ -393,6 +434,7 @@ describe('QuoteDetailsCard', () => {
           ...mockQuotes[0].quote,
           priceData: { ...mockQuotes[0].quote.priceData, priceImpact: '15.0' },
           gasIncluded: false,
+          gasIncluded7702: false,
         },
       },
       destTokenAmount: '24.44',
@@ -455,6 +497,7 @@ describe('QuoteDetailsCard', () => {
           ...mockQuotes[0].quote,
           priceData: { ...mockQuotes[0].quote.priceData, priceImpact: '0.1' },
           gasIncluded: false,
+          gasIncluded7702: false,
         },
       },
       destTokenAmount: '24.44',
@@ -489,6 +532,7 @@ describe('QuoteDetailsCard', () => {
           ...mockQuotes[0].quote,
           priceData: { ...mockQuotes[0].quote.priceData, priceImpact: '25.0' },
           gasIncluded: true,
+          gasIncluded7702: false,
         },
       },
       destTokenAmount: '24.44',
