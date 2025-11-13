@@ -157,7 +157,7 @@ it('enables confirm button when quote is available', () => {
 To make fiat assertions exact, use:
 
 - `deterministicFiat: true` in the renderer options
-- This injects controllers from `app/components/UI/Bridge/_mocks_/initialState.ts` (e.g., `CurrencyRateController` and `TokenRatesController`)
+- This injects stable `CurrencyRateController`/`TokenRatesController` into the background state for exact fiat
 
 ## Adding New View Presets
 

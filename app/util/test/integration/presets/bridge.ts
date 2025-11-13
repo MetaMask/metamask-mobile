@@ -1,5 +1,4 @@
 import { createStateFixture } from '../stateFixture';
-import { initialState as BridgeMocksInitial } from '../../../../components/UI/Bridge/_mocks_/initialState';
 import type { DeepPartial } from '../../renderWithProvider';
 import type { RootState } from '../../../../reducers';
 
@@ -35,18 +34,31 @@ export const initialStateBridge = (options?: InitialStateBridgeOptions) => {
     .withRemoteFeatureFlags({});
 
   if (options?.deterministicFiat) {
-    const bridgeBg = (
-      BridgeMocksInitial.engine as unknown as {
-        backgroundState: Record<string, unknown>;
-      }
-    ).backgroundState;
     builder.withOverrides({
       engine: {
         backgroundState: {
-          CurrencyRateController: bridgeBg.CurrencyRateController,
-          TokenRatesController: bridgeBg.TokenRatesController,
-          MultichainAssetsRatesController:
-            bridgeBg.MultichainAssetsRatesController,
+          CurrencyRateController: {
+            currentCurrency: 'USD',
+            currencyRates: {
+              ETH: { conversionRate: 2000 },
+            },
+            conversionRate: 2000,
+          },
+          TokenRatesController: {
+            marketData: {
+              '0x1': {
+                // Native ETH price in ETH units
+                '0x0000000000000000000000000000000000000000': {
+                  tokenAddress: '0x0000000000000000000000000000000000000000',
+                  currency: 'ETH',
+                  price: 1,
+                },
+              },
+            },
+          },
+          MultichainAssetsRatesController: {
+            conversionRates: {},
+          },
         },
       },
     } as unknown as DeepPartial<RootState>);

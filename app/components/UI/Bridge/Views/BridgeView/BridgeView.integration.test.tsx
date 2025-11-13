@@ -1,5 +1,4 @@
 import '../../../../../util/test/integration/mocks';
-import { initialState as BridgeMocksInitial } from '../../_mocks_/initialState';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { renderBridgeView } from '../../../../../util/test/integration/renderers/bridge';
 import { fireEvent, waitFor, within } from '@testing-library/react-native';
@@ -82,11 +81,6 @@ describe('BridgeView (integration)', () => {
   });
 
   it('renders enabled confirm button with tokens, amount and recommended quote', () => {
-    const bridgeBg = (
-      BridgeMocksInitial.engine as unknown as {
-        backgroundState: Record<string, unknown>;
-      }
-    ).backgroundState;
     const now = Date.now();
     const { getByTestId } = renderBridgeView({
       deterministicFiat: true,
@@ -110,21 +104,7 @@ describe('BridgeView (integration)', () => {
         },
         engine: {
           backgroundState: {
-            ...bridgeBg,
-            RemoteFeatureFlagController: bridgeBg.RemoteFeatureFlagController,
-            NetworkController: {
-              ...(bridgeBg.NetworkController as Record<string, unknown>),
-              selectedNetworkClientId: 'mainnet',
-            },
-            MultichainNetworkController: {
-              ...(bridgeBg.MultichainNetworkController as Record<
-                string,
-                unknown
-              >),
-              isEvmSelected: true,
-            },
             BridgeController: {
-              ...(bridgeBg.BridgeController as Record<string, unknown>),
               quotes: [
                 mockQuoteWithMetadata as unknown as Record<string, unknown>,
               ],
@@ -250,7 +230,12 @@ describe('BridgeView (integration)', () => {
       // Entry route
       { name: Routes.BRIDGE.ROOT },
       // Register modal root to probe destination screen name
-      [{ name: Routes.BRIDGE.MODALS.ROOT, Component: ModalRootProbe }],
+      [
+        {
+          name: Routes.BRIDGE.MODALS.ROOT,
+          Component: ModalRootProbe as unknown as React.ComponentType<unknown>,
+        },
+      ],
       // State
       { state },
     );
