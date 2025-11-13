@@ -33,9 +33,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
-const mockUsePerpsMarkets = usePerpsMarkets as jest.MockedFunction<
-  typeof usePerpsMarkets
->;
+const mockUsePerpsMarkets = jest.mocked(usePerpsMarkets);
 
 const initialState = {
   engine: {
