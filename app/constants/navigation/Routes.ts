@@ -122,7 +122,6 @@ const Routes = {
     HOME_NAV: 'HomeNav',
     ONBOARDING: 'Onboarding',
     LOGIN: 'Login',
-    OAUTH_REHYDRATION: 'OAuthRehydration',
     NAV: 'OnboardingNav',
     SOCIAL_LOGIN_SUCCESS_NEW_USER: 'SocialLoginSuccessNewUser',
     MANUAL_BACKUP: {
