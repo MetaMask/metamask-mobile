@@ -174,6 +174,13 @@ jest.mock('../../../Stake/hooks/usePoolStakedUnstake', () => ({
 
 jest.mock('../../../../../selectors/featureFlagController/confirmations');
 
+jest.mock(
+  '../../../../../selectors/featureFlagController/trxStakingEnabled',
+  () => ({
+    selectTrxStakingEnabled: jest.fn(() => true),
+  }),
+);
+
 jest.mock('../../selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(false),
   selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(true),
@@ -750,6 +757,32 @@ describe('EarnWithdrawInputView', () => {
           amountWei: '1000000000000000000',
           amountFiat: '2000',
         },
+      });
+    });
+  });
+
+  describe('TRON unstake flow', () => {
+    it('renders Unstake label when TRX staking is enabled and TRON asset is used', async () => {
+      const tronToken: TokenI = {
+        name: 'Tron',
+        symbol: 'TRX',
+        ticker: 'TRX',
+        chainId: 'tron:728126428',
+        address: 'tron:728126428/slip44:195',
+        decimals: 6,
+        balance: '1000',
+        balanceFiat: '$100',
+        isNative: true,
+      } as unknown as TokenI;
+
+      render(EarnWithdrawInputView, tronToken);
+
+      await act(async () => {
+        fireEvent.press(screen.getByText('1'));
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Unstake')).toBeTruthy();
       });
     });
   });

@@ -5492,6 +5492,11 @@
       "annually": "annually.",
       "learn_more_with_period": "Learn more."
     },
+    "stake_your_trx_cta": {
+      "base": "Stake your TRX with MetaMask Pool and earn",
+      "annually": "annually.",
+      "learn_more_with_period": "Learn more."
+    },
     "day": {
       "zero": "",
       "one": "day",
