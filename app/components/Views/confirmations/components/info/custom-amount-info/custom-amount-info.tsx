@@ -68,6 +68,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
     const availableTokens = useTransactionPayAvailableTokens();
     const hasTokens = availableTokens.length > 0;
+    const buttonLabel = useButtonLabel();
 
     const isResultReady = useIsResultReady({
       isKeyboardVisible,
@@ -127,6 +128,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {isKeyboardVisible && hasTokens && (
             <DepositKeyboard
               alertMessage={alertTitle}
+              doneLabel={buttonLabel}
               value={amountFiat}
               onChange={updatePendingAmount}
               onDonePress={handleDone}
@@ -227,11 +229,12 @@ function ConfirmButton({
   const isLoading = useIsTransactionPayLoading();
   const { onConfirm } = useTransactionConfirm();
   const disabled = hasBlockingAlerts || isLoading;
+  const buttonLabel = useButtonLabel();
 
   return (
     <Button
       style={[disabled && styles.disabledButton]}
-      label={alertTitle ?? strings('confirm.deposit_edit_amount_done')}
+      label={alertTitle ?? buttonLabel}
       variant={ButtonVariants.Primary}
       width={ButtonWidthTypes.Full}
       disabled={disabled}
@@ -253,4 +256,14 @@ function useIsResultReady({
     !isKeyboardVisible &&
     (isQuotesLoading || Boolean(quotes?.length) || !sourceAmounts?.length)
   );
+}
+
+function useButtonLabel() {
+  const transaction = useTransactionMetadataRequest();
+
+  if (hasTransactionType(transaction, [TransactionType.predictWithdraw])) {
+    return strings('confirm.deposit_edit_amount_predict_withdraw');
+  }
+
+  return strings('confirm.deposit_edit_amount_done');
 }

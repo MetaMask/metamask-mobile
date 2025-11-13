@@ -42,6 +42,7 @@ import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayDat
 const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
+  TransactionType.predictWithdraw,
 ];
 
 export const Footer = () => {
