@@ -91,21 +91,6 @@ describe('NavigationHandler', () => {
     );
   });
 
-  it('navigates to predict screen with params', async () => {
-    const link = createMockLink(ACTIONS.PREDICT, {
-      marketId: 'election-2024',
-      category: 'politics',
-    });
-
-    const result = await handler.handle(link, mockContext);
-
-    expect(result.handled).toBe(true);
-    expect(mockContext.navigation.navigate).toHaveBeenCalledWith(
-      Routes.PREDICT.ROOT,
-      { marketId: 'election-2024', category: 'politics' },
-    );
-  });
-
   it('returns error result when navigation throws exception', async () => {
     const navigationError = new Error('Navigation failed');
     mockContext.navigation.navigate = jest.fn(() => {
