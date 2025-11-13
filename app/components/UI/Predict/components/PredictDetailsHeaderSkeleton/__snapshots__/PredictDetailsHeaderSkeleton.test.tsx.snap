@@ -1,0 +1,185 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PredictDetailsHeaderSkeleton matches snapshot 1`] = `
+<View
+  style={
+    [
+      {
+        "display": "flex",
+        "marginBottom": 24,
+      },
+      {
+        "paddingTop": 12,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "display": "flex",
+          "flexDirection": "row",
+          "gap": 16,
+          "marginBottom": 16,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      hitSlop={
+        {
+          "bottom": 10,
+          "left": 10,
+          "right": 10,
+          "top": 10,
+        }
+      }
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      testID="predict-details-header-skeleton-back-button"
+    >
+      <SvgMock
+        color="#121314"
+        fill="currentColor"
+        height={24}
+        name="ArrowLeft"
+        style={
+          {
+            "height": 24,
+            "width": 24,
+          }
+        }
+        width={24}
+      />
+    </View>
+    <View
+      style={
+        {
+          "borderRadius": 9999,
+          "height": 40,
+          "overflow": "hidden",
+          "width": 40,
+        }
+      }
+      testID="predict-details-header-skeleton-avatar"
+    >
+      <View
+        collapsable={false}
+        pointerEvents="none"
+        style={
+          {
+            "backgroundColor": "#686e7d",
+            "borderRadius": 4,
+            "bottom": 0,
+            "left": 0,
+            "opacity": 0.2,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+      />
+    </View>
+    <View
+      style={
+        [
+          {
+            "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "borderRadius": 8,
+            "height": 20,
+            "overflow": "hidden",
+            "width": "100%",
+          }
+        }
+        testID="predict-details-header-skeleton-title"
+      >
+        <View
+          collapsable={false}
+          pointerEvents="none"
+          style={
+            {
+              "backgroundColor": "#686e7d",
+              "borderRadius": 4,
+              "bottom": 0,
+              "left": 0,
+              "opacity": 0.2,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            }
+          }
+        />
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "borderRadius": 8,
+        "height": 20,
+        "overflow": "hidden",
+        "width": "75%",
+      }
+    }
+    testID="predict-details-header-skeleton-subtitle"
+  >
+    <View
+      collapsable={false}
+      pointerEvents="none"
+      style={
+        {
+          "backgroundColor": "#686e7d",
+          "borderRadius": 4,
+          "bottom": 0,
+          "left": 0,
+          "opacity": 0.2,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    />
+  </View>
+</View>
+`;

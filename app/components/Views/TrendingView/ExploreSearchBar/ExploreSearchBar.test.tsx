@@ -1,0 +1,211 @@
+import React from 'react';
+import { render, fireEvent } from '@testing-library/react-native';
+import ExploreSearchBar from './ExploreSearchBar';
+
+describe('ExploreSearchBar', () => {
+  describe('Button Mode', () => {
+    it('renders button with placeholder text', () => {
+      const mockOnPress = jest.fn();
+
+      const { getByTestId, getByText } = render(
+        <ExploreSearchBar type="button" onPress={mockOnPress} />,
+      );
+
+      expect(getByTestId('explore-view-search-button')).toBeDefined();
+      expect(getByText('Search tokens, sites, URLs')).toBeDefined();
+    });
+
+    it('calls onPress when button is pressed', () => {
+      const mockOnPress = jest.fn();
+
+      const { getByTestId } = render(
+        <ExploreSearchBar type="button" onPress={mockOnPress} />,
+      );
+
+      fireEvent.press(getByTestId('explore-view-search-button'));
+
+      expect(mockOnPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not render TextInput in button mode', () => {
+      const mockOnPress = jest.fn();
+
+      const { queryByTestId } = render(
+        <ExploreSearchBar type="button" onPress={mockOnPress} />,
+      );
+
+      expect(queryByTestId('explore-view-search-input')).toBeNull();
+    });
+  });
+
+  describe('Interactive Mode', () => {
+    it('renders TextInput with search query', () => {
+      const mockOnSearchChange = jest.fn();
+      const mockOnCancel = jest.fn();
+
+      const { getByTestId, getByDisplayValue } = render(
+        <ExploreSearchBar
+          type="interactive"
+          isSearchFocused
+          searchQuery="bitcoin"
+          onSearchChange={mockOnSearchChange}
+          onCancel={mockOnCancel}
+        />,
+      );
+
+      expect(getByTestId('explore-view-search-input')).toBeDefined();
+      expect(getByDisplayValue('bitcoin')).toBeDefined();
+    });
+
+    it('calls onSearchChange when text is entered', () => {
+      const mockOnSearchChange = jest.fn();
+      const mockOnCancel = jest.fn();
+
+      const { getByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          isSearchFocused
+          searchQuery=""
+          onSearchChange={mockOnSearchChange}
+          onCancel={mockOnCancel}
+        />,
+      );
+
+      const input = getByTestId('explore-view-search-input');
+
+      fireEvent.changeText(input, 'ethereum');
+
+      expect(mockOnSearchChange).toHaveBeenCalledWith('ethereum');
+    });
+
+    it('shows clear button when search query has text', () => {
+      const mockOnSearchChange = jest.fn();
+      const mockOnCancel = jest.fn();
+
+      const { getByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          isSearchFocused
+          searchQuery="bitcoin"
+          onSearchChange={mockOnSearchChange}
+          onCancel={mockOnCancel}
+        />,
+      );
+
+      expect(getByTestId('explore-search-clear-button')).toBeDefined();
+    });
+
+    it('hides clear button when search query is empty', () => {
+      const mockOnSearchChange = jest.fn();
+      const mockOnCancel = jest.fn();
+
+      const { queryByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          isSearchFocused
+          searchQuery=""
+          onSearchChange={mockOnSearchChange}
+          onCancel={mockOnCancel}
+        />,
+      );
+
+      expect(queryByTestId('explore-search-clear-button')).toBeNull();
+    });
+
+    it('clears search query when clear button is pressed', () => {
+      const mockOnSearchChange = jest.fn();
+      const mockOnCancel = jest.fn();
+
+      const { getByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          isSearchFocused
+          searchQuery="bitcoin"
+          onSearchChange={mockOnSearchChange}
+          onCancel={mockOnCancel}
+        />,
+      );
+
+      const clearButton = getByTestId('explore-search-clear-button');
+
+      fireEvent.press(clearButton);
+
+      expect(mockOnSearchChange).toHaveBeenCalledWith('');
+    });
+
+    it('shows cancel button when search is focused', () => {
+      const mockOnSearchChange = jest.fn();
+      const mockOnCancel = jest.fn();
+
+      const { getByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          isSearchFocused
+          searchQuery=""
+          onSearchChange={mockOnSearchChange}
+          onCancel={mockOnCancel}
+        />,
+      );
+
+      expect(getByTestId('explore-search-cancel-button')).toBeDefined();
+    });
+
+    it('hides cancel button when search is not focused', () => {
+      const mockOnSearchChange = jest.fn();
+      const mockOnCancel = jest.fn();
+
+      const { queryByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          isSearchFocused={false}
+          searchQuery=""
+          onSearchChange={mockOnSearchChange}
+          onCancel={mockOnCancel}
+        />,
+      );
+
+      expect(queryByTestId('explore-search-cancel-button')).toBeNull();
+    });
+
+    it('clears query and calls onCancel when cancel button is pressed', () => {
+      const mockOnSearchChange = jest.fn();
+      const mockOnCancel = jest.fn();
+
+      const { getByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          isSearchFocused
+          searchQuery="bitcoin"
+          onSearchChange={mockOnSearchChange}
+          onCancel={mockOnCancel}
+        />,
+      );
+
+      const cancelButton = getByTestId('explore-search-cancel-button');
+
+      fireEvent.press(cancelButton);
+
+      expect(mockOnSearchChange).toHaveBeenCalledWith('');
+      expect(mockOnCancel).toHaveBeenCalledTimes(1);
+    });
+
+    it('sets autoFocus on TextInput based on isSearchFocused prop', () => {
+      const mockOnSearchChange = jest.fn();
+      const mockOnCancel = jest.fn();
+
+      const { getByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          isSearchFocused
+          searchQuery=""
+          onSearchChange={mockOnSearchChange}
+          onCancel={mockOnCancel}
+        />,
+      );
+
+      const input = getByTestId('explore-view-search-input');
+
+      expect(input.props.autoFocus).toBe(true);
+    });
+  });
+});

@@ -51,7 +51,6 @@ import {
   Signer,
 } from '../providers/types';
 import {
-  AcceptAgreementParams,
   ClaimParams,
   GetPriceHistoryParams,
   GetPriceParams,
@@ -72,6 +71,8 @@ import {
 } from '../types';
 import { ensureError } from '../utils/predictErrorHandler';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
+import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
 
 /**
  * State shape for PredictController
@@ -97,7 +98,7 @@ export type PredictControllerState = {
   claimablePositions: { [address: string]: PredictPosition[] };
 
   // Deposit management
-  pendingDeposits: { [providerId: string]: { [address: string]: boolean } };
+  pendingDeposits: { [providerId: string]: { [address: string]: string } };
 
   // Withdraw management
   // TODO: change to be per-account basis
@@ -383,9 +384,9 @@ export class PredictController extends BaseController<
    * @private
    */
   private getSigner(address?: string): Signer {
-    const { AccountsController, KeyringController } = Engine.context;
+    const { KeyringController } = Engine.context;
     const selectedAddress =
-      address ?? AccountsController.getSelectedAccount().address;
+      address ?? getEvmAccountFromSelectedAccountGroup()?.address ?? '0x0';
     return {
       address: selectedAddress,
       signTypedMessage: (
@@ -657,10 +658,8 @@ export class PredictController extends BaseController<
   async getPositions(params: GetPositionsParams): Promise<PredictPosition[]> {
     try {
       const { address, providerId = 'polymarket' } = params;
-      const { AccountsController } = Engine.context;
 
-      const selectedAddress =
-        address ?? AccountsController.getSelectedAccount().address;
+      const selectedAddress = address ?? this.getSigner().address;
 
       const provider = this.providers.get(providerId);
 
@@ -719,10 +718,7 @@ export class PredictController extends BaseController<
   }): Promise<PredictActivity[]> {
     try {
       const { address, providerId } = params;
-      const { AccountsController } = Engine.context;
-
-      const selectedAddress =
-        address ?? AccountsController.getSelectedAccount().address;
+      const selectedAddress = address ?? this.getSigner().address;
 
       const providerIds = providerId
         ? [providerId]
@@ -780,9 +776,7 @@ export class PredictController extends BaseController<
     providerId?: string;
   }): Promise<UnrealizedPnL> {
     try {
-      const { AccountsController } = Engine.context;
-      const selectedAddress =
-        address ?? AccountsController.getSelectedAccount().address;
+      const selectedAddress = address ?? this.getSigner().address;
 
       const provider = this.providers.get(providerId);
       if (!provider) {
@@ -1169,6 +1163,7 @@ export class PredictController extends BaseController<
       let realSharePrice = sharePrice;
       try {
         if (preview.side === Side.BUY) {
+          const totalFee = params.preview.fees?.totalFee ?? 0;
           realAmountUsd = parseFloat(spentAmount);
           realSharePrice = parseFloat(spentAmount) / parseFloat(receivedAmount);
 
@@ -1176,7 +1171,7 @@ export class PredictController extends BaseController<
           this.update((state) => {
             state.balances[providerId] = state.balances[providerId] || {};
             state.balances[providerId][signer.address] = {
-              balance: cachedBalance - realAmountUsd,
+              balance: cachedBalance - (realAmountUsd + totalFee),
               // valid for 5 seconds (since it takes some time to reflect balance on-chain)
               validUntil: Date.now() + 5000,
             };
@@ -1406,6 +1401,12 @@ export class PredictController extends BaseController<
     });
   }
 
+  private isLocallyGeoblocked(region: { country: string }): boolean {
+    return GEO_BLOCKED_COUNTRIES.some(
+      ({ country }) => country === region.country,
+    );
+  }
+
   /**
    * Refresh eligibility status
    */
@@ -1417,6 +1418,13 @@ export class PredictController extends BaseController<
       }
       try {
         const geoBlockResponse = await provider.isEligible();
+        if (geoBlockResponse.isEligible && geoBlockResponse.country) {
+          // Check if country is blocked by local geo-blocking
+          const isLocallyGeoblocked = this.isLocallyGeoblocked({
+            country: geoBlockResponse.country,
+          });
+          geoBlockResponse.isEligible = !isLocallyGeoblocked;
+        }
         this.update((state) => {
           state.eligibility[providerId] = {
             eligible: geoBlockResponse.isEligible,
@@ -1473,9 +1481,9 @@ export class PredictController extends BaseController<
 
       // Clear any previous deposit transaction
       this.update((state) => {
-        state.pendingDeposits[params.providerId] = {
-          [signer.address]: false,
-        };
+        if (state.pendingDeposits[params.providerId]?.[signer.address]) {
+          delete state.pendingDeposits[params.providerId][signer.address];
+        }
       });
 
       const depositPreparation = await provider.prepareDeposit({
@@ -1505,6 +1513,12 @@ export class PredictController extends BaseController<
         throw new Error(`Network client not found for chain ID: ${chainId}`);
       }
 
+      this.update((state) => {
+        state.pendingDeposits[params.providerId] =
+          state.pendingDeposits[params.providerId] || {};
+        state.pendingDeposits[params.providerId][signer.address] = 'pending';
+      });
+
       const batchResult = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
@@ -1527,9 +1541,9 @@ export class PredictController extends BaseController<
       }
 
       this.update((state) => {
-        state.pendingDeposits[params.providerId] = {
-          [signer.address]: true,
-        };
+        state.pendingDeposits[params.providerId] =
+          state.pendingDeposits[params.providerId] || {};
+        state.pendingDeposits[params.providerId][signer.address] = batchId;
       });
 
       return {
@@ -1541,6 +1555,8 @@ export class PredictController extends BaseController<
     } catch (error) {
       const e = ensureError(error);
       if (e.message.includes('User denied transaction signature')) {
+        // Clear pending state before returning
+        this.clearPendingDeposit({ providerId: params.providerId });
         // ignore error, as the user cancelled the tx
         return {
           success: true,
@@ -1555,6 +1571,8 @@ export class PredictController extends BaseController<
         }),
       );
 
+      this.clearPendingDeposit({ providerId: params.providerId });
+
       throw new Error(
         error instanceof Error
           ? error.message
@@ -1564,12 +1582,11 @@ export class PredictController extends BaseController<
   }
 
   public clearPendingDeposit({ providerId }: { providerId: string }): void {
-    const { AccountsController } = Engine.context;
-    const selectedAddress = AccountsController.getSelectedAccount().address;
+    const selectedAddress = this.getSigner().address;
     this.update((state) => {
-      state.pendingDeposits[providerId] = {
-        [selectedAddress]: false,
-      };
+      if (state.pendingDeposits[providerId]?.[selectedAddress]) {
+        delete state.pendingDeposits[providerId][selectedAddress];
+      }
     });
   }
 
@@ -1581,8 +1598,7 @@ export class PredictController extends BaseController<
       if (!provider) {
         throw new Error('Provider not available');
       }
-      const { AccountsController } = Engine.context;
-      const selectedAddress = AccountsController.getSelectedAccount().address;
+      const selectedAddress = this.getSigner().address;
 
       return provider.getAccountState({
         ...params,
@@ -1607,8 +1623,7 @@ export class PredictController extends BaseController<
       if (!provider) {
         throw new Error('Provider not available');
       }
-      const { AccountsController } = Engine.context;
-      const selectedAddress = AccountsController.getSelectedAccount().address;
+      const selectedAddress = this.getSigner().address;
       const address = params.address ?? selectedAddress;
 
       const cachedBalance = this.state.balances[params.providerId]?.[address];
@@ -1844,39 +1859,5 @@ export class PredictController extends BaseController<
     this.update((state) => {
       state.withdrawTransaction = null;
     });
-  }
-
-  public acceptAgreement(params: AcceptAgreementParams): boolean {
-    try {
-      const provider = this.providers.get(params.providerId);
-      if (!provider) {
-        throw new Error('Provider not available');
-      }
-      this.update((state) => {
-        const accountMeta = state.accountMeta[params.providerId]?.[
-          params.address
-        ] || {
-          isOnboarded: false,
-          acceptedToS: false,
-        };
-
-        state.accountMeta[params.providerId] = {
-          ...(state.accountMeta[params.providerId] || {}),
-          [params.address]: {
-            ...accountMeta,
-            acceptedToS: true,
-          },
-        };
-      });
-      return true;
-    } catch (error) {
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('acceptAgreement', {
-          providerId: params.providerId,
-        }),
-      );
-      throw error;
-    }
   }
 }

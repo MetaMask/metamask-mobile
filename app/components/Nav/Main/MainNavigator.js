@@ -50,7 +50,7 @@ import { Confirm as RedesignedConfirm } from '../../Views/confirmations/componen
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
-import TrendingView from '../../Views/TrendingView';
+import TrendingView from '../../Views/TrendingView/TrendingView';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
