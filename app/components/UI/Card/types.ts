@@ -168,6 +168,7 @@ export enum CardErrorType {
   TIMEOUT_ERROR = 'TIMEOUT_ERROR',
   API_KEY_MISSING = 'API_KEY_MISSING',
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
+  ACCOUNT_DISABLED = 'ACCOUNT_DISABLED',
   VALIDATION_ERROR = 'VALIDATION_ERROR',
   SERVER_ERROR = 'SERVER_ERROR',
   NO_CARD = 'NO_CARD',
@@ -339,6 +340,90 @@ export interface ConsentMetadata {
   timestamp?: string;
   clientId?: string;
   version?: string;
+}
+
+// {
+//   "onboardingId": "b23eaaf4-4b9c-438c-9fe1-9949580b0938",
+//   "consentSets": [
+//     {
+//       "consentSetId": "04a706cb-9efc-4da6-b952-6860e8e54bc1",
+//       "userId": null,
+//       "onboardingId": "b23eaaf4-4b9c-438c-9fe1-9949580b0938",
+//       "tenantId": "dd764cca-2d07-4d4b-a8a3-3bb3b9499034",
+//       "completedAt": null,
+//       "createdAt": "2025-11-13T14:31:59.000Z",
+//       "updatedAt": "2025-11-13T14:31:59.000Z",
+//       "consents": [
+//         {
+//           "consentId": "65b011aa-ab37-410c-a171-37efcac54d0d",
+//           "consentType": "termsAndPrivacy",
+//           "consentStatus": "granted",
+//           "metadata": {
+//             "timestamp": "2025-11-13T14:31:59.337Z",
+//             "revocationTimestamp": null
+//           },
+//           "createdAt": "2025-11-13T14:31:59.000Z",
+//           "updatedAt": "2025-11-13T14:31:59.000Z"
+//         },
+//         {
+//           "consentId": "008b4d2a-2aeb-4c03-a3b7-3ae626184ae0",
+//           "consentType": "marketingNotifications",
+//           "consentStatus": "granted",
+//           "metadata": {
+//             "timestamp": "2025-11-13T14:31:59.337Z",
+//             "revocationTimestamp": null
+//           },
+//           "createdAt": "2025-11-13T14:31:59.000Z",
+//           "updatedAt": "2025-11-13T14:31:59.000Z"
+//         },
+//         {
+//           "consentId": "b92cb07f-dbf0-469a-80d5-bfacd434c73a",
+//           "consentType": "smsNotifications",
+//           "consentStatus": "granted",
+//           "metadata": {
+//             "timestamp": "2025-11-13T14:31:59.337Z",
+//             "revocationTimestamp": null
+//           },
+//           "createdAt": "2025-11-13T14:31:59.000Z",
+//           "updatedAt": "2025-11-13T14:31:59.000Z"
+//         },
+//         {
+//           "consentId": "9d111320-7c12-422e-9bd8-271c24dd4297",
+//           "consentType": "emailNotifications",
+//           "consentStatus": "granted",
+//           "metadata": {
+//             "timestamp": "2025-11-13T14:31:59.337Z",
+//             "revocationTimestamp": null
+//           },
+//           "createdAt": "2025-11-13T14:31:59.000Z",
+//           "updatedAt": "2025-11-13T14:31:59.000Z"
+//         }
+//       ]
+//     }
+//   ],
+//   "_links": {
+//     "self": {
+//       "href": "http://localhost:3000/v2/consent/onboarding/b23eaaf4-4b9c-438c-9fe1-9949580b0938",
+//       "method": "GET",
+//       "description": "Get all consent sets for this onboarding ID"
+//     }
+//   }
+// }
+
+export interface ConsentSet {
+  consentSetId: string;
+  userId: string | null;
+  onboardingId: string;
+  tenantId: string;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  consents: Consent[];
+}
+
+export interface GetOnboardingConsentResponse {
+  onboardingId: string;
+  consentSets: ConsentSet[];
 }
 
 export interface Consent {
