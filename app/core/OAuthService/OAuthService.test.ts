@@ -1,8 +1,4 @@
-import {
-  AuthConnection,
-  AuthResponse,
-  LoginHandlerResult,
-} from './OAuthInterface';
+import { AuthConnection } from './OAuthInterface';
 import ReduxService, { ReduxStore } from '../redux';
 import Engine from '../Engine';
 import { OAuthError, OAuthErrorType } from './error';
@@ -45,29 +41,25 @@ jest.mock('./OAuthLoginHandlers/constants', () => ({
 }));
 
 import OAuthLoginService from './OAuthService';
-let mockLoginHandlerResponse: () => LoginHandlerResult | undefined = jest
-  .fn()
-  .mockImplementation(() => ({
-    idToken: MOCK_JWT_TOKEN,
-    authConnection: AuthConnection.Google,
-    clientId: 'clientId',
-    web3AuthNetwork: Web3AuthNetwork.Mainnet,
-  }));
+const mockLoginHandlerResponse = jest.fn().mockImplementation(() => ({
+  idToken: MOCK_JWT_TOKEN,
+  authConnection: AuthConnection.Google,
+  clientId: 'clientId',
+  web3AuthNetwork: Web3AuthNetwork.Mainnet,
+}));
 
-let mockGetAuthTokens: () => Promise<AuthResponse> = jest
-  .fn()
-  .mockImplementation(() => ({
-    id_token: MOCK_JWT_TOKEN,
-    access_token: 'mock-access-token',
-    indexes: [1, 2, 3],
-    endpoints: { endpoint1: 'value1' },
-    refresh_token: 'mock-refresh-token',
-  }));
+const mockGetAuthTokens = jest.fn().mockImplementation(() => ({
+  id_token: MOCK_JWT_TOKEN,
+  access_token: 'mock-access-token',
+  indexes: [1, 2, 3],
+  endpoints: { endpoint1: 'value1' },
+  refresh_token: 'mock-refresh-token',
+}));
 
 const mockCreateLoginHandler = jest.fn().mockImplementation(() => ({
   authConnection: AuthConnection.Google,
   login: () => mockLoginHandlerResponse(),
-  getAuthTokens: mockGetAuthTokens,
+  getAuthTokens: () => mockGetAuthTokens(),
   decodeIdToken: () =>
     JSON.stringify({
       email: 'swnam909@gmail.com',
@@ -96,7 +88,7 @@ jest.mock('../Engine', () => ({
   },
 }));
 
-let mockAuthenticate = jest.fn().mockImplementation(() => ({
+const mockAuthenticate = jest.fn().mockImplementation(() => ({
   nodeAuthTokens: [],
   isNewUser: true,
 }));
@@ -182,7 +174,7 @@ describe('OAuth login service', () => {
   });
 
   it('throw on AuthServerError', async () => {
-    mockGetAuthTokens = jest.fn().mockImplementation(() => {
+    mockGetAuthTokens.mockImplementation(() => {
       throw new OAuthError('Auth server error', OAuthErrorType.AuthServerError);
     });
     const loginHandler = mockCreateLoginHandler();
@@ -204,7 +196,7 @@ describe('OAuth login service', () => {
       dispatch: jest.fn(),
     } as unknown as ReduxStore);
 
-    mockLoginHandlerResponse = jest.fn().mockImplementation(() => {
+    mockLoginHandlerResponse.mockImplementation(() => {
       throw new OAuthError('Login dismissed', OAuthErrorType.UserDismissed);
     });
 
@@ -220,7 +212,7 @@ describe('OAuth login service', () => {
 
   it('throw on login error', async () => {
     const loginHandler = mockCreateLoginHandler();
-    mockLoginHandlerResponse = jest.fn().mockImplementation(() => {
+    mockLoginHandlerResponse.mockImplementation(() => {
       throw new OAuthError('Login error', OAuthErrorType.LoginError);
     });
 
@@ -234,33 +226,23 @@ describe('OAuth login service', () => {
     expect(mockAuthenticate).toHaveBeenCalledTimes(0);
   });
 
-  it('throws error when login handler returns null', async () => {
-    const loginHandler = mockCreateLoginHandler();
-    mockLoginHandlerResponse = jest.fn().mockImplementation(() => null);
+  // use for loop to test undefine and null cases
+  for (const value of [undefined, null]) {
+    it(`throws error when login handler returns ${value}`, async () => {
+      mockLoginHandlerResponse.mockClear();
+      mockLoginHandlerResponse.mockImplementation(() => value);
+      const loginHandler = mockCreateLoginHandler();
 
-    await expectOAuthError(
-      OAuthLoginService.handleOAuthLogin(loginHandler),
-      OAuthErrorType.LoginError,
-    );
+      await expectOAuthError(
+        OAuthLoginService.handleOAuthLogin(loginHandler),
+        OAuthErrorType.LoginError,
+      );
 
-    expect(mockLoginHandlerResponse).toHaveBeenCalledTimes(1);
-    expect(mockGetAuthTokens).toHaveBeenCalledTimes(0);
-    expect(mockAuthenticate).toHaveBeenCalledTimes(0);
-  });
-
-  it('throws error when login handler returns undefined', async () => {
-    const loginHandler = mockCreateLoginHandler();
-    mockLoginHandlerResponse = jest.fn().mockImplementation(() => undefined);
-
-    await expectOAuthError(
-      OAuthLoginService.handleOAuthLogin(loginHandler),
-      OAuthErrorType.LoginError,
-    );
-
-    expect(mockLoginHandlerResponse).toHaveBeenCalledTimes(1);
-    expect(mockGetAuthTokens).toHaveBeenCalledTimes(0);
-    expect(mockAuthenticate).toHaveBeenCalledTimes(0);
-  });
+      expect(mockLoginHandlerResponse).toHaveBeenCalledTimes(1);
+      expect(mockGetAuthTokens).toHaveBeenCalledTimes(0);
+      expect(mockAuthenticate).toHaveBeenCalledTimes(0);
+    });
+  }
 });
 
 describe('updateMarketingOptInStatus', () => {
