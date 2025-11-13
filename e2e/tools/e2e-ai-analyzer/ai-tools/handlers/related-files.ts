@@ -51,7 +51,7 @@ function findCIRelationships(
   try {
     // Workflows: Find callers
     if (filePath.includes('.github/workflows/')) {
-      const workflowName = filePath.split('/').pop();
+      const workflowName = escapeShell(filePath.split('/').pop() || '');
       const callers = execSync(
         `grep -r -l "uses:.*${workflowName}" .github/workflows/ 2>/dev/null | grep -v "${filePath}" | head -${maxResults} || true`,
         { encoding: 'utf-8', cwd: baseDir },
@@ -68,7 +68,9 @@ function findCIRelationships(
 
     // Actions: Find workflows using them
     if (filePath.includes('.github/actions/')) {
-      const actionPath = filePath.match(/\.github\/actions\/[^/]+/)?.[0];
+      const actionPath = escapeShell(
+        filePath.match(/\.github\/actions\/[^/]+/)?.[0] || '',
+      );
       if (actionPath) {
         const workflows = execSync(
           `grep -r -l "uses:.*${actionPath}" .github/workflows/ 2>/dev/null | head -${maxResults} || true`,
@@ -87,7 +89,7 @@ function findCIRelationships(
 
     // Scripts: Find workflows using them
     if (filePath.includes('/scripts/')) {
-      const scriptName = filePath.split('/').pop() || filePath;
+      const scriptName = escapeShell(filePath.split('/').pop() || filePath);
       const workflows = execSync(
         `grep -r -l "${scriptName}" .github/workflows/ 2>/dev/null | head -${maxResults} || true`,
         { encoding: 'utf-8', cwd: baseDir },
@@ -121,11 +123,13 @@ function findImporters(
   maxResults: number,
 ): string {
   try {
-    const fileName = filePath
-      .replace(/^app\//, '')
-      .replace(/\.(ts|tsx|js|jsx)$/, '')
-      .split('/')
-      .pop();
+    const fileName = escapeShell(
+      filePath
+        .replace(/^app\//, '')
+        .replace(/\.(ts|tsx|js|jsx)$/, '')
+        .split('/')
+        .pop() || '',
+    );
 
     if (!fileName) {
       return `Cannot extract filename from ${filePath}`;
