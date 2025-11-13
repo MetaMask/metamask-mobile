@@ -643,7 +643,7 @@ describe('TradeWalletActions', () => {
       ...mockInitialState,
     };
 
-    const { queryByTestId } = renderScreen(
+    const { getByTestId } = renderScreen(
       TradeWalletActions,
       {
         name: 'TradeWalletActions',
@@ -654,7 +654,7 @@ describe('TradeWalletActions', () => {
     );
 
     expect(
-      queryByTestId(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON),
-    ).toBeDefined();
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON),
+    ).toBeOnTheScreen();
   });
 });
