@@ -90,14 +90,19 @@ const TrendingTokenNetworkBottomSheet = () => {
   });
 
   const handleClose = useCallback(() => {
-    // Navigate back immediately to remove overlay quickly
-    navigation.goBack();
+    // Navigate back immediately to dismiss modal and remove overlay
+    // The sheet animation will continue in the background
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
     sheetRef.current?.onCloseBottomSheet();
   }, [navigation]);
 
   const handleSheetClose = useCallback(() => {
-    // Handle close when clicking outside the sheet
-    navigation.goBack();
+    // Navigate back immediately when clicking outside to dismiss modal and remove overlay
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
   }, [navigation]);
 
   const isAllNetworksSelected =
