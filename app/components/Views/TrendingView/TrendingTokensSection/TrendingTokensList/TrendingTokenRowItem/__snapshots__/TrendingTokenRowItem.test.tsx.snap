@@ -58,19 +58,6 @@ exports[`TrendingTokenRowItem matches snapshot 1`] = `
       >
         USD Coin
       </Text>
-      <SvgMock
-        color="#686e7d"
-        fill="currentColor"
-        height={16}
-        name="VerifiedFilled"
-        style={
-          {
-            "height": 16,
-            "width": 16,
-          }
-        }
-        width={16}
-      />
     </View>
     <Text
       accessibilityRole="text"
