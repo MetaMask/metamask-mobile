@@ -3,7 +3,7 @@ import BN from 'bnjs4';
 
 /* eslint-disable-next-line import/no-namespace */
 import * as controllerUtilsModule from '@metamask/controller-utils';
-import { ERC721, ERC1155 } from '@metamask/controller-utils';
+import { ERC721, ERC1155, ORIGIN_METAMASK } from '@metamask/controller-utils';
 
 import { handleMethodData } from '../../util/transaction-controller';
 
@@ -1076,6 +1076,29 @@ describe('Transactions utils :: getIsSwapApproveOrSwapTransaction', () => {
       dappTxMeta.transaction.to,
       dappTxMeta.chainId,
     );
+    expect(result).toBe(false);
+  });
+  it('returns false if the transaction is a token transfer from swap origin', () => {
+    const tokenTransferFromSwapOrigin = {
+      chainId: '0x1',
+      origin: ORIGIN_METAMASK,
+      transaction: {
+        from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
+        data: '0xa9059cbb000000000000000000000000dc738206f559bdae106894a62876a119e470aee20000000000000000000000000000000000000000000000000de0b6b3a7640000',
+        gas: '0xc350',
+        nonce: '0x10',
+        to: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+        value: '0x0',
+      },
+    };
+
+    const result = getIsSwapApproveOrSwapTransaction(
+      tokenTransferFromSwapOrigin.transaction.data,
+      tokenTransferFromSwapOrigin.origin,
+      tokenTransferFromSwapOrigin.transaction.to,
+      tokenTransferFromSwapOrigin.chainId,
+    );
+
     expect(result).toBe(false);
   });
 });
