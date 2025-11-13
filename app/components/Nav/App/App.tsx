@@ -1120,8 +1120,8 @@ const App: React.FC = () => {
 
           // only proceed if biometric is enabled else rerouted to lock screen
           const authType = await Authentication.getType();
-          if (authType.currentAuthType !== AUTHENTICATION_TYPE.BIOMETRIC) {
-            await Authentication.lockApp({ reset: false, locked: true });
+          if (authType.currentAuthType === AUTHENTICATION_TYPE.PASSWORD) {
+            navigation.reset({ routes: [{ name: Routes.ONBOARDING.LOGIN }] });
             return;
           }
 
