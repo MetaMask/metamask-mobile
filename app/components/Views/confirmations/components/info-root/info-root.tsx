@@ -24,7 +24,8 @@ import { PredictDepositInfo } from '../info/predict-deposit-info';
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfo } from '../info/predict-claim-info';
 import { PredictWithdrawInfo } from '../info/predict-withdraw-info';
-import { MusdConversionInfo } from '../info/musd-conversion-info';
+import { EvmTokenConversionInfo } from '../info/evm-token-conversion-info';
+import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../../../../UI/Earn/constants/musd';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -94,11 +95,9 @@ const Info = ({ route }: InfoProps) => {
 
   if (
     transactionMetadata &&
-    // TODO: Add type for musdConversion to TransactionType.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    hasTransactionType(transactionMetadata, ['musdConversion' as any])
+    hasTransactionType(transactionMetadata, [MUSD_CONVERSION_TRANSACTION_TYPE])
   ) {
-    return <MusdConversionInfo />;
+    return <EvmTokenConversionInfo />;
   }
 
   if (

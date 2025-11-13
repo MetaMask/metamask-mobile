@@ -69,6 +69,7 @@ import { handleMethodData } from '../../util/transaction-controller';
 import EthQuery from '@metamask/eth-query';
 import { EIP_7702_REVOKE_ADDRESS } from '../../components/Views/confirmations/hooks/7702/useEIP7702Accounts';
 import { hasTransactionType } from '../../components/Views/confirmations/utils/transaction';
+import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../../components/UI/Earn/constants/musd';
 
 const { SAI_ADDRESS } = AppConstants;
 
@@ -215,8 +216,9 @@ const actionKeys = {
   [TransactionType.predictWithdraw]: strings(
     'transactions.tx_review_predict_withdraw',
   ),
-  // TODO: Add type for musdConversion to TransactionType.
-  musdConversion: strings('transactions.tx_review_musd_conversion'),
+  [MUSD_CONVERSION_TRANSACTION_TYPE]: strings(
+    'transactions.tx_review_musd_conversion',
+  ),
 };
 
 /**
@@ -546,7 +548,7 @@ export async function getTransactionActionKey(transaction, chainId) {
       TransactionType.lendingDeposit,
       TransactionType.lendingWithdraw,
       TransactionType.perpsDeposit,
-      'musdConversion',
+      MUSD_CONVERSION_TRANSACTION_TYPE,
     ].includes(type)
   ) {
     return type;

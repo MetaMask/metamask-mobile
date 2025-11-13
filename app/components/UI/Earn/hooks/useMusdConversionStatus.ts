@@ -5,6 +5,7 @@ import {
 import { useEffect, useRef } from 'react';
 import Engine from '../../../../core/Engine';
 import useEarnToasts from './useEarnToasts';
+import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../constants/musd';
 
 /**
  * Hook to monitor mUSD conversion transaction status and show appropriate toasts
@@ -24,8 +25,7 @@ import useEarnToasts from './useEarnToasts';
 export const useMusdConversionStatus = () => {
   const { showToast, EarnToastOptions } = useEarnToasts();
 
-  // Track which transaction IDs we've already shown toasts for
-  // Using a Set to efficiently check if we've already shown a toast for a status
+  // Track which transaction IDs we've already shown toasts for to prevent duplicates
   const shownToastsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
@@ -34,10 +34,7 @@ export const useMusdConversionStatus = () => {
     }: {
       transactionMeta: TransactionMeta;
     }) => {
-      // Only process mUSD conversion transactions
-      // TODO: Add type for musdConversion to TransactionType.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if (transactionMeta.type !== ('musdConversion' as any)) {
+      if (transactionMeta.type !== MUSD_CONVERSION_TRANSACTION_TYPE) {
         return;
       }
 
@@ -60,13 +57,30 @@ export const useMusdConversionStatus = () => {
         case TransactionStatus.confirmed:
           showToast(EarnToastOptions.mUsdConversion.success);
           shownToastsRef.current.add(toastKey);
+          // Clean up entries for this transaction after final status
+          setTimeout(() => {
+            shownToastsRef.current.delete(
+              `${transactionId}-${TransactionStatus.submitted}`,
+            );
+            shownToastsRef.current.delete(
+              `${transactionId}-${TransactionStatus.confirmed}`,
+            );
+          }, 5000);
           break;
         case TransactionStatus.failed:
           showToast(EarnToastOptions.mUsdConversion.failed);
           shownToastsRef.current.add(toastKey);
+          // Clean up entries for this transaction after final status
+          setTimeout(() => {
+            shownToastsRef.current.delete(
+              `${transactionId}-${TransactionStatus.submitted}`,
+            );
+            shownToastsRef.current.delete(
+              `${transactionId}-${TransactionStatus.failed}`,
+            );
+          }, 5000);
           break;
         default:
-          // No toast for other statuses
           break;
       }
     };
