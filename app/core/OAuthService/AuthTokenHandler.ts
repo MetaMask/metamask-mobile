@@ -18,6 +18,14 @@ interface AuthTokenHandlerInterface {
 }
 
 class AuthTokenHandler implements AuthTokenHandlerInterface {
+  /**
+   * Refresh the JWT Token using the refresh token.
+   *
+   * @param params - The params from the login handler
+   * @param params.connection - The connection type (Google, Apple, etc.)
+   * @param params.refreshToken - The refresh token from the Web3Auth Authentication Server.
+   * @returns The id token, access token, and metadata access token.
+   */
   async refreshJWTToken(params: {
     connection: AuthConnection;
     refreshToken: string;
@@ -73,6 +81,14 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
     };
   }
 
+  /**
+   * Renew the refresh token.
+   *
+   * @param params - The params from the login handler
+   * @param params.connection - The connection type (Google, Apple, etc.)
+   * @param params.revokeToken - The revoke token from the Web3Auth Authentication Server.
+   * @returns The new refresh token and revoke token.
+   */
   async renewRefreshToken(params: {
     connection: AuthConnection;
     revokeToken: string;
@@ -106,6 +122,14 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
     };
   }
 
+  /**
+   * Revoke the refresh token.
+   *
+   * @param params - The params from the login handler
+   * @param params.connection - The connection type (Google, Apple, etc.)
+   * @param params.revokeToken - The revoke token from the Web3Auth Authentication Server.
+   * @returns void
+   */
   async revokeRefreshToken(params: {
     connection: AuthConnection;
     revokeToken: string;
