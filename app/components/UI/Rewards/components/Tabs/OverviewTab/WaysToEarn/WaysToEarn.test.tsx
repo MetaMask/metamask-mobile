@@ -674,7 +674,7 @@ describe('WaysToEarn', () => {
       // Assert
       expect(mockGoBack).toHaveBeenCalled();
       expect(openURLSpy).toHaveBeenCalledWith(
-        'https://app.turtle.xyz/campaigns',
+        'https://go.metamask.io/turtle-musd',
       );
       expect(mockTrackEvent).toHaveBeenCalled();
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
