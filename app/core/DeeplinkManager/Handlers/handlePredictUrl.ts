@@ -51,6 +51,7 @@ const handleMarketNavigation = (marketId: string, entryPoint: string) => {
     );
     NavigationService.navigation.navigate(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
+      params: { entryPoint },
     });
     return;
   }
