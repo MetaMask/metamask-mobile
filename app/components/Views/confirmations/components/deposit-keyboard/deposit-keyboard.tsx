@@ -35,6 +35,7 @@ const PERCENTAGE_BUTTONS = [
 
 export interface DepositKeyboardProps {
   alertMessage?: string;
+  doneLabel?: string;
   hasInput?: boolean;
   onChange: (value: string) => void;
   onPercentagePress: (percentage: number) => void;
@@ -45,6 +46,7 @@ export interface DepositKeyboardProps {
 export const DepositKeyboard = memo(
   ({
     alertMessage,
+    doneLabel,
     hasInput,
     onChange,
     onDonePress,
@@ -101,7 +103,7 @@ export const DepositKeyboard = memo(
           {!alertMessage && hasInput && (
             <Button
               testID="deposit-keyboard-done-button"
-              label={strings('confirm.deposit_edit_amount_done')}
+              label={doneLabel ?? strings('confirm.deposit_edit_amount_done')}
               style={styles.button}
               onPress={onDonePress}
               variant={ButtonVariants.Primary}
