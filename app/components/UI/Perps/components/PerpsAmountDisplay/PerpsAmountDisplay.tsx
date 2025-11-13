@@ -13,6 +13,7 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
 import createStyles from './PerpsAmountDisplay.styles';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 
 interface PerpsAmountDisplayProps {
   amount: string;
@@ -95,7 +96,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
           }
         >
           {showTokenAmount && tokenAmount && tokenSymbol
-            ? `${formatPositionSize(tokenAmount)} ${tokenSymbol}`
+            ? `${formatPositionSize(tokenAmount)} ${getPerpsDisplaySymbol(tokenSymbol)}`
             : amount
               ? formatPerpsFiat(amount, { ranges: PRICE_RANGES_MINIMAL_VIEW })
               : '$0'}
@@ -120,7 +121,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
           style={styles.maxAmount}
           testID={PerpsAmountDisplaySelectorsIDs.MAX_LABEL}
         >
-          {formatPositionSize(tokenAmount)} {tokenSymbol}
+          {formatPositionSize(tokenAmount)} {getPerpsDisplaySymbol(tokenSymbol)}
         </Text>
       )}
       {showWarning && (
