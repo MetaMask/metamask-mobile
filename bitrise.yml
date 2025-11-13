@@ -97,7 +97,7 @@ pipelines:
       - build_smoke_e2e_ios_android_stage: {}
       - run_smoke_e2e_ios_android_stage: {}
       - notify: {}
-      
+
   flask_smoke_e2e_pipeline:
     stages:
       - set_flask_target_stage: {}
@@ -118,9 +118,7 @@ pipelines:
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
   pr_rc_rwy_pipeline:
     workflows:
-      bump_version_code:
-        depends_on:
-        - pr_check_build_cache
+      bump_version_code: {}
       build_ios_rc_and_upload_sourcemaps:
         depends_on:
         - bump_version_code
@@ -170,7 +168,7 @@ pipelines:
         - bump_version_code
       build_ios_main_exp:
         depends_on:
-        - bump_version_code    
+        - bump_version_code
   nightly_rc_builds_pipeline:
     workflows:
       bump_version_code: {}
@@ -613,16 +611,16 @@ workflows:
             - content: |
                 #!/bin/bash
                 set -e
-                
+
                 # Path to Android build.gradle file
                 BUILD_GRADLE_PATH="$PROJECT_LOCATION_ANDROID/app/build.gradle"
-                
+
                 # Extract versionName (remove quotes)
                 APP_SEM_VER_NAME_TMP=$(grep -o 'versionName "[^"]*"' "$BUILD_GRADLE_PATH" | sed 's/versionName "\(.*\)"/\1/')
-                
+
                 # Extract versionCode
                 APP_BUILD_NUMBER_TMP=$(grep -o 'versionCode [0-9]*' "$BUILD_GRADLE_PATH" | sed 's/versionCode \([0-9]*\)/\1/')
-                
+
                 # Validate that we found both values
                 if [ -z "$APP_SEM_VER_NAME_TMP" ] || [ -z "$APP_BUILD_NUMBER_TMP" ]; then
                     echo "Error: Could not extract version information from $BUILD_GRADLE_PATH"
@@ -1372,13 +1370,13 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 echo "Copying Android build from cache..."
-                
+
                 if [ -d "/tmp/android-cache/build/outputs" ]; then
                     echo "Restoring Android build outputs from cache..."
                     mkdir -p android/app/build/outputs
                     cp -r /tmp/android-cache/build/outputs/* android/app/build/outputs/
                     echo "✅ Android build artifacts restored from cache"
-                    
+
                     echo "Restored files:"
                     find android/app/build/outputs -type f -name "*.apk" -o -name "*.aab" | head -5
                 else
@@ -1476,18 +1474,18 @@ workflows:
                 set -ex
                 # Create performance results directory
                 mkdir -p "$BITRISE_DEPLOY_DIR/performance-results"
-                
+
                 # Copy performance JSON files if they exist
                 if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" ]; then
                   cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
                   echo "Copied account-list-load-testing-performance-results.json"
                 fi
-                
+
                 if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" ]; then
                   cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
                   echo "Copied network-list-load-testing-performance-results.json"
                 fi
-                
+
                 if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" ]; then
                   cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
                   echo "Copied switching-accounts-to-dismiss-load-testing-performance-results.json"
@@ -1605,18 +1603,18 @@ workflows:
                 set -ex
                 # Create performance results directory
                 mkdir -p "$BITRISE_DEPLOY_DIR/performance-results"
-                
+
                 # Copy performance JSON files if they exist
                 if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" ]; then
                   cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
                   echo "Copied account-list-load-testing-performance-results.json"
                 fi
-                
+
                 if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" ]; then
                   cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
                   echo "Copied network-list-load-testing-performance-results.json"
                 fi
-                
+
                 if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" ]; then
                   cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
                   echo "Copied switching-accounts-to-dismiss-load-testing-performance-results.json"
@@ -1654,7 +1652,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 echo "Copying iOS build from cache..."
-                
+
                 # Check if cached build products exist
                 if [ -d "ios/build/Build/Products/Release-iphonesimulator" ]; then
                     echo "✅ iOS build artifacts found in cache"
@@ -1664,7 +1662,7 @@ workflows:
                     echo "❌ iOS build products not found in cache"
                     mkdir -p ios/build/Build/Products/Release-iphonesimulator
                 fi
-                
+
                 # Check if cached Detox artifacts exist
                 if [ -d "../Library/Detox/ios" ]; then
                     echo "✅ Detox iOS artifacts found in cache"
@@ -1674,7 +1672,7 @@ workflows:
                     echo "❌ Detox iOS artifacts not found in cache"
                     mkdir -p ../Library/Detox/ios
                 fi
-                
+
                 echo "iOS build artifacts restored from cache"
       - pull-intermediate-files@1:
           inputs:
@@ -1790,18 +1788,18 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                
+
                 # Initialize local variables with current state
                 LOCAL_SKIP_IOS="$SKIP_IOS_BUILD"
                 LOCAL_SKIP_ANDROID="$SKIP_ANDROID_BUILD"
-                
+
                 # Ensure iOS value is set if cache check was skipped
                 if [[ -z "$IOS_PR_BUILD_CACHE_KEY" ]]; then
                     echo "No iOS cache key available - build will proceed"
                     LOCAL_SKIP_IOS="false"
                     envman add --key SKIP_IOS_BUILD --value "false"
                 fi
-                
+
                 # Only process Android cache if we have cache keys
                 if [[ -n "$ANDROID_PR_BUILD_CACHE_KEY" ]]; then
                     if [[ "$BITRISE_CACHE_HIT" == "exact" ]]; then
@@ -1818,7 +1816,7 @@ workflows:
                     LOCAL_SKIP_ANDROID="false"
                     envman add --key SKIP_ANDROID_BUILD --value "false"
                 fi
-                
+
                 echo ""
                 echo "=== Final Build Decisions ==="
                 echo "iOS build:     $([ "$LOCAL_SKIP_IOS" == "true" ] && echo "SKIP" || echo "BUILD")"
@@ -1956,7 +1954,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 echo "Copying iOS build from cache..."
-                
+
                 # Check if cached build products exist
                 if [ -d "ios/build/Build/Products/Release-iphonesimulator" ]; then
                     echo "✅ iOS build artifacts found in cache"
@@ -1966,7 +1964,7 @@ workflows:
                     echo "❌ iOS build products not found in cache"
                     mkdir -p ios/build/Build/Products/Release-iphonesimulator
                 fi
-                
+
                 # Check if cached Detox artifacts exist
                 if [ -d "../Library/Detox/ios" ]; then
                     echo "✅ Detox iOS artifacts found in cache"
@@ -1976,7 +1974,7 @@ workflows:
                     echo "❌ Detox iOS artifacts not found in cache"
                     mkdir -p ../Library/Detox/ios
                 fi
-                
+
                 echo "iOS build artifacts restored from cache"
       - pull-intermediate-files@1:
           inputs:
@@ -2091,18 +2089,18 @@ workflows:
                 set -ex
                 # Create performance results directory
                 mkdir -p "$BITRISE_DEPLOY_DIR/performance-results"
-                
+
                 # Copy performance JSON files if they exist
                 if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" ]; then
                   cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
                   echo "Copied account-list-load-testing-performance-results.json"
                 fi
-                
+
                 if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" ]; then
                   cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
                   echo "Copied network-list-load-testing-performance-results.json"
                 fi
-                
+
                 if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" ]; then
                   cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
                   echo "Copied switching-accounts-to-dismiss-load-testing-performance-results.json"
@@ -2235,18 +2233,18 @@ workflows:
                 set -ex
                 # Create performance results directory
                 mkdir -p "$BITRISE_DEPLOY_DIR/performance-results"
-                
+
                 # Copy performance JSON files if they exist
                 if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" ]; then
                   cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
                   echo "Copied account-list-load-testing-performance-results.json"
                 fi
-                
+
                 if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" ]; then
                   cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
                   echo "Copied network-list-load-testing-performance-results.json"
                 fi
-                
+
                 if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" ]; then
                   cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
                   echo "Copied switching-accounts-to-dismiss-load-testing-performance-results.json"
@@ -2422,15 +2420,15 @@ workflows:
                 #!/usr/bin/env bash
                 echo "=== Preparing Android cache ==="
                 echo "Current working directory: $(pwd)"
-                
+
                 # Create a clean cache directory structure
                 mkdir -p /tmp/android-cache/build/outputs
-                
+
                 if [ -d "android/app/build/outputs" ]; then
                     echo "Copying Android build outputs to cache staging area..."
                     cp -r android/app/build/outputs/* /tmp/android-cache/build/outputs/
                     echo "Cache staging completed"
-                    
+
                     echo "Cache contents:"
                     find /tmp/android-cache -type f | head -10
                     echo "Total cache size: $(du -sh /tmp/android-cache 2>/dev/null || echo 'Unknown')"
@@ -2532,7 +2530,7 @@ workflows:
                 #!/usr/bin/env bash
                 echo "=== Android Build Output Debug ==="
                 echo "Checking for Android build outputs to cache..."
-                
+
                 if [ -d "android/app/build/outputs" ]; then
                     echo "✅ android/app/build/outputs directory exists"
                     echo "Directory size: $(du -sh android/app/build/outputs 2>/dev/null || echo 'Could not calculate')"
@@ -2543,7 +2541,7 @@ workflows:
                     echo "❌ android/app/build/outputs directory does not exist!"
                     echo "This means the Android build failed or output path is incorrect"
                 fi
-                
+
                 echo "Current working directory: $(pwd)"
                 echo "Listing android/app/build directory:"
                 ls -la android/app/build/ 2>/dev/null || echo "android/app/build does not exist"
@@ -2554,15 +2552,15 @@ workflows:
                 #!/usr/bin/env bash
                 echo "=== Preparing Android cache with proper paths ==="
                 echo "Current working directory: $(pwd)"
-                
+
                 # Create a clean cache directory structure
                 mkdir -p /tmp/android-cache/build/outputs
-                
+
                 if [ -d "android/app/build/outputs" ]; then
                     echo "Copying Android build outputs to cache staging area..."
                     cp -r android/app/build/outputs/* /tmp/android-cache/build/outputs/
                     echo "Cache staging completed"
-                    
+
                     echo "Cache contents:"
                     find /tmp/android-cache -type f | head -10
                     echo "Total cache size: $(du -sh /tmp/android-cache 2>/dev/null || echo 'Unknown')"
@@ -3617,7 +3615,7 @@ meta:
     stack: osx-xcode-16.3.x
     machine_type_id: g2.mac.4large
 trigger_map:
-  - push_branch: release/7.59.0
+  - push_branch: chore/enable-auto-building-7.59.0-test
     pipeline: pr_rc_rwy_pipeline
   - push_branch: main
     pipeline: expo_dev_pipeline
