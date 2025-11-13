@@ -2248,7 +2248,7 @@ describe('PredictBuyPreview', () => {
   });
 
   describe('Rewards Display', () => {
-    it('shows rewards when feature flag is enabled and amount is entered', () => {
+    it('shows rewards when amount is entered', () => {
       mockMetamaskFee = 0.5;
 
       renderWithProvider(<PredictBuyPreview />, {
@@ -2264,24 +2264,6 @@ describe('PredictBuyPreview', () => {
       });
 
       // shouldShowRewards = true when rewardsEnabled && currentValue > 0
-    });
-
-    it('does not show rewards when feature flag is disabled', () => {
-      mockMetamaskFee = 0.5;
-
-      renderWithProvider(<PredictBuyPreview />, {
-        state: initialState,
-      });
-
-      // Enter amount
-      act(() => {
-        capturedOnChange?.({
-          value: '10',
-          valueAsNumber: 10,
-        });
-      });
-
-      // shouldShowRewards = false when rewardsEnabled is false
     });
 
     it('does not show rewards when amount is zero', () => {

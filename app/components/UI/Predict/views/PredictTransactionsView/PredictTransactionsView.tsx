@@ -9,6 +9,8 @@ import { formatCents } from '../../utils/format';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import { PredictEventValues } from '../../constants/eventNames';
+import { TraceName } from '../../../../../util/trace';
+import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 
 interface PredictTransactionsViewProps {
   transactions?: unknown[];
@@ -61,6 +63,17 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
 }) => {
   const tw = useTailwind();
   const { activity, isLoading } = usePredictActivity({});
+
+  // Track screen load performance (activity data loaded)
+  usePredictMeasurement({
+    traceName: TraceName.PredictTransactionHistoryView,
+    conditions: [!isLoading, activity !== undefined, isVisible === true],
+    debugContext: {
+      activityCount: activity?.length,
+      hasActivity: !!activity,
+      isLoading,
+    },
+  });
 
   // Track activity list viewed when tab becomes visible
   useEffect(() => {
