@@ -1831,6 +1831,8 @@
     },
     "search_placeholder": "Search prediction markets",
     "search_cancel": "Cancel",
+    "search_empty_state": "No {{category}} markets available",
+    "search_no_markets_found": "No results found for \"{{q}}\"",
     "claim_button": "Claim",
     "markets_won": "Markets won",
     "won_markets_text": "Won {{count}} market{{s}}",
