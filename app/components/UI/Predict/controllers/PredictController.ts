@@ -79,6 +79,7 @@ import { ensureError } from '../utils/predictErrorHandler';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
+import { MATIC_CONTRACTS } from '../providers/polymarket/constants';
 
 /**
  * State shape for PredictController
@@ -1531,6 +1532,8 @@ export class PredictController extends BaseController<
         networkClientId,
         disableHook: true,
         disableSequential: true,
+        // Temporarily breaking abstraction, can instead be abstracted via provider.
+        gasFeeToken: MATIC_CONTRACTS.collateral as Hex,
         transactions,
       });
 
@@ -1990,6 +1993,8 @@ export class PredictController extends BaseController<
         disableHook: true,
         disableSequential: true,
         requireApproval: true,
+        // Temporarily breaking abstraction, can instead be abstracted via provider.
+        gasFeeToken: MATIC_CONTRACTS.collateral as Hex,
         transactions: [transaction],
       });
 
