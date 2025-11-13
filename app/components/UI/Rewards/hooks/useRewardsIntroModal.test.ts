@@ -34,6 +34,17 @@ jest.mock('../../../../store/storage-wrapper', () => ({
 }));
 
 import StorageWrapper from '../../../../store/storage-wrapper';
+import { useFeatureFlag } from '../../../hooks/FeatureFlags/useFeatureFlag';
+jest.mock('../../../../components/hooks/FeatureFlags/useFeatureFlag', () => ({
+  useFeatureFlag: jest.fn().mockReturnValue(true),
+  FeatureFlagNames: {
+    rewardsEnabled: 'rewardsEnabled',
+  },
+}));
+const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
+  typeof useFeatureFlag
+>;
+mockUseFeatureFlag.mockReturnValue(true);
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
