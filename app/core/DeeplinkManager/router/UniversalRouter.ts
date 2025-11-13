@@ -52,11 +52,14 @@ export class UniversalRouter {
       this.registry.register(new NavigationHandler());
 
       Logger.log('✅ Universal Router initialized with handlers');
+
+      // Only mark as initialized if all handlers registered successfully
+      this.isInitialized = true;
     } catch (error) {
       Logger.error(error as Error, 'Failed to register handlers');
+      // Rethrow to prevent silent failures - caller should handle initialization errors
+      throw error;
     }
-
-    this.isInitialized = true;
   }
 
   /**
