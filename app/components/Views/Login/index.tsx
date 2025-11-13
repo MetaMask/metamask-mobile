@@ -59,7 +59,6 @@ import {
   trace,
   TraceName,
   TraceOperation,
-  TraceContext,
   endTrace,
 } from '../../../util/trace';
 import TextField, {
@@ -147,8 +146,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   } = useStyles(stylesheet, EmptyRecordConstant);
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
-  const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
-
   // coming from vault recovery flow flag
   const isComingFromVaultRecovery = route?.params?.isVaultRecovery ?? false;
 
@@ -420,13 +417,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         dispatch(setExistingUser(true));
       }
 
-      if (passwordLoginAttemptTraceCtxRef?.current) {
-        endTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
-        passwordLoginAttemptTraceCtxRef.current = null;
-      }
-      endTrace({ name: TraceName.OnboardingExistingSocialLogin });
-      endTrace({ name: TraceName.OnboardingJourneyOverall });
-
       await checkMetricsUISeen();
 
       setLoading(false);
@@ -440,7 +430,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     rememberMe,
     loading,
     handleLoginError,
-    passwordLoginAttemptTraceCtxRef,
     checkMetricsUISeen,
     dispatch,
     isComingFromVaultRecovery,
