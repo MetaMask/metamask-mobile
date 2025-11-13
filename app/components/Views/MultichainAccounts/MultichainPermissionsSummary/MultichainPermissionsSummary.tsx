@@ -526,10 +526,11 @@ const MultichainPermissionsSummary = ({
         privacyMode={privacyMode}
         selectedAccountGroups={selectedAccountGroups}
         handleEditAccountsButtonPress={handleEditAccountsButtonPress}
+        isConnectionFlow={!isAlreadyConnected}
         {...restAccountsConnectedTabProps}
       />
     ),
-    [privacyMode, selectedAccountGroups, handleEditAccountsButtonPress],
+    [privacyMode, selectedAccountGroups, handleEditAccountsButtonPress, isAlreadyConnected],
   );
 
   const renderTabsContent = () => {
