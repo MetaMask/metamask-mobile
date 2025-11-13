@@ -62,7 +62,7 @@ runs:
         mkdir -p /tmp/ai-deps
         cd /tmp/ai-deps
         npm init -y
-        npm install @anthropic-ai/sdk@latest esbuild-register@latest --no-audit --no-fund
+        npm install @anthropic-ai/sdk@0.68.0 esbuild-register@3.6.0 --no-audit --no-fund
         echo "✅ AI analysis dependencies installed in /tmp/ai-deps"
 
     - name: Copy AI dependencies to workspace
