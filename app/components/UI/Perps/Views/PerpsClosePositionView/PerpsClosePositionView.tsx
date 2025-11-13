@@ -79,7 +79,6 @@ import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider/PerpsSlider';
 import PerpsCloseSummary from '../../components/PerpsCloseSummary';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
@@ -532,143 +531,29 @@ const PerpsClosePositionView: React.FC = () => {
   }, [validationResult.errors]);
 
   const Summary = (
-    <View
-      style={[
-        styles.summaryContainer,
-        isInputFocused && styles.paddingHorizontal,
-      ]}
-    >
-      <View style={styles.summaryRow}>
-        <View style={styles.summaryLabel}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {strings('perps.close_position.margin')}
-          </Text>
-        </View>
-        <View style={styles.summaryValue}>
-          <Text variant={TextVariant.BodyMD}>
-            {formatPerpsFiat(
-              (closePercentage / 100) * initialMargin +
-                effectivePnL * (closePercentage / 100),
-              {
-                ranges: PRICE_RANGES_MINIMAL_VIEW,
-              },
-            )}
-          </Text>
-          <View style={styles.inclusiveFeeRow}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-              {strings('perps.close_position.includes_pnl')}
-            </Text>
-            <Text
-              variant={TextVariant.BodySM}
-              color={
-                realizedPnl.isNegative ? TextColor.Error : TextColor.Success
-              }
-            >
-              {realizedPnl.isNegative ? '-' : '+'}
-              {realizedPnl.formattedPrice}
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.summaryRow}>
-        <View style={styles.summaryLabel}>
-          <TouchableOpacity
-            onPress={() => handleTooltipPress('closing_fees')}
-            style={styles.labelWithTooltip}
-            testID={PerpsClosePositionViewSelectorsIDs.FEES_TOOLTIP_BUTTON}
-          >
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {strings('perps.close_position.fees')}
-            </Text>
-            <Icon
-              name={IconName.Info}
-              size={IconSize.Sm}
-              color={IconColor.Muted}
-            />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.summaryValue}>
-          <PerpsFeesDisplay
-            feeDiscountPercentage={rewardsState.feeDiscountPercentage}
-            formatFeeText={`-${formatPerpsFiat(feeResults.totalFee, {
-              ranges: PRICE_RANGES_MINIMAL_VIEW,
-            })}`}
-            variant={TextVariant.BodyMD}
-          />
-        </View>
-      </View>
-
-      <View style={[styles.summaryRow, styles.summaryTotalRow]}>
-        <View style={styles.summaryLabel}>
-          <TouchableOpacity
-            onPress={() => handleTooltipPress('close_position_you_receive')}
-            style={styles.labelWithTooltip}
-            testID={
-              PerpsClosePositionViewSelectorsIDs.YOU_RECEIVE_TOOLTIP_BUTTON
-            }
-          >
-            <Text variant={TextVariant.BodyMD}>
-              {strings('perps.close_position.you_receive')}
-            </Text>
-            <Icon
-              name={IconName.Info}
-              size={IconSize.Sm}
-              color={IconColor.Muted}
-            />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.summaryValue}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-            {formatPerpsFiat(receiveAmount, {
-              ranges: PRICE_RANGES_MINIMAL_VIEW,
-            })}
-          </Text>
-        </View>
-      </View>
-
-      {/* Rewards Points Estimation */}
-      {rewardsState.shouldShowRewardsRow && (
-        <View style={styles.summaryRow}>
-          <View style={styles.summaryLabel}>
-            <TouchableOpacity
-              onPress={() => handleTooltipPress('points')}
-              style={styles.labelWithTooltip}
-              testID={PerpsClosePositionViewSelectorsIDs.POINTS_TOOLTIP_BUTTON}
-            >
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {strings('perps.estimated_points')}
-              </Text>
-              <Icon
-                name={IconName.Info}
-                size={IconSize.Sm}
-                color={IconColor.Muted}
-              />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.summaryValue}>
-            <RewardsAnimations
-              value={rewardsState.estimatedPoints ?? 0}
-              bonusBips={rewardsState.bonusBips}
-              shouldShow={rewardsState.shouldShowRewardsRow}
-              infoOnPress={() =>
-                openTooltipModal(
-                  strings('perps.points_error'),
-                  strings('perps.points_error_content'),
-                )
-              }
-              state={
-                rewardsState.isLoading
-                  ? RewardAnimationState.Loading
-                  : rewardsState.hasError
-                    ? RewardAnimationState.ErrorState
-                    : RewardAnimationState.Idle
-              }
-            />
-          </View>
-        </View>
-      )}
-    </View>
+    <PerpsCloseSummary
+      totalMargin={(closePercentage / 100) * marginUsed}
+      totalPnl={effectivePnL * (closePercentage / 100)}
+      totalFees={feeResults.totalFee}
+      feeDiscountPercentage={rewardsState.feeDiscountPercentage}
+      metamaskFeeRate={feeResults.metamaskFeeRate}
+      protocolFeeRate={feeResults.protocolFeeRate}
+      originalMetamaskFeeRate={feeResults.originalMetamaskFeeRate}
+      receiveAmount={receiveAmount}
+      shouldShowRewards={rewardsState.shouldShowRewardsRow}
+      estimatedPoints={rewardsState.estimatedPoints}
+      bonusBips={rewardsState.bonusBips}
+      isLoadingFees={feeResults.isLoadingMetamaskFee}
+      isLoadingRewards={rewardsState.isLoading}
+      hasRewardsError={rewardsState.hasError}
+      isInputFocused={isInputFocused}
+      testIDs={{
+        feesTooltip: PerpsClosePositionViewSelectorsIDs.FEES_TOOLTIP_BUTTON,
+        receiveTooltip:
+          PerpsClosePositionViewSelectorsIDs.YOU_RECEIVE_TOOLTIP_BUTTON,
+        pointsTooltip: PerpsClosePositionViewSelectorsIDs.POINTS_TOOLTIP_BUTTON,
+      }}
+    />
   );
 
   return (
@@ -708,7 +593,7 @@ const PerpsClosePositionView: React.FC = () => {
         {/* Toggle Button for USD/Token Display */}
         <View style={styles.toggleContainer}>
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {`${formatPositionSize(closeAmount, marketData?.szDecimals)} ${getPerpsDisplaySymbol(position.coin)}`}
+            {`${formatPositionSize(closeAmount, marketData?.szDecimals)} ${position.coin}`}
           </Text>
         </View>
 
