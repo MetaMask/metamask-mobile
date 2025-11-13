@@ -16,6 +16,11 @@ import Badge, {
 import { BOTTOM_BADGEWRAPPER_BADGEPOSITION } from '../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
 import METAMASK_FOX from '../../../../images/branding/fox.png';
 
+export const TEST_IDS = {
+  CONTAINER: 'notification-menu-item-icon:container',
+  ICON: 'notification-menu-item-icon:icon',
+};
+
 type NotificationIconProps = Pick<
   NotificationMenuItem,
   'image' | 'badgeIcon'
@@ -41,7 +46,7 @@ function MenuIcon(props: NotificationIconProps) {
   }, [props.image?.url]);
 
   return (
-    <View style={[menuIconStyles.style, tw`p-1`]}>
+    <View style={[menuIconStyles.style, tw`p-1`]} testID={TEST_IDS.ICON}>
       <Image source={source} style={tw`m-auto size-full`} />
     </View>
   );
@@ -74,7 +79,7 @@ function NotificationIcon(props: NotificationIconProps) {
 
   return (
     <React.Fragment>
-      <View style={styles.itemLogoSize}>
+      <View style={styles.itemLogoSize} testID={TEST_IDS.CONTAINER}>
         <MaybeBadgeContainer>
           <MenuIcon {...props} />
         </MaybeBadgeContainer>
