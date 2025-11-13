@@ -461,7 +461,7 @@ describe('MultichainAccountsConnectedList', () => {
       expect(mockSetSelectedAccountGroup).toHaveBeenCalledTimes(2);
     });
 
-    it('calls handleEditAccountsButtonPress when account is selected in connection flow', () => {
+    it('only calls setSelectedAccountGroup when account is selected in connection flow', () => {
       const mockHandleEdit = jest.fn();
       const { getByText } = renderMultichainAccountsConnectedList({
         isConnectionFlow: true,
