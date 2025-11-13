@@ -21,6 +21,8 @@ import PredictMarketSkeleton from '../../../UI/Predict/components/PredictMarketS
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './PredictionSection.styles';
 import SectionHeader from '../SectionHeader';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../constants/navigation/Routes';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32; // 16px padding on each side
@@ -31,6 +33,7 @@ const SNAP_INTERVAL = ACTUAL_CARD_WIDTH + CARD_SPACING;
 const PredictionSection = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const flashListRef = useRef<FlashListRef<PredictMarketType>>(null);
+  const navigation = useNavigation();
 
   const { styles } = useStyles(styleSheet, {
     activeIndex,
@@ -43,11 +46,7 @@ const PredictionSection = () => {
     pageSize: 6,
   });
 
-  // Limit to 6 items
-  const carouselData = useMemo(
-    () => (marketData ? marketData.slice(0, 6) : []),
-    [marketData],
-  );
+  const carouselData = useMemo(() => marketData ?? [], [marketData]);
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -67,10 +66,10 @@ const PredictionSection = () => {
   }, []);
 
   const handleViewAll = useCallback(() => {
-    // TODO: Navigate to predictions view all screen
-    // eslint-disable-next-line no-console
-    console.log('View all predictions');
-  }, []);
+    navigation.navigate(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_LIST,
+    });
+  }, [navigation]);
 
   const renderCarouselItem = useCallback(
     ({ item, index }: { item: PredictMarketType; index: number }) => {
