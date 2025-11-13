@@ -3,8 +3,15 @@ import { initialState as BridgeMocksInitial } from '../../_mocks_/initialState';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { renderBridgeView } from '../../../../../util/test/integration/renderers/bridge';
 import { fireEvent, waitFor, within } from '@testing-library/react-native';
+import { strings } from '../../../../../../locales/i18n';
+import React from 'react';
+import { Text } from 'react-native';
+import { renderIntegrationScreenWithRoutes } from '../../../../../util/test/integration/render';
+import Routes from '../../../../../constants/navigation/Routes';
+import { initialStateBridge } from '../../../../../util/test/integration/presets/bridge';
+import BridgeView from './index';
 
-describe('BridgeView (integration - basic, no quotes)', () => {
+describe('BridgeView (integration)', () => {
   it('renders input areas and hides confirm button without tokens or amount', () => {
     const { getByTestId, queryByTestId } = renderBridgeView({
       overrides: {
@@ -82,6 +89,7 @@ describe('BridgeView (integration - basic, no quotes)', () => {
     ).backgroundState;
     const now = Date.now();
     const { getByTestId } = renderBridgeView({
+      deterministicFiat: true,
       overrides: {
         bridge: {
           sourceAmount: '1',
@@ -104,10 +112,6 @@ describe('BridgeView (integration - basic, no quotes)', () => {
           backgroundState: {
             ...bridgeBg,
             RemoteFeatureFlagController: bridgeBg.RemoteFeatureFlagController,
-            CurrencyRateController: bridgeBg.CurrencyRateController,
-            TokenRatesController: bridgeBg.TokenRatesController,
-            MultichainAssetsRatesController:
-              bridgeBg.MultichainAssetsRatesController,
             NetworkController: {
               ...(bridgeBg.NetworkController as Record<string, unknown>),
               selectedNetworkClientId: 'mainnet',
@@ -143,5 +147,117 @@ describe('BridgeView (integration - basic, no quotes)', () => {
       (button as unknown as { props: { isDisabled?: boolean } }).props
         .isDisabled,
     ).not.toBe(true);
+  });
+
+  it('displays no MM fee disclaimer for mUSD destination with zero MM fee', async () => {
+    const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+    const now = Date.now();
+    // Clone and enforce 0 bps fee and gasIncluded on the active/recommended quote
+    const active = {
+      ...(mockQuoteWithMetadata as unknown as Record<string, unknown>),
+    };
+    const currentQuote = (active.quote as Record<string, unknown>) ?? {};
+    active.quote = {
+      ...currentQuote,
+      feeData: {
+        metabridge: { quoteBpsFee: 0 },
+      },
+      gasIncluded: true,
+      srcChainId: 1,
+      destChainId: 1,
+    };
+
+    const { findByText } = renderBridgeView({
+      deterministicFiat: true,
+      overrides: {
+        bridge: {
+          sourceAmount: '1.0',
+          sourceToken: {
+            address: '0x0000000000000000000000000000000000000000',
+            chainId: '0x1',
+            decimals: 18,
+            symbol: 'ETH',
+            name: 'Ether',
+          },
+          destToken: {
+            address: musdAddress,
+            chainId: '0x1',
+            decimals: 18,
+            symbol: 'mUSD',
+            name: 'mStable USD',
+          },
+        },
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              quotes: [active as unknown as Record<string, unknown>],
+              recommendedQuote: active as unknown as Record<string, unknown>,
+              quotesLastFetched: now,
+              quotesLoadingStatus: 'SUCCEEDED',
+              quoteFetchError: null,
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                bridgeConfigV2: {
+                  minimumVersion: '0.0.0',
+                  maxRefreshCount: 5,
+                  refreshRate: 30000,
+                  support: true,
+                  chains: {
+                    'eip155:1': {
+                      isActiveSrc: true,
+                      isActiveDest: true,
+                      noFeeAssets: [musdAddress],
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>,
+    });
+
+    const expected = strings('bridge.no_mm_fee_disclaimer', {
+      destTokenSymbol: 'mUSD',
+    });
+    expect(await findByText(expected)).toBeTruthy();
+  });
+
+  it('navigates to dest token selector on press', async () => {
+    const ModalRootProbe: React.FC<{
+      route?: { params?: { screen?: string } };
+    }> = (props) => (
+      // eslint-disable-next-line react-native/no-raw-text
+      <Text testID="modal-root-probe">{props?.route?.params?.screen}</Text>
+    );
+    const state = initialStateBridge()
+      .withOverrides({
+        bridge: {
+          sourceToken: {
+            address: '0x0000000000000000000000000000000000000000',
+            chainId: '0x1',
+            decimals: 18,
+            symbol: 'ETH',
+            name: 'Ether',
+          },
+        },
+      } as unknown as Record<string, unknown>)
+      .build() as unknown as Record<string, unknown>;
+    const { findByText } = renderIntegrationScreenWithRoutes(
+      // Component
+      BridgeView as unknown as React.ComponentType,
+      // Entry route
+      { name: Routes.BRIDGE.ROOT },
+      // Register modal root to probe destination screen name
+      [{ name: Routes.BRIDGE.MODALS.ROOT, Component: ModalRootProbe }],
+      // State
+      { state },
+    );
+
+    fireEvent.press(await findByText('Swap to'));
+    expect(
+      await findByText(Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR),
+    ).toBeTruthy();
   });
 });
