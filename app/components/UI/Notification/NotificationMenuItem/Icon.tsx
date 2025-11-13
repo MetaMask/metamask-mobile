@@ -85,8 +85,9 @@ function NotificationIcon(props: NotificationIconProps) {
         </MaybeBadgeContainer>
         <View
           style={
-            !props.isRead &&
-            tw`absolute -left-1 top-1/2 size-1 rounded-full bg-info-default`
+            !props.isRead
+              ? tw`absolute -left-1 top-1/2 size-1 rounded-full bg-info-default`
+              : undefined
           }
         />
       </View>

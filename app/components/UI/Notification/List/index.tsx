@@ -94,7 +94,7 @@ export function useNotificationOnClick(
 
       NotificationsService.getBadgeCount().then((count) => {
         if (count > 0) {
-          NotificationsService.decrementBadgeCount(count - 1);
+          NotificationsService.decrementBadgeCount(1);
         } else {
           NotificationsService.setBadgeCount(0);
         }
