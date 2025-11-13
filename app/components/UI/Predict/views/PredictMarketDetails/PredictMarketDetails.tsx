@@ -760,99 +760,100 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   };
 
   const renderAboutSection = () => (
-    <Box twClassName="space-y-6">
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="gap-3 mb-2"
-      >
+    <Box twClassName="gap-6">
+      <Box twClassName="gap-4">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
           twClassName="gap-3"
         >
-          <Icon
-            name={IconName.Chart}
-            size={IconSize.Md}
-            color={colors.text.muted}
-          />
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            {strings('predict.market_details.volume')}
-          </Text>
-        </Box>
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-          ${formatVolume(market?.outcomes[0].volume || 0)}
-        </Text>
-      </Box>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="gap-3 my-2"
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-3"
-        >
-          <Icon
-            name={IconName.Clock}
-            size={IconSize.Md}
-            color={colors.text.muted}
-          />
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            {strings('predict.market_details.end_date')}
-          </Text>
-        </Box>
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-          {market?.endDate
-            ? new Date(market?.endDate).toLocaleDateString()
-            : 'N/A'}
-        </Text>
-      </Box>
-
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="gap-3 my-2"
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-3"
-        >
-          <Icon
-            name={IconName.Bank}
-            size={IconSize.Md}
-            color={colors.text.muted}
-          />
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            {strings('predict.market_details.resolution_details')}
-          </Text>
-        </Box>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-2"
-        >
-          <Pressable onPress={handlePolymarketResolution}>
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              color={colors.primary.default}
-            >
-              Polymarket
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-3"
+          >
+            <Icon
+              name={IconName.Chart}
+              size={IconSize.Md}
+              color={colors.text.muted}
+            />
+            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+              {strings('predict.market_details.volume')}
             </Text>
-          </Pressable>
-          <Icon
-            name={IconName.Export}
-            size={IconSize.Sm}
-            color={colors.primary.default}
-          />
+          </Box>
+          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            ${formatVolume(market?.outcomes[0].volume || 0)}
+          </Text>
+        </Box>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="gap-3"
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-3"
+          >
+            <Icon
+              name={IconName.Clock}
+              size={IconSize.Md}
+              color={colors.text.muted}
+            />
+            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+              {strings('predict.market_details.end_date')}
+            </Text>
+          </Box>
+          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            {market?.endDate
+              ? new Date(market?.endDate).toLocaleDateString()
+              : 'N/A'}
+          </Text>
+        </Box>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="gap-3"
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-3"
+          >
+            <Icon
+              name={IconName.Bank}
+              size={IconSize.Md}
+              color={colors.text.muted}
+            />
+            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+              {strings('predict.market_details.resolution_details')}
+            </Text>
+          </Box>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-1"
+          >
+            <Pressable onPress={handlePolymarketResolution}>
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={colors.primary.default}
+              >
+                Polymarket
+              </Text>
+            </Pressable>
+            <Icon
+              name={IconName.Export}
+              size={IconSize.Sm}
+              color={colors.primary.default}
+            />
+          </Box>
         </Box>
       </Box>
-      <Box twClassName="w-full border-t border-muted py-2" />
+      <Box twClassName="w-full border-t border-muted" />
       <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
         {market?.description}
       </Text>
