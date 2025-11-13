@@ -29,14 +29,35 @@ const PredictModalStack = () => (
     <ModalStack.Screen
       name={Routes.PREDICT.MODALS.GTM_MODAL}
       component={PredictGTMModal}
+      options={{
+        cardStyleInterpolator: ({ current }) => ({
+          cardStyle: {
+            opacity: current.progress,
+          },
+        }),
+      }}
     />
     <ModalStack.Screen
       name={Routes.PREDICT.MODALS.UNAVAILABLE}
       component={PredictUnavailableModal}
+      options={{
+        cardStyleInterpolator: ({ current }) => ({
+          cardStyle: {
+            opacity: current.progress,
+          },
+        }),
+      }}
     />
     <ModalStack.Screen
       name={Routes.PREDICT.MODALS.ADD_FUNDS_SHEET}
       component={PredictAddFundsModal}
+      options={{
+        cardStyleInterpolator: ({ current }) => ({
+          cardStyle: {
+            opacity: current.progress,
+          },
+        }),
+      }}
     />
     <ModalStack.Screen
       name={Routes.PREDICT.MARKET_DETAILS}
