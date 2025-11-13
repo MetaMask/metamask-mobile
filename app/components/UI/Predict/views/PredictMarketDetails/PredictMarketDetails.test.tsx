@@ -2386,9 +2386,7 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(marketWithPartialResolution);
 
-      expect(
-        screen.queryByTestId('predict-details-chart'),
-      ).not.toBeOnTheScreen();
+      expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
     });
 
     it('displays resolved outcomes count badge', () => {
