@@ -47,7 +47,7 @@ function SettingsModal() {
     });
     sheetRef.current?.onCloseBottomSheet();
     navigation.dangerouslyGetParent()?.dangerouslyGetParent()?.goBack();
-    goToRamps({ mode: RampMode.DEPOSIT });
+    goToRamps({ mode: RampMode.DEPOSIT, overrideUnifiedBuyFlag: true });
   }, [navigation, goToRamps, selectedRegion?.id, trackEvent]);
 
   const handleClosePress = useCallback(() => {

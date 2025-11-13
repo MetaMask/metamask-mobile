@@ -119,6 +119,7 @@ describe('SettingsModal', () => {
     expect(mockDangerouslyGetParent).toHaveBeenCalled();
     expect(mockGoToRamps).toHaveBeenCalledWith({
       mode: 'DEPOSIT',
+      overrideUnifiedBuyFlag: true,
     });
   });
 
