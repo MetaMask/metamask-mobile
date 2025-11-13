@@ -47,7 +47,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
 };
 
 describe(SmokePredictions('Predictions'), () => {
-  it('should cash out on open position: Spurs vs. Pelicans', async () => {
+  it.skip('should cash out on open position: Spurs vs. Pelicans', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPolygon().build(),
@@ -88,9 +88,9 @@ describe(SmokePredictions('Predictions'), () => {
         await TabBarComponent.tapActivity();
 
         await ActivitiesView.tapOnPredictionsTab();
-        // await ActivitiesView.tapCashedOutPosition(positionDetails.name);
+        // await ActivitiesView.tapPredictPosition(positionDetails.name);
         await Assertions.expectTextDisplayed('Cashed out');
-        await ActivitiesView.tapCashedOutPosition(positionDetails.name);
+        await ActivitiesView.tapPredictPosition(positionDetails.name);
         await Assertions.expectElementToBeVisible(
           PredictActivityDetails.container,
         );

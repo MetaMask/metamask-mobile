@@ -8,6 +8,14 @@ import { PredictMarket, Recurrence } from '../../types';
 import { PredictEventValues } from '../../constants/eventNames';
 import Routes from '../../../../../constants/navigation/Routes';
 
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      trackGeoBlockTriggered: jest.fn(),
+    },
+  },
+}));
+
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -97,7 +105,7 @@ describe('PredictMarketMultiple', () => {
     ).toBeOnTheScreen();
 
     expect(getByText('Bitcoin Price Prediction')).toBeOnTheScreen();
-    expect(getByText('65.00%')).toBeOnTheScreen();
+    expect(getByText('65%')).toBeOnTheScreen();
     expect(getByText(/\$1M.*Vol\./)).toBeOnTheScreen();
   });
 
@@ -189,7 +197,7 @@ describe('PredictMarketMultiple', () => {
 
     expect(getByText('Market 1')).toBeOnTheScreen();
     expect(getByText('Market 2')).toBeOnTheScreen();
-    expect(getByText('75.00%')).toBeOnTheScreen();
+    expect(getByText('75%')).toBeOnTheScreen();
   });
 
   it('handle market with recurrence', () => {
@@ -293,6 +301,8 @@ describe('PredictMarketMultiple', () => {
       params: {
         marketId: mockMarket.id,
         entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+        title: mockMarket.title,
+        image: mockMarket.image,
       },
     });
   });

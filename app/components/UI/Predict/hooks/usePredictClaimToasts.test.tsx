@@ -58,7 +58,22 @@ jest.mock('../../../../util/theme', () => ({
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({
   context: {
-    PredictController: {},
+    PredictController: {
+      confirmClaim: jest.fn(),
+    },
+    AccountTreeController: {
+      getAccountsFromSelectedAccountGroup: jest.fn(() => [
+        {
+          id: 'test-account-id',
+          address: '0x1234567890123456789012345678901234567890',
+          type: 'eip155:eoa',
+          name: 'Test Account',
+          metadata: {
+            lastSelected: 0,
+          },
+        },
+      ]),
+    },
   },
   controllerMessenger: {
     subscribe: jest.fn(),
@@ -76,7 +91,9 @@ let mockState: any = {
   engine: {
     backgroundState: {
       PredictController: {
-        claimablePositions: [],
+        claimablePositions: {
+          [mockAccountAddress]: [],
+        },
       },
       AccountsController: {
         internalAccounts: {
@@ -142,18 +159,36 @@ describe('usePredictClaimToasts', () => {
       engine: {
         backgroundState: {
           PredictController: {
-            claimablePositions: [
-              {
-                id: '1',
-                status: PredictPositionStatus.WON,
-                currentValue: 100,
+            claimablePositions: {
+              [mockAccountAddress]: [
+                {
+                  id: '1',
+                  status: PredictPositionStatus.WON,
+                  currentValue: 100,
+                },
+                {
+                  id: '2',
+                  status: PredictPositionStatus.WON,
+                  currentValue: 50,
+                },
+              ],
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: mockAccountId,
+              accounts: {
+                [mockAccountId]: {
+                  id: mockAccountId,
+                  address: mockAccountAddress,
+                  name: 'Test Account',
+                  type: 'eip155:eoa',
+                  metadata: {
+                    lastSelected: 0,
+                  },
+                },
               },
-              {
-                id: '2',
-                status: PredictPositionStatus.WON,
-                currentValue: 50,
-              },
-            ],
+            },
           },
         },
       },
@@ -407,7 +442,25 @@ describe('usePredictClaimToasts', () => {
         engine: {
           backgroundState: {
             PredictController: {
-              claimablePositions: [],
+              claimablePositions: {
+                [mockAccountAddress]: [],
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: mockAccountId,
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddress,
+                    name: 'Test Account',
+                    type: 'eip155:eoa',
+                    metadata: {
+                      lastSelected: 0,
+                    },
+                  },
+                },
+              },
             },
           },
         },
@@ -434,23 +487,41 @@ describe('usePredictClaimToasts', () => {
         engine: {
           backgroundState: {
             PredictController: {
-              claimablePositions: [
-                {
-                  id: '1',
-                  status: PredictPositionStatus.WON,
-                  currentValue: 100,
+              claimablePositions: {
+                [mockAccountAddress]: [
+                  {
+                    id: '1',
+                    status: PredictPositionStatus.WON,
+                    currentValue: 100,
+                  },
+                  {
+                    id: '2',
+                    status: PredictPositionStatus.LOST,
+                    currentValue: 50,
+                  },
+                  {
+                    id: '3',
+                    status: PredictPositionStatus.LOST,
+                    currentValue: 75,
+                  },
+                ],
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: mockAccountId,
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddress,
+                    name: 'Test Account',
+                    type: 'eip155:eoa',
+                    metadata: {
+                      lastSelected: 0,
+                    },
+                  },
                 },
-                {
-                  id: '2',
-                  status: PredictPositionStatus.LOST,
-                  currentValue: 50,
-                },
-                {
-                  id: '3',
-                  status: PredictPositionStatus.LOST,
-                  currentValue: 75,
-                },
-              ],
+              },
             },
           },
         },

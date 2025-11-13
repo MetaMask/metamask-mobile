@@ -369,16 +369,16 @@ describe('PredictSellPreview', () => {
 
   describe('rendering', () => {
     it('renders cash out screen with position details', () => {
-      const { getByText, queryByText } = renderWithProvider(
+      const { getAllByText, getByText, queryByText } = renderWithProvider(
         <PredictSellPreview />,
         {
           state: initialState,
         },
       );
 
-      expect(getByText('Cash Out')).toBeOnTheScreen();
+      expect(getAllByText('Cash out').length).toBeGreaterThan(0);
       expect(getByText('Will Bitcoin reach $150,000?')).toBeOnTheScreen();
-      expect(getByText('$50.00 on Yes')).toBeOnTheScreen();
+      expect(getByText('$50.00 on Yes at 50¢')).toBeOnTheScreen();
 
       expect(
         queryByText('Funds will be added to your available balance'),
@@ -439,6 +439,29 @@ describe('PredictSellPreview', () => {
       });
 
       expect(mockFormatPercentage).toHaveBeenCalledWith(-20);
+    });
+
+    it('uses position price when preview sharePrice is undefined', () => {
+      mockPreview = {
+        marketId: 'market-1',
+        outcomeId: 'outcome-456',
+        outcomeTokenId: 'outcome-token-789',
+        timestamp: Date.now(),
+        side: 'SELL',
+        sharePrice: undefined as unknown as number,
+        maxAmountSpent: 100,
+        minAmountReceived: 60,
+        slippage: 0.005,
+        tickSize: 0.01,
+        minOrderSize: 1,
+        negRisk: false,
+      };
+
+      const { getByText } = renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      expect(getByText('At price: 50¢ per share')).toBeOnTheScreen();
     });
 
     it('renders position icon with correct source', () => {
@@ -616,6 +639,32 @@ describe('PredictSellPreview', () => {
       });
 
       expect(mockUseStyles).toHaveBeenCalled();
+    });
+  });
+
+  describe('cash out flow', () => {
+    it('does not block cash out when order preview is available', async () => {
+      mockPlaceOrderResult = {
+        success: true,
+        response: { transactionHash: '0xabc123' },
+      };
+
+      const { getByTestId, rerender } = renderWithProvider(
+        <PredictSellPreview />,
+        {
+          state: initialState,
+        },
+      );
+
+      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
+
+      await fireEvent.press(cashOutButton);
+
+      expect(mockPlaceOrder).toHaveBeenCalled();
+
+      rerender(<PredictSellPreview />);
+
+      expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
     });
   });
 });

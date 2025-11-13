@@ -9,10 +9,12 @@ import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfir
 import { TOOLTIP_TYPES } from '../../../../../../../core/Analytics/events/confirmations';
 import GasFeesDetailsRow from './gas-fee-details-row';
 import { toHex } from '@metamask/controller-utils';
+import { SimulationData } from '@metamask/transaction-controller';
 import { useSelectedGasFeeToken } from '../../../../hooks/gas/useGasFeeToken';
 import { useIsGaslessSupported } from '../../../../hooks/gas/useIsGaslessSupported';
 import { useInsufficientBalanceAlert } from '../../../../hooks/alerts/useInsufficientBalanceAlert';
 import useHideFiatForTestnet from '../../../../../../hooks/useHideFiatForTestnet';
+import useBalanceChanges from '../../../../../../UI/SimulationDetails/useBalanceChanges';
 
 jest.mock('../../../gas/gas-speed', () => ({
   GasSpeed: () => null,
@@ -34,6 +36,7 @@ jest.mock('../../../../hooks/gas/useIsGaslessSupported');
 jest.mock('../../../../hooks/alerts/useInsufficientBalanceAlert');
 jest.mock('../../../../../../hooks/useHideFiatForTestnet');
 jest.mock('../../../../hooks/tokens/useTokenWithBalance');
+jest.mock('../../../../../../UI/SimulationDetails/useBalanceChanges');
 
 const GAS_FEE_TOKEN_MOCK: ReturnType<typeof useSelectedGasFeeToken> = {
   amount: toHex(10000),
@@ -56,6 +59,31 @@ const GAS_FEE_TOKEN_MOCK: ReturnType<typeof useSelectedGasFeeToken> = {
   transferTransaction: {},
 };
 
+const SIMULATION_DATA_MOCK: SimulationData = {
+  nativeBalanceChange: {
+    previousBalance: '0x0',
+    newBalance: '0x0',
+    difference: '0x0',
+    isDecrease: false,
+  },
+  tokenBalanceChanges: [],
+};
+
+const createStateWithSimulationData = (
+  baseState = stakingDepositConfirmationState,
+) => {
+  const stateWithSimulation = cloneDeep(baseState);
+  const transactions =
+    stateWithSimulation.engine.backgroundState.TransactionController
+      .transactions;
+
+  if (transactions?.[0]) {
+    transactions[0].simulationData = cloneDeep(SIMULATION_DATA_MOCK);
+  }
+
+  return stateWithSimulation;
+};
+
 describe('GasFeesDetailsRow', () => {
   const useConfirmationMetricEventsMock = jest.mocked(
     useConfirmationMetricEvents,
@@ -67,6 +95,7 @@ describe('GasFeesDetailsRow', () => {
     useInsufficientBalanceAlert,
   );
   const mockUseHideFiatForTestnet = jest.mocked(useHideFiatForTestnet);
+  const mockUseBalanceChanges = jest.mocked(useBalanceChanges);
 
   beforeEach(() => {
     useConfirmationMetricEventsMock.mockReturnValue({
@@ -79,21 +108,24 @@ describe('GasFeesDetailsRow', () => {
     });
     mockUseInsufficientBalanceAlert.mockReturnValue([]);
     mockUseHideFiatForTestnet.mockReturnValue(false);
+    mockUseBalanceChanges.mockReturnValue({
+      pending: false,
+      value: [],
+    });
   });
 
   it('contains required text', async () => {
     const { getByText } = renderWithProvider(<GasFeesDetailsRow />, {
-      state: stakingDepositConfirmationState,
+      state: createStateWithSimulationData(),
     });
-    expect(getByText('Network Fee')).toBeDefined();
+    expect(getByText('Network fee')).toBeDefined();
     expect(getByText('$0.34')).toBeDefined();
     expect(getByText('ETH')).toBeDefined();
   });
 
   it('shows fiat if showFiatOnTestnets is true', async () => {
-    const clonedStakingDepositConfirmationState = cloneDeep(
-      stakingDepositConfirmationState,
-    );
+    const clonedStakingDepositConfirmationState =
+      createStateWithSimulationData();
     clonedStakingDepositConfirmationState.engine.backgroundState.TransactionController.transactions[0].chainId =
       NETWORKS_CHAIN_ID.SEPOLIA;
 
@@ -104,9 +136,8 @@ describe('GasFeesDetailsRow', () => {
   });
 
   it('hides fiat if showFiatOnTestnets is false', async () => {
-    const clonedStakingDepositConfirmationState = cloneDeep(
-      stakingDepositConfirmationState,
-    );
+    const clonedStakingDepositConfirmationState =
+      createStateWithSimulationData();
     clonedStakingDepositConfirmationState.engine.backgroundState.TransactionController.transactions[0].chainId =
       NETWORKS_CHAIN_ID.SEPOLIA;
     clonedStakingDepositConfirmationState.settings.showFiatOnTestnets = false;
@@ -118,9 +149,8 @@ describe('GasFeesDetailsRow', () => {
   });
 
   it('hides fiat if nativeConversionRate is undefined', async () => {
-    const clonedStakingDepositConfirmationState = cloneDeep(
-      stakingDepositConfirmationState,
-    );
+    const clonedStakingDepositConfirmationState =
+      createStateWithSimulationData();
 
     // No type is exported for CurrencyRate, so we need to cast it to the correct type
     clonedStakingDepositConfirmationState.engine.backgroundState.CurrencyRateController.currencyRates.ETH =
@@ -138,7 +168,7 @@ describe('GasFeesDetailsRow', () => {
 
   it('tracks tooltip clicked event', async () => {
     const { getByTestId } = renderWithProvider(<GasFeesDetailsRow />, {
-      state: stakingDepositConfirmationState,
+      state: createStateWithSimulationData(),
     });
 
     fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
@@ -153,7 +183,7 @@ describe('GasFeesDetailsRow', () => {
 
   it('shows gas speed row', async () => {
     const { getByText } = renderWithProvider(<GasFeesDetailsRow />, {
-      state: stakingDepositConfirmationState,
+      state: createStateWithSimulationData(),
     });
     expect(getByText('Speed')).toBeDefined();
   });
@@ -162,7 +192,7 @@ describe('GasFeesDetailsRow', () => {
     const { queryByText } = renderWithProvider(
       <GasFeesDetailsRow hideSpeed />,
       {
-        state: stakingDepositConfirmationState,
+        state: createStateWithSimulationData(),
       },
     );
 
@@ -173,7 +203,7 @@ describe('GasFeesDetailsRow', () => {
     const { getByText, queryByText } = renderWithProvider(
       <GasFeesDetailsRow fiatOnly />,
       {
-        state: stakingDepositConfirmationState,
+        state: createStateWithSimulationData(),
       },
     );
 
@@ -188,7 +218,7 @@ describe('GasFeesDetailsRow', () => {
       >,
     );
     const { getByText } = renderWithProvider(<GasFeesDetailsRow />, {
-      state: stakingDepositConfirmationState,
+      state: createStateWithSimulationData(),
     });
 
     expect(getByText('USDC')).toBeDefined();
@@ -197,9 +227,8 @@ describe('GasFeesDetailsRow', () => {
 
   it('shows native amount when is a testnet', async () => {
     mockUseHideFiatForTestnet.mockReturnValue(true);
-    const clonedStakingDepositConfirmationState = cloneDeep(
-      stakingDepositConfirmationState,
-    );
+    const clonedStakingDepositConfirmationState =
+      createStateWithSimulationData();
     clonedStakingDepositConfirmationState.engine.backgroundState.TransactionController.transactions[0].chainId =
       NETWORKS_CHAIN_ID.SEPOLIA;
 
@@ -212,9 +241,8 @@ describe('GasFeesDetailsRow', () => {
   });
 
   it(`shows 'Paid by MetaMask' when gas is sponsored`, async () => {
-    const clonedStakingDepositConfirmationState = cloneDeep(
-      stakingDepositConfirmationState,
-    );
+    const clonedStakingDepositConfirmationState =
+      createStateWithSimulationData();
     clonedStakingDepositConfirmationState.engine.backgroundState.TransactionController.transactions[0].isGasFeeSponsored = true;
     const { getByText, queryByText } = renderWithProvider(
       <GasFeesDetailsRow />,
@@ -239,7 +267,7 @@ describe('GasFeesDetailsRow', () => {
     );
 
     const { queryByText } = renderWithProvider(<GasFeesDetailsRow />, {
-      state: stakingDepositConfirmationState,
+      state: createStateWithSimulationData(),
     });
 
     expect(queryByText('MetaMask fee: $0.12')).toBeNull();
@@ -259,7 +287,7 @@ describe('GasFeesDetailsRow', () => {
     const { getByTestId, getByText } = renderWithProvider(
       <GasFeesDetailsRow />,
       {
-        state: stakingDepositConfirmationState,
+        state: createStateWithSimulationData(),
       },
     );
 

@@ -27,7 +27,8 @@ import {
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { connect, useSelector } from 'react-redux';
+import { setExistingUser } from '../../../actions/user';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
 import {
   passcodeType,
@@ -124,6 +125,7 @@ interface LoginRouteParams {
   locked: boolean;
   oauthLoginSuccess?: boolean;
   onboardingTraceCtx?: TraceContext;
+  isVaultRecovery?: boolean;
 }
 
 interface LoginProps {
@@ -153,6 +155,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const [rehydrationFailedAttempts, setRehydrationFailedAttempts] = useState(0);
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
+  const dispatch = useDispatch();
   const {
     styles,
     theme: { colors, themeAppearance },
@@ -163,6 +166,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   // coming from oauth onboarding flow flag
   const isComingFromOauthOnboarding = route?.params?.oauthLoginSuccess ?? false;
+  // coming from vault recovery flow flag
+  const isComingFromVaultRecovery = route?.params?.isVaultRecovery ?? false;
 
   const { isDeletingInProgress, promptSeedlessRelogin } =
     usePromptSeedlessRelogin();
@@ -364,6 +369,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const handleUseOtherMethod = () => {
+    if (isComingFromOauthOnboarding) {
+      track(MetaMetricsEvents.USE_DIFFERENT_LOGIN_METHOD_CLICKED, {
+        account_type: 'social',
+      });
+    }
     navigation.goBack();
     OAuthService.resetOauthState();
   };
@@ -446,6 +456,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         seedlessError.message ===
         SeedlessOnboardingControllerErrorMessage.IncorrectPassword
       ) {
+        if (isComingFromOauthOnboarding) {
+          track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+            account_type: 'social',
+            failed_attempts: rehydrationFailedAttempts,
+            error_type: 'incorrect_password',
+          });
+        }
         setError(strings('login.invalid_password'));
         return;
       } else if (
@@ -455,6 +472,14 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         // Synchronize rehydrationFailedAttempts with numberOfAttempts from the error data
         if (seedlessError.data?.numberOfAttempts !== undefined) {
           setRehydrationFailedAttempts(seedlessError.data.numberOfAttempts);
+        }
+        if (isComingFromOauthOnboarding) {
+          track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+            account_type: 'social',
+            failed_attempts:
+              seedlessError.data?.numberOfAttempts ?? rehydrationFailedAttempts,
+            error_type: 'incorrect_password',
+          });
         }
         if (typeof seedlessError.data?.remainingTime === 'number') {
           tooManyAttemptsError(seedlessError.data?.remainingTime).catch(
@@ -468,6 +493,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         seedlessError.code ===
         SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
       ) {
+        if (isComingFromOauthOnboarding) {
+          track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+            account_type: 'social',
+            failed_attempts: rehydrationFailedAttempts,
+            error_type: 'unknown_error',
+          });
+        }
         setError(strings('login.seedless_password_outdated'));
         return;
       }
@@ -495,6 +527,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
     // capture unexpected exception for oauth login (rehydration) failures
     if (isComingFromOauthOnboarding) {
+      track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+        account_type: 'social',
+        failed_attempts: rehydrationFailedAttempts,
+        error_type: 'unknown_error',
+      });
+
       // If user has already consented to analytics, report error using regular Sentry
       if (isMetricsEnabled()) {
         captureException(seedlessError, {
@@ -513,13 +551,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const handlePasswordError = (loginErrorMessage: string) => {
-    if (isComingFromOauthOnboarding) {
-      track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-        account_type: 'social',
-        failed_attempts: rehydrationFailedAttempts,
-      });
-    }
-
     setLoading(false);
 
     setError(strings('login.invalid_password'));
@@ -547,10 +578,21 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       return;
     }
 
-    const isPasswordError =
+    const isWrongPasswordError =
       toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR) ||
       toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID) ||
-      toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID_2) ||
+      toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID_2);
+
+    if (isWrongPasswordError && isComingFromOauthOnboarding) {
+      track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+        account_type: 'social',
+        failed_attempts: rehydrationFailedAttempts,
+        error_type: 'incorrect_password',
+      });
+    }
+
+    const isPasswordError =
+      isWrongPasswordError ||
       loginErrorMessage.includes(PASSWORD_REQUIREMENTS_NOT_MET);
 
     if (isPasswordError) {
@@ -580,6 +622,14 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       updateBiometryChoice(false);
     } else {
       setError(loginErrorMessage);
+    }
+
+    if (isComingFromOauthOnboarding) {
+      track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+        account_type: 'social',
+        failed_attempts: rehydrationFailedAttempts,
+        error_type: 'unknown_error',
+      });
     }
 
     setLoading(false);
@@ -622,6 +672,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           await Authentication.userEntryAuth(password, authType);
         },
       );
+
+      // CRITICAL: Set existingUser = true after successful vault unlock from recovery
+      // This prevents the vault recovery screen from appearing again on app restart
+      // Only set after successful unlock to ensure vault is unlocked and credentials are stored
+      if (isComingFromVaultRecovery) {
+        dispatch(setExistingUser(true));
+      }
 
       if (isComingFromOauthOnboarding) {
         track(MetaMetricsEvents.REHYDRATION_COMPLETED, {

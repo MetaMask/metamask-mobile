@@ -7,7 +7,7 @@ import React from 'react';
 import { useStyles } from '../../../hooks';
 import HeaderBase from '../../HeaderBase';
 
-import ButtonIcon from '../../Buttons/ButtonIcon';
+import ButtonIcon, { ButtonIconSizes } from '../../Buttons/ButtonIcon';
 import { IconName, IconColor } from '../../Icons/Icon';
 
 // Internal dependencies.
@@ -35,6 +35,7 @@ const BottomSheetHeader: React.FC<BottomSheetHeaderProps> = ({
       iconName={IconName.ArrowLeft}
       iconColor={IconColor.Default}
       onPress={onBack}
+      size={ButtonIconSizes.Lg}
       {...backButtonProps}
     />
   );
@@ -44,6 +45,7 @@ const BottomSheetHeader: React.FC<BottomSheetHeaderProps> = ({
       iconName={IconName.Close}
       iconColor={IconColor.Default}
       onPress={onClose}
+      size={ButtonIconSizes.Lg}
       {...closeButtonProps}
     />
   );

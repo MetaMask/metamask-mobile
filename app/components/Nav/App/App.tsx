@@ -75,7 +75,6 @@ import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import CardNotification from '../../Views/CardNotification';
 import LegacyEditMultichainAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
 import { EditMultichainAccountName } from '../../Views/MultichainAccounts/sheets/EditMultichainAccountName';
-import { PPOMView } from '../../../lib/ppom/PPOMView';
 import LockScreen from '../../Views/LockScreen';
 import StorageWrapper from '../../../store/storage-wrapper';
 import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
@@ -129,6 +128,7 @@ import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
 import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
 import AddNewAccountBottomSheet from '../../Views/AddNewAccount/AddNewAccountBottomSheet';
+import EligibilityFailedModal from '../../UI/Ramp/components/EligibilityFailedModal';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
 import { AccountDetails } from '../../Views/MultichainAccounts/AccountDetails/AccountDetails';
 import { AccountGroupDetails } from '../../Views/MultichainAccounts/AccountGroupDetails/AccountGroupDetails';
@@ -149,7 +149,6 @@ import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
-import { PayWithNetworkModal } from '../../Views/confirmations/components/modals/pay-with-network-modal/pay-with-network-modal';
 import { useMetrics } from '../../hooks/useMetrics';
 import { State2AccountConnectWrapper } from '../../Views/MultichainAccounts/MultichainAccountConnect/State2AccountConnectWrapper';
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
@@ -403,6 +402,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={SuccessErrorSheet}
     />
     <Stack.Screen
+      name={Routes.SHEET.ELIGIBILITY_FAILED_MODAL}
+      component={EligibilityFailedModal}
+    />
+    <Stack.Screen
       name={Routes.SHEET.ACCOUNT_SELECTOR}
       component={AccountSelector}
     />
@@ -598,6 +601,7 @@ const ImportPrivateKeyView = () => (
 
 const ImportSRPView = () => (
   <Stack.Navigator
+    mode="modal"
     screenOptions={{
       headerShown: false,
     }}
@@ -605,6 +609,19 @@ const ImportSRPView = () => (
     <Stack.Screen
       name={Routes.MULTI_SRP.IMPORT}
       component={ImportNewSecretRecoveryPhrase}
+    />
+    <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
+    <Stack.Screen
+      name={Routes.SHEET.SEEDPHRASE_MODAL}
+      component={SeedphraseModal}
+      options={{
+        cardStyle: { backgroundColor: 'transparent' },
+        cardStyleInterpolator: () => ({
+          overlayStyle: {
+            opacity: 0,
+          },
+        }),
+      }}
     />
   </Stack.Navigator>
 );
@@ -1044,10 +1061,6 @@ const AppFlow = () => {
           name={Routes.CONFIRMATION_PAY_WITH_MODAL}
           component={PayWithModal}
         />
-        <Stack.Screen
-          name={Routes.CONFIRMATION_PAY_WITH_NETWORK_MODAL}
-          component={PayWithNetworkModal}
-        />
       </Stack.Navigator>
     </>
   );
@@ -1231,7 +1244,6 @@ const App: React.FC = () => {
 
   return (
     <>
-      <PPOMView />
       <AppFlow />
       <Toast ref={toastRef} />
       <ProfilerManager />

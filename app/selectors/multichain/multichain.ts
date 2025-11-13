@@ -159,14 +159,26 @@ export const selectMultichainTransactions = createDeepEqualSelector(
     multichainTransactionsControllerState.nonEvmTransactions,
 );
 
-// TODO: refactor this file to use createDeepEqualSelector
-export function selectMultichainAssets(state: RootState) {
-  return state.engine.backgroundState.MultichainAssetsController.accountsAssets;
-}
+const selectMultichainAssetsControllerState = (state: RootState) =>
+  state.engine.backgroundState.MultichainAssetsController;
 
-export function selectMultichainAssetsMetadata(state: RootState) {
-  return state.engine.backgroundState.MultichainAssetsController.assetsMetadata;
-}
+export const selectMultichainAssets = createDeepEqualSelector(
+  selectMultichainAssetsControllerState,
+  (multichainAssetsControllerState) =>
+    multichainAssetsControllerState.accountsAssets,
+);
+
+export const selectMultichainAssetsMetadata = createDeepEqualSelector(
+  selectMultichainAssetsControllerState,
+  (multichainAssetsControllerState) =>
+    multichainAssetsControllerState.assetsMetadata,
+);
+
+export const selectMultichainAssetsAllIgnoredAssets = createDeepEqualSelector(
+  selectMultichainAssetsControllerState,
+  (multichainAssetsControllerState) =>
+    multichainAssetsControllerState.allIgnoredAssets ?? {},
+);
 
 function selectMultichainAssetsRatesState(state: RootState) {
   return state.engine.backgroundState.MultichainAssetsRatesController
@@ -455,6 +467,10 @@ interface NonEvmTransactionStateEntry {
   lastUpdated: number | undefined;
 }
 
+/**
+ * @deprecated
+ * This selector is deprecated and broken. It should not be used in new code.
+ */
 export const selectNonEvmTransactions = createDeepEqualSelector(
   selectMultichainTransactions,
   selectSelectedInternalAccount,
@@ -505,7 +521,9 @@ export const selectNonEvmTransactionsForSelectedAccountGroup =
       }
 
       const aggregated = {
-        ...DEFAULT_TRANSACTION_STATE_ENTRY,
+        transactions: [],
+        next: null,
+        lastUpdated: 0,
       } as NonEvmTransactionStateEntry;
 
       for (const account of selectedGroupAccounts) {

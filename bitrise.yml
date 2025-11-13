@@ -3520,9 +3520,6 @@ app:
       MM_NETWORK_UI_REDESIGN_ENABLED: false
     - opts:
         is_expand: false
-      MM_PER_DAPP_SELECTED_NETWORK: false
-    - opts:
-        is_expand: false
       MM_PERMISSIONS_SETTINGS_V1_ENABLED: false
     - opts:
         is_expand: false
@@ -3536,6 +3533,15 @@ app:
     - opts:
         is_expand: false
       MM_PERPS_BLOCKED_REGIONS: "US,CA-ON,GB,BE"
+    - opts:
+        is_expand: false
+      MM_PERPS_HIP3_ENABLED: true
+    - opts:
+        is_expand: false
+      MM_PERPS_HIP3_ALLOWLIST_MARKETS: ""
+    - opts:
+        is_expand: false
+      MM_PERPS_HIP3_BLOCKLIST_MARKETS: ""
     - opts:
         is_expand: false
       PROJECT_LOCATION: android
@@ -3568,16 +3574,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.59.0
+      VERSION_NAME: 7.60.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 2818
+      VERSION_NUMBER: 2993
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.59.0
+      FLASK_VERSION_NAME: 7.60.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 2818
+      FLASK_VERSION_NUMBER: 2993
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
