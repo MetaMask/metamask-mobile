@@ -904,8 +904,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                 style={tw.style('flex-1 bg-success-muted')}
                 label={
                   <Text style={tw.style('font-bold')} color={TextColor.Success}>
-                    {strings('predict.market_details.yes')} •{' '}
-                    {getYesPercentage()}¢
+                    {firstOpenOutcome?.tokens[0].title} • {getYesPercentage()}¢
                   </Text>
                 }
                 onPress={() =>
@@ -922,7 +921,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                 style={tw.style('flex-1 bg-error-muted')}
                 label={
                   <Text style={tw.style('font-bold')} color={TextColor.Error}>
-                    {strings('predict.market_details.no')} •{' '}
+                    {firstOpenOutcome?.tokens[1].title} •{' '}
                     {100 - getYesPercentage()}¢
                   </Text>
                 }
@@ -1137,16 +1136,14 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         {/* Header content - scrollable */}
         <Box twClassName="px-3 gap-4">
           {renderMarketStatus()}
-          {!multipleOpenOutcomesPartiallyResolved && (
-            <PredictDetailsChart
-              data={chartData}
-              timeframes={PRICE_HISTORY_TIMEFRAMES}
-              selectedTimeframe={selectedTimeframe}
-              onTimeframeChange={handleTimeframeChange}
-              isLoading={isPriceHistoryFetching}
-              emptyLabel={chartEmptyLabel}
-            />
-          )}
+          <PredictDetailsChart
+            data={chartData}
+            timeframes={PRICE_HISTORY_TIMEFRAMES}
+            selectedTimeframe={selectedTimeframe}
+            onTimeframeChange={handleTimeframeChange}
+            isLoading={isPriceHistoryFetching}
+            emptyLabel={chartEmptyLabel}
+          />
         </Box>
 
         {/* Show content skeleton while initial market data is fetching */}
