@@ -18,6 +18,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import { PredictEventValues } from '../../constants/eventNames';
 
 interface PredictNewButtonProps {}
 
@@ -28,6 +29,9 @@ const PredictNewButton: React.FC<PredictNewButtonProps> = () => {
   const handlePress = () => {
     navigation.navigate(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
+      params: {
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_NEW_PREDICTION,
+      },
     });
   };
 
