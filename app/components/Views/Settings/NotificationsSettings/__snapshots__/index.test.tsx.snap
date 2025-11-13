@@ -4,8 +4,6 @@ exports[`NotificationsSettings render matches snapshot 1`] = `
 <RCTScrollView
   style={
     {
-      "backgroundColor": "#ffffff",
-      "flex": 1,
       "padding": 24,
       "paddingBottom": 48,
     }
@@ -70,7 +68,7 @@ exports[`NotificationsSettings render matches snapshot 1`] = `
     <View
       style={
         {
-          "marginVertical": 16,
+          "marginTop": 16,
         }
       }
     >

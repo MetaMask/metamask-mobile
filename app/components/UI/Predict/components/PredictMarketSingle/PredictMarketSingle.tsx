@@ -149,10 +149,17 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
 
   const getYesPercentage = (): number => {
     const prices = getOutcomePrices();
-    if (prices.length > 0) {
-      return Math.round(prices[0] * 100);
+    if (prices.length === 0) {
+      return 0;
     }
-    return 0;
+
+    const yesPrice = Number(prices[0]);
+
+    if (!Number.isFinite(yesPrice)) {
+      return 0;
+    }
+
+    return Math.round(yesPrice * 100);
   };
 
   const getTitle = (): string => outcome.title ?? 'Unknown Market';
@@ -176,7 +183,10 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
           },
         });
       },
-      { checkBalance: true },
+      {
+        checkBalance: true,
+        attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
+      },
     );
   };
 
@@ -233,7 +243,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text style={tw.style('font-medium')} color={TextColor.Success}>
-                {strings('predict.buy_yes')}
+                {outcome.tokens[0].title}
               </Text>
             }
             onPress={() => handleBuy(outcome.tokens[0])}
@@ -245,7 +255,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text style={tw.style('font-medium')} color={TextColor.Error}>
-                {strings('predict.buy_no')}
+                {outcome.tokens[1].title}
               </Text>
             }
             onPress={() => handleBuy(outcome.tokens[1])}

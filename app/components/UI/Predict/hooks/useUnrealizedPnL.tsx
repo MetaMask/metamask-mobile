@@ -4,8 +4,7 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
 import { UnrealizedPnL } from '../types';
-import { useSelector } from 'react-redux';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
 
@@ -61,9 +60,8 @@ export const useUnrealizedPnL = (
   const [error, setError] = useState<string | null>(null);
   const isInitialMount = useRef(true);
 
-  const selectedInternalAccountAddress = useSelector(
-    selectSelectedInternalAccountAddress,
-  );
+  const evmAccount = getEvmAccountFromSelectedAccountGroup();
+  const selectedInternalAccountAddress = evmAccount?.address ?? '0x0';
 
   const loadUnrealizedPnL = useCallback(
     async (loadOptions?: { isRefresh?: boolean }) => {
@@ -125,6 +123,7 @@ export const useUnrealizedPnL = (
     if (loadOnMount) {
       loadUnrealizedPnL();
     }
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadOnMount]);
 

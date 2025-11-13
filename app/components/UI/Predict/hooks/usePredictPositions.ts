@@ -6,10 +6,10 @@ import type { PredictPosition } from '../types';
 import { usePredictTrading } from './usePredictTrading';
 import { usePredictNetworkManagement } from './usePredictNetworkManagement';
 import { useSelector } from 'react-redux';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
 import { selectPredictClaimablePositionsByAddress } from '../selectors/predictController';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 
 interface UsePredictPositionsOptions {
   /**
@@ -75,8 +75,8 @@ export function usePredictPositions(
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const selectedInternalAccountAddress =
-    useSelector(selectSelectedInternalAccountAddress) ?? '0x0';
+  const evmAccount = getEvmAccountFromSelectedAccountGroup();
+  const selectedInternalAccountAddress = evmAccount?.address ?? '0x0';
 
   const claimablePositions = useSelector(
     selectPredictClaimablePositionsByAddress({
@@ -159,6 +159,7 @@ export function usePredictPositions(
         setIsRefreshing(false);
       }
     },
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       getPositions,

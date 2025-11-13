@@ -2,10 +2,13 @@ import {
   CHAIN_IDS,
   TransactionType,
   type TransactionParams,
+  type SecurityAlertResponse,
+  type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { ParseOutput } from 'eth-url-parser';
+import { v4 as uuid } from 'uuid';
 
 import { selectConfirmationRedesignFlagsFromRemoteFeatureFlags } from '../../../../selectors/featureFlagController/confirmations';
 import { addTransaction } from '../../../../util/transaction-controller';
@@ -15,6 +18,7 @@ import { getGlobalNetworkClientId } from '../../../../util/networks/global-netwo
 import { ETH_ACTIONS } from '../../../../constants/deeplinks';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
+import ppomUtil from '../../../../lib/ppom/ppom-util';
 
 export type DeeplinkRequest = ParseOutput & { origin: string };
 
@@ -68,7 +72,7 @@ export async function addTransactionForDeeplink({
 
   // Temporary solution for preventing back to back deeplink requests
   if (isAddingDeeplinkTransaction) {
-    Logger.error(new Error('Cannot add another deeplink transaction'));
+    Logger.log('Cannot add another deeplink transaction');
     return;
   }
 
@@ -92,36 +96,72 @@ export async function addTransactionForDeeplink({
     parameters?.address ?? '',
   );
 
-  if (function_name === ETH_ACTIONS.TRANSFER) {
-    // ERC20 transfer
-    const txParams: TransactionParams = {
-      from,
-      to,
-      data: generateTransferData('transfer', {
-        toAddress: checkSummedParamAddress,
-        amount: toHex(parameters?.uint256 as string),
-      }),
-    };
+  const isErc20Transfer = function_name === ETH_ACTIONS.TRANSFER;
 
-    await addTransaction(txParams, {
-      networkClientId,
-      origin,
-      type: TransactionType.tokenMethodTransfer,
-    });
-  } else {
-    // Native transfer
-    const txParams: TransactionParams = {
-      from,
-      to,
-      value: toHex(parameters?.value as string),
-    };
+  const txParams: TransactionParams = isErc20Transfer
+    ? {
+        from,
+        to,
+        data: generateTransferData('transfer', {
+          toAddress: checkSummedParamAddress,
+          amount: toHex(parameters?.uint256 as string),
+        }),
+      }
+    : {
+        from,
+        to,
+        value: toHex(parameters?.value as string),
+      };
 
-    await addTransaction(txParams, {
-      networkClientId,
-      origin,
-      type: TransactionType.simpleSend,
-    });
-  }
+  const transactionType = isErc20Transfer
+    ? TransactionType.tokenMethodTransfer
+    : TransactionType.simpleSend;
+
+  const securityAlertResponse = validateWithPPOM({
+    txParams,
+    origin,
+    chainId,
+    networkClientId,
+  });
+
+  await addTransaction(txParams, {
+    networkClientId,
+    origin,
+    type: transactionType,
+    securityAlertResponse,
+  });
 
   isAddingDeeplinkTransaction = false;
+}
+
+export function validateWithPPOM({
+  txParams,
+  origin,
+  chainId,
+  networkClientId,
+}: {
+  txParams: TransactionParams;
+  origin: string;
+  chainId: Hex;
+  networkClientId: string;
+}) {
+  const securityAlertId = uuid();
+  ppomUtil.validateRequest(
+    {
+      id: securityAlertId,
+      jsonrpc: '2.0',
+      method: 'eth_sendTransaction',
+      origin,
+      params: [txParams],
+    },
+    {
+      transactionMeta: {
+        chainId,
+        networkClientId,
+        txParams,
+      } as TransactionMeta,
+      securityAlertId,
+    },
+  );
+  return { securityAlertId } as SecurityAlertResponse;
 }
