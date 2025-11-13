@@ -8,9 +8,16 @@ import { execSync } from 'node:child_process';
 import { ToolInput } from '../../types';
 import { TOOL_LIMITS } from '../../config';
 
+/**
+ * Escapes shell special characters to prevent command injection
+ */
+function escapeShell(str: string): string {
+  return str.replace(/[`$\\"\n]/g, '\\$&');
+}
+
 export function handleGrepCodebase(input: ToolInput, baseDir: string): string {
-  const pattern = input.pattern as string;
-  const filePattern = (input.file_pattern as string) || '*';
+  const pattern = escapeShell(input.pattern as string);
+  const filePattern = escapeShell((input.file_pattern as string) || '*');
   const maxResults =
     (input.max_results as number) || TOOL_LIMITS.grepMaxResults;
 

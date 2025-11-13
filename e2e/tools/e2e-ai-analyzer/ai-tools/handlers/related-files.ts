@@ -10,8 +10,15 @@ import { execSync } from 'node:child_process';
 import { ToolInput } from '../../types';
 import { TOOL_LIMITS } from '../../config';
 
+/**
+ * Escapes shell special characters to prevent command injection
+ */
+function escapeShell(str: string): string {
+  return str.replace(/[`$\\"\n]/g, '\\$&');
+}
+
 export function handleRelatedFiles(input: ToolInput, baseDir: string): string {
-  const filePath = input.file_path as string;
+  const filePath = escapeShell(input.file_path as string);
   const searchType = input.search_type as string;
   const maxResults =
     (input.max_results as number) || TOOL_LIMITS.relatedFilesMaxResults;

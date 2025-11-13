@@ -4,12 +4,18 @@
  * Lists files in a directory to understand module structure
  */
 
-import { join } from 'node:path';
+import { join, normalize } from 'node:path';
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import { ToolInput } from '../../types';
 
 export function handleListDirectory(input: ToolInput, baseDir: string): string {
-  const directory = input.directory as string;
+  const directory = normalize(input.directory as string);
+
+  // Prevent path traversal
+  if (directory.includes('..')) {
+    return `Invalid directory path: ${directory}`;
+  }
+
   const fullPath = join(baseDir, directory);
 
   if (!existsSync(fullPath)) {

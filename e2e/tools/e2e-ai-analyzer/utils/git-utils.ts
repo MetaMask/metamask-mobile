@@ -39,6 +39,13 @@ export function getAllChangedFiles(
  * Gets the diff for a specific file
  * Uses three-dot syntax (...) to compare against merge base
  */
+/**
+ * Escapes shell special characters to prevent command injection
+ */
+function escapeShell(str: string): string {
+  return str.replace(/[`$\\"\n]/g, '\\$&');
+}
+
 export function getFileDiff(
   filePath: string,
   baseBranch: string,
@@ -46,12 +53,16 @@ export function getFileDiff(
   linesLimit = 1000,
 ): string {
   try {
-    const targetBranch = baseBranch;
+    const targetBranch = escapeShell(baseBranch);
+    const escapedFilePath = escapeShell(filePath);
 
-    const diff = execSync(`git diff ${targetBranch}...HEAD -- "${filePath}"`, {
-      encoding: 'utf-8',
-      cwd: baseDir,
-    });
+    const diff = execSync(
+      `git diff ${targetBranch}...HEAD -- "${escapedFilePath}"`,
+      {
+        encoding: 'utf-8',
+        cwd: baseDir,
+      },
+    );
 
     if (!diff) {
       return `No git diff available for ${filePath} (may be new/untracked)`;
