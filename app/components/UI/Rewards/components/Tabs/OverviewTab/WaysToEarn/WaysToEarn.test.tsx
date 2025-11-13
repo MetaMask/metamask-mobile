@@ -11,7 +11,10 @@ import {
   selectRewardsCardSpendFeatureFlags,
   selectRewardsMusdDepositEnabledFlag,
 } from '../../../../../../../selectors/featureFlagController/rewards';
-import { selectPredictEnabledFlag } from '../../../../../Predict/selectors/featureFlags';
+import {
+  useFeatureFlag,
+  FeatureFlagNames,
+} from '../../../../../../../components/hooks/useFeatureFlag';
 import { MetaMetricsEvents } from '../../../../../../hooks/useMetrics';
 import { RewardsMetricsButtons } from '../../../../utils';
 
@@ -58,6 +61,12 @@ jest.mock('../../../../../../hooks/useMetrics', () => ({
   },
 }));
 
+// Mock useFeatureFlag hook
+jest.mock('../../../../../../components/hooks/useFeatureFlag', () => ({
+  useFeatureFlag: jest.fn(),
+  FeatureFlagNames,
+}));
+
 // Mock getNativeAssetForChainId
 jest.mock('@metamask/bridge-controller', () => ({
   getNativeAssetForChainId: jest.fn(() => ({
@@ -69,6 +78,10 @@ jest.mock('@metamask/bridge-controller', () => ({
 
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
+>;
+
+const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
+  typeof useFeatureFlag
 >;
 
 // Mock i18n strings
@@ -207,14 +220,13 @@ describe('WaysToEarn', () => {
       if (selector === selectRewardsCardSpendFeatureFlags) {
         return mockIsCardSpendEnabled;
       }
-      if (selector === selectPredictEnabledFlag) {
-        return mockIsPredictEnabled;
-      }
       if (selector === selectRewardsMusdDepositEnabledFlag) {
         return mockIsMusdDepositEnabled;
       }
       return undefined;
     });
+    // Mock useFeatureFlag for predict flag
+    mockUseFeatureFlag.mockReturnValue(mockIsPredictEnabled);
   });
 
   it('renders the component title', () => {
