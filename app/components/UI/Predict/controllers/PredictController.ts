@@ -1434,6 +1434,15 @@ export class PredictController extends BaseController<
         }),
       );
 
+      // Log error for debugging and future Sentry integration
+      DevLogger.log('PredictController: Place order failed', {
+        error: errorMessage,
+        errorDetails: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString(),
+        providerId,
+        params,
+      });
+
       throw new Error(errorMessage);
     } finally {
       endTrace({
@@ -1573,6 +1582,16 @@ export class PredictController extends BaseController<
           providerId,
         }),
       );
+
+      // Log error for debugging and future Sentry integration
+      DevLogger.log('PredictController: Claim failed', {
+        error: errorMessage,
+        errorDetails: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString(),
+        params: {
+          providerId,
+        },
+      });
 
       // Update error state for Sentry integration
       this.update((state) => {

@@ -140,7 +140,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       loadingStates: { isMarketFetching, isRefreshing },
     },
   });
-  
+
   // calculate sticky header indices based on content structure
   const stickyHeaderIndices = useMemo(() => {
     if (isMarketFetching && !market) {
