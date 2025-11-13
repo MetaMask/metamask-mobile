@@ -28,6 +28,7 @@ import {
 import { useSelector } from 'react-redux';
 import { selectIsFirstTimePerpsUser } from '../../../../../Perps/selectors/perpsController';
 import { selectRewardsCardSpendFeatureFlags } from '../../../../../../../selectors/featureFlagController/rewards';
+import { selectPredictEnabledFlag } from '../../../../../Predict/selectors/featureFlags';
 import {
   MetaMetricsEvents,
   useMetrics,
@@ -39,6 +40,7 @@ export enum WayToEarnType {
   PERPS = 'perps',
   REFERRALS = 'referrals',
   LOYALTY = 'loyalty',
+  PREDICT = 'predict',
   CARD = 'card',
 }
 
@@ -61,6 +63,12 @@ const waysToEarn: WayToEarn[] = [
     title: strings('rewards.ways_to_earn.perps.title'),
     description: strings('rewards.ways_to_earn.perps.description'),
     icon: IconName.Candlestick,
+  },
+  {
+    type: WayToEarnType.PREDICT,
+    title: strings('rewards.ways_to_earn.predict.title'),
+    description: strings('rewards.ways_to_earn.predict.description'),
+    icon: IconName.Speedometer,
   },
   {
     type: WayToEarnType.REFERRALS,
@@ -158,6 +166,21 @@ const getBottomSheetData = (type: WayToEarnType) => {
         ),
         ctaLabel: strings('rewards.ways_to_earn.loyalty.sheet.cta_label'),
       };
+    case WayToEarnType.PREDICT:
+      return {
+        title: (
+          <WaysToEarnSheetTitle
+            title={strings('rewards.ways_to_earn.predict.sheet.title')}
+            points={strings('rewards.ways_to_earn.predict.sheet.points')}
+          />
+        ),
+        description: (
+          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+            {strings('rewards.ways_to_earn.predict.sheet.description')}
+          </Text>
+        ),
+        ctaLabel: strings('rewards.ways_to_earn.predict.sheet.cta_label'),
+      };
     case WayToEarnType.CARD:
       return {
         title: (
@@ -182,6 +205,7 @@ export const WaysToEarn = () => {
   const navigation = useNavigation();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
   const isCardSpendEnabled = useSelector(selectRewardsCardSpendFeatureFlags);
+  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const { trackEvent, createEventBuilder } = useMetrics();
 
   // Use the swap/bridge navigation hook
@@ -219,6 +243,11 @@ export const WaysToEarn = () => {
       case WayToEarnType.LOYALTY:
         navigation.navigate(Routes.REWARDS_SETTINGS_VIEW);
         break;
+      case WayToEarnType.PREDICT:
+        navigation.navigate(Routes.PREDICT.ROOT, {
+          screen: Routes.PREDICT.MARKET_LIST,
+        });
+        break;
       case WayToEarnType.CARD:
         navigation.navigate(Routes.CARD.ROOT);
         break;
@@ -238,6 +267,7 @@ export const WaysToEarn = () => {
       case WayToEarnType.SWAPS:
       case WayToEarnType.LOYALTY:
       case WayToEarnType.PERPS:
+      case WayToEarnType.PREDICT:
       case WayToEarnType.CARD: {
         const { title, description, ctaLabel } = getBottomSheetData(
           wayToEarn.type,
@@ -274,11 +304,15 @@ export const WaysToEarn = () => {
       <Box twClassName="rounded-xl bg-muted">
         <FlatList
           horizontal={false}
-          data={
-            isCardSpendEnabled
-              ? waysToEarn
-              : waysToEarn.filter((way) => way.type !== WayToEarnType.CARD)
-          }
+          data={waysToEarn.filter((wte) => {
+            if (wte.type === WayToEarnType.CARD && !isCardSpendEnabled) {
+              return false;
+            }
+            if (wte.type === WayToEarnType.PREDICT && !isPredictEnabled) {
+              return false;
+            }
+            return true;
+          })}
           keyExtractor={(wayToEarn) => wayToEarn.title}
           ItemSeparatorComponent={Separator}
           scrollEnabled={false}
