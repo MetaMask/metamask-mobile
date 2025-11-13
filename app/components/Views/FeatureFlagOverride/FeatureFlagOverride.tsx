@@ -56,13 +56,14 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           <Box twClassName="items-end">
             <Switch
               value={(localValue as MinimumVersionFlagValue).enabled}
-              disabled //={!isVersionSupported} TODO: Uncomment this when we support overrides for minimum version
+              disabled={!isVersionSupported}
               onValueChange={(newValue: boolean) => {
-                setLocalValue({
+                const updatedValue = {
                   ...(localValue as MinimumVersionFlagValue),
                   enabled: newValue,
-                });
-                onToggle(flag.key, newValue);
+                };
+                setLocalValue(updatedValue);
+                onToggle(flag.key, updatedValue);
               }}
               trackColor={{
                 true: theme.colors.primary.default,

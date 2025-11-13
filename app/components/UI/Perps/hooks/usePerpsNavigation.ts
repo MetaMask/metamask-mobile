@@ -1,10 +1,10 @@
 import { useCallback } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import type { PerpsNavigationParamList } from '../types/navigation';
 import type { PerpsMarketData } from '../controllers/types';
+import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
+import { useSelector } from 'react-redux';
 
 /**
  * Navigation handler result interface

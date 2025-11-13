@@ -11,6 +11,13 @@ import {
 } from './usePerpsOrderFees';
 import type { FeeCalculationResult } from '../controllers/types';
 
+import { useFeatureFlag } from '../../../hooks/FeatureFlags/useFeatureFlag';
+
+const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
+  typeof useFeatureFlag
+>;
+mockUseFeatureFlag.mockReturnValue(true);
+
 jest.mock('./usePerpsTrading');
 
 // Import existing mocks
@@ -28,9 +35,11 @@ jest.mock('../../../../core/Engine', () => ({
   context: mockEngineContext,
 }));
 
-// Mock specific selectors directly
-jest.mock('../../../../selectors/featureFlagController/rewards', () => ({
-  selectRewardsEnabledFlag: jest.fn().mockReturnValue(true),
+jest.mock('../../../../components/hooks/FeatureFlags/useFeatureFlag', () => ({
+  useFeatureFlag: jest.fn().mockReturnValue(true),
+  FeatureFlagNames: {
+    rewardsEnabled: 'rewardsEnabled',
+  },
 }));
 
 jest.mock('../../../../selectors/accountsController', () => ({
@@ -425,10 +434,7 @@ describe('usePerpsOrderFees', () => {
     });
 
     it('should handle rewards disabled', async () => {
-      const { selectRewardsEnabledFlag } = jest.requireMock(
-        '../../../../selectors/featureFlagController/rewards',
-      );
-      selectRewardsEnabledFlag.mockReturnValue(false);
+      mockUseFeatureFlag.mockReturnValue(false);
 
       const mockFeeResult: FeeCalculationResult = {
         feeRate: 0.00045,
