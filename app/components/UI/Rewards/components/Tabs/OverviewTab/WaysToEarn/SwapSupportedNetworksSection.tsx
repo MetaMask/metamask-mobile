@@ -131,8 +131,8 @@ export const SwapSupportedNetworksSection = () => {
           flexDirection={BoxFlexDirection.Row}
           twClassName="flex-wrap -mx-2 -my-1"
         >
-          {supportedNetworks.map((network, index) => (
-            <Box key={index} twClassName="basis-1/2 px-2 py-1">
+          {supportedNetworks.map((network) => (
+            <Box key={network.chainId} twClassName="basis-1/2 px-2 py-1">
               <SwapSupportedNetworkItem network={network} />
             </Box>
           ))}
