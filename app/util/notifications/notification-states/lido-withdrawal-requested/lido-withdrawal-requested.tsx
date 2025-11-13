@@ -21,11 +21,11 @@ const state: NotificationState<LidoWithdrawalRequestedNotification> = {
   guardFn: isLidoWithdrawalRequestedNotification,
   createMenuItem: (notification) => {
     const amount = getAmount(
-      notification.data.stake_in.amount,
-      notification.data.stake_in.decimals,
+      notification.payload.data.stake_in.amount,
+      notification.payload.data.stake_in.decimals,
       { shouldEllipse: true },
     );
-    const symbol = notification.data.stake_in.symbol;
+    const symbol = notification.payload.data.stake_in.symbol;
     return {
       title: strings(`notifications.menu_item_title.${notification.type}`),
 
@@ -37,7 +37,7 @@ const state: NotificationState<LidoWithdrawalRequestedNotification> = {
       },
 
       image: {
-        url: notification.data.stake_in.image,
+        url: notification.payload.data.stake_in.image,
       },
 
       badgeIcon: getNotificationBadge(notification.type),
@@ -47,7 +47,7 @@ const state: NotificationState<LidoWithdrawalRequestedNotification> = {
   },
   createModalDetails: (notification) => {
     const nativeTokenDetails = getNativeTokenDetailsByChainId(
-      notification.chain_id,
+      notification.payload.chain_id,
     );
     return {
       title: strings('notifications.modal.title_unstake_requested'),
@@ -56,31 +56,31 @@ const state: NotificationState<LidoWithdrawalRequestedNotification> = {
         {
           type: ModalFieldType.ADDRESS,
           label: strings('notifications.modal.label_account'),
-          address: notification.address,
+          address: notification.payload.address,
         },
         {
           type: ModalFieldType.ASSET,
           label: strings('notifications.modal.label_unstaking_requested'),
-          description: notification.data.stake_in.symbol,
-          amount: getTokenAmount(notification.data.stake_in),
-          usdAmount: getTokenAmount(notification.data.stake_in),
-          tokenIconUrl: notification.data.stake_in.image,
+          description: notification.payload.data.stake_in.symbol,
+          amount: getTokenAmount(notification.payload.data.stake_in),
+          usdAmount: getTokenAmount(notification.payload.data.stake_in),
+          tokenIconUrl: notification.payload.data.stake_in.image,
           tokenNetworkUrl: nativeTokenDetails?.image,
         },
         {
           type: ModalFieldType.TRANSACTION,
-          txHash: notification.tx_hash,
+          txHash: notification.payload.tx_hash,
         },
         {
           type: ModalFieldType.STAKING_PROVIDER,
           stakingProvider: 'Lido-staked ETH',
-          tokenIconUrl: notification.data.stake_in.image,
+          tokenIconUrl: notification.payload.data.stake_in.image,
         },
       ],
       footer: {
         type: ModalFooterType.BLOCK_EXPLORER,
-        chainId: notification.chain_id,
-        txHash: notification.tx_hash,
+        chainId: notification.payload.chain_id,
+        txHash: notification.payload.tx_hash,
       },
     };
   },
