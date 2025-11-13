@@ -8,9 +8,7 @@ import { otherControllersMock } from '../../../__mocks__/controllers/other-contr
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
 import { useConfirmationContext } from '../../../context/confirmation-context';
-import { AlertKeys } from '../../../constants/alerts';
-import { Alert, Severity } from '../../../types/alerts';
-import { act, fireEvent } from '@testing-library/react-native';
+import { Alert } from '../../../types/alerts';
 import {
   AlertsContextParams,
   useAlerts,
@@ -25,6 +23,7 @@ import { Hex } from '@metamask/utils';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
 import { RampMode } from '../../../../../UI/Ramp/hooks/useRampNavigation';
 import { RampType } from '../../../../../UI/Ramp/Aggregator/types';
+import { fireEvent } from '@testing-library/react-native';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/pay/useAutomaticTransactionPayToken');
@@ -127,9 +126,8 @@ describe('CustomAmountInfo', () => {
     } as AlertsContextParams);
 
     useTransactionCustomAmountAlertsMock.mockReturnValue({
+      alertTitle: undefined,
       alertMessage: undefined,
-      keyboardAlertMessage: undefined,
-      excludeBannerKeys: [],
     });
 
     useAccountTokensMock.mockReturnValue([]);
@@ -145,7 +143,7 @@ describe('CustomAmountInfo', () => {
 
   it('renders payment token', () => {
     const { getByText } = render();
-    expect(getByText('TST')).toBeDefined();
+    expect(getByText('0 TST')).toBeDefined();
   });
 
   it('does not render payment token if disablePay', () => {
@@ -153,38 +151,15 @@ describe('CustomAmountInfo', () => {
     expect(queryByText('TST')).toBeNull();
   });
 
-  it('renders alert banner', async () => {
-    useAlertsMock.mockReturnValue({
-      alerts: [] as Alert[],
-      generalAlerts: [
-        {
-          key: AlertKeys.NoPayTokenQuotes,
-          message: 'Test Banner Alert',
-          isBlocking: true,
-          severity: Severity.Danger,
-        },
-      ],
-      fieldAlerts: [] as Alert[],
-    } as AlertsContextParams);
-
-    const { getByText } = render();
-
-    await act(async () => {
-      fireEvent.press(getByText('Continue'));
-    });
-
-    expect(getByText('Test Banner Alert')).toBeDefined();
-  });
-
-  it('renders alert message', () => {
+  it('renders alert', () => {
     useTransactionCustomAmountAlertsMock.mockReturnValue({
+      alertTitle: 'Test Alert Title',
       alertMessage: 'Test Alert Message',
-      keyboardAlertMessage: undefined,
-      excludeBannerKeys: [],
     });
 
     const { getByText } = render();
 
+    expect(getByText('Test Alert Title')).toBeDefined();
     expect(getByText('Test Alert Message')).toBeDefined();
   });
 
