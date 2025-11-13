@@ -1333,10 +1333,10 @@
       "orderLeverageReductionFailed": "You cannot reduce your leverage",
       "connectionTimeout": "Connection timed out. Please check your network and try again.",
       "connectionFailed": {
-        "title": "Perps is temporarily offline",
+        "title": "Couldn't connect to perps",
         "description": "We're working to get it back online soon.",
-        "retry": "Retry",
-        "go_back": "Go Back"
+        "retry": "Try again",
+        "go_back": "Go back"
       },
       "networkError": {
         "title": "Network Error",
