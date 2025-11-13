@@ -278,7 +278,7 @@ export const WaysToEarn = () => {
         navigation.navigate(Routes.CARD.ROOT);
         break;
       case WayToEarnType.DEPOSIT_MUSD:
-        Linking.openURL('https://app.turtle.xyz/campaigns'); // TODO REPLACE WITH ACTUAL URL
+        Linking.openURL('https://go.metamask.io/turtle-musd');
         break;
     }
   };
