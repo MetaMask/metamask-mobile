@@ -60,10 +60,15 @@ import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
+import PredictConsentSheet, {
+  type PredictConsentSheetRef,
+} from '../../components/PredictConsentSheet';
+import { usePredictAgreement } from '../../hooks/usePredictAgreement';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
+  const consentSheetRef = useRef<PredictConsentSheetRef>(null);
   const { goBack, dispatch } =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const route =
@@ -111,6 +116,10 @@ const PredictBuyPreview = () => {
     providerId: outcome.providerId,
   });
 
+  const { isAgreementAccepted } = usePredictAgreement({
+    providerId: outcome.providerId,
+  });
+
   const [currentValue, setCurrentValue] = useState(0);
   const [currentValueUSDString, setCurrentValueUSDString] = useState('');
   const [isInputFocused, setIsInputFocused] = useState(true);
@@ -137,7 +146,6 @@ const PredictBuyPreview = () => {
       providerId: outcome.providerId,
       sharePrice: outcomeToken?.price,
     });
-    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -179,6 +187,12 @@ const PredictBuyPreview = () => {
   const onPlaceBet = useCallback(async () => {
     if (!preview || hasInsufficientFunds || isBelowMinimum) return;
 
+    // Check if user has accepted the agreement
+    if (!isAgreementAccepted) {
+      consentSheetRef.current?.onOpenBottomSheet();
+      return;
+    }
+
     await placeOrder({
       providerId: outcome.providerId,
       analyticsProperties,
@@ -188,6 +202,7 @@ const PredictBuyPreview = () => {
     preview,
     hasInsufficientFunds,
     isBelowMinimum,
+    isAgreementAccepted,
     placeOrder,
     outcome.providerId,
     analyticsProperties,
@@ -456,6 +471,11 @@ const PredictBuyPreview = () => {
         onAddFunds={deposit}
       />
       {renderBottomContent()}
+      <PredictConsentSheet
+        ref={consentSheetRef}
+        providerId={outcome.providerId}
+        onAgree={onPlaceBet}
+      />
     </SafeAreaView>
   );
 };

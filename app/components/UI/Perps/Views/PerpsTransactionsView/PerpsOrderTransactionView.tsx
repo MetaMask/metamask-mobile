@@ -11,6 +11,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 
+import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
 import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import Button, {
@@ -27,7 +28,6 @@ import { usePerpsBlockExplorerUrl, usePerpsOrderFees } from '../../hooks';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import { PerpsOrderTransactionRouteProp } from '../../types/transactionHistory';
 import {
-  formatFee,
   formatPerpsFiat,
   formatTransactionDate,
 } from '../../utils/formatUtils';
@@ -103,21 +103,44 @@ const PerpsOrderTransactionView: React.FC = () => {
   ];
 
   const isFilled = transaction.order?.text === 'Filled';
-
   // Fee breakdown
 
   const feeRows = [
     {
       label: strings('perps.transactions.order.metamask_fee'),
-      value: formatFee(isFilled ? metamaskFee : 0),
+      value: `${
+        isFilled
+          ? `${
+              BigNumber(metamaskFee).isLessThan(0.01)
+                ? `$${metamaskFee}`
+                : formatPerpsFiat(metamaskFee)
+            }`
+          : '$0'
+      }`,
     },
     {
       label: strings('perps.transactions.order.hyperliquid_fee'),
-      value: formatFee(isFilled ? protocolFee : 0),
+      value: `${
+        isFilled
+          ? `${
+              BigNumber(protocolFee).isLessThan(0.01)
+                ? `$${protocolFee}`
+                : formatPerpsFiat(protocolFee)
+            }`
+          : '$0'
+      }`,
     },
     {
       label: strings('perps.transactions.order.total_fee'),
-      value: formatFee(isFilled ? totalFee : 0),
+      value: `${
+        isFilled
+          ? `${
+              BigNumber(totalFee).isLessThan(0.01)
+                ? `$${totalFee}`
+                : formatPerpsFiat(totalFee)
+            }`
+          : '$0'
+      }`,
     },
   ];
 

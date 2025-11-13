@@ -29,8 +29,7 @@ export const usePredictEligibility = ({
   }, []);
 
   return {
-    isEligible: eligibility[providerId]?.eligible ?? false,
-    country: eligibility[providerId]?.country,
+    isEligible: eligibility[providerId],
     refreshEligibility,
   };
 };

@@ -4,17 +4,16 @@ import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
 import { useInsufficientPayTokenNativeAlert } from './useInsufficientPayTokenNativeAlert';
+import { useTransactionTotalFiat } from '../pay/useTransactionTotalFiat';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 import { selectTickerByChainId } from '../../../../../selectors/networkController';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { useTransactionPayTotals } from '../pay/useTransactionPayData';
-import { TransactionPayTotals } from '@metamask/transaction-pay-controller';
 
 jest.mock('../pay/useTransactionPayToken');
+jest.mock('../pay/useTransactionTotalFiat');
 jest.mock('../tokens/useTokenWithBalance');
 jest.mock('../../../../../selectors/networkController');
-jest.mock('../pay/useTransactionPayData');
 
 const CHAIN_ID_MOCK = '0x123';
 const BALANCE_FIAT = 123.45;
@@ -26,9 +25,9 @@ function runHook() {
 
 describe('useInsufficientPayTokenNativeAlert', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
+  const useTransactionTotalFiatMock = jest.mocked(useTransactionTotalFiat);
   const useTokenWithBalanceMock = jest.mocked(useTokenWithBalance);
   const selectTickerByChainIdMock = jest.mocked(selectTickerByChainId);
-  const useTransactionPayTotalsMock = jest.mocked(useTransactionPayTotals);
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -36,7 +35,7 @@ describe('useInsufficientPayTokenNativeAlert', () => {
     selectTickerByChainIdMock.mockReturnValue(TICKER_MOCK);
   });
 
-  it('returns alert if native balance less than quote source network fees', () => {
+  it('returns alert if native balance less than quote network fees', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: { chainId: CHAIN_ID_MOCK },
     } as unknown as ReturnType<typeof useTransactionPayToken>);
@@ -47,9 +46,9 @@ describe('useInsufficientPayTokenNativeAlert', () => {
       tokenFiatAmount: BALANCE_FIAT,
     } as unknown as ReturnType<typeof useTokenWithBalance>);
 
-    useTransactionPayTotalsMock.mockReturnValue({
-      fees: { sourceNetwork: { fiat: `${BALANCE_FIAT + 0.01}` } },
-    } as TransactionPayTotals);
+    useTransactionTotalFiatMock.mockReturnValue({
+      totalNetworkFeeMax: `${BALANCE_FIAT + 0.01}`,
+    } as unknown as ReturnType<typeof useTransactionTotalFiat>);
 
     const { result } = runHook();
 
@@ -77,9 +76,10 @@ describe('useInsufficientPayTokenNativeAlert', () => {
       tokenFiatAmount: BALANCE_FIAT,
     } as unknown as ReturnType<typeof useTokenWithBalance>);
 
-    useTransactionPayTotalsMock.mockReturnValue({
-      total: { fiat: `${BALANCE_FIAT + 0.01}` },
-    } as TransactionPayTotals);
+    useTransactionTotalFiatMock.mockReturnValue({
+      totalNetworkFeeMax: `${BALANCE_FIAT}`,
+      total: `${BALANCE_FIAT + 0.01}`,
+    } as unknown as ReturnType<typeof useTransactionTotalFiat>);
 
     const { result } = runHook();
 
@@ -107,13 +107,9 @@ describe('useInsufficientPayTokenNativeAlert', () => {
       tokenFiatAmount: BALANCE_FIAT,
     } as unknown as ReturnType<typeof useTokenWithBalance>);
 
-    useTransactionPayTotalsMock.mockReturnValue({
-      fees: {
-        sourceNetwork: {
-          fiat: `${BALANCE_FIAT - 0.01}`,
-        },
-      },
-    } as TransactionPayTotals);
+    useTransactionTotalFiatMock.mockReturnValue({
+      quoteNetworkFee: `${BALANCE_FIAT}`,
+    } as unknown as ReturnType<typeof useTransactionTotalFiat>);
 
     const { result } = runHook();
 
@@ -131,9 +127,9 @@ describe('useInsufficientPayTokenNativeAlert', () => {
       tokenFiatAmount: BALANCE_FIAT,
     } as unknown as ReturnType<typeof useTokenWithBalance>);
 
-    useTransactionPayTotalsMock.mockReturnValue({
-      fees: { sourceNetwork: { fiat: `${BALANCE_FIAT - 0.01}` } },
-    } as TransactionPayTotals);
+    useTransactionTotalFiatMock.mockReturnValue({
+      quoteNetworkFee: `${BALANCE_FIAT + 0.01}`,
+    } as unknown as ReturnType<typeof useTransactionTotalFiat>);
 
     const { result } = runHook();
 

@@ -15,5 +15,4 @@ export const CardHomeSelectors = {
   ADD_FUNDS_BOTTOM_SHEET_DEPOSIT_OPTION:
     'add-funds-bottom-sheet-deposit-option',
   ADD_FUNDS_BOTTOM_SHEET_SWAP_OPTION: 'add-funds-bottom-sheet-swap-option',
-  SPENDING_LIMIT_PROGRESS_BAR_SKELETON: 'spending-limit-progress-bar-skeleton',
 };

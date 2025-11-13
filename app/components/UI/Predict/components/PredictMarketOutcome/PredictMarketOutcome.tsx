@@ -96,10 +96,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
           },
         });
       },
-      {
-        checkBalance: true,
-        attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
-      },
+      { checkBalance: true },
     );
   };
 

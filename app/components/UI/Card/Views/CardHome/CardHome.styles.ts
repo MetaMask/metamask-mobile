@@ -40,9 +40,6 @@ const createStyles = (theme: Theme) =>
     defaultHorizontalPadding: {
       paddingHorizontal: 16,
     },
-    defaultMarginBottom: {
-      marginBottom: 16,
-    },
     cardBalanceContainer: {
       marginTop: 16,
       backgroundColor: theme.colors.background.muted,

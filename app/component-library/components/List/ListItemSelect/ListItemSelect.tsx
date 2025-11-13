@@ -22,7 +22,6 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
   onLongPress,
   gap = DEFAULT_SELECTITEM_GAP,
   verticalAlignment,
-  listItemProps,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style, isDisabled });
@@ -35,7 +34,7 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
       onLongPress={onLongPress}
       {...props}
     >
-      <ListItem gap={gap} style={styles.listItem} {...listItemProps}>
+      <ListItem gap={gap} style={styles.listItem}>
         {children}
       </ListItem>
       {isSelected && (

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Box,
   Button,
@@ -25,28 +25,8 @@ import { useEVMNfts } from '../../../hooks/send/useNfts';
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export interface AssetProps {
-  hideNfts?: boolean;
-  includeNoBalance?: boolean;
-  onTokenSelect?: (token: AssetType) => void;
-  tokenFilter?: (assets: AssetType[]) => AssetType[];
-}
-
-export const Asset: React.FC<AssetProps> = (props = {}) => {
-  const {
-    hideNfts = false,
-    includeNoBalance = false,
-    onTokenSelect,
-    tokenFilter,
-  } = props;
-
-  const originalTokens = useAccountTokens({ includeNoBalance });
-
-  const tokens = useMemo(
-    () => (tokenFilter ? tokenFilter(originalTokens) : originalTokens),
-    [originalTokens, tokenFilter],
-  );
-
+export const Asset = () => {
+  const tokens = useAccountTokens();
   const nfts = useEVMNfts();
   const [filteredTokensByNetwork, setFilteredTokensByNetwork] =
     useState<AssetType[]>(tokens);
@@ -62,7 +42,6 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
     filteredNfts,
     clearSearch,
   } = useTokenSearch(filteredTokensByNetwork, nfts, selectedNetworkFilter);
-
   const {
     setAssetListSize,
     setNoneAssetFilterMethod,
@@ -70,7 +49,6 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
   } = useAssetSelectionMetrics();
 
   const [hasActiveNetworkFilter, setHasActiveNetworkFilter] = useState(false);
-
   const [clearNetworkFilters, setClearNetworkFilters] = useState<
     (() => void) | null
   >(null);
@@ -125,11 +103,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
         <TextFieldSearch
           value={searchQuery}
           onChangeText={setSearchQuery}
-          placeholder={
-            hideNfts
-              ? strings('send.search_tokens')
-              : strings('send.search_tokens_and_nfts')
-          }
+          placeholder={strings('send.search_tokens_and_nfts')}
           size={TextFieldSize.Lg}
           showClearButton={searchQuery.length > 0}
           onPressClearButton={clearSearch}
@@ -166,7 +140,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
           </Box>
         ) : (
           <>
-            {!hideNfts && filteredTokens.length > 0 && (
+            {filteredTokens.length > 0 && (
               <Text
                 twClassName="m-4 mt-2 mb-2"
                 variant={TextVariant.BodyMd}
@@ -176,22 +150,18 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
                 {strings('send.tokens')}
               </Text>
             )}
-            <TokenList tokens={filteredTokens} onSelect={onTokenSelect} />
-            {!hideNfts && (
-              <>
-                {filteredNfts.length > 0 && (
-                  <Text
-                    twClassName="m-4 mt-4 mb-4"
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                    fontWeight={FontWeight.Medium}
-                  >
-                    {strings('send.nfts')}
-                  </Text>
-                )}
-                <NftList nfts={filteredNfts} />
-              </>
+            <TokenList tokens={filteredTokens} />
+            {filteredNfts.length > 0 && (
+              <Text
+                twClassName="m-4 mt-4 mb-4"
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                fontWeight={FontWeight.Medium}
+              >
+                {strings('send.nfts')}
+              </Text>
             )}
+            <NftList nfts={filteredNfts} />
           </>
         )}
       </ScrollView>

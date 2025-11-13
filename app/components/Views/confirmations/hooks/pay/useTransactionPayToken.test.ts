@@ -4,29 +4,18 @@ import { useTransactionPayToken } from './useTransactionPayToken';
 import { cloneDeep, merge } from 'lodash';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
+// eslint-disable-next-line import/no-namespace
+import * as ConfirmationMetricsReducer from '../../../../../core/redux/slices/confirmationMetrics';
 import { RootState } from '../../../../../reducers';
 import {
   otherControllersMock,
   tokenAddress1Mock,
 } from '../../__mocks__/controllers/other-controllers-mock';
+import { BridgeToken } from '../../../../UI/Bridge/types';
+import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 import { TransactionType } from '@metamask/transaction-controller';
-import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
-import Engine from '../../../../../core/Engine';
-import { flushPromises } from '../../../../../util/test/utils';
 
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    TransactionPayController: {
-      updatePaymentToken: jest.fn(),
-    },
-    GasFeeController: {
-      fetchGasFeeEstimates: jest.fn(),
-    },
-    NetworkController: {
-      findNetworkClientIdByChainId: jest.fn(),
-    },
-  },
-}));
+jest.mock('../tokens/useTokenWithBalance');
 
 const STATE_MOCK = merge(
   simpleSendTransactionControllerMock,
@@ -37,18 +26,19 @@ const STATE_MOCK = merge(
 const TRANSACTION_ID_MOCK =
   STATE_MOCK.engine.backgroundState.TransactionController.transactions[0].id;
 
-const NETWORK_CLIENT_ID_MOCK = 'network-client-id-mock';
-
-const PAY_TOKEN_MOCK = {
+const PAY_TOKEN_MOCK: ConfirmationMetricsReducer.TransactionPayToken = {
   address: tokenAddress1Mock,
-  balanceHuman: '123.456',
-  balanceFiat: '456.12',
-  balanceUsd: '456.123',
-  balanceRaw: '123456000000000000000',
-  chainId: ChainId.mainnet,
+  chainId: '0x1',
+};
+
+const BRIDGE_TOKEN_MOCK = {
+  address: tokenAddress1Mock,
+  balance: '123.456',
+  balanceFiat: '$456.12',
   decimals: 4,
-  symbol: 'TST',
-} as TransactionPaymentToken;
+  chainId: ChainId.mainnet,
+  tokenFiatAmount: 456.123,
+} as unknown as BridgeToken;
 
 function runHook({
   currency,
@@ -56,20 +46,19 @@ function runHook({
   type,
 }: {
   currency?: string;
-  payToken?: TransactionPaymentToken;
+  payToken?: ConfirmationMetricsReducer.TransactionPayToken;
   type?: TransactionType;
 } = {}) {
   const mockState = cloneDeep(STATE_MOCK);
 
-  mockState.engine.backgroundState.TransactionPayController = {
-    transactionData: {
-      [TRANSACTION_ID_MOCK]: {
-        isLoading: false,
-        paymentToken: payToken,
-        tokens: [],
+  if (payToken) {
+    mockState.confirmationMetrics = {
+      ...ConfirmationMetricsReducer.initialState,
+      transactionPayTokenById: {
+        [TRANSACTION_ID_MOCK]: payToken,
       },
-    },
-  };
+    };
+  }
 
   if (currency) {
     mockState.engine.backgroundState.CurrencyRateController = {
@@ -95,52 +84,57 @@ function runHook({
 }
 
 describe('useTransactionPayToken', () => {
-  const updatePaymentTokenMock = jest.mocked(
-    Engine.context.TransactionPayController.updatePaymentToken,
-  );
-
-  const findNetworkClientIdByChainIdMock = jest.mocked(
-    Engine.context.NetworkController.findNetworkClientIdByChainId,
-  );
-
-  const fetchGasFeeEstimatesMock = jest.mocked(
-    Engine.context.GasFeeController.fetchGasFeeEstimates,
-  );
+  const useTokenWithBalanceMock = jest.mocked(useTokenWithBalance);
 
   beforeEach(() => {
     jest.resetAllMocks();
-
-    findNetworkClientIdByChainIdMock.mockReturnValue(NETWORK_CLIENT_ID_MOCK);
-    fetchGasFeeEstimatesMock.mockResolvedValue({} as never);
+    useTokenWithBalanceMock.mockReturnValue(BRIDGE_TOKEN_MOCK as never);
   });
 
   it('returns undefined if no state', () => {
+    useTokenWithBalanceMock.mockReset();
     const { result } = runHook();
     expect(result.current.payToken).toBeUndefined();
   });
 
-  it('returns token matching state', () => {
+  it('returns bridge token matching state', () => {
     const { result } = runHook({
       payToken: PAY_TOKEN_MOCK,
     });
 
-    expect(result.current.payToken).toStrictEqual(PAY_TOKEN_MOCK);
+    expect(result.current.payToken).toStrictEqual({
+      ...BRIDGE_TOKEN_MOCK,
+      balanceRaw: '1234560',
+    });
   });
 
-  it('sets token in state', async () => {
-    const { result } = runHook();
-
-    result.current.setPayToken({
-      address: PAY_TOKEN_MOCK.address,
-      chainId: PAY_TOKEN_MOCK.chainId as ChainId,
+  it('returns USD balance if perps deposit', () => {
+    const { result } = runHook({
+      currency: 'gbp',
+      payToken: PAY_TOKEN_MOCK,
+      type: TransactionType.perpsDeposit,
     });
 
-    await flushPromises();
+    expect(result.current.payToken).toStrictEqual({
+      ...BRIDGE_TOKEN_MOCK,
+      balanceFiat: '$912.25',
+      balanceRaw: '1234560',
+    });
+  });
 
-    expect(updatePaymentTokenMock).toHaveBeenCalledWith({
+  it('sets token in state', () => {
+    const setPayTokenActionMock = jest.spyOn(
+      ConfirmationMetricsReducer,
+      'setTransactionPayToken',
+    );
+
+    const { result } = runHook();
+
+    result.current.setPayToken(PAY_TOKEN_MOCK);
+
+    expect(setPayTokenActionMock).toHaveBeenCalledWith({
       transactionId: TRANSACTION_ID_MOCK,
-      tokenAddress: PAY_TOKEN_MOCK.address,
-      chainId: PAY_TOKEN_MOCK.chainId,
+      payToken: PAY_TOKEN_MOCK,
     });
   });
 });

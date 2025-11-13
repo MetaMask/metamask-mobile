@@ -51,8 +51,7 @@ const createStyles = (params: StylesParams) => {
     },
     tokenSymbol: {
       color: theme.colors.text.default,
-      fontSize: theme.typography.sHeadingLG.fontSize,
-      fontWeight: 500,
+      fontSize: 24,
     },
   });
 };
@@ -88,7 +87,7 @@ export const TokenButton: React.FC<TokenProps> = ({
           <TokenIcon symbol={symbol} icon={iconUrl} style={styles.icon} />
         </BadgeWrapper>
 
-        <Text style={styles.tokenSymbol} variant={TextVariant.HeadingLG}>
+        <Text style={styles.tokenSymbol} variant={TextVariant.BodyMDMedium}>
           {symbol}
         </Text>
       </Box>

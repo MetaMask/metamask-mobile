@@ -15,11 +15,10 @@ import {
 import { BigNumber } from 'bignumber.js';
 import { parseStandardTokenTransactionData } from '../../utils/transaction';
 import { getTokenTransferData } from '../../utils/transaction-pay';
-import { useConfirmationContext } from '../../context/confirmation-context';
+import { setTransactionUpdating } from '../../../../../core/redux/slices/confirmationMetrics';
 
 export function useUpdateTokenAmount() {
   const dispatch = useDispatch();
-  const { setIsTransactionDataUpdating } = useConfirmationContext();
   const transactionMeta = useTransactionMetadataRequest();
   const { chainId } = transactionMeta ?? {};
   const transactionId = transactionMeta?.id ?? '';
@@ -45,12 +44,17 @@ export function useUpdateTokenAmount() {
     Boolean(previousAmountRaw) && amountRaw === previousAmountRaw;
 
   useEffect(() => {
-    setIsTransactionDataUpdating(isUpdating);
+    dispatch(
+      setTransactionUpdating({
+        transactionId,
+        isUpdating,
+      }),
+    );
 
     if (!isUpdating) {
       setPreviousAmountRaw(undefined);
     }
-  }, [dispatch, isUpdating, transactionId, setIsTransactionDataUpdating]);
+  }, [dispatch, isUpdating, transactionId]);
 
   const updateTokenAmount = useCallback(
     (amountHuman: string) => {

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { View, Switch, InteractionManager } from 'react-native';
 
 import Text, {
@@ -83,11 +83,6 @@ const FeatureToggle = ({
     });
   };
 
-  const isDisabled = useMemo(
-    () => !isBackupAndSyncEnabled || isBackupAndSyncUpdateLoading,
-    [isBackupAndSyncEnabled, isBackupAndSyncUpdateLoading],
-  );
-
   return (
     <View style={styles.featureView}>
       <View style={styles.featureNameAndIcon}>
@@ -97,15 +92,10 @@ const FeatureToggle = ({
       <Switch
         testID={section.testID}
         value={isFeatureEnabled}
-        disabled={isDisabled}
+        disabled={!isBackupAndSyncEnabled || isBackupAndSyncUpdateLoading}
         onValueChange={handleToggleFeature}
         trackColor={{
-          // The ternary is here because for Android, the disabled state still shows the track color as `colors.primary.default` where IOS does not
-          // exhibit this behavior. https://github.com/MetaMask/metamask-mobile/issues/20034
-          true:
-            isFeatureEnabled && !isDisabled
-              ? colors.primary.default
-              : colors.border.muted,
+          true: colors.primary.default,
           false: colors.border.muted,
         }}
         thumbColor={theme.brandColors.white}

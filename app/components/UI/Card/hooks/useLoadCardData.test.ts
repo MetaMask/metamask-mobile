@@ -7,7 +7,6 @@ import { useGetPriorityCardToken } from './useGetPriorityCardToken';
 import { useIsCardholder } from './useIsCardholder';
 import useGetCardExternalWalletDetails from './useGetCardExternalWalletDetails';
 import useGetDelegationSettings from './useGetDelegationSettings';
-import useGetLatestAllowanceForPriorityToken from './useGetLatestAllowanceForPriorityToken';
 import {
   AllowanceState,
   CardTokenAllowance,
@@ -31,7 +30,6 @@ jest.mock('./useGetPriorityCardToken');
 jest.mock('./useIsCardholder');
 jest.mock('./useGetCardExternalWalletDetails');
 jest.mock('./useGetDelegationSettings');
-jest.mock('./useGetLatestAllowanceForPriorityToken');
 
 const mockUseIsBaanxLoginEnabled =
   useIsBaanxLoginEnabled as jest.MockedFunction<typeof useIsBaanxLoginEnabled>;
@@ -52,10 +50,6 @@ const mockUseGetCardExternalWalletDetails =
 const mockUseGetDelegationSettings =
   useGetDelegationSettings as jest.MockedFunction<
     typeof useGetDelegationSettings
-  >;
-const mockUseGetLatestAllowanceForPriorityToken =
-  useGetLatestAllowanceForPriorityToken as jest.MockedFunction<
-    typeof useGetLatestAllowanceForPriorityToken
   >;
 
 describe('useLoadCardData', () => {
@@ -151,13 +145,6 @@ describe('useLoadCardData', () => {
       error: false,
       warning: null,
       fetchPriorityToken: mockFetchPriorityToken,
-    });
-
-    mockUseGetLatestAllowanceForPriorityToken.mockReturnValue({
-      latestAllowance: null,
-      isLoading: false,
-      error: null,
-      refetch: jest.fn(),
     });
 
     mockUseCardDetails.mockReturnValue({
@@ -392,10 +379,7 @@ describe('useLoadCardData', () => {
     it('returns priority token and all tokens from API data', () => {
       const { result } = renderHook(() => useLoadCardData());
 
-      expect(result.current.priorityToken).toEqual({
-        ...mockPriorityToken,
-        totalAllowance: mockPriorityToken.allowance,
-      });
+      expect(result.current.priorityToken).toEqual(mockPriorityToken);
       expect(result.current.allTokens).toEqual(mockAllTokens);
     });
 
@@ -712,174 +696,6 @@ describe('useLoadCardData', () => {
       rerender();
 
       expect(result.current.allTokens).toEqual(mockAllTokens); // From external wallet details
-    });
-  });
-
-  describe('Latest Allowance', () => {
-    describe('Authenticated Mode', () => {
-      beforeEach(() => {
-        mockUseSelector.mockReturnValue(true); // Authenticated
-      });
-
-      it('adds totalAllowance to priority token when latest allowance is available', () => {
-        const latestAllowance = '2000000000000';
-        mockUseGetLatestAllowanceForPriorityToken.mockReturnValue({
-          latestAllowance,
-          isLoading: false,
-          error: null,
-          refetch: jest.fn(),
-        });
-
-        const { result } = renderHook(() => useLoadCardData());
-
-        expect(result.current.priorityToken).toEqual({
-          ...mockPriorityToken,
-          totalAllowance: latestAllowance,
-        });
-      });
-
-      it('uses existing allowance as totalAllowance when latest allowance is null', () => {
-        mockUseGetLatestAllowanceForPriorityToken.mockReturnValue({
-          latestAllowance: null,
-          isLoading: false,
-          error: null,
-          refetch: jest.fn(),
-        });
-
-        const { result } = renderHook(() => useLoadCardData());
-
-        expect(result.current.priorityToken).toEqual({
-          ...mockPriorityToken,
-          totalAllowance: mockPriorityToken.allowance,
-        });
-      });
-
-      it('includes latest allowance loading state in overall loading state', () => {
-        mockUseGetLatestAllowanceForPriorityToken.mockReturnValue({
-          latestAllowance: null,
-          isLoading: true,
-          error: null,
-          refetch: jest.fn(),
-        });
-
-        const { result } = renderHook(() => useLoadCardData());
-
-        expect(result.current.isLoading).toBe(true);
-      });
-
-      it('returns priority token without totalAllowance when priority token is null', () => {
-        mockUseGetPriorityCardToken.mockReturnValue({
-          priorityToken: null,
-          allTokensWithAllowances: [],
-          isLoading: false,
-          error: false,
-          warning: null,
-          fetchPriorityToken: mockFetchPriorityToken,
-        });
-        mockUseGetLatestAllowanceForPriorityToken.mockReturnValue({
-          latestAllowance: '2000000000000',
-          isLoading: false,
-          error: null,
-          refetch: jest.fn(),
-        });
-
-        const { result } = renderHook(() => useLoadCardData());
-
-        expect(result.current.priorityToken).toBeNull();
-      });
-
-      it('updates priority token when latest allowance changes', () => {
-        const initialAllowance = '1000000000000';
-        const updatedAllowance = '3000000000000';
-
-        mockUseGetLatestAllowanceForPriorityToken.mockReturnValue({
-          latestAllowance: initialAllowance,
-          isLoading: false,
-          error: null,
-          refetch: jest.fn(),
-        });
-
-        const { result, rerender } = renderHook(() => useLoadCardData());
-
-        expect(result.current.priorityToken?.totalAllowance).toBe(
-          initialAllowance,
-        );
-
-        mockUseGetLatestAllowanceForPriorityToken.mockReturnValue({
-          latestAllowance: updatedAllowance,
-          isLoading: false,
-          error: null,
-          refetch: jest.fn(),
-        });
-
-        rerender();
-
-        expect(result.current.priorityToken?.totalAllowance).toBe(
-          updatedAllowance,
-        );
-      });
-    });
-
-    describe('Unauthenticated Mode', () => {
-      beforeEach(() => {
-        mockUseSelector.mockReturnValue(false); // Unauthenticated
-      });
-
-      it('returns priority token without totalAllowance property', () => {
-        const latestAllowance = '2000000000000';
-        mockUseGetLatestAllowanceForPriorityToken.mockReturnValue({
-          latestAllowance,
-          isLoading: false,
-          error: null,
-          refetch: jest.fn(),
-        });
-
-        const { result } = renderHook(() => useLoadCardData());
-
-        expect(result.current.priorityToken).toEqual(mockPriorityToken);
-        expect(result.current.priorityToken).not.toHaveProperty(
-          'totalAllowance',
-        );
-      });
-
-      it('excludes latest allowance loading state from overall loading state', () => {
-        mockUseGetLatestAllowanceForPriorityToken.mockReturnValue({
-          latestAllowance: null,
-          isLoading: true,
-          error: null,
-          refetch: jest.fn(),
-        });
-
-        const { result } = renderHook(() => useLoadCardData());
-
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      it('ignores latest allowance when switching from authenticated to unauthenticated', () => {
-        mockUseSelector.mockReturnValue(true); // Start authenticated
-        const latestAllowance = '2000000000000';
-        mockUseGetLatestAllowanceForPriorityToken.mockReturnValue({
-          latestAllowance,
-          isLoading: false,
-          error: null,
-          refetch: jest.fn(),
-        });
-
-        const { result, rerender } = renderHook(() => useLoadCardData());
-
-        expect(result.current.priorityToken?.totalAllowance).toBe(
-          latestAllowance,
-        );
-
-        mockUseSelector.mockReturnValue(false); // Switch to unauthenticated
-
-        rerender();
-
-        expect(result.current.priorityToken).toEqual(mockPriorityToken);
-        expect(result.current.priorityToken).not.toHaveProperty(
-          'totalAllowance',
-        );
-      });
     });
   });
 

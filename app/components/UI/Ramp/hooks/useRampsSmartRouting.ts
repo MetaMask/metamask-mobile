@@ -13,24 +13,6 @@ import {
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
 import Logger from '../../../../util/Logger';
 
-const RAMP_ELIGIBILITY_URLS = {
-  STAGING: 'https://on-ramp-content.uat-api.cx.metamask.io',
-  PRODUCTION: 'https://on-ramp-content.api.cx.metamask.io',
-};
-
-const getBaseUrl = () => {
-  const metamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
-
-  const isProductionEnvironment =
-    metamaskEnvironment === 'production' ||
-    metamaskEnvironment === 'beta' ||
-    metamaskEnvironment === 'rc';
-
-  return isProductionEnvironment
-    ? RAMP_ELIGIBILITY_URLS.PRODUCTION
-    : RAMP_ELIGIBILITY_URLS.STAGING;
-};
-
 export enum RampRegionSupport {
   DEPOSIT = 'DEPOSIT',
   AGGREGATOR = 'AGGREGATOR',
@@ -62,19 +44,11 @@ export default function useRampsSmartRouting() {
       }
 
       try {
-        const baseUrl = getBaseUrl();
-        const url = new URL(
-          `/regions/countries/${rampGeodetectedRegion}`,
-          baseUrl,
-        ).toString();
-        const response = await fetch(url);
-
-        if (!response.ok) {
-          throw new Error(
-            `Failed to fetch region eligibility: ${response.status} ${response.statusText}`,
-          );
-        }
-
+        // TODO: Replace with actual API endpoint when it's available
+        // https://consensyssoftware.atlassian.net/browse/TRAM-2807
+        const response = await fetch(
+          `/endpoint-coming-soon?region=${rampGeodetectedRegion}`,
+        );
         const eligibility: RampEligibilityAPIResponse = await response.json();
 
         if (!eligibility.global) {

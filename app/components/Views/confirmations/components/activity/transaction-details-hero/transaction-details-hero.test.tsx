@@ -57,7 +57,7 @@ describe('TransactionDetailsHero', () => {
 
   it('renders human amount', () => {
     const { getByText } = render();
-    expect(getByText('$123.46')).toBeDefined();
+    expect(getByText('$123.456')).toBeDefined();
   });
 
   it('renders human amount if token transfer is nested call', () => {
@@ -80,7 +80,7 @@ describe('TransactionDetailsHero', () => {
 
     const { getByText } = render();
 
-    expect(getByText('$123.46')).toBeDefined();
+    expect(getByText('$123.456')).toBeDefined();
   });
 
   it('renders nothing if no to', () => {

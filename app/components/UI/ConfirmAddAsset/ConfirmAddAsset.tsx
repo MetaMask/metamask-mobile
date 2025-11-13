@@ -35,30 +35,21 @@ import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/Im
 import { TOKEN_TITLE } from '../../../components/Views/AddAsset/AddAsset.constants';
 import { Hex } from '@metamask/utils';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
-import { BridgeToken } from '../Bridge/types';
-import { toHex } from '../../../core/Delegation/utils';
-import { isNonEvmAddress } from '../../../core/Multichain/utils';
 
-const RenderBalance = (
-  asset:
-    | BridgeToken
-    | {
-        symbol: string;
-        address: string;
-        iconUrl: string;
-        name: string;
-        decimals: number;
-      },
-) => {
+const RenderBalance = (asset: {
+  symbol: string;
+  address: string;
+  iconUrl: string;
+  name: string;
+  decimals: number;
+}) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const { balanceFiat } = useBalance(
     asset
       ? {
-          address: isNonEvmAddress(asset.address)
-            ? toHex(asset.address)
-            : asset.address,
+          address: asset.address,
           decimals: asset.decimals,
         }
       : undefined,
@@ -77,20 +68,10 @@ const RenderBalance = (
 };
 
 const ConfirmAddAsset = () => {
-  const { selectedAsset, networkName, addTokenList } = useParams<{
-    selectedAsset:
-      | BridgeToken[]
-      | {
-          symbol: string;
-          address: string;
-          iconUrl: string;
-          name: string;
-          decimals: number;
-          chainId: Hex;
-        }[];
-    networkName: string;
-    addTokenList: () => void;
-  }>();
+  const { selectedAsset, networkName, addTokenList } =
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    useParams<any>();
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -113,12 +94,16 @@ const ConfirmAddAsset = () => {
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
       getImportTokenNavbarOptions(
+        `add_asset.${TOKEN_TITLE}`,
+        false,
         navigation,
-        strings(`add_asset.${TOKEN_TITLE}`),
+        colors,
+        true,
+        0,
         () => setShowExitModal(true),
       ),
     );
-  }, [navigation]);
+  }, [colors, navigation]);
 
   useEffect(() => {
     updateNavBar();
@@ -180,47 +165,48 @@ const ConfirmAddAsset = () => {
         {strings('wallet.import_token')}
       </Text>
       <ScrollView style={styles.root}>
-        {selectedAsset?.map((asset, i) => (
-          <View style={styles.assetElement} key={i}>
-            <View>
-              <BadgeWrapper
-                badgePosition={BadgePosition.BottomRight}
-                badgeElement={
-                  <Badge
-                    variant={BadgeVariant.Network}
-                    imageSource={NetworkBadgeSource(asset.chainId as Hex)}
-                    name={networkName}
+        {selectedAsset?.map(
+          (
+            asset: {
+              symbol: string;
+              address: string;
+              iconUrl: string;
+              name: string;
+              decimals: number;
+              chainId: string;
+            },
+            i: number,
+          ) => (
+            <View style={styles.assetElement} key={i}>
+              <View>
+                <BadgeWrapper
+                  badgePosition={BadgePosition.BottomRight}
+                  badgeElement={
+                    <Badge
+                      variant={BadgeVariant.Network}
+                      imageSource={NetworkBadgeSource(asset.chainId as Hex)}
+                      name={networkName}
+                    />
+                  }
+                >
+                  <AssetIcon
+                    address={asset.address}
+                    logo={asset.iconUrl}
+                    customStyle={styles.assetIcon}
                   />
-                }
-              >
-                {(() => {
-                  const assetImage = 'image' in asset ? asset.image : undefined;
-                  const assetIconUrl =
-                    'iconUrl' in asset ? asset.iconUrl : undefined;
-                  const logo = assetImage || assetIconUrl;
+                </BadgeWrapper>
+              </View>
 
-                  return (
-                    logo && (
-                      <AssetIcon
-                        address={asset.address}
-                        logo={logo}
-                        customStyle={styles.assetIcon}
-                      />
-                    )
-                  );
-                })()}
-              </BadgeWrapper>
+              <View>
+                <Text variant={TextVariant.BodyLGMedium}>{asset.name}</Text>
+                <Text variant={TextVariant.BodyMD} style={styles.symbolText}>
+                  {asset.symbol}
+                </Text>
+              </View>
+              <RenderBalance {...asset} />
             </View>
-
-            <View>
-              <Text variant={TextVariant.BodyLGMedium}>{asset.name}</Text>
-              <Text variant={TextVariant.BodyMD} style={styles.symbolText}>
-                {asset.symbol}
-              </Text>
-            </View>
-            <RenderBalance {...asset} />
-          </View>
-        ))}
+          ),
+        )}
       </ScrollView>
 
       <View style={styles.bottomContainer}>

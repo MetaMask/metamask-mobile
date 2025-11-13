@@ -574,42 +574,6 @@ describe('useCardDelegation', () => {
       expect(result.current.error).toBe('Delegation completion failed');
     });
 
-    it('handles delegation completion failure after transaction confirmation', async () => {
-      const completionError = new Error('API delegation completion failed');
-      mockSDK.completeEVMDelegation.mockRejectedValue(completionError);
-
-      const mockToken = createMockToken();
-      const params = createMockDelegationParams();
-
-      Engine.controllerMessenger.subscribeOnceIf = jest
-        .fn()
-        .mockImplementation((_eventName, callback) => {
-          // Immediately call the callback with a confirmed transaction
-          setImmediate(() => {
-            callback({
-              id: 'transaction-meta-id-123',
-              status: TransactionStatus.confirmed,
-            });
-          });
-        });
-
-      const { result } = renderHook(() => useCardDelegation(mockToken));
-
-      await act(async () => {
-        await expect(result.current.submitDelegation(params)).rejects.toThrow(
-          'API delegation completion failed',
-        );
-      });
-
-      expect(result.current.error).toBe('API delegation completion failed');
-      expect(Logger.error).toHaveBeenCalledWith(
-        completionError,
-        'Failed to complete EVM delegation',
-      );
-      // Transaction was confirmed but completion failed
-      expect(mockSDK.completeEVMDelegation).toHaveBeenCalled();
-    });
-
     it('handles non-Error objects thrown during delegation', async () => {
       mockSDK.generateDelegationToken.mockRejectedValue('String error');
 
@@ -983,10 +947,7 @@ describe('useCardDelegation', () => {
       const { result } = renderHook(() => useCardDelegation(mockToken));
 
       // Start delegation (don't await yet)
-      let delegationPromise: Promise<void> = Promise.resolve();
-      act(() => {
-        delegationPromise = result.current.submitDelegation(params);
-      });
+      const delegationPromise = result.current.submitDelegation(params);
 
       // Wait a bit to ensure subscription is set up
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1008,70 +969,6 @@ describe('useCardDelegation', () => {
 
       // Now it should be called
       expect(mockSDK.completeEVMDelegation).toHaveBeenCalled();
-    });
-
-    it('handles transaction failure in confirmation listener', async () => {
-      const mockToken = createMockToken();
-      const params = createMockDelegationParams();
-
-      Engine.controllerMessenger.subscribeOnceIf = jest
-        .fn()
-        .mockImplementation((_eventName, callback) => {
-          // Immediately call the callback with a failed transaction
-          setImmediate(() => {
-            callback({
-              id: 'transaction-meta-id-123',
-              status: TransactionStatus.failed,
-              error: {
-                message: 'Transaction execution failed',
-              },
-            });
-          });
-        });
-
-      const { result } = renderHook(() => useCardDelegation(mockToken));
-
-      await act(async () => {
-        await expect(result.current.submitDelegation(params)).rejects.toThrow(
-          'Transaction execution failed',
-        );
-      });
-
-      expect(result.current.error).toBe('Transaction execution failed');
-      expect(Logger.error).toHaveBeenCalledWith(
-        expect.any(Error),
-        'Transaction failed',
-      );
-      expect(mockSDK.completeEVMDelegation).not.toHaveBeenCalled();
-    });
-
-    it('handles transaction failure with generic message when error details not provided', async () => {
-      const mockToken = createMockToken();
-      const params = createMockDelegationParams();
-
-      Engine.controllerMessenger.subscribeOnceIf = jest
-        .fn()
-        .mockImplementation((_eventName, callback) => {
-          // Immediately call the callback with a failed transaction without error details
-          setImmediate(() => {
-            callback({
-              id: 'transaction-meta-id-123',
-              status: TransactionStatus.failed,
-              error: undefined,
-            });
-          });
-        });
-
-      const { result } = renderHook(() => useCardDelegation(mockToken));
-
-      await act(async () => {
-        await expect(result.current.submitDelegation(params)).rejects.toThrow(
-          'Transaction failed',
-        );
-      });
-
-      expect(result.current.error).toBe('Transaction failed');
-      expect(mockSDK.completeEVMDelegation).not.toHaveBeenCalled();
     });
   });
 

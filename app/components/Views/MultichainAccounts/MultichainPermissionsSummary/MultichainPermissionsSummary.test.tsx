@@ -158,6 +158,7 @@ jest.mock('@tommasini/react-native-scrollable-tab-view', () => ({
 
 jest.mock('../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(() => ({ uri: 'mock-network-image.png' })),
+  isPerDappSelectedNetworkEnabled: jest.fn(() => true),
 }));
 
 jest.mock('../../../../selectors/selectedNetworkController', () => ({

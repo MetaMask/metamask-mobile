@@ -37,7 +37,7 @@ import {
 } from '../../constants/confirmations';
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimFooter } from '../predict-confirmations/predict-claim-footer/predict-claim-footer';
-import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
+import { useIsTransactionPayLoading } from '../../hooks/pay/useIsTransactionPayLoading';
 
 const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.perpsDeposit,
@@ -64,7 +64,7 @@ export const Footer = () => {
   const isMMSendReq =
     REDESIGNED_TRANSFER_TYPES.includes(transactionType) &&
     transactionMetadata?.origin === MMM_ORIGIN;
-  const isPayLoading = useIsTransactionPayLoading();
+  const { isLoading: isPayLoading } = useIsTransactionPayLoading();
 
   const { isFooterVisible: isFooterVisibleFlag, isTransactionValueUpdating } =
     useConfirmationContext();

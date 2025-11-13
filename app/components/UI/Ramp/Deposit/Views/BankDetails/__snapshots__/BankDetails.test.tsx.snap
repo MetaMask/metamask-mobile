@@ -313,7 +313,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                       },
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -1423,7 +1423,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                       },
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"

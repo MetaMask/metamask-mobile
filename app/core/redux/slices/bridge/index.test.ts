@@ -50,7 +50,6 @@ describe('bridge slice', () => {
         destAmount: undefined,
         sourceToken: undefined,
         destToken: undefined,
-        gasIncluded: false,
         destAddress: undefined,
         selectedSourceChainIds: undefined,
         selectedDestChainId: undefined,

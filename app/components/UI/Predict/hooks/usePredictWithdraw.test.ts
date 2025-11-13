@@ -36,6 +36,8 @@ jest.mock('@react-navigation/native', () => ({
   })),
 }));
 
+// usePredictEligibility mock removed - no longer needed after geo-block validation skip
+
 // Mock toast context
 const mockToastRef = {
   current: {
@@ -197,6 +199,9 @@ describe('usePredictWithdraw', () => {
   });
 
   describe('withdraw function', () => {
+    // Test removed: navigates to unavailable modal when user is not eligible
+    // This functionality was removed as geo-block validation is now skipped for withdraw
+
     it('calls navigateToConfirmation with correct params when eligible', async () => {
       mockPrepareWithdraw.mockResolvedValue({ success: true });
 
@@ -394,6 +399,9 @@ describe('usePredictWithdraw', () => {
       consoleErrorSpy.mockRestore();
     });
 
+    // Test removed: returns undefined when user is not eligible
+    // This functionality was removed as geo-block validation is now skipped for withdraw
+
     it('returns undefined when error occurs', async () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       mockPrepareWithdraw.mockRejectedValue(new Error('Withdraw failed'));
@@ -473,6 +481,9 @@ describe('usePredictWithdraw', () => {
       });
     });
   });
+
+  // Eligibility checks describe block removed
+  // These tests are no longer needed as geo-block validation is now skipped for withdraw
 
   describe('sequential withdraw calls', () => {
     it('handles multiple withdraw calls independently', async () => {

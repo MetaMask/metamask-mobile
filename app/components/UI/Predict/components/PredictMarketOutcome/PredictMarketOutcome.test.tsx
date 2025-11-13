@@ -10,14 +10,6 @@ import PredictMarketOutcome from '.';
 const mockAlert = jest.fn();
 jest.spyOn(Alert, 'alert').mockImplementation(mockAlert);
 
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    PredictController: {
-      trackGeoBlockTriggered: jest.fn(),
-    },
-  },
-}));
-
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');

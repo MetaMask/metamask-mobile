@@ -1,4 +1,3 @@
-import { toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
 import {
   useFocusEffect,
@@ -577,10 +576,6 @@ const EarnWithdrawInputView = () => {
             // We want to track the currency switching to. Not the current currency.
             currency_type: isFiat ? 'native' : 'fiat',
             experience: receiptToken?.experience?.type,
-            token_symbol: receiptToken?.symbol,
-            chain_id: receiptToken?.chainId
-              ? toHex(receiptToken.chainId)
-              : undefined,
           })
           .build(),
       );
@@ -596,10 +591,6 @@ const EarnWithdrawInputView = () => {
             // We want to track the currency switching to. Not the current currency.
             currency_type: isFiat ? 'native' : 'fiat',
             experience: receiptToken?.experience?.type,
-            token_symbol: receiptToken?.symbol,
-            chain_id: receiptToken?.chainId
-              ? toHex(receiptToken.chainId)
-              : undefined,
           })
           .build(),
       );
@@ -612,8 +603,6 @@ const EarnWithdrawInputView = () => {
     createEventBuilder,
     isFiat,
     receiptToken?.experience?.type,
-    receiptToken?.symbol,
-    receiptToken?.chainId,
   ]);
 
   const handleQuickAmountPressWithTracking = useCallback(

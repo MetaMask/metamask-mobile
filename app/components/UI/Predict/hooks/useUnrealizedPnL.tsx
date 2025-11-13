@@ -125,7 +125,6 @@ export const useUnrealizedPnL = (
     if (loadOnMount) {
       loadUnrealizedPnL();
     }
-    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadOnMount]);
 

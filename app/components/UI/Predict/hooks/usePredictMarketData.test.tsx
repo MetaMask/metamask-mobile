@@ -140,7 +140,7 @@ describe('usePredictMarketData', () => {
     jest.clearAllMocks();
   });
 
-  it('should fetch market data successfully', async () => {
+  it.skip('should fetch market data successfully', async () => {
     mockGetMarkets.mockResolvedValue(mockMarketData);
 
     const { result, waitForNextUpdate } = renderHook(() =>

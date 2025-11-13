@@ -2,65 +2,25 @@
 
 exports[`MultiAssetListItems render matches previous snapshot 1`] = `
 <View
-  collapsable={false}
-  onLayout={[Function]}
   style={
     {
-      "flex": 1,
-      "overflow": "hidden",
+      "padding": 0,
     }
   }
 >
-  <RCTScrollView
-    collapsable={false}
-    decelerationRate="fast"
-    keyExtractor={[Function]}
-    maintainVisibleContentPosition={
+  <Text
+    accessibilityRole="text"
+    style={
       {
-        "minIndexForVisible": 0,
+        "color": "#121314",
+        "fontFamily": "Geist Regular",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
       }
     }
-    onScroll={[Function]}
-    scrollEventThrottle={0.0001}
-    style={{}}
   >
-    <View>
-      <View
-        style={
-          {
-            "height": 0,
-            "left": 0,
-            "position": "absolute",
-            "top": 1000000,
-          }
-        }
-      />
-      <View
-        style={
-          {
-            "height": 0,
-            "width": undefined,
-          }
-        }
-      />
-      <View
-        style={false}
-      />
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#121314",
-            "fontFamily": "Geist Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
-        }
-      >
-        We couldn't find any tokens with that name.
-      </Text>
-    </View>
-  </RCTScrollView>
+    We couldn't find any tokens with that name.
+  </Text>
 </View>
 `;
