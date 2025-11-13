@@ -4,7 +4,7 @@ const styleSheet = () =>
   StyleSheet.create({
     content: {
       paddingHorizontal: 16,
-      paddingVertical: 8,
+      paddingBottom: 16,
     },
   });
 
