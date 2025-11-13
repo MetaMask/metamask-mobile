@@ -78,6 +78,53 @@ export const formatPrice = (
 };
 
 /**
+ * Calculates the net amount after deducting bridge and network fees from the total fiat amount
+ * @param params - Object containing fee and total amount information
+ * @param params.totalFiat - Total fiat amount as string
+ * @param params.bridgeFeeFiat - Bridge fee amount as string
+ * @param params.networkFeeFiat - Network fee amount as string
+ * @returns Net amount as string after deducting fees, or "0" if calculation fails
+ * @example
+ * calculateNetAmount({
+ *   totalFiat: "1.04361142938843253220839271649743403",
+ *   bridgeFeeFiat: "0.036399",
+ *   networkFeeFiat: "0.008024478270232503211154803918368"
+ * }) => "0.999187951118199"
+ */
+export const calculateNetAmount = (params: {
+  totalFiat?: string;
+  bridgeFeeFiat?: string;
+  networkFeeFiat?: string;
+}): string => {
+  const { totalFiat, bridgeFeeFiat, networkFeeFiat } = params;
+
+  // totalFiat is required - return "0" if missing or invalid
+  if (!totalFiat) {
+    return '0';
+  }
+
+  const total = parseFloat(totalFiat);
+  if (isNaN(total)) {
+    return '0';
+  }
+
+  // Treat missing fees as 0, but validate they are numbers if provided
+  const bridgeFee = bridgeFeeFiat ? parseFloat(bridgeFeeFiat) : 0;
+  const networkFee = networkFeeFiat ? parseFloat(networkFeeFiat) : 0;
+
+  // Return "0" if any provided fee is invalid
+  if (isNaN(bridgeFee) || isNaN(networkFee)) {
+    return '0';
+  }
+
+  // Calculate net amount: totalFiat - bridgeFee - networkFee
+  const netAmount = total - bridgeFee - networkFee;
+
+  // Ensure we don't return negative amounts
+  return netAmount > 0 ? netAmount.toString() : '0';
+};
+
+/**
  * Formats a volume value with appropriate suffix based on magnitude
  * @param volume - Raw numeric volume value
  * @returns Formatted string with suffix:
