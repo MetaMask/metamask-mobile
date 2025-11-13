@@ -207,6 +207,7 @@ export const useAssetBalances = (
           style: 'currency',
           currency: currentCurrency?.toUpperCase() || 'USD',
         });
+
         return {
           balanceFiat,
           rawFiatNumber: 0,
@@ -314,22 +315,90 @@ export const useAssetBalances = (
 
       // Use pre-calculated fiat from filtered token
       if (balanceSource === 'filteredToken' && filteredToken?.balanceFiat) {
-        return {
-          balanceFiat: filteredToken.balanceFiat,
-          rawFiatNumber: parseFloat(
-            filteredToken.balanceFiat.replace(/[^0-9.-]/g, ''),
-          ),
-        };
+        // Handle special strings like "tokenRateUndefined" or "tokenBalanceLoading"
+        if (
+          filteredToken.balanceFiat === 'tokenRateUndefined' ||
+          filteredToken.balanceFiat === 'tokenBalanceLoading'
+        ) {
+          // Check if balance is zero
+          const balanceNum = parseFloat(balanceToUse.replace(',', '.'));
+          if (balanceNum === 0 || isNaN(balanceNum)) {
+            const balanceFiat = formatWithThreshold(0, 0.01, I18n.locale, {
+              style: 'currency',
+              currency: currentCurrency?.toUpperCase() || 'USD',
+            });
+            return { balanceFiat, rawFiatNumber: 0 };
+          }
+
+          // Non-zero balance but no rate - show token balance
+          return {
+            balanceFiat: `${parseFloat(balanceToUse.replace(',', '.')).toFixed(6)} ${_token.symbol}`,
+            rawFiatNumber: undefined,
+          };
+        }
+
+        // Parse the numeric value and reformat it properly
+        const rawFiatNumber = parseFloat(
+          filteredToken.balanceFiat.replace(/[^0-9.-]/g, ''),
+        );
+
+        if (!isNaN(rawFiatNumber)) {
+          const balanceFiat = formatWithThreshold(
+            rawFiatNumber,
+            0.01,
+            I18n.locale,
+            {
+              style: 'currency',
+              currency: currentCurrency?.toUpperCase() || 'USD',
+            },
+          );
+
+          return { balanceFiat, rawFiatNumber };
+        }
       }
 
       // Use pre-calculated fiat from wallet asset
       if (balanceSource === 'walletAsset' && walletAsset?.balanceFiat) {
-        return {
-          balanceFiat: walletAsset.balanceFiat,
-          rawFiatNumber: parseFloat(
-            walletAsset.balanceFiat.replace(/[^0-9.-]/g, ''),
-          ),
-        };
+        // Handle special strings like "tokenRateUndefined" or "tokenBalanceLoading"
+        if (
+          walletAsset.balanceFiat === 'tokenRateUndefined' ||
+          walletAsset.balanceFiat === 'tokenBalanceLoading'
+        ) {
+          // Check if balance is zero
+          const balanceNum = parseFloat(balanceToUse.replace(',', '.'));
+          if (balanceNum === 0 || isNaN(balanceNum)) {
+            const balanceFiat = formatWithThreshold(0, 0.01, I18n.locale, {
+              style: 'currency',
+              currency: currentCurrency?.toUpperCase() || 'USD',
+            });
+            return { balanceFiat, rawFiatNumber: 0 };
+          }
+
+          // Non-zero balance but no rate - show token balance
+          return {
+            balanceFiat: `${parseFloat(balanceToUse.replace(',', '.')).toFixed(6)} ${_token.symbol}`,
+            rawFiatNumber: undefined,
+          };
+        }
+
+        // Parse the numeric value and reformat it properly
+        const rawFiatNumber = parseFloat(
+          walletAsset.balanceFiat.replace(/[^0-9.-]/g, ''),
+        );
+
+        if (!isNaN(rawFiatNumber)) {
+          const balanceFiat = formatWithThreshold(
+            rawFiatNumber,
+            0.01,
+            I18n.locale,
+            {
+              style: 'currency',
+              currency: currentCurrency?.toUpperCase() || 'USD',
+            },
+          );
+
+          return { balanceFiat, rawFiatNumber };
+        }
       }
 
       // For availableBalance with rates but no market data price
@@ -391,6 +460,7 @@ export const useAssetBalances = (
               currency: currentCurrency?.toUpperCase() || 'USD',
             },
           );
+
           return {
             balanceFiat,
             rawFiatNumber: derivedBalance.balanceFiatCalculation,
@@ -418,6 +488,7 @@ export const useAssetBalances = (
           style: 'currency',
           currency: currentCurrency?.toUpperCase() || 'USD',
         });
+
         return {
           balanceFiat,
           rawFiatNumber: 0,
