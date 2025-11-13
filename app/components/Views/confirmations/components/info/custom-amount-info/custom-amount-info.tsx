@@ -86,6 +86,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const { alertMessage, alertTitle } = useTransactionCustomAmountAlerts({
       isInputChanged,
+      isKeyboardVisible,
       pendingTokenAmount: amountHumanDebounced,
     });
 
@@ -133,7 +134,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               hasInput={hasInput}
             />
           )}
-        {!hasTokens && <BuySection />}
+          {!hasTokens && <BuySection />}
           {!isKeyboardVisible && <ConfirmButton alertTitle={alertTitle} />}
         </Box>
       </Box>

@@ -9,7 +9,15 @@ const PENDING_AMOUNT_ALERTS: AlertKeys[] = [
   AlertKeys.InsufficientPredictBalance,
 ];
 
-export const ON_CHANGE_ALERTS = [
+const KEYBOARD_ALERTS: AlertKeys[] = [
+  AlertKeys.PerpsDepositMinimum,
+  AlertKeys.InsufficientPayTokenBalance,
+  AlertKeys.SignedOrSubmitted,
+  AlertKeys.PerpsHardwareAccount,
+  AlertKeys.InsufficientPredictBalance,
+];
+
+const ON_CHANGE_ALERTS = [
   AlertKeys.PerpsDepositMinimum,
   AlertKeys.InsufficientPayTokenBalance,
   AlertKeys.InsufficientPredictBalance,
@@ -17,20 +25,30 @@ export const ON_CHANGE_ALERTS = [
 
 export function useTransactionCustomAmountAlerts({
   isInputChanged,
+  isKeyboardVisible,
   pendingTokenAmount,
 }: {
   isInputChanged: boolean;
+  isKeyboardVisible: boolean;
   pendingTokenAmount: string;
-}) {
+}): {
+  alertMessage?: string;
+  alertTitle?: string;
+} {
   const { alerts: confirmationAlerts } = useAlerts();
   const pendingTokenAlerts = usePendingAmountAlerts({ pendingTokenAmount });
 
   const filteredConfirmationAlerts = useMemo(
     () =>
       confirmationAlerts.filter(
-        (a) => !PENDING_AMOUNT_ALERTS.includes(a.key as AlertKeys),
+        (a) =>
+          a.isBlocking &&
+          !PENDING_AMOUNT_ALERTS.includes(a.key as AlertKeys) &&
+          (!isKeyboardVisible ||
+            KEYBOARD_ALERTS.includes(a.key as AlertKeys)) &&
+          (isInputChanged || !ON_CHANGE_ALERTS.includes(a.key as AlertKeys)),
       ),
-    [confirmationAlerts],
+    [confirmationAlerts, isInputChanged, isKeyboardVisible],
   );
 
   const alerts = useMemo(
@@ -40,13 +58,16 @@ export function useTransactionCustomAmountAlerts({
 
   const firstAlert = alerts?.[0];
 
-  const hasAlert =
-    Boolean(firstAlert) &&
-    (!ON_CHANGE_ALERTS.includes(firstAlert?.key as AlertKeys) ||
-      isInputChanged);
+  if (!firstAlert) {
+    return {};
+  }
 
-  const alertTitle = hasAlert ? (firstAlert?.title ?? 'Error') : undefined;
-  const alertMessage = hasAlert ? (firstAlert?.message as string) : undefined;
+  const alertTitle =
+    firstAlert.title ?? (firstAlert.message as string | undefined);
+
+  const alertMessage = firstAlert.title
+    ? (firstAlert.message as string | undefined)
+    : undefined;
 
   return {
     alertMessage,
