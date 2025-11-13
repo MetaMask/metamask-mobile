@@ -234,6 +234,10 @@ jest.mock('../../hooks/usePredictPrices', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePredictMeasurement', () => ({
+  usePredictMeasurement: jest.fn(),
+}));
+
 jest.mock('../../components/PredictDetailsChart/PredictDetailsChart', () => {
   const { View, Text } = jest.requireActual('react-native');
   return function MockPredictDetailsChart() {
@@ -431,11 +435,13 @@ function createMockMarket(overrides = {}) {
     image: 'https://example.com/bitcoin.png',
     endDate: '2024-12-31T23:59:59Z',
     providerId: 'polymarket',
+    status: 'open',
     outcomes: [
       {
         id: 'outcome-1',
         title: 'Yes',
         groupItemTitle: 'Yes',
+        status: 'open',
         tokens: [
           {
             id: 'token-1',
@@ -454,6 +460,7 @@ function createMockMarket(overrides = {}) {
         id: 'outcome-2',
         title: 'No',
         groupItemTitle: 'No',
+        status: 'open',
         tokens: [
           {
             id: 'token-3',
@@ -841,11 +848,16 @@ describe('PredictMarketDetails', () => {
   describe('Chart Rendering', () => {
     it('renders single outcome chart for single outcome markets', () => {
       const singleOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
             title: 'Yes',
-            tokens: [{ id: 'token-1', price: 0.65 }],
+            status: 'open',
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
             volume: 1000000,
           },
         ],
@@ -868,18 +880,21 @@ describe('PredictMarketDetails', () => {
           {
             id: 'outcome-1',
             title: 'Option A',
+            status: 'open',
             tokens: [{ id: 'token-1', price: 0.4 }],
             volume: 1000000,
           },
           {
             id: 'outcome-2',
             title: 'Option B',
+            status: 'open',
             tokens: [{ id: 'token-2', price: 0.3 }],
             volume: 500000,
           },
           {
             id: 'outcome-3',
             title: 'Option C',
+            status: 'open',
             tokens: [{ id: 'token-3', price: 0.3 }],
             volume: 300000,
           },
@@ -887,6 +902,215 @@ describe('PredictMarketDetails', () => {
       });
 
       setupPredictMarketDetailsTest(multiOutcomeMarket);
+
+      expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
+    });
+
+    it('does not render chart when all outcomes are closed', () => {
+      const closedOutcomesMarket = createMockMarket({
+        status: 'closed',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            status: 'closed',
+            tokens: [
+              { id: 'token-1', price: 1.0, title: 'Yes' },
+              { id: 'token-1b', price: 0.0, title: 'No' },
+            ],
+            volume: 1000000,
+          },
+          {
+            id: 'outcome-2',
+            title: 'No',
+            status: 'closed',
+            tokens: [
+              { id: 'token-2', price: 0.0, title: 'Yes' },
+              { id: 'token-2b', price: 1.0, title: 'No' },
+            ],
+            volume: 500000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(closedOutcomesMarket);
+
+      expect(
+        screen.queryByTestId('predict-details-chart'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not render chart when market has no open outcomes', () => {
+      const noOpenOutcomesMarket = createMockMarket({
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Option A',
+            status: 'closed',
+            tokens: [{ id: 'token-1', price: 0.5 }],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(noOpenOutcomesMarket);
+
+      expect(
+        screen.queryByTestId('predict-details-chart'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders chart when market has at least one open outcome', () => {
+      const mixedStatusMarket = createMockMarket({
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Option A',
+            status: 'closed',
+            tokens: [{ id: 'token-1', price: 1.0 }],
+            volume: 1000000,
+          },
+          {
+            id: 'outcome-2',
+            title: 'Option B',
+            status: 'open',
+            tokens: [{ id: 'token-2', price: 0.5 }],
+            volume: 500000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(mixedStatusMarket);
+
+      expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
+    });
+
+    it('limits chart data to first 3 open outcomes when more are available', () => {
+      const { usePredictPriceHistory } = jest.requireMock(
+        '../../hooks/usePredictPriceHistory',
+      );
+
+      const marketWithManyOutcomes = createMockMarket({
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Option A',
+            status: 'open',
+            tokens: [{ id: 'token-1', price: 0.25 }],
+            volume: 1000000,
+          },
+          {
+            id: 'outcome-2',
+            title: 'Option B',
+            status: 'open',
+            tokens: [{ id: 'token-2', price: 0.25 }],
+            volume: 800000,
+          },
+          {
+            id: 'outcome-3',
+            title: 'Option C',
+            status: 'open',
+            tokens: [{ id: 'token-3', price: 0.25 }],
+            volume: 600000,
+          },
+          {
+            id: 'outcome-4',
+            title: 'Option D',
+            status: 'open',
+            tokens: [{ id: 'token-4', price: 0.25 }],
+            volume: 400000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(marketWithManyOutcomes);
+
+      expect(usePredictPriceHistory).toHaveBeenCalledWith(
+        expect.objectContaining({
+          marketIds: ['token-1', 'token-2', 'token-3'],
+        }),
+      );
+    });
+
+    it('filters out closed outcomes from chart data', () => {
+      const { usePredictPriceHistory } = jest.requireMock(
+        '../../hooks/usePredictPriceHistory',
+      );
+
+      const marketWithMixedStatus = createMockMarket({
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Option A',
+            status: 'closed',
+            tokens: [{ id: 'token-1', price: 1.0 }],
+            volume: 1000000,
+          },
+          {
+            id: 'outcome-2',
+            title: 'Option B',
+            status: 'open',
+            tokens: [{ id: 'token-2', price: 0.6 }],
+            volume: 800000,
+          },
+          {
+            id: 'outcome-3',
+            title: 'Option C',
+            status: 'open',
+            tokens: [{ id: 'token-3', price: 0.4 }],
+            volume: 600000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(marketWithMixedStatus);
+
+      expect(usePredictPriceHistory).toHaveBeenCalledWith(
+        expect.objectContaining({
+          marketIds: ['token-2', 'token-3'],
+        }),
+      );
+      expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
+    });
+
+    it('does not render chart when market has no open outcomes', () => {
+      const emptyOutcomesMarket = createMockMarket({
+        status: 'closed',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Placeholder',
+            status: 'closed',
+            tokens: [
+              { id: 'token-1', title: 'Token', price: 0.5 },
+              { id: 'token-2', title: 'Token 2', price: 0.5 },
+            ],
+            volume: 0,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(emptyOutcomesMarket);
+
+      expect(
+        screen.queryByTestId('predict-details-chart'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders chart even when outcomes have no tokens', () => {
+      const noTokensMarket = createMockMarket({
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Option A',
+            status: 'open',
+            tokens: [],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(noTokensMarket);
 
       expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
     });
@@ -1345,22 +1569,26 @@ describe('PredictMarketDetails', () => {
 
     it('renders outcomes tab for multi-outcome markets', () => {
       const multiOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
             title: 'Option A',
+            status: 'open',
             tokens: [{ id: 'token-1', price: 0.4 }],
             volume: 1000000,
           },
           {
             id: 'outcome-2',
             title: 'Option B',
+            status: 'open',
             tokens: [{ id: 'token-2', price: 0.3 }],
             volume: 500000,
           },
           {
             id: 'outcome-3',
             title: 'Option C',
+            status: 'open',
             tokens: [{ id: 'token-3', price: 0.3 }],
             volume: 300000,
           },
@@ -1370,7 +1598,9 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(multiOutcomeMarket);
 
       // Outcomes is the default tab when there are no positions
-      expect(screen.getAllByTestId('predict-market-outcome')).toHaveLength(3);
+      expect(
+        screen.getByTestId('predict-market-details-outcomes-tab'),
+      ).toBeOnTheScreen();
     });
 
     it('does not render outcomes tab for single outcome markets', () => {
@@ -1914,11 +2144,16 @@ describe('PredictMarketDetails', () => {
 
     it('handles chart color selection for single outcome', () => {
       const singleOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
             title: 'Yes',
-            tokens: [{ id: 'token-1', price: 0.65 }],
+            status: 'open',
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
             volume: 1000000,
           },
         ],
@@ -1932,16 +2167,19 @@ describe('PredictMarketDetails', () => {
 
     it('handles chart color selection for multiple outcomes', () => {
       const multiOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
             title: 'Option A',
+            status: 'open',
             tokens: [{ id: 'token-1', price: 0.4 }],
             volume: 1000000,
           },
           {
             id: 'outcome-2',
             title: 'Option B',
+            status: 'open',
             tokens: [{ id: 'token-2', price: 0.3 }],
             volume: 500000,
           },
@@ -2365,7 +2603,7 @@ describe('PredictMarketDetails', () => {
       expect(screen.getByText('predict.resolved_outcomes')).toBeOnTheScreen();
     });
 
-    it('hides chart when multipleOpenOutcomesPartiallyResolved is true', () => {
+    it('renders chart when market has open outcomes despite partial resolution', () => {
       const marketWithPartialResolution = createMockMarket({
         status: 'open',
         outcomes: [
@@ -2394,9 +2632,7 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(marketWithPartialResolution);
 
-      expect(
-        screen.queryByTestId('predict-details-chart'),
-      ).not.toBeOnTheScreen();
+      expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
     });
 
     it('displays resolved outcomes count badge', () => {
