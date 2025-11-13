@@ -1,4 +1,5 @@
 import { ChainablePromiseElement } from 'webdriverio';
+import { boxedStep } from '../utils';
 
 /**
  * PlaywrightAdapter - Provides Playwright-like API on top of WebdriverIO elems
@@ -20,25 +21,26 @@ export class PlaywrightElement {
   }
 
   /**
-   * Fill an input elem with text (Playwright-style)
-   * Maps to WebdriverIO's setValue()
+   * Fill an input elem with text
+   * @param value - The value to fill the input with
    */
+  @boxedStep
   async fill(value: string): Promise<void> {
     await this.elem.setValue(value);
   }
 
   /**
-   * Click an elem (Playwright-style)
-   * Maps to WebdriverIO's click()
+   * Click an elem
    */
+  @boxedStep
   async click(): Promise<void> {
     await this.elem.click();
   }
 
   /**
-   * Get the text content of an elem (Playwright-style)
-   * Maps to WebdriverIO's getText()
+   * Get the text content of the elem
    */
+  @boxedStep
   async textContent(): Promise<string> {
     return await this.elem.getText();
   }
@@ -47,6 +49,7 @@ export class PlaywrightElement {
    * Check if elem is visible (Playwright-style)
    * Maps to WebdriverIO's isDisplayed()
    */
+  @boxedStep
   async isVisible(): Promise<boolean> {
     return await this.elem.isDisplayed();
   }
@@ -55,6 +58,7 @@ export class PlaywrightElement {
    * Check if elem is enabled (Playwright-style)
    * Maps to WebdriverIO's isEnabled()
    */
+  @boxedStep
   async isEnabled(): Promise<boolean> {
     return await this.elem.isEnabled();
   }
@@ -62,15 +66,19 @@ export class PlaywrightElement {
   /**
    * Get attribute value (Playwright-style)
    * Maps to WebdriverIO's getAttribute()
+   * @param name - The name of the attribute to get
+   * @returns The value of the attribute or null if the attribute does not exist
    */
+  @boxedStep
   async getAttribute(name: string): Promise<string | null> {
     return await this.elem.getAttribute(name);
   }
 
   /**
-   * Type text with a delay between keystrokes (Playwright-style)
-   * Maps to WebdriverIO's addValue()
+   * Type text with a delay between keystrokes
+   * @param text - The text to type
    */
+  @boxedStep
   async type(text: string): Promise<void> {
     await this.elem.addValue(text);
   }
@@ -79,6 +87,7 @@ export class PlaywrightElement {
    * Clear the input elem (Playwright-style)
    * Maps to WebdriverIO's clearValue()
    */
+  @boxedStep
   async clear(): Promise<void> {
     await this.elem.clearValue();
   }
@@ -86,6 +95,7 @@ export class PlaywrightElement {
   /**
    * Wait for elem to be displayed
    */
+  @boxedStep
   async waitForDisplayed(options?: {
     timeout?: number;
     reverse?: boolean;
@@ -96,6 +106,7 @@ export class PlaywrightElement {
   /**
    * Wait for elem to be enabled
    */
+  @boxedStep
   async waitForEnabled(options?: {
     timeout?: number;
     reverse?: boolean;
@@ -104,16 +115,13 @@ export class PlaywrightElement {
   }
 
   /**
-   * Tap on elem (mobile-specific, Playwright-style)
-   * Maps to WebdriverIO's touchAction()
+   * Tap on element at coordinates (mobile-specific, Playwright-style)
+   * Maps to WebdriverIO's touchAction() - tap at element center
+   * Note: Use click() if touchAction has compatibility issues
    */
-  async tap(): Promise<void> {
-    const location = await this.elem.getLocation();
-    const size = await this.elem.getSize();
-    const x = location.x + size.width / 2;
-    const y = location.y + size.height / 2;
-
-    // Use WebdriverIO's touch action
+  @boxedStep
+  async tapOnCoordinates({ x, y }: { x: number; y: number }): Promise<void> {
+    // Use WebdriverIO's touch action to tap at coordinates
     await this.elem.touchAction([
       {
         action: 'tap',
@@ -135,6 +143,8 @@ export class PlaywrightElement {
 /**
  * Wrap a WebdriverIO elem with Playwright-like API
  * Intentionally shadows global $ to provide Playwright-style syntax
+ * @param selector - The selector to wrap
+ * @returns The wrapped element
  */
 // eslint-disable-next-line @typescript-eslint/no-shadow
 export async function $(selector: string): Promise<PlaywrightElement> {
@@ -147,6 +157,8 @@ export async function $(selector: string): Promise<PlaywrightElement> {
 /**
  * Wrap multiple WebdriverIO elems with Playwright-like API
  * Intentionally shadows global $ to provide Playwright-style syntax
+ * @param selector - The selector to wrap
+ * @returns The wrapped elements
  */
 // eslint-disable-next-line @typescript-eslint/no-shadow
 export async function $$(selector: string): Promise<PlaywrightElement[]> {

@@ -16,11 +16,10 @@ const defaultConfig: PlaywrightTestConfig<WebDriverConfig> = {
   // used across tests in a file where they run sequentially
   fullyParallel: false,
   forbidOnly: false,
-  retries: process.env.CI ? 2 : 0,
+  retries: 1, // Locking this to 1 worker only before moving to CI
   workers: 2,
   reporter: [['list'], ['html', { open: 'always' }]],
   use: {
-    // TODO: Use this for actions
     actionTimeout: 20_000,
     expectTimeout: 20_000,
   },

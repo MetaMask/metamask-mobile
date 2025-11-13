@@ -3,15 +3,30 @@ import { getDriver } from '../utils';
 import { ChainablePromiseElement } from 'webdriverio';
 
 /**
- * PlaywrightMatchers - Element selectors that return Playwright-like wrapped elements
+ * PlaywrightMatchers - Element selectors that return Playwright-like wrapped
+ * elements.
  *
  * These matchers use WebdriverIO's robust element finding under the hood,
- * but return elements with Playwright-style API (fill, click, textContent, etc.)
+ * but return elements with Playwright-style API (fill, click, textContent, etc.).
+ *
+ * All these functions can later take use of the original Detox framework with
+ * the executeWithRetry approach, for the time being we're relying on the
+ * WebdriverIO framework only.
+ *
+ * @example
+ * const element = await PlaywrightMatchers.getByAccessibilityId('login-button');
+ * await element.fill('myusername');
+ * await element.click();
+ * const text = await element.textContent();
+ * console.log(text);
  */
 export default class PlaywrightMatchers {
   /**
    * Get element by accessibility ID (iOS) or content-desc/resource-id (Android)
    * This is the most common selector for mobile apps
+   *
+   * @param elementId - The accessibility ID or content-desc/resource-id of the element
+   * @returns The wrapped element
    */
   static async getByAccessibilityId(
     elementId: string,
@@ -24,6 +39,8 @@ export default class PlaywrightMatchers {
 
   /**
    * Get element by ID (Android resource-id or iOS accessibility identifier)
+   * @param elementId - The ID of the element
+   * @returns The wrapped element
    */
   static async getById(elementId: string): Promise<PlaywrightElement> {
     const drv = getDriver();
@@ -34,6 +51,8 @@ export default class PlaywrightMatchers {
 
   /**
    * Get element by text content
+   * @param text - The text to search for
+   * @returns The wrapped element
    */
   static async getByText(text: string): Promise<PlaywrightElement> {
     const drv = getDriver();
@@ -44,6 +63,8 @@ export default class PlaywrightMatchers {
 
   /**
    * Get multiple elements by text content
+   * @param text - The text to search for
+   * @returns The wrapped elements
    */
   static async getAllByText(text: string): Promise<PlaywrightElement[]> {
     const drv = getDriver();
@@ -56,6 +77,8 @@ export default class PlaywrightMatchers {
 
   /**
    * Get element by XPath selector
+   * @param xpath - The XPath selector to search for
+   * @returns The wrapped element
    */
   static async getByXPath(xpath: string): Promise<PlaywrightElement> {
     const drv = getDriver();
@@ -66,6 +89,8 @@ export default class PlaywrightMatchers {
 
   /**
    * Get element by class name
+   * @param className - The class name to search for
+   * @returns The wrapped element
    */
   static async getByClass(className: string): Promise<PlaywrightElement> {
     const drv = getDriver();
@@ -77,6 +102,8 @@ export default class PlaywrightMatchers {
   /**
    * Get element by Android UIAutomator selector
    * Only works on Android
+   * @param selector - The Android UIAutomator selector to search for
+   * @returns The wrapped element
    */
   static async getByAndroidUIAutomator(
     selector: string,
@@ -90,6 +117,8 @@ export default class PlaywrightMatchers {
   /**
    * Get element by iOS predicate string
    * Only works on iOS
+   * @param predicate - The iOS predicate to search for
+   * @returns The wrapped element
    */
   static async getByIOSPredicate(
     predicate: string,
@@ -103,6 +132,8 @@ export default class PlaywrightMatchers {
   /**
    * Get element by iOS class chain
    * Only works on iOS
+   * @param chain - The iOS class chain to search for
+   * @returns The wrapped element
    */
   static async getByIOSClassChain(chain: string): Promise<PlaywrightElement> {
     const drv = getDriver();

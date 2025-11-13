@@ -47,7 +47,6 @@ export interface WebDriverConfig {
   buildPath: string;
   appBundleId: string;
   launchableActivity: string;
-  // TODO: use expect timeout from playwright config
   expectTimeout: number;
 }
 

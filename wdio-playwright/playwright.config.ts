@@ -21,7 +21,7 @@ export default defineConfig({
           osVersion: '14',
           packageName: 'io.metamask',
         },
-        buildPath: '/Users/cferreira/Downloads/with-srp.apk',
+        buildPath: '/Users/cferreira/Downloads/with-srp-2818.apk', // Just testing locally
         launchableActivity: 'io.metamask.MainActivity',
       },
     },
