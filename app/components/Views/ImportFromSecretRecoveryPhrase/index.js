@@ -518,7 +518,8 @@ const ImportFromSecretRecoveryPhrase = ({
         keyboardDismissMode="none"
         enableOnAndroid
         enableAutomaticScroll
-        extraScrollHeight={20}
+        extraScrollHeight={240}
+        keyboardOpeningTime={0}
         showsVerticalScrollIndicator={false}
       >
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
