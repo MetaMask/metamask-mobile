@@ -136,7 +136,12 @@ const TrendingTokenRowItem = ({
       </View>
       <View style={styles.leftContainer}>
         <View style={styles.tokenHeaderRow}>
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            color={TextColor.Default}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
             {token.name}
           </Text>
         </View>
