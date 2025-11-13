@@ -5,7 +5,6 @@ import {
   CHART_HEIGHT,
   CHART_CONTENT_INSET,
   MAX_SERIES,
-  getTimeframeDurationMs,
   formatPriceHistoryLabel,
   formatTickValue,
 } from './utils';
@@ -36,35 +35,6 @@ describe('PredictDetailsChart utils', () => {
     it('exports line curve as a function', () => {
       expect(typeof LINE_CURVE).toBe('function');
       expect(LINE_CURVE.alpha).toBeDefined();
-    });
-  });
-
-  describe('getTimeframeDurationMs', () => {
-    it.each([
-      [PredictPriceHistoryInterval.ONE_HOUR, 60 * 60 * 1000],
-      [PredictPriceHistoryInterval.SIX_HOUR, 6 * 60 * 60 * 1000],
-      [PredictPriceHistoryInterval.ONE_DAY, 24 * 60 * 60 * 1000],
-      [PredictPriceHistoryInterval.ONE_WEEK, 7 * 24 * 60 * 60 * 1000],
-      [PredictPriceHistoryInterval.ONE_MONTH, 30 * 24 * 60 * 60 * 1000],
-    ])(
-      'returns expected duration for %s interval',
-      (interval: PredictPriceHistoryInterval, expectedDuration: number) => {
-        const result = getTimeframeDurationMs(interval);
-
-        expect(result).toBe(expectedDuration);
-      },
-    );
-
-    it('returns null for MAX interval', () => {
-      const result = getTimeframeDurationMs(PredictPriceHistoryInterval.MAX);
-
-      expect(result).toBeNull();
-    });
-
-    it('returns null for unknown interval', () => {
-      const result = getTimeframeDurationMs('unknown-interval');
-
-      expect(result).toBeNull();
     });
   });
 

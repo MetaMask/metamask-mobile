@@ -1150,14 +1150,16 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         {/* Header content - scrollable */}
         <Box twClassName="px-3 gap-4">
           {renderMarketStatus()}
-          <PredictDetailsChart
-            data={chartData}
-            timeframes={PRICE_HISTORY_TIMEFRAMES}
-            selectedTimeframe={selectedTimeframe}
-            onTimeframeChange={handleTimeframeChange}
-            isLoading={isPriceHistoryFetching}
-            emptyLabel={chartEmptyLabel}
-          />
+          {!multipleOpenOutcomesPartiallyResolved && (
+            <PredictDetailsChart
+              data={chartData}
+              timeframes={PRICE_HISTORY_TIMEFRAMES}
+              selectedTimeframe={selectedTimeframe}
+              onTimeframeChange={handleTimeframeChange}
+              isLoading={isPriceHistoryFetching}
+              emptyLabel={chartEmptyLabel}
+            />
+          )}
         </Box>
 
         {/* Show content skeleton while initial market data is fetching */}
