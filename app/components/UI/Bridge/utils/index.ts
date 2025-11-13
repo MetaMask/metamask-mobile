@@ -66,11 +66,19 @@ export const getTokenIconUrl = (
   const isEvmChain = !isNonEvmChainId(chainId);
   const formattedAddress = isEvmChain ? address.toLowerCase() : address;
 
-  const assetId = formatAddressToAssetId(formattedAddress, chainId);
-  if (!assetId) {
+  try {
+    const assetId = formatAddressToAssetId(formattedAddress, chainId);
+    if (!assetId) {
+      return undefined;
+    }
+    return `https://static.cx.metamask.io/api/v2/tokenIcons/assets/${assetId
+      .split(':')
+      .join('/')}.png`;
+  } catch (error) {
+    // formatAddressToAssetId may throw for unsupported chains. This is expected behavior,
+    // so we gracefully handle it by returning undefined rather than propagating the error.
+    // This prevents the app from crashing when attempting to fetch icons for tokens on
+    // chains that aren't yet supported by the tokenIcons API.
     return undefined;
   }
-  return `https://static.cx.metamask.io/api/v2/tokenIcons/assets/${assetId
-    .split(':')
-    .join('/')}.png`;
 };
