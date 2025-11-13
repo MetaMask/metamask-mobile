@@ -5,8 +5,8 @@ jest.mock('../../../util/Logger', () => ({
 }));
 
 // Mock animation components - using existing mocks
-jest.mock('./FoxAnimation');
-jest.mock('./OnboardingAnimation');
+jest.mock('../../UI/FoxAnimation/FoxAnimation');
+jest.mock('../../UI/OnboardingAnimation/OnboardingAnimation');
 
 import React from 'react';
 import {

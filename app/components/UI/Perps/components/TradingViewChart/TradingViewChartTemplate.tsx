@@ -569,9 +569,9 @@ export const createTradingViewChartTemplate = (
                         price: parseFloat(currentPrice),
                         color: '#FFF', // White
                         lineWidth: 1,
-                        lineStyle: 0, // Solid line
+                        lineStyle: 2, // Dashed line
                         axisLabelVisible: true,
-                        title: 'Current'
+                        title: ''
                     });
                     // Store reference for future removal
                     window.priceLines.currentPrice = priceLine;
@@ -711,15 +711,15 @@ export const createTradingViewChartTemplate = (
                         price: window.originalPriceLineData.currentPrice.price,
                         color: '#FFF',
                         lineWidth: 1,
-                        lineStyle: 0,
+                        lineStyle: 2,
                         axisLabelVisible: true,
-                        title: 'Current'
+                        title: ''
                     });
                 } catch (error) {
                     // Silent error handling
                 }
             }
-            
+
             // Recreate current price line from stored data
             if (window.originalPriceLineData.currentPrice) {
                 try {
@@ -727,9 +727,9 @@ export const createTradingViewChartTemplate = (
                         price: window.originalPriceLineData.currentPrice.price,
                         color: '#FFF',
                         lineWidth: 1,
-                        lineStyle: 0,
+                        lineStyle: 2,
                         axisLabelVisible: true,
-                        title: 'Current'
+                        title: ''
                     });
                 } catch (error) {
                     // Silent error handling

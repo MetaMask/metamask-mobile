@@ -11,6 +11,7 @@ import { isNullOrUndefined } from '@metamask/utils';
 import { formatUnits } from 'viem';
 import { formatWithThreshold } from '../../../../util/assets';
 import { PerpsEventType } from './eventConstants';
+import { formatRewardsMusdDepositPayloadDate } from './formatUtils';
 
 /**
  * Formats an asset amount with proper decimals
@@ -212,6 +213,26 @@ export const getEventDetails = (
         details: undefined,
         icon: IconName.Gift,
       };
+    case 'PREDICT':
+      return {
+        title: strings('rewards.events.type.predict'),
+        details: undefined,
+        icon: IconName.Speedometer,
+      };
+    case 'MUSD_DEPOSIT': {
+      const formattedDate = formatRewardsMusdDepositPayloadDate(
+        event.payload?.date,
+      );
+      return {
+        title: strings('rewards.events.type.musd_deposit'),
+        details: formattedDate
+          ? strings('rewards.events.musd_deposit_for', {
+              date: formattedDate,
+            })
+          : undefined,
+        icon: IconName.Coin,
+      };
+    }
     default:
       return {
         title: strings('rewards.events.type.uncategorized_event'),

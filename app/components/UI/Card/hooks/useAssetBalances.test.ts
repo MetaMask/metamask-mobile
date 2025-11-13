@@ -382,7 +382,7 @@ describe('useAssetBalances', () => {
       mockUseTokensWithBalance.mockReturnValue([
         {
           address: mockEvmToken.address?.toLowerCase() || '',
-          chainId: mockEvmToken.caipChainId,
+          chainId: '0xe708', // Use hex format, not CAIP format
           balance: '250.75',
           balanceFiat: '$250.75',
           symbol: 'USDC',
@@ -449,7 +449,7 @@ describe('useAssetBalances', () => {
       mockUseTokensWithBalance.mockReturnValue([
         {
           address: mockNotEnabledToken.address?.toLowerCase() || '',
-          chainId: mockNotEnabledToken.caipChainId,
+          chainId: '0xe708', // Use hex format, not CAIP format
           balance: '200.75',
           balanceFiat: '$200.75',
           symbol: 'DAI',
@@ -559,7 +559,7 @@ describe('useAssetBalances', () => {
       mockUseTokensWithBalance.mockReturnValue([
         {
           address: mockEvmToken.address?.toLowerCase() || '',
-          chainId: mockEvmToken.caipChainId,
+          chainId: '0xe708', // Use hex format, not CAIP format
           balance: '125.50',
           balanceFiat: '$125.50',
           symbol: 'USDC',

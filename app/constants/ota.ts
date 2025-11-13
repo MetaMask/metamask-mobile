@@ -10,6 +10,7 @@ import otaConfig from '../../ota.config.js';
 export const OTA_VERSION = otaConfig.OTA_VERSION;
 export const RUNTIME_VERSION = otaConfig.RUNTIME_VERSION;
 export const PROJECT_ID = otaConfig.PROJECT_ID;
+export const UPDATE_URL = otaConfig.UPDATE_URL;
 
 /**
  * Gets the full version string including OTA version

@@ -34,12 +34,14 @@ export const useFeeCalculations = (
     gas,
     shouldUseEIP1559FeeLogic,
     priorityFeePerGas,
+    receiptGasPrice,
   }: {
     feePerGas: string;
     gasPrice: string;
     gas: string;
     shouldUseEIP1559FeeLogic: boolean;
     priorityFeePerGas: string;
+    receiptGasPrice?: string;
   }) => {
     currentCurrencyFee: string | null;
     nativeCurrencyFee: string | null;
@@ -52,8 +54,14 @@ export const useFeeCalculations = (
   maxFeeNativePrecise: string | null;
   maxFeeNativeHex: string | null;
 } => {
-  const { chainId, gasLimitNoBuffer, gasUsed, layer1GasFee, networkClientId } =
-    transactionMeta;
+  const {
+    chainId,
+    gasLimitNoBuffer,
+    gasUsed,
+    layer1GasFee,
+    networkClientId,
+    txReceipt,
+  } = transactionMeta;
 
   const { nativeCurrency } =
     useSelector((state: RootState) =>
@@ -74,6 +82,7 @@ export const useFeeCalculations = (
   // `gasUsed` is the gas limit actually used by the transaction in the
   // simulation environment.
   const optimizedGasLimit =
+    txReceipt?.gasUsed ||
     gasUsed ||
     // While estimating gas for the transaction we add 50% gas limit buffer.
     // With `gasLimitNoBuffer` that buffer is removed. see PR
@@ -85,7 +94,9 @@ export const useFeeCalculations = (
 
   const estimatedBaseFee = (gasFeeEstimates as GasFeeEstimates)
     ?.estimatedBaseFee;
+
   const txParamsGasPrice = transactionMeta.txParams?.gasPrice ?? HEX_ZERO;
+  const receiptGasPriceHex = txReceipt?.effectiveGasPrice;
 
   const getFeesFromHexCallback = useCallback(
     (hexFee: string) =>
@@ -106,12 +117,14 @@ export const useFeeCalculations = (
       gas,
       shouldUseEIP1559FeeLogic,
       priorityFeePerGas,
+      receiptGasPrice,
     }: {
       feePerGas: string;
       priorityFeePerGas: string;
       gasPrice: string;
       gas: string;
       shouldUseEIP1559FeeLogic: boolean;
+      receiptGasPrice?: string;
     }) =>
       calculateGasEstimate({
         feePerGas,
@@ -122,6 +135,7 @@ export const useFeeCalculations = (
         estimatedBaseFee,
         layer1GasFee,
         getFeesFromHexFn: getFeesFromHexCallback,
+        receiptGasPrice,
       }),
     [estimatedBaseFee, layer1GasFee, getFeesFromHexCallback],
   );
@@ -135,6 +149,7 @@ export const useFeeCalculations = (
         gas: optimizedGasLimit,
         shouldUseEIP1559FeeLogic: supportsEIP1559,
         gasPrice: txParamsGasPrice,
+        receiptGasPrice: receiptGasPriceHex,
       }),
     [
       calculateGasEstimateCallback,
@@ -143,6 +158,7 @@ export const useFeeCalculations = (
       optimizedGasLimit,
       supportsEIP1559,
       txParamsGasPrice,
+      receiptGasPriceHex,
     ],
   );
 

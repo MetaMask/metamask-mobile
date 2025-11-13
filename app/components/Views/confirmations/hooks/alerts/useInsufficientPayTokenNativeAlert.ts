@@ -10,12 +10,16 @@ import { useSelector } from 'react-redux';
 import { selectTickerByChainId } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
 import { getNativeTokenAddress } from '../../utils/asset';
-import { useTransactionPayTotals } from '../pay/useTransactionPayData';
+import {
+  useTransactionPayQuotes,
+  useTransactionPayTotals,
+} from '../pay/useTransactionPayData';
 
 export function useInsufficientPayTokenNativeAlert(): Alert[] {
   const { payToken } = useTransactionPayToken();
   const { chainId } = payToken ?? {};
   const nativeTokenAddress = getNativeTokenAddress(chainId ?? '0x0');
+  const quotes = useTransactionPayQuotes();
   const { fees, total } = useTransactionPayTotals() ?? {};
 
   const ticker = useSelector((state: RootState) =>
@@ -33,11 +37,12 @@ export function useInsufficientPayTokenNativeAlert(): Alert[] {
 
   const isInsufficient = useMemo(
     () =>
+      quotes?.length &&
       payToken &&
       new BigNumber(tokenFiatAmount ?? '0').isLessThan(
         new BigNumber(requiredAmount ?? '0'),
       ),
-    [payToken, requiredAmount, tokenFiatAmount],
+    [payToken, quotes, requiredAmount, tokenFiatAmount],
   );
 
   return useMemo(() => {
@@ -48,7 +53,8 @@ export function useInsufficientPayTokenNativeAlert(): Alert[] {
     return [
       {
         key: AlertKeys.InsufficientPayTokenNative,
-        field: RowAlertKey.PayWith,
+        field: RowAlertKey.PayWithFee,
+        title: strings('alert_system.insufficient_pay_token_native.title'),
         message: strings('alert_system.insufficient_pay_token_native.message', {
           ticker,
         }),
