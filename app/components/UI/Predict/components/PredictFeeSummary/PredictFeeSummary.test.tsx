@@ -173,25 +173,9 @@ describe('PredictFeeSummary', () => {
   });
 
   describe('Rewards Row', () => {
-    it('does not display rewards row when shouldShowRewards is false', () => {
+    it('always displays rewards row when not disabled', () => {
       const props = {
         ...defaultProps,
-        shouldShowRewards: false,
-        estimatedPoints: 100,
-      };
-
-      const { queryByText, queryByTestId } = render(
-        <PredictFeeSummary {...props} />,
-      );
-
-      expect(queryByText('Est. points')).toBeNull();
-      expect(queryByTestId('rewards-animation')).toBeNull();
-    });
-
-    it('displays rewards row when shouldShowRewards is true', () => {
-      const props = {
-        ...defaultProps,
-        shouldShowRewards: true,
         estimatedPoints: 50,
       };
 
@@ -206,7 +190,6 @@ describe('PredictFeeSummary', () => {
     it('displays correct estimated points value', () => {
       const props = {
         ...defaultProps,
-        shouldShowRewards: true,
         estimatedPoints: 123,
       };
 
@@ -218,7 +201,6 @@ describe('PredictFeeSummary', () => {
     it('displays zero points when estimatedPoints is 0', () => {
       const props = {
         ...defaultProps,
-        shouldShowRewards: true,
         estimatedPoints: 0,
       };
 
@@ -226,13 +208,58 @@ describe('PredictFeeSummary', () => {
 
       expect(getByText('0 points')).toBeOnTheScreen();
     });
+
+    it('displays loading state when isLoadingRewards is true', () => {
+      const props = {
+        ...defaultProps,
+        estimatedPoints: 50,
+        isLoadingRewards: true,
+      };
+
+      const { getByText, getByTestId } = render(
+        <PredictFeeSummary {...props} />,
+      );
+
+      expect(getByText('Est. points')).toBeOnTheScreen();
+      expect(getByTestId('rewards-animation')).toBeOnTheScreen();
+    });
+
+    it('displays error state when hasRewardsError is true', () => {
+      const props = {
+        ...defaultProps,
+        estimatedPoints: 50,
+        hasRewardsError: true,
+      };
+
+      const { getByText, getByTestId } = render(
+        <PredictFeeSummary {...props} />,
+      );
+
+      expect(getByText('Est. points')).toBeOnTheScreen();
+      expect(getByTestId('rewards-animation')).toBeOnTheScreen();
+    });
+
+    it('displays idle state when not loading and no error', () => {
+      const props = {
+        ...defaultProps,
+        estimatedPoints: 50,
+        isLoadingRewards: false,
+        hasRewardsError: false,
+      };
+
+      const { getByText, getByTestId } = render(
+        <PredictFeeSummary {...props} />,
+      );
+
+      expect(getByText('Est. points')).toBeOnTheScreen();
+      expect(getByTestId('rewards-animation')).toBeOnTheScreen();
+    });
   });
 
   describe('Rewards Row Position', () => {
     it('renders rewards row after Total row', () => {
       const props = {
         ...defaultProps,
-        shouldShowRewards: true,
         estimatedPoints: 50,
       };
 

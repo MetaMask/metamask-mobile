@@ -2248,10 +2248,10 @@ describe('PredictBuyPreview', () => {
   });
 
   describe('Rewards Display', () => {
-    it('shows rewards when feature flag is enabled and amount is entered', () => {
+    it('always shows rewards row when amount is entered', () => {
       mockMetamaskFee = 0.5;
 
-      renderWithProvider(<PredictBuyPreview />, {
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
 
@@ -2263,34 +2263,27 @@ describe('PredictBuyPreview', () => {
         });
       });
 
-      // shouldShowRewards = true when rewardsEnabled && currentValue > 0
+      // Press done to show fee summary
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
+
+      // Rewards row should always be visible when not disabled
+      expect(getByText('Est. points')).toBeOnTheScreen();
     });
 
-    it('does not show rewards when feature flag is disabled', () => {
-      mockMetamaskFee = 0.5;
+    it('shows rewards row even when amount is zero', () => {
+      mockMetamaskFee = 0;
 
-      renderWithProvider(<PredictBuyPreview />, {
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
 
-      // Enter amount
-      act(() => {
-        capturedOnChange?.({
-          value: '10',
-          valueAsNumber: 10,
-        });
-      });
+      // Press done to show fee summary (even with 0 amount)
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
 
-      // shouldShowRewards = false when rewardsEnabled is false
-    });
-
-    it('does not show rewards when amount is zero', () => {
-      renderWithProvider(<PredictBuyPreview />, {
-        state: initialState,
-      });
-
-      // No amount entered (currentValue = 0)
-      // shouldShowRewards = false when currentValue is 0
+      // Rewards row should always be visible when not disabled
+      expect(getByText('Est. points')).toBeOnTheScreen();
     });
   });
 

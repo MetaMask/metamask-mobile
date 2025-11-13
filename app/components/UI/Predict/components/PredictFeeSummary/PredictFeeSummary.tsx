@@ -27,7 +27,6 @@ interface PredictFeeSummaryProps {
   providerFee: number;
   metamaskFee: number;
   total: number;
-  shouldShowRewards?: boolean;
   estimatedPoints?: number;
   isLoadingRewards?: boolean;
   hasRewardsError?: boolean;
@@ -39,7 +38,6 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
   metamaskFee,
   providerFee,
   total,
-  shouldShowRewards = false,
   estimatedPoints = 0,
   isLoadingRewards = false,
   hasRewardsError = false,
@@ -87,54 +85,52 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
       </Box>
 
       {/* Estimated Points Row */}
-      {shouldShowRewards && (
-        <KeyValueRow
-          field={{
-            label: {
-              text: strings('predict.fee_summary.estimated_points'),
-              variant: TextVariant.BodyMD,
-              color: TextColor.Default,
-            },
+      <KeyValueRow
+        field={{
+          label: {
+            text: strings('predict.fee_summary.estimated_points'),
+            variant: TextVariant.BodyMD,
+            color: TextColor.Default,
+          },
+          tooltip: {
+            title: strings('predict.fee_summary.points_tooltip'),
+            content: `${strings(
+              'predict.fee_summary.points_tooltip_content_1',
+            )}\n\n${strings('predict.fee_summary.points_tooltip_content_2')}`,
+            size: TooltipSizes.Sm,
+            iconName: IconName.Info,
+          },
+        }}
+        value={{
+          label: (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Center}
+              gap={1}
+            >
+              <RewardsAnimations
+                value={estimatedPoints}
+                state={
+                  isLoadingRewards
+                    ? RewardAnimationState.Loading
+                    : hasRewardsError
+                      ? RewardAnimationState.ErrorState
+                      : RewardAnimationState.Idle
+                }
+              />
+            </Box>
+          ),
+          ...(hasRewardsError && {
             tooltip: {
-              title: strings('predict.fee_summary.points_tooltip'),
-              content: `${strings(
-                'predict.fee_summary.points_tooltip_content_1',
-              )}\n\n${strings('predict.fee_summary.points_tooltip_content_2')}`,
+              title: strings('predict.fee_summary.points_error'),
+              content: strings('predict.fee_summary.points_error_content'),
               size: TooltipSizes.Sm,
               iconName: IconName.Info,
             },
-          }}
-          value={{
-            label: (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Center}
-                gap={1}
-              >
-                <RewardsAnimations
-                  value={estimatedPoints}
-                  state={
-                    isLoadingRewards
-                      ? RewardAnimationState.Loading
-                      : hasRewardsError
-                        ? RewardAnimationState.ErrorState
-                        : RewardAnimationState.Idle
-                  }
-                />
-              </Box>
-            ),
-            ...(hasRewardsError && {
-              tooltip: {
-                title: strings('predict.fee_summary.points_error'),
-                content: strings('predict.fee_summary.points_error_content'),
-                size: TooltipSizes.Sm,
-                iconName: IconName.Info,
-              },
-            }),
-          }}
-        />
-      )}
+          }),
+        }}
+      />
     </Box>
   );
 };
