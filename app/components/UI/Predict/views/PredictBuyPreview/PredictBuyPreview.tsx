@@ -30,7 +30,6 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { useSelector } from 'react-redux';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -63,7 +62,6 @@ import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
-import { selectRewardsEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
@@ -75,9 +73,6 @@ const PredictBuyPreview = () => {
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
   const { market, outcome, outcomeToken, entryPoint } = route.params;
-
-  // Rewards feature flag
-  const rewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   // Prepare analytics properties
   const analyticsProperties = useMemo(
@@ -191,8 +186,8 @@ const PredictBuyPreview = () => {
     [metamaskFee],
   );
 
-  // Show rewards row if feature is enabled and we have a valid amount
-  const shouldShowRewards = rewardsEnabled && currentValue > 0;
+  // Show rewards row if we have a valid amount
+  const shouldShowRewards = currentValue > 0;
 
   // Validation constants and states
   const MINIMUM_BET = 1; // $1 minimum bet

@@ -7,7 +7,7 @@ import { usePredictBalance } from './usePredictBalance';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
-import { formatPrice } from '../utils/format';
+import { formatPrice, calculateNetAmount } from '../utils/format';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { useSelector } from 'react-redux';
 import { selectPredictPendingDepositByAddress } from '../selectors/predictController';
@@ -52,10 +52,18 @@ export const usePredictDepositToasts = ({
       description: strings('predict.deposit.account_ready_description', {
         amount: '{amount}',
       }),
-      getAmount: (transactionMeta) =>
-        formatPrice(transactionMeta.metamaskPay?.totalFiat ?? 0, {
-          maximumDecimals: 2,
-        }) ?? 'Balance',
+      getAmount: (transactionMeta) => {
+        const netAmount = calculateNetAmount({
+          totalFiat: transactionMeta.metamaskPay?.totalFiat,
+          bridgeFeeFiat: transactionMeta.metamaskPay?.bridgeFeeFiat,
+          networkFeeFiat: transactionMeta.metamaskPay?.networkFeeFiat,
+        });
+        return (
+          formatPrice(netAmount, {
+            maximumDecimals: 2,
+          }) ?? 'Balance'
+        );
+      },
     },
     errorToastConfig: {
       title: strings('predict.deposit.error_title'),
