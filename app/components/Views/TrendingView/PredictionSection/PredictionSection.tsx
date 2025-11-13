@@ -25,7 +25,7 @@ import SectionHeader from '../SectionHeader';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32; // 16px padding on each side
 const CARD_SPACING = 16;
-const ACTUAL_CARD_WIDTH = CARD_WIDTH * 0.85; // Actual rendered card width
+const ACTUAL_CARD_WIDTH = CARD_WIDTH * 0.8; // Actual rendered card width (80% to show peek of next card)
 const SNAP_INTERVAL = ACTUAL_CARD_WIDTH + CARD_SPACING;
 
 const PredictionSection = () => {
@@ -73,16 +73,23 @@ const PredictionSection = () => {
   }, []);
 
   const renderCarouselItem = useCallback(
-    ({ item, index }: { item: PredictMarketType; index: number }) => (
-      <Box style={styles.carouselItem}>
-        <PredictMarket
-          market={item}
-          entryPoint={PredictEventValues.ENTRY_POINT.PREDICT_FEED}
-          testID={`prediction-carousel-card-${index + 1}`}
-        />
-      </Box>
-    ),
-    [styles],
+    ({ item, index }: { item: PredictMarketType; index: number }) => {
+      const isLast = index === carouselData.length - 1;
+
+      return (
+        <Box
+          style={isLast ? styles.carouselItemLast : styles.carouselItem}
+          twClassName="mr-4"
+        >
+          <PredictMarket
+            market={item}
+            entryPoint={PredictEventValues.ENTRY_POINT.PREDICT_FEED}
+            testID={`prediction-carousel-card-${index + 1}`}
+          />
+        </Box>
+      );
+    },
+    [styles, carouselData.length],
   );
 
   const renderPaginationDots = useCallback(
@@ -124,12 +131,20 @@ const PredictionSection = () => {
             data={[1, 2, 3]}
             horizontal
             showsHorizontalScrollIndicator={false}
-            renderItem={() => (
-              <Box style={styles.carouselItem}>
-                <PredictMarketSkeleton testID="prediction-carousel-skeleton" />
-              </Box>
-            )}
+            renderItem={({ index }) => {
+              const isLast = index === 2; // 3 items (0, 1, 2)
+
+              return (
+                <Box
+                  style={isLast ? styles.carouselItemLast : styles.carouselItem}
+                  twClassName="mr-4"
+                >
+                  <PredictMarketSkeleton testID="prediction-carousel-skeleton" />
+                </Box>
+              );
+            }}
             keyExtractor={(item) => `skeleton-${item}`}
+            contentContainerStyle={styles.carouselContentContainer}
           />
         </Box>
       </Box>
@@ -162,6 +177,7 @@ const PredictionSection = () => {
           decelerationRate="fast"
           onScroll={handleScroll}
           scrollEventThrottle={16}
+          contentContainerStyle={styles.carouselContentContainer}
         />
       </Box>
 
