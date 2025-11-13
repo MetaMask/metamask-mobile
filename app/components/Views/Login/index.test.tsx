@@ -110,6 +110,7 @@ jest.mock('../../../core/Authentication', () => ({
   userEntryAuth: jest.fn(),
   appTriggeredAuth: jest.fn(),
   lockApp: jest.fn(),
+  checkIsSeedlessPasswordOutdated: jest.fn().mockResolvedValue(false),
 }));
 
 jest.mock('../../../actions/security', () => ({
@@ -1312,7 +1313,7 @@ describe('Login', () => {
   });
 
   describe('Login Styles', () => {
-    it('should return correct textField background color for light theme', () => {
+    it('returns correct textField background color for light theme', () => {
       // Arrange
       const mockTheme = {
         colors: {
@@ -1337,7 +1338,7 @@ describe('Login', () => {
       );
     });
 
-    it('should return correct textField background color for dark theme', () => {
+    it('returns correct textField background color for dark theme', () => {
       // Arrange
       const mockDarkTheme = {
         colors: {

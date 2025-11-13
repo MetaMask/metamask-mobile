@@ -135,6 +135,12 @@ describe('Login test suite 2', () => {
     jest.useFakeTimers();
   });
 
+  beforeEach(() => {
+    jest
+      .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+      .mockResolvedValue(false);
+  });
+
   afterEach(() => {
     jest.runOnlyPendingTimers();
     jest.clearAllTimers();
