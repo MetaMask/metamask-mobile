@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo } from 'react';
+import React, { memo, useCallback } from 'react';
 import {
   Box,
   Text,
@@ -9,10 +9,11 @@ import {
   ButtonIconSize,
   TextVariant as DsTextVariant,
   IconName as IconNameDS,
+  TextColor as DsTextColor,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import I18n from '../../../../../../locales/i18n';
 import { isEmpty } from 'lodash';
+import { strings } from '../../../../../../locales/i18n';
 import AvatarAccount, {
   AvatarAccountType,
 } from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
@@ -24,16 +25,6 @@ import { RewardSettingsAccountGroupListFlatListItem } from './types';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../reducers';
 import { selectIconSeedAddressByAccountGroupId } from '../../../../../selectors/multichainAccounts/accounts';
-import { selectBalanceByAccountGroup } from '../../../../../selectors/assets/balances';
-import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import SensitiveText, {
-  SensitiveTextLength,
-} from '../../../../../component-library/components/Texts/SensitiveText';
-import {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { formatWithThreshold } from '../../../../../util/assets';
 import { View, ActivityIndicator } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
 
@@ -69,29 +60,6 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
 
   const { linkAccountGroup, isLoading } = useLinkAccountGroup();
   const navigation = useNavigation();
-  const privacyMode = useSelector(selectPrivacyMode);
-
-  // Get account group balance
-  const groupBalance = useSelector((state: RootState) => {
-    if (!accountGroup?.id) return null;
-    const selector = selectBalanceByAccountGroup(accountGroup.id);
-    return selector(state);
-  });
-
-  const displayBalance = useMemo(() => {
-    if (!groupBalance?.userCurrency) {
-      return undefined;
-    }
-    return formatWithThreshold(
-      groupBalance.totalBalanceInUserCurrency,
-      0.01,
-      I18n.locale,
-      {
-        style: 'currency',
-        currency: groupBalance.userCurrency.toUpperCase(),
-      },
-    );
-  }, [groupBalance]);
 
   // Inline handlers for each account group
   const handleLinkAccountGroup = useCallback(async () => {
@@ -149,10 +117,21 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
     return null;
   }
 
+  // Calculate tracked accounts count
+  const optedInCount = accountGroup.optedInAccounts.length;
+  const totalTrackableCount =
+    accountGroup.optedInAccounts.length + accountGroup.optedOutAccounts.length;
+
+  // Determine icon name for link button
+  const linkButtonIconName =
+    accountGroup.optedOutAccounts.length === 0
+      ? IconNameDS.Check
+      : IconNameDS.Add;
+
   return (
     <View style={tw.style('w-full flex-row items-center px-4 bg-default')}>
       <Box
-        twClassName="flex-1 flex-row items-center py-3 rounded-lg gap-3"
+        twClassName="flex-1 flex-row items-center py-4 rounded-lg gap-3"
         flexDirection={BoxFlexDirection.Row}
         testID={
           testID || `rewards-account-group-${accountGroup?.id || 'unknown'}`
@@ -182,20 +161,17 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
             {accountGroup.name}
           </Text>
 
-          {/* Account Balance */}
-          {displayBalance &&
-            groupBalance?.totalBalanceInUserCurrency !== undefined &&
-            groupBalance.totalBalanceInUserCurrency > 0 && (
-              <SensitiveText
-                isHidden={privacyMode}
-                length={SensitiveTextLength.Long}
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Alternative}
-                testID={`rewards-account-group-balance-${accountGroup.id}`}
-              >
-                {displayBalance}
-              </SensitiveText>
-            )}
+          {/* Tracked Accounts Count */}
+          <Text
+            variant={DsTextVariant.BodySm}
+            color={DsTextColor.TextAlternative}
+            testID={`rewards-account-group-tracked-${accountGroup.id}`}
+          >
+            {strings('rewards.link_account_group.tracked_count', {
+              optedIn: optedInCount.toString(),
+              total: totalTrackableCount.toString(),
+            })}
+          </Text>
         </Box>
 
         <Box
@@ -226,11 +202,7 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
             </Box>
           ) : (
             <ButtonIcon
-              iconName={
-                accountGroup.optedOutAccounts.length === 0
-                  ? IconNameDS.Check
-                  : IconNameDS.Add
-              }
+              iconName={linkButtonIconName}
               size={ButtonIconSize.Lg}
               isDisabled={accountGroup.optedOutAccounts.length === 0}
               onPress={handleLinkAccountGroup}

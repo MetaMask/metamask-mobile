@@ -7,12 +7,15 @@ import Text, {
 import createStyles from './SpendingLimitProgressBar.styles';
 import { useTheme } from '../../../../../util/theme';
 import ProgressBar from 'react-native-progress/Bar';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
 
 interface SpendingLimitProgressBarProps {
   decimals: number;
   totalAllowance: string;
   remainingAllowance: string;
   symbol: string;
+  isLoading: boolean;
 }
 
 const SpendingLimitProgressBar = ({
@@ -20,6 +23,7 @@ const SpendingLimitProgressBar = ({
   totalAllowance,
   remainingAllowance,
   symbol,
+  isLoading,
 }: SpendingLimitProgressBarProps) => {
   const theme = useTheme();
   const styles = createStyles(theme);
@@ -64,6 +68,20 @@ const SpendingLimitProgressBar = ({
 
   const totalAllowanceDisplay = formatDisplayValue(totalAllowanceFloat);
   const consumedAmountDisplay = formatDisplayValue(consumedAmount);
+
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <Skeleton
+          height={20}
+          width={'100%'}
+          style={styles.skeletonRounded}
+          testID={CardHomeSelectors.SPENDING_LIMIT_PROGRESS_BAR_SKELETON}
+        />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.divider} />

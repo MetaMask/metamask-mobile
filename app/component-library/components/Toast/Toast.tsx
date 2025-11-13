@@ -62,12 +62,10 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       { translateY: translateYProgress.value - TAB_BAR_HEIGHT - customOffset },
     ],
   }));
-  const baseStyle: StyleProp<Animated.AnimateStyle<StyleProp<ViewStyle>>> =
-    useMemo(
-      () => [styles.base, animatedStyle],
-      /* eslint-disable-next-line */
-      [],
-    );
+  const baseStyle: StyleProp<ViewStyle> = useMemo(
+    () => [styles.base, animatedStyle],
+    [styles.base, animatedStyle],
+  );
 
   const resetState = () => setToastOptions(undefined);
 

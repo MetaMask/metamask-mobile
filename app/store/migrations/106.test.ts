@@ -1,171 +1,82 @@
+import { MMKV } from 'react-native-mmkv';
 import migrate from './106';
-import { ensureValidState } from './util';
-import { captureException } from '@sentry/react-native';
 
-jest.mock('@sentry/react-native', () => ({
-  captureException: jest.fn(),
+jest.mock('react-native-mmkv', () => ({
+  MMKV: jest.fn(),
 }));
 
-jest.mock('./util', () => ({
-  ensureValidState: jest.fn(),
-}));
+describe('Migration #106', () => {
+  const mockMMKVInstance = {
+    getAllKeys: jest.fn(),
+    clearAll: jest.fn(),
+  };
 
-const mockedCaptureException = jest.mocked(captureException);
-const mockedEnsureValidState = jest.mocked(ensureValidState);
+  (MMKV as jest.Mock).mockImplementation(() => mockMMKVInstance);
 
-describe('Migration 106: Remove RatesController state', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
-  it('returns state unchanged if ensureValidState fails', () => {
-    const state = { some: 'state' };
-
-    mockedEnsureValidState.mockReturnValue(false);
-
-    const migratedState = migrate(state);
-
-    expect(migratedState).toBe(state);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
+  afterAll(() => {
+    jest.restoreAllMocks();
   });
 
-  it('returns state unchanged if backgroundState is missing', () => {
-    const state = {
-      engine: {},
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const migratedState = migrate(state);
-
-    expect(migratedState).toEqual(state);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('removes RatesController from backgroundState', () => {
-    interface TestState {
+  it('should clear PPOM storage when keys exist', () => {
+    const oldState = {
       engine: {
-        backgroundState: {
-          RatesController?: {
-            cryptocurrencies: string[];
-            fiatCurrency: string;
-            rates: Record<string, unknown>;
-          };
-          MultichainAssetsRatesController: {
-            someProperty: string;
-          };
-          OtherController: {
-            shouldStayUntouched: boolean;
-          };
-        };
-      };
-    }
-
-    const state: TestState = {
-      engine: {
-        backgroundState: {
-          RatesController: {
-            cryptocurrencies: ['btc', 'sol'],
-            fiatCurrency: 'usd',
-            rates: {
-              btc: {
-                conversionRate: 45000,
-                conversionDate: 1234567890,
-                usdConversionRate: 45000,
-              },
-              sol: {
-                conversionRate: 100,
-                conversionDate: 1234567890,
-                usdConversionRate: 100,
-              },
-            },
-          },
-          MultichainAssetsRatesController: {
-            someProperty: 'should remain',
-          },
-          OtherController: {
-            shouldStayUntouched: true,
-          },
-        },
+        backgroundState: {},
       },
     };
 
-    mockedEnsureValidState.mockReturnValue(true);
+    mockMMKVInstance.getAllKeys.mockReturnValue(['key1-0x1', 'key2-0x1']);
 
-    const migratedState = migrate(state) as typeof state;
+    const newState = migrate(oldState);
 
-    expect(
-      migratedState.engine.backgroundState.RatesController,
-    ).toBeUndefined();
+    expect(MMKV).toHaveBeenCalledWith({ id: 'PPOMDB' });
+    expect(mockMMKVInstance.getAllKeys).toHaveBeenCalled();
+    expect(mockMMKVInstance.clearAll).toHaveBeenCalled();
+    expect(newState).toEqual(oldState);
+  });
 
-    expect(
-      migratedState.engine.backgroundState.MultichainAssetsRatesController,
-    ).toEqual({
-      someProperty: 'should remain',
-    });
-    expect(migratedState.engine.backgroundState.OtherController).toEqual({
-      shouldStayUntouched: true,
+  it('should not call clearAll when no keys exist', () => {
+    const oldState = {
+      engine: {
+        backgroundState: {},
+      },
+    };
+
+    mockMMKVInstance.getAllKeys.mockReturnValue([]);
+
+    const newState = migrate(oldState);
+
+    expect(MMKV).toHaveBeenCalledWith({ id: 'PPOMDB' });
+    expect(mockMMKVInstance.getAllKeys).toHaveBeenCalled();
+    expect(mockMMKVInstance.clearAll).not.toHaveBeenCalled();
+    expect(newState).toEqual(oldState);
+  });
+
+  it('should handle errors gracefully', () => {
+    const oldState = {
+      engine: {
+        backgroundState: {},
+      },
+    };
+
+    mockMMKVInstance.getAllKeys.mockImplementation(() => {
+      throw new Error('Storage error');
     });
 
-    expect(mockedCaptureException).not.toHaveBeenCalled();
+    const newState = migrate(oldState);
+
+    expect(newState).toEqual(oldState);
   });
 
-  it('leaves state unchanged if RatesController does not exist', () => {
-    interface TestState {
-      engine: {
-        backgroundState: {
-          MultichainAssetsRatesController: {
-            someProperty: string;
-          };
-          OtherController: {
-            shouldStayUntouched: boolean;
-          };
-        };
-      };
-    }
+  it('should return state unchanged if state is invalid', () => {
+    const invalidStates = [null, undefined, {}, { engine: null }];
 
-    const state: TestState = {
-      engine: {
-        backgroundState: {
-          MultichainAssetsRatesController: {
-            someProperty: 'should remain',
-          },
-          OtherController: {
-            shouldStayUntouched: true,
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const migratedState = migrate(state) as typeof state;
-
-    expect(migratedState).toEqual(state);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('handles error during migration', () => {
-    const state = {
-      engine: {
-        backgroundState: Object.defineProperty({}, 'RatesController', {
-          get: () => {
-            throw new Error('Test error');
-          },
-          configurable: true,
-          enumerable: true,
-        }),
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const migratedState = migrate(state);
-
-    expect(migratedState).toEqual(state);
-    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      'Migration 106 failed',
-    );
+    invalidStates.forEach((invalidState) => {
+      const newState = migrate(invalidState);
+      expect(newState).toEqual(invalidState);
+    });
   });
 });

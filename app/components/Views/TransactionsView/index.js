@@ -48,6 +48,7 @@ import { PopularList } from '../../../util/networks/customNetworks';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import useCurrencyRatePolling from '../../hooks/AssetPolling/useCurrencyRatePolling';
 import useTokenRatesPolling from '../../hooks/AssetPolling/useTokenRatesPolling';
+import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -71,6 +72,8 @@ const TransactionsView = ({
   const [confirmedTxs, setConfirmedTxs] = useState([]);
   const [loading, setLoading] = useState();
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
+  const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
+
   const enabledNetworksByNamespace = useSelector(
     selectEnabledNetworksByNamespace,
   );
@@ -105,6 +108,7 @@ const TransactionsView = ({
           selectedAddress,
           tokenNetworkFilter,
           allTransactionsSorted,
+          bridgeHistory,
         );
 
         if (!filter) return false;
@@ -226,6 +230,7 @@ const TransactionsView = ({
       tokenNetworkFilter,
       isPopularNetwork,
       enabledNetworksByNamespace,
+      bridgeHistory,
     ],
   );
 

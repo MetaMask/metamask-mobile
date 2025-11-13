@@ -378,13 +378,13 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
       ) => {
         let state = await incomingState;
 
-        if (!didInflate && Number(migrationNumber) > 104) {
+        if (!didInflate && Number(migrationNumber) > 106) {
           state = await inflateFromControllers(state);
           didInflate = true;
         }
 
         const migratedState = await migrationFunction(state);
-        if (Number(migrationNumber) === lastVersion && lastVersion > 104) {
+        if (Number(migrationNumber) === lastVersion && lastVersion >= 106) {
           const s2 = migratedState as StateWithEngine;
           const hasControllers = Boolean(
             s2.engine?.backgroundState &&

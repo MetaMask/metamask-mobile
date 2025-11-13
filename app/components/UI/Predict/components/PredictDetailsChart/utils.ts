@@ -1,16 +1,41 @@
 import { curveCatmullRom } from 'd3-shape';
 import { PredictPriceHistoryInterval } from '../../types';
 
+const HOUR_IN_MS = 60 * 60 * 1000;
+const DAY_IN_MS = 24 * HOUR_IN_MS;
+const WEEK_IN_MS = 7 * DAY_IN_MS;
+const MONTH_IN_MS = 30 * DAY_IN_MS;
+
 export const DEFAULT_EMPTY_LABEL = '';
-export const LINE_CURVE = curveCatmullRom.alpha(0.3);
+export const LINE_CURVE = curveCatmullRom.alpha(0.2);
 export const CHART_HEIGHT = 192;
 export const CHART_CONTENT_INSET = {
-  top: 20,
-  bottom: 20,
-  left: 20,
-  right: 32,
+  top: 8,
+  bottom: 4,
+  left: 8,
+  right: 48,
 };
 export const MAX_SERIES = 3;
+
+export const getTimeframeDurationMs = (
+  interval: PredictPriceHistoryInterval | string,
+): number | null => {
+  switch (interval) {
+    case PredictPriceHistoryInterval.ONE_HOUR:
+      return HOUR_IN_MS;
+    case PredictPriceHistoryInterval.SIX_HOUR:
+      return 6 * HOUR_IN_MS;
+    case PredictPriceHistoryInterval.ONE_DAY:
+      return DAY_IN_MS;
+    case PredictPriceHistoryInterval.ONE_WEEK:
+      return WEEK_IN_MS;
+    case PredictPriceHistoryInterval.ONE_MONTH:
+      return MONTH_IN_MS;
+    case PredictPriceHistoryInterval.MAX:
+    default:
+      return null;
+  }
+};
 
 export const formatPriceHistoryLabel = (
   timestamp: number,
@@ -27,11 +52,13 @@ export const formatPriceHistoryLabel = (
         hour: 'numeric',
         minute: '2-digit',
       }).format(date);
-    case PredictPriceHistoryInterval.ONE_WEEK:
-      return new Intl.DateTimeFormat('en-US', {
+    case PredictPriceHistoryInterval.ONE_WEEK: {
+      const weekday = new Intl.DateTimeFormat('en-US', {
         weekday: 'short',
-        hour: 'numeric',
       }).format(date);
+      const period = date.getHours() >= 12 ? 'PM' : 'AM';
+      return `${weekday} ${period}`;
+    }
     case PredictPriceHistoryInterval.ONE_MONTH:
       return new Intl.DateTimeFormat('en-US', {
         month: 'short',
@@ -41,7 +68,7 @@ export const formatPriceHistoryLabel = (
     default:
       return new Intl.DateTimeFormat('en-US', {
         month: 'short',
-        year: 'numeric',
+        year: '2-digit',
       }).format(date);
   }
 };

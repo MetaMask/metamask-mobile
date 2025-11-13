@@ -313,7 +313,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -826,6 +826,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -956,6 +957,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -1081,6 +1083,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -1334,6 +1337,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -1485,6 +1489,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -1987,7 +1992,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -2500,6 +2505,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -2615,6 +2621,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -2740,6 +2747,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -2955,6 +2963,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -3091,6 +3100,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -3593,7 +3603,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -4106,6 +4116,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -4221,6 +4232,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -4346,6 +4358,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -4569,6 +4582,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -4705,6 +4719,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -5207,7 +5222,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -5720,6 +5735,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -5835,6 +5851,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                             "color": "#121314",
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
+                                            "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "lineHeight": 20,
@@ -5960,6 +5977,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -6076,6 +6094,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -6203,6 +6222,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,
@@ -6339,6 +6359,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "color": "#121314",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
+                                              "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "lineHeight": 20,

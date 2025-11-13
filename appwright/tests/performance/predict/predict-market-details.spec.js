@@ -22,7 +22,7 @@ import { login } from '../../../utils/Flows.js';
  * 4. Time to load and verify About tab content
  * 5. Time to load and verify Outcomes tab content
  */
-test.skip('Predict Market Details - Load Time Performance', async ({
+test('Predict Market Details - Load Time Performance', async ({
   device,
   performanceTracker,
 }, testInfo) => {

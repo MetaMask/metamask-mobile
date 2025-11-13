@@ -430,7 +430,16 @@ export function formatHyperLiquidSize(params: {
   if (isNaN(num)) return '0';
 
   // Use asset-specific decimal precision and remove trailing zeros
-  return num.toFixed(szDecimals).replace(/\.?0+$/, '');
+  const formatted = num.toFixed(szDecimals);
+
+  // Only strip trailing zeros after decimal point, not from integers
+  // e.g., "10.000" → "10", "10.5000" → "10.5", but "10" stays "10"
+  if (!formatted.includes('.')) {
+    return formatted; // Integer, keep as-is
+  }
+
+  // Has decimal, strip trailing zeros and decimal if needed
+  return formatted.replace(/\.?0+$/, '');
 }
 
 /**

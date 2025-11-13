@@ -7,6 +7,7 @@ import { useGetPriorityCardToken } from './useGetPriorityCardToken';
 import { useIsCardholder } from './useIsCardholder';
 import useGetCardExternalWalletDetails from './useGetCardExternalWalletDetails';
 import useGetDelegationSettings from './useGetDelegationSettings';
+import useGetLatestAllowanceForPriorityToken from './useGetLatestAllowanceForPriorityToken';
 import { CardTokenAllowance, CardWarning } from '../types';
 
 /**
@@ -70,6 +71,27 @@ const useLoadCardData = () => {
     fetchPriorityToken,
   } = useGetPriorityCardToken(externalWalletDetailsData);
 
+  // Get latest allowance for priority token (authenticated mode only, for spending limit display)
+  // This fetches the most recent approval amount from on-chain logs
+  const {
+    latestAllowance: priorityTokenLatestAllowance,
+    isLoading: isLoadingLatestAllowance,
+  } = useGetLatestAllowanceForPriorityToken(
+    isAuthenticated ? priorityToken : null,
+  );
+
+  // Update priority token with latest allowance if available
+  const priorityTokenWithLatestAllowance = useMemo(() => {
+    if (!priorityToken || !isAuthenticated) {
+      return priorityToken;
+    }
+
+    return {
+      ...priorityToken,
+      totalAllowance: priorityTokenLatestAllowance || priorityToken.allowance,
+    };
+  }, [priorityToken, priorityTokenLatestAllowance, isAuthenticated]);
+
   // Get card details (only needed for unauthenticated mode)
   const {
     cardDetails,
@@ -99,7 +121,11 @@ const useLoadCardData = () => {
       isLoadingDelegationSettings;
 
     if (isAuthenticated) {
-      return baseLoading || isLoadingExternalWalletDetails;
+      return (
+        baseLoading ||
+        isLoadingExternalWalletDetails ||
+        isLoadingLatestAllowance
+      );
     }
     return baseLoading;
   }, [
@@ -107,6 +133,7 @@ const useLoadCardData = () => {
     isLoadingCardDetails,
     isLoadingDelegationSettings,
     isLoadingExternalWalletDetails,
+    isLoadingLatestAllowance,
     isAuthenticated,
   ]);
 
@@ -182,7 +209,7 @@ const useLoadCardData = () => {
 
   return {
     // Token data
-    priorityToken,
+    priorityToken: priorityTokenWithLatestAllowance,
     allTokens,
     // Card details
     cardDetails,

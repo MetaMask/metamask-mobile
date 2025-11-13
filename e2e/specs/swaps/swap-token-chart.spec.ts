@@ -1,6 +1,6 @@
 'use strict';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { LocalNodeType } from '../../framework/types';
+import { LocalNode, LocalNodeType } from '../../framework/types';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';
@@ -14,6 +14,8 @@ import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/Activi
 import { submitSwapUnifiedUI } from './helpers/swap-unified-ui';
 import { testSpecificMock } from '../swaps/helpers/swap-mocks';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 describe(RegressionTrade('Swap from Token view'), (): void => {
   jest.setTimeout(120000);
@@ -27,13 +29,29 @@ describe(RegressionTrade('Swap from Token view'), (): void => {
 
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork(chainId)
-          .withDisabledSmartTransactions()
-          .build(),
+        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+          const node = localNodes?.[0] as unknown as AnvilManager;
+          const rpcPort =
+            node instanceof AnvilManager
+              ? (node.getPort() ?? AnvilPort())
+              : undefined;
+
+          return new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: {
+                chainId,
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Localhost',
+                ticker: 'ETH',
+              },
+            })
+            .withDisabledSmartTransactions()
+            .build();
+        },
         localNodeOptions: [
           {
-            type: LocalNodeType.ganache,
+            type: LocalNodeType.anvil,
             options: {
               chainId: 1,
             },

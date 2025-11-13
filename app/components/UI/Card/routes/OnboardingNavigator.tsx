@@ -120,7 +120,7 @@ const OnboardingNavigator: React.FC = () => {
       return Routes.CARD.ONBOARDING.VALIDATING_KYC;
     }
     if (user?.verificationState === 'VERIFIED') {
-      if (!user?.firstName) {
+      if (!user?.firstName || !user?.countryOfNationality) {
         return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
       } else if (!user?.addressLine1) {
         return Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS;

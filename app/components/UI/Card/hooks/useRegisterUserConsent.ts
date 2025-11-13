@@ -133,7 +133,6 @@ export const useRegisterUserConsent = (): UseRegisterUserConsentReturn => {
           policyType: policy,
           onboardingId,
           consents,
-          tenantId: 'tenant_baanx_global',
           metadata: {
             userAgent: AppConstants.USER_AGENT,
             timestamp: new Date().toISOString(),

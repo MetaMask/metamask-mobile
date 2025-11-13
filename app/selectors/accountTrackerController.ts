@@ -12,7 +12,7 @@ const selectAccountTrackerControllerState = (state: RootState) =>
 export const selectAccountsByChainId = createDeepEqualSelector(
   selectAccountTrackerControllerState,
   (accountTrackerControllerState: AccountTrackerControllerState) =>
-    accountTrackerControllerState.accountsByChainId,
+    accountTrackerControllerState?.accountsByChainId ?? {},
 );
 
 export const selectAccounts = createDeepEqualSelector(

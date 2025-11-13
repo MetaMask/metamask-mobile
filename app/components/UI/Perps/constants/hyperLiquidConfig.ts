@@ -99,7 +99,6 @@ export const TRADING_DEFAULTS: TradingDefaultsConfig = {
   marginPercent: 10, // 10% fixed margin default
   takeProfitPercent: 0.3, // 30% take profit
   stopLossPercent: 0.1, // 10% stop loss
-  slippage: 0.05, // 5% max slippage protection
   amount: {
     mainnet: 10, // $10 minimum order size
     testnet: 10, // $10 minimum order size

@@ -138,7 +138,6 @@ describe('useRegisterUserConsent', () => {
               },
             },
           ],
-          tenantId: 'tenant_baanx_global',
           metadata: {
             userAgent: AppConstants.USER_AGENT,
             timestamp: expect.any(String),
@@ -193,7 +192,6 @@ describe('useRegisterUserConsent', () => {
               },
             },
           ],
-          tenantId: 'tenant_baanx_global',
           metadata: {
             userAgent: AppConstants.USER_AGENT,
             timestamp: expect.any(String),

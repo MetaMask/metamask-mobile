@@ -48,6 +48,7 @@ const styleSheet = (params: { theme: Theme; vars: InputStyleSheetVars }) => {
         // Ensure consistent line height for custom font baseline alignment
         lineHeight: Platform.OS === 'ios' ? 20 : 22,
         fontFamily: getFontFamily(textVariant),
+        fontWeight: theme.typography[textVariant].fontWeight,
         fontSize: theme.typography[textVariant].fontSize,
         letterSpacing: theme.typography[textVariant].letterSpacing,
         // iOS-specific fix for custom font baseline alignment

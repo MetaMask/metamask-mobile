@@ -11,6 +11,7 @@ import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConf
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 import { usePredictClaim } from './usePredictClaim';
 import { usePredictTrading } from './usePredictTrading';
+import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 
 // Create mock functions
 const mockNavigate = jest.fn();
@@ -143,6 +144,7 @@ describe('usePredictClaim', () => {
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
         headerShown: false,
         stack: Routes.PREDICT.ROOT,
+        loader: ConfirmationLoader.PredictClaim,
       });
       expect(mockClaimWinnings).toHaveBeenCalledWith({
         providerId: POLYMARKET_PROVIDER_ID,
@@ -273,6 +275,7 @@ describe('usePredictClaim', () => {
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
         headerShown: false,
         stack: Routes.PREDICT.ROOT,
+        loader: ConfirmationLoader.PredictClaim,
       });
       expect(mockClaimWinnings).toHaveBeenCalledWith({
         providerId: POLYMARKET_PROVIDER_ID,

@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useRampSDK } from '../sdk';
 import useSDKMethod from './useSDKMethod';
+import usePrevious from '../../../../hooks/usePrevious';
 
 export default function useFiatCurrencies() {
   const {
@@ -72,6 +73,35 @@ export default function useFiatCurrencies() {
     isFetchingDefaultFiatCurrency,
     isFetchingFiatCurrencies,
     selectedFiatCurrencyId,
+    setSelectedFiatCurrencyId,
+  ]);
+
+  const previousRegion = usePrevious(selectedRegion);
+
+  /**
+   * Update fiat currency when region changes and using default currency.
+   */
+  useEffect(() => {
+    const handleRegionChange = async () => {
+      if (selectedRegion && previousRegion?.id !== selectedRegion.id) {
+        if (selectedFiatCurrencyId === defaultFiatCurrency?.id) {
+          const newRegionCurrency = await queryDefaultFiatCurrency(
+            selectedRegion.id,
+          );
+          if (newRegionCurrency?.id) {
+            setSelectedFiatCurrencyId(newRegionCurrency.id);
+          }
+        }
+      }
+    };
+
+    handleRegionChange();
+  }, [
+    selectedRegion,
+    previousRegion,
+    selectedFiatCurrencyId,
+    defaultFiatCurrency?.id,
+    queryDefaultFiatCurrency,
     setSelectedFiatCurrencyId,
   ]);
 

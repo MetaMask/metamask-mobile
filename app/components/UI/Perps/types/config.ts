@@ -54,7 +54,6 @@ export interface TradingDefaultsConfig {
   marginPercent: number;
   takeProfitPercent: number;
   stopLossPercent: number;
-  slippage: number;
   amount: TradingAmountConfig;
 }
 

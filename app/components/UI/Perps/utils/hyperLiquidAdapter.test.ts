@@ -1033,6 +1033,19 @@ describe('hyperLiquidAdapter', () => {
         '1.123456',
       );
     });
+
+    it('should NOT strip trailing zeros from integers (regression test)', () => {
+      // Critical: With szDecimals=0, integers ending in 0 should stay intact
+      // e.g., 10 tokens should format as "10", not "1"
+      expect(formatHyperLiquidSize({ size: 10, szDecimals: 0 })).toBe('10');
+      expect(formatHyperLiquidSize({ size: 100, szDecimals: 0 })).toBe('100');
+      expect(formatHyperLiquidSize({ size: 20, szDecimals: 0 })).toBe('20');
+      expect(formatHyperLiquidSize({ size: 1000, szDecimals: 0 })).toBe('1000');
+
+      // But should still strip zeros after decimal points
+      expect(formatHyperLiquidSize({ size: 10.0, szDecimals: 2 })).toBe('10');
+      expect(formatHyperLiquidSize({ size: 10.5, szDecimals: 4 })).toBe('10.5');
+    });
   });
 
   describe('calculatePositionSize', () => {

@@ -3,8 +3,6 @@ import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import { RootState } from '../../../reducers';
 import { SolScope } from '@metamask/keyring-api';
-// eslint-disable-next-line import/no-namespace
-import * as networks from '../../../util/networks';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -372,11 +370,7 @@ describe('useCurrencyRatePolling', () => {
       },
     } as unknown as RootState;
 
-    it('should poll enabled EVM networks when global network selector is removed', () => {
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(true);
-
+    it('should poll enabled EVM networks when global network selector is removed and portfolio view is enabled', () => {
       renderHookWithProvider(() => useCurrencyRatePolling(), {
         state: baseState,
       });
@@ -387,10 +381,6 @@ describe('useCurrencyRatePolling', () => {
     });
 
     it('should handle empty enabled networks gracefully', () => {
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(true);
-
       const stateWithEmptyNetworks = {
         ...baseState,
         engine: {
@@ -416,10 +406,6 @@ describe('useCurrencyRatePolling', () => {
     });
 
     it('should handle missing network configurations gracefully', () => {
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(true);
-
       const stateWithMissingConfigs = {
         ...baseState,
         engine: {
@@ -448,10 +434,6 @@ describe('useCurrencyRatePolling', () => {
     });
 
     it('should handle undefined enabled networks gracefully', () => {
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(true);
-
       const stateWithUndefinedNetworks = {
         ...baseState,
         engine: {

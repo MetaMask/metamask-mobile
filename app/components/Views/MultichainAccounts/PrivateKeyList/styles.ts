@@ -60,7 +60,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 16,
       paddingHorizontal: 16,
       ...fontStyles.normal,
-      fontFamily: 'Geist Regular',
     },
 
     sheet: {

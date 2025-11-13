@@ -13,8 +13,14 @@ jest.mock('@react-navigation/stack', () => ({
 }));
 
 describe('MainNavigator', () => {
+  const originalEnv = process.env.METAMASK_ENVIRONMENT;
+
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    process.env.METAMASK_ENVIRONMENT = originalEnv;
   });
 
   it('matches rendered snapshot', () => {
@@ -59,5 +65,42 @@ describe('MainNavigator', () => {
 
     expect(sampleFeatureScreen).toBeDefined();
     expect(sampleFeatureScreen?.component.name).toBe('SampleFeatureFlow');
+  });
+
+  it('includes FeatureFlagOverride screen when METAMASK_ENVIRONMENT is not production', () => {
+    // Given a non-production environment
+    process.env.METAMASK_ENVIRONMENT = 'dev';
+
+    // When rendering the MainNavigator
+    const container = renderWithProvider(<MainNavigator />, {
+      state: initialRootState,
+    });
+
+    // Then it should contain the FeatureFlagOverride screen
+    interface ScreenChild {
+      name: string;
+      component: { name: string };
+    }
+    const screenProps: ScreenChild[] = container.root.children
+      .filter(
+        (child): child is ReactTestInstance =>
+          typeof child === 'object' &&
+          'type' in child &&
+          'props' in child &&
+          child.type?.toString() === 'Screen',
+      )
+      .map((child) => ({
+        name: child.props.name,
+        component: child.props.component,
+      }));
+
+    const featureFlagOverrideScreen = screenProps?.find(
+      (screen) => screen?.name === Routes.FEATURE_FLAG_OVERRIDE,
+    );
+
+    expect(featureFlagOverrideScreen).toBeDefined();
+    expect(featureFlagOverrideScreen?.component.name).toBe(
+      'FeatureFlagOverride',
+    );
   });
 });

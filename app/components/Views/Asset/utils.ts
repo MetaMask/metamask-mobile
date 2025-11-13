@@ -1,6 +1,6 @@
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { SolScope } from '@metamask/keyring-api';
-///: END:ONLY_INCLUDE_IF(keyring-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps,tron)
+import { SolScope, TrxScope } from '@metamask/keyring-api';
+///: END:ONLY_INCLUDE_IF(keyring-snaps,tron)
 import { isAssetFromSearch } from '../../../selectors/tokenSearchDiscoveryDataController';
 import { isSwapsAllowed } from '../../UI/Swaps/utils';
 
@@ -37,6 +37,13 @@ export const getIsSwapsAssetAllowed = ({
     isSwapsAssetAllowed = true;
   }
   ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+
+  // Tron Swaps
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  if (asset.chainId === TrxScope.Mainnet) {
+    isSwapsAssetAllowed = true;
+  }
+  ///: END:ONLY_INCLUDE_IF(tron)
 
   return isSwapsAssetAllowed;
 };

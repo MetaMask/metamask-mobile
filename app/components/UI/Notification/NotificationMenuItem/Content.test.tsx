@@ -8,34 +8,24 @@ describe('NotificationContent', () => {
   const yesterday = new Date().setDate(new Date().getDate() - 1);
   const createdAt = new Date(yesterday).toISOString(); // Relative date: one day before current date
   const description = {
-    start:
-      'We are excited to announce the launch of our brand new website and app!',
+    start: 'Some starting text',
     end: 'Ethereum',
   };
 
-  it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(
-      <NotificationContent
-        title={title}
-        description={description}
-        createdAt={createdAt}
-      />,
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('renders title and 1 part of description', () => {
-    const titleWithTo = 'Sent 0.01 ETH to 0x10000';
+  it('renders title and description', () => {
     const { getByText } = renderWithProvider(
       <NotificationContent
-        title={titleWithTo}
+        title={title}
         description={{
-          start: 'testing without the rhs/end section of notification',
+          start: description.start,
+          end: description.end,
         }}
         createdAt={createdAt}
       />,
     );
 
-    expect(getByText(titleWithTo)).toBeTruthy();
+    expect(getByText(title)).toBeOnTheScreen();
+    expect(getByText(description.start)).toBeOnTheScreen();
+    expect(getByText(description.end)).toBeOnTheScreen();
   });
 });

@@ -6,6 +6,23 @@ jest.mock('../../../../core/Engine', () => ({
     AccountsController: {
       getSelectedAccount: jest.fn(() => ({ address: '0xselected' })),
     },
+    AccountTreeController: {
+      getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
+        {
+          address: '0xselected',
+          id: 'mock-account-id',
+          type: 'eip155:eoa',
+          options: {},
+          metadata: {
+            name: 'Test Account',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1'],
+          methods: ['eth_sendTransaction'],
+        },
+      ]),
+    },
   },
 }));
 

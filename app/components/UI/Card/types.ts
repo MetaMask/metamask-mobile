@@ -283,6 +283,7 @@ export interface UserResponse {
   zip?: string;
   usState?: string; // Required for US users
   countryOfResidence?: string; // ISO 3166-1 alpha-2 country code
+  countryOfNationality?: string; // ISO 3166-1 alpha-2 country code
   ssn?: string; // Required for US users only
   mailingAddressLine1?: string;
   mailingAddressLine2?: string;
@@ -354,8 +355,8 @@ export interface Consent {
 export interface CreateOnboardingConsentRequest {
   policyType: 'US' | 'global';
   onboardingId: string;
-  tenantId: string;
   consents: Consent[];
+  tenantId: string;
   metadata?: ConsentMetadata;
 }
 

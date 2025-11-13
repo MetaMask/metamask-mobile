@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect } from 'react';
-import { Platform, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
@@ -28,17 +27,9 @@ const VerifyIdentity = () => {
 
   const handleContinue = useCallback(async () => {
     if (sessionUrl) {
-      if (Platform.OS === 'android') {
-        // On Android, open the URL in the native browser
-        await Linking.openURL(sessionUrl);
-        // Navigate to the validating screen while user completes KYC in browser
-        navigation.navigate(Routes.CARD.ONBOARDING.VALIDATING_KYC);
-      } else {
-        // On iOS, use the WebView
-        navigation.navigate(Routes.CARD.ONBOARDING.WEBVIEW, {
-          url: sessionUrl,
-        });
-      }
+      navigation.navigate(Routes.CARD.ONBOARDING.WEBVIEW, {
+        url: sessionUrl,
+      });
     }
 
     trackEvent(

@@ -120,36 +120,10 @@ interface Order {
 
 **HyperLiquid has no "pure" market order.** All markets emulate via aggressive limit + FrontendMarket:
 
-```typescript
-// 1. Fetch best bid/ask
-const { bestBid, bestAsk } = await getBestPrices(symbol);
-
-// 2. Calculate cap price with slippage tolerance
-const slippagePct = 0.5; // 0.5% cap (adjust per market liquidity)
-const capPrice =
-  side === 'buy'
-    ? bestAsk * (1 + slippagePct / 100) // Buy: accept higher
-    : bestBid * (1 - slippagePct / 100); // Sell: accept lower
-
-// 3. Format and place market order
-const formattedPrice = formatHyperLiquidPrice({
-  price: capPrice,
-  szDecimals: asset.szDecimals,
-});
-
-await exchangeClient.order({
-  orders: [
-    {
-      a: assetId,
-      b: side === 'buy',
-      p: formattedPrice,
-      s: size,
-      r: false,
-      t: { limit: { tif: 'FrontendMarket' } }, // Market order (HyperLiquid standard)
-    },
-  ],
-});
-```
+- **Buy**: `price = currentPrice × (1 + slippage)`
+- **Sell**: `price = currentPrice × (1 - slippage)`
+- **TIF**: `FrontendMarket` (immediate or cancel)
+- **MetaMask default**: 1% slippage (configurable)
 
 ### Trading Hours
 
@@ -249,18 +223,21 @@ await exchangeClient.order({
 
 ---
 
-## Slippage Management
+## Slippage Configuration
 
 ### Slippage Recommendations
 
-**⚠️ Empirical observations** - NOT official HyperLiquid guidance. Adjust based on actual liquidity:
+**Note**: MetaMask applies 1% default to all markets. Adjust manually based on observed liquidity.
+
+**⚠️ User guidance only** - not code-enforced:
 
 | Market Type         | Recommended Slippage | Rationale                       |
 | ------------------- | -------------------- | ------------------------------- |
 | Main DEX (BTC, ETH) | 0.5-1%               | High liquidity                  |
 | HIP-3 (xyz, abc)    | 5-10%                | Lower liquidity, wider spreads  |
 | Spot (varies)       | 1-5%                 | Depends on token liquidity      |
-| TP/SL (auto)        | 10% default          | Hyperliquid built-in            |
+| Take Profit         | Exact trigger price  | MetaMask: Limit execution       |
+| Stop Loss           | 10% tolerance        | HyperLiquid platform protection |
 | TWAP suborders      | 3% max               | Hyperliquid built-in constraint |
 
 **Trade-offs**:
@@ -270,8 +247,9 @@ await exchangeClient.order({
 
 ### Built-in Venue Safeguards
 
-1. **TP/SL Market Orders**: 10% default slippage tolerance
-   - Override with TP/SL limit for manual control
+1. **MetaMask TP/SL Implementation**:
+   - Take Profit: Limit order execution (precise price control)
+   - Stop Loss: Market order execution (HyperLiquid's 10% protection applies)
 2. **TWAP Execution**: 3% max per suborder
    - Use for large orders to smooth impact
 
@@ -395,9 +373,8 @@ const formattedPrice = formatHyperLiquidPrice({
 
 **Implementation Guides**:
 
-- [Order Types Reference](./ORDER-TYPES-REFERENCE.md) - Comprehensive TIF and order type documentation
+- [Order Types Reference](./order-types-reference.md) - Comprehensive TIF and order type documentation
 - [Asset ID Calculation](./asset-ids.md) - Detailed asset ID formulas with examples
-- [HIP-3 Implementation](./HIP-3-IMPLEMENTATION.md) - Technical implementation details
 
 ---
 

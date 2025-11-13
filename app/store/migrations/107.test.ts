@@ -1,82 +1,415 @@
-import { MMKV } from 'react-native-mmkv';
+import { captureException } from '@sentry/react-native';
+import { cloneDeep } from 'lodash';
+
+import { ensureValidState } from './util';
 import migrate from './107';
 
-jest.mock('react-native-mmkv', () => ({
-  MMKV: jest.fn(),
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
 }));
 
-describe('Migration #107', () => {
-  const mockMMKVInstance = {
-    getAllKeys: jest.fn(),
-    clearAll: jest.fn(),
-  };
+jest.mock('./util', () => ({
+  ensureValidState: jest.fn(),
+}));
 
-  (MMKV as jest.Mock).mockImplementation(() => mockMMKVInstance);
+const mockedCaptureException = jest.mocked(captureException);
+const mockedEnsureValidState = jest.mocked(ensureValidState);
+
+const migrationVersion = 107;
+const QUICKNODE_SEI_URL = 'https://failover.com';
+
+describe(`migration #${migrationVersion}`, () => {
+  let originalEnv: NodeJS.ProcessEnv;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  afterAll(() => {
     jest.restoreAllMocks();
+    jest.resetAllMocks();
+
+    originalEnv = { ...process.env };
   });
 
-  it('should clear PPOM storage when keys exist', () => {
+  afterEach(() => {
+    for (const key of new Set([
+      ...Object.keys(originalEnv),
+      ...Object.keys(process.env),
+    ])) {
+      if (originalEnv[key]) {
+        process.env[key] = originalEnv[key];
+      } else {
+        delete process.env[key];
+      }
+    }
+  });
+
+  it('returns state unchanged if ensureValidState fails', () => {
+    const state = { some: 'state' };
+    mockedEnsureValidState.mockReturnValue(false);
+
+    const migratedState = migrate(state);
+
+    expect(migratedState).toStrictEqual({ some: 'state' });
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  const invalidStates = [
+    {
+      state: {
+        engine: {},
+      },
+      errorMessage: `Migration ${migrationVersion}: Invalid NetworkController state structure: missing required properties`,
+      scenario: 'empty engine state',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {},
+        },
+      },
+      errorMessage: `Migration ${migrationVersion}: Invalid NetworkController state structure: missing required properties`,
+      scenario: 'empty backgroundState',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: 'invalid',
+          },
+        },
+      },
+      errorMessage: `Migration ${migrationVersion}: Invalid NetworkController state: 'string'`,
+      scenario: 'invalid NetworkController state',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: {},
+          },
+        },
+      },
+      errorMessage: `Migration ${migrationVersion}: Invalid NetworkController state: missing networkConfigurationsByChainId property`,
+      scenario: 'missing networkConfigurationsByChainId property',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: 'invalid',
+            },
+          },
+        },
+      },
+      errorMessage: `Migration ${migrationVersion}: Invalid NetworkController networkConfigurationsByChainId: 'string'`,
+      scenario: 'invalid networkConfigurationsByChainId state',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                '0x531': 'invalid',
+              },
+            },
+          },
+        },
+      },
+      errorMessage: `Migration ${migrationVersion}: Invalid SEI network configuration: 'string'`,
+      scenario: 'invalid SEI network configuration',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                '0x531': {
+                  chainId: '0x531',
+                  defaultRpcEndpointIndex: 0,
+                  blockExplorerUrls: ['https://seitrace.com'],
+                  defaultBlockExplorerUrlIndex: 0,
+                  name: 'Custom Sei Network',
+                  nativeCurrency: 'SEI',
+                },
+              },
+            },
+          },
+        },
+      },
+      errorMessage: `Migration ${migrationVersion}: Invalid SEI network configuration: missing rpcEndpoints property`,
+      scenario: 'missing rpcEndpoints property in SEI network configuration',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                '0x531': {
+                  chainId: '0x531',
+                  rpcEndpoints: 'not-an-array',
+                  defaultRpcEndpointIndex: 0,
+                  blockExplorerUrls: ['https://seitrace.com'],
+                  defaultBlockExplorerUrlIndex: 0,
+                  name: 'Custom Sei Network',
+                  nativeCurrency: 'SEI',
+                },
+              },
+            },
+          },
+        },
+      },
+      errorMessage: `Migration ${migrationVersion}: Invalid SEI network rpcEndpoints: expected array, got 'string'`,
+      scenario: 'rpcEndpoints is not an array in SEI network configuration',
+    },
+  ];
+
+  it.each(invalidStates)(
+    'should capture exception if $scenario',
+    ({ errorMessage, state }) => {
+      const orgState = cloneDeep(state);
+      mockedEnsureValidState.mockReturnValue(true);
+
+      const migratedState = migrate(state);
+
+      // State should be unchanged
+      expect(migratedState).toStrictEqual(orgState);
+      expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+        errorMessage,
+      );
+    },
+  );
+
+  it('does not modify state and does not capture exception if SEI network is not found', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              '0x1': {
+                chainId: '0x1',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'mainnet',
+                    url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+                    type: 'infura',
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+                blockExplorerUrls: ['https://etherscan.io'],
+                defaultBlockExplorerUrlIndex: 0,
+                name: 'Ethereum Mainnet',
+                nativeCurrency: 'ETH',
+              },
+            },
+          },
+        },
+      },
+    };
+    const orgState = cloneDeep(state);
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state);
+
+    // State should be unchanged
+    expect(migratedState).toStrictEqual(orgState);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('does not add failover URL if there is already a failover URL', async () => {
     const oldState = {
       engine: {
-        backgroundState: {},
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              '0x1': {
+                chainId: '0x1',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'mainnet',
+                    url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+                    type: 'infura',
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+                blockExplorerUrls: ['https://etherscan.io'],
+                defaultBlockExplorerUrlIndex: 0,
+                name: 'Ethereum Mainnet',
+                nativeCurrency: 'ETH',
+              },
+              '0x531': {
+                chainId: '0x531',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'sei-network',
+                    url: 'https://sei-mainnet.infura.io/v3/{infuraProjectId}',
+                    type: 'custom',
+                    name: 'Sei Network',
+                    failoverUrls: ['https://failover.com'],
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+                blockExplorerUrls: ['https://seitrace.com'],
+                defaultBlockExplorerUrlIndex: 0,
+                name: 'Sei Network',
+                nativeCurrency: 'SEI',
+              },
+            },
+          },
+        },
       },
     };
 
-    mockMMKVInstance.getAllKeys.mockReturnValue(['key1-0x1', 'key2-0x1']);
+    mockedEnsureValidState.mockReturnValue(true);
 
-    const newState = migrate(oldState);
-
-    expect(MMKV).toHaveBeenCalledWith({ id: 'PPOMDB' });
-    expect(mockMMKVInstance.getAllKeys).toHaveBeenCalled();
-    expect(mockMMKVInstance.clearAll).toHaveBeenCalled();
-    expect(newState).toEqual(oldState);
+    const migratedState = await migrate(oldState);
+    expect(migratedState).toStrictEqual(oldState);
   });
 
-  it('should not call clearAll when no keys exist', () => {
+  it('does not add failover URL if QUICKNODE_SEI_URL env variable is not set', async () => {
     const oldState = {
       engine: {
-        backgroundState: {},
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              '0x1': {
+                chainId: '0x1',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'mainnet',
+                    url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+                    type: 'infura',
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+                blockExplorerUrls: ['https://etherscan.io'],
+                defaultBlockExplorerUrlIndex: 0,
+                name: 'Ethereum Mainnet',
+                nativeCurrency: 'ETH',
+              },
+              '0x531': {
+                chainId: '0x531',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'sei-network',
+                    url: 'https://sei-mainnet.infura.io/v3/{infuraProjectId}',
+                    type: 'custom',
+                    name: 'Sei Network',
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+                blockExplorerUrls: ['https://seitrace.com'],
+                defaultBlockExplorerUrlIndex: 0,
+                name: 'Sei Network',
+                nativeCurrency: 'SEI',
+              },
+            },
+          },
+        },
       },
     };
 
-    mockMMKVInstance.getAllKeys.mockReturnValue([]);
+    mockedEnsureValidState.mockReturnValue(true);
 
-    const newState = migrate(oldState);
-
-    expect(MMKV).toHaveBeenCalledWith({ id: 'PPOMDB' });
-    expect(mockMMKVInstance.getAllKeys).toHaveBeenCalled();
-    expect(mockMMKVInstance.clearAll).not.toHaveBeenCalled();
-    expect(newState).toEqual(oldState);
+    const migratedState = await migrate(oldState);
+    expect(migratedState).toStrictEqual(oldState);
   });
 
-  it('should handle errors gracefully', () => {
+  it('adds QuickNode failover URL to all SEI RPC endpoints when no failover URLs exist', async () => {
+    process.env.QUICKNODE_SEI_URL = QUICKNODE_SEI_URL;
     const oldState = {
       engine: {
-        backgroundState: {},
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              '0x1': {
+                chainId: '0x1',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'mainnet',
+                    url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+                    type: 'infura',
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+                blockExplorerUrls: ['https://etherscan.io'],
+                defaultBlockExplorerUrlIndex: 0,
+                name: 'Ethereum Mainnet',
+                nativeCurrency: 'ETH',
+              },
+              '0x531': {
+                chainId: '0x531',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'sei-network',
+                    url: 'https://sei-mainnet.infura.io/v3/{infuraProjectId}',
+                    type: 'custom',
+                    name: 'Sei Network',
+                  },
+                  {
+                    networkClientId: 'sei-network-2',
+                    url: 'http://some-sei-rpc.com',
+                    type: 'custom',
+                    name: 'Sei Network',
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+                blockExplorerUrls: ['https://seitrace.com'],
+                defaultBlockExplorerUrlIndex: 0,
+                name: 'Sei Network',
+                nativeCurrency: 'SEI',
+              },
+            },
+          },
+        },
       },
     };
 
-    mockMMKVInstance.getAllKeys.mockImplementation(() => {
-      throw new Error('Storage error');
-    });
+    mockedEnsureValidState.mockReturnValue(true);
 
-    const newState = migrate(oldState);
+    const expectedData = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            ...oldState.engine.backgroundState.NetworkController,
+            networkConfigurationsByChainId: {
+              ...oldState.engine.backgroundState.NetworkController
+                .networkConfigurationsByChainId,
+              '0x531': {
+                ...oldState.engine.backgroundState.NetworkController
+                  .networkConfigurationsByChainId['0x531'],
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'sei-network',
+                    url: 'https://sei-mainnet.infura.io/v3/{infuraProjectId}',
+                    type: 'custom',
+                    name: 'Sei Network',
+                    failoverUrls: [QUICKNODE_SEI_URL],
+                  },
+                  {
+                    networkClientId: 'sei-network-2',
+                    url: 'http://some-sei-rpc.com',
+                    type: 'custom',
+                    name: 'Sei Network',
+                    failoverUrls: [QUICKNODE_SEI_URL],
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    };
 
-    expect(newState).toEqual(oldState);
-  });
-
-  it('should return state unchanged if state is invalid', () => {
-    const invalidStates = [null, undefined, {}, { engine: null }];
-
-    invalidStates.forEach((invalidState) => {
-      const newState = migrate(invalidState);
-      expect(newState).toEqual(invalidState);
-    });
+    const migratedState = await migrate(oldState);
+    expect(migratedState).toStrictEqual(expectedData);
   });
 });
