@@ -27,6 +27,8 @@ import TrendingTokensSection from './TrendingTokensSection/TrendingTokensSection
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import ExploreSearchScreen from './ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
+import { PredictModalStack } from '../../UI/Predict/routes';
+import PredictionSection from './PredictionSection/PredictionSection';
 
 const Stack = createStackNavigator();
 
@@ -124,6 +126,7 @@ const TrendingFeed: React.FC = () => {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
+        <PredictionSection />
         <TrendingTokensSection />
       </ScrollView>
     </Box>
@@ -146,6 +149,17 @@ const TrendingView: React.FC = () => {
         <Stack.Screen
           name={Routes.EXPLORE_SEARCH}
           component={ExploreSearchScreen}
+        />
+        <Stack.Screen
+          name={Routes.PREDICT.MODALS.ROOT}
+          component={PredictModalStack}
+          options={{
+            headerShown: false,
+            cardStyle: {
+              backgroundColor: 'transparent',
+            },
+            animationEnabled: false,
+          }}
         />
       </Stack.Navigator>
     </PerpsStreamProvider>

@@ -5493,6 +5493,11 @@
       "annually": "annually.",
       "learn_more_with_period": "Learn more."
     },
+    "stake_your_trx_cta": {
+      "base": "Stake your TRX with MetaMask Pool and earn",
+      "annually": "annually.",
+      "learn_more_with_period": "Learn more."
+    },
     "day": {
       "zero": "",
       "one": "day",
@@ -5811,6 +5816,11 @@
       "summary": "You won",
       "footer_bottom": "Funds will be added to your available balance",
       "footer_top": "Winnings from {{count}} markets"
+    },
+    "custom_amount": {
+      "buy_button": "Buy crypto",
+      "buy_predict": "Add funds to your wallet to use Predictions.",
+      "buy_perps": "Add funds to your wallet to use Perps."
     },
     "unlimited": "Unlimited",
     "all": "All",

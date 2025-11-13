@@ -2,6 +2,7 @@ import {
   selectRewardsEnabledFlag,
   selectRewardsAnnouncementModalEnabledFlag,
   selectRewardsCardSpendFeatureFlags,
+  selectRewardsPredictEnabledFlag,
 } from '.';
 import {
   VersionGatedFeatureFlag,
@@ -211,6 +212,55 @@ describe('Rewards Feature Flag Selectors', () => {
       expect(result).toBe(false);
     });
   });
+
+  describe('selectRewardsPredictEnabledFlag', () => {
+    it('returns true when remote flag is valid and enabled', () => {
+      const result = selectRewardsPredictEnabledFlag.resultFunc({
+        rewardsEnablePredict: {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+      });
+      expect(result).toBe(true);
+    });
+
+    it('returns false when remote flag is valid but disabled', () => {
+      const result = selectRewardsPredictEnabledFlag.resultFunc({
+        rewardsEnablePredict: {
+          enabled: false,
+          minimumVersion: '1.0.0',
+        },
+      });
+      expect(result).toBe(false);
+    });
+
+    it('returns false when version check fails', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+      const result = selectRewardsPredictEnabledFlag.resultFunc({
+        rewardsEnablePredict: {
+          enabled: true,
+          minimumVersion: '99.0.0',
+        },
+      });
+      expect(result).toBe(false);
+    });
+
+    it('returns false when remote flag is invalid', () => {
+      const result = selectRewardsPredictEnabledFlag.resultFunc({
+        rewardsEnablePredict: {
+          enabled: 'invalid',
+          minimumVersion: 123,
+        },
+      });
+      expect(result).toBe(false);
+    });
+
+    it('returns false when remote feature flags are empty', () => {
+      const result = selectRewardsPredictEnabledFlag.resultFunc({});
+      expect(result).toBe(false);
+    });
+  });
+
   describe('validatedVersionGatedFeatureFlag', () => {
     const validRemoteFlag: VersionGatedFeatureFlag = {
       enabled: true,
