@@ -406,8 +406,8 @@ export function buildOrdersArray(
     const slippageValue =
       ORDER_SLIPPAGE_CONFIG.DEFAULT_TPSL_SLIPPAGE_BPS / 10000;
     const limitPriceWithSlippage = !isBuy
-      ? stopLossPriceNum * (1 - slippageValue) // Selling: reduce price by slippage
-      : stopLossPriceNum * (1 + slippageValue); // Buying: increase price by slippage
+      ? stopLossPriceNum * (1 + slippageValue) // Buying to close short: willing to pay MORE (slippage protection)
+      : stopLossPriceNum * (1 - slippageValue); // Selling to close long: willing to accept LESS (slippage protection)
 
     const slOrder: SDKOrderParams = {
       a: assetId,
