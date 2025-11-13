@@ -24,8 +24,11 @@ import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/te
 import { RootState } from '../../../../../reducers';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { BridgeViewMode } from '../../types';
-import { useGasIncluded } from '../../hooks/useGasIncluded';
+import { useIsGasIncludedSTXSendBundleSupported } from '../../hooks/useIsGasIncludedSTXSendBundleSupported';
 import { useIsSendBundleSupported } from '../../hooks/useIsSendBundleSupported';
+import { useIsGasIncluded7702Supported } from '../../hooks/useIsGasIncluded7702Supported';
+import { useGasIncludedQuoteParams } from '../../hooks/useGasIncludedQuoteParams';
+import Engine from '../../../../../core/Engine';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -257,14 +260,24 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
     .mockImplementation(() => mockUseBridgeQuoteData),
 }));
 
-// Mock useGasIncluded hook
-jest.mock('../../hooks/useGasIncluded', () => ({
-  useGasIncluded: jest.fn(),
+// Mock useIsGasIncludedSTXSendBundleSupported hook
+jest.mock('../../hooks/useIsGasIncludedSTXSendBundleSupported', () => ({
+  useIsGasIncludedSTXSendBundleSupported: jest.fn(),
 }));
 
 // Mock useIsSendBundleSupported hook (dependency of useGasIncluded)
 jest.mock('../../hooks/useIsSendBundleSupported', () => ({
   useIsSendBundleSupported: jest.fn().mockReturnValue(false),
+}));
+
+// Mock useIsGasIncluded7702Supported hook
+jest.mock('../../hooks/useIsGasIncluded7702Supported', () => ({
+  useIsGasIncluded7702Supported: jest.fn(),
+}));
+
+// Mock useGasIncludedQuoteParams hook
+jest.mock('../../hooks/useGasIncludedQuoteParams', () => ({
+  useGasIncludedQuoteParams: jest.fn(),
 }));
 
 jest.mock('../../../../../util/address', () => ({
@@ -278,8 +291,15 @@ describe('BridgeView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Set default mock values
-    (useGasIncluded as jest.Mock).mockReturnValue(undefined);
+    (useIsGasIncludedSTXSendBundleSupported as jest.Mock).mockReturnValue(
+      undefined,
+    );
     (useIsSendBundleSupported as jest.Mock).mockReturnValue(false);
+    (useIsGasIncluded7702Supported as jest.Mock).mockReturnValue(undefined);
+    (useGasIncludedQuoteParams as jest.Mock).mockReturnValue({
+      gasIncluded: false,
+      gasIncluded7702: false,
+    });
   });
 
   it('renders', async () => {
@@ -1612,7 +1632,9 @@ describe('BridgeView', () => {
         { state: testState },
       );
 
-      expect(useGasIncluded).toHaveBeenCalledWith('0x1');
+      expect(useIsGasIncludedSTXSendBundleSupported).toHaveBeenCalledWith(
+        '0x1',
+      );
     });
 
     it('calls useGasIncluded with undefined when source token not set', () => {
@@ -1628,10 +1650,12 @@ describe('BridgeView', () => {
         { state: testState },
       );
 
-      expect(useGasIncluded).toHaveBeenCalledWith(undefined);
+      expect(useIsGasIncludedSTXSendBundleSupported).toHaveBeenCalledWith(
+        undefined,
+      );
     });
 
-    it('updates gasIncluded when source chain changes', () => {
+    it('updates isGasIncludedSTXSendBundleSupported when source chain changes', () => {
       const testState = createBridgeTestState({
         bridgeReducerOverrides: {
           sourceToken: {
@@ -1662,10 +1686,12 @@ describe('BridgeView', () => {
       });
 
       // useGasIncluded should be called with the new chain ID
-      expect(useGasIncluded).toHaveBeenCalledWith('0xa');
+      expect(useIsGasIncludedSTXSendBundleSupported).toHaveBeenCalledWith(
+        '0xa',
+      );
     });
 
-    it('calls useGasIncluded with non-EVM chainId directly', () => {
+    it('calls useIsGasIncludedSTXSendBundleSupported with non-EVM chainId directly', () => {
       const testState = createBridgeTestState({
         bridgeReducerOverrides: {
           sourceToken: {
@@ -1684,9 +1710,238 @@ describe('BridgeView', () => {
       );
 
       // Hook receives the raw chainId and handles filtering internally
-      expect(useGasIncluded).toHaveBeenCalledWith(
+      expect(useIsGasIncludedSTXSendBundleSupported).toHaveBeenCalledWith(
         'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       );
+    });
+  });
+
+  describe('useGasIncludedQuoteParams integration', () => {
+    it('passes correct parameters to useGasIncludedQuoteParams for swap transaction', async () => {
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceToken: {
+            address: '0x0000000000000000000000000000000000000001',
+            chainId: '0x1',
+            decimals: 18,
+            symbol: 'ETH',
+          },
+          destToken: {
+            address: '0x0000000000000000000000000000000000000002',
+            chainId: '0x1', // Same chain = swap
+            decimals: 18,
+            symbol: 'USDT',
+          },
+          isGasIncludedSTXSendBundleSupported: true,
+          isGasIncluded7702Supported: true,
+        },
+      });
+
+      renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      await waitFor(() => {
+        expect(useGasIncludedQuoteParams).toHaveBeenCalledWith(
+          true, // isSwap
+          true, // gasIncludedWithSTXSendBundleSupport
+          true, // gasIncludedWith7702Support
+        );
+      });
+    });
+
+    it('passes correct parameters to useGasIncludedQuoteParams for bridge transaction', async () => {
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceToken: {
+            address: '0x0000000000000000000000000000000000000001',
+            chainId: '0x1',
+            decimals: 18,
+            symbol: 'ETH',
+          },
+          destToken: {
+            address: '0x0000000000000000000000000000000000000001',
+            chainId: '0xa', // Different chain = bridge
+            decimals: 18,
+            symbol: 'ETH',
+          },
+          isGasIncludedSTXSendBundleSupported: true,
+          isGasIncluded7702Supported: false,
+        },
+      });
+
+      renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      await waitFor(() => {
+        expect(useGasIncludedQuoteParams).toHaveBeenCalledWith(
+          false, // isSwap (different chains)
+          true, // gasIncludedWithSTXSendBundleSupport
+          false, // gasIncludedWith7702Support
+        );
+      });
+    });
+
+    it('uses gasIncluded values from useGasIncludedQuoteParams in quote request', async () => {
+      jest.useFakeTimers();
+      (useGasIncludedQuoteParams as jest.Mock).mockReturnValue({
+        gasIncluded: true,
+        gasIncluded7702: true,
+      });
+
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceToken: {
+            address: '0x0000000000000000000000000000000000000001',
+            chainId: '0x1',
+            decimals: 18,
+            symbol: 'ETH',
+          },
+          destToken: {
+            address: '0x0000000000000000000000000000000000000002',
+            chainId: '0x1',
+            decimals: 18,
+            symbol: 'USDT',
+          },
+          sourceAmount: '1',
+        },
+      });
+
+      renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      // Advance timers to trigger the debounced function
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      await waitFor(() => {
+        expect(
+          Engine.context.BridgeController.updateBridgeQuoteRequestParams,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            gasIncluded: true,
+            gasIncluded7702: true,
+          }),
+          expect.any(Object),
+        );
+      });
+
+      jest.useRealTimers();
+    });
+
+    it('favors STX over 7702 when both are supported for swap', async () => {
+      jest.useFakeTimers();
+      (useGasIncludedQuoteParams as jest.Mock).mockReturnValue({
+        gasIncluded: true,
+        gasIncluded7702: false, // STX takes precedence
+      });
+
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceToken: {
+            address: '0x0000000000000000000000000000000000000001',
+            chainId: '0x1',
+            decimals: 18,
+            symbol: 'ETH',
+          },
+          destToken: {
+            address: '0x0000000000000000000000000000000000000002',
+            chainId: '0x1',
+            decimals: 18,
+            symbol: 'USDT',
+          },
+          sourceAmount: '1',
+          isGasIncludedSTXSendBundleSupported: true,
+          isGasIncluded7702Supported: true,
+        },
+      });
+
+      renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      // Advance timers to trigger the debounced function
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      await waitFor(() => {
+        expect(
+          Engine.context.BridgeController.updateBridgeQuoteRequestParams,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            gasIncluded: true,
+            gasIncluded7702: false, // STX is favored
+          }),
+          expect.any(Object),
+        );
+      });
+
+      jest.useRealTimers();
+    });
+
+    it('disables 7702 for bridge transactions even when supported', async () => {
+      jest.useFakeTimers();
+      (useGasIncludedQuoteParams as jest.Mock).mockReturnValue({
+        gasIncluded: false,
+        gasIncluded7702: false, // 7702 not supported for bridge
+      });
+
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceToken: {
+            address: '0x0000000000000000000000000000000000000001',
+            chainId: '0x1',
+            decimals: 18,
+            symbol: 'ETH',
+          },
+          destToken: {
+            address: '0x0000000000000000000000000000000000000001',
+            chainId: '0xa',
+            decimals: 18,
+            symbol: 'ETH',
+          },
+          sourceAmount: '1',
+          isGasIncludedSTXSendBundleSupported: false,
+          isGasIncluded7702Supported: true, // 7702 support available but not used for bridge
+        },
+      });
+
+      renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      // Advance timers to trigger the debounced function
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      await waitFor(() => {
+        expect(
+          Engine.context.BridgeController.updateBridgeQuoteRequestParams,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            gasIncluded: false,
+            gasIncluded7702: false, // Disabled for bridge
+          }),
+          expect.any(Object),
+        );
+      });
+
+      jest.useRealTimers();
     });
   });
 });

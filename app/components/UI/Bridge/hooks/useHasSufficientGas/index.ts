@@ -20,6 +20,8 @@ interface Props {
  */
 export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
   const gasIncluded = quote?.quote.gasIncluded;
+  const gasIncluded7702 = quote?.quote.gasIncluded7702;
+  const isGasless = gasIncluded7702 || gasIncluded;
 
   const sourceChainId = quote?.quote.srcChainId;
 
@@ -32,7 +34,7 @@ export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
     }
   }
   const sourceChainNativeAsset =
-    hexOrCaipChainId && !gasIncluded
+    hexOrCaipChainId && !isGasless
       ? getNativeSourceToken(hexOrCaipChainId)
       : undefined;
 
@@ -50,14 +52,14 @@ export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
       : null;
 
   const atomicGasFee =
-    effectiveGasFee && !gasIncluded
+    effectiveGasFee && !isGasless
       ? ethers.utils.parseUnits(
           effectiveGasFee,
           sourceChainNativeAsset?.decimals,
         )
       : null;
 
-  if (gasIncluded) {
+  if (isGasless) {
     return true;
   }
 
