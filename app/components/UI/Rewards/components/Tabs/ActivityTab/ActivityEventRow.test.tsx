@@ -16,16 +16,25 @@ jest.mock('../../../utils/formatUtils', () => ({
   formatNumber: jest
     .fn()
     .mockImplementation((value) => value?.toString() || '0'),
-  formatRewardsMusdDepositPayloadDate: jest.fn((isoDate: string) => {
-    // Mock implementation that formats the date
-    const date = new Date(`${isoDate}T00:00:00Z`);
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      timeZone: 'UTC',
-    }).format(date);
-  }),
+  formatRewardsMusdDepositPayloadDate: jest.fn(
+    (isoDate: string | undefined) => {
+      // Mock implementation that matches the real implementation behavior
+      if (
+        !isoDate ||
+        typeof isoDate !== 'string' ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(isoDate)
+      ) {
+        return null;
+      }
+      const date = new Date(`${isoDate}T00:00:00Z`);
+      return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        timeZone: 'UTC',
+      }).format(date);
+    },
+  ),
 }));
 
 jest.mock('../../../utils/eventDetailsUtils', () => ({
