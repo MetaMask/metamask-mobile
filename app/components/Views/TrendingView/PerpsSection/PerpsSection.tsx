@@ -20,7 +20,7 @@ const PerpsSection = () => {
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_LIST,
       params: {
-        defaultMarketTypeFilter: 'crypto',
+        defaultMarketTypeFilter: 'all',
       },
     });
   }, [navigation]);
