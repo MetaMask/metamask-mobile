@@ -55,6 +55,8 @@ exports[`TrendingTokenRowItem matches snapshot 1`] = `
     >
       <Text
         accessibilityRole="text"
+        ellipsizeMode="tail"
+        numberOfLines={1}
       >
         USD Coin
       </Text>
