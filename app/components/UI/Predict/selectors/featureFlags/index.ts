@@ -19,7 +19,6 @@ import {
 export const selectPredictEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    return true;
     const localFlag = process.env.MM_PREDICT_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.predictTradingEnabled as unknown as VersionGatedFeatureFlag;
