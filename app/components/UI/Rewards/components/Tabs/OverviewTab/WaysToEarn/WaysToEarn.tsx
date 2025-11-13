@@ -96,7 +96,7 @@ const waysToEarn: WayToEarn[] = [
     type: WayToEarnType.DEPOSIT_MUSD,
     title: strings('rewards.ways_to_earn.deposit_musd.title'),
     description: strings('rewards.ways_to_earn.deposit_musd.description'),
-    icon: IconName.AttachMoney,
+    icon: IconName.Coin,
   },
 ];
 
