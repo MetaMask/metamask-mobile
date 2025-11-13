@@ -9,10 +9,12 @@ import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
 import { PredictMarketListSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { useTheme } from '../../../../../util/theme';
+import { TraceName } from '../../../../../util/trace';
 import { PredictBalance } from '../../components/PredictBalance';
 import PredictFeedHeader from '../../components/PredictFeedHeader';
 import PredictMarketList from '../../components/PredictMarketList';
 import { useSharedScrollCoordinator } from '../../hooks/useSharedScrollCoordinator';
+import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import PredictFeedSessionManager from '../../services/PredictFeedSessionManager';
 import { PredictNavigationParamList } from '../../types/navigation';
 import type { PredictCategory } from '../../types';
@@ -28,6 +30,16 @@ const PredictFeed = () => {
 
   const scrollCoordinator = useSharedScrollCoordinator();
   const sessionManager = PredictFeedSessionManager.getInstance();
+
+  // Track screen load performance
+  usePredictMeasurement({
+    traceName: TraceName.PredictFeedView,
+    conditions: [!isSearchVisible],
+    debugContext: {
+      entryPoint: route.params?.entryPoint,
+      isSearchVisible,
+    },
+  });
 
   // Initialize session and enable AppState listener on mount
   useEffect(() => {

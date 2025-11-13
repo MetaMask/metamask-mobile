@@ -287,7 +287,7 @@ function TradeWalletActions() {
                     isDisabled={!canSignTransactions}
                   />
                 )}
-                {isPredictEnabled && isEvmSelected && (
+                {isPredictEnabled && (
                   <ActionListItem
                     label={strings('asset_overview.predict_button')}
                     description={strings('asset_overview.predict_description')}

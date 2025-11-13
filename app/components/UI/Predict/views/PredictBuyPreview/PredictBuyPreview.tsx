@@ -63,6 +63,8 @@ import Skeleton from '../../../../../component-library/components/Skeleton/Skele
 import { strings } from '../../../../../../locales/i18n';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 import { usePredictRewards } from '../../hooks/usePredictRewards';
+import { TraceName } from '../../../../../util/trace';
+import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
@@ -138,6 +140,17 @@ const PredictBuyPreview = () => {
 
   const { enabled: isRewardsEnabled, isLoading: isRewardsLoading } =
     usePredictRewards();
+
+  // Track screen load performance (balance + initial preview)
+  usePredictMeasurement({
+    traceName: TraceName.PredictBuyPreviewView,
+    conditions: [!isBalanceLoading, balance !== undefined, !!market],
+    debugContext: {
+      marketId: market?.id,
+      hasBalance: balance !== undefined,
+      isBalanceLoading,
+    },
+  });
 
   // Track when user changes input to show skeleton only during user input changes
   useEffect(() => {
