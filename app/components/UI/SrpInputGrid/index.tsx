@@ -5,7 +5,7 @@ import React, {
   useState,
   useEffect,
 } from 'react';
-import { View, Keyboard } from 'react-native';
+import { View, Keyboard, FlatList, Pressable, StyleSheet } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { v4 as uuidv4 } from 'uuid';
 import Text, {
@@ -29,6 +29,7 @@ import {
 import { isValidMnemonic } from '../../../util/validators';
 import { formatSeedPhraseToSingleLine } from '../../../util/string';
 import Logger from '../../../util/Logger';
+import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 
 export interface SrpInputGridRef {
   handleSeedPhraseChange: (seedPhraseText: string) => void;
@@ -69,6 +70,10 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     const [errorWordIndexes, setErrorWordIndexes] = useState<
       Record<number, boolean>
     >({});
+    const [currentInputWord, setCurrentInputWord] = useState<string>('');
+    const [focusedInputIndex, setFocusedInputIndex] = useState<number | null>(
+      null,
+    );
 
     const seedPhraseInputRefs = useRef<Map<
       number,
@@ -86,6 +91,19 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       () => isFirstInputUtil(seedPhrase),
       [seedPhrase],
     );
+
+    // Filter BIP39 wordlist based on current input
+    const suggestions = useMemo(() => {
+      const trimmedWord = currentInputWord.trim().toLowerCase();
+
+      if (!trimmedWord) {
+        return [];
+      }
+
+      return wordlist
+        .filter((word) => word.startsWith(trimmedWord))
+        .slice(0, 5);
+    }, [currentInputWord]);
 
     // Initialize seed phrase input refs
     const getSeedPhraseInputRef = useCallback(() => {
@@ -171,6 +189,11 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                 [index]: false,
               }));
             }
+
+            // Update current word for suggestions
+            if (!text.includes(' ')) {
+              setCurrentInputWord(text);
+            }
           }
         } catch (err) {
           Logger.error(err as Error, 'Error handling seed phrase change');
@@ -224,9 +247,19 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     );
 
     // Handle focus change with validation
-    const handleOnFocus = useCallback((index: number) => {
-      setNextSeedPhraseInputFocusedIndex(index);
-    }, []);
+    const handleOnFocus = useCallback(
+      (index: number) => {
+        setNextSeedPhraseInputFocusedIndex(index);
+        setFocusedInputIndex(index);
+
+        // Update current word for suggestions
+        const currentWord = seedPhrase[index] || '';
+        if (!currentWord.includes(' ')) {
+          setCurrentInputWord(currentWord);
+        }
+      },
+      [seedPhrase],
+    );
 
     const handleOnBlur = useCallback(
       (index: number) => {
@@ -239,6 +272,10 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
             [index]: !checkValid,
           }));
         }
+
+        // Clear focused index and current word
+        setFocusedInputIndex(null);
+        setCurrentInputWord('');
       },
       [seedPhrase],
     );
@@ -297,6 +334,23 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       setErrorWordIndexes({});
       setNextSeedPhraseInputFocusedIndex(null);
     }, [onSeedPhraseChange]);
+
+    const handleSuggestionSelect = useCallback(
+      (word: string) => {
+        if (focusedInputIndex === null) return;
+
+        // Update seed phrase with selected word + space to trigger next input
+        const updatedText = `${word}${SPACE_CHAR}`;
+        handleSeedPhraseChangeAtIndexRef.current(
+          updatedText,
+          focusedInputIndex,
+        );
+
+        // Clear current word
+        setCurrentInputWord('');
+      },
+      [focusedInputIndex],
+    );
 
     useEffect(() => {
       if (nextSeedPhraseInputFocusedIndex === null) return;
@@ -431,6 +485,44 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
           </View>
         </View>
 
+        {/* BIP39 Word Suggestions Bar */}
+        {suggestions.length > 0 && (
+          <View
+            style={[
+              suggestionBarStyles.container,
+              {
+                backgroundColor: colors.background.default,
+              },
+            ]}
+          >
+            <FlatList
+              horizontal
+              data={suggestions}
+              renderItem={({ item }) => (
+                <Pressable
+                  style={({ pressed }) => [
+                    suggestionBarStyles.suggestionButton,
+                    {
+                      backgroundColor: colors.background.alternative,
+                      borderColor: colors.border.default,
+                    },
+                    pressed && suggestionBarStyles.pressed,
+                  ]}
+                  onPress={() => handleSuggestionSelect(item)}
+                >
+                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                    {item}
+                  </Text>
+                </Pressable>
+              )}
+              keyExtractor={(item) => item}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={suggestionBarStyles.listContent}
+              keyboardShouldPersistTaps="always"
+            />
+          </View>
+        )}
+
         {/* Paste/Clear Button */}
         <Text
           variant={TextVariant.BodyMD}
@@ -459,5 +551,28 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     );
   },
 );
+
+// Styles for the BIP39 word suggestions bar
+const suggestionBarStyles = StyleSheet.create({
+  container: {
+    paddingVertical: 12,
+  },
+  listContent: {
+    alignItems: 'center',
+  },
+  suggestionButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    marginRight: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    minWidth: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pressed: {
+    opacity: 0.7,
+  },
+});
 
 export default SrpInputGrid;
