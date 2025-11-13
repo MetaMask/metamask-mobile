@@ -38,7 +38,8 @@ const useIsInsufficientBalance = ({
   const minSolBalance = useSelector(selectMinSolBalance);
 
   const bestQuote = quotes?.recommendedQuote;
-  const { gasIncluded } = bestQuote?.quote ?? {};
+  const { gasIncluded, gasIncluded7702 } = bestQuote?.quote ?? {};
+  const isGasless = gasIncluded7702 || gasIncluded;
 
   const isValidAmount =
     amount !== undefined && amount !== '.' && token?.decimals;
@@ -61,7 +62,7 @@ const useIsInsufficientBalance = ({
     !hasValidDecimals ||
     !token ||
     !latestAtomicBalance ||
-    !!gasIncluded
+    !!isGasless
   ) {
     return false;
   }

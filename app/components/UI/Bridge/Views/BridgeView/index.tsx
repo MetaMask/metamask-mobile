@@ -85,7 +85,8 @@ import { RootState } from '../../../../../reducers/index.ts';
 import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
 import { isNullOrUndefined } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
-import { useGasIncluded } from '../../hooks/useGasIncluded';
+import { useIsGasIncludedSTXSendBundleSupported } from '../../hooks/useIsGasIncludedSTXSendBundleSupported/index.ts';
+import { useIsGasIncluded7702Supported } from '../../hooks/useIsGasIncluded7702Supported/index.ts';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -142,8 +143,11 @@ const BridgeView = () => {
 
   const updateQuoteParams = useBridgeQuoteRequest();
 
-  // Update gasIncluded state based on source chain capabilities
-  useGasIncluded(sourceToken?.chainId);
+  // Update isGasIncludedSTXSendBundleSupported state based on source chain capabilities
+  useIsGasIncludedSTXSendBundleSupported(sourceToken?.chainId);
+
+  // Update isGasIncluded7702Supported state
+  useIsGasIncluded7702Supported(sourceToken?.chainId, selectedAddress);
 
   const initialSourceToken = route.params?.sourceToken;
   const initialSourceAmount = route.params?.sourceAmount;
