@@ -111,6 +111,7 @@ import migration106 from './106';
 // Add migrations above this line
 import { ControllerStorage } from '../persistConfig';
 import { captureException } from '@sentry/react-native';
+import { trackDeflationFailure } from '../../util/analytics/migrationTracking';
 
 type MigrationFunction = (state: unknown) => unknown;
 type AsyncMigrationFunction = (state: unknown) => Promise<unknown>;
@@ -316,7 +317,6 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
         string,
         unknown,
       ][];
-
       // Save all controller states to individual storage
       // CRITICAL: If ANY controller fails to save, crash the app immediately
       await Promise.all(
@@ -327,6 +327,12 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
               JSON.stringify(controllerState),
             );
           } catch (error) {
+            trackDeflationFailure(String(error), {
+              error_type: 'controller_save_failure',
+              context: 'deflateToControllersAndStrip',
+              controller_name: controllerName,
+            });
+
             // Log the error for debugging
             captureException(
               new Error(
