@@ -1,18 +1,27 @@
 import { LoginViewSelectors } from '../../selectors/wallet/LoginView.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import PlaywrightMatchers from '../../../wdio-playwright/framework/PlaywrightMatchers';
-import { PlaywrightElement } from '../../../wdio-playwright/framework/PlaywrightAdapter';
+import {
+  asPlaywrightElement,
+  encapsulated,
+  EncapsulatedElementType,
+  FrameworkDetector,
+  PlaywrightMatchers,
+} from '../../../wdio-playwright/framework';
 
 class LoginView {
   get container(): DetoxElement {
     return Matchers.getElementByID(LoginViewSelectors.CONTAINER);
   }
 
-  get passwordInput(): Promise<PlaywrightElement> {
-    return PlaywrightMatchers.getByXPath(
-      '//*[@resource-id="login-password-input"]',
-    );
+  get passwordInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(LoginViewSelectors.PASSWORD_INPUT),
+      appium: () =>
+        PlaywrightMatchers.getByXPath(
+          `//*[@resource-id="${LoginViewSelectors.PASSWORD_INPUT}"]`,
+        ),
+    });
   }
 
   get forgotPasswordButton(): DetoxElement {
@@ -23,13 +32,27 @@ class LoginView {
     return Matchers.getElementByID(LoginViewSelectors.REMEMBER_ME_SWITCH);
   }
 
-  get unlockButton(): Promise<PlaywrightElement> {
-    return PlaywrightMatchers.getByText('Unlock');
+  get unlockButton(): EncapsulatedElementType {
+    return encapsulated({
+      appium: () => PlaywrightMatchers.getByText('Unlock'),
+    });
   }
 
   async enterPassword(password: string): Promise<void> {
-    // Playwright-style API with WebdriverIO's robust element handling!
-    await (await this.passwordInput).fill(password + '\n');
+    const input = this.passwordInput;
+
+    if (FrameworkDetector.isDetox()) {
+      // Detox: typeText for character-by-character entry
+      await Gestures.typeText(input as DetoxElement, password, {
+        hideKeyboard: true,
+        elemDescription: 'Password Input',
+      });
+    } else {
+      // WebdriverIO: fill with newline to submit
+      const elem = await asPlaywrightElement(input);
+      await elem.fill(password);
+      await (await asPlaywrightElement(this.unlockButton)).click();
+    }
   }
 
   async tapForgotPassword(): Promise<void> {

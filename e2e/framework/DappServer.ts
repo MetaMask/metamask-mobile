@@ -1,11 +1,11 @@
 /* eslint-disable import/no-nodejs-modules */
-import { createLogger, Resource, ServerStatus } from '.';
+import { createLogger } from './logger';
 import http from 'http';
 import serveHandler from 'serve-handler';
 import { getLocalHost } from './fixtures/FixtureUtils';
 import { DappVariants } from './Constants';
 import path from 'path';
-import PortManager, { ResourceType } from './PortManager';
+import { Resource, ServerStatus } from './types';
 
 const logger = createLogger({
   name: 'DappServer',

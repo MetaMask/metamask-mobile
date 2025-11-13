@@ -1,0 +1,257 @@
+import { createLogger, Logger , LogLevel } from '../../e2e/framework/logger';
+import { PlaywrightElement } from './PlaywrightAdapter';
+
+/**
+ * Locator strategies supported by the encapsulation layer
+ */
+export enum LocatorStrategy {
+  ID = 'id',
+  XPATH = 'xpath',
+  TEXT = 'text',
+  ACCESSIBILITY_ID = 'accessibilityId',
+  ANDROID_UIAUTOMATOR = 'androidUIAutomator',
+  IOS_PREDICATE = 'iOSPredicate',
+  IOS_CLASS_CHAIN = 'iOSClassChain',
+}
+
+/**
+ * Platform-specific locator configuration for Appium/WebdriverIO
+ */
+export interface PlatformLocator {
+  strategy: LocatorStrategy;
+  locator: string;
+}
+
+/**
+ * Appium/WebdriverIO locator configuration supporting platform-specific locators
+ */
+export interface AppiumLocatorConfig {
+  android?: PlatformLocator;
+  ios?: PlatformLocator;
+  // Fallback locator if platform-specific is not provided
+  default?: PlatformLocator;
+}
+
+/**
+ * Complete locator configuration for both Detox and Appium/WebdriverIO
+ */
+export interface LocatorConfig {
+  // Detox locator - can be a function that returns a DetoxElement
+  // This allows you to use your existing Matchers helpers!
+  detox?: () => DetoxElement;
+  // Appium/WebdriverIO locator - can be a function that returns a Promise<PlaywrightElement>
+  appium?: () => Promise<PlaywrightElement>;
+}
+
+/**
+ * Testing framework context enum
+ */
+export enum TestFramework {
+  DETOX = 'detox',
+  APPIUM = 'appium',
+}
+
+/**
+ * Unified element type that can be either DetoxElement or PlaywrightElement
+ * Note: Both types are Promise-based
+ */
+export type EncapsulatedElementType = DetoxElement | Promise<PlaywrightElement>;
+
+/**
+ * Framework detector - determines which testing framework is currently running
+ */
+export class FrameworkDetector {
+  private static framework?: TestFramework;
+  private static logger: Logger = createLogger({
+    name: 'FrameworkDetector',
+    level: LogLevel.DEBUG,
+  });
+
+  /**
+   * Detect current framework based on environment
+   */
+  static detect(): TestFramework {
+    if (this.framework) {
+      return this.framework;
+    }
+
+    // Check for Detox globals
+    if (process.env.E2E_FRAMEWORK === 'detox') {
+      this.framework = TestFramework.DETOX;
+      this.logger.debug('Detox framework detected.');
+      return TestFramework.DETOX;
+    }
+
+    // Check for WebdriverIO globals
+    if (process.env.E2E_FRAMEWORK === 'appium') {
+      this.framework = TestFramework.APPIUM;
+      this.logger.debug('Appium framework detected.');
+      return TestFramework.APPIUM;
+    }
+
+    // Default to Detox for backwards compatibility
+    this.framework = TestFramework.DETOX;
+    this.logger.debug('Detox framework detected as default.');
+    return TestFramework.DETOX;
+  }
+
+  /**
+   * Manually set the framework (useful for testing or explicit configuration)
+   */
+  static setFramework(framework: TestFramework): void {
+    this.framework = framework;
+  }
+
+  /**
+   * Reset framework detection
+   */
+  static reset(): void {
+    this.framework = undefined;
+  }
+
+  /**
+   * Check if currently running on Detox
+   */
+  static isDetox(): boolean {
+    return this.detect() === TestFramework.DETOX;
+  }
+
+  /**
+   * Check if currently running on Appium/WebdriverIO
+   */
+  static isAppium(): boolean {
+    return this.detect() === TestFramework.APPIUM;
+  }
+}
+
+/**
+ * Platform detector for Appium/WebdriverIO context
+ */
+export class PlatformDetector {
+  /**
+   * Get current platform (android/ios)
+   */
+  static async getPlatform(): Promise<'android' | 'ios'> {
+    if (FrameworkDetector.isDetox()) {
+      return device.getPlatform() as 'android' | 'ios';
+    }
+
+    // For Appium/WebdriverIO
+    if (typeof driver !== 'undefined') {
+      const capabilities = await driver.capabilities;
+      return capabilities.platformName?.toLowerCase() === 'android'
+        ? 'android'
+        : 'ios';
+    }
+
+    throw new Error('Unable to detect platform');
+  }
+
+  /**
+   * Check if running on Android
+   */
+  static async isAndroid(): Promise<boolean> {
+    return (await this.getPlatform()) === 'android';
+  }
+
+  /**
+   * Check if running on iOS
+   */
+  static async isIOS(): Promise<boolean> {
+    return (await this.getPlatform()) === 'ios';
+  }
+}
+
+/**
+ * Encapsulated element factory - creates appropriate element based on framework context
+ */
+export class EncapsulatedElement {
+  /**
+   * Create an encapsulated element from locator configuration
+   *
+   * @param config - Locator configuration for both Detox and Appium
+   * @returns DetoxElement or Promise<PlaywrightElement> based on current framework
+   *
+   * @example
+   * // Using existing Matchers helpers for Detox
+   * get passwordInput(): EncapsulatedElementType {
+   *   return EncapsulatedElement.create({
+   *     detox: () => Matchers.getElementByID('login-password-input'),
+   *     appium: () => PlaywrightMatchers.getByXPath('//*[@resource-id="login-password-input"]')
+   *   });
+   * }
+   *
+   * @example
+   * // Using text locator
+   * get unlockButton(): EncapsulatedElementType {
+   *   return EncapsulatedElement.create({
+   *     detox: () => Matchers.getElementByText('Unlock'),
+   *     appium: () => PlaywrightMatchers.getByText('Unlock')
+   *   });
+   * }
+   */
+  static create(config: LocatorConfig): EncapsulatedElementType {
+    const framework = FrameworkDetector.detect();
+
+    if (framework === TestFramework.DETOX) {
+      return this.createDetoxElement(config);
+    }
+      return this.createAppiumElement(config);
+
+  }
+
+  /**
+   * Create Detox element from configuration
+   */
+  private static createDetoxElement(config: LocatorConfig): DetoxElement {
+    if (!config.detox) {
+      throw new Error(
+        'Detox configuration is required when running in Detox context',
+      );
+    }
+
+    // Execute the function to get the DetoxElement
+    return config.detox();
+  }
+
+  /**
+   * Create Appium/WebdriverIO element from configuration
+   */
+  private static createAppiumElement(
+    config: LocatorConfig,
+  ): Promise<PlaywrightElement> {
+    if (!config.appium) {
+      throw new Error(
+        'Appium configuration is required when running in Appium context',
+      );
+    }
+
+    // Execute the function to get the Promise<PlaywrightElement>
+    return config.appium();
+  }
+}
+
+/**
+ * Helper function for creating encapsulated elements (shorthand)
+ */
+export function encapsulated(config: LocatorConfig): EncapsulatedElementType {
+  return EncapsulatedElement.create(config);
+}
+
+/**
+ * Type helper for WebdriverIO tests - returns the PlaywrightElement from the EncapsulatedElementType
+ * @returns PlaywrightElement
+ */
+export async function asPlaywrightElement(
+  element: EncapsulatedElementType,
+): Promise<PlaywrightElement> {
+  return (await element) as PlaywrightElement;
+}
+
+/**
+ * Type helper for Detox tests - returns the DetoxElement from the EncapsulatedElementType
+ * @returns DetoxElement
+ */
+export function asDetoxElement(element: EncapsulatedElementType): DetoxElement {
+  return element as DetoxElement;
+}

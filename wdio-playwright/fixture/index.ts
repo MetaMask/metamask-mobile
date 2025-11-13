@@ -1,5 +1,5 @@
 import { test as base, FullProject } from '@playwright/test';
-import { WebDriverConfig } from '../../e2e/framework/types';
+import { WebDriverConfig } from '../../e2e/framework';
 import { DeviceProvider } from '../services/common/interfaces/DeviceProvider';
 import { createDeviceProvider } from '../services';
 import { stopAppiumServer } from '../services/common/AppiumHelpers';
@@ -25,13 +25,9 @@ interface TestLevelFixtures {
   driver: WebdriverIO.Browser;
 }
 
-// interface WorkerLevelFixtures {
-//   persistentDevice: Client;
-// }
-
 export const test = base.extend<TestLevelFixtures>({
-  // TODO: fix _ for {} in the future. Using {} is causing linter errors
-  deviceProvider: async (_, use, testInfo) => {
+  // eslint-disable-next-line no-empty-pattern
+  deviceProvider: async ({}, use, testInfo) => {
     const deviceProvider = createDeviceProvider(testInfo.project);
     await use(deviceProvider);
   },
@@ -64,52 +60,4 @@ export const test = base.extend<TestLevelFixtures>({
       reason: testInfo.error?.message,
     });
   },
-  //   persistentDevice: [
-  //     async ({}, use, workerInfo) => {
-  //       const { project, workerIndex } = workerInfo;
-  //       const beforeSession = new Date();
-  //       const deviceProvider = createDeviceProvider(project);
-  //       const driver = await deviceProvider.getDriver() as Client;
-  //       const sessionId = deviceProvider.sessionId;
-  //       if (!sessionId) {
-  //         throw new Error("Worker must have a sessionId.");
-  //       }
-  //       const providerName = (project as FullProject<WebDriverConfig>).use.device
-  //         ?.provider;
-  //       const afterSession = new Date();
-  //     //   const workerInfoStore = new WorkerInfoStore();
-  //     //   await workerInfoStore.saveWorkerStartTime(
-  //     //     workerIndex,
-  //     //     sessionId,
-  //     //     providerName!,
-  //     //     beforeSession,
-  //     //     afterSession,
-  //     //   );
-  //     //   await use(driver);
-  //     //   await workerInfoStore.saveWorkerEndTime(workerIndex, new Date());
-  //       await driver.close();
-  //     },
-  //     { scope: "worker" },
-  //   ],
 });
-
-/**
- * Function to extend Playwright’s expect assertion capabilities.
- * This adds a new method `toBeVisible` which checks if an element is visible on the screen.
- *
- * @param locator The AppwrightLocator that locates the element on the device screen.
- * @param options
- * @returns
- */
-// export const expect = test.expect.extend({
-//   toBeVisible: async (locator: AppwrightLocator, options?: ActionOptions) => {
-//     const isVisible = await locator.isVisible(options);
-//     return {
-//       message: () => (isVisible ? "" : `Element was not found on the screen`),
-//       pass: isVisible,
-//       name: "toBeVisible",
-//       expected: true,
-//       actual: isVisible,
-//     };
-//   },
-// });
