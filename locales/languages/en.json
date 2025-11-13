@@ -6737,6 +6737,16 @@
           "cta_label": "Add accounts"
         }
       },
+      "predict": {
+        "title": "Prediction markets",
+        "description": "20 points per $10 prediction",
+        "sheet": {
+          "title": "Prediction markets",
+          "points": "20 points per $10",
+          "description": "Earn points on every $10 you trade.",
+          "cta_label": "Browse markets"
+        }
+      },
       "card": {
         "title": "MetaMask Card",
         "description": "1 point per $1 spent",
