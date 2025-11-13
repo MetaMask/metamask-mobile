@@ -442,7 +442,7 @@
     "security_alert_title": "Security Alert",
     "security_alert_message": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
     "i_understand": "I understand that MetaMask cannot recover this password for me.",
-    "learn_more": "Learn more.",
+    "learn_more": "Learn more",
     "secure": "Secure wallet",
     "confirm": "Confirm Secret Recovery Phrase",
     "disable_biometric_error": "You have disabled biometrics for the app. Update Remember Me settings and try again.",
@@ -473,7 +473,7 @@
     "security_alert_title": "Security Alert",
     "security_alert_message": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
     "i_understand": "I understand that MetaMask cannot recover this password for me.",
-    "learn_more": "Learn more.",
+    "learn_more": "Learn more",
     "secure": "Secure wallet",
     "confirm": "Confirm Secret Recovery Phrase",
     "password_updated": "New password saved",
@@ -3475,6 +3475,11 @@
     "self_sent_unit": "Sent Yourself {{unit}}",
     "received_unit": "Received {{unit}}",
     "sent_collectible": "Sent Collectible",
+    "received_collectible": "Received Collectible",
+    "send_ether": "Send Ether",
+    "send_unit": "Send {{unit}}",
+    "send_collectible": "Send Collectible",
+    "receive_collectible": "Receive Collectible",
     "sent": "Sent",
     "received": "Received",
     "receive": "Receive",
@@ -5492,6 +5497,11 @@
       "annually": "annually.",
       "learn_more_with_period": "Learn more."
     },
+    "stake_your_trx_cta": {
+      "base": "Stake your TRX with MetaMask Pool and earn",
+      "annually": "annually.",
+      "learn_more_with_period": "Learn more."
+    },
     "day": {
       "zero": "",
       "one": "day",
@@ -5810,6 +5820,11 @@
       "summary": "You won",
       "footer_bottom": "Funds will be added to your available balance",
       "footer_top": "Winnings from {{count}} markets"
+    },
+    "custom_amount": {
+      "buy_button": "Buy crypto",
+      "buy_predict": "Add funds to your wallet to use Predictions.",
+      "buy_perps": "Add funds to your wallet to use Perps."
     },
     "unlimited": "Unlimited",
     "all": "All",
@@ -6737,6 +6752,16 @@
           "cta_label": "Add accounts"
         }
       },
+      "predict": {
+        "title": "Prediction markets",
+        "description": "20 points per $10 prediction",
+        "sheet": {
+          "title": "Prediction markets",
+          "points": "20 points per $10",
+          "description": "Earn points on every $10 you trade.",
+          "cta_label": "Browse markets"
+        }
+      },
       "card": {
         "title": "MetaMask Card",
         "description": "1 point per $1 spent",
@@ -6745,6 +6770,16 @@
           "points": "1 point per $1 spent",
           "description": "Earn points every time you use your MetaMask Card for purchases, plus 1% cash back (3% for Metal cardholders).",
           "cta_label": "Manage Card"
+        }
+      },
+      "deposit_musd": {
+        "title": "Deposit mUSD",
+        "description": "2 points per $100 deposited",
+        "sheet": {
+          "title": "Deposit mUSD",
+          "points": "2 points per $100",
+          "description": "Earn points on every $100 mUSD you deposit.",
+          "cta_label": "Deposit mUSD"
         }
       }
     },
