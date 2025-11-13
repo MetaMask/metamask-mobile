@@ -78,7 +78,7 @@ function TokenListItem({
       {isDisabled && onInfoPress && (
         <ListItemColumn widthType={WidthType.Auto}>
           <ButtonIcon
-            size={ButtonIconSize.Sm}
+            size={ButtonIconSize.Md}
             iconName={IconName.Info}
             onPress={handleInfoPress}
             testID="token-unsupported-info-button"
