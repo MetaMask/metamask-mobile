@@ -9,11 +9,11 @@ import {
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '../../../../../component-library/components/Texts/Text';
+import { strings } from '../../../../../../locales/i18n';
 
 interface SectionHeaderProps {
   title: string;
-  viewAllText: string;
   onViewAll: () => void;
 }
 
@@ -24,11 +24,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const SectionHeader: React.FC<SectionHeaderProps> = ({
-  title,
-  viewAllText,
-  onViewAll,
-}) => (
+const SectionHeader: React.FC<SectionHeaderProps> = ({ title, onViewAll }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     justifyContent={BoxJustifyContent.Between}
@@ -40,7 +36,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
     </Text>
     <TouchableOpacity onPress={onViewAll}>
       <Text variant={TextVariant.BodyMDMedium} color={TextColor.Primary}>
-        {viewAllText}
+        {strings('trending.view_all')}
       </Text>
     </TouchableOpacity>
   </Box>

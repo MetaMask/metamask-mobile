@@ -20,7 +20,7 @@ import { PredictEventValues } from '../../../UI/Predict/constants/eventNames';
 import PredictMarketSkeleton from '../../../UI/Predict/components/PredictMarketSkeleton';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './PredictionSection.styles';
-import SectionHeader from '../SectionHeader';
+import SectionHeader from '../components/SectionHeader/SectionHeader';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -122,7 +122,6 @@ const PredictionSection = () => {
       <Box twClassName="mb-6">
         <SectionHeader
           title={strings('wallet.predict')}
-          viewAllText={strings('trending.view_all')}
           onViewAll={handleViewAll}
         />
         <Box>
@@ -171,7 +170,6 @@ const PredictionSection = () => {
     <Box twClassName="mb-6">
       <SectionHeader
         title={strings('wallet.predict')}
-        viewAllText={strings('trending.view_all')}
         onViewAll={handleViewAll}
       />
 
