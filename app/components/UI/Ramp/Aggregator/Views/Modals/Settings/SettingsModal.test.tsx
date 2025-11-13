@@ -32,6 +32,11 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
+jest.mock('../../../../hooks/useRampNavigation', () => ({
+  useRampNavigation: jest.fn(() => ({ goToRamps: mockGoToRamps })),
+  RampMode: { AGGREGATOR: 'AGGREGATOR', DEPOSIT: 'DEPOSIT' },
+}));
+
 const mockUseRampSDKValues: DeepPartial<RampSDK> = {
   selectedRegion: { id: 'us' },
 };
