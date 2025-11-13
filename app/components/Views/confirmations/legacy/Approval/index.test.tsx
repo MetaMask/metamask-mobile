@@ -24,6 +24,11 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
   selectSmartTransactionsOptInStatus: () => false,
   selectUseTransactionSimulations: () => false,
   selectIsTokenNetworkFilterEqualCurrentNetwork: () => true,
+  selectTokenSortConfig: () => ({
+    key: 'name',
+    order: 'asc',
+    sortCallback: 'alphaNumeric',
+  }),
 }));
 
 jest.mock('../../../../../util/dappTransactions', () => ({
