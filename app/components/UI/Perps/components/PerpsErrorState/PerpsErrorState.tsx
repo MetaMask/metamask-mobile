@@ -45,7 +45,7 @@ const PerpsErrorState: React.FC<PerpsErrorStateProps> = ({
     switch (errorType) {
       case PerpsErrorType.CONNECTION_FAILED:
         return {
-          icon: IconName.SignalCellular,
+          icon: IconName.Warning,
           title: strings('perps.errors.connectionFailed.title'),
           description: undefined,
           primaryAction: {

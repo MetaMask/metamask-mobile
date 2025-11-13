@@ -41,7 +41,7 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     default: ({ name, ...props }: any) => <View {...props} testID={name} />,
     IconName: {
-      SignalCellular: 'SignalCellular',
+      Warning: 'Warning',
     },
     IconColor: {
       Muted: 'Muted',
