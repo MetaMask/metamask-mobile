@@ -1759,6 +1759,12 @@
     "prediction_markets": "Prediction Markets",
     "market_list": "Market List",
     "loading": "Loading...",
+    "gtm_content": {
+      "title": "PREDICT AND WIN",
+      "title_description": "Trade on the outcome of real-world events, like sports or elections.",
+      "get_started": "Get started",
+      "not_now": "Not now"
+    },
     "market_details": {
       "title": "Market Details",
       "market_ended_on": "Market ended on {{outcome}}",
@@ -1918,8 +1924,8 @@
       "prediction_placed": "Prediction placed",
       "order_failed": "Order failed",
       "payments_made_in_usdc": "All payments are made in USDC",
-      "prediction_insufficient_funds": "Insufficient funds. Lower the amount or add funds to continue.",
-      "prediction_minimum_bet": "Minimum bet is {{amount}}",
+      "prediction_insufficient_funds": "Not enough funds. You can use up to {{amount}}.",
+      "prediction_minimum_bet": "Minimum amount is {{amount}}",
       "to_win": "To win",
       "order_failed_generic": "Transaction failed. Please try again."
     },
@@ -1933,9 +1939,17 @@
       "try_again": "Try again"
     },
     "fee_summary": {
+      "fees": "Fees",
+      "provider_fee_label": "Polymarket fee",
       "provider_fee": "Provider fee",
       "metamask_fee": "MetaMask fee",
-      "total": "Total"
+      "total": "Total",
+      "estimated_points": "Est. points",
+      "points_tooltip": "Points",
+      "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or predict.",
+      "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
+      "points_error": "We can't load points right now",
+      "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour."
     },
     "error": {
       "title": "Unable to connect to predictions",
@@ -4560,6 +4574,12 @@
       "title": "Incompatible Account",
       "description": "Your current account cannot support tokens on {{networkName}}. Please switch to a compatible account to continue.",
       "cta": "Got it"
+    },
+    "eligibility_failed_modal": {
+      "title": "Eligibility Check Failed",
+      "description": "We couldn't confirm access based on your region. Please try again. If the issue continues, contact support.",
+      "contact_support": "Contact Support",
+      "got_it": "Got It"
     },
     "region": {
       "buy_crypto_tokens": "Buy Crypto Tokens",

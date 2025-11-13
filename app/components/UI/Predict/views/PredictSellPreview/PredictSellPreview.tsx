@@ -215,7 +215,7 @@ const PredictSellPreview = () => {
               color={TextColor.Error}
               style={tw.style('text-center')}
             >
-              {strings('predict.order.order_failed_generic')}
+              {placeOrderError}
             </Text>
           )}
           <Box twClassName="flex-row items-center gap-4">

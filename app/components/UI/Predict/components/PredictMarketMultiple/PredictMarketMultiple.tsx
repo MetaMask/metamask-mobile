@@ -31,6 +31,7 @@ import { PREDICT_CONSTANTS } from '../../constants/errors';
 import { ensureError } from '../../utils/predictErrorHandler';
 import {
   PredictMarket,
+  Recurrence,
   PredictOutcome,
   PredictOutcomeToken,
 } from '../../types';
@@ -281,7 +282,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
               <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
                 ${totalVolumeDisplay} {strings('predict.volume_abbreviated')}
               </Text>
-              {market.recurrence && (
+              {market.recurrence && market.recurrence !== Recurrence.NONE && (
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
