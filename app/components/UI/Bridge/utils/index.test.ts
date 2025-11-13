@@ -71,18 +71,18 @@ describe('Bridge Utils', () => {
       LINEA_CHAIN_ID,
     ];
 
-    it('should return true when bridge is active and chain ID is allowed', () => {
+    it('return true when bridge is active and chain ID is allowed', () => {
       supportedChainIds.forEach((chainId) => {
         expect(isBridgeAllowed(chainId)).toBe(true);
       });
     });
 
-    it('should return false when bridge is active but chain ID is not allowed', () => {
+    it('return false when bridge is active but chain ID is not allowed', () => {
       const unsupportedChainId = '0x1234' as Hex;
       expect(isBridgeAllowed(unsupportedChainId)).toBe(false);
     });
 
-    it('should return false when bridge is inactive', () => {
+    it('return false when bridge is inactive', () => {
       Object.defineProperty(AppConstants.BRIDGE, 'ACTIVE', {
         get: () => false,
       });
@@ -92,7 +92,7 @@ describe('Bridge Utils', () => {
       });
     });
 
-    it('should handle invalid chain ID formats', () => {
+    it('handle invalid chain ID formats', () => {
       const invalidChainIds = ['0x123' as Hex, '0x' as Hex];
 
       invalidChainIds.forEach((chainId) => {
@@ -100,7 +100,7 @@ describe('Bridge Utils', () => {
       });
     });
 
-    it('should handle edge cases', () => {
+    it('handle edge cases', () => {
       // Test with malformed chain ID
       expect(
         isBridgeAllowed(
