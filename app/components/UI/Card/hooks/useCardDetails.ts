@@ -124,7 +124,7 @@ const useCardDetails = () => {
     cardDetails: cardDetailsData?.cardDetails ?? null,
     warning: cardDetailsData?.warning ?? null,
     isLoading,
-    error: error ? CardErrorType.UNKNOWN_ERROR : null,
+    error,
     isLoadingPollCardStatusUntilProvisioned:
       state.isLoadingPollCardStatusUntilProvisioned,
     fetchCardDetails,

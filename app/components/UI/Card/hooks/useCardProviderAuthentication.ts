@@ -33,6 +33,8 @@ const getErrorMessage = (error: unknown): string => {
         return strings(
           'card.card_authentication.errors.invalid_email_or_password',
         );
+      case CardErrorType.ACCOUNT_DISABLED:
+        return error.message;
       case CardErrorType.SERVER_ERROR:
         return strings('card.card_authentication.errors.server_error');
       case CardErrorType.UNKNOWN_ERROR:
