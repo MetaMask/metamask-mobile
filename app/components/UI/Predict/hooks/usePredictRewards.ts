@@ -20,7 +20,7 @@ interface UsePredictRewardsResult {
   isLoading: boolean;
 }
 
- /**
+/**
  * Formats an address to CAIP-10 account ID for Polygon
  */
 const formatAccountToCaipAccountId = (
@@ -49,7 +49,7 @@ const formatAccountToCaipAccountId = (
   }
 };
 
- /**
+/**
  * Hook to check if rewards are enabled for the current account in Predict
  * @returns {UsePredictRewardsResult} Object containing enabled status and loading state
  */
