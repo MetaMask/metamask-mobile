@@ -59,6 +59,22 @@ exports[`Onboarding renders correctly 1`] = `
           }
         >
           <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "justifyContent": "center",
+                  "width": "100%",
+                },
+                {
+                  "paddingBottom": 24,
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "paddingTop": 24,
+                },
+              ]
+            }
             testID="onboarding-animation-mock"
           >
             <TouchableOpacity
@@ -157,7 +173,25 @@ exports[`Onboarding renders correctly 1`] = `
     }
   />
   <View
-    testID="fox-animation"
+    style={
+      [
+        {
+          "alignItems": "center",
+          "display": "flex",
+          "justifyContent": "center",
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+        },
+        {
+          "bottom": -20,
+          "height": 300,
+          "opacity": 0,
+          "pointerEvents": "none",
+        },
+      ]
+    }
+    testID="fox-animation-mock"
   />
   <View />
 </RNCSafeAreaView>
@@ -222,6 +256,22 @@ exports[`Onboarding renders correctly with android 1`] = `
           }
         >
           <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "justifyContent": "center",
+                  "width": "100%",
+                },
+                {
+                  "paddingBottom": 24,
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "paddingTop": 24,
+                },
+              ]
+            }
             testID="onboarding-animation-mock"
           >
             <TouchableOpacity
@@ -320,7 +370,25 @@ exports[`Onboarding renders correctly with android 1`] = `
     }
   />
   <View
-    testID="fox-animation"
+    style={
+      [
+        {
+          "alignItems": "center",
+          "display": "flex",
+          "justifyContent": "center",
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+        },
+        {
+          "bottom": -20,
+          "height": 300,
+          "opacity": 0,
+          "pointerEvents": "none",
+        },
+      ]
+    }
+    testID="fox-animation-mock"
   />
   <View />
 </RNCSafeAreaView>
@@ -385,6 +453,22 @@ exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
           }
         >
           <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "justifyContent": "center",
+                  "width": "100%",
+                },
+                {
+                  "paddingBottom": 24,
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "paddingTop": 24,
+                },
+              ]
+            }
             testID="onboarding-animation-mock"
           >
             <TouchableOpacity
@@ -483,7 +567,25 @@ exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
     }
   />
   <View
-    testID="fox-animation"
+    style={
+      [
+        {
+          "alignItems": "center",
+          "display": "flex",
+          "justifyContent": "center",
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+        },
+        {
+          "bottom": -20,
+          "height": 300,
+          "opacity": 0,
+          "pointerEvents": "none",
+        },
+      ]
+    }
+    testID="fox-animation-mock"
   />
   <View />
 </RNCSafeAreaView>
@@ -548,6 +650,22 @@ exports[`Onboarding renders correctly with medium device and android 1`] = `
           }
         >
           <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "justifyContent": "center",
+                  "width": "100%",
+                },
+                {
+                  "paddingBottom": 24,
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                  "paddingTop": 24,
+                },
+              ]
+            }
             testID="onboarding-animation-mock"
           >
             <TouchableOpacity
@@ -646,7 +764,25 @@ exports[`Onboarding renders correctly with medium device and android 1`] = `
     }
   />
   <View
-    testID="fox-animation"
+    style={
+      [
+        {
+          "alignItems": "center",
+          "display": "flex",
+          "justifyContent": "center",
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+        },
+        {
+          "bottom": -20,
+          "height": 300,
+          "opacity": 0,
+          "pointerEvents": "none",
+        },
+      ]
+    }
+    testID="fox-animation-mock"
   />
   <View />
 </RNCSafeAreaView>
