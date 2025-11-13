@@ -95,6 +95,11 @@ const TrendingTokenNetworkBottomSheet = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, [navigation]);
 
+  const handleSheetClose = useCallback(() => {
+    // Handle close when clicking outside the sheet
+    navigation.goBack();
+  }, [navigation]);
+
   const isAllNetworksSelected =
     selectedNetwork === NetworkOption.AllNetworks || selectedNetwork === null;
 
@@ -126,7 +131,11 @@ const TrendingTokenNetworkBottomSheet = () => {
   };
 
   return (
-    <BottomSheet shouldNavigateBack={false} ref={sheetRef}>
+    <BottomSheet
+      shouldNavigateBack={false}
+      ref={sheetRef}
+      onClose={handleSheetClose}
+    >
       <BottomSheetHeader
         onClose={handleClose}
         closeButtonProps={{ style: closeButtonStyle.closeButton }}

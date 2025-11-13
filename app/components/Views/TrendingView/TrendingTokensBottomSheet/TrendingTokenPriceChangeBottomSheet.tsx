@@ -125,6 +125,11 @@ const TrendingTokenPriceChangeBottomSheet = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, [navigation]);
 
+  const handleSheetClose = useCallback(() => {
+    // Handle close when clicking outside the sheet
+    navigation.goBack();
+  }, [navigation]);
+
   const handleApply = useCallback(() => {
     // Apply the current selection and close
     if (onPriceChangeSelect) {
@@ -153,7 +158,11 @@ const TrendingTokenPriceChangeBottomSheet = () => {
   );
 
   return (
-    <BottomSheet shouldNavigateBack={false} ref={sheetRef}>
+    <BottomSheet
+      shouldNavigateBack={false}
+      ref={sheetRef}
+      onClose={handleSheetClose}
+    >
       <BottomSheetHeader
         onClose={handleClose}
         closeButtonProps={{ style: closeButtonStyle.closeButton }}

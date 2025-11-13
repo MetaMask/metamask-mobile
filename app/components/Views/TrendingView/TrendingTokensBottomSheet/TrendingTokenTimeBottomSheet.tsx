@@ -117,6 +117,11 @@ const TrendingTokenTimeBottomSheet = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, [navigation]);
 
+  const handleSheetClose = useCallback(() => {
+    // Handle close when clicking outside the sheet
+    navigation.goBack();
+  }, [navigation]);
+
   const onTimeOptionPress = useCallback(
     (option: TimeOption) => {
       setSelectedTime(option);
@@ -130,7 +135,11 @@ const TrendingTokenTimeBottomSheet = () => {
   );
 
   return (
-    <BottomSheet shouldNavigateBack={false} ref={sheetRef}>
+    <BottomSheet
+      shouldNavigateBack={false}
+      ref={sheetRef}
+      onClose={handleSheetClose}
+    >
       <BottomSheetHeader
         onClose={handleClose}
         closeButtonProps={{ style: closeButtonStyle.closeButton }}
