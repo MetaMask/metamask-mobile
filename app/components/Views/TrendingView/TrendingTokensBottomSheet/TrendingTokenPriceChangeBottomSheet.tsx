@@ -31,7 +31,10 @@ export enum SortDirection {
 }
 
 export interface TrendingTokenPriceChangeBottomSheetParams {
-  onPriceChangeSelect?: (option: PriceChangeOption) => void;
+  onPriceChangeSelect?: (
+    option: PriceChangeOption,
+    sortDirection: SortDirection,
+  ) => void;
   selectedOption?: PriceChangeOption;
   sortDirection?: SortDirection;
 }
@@ -122,6 +125,14 @@ const TrendingTokenPriceChangeBottomSheet = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, [navigation]);
 
+  const handleApply = useCallback(() => {
+    // Apply the current selection and close
+    if (onPriceChangeSelect) {
+      onPriceChangeSelect(selectedOption, sortDirection);
+    }
+    handleClose();
+  }, [onPriceChangeSelect, selectedOption, sortDirection, handleClose]);
+
   const onOptionPress = useCallback(
     (option: PriceChangeOption) => {
       // If clicking the same option, toggle sort direction
@@ -136,13 +147,9 @@ const TrendingTokenPriceChangeBottomSheet = () => {
         setSelectedOption(option);
         setSortDirection(SortDirection.Descending);
       }
-      // TODO: Implement onClick event
-      if (onPriceChangeSelect) {
-        onPriceChangeSelect(option);
-      }
-      //  sheetRef.current?.onCloseBottomSheet();
+      // Don't call the callback here - wait for Apply button
     },
-    [onPriceChangeSelect, selectedOption, sortDirection],
+    [selectedOption, sortDirection],
   );
 
   return (
@@ -263,7 +270,7 @@ const TrendingTokenPriceChangeBottomSheet = () => {
             {strings('trending.apply')}
           </Text>
         }
-        onPress={handleClose}
+        onPress={handleApply}
         style={optionStyles.applyButton}
       />
     </BottomSheet>

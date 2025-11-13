@@ -89,7 +89,9 @@ const TrendingTokenRowItem = ({
   }, []);
 
   // TODO: Get pricePercentChange1d from token or trending hook
-  const pricePercentChange1d: number | undefined = 3.44; // This should come from the trending hook
+  const pricePercentChange1d: number | undefined = token.priceChangePct?.h24
+    ? parseFloat(token.priceChangePct?.h24)
+    : 3.44; // This should come from the trending hook
 
   // Determine the color for percentage change
   // Handle 0 as neutral (not positive or negative)

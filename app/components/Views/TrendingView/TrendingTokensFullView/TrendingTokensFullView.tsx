@@ -28,6 +28,7 @@ import {
   createTrendingTokenPriceChangeBottomSheetNavDetails,
   TimeOption,
   PriceChangeOption,
+  SortDirection,
 } from '../TrendingTokensBottomSheet';
 import Text, {
   TextColor,
@@ -129,6 +130,8 @@ const TrendingTokensFullView = () => {
   const [selectedPriceChangeOption, setSelectedPriceChangeOption] = useState<
     PriceChangeOption | undefined
   >(PriceChangeOption.PriceChange);
+  const [priceChangeSortDirection, setPriceChangeSortDirection] =
+    useState<SortDirection>(SortDirection.Descending);
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -138,11 +141,50 @@ const TrendingTokensFullView = () => {
     sortBy,
     chainIds: selectedNetwork ?? undefined,
   });
-  // display only top 100 tokens
-  const trendingTokens = useMemo(
-    () => trendingTokensResults.slice(0, MAX_TOKENS),
-    [trendingTokensResults],
-  );
+  // Sort and display tokens based on selected option and direction
+  const trendingTokens = useMemo(() => {
+    const sorted = [...trendingTokensResults];
+
+    if (selectedPriceChangeOption) {
+      sorted.sort((a, b) => {
+        let aValue: number;
+        let bValue: number;
+
+        switch (selectedPriceChangeOption) {
+          case PriceChangeOption.PriceChange:
+            // For price change, use priceChangePct?.h24 for 24-hour price change percentage
+            aValue = a.priceChangePct?.h24
+              ? parseFloat(a.priceChangePct.h24) || 0
+              : 0;
+            bValue = b.priceChangePct?.h24
+              ? parseFloat(b.priceChangePct.h24) || 0
+              : 0;
+            break;
+          case PriceChangeOption.Volume:
+            aValue = a.aggregatedUsdVolume ?? 0;
+            bValue = b.aggregatedUsdVolume ?? 0;
+            break;
+          case PriceChangeOption.MarketCap:
+            aValue = a.marketCap ?? 0;
+            bValue = b.marketCap ?? 0;
+            break;
+          default:
+            return 0;
+        }
+
+        const comparison = aValue - bValue;
+        return priceChangeSortDirection === SortDirection.Ascending
+          ? comparison
+          : -comparison;
+      });
+    }
+
+    return sorted.slice(0, MAX_TOKENS);
+  }, [
+    trendingTokensResults,
+    selectedPriceChangeOption,
+    priceChangeSortDirection,
+  ]);
 
   const handleTokenPress = useCallback((token: TrendingAsset) => {
     // TODO: Implement token press logic
@@ -150,19 +192,28 @@ const TrendingTokensFullView = () => {
     console.log('🚀 ~ TrendingTokensFullView ~ token:', token);
   }, []);
 
-  const handlePriceChangeSelect = useCallback((option: PriceChangeOption) => {
-    setSelectedPriceChangeOption(option);
-    // TODO: Implement price change filter logic
-  }, []);
+  const handlePriceChangeSelect = useCallback(
+    (option: PriceChangeOption, sortDirection: SortDirection) => {
+      setSelectedPriceChangeOption(option);
+      setPriceChangeSortDirection(sortDirection);
+    },
+    [],
+  );
 
   const handlePriceChangePress = useCallback(() => {
     navigation.navigate(
       ...createTrendingTokenPriceChangeBottomSheetNavDetails({
         onPriceChangeSelect: handlePriceChangeSelect,
         selectedOption: selectedPriceChangeOption,
+        sortDirection: priceChangeSortDirection,
       }),
     );
-  }, [navigation, handlePriceChangeSelect, selectedPriceChangeOption]);
+  }, [
+    navigation,
+    handlePriceChangeSelect,
+    selectedPriceChangeOption,
+    priceChangeSortDirection,
+  ]);
 
   const handleNetworkSelect = useCallback((chainIds: CaipChainId[] | null) => {
     setSelectedNetwork(chainIds);
