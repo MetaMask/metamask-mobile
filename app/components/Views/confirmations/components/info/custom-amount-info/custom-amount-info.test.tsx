@@ -16,6 +16,15 @@ import {
   useAlerts,
 } from '../../../context/alert-system-context';
 import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
+import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
+import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
+import { AssetType } from '../../../types/token';
+import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
+import { strings } from '../../../../../../../locales/i18n';
+import { Hex } from '@metamask/utils';
+import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
+import { RampMode } from '../../../../../UI/Ramp/hooks/useRampNavigation';
+import { RampType } from '../../../../../UI/Ramp/Aggregator/types';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/pay/useAutomaticTransactionPayToken');
@@ -25,11 +34,26 @@ jest.mock('../../../context/confirmation-context');
 jest.mock('../../../context/alert-system-context');
 jest.mock('../../../hooks/transactions/useTransactionCustomAmountAlerts');
 jest.mock('../../../hooks/pay/useTransactionPayMetrics');
+jest.mock('../../../hooks/send/useAccountTokens');
+jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens');
+jest.mock('../../../hooks/pay/useTransactionPayData');
+
+const mockGoToRamps = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
 }));
+
+jest.mock('../../../../../UI/Ramp/hooks/useRampNavigation', () => ({
+  ...jest.requireActual('../../../../../UI/Ramp/hooks/useRampNavigation'),
+  useRampNavigation: () => ({
+    goToRamps: mockGoToRamps,
+  }),
+}));
+
+const TOKEN_ADDRESS_MOCK = '0x123' as Hex;
+const CHAIN_ID_MOCK = '0x1' as Hex;
 
 function render(props: CustomAmountInfoProps = {}) {
   return renderWithProvider(<CustomAmountInfo {...props} />, {
@@ -46,6 +70,16 @@ describe('CustomAmountInfo', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useConfirmationContextMock = jest.mocked(useConfirmationContext);
   const useAlertsMock = jest.mocked(useAlerts);
+  const useAccountTokensMock = jest.mocked(useAccountTokens);
+
+  const useTransactionPayRequiredTokensMock = jest.mocked(
+    useTransactionPayRequiredTokens,
+  );
+
+  const useTransactionPayAvailableTokensMock = jest.mocked(
+    useTransactionPayAvailableTokens,
+  );
+
   const useTransactionCustomAmountAlertsMock = jest.mocked(
     useTransactionCustomAmountAlerts,
   );
@@ -97,6 +131,10 @@ describe('CustomAmountInfo', () => {
       keyboardAlertMessage: undefined,
       excludeBannerKeys: [],
     });
+
+    useAccountTokensMock.mockReturnValue([]);
+    useTransactionPayAvailableTokensMock.mockReturnValue([{}] as AssetType[]);
+    useTransactionPayRequiredTokensMock.mockReturnValue([]);
   });
 
   it('renders amount', () => {
@@ -153,5 +191,49 @@ describe('CustomAmountInfo', () => {
   it('renders keyboard', () => {
     const { getByTestId } = render();
     expect(getByTestId('deposit-keyboard')).toBeDefined();
+  });
+
+  it('renders buy button if no available tokens', () => {
+    useTransactionPayAvailableTokensMock.mockReturnValue([]);
+
+    const { getByText } = render();
+
+    expect(
+      getByText(strings('confirm.custom_amount.buy_button')),
+    ).toBeDefined();
+  });
+
+  it('navigates to ramps if buy button pressed', () => {
+    useTransactionPayAvailableTokensMock.mockReturnValue([]);
+
+    useAccountTokensMock.mockReturnValue([
+      {
+        address: TOKEN_ADDRESS_MOCK,
+        assetId: TOKEN_ADDRESS_MOCK,
+        chainId: CHAIN_ID_MOCK,
+      } as AssetType,
+    ]);
+
+    useTransactionPayRequiredTokensMock.mockReturnValue([
+      {
+        address: TOKEN_ADDRESS_MOCK,
+        chainId: CHAIN_ID_MOCK,
+      },
+    ] as TransactionPayRequiredToken[]);
+
+    const { getByText } = render();
+
+    fireEvent.press(getByText(strings('confirm.custom_amount.buy_button')));
+
+    expect(mockGoToRamps).toHaveBeenCalledTimes(1);
+    expect(mockGoToRamps).toHaveBeenCalledWith({
+      mode: RampMode.AGGREGATOR,
+      params: {
+        rampType: RampType.BUY,
+        intent: {
+          assetId: 'eip155:1/erc20:0x123',
+        },
+      },
+    });
   });
 });
