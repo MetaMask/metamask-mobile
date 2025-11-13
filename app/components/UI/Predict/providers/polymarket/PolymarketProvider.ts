@@ -7,6 +7,8 @@ import { Hex, numberToHex } from '@metamask/utils';
 import { parseUnits } from 'ethers/lib/utils';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../../util/Logger';
+import { MetaMetrics } from '../../../../../core/Analytics';
+import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import {
   generateTransferData,
   isSmartContractAddress,
@@ -1340,6 +1342,29 @@ export class PolymarketProvider implements PredictProvider {
       }
 
       transactions.push(deployTransaction);
+
+      // Set user trait for Polymarket account creation via MetaMask
+      try {
+        const metrics = MetaMetrics.getInstance();
+        await metrics.addTraitsToUser({
+          [UserProfileProperty.CREATED_POLYMARKET_ACCOUNT_VIA_MM]: true,
+        });
+      } catch (error) {
+        // Log error but don't fail the deposit preparation
+        Logger.error(error as Error, {
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            provider: 'polymarket',
+          },
+          context: {
+            name: 'PolymarketProvider',
+            data: {
+              method: 'prepareDeposit',
+              action: 'setPolymarketAccountTrait',
+            },
+          },
+        });
+      }
     }
 
     if (!accountState.hasAllowances) {
