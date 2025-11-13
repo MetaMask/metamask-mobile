@@ -467,7 +467,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -617,7 +617,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -740,7 +740,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -754,7 +754,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -817,7 +817,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -831,7 +831,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -894,7 +894,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -908,7 +908,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -1406,7 +1406,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -1556,7 +1556,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -1679,7 +1679,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -1693,7 +1693,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -1756,7 +1756,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -1770,7 +1770,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -1833,7 +1833,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -1847,7 +1847,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -2345,7 +2345,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -2495,7 +2495,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -2618,7 +2618,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -2632,7 +2632,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -2695,7 +2695,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -2709,7 +2709,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -2772,7 +2772,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -2786,7 +2786,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -3284,7 +3284,7 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -3434,7 +3434,7 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -3557,7 +3557,7 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -3571,7 +3571,7 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -3634,7 +3634,7 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -3648,7 +3648,7 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -3711,7 +3711,7 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -3725,7 +3725,7 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,

@@ -30,6 +30,30 @@ module.exports = {
     ],
 
     'expo-apple-authentication',
+    [
+      'expo-font',
+      {
+        // NOTE: We use a simple path array for fonts. Each font file becomes a separate
+        // font family based on its filename (e.g., Geist-Medium.otf → 'Geist-Medium').
+        // This means the fontWeight property won't automatically switch fonts - you must use
+        // explicit font families like 'Geist-Medium' or use fontStyles.* from common.ts.
+        //
+        // Future: We may migrate to platform-specific configuration to enable native
+        // fontWeight support. See: https://docs.expo.dev/develop/user-interface/fonts/
+        fonts: [
+          './assets/fonts/Geist-Regular.otf',
+          './assets/fonts/Geist-Medium.otf',
+          './assets/fonts/Geist-Bold.otf',
+          './assets/fonts/Geist-RegularItalic.otf',
+          './assets/fonts/Geist-MediumItalic.otf',
+          './assets/fonts/Geist-BoldItalic.otf',
+          './assets/fonts/MMSans-Regular.otf',
+          './assets/fonts/MMSans-Medium.otf',
+          './assets/fonts/MMSans-Bold.otf',
+          './assets/fonts/MMPoly-Regular.otf',
+        ],
+      },
+    ],
   ],
   android: {
     package:

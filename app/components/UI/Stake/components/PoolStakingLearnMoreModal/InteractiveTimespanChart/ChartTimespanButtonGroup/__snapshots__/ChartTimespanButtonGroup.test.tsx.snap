@@ -32,7 +32,7 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -61,7 +61,7 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -90,7 +90,7 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -119,7 +119,7 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "Geist Medium",
+          "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,

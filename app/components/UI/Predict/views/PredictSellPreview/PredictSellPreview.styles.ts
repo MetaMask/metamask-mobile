@@ -20,7 +20,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     currentValue: {
       fontSize: 64,
-      fontWeight: '500',
+      ...fontStyles.medium,
       lineHeight: 74,
       letterSpacing: 0,
       textAlign: 'center',
@@ -54,7 +54,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flexShrink: 0,
       color: theme.colors.text.alternative,
       fontSize: 14,
-      fontWeight: '500',
+      ...fontStyles.medium,
     },
     positionIcon: {
       width: 40,

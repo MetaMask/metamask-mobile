@@ -1846,7 +1846,7 @@ export function getBridgeTransactionDetailsNavbar(navigation) {
 export function getPerpsTransactionsDetailsNavbar(navigation, title) {
   const innerStyles = StyleSheet.create({
     perpsTransactionsTitle: {
-      fontWeight: '700',
+      ...fontStyles.bold,
       textAlign: 'center',
       flex: 1,
     },
@@ -1883,7 +1883,7 @@ export function getPerpsTransactionsDetailsNavbar(navigation, title) {
 export function getPerpsMarketDetailsNavbar(navigation, title) {
   const innerStyles = StyleSheet.create({
     perpsMarketDetailsTitle: {
-      fontWeight: '700',
+      ...fontStyles.bold,
       textAlign: 'center',
       flex: 1,
     },
@@ -1943,7 +1943,7 @@ export function getDepositNavbarOptions(
       shadowOpacity: 0,
     },
     headerTitleStyle: {
-      fontWeight: '600',
+      ...fontStyles.medium,
       fontSize: 18,
       color: theme.colors.text.default,
     },

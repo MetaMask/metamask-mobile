@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import { fontStyles } from '../../../../../styles/common';
 import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -74,7 +75,7 @@ const createStyles = (
           fontSize: 40,
           lineHeight: 50,
           letterSpacing: 0,
-          fontWeight: '500',
+          ...fontStyles.medium,
         }
       : {},
     amountCursor: {

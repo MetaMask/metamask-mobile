@@ -24,7 +24,7 @@ exports[`NotificationContent render matches snapshot 1`] = `
         {
           "color": "#686e7d",
           "flex": 1,
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 14,
           "letterSpacing": 0,
           "lineHeight": 22,
@@ -38,7 +38,7 @@ exports[`NotificationContent render matches snapshot 1`] = `
       style={
         {
           "color": "#b7bbc8",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 14,
           "letterSpacing": 0,
           "lineHeight": 22,
@@ -64,7 +64,7 @@ exports[`NotificationContent render matches snapshot 1`] = `
         {
           "color": "#121314",
           "flex": 1,
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -78,7 +78,7 @@ exports[`NotificationContent render matches snapshot 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
