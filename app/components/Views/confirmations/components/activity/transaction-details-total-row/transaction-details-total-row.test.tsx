@@ -47,7 +47,7 @@ describe('TransactionDetailsTotalRow', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {
         metamaskPay: {},
-        type: TransactionType.predictClaim,
+        type: TransactionType.predictWithdraw,
       } as unknown as TransactionMeta,
     });
 
