@@ -65,9 +65,11 @@ function parseArgs(args: string[]): ParsedArgs {
         options.baseBranch = args[++i];
         break;
       case '--changed-files':
+      case '-cf':
         options.changedFiles = args[++i];
         break;
-      case '--pr': {
+      case '--pr':
+      case '-pr': {
         const prInput = args[++i];
         const validPR = validatePRNumber(prInput);
         if (!validPR) {
@@ -109,8 +111,8 @@ Usage: node -r esbuild-register e2e/tools/e2e-ai-analyzer [options]
 Options:
   -m, --mode <mode>             Analysis mode (default: select-tags)
   -b, --base-branch <branch>    Base branch for comparison (default: origin/main)
-  --changed-files <files>       Provide changed files directly
-  --pr <number>                 Get changed files from a specific PR
+  -cf --changed-files <files>   Provide changed files directly
+  -pr --pr <number>             Get changed files from a specific PR
   -h, --help                    Show this help message
 
 Output:
