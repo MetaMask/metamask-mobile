@@ -27,6 +27,10 @@ import TrendingTokensSection from './TrendingTokensSection/TrendingTokensSection
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import ExploreSearchScreen from './ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
+import { PredictModalStack } from '../../UI/Predict/routes';
+import PredictionSection from './PredictionSection/PredictionSection';
+import PerpsSection from './PerpsSection/PerpsSection';
+import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 
 const Stack = createStackNavigator();
 
@@ -124,7 +128,13 @@ const TrendingFeed: React.FC = () => {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
+        <PredictionSection />
         <TrendingTokensSection />
+        <PerpsConnectionProvider>
+          <PerpsStreamProvider>
+            <PerpsSection />
+          </PerpsStreamProvider>
+        </PerpsConnectionProvider>
       </ScrollView>
     </Box>
   );
@@ -134,21 +144,30 @@ const TrendingView: React.FC = () => {
   const initialRoot = lastTrendingScreenRef.current || 'TrendingFeed';
 
   return (
-    <PerpsStreamProvider>
-      <Stack.Navigator
-        initialRouteName={initialRoot}
-        screenOptions={{
+    <Stack.Navigator
+      initialRouteName={initialRoot}
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="TrendingFeed" component={TrendingFeed} />
+      <Stack.Screen name="TrendingBrowser" component={BrowserWrapper} />
+      <Stack.Screen
+        name={Routes.EXPLORE_SEARCH}
+        component={ExploreSearchScreen}
+      />
+      <Stack.Screen
+        name={Routes.PREDICT.MODALS.ROOT}
+        component={PredictModalStack}
+        options={{
           headerShown: false,
+          cardStyle: {
+            backgroundColor: 'transparent',
+          },
+          animationEnabled: false,
         }}
-      >
-        <Stack.Screen name="TrendingFeed" component={TrendingFeed} />
-        <Stack.Screen name="TrendingBrowser" component={BrowserWrapper} />
-        <Stack.Screen
-          name={Routes.EXPLORE_SEARCH}
-          component={ExploreSearchScreen}
-        />
-      </Stack.Navigator>
-    </PerpsStreamProvider>
+      />
+    </Stack.Navigator>
   );
 };
 
