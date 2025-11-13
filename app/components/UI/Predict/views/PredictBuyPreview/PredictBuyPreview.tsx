@@ -63,7 +63,7 @@ import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
-import { selectRewardsEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
+import { selectRewardsPredictEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
@@ -77,7 +77,7 @@ const PredictBuyPreview = () => {
   const { market, outcome, outcomeToken, entryPoint } = route.params;
 
   // Rewards feature flag
-  const rewardsEnabled = useSelector(selectRewardsEnabledFlag);
+  const rewardsEnabled = useSelector(selectRewardsPredictEnabledFlag);
 
   // Prepare analytics properties
   const analyticsProperties = useMemo(
