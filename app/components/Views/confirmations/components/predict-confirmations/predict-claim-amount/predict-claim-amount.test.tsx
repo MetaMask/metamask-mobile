@@ -31,6 +31,6 @@ describe('PredictClaimAmount', () => {
     const { getByText } = render();
 
     // Then the formatted change and percentage is displayed
-    expect(getByText('+$750.00 (+33.33%)')).toBeDefined();
+    expect(getByText('+$750.00 (33%)')).toBeDefined();
   });
 });

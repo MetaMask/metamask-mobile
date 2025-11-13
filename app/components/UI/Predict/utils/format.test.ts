@@ -30,12 +30,6 @@ jest.mock('react-native', () => ({
   },
 }));
 
-import { formatWithThreshold } from '../../../../util/assets';
-
-const mockFormatWithThreshold = formatWithThreshold as jest.MockedFunction<
-  typeof formatWithThreshold
->;
-
 describe('format utils', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -46,28 +40,28 @@ describe('format utils', () => {
   });
 
   describe('formatPercentage', () => {
-    it('formats positive decimal percentage with 2 decimal places', () => {
+    it('formats positive decimal percentage with no decimals', () => {
       // Arrange & Act
       const result = formatPercentage(5.25);
 
       // Assert
-      expect(result).toBe('+5.25%');
+      expect(result).toBe('5%');
     });
 
-    it('formats positive whole number percentage without decimals', () => {
+    it('formats large percentage as >99%', () => {
       // Arrange & Act
       const result = formatPercentage(100);
 
       // Assert
-      expect(result).toBe('+100%');
+      expect(result).toBe('>99%');
     });
 
-    it('formats negative decimal percentage with 2 decimal places', () => {
+    it('formats negative decimal percentage with no decimals', () => {
       // Arrange & Act
       const result = formatPercentage(-2.75);
 
       // Assert
-      expect(result).toBe('-2.75%');
+      expect(result).toBe('-3%');
     });
 
     it('formats negative whole number percentage without decimals', () => {
@@ -91,7 +85,7 @@ describe('format utils', () => {
       const result = formatPercentage('3.14159');
 
       // Assert
-      expect(result).toBe('+3.14%');
+      expect(result).toBe('3%');
     });
 
     it('handles string input with whole number', () => {
@@ -99,7 +93,7 @@ describe('format utils', () => {
       const result = formatPercentage('42');
 
       // Assert
-      expect(result).toBe('+42%');
+      expect(result).toBe('42%');
     });
 
     it('handles string input with negative value', () => {
@@ -107,7 +101,7 @@ describe('format utils', () => {
       const result = formatPercentage('-7.89');
 
       // Assert
-      expect(result).toBe('-7.89%');
+      expect(result).toBe('-8%');
     });
 
     it('returns default value for NaN input', () => {
@@ -115,7 +109,7 @@ describe('format utils', () => {
       const result = formatPercentage('not-a-number');
 
       // Assert
-      expect(result).toBe('0.00%');
+      expect(result).toBe('0%');
     });
 
     it('returns default value for invalid string', () => {
@@ -123,7 +117,7 @@ describe('format utils', () => {
       const result = formatPercentage('abc');
 
       // Assert
-      expect(result).toBe('0.00%');
+      expect(result).toBe('0%');
     });
 
     it('returns default value for empty string', () => {
@@ -131,267 +125,168 @@ describe('format utils', () => {
       const result = formatPercentage('');
 
       // Assert
-      expect(result).toBe('0.00%');
+      expect(result).toBe('0%');
     });
 
     it.each([
-      [0.01, '+0.01%'],
-      [0.001, '+0.00%'],
-      [1.999, '+2.00%'],
-      [99.999, '+100.00%'],
-      [-0.01, '-0.01%'],
-      [-0.001, '-0.00%'],
-      [-1.999, '-2.00%'],
+      [0.01, '<1%'],
+      [0.001, '<1%'],
+      [0.5, '<1%'],
+      [0.9, '<1%'],
+      [1.999, '2%'],
+      [99, '>99%'],
+      [99.999, '>99%'],
+      [100, '>99%'],
+      [-0.01, '0%'],
+      [-0.001, '0%'],
+      [-1.999, '-2%'],
     ])('formats %f correctly as %s', (input, expected) => {
       expect(formatPercentage(input)).toBe(expected);
     });
   });
 
   describe('formatPrice', () => {
-    beforeEach(() => {
-      mockFormatWithThreshold.mockImplementation(
-        (value, _threshold, locale, options) =>
-          new Intl.NumberFormat(locale, options).format(Number(value)),
-      );
+    it('formats prices with exactly 2 decimal places (truncated)', () => {
+      // Arrange & Act
+      const result = formatPrice(1234.5678);
+
+      // Assert
+      expect(result).toBe('$1,234.56');
     });
 
-    describe('prices >= 1000', () => {
-      it('formats prices >= 1000 with default 2 minimum decimals', () => {
-        // Arrange & Act
-        const result = formatPrice(1234.5678);
+    it('formats prices ignoring custom minimum decimals option', () => {
+      // Arrange & Act
+      const result = formatPrice(50000, { minimumDecimals: 0 });
 
-        // Assert
-        expect(result).toBe('$1,234.57');
-        expect(mockFormatWithThreshold).toHaveBeenCalledWith(
-          1234.5678,
-          1000,
-          'en-US',
-          {
-            style: 'currency',
-            currency: 'USD',
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          },
-        );
-      });
-
-      it('formats prices >= 1000 with custom minimum decimals', () => {
-        // Arrange & Act
-        const result = formatPrice(50000, { minimumDecimals: 0 });
-
-        // Assert
-        expect(result).toBe('$50,000');
-        expect(mockFormatWithThreshold).toHaveBeenCalledWith(
-          50000,
-          1000,
-          'en-US',
-          {
-            style: 'currency',
-            currency: 'USD',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 2,
-          },
-        );
-      });
-
-      it('formats prices >= 1000 with 4 maximum decimals when minimum is higher', () => {
-        // Arrange & Act
-        const result = formatPrice(1234.5678, { minimumDecimals: 4 });
-
-        // Assert
-        expect(result).toBe('$1,234.5678');
-        expect(mockFormatWithThreshold).toHaveBeenCalledWith(
-          1234.5678,
-          1000,
-          'en-US',
-          {
-            style: 'currency',
-            currency: 'USD',
-            minimumFractionDigits: 4,
-            maximumFractionDigits: 4,
-          },
-        );
-      });
+      // Assert
+      expect(result).toBe('$50,000.00');
     });
 
-    describe('prices < 1000', () => {
-      it('formats prices < 1000 with up to 4 decimal places', () => {
-        // Arrange & Act
-        const result = formatPrice(0.1234);
+    it('formats prices ignoring custom maximum decimals option', () => {
+      // Arrange & Act
+      const result = formatPrice(1234.5678, { minimumDecimals: 4 });
 
-        // Assert
-        expect(result).toBe('$0.1234');
-        expect(mockFormatWithThreshold).toHaveBeenCalledWith(
-          0.1234,
-          0.0001,
-          'en-US',
-          {
-            style: 'currency',
-            currency: 'USD',
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 4,
-          },
-        );
-      });
-
-      it('formats prices < 1000 with custom minimum decimals', () => {
-        // Arrange & Act
-        const result = formatPrice(123.4567, { minimumDecimals: 0 });
-
-        // Assert
-        expect(result).toBe('$123.4567');
-        expect(mockFormatWithThreshold).toHaveBeenCalledWith(
-          123.4567,
-          0.0001,
-          'en-US',
-          {
-            style: 'currency',
-            currency: 'USD',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 4,
-          },
-        );
-      });
-
-      it('formats small prices with 4-decimal rounding', () => {
-        // Arrange & Act
-        const result = formatPrice(0.0001234);
-
-        // Assert
-        expect(result).toBe('$0.0001');
-        expect(mockFormatWithThreshold).toHaveBeenCalledWith(
-          0.0001234,
-          0.0001,
-          'en-US',
-          {
-            style: 'currency',
-            currency: 'USD',
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 4,
-          },
-        );
-      });
+      // Assert
+      expect(result).toBe('$1,234.56');
     });
 
-    describe('string inputs', () => {
-      it('handles string input with decimal value', () => {
-        // Arrange & Act
-        const result = formatPrice('1234.5678');
+    it('formats small prices with 2 decimal places (truncated)', () => {
+      // Arrange & Act
+      const result = formatPrice(0.1234);
 
-        // Assert
-        expect(result).toBe('$1,234.57');
-      });
-
-      it('handles string input with small value', () => {
-        // Arrange & Act
-        const result = formatPrice('0.1234');
-
-        // Assert
-        expect(result).toBe('$0.1234');
-      });
+      // Assert
+      expect(result).toBe('$0.12');
     });
 
-    describe('NaN and invalid inputs', () => {
-      it('returns default value for NaN with default decimals', () => {
-        // Arrange & Act
-        const result = formatPrice('not-a-number');
+    it('formats very small prices as $0.00', () => {
+      // Arrange & Act
+      const result = formatPrice(0.0001234);
 
-        // Assert
-        expect(result).toBe('$0.00');
-      });
-
-      it('returns default value for NaN with minimumDecimals 0', () => {
-        // Arrange & Act
-        const result = formatPrice(NaN, { minimumDecimals: 0 });
-
-        // Assert
-        expect(result).toBe('$0');
-      });
-
-      it('returns default value for invalid string', () => {
-        // Arrange & Act
-        const result = formatPrice('abc');
-
-        // Assert
-        expect(result).toBe('$0.00');
-      });
-
-      it('returns default value for empty string', () => {
-        // Arrange & Act
-        const result = formatPrice('');
-
-        // Assert
-        expect(result).toBe('$0.00');
-      });
+      // Assert
+      expect(result).toBe('$0.00');
     });
 
-    describe('edge cases', () => {
-      it('formats exactly 1000 correctly', () => {
-        // Arrange & Act
-        const result = formatPrice(1000);
+    it('handles string input with decimal value', () => {
+      // Arrange & Act
+      const result = formatPrice('1234.5678');
 
-        // Assert
-        expect(result).toBe('$1,000.00');
-        expect(mockFormatWithThreshold).toHaveBeenCalledWith(
-          1000,
-          1000,
-          'en-US',
-          {
-            style: 'currency',
-            currency: 'USD',
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          },
-        );
-      });
-
-      it('formats negative prices correctly', () => {
-        // Arrange & Act
-        const result = formatPrice(-1234.56);
-
-        // Assert
-        expect(result).toBe('-$1,234.56');
-      });
-
-      it('formats zero correctly', () => {
-        // Arrange & Act
-        const result = formatPrice(0);
-
-        // Assert
-        expect(result).toBe('$0.00');
-      });
-
-      it('formats very large numbers correctly', () => {
-        // Arrange & Act
-        const result = formatPrice(1000000);
-
-        // Assert
-        expect(result).toBe('$1,000,000.00');
-      });
+      // Assert
+      expect(result).toBe('$1,234.56');
     });
 
-    describe('boundary values', () => {
-      it.each([
-        [999.999, '$999.999'],
-        [1000, '$1,000.00'],
-        [1000.001, '$1,000.00'],
-        [0.9999, '$0.9999'],
-        [0.00009999, '$0.0001'],
-      ])('formats boundary value %f as %s', (input, expected) => {
-        const result = formatPrice(input);
-        expect(result).toBe(expected);
-      });
+    it('handles string input with small value', () => {
+      // Arrange & Act
+      const result = formatPrice('0.1234');
+
+      // Assert
+      expect(result).toBe('$0.12');
+    });
+
+    it('returns default value for NaN with default decimals', () => {
+      // Arrange & Act
+      const result = formatPrice('not-a-number');
+
+      // Assert
+      expect(result).toBe('$0.00');
+    });
+
+    it('returns default value for NaN ignoring options', () => {
+      // Arrange & Act
+      const result = formatPrice(NaN, { minimumDecimals: 0 });
+
+      // Assert
+      expect(result).toBe('$0.00');
+    });
+
+    it('returns default value for invalid string', () => {
+      // Arrange & Act
+      const result = formatPrice('abc');
+
+      // Assert
+      expect(result).toBe('$0.00');
+    });
+
+    it('returns default value for empty string', () => {
+      // Arrange & Act
+      const result = formatPrice('');
+
+      // Assert
+      expect(result).toBe('$0.00');
+    });
+
+    it('formats exactly 1000 correctly', () => {
+      // Arrange & Act
+      const result = formatPrice(1000);
+
+      // Assert
+      expect(result).toBe('$1,000.00');
+    });
+
+    it('formats negative prices correctly', () => {
+      // Arrange & Act
+      const result = formatPrice(-1234.56);
+
+      // Assert
+      expect(result).toBe('-$1,234.56');
+    });
+
+    it('formats zero correctly', () => {
+      // Arrange & Act
+      const result = formatPrice(0);
+
+      // Assert
+      expect(result).toBe('$0.00');
+    });
+
+    it('formats very large numbers correctly', () => {
+      // Arrange & Act
+      const result = formatPrice(1000000);
+
+      // Assert
+      expect(result).toBe('$1,000,000.00');
+    });
+
+    it('truncates not rounds - 1234.999 becomes $1,234.99 not $1,235.00', () => {
+      // Arrange & Act
+      const result = formatPrice(1234.999);
+
+      // Assert
+      expect(result).toBe('$1,234.99');
+    });
+
+    it.each([
+      [999.999, '$999.99'],
+      [1000, '$1,000.00'],
+      [1000.001, '$1,000.00'],
+      [0.9999, '$0.99'],
+      [0.00009999, '$0.00'],
+    ])('formats boundary value %f as %s', (input, expected) => {
+      const result = formatPrice(input);
+      expect(result).toBe(expected);
     });
   });
 
   describe('formatCurrencyValue', () => {
-    beforeEach(() => {
-      mockFormatWithThreshold.mockImplementation(
-        (value, _threshold, locale, options) =>
-          new Intl.NumberFormat(locale, options).format(Number(value)),
-      );
-    });
-
     it.each([
       [undefined, undefined],
       [null, undefined],
@@ -421,38 +316,16 @@ describe('format utils', () => {
       expect(result).toBe(expected);
     });
 
-    it('uses absolute value and 2 decimals for values >= 1000', () => {
+    it('uses absolute value and 2 decimals (truncated) for values >= 1000', () => {
       const result = formatCurrencyValue(-1234.567);
 
-      expect(result).toBe('$1,234.57');
-      expect(mockFormatWithThreshold).toHaveBeenCalledWith(
-        1234.567,
-        1000,
-        'en-US',
-        {
-          style: 'currency',
-          currency: 'USD',
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        },
-      );
+      expect(result).toBe('$1,234.56');
     });
 
-    it('uses absolute value and 2 decimals for values < 1000', () => {
+    it('uses absolute value and 2 decimals (truncated) for values < 1000', () => {
       const result = formatCurrencyValue(-0.1234);
 
       expect(result).toBe('$0.12');
-      expect(mockFormatWithThreshold).toHaveBeenCalledWith(
-        0.1234,
-        0.0001,
-        'en-US',
-        {
-          style: 'currency',
-          currency: 'USD',
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        },
-      );
     });
   });
 

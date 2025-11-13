@@ -12,7 +12,6 @@ const DEFAULT_CARD_SPEND_ENABLED = false;
 export const FEATURE_FLAG_NAME = 'rewardsEnabled';
 export const ANNOUNCEMENT_MODAL_FLAG_NAME = 'rewardsAnnouncementModalEnabled';
 export const CARD_SPEND_FLAG_NAME = 'rewardsEnableCardSpend';
-export const REWARDS_PREDICT_ENABLED_FLAG_NAME = 'rewardsEnablePredict';
 
 export const selectRewardsEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
@@ -66,19 +65,5 @@ export const selectRewardsCardSpendFeatureFlags = createSelector(
       validatedVersionGatedFeatureFlag(cardSpendConfig) ??
       DEFAULT_CARD_SPEND_ENABLED
     );
-  },
-);
-
-export const selectRewardsPredictEnabledFlag = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    if (!hasProperty(remoteFeatureFlags, REWARDS_PREDICT_ENABLED_FLAG_NAME)) {
-      return false;
-    }
-    const remoteFlag = remoteFeatureFlags[
-      REWARDS_PREDICT_ENABLED_FLAG_NAME
-    ] as unknown as VersionGatedFeatureFlag;
-
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
