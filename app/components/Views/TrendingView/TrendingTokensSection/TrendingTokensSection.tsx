@@ -26,7 +26,6 @@ const TrendingTokensSection = () => {
     <View>
       <SectionHeader
         title={strings('trending.tokens')}
-        viewAllText={strings('trending.view_all')}
         onViewAll={handleViewAll}
       />
       <SectionCard>

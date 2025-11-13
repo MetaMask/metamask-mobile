@@ -39,7 +39,6 @@ const PerpsSection = () => {
     <View>
       <SectionHeader
         title={strings('trending.perps')}
-        viewAllText={strings('trending.view_all')}
         onViewAll={handleViewAll}
       />
       <SectionCard>

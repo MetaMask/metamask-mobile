@@ -116,7 +116,6 @@ const PredictionSection = () => {
       <Box twClassName="mb-6">
         <SectionHeader
           title={strings('wallet.predict')}
-          viewAllText={strings('trending.view_all')}
           onViewAll={handleViewAll}
         />
         <Box>
@@ -145,7 +144,6 @@ const PredictionSection = () => {
     <Box twClassName="mb-6">
       <SectionHeader
         title={strings('wallet.predict')}
-        viewAllText={strings('trending.view_all')}
         onViewAll={handleViewAll}
       />
 

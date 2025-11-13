@@ -19,11 +19,7 @@ describe('SectionHeader', () => {
 
   it('renders title and view all text correctly', () => {
     const { getByText } = renderWithProvider(
-      <SectionHeader
-        title="Predictions"
-        viewAllText="View all"
-        onViewAll={mockOnViewAll}
-      />,
+      <SectionHeader title="Predictions" onViewAll={mockOnViewAll} />,
       { state: initialState },
     );
 
@@ -33,11 +29,7 @@ describe('SectionHeader', () => {
 
   it('calls onViewAll when view all button is pressed', () => {
     const { getByText } = renderWithProvider(
-      <SectionHeader
-        title="Predictions"
-        viewAllText="View all"
-        onViewAll={mockOnViewAll}
-      />,
+      <SectionHeader title="Predictions" onViewAll={mockOnViewAll} />,
       { state: initialState },
     );
 
