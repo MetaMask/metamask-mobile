@@ -138,7 +138,7 @@ describe('OAuth login service', () => {
 
   it('return a type success, existing user', async () => {
     const loginHandler = mockCreateLoginHandler();
-    mockAuthenticate = jest.fn().mockImplementation(() => ({
+    mockAuthenticate.mockImplementation(() => ({
       nodeAuthTokens: [],
       isNewUser: false,
     }));
@@ -156,7 +156,7 @@ describe('OAuth login service', () => {
 
   it('throw on SeedlessOnboardingController error', async () => {
     const loginHandler = mockCreateLoginHandler();
-    mockAuthenticate = jest.fn().mockImplementation(() => {
+    mockAuthenticate.mockImplementation(() => {
       throw new Error('Test error');
     });
     jest
