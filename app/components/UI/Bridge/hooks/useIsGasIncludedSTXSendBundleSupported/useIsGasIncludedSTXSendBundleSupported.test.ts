@@ -1,5 +1,5 @@
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { useGasIncluded } from './index';
+import { useIsGasIncludedSTXSendBundleSupported } from './index';
 import { useIsSendBundleSupported } from '../useIsSendBundleSupported';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { Hex } from '@metamask/utils';
@@ -18,23 +18,23 @@ const mockSelectShouldUseSmartTransaction =
     typeof selectShouldUseSmartTransaction
   >;
 
-describe('useGasIncluded', () => {
+describe('useIsGasIncludedSTXSendBundleSupported', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe('when both smart transactions and sendBundle are supported', () => {
-    it('updates state with gasIncluded true for Ethereum mainnet', () => {
+    it('updates state with isGasIncludedSTXSendBundleSupported true for Ethereum mainnet', () => {
       mockSelectShouldUseSmartTransaction.mockReturnValue(true);
       mockUseIsSendBundleSupported.mockReturnValue(true);
 
       const { store } = renderHookWithProvider(
-        () => useGasIncluded('0x1' as Hex),
+        () => useIsGasIncludedSTXSendBundleSupported('0x1' as Hex),
         { state: {} },
       );
 
       const state = store.getState();
-      expect(state.bridge.gasIncluded).toBe(true);
+      expect(state.bridge.isGasIncludedSTXSendBundleSupported).toBe(true);
     });
 
     it('updates state with gasIncluded true for Optimism chain', () => {
@@ -42,42 +42,42 @@ describe('useGasIncluded', () => {
       mockUseIsSendBundleSupported.mockReturnValue(true);
 
       const { store } = renderHookWithProvider(
-        () => useGasIncluded('0xa' as Hex),
+        () => useIsGasIncludedSTXSendBundleSupported('0xa' as Hex),
         { state: {} },
       );
 
       const state = store.getState();
-      expect(state.bridge.gasIncluded).toBe(true);
+      expect(state.bridge.isGasIncludedSTXSendBundleSupported).toBe(true);
     });
   });
 
   describe('when smart transactions are not supported', () => {
-    it('updates state with gasIncluded false when smart transactions disabled', () => {
+    it('updates state with isGasIncludedSTXSendBundleSupported false when smart transactions disabled', () => {
       mockSelectShouldUseSmartTransaction.mockReturnValue(false);
       mockUseIsSendBundleSupported.mockReturnValue(true);
 
       const { store } = renderHookWithProvider(
-        () => useGasIncluded('0x1' as Hex),
+        () => useIsGasIncludedSTXSendBundleSupported('0x1' as Hex),
         { state: {} },
       );
 
       const state = store.getState();
-      expect(state.bridge.gasIncluded).toBe(false);
+      expect(state.bridge.isGasIncludedSTXSendBundleSupported).toBe(false);
     });
   });
 
   describe('when sendBundle is not supported', () => {
-    it('updates state with gasIncluded false when sendBundle not supported', () => {
+    it('updates state with isGasIncludedSTXSendBundleSupported false when sendBundle not supported', () => {
       mockSelectShouldUseSmartTransaction.mockReturnValue(true);
       mockUseIsSendBundleSupported.mockReturnValue(false);
 
       const { store } = renderHookWithProvider(
-        () => useGasIncluded('0x1' as Hex),
+        () => useIsGasIncludedSTXSendBundleSupported('0x1' as Hex),
         { state: {} },
       );
 
       const state = store.getState();
-      expect(state.bridge.gasIncluded).toBe(false);
+      expect(state.bridge.isGasIncludedSTXSendBundleSupported).toBe(false);
     });
 
     it('updates state with gasIncluded false when sendBundle returns undefined', () => {
@@ -85,71 +85,74 @@ describe('useGasIncluded', () => {
       mockUseIsSendBundleSupported.mockReturnValue(undefined);
 
       const { store } = renderHookWithProvider(
-        () => useGasIncluded('0x1' as Hex),
+        () => useIsGasIncludedSTXSendBundleSupported('0x1' as Hex),
         { state: {} },
       );
 
       const state = store.getState();
-      expect(state.bridge.gasIncluded).toBe(false);
+      expect(state.bridge.isGasIncludedSTXSendBundleSupported).toBe(false);
     });
 
-    it('updates state with gasIncluded false when sendBundle returns null', () => {
+    it('updates state with isGasIncludedSTXSendBundleSupported false when sendBundle returns null', () => {
       mockSelectShouldUseSmartTransaction.mockReturnValue(true);
       mockUseIsSendBundleSupported.mockReturnValue(null as unknown as boolean);
 
       const { store } = renderHookWithProvider(
-        () => useGasIncluded('0x1' as Hex),
+        () => useIsGasIncludedSTXSendBundleSupported('0x1' as Hex),
         { state: {} },
       );
 
       const state = store.getState();
-      expect(state.bridge.gasIncluded).toBe(false);
+      expect(state.bridge.isGasIncludedSTXSendBundleSupported).toBe(false);
     });
   });
 
   describe('when both smart transactions and sendBundle are not supported', () => {
-    it('updates state with gasIncluded false', () => {
+    it('updates state with isGasIncludedSTXSendBundleSupported false', () => {
       mockSelectShouldUseSmartTransaction.mockReturnValue(false);
       mockUseIsSendBundleSupported.mockReturnValue(false);
 
       const { store } = renderHookWithProvider(
-        () => useGasIncluded('0x1' as Hex),
+        () => useIsGasIncludedSTXSendBundleSupported('0x1' as Hex),
         { state: {} },
       );
 
       const state = store.getState();
-      expect(state.bridge.gasIncluded).toBe(false);
+      expect(state.bridge.isGasIncludedSTXSendBundleSupported).toBe(false);
     });
   });
 
   describe('when chainId is undefined', () => {
-    it('updates state with gasIncluded false when chainId is undefined', () => {
+    it('updates state with isGasIncludedSTXSendBundleSupported false when chainId is undefined', () => {
       mockSelectShouldUseSmartTransaction.mockReturnValue(false);
       mockUseIsSendBundleSupported.mockReturnValue(false);
 
       const { store } = renderHookWithProvider(
-        () => useGasIncluded(undefined),
+        () => useIsGasIncludedSTXSendBundleSupported(undefined),
         { state: {} },
       );
 
       const state = store.getState();
-      expect(state.bridge.gasIncluded).toBe(false);
+      expect(state.bridge.isGasIncludedSTXSendBundleSupported).toBe(false);
     });
   });
 
   describe('when chainId is non-EVM', () => {
-    it('updates state with gasIncluded false for Solana mainnet', () => {
+    it('updates state with isGasIncludedSTXSendBundleSupported false for Solana mainnet', () => {
       // When evmChainId is undefined, mocks should return false
       mockSelectShouldUseSmartTransaction.mockReturnValue(false);
       mockUseIsSendBundleSupported.mockReturnValue(false);
 
       const { store } = renderHookWithProvider(
-        () => useGasIncluded('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'),
+        () =>
+          useIsGasIncludedSTXSendBundleSupported(
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          ),
         { state: {} },
       );
 
       const state = store.getState();
-      expect(state.bridge.gasIncluded).toBe(false);
+      expect(state.bridge.isGasIncludedSTXSendBundleSupported).toBe(false);
     });
 
     it('calls useIsSendBundleSupported with undefined for non-EVM chains', () => {
@@ -157,7 +160,10 @@ describe('useGasIncluded', () => {
       mockUseIsSendBundleSupported.mockReturnValue(false);
 
       renderHookWithProvider(
-        () => useGasIncluded('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'),
+        () =>
+          useIsGasIncludedSTXSendBundleSupported(
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          ),
         { state: {} },
       );
 
@@ -171,25 +177,25 @@ describe('useGasIncluded', () => {
       mockUseIsSendBundleSupported.mockReturnValue(true);
 
       const { store, rerender } = renderHookWithProvider(
-        () => useGasIncluded('0x1' as Hex),
+        () => useIsGasIncludedSTXSendBundleSupported('0x1' as Hex),
         { state: {} },
       );
 
       // Initial state
       let state = store.getState();
-      expect(state.bridge.gasIncluded).toBe(true);
+      expect(state.bridge.isGasIncludedSTXSendBundleSupported).toBe(true);
 
       // Change conditions - smart transactions not supported on new chain
       mockSelectShouldUseSmartTransaction.mockReturnValue(false);
       mockUseIsSendBundleSupported.mockReturnValue(false);
 
       act(() => {
-        rerender(() => useGasIncluded('0x1' as Hex));
+        rerender(() => useIsGasIncludedSTXSendBundleSupported('0x1' as Hex));
       });
 
       // State should be updated to false
       state = store.getState();
-      expect(state.bridge.gasIncluded).toBe(false);
+      expect(state.bridge.isGasIncludedSTXSendBundleSupported).toBe(false);
     });
   });
 });

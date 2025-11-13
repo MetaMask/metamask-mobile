@@ -95,6 +95,8 @@ const QuoteDetailsCard: React.FC = () => {
   const { networkFee, rate, priceImpact, slippage } = formattedQuoteData;
 
   const gasIncluded = !!activeQuote?.quote.gasIncluded;
+  const gasIncluded7702 = !!activeQuote?.quote.gasIncluded7702;
+  const isGasless = gasIncluded7702 || gasIncluded;
 
   const formattedMinToTokenAmount = intlNumberFormatter.format(
     parseFloat(activeQuote?.minToTokenAmount?.amount || '0'),
@@ -141,7 +143,7 @@ const QuoteDetailsCard: React.FC = () => {
             ),
           }}
         />
-        {activeQuote?.quote.gasIncluded ? (
+        {isGasless ? (
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -265,7 +267,7 @@ const QuoteDetailsCard: React.FC = () => {
               },
               tooltip: {
                 title: strings('bridge.price_impact_info_title'),
-                content: gasIncluded
+                content: isGasless
                   ? strings('bridge.price_impact_info_gasless_description')
                   : strings('bridge.price_impact_info_description'),
                 size: TooltipSizes.Sm,
