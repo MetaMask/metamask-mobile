@@ -224,14 +224,24 @@ function ConfirmButton({
 }: Readonly<{ alertTitle: string | undefined }>) {
   const { styles } = useStyles(styleSheet, {});
   const { hasBlockingAlerts } = useAlerts();
+  const transaction = useTransactionMetadataRequest();
   const isLoading = useIsTransactionPayLoading();
   const { onConfirm } = useTransactionConfirm();
   const disabled = hasBlockingAlerts || isLoading;
 
+  let label = alertTitle ?? strings('confirm.deposit_edit_amount_done');
+
+  if (
+    !alertTitle &&
+    hasTransactionType(transaction, [TransactionType.predictWithdraw])
+  ) {
+    label = strings('deposit_edit_amount_predict_withdraw');
+  }
+
   return (
     <Button
       style={[disabled && styles.disabledButton]}
-      label={alertTitle ?? strings('confirm.deposit_edit_amount_done')}
+      label={label}
       variant={ButtonVariants.Primary}
       width={ButtonWidthTypes.Full}
       disabled={disabled}

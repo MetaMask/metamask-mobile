@@ -5841,7 +5841,8 @@
     "transaction": "Transaction",
     "available_balance": "Available: ",
     "edit_amount_done": "Done",
-    "deposit_edit_amount_done": "Add funds"
+    "deposit_edit_amount_done": "Add funds",
+    "deposit_edit_amount_predict_withdraw": "Withdraw"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
