@@ -1,23 +1,11 @@
-import React from 'react';
 import '../../../util/test/integration/mocks';
-import { createStateFixture } from '../../../util/test/integration/stateFixture';
-import { renderIntegrationScreen } from '../../../util/test/integration/render';
-import type { DeepPartial } from '../../../util/test/renderWithProvider';
-import type { RootState } from '../../../reducers';
-import Wallet from '.';
-import Routes from '../../../constants/navigation/Routes';
+import { renderWalletView } from '../../../util/test/integration/renderers/wallet';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 describe('Wallet (background-only integration)', () => {
   it('renders wallet home with minimal state and shows key UI elements', () => {
-    const state: DeepPartial<RootState> = createStateFixture()
-      .withAccountTreeForSelectedAccount()
-      .withRemoteFeatureFlags({})
-      .withPreferences({
-        tokenNetworkFilter: { '0x1': true },
-        useTokenDetection: false,
-      })
-      .withOverrides({
+    const { getByTestId } = renderWalletView({
+      overrides: {
         settings: {
           basicFunctionalityEnabled: true,
         },
@@ -31,14 +19,8 @@ describe('Wallet (background-only integration)', () => {
             },
           },
         },
-      } as unknown as DeepPartial<RootState>)
-      .build() as unknown as DeepPartial<RootState>;
-
-    const { getByTestId } = renderIntegrationScreen(
-      Wallet as unknown as React.ComponentType,
-      { name: Routes.WALLET_VIEW },
-      { state },
-    );
+      } as unknown as Record<string, unknown>,
+    });
 
     expect(getByTestId(WalletViewSelectorsIDs.WALLET_CONTAINER)).toBeTruthy();
     expect(getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toBeTruthy();
