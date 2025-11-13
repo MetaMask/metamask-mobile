@@ -253,6 +253,11 @@ jest.mock('../../util/getHighestFiatToken', () => ({
   getHighestFiatToken: jest.fn(() => mockPriorityToken),
 }));
 
+// Mock isSolanaChainId
+jest.mock('@metamask/bridge-controller', () => ({
+  isSolanaChainId: jest.fn(),
+}));
+
 // Mock Logger
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
@@ -289,6 +294,7 @@ jest.mock('../../../../../core/Engine', () => ({
 // Import the Engine to get typed references to the mocked functions
 import Engine from '../../../../../core/Engine';
 import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
+import { isSolanaChainId } from '@metamask/bridge-controller';
 
 // Get references to the mocked functions
 const mockSetActiveNetwork = Engine.context.NetworkController
@@ -310,6 +316,10 @@ const mockGetAccountByAddress = Engine.context.AccountsController
 const mockSetSelectedAccount = Engine.context.AccountsController
   .setSelectedAccount as jest.MockedFunction<
   typeof Engine.context.AccountsController.setSelectedAccount
+>;
+
+const mockIsSolanaChainId = isSolanaChainId as jest.MockedFunction<
+  typeof isSolanaChainId
 >;
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -508,6 +518,7 @@ describe('CardHome Component', () => {
       methods: [],
     });
     mockSetSelectedAccount.mockClear();
+    mockIsSolanaChainId.mockReturnValue(false);
 
     // Setup hook mocks with default values
     (useLoadCardData as jest.Mock).mockReturnValue({
@@ -1923,6 +1934,81 @@ describe('CardHome Component', () => {
   });
 
   describe('Unsupported Tokens for Spending Limit', () => {
+    it('hides progress bar for Solana chain', () => {
+      // Given: authenticated with Solana chain and limited allowance
+      setupMockSelectors({ isAuthenticated: true });
+      mockIsSolanaChainId.mockReturnValue(true);
+      const solanaToken = {
+        ...mockPriorityToken,
+        caipChainId: 'solana:mainnet',
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '500',
+      };
+      setupLoadCardDataMock({
+        priorityToken: solanaToken,
+        allTokens: [solanaToken],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not display spending limit progress bar
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+    });
+
+    it('hides manage spending limit button for Solana chain', () => {
+      // Given: authenticated with Solana chain
+      setupMockSelectors({ isAuthenticated: true });
+      mockIsSolanaChainId.mockReturnValue(true);
+      const solanaToken = {
+        ...mockPriorityToken,
+        caipChainId: 'solana:mainnet',
+        allowanceState: AllowanceState.Limited,
+      };
+      setupLoadCardDataMock({
+        priorityToken: solanaToken,
+        allTokens: [solanaToken],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not display manage spending limit button
+      expect(
+        screen.queryByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides close spending limit warning for Solana chain', () => {
+      // Given: authenticated with Solana chain and close to limit (15% remaining)
+      setupMockSelectors({ isAuthenticated: true });
+      mockIsSolanaChainId.mockReturnValue(true);
+      const solanaToken = {
+        ...mockPriorityToken,
+        caipChainId: 'solana:mainnet',
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '150', // 15% remaining (below 20% threshold)
+      };
+      setupLoadCardDataMock({
+        priorityToken: solanaToken,
+        allTokens: [solanaToken],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not show close spending limit warning
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+    });
+
     it('hides progress bar for unsupported token (aUSDC)', () => {
       // Given: authenticated with aUSDC (unsupported token) and limited allowance
       setupMockSelectors({ isAuthenticated: true });

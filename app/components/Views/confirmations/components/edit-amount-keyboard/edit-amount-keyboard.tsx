@@ -71,6 +71,7 @@ export function EditAmountKeyboard({
           {additionalButtons.map(({ value: val, label }) => (
             <Button
               key={`${val}-${label}`}
+              testID={`percentage-button-${val}`}
               label={label}
               style={styles.percentageButton}
               onPress={() => onPercentagePress(val)}

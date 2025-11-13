@@ -20,7 +20,11 @@ import {
   runtimeVersion,
   isEmbeddedLaunch,
   isEnabled as isOTAUpdatesEnabled,
+  url as otaUpdateUrl,
+  updateId,
+  checkAutomatically,
 } from 'expo-updates';
+import { PROJECT_ID, getFullVersion } from '../../../../constants/ota';
 import { fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
@@ -33,7 +37,6 @@ import {
   getFeatureFlagAppDistribution,
   getFeatureFlagAppEnvironment,
 } from '../../../../core/Engine/controllers/remote-feature-flag-controller/utils';
-import { getFullVersion } from '../../../../constants/ota';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -240,10 +243,22 @@ export default class AppInformation extends PureComponent {
                 {isOTAUpdatesEnabled && (
                   <>
                     <Text style={styles.branchInfo}>
+                      {`Expo Project ID: ${PROJECT_ID}`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`Update ID: ${updateId || 'N/A'}`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
                       {`OTA Update Channel: ${channel}`}
                     </Text>
                     <Text style={styles.branchInfo}>
                       {`OTA Update runtime version: ${runtimeVersion}`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`OTA Update URL: ${otaUpdateUrl}`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`Check Automatically: ${checkAutomatically}`}
                     </Text>
                     <Text style={styles.branchInfo}>
                       {`OTA Update status: ${otaUpdateMessage}`}

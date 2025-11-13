@@ -1,4 +1,5 @@
 import React from 'react';
+import type { ReactTestInstance } from 'react-test-renderer';
 import { screen, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { InteractionManager } from 'react-native';
 import {
@@ -416,7 +417,7 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
 });
 
 function createMockMarket(overrides = {}) {
-  return {
+  const defaultMarket = {
     id: 'market-1',
     title: 'Will Bitcoin reach $100k by end of 2024?',
     image: 'https://example.com/bitcoin.png',
@@ -430,7 +431,13 @@ function createMockMarket(overrides = {}) {
         tokens: [
           {
             id: 'token-1',
+            title: 'Yes',
             price: 0.65,
+          },
+          {
+            id: 'token-2',
+            title: 'No',
+            price: 0.35,
           },
         ],
         volume: 1000000,
@@ -441,26 +448,100 @@ function createMockMarket(overrides = {}) {
         groupItemTitle: 'No',
         tokens: [
           {
-            id: 'token-2',
+            id: 'token-3',
+            title: 'No',
             price: 0.35,
           },
         ],
         volume: 500000,
       },
     ],
+  };
+
+  const mergedMarket = {
+    ...defaultMarket,
     ...overrides,
+  };
+
+  const normalizedOutcomes =
+    mergedMarket.outcomes?.map((outcome, outcomeIndex) => {
+      const fallbackOutcomeTitle =
+        outcome.title ?? `Outcome ${outcomeIndex + 1}`;
+
+      return {
+        ...outcome,
+        groupItemTitle: outcome.groupItemTitle ?? fallbackOutcomeTitle,
+        tokens: (outcome.tokens ?? []).map((token, tokenIndex) => {
+          let tokenTitle = token.title;
+
+          if (!tokenTitle) {
+            if (outcomeIndex === 0 && tokenIndex === 0) {
+              tokenTitle = 'Yes';
+            } else if (outcomeIndex === 0 && tokenIndex === 1) {
+              tokenTitle = 'No';
+            } else {
+              tokenTitle =
+                outcome.groupItemTitle ??
+                outcome.title ??
+                `Token ${tokenIndex + 1}`;
+
+              if (tokenIndex > 0 && tokenTitle === fallbackOutcomeTitle) {
+                tokenTitle = `${tokenTitle} ${tokenIndex + 1}`;
+              }
+            }
+          }
+
+          return {
+            ...token,
+            title: tokenTitle,
+          };
+        }),
+      };
+    }) ?? [];
+
+  return {
+    ...mergedMarket,
+    outcomes: normalizedOutcomes,
   };
 }
 
+type HookOverrideShape = Record<string, unknown>;
+
+interface PredictPositionsHookResultMock {
+  positions: Record<string, unknown>[];
+  isLoading: boolean;
+  isRefreshing: boolean;
+  error: unknown;
+  loadPositions: jest.Mock;
+}
+
+interface SplitPositionsOverrides {
+  active?: Partial<PredictPositionsHookResultMock>;
+  claimable?: Partial<PredictPositionsHookResultMock>;
+}
+
+type PositionsOverride =
+  | Partial<PredictPositionsHookResultMock>
+  | SplitPositionsOverrides;
+
+const isSplitPositionsOverride = (
+  override: PositionsOverride,
+): override is SplitPositionsOverrides =>
+  override !== null &&
+  typeof override === 'object' &&
+  ('active' in override || 'claimable' in override);
+
+interface HookOverrides {
+  market?: HookOverrideShape;
+  priceHistory?: HookOverrideShape;
+  positions?: PositionsOverride;
+  eligibility?: HookOverrideShape;
+}
+
 function setupPredictMarketDetailsTest(
-  marketOverrides = {},
-  routeOverrides = {},
-  hookOverrides: {
-    market?: object;
-    priceHistory?: object;
-    positions?: object;
-    eligibility?: object;
-  } = {},
+  marketOverrides: HookOverrideShape = {},
+  routeOverrides: HookOverrideShape = {},
+  hookOverrides: HookOverrides = {},
 ) {
   jest.clearAllMocks();
   runAfterInteractionsCallbacks.length = 0;
@@ -533,14 +614,42 @@ function setupPredictMarketDetailsTest(
     ...hookOverrides.priceHistory,
   });
 
-  usePredictPositions.mockReturnValue({
+  const positionsOverridesValue = (hookOverrides.positions ??
+    {}) as PositionsOverride;
+
+  let activeOverride: Partial<PredictPositionsHookResultMock> = {};
+  let claimableOverride: Partial<PredictPositionsHookResultMock> = {};
+
+  if (isSplitPositionsOverride(positionsOverridesValue)) {
+    activeOverride = positionsOverridesValue.active ?? {};
+    claimableOverride = positionsOverridesValue.claimable ?? {};
+  } else {
+    activeOverride =
+      positionsOverridesValue as Partial<PredictPositionsHookResultMock>;
+  }
+
+  const activePositionsHook: PredictPositionsHookResultMock = {
     positions: [],
     isLoading: false,
     isRefreshing: false,
     error: null,
     loadPositions: jest.fn(),
-    ...hookOverrides.positions,
-  });
+    ...activeOverride,
+  };
+
+  const claimablePositionsHook: PredictPositionsHookResultMock = {
+    positions: [],
+    isLoading: false,
+    isRefreshing: false,
+    error: null,
+    loadPositions: jest.fn(),
+    ...claimableOverride,
+  };
+
+  usePredictPositions.mockImplementation(
+    ({ claimable }: { claimable?: boolean }) =>
+      claimable ? claimablePositionsHook : activePositionsHook,
+  );
 
   const result = renderWithProvider(<PredictMarketDetails />);
 
@@ -555,6 +664,37 @@ function setupPredictMarketDetailsTest(
     mockRoute,
   };
 }
+
+const collapseWhitespace = (text: string) => text.replace(/\s+/g, '');
+
+const extractText = (node: React.ReactNode): string => {
+  if (typeof node === 'string' || typeof node === 'number') {
+    return String(node);
+  }
+
+  if (Array.isArray(node)) {
+    return node.map(extractText).join('');
+  }
+
+  if (React.isValidElement(node)) {
+    return extractText(node.props.children);
+  }
+
+  return '';
+};
+
+const getActionButtonText = (button: ReactTestInstance) =>
+  collapseWhitespace(extractText(button.props.children));
+
+const getActionButtons = () =>
+  screen
+    .getAllByTestId('button')
+    .filter((button) => getActionButtonText(button).includes('¢'));
+
+const findActionButtonByPrice = (price: number) =>
+  getActionButtons().find(
+    (button) => getActionButtonText(button) === `•${price}¢`,
+  );
 
 describe('PredictMarketDetails', () => {
   afterEach(() => {
@@ -588,9 +728,16 @@ describe('PredictMarketDetails', () => {
         { market: { isFetching: true, market: null } },
       );
 
-      // Check that loading text appears (there may be multiple instances)
-      const loadingTexts = screen.getAllByText('predict.loading');
-      expect(loadingTexts.length).toBeGreaterThan(0);
+      // Check that skeleton loaders appear
+      expect(
+        screen.getByTestId('predict-details-header-skeleton-back-button'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-details-content-skeleton-option-1'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-details-buttons-skeleton-button-yes'),
+      ).toBeOnTheScreen();
     });
 
     it('displays fallback title when market data is unavailable', () => {
@@ -785,7 +932,10 @@ describe('PredictMarketDetails', () => {
           {
             id: 'outcome-1',
             title: 'Yes',
-            tokens: [{ id: 'token-1', price: 0.65 }],
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
             volume: 1000000,
           },
         ],
@@ -793,12 +943,11 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(singleOutcomeMarket);
 
-      expect(
-        screen.getByText(/predict\.market_details\.yes\s*•\s*65¢/),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText(/predict\.market_details\.no\s*•\s*35¢/),
-      ).toBeOnTheScreen();
+      const actionButtons = getActionButtons();
+      const buttonLabels = actionButtons.map(getActionButtonText);
+
+      expect(actionButtons).toHaveLength(2);
+      expect(buttonLabels).toEqual(expect.arrayContaining(['•65¢', '•35¢']));
     });
 
     it('calculates percentage correctly from market price', () => {
@@ -808,7 +957,10 @@ describe('PredictMarketDetails', () => {
           {
             id: 'outcome-1',
             title: 'Yes',
-            tokens: [{ id: 'token-1', price: 0.75 }],
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.75 },
+              { id: 'token-2', title: 'No', price: 0.25 },
+            ],
             volume: 1000000,
           },
         ],
@@ -816,12 +968,10 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(marketWithDifferentPrice);
 
-      expect(
-        screen.getByText(/predict\.market_details\.yes\s*•\s*75¢/),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText(/predict\.market_details\.no\s*•\s*25¢/),
-      ).toBeOnTheScreen();
+      const actionButtons = getActionButtons();
+      const buttonLabels = actionButtons.map(getActionButtonText);
+
+      expect(buttonLabels).toEqual(expect.arrayContaining(['•75¢', '•25¢']));
     });
   });
 
@@ -855,7 +1005,10 @@ describe('PredictMarketDetails', () => {
           {
             id: 'outcome-1',
             title: 'Yes',
-            tokens: [{ id: 'token-1', price: 0.65 }],
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
             volume: 1000000,
           },
         ],
@@ -864,9 +1017,10 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(singleOutcomeMarket);
 
       // The component now shows the percentage in the action buttons instead of a separate text
-      expect(
-        screen.getByText(/predict\.market_details\.yes\s*•\s*65¢/),
-      ).toBeOnTheScreen();
+      const actionButtons = getActionButtons();
+      const buttonLabels = actionButtons.map(getActionButtonText);
+
+      expect(buttonLabels).toContain('•65¢');
     });
 
     it('handles missing price data gracefully', () => {
@@ -876,7 +1030,10 @@ describe('PredictMarketDetails', () => {
           {
             id: 'outcome-1',
             title: 'Yes',
-            tokens: [{ id: 'token-1', price: undefined }],
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: undefined },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
             volume: 1000000,
           },
         ],
@@ -885,9 +1042,10 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(marketWithoutPrice);
 
       // The component now shows 0% in the action buttons when price is undefined
-      expect(
-        screen.getByText(/predict\.market_details\.yes\s*•\s*0¢/),
-      ).toBeOnTheScreen();
+      const actionButtons = getActionButtons();
+      const buttonLabels = actionButtons.map(getActionButtonText);
+
+      expect(buttonLabels).toEqual(expect.arrayContaining(['•0¢', '•100¢']));
     });
   });
 
@@ -1001,7 +1159,10 @@ describe('PredictMarketDetails', () => {
           {
             id: 'outcome-1',
             title: 'Yes',
-            tokens: [{ id: 'token-1', price: 0.65 }],
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
             volume: 1000000,
           },
         ],
@@ -1010,10 +1171,9 @@ describe('PredictMarketDetails', () => {
       const { mockNavigate } =
         setupPredictMarketDetailsTest(singleOutcomeMarket);
 
-      const yesButton = screen.getByText(
-        /predict\.market_details\.yes\s*•\s*65¢/,
-      );
-      fireEvent.press(yesButton);
+      const yesButton = findActionButtonByPrice(65);
+      expect(yesButton).toBeDefined();
+      fireEvent.press(yesButton as ReactTestInstance);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
         screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
@@ -1034,8 +1194,8 @@ describe('PredictMarketDetails', () => {
             id: 'outcome-1',
             title: 'Yes',
             tokens: [
-              { id: 'token-1', price: 0.65 },
-              { id: 'token-2', price: 0.35 },
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
             ],
             volume: 1000000,
           },
@@ -1045,10 +1205,9 @@ describe('PredictMarketDetails', () => {
       const { mockNavigate } =
         setupPredictMarketDetailsTest(singleOutcomeMarket);
 
-      const noButton = screen.getByText(
-        /predict\.market_details\.no\s*•\s*35¢/,
-      );
-      fireEvent.press(noButton);
+      const noButton = findActionButtonByPrice(35);
+      expect(noButton).toBeDefined();
+      fireEvent.press(noButton as ReactTestInstance);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
         screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
@@ -1079,10 +1238,10 @@ describe('PredictMarketDetails', () => {
       expect(refreshControlProps.refreshing).toBe(false);
     });
 
-    it('triggers market, price history, and positions refresh', async () => {
+    it('triggers market, price history, and active positions refresh', async () => {
       const mockRefetchMarket = jest.fn(() => Promise.resolve());
       const mockRefetchPriceHistory = jest.fn(() => Promise.resolve());
-      const mockLoadPositions = jest.fn(() => Promise.resolve());
+      const mockLoadActivePositions = jest.fn(() => Promise.resolve());
 
       setupPredictMarketDetailsTest(
         {},
@@ -1090,7 +1249,7 @@ describe('PredictMarketDetails', () => {
         {
           market: { refetch: mockRefetchMarket },
           priceHistory: { refetch: mockRefetchPriceHistory },
-          positions: { loadPositions: mockLoadPositions },
+          positions: { loadPositions: mockLoadActivePositions },
         },
       );
 
@@ -1105,8 +1264,10 @@ describe('PredictMarketDetails', () => {
       await waitFor(() => {
         expect(mockRefetchMarket).toHaveBeenCalledTimes(1);
         expect(mockRefetchPriceHistory).toHaveBeenCalledTimes(1);
-        expect(mockLoadPositions).toHaveBeenCalledTimes(1);
-        expect(mockLoadPositions).toHaveBeenCalledWith({ isRefresh: true });
+        expect(mockLoadActivePositions).toHaveBeenCalled();
+        expect(mockLoadActivePositions).toHaveBeenCalledWith({
+          isRefresh: true,
+        });
       });
     });
   });
@@ -1229,7 +1390,10 @@ describe('PredictMarketDetails', () => {
           {
             id: 'outcome-1',
             title: 'Yes',
-            tokens: [{ id: 'token-1', price: 0.65 }],
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
             volume: 1000000,
           },
         ],
@@ -1238,9 +1402,10 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(singleOutcomeMarket);
 
       // The component now shows the percentage in the action buttons instead of a separate text
-      expect(
-        screen.getByText(/predict\.market_details\.yes\s*•\s*65¢/),
-      ).toBeOnTheScreen();
+      const actionButtons = getActionButtons();
+      const buttonLabels = actionButtons.map(getActionButtonText);
+
+      expect(buttonLabels).toContain('•65¢');
     });
 
     it('renders action buttons only for single outcome markets', () => {
@@ -1250,7 +1415,10 @@ describe('PredictMarketDetails', () => {
           {
             id: 'outcome-1',
             title: 'Yes',
-            tokens: [{ id: 'token-1', price: 0.65 }],
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
             volume: 1000000,
           },
         ],
@@ -1258,12 +1426,10 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(singleOutcomeMarket);
 
-      expect(
-        screen.getByText(/predict\.market_details\.yes\s*•\s*65¢/),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText(/predict\.market_details\.no\s*•\s*35¢/),
-      ).toBeOnTheScreen();
+      const actionButtons = getActionButtons();
+      const buttonLabels = actionButtons.map(getActionButtonText);
+
+      expect(buttonLabels).toEqual(expect.arrayContaining(['•65¢', '•35¢']));
     });
   });
 
@@ -1417,7 +1583,10 @@ describe('PredictMarketDetails', () => {
           {
             id: 'outcome-1',
             title: 'Yes',
-            tokens: [{ id: 'token-1', price: undefined }],
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: undefined },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
             volume: 1000000,
           },
         ],
@@ -1426,9 +1595,11 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(marketWithUndefinedPrice);
 
       // The component now shows 0% in the action buttons when price is undefined
-      expect(
-        screen.getByText(/predict\.market_details\.yes\s*•\s*0¢/),
-      ).toBeOnTheScreen();
+      const yesButton = findActionButtonByPrice(0);
+      const noButton = findActionButtonByPrice(100);
+
+      expect(yesButton).toBeDefined();
+      expect(noButton).toBeDefined();
     });
   });
 
@@ -1483,18 +1654,20 @@ describe('PredictMarketDetails', () => {
         {},
         {
           positions: {
-            positions: [
-              {
-                id: 'position-1',
-                outcomeId: 'outcome-1',
-                outcome: 'Yes',
-                size: 10,
-                initialValue: 10,
-                currentValue: 12,
-                avgPrice: 0.5,
-                percentPnl: 20,
-              },
-            ],
+            claimable: {
+              positions: [
+                {
+                  id: 'position-1',
+                  outcomeId: 'outcome-1',
+                  outcome: 'Yes',
+                  size: 10,
+                  initialValue: 10,
+                  currentValue: 12,
+                  avgPrice: 0.5,
+                  percentPnl: 20,
+                },
+              ],
+            },
           },
         },
       );
@@ -1530,18 +1703,20 @@ describe('PredictMarketDetails', () => {
         {},
         {
           positions: {
-            positions: [
-              {
-                id: 'position-1',
-                outcomeId: 'outcome-1',
-                outcome: 'Yes',
-                size: 10,
-                initialValue: 10,
-                currentValue: 12,
-                avgPrice: 0.5,
-                percentPnl: 20,
-              },
-            ],
+            claimable: {
+              positions: [
+                {
+                  id: 'position-1',
+                  outcomeId: 'outcome-1',
+                  outcome: 'Yes',
+                  size: 10,
+                  initialValue: 10,
+                  currentValue: 12,
+                  avgPrice: 0.5,
+                  percentPnl: 20,
+                },
+              ],
+            },
           },
         },
       );
@@ -1831,7 +2006,10 @@ describe('PredictMarketDetails', () => {
           {
             id: 'outcome-1',
             title: 'Yes',
-            tokens: [{ id: 'token-1', price: 0.65 }],
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
             volume: 1000000,
           },
         ],
@@ -1840,10 +2018,9 @@ describe('PredictMarketDetails', () => {
       const { mockNavigate } =
         setupPredictMarketDetailsTest(singleOutcomeMarket);
 
-      const yesButton = screen.getByText(
-        /predict\.market_details\.yes\s*•\s*65¢/,
-      );
-      fireEvent.press(yesButton);
+      const yesButton = findActionButtonByPrice(65);
+      expect(yesButton).toBeDefined();
+      fireEvent.press(yesButton as ReactTestInstance);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
         screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
@@ -1865,8 +2042,8 @@ describe('PredictMarketDetails', () => {
             id: 'outcome-1',
             title: 'Yes',
             tokens: [
-              { id: 'token-1', price: 0.65 },
-              { id: 'token-2', price: 0.35 },
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
             ],
             volume: 1000000,
           },
@@ -1876,10 +2053,9 @@ describe('PredictMarketDetails', () => {
       const { mockNavigate } =
         setupPredictMarketDetailsTest(singleOutcomeMarket);
 
-      const noButton = screen.getByText(
-        /predict\.market_details\.no\s*•\s*35¢/,
-      );
-      fireEvent.press(noButton);
+      const noButton = findActionButtonByPrice(35);
+      expect(noButton).toBeDefined();
+      fireEvent.press(noButton as ReactTestInstance);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
         screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
@@ -1893,7 +2069,10 @@ describe('PredictMarketDetails', () => {
           {
             id: 'outcome-1',
             title: 'Yes',
-            tokens: [{ id: 'token-1', price: 0.65 }],
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
             volume: 1000000,
           },
         ],
@@ -1905,10 +2084,9 @@ describe('PredictMarketDetails', () => {
         { eligibility: { isEligible: false } },
       );
 
-      const yesButton = screen.getByText(
-        /predict\.market_details\.yes\s*•\s*65¢/,
-      );
-      fireEvent.press(yesButton);
+      const yesButton = findActionButtonByPrice(65);
+      expect(yesButton).toBeDefined();
+      fireEvent.press(yesButton as ReactTestInstance);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
         screen: Routes.PREDICT.MODALS.UNAVAILABLE,
@@ -1923,8 +2101,8 @@ describe('PredictMarketDetails', () => {
             id: 'outcome-1',
             title: 'Yes',
             tokens: [
-              { id: 'token-1', price: 0.65 },
-              { id: 'token-2', price: 0.35 },
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
             ],
             volume: 1000000,
           },
@@ -1937,10 +2115,9 @@ describe('PredictMarketDetails', () => {
         { eligibility: { isEligible: false } },
       );
 
-      const noButton = screen.getByText(
-        /predict\.market_details\.no\s*•\s*35¢/,
-      );
-      fireEvent.press(noButton);
+      const noButton = findActionButtonByPrice(35);
+      expect(noButton).toBeDefined();
+      fireEvent.press(noButton as ReactTestInstance);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
         screen: Routes.PREDICT.MODALS.UNAVAILABLE,
@@ -1961,7 +2138,10 @@ describe('PredictMarketDetails', () => {
           {
             id: 'outcome-1',
             title: 'Yes',
-            tokens: [{ id: 'token-1', price: 0.65 }],
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
             volume: 1000000,
           },
         ],
@@ -1973,10 +2153,9 @@ describe('PredictMarketDetails', () => {
         { eligibility: { isEligible: false } },
       );
 
-      const yesButton = screen.getByText(
-        /predict\.market_details\.yes\s*•\s*65¢/,
-      );
-      fireEvent.press(yesButton);
+      const yesButton = findActionButtonByPrice(65);
+      expect(yesButton).toBeDefined();
+      fireEvent.press(yesButton as ReactTestInstance);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
         screen: Routes.PREDICT.MODALS.UNAVAILABLE,
@@ -2004,8 +2183,8 @@ describe('PredictMarketDetails', () => {
             id: 'outcome-1',
             title: 'Yes',
             tokens: [
-              { id: 'token-1', price: 0.65 },
-              { id: 'token-2', price: 0.35 },
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
             ],
             volume: 1000000,
           },
@@ -2018,10 +2197,9 @@ describe('PredictMarketDetails', () => {
         { eligibility: { isEligible: false } },
       );
 
-      const noButton = screen.getByText(
-        /predict\.market_details\.no\s*•\s*35¢/,
-      );
-      fireEvent.press(noButton);
+      const noButton = findActionButtonByPrice(35);
+      expect(noButton).toBeDefined();
+      fireEvent.press(noButton as ReactTestInstance);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
         screen: Routes.PREDICT.MODALS.UNAVAILABLE,
@@ -2208,9 +2386,7 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(marketWithPartialResolution);
 
-      expect(
-        screen.queryByTestId('predict-details-chart'),
-      ).not.toBeOnTheScreen();
+      expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
     });
 
     it('displays resolved outcomes count badge', () => {

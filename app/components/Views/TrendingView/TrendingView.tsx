@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
+import { ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -6,8 +7,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import {
   Box,
   BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
   Text,
   TextVariant,
   ButtonIcon,
@@ -17,15 +16,30 @@ import {
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { appendURLParams } from '../../../util/browser';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useMetrics } from '../../hooks/useMetrics';
 import Browser from '../Browser';
 import Routes from '../../../constants/navigation/Routes';
 import {
   lastTrendingScreenRef,
   updateLastTrendingScreen,
 } from '../../Nav/Main/MainNavigator';
+import TrendingTokensSection from './TrendingTokensSection/TrendingTokensSection';
+import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
+import ExploreSearchScreen from './ExploreSearchScreen/ExploreSearchScreen';
+import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
+import { PredictModalStack } from '../../UI/Predict/routes';
+import PredictionSection from './PredictionSection/PredictionSection';
 
 const Stack = createStackNavigator();
+
+const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+    marginTop: 10,
+    paddingLeft: 16,
+    paddingRight: 16,
+  },
+});
 
 // Wrapper component to intercept navigation
 const BrowserWrapper: React.FC<{ route: object }> = ({ route }) => {
@@ -85,10 +99,14 @@ const TrendingFeed: React.FC = () => {
     });
   }, [navigation, portfolioUrl.href]);
 
+  const handleSearchPress = useCallback(() => {
+    navigation.navigate(Routes.EXPLORE_SEARCH);
+  }, [navigation]);
+
   return (
     <Box style={{ paddingTop: insets.top }} twClassName="flex-1 bg-default">
-      <Box twClassName="flex-row justify-between items-center px-4 py-3 bg-default border-b border-muted">
-        <Text variant={TextVariant.HeadingMd} twClassName="text-default">
+      <Box twClassName="flex-row justify-between items-center px-4 py-3">
+        <Text variant={TextVariant.HeadingLg} twClassName="text-default">
           {strings('trending.title')}
         </Text>
 
@@ -102,19 +120,15 @@ const TrendingFeed: React.FC = () => {
         </Box>
       </Box>
 
-      <Box
-        twClassName="flex-1 bg-default px-5"
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
+      <ExploreSearchBar type="button" onPress={handleSearchPress} />
+
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
       >
-        <Text
-          variant={TextVariant.BodyMd}
-          twClassName="text-muted text-center"
-          testID="trending-view-coming-soon"
-        >
-          {strings('trending.coming_soon')}
-        </Text>
-      </Box>
+        <PredictionSection />
+        <TrendingTokensSection />
+      </ScrollView>
     </Box>
   );
 };
@@ -123,15 +137,32 @@ const TrendingView: React.FC = () => {
   const initialRoot = lastTrendingScreenRef.current || 'TrendingFeed';
 
   return (
-    <Stack.Navigator
-      initialRouteName={initialRoot}
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="TrendingFeed" component={TrendingFeed} />
-      <Stack.Screen name="TrendingBrowser" component={BrowserWrapper} />
-    </Stack.Navigator>
+    <PerpsStreamProvider>
+      <Stack.Navigator
+        initialRouteName={initialRoot}
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        <Stack.Screen name="TrendingFeed" component={TrendingFeed} />
+        <Stack.Screen name="TrendingBrowser" component={BrowserWrapper} />
+        <Stack.Screen
+          name={Routes.EXPLORE_SEARCH}
+          component={ExploreSearchScreen}
+        />
+        <Stack.Screen
+          name={Routes.PREDICT.MODALS.ROOT}
+          component={PredictModalStack}
+          options={{
+            headerShown: false,
+            cardStyle: {
+              backgroundColor: 'transparent',
+            },
+            animationEnabled: false,
+          }}
+        />
+      </Stack.Navigator>
+    </PerpsStreamProvider>
   );
 };
 

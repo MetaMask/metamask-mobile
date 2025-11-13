@@ -14,7 +14,10 @@ import ManualBackupStep1View from './pages/Onboarding/ManualBackupStep1View';
 import OnboardingSuccessView from './pages/Onboarding/OnboardingSuccessView';
 import TermsOfUseModal from './pages/Onboarding/TermsOfUseModal';
 import LoginView from './pages/wallet/LoginView';
-import { getGanachePort } from './framework/fixtures/FixtureUtils';
+import {
+  getGanachePortForFixture,
+  getAnvilPortForFixture,
+} from './framework/fixtures/FixtureUtils';
 import Assertions from './framework/Assertions';
 import { CustomNetworks } from './resources/networks.e2e';
 import ToastModal from './pages/wallet/ToastModal';
@@ -24,8 +27,34 @@ import Matchers from './framework/Matchers';
 import { BrowserViewSelectorsIDs } from './selectors/Browser/BrowserView.selectors';
 import { createLogger } from './framework/logger';
 import Utilities, { sleep } from './framework/Utilities';
+import { PortManager, ResourceType } from './framework';
 
-const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
+/**
+ * Gets the localhost URL for Ganache/Anvil network connection.
+ * Must be called at runtime (not at module load time) to ensure port is allocated.
+ */
+const getLocalhostUrl = () => {
+  // Check which local node is running
+  const anvilPort = PortManager.getInstance().getPort(ResourceType.ANVIL);
+  const ganachePort = PortManager.getInstance().getPort(ResourceType.GANACHE);
+
+  let port: number;
+
+  if (device.getPlatform() === 'android') {
+    // Android: Must use fallback port (adb reverse maps fallback→actual)
+    // Example: adb reverse tcp:8545 tcp:45466 means device connects to 8545, reaches host's 45466
+    port = anvilPort
+      ? getAnvilPortForFixture()
+      : ganachePort
+        ? getGanachePortForFixture()
+        : getAnvilPortForFixture();
+  } else {
+    // iOS: Use actual allocated port directly (no port forwarding needed)
+    port = anvilPort || ganachePort || getAnvilPortForFixture();
+  }
+
+  return `http://localhost:${port}/`;
+};
 const validAccount = Accounts.getValidAccount();
 const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true' ||
@@ -278,7 +307,7 @@ export const addLocalhostNetwork = async () => {
   await NetworkView.switchToCustomNetworks();
 
   await NetworkView.typeInNetworkName('Localhost');
-  await NetworkView.typeInRpcUrl(LOCALHOST_URL);
+  await NetworkView.typeInRpcUrl(getLocalhostUrl());
   await NetworkView.typeInChainId('1337');
   await NetworkView.typeInNetworkSymbol('ETH\n');
 

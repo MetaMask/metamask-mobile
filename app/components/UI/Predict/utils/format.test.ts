@@ -4,7 +4,13 @@ import {
   formatAddress,
   formatCurrencyValue,
   estimateLineCount,
+  formatVolume,
+  getRecurrence,
+  formatCents,
+  formatPositionSize,
+  calculateNetAmount,
 } from './format';
+import { Recurrence, PredictSeries } from '../types';
 
 // Mock the formatWithThreshold utility
 jest.mock('../../../../util/assets', () => ({
@@ -800,6 +806,651 @@ describe('format utils', () => {
       const result = estimateLineCount(text);
 
       expect(result).toBeGreaterThan(1);
+    });
+  });
+
+  describe('formatVolume', () => {
+    it('formats volume >= 1,000,000 with M suffix', () => {
+      const result = formatVolume(1500000);
+
+      expect(result).toBe('1.5M');
+    });
+
+    it('formats volume >= 1,000 with k suffix', () => {
+      const result = formatVolume(2500);
+
+      expect(result).toBe('2.5k');
+    });
+
+    it('formats volume < 1,000 as whole number', () => {
+      const result = formatVolume(500);
+
+      expect(result).toBe('500');
+    });
+
+    it('removes trailing zeros from millions', () => {
+      const result = formatVolume(2000000);
+
+      expect(result).toBe('2M');
+    });
+
+    it('removes trailing zeros from thousands', () => {
+      const result = formatVolume(3000);
+
+      expect(result).toBe('3k');
+    });
+
+    it('handles string input for millions', () => {
+      const result = formatVolume('1500000');
+
+      expect(result).toBe('1.5M');
+    });
+
+    it('handles string input for thousands', () => {
+      const result = formatVolume('2500');
+
+      expect(result).toBe('2.5k');
+    });
+
+    it('handles string input for small values', () => {
+      const result = formatVolume('500');
+
+      expect(result).toBe('500');
+    });
+
+    it('returns 0 for NaN input', () => {
+      const result = formatVolume('not-a-number');
+
+      expect(result).toBe('0');
+    });
+
+    it('returns 0 for invalid string', () => {
+      const result = formatVolume('abc');
+
+      expect(result).toBe('0');
+    });
+
+    it('returns 0 for empty string', () => {
+      const result = formatVolume('');
+
+      expect(result).toBe('0');
+    });
+
+    it('formats decimal millions correctly', () => {
+      const result = formatVolume(1234567);
+
+      expect(result).toBe('1.23M');
+    });
+
+    it('formats decimal thousands correctly', () => {
+      const result = formatVolume(1234);
+
+      expect(result).toBe('1.23k');
+    });
+
+    it('floors small values', () => {
+      const result = formatVolume(999.99);
+
+      expect(result).toBe('999');
+    });
+
+    it.each([
+      [0, '0'],
+      [1, '1'],
+      [999, '999'],
+      [1000, '1k'],
+      [1500, '1.5k'],
+      [999999, '1000k'],
+      [1000000, '1M'],
+      [5000000, '5M'],
+      [5500000, '5.5M'],
+    ])('formats volume %d as %s', (input, expected) => {
+      expect(formatVolume(input)).toBe(expected);
+    });
+  });
+
+  describe('getRecurrence', () => {
+    it('returns NONE for undefined series', () => {
+      const result = getRecurrence(undefined);
+
+      expect(result).toBe(Recurrence.NONE);
+    });
+
+    it('returns NONE for empty series array', () => {
+      const result = getRecurrence([]);
+
+      expect(result).toBe(Recurrence.NONE);
+    });
+
+    it('returns NONE when first series has no recurrence', () => {
+      const series: PredictSeries[] = [
+        { recurrence: undefined as unknown as string },
+      ];
+
+      const result = getRecurrence(series);
+
+      expect(result).toBe(Recurrence.NONE);
+    });
+
+    it('returns DAILY for daily recurrence', () => {
+      const series: PredictSeries[] = [{ recurrence: 'daily' }];
+
+      const result = getRecurrence(series);
+
+      expect(result).toBe(Recurrence.DAILY);
+    });
+
+    it('returns WEEKLY for weekly recurrence', () => {
+      const series: PredictSeries[] = [{ recurrence: 'weekly' }];
+
+      const result = getRecurrence(series);
+
+      expect(result).toBe(Recurrence.WEEKLY);
+    });
+
+    it('returns MONTHLY for monthly recurrence', () => {
+      const series: PredictSeries[] = [{ recurrence: 'monthly' }];
+
+      const result = getRecurrence(series);
+
+      expect(result).toBe(Recurrence.MONTHLY);
+    });
+
+    it('returns YEARLY for yearly recurrence', () => {
+      const series: PredictSeries[] = [{ recurrence: 'yearly' }];
+
+      const result = getRecurrence(series);
+
+      expect(result).toBe(Recurrence.YEARLY);
+    });
+
+    it('returns YEARLY for annually recurrence', () => {
+      const series: PredictSeries[] = [{ recurrence: 'annually' }];
+
+      const result = getRecurrence(series);
+
+      expect(result).toBe(Recurrence.YEARLY);
+    });
+
+    it('returns QUARTERLY for quarterly recurrence', () => {
+      const series: PredictSeries[] = [{ recurrence: 'quarterly' }];
+
+      const result = getRecurrence(series);
+
+      expect(result).toBe(Recurrence.QUARTERLY);
+    });
+
+    it('returns NONE for unknown recurrence', () => {
+      const series: PredictSeries[] = [{ recurrence: 'unknown' }];
+
+      const result = getRecurrence(series);
+
+      expect(result).toBe(Recurrence.NONE);
+    });
+
+    it('handles uppercase recurrence values', () => {
+      const series: PredictSeries[] = [{ recurrence: 'DAILY' }];
+
+      const result = getRecurrence(series);
+
+      expect(result).toBe(Recurrence.DAILY);
+    });
+
+    it('handles mixed case recurrence values', () => {
+      const series: PredictSeries[] = [{ recurrence: 'WeEkLy' }];
+
+      const result = getRecurrence(series);
+
+      expect(result).toBe(Recurrence.WEEKLY);
+    });
+
+    it.each([
+      ['daily', Recurrence.DAILY],
+      ['weekly', Recurrence.WEEKLY],
+      ['monthly', Recurrence.MONTHLY],
+      ['yearly', Recurrence.YEARLY],
+      ['annually', Recurrence.YEARLY],
+      ['quarterly', Recurrence.QUARTERLY],
+      ['', Recurrence.NONE],
+      ['invalid', Recurrence.NONE],
+    ])('maps recurrence %s to %s', (recurrence, expected) => {
+      const series: PredictSeries[] = [{ recurrence }];
+
+      expect(getRecurrence(series)).toBe(expected);
+    });
+  });
+
+  describe('formatCents', () => {
+    it('formats dollars to whole cents without decimals', () => {
+      const result = formatCents(0.5);
+
+      expect(result).toBe('50¢');
+    });
+
+    it('formats dollars to cents with 1 decimal when needed', () => {
+      const result = formatCents(0.456);
+
+      expect(result).toBe('45.6¢');
+    });
+
+    it('formats dollars with 1 decimal precision', () => {
+      const result = formatCents(0.12345);
+
+      expect(result).toBe('12.3¢');
+    });
+
+    it('formats whole cents without decimals', () => {
+      const result = formatCents(0.34);
+
+      expect(result).toBe('34¢');
+    });
+
+    it('handles string input', () => {
+      const result = formatCents('0.5');
+
+      expect(result).toBe('50¢');
+    });
+
+    it('returns 0¢ for NaN input', () => {
+      const result = formatCents('not-a-number');
+
+      expect(result).toBe('0¢');
+    });
+
+    it('returns 0¢ for invalid string', () => {
+      const result = formatCents('abc');
+
+      expect(result).toBe('0¢');
+    });
+
+    it('returns 0¢ for empty string', () => {
+      const result = formatCents('');
+
+      expect(result).toBe('0¢');
+    });
+
+    it('formats zero as 0¢', () => {
+      const result = formatCents(0);
+
+      expect(result).toBe('0¢');
+    });
+
+    it('formats very small values with 1 decimal', () => {
+      const result = formatCents(0.001);
+
+      expect(result).toBe('0.1¢');
+    });
+
+    it('formats negative values correctly', () => {
+      const result = formatCents(-0.5);
+
+      expect(result).toBe('-50¢');
+    });
+
+    it('formats large dollar values correctly', () => {
+      const result = formatCents(10.5);
+
+      expect(result).toBe('1050¢');
+    });
+
+    it('formats 0.40123 as 40.1¢', () => {
+      const result = formatCents(0.40123);
+
+      expect(result).toBe('40.1¢');
+    });
+
+    it.each([
+      [0.5, '50¢'],
+      [0.25, '25¢'],
+      [0.75, '75¢'],
+      [0.456, '45.6¢'],
+      [0.12345, '12.3¢'],
+      [1, '100¢'],
+      [0, '0¢'],
+      [0.625, '62.5¢'],
+      [0.7, '70¢'],
+    ])('formats %d dollars as %s', (input, expected) => {
+      expect(formatCents(input)).toBe(expected);
+    });
+  });
+
+  describe('formatPositionSize', () => {
+    it('formats small size with maximum decimals', () => {
+      const result = formatPositionSize(0.5678);
+
+      expect(result).toBe('0.5678');
+    });
+
+    it('formats large size with minimum decimals', () => {
+      const result = formatPositionSize(123.456);
+
+      expect(result).toBe('123.46');
+    });
+
+    it('formats whole numbers without decimals', () => {
+      const result = formatPositionSize(10);
+
+      expect(result).toBe('10');
+    });
+
+    it('handles string input with small value', () => {
+      const result = formatPositionSize('0.5678');
+
+      expect(result).toBe('0.5678');
+    });
+
+    it('handles string input with large value', () => {
+      const result = formatPositionSize('123.456');
+
+      expect(result).toBe('123.46');
+    });
+
+    it('returns 0 for NaN input', () => {
+      const result = formatPositionSize('not-a-number');
+
+      expect(result).toBe('0');
+    });
+
+    it('returns 0 for invalid string', () => {
+      const result = formatPositionSize('abc');
+
+      expect(result).toBe('0');
+    });
+
+    it('returns 0 for empty string', () => {
+      const result = formatPositionSize('');
+
+      expect(result).toBe('0');
+    });
+
+    it('formats with custom minimumDecimals', () => {
+      const result = formatPositionSize(10.5555, {
+        minimumDecimals: 2,
+        maximumDecimals: 2,
+      });
+
+      expect(result).toBe('10.56');
+    });
+
+    it('formats with custom maximumDecimals', () => {
+      const result = formatPositionSize(0.123456, {
+        minimumDecimals: 2,
+        maximumDecimals: 6,
+      });
+
+      expect(result).toBe('0.123456');
+    });
+
+    it('uses maximumDecimals for values < 1', () => {
+      const result = formatPositionSize(0.1234, {
+        minimumDecimals: 2,
+        maximumDecimals: 3,
+      });
+
+      expect(result).toBe('0.123');
+    });
+
+    it('uses minimumDecimals for values >= 1', () => {
+      const result = formatPositionSize(5.1234, {
+        minimumDecimals: 2,
+        maximumDecimals: 4,
+      });
+
+      expect(result).toBe('5.12');
+    });
+
+    it('handles negative values correctly', () => {
+      const result = formatPositionSize(-10.5);
+
+      expect(result).toBe('-10.50');
+    });
+
+    it('formats zero correctly', () => {
+      const result = formatPositionSize(0);
+
+      expect(result).toBe('0');
+    });
+
+    it('formats very small values with high precision', () => {
+      const result = formatPositionSize(0.000123);
+
+      expect(result).toBe('0.0001');
+    });
+
+    it.each([
+      [0, '0'],
+      [1, '1'],
+      [10, '10'],
+      [0.5, '0.5000'],
+      [0.1234, '0.1234'],
+      [123.45, '123.45'],
+      [1000, '1000'],
+    ])('formats size %d as %s', (input, expected) => {
+      expect(formatPositionSize(input)).toBe(expected);
+    });
+
+    it('formats 7.5 shares with 2 decimals correctly', () => {
+      const result = formatPositionSize(7.5, {
+        minimumDecimals: 2,
+        maximumDecimals: 2,
+      });
+
+      expect(result).toBe('7.50');
+    });
+
+    it('formats 10.5555 with 2 maximum decimals as 10.56', () => {
+      const result = formatPositionSize(10.5555, {
+        minimumDecimals: 2,
+        maximumDecimals: 2,
+      });
+
+      expect(result).toBe('10.56');
+    });
+
+    it('returns whole number when rounded value equals floor', () => {
+      const result = formatPositionSize(5.0, {
+        minimumDecimals: 2,
+        maximumDecimals: 2,
+      });
+
+      expect(result).toBe('5');
+    });
+  });
+
+  describe('calculateNetAmount', () => {
+    it('calculates net amount by subtracting fees from total', () => {
+      const params = {
+        totalFiat: '10.00',
+        bridgeFeeFiat: '0.50',
+        networkFeeFiat: '0.25',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('9.25');
+    });
+
+    it('calculates net amount with high precision decimal values', () => {
+      const params = {
+        totalFiat: '1.04361142938843253220839271649743403',
+        bridgeFeeFiat: '0.036399',
+        networkFeeFiat: '0.008024478270232503211154803918368',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0.9991879511181999');
+    });
+
+    it('returns "0" when total equals sum of fees', () => {
+      const params = {
+        totalFiat: '1.00',
+        bridgeFeeFiat: '0.50',
+        networkFeeFiat: '0.50',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0');
+    });
+
+    it('returns "0" when fees exceed total', () => {
+      const params = {
+        totalFiat: '1.00',
+        bridgeFeeFiat: '0.75',
+        networkFeeFiat: '0.50',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0');
+    });
+
+    it('returns "0" when totalFiat is undefined', () => {
+      const params = {
+        bridgeFeeFiat: '0.50',
+        networkFeeFiat: '0.25',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0');
+    });
+
+    it('treats missing bridgeFeeFiat as zero', () => {
+      const params = {
+        totalFiat: '10.00',
+        networkFeeFiat: '0.25',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('9.75');
+    });
+
+    it('treats missing networkFeeFiat as zero', () => {
+      const params = {
+        totalFiat: '10.00',
+        bridgeFeeFiat: '0.50',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('9.5');
+    });
+
+    it('returns full total when both fees are missing', () => {
+      const params = {
+        totalFiat: '10.00',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('10');
+    });
+
+    it('returns "0" when all parameters are undefined', () => {
+      const params = {};
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0');
+    });
+
+    it('returns "0" when totalFiat is invalid string', () => {
+      const params = {
+        totalFiat: 'invalid',
+        bridgeFeeFiat: '0.50',
+        networkFeeFiat: '0.25',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0');
+    });
+
+    it('returns "0" when bridgeFeeFiat is invalid string', () => {
+      const params = {
+        totalFiat: '10.00',
+        bridgeFeeFiat: 'invalid',
+        networkFeeFiat: '0.25',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0');
+    });
+
+    it('returns "0" when networkFeeFiat is invalid string', () => {
+      const params = {
+        totalFiat: '10.00',
+        bridgeFeeFiat: '0.50',
+        networkFeeFiat: 'invalid',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0');
+    });
+
+    it('calculates correctly when fees are zero', () => {
+      const params = {
+        totalFiat: '10.00',
+        bridgeFeeFiat: '0',
+        networkFeeFiat: '0',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('10');
+    });
+
+    it('calculates correctly when only bridge fee exists', () => {
+      const params = {
+        totalFiat: '10.00',
+        bridgeFeeFiat: '2.50',
+        networkFeeFiat: '0',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('7.5');
+    });
+
+    it('calculates correctly when only network fee exists', () => {
+      const params = {
+        totalFiat: '10.00',
+        bridgeFeeFiat: '0',
+        networkFeeFiat: '3.25',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('6.75');
+    });
+
+    it('handles very small decimal amounts precisely', () => {
+      const params = {
+        totalFiat: '0.001',
+        bridgeFeeFiat: '0.0001',
+        networkFeeFiat: '0.0002',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0.0007');
+    });
+
+    it('handles large amounts correctly', () => {
+      const params = {
+        totalFiat: '1000000.00',
+        bridgeFeeFiat: '50.00',
+        networkFeeFiat: '25.00',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('999925');
     });
   });
 });
