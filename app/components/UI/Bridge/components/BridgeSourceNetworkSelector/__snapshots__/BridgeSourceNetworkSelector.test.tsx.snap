@@ -726,14 +726,14 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                   testID="network-avatar-image"
                                                 />
                                               </View>
-                                                  <View
-                                                    style={
-                                                      [
-                                                        {},
-                                                        undefined,
-                                                      ]
-                                                    }
-                                                  >
+                                              <View
+                                                style={
+                                                  [
+                                                    {},
+                                                    undefined,
+                                                  ]
+                                                }
+                                              >
                                                 <Text
                                                   accessibilityRole="text"
                                                   style={
@@ -748,7 +748,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                 >
                                                   Ethereum Mainnet
                                                 </Text>
-                                                  </View>
+                                              </View>
                                             </View>
                                             <View
                                               alignItems="flex-end"
@@ -919,14 +919,14 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                   testID="network-avatar-image"
                                                 />
                                               </View>
-                                                  <View
-                                                    style={
-                                                      [
-                                                        {},
-                                                        undefined,
-                                                      ]
-                                                    }
-                                                  >
+                                              <View
+                                                style={
+                                                  [
+                                                    {},
+                                                    undefined,
+                                                  ]
+                                                }
+                                              >
                                                 <Text
                                                   accessibilityRole="text"
                                                   style={
@@ -941,7 +941,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                 >
                                                   Optimism
                                                 </Text>
-                                                  </View>
+                                              </View>
                                             </View>
                                             <View
                                               alignItems="flex-end"
@@ -1112,14 +1112,14 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                   testID="network-avatar-image"
                                                 />
                                               </View>
-                                                  <View
-                                                    style={
-                                                      [
-                                                        {},
-                                                        undefined,
-                                                      ]
-                                                    }
-                                                  >
+                                              <View
+                                                style={
+                                                  [
+                                                    {},
+                                                    undefined,
+                                                  ]
+                                                }
+                                              >
                                                 <Text
                                                   accessibilityRole="text"
                                                   style={
@@ -1134,7 +1134,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                 >
                                                   Solana
                                                 </Text>
-                                                  </View>
+                                              </View>
                                             </View>
                                             <View
                                               alignItems="flex-end"
@@ -1305,14 +1305,14 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                   testID="network-avatar-image"
                                                 />
                                               </View>
-                                                  <View
-                                                    style={
-                                                      [
-                                                        {},
-                                                        undefined,
-                                                      ]
-                                                    }
-                                                  >
+                                              <View
+                                                style={
+                                                  [
+                                                    {},
+                                                    undefined,
+                                                  ]
+                                                }
+                                              >
                                                 <Text
                                                   accessibilityRole="text"
                                                   style={
@@ -1327,7 +1327,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                 >
                                                   Bitcoin
                                                 </Text>
-                                                  </View>
+                                              </View>
                                             </View>
                                             <View
                                               alignItems="flex-end"

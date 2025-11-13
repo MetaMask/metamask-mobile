@@ -165,6 +165,6 @@ describe('CustomNetwork component', () => {
     expect(getByText('BNB Chain')).toBeOnTheScreen();
     expect(getByText('Arbitrum')).toBeOnTheScreen();
 
-    expect(getAllByText('No network fees').length).toBe(1);
+    expect(getAllByText('No network fee').length).toBe(1);
   });
 });
