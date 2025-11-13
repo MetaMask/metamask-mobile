@@ -9,14 +9,6 @@ const PENDING_AMOUNT_ALERTS: AlertKeys[] = [
   AlertKeys.InsufficientPredictBalance,
 ];
 
-const KEYBOARD_ALERTS: AlertKeys[] = [
-  AlertKeys.PerpsDepositMinimum,
-  AlertKeys.InsufficientPayTokenBalance,
-  AlertKeys.SignedOrSubmitted,
-  AlertKeys.PerpsHardwareAccount,
-  AlertKeys.InsufficientPredictBalance,
-];
-
 export const ON_CHANGE_ALERTS = [
   AlertKeys.PerpsDepositMinimum,
   AlertKeys.InsufficientPayTokenBalance,
@@ -42,10 +34,7 @@ export function useTransactionCustomAmountAlerts({
   );
 
   const alerts = useMemo(
-    () =>
-      [...pendingTokenAlerts, ...filteredConfirmationAlerts].filter((a) =>
-        KEYBOARD_ALERTS.includes(a.key as AlertKeys),
-      ),
+    () => [...pendingTokenAlerts, ...filteredConfirmationAlerts],
     [filteredConfirmationAlerts, pendingTokenAlerts],
   );
 
@@ -56,16 +45,11 @@ export function useTransactionCustomAmountAlerts({
     (!ON_CHANGE_ALERTS.includes(firstAlert?.key as AlertKeys) ||
       isInputChanged);
 
-  const keyboardAlertMessage = hasAlert
-    ? (firstAlert?.title ?? (firstAlert?.message as string | undefined))
-    : undefined;
-
-  const alertMessage =
-    hasAlert && firstAlert?.title ? (firstAlert?.message as string) : undefined;
+  const alertTitle = hasAlert ? (firstAlert?.title ?? 'Error') : undefined;
+  const alertMessage = hasAlert ? (firstAlert?.message as string) : undefined;
 
   return {
     alertMessage,
-    excludeBannerKeys: KEYBOARD_ALERTS,
-    keyboardAlertMessage,
+    alertTitle,
   };
 }
