@@ -118,7 +118,14 @@ pipelines:
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
   pr_rc_rwy_pipeline:
     workflows:
-      bump_version_code: {}
+      set_main_target_workflow: {}
+      pr_check_build_cache:
+        depends_on:
+        - set_main_target_workflow
+        abort_on_fail: true
+      bump_version_code:
+        depends_on:
+        - pr_check_build_cache
       build_ios_rc_and_upload_sourcemaps:
         depends_on:
         - bump_version_code
@@ -3615,8 +3622,9 @@ meta:
     stack: osx-xcode-16.3.x
     machine_type_id: g2.mac.4large
 trigger_map:
-  - push_branch: release/7.59.0
-    pipeline: pr_rc_rwy_pipeline
+  # Disable auto RC generation 
+  # - push_branch: release/*
+  #   pipeline: pr_rc_rwy_pipeline
   - push_branch: main
     pipeline: expo_dev_pipeline
   - tag: 'qa-*'
