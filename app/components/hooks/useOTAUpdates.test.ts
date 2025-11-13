@@ -254,12 +254,13 @@ describe('useOTAUpdates', () => {
 
   it('starts with isCheckingUpdates as true', () => {
     mockUseSelector.mockReturnValue(true);
+
     const { result } = renderHook(() => useOTAUpdates());
 
     expect(result.current.isCheckingUpdates).toBe(true);
   });
 
-  it('handles update check workflow correctly in sequence', async () => {
+  it('calls update check, fetch, and reload in order', async () => {
     mockUseSelector.mockReturnValue(true);
     mockCheckForUpdateAsync.mockResolvedValue({
       isAvailable: true,

@@ -20,13 +20,11 @@ export const useOTAUpdates = () => {
 
   useEffect(() => {
     const checkForUpdates = async () => {
-      // Skip if feature flag is disabled
       if (!otaUpdatesEnabled) {
         setIsCheckingUpdates(false);
         return;
       }
 
-      // Skip in development mode
       if (__DEV__) {
         setIsCheckingUpdates(false);
         return;
