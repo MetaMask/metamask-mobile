@@ -1588,9 +1588,7 @@ export class PredictController extends BaseController<
         error: errorMessage,
         errorDetails: error instanceof Error ? error.stack : undefined,
         timestamp: new Date().toISOString(),
-        params: {
-          providerId,
-        },
+        providerId,
       });
 
       // Update error state for Sentry integration
