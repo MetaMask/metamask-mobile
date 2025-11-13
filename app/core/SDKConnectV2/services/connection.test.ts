@@ -332,7 +332,7 @@ describe('Connection', () => {
       );
     });
 
-    it('should show error toast when bridge response includes an error', async () => {
+    it('shows error toast when bridge response includes an error', async () => {
       await Connection.create(
         mockConnectionInfo,
         mockKeyManager,
@@ -368,7 +368,7 @@ describe('Connection', () => {
       );
     });
 
-    it('should show success toast for successful response with result', async () => {
+    it('shows success toast for successful response with result', async () => {
       await Connection.create(
         mockConnectionInfo,
         mockKeyManager,
