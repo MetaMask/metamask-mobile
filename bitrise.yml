@@ -3573,13 +3573,13 @@ app:
       VERSION_NAME: 7.59.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 3028
+      VERSION_NUMBER: 3029
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.59.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 3028
+      FLASK_VERSION_NUMBER: 3029
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
