@@ -918,10 +918,7 @@ const MainNavigator = () => {
   // Get feature flag state for conditional Perps screen registration
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-  const isPerpsEnabled = useMemo(
-    () => perpsEnabledFlag && isEvmSelected,
-    [perpsEnabledFlag, isEvmSelected],
-  );
+  const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
   // Get feature flag state for conditional Predict screen registration
   const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
   const isPredictEnabled = useMemo(
