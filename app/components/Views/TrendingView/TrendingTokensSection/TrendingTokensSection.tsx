@@ -1,33 +1,17 @@
 import React, { useCallback, useMemo } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { TrendingAsset } from '@metamask/assets-controllers';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { Theme } from '../../../../util/theme/models';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
 import TrendingTokensSkeleton from './TrendingTokenSkeleton/TrendingTokensSkeleton';
 import TrendingTokensList from './TrendingTokensList';
 import Card from '../../../../component-library/components/Cards/Card';
 import { useTrendingRequest } from '../../../UI/Assets/hooks/useTrendingRequest';
+import SectionHeader from '../SectionHeader';
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
-    header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingHorizontal: 4,
-      marginBottom: 8,
-    },
-    contentContainer: {
-      marginHorizontal: 16,
-      borderRadius: 16,
-      paddingTop: 12,
-      backgroundColor: theme.colors.background.muted,
-    },
     cardContainer: {
       borderRadius: 12,
       paddingVertical: 16,
@@ -54,28 +38,15 @@ const TrendingTokensSection = () => {
     // TODO: Implement token press logic
   }, []);
 
-  // Header component
-  const SectionHeader = useCallback(
-    () => (
-      <View style={styles.header}>
-        <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-          {strings('trending.tokens')}
-        </Text>
-        <TouchableOpacity onPress={handleViewAll}>
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Primary}>
-            {strings('trending.view_all')}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    ),
-    [styles.header, handleViewAll],
-  );
-
   // Show skeleton during initial load or when there are no tokens
   if (isLoading || trendingTokens.length === 0) {
     return (
       <View>
-        <SectionHeader />
+        <SectionHeader
+          title={strings('trending.tokens')}
+          viewAllText={strings('trending.view_all')}
+          onViewAll={handleViewAll}
+        />
         <Card style={styles.cardContainer} disabled>
           <TrendingTokensSkeleton count={3} />
         </Card>
@@ -85,7 +56,11 @@ const TrendingTokensSection = () => {
 
   return (
     <View>
-      <SectionHeader />
+      <SectionHeader
+        title={strings('trending.tokens')}
+        viewAllText={strings('trending.view_all')}
+        onViewAll={handleViewAll}
+      />
       <Card style={styles.cardContainer} disabled>
         <TrendingTokensList
           trendingTokens={trendingTokens}
