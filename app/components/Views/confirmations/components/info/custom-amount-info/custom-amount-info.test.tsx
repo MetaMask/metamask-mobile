@@ -23,6 +23,7 @@ import { Hex } from '@metamask/utils';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
 import { RampMode } from '../../../../../UI/Ramp/hooks/useRampNavigation';
 import { RampType } from '../../../../../UI/Ramp/Aggregator/types';
+import { fireEvent } from '@testing-library/react-native';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/pay/useAutomaticTransactionPayToken');
