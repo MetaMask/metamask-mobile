@@ -55,12 +55,32 @@ const useEarnInputHandlers = ({
     exchangeRate,
   });
 
-  const {
-    estimatedEarnGasFeeWei: estimatedGasFeeWei,
-    isLoadingEarnGasFee,
-    getEstimatedEarnGasFee,
-    isEarnGasFeeError,
-  } = useEarnDepositGasFee(amountTokenMinimalUnit, earnToken.experience);
+  const earnGasFee = useEarnDepositGasFee(
+    amountTokenMinimalUnit,
+    earnToken.experience,
+  );
+  const isNativeETH = earnToken.isETH;
+  const estimatedGasFeeWei = useMemo(
+    () => (isNativeETH ? earnGasFee.estimatedEarnGasFeeWei : new BN4(0)),
+    [isNativeETH, earnGasFee.estimatedEarnGasFeeWei],
+  );
+  const isLoadingEarnGasFee = useMemo(
+    () => (isNativeETH ? earnGasFee.isLoadingEarnGasFee : false),
+    [isNativeETH, earnGasFee.isLoadingEarnGasFee],
+  );
+  const getEstimatedEarnGasFee = useCallback(
+    async (amountMinimalUnitParam: BN4) => {
+      if (isNativeETH) {
+        return earnGasFee.getEstimatedEarnGasFee(amountMinimalUnitParam);
+      }
+      return new BN4(0);
+    },
+    [isNativeETH, earnGasFee],
+  );
+  const isEarnGasFeeError = useMemo(
+    () => (isNativeETH ? earnGasFee.isEarnGasFeeError : false),
+    [isNativeETH, earnGasFee.isEarnGasFeeError],
+  );
 
   // max amount of native currency stakable after gas fee
   const maxStakeableAmountWei = useMemo(
