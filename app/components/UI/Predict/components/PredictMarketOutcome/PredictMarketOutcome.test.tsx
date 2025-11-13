@@ -114,7 +114,7 @@ describe('PredictMarketOutcome', () => {
     );
 
     expect(getByText('Crypto Markets')).toBeOnTheScreen();
-    expect(getByText('+65%')).toBeOnTheScreen();
+    expect(getByText('65%')).toBeOnTheScreen();
     expect(getByText(/\$1M.*Vol\./)).toBeOnTheScreen();
   });
 
@@ -374,7 +374,7 @@ describe('PredictMarketOutcome', () => {
 
     // The component now shows the groupItemTitle directly, even if it's undefined
     // We can verify the component renders without errors by checking other elements
-    expect(getByText('+65%')).toBeOnTheScreen();
+    expect(getByText('65%')).toBeOnTheScreen();
     expect(getByText(/\$1M.*Vol\./)).toBeOnTheScreen();
   });
 
