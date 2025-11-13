@@ -8,7 +8,7 @@ import TrendingTokensSkeleton from './TrendingTokenSkeleton/TrendingTokensSkelet
 import TrendingTokensList from './TrendingTokensList';
 import Card from '../../../../component-library/components/Cards/Card';
 import { useTrendingRequest } from '../../../UI/Assets/hooks/useTrendingRequest';
-import SectionHeader from '../SectionHeader';
+import SectionHeader from '../components/SectionHeader/SectionHeader';
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({

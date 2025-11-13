@@ -20,7 +20,7 @@ import { PredictEventValues } from '../../../UI/Predict/constants/eventNames';
 import PredictMarketSkeleton from '../../../UI/Predict/components/PredictMarketSkeleton';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './PredictionSection.styles';
-import SectionHeader from '../SectionHeader';
+import SectionHeader from '../components/SectionHeader/SectionHeader';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32; // 16px padding on each side

@@ -9,7 +9,7 @@ import {
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '../../../../../component-library/components/Texts/Text';
 
 interface SectionHeaderProps {
   title: string;
