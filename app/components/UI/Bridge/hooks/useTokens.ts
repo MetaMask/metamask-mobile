@@ -80,16 +80,14 @@ export function useTokens({
   // Combine and filter tokens in a single pass
   const tokensWithoutBalance = useMemo(
     () =>
-      (topTokens ?? [])
-        .concat(remainingTokens ?? [])
-        .filter((token) => {
-          if (!isTradableToken(token)) {
-            return false;
-          }
+      (topTokens ?? []).concat(remainingTokens ?? []).filter((token) => {
+        if (!isTradableToken(token)) {
+          return false;
+        }
 
-          const tokenKey = getTokenKey(token);
-          return !tokensWithBalanceSet.has(tokenKey);
-        }),
+        const tokenKey = getTokenKey(token);
+        return !tokensWithBalanceSet.has(tokenKey);
+      }),
     [topTokens, remainingTokens, getTokenKey, tokensWithBalanceSet],
   );
 
