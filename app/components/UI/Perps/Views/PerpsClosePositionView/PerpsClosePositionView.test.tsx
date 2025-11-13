@@ -45,7 +45,6 @@ jest.mock('../../hooks', () => ({
   usePerpsOrderFees: jest.fn(),
   usePerpsClosePositionValidation: jest.fn(),
   usePerpsClosePosition: jest.fn(),
-  usePerpsMarketData: jest.fn(),
   usePerpsToasts: jest.fn(),
   usePerpsRewards: jest.fn(),
 }));
@@ -144,9 +143,6 @@ describe('PerpsClosePositionView', () => {
   const useMinimumOrderAmountMock = jest.mocked(
     jest.requireMock('../../hooks').useMinimumOrderAmount,
   );
-  const usePerpsMarketDataMock = jest.mocked(
-    jest.requireMock('../../hooks').usePerpsMarketData,
-  );
   const usePerpsToastsMock = jest.mocked(
     jest.requireMock('../../hooks').usePerpsToasts,
   );
@@ -199,11 +195,6 @@ describe('PerpsClosePositionView', () => {
     );
     // usePerpsScreenTracking mock removed - migrated to usePerpsMeasurement
     useMinimumOrderAmountMock.mockReturnValue(defaultMinimumOrderAmountMock);
-    usePerpsMarketDataMock.mockReturnValue({
-      marketData: { szDecimals: 4 },
-      isLoading: false,
-      error: null,
-    });
 
     // Setup usePerpsToasts mock
     usePerpsToastsMock.mockReturnValue(defaultPerpsToastsMock);
@@ -1639,14 +1630,8 @@ describe('PerpsClosePositionView', () => {
       ).toBeDefined();
     });
 
-    it('uses market-specific decimals for token precision', () => {
-      // Arrange - Set custom market decimals for dynamic keypad configuration
-      usePerpsMarketDataMock.mockReturnValue({
-        marketData: { szDecimals: 6 },
-        isLoading: false,
-        error: null,
-      });
-
+    it('renders close position view with token precision', () => {
+      // Arrange
       // Act
       const { queryByTestId } = renderWithProvider(
         <PerpsClosePositionView />,
@@ -1656,7 +1641,7 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - Component should render successfully with market data
+      // Assert - Component renders successfully
       expect(
         queryByTestId(
           PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
@@ -1664,14 +1649,8 @@ describe('PerpsClosePositionView', () => {
       ).toBeDefined();
     });
 
-    it('handles missing market data gracefully with fallback', () => {
-      // Arrange - Market data unavailable (fallback to 18 decimals)
-      usePerpsMarketDataMock.mockReturnValue({
-        marketData: null,
-        isLoading: true,
-        error: null,
-      });
-
+    it('renders close position view when data is unavailable', () => {
+      // Arrange
       // Act
       const { queryByTestId } = renderWithProvider(
         <PerpsClosePositionView />,
@@ -1681,7 +1660,7 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - Component should render with fallback decimal precision
+      // Assert - Component renders with fallback
       expect(
         queryByTestId(
           PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
