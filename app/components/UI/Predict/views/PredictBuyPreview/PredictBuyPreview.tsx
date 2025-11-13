@@ -47,7 +47,7 @@ import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import {
-  PredictEventType,
+  PredictTradeStatus,
   PredictEventValues,
 } from '../../constants/eventNames';
 import { formatCents, formatPrice } from '../../utils/format';
@@ -163,12 +163,12 @@ const PredictBuyPreview = () => {
 
   const errorMessage = previewError ?? placeOrderError;
 
-  // Track Predict Action Initiated when screen mounts
+  // Track Predict Trade Transaction with initiated status when screen mounts
   useEffect(() => {
     const controller = Engine.context.PredictController;
 
     controller.trackPredictOrderEvent({
-      eventType: PredictEventType.INITIATED,
+      status: PredictTradeStatus.INITIATED,
       analyticsProperties,
       providerId: outcome.providerId,
       sharePrice: outcomeToken?.price,
