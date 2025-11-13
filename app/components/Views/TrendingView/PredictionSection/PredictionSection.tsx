@@ -4,7 +4,7 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   Dimensions,
   NativeScrollEvent,
@@ -46,7 +46,7 @@ const PredictionSection = () => {
     pageSize: 6,
   });
 
-  const carouselData = useMemo(() => marketData ?? [], [marketData]);
+  const marketDataLength = marketData?.length ?? 0;
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -73,7 +73,7 @@ const PredictionSection = () => {
 
   const renderCarouselItem = useCallback(
     ({ item, index }: { item: PredictMarketType; index: number }) => {
-      const isLast = index === carouselData.length - 1;
+      const isLast = index === marketDataLength - 1;
 
       return (
         <Box
@@ -88,7 +88,7 @@ const PredictionSection = () => {
         </Box>
       );
     },
-    [styles, carouselData.length],
+    [styles, marketDataLength],
   );
 
   const renderPaginationDots = useCallback(
@@ -99,7 +99,7 @@ const PredictionSection = () => {
         justifyContent={BoxJustifyContent.Center}
         style={styles.paginationContainer}
       >
-        {carouselData.map((_, index) => {
+        {Array.from({ length: marketDataLength }).map((_, index) => {
           const isActive = activeIndex === index;
           return (
             <Pressable
@@ -113,7 +113,7 @@ const PredictionSection = () => {
         })}
       </Box>
     ),
-    [carouselData, activeIndex, scrollToIndex, styles],
+    [marketDataLength, activeIndex, scrollToIndex, styles],
   );
 
   // Show loading state while fetching
@@ -146,12 +146,24 @@ const PredictionSection = () => {
             contentContainerStyle={styles.carouselContentContainer}
           />
         </Box>
+        <Box twClassName="px-1">
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Center}
+            style={styles.paginationContainer}
+          >
+            {[0, 1, 2].map((index) => (
+              <Box key={`skeleton-dot-${index}`} style={styles.dot} />
+            ))}
+          </Box>
+        </Box>
       </Box>
     );
   }
 
   // Show empty state when no data
-  if (carouselData.length === 0) {
+  if (marketDataLength === 0) {
     return null; // Don't show the section if there are no predictions
   }
 
@@ -166,7 +178,7 @@ const PredictionSection = () => {
       <Box>
         <FlashList
           ref={flashListRef}
-          data={carouselData}
+          data={marketData ?? []}
           renderItem={renderCarouselItem}
           keyExtractor={(item) => item.id}
           horizontal
