@@ -9,6 +9,7 @@ import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../constants/musd';
 import { MMM_ORIGIN } from '../../../Views/confirmations/constants/confirmations';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
+import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 
 /**
  * Type guard to validate allowedTokenAddresses structure.
@@ -139,6 +140,7 @@ export const useEvmTokenConversion = () => {
         navigation.navigate(navigationStack, {
           screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
           params: {
+            loader: ConfirmationLoader.CustomAmount,
             preferredPaymentToken,
             outputToken: {
               address: outputToken.address,
