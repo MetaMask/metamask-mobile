@@ -6,7 +6,10 @@ import FeatureFlagOverride from './FeatureFlagOverride';
 import { useFeatureFlagOverride } from '../../../contexts/FeatureFlagOverrideContext';
 import { useFeatureFlagStats } from '../../../hooks/useFeatureFlagStats';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import { FeatureFlagInfo , isMinimumRequiredVersionSupported } from '../../../util/feature-flags';
+import {
+  FeatureFlagInfo,
+  isMinimumRequiredVersionSupported,
+} from '../../../util/feature-flags';
 import { FeatureFlagNames } from '../../hooks/useFeatureFlag';
 
 // Mock all dependencies
@@ -142,9 +145,7 @@ describe('FeatureFlagOverride', () => {
     });
 
     // Default mock for version support
-    (
-      isMinimumRequiredVersionSupported as jest.Mock
-    ).mockReturnValue(true);
+    (isMinimumRequiredVersionSupported as jest.Mock).mockReturnValue(true);
   });
 
   describe('Component Rendering', () => {
@@ -599,9 +600,7 @@ describe('FeatureFlagOverride', () => {
 
   describe('Boolean with MinimumVersion Flag', () => {
     it('disables switch when version is not supported and flag is not in FeatureFlagNames', () => {
-      (
-        isMinimumRequiredVersionSupported as jest.Mock
-      ).mockReturnValue(false);
+      (isMinimumRequiredVersionSupported as jest.Mock).mockReturnValue(false);
 
       const versionFlag = createMockFeatureFlag(
         'unsupportedVersionFlag',
@@ -629,9 +628,7 @@ describe('FeatureFlagOverride', () => {
     });
 
     it('enables switch when version is supported even if flag is not in FeatureFlagNames', () => {
-      (
-        isMinimumRequiredVersionSupported as jest.Mock
-      ).mockReturnValue(true);
+      (isMinimumRequiredVersionSupported as jest.Mock).mockReturnValue(true);
 
       const versionFlag = createMockFeatureFlag(
         'supportedVersionFlag',
@@ -659,9 +656,7 @@ describe('FeatureFlagOverride', () => {
     });
 
     it('enables switch when flag is in FeatureFlagNames even if version is not supported', () => {
-      (
-        isMinimumRequiredVersionSupported as jest.Mock
-      ).mockReturnValue(false);
+      (isMinimumRequiredVersionSupported as jest.Mock).mockReturnValue(false);
 
       const versionFlag = createMockFeatureFlag(
         FeatureFlagNames.rewardsEnabled,
@@ -721,9 +716,7 @@ describe('FeatureFlagOverride', () => {
     });
 
     it('displays version support indicator correctly when version is supported', () => {
-      (
-        isMinimumRequiredVersionSupported as jest.Mock
-      ).mockReturnValue(true);
+      (isMinimumRequiredVersionSupported as jest.Mock).mockReturnValue(true);
 
       const versionFlag = createMockFeatureFlag(
         'versionFlag',
@@ -747,9 +740,7 @@ describe('FeatureFlagOverride', () => {
     });
 
     it('displays version support indicator correctly when version is not supported', () => {
-      (
-        isMinimumRequiredVersionSupported as jest.Mock
-      ).mockReturnValue(false);
+      (isMinimumRequiredVersionSupported as jest.Mock).mockReturnValue(false);
 
       const versionFlag = createMockFeatureFlag(
         'versionFlag',
