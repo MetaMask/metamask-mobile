@@ -11,7 +11,7 @@ import {
   PredictMarket,
   PredictMarketStatus,
 } from '../../types';
-import { formatPercentage, formatPrice } from '../../utils/format';
+import { formatCents, formatPercentage, formatPrice } from '../../utils/format';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -136,8 +136,8 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
             variant={TextVariant.BodySMMedium}
             color={TextColor.Alternative}
           >
-            ${initialValue.toFixed(2)} on {outcome} •{' '}
-            {(avgPrice * 100).toFixed(0)}¢
+            {formatPrice(initialValue, { maximumDecimals: 2 })} on {outcome} •{' '}
+            {formatCents(avgPrice)}
           </Text>
         </Box>
         <Box twClassName="items-end justify-end ml-auto shrink-0">
