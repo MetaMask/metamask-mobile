@@ -28,6 +28,12 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
   SwitchChainModal.device = device;
   AccountListComponent.device = device;
 
+  await device.webDriverClient.updateSettings({
+    waitForIdleTimeout: 100,
+    waitForSelectorTimeout: 0,
+    shouldWaitForQuiescence: false,
+  });
+
   await AppwrightHelpers.switchToNativeContext(device);
 
   await AppwrightHelpers.withNativeAction(device, async () => {
