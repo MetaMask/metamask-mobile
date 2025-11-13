@@ -11,20 +11,22 @@ import BottomSheetHeader from '../../../../../component-library/components/Botto
 import { strings } from '../../../../../../locales/i18n';
 import styleSheet from './UnsupportedTokenModal.styles';
 import { useStyles } from '../../../../hooks/useStyles';
+import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
+import Routes from '../../../../../constants/navigation/Routes';
 
-interface UnsupportedTokenModalProps {
-  onClose: () => void;
-}
+export const createUnsupportedTokenModalNavigationDetails =
+  createNavigationDetails(
+    Routes.RAMP.MODALS.ID,
+    Routes.RAMP.MODALS.UNSUPPORTED_TOKEN,
+  );
 
-const UnsupportedTokenModal: React.FC<UnsupportedTokenModalProps> = ({
-  onClose,
-}) => {
+function UnsupportedTokenModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <BottomSheet ref={sheetRef} onClose={onClose} shouldNavigateBack={false}>
-      <BottomSheetHeader onClose={onClose}>
+    <BottomSheet ref={sheetRef} shouldNavigateBack>
+      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <Text variant={TextVariant.HeadingMD}>
           {strings('deposit.token_modal.unsupported_token_title')}
         </Text>
@@ -37,6 +39,6 @@ const UnsupportedTokenModal: React.FC<UnsupportedTokenModalProps> = ({
       </View>
     </BottomSheet>
   );
-};
+}
 
 export default UnsupportedTokenModal;

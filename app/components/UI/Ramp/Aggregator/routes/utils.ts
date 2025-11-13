@@ -24,12 +24,12 @@ export function createBuyNavigationDetails(intent?: RampIntent) {
   // https://consensyssoftware.atlassian.net/browse/TRAM-2813
   // const isRampsUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   // if (isRampsUnifiedV1Enabled) {
-  //   return [
-  //     Routes.RAMP.TOKEN_SELECTION,
-  //     {
-  //       rampType: 'BUY',
-  //     },
-  //   ];
+  return [
+    Routes.RAMP.TOKEN_SELECTION,
+    {
+      rampType: 'BUY',
+    },
+  ];
   // }
   return createRampNavigationDetails(RampType.BUY, intent);
 }

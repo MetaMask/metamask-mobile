@@ -13,7 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 
 import TokenNetworkFilterBar from '../TokenNetworkFilterBar';
 import TokenListItem from '../TokenListItem';
-import UnsupportedTokenModal from '../UnsupportedTokenModal';
+import { createUnsupportedTokenModalNavigationDetails } from '../UnsupportedTokenModal/UnsupportedTokenModal';
 
 import Text, {
   TextVariant,
@@ -51,8 +51,6 @@ function TokenSelection() {
   const [networkFilter, setNetworkFilter] = useState<CaipChainId[] | null>(
     null,
   );
-  const [isUnsupportedModalVisible, setIsUnsupportedModalVisible] =
-    useState(false);
   const { styles } = useStyles(styleSheet, {});
 
   const { colors } = useTheme();
@@ -96,12 +94,8 @@ function TokenSelection() {
   }, [handleSearchTextChange]);
 
   const handleUnsupportedInfoPress = useCallback(() => {
-    setIsUnsupportedModalVisible(true);
-  }, []);
-
-  const handleCloseUnsupportedModal = useCallback(() => {
-    setIsUnsupportedModalVisible(false);
-  }, []);
+    navigation.navigate(...createUnsupportedTokenModalNavigationDetails());
+  }, [navigation]);
 
   const renderToken = useCallback(
     ({ item: token }: { item: MockDepositCryptoCurrency }) => (
@@ -199,9 +193,6 @@ function TokenSelection() {
         keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="always"
       />
-      {isUnsupportedModalVisible && (
-        <UnsupportedTokenModal onClose={handleCloseUnsupportedModal} />
-      )}
     </SafeAreaView>
   );
 }
