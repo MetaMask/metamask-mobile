@@ -1,3 +1,6 @@
+import { View } from 'react-native';
+import { Image } from 'expo-image';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NotificationMenuItem } from '../../../../util/notifications/notification-states/types/NotificationMenuItem';
 import React, {
   type FC,
@@ -11,10 +14,7 @@ import Badge, {
   BadgeVariant,
 } from '../../../../component-library/components/Badges/Badge';
 import { BOTTOM_BADGEWRAPPER_BADGEPOSITION } from '../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
-import { Image } from 'expo-image';
-
 import METAMASK_FOX from '../../../../images/branding/fox.png';
-import { View } from 'react-native';
 
 type NotificationIconProps = Pick<
   NotificationMenuItem,
@@ -22,6 +22,7 @@ type NotificationIconProps = Pick<
 > & { isRead: boolean };
 
 function MenuIcon(props: NotificationIconProps) {
+  const tw = useTailwind();
   const { styles } = useStyles();
 
   const menuIconStyles = {
@@ -39,19 +40,15 @@ function MenuIcon(props: NotificationIconProps) {
     return props.image.url;
   }, [props.image?.url]);
 
-  const imageStyles = useMemo(() => {
-    const size = source === METAMASK_FOX ? '80%' : '100%';
-    return { width: size, height: size, margin: 'auto' } as const;
-  }, [source]);
-
   return (
-    <View style={menuIconStyles.style}>
-      <Image source={source} style={imageStyles} />
+    <View style={[menuIconStyles.style, tw`p-1`]}>
+      <Image source={source} style={tw`m-auto size-full`} />
     </View>
   );
 }
 
 function NotificationIcon(props: NotificationIconProps) {
+  const tw = useTailwind();
   const { styles } = useStyles();
 
   const MaybeBadgeContainer: FC<PropsWithChildren> = useCallback(
@@ -81,8 +78,13 @@ function NotificationIcon(props: NotificationIconProps) {
         <MaybeBadgeContainer>
           <MenuIcon {...props} />
         </MaybeBadgeContainer>
+        <View
+          style={
+            !props.isRead &&
+            tw`absolute -left-1 top-1/2 size-1 rounded-full bg-info-default`
+          }
+        />
       </View>
-      <View style={props.isRead ? styles.readDot : styles.unreadDot} />
     </React.Fragment>
   );
 }
