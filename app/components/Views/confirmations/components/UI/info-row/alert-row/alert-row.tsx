@@ -46,12 +46,10 @@ const AlertRow = ({
     <InlineAlert alertObj={alertSelected} />
   ) : null;
 
+  const style = props.style ?? styles.infoRowOverride;
+
   return (
-    <InfoRow
-      {...alertRowProps}
-      style={styles.infoRowOverride}
-      labelChildren={inlineAlert}
-    />
+    <InfoRow {...alertRowProps} style={style} labelChildren={inlineAlert} />
   );
 };
 

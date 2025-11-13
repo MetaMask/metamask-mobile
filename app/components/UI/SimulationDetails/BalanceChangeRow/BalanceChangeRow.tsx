@@ -3,7 +3,6 @@ import React from 'react';
 import { View, ViewProps } from 'react-native';
 
 import Text, {
-  TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../hooks/useStyles';
@@ -14,6 +13,8 @@ import AmountPill from '../AmountPill/AmountPill';
 import AssetPill from '../AssetPill/AssetPill';
 import { IndividualFiatDisplay } from '../FiatDisplay/FiatDisplay';
 import styleSheet from './BalanceChangeRow.styles';
+import AlertRow from '../../../Views/confirmations/components/UI/info-row/alert-row';
+import { RowAlertKey } from '../../../Views/confirmations/components/UI/info-row/alert-row/constants';
 
 interface BalanceChangeRowProperties extends ViewProps {
   approveMethod?: ApproveMethod;
@@ -24,6 +25,7 @@ interface BalanceChangeRowProperties extends ViewProps {
     newSpendingCap: string,
   ) => Promise<void>;
   showFiat?: boolean;
+  hasIncomingTokens?: boolean;
 }
 
 const BalanceChangeRow: React.FC<BalanceChangeRowProperties> = ({
@@ -32,23 +34,41 @@ const BalanceChangeRow: React.FC<BalanceChangeRowProperties> = ({
   label,
   onApprovalAmountUpdate,
   showFiat,
+  hasIncomingTokens,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const { asset, amount, fiatAmount, isAllApproval, isUnlimitedApproval } =
     balanceChange;
   const isERC20 = balanceChange.asset.type === AssetType.ERC20;
   const shouldShowEditSpendingCapButton = isERC20 && onApprovalAmountUpdate;
+
+  const renderLabel = () => {
+    if (!label) {
+      return null;
+    }
+    if (hasIncomingTokens) {
+      return (
+        <AlertRow
+          alertField={RowAlertKey.IncomingTokens}
+          label={label}
+          // eslint-disable-next-line react-native/no-inline-styles
+          // style={{ marginLeft: 0, paddingLeft: 0 }}
+        />
+      );
+    }
+    return (
+      <Text
+        testID="balance-change-row-label"
+        variant={TextVariant.BodyMDMedium}
+      >
+        {label}
+      </Text>
+    );
+  };
+
   return (
     <View style={styles.container}>
-      {label && (
-        <Text
-          testID="balance-change-row-label"
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Alternative}
-        >
-          {label}
-        </Text>
-      )}
+      {renderLabel()}
       <View style={styles.pillContainer}>
         <View style={styles.pills}>
           {shouldShowEditSpendingCapButton ? (

@@ -8,6 +8,7 @@ import BalanceChangeRow from '../BalanceChangeRow/BalanceChangeRow';
 import { BalanceChange } from '../types';
 import { TotalFiatDisplay } from '../FiatDisplay/FiatDisplay';
 import styleSheet from './BalanceChangeList.styles';
+
 interface BalanceChangeListProperties extends ViewProps {
   heading: string;
   balanceChanges: BalanceChange[];
@@ -28,6 +29,12 @@ const BalanceChangeList: React.FC<BalanceChangeListProperties> = ({
     [sortedBalanceChanges],
   );
 
+  const hasIncomingTokens = useMemo(
+    () =>
+      balanceChanges.some((balanceChange) => balanceChange.amount.isPositive()),
+    [balanceChanges],
+  );
+
   if (sortedBalanceChanges.length === 0) {
     return null;
   }
@@ -45,6 +52,7 @@ const BalanceChangeList: React.FC<BalanceChangeListProperties> = ({
           label={index === 0 ? heading : undefined}
           balanceChange={balanceChange}
           showFiat={!showFiatTotal}
+          hasIncomingTokens={hasIncomingTokens}
         />
       ))}
       {showFiatTotal && (
