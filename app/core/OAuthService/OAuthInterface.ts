@@ -76,8 +76,8 @@ export interface AuthResponse {
   metadata_access_token: string;
   indexes: number[];
   endpoints: Record<string, string>;
-  refresh_token: string;
-  revoke_token: string;
+  refresh_token?: string;
+  revoke_token?: string;
 }
 
 // return type for auth request with

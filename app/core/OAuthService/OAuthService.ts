@@ -21,6 +21,10 @@ import {
 import { OAuthError, OAuthErrorType } from './error';
 import { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
 import { Platform } from 'react-native';
+import {
+  SeedlessOnboardingControllerError,
+  SeedlessOnboardingControllerErrorType,
+} from '../Engine/controllers/seedless-onboarding-controller/error';
 
 export interface MarketingOptInRequest {
   opt_in_status: boolean;
@@ -111,6 +115,23 @@ export class OAuthService {
           authConnection
         ];
 
+      const refreshToken = data.refresh_token;
+      const revokeToken = data.revoke_token;
+
+      if (!refreshToken) {
+        throw new SeedlessOnboardingControllerError(
+          SeedlessOnboardingControllerErrorType.AuthenticationError,
+          'No refresh token found',
+        );
+      }
+
+      if (!revokeToken) {
+        throw new SeedlessOnboardingControllerError(
+          SeedlessOnboardingControllerErrorType.AuthenticationError,
+          'No revoke token found',
+        );
+      }
+
       const result =
         await Engine.context.SeedlessOnboardingController.authenticate({
           idTokens: [data.id_token],
@@ -119,8 +140,8 @@ export class OAuthService {
           groupedAuthConnectionId: authConnectionConfig.groupedAuthConnectionId,
           userId,
           socialLoginEmail: accountName,
-          refreshToken: data.refresh_token,
-          revokeToken: data.revoke_token,
+          refreshToken,
+          revokeToken,
           accessToken: data.access_token,
           metadataAccessToken: data.metadata_access_token,
         });
