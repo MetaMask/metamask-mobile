@@ -323,7 +323,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     interval: selectedTimeframe,
     providerId,
     fidelity: selectedFidelity,
-    enabled: hasAnyOutcomeToken,
+    enabled: chartOutcomeTokenIds.length > 0,
   });
 
   const chartData: ChartSeries[] = useMemo(() => {
