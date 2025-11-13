@@ -90,7 +90,7 @@ describe('PerpsSection', () => {
 
     const skeletons = getAllByTestId('perps-skeleton');
     expect(skeletons).toHaveLength(3);
-    expect(queryByTestId('trending-tokens-list')).toBeNull();
+    expect(queryByTestId('perps-tokens-list')).toBeNull();
   });
 
   it('displays first 3 markets from hook data', () => {
@@ -106,7 +106,7 @@ describe('PerpsSection', () => {
       state: initialState,
     });
 
-    const list = getByTestId('trending-tokens-list');
+    const list = getByTestId('perps-tokens-list');
 
     expect(list.props.data).toHaveLength(3);
     expect(list.props.data[0].symbol).toBe('BTC');
@@ -150,7 +150,7 @@ describe('PerpsSection', () => {
       state: initialState,
     });
 
-    const list = getByTestId('trending-tokens-list');
+    const list = getByTestId('perps-tokens-list');
     const renderItem = list.props.renderItem;
     const renderedItem = renderItem({ item: mockMarkets[0], index: 0 });
 

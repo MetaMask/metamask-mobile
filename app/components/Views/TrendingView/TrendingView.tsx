@@ -30,6 +30,7 @@ import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
 import { PredictModalStack } from '../../UI/Predict/routes';
 import PredictionSection from './PredictionSection/PredictionSection';
 import PerpsSection from './PerpsSection/PerpsSection';
+import { PerpsScreenStack } from '../../UI/Perps';
 
 const Stack = createStackNavigator();
 
@@ -160,6 +161,14 @@ const TrendingView: React.FC = () => {
             cardStyle: {
               backgroundColor: 'transparent',
             },
+            animationEnabled: false,
+          }}
+        />
+
+        <Stack.Screen
+          name={Routes.PERPS.ROOT}
+          component={PerpsScreenStack}
+          options={{
             animationEnabled: false,
           }}
         />

@@ -59,7 +59,7 @@ const PerpsSection = () => {
             )}
             keyExtractor={(item) => item.symbol}
             keyboardShouldPersistTaps="handled"
-            testID="trending-tokens-list"
+            testID="perps-tokens-list"
           />
         )}
       </SectionCard>
