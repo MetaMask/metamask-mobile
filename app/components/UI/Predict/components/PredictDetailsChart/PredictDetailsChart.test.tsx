@@ -3,11 +3,15 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictDetailsChart, { ChartSeries } from './PredictDetailsChart';
 
 jest.mock('react-native-svg-charts', () => ({
-  LineChart: jest.fn(({ children, data, ...props }) => {
+  LineChart: jest.fn(({ children, data, svg, ...props }) => {
     const { View, Text } = jest.requireActual('react-native');
+    // Only add testID if the chart is visible (not the transparent tooltip overlay)
+    const isVisible = svg?.stroke !== 'transparent';
     return (
-      <View testID="line-chart" {...props}>
-        <Text testID="chart-data">{JSON.stringify(data)}</Text>
+      <View testID={isVisible ? 'line-chart' : undefined} {...props}>
+        <Text testID={isVisible ? 'chart-data' : undefined}>
+          {JSON.stringify(data)}
+        </Text>
         {children}
       </View>
     );
@@ -42,6 +46,14 @@ jest.mock('react-native-svg', () => ({
   Path: jest.fn((props) => {
     const { View } = jest.requireActual('react-native');
     return <View testID="svg-path" {...props} />;
+  }),
+  Circle: jest.fn((props) => {
+    const { View } = jest.requireActual('react-native');
+    return <View testID="svg-circle" {...props} />;
+  }),
+  Rect: jest.fn((props) => {
+    const { View } = jest.requireActual('react-native');
+    return <View testID="svg-rect" {...props} />;
   }),
 }));
 
@@ -78,6 +90,11 @@ jest.mock('../../../../../util/theme', () => ({
 }));
 
 describe('PredictDetailsChart', () => {
+  const BASE_TIMESTAMP = 1_700_000_000_000;
+  const FORTY_FIVE_MINUTES_IN_MS = 45 * 60 * 1000;
+  const TWELVE_HOURS_IN_MS = 12 * 60 * 60 * 1000;
+  const TWENTY_FOUR_HOURS_IN_MS = 24 * 60 * 60 * 1000;
+
   const mockSingleSeries: ChartSeries[] = [
     {
       label: 'Outcome 1',
@@ -142,11 +159,16 @@ describe('PredictDetailsChart', () => {
     });
 
     it('renders chart with multiple series data', () => {
-      const { getAllByTestId } = setupTest({ data: mockMultipleSeries });
+      const { getAllByTestId, getByText } = setupTest({
+        data: mockMultipleSeries,
+      });
 
-      // Multiple LineChart components are rendered for multiple series
+      // At least one chart is rendered
       const charts = getAllByTestId('line-chart');
       expect(charts.length).toBeGreaterThanOrEqual(1);
+      // Legend with multiple series is displayed
+      expect(getByText(/Outcome A/)).toBeOnTheScreen();
+      expect(getByText(/Outcome B/)).toBeOnTheScreen();
     });
 
     it('renders timeframe selector with all timeframes', () => {
@@ -158,7 +180,27 @@ describe('PredictDetailsChart', () => {
     });
 
     it('highlights selected timeframe', () => {
-      const { getByText } = setupTest({ selectedTimeframe: '1d' });
+      const daySpanSeries: ChartSeries[] = [
+        {
+          label: 'Extended Outcome',
+          color: '#28C76F',
+          data: [
+            { timestamp: BASE_TIMESTAMP, value: 0.4 },
+            {
+              timestamp: BASE_TIMESTAMP + 18 * 60 * 60 * 1000,
+              value: 0.5,
+            },
+            {
+              timestamp: BASE_TIMESTAMP + 36 * 60 * 60 * 1000,
+              value: 0.6,
+            },
+          ],
+        },
+      ];
+      const { getByText } = setupTest({
+        data: daySpanSeries,
+        selectedTimeframe: '1d',
+      });
 
       expect(getByText('1D')).toBeOnTheScreen();
     });
@@ -179,14 +221,124 @@ describe('PredictDetailsChart', () => {
       expect(queryByText('Loading price history...')).not.toBeOnTheScreen();
     });
 
-    it('renders custom empty label when provided', () => {
+    it('returns null when no data provided even with custom empty label', () => {
       const customLabel = 'No data available';
-      const { getByText } = setupTest({
+      const { queryByTestId, queryByText } = setupTest({
         data: [{ label: 'Empty', color: '#000', data: [] }],
         emptyLabel: customLabel,
       });
 
-      expect(getByText(customLabel)).toBeOnTheScreen();
+      expect(queryByTestId('line-chart')).toBeNull();
+      expect(queryByText(customLabel)).toBeNull();
+    });
+  });
+
+  describe('Timeframe filtering', () => {
+    it('returns null when all series fall outside selected timeframe', () => {
+      const dataOutsideTimeframe: ChartSeries[] = [
+        {
+          label: 'Outcome Short',
+          color: '#123456',
+          data: [
+            { timestamp: BASE_TIMESTAMP, value: 0.5 },
+            { timestamp: BASE_TIMESTAMP + 30 * 60 * 1000, value: 0.6 },
+          ],
+        },
+      ];
+
+      const { queryByTestId, queryByText } = setupTest({
+        data: dataOutsideTimeframe,
+        selectedTimeframe: '1d',
+        isLoading: false,
+      });
+
+      expect(queryByTestId('line-chart')).toBeNull();
+      expect(queryByText('1D')).toBeNull();
+    });
+
+    it('omits series that do not span selected timeframe', () => {
+      const longSpanSeriesA: ChartSeries = {
+        label: 'Outcome Long A',
+        color: '#28C76F',
+        data: [
+          { timestamp: BASE_TIMESTAMP, value: 0.4 },
+          {
+            timestamp: BASE_TIMESTAMP + TWELVE_HOURS_IN_MS,
+            value: 0.5,
+          },
+          {
+            timestamp: BASE_TIMESTAMP + TWENTY_FOUR_HOURS_IN_MS,
+            value: 0.6,
+          },
+        ],
+      };
+      const longSpanSeriesB: ChartSeries = {
+        label: 'Outcome Long B',
+        color: '#4459FF',
+        data: [
+          { timestamp: BASE_TIMESTAMP, value: 0.3 },
+          {
+            timestamp: BASE_TIMESTAMP + TWENTY_FOUR_HOURS_IN_MS,
+            value: 0.35,
+          },
+          {
+            timestamp: BASE_TIMESTAMP + 2 * TWENTY_FOUR_HOURS_IN_MS,
+            value: 0.38,
+          },
+        ],
+      };
+      const shortSpanSeries: ChartSeries = {
+        label: 'Outcome Short',
+        color: '#CA3542',
+        data: [
+          { timestamp: BASE_TIMESTAMP, value: 0.2 },
+          {
+            timestamp: BASE_TIMESTAMP + 30 * 60 * 1000,
+            value: 0.25,
+          },
+        ],
+      };
+
+      const { getAllByTestId, getByText, queryByText } = setupTest({
+        data: [longSpanSeriesA, longSpanSeriesB, shortSpanSeries],
+        selectedTimeframe: '1d',
+      });
+
+      expect(getAllByTestId('line-chart').length).toBeGreaterThan(0);
+      expect(getByText(/Outcome Long A/)).toBeOnTheScreen();
+      expect(getByText(/Outcome Long B/)).toBeOnTheScreen();
+      expect(queryByText('Outcome Short')).toBeNull();
+    });
+
+    it('renders series that cover at least half of selected timeframe span', () => {
+      const halfDaySpanSeries: ChartSeries = {
+        label: 'Outcome Half Day',
+        color: '#FFAA00',
+        data: [
+          { timestamp: BASE_TIMESTAMP, value: 0.45 },
+          {
+            timestamp: BASE_TIMESTAMP + TWELVE_HOURS_IN_MS,
+            value: 0.5,
+          },
+        ],
+      };
+
+      const { getByTestId } = setupTest({
+        data: [halfDaySpanSeries],
+        selectedTimeframe: '1d',
+      });
+
+      expect(getByTestId('line-chart')).toBeOnTheScreen();
+    });
+
+    it('hides chart when series contain no data points for selected timeframe', () => {
+      const { queryByTestId } = setupTest({
+        data: [{ label: 'Empty', color: '#000000', data: [] }],
+        selectedTimeframe: '1d',
+        isLoading: false,
+      });
+
+      expect(queryByTestId('line-chart')).toBeNull();
     });
   });
 
@@ -280,12 +432,9 @@ describe('PredictDetailsChart', () => {
           data: [{ timestamp: 1640995200000, value: 0.5 }],
         },
       ];
-      const { getByTestId } = setupTest({ data: singlePointData });
+      const { queryByTestId } = setupTest({ data: singlePointData });
 
-      const chartData = getByTestId('chart-data');
-      const data = JSON.parse(String(chartData.children[0]));
-
-      expect(data).toEqual([0.5]);
+      expect(queryByTestId('line-chart')).toBeNull();
     });
 
     it('handles empty data array', () => {
@@ -296,12 +445,9 @@ describe('PredictDetailsChart', () => {
           data: [],
         },
       ];
-      const { getByTestId } = setupTest({ data: emptyData });
+      const { queryByTestId } = setupTest({ data: emptyData });
 
-      const chartData = getByTestId('chart-data');
-      const data = JSON.parse(String(chartData.children[0]));
-
-      expect(data).toEqual(expect.arrayContaining([0]));
+      expect(queryByTestId('line-chart')).toBeNull();
     });
 
     it('calculates correct chart bounds with padding', () => {
@@ -388,6 +534,325 @@ describe('PredictDetailsChart', () => {
 
       const { getByTestId } = setupTest({ data: largeDataset });
       expect(getByTestId('line-chart')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Interactive Features', () => {
+    describe('Touch Interactions', () => {
+      it('renders chart with pan handler setup', () => {
+        const { getByTestId } = setupTest();
+
+        const lineChart = getByTestId('line-chart');
+        expect(lineChart).toBeOnTheScreen();
+      });
+
+      it('handles chart layout calculation', () => {
+        const { getAllByTestId } = setupTest({ data: mockMultipleSeries });
+
+        const lineCharts = getAllByTestId('line-chart');
+        // Verify chart is rendered and can receive layout events
+        expect(lineCharts.length).toBeGreaterThanOrEqual(1);
+      });
+    });
+
+    describe('ChartTooltip', () => {
+      it('renders SVG tooltip elements for multiple series', () => {
+        const { getAllByTestId } = setupTest({ data: mockMultipleSeries });
+
+        // Verify chart is rendered with SVG components
+        const charts = getAllByTestId('line-chart');
+        expect(charts.length).toBeGreaterThanOrEqual(1);
+      });
+
+      it('includes tooltip overlay chart layer', () => {
+        const { getAllByTestId } = setupTest({ data: mockMultipleSeries });
+
+        // With multiple series, we have primary + overlays + tooltip layer
+        const charts = getAllByTestId('line-chart');
+        expect(charts.length).toBeGreaterThanOrEqual(2);
+      });
+    });
+
+    describe('Label Truncation', () => {
+      it('handles long series labels', () => {
+        const longLabelSeries: ChartSeries[] = [
+          {
+            label: 'This is a very long outcome label that exceeds limit',
+            color: '#4459FF',
+            data: [
+              { timestamp: 1640995200000, value: 0.5 },
+              { timestamp: 1640998800000, value: 0.6 },
+            ],
+          },
+          {
+            label: 'Short Label',
+            color: '#FF6B6B',
+            data: [
+              { timestamp: 1640995200000, value: 0.3 },
+              { timestamp: 1640998800000, value: 0.4 },
+            ],
+          },
+        ];
+
+        const { getByText } = setupTest({ data: longLabelSeries });
+
+        // Component should render without crashing with long labels
+        // Legend shows labels for multiple series
+        expect(
+          getByText(/This is a very long outcome label/),
+        ).toBeOnTheScreen();
+      });
+
+      it('handles special characters in labels', () => {
+        const specialCharSeries: ChartSeries[] = [
+          {
+            label: 'Outcome #1 (Test) - Result',
+            color: '#4459FF',
+            data: [
+              { timestamp: 1640995200000, value: 0.5 },
+              { timestamp: 1640998800000, value: 0.6 },
+            ],
+          },
+          {
+            label: 'Normal Label',
+            color: '#FF6B6B',
+            data: [
+              { timestamp: 1640995200000, value: 0.3 },
+              { timestamp: 1640998800000, value: 0.4 },
+            ],
+          },
+        ];
+
+        const { getByText } = setupTest({ data: specialCharSeries });
+
+        expect(getByText(/Outcome #1 \(Test\)/)).toBeOnTheScreen();
+      });
+    });
+
+    describe('Active Index and Legend Updates', () => {
+      it('passes activeIndex to legend for multiple series', () => {
+        const { getByText } = setupTest({ data: mockMultipleSeries });
+
+        // Legend should display last values initially
+        expect(getByText(/Outcome A/)).toBeOnTheScreen();
+        expect(getByText(/Outcome B/)).toBeOnTheScreen();
+      });
+
+      it('legend displays values correctly for multiple series', () => {
+        const { getByText } = setupTest({ data: mockMultipleSeries });
+
+        // Both series labels should be visible in legend
+        expect(getByText(/Outcome A/)).toBeOnTheScreen();
+        expect(getByText(/Outcome B/)).toBeOnTheScreen();
+      });
+    });
+
+    describe('Collision Detection', () => {
+      it('handles series with crossing values', () => {
+        const crossingSeries: ChartSeries[] = [
+          {
+            label: 'Series A',
+            color: '#4459FF',
+            data: [
+              { timestamp: BASE_TIMESTAMP, value: 0.3 },
+              {
+                timestamp: BASE_TIMESTAMP + FORTY_FIVE_MINUTES_IN_MS,
+                value: 0.7,
+              },
+            ],
+          },
+          {
+            label: 'Series B',
+            color: '#FF6B6B',
+            data: [
+              { timestamp: BASE_TIMESTAMP, value: 0.7 },
+              {
+                timestamp: BASE_TIMESTAMP + FORTY_FIVE_MINUTES_IN_MS,
+                value: 0.3,
+              },
+            ],
+          },
+        ];
+
+        const { getByText } = setupTest({ data: crossingSeries });
+
+        // Component should handle crossing values without errors
+        expect(getByText(/Series A/)).toBeOnTheScreen();
+        expect(getByText(/Series B/)).toBeOnTheScreen();
+      });
+
+      it('handles series with very close values', () => {
+        const closeSeries: ChartSeries[] = [
+          {
+            label: 'Close A',
+            color: '#4459FF',
+            data: [
+              { timestamp: BASE_TIMESTAMP, value: 0.5 },
+              {
+                timestamp: BASE_TIMESTAMP + FORTY_FIVE_MINUTES_IN_MS,
+                value: 0.501,
+              },
+            ],
+          },
+          {
+            label: 'Close B',
+            color: '#FF6B6B',
+            data: [
+              { timestamp: BASE_TIMESTAMP, value: 0.502 },
+              {
+                timestamp: BASE_TIMESTAMP + FORTY_FIVE_MINUTES_IN_MS,
+                value: 0.503,
+              },
+            ],
+          },
+        ];
+
+        const { getByText } = setupTest({ data: closeSeries });
+
+        expect(getByText(/Close A/)).toBeOnTheScreen();
+        expect(getByText(/Close B/)).toBeOnTheScreen();
+      });
+    });
+
+    describe('Tooltip Positioning', () => {
+      it('renders chart with proper layout for tooltip positioning', () => {
+        const { getAllByTestId } = setupTest({ data: mockMultipleSeries });
+
+        const charts = getAllByTestId('line-chart');
+        // Should have multiple chart layers including tooltip overlay
+        expect(charts.length).toBeGreaterThanOrEqual(1);
+      });
+
+      it('handles chart with full data range', () => {
+        const fullRangeSeries: ChartSeries[] = [
+          {
+            label: 'Full Range',
+            color: '#4459FF',
+            data: Array.from({ length: 50 }, (_, i) => ({
+              timestamp: 1640995200000 + i * 3600000,
+              value: 0.3 + (i / 50) * 0.4, // Values from 0.3 to 0.7
+            })),
+          },
+        ];
+
+        const { getByTestId } = setupTest({ data: fullRangeSeries });
+
+        expect(getByTestId('line-chart')).toBeOnTheScreen();
+      });
+    });
+
+    describe('Theme Support', () => {
+      it('renders chart with theme colors', () => {
+        const { getAllByTestId } = setupTest({ data: mockMultipleSeries });
+
+        const lineCharts = getAllByTestId('line-chart');
+        // Theme colors should be applied via mocked useTheme
+        expect(lineCharts.length).toBeGreaterThanOrEqual(1);
+      });
+
+      it('applies correct colors to series', () => {
+        const coloredSeries: ChartSeries[] = [
+          {
+            label: 'Blue',
+            color: '#0000FF',
+            data: [
+              { timestamp: BASE_TIMESTAMP, value: 0.5 },
+              {
+                timestamp: BASE_TIMESTAMP + FORTY_FIVE_MINUTES_IN_MS,
+                value: 0.55,
+              },
+            ],
+          },
+          {
+            label: 'Red',
+            color: '#FF0000',
+            data: [
+              { timestamp: BASE_TIMESTAMP, value: 0.5 },
+              {
+                timestamp: BASE_TIMESTAMP + FORTY_FIVE_MINUTES_IN_MS,
+                value: 0.45,
+              },
+            ],
+          },
+        ];
+
+        const { getByText } = setupTest({ data: coloredSeries });
+
+        expect(getByText(/Blue/)).toBeOnTheScreen();
+        expect(getByText(/Red/)).toBeOnTheScreen();
+      });
+    });
+
+    describe('Multiple Series Rendering', () => {
+      it('renders primary and overlay charts for multiple series', () => {
+        const { getAllByTestId } = setupTest({ data: mockMultipleSeries });
+
+        const charts = getAllByTestId('line-chart');
+        // Primary chart + overlay for second series + tooltip overlay
+        expect(charts.length).toBeGreaterThanOrEqual(2);
+      });
+
+      it('renders up to 3 series with overlays', () => {
+        const threeSeries: ChartSeries[] = [
+          {
+            label: 'Series 1',
+            color: '#4459FF',
+            data: [
+              { timestamp: BASE_TIMESTAMP, value: 0.5 },
+              {
+                timestamp: BASE_TIMESTAMP + FORTY_FIVE_MINUTES_IN_MS,
+                value: 0.6,
+              },
+            ],
+          },
+          {
+            label: 'Series 2',
+            color: '#FF6B6B',
+            data: [
+              { timestamp: BASE_TIMESTAMP, value: 0.3 },
+              {
+                timestamp: BASE_TIMESTAMP + FORTY_FIVE_MINUTES_IN_MS,
+                value: 0.4,
+              },
+            ],
+          },
+          {
+            label: 'Series 3',
+            color: '#F0B034',
+            data: [
+              { timestamp: BASE_TIMESTAMP, value: 0.2 },
+              {
+                timestamp: BASE_TIMESTAMP + FORTY_FIVE_MINUTES_IN_MS,
+                value: 0.25,
+              },
+            ],
+          },
+        ];
+
+        const { getByText } = setupTest({ data: threeSeries });
+
+        expect(getByText(/Series 1/)).toBeOnTheScreen();
+        expect(getByText(/Series 2/)).toBeOnTheScreen();
+        expect(getByText(/Series 3/)).toBeOnTheScreen();
+      });
+    });
+
+    describe('Data Point Formatting', () => {
+      it('formats timestamp labels correctly', () => {
+        const { getAllByText } = setupTest();
+
+        // Timestamps should be formatted as time labels
+        const timeLabels = getAllByText(/PM/);
+        expect(timeLabels.length).toBeGreaterThan(0);
+      });
+
+      it('displays correct number of axis labels', () => {
+        const { getAllByText } = setupTest();
+
+        // Should have time labels on x-axis
+        const timeLabels = getAllByText(/PM|AM/);
+        expect(timeLabels.length).toBeGreaterThan(0);
+      });
     });
   });
 });

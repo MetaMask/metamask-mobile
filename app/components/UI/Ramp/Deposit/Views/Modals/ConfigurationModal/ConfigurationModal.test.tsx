@@ -46,6 +46,9 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockClearAuthToken = jest.fn();
+const mockTrackEvent = jest.fn();
+
+jest.mock('../../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -96,6 +99,7 @@ describe('ConfigurationModal', () => {
     mockUseDepositSDK.mockReturnValue({
       logoutFromProvider: mockClearAuthToken,
       isAuthenticated: false,
+      selectedRegion: { isoCode: 'us' },
     });
   });
 
@@ -128,11 +132,23 @@ describe('ConfigurationModal', () => {
     expect(Linking.openURL).toHaveBeenCalledWith(TRANSAK_SUPPORT_URL);
   });
 
+  it('tracks event when more ways to buy is pressed', () => {
+    const { getByText } = renderWithProvider(ConfigurationModal);
+    const moreWaysToBuyButton = getByText('More ways to buy');
+    fireEvent.press(moreWaysToBuyButton);
+    expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_BUTTON_CLICKED', {
+      location: 'Deposit Settings Modal',
+      ramp_type: 'BUY',
+      region: 'us',
+    });
+  });
+
   describe('when user is authenticated', () => {
     beforeEach(() => {
       mockUseDepositSDK.mockReturnValue({
         logoutFromProvider: mockClearAuthToken,
         isAuthenticated: true,
+        selectedRegion: { isoCode: 'us' },
       });
     });
 

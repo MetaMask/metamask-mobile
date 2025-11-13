@@ -128,6 +128,7 @@ import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
 import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
 import AddNewAccountBottomSheet from '../../Views/AddNewAccount/AddNewAccountBottomSheet';
+import EligibilityFailedModal from '../../UI/Ramp/components/EligibilityFailedModal';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
 import { AccountDetails } from '../../Views/MultichainAccounts/AccountDetails/AccountDetails';
 import { AccountGroupDetails } from '../../Views/MultichainAccounts/AccountGroupDetails/AccountGroupDetails';
@@ -401,6 +402,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={SuccessErrorSheet}
     />
     <Stack.Screen
+      name={Routes.SHEET.ELIGIBILITY_FAILED_MODAL}
+      component={EligibilityFailedModal}
+    />
+    <Stack.Screen
       name={Routes.SHEET.ACCOUNT_SELECTOR}
       component={AccountSelector}
     />
@@ -611,6 +616,11 @@ const ImportSRPView = () => (
       component={SeedphraseModal}
       options={{
         cardStyle: { backgroundColor: 'transparent' },
+        cardStyleInterpolator: () => ({
+          overlayStyle: {
+            opacity: 0,
+          },
+        }),
       }}
     />
   </Stack.Navigator>

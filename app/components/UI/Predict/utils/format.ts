@@ -78,6 +78,53 @@ export const formatPrice = (
 };
 
 /**
+ * Calculates the net amount after deducting bridge and network fees from the total fiat amount
+ * @param params - Object containing fee and total amount information
+ * @param params.totalFiat - Total fiat amount as string
+ * @param params.bridgeFeeFiat - Bridge fee amount as string
+ * @param params.networkFeeFiat - Network fee amount as string
+ * @returns Net amount as string after deducting fees, or "0" if calculation fails
+ * @example
+ * calculateNetAmount({
+ *   totalFiat: "1.04361142938843253220839271649743403",
+ *   bridgeFeeFiat: "0.036399",
+ *   networkFeeFiat: "0.008024478270232503211154803918368"
+ * }) => "0.999187951118199"
+ */
+export const calculateNetAmount = (params: {
+  totalFiat?: string;
+  bridgeFeeFiat?: string;
+  networkFeeFiat?: string;
+}): string => {
+  const { totalFiat, bridgeFeeFiat, networkFeeFiat } = params;
+
+  // totalFiat is required - return "0" if missing or invalid
+  if (!totalFiat) {
+    return '0';
+  }
+
+  const total = parseFloat(totalFiat);
+  if (isNaN(total)) {
+    return '0';
+  }
+
+  // Treat missing fees as 0, but validate they are numbers if provided
+  const bridgeFee = bridgeFeeFiat ? parseFloat(bridgeFeeFiat) : 0;
+  const networkFee = networkFeeFiat ? parseFloat(networkFeeFiat) : 0;
+
+  // Return "0" if any provided fee is invalid
+  if (isNaN(bridgeFee) || isNaN(networkFee)) {
+    return '0';
+  }
+
+  // Calculate net amount: totalFiat - bridgeFee - networkFee
+  const netAmount = total - bridgeFee - networkFee;
+
+  // Ensure we don't return negative amounts
+  return netAmount > 0 ? netAmount.toString() : '0';
+};
+
+/**
  * Formats a volume value with appropriate suffix based on magnitude
  * @param volume - Raw numeric volume value
  * @returns Formatted string with suffix:
@@ -153,10 +200,19 @@ export const formatCents = (dollars: string | number): string => {
     return '0¢';
   }
 
-  // Convert dollars to cents (multiply by 100) and round to whole cents
-  const cents = Math.round(num * 100);
+  // Convert dollars to cents (multiply by 100)
+  const cents = num * 100;
 
-  return `${cents}¢`;
+  // Round to 1 decimal precision to check if decimals are needed
+  const roundedCents = Number(cents.toFixed(1));
+
+  // If it's a whole number, don't show decimals
+  if (roundedCents === Math.floor(roundedCents)) {
+    return `${Math.floor(roundedCents)}¢`;
+  }
+
+  // Otherwise, show decimals up to 1 decimal place
+  return `${cents.toFixed(1)}¢`;
 };
 
 /**
@@ -170,7 +226,10 @@ export const formatCents = (dollars: string | number): string => {
  * @example formatPositionSize(0.5678) => "0.5678"
  * @example formatPositionSize(123.456) => "123.46"
  */
-export const formatPositionSize = (size: string | number): string => {
+export const formatPositionSize = (
+  size: string | number,
+  options?: { minimumDecimals?: number; maximumDecimals?: number },
+): string => {
   const num = typeof size === 'string' ? parseFloat(size) : size;
 
   if (isNaN(num)) {
@@ -178,19 +237,22 @@ export const formatPositionSize = (size: string | number): string => {
   }
 
   const abs = Math.abs(num);
+  const minimumDecimals = options?.minimumDecimals ?? 2;
+  const maximumDecimals = options?.maximumDecimals ?? 4;
 
-  // For very small numbers, use more decimal places
-  if (abs < 0.01) {
-    return num.toFixed(6);
+  // Determine appropriate decimal places based on size
+  const decimals = abs < 1 ? maximumDecimals : minimumDecimals;
+
+  // Round to the target precision to check if decimals are needed
+  const rounded = Number(num.toFixed(decimals));
+
+  // If it's a whole number, don't show decimals
+  if (rounded === Math.floor(rounded)) {
+    return Math.floor(rounded).toString();
   }
 
-  // For small numbers, use 4 decimal places
-  if (abs < 1) {
-    return num.toFixed(4);
-  }
-
-  // For normal numbers, use 2 decimal places
-  return num.toFixed(2);
+  // Otherwise, show decimals up to the determined precision
+  return num.toFixed(decimals);
 };
 
 export const formatCurrencyValue = (

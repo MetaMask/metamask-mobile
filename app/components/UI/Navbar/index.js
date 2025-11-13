@@ -34,6 +34,7 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   default as MorphText,
   TextVariant,
+  TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
@@ -937,6 +938,10 @@ export function getWalletNavbarOptions(
   isRewardsEnabled = false,
 ) {
   const innerStyles = StyleSheet.create({
+    headerContainer: {
+      height: 72,
+      alignItems: 'center',
+    },
     headerIcon: {
       color: themeColors.primary.default,
     },
@@ -1079,6 +1084,7 @@ export function getWalletNavbarOptions(
   return {
     header: () => (
       <HeaderBase
+        style={innerStyles.headerContainer}
         includesTopInset
         variant={HeaderBaseVariant.Display}
         startAccessory={
@@ -2062,6 +2068,7 @@ export const getSettingsNavigationOptions = (
  * @param {ThemeColors} themeColors theme.colors returned from useStyles hook.
  * @param {{ backgroundColor?: string, hasCancelButton?: boolean, hasBackButton?: boolean, hasIconButton?: boolean, handleIconPress?: () => void }} [navBarOptions] - Optional navbar options.
  * @param {{ cancelButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> }, backButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string>}, iconButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> } }} [metricsOptions] - Optional metrics options.
+ * @param {import('../Earn/types/lending.types').EarnTokenDetails | null | undefined} [earnToken] - Optional earn token.
  * @returns Staking Navbar Component.
  */
 export function getStakingNavbar(
@@ -2070,6 +2077,9 @@ export function getStakingNavbar(
   themeColors,
   navBarOptions,
   metricsOptions,
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  earnToken = null,
+  ///: END:ONLY_INCLUDE_IF
 ) {
   const {
     hasBackButton = true,
@@ -2095,6 +2105,12 @@ export function getStakingNavbar(
     },
     headerTitle: {
       alignItems: 'center',
+    },
+    headerTitleBalanceAndAPR: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginTop: 4,
     },
   });
 
@@ -2136,10 +2152,36 @@ export function getStakingNavbar(
     }
   }
 
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const apr = parseFloat(earnToken?.experience?.apr ?? '0').toFixed(1);
+  ///: END:ONLY_INCLUDE_IF
+
   return {
     headerTitle: () => (
       <View style={innerStyles.headerTitle}>
         <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>
+        {
+          ///: BEGIN:ONLY_INCLUDE_IF(tron)
+          earnToken && (
+            <View style={innerStyles.headerTitleBalanceAndAPR}>
+              <MorphText
+                variant={TextVariant.BodySMMedium}
+                color={TextColor.Alternative}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {earnToken.balanceFormatted}
+              </MorphText>
+              <MorphText
+                variant={TextVariant.BodySMMedium}
+                color={TextColor.Success}
+              >
+                {`${apr}% ${strings('earn.apr')}`}
+              </MorphText>
+            </View>
+          )
+          ///: END:ONLY_INCLUDE_IF
+        }
       </View>
     ),
     headerStyle: innerStyles.headerStyle,
