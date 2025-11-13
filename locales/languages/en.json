@@ -355,7 +355,7 @@
   "login": {
     "title": "Welcome Back!",
     "password": "Password",
-    "password_placeholder": "Enter MetaMask password",
+    "password_placeholder": "Enter password",
     "unlock_button": "Unlock",
     "go_back": "Wallet won't unlock? You can ERASE your current wallet and setup a new one",
     "forgot_password": "Forgot password?",
