@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { AuthConnection } from './OAuthInterface';
+import { AuthConnection, AuthRefreshTokenResponse } from './OAuthInterface';
 import { createLoginHandler } from './OAuthLoginHandlers';
 import type {
   RefreshJWTToken,
@@ -52,7 +52,7 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
       throw new Error('Failed to refresh JWT token');
     }
 
-    const refreshTokenData = await response.json();
+    const refreshTokenData: AuthRefreshTokenResponse = await response.json();
     const idToken = refreshTokenData.id_token;
 
     if (
