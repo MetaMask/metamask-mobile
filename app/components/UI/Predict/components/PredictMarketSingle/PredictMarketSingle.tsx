@@ -149,10 +149,17 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
 
   const getYesPercentage = (): number => {
     const prices = getOutcomePrices();
-    if (prices.length > 0) {
-      return Math.round(prices[0] * 100);
+    if (prices.length === 0) {
+      return 0;
     }
-    return 0;
+
+    const yesPrice = Number(prices[0]);
+
+    if (!Number.isFinite(yesPrice)) {
+      return 0;
+    }
+
+    return Math.round(yesPrice * 100);
   };
 
   const getTitle = (): string => outcome.title ?? 'Unknown Market';
