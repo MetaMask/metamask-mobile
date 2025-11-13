@@ -304,9 +304,13 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     [market?.outcomes],
   );
 
-  const chartOutcomeTokenIds = useMemo(() => chartOpenOutcomes
-      .map((outcome) => outcome?.tokens?.[0]?.id)
-      .filter((tokenId): tokenId is string => Boolean(tokenId)), [chartOpenOutcomes]);
+  const chartOutcomeTokenIds = useMemo(
+    () =>
+      chartOpenOutcomes
+        .map((outcome) => outcome?.tokens?.[0]?.id)
+        .filter((tokenId): tokenId is string => Boolean(tokenId)),
+    [chartOpenOutcomes],
+  );
 
   const selectedFidelity = DEFAULT_FIDELITY_BY_INTERVAL[selectedTimeframe];
   const {
