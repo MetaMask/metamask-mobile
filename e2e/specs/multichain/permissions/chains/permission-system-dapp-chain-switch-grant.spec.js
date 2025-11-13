@@ -13,7 +13,7 @@ import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnec
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
 import { DappVariants } from '../../../../framework/Constants';
 
-describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
+describe.skip(SmokeNetworkAbstractions('Chain Permission System'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
   });

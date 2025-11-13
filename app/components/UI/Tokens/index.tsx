@@ -34,8 +34,6 @@ import { TokenListControlBar } from './TokenListControlBar';
 import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
 import { ScamWarningModal } from './TokenList/ScamWarningModal';
 import TokenListSkeleton from './TokenList/TokenListSkeleton';
-import { selectSortedTokenKeys } from '../../../selectors/tokenList';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { SolScope } from '@metamask/keyring-api';
@@ -91,20 +89,9 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
   const [hasInitialLoad, setHasInitialLoad] = useState(false);
 
-  // BIP44 MAINTENANCE: Once stable, only use selectSortedAssetsBySelectedAccountGroup
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
-
   // Memoize selector computation for better performance
   const sortedTokenKeys = useSelector(
-    useMemo(
-      () =>
-        isMultichainAccountsState2Enabled
-          ? selectSortedAssetsBySelectedAccountGroup
-          : selectSortedTokenKeys,
-      [isMultichainAccountsState2Enabled],
-    ),
+    useMemo(() => selectSortedAssetsBySelectedAccountGroup, []),
   );
 
   // Mark as loaded once we have data (even if empty)

@@ -41,10 +41,6 @@ import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
-import {
-  useNetworksByNamespace,
-  NetworkType,
-} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
 
@@ -55,7 +51,6 @@ import {
   ShowConfirmDeleteModalState,
   ShowMultiRpcSelectModalState,
 } from './index.types';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 import RpcSelectionModal from '../../Views/NetworkSelector/RpcSelectionModal/RpcSelectionModal';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
@@ -91,14 +86,7 @@ const NetworkManager = () => {
   const { styles } = useStyles(createStyles, { colors });
   const { trackEvent, createEventBuilder } = useMetrics();
   const safeAreaInsets = useSafeAreaInsets();
-  const { selectedCount } = useNetworksByNamespace({
-    networkType: NetworkType.Popular,
-  });
   const { disableNetwork, enabledNetworksByNamespace } = useNetworkEnablement();
-
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
 
   const enabledNetworks = useMemo(() => {
     function getEnabledNetworks(
@@ -335,20 +323,17 @@ const NetworkManager = () => {
   const defaultTabIndex = useMemo(() => {
     // If no popular networks are selected, default to custom tab (index 1)
     // Otherwise, show popular tab (index 0)
-    if (isMultichainAccountsState2Enabled) {
-      if (enabledNetworks.length === 1) {
-        const isPopularNetwork = POPULAR_NETWORK_CHAIN_IDS.has(
-          enabledNetworks[0] as `0x${string}`,
-        )
-          ? 0
-          : 1;
-        return isPopularNetwork;
-      }
-
-      return enabledNetworks.length > 1 ? 0 : 1;
+    if (enabledNetworks.length === 1) {
+      const isPopularNetwork = POPULAR_NETWORK_CHAIN_IDS.has(
+        enabledNetworks[0] as `0x${string}`,
+      )
+        ? 0
+        : 1;
+      return isPopularNetwork;
     }
-    return selectedCount > 0 ? 0 : 1;
-  }, [selectedCount, isMultichainAccountsState2Enabled, enabledNetworks]);
+
+    return enabledNetworks.length > 1 ? 0 : 1;
+  }, [enabledNetworks]);
 
   const dismissModal = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();

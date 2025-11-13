@@ -10,11 +10,10 @@ import {
 
 import { TokenI } from '../types';
 import { strings } from '../../../../../locales/i18n';
-import { TokenListItem, TokenListItemBip44 } from './TokenListItem';
+import { TokenListItemBip44 } from './TokenListItem';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts';
 import { selectHomepageRedesignV1Enabled } from '../../../../selectors/featureFlagController/homepage';
 import {
   Box,
@@ -60,13 +59,7 @@ const TokenListComponent = ({
     selectHomepageRedesignV1Enabled,
   );
 
-  // BIP44 MAINTENANCE: Once stable, only use TokenListItemBip44
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
-  const TokenListItemComponent = isMultichainAccountsState2Enabled
-    ? TokenListItemBip44
-    : TokenListItem;
+  const TokenListItemComponent = TokenListItemBip44;
 
   const listRef = useRef<FlashListRef<FlashListAssetKey>>(null);
 

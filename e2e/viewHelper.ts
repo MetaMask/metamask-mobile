@@ -435,6 +435,7 @@ export const loginToApp = async (password?: string) => {
 
   await Utilities.executeWithRetry(
     async () => {
+      await sleep(5000);
       await Assertions.expectElementToBeVisible(LoginView.container, {
         description: 'Login View container should be visible',
       });
