@@ -863,6 +863,60 @@ describe('MarketsWonCard', () => {
     });
   });
 
+  describe('View All Navigation', () => {
+    it('navigates to market list when available balance card is pressed', () => {
+      setupMarketsWonCardTest({ availableBalance: 100.5 });
+
+      const balanceTouchable =
+        screen.getByTestId('markets-won-count').parent?.parent;
+      if (balanceTouchable) {
+        fireEvent.press(balanceTouchable);
+      }
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+      });
+    });
+
+    it('navigates when balance is present and not loading', () => {
+      setupMarketsWonCardTest({ availableBalance: 50.25, isLoading: false });
+
+      const balanceTouchable =
+        screen.getByTestId('markets-won-count').parent?.parent;
+      if (balanceTouchable) {
+        fireEvent.press(balanceTouchable);
+      }
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+      });
+    });
+
+    it('does not render touchable area when balance is undefined', () => {
+      setupMarketsWonCardTest({ availableBalance: undefined });
+
+      expect(screen.queryByTestId('markets-won-count')).not.toBeOnTheScreen();
+    });
+
+    it('navigates with correct route structure', () => {
+      setupMarketsWonCardTest({ availableBalance: 200 });
+
+      const balanceTouchable =
+        screen.getByTestId('markets-won-count').parent?.parent;
+      if (balanceTouchable) {
+        fireEvent.press(balanceTouchable);
+      }
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.stringContaining('Predict'),
+        expect.objectContaining({
+          screen: expect.any(String),
+        }),
+      );
+    });
+  });
+
   describe('User Interactions', () => {
     it('calls onClaimPress when claim button is pressed', () => {
       const mockOnClaimPress = jest.fn();
@@ -872,21 +926,6 @@ describe('MarketsWonCard', () => {
 
       // Verify the callback was passed correctly
       expect(props.onClaimPress).toBe(mockOnClaimPress);
-    });
-
-    it('navigates to predict modals when available balance is pressed', () => {
-      setupMarketsWonCardTest();
-
-      const balanceTouchable =
-        screen.getByTestId('markets-won-count').parent?.parent;
-      if (balanceTouchable) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        fireEvent.press(balanceTouchable as any);
-      }
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_LIST,
-      });
     });
 
     it('calls refresh method and triggers data reloading', async () => {
