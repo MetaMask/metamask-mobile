@@ -97,8 +97,14 @@ class AuthenticationService {
       AccountTreeInitService.clearState();
     }
     await AccountTreeInitService.initializeAccountTree();
+
     const { MultichainAccountService } = Engine.context;
     await MultichainAccountService.init();
+    // READ THIS CAREFULLY:
+    // There is is/was a bug with Snap accounts that can be desynchronized (Solana). To
+    // automatically "fix" this corrupted state, we run this method which will re-sync
+    // MetaMask accounts and Snap accounts upon login.
+    await MultichainAccountService.resyncAccounts();
 
     ReduxService.store.dispatch(logIn());
   }
