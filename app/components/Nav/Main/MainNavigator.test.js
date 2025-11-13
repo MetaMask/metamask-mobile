@@ -5,6 +5,14 @@ import { render } from '@testing-library/react-native';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import Routes from '../../../constants/navigation/Routes';
 
+// Mock useFeatureFlag before mocking MainNavigator
+jest.mock('../../../components/hooks/FeatureFlags/useFeatureFlag', () => ({
+  useFeatureFlag: jest.fn().mockReturnValue(true),
+  FeatureFlagNames: {
+    rewardsEnabled: 'rewardsEnabled',
+  },
+}));
+
 // Mock the MainNavigator component directly
 jest.mock('./MainNavigator', () => {
   const React = require('react');
@@ -13,17 +21,19 @@ jest.mock('./MainNavigator', () => {
     TabBarIconKey,
   } = require('../../../component-library/components/Navigation/TabBar/TabBar.types');
   const {
-    selectRewardsEnabledFlag,
-  } = require('../../../selectors/featureFlagController/rewards');
-  const {
     selectAssetsTrendingTokensEnabled,
   } = require('../../../selectors/featureFlagController/assetsTrendingTokens');
+  const {
+    useFeatureFlag,
+    FeatureFlagNames,
+  } = require('../../../components/hooks/FeatureFlags/useFeatureFlag');
+
   const { selectBrowserFullscreen } = require('../../../selectors/browser');
   const Routes = require('../../../constants/navigation/Routes').default;
 
   // Mock implementation that tests tab visibility based on rewards flag and browser fullscreen state
   return function MockMainNavigator({ route }) {
-    const isRewardsEnabled = selectRewardsEnabledFlag();
+    const isRewardsEnabled = useFeatureFlag(FeatureFlagNames.rewardsEnabled);
     const isTrendingEnabled = selectAssetsTrendingTokensEnabled();
     const isBrowserFullscreen = selectBrowserFullscreen();
 
@@ -84,12 +94,6 @@ jest.mock('./MainNavigator', () => {
   };
 });
 
-// Mock the rewards selector
-jest.mock('../../../selectors/featureFlagController/rewards', () => ({
-  selectRewardsEnabledFlag: jest.fn(),
-  selectRewardsSubscriptionId: jest.fn().mockReturnValue(null),
-}));
-
 // Mock the trending tokens selector
 jest.mock(
   '../../../selectors/featureFlagController/assetsTrendingTokens',
@@ -103,7 +107,10 @@ jest.mock('../../../selectors/browser', () => ({
   selectBrowserFullscreen: jest.fn(),
 }));
 
-import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
+import {
+  useFeatureFlag,
+  FeatureFlagNames,
+} from '../../../components/hooks/FeatureFlags/useFeatureFlag';
 import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
 import { selectBrowserFullscreen } from '../../../selectors/browser';
 import MainNavigator from './MainNavigator';
@@ -111,13 +118,13 @@ import MainNavigator from './MainNavigator';
 describe('MainNavigator', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    selectRewardsEnabledFlag.mockReturnValue(false);
+    useFeatureFlag.mockReturnValue(false);
     selectAssetsTrendingTokensEnabled.mockReturnValue(false);
     selectBrowserFullscreen.mockReturnValue(false);
   });
 
   it('shows Browser tab when trending feature flag is off', () => {
-    selectRewardsEnabledFlag.mockReturnValue(false);
+    useFeatureFlag.mockReturnValue(false);
     selectAssetsTrendingTokensEnabled.mockReturnValue(false);
 
     const { getByTestId, queryByTestId } = render(<MainNavigator />);
@@ -130,7 +137,7 @@ describe('MainNavigator', () => {
   });
 
   it('shows Trending tab and hides Browser tab when trending feature flag is on', () => {
-    selectRewardsEnabledFlag.mockReturnValue(false);
+    useFeatureFlag.mockReturnValue(false);
     selectAssetsTrendingTokensEnabled.mockReturnValue(true);
 
     const { getByTestId, queryByTestId } = render(<MainNavigator />);
@@ -143,7 +150,7 @@ describe('MainNavigator', () => {
   });
 
   it('shows Settings tab when rewards feature flag is off', () => {
-    selectRewardsEnabledFlag.mockReturnValue(false);
+    useFeatureFlag.mockReturnValue(false);
     selectAssetsTrendingTokensEnabled.mockReturnValue(false);
 
     const { getByTestId, queryByTestId } = render(<MainNavigator />);
@@ -156,7 +163,7 @@ describe('MainNavigator', () => {
   });
 
   it('shows Rewards tab when rewards feature flag is on', () => {
-    selectRewardsEnabledFlag.mockReturnValue(true);
+    useFeatureFlag.mockReturnValue(true);
     selectAssetsTrendingTokensEnabled.mockReturnValue(false);
 
     const { getByTestId } = render(<MainNavigator />);
@@ -169,7 +176,7 @@ describe('MainNavigator', () => {
   });
 
   it('shows Trending and Rewards tabs and hides Browser tab when both feature flags are on', () => {
-    selectRewardsEnabledFlag.mockReturnValue(true);
+    useFeatureFlag.mockReturnValue(true);
     selectAssetsTrendingTokensEnabled.mockReturnValue(true);
 
     const { getByTestId, queryByTestId } = render(<MainNavigator />);
