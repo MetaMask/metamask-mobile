@@ -55,7 +55,7 @@ export async function onboardingFlowImportSRP(device, srp) {
   await OnboardingSucessScreen.isVisible();
   await OnboardingSucessScreen.tapDone();
 
-  await dissmissAllModals(device);
+  await dismissRewardsBottomSheetModal(device);
 
   await WalletMainScreen.isMainWalletViewVisible();
 }
@@ -141,7 +141,7 @@ export async function tapPerpsBottomSheetGotItButton(device) {
 
 export async function dismissRewardsBottomSheetModal(device) {
   RewardsGTMModal.device = device;
-  const container = await RewardsGTMModal.container;
+  const container = await RewardsGTMModal.notNowButton;
   if (await container.isVisible({ timeout: 5000 })) {
     await RewardsGTMModal.tapNotNowButton();
   }
