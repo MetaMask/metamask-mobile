@@ -18,8 +18,7 @@ class MultiChainEvmTestDapp {
         }
 
         if (AppwrightSelectors.isAndroid(this._device)) {
-            // fix this
-            return AppwrightSelectors.getElementByXpath(this._device, '//android.widget.Button[@text="Terminate"]');
+            return AppwrightSelectors.getElementByXpath(this._device, '//*[@id="terminate-button"]');
         }
     }
 
@@ -115,6 +114,16 @@ class MultiChainEvmTestDapp {
         }
     }
 
+    get ethGetBalanceButton() {
+        if (!this._device) {
+            return null;
+        }
+
+        if (AppwrightSelectors.isAndroid(this._device)) {
+            return AppwrightSelectors.getElementByXpath(this._device, '//*[@id="eth-get-balance-button"]');
+        }
+    }
+
     async tapTerminateButton() {
         if (!this._device) {
             return;
@@ -169,14 +178,27 @@ class MultiChainEvmTestDapp {
         await AppwrightGestures.tap(element)
     }
 
+    async tapEthGetBalanceButton() {
+        if (!this._device) {
+            return;
+        }
+
+        const element = await this.ethGetBalanceButton;
+        await AppwrightGestures.tap(element)
+    }
+
     async isDappConnected() {
+        this.assertDappConnected('true');
+    }
+
+    async assertDappConnected(value) {
         if (!this._device) {
             return false;
         }
 
         const connectedStatusHeader = await this.connectedStatusHeader;
         const text = await connectedStatusHeader.getText();
-        expect(text).toContain('true');
+        expect(text).toContain(value);
     }
 
     async assertRequestResponseValue(value ) {
