@@ -107,5 +107,59 @@ describe('UniversalRouterIntegration', () => {
       expect(result).toBe(false);
       expect(mockRouter.initialize).not.toHaveBeenCalled();
     });
+
+    it('returns false when router throws error', async () => {
+      const routeError = new Error('Router initialization failed');
+      (ReduxService.store.getState as jest.Mock).mockReturnValue({
+        some: 'state',
+      });
+      (selectRemoteFeatureFlags as unknown as jest.Mock).mockReturnValue({
+        MM_UNIVERSAL_ROUTER: true,
+      });
+      mockRouter.route.mockRejectedValue(routeError);
+
+      const result = await UniversalRouterIntegration.processWithNewRouter(
+        'metamask://swap',
+        'test',
+        mockDeeplinkManager,
+      );
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('shouldUseNewRouter - edge cases', () => {
+    it('returns false when Redux state is undefined', () => {
+      (ReduxService.store.getState as jest.Mock).mockReturnValue(undefined);
+
+      const result = UniversalRouterIntegration.shouldUseNewRouter();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when feature flag selector throws error', () => {
+      (ReduxService.store.getState as jest.Mock).mockReturnValue({
+        some: 'state',
+      });
+      (selectRemoteFeatureFlags as unknown as jest.Mock).mockImplementation(
+        () => {
+          throw new Error('Selector failed');
+        },
+      );
+
+      const result = UniversalRouterIntegration.shouldUseNewRouter();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when Redux getState throws error', () => {
+      (ReduxService.store.getState as jest.Mock).mockImplementation(() => {
+        throw new Error('Store not ready');
+      });
+
+      const result = UniversalRouterIntegration.shouldUseNewRouter();
+
+      expect(result).toBe(false);
+    });
   });
 });

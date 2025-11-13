@@ -64,4 +64,58 @@ describe('NavigationHandler', () => {
     expect(result.handled).toBe(false);
     expect(result.error?.message).toContain('Unsupported navigation action');
   });
+
+  it('navigates to perps markets with default path', async () => {
+    const link = createMockLink(ACTIONS.PERPS);
+
+    const result = await handler.handle(link, mockContext);
+
+    expect(result.handled).toBe(true);
+    expect(mockContext.navigation.navigate).toHaveBeenCalledWith(
+      Routes.PERPS.ROOT,
+      { path: '/markets' },
+    );
+  });
+
+  it('navigates to perps with custom path from params', async () => {
+    const link = createMockLink(ACTIONS.PERPS_ASSET, {
+      perpsPath: '/assets/ETH-PERP',
+    });
+
+    const result = await handler.handle(link, mockContext);
+
+    expect(result.handled).toBe(true);
+    expect(mockContext.navigation.navigate).toHaveBeenCalledWith(
+      Routes.PERPS.ROOT,
+      { path: '/assets/ETH-PERP' },
+    );
+  });
+
+  it('navigates to predict screen with params', async () => {
+    const link = createMockLink(ACTIONS.PREDICT, {
+      marketId: 'election-2024',
+      category: 'politics',
+    });
+
+    const result = await handler.handle(link, mockContext);
+
+    expect(result.handled).toBe(true);
+    expect(mockContext.navigation.navigate).toHaveBeenCalledWith(
+      Routes.PREDICT.ROOT,
+      { marketId: 'election-2024', category: 'politics' },
+    );
+  });
+
+  it('returns error result when navigation throws exception', async () => {
+    const navigationError = new Error('Navigation failed');
+    mockContext.navigation.navigate = jest.fn(() => {
+      throw navigationError;
+    });
+    const link = createMockLink(ACTIONS.HOME);
+
+    const result = await handler.handle(link, mockContext);
+
+    expect(result.handled).toBe(false);
+    expect(result.error).toBe(navigationError);
+  });
 });
