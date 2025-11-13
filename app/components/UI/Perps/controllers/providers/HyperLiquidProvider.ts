@@ -1872,8 +1872,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
    *
    * Refactored to use helper methods for better maintainability and reduced complexity.
    * Each helper method is focused on a single responsibility.
+   *
+   * @param params - Order parameters
+   * @param retryCount - Internal retry counter to prevent infinite loops (default: 0)
    */
-  async placeOrder(params: OrderParams): Promise<OrderResult> {
+  async placeOrder(params: OrderParams, retryCount = 0): Promise<OrderResult> {
     try {
       DevLogger.log('Placing order via HyperLiquid SDK:', params);
 
@@ -2028,6 +2031,37 @@ export class HyperLiquidProvider implements IPerpsProvider {
         assetId,
       });
     } catch (error) {
+      // Retry mechanism for $10 minimum order errors
+      // This handles the case where UI price feed slightly differs from HyperLiquid's orderbook price
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      const isMinimumOrderError =
+        errorMessage.includes('Order must have minimum value of $10') ||
+        errorMessage.includes('Order 0: Order must have minimum value');
+
+      if (isMinimumOrderError && retryCount === 0 && params.usdAmount) {
+        Logger.log(
+          'Retrying order with adjusted size due to minimum value error',
+          {
+            originalUsdAmount: params.usdAmount,
+            retryCount,
+          },
+        );
+
+        // Add small buffer (1-2%) to account for price differences
+        const adjustedUsdAmount = (
+          parseFloat(params.usdAmount) * 1.015
+        ).toFixed(2);
+
+        return this.placeOrder(
+          {
+            ...params,
+            usdAmount: adjustedUsdAmount,
+          },
+          1, // Retry count = 1, prevents further retries
+        );
+      }
+
       return this.handleOrderError({
         error,
         coin: params.coin,
