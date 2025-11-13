@@ -21,39 +21,106 @@ export default function migrate(state: unknown) {
 
     // Validate if the NetworkController state exists and has the expected structure.
     if (
-      !(
-        hasProperty(state, 'engine') &&
-        hasProperty(state.engine, 'backgroundState') &&
-        hasProperty(state.engine.backgroundState, 'NetworkController') &&
-        isObject(state.engine.backgroundState.NetworkController) &&
-        hasProperty(
-          state.engine.backgroundState.NetworkController,
-          'networkConfigurationsByChainId',
-        ) &&
-        isObject(
-          state.engine.backgroundState.NetworkController
-            .networkConfigurationsByChainId,
-        ) &&
-        hasProperty(
-          state.engine.backgroundState.NetworkController
-            .networkConfigurationsByChainId,
-          seiChainId,
-        ) &&
-        isObject(
-          state.engine.backgroundState.NetworkController
-            .networkConfigurationsByChainId[seiChainId],
-        ) &&
-        hasProperty(
-          state.engine.backgroundState.NetworkController
-            .networkConfigurationsByChainId[seiChainId],
-          'rpcEndpoints',
-        ) &&
-        Array.isArray(
-          state.engine.backgroundState.NetworkController
-            .networkConfigurationsByChainId[seiChainId].rpcEndpoints,
-        )
+      !hasProperty(state, 'engine') ||
+      !hasProperty(state.engine, 'backgroundState') ||
+      !hasProperty(state.engine.backgroundState, 'NetworkController')
+    ) {
+      captureException(
+        new Error(
+          `Migration ${migrationVersion}: Invalid NetworkController state structure: missing required properties`,
+        ),
+      );
+      return state;
+    }
+
+    if (!isObject(state.engine.backgroundState.NetworkController)) {
+      captureException(
+        new Error(
+          `Migration ${migrationVersion}: Invalid NetworkController state: '${typeof state.engine.backgroundState.NetworkController}'`,
+        ),
+      );
+      return state;
+    }
+
+    if (
+      !hasProperty(
+        state.engine.backgroundState.NetworkController,
+        'networkConfigurationsByChainId',
       )
     ) {
+      captureException(
+        new Error(
+          `Migration ${migrationVersion}: Invalid NetworkController state: missing networkConfigurationsByChainId property`,
+        ),
+      );
+      return state;
+    }
+
+    if (
+      !isObject(
+        state.engine.backgroundState.NetworkController
+          .networkConfigurationsByChainId,
+      )
+    ) {
+      captureException(
+        new Error(
+          `Migration ${migrationVersion}: Invalid NetworkController networkConfigurationsByChainId: '${typeof state.engine.backgroundState.NetworkController.networkConfigurationsByChainId}'`,
+        ),
+      );
+      return state;
+    }
+
+    if (
+      !hasProperty(
+        state.engine.backgroundState.NetworkController
+          .networkConfigurationsByChainId,
+        seiChainId,
+      )
+    ) {
+      // SEI network not configured, no migration needed
+      return state;
+    }
+
+    if (
+      !isObject(
+        state.engine.backgroundState.NetworkController
+          .networkConfigurationsByChainId[seiChainId],
+      )
+    ) {
+      captureException(
+        new Error(
+          `Migration ${migrationVersion}: Invalid SEI network configuration: '${typeof state.engine.backgroundState.NetworkController.networkConfigurationsByChainId[seiChainId]}'`,
+        ),
+      );
+      return state;
+    }
+
+    if (
+      !hasProperty(
+        state.engine.backgroundState.NetworkController
+          .networkConfigurationsByChainId[seiChainId],
+        'rpcEndpoints',
+      )
+    ) {
+      captureException(
+        new Error(
+          `Migration ${migrationVersion}: Invalid SEI network configuration: missing rpcEndpoints property`,
+        ),
+      );
+      return state;
+    }
+
+    if (
+      !Array.isArray(
+        state.engine.backgroundState.NetworkController
+          .networkConfigurationsByChainId[seiChainId].rpcEndpoints,
+      )
+    ) {
+      captureException(
+        new Error(
+          `Migration ${migrationVersion}: Invalid SEI network rpcEndpoints: expected array, got '${typeof state.engine.backgroundState.NetworkController.networkConfigurationsByChainId[seiChainId].rpcEndpoints}'`,
+        ),
+      );
       return state;
     }
 

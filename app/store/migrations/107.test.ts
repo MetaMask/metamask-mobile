@@ -51,12 +51,13 @@ describe(`migration #${migrationVersion}`, () => {
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it.each([
+  const invalidStates = [
     {
       state: {
         engine: {},
       },
-      test: 'empty engine state',
+      errorMessage: `Migration ${migrationVersion}: Invalid NetworkController state structure: missing required properties`,
+      scenario: 'empty engine state',
     },
     {
       state: {
@@ -64,7 +65,8 @@ describe(`migration #${migrationVersion}`, () => {
           backgroundState: {},
         },
       },
-      test: 'empty backgroundState',
+      errorMessage: `Migration ${migrationVersion}: Invalid NetworkController state structure: missing required properties`,
+      scenario: 'empty backgroundState',
     },
     {
       state: {
@@ -74,7 +76,19 @@ describe(`migration #${migrationVersion}`, () => {
           },
         },
       },
-      test: 'invalid NetworkController state',
+      errorMessage: `Migration ${migrationVersion}: Invalid NetworkController state: 'string'`,
+      scenario: 'invalid NetworkController state',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: {},
+          },
+        },
+      },
+      errorMessage: `Migration ${migrationVersion}: Invalid NetworkController state: missing networkConfigurationsByChainId property`,
+      scenario: 'missing networkConfigurationsByChainId property',
     },
     {
       state: {
@@ -86,7 +100,8 @@ describe(`migration #${migrationVersion}`, () => {
           },
         },
       },
-      test: 'invalid networkConfigurationsByChainId state',
+      errorMessage: `Migration ${migrationVersion}: Invalid NetworkController networkConfigurationsByChainId: 'string'`,
+      scenario: 'invalid networkConfigurationsByChainId state',
     },
     {
       state: {
@@ -94,27 +109,14 @@ describe(`migration #${migrationVersion}`, () => {
           backgroundState: {
             NetworkController: {
               networkConfigurationsByChainId: {
-                '0x1': {
-                  chainId: '0x1',
-                  rpcEndpoints: [
-                    {
-                      networkClientId: 'mainnet',
-                      url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
-                      type: 'infura',
-                    },
-                  ],
-                  defaultRpcEndpointIndex: 0,
-                  blockExplorerUrls: ['https://etherscan.io'],
-                  defaultBlockExplorerUrlIndex: 0,
-                  name: 'Ethereum Mainnet',
-                  nativeCurrency: 'ETH',
-                },
+                '0x531': 'invalid',
               },
             },
           },
         },
       },
-      test: 'SEI network is not found',
+      errorMessage: `Migration ${migrationVersion}: Invalid SEI network configuration: 'string'`,
+      scenario: 'invalid SEI network configuration',
     },
     {
       state: {
@@ -135,9 +137,77 @@ describe(`migration #${migrationVersion}`, () => {
           },
         },
       },
-      test: 'rpcEndpoints is not an array in SEI network configuration',
+      errorMessage: `Migration ${migrationVersion}: Invalid SEI network configuration: missing rpcEndpoints property`,
+      scenario: 'missing rpcEndpoints property in SEI network configuration',
     },
-  ])('does not modify state if the state is invalid - $test', ({ state }) => {
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                '0x531': {
+                  chainId: '0x531',
+                  rpcEndpoints: 'not-an-array',
+                  defaultRpcEndpointIndex: 0,
+                  blockExplorerUrls: ['https://seitrace.com'],
+                  defaultBlockExplorerUrlIndex: 0,
+                  name: 'Custom Sei Network',
+                  nativeCurrency: 'SEI',
+                },
+              },
+            },
+          },
+        },
+      },
+      errorMessage: `Migration ${migrationVersion}: Invalid SEI network rpcEndpoints: expected array, got 'string'`,
+      scenario: 'rpcEndpoints is not an array in SEI network configuration',
+    },
+  ];
+
+  it.each(invalidStates)(
+    'should capture exception if $scenario',
+    ({ errorMessage, state }) => {
+      const orgState = cloneDeep(state);
+      mockedEnsureValidState.mockReturnValue(true);
+
+      const migratedState = migrate(state);
+
+      // State should be unchanged
+      expect(migratedState).toStrictEqual(orgState);
+      expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+        errorMessage,
+      );
+    },
+  );
+
+  it('does not modify state and does not capture exception if SEI network is not found', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              '0x1': {
+                chainId: '0x1',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'mainnet',
+                    url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+                    type: 'infura',
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+                blockExplorerUrls: ['https://etherscan.io'],
+                defaultBlockExplorerUrlIndex: 0,
+                name: 'Ethereum Mainnet',
+                nativeCurrency: 'ETH',
+              },
+            },
+          },
+        },
+      },
+    };
     const orgState = cloneDeep(state);
     mockedEnsureValidState.mockReturnValue(true);
 
