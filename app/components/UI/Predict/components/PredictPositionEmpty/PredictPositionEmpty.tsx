@@ -26,8 +26,8 @@ const PredictPositionEmpty: React.FC<PredictPositionEmptyProps> = () => {
     <Box testID="predict-position-empty" style={styles.emptyState}>
       <ThemedPredictions
         testID="icon"
-        width={100}
-        height={100}
+        width={72}
+        height={72}
         style={styles.emptyStateIcon}
       />
       <Text
