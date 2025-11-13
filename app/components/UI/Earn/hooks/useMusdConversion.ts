@@ -122,6 +122,16 @@ export const useMusdConversion = () => {
             // TODO: Add type for musdConversion to TransactionType.
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             type: 'musdConversion' as any,
+            // Nested transaction is required for Relay to work. This will be fixed in a future iteration.
+            nestedTransactions: [
+              {
+                to: MUSD_ADDRESS_ETHEREUM as Hex,
+                // from: selectedAddress as Hex,
+                data: transferData as `0x${string}`,
+                value: '0x0',
+                // chainId: ETHEREUM_MAINNET_CHAIN_ID as Hex,
+              },
+            ],
           },
         );
 
