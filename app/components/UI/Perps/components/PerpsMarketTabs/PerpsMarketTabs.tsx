@@ -677,22 +677,6 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     [tabs.length, tabsToRender.length],
   );
 
-  // Calculate active index for TabsList
-  const activeIndex = useMemo(() => {
-    const availableTabIds: PerpsTabId[] = [];
-    if (position) availableTabIds.push('position');
-    if (sortedUnfilledOrders.length > 0) availableTabIds.push('orders');
-    availableTabIds.push('statistics');
-    return Math.max(0, availableTabIds.indexOf(activeTabId));
-  }, [activeTabId, position, sortedUnfilledOrders.length]);
-
-  // Sync TabsList to active tab after remount (when key changes)
-  useEffect(() => {
-    if (tabsListRef.current && activeIndex >= 0) {
-      tabsListRef.current.goToTabIndex(activeIndex);
-    }
-  }, [tabsKey, activeIndex, activeTabId]);
-
   if (tabs.length === 1 && tabs[0].id === 'statistics') {
     return (
       <View style={styles.singleTabContainer}>
