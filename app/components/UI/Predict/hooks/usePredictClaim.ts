@@ -4,7 +4,6 @@ import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
-import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
@@ -31,7 +30,6 @@ export const usePredictClaim = ({
     try {
       navigateToConfirmation({
         headerShown: false,
-        stack: Routes.PREDICT.ROOT,
         loader: ConfirmationLoader.PredictClaim,
       });
       await claimWinnings({ providerId });
