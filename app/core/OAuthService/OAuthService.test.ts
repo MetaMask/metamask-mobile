@@ -54,6 +54,7 @@ const mockGetAuthTokens = jest.fn().mockImplementation(() => ({
   indexes: [1, 2, 3],
   endpoints: { endpoint1: 'value1' },
   refresh_token: 'mock-refresh-token',
+  revoke_token: 'mock-revoke-token',
 }));
 
 const mockCreateLoginHandler = jest.fn().mockImplementation(() => ({

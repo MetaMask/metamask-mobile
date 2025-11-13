@@ -147,6 +147,7 @@ describe('OAuth login handlers', () => {
           new Response(
             JSON.stringify({
               access_token: 'access-token',
+              metadata_access_token: 'metadata-access-token',
               refresh_token: 'refresh-token',
               revoke_token: 'revoke-token',
               id_token: 'id-token',
