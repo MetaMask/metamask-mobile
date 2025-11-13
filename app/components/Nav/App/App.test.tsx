@@ -351,6 +351,10 @@ describe('App', () => {
         });
         expect(Authentication.appTriggeredAuth).not.toHaveBeenCalled();
       });
+
+      jest.spyOn(Authentication, 'getType').mockResolvedValue({
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+      });
     });
 
     it('navigates to onboarding when user does not exist', async () => {
