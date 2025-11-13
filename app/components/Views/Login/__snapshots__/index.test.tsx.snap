@@ -75,6 +75,22 @@ exports[`Login renders matching snapshot 1`] = `
         testID="login"
       >
         <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "justifyContent": "center",
+                "width": "100%",
+              },
+              {
+                "paddingBottom": 24,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "paddingTop": 24,
+              },
+            ]
+          }
           testID="onboarding-animation-mock"
         >
           <View
@@ -318,12 +334,26 @@ exports[`Login renders matching snapshot 1`] = `
     }
   >
     <View
+      style={
+        [
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "justifyContent": "center",
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+          },
+          {
+            "bottom": -20,
+            "height": 300,
+            "opacity": 0,
+            "pointerEvents": "none",
+          },
+        ]
+      }
       testID="fox-animation-mock"
-    >
-      <Text>
-        Fox Animation Mock
-      </Text>
-    </View>
+    />
   </TouchableOpacity>
 </RCTSafeAreaView>
 `;
@@ -403,6 +433,22 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
         testID="login"
       >
         <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "justifyContent": "center",
+                "width": "100%",
+              },
+              {
+                "paddingBottom": 24,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "paddingTop": 24,
+              },
+            ]
+          }
           testID="onboarding-animation-mock"
         >
           <View
@@ -645,12 +691,26 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
     }
   >
     <View
+      style={
+        [
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "justifyContent": "center",
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+          },
+          {
+            "bottom": -20,
+            "height": 300,
+            "opacity": 0,
+            "pointerEvents": "none",
+          },
+        ]
+      }
       testID="fox-animation-mock"
-    >
-      <Text>
-        Fox Animation Mock
-      </Text>
-    </View>
+    />
   </TouchableOpacity>
 </RCTSafeAreaView>
 `;

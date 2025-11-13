@@ -144,48 +144,9 @@ jest.mock('../../../core/BackupVault', () => ({
 }));
 
 // Mock animation components
-jest.mock('../../UI/OnboardingAnimation', () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
-  const React = require('react');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
-  const { View } = require('react-native');
+jest.mock('../../UI/OnboardingAnimation/OnboardingAnimation');
 
-  return ({
-    children,
-    startOnboardingAnimation,
-    setStartFoxAnimation,
-  }: {
-    children: React.ReactNode;
-    startOnboardingAnimation: boolean;
-    setStartFoxAnimation: (value: boolean) => void;
-  }) => {
-    // Use synchronous execution
-    if (startOnboardingAnimation && setStartFoxAnimation) {
-      // Call immediately and synchronously
-      setStartFoxAnimation(true);
-    }
-
-    return React.createElement(
-      View,
-      { testID: 'onboarding-animation-mock' },
-      children,
-    );
-  };
-});
-
-jest.mock('../../UI/FoxAnimation', () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
-  const React = require('react');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
-  const { View, Text } = require('react-native');
-
-  return () =>
-    React.createElement(
-      View,
-      { testID: 'fox-animation-mock' },
-      React.createElement(Text, null, 'Fox Animation Mock'),
-    );
-});
+jest.mock('../../UI/FoxAnimation/FoxAnimation');
 
 // Mock Rive animations
 jest.mock('rive-react-native', () => ({
@@ -1172,46 +1133,6 @@ describe('Login', () => {
       expect(errorElement.props.children).toEqual(
         'Error: Some unexpected error',
       );
-    });
-
-    it('traces OnboardingPasswordLoginError during onboarding flow', async () => {
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: false,
-          onboardingTraceCtx: 'mockTraceContext',
-        },
-      });
-
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error('Some unexpected error'),
-      );
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement).toBeOnTheScreen();
-      expect(errorElement.props.children).toEqual(
-        'Error: Some unexpected error',
-      );
-
-      expect(mockTrace).toHaveBeenCalledWith({
-        name: TraceName.OnboardingPasswordLoginError,
-        op: TraceOperation.OnboardingError,
-        tags: { errorMessage: 'Error: Some unexpected error' },
-        parentContext: 'mockTraceContext',
-      });
-      expect(mockEndTrace).toHaveBeenCalledWith({
-        name: TraceName.OnboardingPasswordLoginError,
-      });
     });
   });
 

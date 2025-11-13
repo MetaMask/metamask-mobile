@@ -138,9 +138,6 @@ describe('Login test suite 2', () => {
   });
 
   afterAll(() => {
-    act(() => {
-      jest.runOnlyPendingTimers();
-    });
     jest.clearAllTimers();
     jest.useRealTimers();
   });

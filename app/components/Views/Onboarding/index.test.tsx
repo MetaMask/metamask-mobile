@@ -5,7 +5,7 @@ jest.mock('../../../util/Logger', () => ({
 }));
 
 // Mock animation components - using explicit inline mocks
-jest.mock('../../UI/FoxAnimation', () => {
+jest.mock('../../UI/FoxAnimation/FoxAnimation', () => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
   const React = require('react');
   // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
@@ -17,7 +17,7 @@ jest.mock('../../UI/FoxAnimation', () => {
   };
 });
 
-jest.mock('../../UI/OnboardingAnimation', () => {
+jest.mock('../../UI/OnboardingAnimation/OnboardingAnimation', () => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
   const React = require('react');
   // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports

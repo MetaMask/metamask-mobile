@@ -88,16 +88,14 @@ import {
 } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { useMetrics } from '../../hooks/useMetrics';
-import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
-import { useUserAuthPreferences } from '../../hooks/useUserAuthPreferences';
-import { usePasswordOutdated } from '../Login/hooks/usePasswordOutdated';
 import { LoginErrorMessage } from '../Login/components/LoginErrorMessage';
 import Label from '../../../component-library/components/Form/Label';
 import TextField, {
   TextFieldSize,
 } from '../../../component-library/components/Form/TextField';
+import { updateAuthTypeStorageFlags } from '../../../util/authentication';
 
 const EmptyRecordConstant = {};
 
@@ -147,16 +145,19 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     [saveOnboardingEvent],
   );
 
-  const {
-    biometryType,
-    rememberMe,
-    setRememberMe,
-    biometryChoice,
-    setHasBiometricCredentials,
-    updateBiometryChoice,
-  } = useUserAuthPreferences({
-    locked: route?.params?.locked,
-  });
+  const [biometryChoice, setBiometryChoice] = useState(true);
+  const updateBiometryChoice = useCallback(
+    async (newBiometryChoice: boolean) => {
+      await updateAuthTypeStorageFlags(newBiometryChoice);
+      setBiometryChoice(newBiometryChoice);
+    },
+    [],
+  );
+
+  // default biometric choice to true
+  useEffect(() => {
+    updateBiometryChoice(true);
+  }, [updateBiometryChoice]);
 
   const navigateToHome = useCallback(async () => {
     navigation.replace(Routes.ONBOARDING.HOME_NAV);
@@ -166,7 +167,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [disabledInput, setDisabledInput] = useState(false);
 
-  const { isDeletingInProgress } = usePromptSeedlessRelogin();
+  const { isDeletingInProgress, promptSeedlessRelogin } =
+    usePromptSeedlessRelogin();
   const netInfo = useNetInfo();
   const isMountedRef = useRef(true);
 
@@ -288,6 +290,22 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           setError(strings('login.seedless_password_outdated'));
           return;
         }
+      } else if (!route.params?.oauthLoginSuccess) {
+        // new password relogin failed
+        // for non oauth login (rehydration) failure, prompt user to reset and rehydrate
+        // do we want to capture and report the error?
+        if (isMetricsEnabled()) {
+          captureException(seedlessError, {
+            tags: {
+              view: 'Re-login',
+              context:
+                'seedless flow unlock wallet failed - user consented to analytics',
+            },
+          });
+        }
+        Logger.error(seedlessError, 'Error in Unlock Screen');
+        promptSeedlessRelogin();
+        return;
       }
 
       const errMessage = seedlessError.message.replace(
@@ -324,6 +342,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       netInfo,
       navigation,
       setErrorToThrow,
+      promptSeedlessRelogin,
+      route.params?.oauthLoginSuccess,
     ],
   );
 
@@ -419,9 +439,10 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       setLoading(true);
 
+      // try default with biometric if available and no remember me flag
       const authType = await Authentication.componentAuthenticationType(
         biometryChoice,
-        rememberMe,
+        false,
       );
       authType.oauth2Login = true;
 
@@ -458,7 +479,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   }, [
     password,
     biometryChoice,
-    rememberMe,
     finalLoading,
     rehydrationFailedAttempts,
     handleLoginError,
@@ -466,8 +486,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     navigateToHome,
     track,
   ]);
-
-  usePasswordOutdated(setError);
 
   // Cleanup for isMountedRef tracking
   useEffect(() => {
@@ -533,18 +551,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     setError(null);
   };
 
-  const handleUpdateRememberMe = (rememberMeChoice: boolean) => {
-    setRememberMe(rememberMeChoice);
-  };
-
   const handleLogin = async () => {
     await onLogin();
     setPassword('');
-    setHasBiometricCredentials(false);
     fieldRef.current?.clear();
   };
-
-  const shouldRenderBiometricLogin = biometryType;
 
   return (
     <ErrorBoundary
@@ -626,12 +637,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
               />
 
               <View style={styles.ctaWrapperRehydration}>
-                <LoginOptionsSwitch
-                  shouldRenderBiometricOption={shouldRenderBiometricLogin}
-                  biometryChoiceState={biometryChoice}
-                  onUpdateBiometryChoice={updateBiometryChoice}
-                  onUpdateRememberMe={handleUpdateRememberMe}
-                />
                 <Button
                   variant={ButtonVariants.Primary}
                   width={ButtonWidthTypes.Full}

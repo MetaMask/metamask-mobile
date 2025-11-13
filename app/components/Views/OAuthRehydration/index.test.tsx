@@ -107,20 +107,15 @@ jest.mock('@react-native-community/netinfo', () => ({
   useNetInfo: jest.fn(),
 }));
 
-jest.mock('../../hooks/useUserAuthPreferences', () => ({
-  useUserAuthPreferences: () => ({
-    biometryType: null,
-    rememberMe: false,
-    setRememberMe: jest.fn(),
-    biometryChoice: false,
-    hasBiometricCredentials: false,
-    setHasBiometricCredentials: jest.fn(),
-    updateBiometryChoice: jest.fn(),
-  }),
-}));
-
 jest.mock('../Login/hooks/usePasswordOutdated', () => ({
   usePasswordOutdated: jest.fn(),
+}));
+
+// mock storage
+jest.mock('../../../store/storage-wrapper', () => ({
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
 }));
 
 const mockTrackOnboarding = trackOnboarding as jest.Mock;
