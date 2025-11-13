@@ -4712,44 +4712,52 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           />
                                         </View>
                                       </View>
-                                      <Text
+                                      <View
                                         style={
-                                          [
-                                            {
-                                              "color": "#121314",
-                                              "fontFamily": "Geist Regular",
-                                              "fontSize": 30,
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            false,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "flexDirection": "column",
+                                          }
                                         }
                                       >
-                                        Monad
-                                      </Text>
+                                        <Text
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 30,
+                                                "marginVertical": 2,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              false,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          Monad
+                                        </Text>
+                                      </View>
                                     </View>
                                     <View
                                       style={
