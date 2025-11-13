@@ -118,9 +118,7 @@ pipelines:
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
   pr_rc_rwy_pipeline:
     workflows:
-      bump_version_code:
-        depends_on:
-        - pr_check_build_cache
+      bump_version_code: {}
       build_ios_rc_and_upload_sourcemaps:
         depends_on:
         - bump_version_code
