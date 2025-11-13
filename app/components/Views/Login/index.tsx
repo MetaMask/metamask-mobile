@@ -9,6 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { colors as importedColors } from '../../../styles/common';
+import { TextVariant } from '../../../component-library/components/Texts/Text';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button, {
@@ -64,6 +65,9 @@ import {
 import TextField, {
   TextFieldSize,
 } from '../../../component-library/components/Form/TextField';
+import HelpText, {
+  HelpTextSeverity,
+} from '../../../component-library/components/Form/HelpText';
 import {
   DENY_PIN_ERROR_ANDROID,
   JSON_PARSE_ERROR_UNEXPECTED_TOKEN,
@@ -96,7 +100,6 @@ import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnb
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import OnboardingAnimation from '../../UI/OnboardingAnimation/OnboardingAnimation';
-import { LoginErrorMessage } from './components/LoginErrorMessage';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -572,11 +575,17 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 />
               </View>
 
-              <LoginErrorMessage
-                error={error}
-                testID={LoginViewSelectors.PASSWORD_ERROR}
-                style={styles.helperTextContainer}
-              />
+              <View style={styles.helperTextContainer}>
+                {!!error && (
+                  <HelpText
+                    severity={HelpTextSeverity.Error}
+                    variant={TextVariant.BodyMD}
+                    testID={LoginViewSelectors.PASSWORD_ERROR}
+                  >
+                    {error}
+                  </HelpText>
+                )}
+              </View>
 
               <View style={styles.ctaWrapper} pointerEvents="box-none">
                 <LoginOptionsSwitch

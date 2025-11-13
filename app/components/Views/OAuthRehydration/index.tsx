@@ -90,12 +90,14 @@ import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder
 import { useMetrics } from '../../hooks/useMetrics';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
-import { LoginErrorMessage } from '../Login/components/LoginErrorMessage';
 import Label from '../../../component-library/components/Form/Label';
 import TextField, {
   TextFieldSize,
 } from '../../../component-library/components/Form/TextField';
 import { updateAuthTypeStorageFlags } from '../../../util/authentication';
+import HelpText, {
+  HelpTextSeverity,
+} from '../../../component-library/components/Form/HelpText';
 
 const EmptyRecordConstant = {};
 
@@ -703,11 +705,17 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                 />
               </View>
 
-              <LoginErrorMessage
-                error={error}
-                testID={LoginViewSelectors.PASSWORD_ERROR}
-                style={styles.helperTextContainer}
-              />
+              <View style={styles.helperTextContainer}>
+                {!!error && (
+                  <HelpText
+                    severity={HelpTextSeverity.Error}
+                    variant={TextVariant.BodyMD}
+                    testID={LoginViewSelectors.PASSWORD_ERROR}
+                  >
+                    {error}
+                  </HelpText>
+                )}
+              </View>
 
               <View style={styles.ctaWrapperRehydration}>
                 <Button
