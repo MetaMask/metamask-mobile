@@ -110,6 +110,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const insets = useSafeAreaInsets();
   const [isResolvedExpanded, setIsResolvedExpanded] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [isFeeExemption, setIsFeeExemption] = useState<boolean>(false);
 
   const { marketId, entryPoint, title, image } = route.params || {};
   const resolvedMarketId = marketId;
@@ -196,6 +197,12 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       setSelectedTimeframe(PredictPriceHistoryInterval.MAX);
     }
   }, [market?.status]);
+
+  useEffect(() => {
+    if (market?.tags.includes('Middle East')) {
+      setIsFeeExemption(true);
+    }
+  }, [market?.tags]);
 
   // Tabs become ready when both market and positions queries have resolved
   const tabsReady = useMemo(
@@ -1127,7 +1134,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   return (
     <SafeAreaView
-      style={tw.style('flex-1 bg-default')}
+      style={tw.style('flex-1 bg-default', isFeeExemption ? 'pb-6' : '')}
       edges={['left', 'right', 'bottom']}
       testID={PredictMarketDetailsSelectorsIDs.SCREEN}
     >
@@ -1177,6 +1184,19 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       <Box twClassName="px-3 bg-default border-t border-muted">
         {renderActionButtons()}
       </Box>
+      {isFeeExemption && (
+        <Box
+          style={tw`absolute inset-x-0 bottom-4 pb-3`}
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="gap-1"
+        >
+          <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
+            {strings('predict.market_details.fee_exemption')}
+          </Text>
+        </Box>
+      )}
     </SafeAreaView>
   );
 };
