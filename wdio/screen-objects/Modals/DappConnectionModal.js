@@ -59,11 +59,11 @@ class DappConnectionModal {
             return;
         }
 
-        // const element = await this.connectButton;
-        // await AppwrightGestures.tap(element)
+        const element = await this.connectButton;
+        await AppwrightGestures.tap(element)
 
         // Temporarily tapping by coordinates
-        await AppwrightGestures.tapByCoordinates(this._device, { x: 815, y: 2160 }, { delay: 1500 });
+        // await AppwrightGestures.tapByCoordinates(this._device, { x: 815, y: 2160 }, { delay: 1500 });
     }
 
     async tapEditAccountsButton() {
@@ -71,11 +71,11 @@ class DappConnectionModal {
             return;
         }
 
-        // const element = await this.editAccountsButton;
-        // await AppwrightGestures.tap(element)
+        const element = await this.editAccountsButton;
+        await AppwrightGestures.tap(element)
 
         // Temporarily tapping by coordinates
-        await AppwrightGestures.tapByCoordinates(this._device, { x: 140, y: 775 }, { delay: 1500 });
+        // await AppwrightGestures.tapByCoordinates(this._device, { x: 140, y: 775 }, { delay: 1500 });
     }
 
     async tapAccountButton(accountName) {
@@ -83,12 +83,12 @@ class DappConnectionModal {
             return;
         }
 
-        // const element = await this.getAccountButton(accountName);
-        // await AppwrightGestures.tap(element)
+        const element = await this.getAccountButton(accountName);
+        await AppwrightGestures.tap(element)
 
         // Temporarily tapping by coordinates
         // hardcoded to account 3
-        await AppwrightGestures.tapByCoordinates(this._device, { x: 195, y: 1520 }, { delay: 1500 });
+        // await AppwrightGestures.tapByCoordinates(this._device, { x: 195, y: 1520 }, { delay: 1500 });
     }
 
     async tapUpdateButton() {
@@ -96,11 +96,11 @@ class DappConnectionModal {
             return;
         }
 
-        // const element = await this.updateButton;
-        // await AppwrightGestures.tap(element)
+        const element = await this.updateButton;
+        await AppwrightGestures.tap(element)
 
         // Temporarily tapping by coordinates
-        await AppwrightGestures.tapByCoordinates(this._device, { x: 550, y: 2160 }, { delay: 1500 });
+        // await AppwrightGestures.tapByCoordinates(this._device, { x: 550, y: 2160 }, { delay: 1500 });
     }
 }
 

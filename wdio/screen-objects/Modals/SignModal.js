@@ -24,6 +24,16 @@ class SignModal {
         }
     }
 
+    get cancelButton() {
+        if (!this._device) {
+            return null;
+        }
+
+        if (AppwrightSelectors.isAndroid(this._device)) {
+            return AppwrightSelectors.getElementByID(this._device, 'cancel-button');
+        }
+    }
+
     getNetworkText(network) {
         if (!this._device) {
             return null;
@@ -39,23 +49,23 @@ class SignModal {
             return;
         }
 
-        // const element = await this.connectButton;
-        // await AppwrightGestures.tap(element)
+        const element = await this.confirmButton;
+        await AppwrightGestures.tap(element)
 
         // Temporarily tapping by coordinates
-        await AppwrightGestures.tapByCoordinates(this._device, { x: 815, y: 2060 }, { delay: 1500 });
+        // await AppwrightGestures.tapByCoordinates(this._device, { x: 815, y: 2060 }, { delay: 1500 });
     }
 
-    async tapRejectButton() {
+    async tapCancelButton() {
         if (!this._device) {
             return;
         }
 
-        // const element = await this.connectButton;
-        // await AppwrightGestures.tap(element)
+        const element = await this.cancelButton;
+        await AppwrightGestures.tap(element)
 
         // Temporarily tapping by coordinates
-        await AppwrightGestures.tapByCoordinates(this._device, { x: 165, y: 2060 }, { delay: 1500 });
+        // await AppwrightGestures.tapByCoordinates(this._device, { x: 165, y: 2060 }, { delay: 1500 });
     }
 
     async assertNetworkText(network) {
