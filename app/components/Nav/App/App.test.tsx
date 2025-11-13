@@ -74,8 +74,6 @@ jest.mock('../../hooks/useMetrics/useMetrics', () => ({
   }),
 }));
 
-jest.mock('../../../lib/ppom/PPOMView', () => ({ PPOMView: () => null }));
-
 jest.mock('react-native-branch', () => ({
   subscribe: jest.fn(),
   getLatestReferringParams: jest.fn(),
@@ -889,6 +887,47 @@ describe('App', () => {
             },
           },
         ],
+      });
+    });
+  });
+
+  describe('route registration', () => {
+    const renderAppWithRouteState = (
+      routeState: PartialState<NavigationState>,
+    ) => {
+      const mockStore = configureMockStore();
+      const store = mockStore(initialState);
+
+      const Providers = ({ children }: { children: React.ReactElement }) => (
+        <NavigationContainer initialState={routeState}>
+          <Provider store={store}>
+            <ThemeContext.Provider value={mockTheme}>
+              {children}
+            </ThemeContext.Provider>
+          </Provider>
+        </NavigationContainer>
+      );
+
+      return render(<App />, { wrapper: Providers });
+    };
+
+    it('registers the eligibility failed modal route', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.MODAL.ROOT_MODAL_FLOW,
+            params: {
+              screen: Routes.SHEET.ELIGIBILITY_FAILED_MODAL,
+            },
+          },
+        ],
+      };
+
+      const { getByTestId } = renderAppWithRouteState(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('eligibility-failed-modal')).toBeTruthy();
       });
     });
   });

@@ -23,6 +23,7 @@ import { DEFAULT_RPC_ENDPOINT_MOCKS } from './rpc-endpoints';
 import { POLYMARKET_API_MOCKS } from './polymarket-apis';
 import { INFURA_MOCKS } from '../infura-mocks';
 import { CHAINS_NETWORK_MOCK_RESPONSE } from '../chains-network-mocks';
+import { DEFAULT_REWARDS_MOCKS } from './rewards';
 
 // Get auth mocks
 const authMocks = getAuthMocks();
@@ -164,7 +165,7 @@ export const DEFAULT_MOCKS = {
             decimals: 18,
           },
           network: 'monad-mainnet',
-          explorer: 'https://mainnet-beta.monvision.io',
+          explorer: 'https://monadscan.com/',
           confirmations: true,
           smartTransactions: false,
           relayTransactions: false,
@@ -278,6 +279,16 @@ export const DEFAULT_MOCKS = {
       response: {},
     },
     {
+      urlEndpoint: 'https://tx-sentinel-localhost.api.cx.metamask.io/',
+      responseCode: 200,
+      response: {},
+    },
+    {
+      urlEndpoint: 'https://tx-sentinel-127.0.0.1.api.cx.metamask.io/',
+      responseCode: 200,
+      response: {},
+    },
+    {
       urlEndpoint:
         /^https:\/\/security-alerts\.api\.cx\.metamask\.io\/validate\/0x[a-fA-F0-9]+$/,
       responseCode: 200,
@@ -289,6 +300,7 @@ export const DEFAULT_MOCKS = {
         features: [],
       },
     },
+    ...(DEFAULT_REWARDS_MOCKS.POST || []),
   ],
   PUT: [...(USER_STORAGE_MOCK.PUT || [])],
   DELETE: [],

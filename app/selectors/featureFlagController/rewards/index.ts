@@ -5,16 +5,25 @@ import {
   validatedVersionGatedFeatureFlag,
   VersionGatedFeatureFlag,
 } from '../../../util/remoteFeatureFlag';
+import { selectBasicFunctionalityEnabled } from '../../settings';
 
 const DEFAULT_REWARDS_ENABLED = false;
 const DEFAULT_CARD_SPEND_ENABLED = false;
+const DEFAULT_MUSD_DEPOSIT_ENABLED = false;
 export const FEATURE_FLAG_NAME = 'rewardsEnabled';
 export const ANNOUNCEMENT_MODAL_FLAG_NAME = 'rewardsAnnouncementModalEnabled';
 export const CARD_SPEND_FLAG_NAME = 'rewardsEnableCardSpend';
+export const MUSD_DEPOSIT_FLAG_NAME = 'rewardsEnableMusdDeposit';
 
 export const selectRewardsEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
+  selectBasicFunctionalityEnabled,
+  (remoteFeatureFlags, isBasicFunctionalityEnabled) => {
+    // If basic functionality is disabled, rewards should be disabled
+    if (!isBasicFunctionalityEnabled) {
+      return false;
+    }
+
     if (!hasProperty(remoteFeatureFlags, FEATURE_FLAG_NAME)) {
       return DEFAULT_REWARDS_ENABLED;
     }
@@ -57,6 +66,23 @@ export const selectRewardsCardSpendFeatureFlags = createSelector(
     return (
       validatedVersionGatedFeatureFlag(cardSpendConfig) ??
       DEFAULT_CARD_SPEND_ENABLED
+    );
+  },
+);
+
+export const selectRewardsMusdDepositEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    if (!hasProperty(remoteFeatureFlags, MUSD_DEPOSIT_FLAG_NAME)) {
+      return DEFAULT_MUSD_DEPOSIT_ENABLED;
+    }
+    const musdDepositConfig = remoteFeatureFlags[
+      MUSD_DEPOSIT_FLAG_NAME
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return (
+      validatedVersionGatedFeatureFlag(musdDepositConfig) ??
+      DEFAULT_MUSD_DEPOSIT_ENABLED
     );
   },
 );

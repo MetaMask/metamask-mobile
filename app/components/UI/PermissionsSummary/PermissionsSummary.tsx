@@ -41,10 +41,7 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import TabBar from '../../../component-library/components-temp/TabBar';
-import {
-  getNetworkImageSource,
-  isPerDappSelectedNetworkEnabled,
-} from '../../../util/networks';
+import { getNetworkImageSource } from '../../../util/networks';
 import Engine from '../../../core/Engine';
 import { SDKSelectorsIDs } from '../../../../e2e/selectors/Settings/SDK.selectors';
 import { useSelector } from 'react-redux';
@@ -169,9 +166,7 @@ const PermissionsSummary = ({
     const url = currentPageInformation.url;
     const iconTitle = getHost(currentEnsName || url);
 
-    return isPerDappSelectedNetworkEnabled() &&
-      isAlreadyConnected &&
-      !showPermissionsOnly ? (
+    return isAlreadyConnected && !showPermissionsOnly ? (
       <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
         <TouchableOpacity
           onPress={switchNetwork}
@@ -640,10 +635,10 @@ const PermissionsSummary = ({
               {isNonDappNetworkSwitch
                 ? strings('permissions.title_add_network_permission')
                 : !isAlreadyConnected || isNetworkSwitch
-                ? hostname
-                : strings('permissions.title_dapp_url_has_approval_to', {
-                    dappUrl: hostname,
-                  })}
+                  ? hostname
+                  : strings('permissions.title_dapp_url_has_approval_to', {
+                      dappUrl: hostname,
+                    })}
             </TextComponent>
             <TextComponent variant={TextVariant.BodyMD}>
               {strings('account_dapp_connections.account_summary_header')}

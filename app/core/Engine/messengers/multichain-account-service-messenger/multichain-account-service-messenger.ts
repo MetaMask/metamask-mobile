@@ -1,68 +1,39 @@
-import { Messenger } from '@metamask/base-controller';
 import {
-  AccountsControllerAccountAddedEvent,
-  AccountsControllerAccountRemovedEvent,
-  AccountsControllerGetAccountAction,
-  AccountsControllerGetAccountByAddressAction,
-  AccountsControllerListMultichainAccountsAction,
-} from '@metamask/accounts-controller';
-import { HandleSnapRequest as SnapControllerHandleRequest } from '@metamask/snaps-controllers';
+  Messenger,
+  MessengerActions,
+  MessengerEvents,
+} from '@metamask/messenger';
 import {
-  KeyringControllerWithKeyringAction,
-  KeyringControllerGetStateAction,
-  KeyringControllerGetKeyringsByTypeAction,
-  KeyringControllerAddNewKeyringAction,
-  KeyringControllerStateChangeEvent,
-} from '@metamask/keyring-controller';
-import {
-  NetworkControllerFindNetworkClientIdByChainIdAction,
-  NetworkControllerGetNetworkClientByIdAction,
-} from '@metamask/network-controller';
-import { MultichainAccountServiceMultichainAccountGroupUpdatedEvent } from '@metamask/multichain-account-service';
+  MultichainAccountServiceMessenger,
+  MultichainAccountServiceMultichainAccountGroupUpdatedEvent,
+} from '@metamask/multichain-account-service';
 import {
   RemoteFeatureFlagControllerGetStateAction,
   RemoteFeatureFlagControllerStateChangeEvent,
 } from '@metamask/remote-feature-flag-controller';
-
-export type Actions =
-  | AccountsControllerListMultichainAccountsAction
-  | AccountsControllerGetAccountAction
-  | AccountsControllerGetAccountByAddressAction
-  | SnapControllerHandleRequest
-  | KeyringControllerGetStateAction
-  | KeyringControllerWithKeyringAction
-  | KeyringControllerAddNewKeyringAction
-  | KeyringControllerGetKeyringsByTypeAction
-  | NetworkControllerGetNetworkClientByIdAction
-  | NetworkControllerFindNetworkClientIdByChainIdAction;
-
-export type Events =
-  | KeyringControllerStateChangeEvent
-  | AccountsControllerAccountAddedEvent
-  | AccountsControllerAccountRemovedEvent;
-
-export type MultichainAccountServiceMessenger = ReturnType<
-  typeof getMultichainAccountServiceMessenger
->;
+import { RootMessenger } from '../../types';
 
 /**
- * Get a restricted messenger for the multichain account service. This is scoped to the
+ * Get a messenger for the multichain account service. This is scoped to the
  * actions and events that this service is allowed to handle.
  *
- * @param messenger - The service messenger to restrict.
- * @returns The restricted service messenger.
+ * @param rootMessenger - The root messenger.
+ * @returns The MultichainAccountServiceMessenger.
  */
 export function getMultichainAccountServiceMessenger(
-  messenger: Messenger<Actions, Events>,
-) {
-  return messenger.getRestricted({
-    name: 'MultichainAccountService',
-    allowedEvents: [
-      'KeyringController:stateChange',
-      'AccountsController:accountAdded',
-      'AccountsController:accountRemoved',
-    ],
-    allowedActions: [
+  rootMessenger: RootMessenger,
+): MultichainAccountServiceMessenger {
+  const messenger = new Messenger<
+    'MultichainAccountService',
+    MessengerActions<MultichainAccountServiceMessenger>,
+    MessengerEvents<MultichainAccountServiceMessenger>,
+    RootMessenger
+  >({
+    namespace: 'MultichainAccountService',
+    parent: rootMessenger,
+  });
+  rootMessenger.delegate({
+    actions: [
       'AccountsController:listMultichainAccounts',
       'AccountsController:getAccountByAddress',
       'AccountsController:getAccount',
@@ -73,40 +44,54 @@ export function getMultichainAccountServiceMessenger(
       'KeyringController:getKeyringsByType',
       'NetworkController:getNetworkClientById',
       'NetworkController:findNetworkClientIdByChainId',
+      'ErrorReportingService:captureException',
     ],
+    events: [
+      'KeyringController:stateChange',
+      'AccountsController:accountAdded',
+      'AccountsController:accountRemoved',
+    ],
+    messenger,
   });
+  return messenger;
 }
 
-export type AllowedInitializationEvents =
+type AllowedInitializationEvents =
   | MultichainAccountServiceMultichainAccountGroupUpdatedEvent
   | RemoteFeatureFlagControllerStateChangeEvent;
 
-export type AllowedInitializationActions =
-  RemoteFeatureFlagControllerGetStateAction;
+type AllowedInitializationActions = RemoteFeatureFlagControllerGetStateAction;
 
 export type MultichainAccountServiceInitMessenger = ReturnType<
   typeof getMultichainAccountServiceInitMessenger
 >;
 
 /**
- * Get a messenger restricted to the actions and events that the
- * MultichainAccountService requires during initialization.
+ * Get a messenger for the multichain account service during initialization. This is scoped to the
+ * actions and events that the MultichainAccountService requires during initialization.
  *
- * @param messenger - The controller messenger to restrict.
- * @returns The restricted controller messenger.
+ * @param rootMessenger - The root messenger.
+ * @returns The MultichainAccountServiceInitMessenger.
  */
 export function getMultichainAccountServiceInitMessenger(
-  messenger: Messenger<
-    AllowedInitializationActions,
-    AllowedInitializationEvents
-  >,
+  rootMessenger: RootMessenger,
 ) {
-  return messenger.getRestricted({
-    name: 'MultichainAccountServiceInit',
-    allowedActions: ['RemoteFeatureFlagController:getState'],
-    allowedEvents: [
+  const messenger = new Messenger<
+    'MultichainAccountServiceInit',
+    AllowedInitializationActions,
+    AllowedInitializationEvents,
+    RootMessenger
+  >({
+    namespace: 'MultichainAccountServiceInit',
+    parent: rootMessenger,
+  });
+  rootMessenger.delegate({
+    actions: ['RemoteFeatureFlagController:getState'],
+    events: [
       'MultichainAccountService:multichainAccountGroupUpdated',
       'RemoteFeatureFlagController:stateChange',
     ],
+    messenger,
   });
+  return messenger;
 }

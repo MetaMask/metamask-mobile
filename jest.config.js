@@ -6,7 +6,6 @@ process.env.SEGMENT_REGULATIONS_ENDPOINT = 'TestRegulationsEndpoint';
 process.env.MM_FOX_CODE = 'EXAMPLE_FOX_CODE';
 
 process.env.MM_SECURITY_ALERTS_API_ENABLED = 'true';
-process.env.PORTFOLIO_VIEW = 'true';
 process.env.SECURITY_ALERTS_API_URL = 'https://example.com';
 process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR = 'true';
 
@@ -49,9 +48,13 @@ const config = {
     '__mocks__/',
     '<rootDir>/app/util/test/',
     '<rootDir>/app/util/testUtils/',
-    '<rootDir>/app/lib/ppom/ppom.html.js',
-    '<rootDir>/app/lib/ppom/blockaid-version.js',
     '<rootDir>/app/core/InpageBridgeWeb3.js',
+    '<rootDir>/app/features/SampleFeature/e2e/',
+  ],
+  testPathIgnorePatterns: [
+    '.*/e2e/specs/.*\\.spec\\.(ts|js)$',
+    '.*/e2e/pages/',
+    '.*/e2e/selectors/',
   ],
   coverageReporters: ['text-summary', 'lcov'],
   coverageDirectory: '<rootDir>/tests/coverage',
@@ -68,6 +71,7 @@ const config = {
       '<rootDir>/app/__mocks__/expo-apple-authentication.js',
     '^expo-haptics(/.*)?$': '<rootDir>/app/__mocks__/expo-haptics.js',
     '^expo-image$': '<rootDir>/app/__mocks__/expo-image.js',
+    '^expo-updates(/.*)?$': '<rootDir>/app/__mocks__/expo-updates.ts',
     '^@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs$':
       '<rootDir>/app/__mocks__/spinnerMock.js',
     '^rive-react-native$': '<rootDir>/app/__mocks__/rive-react-native.tsx',

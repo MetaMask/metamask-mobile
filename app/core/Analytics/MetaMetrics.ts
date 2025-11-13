@@ -306,9 +306,8 @@ class MetaMetrics implements IMetaMetrics {
     }
 
     // look for a new Metametics ID and use it or generate a new one
-    const metametricsId: string | undefined = await StorageWrapper.getItem(
-      METAMETRICS_ID,
-    );
+    const metametricsId: string | undefined =
+      await StorageWrapper.getItem(METAMETRICS_ID);
 
     // This catches '""', 'null', 'undefined', and other corruptions
     if (
@@ -696,7 +695,7 @@ class MetaMetrics implements IMetaMetrics {
    * and user traits are updated with the latest ones
    */
   addTraitsToUser = (userTraits: UserTraits): Promise<void> => {
-    if (this.enabled) {
+    if (this.isEnabled()) {
       return this.#identify(userTraits);
     }
     return Promise.resolve();
@@ -709,7 +708,7 @@ class MetaMetrics implements IMetaMetrics {
    * @param groupTraits - group relevant traits or properties (optional)
    */
   group = (groupId: string, groupTraits?: GroupTraits): Promise<void> => {
-    if (this.enabled) {
+    if (this.isEnabled()) {
       this.#group(groupId, groupTraits);
     }
     return Promise.resolve();
@@ -760,7 +759,7 @@ class MetaMetrics implements IMetaMetrics {
     event: ITrackingEvent,
     saveDataRecording: boolean = true,
   ): void => {
-    if (!this.enabled) {
+    if (!this.isEnabled()) {
       return;
     }
 

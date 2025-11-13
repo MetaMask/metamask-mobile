@@ -161,6 +161,44 @@ class TestSnaps {
     }, options);
   }
 
+  async checkClientStatus(
+    {
+      clientVersion: expectedClientVersion,
+      ...expectedStatus
+    }: Record<string, Json>,
+    options: Partial<RetryOptions> = {
+      timeout: 5_000,
+      interval: 100,
+    },
+  ) {
+    const webElement = await Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestSnapResultSelectorWebIDS.clientStatusResultSpan,
+    );
+
+    return await Utilities.executeWithRetry(async () => {
+      const actualText = await webElement.getText();
+      let actualStatusWithVersion;
+      try {
+        actualStatusWithVersion = JSON.parse(actualText);
+      } catch (error) {
+        throw new Error(
+          `Failed to parse JSON from client status span: ${actualText}`,
+        );
+      }
+
+      const { clientVersion: actualClientVersion, ...actualStatus } =
+        actualStatusWithVersion;
+
+      await Assertions.checkIfJsonEqual(actualStatus, expectedStatus);
+      if (!actualClientVersion.startsWith(expectedClientVersion)) {
+        throw new Error(
+          `Client version mismatch: Expected version to start with "${expectedClientVersion}", got "${actualClientVersion}".`,
+        );
+      }
+    }, options);
+  }
+
   async navigateToTestSnap(): Promise<void> {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(TEST_SNAPS_URL);

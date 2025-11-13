@@ -5,48 +5,102 @@ import { PredictPositionStatus } from '../../types';
 const selectPredictControllerState = (state: RootState) =>
   state.engine.backgroundState.PredictController;
 
-const selectPredictDepositTransaction = createSelector(
+const selectPredictPendingDeposits = createSelector(
   selectPredictControllerState,
-  (predictControllerState) =>
-    predictControllerState?.depositTransaction || null,
-);
-
-const selectPredictClaimTransaction = createSelector(
-  selectPredictControllerState,
-  (predictControllerState) => predictControllerState?.claimTransaction || null,
+  (predictControllerState) => predictControllerState?.pendingDeposits || {},
 );
 
 const selectPredictClaimablePositions = createSelector(
   selectPredictControllerState,
-  (predictControllerState) => predictControllerState?.claimablePositions || [],
+  (predictControllerState) => predictControllerState?.claimablePositions || {},
 );
 
-const selectPredictWonPositions = createSelector(
-  selectPredictClaimablePositions,
-  (claimablePositions) =>
-    claimablePositions.filter(
-      (position) => position.status === PredictPositionStatus.WON,
-    ),
-);
+const selectPredictClaimablePositionsByAddress = ({
+  address,
+}: {
+  address: string;
+}) =>
+  createSelector(
+    selectPredictClaimablePositions,
+    (claimablePositions) => claimablePositions[address] || [],
+  );
 
-const selectPredictWinFiat = createSelector(
-  selectPredictWonPositions,
-  (winningPositions) =>
+const selectPredictWonPositions = ({ address }: { address: string }) =>
+  createSelector(
+    selectPredictClaimablePositionsByAddress({ address }),
+    (claimablePositions) =>
+      claimablePositions.filter(
+        (position) => position.status === PredictPositionStatus.WON,
+      ),
+  );
+
+const selectPredictWinFiat = ({ address }: { address: string }) =>
+  createSelector(selectPredictWonPositions({ address }), (winningPositions) =>
     winningPositions.reduce((acc, position) => acc + position.currentValue, 0),
+  );
+
+const selectPredictWinPnl = ({ address }: { address: string }) =>
+  createSelector(selectPredictWonPositions({ address }), (winningPositions) =>
+    winningPositions.reduce((acc, position) => acc + position.cashPnl, 0),
+  );
+
+const selectPredictBalances = createSelector(
+  selectPredictControllerState,
+  (predictControllerState) => predictControllerState?.balances || {},
 );
 
-const selectPredictWinPnl = createSelector(
-  selectPredictWonPositions,
-  (winningPositions) =>
-    winningPositions.reduce((acc, position) => acc + position.cashPnl, 0),
+const selectPredictBalanceByAddress = ({
+  providerId,
+  address,
+}: {
+  providerId: string;
+  address: string;
+}) =>
+  createSelector(
+    selectPredictBalances,
+    (balances) => balances[providerId]?.[address]?.balance || 0,
+  );
+
+const selectPredictPendingDepositByAddress = ({
+  providerId,
+  address,
+}: {
+  providerId: string;
+  address: string;
+}) =>
+  createSelector(
+    selectPredictPendingDeposits,
+    (pendingDeposits) => pendingDeposits[providerId]?.[address] || undefined,
+  );
+
+const selectPredictAccountMeta = createSelector(
+  selectPredictControllerState,
+  (predictControllerState) => predictControllerState?.accountMeta || {},
 );
+
+const selectPredictAccountMetaByAddress = ({
+  providerId,
+  address,
+}: {
+  providerId: string;
+  address: string;
+}) =>
+  createSelector(
+    selectPredictAccountMeta,
+    (accountMeta) => accountMeta[providerId]?.[address] || {},
+  );
 
 export {
   selectPredictControllerState,
-  selectPredictDepositTransaction,
-  selectPredictClaimTransaction,
+  selectPredictPendingDeposits,
   selectPredictClaimablePositions,
+  selectPredictClaimablePositionsByAddress,
   selectPredictWonPositions,
   selectPredictWinFiat,
   selectPredictWinPnl,
+  selectPredictBalances,
+  selectPredictBalanceByAddress,
+  selectPredictPendingDepositByAddress,
+  selectPredictAccountMeta,
+  selectPredictAccountMetaByAddress,
 };

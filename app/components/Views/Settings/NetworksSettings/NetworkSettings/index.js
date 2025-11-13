@@ -16,7 +16,6 @@ import Networks, {
   isPrivateConnection,
   getAllNetworks,
   getIsNetworkOnboarded,
-  isPortfolioViewEnabled,
   isValidNetworkName,
   getDecimalChainId,
   isWhitelistedSymbol,
@@ -597,8 +596,8 @@ export class NetworkSettings extends PureComponent {
     isCustomMainnet
       ? navigation.navigate('OptinMetrics')
       : shouldNetworkSwitchPopToWallet
-      ? navigation.navigate('WalletView')
-      : navigation.goBack();
+        ? navigation.navigate('WalletView')
+        : navigation.goBack();
   };
 
   /**
@@ -671,18 +670,16 @@ export class NetworkSettings extends PureComponent {
     }
 
     // Set tokenNetworkFilter
-    if (isPortfolioViewEnabled()) {
-      const { PreferencesController } = Engine.context;
-      if (!isAllNetworks) {
-        PreferencesController.setTokenNetworkFilter({
-          [chainId]: true,
-        });
-      } else {
-        PreferencesController.setTokenNetworkFilter({
-          ...tokenNetworkFilter,
-          [chainId]: true,
-        });
-      }
+    const { PreferencesController } = Engine.context;
+    if (!isAllNetworks) {
+      PreferencesController.setTokenNetworkFilter({
+        [chainId]: true,
+      });
+    } else {
+      PreferencesController.setTokenNetworkFilter({
+        ...tokenNetworkFilter,
+        [chainId]: true,
+      });
     }
 
     if (isRemoveGlobalNetworkSelectorEnabled()) {
@@ -902,8 +899,8 @@ export class NetworkSettings extends PureComponent {
     const symbol = networkConfigurationSymbol
       ? networkConfigurationSymbol
       : chainToMatch
-      ? chainToMatch?.nativeCurrency?.symbol ?? null
-      : networkList?.nativeCurrency?.symbol ?? null;
+        ? (chainToMatch?.nativeCurrency?.symbol ?? null)
+        : (networkList?.nativeCurrency?.symbol ?? null);
 
     const symbolToUse =
       symbol?.toLowerCase() === ticker?.toLowerCase() ? undefined : symbol;
@@ -1910,9 +1907,7 @@ export class NetworkSettings extends PureComponent {
                 }}
                 style={styles.baseAll}
               >
-                <Text style={styles.heading}>
-                  {strings('app_settings.add_rpc_url')}
-                </Text>
+                {strings('app_settings.add_rpc_url')}
               </BottomSheetHeader>
               {/* Keyboard Aware Scrollable Middle Content */}
               <KeyboardAwareScrollView
@@ -1992,9 +1987,7 @@ export class NetworkSettings extends PureComponent {
               }}
               style={styles.baseAll}
             >
-              <Text style={styles.heading}>
-                {strings('app_settings.add_block_explorer_url')}
-              </Text>
+              {strings('app_settings.add_block_explorer_url')}
             </BottomSheetHeader>
             <KeyboardAwareScrollView
               enableOnAndroid
@@ -2067,9 +2060,7 @@ export class NetworkSettings extends PureComponent {
             <View style={styles.container}>
               {/* Sticky Header */}
               <BottomSheetHeader>
-                <Text style={styles.heading}>
-                  {strings('app_settings.add_block_explorer_url')}
-                </Text>
+                {strings('app_settings.add_block_explorer_url')}
               </BottomSheetHeader>
 
               {/* Scrollable Middle Content */}
@@ -2134,9 +2125,7 @@ export class NetworkSettings extends PureComponent {
             <View style={styles.container}>
               {/* Sticky Header */}
               <BottomSheetHeader>
-                <Text style={styles.heading}>
-                  {strings('app_settings.add_rpc_url')}
-                </Text>
+                {strings('app_settings.add_rpc_url')}
               </BottomSheetHeader>
 
               {/* Scrollable Middle Content */}

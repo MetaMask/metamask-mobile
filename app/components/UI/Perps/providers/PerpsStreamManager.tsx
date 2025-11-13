@@ -43,8 +43,15 @@ abstract class StreamChannel<T> {
   protected accountAddress: string | null = null;
   // Track WebSocket connection timing for first data measurement
   protected wsConnectionStartTime: number | null = null;
+  // Flag to pause emission during operations (keeps WebSocket alive)
+  protected isPaused = false;
 
   protected notifySubscribers(updates: T) {
+    // Block emission if paused (WebSocket continues receiving updates)
+    if (this.isPaused) {
+      return;
+    }
+
     this.subscribers.forEach((subscriber) => {
       // Check if this is the first update for this subscriber
       if (!subscriber.hasReceivedFirstUpdate) {
@@ -139,6 +146,23 @@ abstract class StreamChannel<T> {
     }
     this.accountAddress = null;
     this.wsConnectionStartTime = null;
+  }
+
+  /**
+   * Pause emission of updates to subscribers
+   * WebSocket connection stays alive and continues receiving data
+   * Used during batch operations to prevent UI re-renders from stale data
+   */
+  public pause(): void {
+    this.isPaused = true;
+  }
+
+  /**
+   * Resume emission of updates to subscribers
+   * Subscribers will receive the next update from the WebSocket
+   */
+  public resume(): void {
+    this.isPaused = false;
   }
 
   protected getCachedData(): T | null {
@@ -412,7 +436,6 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
     // Track WebSocket connection start time for duration calculation
     this.wsConnectionStartTime = performance.now();
 
-    // This calls HyperLiquidSubscriptionService.subscribeToOrders which uses shared webData2
     this.wsSubscription = Engine.context.PerpsController.subscribeToOrders({
       callback: (orders: Order[]) => {
         // Validate account context
@@ -548,7 +571,6 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
     // Track WebSocket connection start time for duration calculation
     this.wsConnectionStartTime = performance.now();
 
-    // This calls HyperLiquidSubscriptionService.subscribeToPositions which uses shared webData2
     this.wsSubscription = Engine.context.PerpsController.subscribeToPositions({
       callback: (positions: Position[]) => {
         // Validate account context
@@ -823,6 +845,97 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
   }
 }
 
+// Open Interest Cap channel for tracking markets at capacity
+class OICapStreamChannel extends StreamChannel<string[]> {
+  private prewarmUnsubscribe?: () => void;
+
+  protected connect() {
+    if (this.wsSubscription) return;
+
+    // Check if controller is reinitializing - wait before attempting connection
+    if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
+      setTimeout(
+        () => this.connect(),
+        PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS,
+      );
+      return;
+    }
+
+    // Subscribe to OI cap updates (zero overhead - extracted from existing webData3)
+    this.wsSubscription = Engine.context.PerpsController.subscribeToOICaps({
+      callback: (caps: string[]) => {
+        // Validate account context
+        const currentAccount =
+          getEvmAccountFromSelectedAccountGroup()?.address || null;
+        if (this.accountAddress && this.accountAddress !== currentAccount) {
+          Logger.error(new Error('OICapStreamChannel: Wrong account context'), {
+            expected: currentAccount,
+            received: this.accountAddress,
+          });
+          return;
+        }
+        this.accountAddress = currentAccount;
+
+        this.cache.set('oiCaps', caps);
+        this.notifySubscribers(caps);
+      },
+    });
+  }
+
+  protected getCachedData(): string[] | null {
+    // Return null if no cache exists to distinguish from empty array
+    const cached = this.cache.get('oiCaps');
+    return cached !== undefined ? cached : null;
+  }
+
+  protected getClearedData(): string[] {
+    return [];
+  }
+
+  /**
+   * Pre-warm the channel by creating a persistent subscription
+   * This keeps the WebSocket connection alive and caches data continuously
+   * @returns Cleanup function to call when leaving Perps environment
+   */
+  public prewarm(): () => void {
+    if (this.prewarmUnsubscribe) {
+      DevLogger.log('OICapStreamChannel: Already pre-warmed');
+      return this.prewarmUnsubscribe;
+    }
+
+    // Create a real subscription with no-op callback to keep connection alive
+    this.prewarmUnsubscribe = this.subscribe({
+      callback: () => {
+        // No-op callback - just keeps the connection alive for caching
+      },
+      throttleMs: 0, // No throttle for pre-warm
+    });
+
+    // Return cleanup function that clears internal state
+    return () => {
+      DevLogger.log('OICapStreamChannel: Cleaning up prewarm subscription');
+      this.cleanupPrewarm();
+    };
+  }
+
+  /**
+   * Cleanup pre-warm subscription
+   */
+  public cleanupPrewarm(): void {
+    if (this.prewarmUnsubscribe) {
+      this.prewarmUnsubscribe();
+      this.prewarmUnsubscribe = undefined;
+    }
+  }
+
+  public clearCache(): void {
+    // Cleanup pre-warm subscription
+    this.cleanupPrewarm();
+    // Call parent clearCache
+    super.clearCache();
+  }
+}
+
 // Top of book channel for best bid/ask data
 class TopOfBookStreamChannel extends StreamChannel<
   { bestBid?: string; bestAsk?: string; spread?: string } | undefined
@@ -921,10 +1034,11 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   private readonly CACHE_DURATION =
     PERFORMANCE_CONFIG.MARKET_DATA_CACHE_DURATION_MS;
 
-  protected async connect() {
-    // Wait for connection to complete if in progress
-    while (PerpsConnectionManager.isCurrentlyConnecting()) {
-      await new Promise((resolve) => setTimeout(resolve, 200));
+  protected connect() {
+    // Check if connection manager is still connecting - retry later if so
+    if (PerpsConnectionManager.isCurrentlyConnecting()) {
+      setTimeout(() => this.connect(), 200);
+      return;
     }
 
     // Fetch if cache is stale or empty
@@ -1083,6 +1197,7 @@ export class PerpsStreamManager {
   public readonly fills = new FillStreamChannel();
   public readonly account = new AccountStreamChannel();
   public readonly marketData = new MarketDataChannel();
+  public readonly oiCaps = new OICapStreamChannel();
   public readonly topOfBook = new TopOfBookStreamChannel();
 
   // Future channels can be added here:

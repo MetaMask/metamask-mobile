@@ -1,4 +1,9 @@
-import { BtcScope, CaipChainId, SolScope } from '@metamask/keyring-api';
+import {
+  BtcScope,
+  CaipChainId,
+  SolScope,
+  TrxScope,
+} from '@metamask/keyring-api';
 import { BridgeToken } from '../types';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -94,6 +99,15 @@ export const DefaultSwapDestTokens: Record<Hex | CaipChainId, BridgeToken> = {
       'https://static.cx.metamask.io/api/v1/tokenIcons/1329/0xe15fc38f6d8c56af07bbcbe3baf5708a2bf42392.png',
     chainId: CHAIN_IDS.SEI,
   },
+  [CHAIN_IDS.MONAD]: {
+    symbol: 'USDC',
+    name: 'USD Coin',
+    address: '0x754704Bc059F8C67012fEd69BC8A327a5aafb603',
+    decimals: 6,
+    image:
+      'https://static.cx.metamask.io/api/v1/tokenIcons/143/0x754704Bc059F8C67012fEd69BC8A327a5aafb603.png',
+    chainId: CHAIN_IDS.MONAD,
+  },
   [SolScope.Mainnet]: {
     address:
       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
@@ -103,6 +117,15 @@ export const DefaultSwapDestTokens: Record<Hex | CaipChainId, BridgeToken> = {
     image:
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png',
     chainId: SolScope.Mainnet,
+  },
+  [TrxScope.Mainnet]: {
+    address: 'tron:728126428/trc20:TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+    symbol: 'USDT',
+    name: 'Tether USD',
+    decimals: 6,
+    image:
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/tron/728126428/trc20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t.png',
+    chainId: TrxScope.Mainnet,
   },
 };
 
@@ -163,4 +186,13 @@ export const Bip44TokensForDefaultPairs: Record<CaipAssetType, BridgeToken> = {
       chainId: SolScope.Mainnet,
       name: 'USD Coin',
     },
+  'tron:728126428/trc20:TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t': {
+    address: 'tron:728126428/trc20:TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+    symbol: 'USDT',
+    decimals: 6,
+    image:
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/tron/728126428/trc20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t.png',
+    chainId: TrxScope.Mainnet,
+    name: 'Tether USD',
+  },
 };

@@ -108,6 +108,14 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => mockUseRoute(),
 }));
 
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      trackActivityViewed: jest.fn(),
+    },
+  },
+}));
+
 const baseBuyActivity: PredictActivityItem = {
   id: '1',
   type: PredictActivityType.BUY,
@@ -145,6 +153,10 @@ const renderWithActivity = (overrides?: Partial<PredictActivityItem>) => {
 
 describe('PredictActivityDetail', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 
@@ -187,7 +199,7 @@ describe('PredictActivityDetail', () => {
     expect(screen.getByText(expectedPricePerShare)).toBeOnTheScreen();
 
     expect(screen.getByText('Price impact')).toBeOnTheScreen();
-    expect(screen.getByText('+1.50%')).toBeOnTheScreen();
+    expect(screen.getByText('2%')).toBeOnTheScreen();
 
     expect(screen.queryByLabelText('USDC')).toBeNull();
   });

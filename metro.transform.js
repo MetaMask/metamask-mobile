@@ -21,6 +21,7 @@ const availableFeatures = new Set([
   'multi-srp',
   'bitcoin',
   'solana',
+  'sample-feature',
   'tron',
   'experimental',
 ]);
@@ -30,6 +31,8 @@ const mainFeatureSet = new Set([
   'keyring-snaps',
   'multi-srp',
   'solana',
+  'bitcoin',
+  'tron',
 ]);
 const betaFeatureSet = new Set([
   'beta',
@@ -38,6 +41,7 @@ const betaFeatureSet = new Set([
   'multi-srp',
   'solana',
   'bitcoin',
+  'tron',
 ]);
 const flaskFeatureSet = new Set([
   'flask',
@@ -61,6 +65,8 @@ const experimentalFeatureSet = new Set([...mainFeatureSet, 'experimental']);
 function getBuildTypeFeatures() {
   const buildType = process.env.METAMASK_BUILD_TYPE ?? 'main';
   const envType = process.env.METAMASK_ENVIRONMENT ?? 'production';
+  let features;
+
   switch (buildType) {
     // TODO: Remove uppercase QA once we've consolidated build types
     case 'qa':
@@ -69,18 +75,29 @@ function getBuildTypeFeatures() {
       // TODO: Refactor this once we've abstracted environment away from build type
       if (envType === 'exp') {
         // Only include experimental features in experimental environment
-        return experimentalFeatureSet;
+        features = experimentalFeatureSet;
+        break;
       }
-      return envType === 'beta' ? betaFeatureSet : mainFeatureSet;
+      features = envType === 'beta' ? betaFeatureSet : mainFeatureSet;
+      break;
     case 'beta':
-      return betaFeatureSet;
+      features = betaFeatureSet;
+      break;
     case 'flask':
-      return flaskFeatureSet;
+      features = flaskFeatureSet;
+      break;
     default:
       throw new Error(
         `Invalid METAMASK_BUILD_TYPE of ${buildType} was passed to metro transform`,
       );
   }
+
+  // Add sample-feature only if explicitly enabled via env var
+  if (process.env.INCLUDE_SAMPLE_FEATURE === 'true') {
+    features.add('sample-feature');
+  }
+
+  return features;
 }
 
 /**

@@ -894,6 +894,7 @@ describe('MetaMetrics', () => {
           expect.anything(),
         );
       });
+
       it('regenerates new ID when stored ID is version 1 UUID', async () => {
         // Example UUIDv1 format: time-based
         const uuidV1 = '12345678-1234-1234-a234-123456789012';

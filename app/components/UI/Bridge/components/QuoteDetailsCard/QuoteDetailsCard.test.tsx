@@ -73,10 +73,32 @@ jest.mock('../../../../../core/Engine', () => ({
 // Mock the bridge selectors
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../../../core/redux/slices/bridge'),
+  selectBridgeControllerState: () => ({
+    quotesLastFetched: Date.now(),
+    quotesLoadingStatus: null,
+    quoteFetchError: null,
+    quotesRefreshCount: 0,
+  }),
   selectBridgeFeatureFlags: () => ({
+    minimumVersion: '0.0.0',
+    refreshRate: 30000,
+    maxRefreshCount: 3,
+    support: true,
     priceImpactThreshold: {
       normal: 3.0,
       gasless: 1.5,
+    },
+    chains: {
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+        refreshRate: 30000,
+        isActiveSrc: true,
+        isActiveDest: true,
+      },
+      'eip155:1': {
+        refreshRate: 30000,
+        isActiveSrc: true,
+        isActiveDest: true,
+      },
     },
   }),
   selectIsEvmSolanaBridge: () => true,
@@ -398,7 +420,7 @@ describe('QuoteDetailsCard', () => {
 
     // The key is testing the shouldShowPriceImpactWarning conditional branches
     // Verify the Price Impact section is visible (this exercises the component logic)
-    expect(getByText('Price Impact')).toBeTruthy();
+    expect(getByText('Price impact')).toBeTruthy();
 
     // Test the shouldShowPriceImpactWarning branches by checking for tooltip presence
     const hasWarningTooltip =

@@ -97,7 +97,7 @@
       "message": "Perps unterstützt keine Hardware-Wallets.\nWechseln Sie das Konto, um die Finanzierung fortzusetzen."
     },
     "burn_address": {
-      "message": "Sie senden Ihre Vermögenswerte an eine Burn-Adresse. Wenn Sie fortfahren, verlieren Sie Ihre Vermögenswerte.",
+      "message": "Sie senden Ihre Vermögenswerte an eine temporäre Adresse. Wenn Sie fortfahren, verlieren Sie Ihre Vermögenswerte.",
       "title": "Senden von Vermögenswerten an die Burn-Adresse"
     }
   },

@@ -4,7 +4,8 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
-import { SolScope, BtcScope } from '@metamask/keyring-api';
+import { SolScope, BtcScope, TrxScope } from '@metamask/keyring-api';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const {
   ETH_CHAIN_ID,
@@ -31,6 +32,7 @@ const allowedChainIds = [
   LINEA_CHAIN_ID,
   BASE_CHAIN_ID,
   SEI_CHAIN_ID,
+  CHAIN_IDS.MONAD,
   SWAPS_TESTNET_CHAIN_ID,
 ];
 
@@ -51,7 +53,11 @@ export function isSwapsAllowed(chainId) {
     allowedChainIds.push(SWAPS_TESTNET_CHAIN_ID);
   }
 
-  if (chainId === SolScope.Mainnet || chainId === BtcScope.Mainnet) {
+  if (
+    chainId === SolScope.Mainnet ||
+    chainId === BtcScope.Mainnet ||
+    chainId === TrxScope.Mainnet
+  ) {
     return true;
   }
 

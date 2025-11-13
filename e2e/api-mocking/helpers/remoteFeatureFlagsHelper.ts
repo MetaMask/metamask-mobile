@@ -265,7 +265,19 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
     walletFrameworkRpcFailoverEnabled: true,
   },
   {
-    predictEnabled: false,
+    predictTradingEnabled: {
+      enabled: false,
+      minimumVersion: '7.60.0',
+    },
+  },
+  {
+    additionalNetworksBlacklist: [], // Empty by default, can be overridden in tests
+  },
+  {
+    rampsUnifiedBuyV1: {
+      minimumVersion: '7.61.0',
+      active: false,
+    },
   },
 ];
 
