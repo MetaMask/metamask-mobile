@@ -12,6 +12,7 @@ import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 import { ensureError } from '../utils/predictErrorHandler';
 import { usePredictTrading } from './usePredictTrading';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import Routes from '../../../../constants/navigation/Routes';
 
 interface UsePredictClaimParams {
   providerId?: string;
@@ -31,6 +32,8 @@ export const usePredictClaim = ({
       navigateToConfirmation({
         headerShown: false,
         loader: ConfirmationLoader.PredictClaim,
+        // TODO: remove once navigation stack is fixed properly
+        stack: Routes.PREDICT.ROOT,
       });
       await claimWinnings({ providerId });
     } catch (err) {

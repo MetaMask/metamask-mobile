@@ -143,6 +143,7 @@ describe('usePredictClaim', () => {
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
         headerShown: false,
         loader: ConfirmationLoader.PredictClaim,
+        stack: 'Predict',
       });
       expect(mockClaimWinnings).toHaveBeenCalledWith({
         providerId: POLYMARKET_PROVIDER_ID,
@@ -273,6 +274,7 @@ describe('usePredictClaim', () => {
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
         headerShown: false,
         loader: ConfirmationLoader.PredictClaim,
+        stack: 'Predict',
       });
       expect(mockClaimWinnings).toHaveBeenCalledWith({
         providerId: POLYMARKET_PROVIDER_ID,
