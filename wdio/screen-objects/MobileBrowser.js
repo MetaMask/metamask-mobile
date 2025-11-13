@@ -27,7 +27,7 @@ class MobileBrowserScreen {
     get chromeUrlBar() {
         if (!this._device) {
             return;
-        } 
+        }
 
         if (AppwrightSelectors.isAndroid(this._device)) {
             return AppwrightSelectors.getElementByID(this._device, 'com.android.chrome:id/url_bar');
@@ -51,6 +51,26 @@ class MobileBrowserScreen {
 
         if (AppwrightSelectors.isAndroid(this._device)) {
             return AppwrightSelectors.getElementByID(this._device, 'com.android.chrome:id/negative_button');
+        }
+    }
+
+    get chromeMenuButton() {
+        if (!this._device) {
+            return;
+        }
+
+        if (AppwrightSelectors.isAndroid(this._device)) {
+            return AppwrightSelectors.getElementByID(this._device, 'com.android.chrome:id/menu_button');
+        }
+    }
+
+    get chromeRefreshButton() {
+        if (!this._device) {
+            return;
+        }
+
+        if (AppwrightSelectors.isAndroid(this._device)) {
+            return AppwrightSelectors.getElementByID(this._device, 'com.android.chrome:id/button_five');
         }
     }
 
@@ -98,7 +118,24 @@ class MobileBrowserScreen {
         const element = await this.chromeNoThanksButton;
         await AppwrightGestures.tap(element)
     }
+
+    async tapChromeMenuButton() {
+        if (!this._device) {
+            return;
+        }
+
+        const element = await this.chromeMenuButton;
+        await AppwrightGestures.tap(element)
+    }
+
+    async tapChromeRefreshButton() {
+        if (!this._device) {
+            return;
+        }
+
+        const element = await this.chromeRefreshButton;
+        await AppwrightGestures.tap(element)
+    }
 }
-  
-  export default new MobileBrowserScreen();
-  
+
+export default new MobileBrowserScreen();

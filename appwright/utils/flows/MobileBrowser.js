@@ -31,3 +31,14 @@ export async function navigateToDapp(device, url, dappName) {
   }
   throw new Error('Unsupported platform');
 }
+
+export async function refreshMobileBrowser(device) {
+  if (AppwrightSelectors.isIOS(device)) {
+    throw new Error('Not implemented');
+  }
+  if (AppwrightSelectors.isAndroid(device)) {
+    await MobileBrowserScreen.tapChromeMenuButton();
+    return MobileBrowserScreen.tapChromeRefreshButton();
+  }
+  throw new Error('Unsupported platform');
+}
