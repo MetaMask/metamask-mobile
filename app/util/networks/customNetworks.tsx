@@ -89,6 +89,19 @@ export const PopularList = [
     },
   },
   {
+    chainId: toHex('999'),
+    nickname: 'HyperEVM',
+    rpcUrl: 'https://rpc.hyperliquid.xyz/evm',
+    failoverRpcUrls: [],
+    ticker: 'HYPE',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://hyperevmscan.io/',
+      imageUrl: 'HYPE',
+      imageSource: require('../../images/hyperevm.png'),
+    },
+  },
+  {
     chainId: toHex('10'),
     nickname: 'OP',
     rpcUrl: `https://optimism-mainnet.infura.io/v3/${infuraProjectId}`,
@@ -350,6 +363,7 @@ export const NETWORK_CHAIN_ID: {
   readonly INJECTIVE: '0x6f0';
   readonly PLASMA: '0x2611';
   readonly CRONOS: '0x19';
+  readonly HYPE: '0x3e7';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -384,6 +398,7 @@ export const NETWORK_CHAIN_ID: {
   INJECTIVE: '0x6f0',
   PLASMA: '0x2611',
   CRONOS: '0x19',
+  HYPE: '0x3e7',
   ...CHAIN_IDS,
 };
 
@@ -424,4 +439,5 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.INJECTIVE]: require('../../images/injective.png'),
   [NETWORK_CHAIN_ID.PLASMA]: require('../../images/plasma.png'),
   [NETWORK_CHAIN_ID.CRONOS]: require('../../images/cronos.png'),
+  [NETWORK_CHAIN_ID.HYPE]: require('../../images/hyperevm.png'),
 };
