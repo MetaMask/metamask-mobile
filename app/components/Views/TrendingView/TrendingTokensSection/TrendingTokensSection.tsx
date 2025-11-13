@@ -22,22 +22,6 @@ const TrendingTokensSection = () => {
     // TODO: Implement token press logic
   }, []);
 
-  // Show skeleton during initial load or when there are no tokens
-  if (isLoading || trendingTokens.length === 0) {
-    return (
-      <View>
-        <SectionHeader
-          title={strings('trending.tokens')}
-          viewAllText={strings('trending.view_all')}
-          onViewAll={handleViewAll}
-        />
-        <SectionCard>
-          <TrendingTokensSkeleton count={3} />
-        </SectionCard>
-      </View>
-    );
-  }
-
   return (
     <View>
       <SectionHeader
@@ -46,10 +30,14 @@ const TrendingTokensSection = () => {
         onViewAll={handleViewAll}
       />
       <SectionCard>
-        <TrendingTokensList
-          trendingTokens={trendingTokens}
-          onTokenPress={handleTokenPress}
-        />
+        {isLoading || trendingTokens.length === 0 ? (
+          <TrendingTokensSkeleton count={3} />
+        ) : (
+          <TrendingTokensList
+            trendingTokens={trendingTokens}
+            onTokenPress={handleTokenPress}
+          />
+        )}
       </SectionCard>
     </View>
   );

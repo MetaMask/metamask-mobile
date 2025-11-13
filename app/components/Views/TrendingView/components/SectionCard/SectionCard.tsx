@@ -8,6 +8,7 @@ const createStyles = (theme: Theme) =>
   StyleSheet.create({
     cardContainer: {
       borderRadius: 12,
+      marginBottom: 20,
       paddingVertical: 16,
       paddingHorizontal: 16,
       backgroundColor: theme.colors.background.muted,

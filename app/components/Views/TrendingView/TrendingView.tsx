@@ -29,6 +29,7 @@ import ExploreSearchScreen from './ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
 import { PredictModalStack } from '../../UI/Predict/routes';
 import PredictionSection from './PredictionSection/PredictionSection';
+import PerpsSection from './PerpsSection/PerpsSection';
 
 const Stack = createStackNavigator();
 
@@ -128,6 +129,7 @@ const TrendingFeed: React.FC = () => {
       >
         <PredictionSection />
         <TrendingTokensSection />
+        <PerpsSection />
       </ScrollView>
     </Box>
   );
