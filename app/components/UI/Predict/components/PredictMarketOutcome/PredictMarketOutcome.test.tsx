@@ -114,7 +114,7 @@ describe('PredictMarketOutcome', () => {
     );
 
     expect(getByText('Crypto Markets')).toBeOnTheScreen();
-    expect(getByText('+65%')).toBeOnTheScreen();
+    expect(getByText('65%')).toBeOnTheScreen();
     expect(getByText(/\$1M.*Vol\./)).toBeOnTheScreen();
   });
 
@@ -138,25 +138,19 @@ describe('PredictMarketOutcome', () => {
     const noButton = getByText(/35¢/);
 
     fireEvent.press(yesButton);
-    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
-      screen: 'PredictBuyPreview',
-      params: {
-        market: mockMarket,
-        outcome: mockOutcome,
-        outcomeToken: mockOutcome.tokens[0],
-        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-      },
+    expect(mockNavigate).toHaveBeenCalledWith('PredictBuyPreview', {
+      market: mockMarket,
+      outcome: mockOutcome,
+      outcomeToken: mockOutcome.tokens[0],
+      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
     });
 
     fireEvent.press(noButton);
-    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
-      screen: 'PredictBuyPreview',
-      params: {
-        market: mockMarket,
-        outcome: mockOutcome,
-        outcomeToken: mockOutcome.tokens[1],
-        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-      },
+    expect(mockNavigate).toHaveBeenCalledWith('PredictBuyPreview', {
+      market: mockMarket,
+      outcome: mockOutcome,
+      outcomeToken: mockOutcome.tokens[1],
+      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
     });
   });
 
@@ -374,7 +368,7 @@ describe('PredictMarketOutcome', () => {
 
     // The component now shows the groupItemTitle directly, even if it's undefined
     // We can verify the component renders without errors by checking other elements
-    expect(getByText('+65%')).toBeOnTheScreen();
+    expect(getByText('65%')).toBeOnTheScreen();
     expect(getByText(/\$1M.*Vol\./)).toBeOnTheScreen();
   });
 
@@ -658,26 +652,20 @@ describe('PredictMarketOutcome', () => {
 
       fireEvent.press(yesButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
-        screen: 'PredictBuyPreview',
-        params: {
-          market: mockMarket,
-          outcome: outcomeWithLongLabels,
-          outcomeToken: outcomeWithLongLabels.tokens[0],
-          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-        },
+      expect(mockNavigate).toHaveBeenCalledWith('PredictBuyPreview', {
+        market: mockMarket,
+        outcome: outcomeWithLongLabels,
+        outcomeToken: outcomeWithLongLabels.tokens[0],
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       });
 
       fireEvent.press(noButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
-        screen: 'PredictBuyPreview',
-        params: {
-          market: mockMarket,
-          outcome: outcomeWithLongLabels,
-          outcomeToken: outcomeWithLongLabels.tokens[1],
-          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-        },
+      expect(mockNavigate).toHaveBeenCalledWith('PredictBuyPreview', {
+        market: mockMarket,
+        outcome: outcomeWithLongLabels,
+        outcomeToken: outcomeWithLongLabels.tokens[1],
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       });
     });
   });

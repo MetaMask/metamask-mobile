@@ -55,7 +55,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
     <Box twClassName="pt-4 px-4 pb-6 flex-col gap-4">
       {/* Fees Row with Info Icon */}
       <Box twClassName="flex-row justify-between items-center">
-        <Box twClassName="flex-row items-center gap-1">
+        <Box twClassName="flex-row items-center">
           <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
             {strings('predict.fee_summary.fees')}
           </Text>

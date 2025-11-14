@@ -16,6 +16,7 @@ import { mockTheme, ThemeContext } from '../theme';
 import { Theme } from '../theme/models';
 import configureStore from './configureStore';
 import { RootState } from '../../reducers';
+import { FeatureFlagOverrideProvider } from '../../contexts/FeatureFlagOverrideContext';
 
 // DeepPartial is a generic type that recursively makes all properties of a given type T optional
 export type DeepPartial<T> = T extends (...args: unknown[]) => unknown
@@ -38,27 +39,39 @@ export default function renderWithProvider(
   component: React.ReactElement,
   providerValues?: ProviderValues,
   includeNavigationContainer = true,
+  includeFeatureFlagOverrideProvider = true,
 ) {
   const { state = {}, theme = mockTheme } = providerValues ?? {};
   const store = configureStore(state);
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   require('../../store')._updateMockState(state);
 
-  const InnerProvider = ({ children }: { children: React.ReactElement }) => (
-    <Provider store={store}>
-      <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>
-    </Provider>
-  );
-
-  const AllProviders = ({ children }: { children: React.ReactElement }) => {
-    if (includeNavigationContainer) {
-      return (
-        <NavigationContainer>
-          <InnerProvider>{children}</InnerProvider>
-        </NavigationContainer>
+  const InnerProvider = ({ children }: { children: React.ReactElement }) => {
+    let wrappedChildren = children;
+    if (includeFeatureFlagOverrideProvider) {
+      wrappedChildren = (
+        <FeatureFlagOverrideProvider>
+          {wrappedChildren}
+        </FeatureFlagOverrideProvider>
       );
     }
-    return <InnerProvider>{children}</InnerProvider>;
+    return (
+      <Provider store={store}>
+        <ThemeContext.Provider value={theme}>
+          {wrappedChildren}
+        </ThemeContext.Provider>
+      </Provider>
+    );
+  };
+
+  const AllProviders = ({ children }: { children: React.ReactElement }) => {
+    let wrappedChildren = <InnerProvider>{children}</InnerProvider>;
+    if (includeNavigationContainer) {
+      wrappedChildren = (
+        <NavigationContainer>{wrappedChildren}</NavigationContainer>
+      );
+    }
+    return wrappedChildren;
   };
 
   return { ...render(component, { wrapper: AllProviders }), store };
