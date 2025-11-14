@@ -182,7 +182,7 @@ describe('useNotificationFilters', () => {
     expect(hook.result.current.allNotifications).toHaveLength(1);
   });
 
-  it('filters and returns wallet notifications and announcement notifications', () => {
+  it('returns all notifications', () => {
     const notifications = [createEthNotif(), createAnnonucementNotif()];
     const hook = renderHook(() => useNotificationFilters({ notifications }));
     expect(hook.result.current.allNotifications).toHaveLength(2);
