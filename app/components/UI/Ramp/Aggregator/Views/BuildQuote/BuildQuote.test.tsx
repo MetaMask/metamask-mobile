@@ -12,6 +12,7 @@ import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
 import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
+import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 import {
   mockCryptoCurrenciesData,
   mockFiatCurrenciesData,
@@ -194,6 +195,7 @@ const mockUseLimitsInitialValues: Partial<ReturnType<typeof useLimits>> = {
     feeFixedRate: 1,
     quickAmounts: [100, 500, 1000],
   },
+  isFetching: false,
   isAmountBelowMinimum: jest
     .fn()
     .mockImplementation((amount) => amount < MIN_LIMIT),
@@ -312,6 +314,12 @@ jest.mock('../../../../../../selectors/networkController', () => ({
   ...jest.requireActual('../../../../../../selectors/networkController'),
 }));
 
+const mockIsNonEvmAddress = jest.fn();
+jest.mock('../../../../../../core/Multichain/utils', () => ({
+  ...jest.requireActual('../../../../../../core/Multichain/utils'),
+  isNonEvmAddress: (address: string) => mockIsNonEvmAddress(address),
+}));
+
 describe('BuildQuote View', () => {
   afterEach(() => {
     mockNavigate.mockClear();
@@ -348,6 +356,7 @@ describe('BuildQuote View', () => {
     mockUseGasPriceEstimationValue = {
       ...mockUseGasPriceEstimationInitialValue,
     };
+    mockIsNonEvmAddress.mockReturnValue(false);
   });
 
   //
@@ -421,9 +430,9 @@ describe('BuildQuote View', () => {
 
   it('navigates and tracks event on cancel button press', async () => {
     render(BuildQuote);
-    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
+    fireEvent.press(screen.getByTestId('deposit-close-navbar-button'));
     expect(mockPop).toHaveBeenCalled();
-    expect(mockTrackEvent).toBeCalledWith('ONRAMP_CANCELED', {
+    expect(mockTrackEvent).toHaveBeenCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '1',
       location: 'Amount to Buy Screen',
     });
@@ -435,9 +444,9 @@ describe('BuildQuote View', () => {
     mockUseRampSDKValues.isSell = true;
     mockUseRampSDKValues.rampType = RampType.SELL;
     render(BuildQuote);
-    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
+    fireEvent.press(screen.getByTestId('deposit-close-navbar-button'));
     expect(mockPop).toHaveBeenCalled();
-    expect(mockTrackEvent).toBeCalledWith('OFFRAMP_CANCELED', {
+    expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_CANCELED', {
       chain_id_source: '1',
       location: 'Amount to Sell Screen',
     });
@@ -468,6 +477,17 @@ describe('BuildQuote View', () => {
       };
     });
     expect(endTrace).toHaveBeenCalledTimes(1);
+  });
+
+  describe('Balance display', () => {
+    it('displays balance from useBalance for non-EVM addresses', () => {
+      mockIsNonEvmAddress.mockReturnValue(true);
+      mockUseRampSDKValues.selectedAddress =
+        'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
+      mockUseBalanceValues.balance = '1.5';
+      render(BuildQuote);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
   });
 
   describe('Regions data', () => {
@@ -715,6 +735,29 @@ describe('BuildQuote View', () => {
         screen.getByText(`Minimum deposit is ${denomSymbol}${MIN_LIMIT}`),
       ).toBeTruthy();
     });
+
+    it('clears the amount when the keyboard is freshly opened', () => {
+      render(BuildQuote);
+      const denomSymbol =
+        mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
+
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+      fireEvent.press(getByRoleButton('1'));
+      fireEvent.press(getByRoleButton('0'));
+      fireEvent.press(getByRoleButton('0'));
+      fireEvent.press(getByRoleButton('Done'));
+
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent(`${denomSymbol}100`);
+
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+      fireEvent.press(getByRoleButton('2'));
+
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent(`${denomSymbol}2`);
+    });
   });
 
   describe('Amount to sell input', () => {
@@ -885,6 +928,28 @@ describe('BuildQuote View', () => {
       fireEvent.press(getByRoleButton('50%'));
       expect(getByRoleButton(`0.5 ${symbol}`)).toBeTruthy();
     });
+
+    it('clears the amount when the keyboard is freshly opened', () => {
+      render(BuildQuote);
+      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+      fireEvent.press(getByRoleButton('1'));
+      fireEvent.press(getByRoleButton('0'));
+      fireEvent.press(getByRoleButton('0'));
+      fireEvent.press(getByRoleButton('Done'));
+
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent(`100 ${symbol}`);
+
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+      fireEvent.press(getByRoleButton('2'));
+
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent(`2 ${symbol}`);
+    });
   });
 
   //
@@ -918,6 +983,9 @@ describe('BuildQuote View', () => {
       amount: VALID_AMOUNT,
       currency_source: mockUseFiatCurrenciesValues?.currentFiatCurrency?.symbol,
       currency_destination: mockUseRampSDKValues?.selectedAsset?.symbol,
+      currency_destination_symbol: mockUseRampSDKValues?.selectedAsset?.symbol,
+      currency_destination_network:
+        mockUseRampSDKValues?.selectedAsset?.network.shortName,
       payment_method_id: mockUsePaymentMethodsValues.currentPaymentMethod?.id,
       chain_id_destination: '1',
       location: 'Amount to Buy Screen',
@@ -960,6 +1028,9 @@ describe('BuildQuote View', () => {
     expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_QUOTES_REQUESTED', {
       amount: VALID_AMOUNT,
       currency_source: mockUseRampSDKValues?.selectedAsset?.symbol,
+      currency_source_symbol: mockUseRampSDKValues?.selectedAsset?.symbol,
+      currency_source_network:
+        mockUseRampSDKValues?.selectedAsset?.network?.shortName,
       currency_destination:
         mockUseFiatCurrenciesValues?.currentFiatCurrency?.symbol,
       payment_method_id: mockUsePaymentMethodsValues.currentPaymentMethod?.id,

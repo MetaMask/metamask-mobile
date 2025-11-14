@@ -1,0 +1,47 @@
+---
+globs: "**/*"
+alwaysApply: true
+---
+
+# General Coding Guidelines
+
+## Required Reading Before Development
+
+**ALWAYS** check: `.github/guidelines/CODING_GUIDELINES.md` • `README.md` • Relevant `/docs` before coding
+
+**Docs Structure**: `/docs/readme/` (core) • `/docs/` (features) • `README.md` (overview)
+
+## Development Workflow
+
+**Before Starting**: Read README.md → Check coding guidelines → Review relevant docs → Understand architecture
+
+**Code Quality**:
+- TypeScript guidelines from contributor docs • Functional components + hooks • PascalCase (components) / camelCase (functions)
+- Reusable components/utilities • TSDoc format • Comprehensive tests • Apply `.cursor/rules/unit-testing-guidelines.mdc`
+
+**File Organization**:
+```
+ComponentName/
+├── ComponentName.{constants,stories,styles,test,types}.ts(x)
+├── ComponentName.tsx
+├── README.md
+└── index.ts
+```
+
+## Documentation Quick Reference
+
+**Core**: `/docs/readme/` (architecture, testing, debugging, performance, environment, expo-environment, storybook, troubleshooting, expo-e2e-testing, reassure, release-build-profiler)
+
+**Features**: `/docs/` (deeplinks, animations, tailwind, confirmations, confirmation-refactoring) • `app/component-library/README.md` • `e2e/MOCKING.md` • `CHANGELOG.md` • `app/core/{Analytics,Engine}/README.md`
+
+**External**: [MetaMask Contributor Docs](https://github.com/MetaMask/contributor-docs) • [TypeScript Guidelines](https://github.com/MetaMask/contributor-docs/blob/main/docs/typescript.md) • [Unit Testing](https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/unit-testing.md)
+
+## Enforcement (MANDATORY)
+
+**Documentation**: Read `.github/guidelines/`, `README.md`, and relevant `/docs` before implementing
+
+**Commands**: ONLY use `.claude/commands/` + yarn command
+
+**Testing**: see .claude/commands/unit-test.md
+
+**Forbidden**: ❌ npm/npx commands

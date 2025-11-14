@@ -33,7 +33,7 @@ import {
   ISegmentClient,
   ITrackingEvent,
 } from './MetaMetrics.types';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4, validate, version } from 'uuid';
 import { Config } from '@segment/analytics-react-native/lib/typescript/src/types';
 import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
 import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
@@ -41,6 +41,7 @@ import { isE2E } from '../../util/test/utils';
 import MetaMetricsPrivacySegmentPlugin from './MetaMetricsPrivacySegmentPlugin';
 import MetaMetricsTestUtils from './MetaMetricsTestUtils';
 import { segmentPersistor } from './SegmentPersistor';
+import { isHexAddress } from '@metamask/utils';
 
 /**
  * MetaMetrics using Segment as the analytics provider.
@@ -287,7 +288,7 @@ class MetaMetrics implements IMetaMetrics {
   /**
    * Retrieve the analytics user ID from references
    *
-   * Generates a new ID if none is found
+   * Generates a new ID if none is found or if the stored ID is corrupted
    *
    * @returns Promise containing the user ID
    */
@@ -298,17 +299,28 @@ class MetaMetrics implements IMetaMetrics {
     // this same ID should be retrieved from preferences and reused.
     // look for a legacy ID from MixPanel integration and use it
     const legacyId = await StorageWrapper.getItem(MIXPANEL_METAMETRICS_ID);
-    if (legacyId) {
+    if (legacyId && isHexAddress(legacyId.toLowerCase())) {
       this.metametricsId = legacyId;
       await StorageWrapper.setItem(METAMETRICS_ID, legacyId);
       return legacyId;
     }
 
     // look for a new Metametics ID and use it or generate a new one
-    const metametricsId: string | undefined = await StorageWrapper.getItem(
-      METAMETRICS_ID,
-    );
-    if (!metametricsId) {
+    const metametricsId: string | undefined =
+      await StorageWrapper.getItem(METAMETRICS_ID);
+
+    // This catches '""', 'null', 'undefined', and other corruptions
+    if (
+      !metametricsId ||
+      !validate(metametricsId) ||
+      version(metametricsId) !== 4
+    ) {
+      if (metametricsId) {
+        // Log corruption for monitoring
+        Logger.log(
+          `MetaMetrics: Corrupted metaMetricsId detected and regenerated. Invalid value: ${metametricsId}`,
+        );
+      }
       // keep the id format compatible with MixPanel but base it on a UUIDv4
       this.metametricsId = uuidv4();
       await StorageWrapper.setItem(METAMETRICS_ID, this.metametricsId);
@@ -683,7 +695,7 @@ class MetaMetrics implements IMetaMetrics {
    * and user traits are updated with the latest ones
    */
   addTraitsToUser = (userTraits: UserTraits): Promise<void> => {
-    if (this.enabled) {
+    if (this.isEnabled()) {
       return this.#identify(userTraits);
     }
     return Promise.resolve();
@@ -696,7 +708,7 @@ class MetaMetrics implements IMetaMetrics {
    * @param groupTraits - group relevant traits or properties (optional)
    */
   group = (groupId: string, groupTraits?: GroupTraits): Promise<void> => {
-    if (this.enabled) {
+    if (this.isEnabled()) {
       this.#group(groupId, groupTraits);
     }
     return Promise.resolve();
@@ -747,7 +759,7 @@ class MetaMetrics implements IMetaMetrics {
     event: ITrackingEvent,
     saveDataRecording: boolean = true,
   ): void => {
-    if (!this.enabled) {
+    if (!this.isEnabled()) {
       return;
     }
 
@@ -875,7 +887,7 @@ class MetaMetrics implements IMetaMetrics {
    *
    * @returns the current MetaMetrics ID
    */
-  getMetaMetricsId = async (): Promise<string | undefined> =>
+  getMetaMetricsId = async (): Promise<string> =>
     this.metametricsId ?? (await this.#getMetaMetricsId());
 }
 

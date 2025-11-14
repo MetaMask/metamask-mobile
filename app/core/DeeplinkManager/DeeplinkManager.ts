@@ -24,6 +24,9 @@ import { handleDeeplink } from './Handlers/handleDeeplink';
 import SharedDeeplinkManager from './SharedDeeplinkManager';
 import FCMService from '../../util/notifications/services/FCMService';
 import { handleRewardsUrl } from './Handlers/handleRewardsUrl';
+import { handlePredictUrl } from './Handlers/handlePredictUrl';
+import handleFastOnboarding from './Handlers/handleFastOnboarding';
+import { handleEnableCardButton } from './Handlers/handleEnableCardButton';
 
 class DeeplinkManager {
   // TODO: Replace "any" with type
@@ -136,9 +139,24 @@ class DeeplinkManager {
     });
   }
 
+  _handlePredict(predictPath: string, origin?: string) {
+    handlePredictUrl({
+      predictPath,
+      origin,
+    });
+  }
+
   // NOTE: keeping this for backwards compatibility
   _handleOpenSwap() {
     this.navigation.navigate(Routes.SWAPS);
+  }
+
+  _handleFastOnboarding(onboardingPath: string) {
+    handleFastOnboarding({ onboardingPath });
+  }
+
+  _handleEnableCardButton() {
+    handleEnableCardButton();
   }
 
   async parse(

@@ -1,37 +1,34 @@
 import { useMemo } from 'react';
-import { usePerpsDepositMinimumAlert } from './usePerpsDepositMinimumAlert';
 import { Alert } from '../../types/alerts';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import { usePerpsHardwareAccountAlert } from './usePerpsHardwareAccountAlert';
-import { ARBITRUM_USDC_ADDRESS } from '../../constants/perps';
+import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBalanceAlert';
 
 export function usePendingAmountAlerts({
   pendingTokenAmount,
 }: {
   pendingTokenAmount: string | undefined;
 }): Alert[] {
-  const perpsDepositMinimumAlert = usePerpsDepositMinimumAlert({
-    pendingTokenAmount: pendingTokenAmount ?? '0',
-  });
-
   const insufficientTokenFundsAlert = useInsufficientPayTokenBalanceAlert({
-    amountOverrides: {
-      [ARBITRUM_USDC_ADDRESS.toLowerCase()]: pendingTokenAmount ?? '0',
-    },
+    amountFiatOverride: pendingTokenAmount,
   });
 
   const perpsHardwareAccountAlert = usePerpsHardwareAccountAlert();
 
+  const insufficientPredictBalanceAlert = useInsufficientPredictBalanceAlert({
+    pendingAmount: pendingTokenAmount ?? '0',
+  });
+
   return useMemo(
     () => [
       ...perpsHardwareAccountAlert,
-      ...perpsDepositMinimumAlert,
       ...insufficientTokenFundsAlert,
+      ...insufficientPredictBalanceAlert,
     ],
     [
       insufficientTokenFundsAlert,
-      perpsDepositMinimumAlert,
       perpsHardwareAccountAlert,
+      insufficientPredictBalanceAlert,
     ],
   );
 }

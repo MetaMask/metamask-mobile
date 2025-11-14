@@ -1,5 +1,10 @@
 import React from 'react';
-import { renderHook, render, waitFor } from '@testing-library/react-native';
+import {
+  renderHook,
+  render,
+  waitFor,
+  act,
+} from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import {
   CardSDKProvider,
@@ -13,45 +18,103 @@ import {
   SupportedToken,
   selectCardFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
-import { selectChainId } from '../../../../selectors/networkController';
+import {
+  selectUserCardLocation,
+  selectOnboardingId,
+} from '../../../../core/redux/slices/card';
 import { useCardholderCheck } from '../hooks/useCardholderCheck';
+import { useCardAuthenticationVerification } from '../hooks/useCardAuthenticationVerification';
+import {
+  getCardBaanxToken,
+  storeCardBaanxToken,
+  removeCardBaanxToken,
+} from '../util/cardTokenVault';
+import Logger from '../../../../util/Logger';
 import { View } from 'react-native';
+import { UserResponse } from '../types';
 
 jest.mock('./CardSDK', () => ({
   CardSDK: jest.fn().mockImplementation(() => ({
     isCardEnabled: true,
-    supportedTokens: [],
+    getSupportedTokensByChainId: jest.fn(() => []),
     isCardHolder: jest.fn(),
     getGeoLocation: jest.fn(),
     getSupportedTokensAllowances: jest.fn(),
     getPriorityToken: jest.fn(),
+    refreshLocalToken: jest.fn(),
+    getRegistrationStatus: jest.fn(),
   })),
-}));
-
-jest.mock('../../../../selectors/networkController', () => ({
-  selectChainId: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/featureFlagController/card', () => ({
   selectCardFeatureFlag: jest.fn(),
+  selectCardExperimentalSwitch: jest.fn(() => false),
+  selectCardSupportedCountries: jest.fn(() => []),
+  selectDisplayCardButtonFeatureFlag: jest.fn(() => false),
 }));
 
-// Mock react-redux hooks
+jest.mock('../../../../core/redux/slices/card', () => ({
+  setAuthenticatedPriorityToken: jest.fn(),
+  setAuthenticatedPriorityTokenLastFetched: jest.fn(),
+  setIsAuthenticatedCard: jest.fn(),
+  selectUserCardLocation: jest.fn(),
+  setUserCardLocation: jest.fn(),
+  selectOnboardingId: jest.fn(),
+  resetOnboardingState: jest.fn(() => ({
+    type: 'card/resetOnboardingState',
+  })),
+  resetAuthenticatedData: jest.fn(() => ({
+    type: 'card/resetAuthenticatedData',
+  })),
+  clearAllCache: jest.fn(() => ({
+    type: 'card/clearAllCache',
+  })),
+}));
+
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(() => () => null),
+}));
+
+// Create a stable mock dispatch function to prevent useEffect retriggering
+const mockDispatch = jest.fn();
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
+  useDispatch: jest.fn(() => mockDispatch),
 }));
 
 jest.mock('../hooks/useCardholderCheck', () => ({
   useCardholderCheck: jest.fn(),
 }));
 
+jest.mock('../hooks/useCardAuthenticationVerification', () => ({
+  useCardAuthenticationVerification: jest.fn(),
+}));
+
+jest.mock('../util/cardTokenVault', () => ({
+  getCardBaanxToken: jest.fn(),
+  storeCardBaanxToken: jest.fn(),
+  removeCardBaanxToken: jest.fn(),
+}));
+
+jest.mock('../../../../util/Logger', () => ({
+  log: jest.fn(),
+}));
+
 describe('CardSDK Context', () => {
   const MockedCardholderSDK = jest.mocked(CardSDK);
   const mockUseSelector = jest.mocked(useSelector);
-  const mockSelectChainId = jest.mocked(selectChainId);
   const mockSelectCardFeatureFlag = jest.mocked(selectCardFeatureFlag);
+  const mockSelectUserCardLocation = jest.mocked(selectUserCardLocation);
   const mockUseCardholderCheck = jest.mocked(useCardholderCheck);
+  const mockUseCardAuthenticationVerification = jest.mocked(
+    useCardAuthenticationVerification,
+  );
+  const mockGetCardBaanxToken = jest.mocked(getCardBaanxToken);
+  const mockStoreCardBaanxToken = jest.mocked(storeCardBaanxToken);
+  const mockRemoveCardBaanxToken = jest.mocked(removeCardBaanxToken);
+  const mockLogger = jest.mocked(Logger);
 
   const mockSupportedTokens: SupportedToken[] = [
     {
@@ -75,64 +138,123 @@ describe('CardSDK Context', () => {
     },
   };
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-    MockedCardholderSDK.mockClear();
-    mockSelectChainId.mockClear();
-    mockSelectCardFeatureFlag.mockClear();
-    mockUseSelector.mockClear();
-    mockUseCardholderCheck.mockClear();
-  });
+  const mockSelectOnboardingId = jest.mocked(selectOnboardingId);
 
+  // Helper: Setup feature flag selector
   const setupMockUseSelector = (
-    featureFlag: CardFeatureFlag | null | undefined,
+    featureFlag: CardFeatureFlag | null | undefined | Record<string, never>,
+    userCardLocation: 'us' | 'international' | null = null,
+    onboardingId: string | null = null,
   ) => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === mockSelectCardFeatureFlag) {
         return featureFlag;
       }
+      if (selector === mockSelectUserCardLocation) {
+        return userCardLocation;
+      }
+      if (selector === mockSelectOnboardingId) {
+        return onboardingId;
+      }
       return null;
     });
   };
 
+  // Helper: Create mock SDK with custom properties
+  const createMockSDK = (
+    overrides: Partial<CardSDK> = {},
+  ): Partial<CardSDK> => ({
+    isCardEnabled: true,
+    getSupportedTokensByChainId: jest.fn(() => []),
+    isCardHolder: jest.fn(),
+    getGeoLocation: jest.fn(),
+    getSupportedTokensAllowances: jest.fn(),
+    getPriorityToken: jest.fn(),
+    getRegistrationStatus: jest.fn(),
+    ...overrides,
+  });
+
+  // Helper: Setup SDK mock
+  const setupMockSDK = (sdkProperties: Partial<CardSDK> = {}) => {
+    MockedCardholderSDK.mockImplementation(
+      () => createMockSDK(sdkProperties) as CardSDK,
+    );
+  };
+
+  // Helper: Create wrapper component
+  const createWrapper = ({ children }: { children: React.ReactNode }) => (
+    <CardSDKProvider>{children}</CardSDKProvider>
+  );
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    MockedCardholderSDK.mockClear();
+    mockSelectCardFeatureFlag.mockClear();
+    mockUseSelector.mockClear();
+    mockUseCardholderCheck.mockClear();
+    mockUseCardAuthenticationVerification.mockClear();
+    mockGetCardBaanxToken.mockClear();
+    mockStoreCardBaanxToken.mockClear();
+    mockRemoveCardBaanxToken.mockClear();
+    mockLogger.log.mockClear();
+    mockDispatch.mockClear();
+
+    // Default: no token found
+    mockGetCardBaanxToken.mockResolvedValue({
+      success: false,
+      tokenData: null,
+      error: 'No token found',
+    });
+    mockStoreCardBaanxToken.mockResolvedValue({ success: true });
+    mockRemoveCardBaanxToken.mockResolvedValue({ success: true });
+  });
+
   describe('CardSDKProvider', () => {
-    it('should render children without crashing', () => {
+    it('initializes SDK when feature flag is available', () => {
+      // Given: feature flag is configured
       setupMockUseSelector(mockCardFeatureFlag);
 
-      const TestComponent = () => <View>Test Child</View>;
-
+      // When: provider renders
       render(
         <CardSDKProvider>
-          <TestComponent />
+          <View>Test Child</View>
         </CardSDKProvider>,
       );
 
+      // Then: SDK should be created with feature flag
       expect(MockedCardholderSDK).toHaveBeenCalledWith({
         cardFeatureFlag: mockCardFeatureFlag,
+        userCardLocation: null,
       });
     });
 
-    it('should not initialize SDK when card feature flag is missing', () => {
+    it('does not initialize SDK when feature flag is missing', () => {
+      // Given: no feature flag
       setupMockUseSelector(null);
 
-      const TestComponent = () => <View>Test Child</View>;
-
+      // When: provider renders
       render(
         <CardSDKProvider>
-          <TestComponent />
+          <View>Test Child</View>
         </CardSDKProvider>,
       );
 
+      // Then: SDK should not be created
       expect(MockedCardholderSDK).not.toHaveBeenCalled();
     });
 
-    it('should use provided value prop when given', () => {
+    it('uses provided value prop when given', () => {
+      // Given: a custom context value
       setupMockUseSelector(mockCardFeatureFlag);
-
       const providedValue: ICardSDK = {
         sdk: null,
+        isLoading: false,
+        user: null,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
       };
 
+      // When: provider renders with custom value
       const TestComponent = () => {
         const context = useCardSDK();
         expect(context).toEqual(providedValue);
@@ -144,41 +266,45 @@ describe('CardSDK Context', () => {
           <TestComponent />
         </CardSDKProvider>,
       );
+
+      // Then: custom value is used (assertion in TestComponent)
     });
   });
 
   describe('useCardSDK', () => {
-    it('should return SDK context when used within provider', async () => {
+    it('returns SDK context when used within provider', async () => {
+      // Given: provider with feature flag
       setupMockUseSelector(mockCardFeatureFlag);
 
-      const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <CardSDKProvider>{children}</CardSDKProvider>
-      );
+      // When: hook is called within provider
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
 
-      const { result } = renderHook(() => useCardSDK(), { wrapper });
-
+      // Then: should return valid context
       await waitFor(() => {
         expect(result.current.sdk).not.toBeNull();
       });
 
       expect(result.current).toEqual({
         sdk: expect.any(Object),
+        isLoading: expect.any(Boolean),
+        logoutFromProvider: expect.any(Function),
+        user: null,
+        setUser: expect.any(Function),
       });
-      expect(result.current.sdk).toHaveProperty('isCardEnabled', true);
-      expect(result.current.sdk).toHaveProperty('supportedTokens', []);
-      expect(result.current.sdk).toHaveProperty('isCardHolder');
-      expect(result.current.sdk).toHaveProperty('getGeoLocation');
-      expect(result.current.sdk).toHaveProperty('getSupportedTokensAllowances');
-      expect(result.current.sdk).toHaveProperty('getPriorityToken');
     });
 
-    it('should throw error when used outside of provider', () => {
+    it('throws error when used outside provider', () => {
+      // Given: no provider
       const consoleError = jest
         .spyOn(console, 'error')
         .mockImplementation(() => {
           // Suppress console error for test
         });
 
+      // When: hook is called without provider
+      // Then: should throw error
       expect(() => {
         renderHook(() => useCardSDK());
       }).toThrow('useCardSDK must be used within a CardSDKProvider');
@@ -187,101 +313,406 @@ describe('CardSDK Context', () => {
     });
   });
 
-  describe('CardSDK interface', () => {
-    it('should have correct interface structure', async () => {
-      setupMockUseSelector(mockCardFeatureFlag);
+  describe('SDK Initialization', () => {
+    it('initializes SDK with user card location from Redux', async () => {
+      // Given: feature flag and user location in Redux
+      setupMockSDK();
+      setupMockUseSelector(mockCardFeatureFlag, 'us');
 
-      const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <CardSDKProvider>{children}</CardSDKProvider>
-      );
-
-      const { result } = renderHook(() => useCardSDK(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.sdk).not.toBeNull();
+      // When: provider initializes
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
       });
 
-      expect(result.current).toHaveProperty('sdk');
-      expect(
-        typeof result.current.sdk === 'object' || result.current.sdk === null,
-      ).toBe(true);
+      // Then: SDK should be initialized with location
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
 
-      if (result.current.sdk) {
-        expect(result.current.sdk).toHaveProperty('isCardEnabled');
-        expect(result.current.sdk).toHaveProperty('supportedTokens');
-        expect(result.current.sdk).toHaveProperty('isCardHolder');
-        expect(result.current.sdk).toHaveProperty('getGeoLocation');
-        expect(result.current.sdk).toHaveProperty(
-          'getSupportedTokensAllowances',
-        );
-        expect(result.current.sdk).toHaveProperty('getPriorityToken');
-      }
+      expect(MockedCardholderSDK).toHaveBeenCalledWith({
+        cardFeatureFlag: mockCardFeatureFlag,
+        userCardLocation: 'us',
+      });
+    });
+
+    it('completes loading when SDK is initialized', async () => {
+      // Given: feature flag configured
+      setupMockSDK();
+      setupMockUseSelector(mockCardFeatureFlag);
+
+      // When: provider initializes
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      // Then: loading should complete
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.sdk).not.toBeNull();
     });
   });
 
-  describe('Edge cases', () => {
-    it('should handle undefined card feature flag gracefully', () => {
-      setupMockUseSelector(undefined);
+  describe('Logout Functionality', () => {
+    it('logs out user successfully', async () => {
+      // Given: SDK available
+      setupMockSDK();
+      setupMockUseSelector(mockCardFeatureFlag);
 
-      const TestComponent = () => <View>Test Child</View>;
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
 
-      render(
-        <CardSDKProvider>
-          <TestComponent />
-        </CardSDKProvider>,
-      );
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
 
-      expect(MockedCardholderSDK).not.toHaveBeenCalled();
+      // When: user logs out
+      await act(async () => {
+        await result.current.logoutFromProvider();
+      });
+
+      // Then: token should be removed and authentication data cleared
+      expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalled();
     });
 
-    it('should handle empty card feature flag gracefully', () => {
-      setupMockUseSelector({});
+    it('throws error when SDK is unavailable for logout', async () => {
+      // Given: no SDK available
+      setupMockUseSelector(null);
 
-      const TestComponent = () => <View>Test Child</View>;
-
-      render(
-        <CardSDKProvider>
-          <TestComponent />
-        </CardSDKProvider>,
-      );
-
-      expect(MockedCardholderSDK).toHaveBeenCalledWith({
-        cardFeatureFlag: {},
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
       });
+
+      await waitFor(() => {
+        expect(result.current.sdk).toBeNull();
+      });
+
+      // When: attempting logout
+      // Then: should throw error
+      await expect(result.current.logoutFromProvider()).rejects.toThrow(
+        'SDK not available for logout',
+      );
+    });
+  });
+
+  describe('Loading States', () => {
+    it('completes loading when SDK is initialized', async () => {
+      // Given: feature flag configured
+      setupMockSDK();
+      setupMockUseSelector(mockCardFeatureFlag);
+
+      // When: provider initializes
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      // Then: loading should complete
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.sdk).not.toBeNull();
+    });
+
+    it('completes loading when feature flag is missing', async () => {
+      // Given: no feature flag
+      setupMockUseSelector(null);
+
+      // When: provider initializes
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      // Then: should complete loading
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.sdk).toBeNull();
     });
   });
 
   describe('CardVerification', () => {
-    beforeEach(() => {
-      mockUseCardholderCheck.mockClear();
-    });
-
-    it('should render without crashing', () => {
-      const result = render(<CardVerification />);
-      expect(result).toBeTruthy();
-    });
-
-    it('should call useCardholderCheck hook', () => {
+    it('calls useCardholderCheck hook', () => {
+      // When: component renders
       render(<CardVerification />);
+
+      // Then: should call cardholder check
       expect(mockUseCardholderCheck).toHaveBeenCalledTimes(1);
     });
 
-    it('should return null (render nothing)', () => {
+    it('calls useCardAuthenticationVerification hook', () => {
+      // When: component renders
+      render(<CardVerification />);
+
+      // Then: should call authentication verification
+      expect(mockUseCardAuthenticationVerification).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders nothing', () => {
+      // When: component renders
       const { toJSON } = render(<CardVerification />);
+
+      // Then: should return null
       expect(toJSON()).toBeNull();
     });
+  });
 
-    it('should call useCardholderCheck on every render', () => {
-      const { rerender } = render(<CardVerification />);
-      expect(mockUseCardholderCheck).toHaveBeenCalledTimes(1);
+  describe('User State Management', () => {
+    it('initializes with null user state', () => {
+      // Given: CardSDK provider is rendered
+      setupMockUseSelector(mockCardFeatureFlag);
+      setupMockSDK();
 
-      rerender(<CardVerification />);
-      expect(mockUseCardholderCheck).toHaveBeenCalledTimes(2);
+      // When: hook is rendered
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      // Then: user should be null initially
+      expect(result.current.user).toBe(null);
     });
 
-    it('should be a functional component', () => {
-      expect(typeof CardVerification).toBe('function');
-      expect(CardVerification.prototype).toEqual({});
+    it('provides setUser function', () => {
+      // Given: CardSDK provider is rendered
+      setupMockUseSelector(mockCardFeatureFlag);
+      setupMockSDK();
+
+      // When: hook is rendered
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      // Then: setUser function should be available
+      expect(result.current.setUser).toBeDefined();
+      expect(typeof result.current.setUser).toBe('function');
+    });
+
+    it('updates user state when setUser is called', () => {
+      // Given: CardSDK provider is rendered
+      setupMockUseSelector(mockCardFeatureFlag);
+      setupMockSDK();
+
+      const mockUser: UserResponse = {
+        id: 'test-user-id',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john.doe@example.com',
+        phoneNumber: '+1234567890',
+        phoneCountryCode: '+1',
+        verificationState: 'VERIFIED',
+        dateOfBirth: '1990-01-01',
+        addressLine1: '123 Main St',
+        city: 'Anytown',
+        usState: 'CA',
+        zip: '12345',
+        countryOfResidence: 'US',
+      };
+
+      // When: hook is rendered and setUser is called
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      act(() => {
+        result.current.setUser(mockUser);
+      });
+
+      // Then: user state should be updated
+      expect(result.current.user).toEqual(mockUser);
+    });
+
+    it('clears user data when logoutFromProvider is called', async () => {
+      // Given: CardSDK provider is rendered with user data
+      setupMockUseSelector(mockCardFeatureFlag);
+      setupMockSDK();
+
+      const mockUser: UserResponse = {
+        id: 'test-user-id',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john.doe@example.com',
+        phoneNumber: '+1234567890',
+        phoneCountryCode: '+1',
+        verificationState: 'VERIFIED',
+        dateOfBirth: '1990-01-01',
+        addressLine1: '123 Main St',
+        city: 'Anytown',
+        usState: 'CA',
+        zip: '12345',
+        countryOfResidence: 'US',
+      };
+
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      // Set user first
+      act(() => {
+        result.current.setUser(mockUser);
+      });
+
+      expect(result.current.user).toEqual(mockUser);
+
+      // When: logoutFromProvider is called
+      await act(async () => {
+        await result.current.logoutFromProvider();
+      });
+
+      // Then: user should be cleared
+      expect(result.current.user).toBe(null);
+    });
+
+    it('can set user to null explicitly', () => {
+      // Given: CardSDK provider is rendered with user data
+      setupMockUseSelector(mockCardFeatureFlag);
+      setupMockSDK();
+
+      const mockUser: UserResponse = {
+        id: 'test-user-id',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john.doe@example.com',
+        phoneNumber: '+1234567890',
+        phoneCountryCode: '+1',
+        verificationState: 'VERIFIED',
+        dateOfBirth: '1990-01-01',
+        addressLine1: '123 Main St',
+        city: 'Anytown',
+        usState: 'CA',
+        zip: '12345',
+        countryOfResidence: 'US',
+      };
+
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      // Set user first
+      act(() => {
+        result.current.setUser(mockUser);
+      });
+
+      expect(result.current.user).toEqual(mockUser);
+
+      // When: setUser is called with null
+      act(() => {
+        result.current.setUser(null);
+      });
+
+      // Then: user should be null
+      expect(result.current.user).toBe(null);
+    });
+  });
+
+  describe('Fetch User on Mount', () => {
+    const mockUserResponse: UserResponse = {
+      id: 'test-user-id',
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john.doe@example.com',
+      phoneNumber: '+1234567890',
+      phoneCountryCode: '+1',
+      verificationState: 'VERIFIED',
+      dateOfBirth: '1990-01-01',
+      addressLine1: '123 Main St',
+      city: 'Anytown',
+      usState: 'CA',
+      zip: '12345',
+      countryOfResidence: 'US',
+    };
+
+    it('fetches user data when SDK and onboardingId are available', async () => {
+      // Given: SDK with getRegistrationStatus and onboardingId available
+      const mockGetRegistrationStatus = jest
+        .fn()
+        .mockResolvedValue(mockUserResponse);
+      setupMockSDK({ getRegistrationStatus: mockGetRegistrationStatus });
+      setupMockUseSelector(mockCardFeatureFlag, null, 'test-onboarding-id');
+
+      // When: provider initializes
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      // Then: user data should be fetched and set
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
+        'test-onboarding-id',
+      );
+      expect(result.current.user).toEqual(mockUserResponse);
+    });
+
+    it('does not fetch user data when SDK is not available', async () => {
+      // Given: no SDK available but onboardingId exists
+      setupMockUseSelector(
+        null, // Pass null to indicate no card feature flag
+        null,
+        'test-onboarding-id',
+      );
+
+      // When: provider initializes
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      // Then: no user data should be fetched
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.sdk).toBe(null);
+      expect(result.current.user).toBe(null);
+    });
+
+    it('does not fetch user data when onboardingId is not available', async () => {
+      // Given: SDK available but no onboardingId
+      const mockGetRegistrationStatus = jest.fn();
+      setupMockSDK({ getRegistrationStatus: mockGetRegistrationStatus });
+      setupMockUseSelector(mockCardFeatureFlag, null, null);
+
+      // When: provider initializes
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      // Then: no user data should be fetched
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockGetRegistrationStatus).not.toHaveBeenCalled();
+      expect(result.current.user).toBe(null);
+    });
+
+    it('handles errors during user data fetch', async () => {
+      // Given: SDK that throws error on getRegistrationStatus
+      const mockGetRegistrationStatus = jest
+        .fn()
+        .mockRejectedValue(new Error('API Error'));
+      setupMockSDK({ getRegistrationStatus: mockGetRegistrationStatus });
+      setupMockUseSelector(mockCardFeatureFlag, null, 'test-onboarding-id');
+
+      // When: provider initializes
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      // Then: error should be handled gracefully
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
+        'test-onboarding-id',
+      );
+      expect(result.current.user).toBe(null);
     });
   });
 });

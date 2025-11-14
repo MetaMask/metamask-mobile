@@ -18,7 +18,6 @@ import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
 import { IndexableWebElement } from 'detox/detox';
 import Utilities from '../../framework/Utilities';
-import LegacyGestures from '../../utils/Gestures';
 import { ConfirmationFooterSelectorIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
 import { waitForTestSnapsToLoad } from '../../viewHelper';
 import { RetryOptions } from '../../framework';
@@ -158,6 +157,44 @@ class TestSnaps {
       const actualText = await webElement.getText();
       if (!actualText || actualText.trim() === '') {
         throw new Error(`Result span is empty`);
+      }
+    }, options);
+  }
+
+  async checkClientStatus(
+    {
+      clientVersion: expectedClientVersion,
+      ...expectedStatus
+    }: Record<string, Json>,
+    options: Partial<RetryOptions> = {
+      timeout: 5_000,
+      interval: 100,
+    },
+  ) {
+    const webElement = await Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestSnapResultSelectorWebIDS.clientStatusResultSpan,
+    );
+
+    return await Utilities.executeWithRetry(async () => {
+      const actualText = await webElement.getText();
+      let actualStatusWithVersion;
+      try {
+        actualStatusWithVersion = JSON.parse(actualText);
+      } catch (error) {
+        throw new Error(
+          `Failed to parse JSON from client status span: ${actualText}`,
+        );
+      }
+
+      const { clientVersion: actualClientVersion, ...actualStatus } =
+        actualStatusWithVersion;
+
+      await Assertions.checkIfJsonEqual(actualStatus, expectedStatus);
+      if (!actualClientVersion.startsWith(expectedClientVersion)) {
+        throw new Error(
+          `Client version mismatch: Expected version to start with "${expectedClientVersion}", got "${actualClientVersion}".`,
+        );
       }
     }, options);
   }
@@ -315,7 +352,7 @@ class TestSnaps {
       TestSnapInputSelectorWebIDS[locator],
     ) as Promise<IndexableWebElement>;
     // New gestures currently don't support web elements
-    await LegacyGestures.typeInWebElement(webElement, message);
+    await Gestures.typeInWebElement(webElement, message);
   }
 
   async approveSignRequest() {

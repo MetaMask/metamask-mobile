@@ -1,18 +1,51 @@
-import { useSelector } from 'react-redux';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { selectSmartTransactionsEnabled } from '../../../../../selectors/smartTransactionsController';
-import { RootState } from '../../../../../reducers';
+import { useAsyncResult } from '../../../../hooks/useAsyncResult';
+import { isRelaySupported } from '../../../../../util/transactions/transaction-relay';
+import { Hex } from '@metamask/utils';
+import { useGaslessSupportedSmartTransactions } from './useGaslessSupportedSmartTransactions';
 
+/**
+ * Hook to determine if gasless transactions are supported for the current confirmation context.
+ *
+ * Gasless support can be enabled in two ways:
+ * - Via 7702: Supported when the current account is upgraded, the chain supports atomic batch, relay is available, and the transaction is not a contract deployment.
+ * - Via Smart Transactions: Supported when smart transactions are enabled and sendBundle is supported for the chain.
+ *
+ * @returns An object containing:
+ * - `isSupported`: `true` if gasless transactions are supported via either 7702 or smart transactions with sendBundle.
+ * - `isSmartTransaction`: `true` if smart transactions are enabled for the current chain.
+ */
 export function useIsGaslessSupported() {
   const transactionMeta = useTransactionMetadataRequest();
 
-  const { chainId } = transactionMeta || {};
+  const { chainId, txParams } = transactionMeta ?? {};
 
-  const isSmartTransaction = useSelector((state: RootState) =>
-    selectSmartTransactionsEnabled(state, chainId),
+  const {
+    isSmartTransaction,
+    isSupported: isSmartTransactionAndBundleSupported,
+    pending,
+  } = useGaslessSupportedSmartTransactions();
+
+  const shouldCheck7702Eligibility =
+    !pending && !isSmartTransactionAndBundleSupported;
+
+  const { value: relaySupportsChain } = useAsyncResult(async () => {
+    if (!shouldCheck7702Eligibility) {
+      return undefined;
+    }
+
+    return isRelaySupported(chainId as Hex);
+  }, [chainId, shouldCheck7702Eligibility]);
+
+  const is7702Supported = Boolean(
+    relaySupportsChain &&
+      // contract deployments can't be delegated
+      txParams?.to !== undefined,
   );
 
-  const isSupported = isSmartTransaction;
+  const isSupported = Boolean(
+    isSmartTransactionAndBundleSupported || is7702Supported,
+  );
 
   return {
     isSupported,

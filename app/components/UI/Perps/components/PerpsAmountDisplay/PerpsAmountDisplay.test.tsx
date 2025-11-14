@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent, screen } from '@testing-library/react-native';
 import { PerpsAmountDisplaySelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsAmountDisplay from './PerpsAmountDisplay';
-import { formatPrice, formatPositionSize } from '../../utils/formatUtils';
+import { formatPositionSize } from '../../utils/formatUtils';
 
 jest.mock('../../../../../util/theme', () => ({
   useTheme: () => ({
@@ -22,16 +22,13 @@ jest.mock('../../../../../util/theme', () => ({
   }),
 }));
 
-jest.mock('../../utils/formatUtils', () => ({
-  formatPrice: jest.fn((value, options) => {
-    const num = parseFloat(value);
-    if (options?.minimumDecimals === 0 && Number.isInteger(num)) {
-      return `$${num}`;
-    }
-    return `$${value}`;
-  }),
-  formatPositionSize: jest.fn((value) => parseFloat(value).toString()),
-}));
+jest.mock('../../utils/formatUtils', () => {
+  const actual = jest.requireActual('../../utils/formatUtils');
+  return {
+    ...actual,
+    formatPositionSize: jest.fn((value) => actual.formatPositionSize(value)),
+  };
+});
 
 describe('PerpsAmountDisplay', () => {
   beforeEach(() => {
@@ -46,8 +43,8 @@ describe('PerpsAmountDisplay', () => {
       // Act
       const { getByText } = render(<PerpsAmountDisplay amount={amount} />);
 
-      // Assert
-      expect(getByText('$1000')).toBeTruthy();
+      // Assert - Uses formatPerpsFiat with PRICE_RANGES_MINIMAL_VIEW (fixed 2 decimals), trailing zeros removed
+      expect(getByText('$1,000')).toBeTruthy();
     });
 
     it('displays $0 when amount is empty', () => {
@@ -146,7 +143,7 @@ describe('PerpsAmountDisplay', () => {
       const { getByText } = render(
         <PerpsAmountDisplay amount={amount} onPress={onPressMock} />,
       );
-      fireEvent.press(getByText('$1000'));
+      fireEvent.press(getByText('$1,000'));
 
       // Assert
       expect(onPressMock).toHaveBeenCalledTimes(1);
@@ -160,7 +157,7 @@ describe('PerpsAmountDisplay', () => {
       const { getByText } = render(<PerpsAmountDisplay amount={amount} />);
 
       // Assert - This should not throw an error
-      expect(() => fireEvent.press(getByText('$1000'))).not.toThrow();
+      expect(() => fireEvent.press(getByText('$1,000'))).not.toThrow();
     });
   });
 
@@ -252,6 +249,68 @@ describe('PerpsAmountDisplay', () => {
       // No token amount should be displayed
       expect(screen.queryByText(/BTC|ETH|SOL/)).toBeNull();
     });
+
+    it('strips hip3 prefix from token symbol when showing token amount', () => {
+      // Arrange
+      const tokenAmount = '1.5';
+      const tokenSymbol = 'hip3:BTC';
+      const amount = '50000';
+
+      // Act
+      render(
+        <PerpsAmountDisplay
+          amount={amount}
+          showTokenAmount
+          tokenAmount={tokenAmount}
+          tokenSymbol={tokenSymbol}
+        />,
+      );
+
+      // Assert
+      const tokenElements = screen.getAllByText('1.5 BTC');
+      expect(tokenElements.length).toBe(2); // Main display and token amount section
+    });
+
+    it('strips DEX prefix from token symbol when showing max amount', () => {
+      // Arrange
+      const amount = '10000';
+      const tokenAmount = '100';
+      const tokenSymbol = 'xyz:TSLA';
+
+      // Act
+      const { getByText } = render(
+        <PerpsAmountDisplay
+          amount={amount}
+          showMaxAmount
+          tokenAmount={tokenAmount}
+          tokenSymbol={tokenSymbol}
+        />,
+      );
+
+      // Assert
+      expect(getByText('100 TSLA')).toBeTruthy();
+    });
+
+    it('keeps regular token symbols unchanged', () => {
+      // Arrange
+      const amount = '5000';
+      const tokenAmount = '2.5';
+      const tokenSymbol = 'SOL';
+
+      // Act
+      render(
+        <PerpsAmountDisplay
+          amount={amount}
+          showTokenAmount
+          tokenAmount={tokenAmount}
+          tokenSymbol={tokenSymbol}
+        />,
+      );
+
+      // Assert
+      const tokenElements = screen.getAllByText('2.5 SOL');
+      expect(tokenElements.length).toBe(2);
+    });
   });
 
   describe('Formatting', () => {
@@ -260,14 +319,10 @@ describe('PerpsAmountDisplay', () => {
       const amount = '1234.56';
 
       // Act
-      render(<PerpsAmountDisplay amount={amount} />);
+      const { getByText } = render(<PerpsAmountDisplay amount={amount} />);
 
-      // Assert
-      expect(formatPrice).toHaveBeenCalledWith('1234.56', {
-        minimumDecimals: 0,
-        maximumDecimals: 2,
-      });
-      // Note: formatPrice is no longer called with maxAmount for display
+      // Assert - Now uses formatPerpsFiat with PRICE_RANGES_MINIMAL_VIEW (fixed 2 decimals)
+      expect(getByText('$1,234.56')).toBeTruthy();
     });
 
     it('formats USD amounts with maximum 2 decimal places', () => {
@@ -275,13 +330,10 @@ describe('PerpsAmountDisplay', () => {
       const amount = '1234.5678';
 
       // Act
-      render(<PerpsAmountDisplay amount={amount} />);
+      const { getByText } = render(<PerpsAmountDisplay amount={amount} />);
 
       // Assert - Verify USD amounts are limited to 2 decimal places
-      expect(formatPrice).toHaveBeenCalledWith('1234.5678', {
-        minimumDecimals: 0,
-        maximumDecimals: 2,
-      });
+      expect(getByText('$1,234.57')).toBeTruthy(); // Rounded to 2 decimals
     });
   });
 });

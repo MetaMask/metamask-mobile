@@ -33,6 +33,11 @@ const MAX_REGION_RESULTS = 20;
 
 interface RegionSelectorModalParams {
   regions: DepositRegion[];
+  onRegionSelect?: (region: DepositRegion) => void;
+  selectedRegion?: DepositRegion | null;
+  allRegionsSelectable?: boolean;
+  updateGlobalRegion?: boolean;
+  trackSelection?: boolean;
 }
 
 export const createRegionSelectorModalNavigationDetails =
@@ -45,9 +50,21 @@ function RegionSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList<DepositRegion>>(null);
 
-  const { selectedRegion, setSelectedRegion, isAuthenticated } =
-    useDepositSDK();
-  const { regions } = useParams<RegionSelectorModalParams>();
+  const {
+    selectedRegion: sdkSelectedRegion,
+    setSelectedRegion,
+    isAuthenticated,
+  } = useDepositSDK();
+  const {
+    regions,
+    onRegionSelect,
+    selectedRegion: selectedRegionParam,
+    allRegionsSelectable = false,
+    updateGlobalRegion = true,
+    trackSelection = true,
+  } = useParams<RegionSelectorModalParams>();
+
+  const selectedRegion = selectedRegionParam ?? sdkSelectedRegion;
   const [searchString, setSearchString] = useState('');
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
@@ -97,60 +114,88 @@ function RegionSelectorModal() {
 
   const handleOnRegionPressCallback = useCallback(
     (region: DepositRegion) => {
-      if (region.supported && setSelectedRegion) {
-        trackEvent('RAMPS_REGION_SELECTED', {
-          ramp_type: 'DEPOSIT',
-          region: region.isoCode,
-          is_authenticated: isAuthenticated,
-        });
+      const isSelectable = allRegionsSelectable || region.supported;
 
-        setSelectedRegion(region);
+      if (isSelectable) {
+        if (onRegionSelect) {
+          onRegionSelect(region);
+        }
+
+        if (updateGlobalRegion) {
+          setSelectedRegion(region);
+        }
+
+        if (trackSelection) {
+          trackEvent('RAMPS_REGION_SELECTED', {
+            ramp_type: 'DEPOSIT',
+            region: region.isoCode,
+            is_authenticated: isAuthenticated,
+          });
+        }
+
         sheetRef.current?.onCloseBottomSheet();
       }
     },
-    [setSelectedRegion, isAuthenticated, trackEvent],
+    [
+      onRegionSelect,
+      allRegionsSelectable,
+      updateGlobalRegion,
+      trackSelection,
+      trackEvent,
+      isAuthenticated,
+      setSelectedRegion,
+    ],
   );
 
   const renderRegionItem = useCallback(
-    ({ item: region }: { item: DepositRegion }) => (
-      <ListItemSelect
-        isSelected={selectedRegion?.isoCode === region.isoCode}
-        onPress={() => {
-          if (region.supported) {
+    ({ item: region }: { item: DepositRegion }) => {
+      const isSelected = region.isoCode === selectedRegion?.isoCode;
+      const isSelectable = allRegionsSelectable || region.supported;
+
+      return (
+        <ListItemSelect
+          isSelected={isSelected}
+          onPress={() => {
             handleOnRegionPressCallback(region);
-          }
-        }}
-        accessibilityRole="button"
-        accessible
-        disabled={!region.supported}
-      >
-        <ListItemColumn widthType={WidthType.Fill}>
-          <View style={styles.region}>
-            <View style={styles.emoji}>
-              <Text
-                variant={TextVariant.BodyLGMedium}
-                color={
-                  region.supported ? TextColor.Default : TextColor.Alternative
-                }
-              >
-                {region.flag}
-              </Text>
+          }}
+          accessibilityRole="button"
+          accessible
+          disabled={!isSelectable}
+        >
+          <ListItemColumn widthType={WidthType.Fill}>
+            <View style={styles.region}>
+              <View style={styles.emoji}>
+                <Text
+                  variant={TextVariant.BodyLGMedium}
+                  color={
+                    isSelectable ? TextColor.Default : TextColor.Alternative
+                  }
+                >
+                  {region.flag}
+                </Text>
+              </View>
+              <View>
+                <Text
+                  variant={TextVariant.BodyLGMedium}
+                  color={
+                    isSelectable ? TextColor.Default : TextColor.Alternative
+                  }
+                >
+                  {region.name}
+                </Text>
+              </View>
             </View>
-            <View>
-              <Text
-                variant={TextVariant.BodyLGMedium}
-                color={
-                  region.supported ? TextColor.Default : TextColor.Alternative
-                }
-              >
-                {region.name}
-              </Text>
-            </View>
-          </View>
-        </ListItemColumn>
-      </ListItemSelect>
-    ),
-    [handleOnRegionPressCallback, selectedRegion, styles.region, styles.emoji],
+          </ListItemColumn>
+        </ListItemSelect>
+      );
+    },
+    [
+      selectedRegion?.isoCode,
+      allRegionsSelectable,
+      handleOnRegionPressCallback,
+      styles.region,
+      styles.emoji,
+    ],
   );
 
   const renderEmptyList = useCallback(
@@ -182,9 +227,7 @@ function RegionSelectorModal() {
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('deposit.region_modal.select_a_region')}
-        </Text>
+        {strings('deposit.region_modal.select_a_region')}
       </BottomSheetHeader>
       <View style={styles.searchContainer}>
         <TextFieldSearch

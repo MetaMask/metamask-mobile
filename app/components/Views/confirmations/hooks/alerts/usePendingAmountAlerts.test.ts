@@ -1,14 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import { usePendingAmountAlerts } from './usePendingAmountAlerts';
 
-jest.mock('./usePerpsDepositMinimumAlert', () => ({
-  usePerpsDepositMinimumAlert: () => [
-    {
-      id: 'alert-2',
-    },
-  ],
-}));
-
 jest.mock('./useInsufficientPayTokenBalanceAlert', () => ({
   useInsufficientPayTokenBalanceAlert: () => [
     {
@@ -25,6 +17,14 @@ jest.mock('./usePerpsHardwareAccountAlert', () => ({
   ],
 }));
 
+jest.mock('./useInsufficientPredictBalanceAlert', () => ({
+  useInsufficientPredictBalanceAlert: () => [
+    {
+      id: 'alert-4',
+    },
+  ],
+}));
+
 describe('usePendingAmountAlerts', () => {
   it('returns alerts', () => {
     const { result } = renderHook(() =>
@@ -34,11 +34,9 @@ describe('usePendingAmountAlerts', () => {
     expect(result.current).toStrictEqual([
       { id: 'alert-1' },
       {
-        id: 'alert-2',
-      },
-      {
         id: 'alert-3',
       },
+      { id: 'alert-4' },
     ]);
   });
 });

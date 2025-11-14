@@ -124,6 +124,13 @@ jest.mock('../Engine', () => ({
   },
 }));
 
+// Mock for Engine class (used in error recovery)
+jest.mock('../Engine/Engine', () => ({
+  Engine: class MockEngine {
+    static disableAutomaticVaultBackup = false;
+  },
+}));
+
 jest.mock('../NavigationService', () => ({
   navigation: {
     reset: jest.fn(),
@@ -561,6 +568,7 @@ describe('Authentication', () => {
 
       afterEach(() => {
         jest.restoreAllMocks();
+        mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
       });
 
       it('completes wallet creation when discovery fails', async () => {
@@ -637,6 +645,7 @@ describe('Authentication', () => {
 
       describe('retryDiscoveryIfPending behavior', () => {
         let mockAttemptAccountDiscovery: jest.SpyInstance;
+        let mockAttemptMultichainAccountWalletDiscovery: jest.SpyInstance;
 
         beforeEach(() => {
           // Spy on the private method
@@ -648,10 +657,20 @@ describe('Authentication', () => {
               'attemptAccountDiscovery',
             )
             .mockResolvedValue(undefined);
+
+          mockAttemptMultichainAccountWalletDiscovery = jest
+            .spyOn(
+              Authentication as unknown as {
+                attemptMultichainAccountWalletDiscovery: () => Promise<void>;
+              },
+              'attemptMultichainAccountWalletDiscovery',
+            )
+            .mockResolvedValue(undefined);
         });
 
         afterEach(() => {
           mockAttemptAccountDiscovery.mockRestore();
+          mockAttemptMultichainAccountWalletDiscovery.mockRestore();
         });
 
         it('calls attemptAccountDiscovery when flag is set to true', async () => {
@@ -892,6 +911,36 @@ describe('Authentication', () => {
             jest.runAllTimers();
             expect(mockDispatch).toHaveBeenCalledWith(logOut());
           }
+        });
+
+        it('runs discovery and alignment on all HD wallets - state 2', async () => {
+          const Engine = jest.requireMock('../Engine');
+          Engine.context.KeyringController.state.keyrings = [
+            { type: KeyringTypes.hd, metadata: { id: 'test-keyring-1' } },
+            { type: KeyringTypes.hd, metadata: { id: 'test-keyring-2' } },
+            // Should not run discovery for this one.
+            { type: KeyringTypes.simple, metadata: { id: 'test-keyring-3' } },
+          ];
+
+          mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
+
+          const mockCredentials = { username: 'test', password: 'test' };
+          SecureKeychain.getGenericPassword = jest
+            .fn()
+            .mockReturnValue(mockCredentials);
+
+          await Authentication.appTriggeredAuth();
+
+          // We should have ran discovery + alignment on all HD keyrings only.
+          expect(
+            mockAttemptMultichainAccountWalletDiscovery,
+          ).toHaveBeenCalledTimes(2);
+          expect(
+            mockAttemptMultichainAccountWalletDiscovery,
+          ).toHaveBeenNthCalledWith(1, 'test-keyring-1');
+          expect(
+            mockAttemptMultichainAccountWalletDiscovery,
+          ).toHaveBeenNthCalledWith(2, 'test-keyring-2');
         });
       });
     });
@@ -2101,9 +2150,8 @@ describe('Authentication', () => {
       } as unknown as ReduxStore);
 
       // Act
-      const result = await Authentication.importSeedlessMnemonicToVault(
-        mnemonic,
-      );
+      const result =
+        await Authentication.importSeedlessMnemonicToVault(mnemonic);
 
       // Assert
       expect(

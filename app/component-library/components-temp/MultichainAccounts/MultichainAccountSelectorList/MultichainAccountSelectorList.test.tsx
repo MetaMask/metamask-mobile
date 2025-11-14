@@ -22,13 +22,6 @@ import {
 } from '../test-utils';
 import { AccountCellIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountCell.selectors';
 
-// Mock the new hook to avoid dependencies
-jest.mock('../../../../components/UI/Assets/hooks', () => ({
-  useAssetsUpdateAllAccountBalances: jest.fn(() => ({
-    updateBalances: jest.fn(),
-  })),
-}));
-
 jest.mock('../../../../core/Engine', () => ({
   context: {
     AccountsController: {
@@ -732,7 +725,7 @@ describe('MultichainAccountSelectorList', () => {
 
       // Verify the component renders correctly with AccountListFooter
       expect(getByText('Account 1')).toBeTruthy();
-      expect(getByText('Create account')).toBeTruthy();
+      expect(getByText('Add account')).toBeTruthy();
     });
 
     it('handles multiple wallets with AccountListFooter', () => {
@@ -764,8 +757,8 @@ describe('MultichainAccountSelectorList', () => {
         { state: createMockState([wallet1, wallet2], internalAccounts) },
       );
 
-      // Should have multiple "Create account" buttons (one per wallet)
-      const createAccountButtons = getAllByText('Create account');
+      // Should have multiple "Add account" buttons (one per wallet)
+      const createAccountButtons = getAllByText('Add account');
       expect(createAccountButtons.length).toBe(2);
     });
 
@@ -790,7 +783,7 @@ describe('MultichainAccountSelectorList', () => {
 
       // Verify the component renders correctly
       expect(getByText('Account 1')).toBeTruthy();
-      expect(getByText('Create account')).toBeTruthy();
+      expect(getByText('Add account')).toBeTruthy();
     });
 
     it('positions the list so the first selected account is initially visible', () => {
@@ -821,7 +814,7 @@ describe('MultichainAccountSelectorList', () => {
 
       expect(queryByText('Account 2')).toBeTruthy();
     });
-    it('renders a far selected account in the initial viewport when provided as initial selection', () => {
+    it('renders a far selected account in the initial viewport when provided as initial selection', async () => {
       // Create many accounts so the selected one is far enough to require initialScrollIndex
       const total = 60;
       const accounts = Array.from({ length: total }, (_, i) =>
@@ -841,7 +834,14 @@ describe('MultichainAccountSelectorList', () => {
         { state: createMockState([wallet1], internalAccounts) },
       );
 
-      // Without initialScrollIndex, this would not be visible initially
+      // Wait for requestAnimationFrame to execute the scroll
+      await act(async () => {
+        await new Promise((resolve) =>
+          requestAnimationFrame(() => resolve(undefined)),
+        );
+      });
+
+      // After scroll, the selected account should be visible
       expect(queryByText(`Account ${selectedIdx + 1}`)).toBeTruthy();
       expect(queryByText('Account 1')).toBeFalsy();
     });

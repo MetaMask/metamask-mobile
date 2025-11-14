@@ -66,6 +66,9 @@ const styleSheet = ({
       ...fontStyles.normal,
     },
     rightButton: { height: 50, justifyContent: 'center' },
+    closeButton: {
+      marginRight: 16,
+    },
   });
 
 export default styleSheet;

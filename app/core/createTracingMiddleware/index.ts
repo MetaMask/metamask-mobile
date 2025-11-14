@@ -4,7 +4,7 @@ import type {
   JsonRpcRequest,
   PendingJsonRpcResponse,
 } from '@metamask/utils';
-import { trace, TraceName } from '../../util/trace';
+import { trace, TraceName, TraceContext } from '../../util/trace';
 
 export const MESSAGE_TYPE = {
   ETH_SIGN_TYPED_DATA: 'eth_signTypedData',
@@ -33,7 +33,7 @@ const METHOD_TYPE_TO_TRACE_NAME: Record<string, TraceName> = {
 
 export default function createTracingMiddleware() {
   return async function tracingMiddleware(
-    req: JsonRpcRequest<JsonRpcParams> & { traceContext?: unknown },
+    req: JsonRpcRequest<JsonRpcParams> & { traceContext?: TraceContext },
     _res: PendingJsonRpcResponse<Json>,
     next: () => void,
   ) {

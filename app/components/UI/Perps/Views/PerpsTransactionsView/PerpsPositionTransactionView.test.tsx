@@ -11,7 +11,6 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../../../reducers';
 
-// Mock dependencies
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 const mockUseRoute = jest.fn();
@@ -359,10 +358,10 @@ describe('PerpsPositionTransactionView', () => {
     });
 
     expect(getByText('Total fees')).toBeOnTheScreen();
-    expect(getByText('$5.00')).toBeOnTheScreen();
+    expect(getByText('$5')).toBeOnTheScreen();
   });
 
-  it('should display fees with $ prefix directly for amounts < 0.01', () => {
+  it('should display fees with < $0.01 label for amounts < 0.01', () => {
     // Given a transaction with fee less than 0.01
     const smallFeeTransaction = {
       ...mockTransaction,
@@ -380,9 +379,9 @@ describe('PerpsPositionTransactionView', () => {
       state: mockInitialState,
     });
 
-    // Then fee should display with $ prefix directly (not formatted through formatPerpsFiat)
+    // Then fee should display with < $0.01 label (not the actual value)
     expect(getByText('Total fees')).toBeOnTheScreen();
-    expect(getByText('$0.005')).toBeOnTheScreen();
+    expect(getByText('< $0.01')).toBeOnTheScreen();
   });
 
   it('should not render points when not present', () => {

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { View } from 'react-native';
+import { View, SafeAreaView } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -35,21 +35,30 @@ import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/Im
 import { TOKEN_TITLE } from '../../../components/Views/AddAsset/AddAsset.constants';
 import { Hex } from '@metamask/utils';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
+import { BridgeToken } from '../Bridge/types';
+import { toHex } from '../../../core/Delegation/utils';
+import { isNonEvmAddress } from '../../../core/Multichain/utils';
 
-const RenderBalance = (asset: {
-  symbol: string;
-  address: string;
-  iconUrl: string;
-  name: string;
-  decimals: number;
-}) => {
+const RenderBalance = (
+  asset:
+    | BridgeToken
+    | {
+        symbol: string;
+        address: string;
+        iconUrl: string;
+        name: string;
+        decimals: number;
+      },
+) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const { balanceFiat } = useBalance(
     asset
       ? {
-          address: asset.address,
+          address: isNonEvmAddress(asset.address)
+            ? toHex(asset.address)
+            : asset.address,
           decimals: asset.decimals,
         }
       : undefined,
@@ -60,7 +69,7 @@ const RenderBalance = (asset: {
         {balanceFiat === TOKEN_BALANCE_LOADING ? (
           <SkeletonText thin style={styles.skeleton} />
         ) : (
-          balanceFiat ?? ''
+          (balanceFiat ?? '')
         )}
       </Text>
     </View>
@@ -68,10 +77,20 @@ const RenderBalance = (asset: {
 };
 
 const ConfirmAddAsset = () => {
-  const { selectedAsset, networkName, addTokenList } =
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    useParams<any>();
+  const { selectedAsset, networkName, addTokenList } = useParams<{
+    selectedAsset:
+      | BridgeToken[]
+      | {
+          symbol: string;
+          address: string;
+          iconUrl: string;
+          name: string;
+          decimals: number;
+          chainId: Hex;
+        }[];
+    networkName: string;
+    addTokenList: () => void;
+  }>();
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -94,16 +113,12 @@ const ConfirmAddAsset = () => {
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
       getImportTokenNavbarOptions(
-        `add_asset.${TOKEN_TITLE}`,
-        false,
         navigation,
-        colors,
-        true,
-        0,
+        strings(`add_asset.${TOKEN_TITLE}`),
         () => setShowExitModal(true),
       ),
     );
-  }, [colors, navigation]);
+  }, [navigation]);
 
   useEffect(() => {
     updateNavBar();
@@ -157,7 +172,7 @@ const ConfirmAddAsset = () => {
   );
 
   return (
-    <View
+    <SafeAreaView
       style={styles.rowWrapper}
       testID={ImportTokenViewSelectorsIDs.ADD_CONFIRM_CUSTOM_ASSET}
     >
@@ -165,48 +180,47 @@ const ConfirmAddAsset = () => {
         {strings('wallet.import_token')}
       </Text>
       <ScrollView style={styles.root}>
-        {selectedAsset?.map(
-          (
-            asset: {
-              symbol: string;
-              address: string;
-              iconUrl: string;
-              name: string;
-              decimals: number;
-              chainId: string;
-            },
-            i: number,
-          ) => (
-            <View style={styles.assetElement} key={i}>
-              <View>
-                <BadgeWrapper
-                  badgePosition={BadgePosition.BottomRight}
-                  badgeElement={
-                    <Badge
-                      variant={BadgeVariant.Network}
-                      imageSource={NetworkBadgeSource(asset.chainId as Hex)}
-                      name={networkName}
-                    />
-                  }
-                >
-                  <AssetIcon
-                    address={asset.address}
-                    logo={asset.iconUrl}
-                    customStyle={styles.assetIcon}
+        {selectedAsset?.map((asset, i) => (
+          <View style={styles.assetElement} key={i}>
+            <View>
+              <BadgeWrapper
+                badgePosition={BadgePosition.BottomRight}
+                badgeElement={
+                  <Badge
+                    variant={BadgeVariant.Network}
+                    imageSource={NetworkBadgeSource(asset.chainId as Hex)}
+                    name={networkName}
                   />
-                </BadgeWrapper>
-              </View>
+                }
+              >
+                {(() => {
+                  const assetImage = 'image' in asset ? asset.image : undefined;
+                  const assetIconUrl =
+                    'iconUrl' in asset ? asset.iconUrl : undefined;
+                  const logo = assetImage || assetIconUrl;
 
-              <View>
-                <Text variant={TextVariant.BodyLGMedium}>{asset.name}</Text>
-                <Text variant={TextVariant.BodyMD} style={styles.symbolText}>
-                  {asset.symbol}
-                </Text>
-              </View>
-              <RenderBalance {...asset} />
+                  return (
+                    logo && (
+                      <AssetIcon
+                        address={asset.address}
+                        logo={logo}
+                        customStyle={styles.assetIcon}
+                      />
+                    )
+                  );
+                })()}
+              </BadgeWrapper>
             </View>
-          ),
-        )}
+
+            <View>
+              <Text variant={TextVariant.BodyLGMedium}>{asset.name}</Text>
+              <Text variant={TextVariant.BodyMD} style={styles.symbolText}>
+                {asset.symbol}
+              </Text>
+            </View>
+            <RenderBalance {...asset} />
+          </View>
+        ))}
       </ScrollView>
 
       <View style={styles.bottomContainer}>
@@ -233,7 +247,7 @@ const ConfirmAddAsset = () => {
         />
       </View>
       {renderImportModal()}
-    </View>
+    </SafeAreaView>
   );
 };
 export default ConfirmAddAsset;

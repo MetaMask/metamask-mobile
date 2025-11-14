@@ -26,7 +26,6 @@ const mockUseNavigation = jest.fn();
 const mockUseRoute = jest.fn();
 const mockUsePerpsNetwork = jest.fn();
 const mockUsePerpsBlockExplorerUrl = jest.fn();
-const mockGetHyperliquidExplorerUrl = jest.fn();
 const mockFormatPerpsFiat = jest.fn();
 const mockFormatTransactionDate = jest.fn();
 const mockGetPerpsTransactionsDetailsNavbar = jest.fn();
@@ -54,10 +53,6 @@ jest.mock('../../hooks', () => ({
 jest.mock('../../../Navbar', () => ({
   getPerpsTransactionsDetailsNavbar: () =>
     mockGetPerpsTransactionsDetailsNavbar(),
-}));
-
-jest.mock('../../utils/blockchainUtils', () => ({
-  getHyperliquidExplorerUrl: () => mockGetHyperliquidExplorerUrl(),
 }));
 
 describe('PerpsFundingTransactionView', () => {
@@ -183,7 +178,7 @@ describe('PerpsFundingTransactionView', () => {
       ...mockTransaction,
       fundingAmount: {
         isPositive: false,
-        fee: '-$1,250.00',
+        fee: '-$1,250',
         feeNumber: -1250,
         rate: '0.1%',
       },
@@ -197,7 +192,7 @@ describe('PerpsFundingTransactionView', () => {
     const { getByText } = render(<PerpsFundingTransactionView />);
 
     // Assert
-    expect(getByText('-$1,250.00')).toBeTruthy();
+    expect(getByText('-$1,250')).toBeTruthy();
     expect(getByText('0.1%')).toBeTruthy();
   });
 
@@ -375,7 +370,7 @@ describe('PerpsFundingTransactionView', () => {
       asset: 'BTC',
       fundingAmount: {
         isPositive: false,
-        fee: '-$25.00',
+        fee: '-$25',
         feeNumber: -25,
         rate: '0.005%',
       },
@@ -389,7 +384,7 @@ describe('PerpsFundingTransactionView', () => {
     const { getByText } = render(<PerpsFundingTransactionView />);
 
     // Assert
-    expect(getByText('-$25.00')).toBeTruthy();
+    expect(getByText('-$25')).toBeTruthy();
     expect(getByText('0.005%')).toBeTruthy();
   });
 

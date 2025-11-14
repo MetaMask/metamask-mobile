@@ -80,6 +80,7 @@ describe('usePerpsMarketStats', () => {
       priceData: null,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
+      hasHistoricalData: true,
     });
 
     // Act: Render the hook with a symbol
@@ -87,8 +88,9 @@ describe('usePerpsMarketStats', () => {
 
     // Assert: All market statistics are correctly formatted
     expect(result.current.currentPrice).toBe(45000);
-    expect(result.current.high24h).toBe('$46,000.00');
-    expect(result.current.low24h).toBe('$43,500.00');
+    // PRICE_RANGES_UNIVERSAL: 5 sig figs, 0 decimals for $10k-$100k, trailing zeros removed
+    expect(result.current.high24h).toBe('$46,000');
+    expect(result.current.low24h).toBe('$43,500');
     expect(result.current.volume24h).toBe('$1.23B');
     expect(result.current.openInterest).toBe('$990.00M');
     expect(result.current.fundingRate).toBe('1.0000%');
@@ -103,6 +105,7 @@ describe('usePerpsMarketStats', () => {
       priceData: null,
       isLoadingHistory: true,
       refreshCandleData: jest.fn(),
+      hasHistoricalData: false,
     });
 
     // Act: Render the hook
@@ -121,6 +124,7 @@ describe('usePerpsMarketStats', () => {
       priceData: null,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
+      hasHistoricalData: false,
     });
 
     // Act: Render the hook
@@ -128,10 +132,11 @@ describe('usePerpsMarketStats', () => {
 
     // Assert: All values show appropriate defaults
     expect(result.current.currentPrice).toBe(0);
-    expect(result.current.high24h).toBe('$0.00');
-    expect(result.current.low24h).toBe('$0.00');
-    expect(result.current.volume24h).toBe('$0.00');
-    expect(result.current.openInterest).toBe('$0.00');
+    // PRICE_RANGES_UNIVERSAL: trailing zeros removed, so $0.00 → $0
+    expect(result.current.high24h).toBe('$0');
+    expect(result.current.low24h).toBe('$0');
+    expect(result.current.volume24h).toBe('$0.00'); // formatVolume keeps .00 for zero
+    expect(result.current.openInterest).toBe('$0.00'); // formatLargeNumber keeps .00 for zero
     expect(result.current.fundingRate).toBe('0.0000%');
   });
 
@@ -156,6 +161,7 @@ describe('usePerpsMarketStats', () => {
       priceData: null,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
+      hasHistoricalData: true,
     });
 
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
@@ -183,6 +189,7 @@ describe('usePerpsMarketStats', () => {
       priceData: null,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
+      hasHistoricalData: true,
     });
 
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));

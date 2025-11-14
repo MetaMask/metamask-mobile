@@ -3,11 +3,9 @@ import {
   getDefaultNetworkControllerState,
   NetworkController,
   NetworkState,
+  type NetworkControllerMessenger,
 } from '@metamask/network-controller';
-import {
-  NetworkControllerInitMessenger,
-  NetworkControllerMessenger,
-} from '../messengers/network-controller-messenger';
+import { NetworkControllerInitMessenger } from '../messengers/network-controller-messenger';
 import { ChainId } from '@metamask/controller-utils';
 import { getFailoverUrlsForInfuraNetwork } from '../../../util/networks/customNetworks';
 import { INFURA_PROJECT_ID } from '../../../constants/network';
@@ -19,7 +17,8 @@ import {
 } from './network-controller/messenger-action-handlers';
 import { MetricsEventBuilder } from '../../Analytics/MetricsEventBuilder';
 import { MetaMetrics } from '../../Analytics';
-import { Hex } from '@metamask/utils';
+import { Hex, Json } from '@metamask/utils';
+import Logger from '../../../util/Logger';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -52,6 +51,22 @@ export function getInitialNetworkControllerState(persistedState: {
       ChainId['base-mainnet']
     ].rpcEndpoints[0].failoverUrls =
       getFailoverUrlsForInfuraNetwork('base-mainnet');
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['arbitrum-mainnet']
+    ].rpcEndpoints[0].failoverUrls =
+      getFailoverUrlsForInfuraNetwork('arbitrum-mainnet');
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['bsc-mainnet']
+    ].rpcEndpoints[0].failoverUrls =
+      getFailoverUrlsForInfuraNetwork('bsc-mainnet');
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['optimism-mainnet']
+    ].rpcEndpoints[0].failoverUrls =
+      getFailoverUrlsForInfuraNetwork('optimism-mainnet');
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['polygon-mainnet']
+    ].rpcEndpoints[0].failoverUrls =
+      getFailoverUrlsForInfuraNetwork('polygon-mainnet');
 
     // Update default popular network names
     initialNetworkControllerState.networkConfigurationsByChainId[
@@ -63,6 +78,24 @@ export function getInitialNetworkControllerState(persistedState: {
     initialNetworkControllerState.networkConfigurationsByChainId[
       ChainId['base-mainnet']
     ].name = 'Base';
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['arbitrum-mainnet']
+    ].name = 'Arbitrum';
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['bsc-mainnet']
+    ].name = 'BNB Chain';
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['optimism-mainnet']
+    ].name = 'OP';
+    initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['polygon-mainnet']
+    ].name = 'Polygon';
+
+    // Remove Sei from initial state so it appears in Additional Networks section
+    // Users can add it manually, and it will be available in FEATURED_RPCS
+    delete initialNetworkControllerState.networkConfigurationsByChainId[
+      ChainId['sei-mainnet']
+    ];
   }
 
   return initialNetworkControllerState;
@@ -186,6 +219,32 @@ export const networkControllerInit: ControllerInitFunction<
   );
 
   controller.initializeProvider();
+
+  // TODO: Move this to `network-controller`
+  const toggleRpcFailover = (isRpcFailoverEnabled: Json) => {
+    if (isRpcFailoverEnabled) {
+      Logger.log('Enabling RPC failover.');
+      controller.enableRpcFailover();
+    } else {
+      Logger.log('Disabling RPC failover.');
+      controller.disableRpcFailover();
+    }
+  };
+
+  initMessenger.subscribe(
+    'RemoteFeatureFlagController:stateChange',
+    toggleRpcFailover,
+    (state) => state.remoteFeatureFlags.walletFrameworkRpcFailoverEnabled,
+  );
+
+  const remoteFeatureFlagControllerState = initMessenger.call(
+    'RemoteFeatureFlagController:getState',
+  );
+
+  toggleRpcFailover(
+    remoteFeatureFlagControllerState.remoteFeatureFlags
+      .walletFrameworkRpcFailoverEnabled,
+  );
 
   return {
     controller,

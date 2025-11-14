@@ -127,6 +127,30 @@ class WalletMainScreen {
     return Selectors.getXpathElementByText('Localhost 8545 now active.');
   }
 
+  get totalBalanceText() {
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
+    }
+  }
+
+  get balanceContainer() {
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId('balance-container');
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, 'balance-container');
+    }
+  }
+
+  get tokenBalancesLoadedMarker() {
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId('token-balances-loaded-marker');
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, 'token-balances-loaded-marker');
+    }
+  }
+
   async tapImportTokensButton() {
     const importToken = await this.ImportToken;
     await importToken.waitForDisplayed();
@@ -148,16 +172,40 @@ class WalletMainScreen {
   }
 
   async tapNFTTab() {
-    await Gestures.tapTextByXpath('NFTs');
+    if (!this._device) {
+      await Gestures.tapTextByXpath('NFTs');
+    } else {
+      // For Appwright, tap by text
+      const nftTabText = AppwrightSelectors.getElementByText(this._device, 'NFTs');
+      await AppwrightGestures.tap(nftTabText);
+    }
+  }
+
+  async tapTokensTab() {
+    if (!this._device) {
+      await Gestures.tapTextByXpath('Tokens');
+    } else {
+      // For Appwright, tap by text
+      const tokensTabText = AppwrightSelectors.getElementByText(this._device, 'Tokens');
+      await AppwrightGestures.tap(tokensTabText);
+    }
   }
 
   async tapOnToken(token) {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountIcon);
     } else {
-      let tokenName = await AppwrightSelectors.getElementByCatchAll(this._device, token); // for some reason by Id does not work sometimes
-      await tokenName.tap();
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        let tokenName = await AppwrightSelectors.getElementByID(this._device, `asset-${token}`); // for some reason by Id does not work sometimeselse {
+        await tokenName.tap();
+      } else { // if ios, click on any token that is visible
+        const anyToken = await AppwrightSelectors.getElementByXpath(this._device, `//*[@name="token-list"]//XCUIElementTypeOther[1]`);
+        await AppwrightGestures.tap(anyToken);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
     }
+
+    
   }
 
   async isTokenVisible(token) {

@@ -15,20 +15,6 @@ class OnBoardingScreen {
     this._device = device;
   }
 
-  get title() {
-    if (!this._device) {
-      return Selectors.getXpathElementByResourceId(OnboardingSelectorIDs.SCREEN_TITLE);
-    } else {
-      return AppwrightSelectors.getElementByID(this._device, OnboardingSelectorIDs.SCREEN_TITLE);
-    }
-  }
-
-  get description() {
-    return Selectors.getXpathElementByResourceId(
-      OnboardingSelectorIDs.SCREEN_DESCRIPTION,
-    );
-  }
-
   get createNewWalletButton() {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(
@@ -49,15 +35,6 @@ class OnBoardingScreen {
     }
   }
 
-  async isScreenTitleVisible() {
-    if (!this._device) {
-      await expect(this.title).toBeDisplayed();
-    } else {
-      const element = await this.title;
-      await appwrightExpect(element).toBeVisible({ timeout: 10000 });
-    }
-  }
-
   async tapHaveAnExistingWallet() {
     if (!this._device) {
       await Gestures.waitAndTap(this.existingWalletButton);
@@ -71,6 +48,15 @@ class OnBoardingScreen {
       await Gestures.waitAndTap(this.createNewWalletButton);
     } else {
       await AppwrightGestures.tap(this.createNewWalletButton); // Use static tapElement method with retry logic
+    }
+  }
+
+  async isScreenTitleVisible() {
+    if (!this._device) {
+      await expect(this.createNewWalletButton).toBeDisplayed();
+    } else {
+      const element = await this.createNewWalletButton;
+      await appwrightExpect(element).toBeVisible({ timeout: 30000 });
     }
   }
 }

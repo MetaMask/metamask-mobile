@@ -1,51 +1,44 @@
 import { renderHook } from '@testing-library/react-native';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
-import { useTransactionPayTokenAmounts } from '../pay/useTransactionPayTokenAmounts';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
-import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import { useTransactionPayRequiredTokens } from '../pay/useTransactionPayData';
+import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
 
 jest.mock('../pay/useTransactionPayToken');
-jest.mock('../pay/useTransactionPayTokenAmounts');
 jest.mock('../transactions/useTransactionMetadataRequest');
+jest.mock('../pay/useTransactionPayData');
 
 function runHook() {
   return renderHook(() => useInsufficientPayTokenBalanceAlert());
 }
 
 describe('useInsufficientPayTokenBalanceAlert', () => {
-  const useTransactionMetadataRequestMock = jest.mocked(
-    useTransactionMetadataRequest,
-  );
-
-  const useTransactionPayTokenAmountsMock = jest.mocked(
-    useTransactionPayTokenAmounts,
+  const useTransactionPayRequiredTokensMock = jest.mocked(
+    useTransactionPayRequiredTokens,
   );
 
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
 
   beforeEach(() => {
     jest.resetAllMocks();
-
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.perpsDeposit,
-    } as TransactionMeta);
   });
 
   it('returns alert if balance less than total', () => {
-    useTransactionPayTokenAmountsMock.mockReturnValue({
-      totalHuman: '123.456',
-    } as ReturnType<typeof useTransactionPayTokenAmounts>);
+    useTransactionPayRequiredTokensMock.mockReturnValue([
+      {
+        amountUsd: '100.00',
+      },
+      {
+        amountUsd: '23.45',
+      },
+    ] as TransactionPayRequiredToken[]);
 
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: { balance: '123.455', symbol: 'TST' },
+      payToken: { balanceUsd: '123.44', symbol: 'TST' },
     } as ReturnType<typeof useTransactionPayToken>);
 
     const { result } = runHook();
@@ -55,41 +48,11 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
         key: AlertKeys.InsufficientPayTokenBalance,
         field: RowAlertKey.Amount,
         message: strings(
-          'alert_system.insufficient_pay_token_balance_fees.message',
+          'alert_system.insufficient_pay_token_balance.message',
           {
             symbol: 'TST',
           },
         ),
-        title: strings(
-          'alert_system.insufficient_pay_token_balance_fees.title',
-        ),
-        severity: Severity.Danger,
-        isBlocking: true,
-      },
-    ]);
-  });
-
-  it('returns alert if balance less than token amount', () => {
-    useTransactionPayTokenAmountsMock.mockReturnValue({
-      amounts: [
-        {
-          amountHumanOriginal: '123.456',
-        },
-      ],
-      totalHuman: '123.457',
-    } as ReturnType<typeof useTransactionPayTokenAmounts>);
-
-    useTransactionPayTokenMock.mockReturnValue({
-      payToken: { balance: '123.455' },
-    } as ReturnType<typeof useTransactionPayToken>);
-
-    const { result } = runHook();
-
-    expect(result.current).toEqual([
-      {
-        key: AlertKeys.InsufficientPayTokenBalance,
-        field: RowAlertKey.Amount,
-        message: strings('alert_system.insufficient_pay_token_balance.message'),
         severity: Severity.Danger,
         isBlocking: true,
       },
@@ -97,12 +60,17 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
   });
 
   it('returns no alerts if balance is sufficient', () => {
-    useTransactionPayTokenAmountsMock.mockReturnValue({
-      totalHuman: '123.456',
-    } as ReturnType<typeof useTransactionPayTokenAmounts>);
+    useTransactionPayRequiredTokensMock.mockReturnValue([
+      {
+        amountUsd: '100.00',
+      },
+      {
+        amountUsd: '23.45',
+      },
+    ] as TransactionPayRequiredToken[]);
 
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: { balance: '123.456' },
+      payToken: { balanceUsd: '123.45', symbol: 'TST' },
     } as ReturnType<typeof useTransactionPayToken>);
 
     const { result } = runHook();
@@ -110,21 +78,42 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
     expect(result.current).toEqual([]);
   });
 
-  it('returns no alert if type is not perps deposit', () => {
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.contractInteraction,
-    } as TransactionMeta);
-
-    useTransactionPayTokenAmountsMock.mockReturnValue({
-      totalHuman: '123.456',
-    } as ReturnType<typeof useTransactionPayTokenAmounts>);
+  it('returns no alert if no pay token selected', () => {
+    useTransactionPayRequiredTokensMock.mockReturnValue([
+      {
+        amountUsd: '100.00',
+      },
+      {
+        amountUsd: '23.45',
+      },
+    ] as TransactionPayRequiredToken[]);
 
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: { balance: '123.455' },
+      payToken: undefined,
     } as ReturnType<typeof useTransactionPayToken>);
 
     const { result } = runHook();
 
     expect(result.current).toStrictEqual([]);
+  });
+
+  it('ignores tokens with skipIfBalance when calculating total', () => {
+    useTransactionPayRequiredTokensMock.mockReturnValue([
+      {
+        amountUsd: '100.00',
+      },
+      {
+        amountUsd: '50.00',
+        skipIfBalance: true,
+      },
+    ] as TransactionPayRequiredToken[]);
+
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: { balanceUsd: '100.00', symbol: 'TST' },
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    const { result } = runHook();
+
+    expect(result.current).toEqual([]);
   });
 });

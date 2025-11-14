@@ -1,4 +1,5 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import Button, {
   ButtonVariants,
   ButtonWidthTypes,
@@ -7,6 +8,8 @@ import { ModalFooterAnnouncementCta } from '../../../../../util/notifications/no
 import useStyles from '../useStyles';
 import SharedDeeplinkManager from '../../../../../core/DeeplinkManager/SharedDeeplinkManager';
 import AppConstants from '../../../../../core/AppConstants';
+import Logger from '../../../../../util/Logger';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 
 type AnnouncementCtaFooterProps = ModalFooterAnnouncementCta;
 
@@ -14,26 +17,62 @@ export default function AnnouncementCtaFooter(
   props: AnnouncementCtaFooterProps,
 ) {
   const { styles } = useStyles();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
-  if (!props.mobileLink) {
+  const callEvent = () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED)
+        .addProperties({
+          notification_id: props.notification.id,
+          notification_type: props.notification.type,
+          clicked_item: 'cta_button',
+        })
+        .build(),
+    );
+  };
+
+  const getLinkConfig = () => {
+    if (props.externalLink) {
+      const { externalLinkUrl, externalLinkText } = props.externalLink;
+      return {
+        label: externalLinkText,
+        onPress: () =>
+          Linking.openURL(externalLinkUrl).catch((error) =>
+            Logger.error(error as Error, 'Error opening external URL'),
+          ),
+      };
+    }
+
+    if (props.mobileLink) {
+      const { mobileLinkUrl, mobileLinkText } = props.mobileLink;
+      return {
+        label: mobileLinkText,
+        onPress: () =>
+          SharedDeeplinkManager.parse(mobileLinkUrl, {
+            origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+          }),
+      };
+    }
+
+    return null;
+  };
+
+  const linkConfig = getLinkConfig();
+
+  if (!linkConfig) {
     return null;
   }
-
-  // Mobile links are URLS. We can utilise deeplinks for specific behaviour
-  // either normal URL to leave app, or deeplinks to open in-app browser or other functionality.
-  const { mobileLinkUrl, mobileLinkText } = props.mobileLink;
 
   return (
     <Button
       variant={ButtonVariants.Primary}
       width={ButtonWidthTypes.Full}
-      label={mobileLinkText}
+      label={linkConfig.label}
       style={styles.ctaBtn}
-      onPress={() =>
-        SharedDeeplinkManager.parse(mobileLinkUrl, {
-          origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-        })
-      }
+      onPress={() => {
+        callEvent();
+        linkConfig.onPress();
+      }}
     />
   );
 }

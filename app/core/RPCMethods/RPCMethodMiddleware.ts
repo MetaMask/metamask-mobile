@@ -20,11 +20,7 @@ import {
   PermissionDoesNotExistError,
   RequestedPermissions,
 } from '@metamask/permission-controller';
-import {
-  blockTagParamIndex,
-  getAllNetworks,
-  isPerDappSelectedNetworkEnabled,
-} from '../../util/networks';
+import { blockTagParamIndex, getAllNetworks } from '../../util/networks';
 import { polyfillGasPrice } from './utils';
 import ImportedEngine from '../Engine';
 import { strings } from '../../../locales/i18n';
@@ -193,7 +189,7 @@ export const checkActiveAccountAndChainId = async ({
       networkType && getAllNetworks().includes(networkType);
     let activeChainId;
 
-    if (origin && isPerDappSelectedNetworkEnabled()) {
+    if (origin) {
       const perOriginChainId = selectPerOriginChainId(store.getState(), origin);
 
       activeChainId = perOriginChainId;
@@ -312,7 +308,23 @@ const generateRawSignature = async ({
  * @param origin - The origin of the connection.
  * @returns The hooks object.
  */
-export const getRpcMethodMiddlewareHooks = (origin: string) => ({
+export const getRpcMethodMiddlewareHooks = ({
+  origin,
+  url,
+  title,
+  icon,
+  analytics,
+  channelId,
+  getSource,
+}: {
+  origin: string;
+  url: MutableRefObject<string>;
+  title: MutableRefObject<string>;
+  icon: MutableRefObject<ImageSourcePropType | undefined>;
+  analytics: { [key: string]: string | boolean };
+  channelId?: string;
+  getSource: () => string;
+}) => ({
   getCaveat: ({
     target,
     caveatType,
@@ -338,7 +350,6 @@ export const getRpcMethodMiddlewareHooks = (origin: string) => ({
     return undefined;
   },
   requestPermittedChainsPermissionIncrementalForOrigin: (options: {
-    origin: string;
     chainId: Hex;
     autoApprove: boolean;
   }) =>
@@ -350,18 +361,35 @@ export const getRpcMethodMiddlewareHooks = (origin: string) => ({
           Engine.context.PermissionController.grantPermissionsIncremental.bind(
             Engine.context.PermissionController,
           ),
-        requestPermissionsIncremental:
-          Engine.context.PermissionController.requestPermissionsIncremental.bind(
-            Engine.context.PermissionController,
+        requestPermissionsIncremental: (
+          subject,
+          requestedPermissions,
+          options,
+        ) =>
+          Engine.context.PermissionController.requestPermissionsIncremental(
+            subject,
+            requestedPermissions,
+            {
+              ...options,
+              metadata: {
+                ...options?.metadata,
+                pageMeta: {
+                  url: url.current,
+                  title: title.current,
+                  icon: icon.current,
+                  channelId,
+                  analytics: {
+                    request_source: getSource(),
+                    request_platform: analytics?.platform,
+                  },
+                },
+              },
+            },
           ),
       },
     }),
   hasApprovalRequestsForOrigin: () =>
     Engine.context.ApprovalController.has({ origin }),
-  toNetworkConfiguration: Engine.controllerMessenger.call.bind(
-    Engine.controllerMessenger,
-    'NetworkController:getNetworkConfigurationByChainId',
-  ),
   getCurrentChainIdForDomain: (domain: string) => {
     const networkClientId =
       Engine.context.SelectedNetworkController.getNetworkClientIdForDomain(
@@ -412,7 +440,23 @@ export const getRpcMethodMiddleware = ({
     .replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '')
     .replace(AppConstants.MM_SDK.SDK_CONNECT_V2_ORIGIN, '');
   const origin = channelId ?? hostname;
-  const hooks = getRpcMethodMiddlewareHooks(origin);
+
+  const getSource = () => {
+    if (analytics?.isRemoteConn)
+      return AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN;
+    if (isWalletConnect) return AppConstants.REQUEST_SOURCES.WC;
+    return AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
+  };
+
+  const hooks = getRpcMethodMiddlewareHooks({
+    origin,
+    url,
+    title,
+    icon,
+    analytics,
+    channelId,
+    getSource,
+  });
 
   DevLogger.log(
     `getRpcMethodMiddleware hostname=${hostname} channelId=${channelId}`,
@@ -432,13 +476,6 @@ export const getRpcMethodMiddleware = ({
       const { browser } = store.getState();
       if (tabId !== browser.activeTab)
         throw providerErrors.userRejectedRequest();
-    };
-
-    const getSource = () => {
-      if (analytics?.isRemoteConn)
-        return AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN;
-      if (isWalletConnect) return AppConstants.REQUEST_SOURCES.WC;
-      return AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
     };
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -883,7 +920,12 @@ export const getRpcMethodMiddleware = ({
         if (!appVersion) {
           appVersion = await getVersion();
         }
-        res.result = `MetaMask/${appVersion}/Mobile`;
+        const buildType = process.env.METAMASK_BUILD_TYPE;
+        const version =
+          buildType === 'main' || buildType === 'qa'
+            ? appVersion
+            : `${appVersion}-${buildType}`;
+        res.result = `MetaMask/${version}/Mobile`;
       },
 
       wallet_scanQRCode: () =>
@@ -1031,7 +1073,6 @@ export const getRpcMethodMiddleware = ({
         return RPCMethods.wallet_switchEthereumChain({
           req,
           res,
-          requestUserApproval,
           analytics: {
             request_source: getSource(),
             request_platform: analytics?.platform,

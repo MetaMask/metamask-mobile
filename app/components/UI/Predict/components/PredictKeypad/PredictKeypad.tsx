@@ -6,6 +6,7 @@ import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import Keypad from '../../../../Base/Keypad';
+import { strings } from '../../../../../../locales/i18n';
 
 interface PredictKeypadProps {
   isInputFocused: boolean;
@@ -14,6 +15,8 @@ interface PredictKeypadProps {
   setCurrentValue: (value: number) => void;
   setCurrentValueUSDString: (value: string) => void;
   setIsInputFocused: (focused: boolean) => void;
+  hasInsufficientFunds?: boolean;
+  onAddFunds?: () => void;
 }
 
 export interface PredictKeypadHandles {
@@ -31,6 +34,8 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
       setCurrentValue,
       setCurrentValueUSDString,
       setIsInputFocused,
+      hasInsufficientFunds = false,
+      onAddFunds,
     },
     ref,
   ) => {
@@ -49,8 +54,20 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
     );
 
     const handleDonePress = useCallback(() => {
+      // Clean up trailing decimal point if user finished with just a dot
+      let cleanedValue = currentValueUSDString;
+      if (cleanedValue.endsWith('.')) {
+        cleanedValue = cleanedValue.slice(0, -1);
+        setCurrentValueUSDString(cleanedValue);
+        setCurrentValue(parseFloat(cleanedValue) || 0);
+      }
       setIsInputFocused(false);
-    }, [setIsInputFocused]);
+    }, [
+      setIsInputFocused,
+      currentValueUSDString,
+      setCurrentValueUSDString,
+      setCurrentValue,
+    ]);
 
     useImperativeHandle(ref, () => ({
       handleAmountPress,
@@ -109,7 +126,9 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
 
         // Update all states in batch to prevent race conditions
         setCurrentValueUSDString(formattedUSDString);
-        setCurrentValue(parseFloat(formattedUSDString));
+        // parseFloat handles "2." correctly (returns 2), and handles empty/"." as NaN
+        const numericValue = parseFloat(formattedUSDString);
+        setCurrentValue(isNaN(numericValue) ? 0 : numericValue);
       },
       [
         currentValue,
@@ -123,36 +142,48 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
     if (!isInputFocused) return null;
 
     return (
-      <View style={tw.style('pt-4 bg-background-section pb-8 rounded-t-3xl')}>
-        <View style={tw.style('flex-row space-between px-4 mb-3 gap-2')}>
-          <Button
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Md}
-            label="$20"
-            onPress={() => handleKeypadAmountPress(20)}
-            style={tw.style('flex-1')}
-          />
-          <Button
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Md}
-            label="$50"
-            onPress={() => handleKeypadAmountPress(50)}
-            style={tw.style('flex-1')}
-          />
-          <Button
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Md}
-            label="$100"
-            onPress={() => handleKeypadAmountPress(100)}
-            style={tw.style('flex-1')}
-          />
-          <Button
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Md}
-            label="Done"
-            onPress={handleDonePress}
-            style={tw.style('flex-1')}
-          />
+      <View style={tw.style('py-4')}>
+        <View style={tw.style('px-4 mb-3')}>
+          {hasInsufficientFunds && onAddFunds ? (
+            <Button
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Lg}
+              label={strings('predict.deposit.add_funds')}
+              onPress={onAddFunds}
+              style={tw.style('w-full')}
+            />
+          ) : (
+            <View style={tw.style('flex-row space-between gap-2')}>
+              <Button
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Md}
+                label="$20"
+                onPress={() => handleKeypadAmountPress(20)}
+                style={tw.style('flex-1 h-12')}
+              />
+              <Button
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Md}
+                label="$50"
+                onPress={() => handleKeypadAmountPress(50)}
+                style={tw.style('flex-1 h-12')}
+              />
+              <Button
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Md}
+                label="$100"
+                onPress={() => handleKeypadAmountPress(100)}
+                style={tw.style('flex-1 h-12')}
+              />
+              <Button
+                variant={ButtonVariants.Primary}
+                size={ButtonSize.Md}
+                label="Done"
+                onPress={handleDonePress}
+                style={tw.style('flex-1 h-12')}
+              />
+            </View>
+          )}
         </View>
         <Keypad
           value={currentValueUSDString}

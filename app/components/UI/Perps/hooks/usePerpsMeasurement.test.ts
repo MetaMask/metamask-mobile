@@ -3,7 +3,6 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { TraceName, TraceOperation } from '../../../../util/trace';
 import { usePerpsMeasurement } from './usePerpsMeasurement';
 
-// Mock dependencies
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),

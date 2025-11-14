@@ -14,7 +14,11 @@ import {
   SEI_CHAIN_ID,
 } from '@metamask/swaps-controller/dist/constants';
 import Engine from '../../../../core/Engine';
-import { isNonEvmChainId } from '@metamask/bridge-controller';
+import {
+  formatAddressToAssetId,
+  isNonEvmChainId,
+} from '@metamask/bridge-controller';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const ALLOWED_CHAIN_IDS: (Hex | CaipChainId)[] = [
   ETH_CHAIN_ID,
@@ -27,6 +31,7 @@ const ALLOWED_CHAIN_IDS: (Hex | CaipChainId)[] = [
   AVALANCHE_CHAIN_ID,
   LINEA_CHAIN_ID,
   SEI_CHAIN_ID,
+  CHAIN_IDS.MONAD,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   SolScope.Mainnet,
   ///: END:ONLY_INCLUDE_IF(keyring-snaps)
@@ -53,5 +58,29 @@ export const wipeBridgeStatus = (
       address: address.toLowerCase(),
       ignoreNetwork: false,
     });
+  }
+};
+
+export const getTokenIconUrl = (
+  address: string,
+  chainId: Hex | CaipChainId,
+) => {
+  const isEvmChain = !isNonEvmChainId(chainId);
+  const formattedAddress = isEvmChain ? address.toLowerCase() : address;
+
+  try {
+    const assetId = formatAddressToAssetId(formattedAddress, chainId);
+    if (!assetId) {
+      return undefined;
+    }
+    return `https://static.cx.metamask.io/api/v2/tokenIcons/assets/${assetId
+      .split(':')
+      .join('/')}.png`;
+  } catch (error) {
+    // formatAddressToAssetId may throw for unsupported chains. This is expected behavior,
+    // so we gracefully handle it by returning undefined rather than propagating the error.
+    // This prevents the app from crashing when attempting to fetch icons for tokens on
+    // chains that aren't yet supported by the tokenIcons API.
+    return undefined;
   }
 };

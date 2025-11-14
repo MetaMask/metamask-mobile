@@ -17,8 +17,16 @@ import { Alert, Severity } from '../../types/alerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useAccountNativeBalance } from '../useAccountNativeBalance';
 import { useConfirmActions } from '../useConfirmActions';
-import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useConfirmationContext } from '../../context/confirmation-context';
+import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
+import { TransactionType } from '@metamask/transaction-controller';
+import { hasTransactionType } from '../../utils/transaction';
+
+const IGNORE_TYPES = [
+  TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
+  TransactionType.predictWithdraw,
+];
 
 const HEX_ZERO = '0x0';
 
@@ -36,14 +44,15 @@ export const useInsufficientBalanceAlert = ({
   );
   const { isTransactionValueUpdating } = useConfirmationContext();
   const { onReject } = useConfirmActions();
-  const { payToken } = useTransactionPayToken();
+  const { isSupported: isGaslessSupported } = useIsGaslessSupported();
 
   return useMemo(() => {
     if (!transactionMetadata || isTransactionValueUpdating) {
       return [];
     }
 
-    const { txParams, selectedGasFeeToken } = transactionMetadata;
+    const { txParams, selectedGasFeeToken, isGasFeeSponsored } =
+      transactionMetadata;
     const { maxFeePerGas, gas, gasPrice } = txParams;
     const { nativeCurrency } =
       networkConfigurations[transactionMetadata.chainId as Hex];
@@ -64,10 +73,13 @@ export const useInsufficientBalanceAlert = ({
       totalTransactionValueBN,
     );
 
+    const isSponsoredTransaction = isGasFeeSponsored && isGaslessSupported;
+
     const showAlert =
       hasInsufficientBalance &&
       (ignoreGasFeeToken || !selectedGasFeeToken) &&
-      !payToken;
+      !hasTransactionType(transactionMetadata, IGNORE_TYPES) &&
+      !isSponsoredTransaction;
 
     if (!showAlert) {
       return [];
@@ -98,11 +110,11 @@ export const useInsufficientBalanceAlert = ({
   }, [
     balanceWeiInHex,
     ignoreGasFeeToken,
+    isGaslessSupported,
     isTransactionValueUpdating,
     navigation,
     networkConfigurations,
     onReject,
-    payToken,
     transactionMetadata,
   ]);
 };

@@ -1,8 +1,6 @@
 import { useSelector } from 'react-redux';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { selectEnabledSourceChains } from '../../../../../core/redux/slices/bridge';
-import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
-import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { orderBy } from 'lodash';
 import { useEffect, useMemo, useRef } from 'react';
@@ -11,11 +9,10 @@ import { createProjectLogger } from '@metamask/utils';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
 import { isHardwareAccount } from '../../../../../util/address';
-import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
-import { PERPS_MINIMUM_DEPOSIT } from '../../constants/perps';
+import { TransactionMeta } from '@metamask/transaction-controller';
+import { getRequiredBalance } from '../../utils/transaction-pay';
+import { getNativeTokenAddress } from '../../utils/asset';
+import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 
 const log = createProjectLogger('transaction-pay');
 
@@ -27,13 +24,15 @@ export interface BalanceOverride {
 
 export function useAutomaticTransactionPayToken({
   countOnly = false,
+  disable = false,
 }: {
   countOnly?: boolean;
+  disable?: boolean;
 } = {}) {
   const isUpdated = useRef(false);
   const supportedChains = useSelector(selectEnabledSourceChains);
   const { setPayToken } = useTransactionPayToken();
-  const requiredTokens = useTransactionRequiredTokens({ log: true });
+  const requiredTokens = useTransactionPayRequiredTokens();
 
   const transactionMeta =
     useTransactionMetadataRequest() ?? ({ txParams: {} } as TransactionMeta);
@@ -55,9 +54,11 @@ export function useAutomaticTransactionPayToken({
   let automaticToken: { address: string; chainId?: string } | undefined;
   let count = 0;
 
-  if (!isUpdated.current || countOnly) {
+  const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
+
+  if (!disable && (!isUpdated.current || countOnly)) {
     const targetToken =
-      requiredTokens.find((token) => token.address !== NATIVE_TOKEN_ADDRESS) ??
+      requiredTokens.find((token) => token.address !== nativeTokenAddress) ??
       requiredTokens[0];
 
     const sufficientBalanceTokens = orderBy(
@@ -129,8 +130,10 @@ function isTokenSupported(
   tokens: BridgeToken[],
   requiredBalance: number | undefined,
 ): boolean {
+  const nativeTokenAddress = getNativeTokenAddress(token.chainId as Hex);
+
   const nativeToken = tokens.find(
-    (t) => t.address === NATIVE_TOKEN_ADDRESS && t.chainId === token.chainId,
+    (t) => t.address === nativeTokenAddress && t.chainId === token.chainId,
   );
 
   const tokenAmount = token?.tokenFiatAmount ?? 0;
@@ -143,15 +146,4 @@ function isTokenSupported(
   const hasNativeBalance = (nativeToken?.tokenFiatAmount ?? 0) > 0;
 
   return isTokenBalanceSufficient && hasNativeBalance;
-}
-
-function getRequiredBalance(
-  transactionMeta: TransactionMeta,
-): number | undefined {
-  switch (transactionMeta?.type) {
-    case TransactionType.perpsDeposit:
-      return PERPS_MINIMUM_DEPOSIT;
-    default:
-      return undefined;
-  }
 }

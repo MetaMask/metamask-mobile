@@ -3,10 +3,10 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import PerpsPositionCard from './PerpsPositionCard';
 import type { Position } from '../../controllers/types';
 
-// Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
   useFocusEffect: jest.fn(),
@@ -84,20 +84,7 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
 
 // Mock stream hooks
 jest.mock('../../hooks/stream', () => ({
-  usePerpsLivePrices: jest.fn(() => ({})),
   usePerpsLivePositions: jest.fn(() => ({})),
-}));
-
-// Mock TP_SL_CONFIG
-const mockTPSLConfig = {
-  USE_POSITION_BOUND_TPSL: true,
-};
-
-// Create a getter that references the mutable mock object
-jest.mock('../../constants/perpsConfig', () => ({
-  get TP_SL_CONFIG() {
-    return mockTPSLConfig;
-  },
 }));
 
 // Mock the new hooks from ../../hooks
@@ -110,6 +97,7 @@ jest.mock('../../hooks', () => ({
       {
         name: 'ETH',
         symbol: 'ETH',
+        price: '$2,000.00',
         priceDecimals: 2,
         sizeDecimals: 4,
         maxLeverage: 50,
@@ -128,10 +116,11 @@ jest.mock('../../hooks', () => ({
     handleClosePosition: jest.fn().mockResolvedValue(undefined),
     isClosing: false,
   }),
+  usePerpsLivePrices: jest.fn(() => ({})),
 }));
 
-// Mock PerpsTPSLBottomSheet to avoid PerpsConnectionProvider requirement
-jest.mock('../PerpsTPSLBottomSheet', () => ({
+// Mock PerpsTPSLView to avoid PerpsConnectionProvider requirement
+jest.mock('../../Views/PerpsTPSLView/PerpsTPSLView', () => ({
   __esModule: true,
   default: ({
     isVisible,
@@ -230,6 +219,36 @@ describe('PerpsPositionCard', () => {
     );
     calculatePnLPercentageFromUnrealized.mockReturnValue(5.0);
 
+    // Reset the usePerpsMarkets mock to include price
+    const { usePerpsMarkets } = jest.requireMock('../../hooks');
+    usePerpsMarkets.mockReturnValue({
+      markets: [
+        {
+          name: 'ETH',
+          symbol: 'ETH',
+          price: '$2,000.00',
+          priceDecimals: 2,
+          sizeDecimals: 4,
+          maxLeverage: 50,
+          minSize: 0.01,
+          sizeIncrement: 0.01,
+        },
+      ],
+      error: null,
+      isLoading: false,
+    });
+
+    // Mock usePerpsLivePrices to return live price data for ETH
+    const { usePerpsLivePrices } = jest.requireMock('../../hooks');
+    usePerpsLivePrices.mockReturnValue({
+      ETH: {
+        coin: 'ETH',
+        price: '2100.50',
+        timestamp: Date.now(),
+        percentChange24h: '2.5',
+      },
+    });
+
     // Default eligibility mock
     const { useSelector } = jest.requireMock('react-redux');
     const mockSelectPerpsEligibility = jest.requireMock(
@@ -250,14 +269,16 @@ describe('PerpsPositionCard', () => {
 
       // Assert - Header section
       expect(screen.getByText(/10x\s+long/)).toBeOnTheScreen();
-      expect(screen.getByText('2.50 ETH')).toBeOnTheScreen();
-      expect(screen.getByText('$5,000.00')).toBeOnTheScreen();
+      expect(screen.getByText('2.5 ETH')).toBeOnTheScreen(); // Trailing zero removed
+      // PRICE_RANGES_UNIVERSAL: 5 sig figs, 0 decimals for $1k-$10k, trailing zeros removed
+      expect(screen.getByText('$5,000')).toBeOnTheScreen();
 
       // Assert - Body section - using string keys since strings() mock returns keys
       expect(
         screen.getByText('perps.position.card.entry_price'),
       ).toBeOnTheScreen();
-      expect(screen.getByText('$2,000.00')).toBeOnTheScreen();
+      // PRICE_RANGES_UNIVERSAL: 5 sig figs, 0 decimals for $1k-$10k, trailing zeros removed
+      expect(screen.getByText('$2,000')).toBeOnTheScreen();
       expect(
         screen.getByText('perps.position.card.funding_cost'),
       ).toBeOnTheScreen();
@@ -271,7 +292,8 @@ describe('PerpsPositionCard', () => {
         screen.getByText('perps.position.card.stop_loss'),
       ).toBeOnTheScreen();
       expect(screen.getByText('perps.position.card.margin')).toBeOnTheScreen();
-      expect(screen.getByText('$500.00')).toBeOnTheScreen();
+      // PRICE_RANGES_UNIVERSAL: 5 sig figs, max 2 decimals for $100-$1k, trailing zeros removed
+      expect(screen.getByText('$500')).toBeOnTheScreen();
 
       // Assert - Footer section
       expect(
@@ -294,7 +316,7 @@ describe('PerpsPositionCard', () => {
 
       // Assert
       expect(screen.getByText('short')).toBeOnTheScreen();
-      expect(screen.getByText(/2\.50.*ETH/)).toBeOnTheScreen(); // Should show absolute value
+      expect(screen.getByText(/2\.5.*ETH/)).toBeOnTheScreen(); // Should show absolute value (trailing zero removed)
     });
 
     it('renders with PnL data', () => {
@@ -329,8 +351,10 @@ describe('PerpsPositionCard', () => {
       // Act
       render(<PerpsPositionCard position={positionWithoutLiquidation} />);
 
-      // Assert
-      expect(screen.getByText('N/A')).toBeOnTheScreen();
+      // Assert - Displays standardized price fallback
+      expect(
+        screen.getByText(PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY),
+      ).toBeOnTheScreen();
     });
 
     it('renders with icon when showIcon is true and not expanded', () => {
@@ -472,7 +496,7 @@ describe('PerpsPositionCard', () => {
       render(<PerpsPositionCard position={btcPosition} />);
 
       // Assert
-      expect(screen.getByText(/0\.5000.*BTC/)).toBeOnTheScreen();
+      expect(screen.getByText(/0\.5.*BTC/)).toBeOnTheScreen(); // Trailing zeros removed
     });
 
     it('handles very small position sizes', () => {
@@ -564,8 +588,10 @@ describe('PerpsPositionCard', () => {
       // Act
       render(<PerpsPositionCard position={positionWithEmptyLiquidation} />);
 
-      // Assert
-      expect(screen.getByText('N/A')).toBeOnTheScreen();
+      // Assert - Empty string gets parsed as NaN and displays fallback
+      expect(
+        screen.getByText(PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY),
+      ).toBeOnTheScreen();
     });
 
     it('renders all body items in correct order', () => {
@@ -648,33 +674,22 @@ describe('PerpsPositionCard', () => {
   });
 
   describe('Bottom Sheet Interactions', () => {
-    it('renders PerpsTPSLBottomSheet when isTPSLVisible is true', () => {
+    it('navigates to TP/SL screen when edit button is pressed', () => {
       // Act
       render(<PerpsPositionCard position={mockPosition} />);
 
-      // Open the TP/SL bottom sheet
+      // Open the TP/SL screen via navigation
       fireEvent.press(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
       );
 
-      // Assert
-      expect(screen.getByTestId('perps-tpsl-bottomsheet')).toBeOnTheScreen();
-    });
-
-    it('handles PerpsTPSLBottomSheet onClose callback', () => {
-      // Act
-      render(<PerpsPositionCard position={mockPosition} />);
-
-      // Open the TP/SL bottom sheet
-      fireEvent.press(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
+      // Assert - Should navigate to TP/SL screen
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        expect.stringContaining('TPSL'),
+        expect.objectContaining({
+          position: mockPosition,
+        }),
       );
-
-      // Close the bottom sheet
-      fireEvent.press(screen.getByText('Close'));
-
-      // Assert - bottom sheet should be closed (not visible)
-      expect(screen.queryByTestId('perps-tpsl-bottomsheet')).toBeNull();
     });
 
     it('navigates to close position screen when close button is pressed', () => {
@@ -728,8 +743,8 @@ describe('PerpsPositionCard', () => {
 
       // Assert - Geo block tooltip should be shown
       expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
-      // Assert - TP/SL bottom sheet should not be shown
-      expect(screen.queryByTestId('perps-tpsl-bottomsheet')).toBeNull();
+      // Assert - Navigation should not be called
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
     });
 
     it('shows geo block modal when close position button is pressed and user is not eligible', () => {
@@ -928,11 +943,6 @@ describe('PerpsPositionCard', () => {
   });
 
   describe('TP/SL Count Functionality', () => {
-    beforeEach(() => {
-      // Reset mock config to default
-      mockTPSLConfig.USE_POSITION_BOUND_TPSL = true;
-    });
-
     it('displays take profit count when multiple TP orders exist', () => {
       const positionWithMultipleTP = {
         ...mockPosition,
@@ -969,7 +979,8 @@ describe('PerpsPositionCard', () => {
 
       render(<PerpsPositionCard position={positionWithSingleTP} />);
 
-      expect(screen.getByText('$2,500.00')).toBeOnTheScreen();
+      // PRICE_RANGES_UNIVERSAL: 5 sig figs, 0 decimals for $1k-$10k, trailing zeros removed
+      expect(screen.getByText('$2,500')).toBeOnTheScreen();
       expect(screen.queryByText(/1.*orders/)).not.toBeOnTheScreen();
     });
 
@@ -983,7 +994,8 @@ describe('PerpsPositionCard', () => {
 
       render(<PerpsPositionCard position={positionWithSingleSL} />);
 
-      expect(screen.getByText('$1,500.00')).toBeOnTheScreen();
+      // PRICE_RANGES_UNIVERSAL: 5 sig figs, 0 decimals for $1k-$10k, trailing zeros removed
+      expect(screen.getByText('$1,500')).toBeOnTheScreen();
       expect(screen.queryByText(/1.*orders/)).not.toBeOnTheScreen();
     });
 
@@ -1042,140 +1054,9 @@ describe('PerpsPositionCard', () => {
     });
   });
 
-  describe('TP/SL Count Warning Modal', () => {
-    beforeEach(() => {
-      // Disable position bound TP/SL for these tests
-      mockTPSLConfig.USE_POSITION_BOUND_TPSL = false;
-    });
-
-    afterEach(() => {
-      // Reset to default
-      mockTPSLConfig.USE_POSITION_BOUND_TPSL = true;
-    });
-
-    it('shows warning modal when editing TP/SL with multiple orders but no single price', () => {
-      const positionWithMultipleTPNoPrice = {
-        ...mockPosition,
-        takeProfitCount: 2,
-        takeProfitPrice: undefined, // Multiple orders but no single price
-        stopLossCount: 0,
-      };
-
-      render(<PerpsPositionCard position={positionWithMultipleTPNoPrice} />);
-
-      // Press edit TP/SL button
-      fireEvent.press(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
-      );
-
-      // Should show warning modal instead of TP/SL bottom sheet since position bound TP/SL is disabled
-      expect(screen.getByText('TPSL Count Warning Tooltip')).toBeOnTheScreen();
-      expect(
-        screen.queryByTestId('perps-tpsl-bottomsheet'),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('shows warning modal when editing TP/SL with multiple SL orders but no single price', () => {
-      const positionWithMultipleSLNoPrice = {
-        ...mockPosition,
-        takeProfitCount: 0,
-        stopLossCount: 3,
-        stopLossPrice: undefined, // Multiple orders but no single price
-      };
-
-      render(<PerpsPositionCard position={positionWithMultipleSLNoPrice} />);
-
-      // Press edit TP/SL button
-      fireEvent.press(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
-      );
-
-      // Should show warning modal instead of TP/SL bottom sheet since position bound TP/SL is disabled
-      expect(screen.getByText('TPSL Count Warning Tooltip')).toBeOnTheScreen();
-      expect(
-        screen.queryByTestId('perps-tpsl-bottomsheet'),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('does not show warning modal when position bound TP/SL is enabled', () => {
-      // Temporarily enable position bound TP/SL
-      mockTPSLConfig.USE_POSITION_BOUND_TPSL = true;
-
-      const positionWithMultipleTPNoPrice = {
-        ...mockPosition,
-        takeProfitCount: 2,
-        takeProfitPrice: undefined,
-        stopLossCount: 0,
-      };
-
-      render(<PerpsPositionCard position={positionWithMultipleTPNoPrice} />);
-
-      // Press edit TP/SL button
-      fireEvent.press(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
-      );
-
-      // Should show TP/SL bottom sheet, not warning modal
-      expect(screen.getByTestId('perps-tpsl-bottomsheet')).toBeOnTheScreen();
-      expect(
-        screen.queryByText('TPSL Count Warning Tooltip'),
-      ).not.toBeOnTheScreen();
-
-      // Reset back to disabled for other tests in this describe block
-      mockTPSLConfig.USE_POSITION_BOUND_TPSL = false;
-    });
-
-    it('does not show warning modal when single TP/SL prices are available', () => {
-      const positionWithSinglePrices = {
-        ...mockPosition,
-        takeProfitCount: 1,
-        takeProfitPrice: '2500.00',
-        stopLossCount: 1,
-        stopLossPrice: '1500.00',
-      };
-
-      render(<PerpsPositionCard position={positionWithSinglePrices} />);
-
-      // Press edit TP/SL button
-      fireEvent.press(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
-      );
-
-      // Should show TP/SL bottom sheet, not warning modal
-      expect(screen.getByTestId('perps-tpsl-bottomsheet')).toBeOnTheScreen();
-      expect(
-        screen.queryByText('TPSL Count Warning Tooltip'),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('shows warning modal when single TP/SL orders exist but no prices available (position bound disabled)', () => {
-      const positionWithSingleOrdersNoPrices = {
-        ...mockPosition,
-        takeProfitCount: 1,
-        takeProfitPrice: undefined, // No price available
-        stopLossCount: 1,
-        stopLossPrice: undefined, // No price available
-      };
-
-      render(<PerpsPositionCard position={positionWithSingleOrdersNoPrices} />);
-
-      // Press edit TP/SL button
-      fireEvent.press(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
-      );
-
-      // Should show warning modal since position bound TP/SL is disabled and there are orders with no prices
-      expect(screen.getByText('TPSL Count Warning Tooltip')).toBeOnTheScreen();
-      expect(
-        screen.queryByTestId('perps-tpsl-bottomsheet'),
-      ).not.toBeOnTheScreen();
-    });
-  });
-
   describe('TP/SL Configuration Behavior', () => {
     it('renders count as clickable when position bound TP/SL is enabled and count > 1', () => {
-      // Ensure position bound TP/SL is enabled (default)
-      mockTPSLConfig.USE_POSITION_BOUND_TPSL = true;
+      // Position bound TP/SL is always enabled in production (TP_SL_CONFIG.USE_POSITION_BOUND_TPSL = true)
 
       const positionWithMultipleTP = {
         ...mockPosition,
@@ -1189,27 +1070,6 @@ describe('PerpsPositionCard', () => {
       const tpCountText = screen.getByText('3 orders');
       // TouchableOpacity should be pressable
       expect(tpCountText).toBeTruthy();
-    });
-
-    it('renders count as clickable when position bound TP/SL is disabled and count > 0 with no price', () => {
-      // Disable position bound TP/SL for this test
-      mockTPSLConfig.USE_POSITION_BOUND_TPSL = false;
-
-      const positionWithMultipleSLNoPrice = {
-        ...mockPosition,
-        takeProfitCount: 0,
-        stopLossCount: 2,
-        stopLossPrice: undefined, // No single price
-      };
-
-      render(<PerpsPositionCard position={positionWithMultipleSLNoPrice} />);
-
-      const slCountText = screen.getByText('2 orders');
-      // TouchableOpacity should be pressable
-      expect(slCountText).toBeTruthy();
-
-      // Reset to default
-      mockTPSLConfig.USE_POSITION_BOUND_TPSL = true;
     });
 
     it('handles navigation error gracefully when pressing TP/SL count', () => {
@@ -1270,6 +1130,68 @@ describe('PerpsPositionCard', () => {
 
       // Should not call onTpslCountPress due to missing market data
       expect(mockOnTpslCountPress).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('share button functionality', () => {
+    it('renders share button when expanded is true', () => {
+      render(<PerpsPositionCard position={mockPosition} expanded />);
+
+      const shareButton = screen.getByTestId(
+        PerpsPositionCardSelectorsIDs.SHARE_BUTTON,
+      );
+
+      expect(shareButton).toBeOnTheScreen();
+    });
+
+    it('does not render share button when expanded is false', () => {
+      render(<PerpsPositionCard position={mockPosition} expanded={false} />);
+
+      const shareButton = screen.queryByTestId(
+        PerpsPositionCardSelectorsIDs.SHARE_BUTTON,
+      );
+
+      expect(shareButton).toBeNull();
+    });
+
+    it('navigates to PNL_HERO_CARD route when share button pressed', () => {
+      const mockNavigate = jest.fn();
+      (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
+
+      render(<PerpsPositionCard position={mockPosition} expanded />);
+
+      const shareButton = screen.getByTestId(
+        PerpsPositionCardSelectorsIDs.SHARE_BUTTON,
+      );
+      fireEvent.press(shareButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.PNL_HERO_CARD,
+        expect.objectContaining({
+          position: mockPosition,
+          marketPrice: '2100.50',
+        }),
+      );
+    });
+
+    it('passes position and marketPrice to route params', () => {
+      const mockNavigate = jest.fn();
+      (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
+
+      render(<PerpsPositionCard position={mockPosition} expanded />);
+
+      const shareButton = screen.getByTestId(
+        PerpsPositionCardSelectorsIDs.SHARE_BUTTON,
+      );
+      fireEvent.press(shareButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          position: mockPosition,
+          marketPrice: '2100.50', // Live price from usePerpsLivePrices, not market data
+        }),
+      );
     });
   });
 });

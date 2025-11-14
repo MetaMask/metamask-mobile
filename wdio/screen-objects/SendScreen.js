@@ -44,7 +44,7 @@ class SendScreen {
   }
 
   get reviewButton() {
-    return AppwrightSelectors.getElementByID(this._device, 'review-button-send');
+    return AppwrightSelectors.getElementByID(this._device, 'review-button');
   }
 
   get sendAddressInputField() {
@@ -79,6 +79,14 @@ class SendScreen {
   get addAddressButton() {
     return Selectors.getElementByPlatform(ADD_ADDRESS_BUTTON);
   }
+
+  get searchTokenField() {
+    if (AppwrightSelectors.isIOS(this._device)) {
+      return AppwrightSelectors.getElementByCatchAll(this._device, 'Search tokens and NFTs');
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, 'textfieldsearch');
+    }
+  }
   
 
   async openNetworkPicker() {
@@ -94,13 +102,17 @@ class SendScreen {
     if (!this._device) {
       await Gestures.typeText(this.sendAddressInputField, address);
     } else {
+      console.log('Typing address in send address field');
       const element = await AppwrightSelectors.getElementByCatchAll(this._device, 'Enter address to send to');
       await AppwrightGestures.typeText(element, address);
     }
   }
 
   async clickOnReviewButton() {
-    const reviewButton = await this.reviewButton;
+    const reviewButton = await AppwrightSelectors.getElementByID(this._device, 'review-button');
+    await appwrightExpect(reviewButton).toBeVisible({timeout: 30000});
+
+    console.log('Review button visible, tapping');
     await reviewButton.tap();
   }
 
@@ -128,7 +140,7 @@ class SendScreen {
   }
 
   async isVisible() {
-    const networkButton = await AppwrightSelectors.getElementByCatchAll(this._device, 'Ethereum');
+    const networkButton = await AppwrightSelectors.getElementByCatchAll(this._device, 'Tokens');
     await appwrightExpect(networkButton).toBeVisible();
   }
 
@@ -185,33 +197,63 @@ class SendScreen {
     }
   }
 
+  async typeTokenName(tokenName) {
+    if (!this._device) {
+      await Gestures.typeText(this.searchTokenField, tokenName);
+    } else {
+      const element = await this.searchTokenField;
+      await element.fill(tokenName);
+    }
+  }
+
+  async clickOnFirstTokenBadge() {
+    const firstTokenBadge = AppwrightSelectors.isIOS(this._device) ? await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeOther[@name="badge-wrapper-badge"]`) : await AppwrightSelectors.getElementByID(this._device, 'badge-wrapper-badge');
+    appwrightExpect(firstTokenBadge).toBeVisible();
+    await AppwrightGestures.tap(firstTokenBadge);
+  }
+
   async selectNetwork(network) {
     if (!this._device) {
       await Gestures.tapTextByXpath(network);
     } else {
-      const networkButton = await AppwrightSelectors.getElementByXpath(this._device, `//*[@content-desc="${network}"]`);
-      await AppwrightGestures.tap(networkButton);
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        const networkButton = await AppwrightSelectors.getElementByXpath(this._device, `//*[@content-desc="${network}"]`);
+        await AppwrightGestures.tap(networkButton);
+      } else {
+        const networkButton = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeOther[@name="${network}"]`);
+        await AppwrightGestures.tap(networkButton);
+      }
     }
   }
 
-  async selectToken(tokenName, tokenSymbol) {
+  async selectToken(networkName = 'Ethereum', tokenSymbol) {
 
     if (!this._device) {
       await Gestures.tapTextByXpath(tokenName);
     } else {
-      const tokenButton = await AppwrightSelectors.getElementByCatchAll(this._device, `${tokenName}, ${tokenSymbol}`);
-      await tokenButton.tap();
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        const networkButton = await AppwrightSelectors.getEl(this._device, `asset-${networkName}`);
+        const tokenButton = await AppwrightSelectors.getElementByID(this._device, `asset-${tokenSymbol}`);
+        await AppwrightGestures.tap(tokenButton);
+      } else {
+        const networkButton = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeOther[@name="${networkName}"]`);
+        await AppwrightGestures.tap(networkButton);
+        const tokenButton = await AppwrightSelectors.getElementByNameiOS(this._device, tokenSymbol);
+        await AppwrightGestures.tap(tokenButton);
+      }
+
     }
   }
 
   async assetsListIsDisplayed() {
-    const assetsList = await AppwrightSelectors.getElementByCatchAll(this._device, 'Tokens');
-    await appwrightExpect(assetsList).toBeVisible();
+    const searchTokenField = await this.searchTokenField
+    await appwrightExpect(searchTokenField).toBeVisible();
   }
 
   async isSelectAddressScreenDisplayed() {
+    console.log('Checking if select address screen is displayed');
     const selectAddressScreen = await AppwrightSelectors.getElementByCatchAll(this._device, 'Enter address to send to');
-    appwrightExpect(await selectAddressScreen).toBeVisible();
+    appwrightExpect(await selectAddressScreen).toBeVisible({timeout: 10000});
   }
 }
 

@@ -42,6 +42,7 @@ const getStories = () => {
   return {
     "./app/component-library/base-components/TagBase/TagBase.stories.tsx": require("../app/component-library/base-components/TagBase/TagBase.stories.tsx"),
     "./app/component-library/components-temp/ActionListItem/ActionListItem.stories.tsx": require("../app/component-library/components-temp/ActionListItem/ActionListItem.stories.tsx"),
+    "./app/component-library/components-temp/ButtonFilter/ButtonFilter.stories.tsx": require("../app/component-library/components-temp/ButtonFilter/ButtonFilter.stories.tsx"),
     "./app/component-library/components-temp/Buttons/ButtonHero/ButtonHero.stories.tsx": require("../app/component-library/components-temp/Buttons/ButtonHero/ButtonHero.stories.tsx"),
     "./app/component-library/components-temp/Buttons/ButtonSemantic/ButtonSemantic.stories.tsx": require("../app/component-library/components-temp/Buttons/ButtonSemantic/ButtonSemantic.stories.tsx"),
     "./app/component-library/components-temp/Buttons/ButtonToggle/ButtonToggle.stories.tsx": require("../app/component-library/components-temp/Buttons/ButtonToggle/ButtonToggle.stories.tsx"),
@@ -126,6 +127,7 @@ const getStories = () => {
     "./app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories.tsx": require("../app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories.tsx"),
     "./app/component-library/components/Toast/Toast.stories.tsx": require("../app/component-library/components/Toast/Toast.stories.tsx"),
     "./app/components/Base/Keypad/Keypad.stories.tsx": require("../app/components/Base/Keypad/Keypad.stories.tsx"),
+    "./app/components/UI/BalanceEmptyState/BalanceEmptyState.stories.tsx": require("../app/components/UI/BalanceEmptyState/BalanceEmptyState.stories.tsx"),
     "./app/components/UI/CollectiblesEmptyState/CollectiblesEmptyState.stories.tsx": require("../app/components/UI/CollectiblesEmptyState/CollectiblesEmptyState.stories.tsx"),
     "./app/components/UI/DefiEmptyState/DefiEmptyState.stories.tsx": require("../app/components/UI/DefiEmptyState/DefiEmptyState.stories.tsx"),
     "./app/components/UI/Perps/Views/PerpsEmptyState/PerpsEmptyState.stories.tsx": require("../app/components/UI/Perps/Views/PerpsEmptyState/PerpsEmptyState.stories.tsx"),

@@ -9,6 +9,44 @@ export const PRICE_API_MOCKS: MockEventsObject = {
   GET: [
     {
       urlEndpoint:
+        /^https:\/\/price\.api\.cx\.metamask\.io\/v1\/exchange-rates\?baseCurrency=.*$/,
+      responseCode: 200,
+      response: {
+        usd: {
+          name: 'US Dollar',
+          ticker: 'usd',
+          value: 1,
+          currencyType: 'fiat',
+        },
+        eth: {
+          name: 'Ether',
+          ticker: 'eth',
+          value: 0.000233,
+          currencyType: 'crypto',
+        },
+        btc: {
+          name: 'Bitcoin',
+          ticker: 'btc',
+          value: 0.000008333,
+          currencyType: 'crypto',
+        },
+        eur: { name: 'Euro', ticker: 'eur', value: 0.85, currencyType: 'fiat' },
+        gbp: {
+          name: 'British Pound Sterling',
+          ticker: 'gbp',
+          value: 0.73,
+          currencyType: 'fiat',
+        },
+        jpy: {
+          name: 'Japanese Yen',
+          ticker: 'jpy',
+          value: 110,
+          currencyType: 'fiat',
+        },
+      },
+    },
+    {
+      urlEndpoint:
         /^https:\/\/price\.api\.cx\.metamask\.io\/v3\/spot-prices\?assetIds=.*&vsCurrency=usd$/,
       responseCode: 200,
       response: {
@@ -35,12 +73,38 @@ export const PRICE_API_MOCKS: MockEventsObject = {
       },
     },
     {
+      urlEndpoint: /^https:\/\/min-api\.cryptocompare\.com\/data\/price\?.*$/,
+      responseCode: 200,
+      response: {},
+    },
+    {
       urlEndpoint:
         /^https:\/\/price\.api\.cx\.metamask\.io\/v2\/chains\/\d+\/spot-prices\?.*$/,
       responseCode: 200,
       response: {
         '0x0000000000000000000000000000000000000000': {
           id: 'ethereum',
+          price: 1.0,
+          marketCap: 120000000,
+          allTimeHigh: 1.1,
+          allTimeLow: 0.1,
+          totalVolume: 9000000,
+          high1d: 1.05,
+          low1d: 0.95,
+          circulatingSupply: 120000000,
+          dilutedMarketCap: 120000000,
+          marketCapPercentChange1d: 0,
+          priceChange1d: 0,
+          pricePercentChange1h: 0,
+          pricePercentChange1d: 0,
+          pricePercentChange7d: 0,
+          pricePercentChange14d: 0,
+          pricePercentChange30d: 0,
+          pricePercentChange200d: 0,
+          pricePercentChange1y: 0,
+        },
+        '0xaf88d065e77c8cc2239327c5edb3a432268e5831': {
+          id: 'usdc',
           price: 1.0,
           marketCap: 120000000,
           allTimeHigh: 1.1,

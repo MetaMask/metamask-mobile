@@ -86,8 +86,9 @@ import { getAuthorizedScopes } from '../../selectors/permissions';
 import { SolAccountType, SolScope } from '@metamask/keyring-api';
 import { parseCaipAccountId } from '@metamask/utils';
 import { toFormattedAddress, areAddressesEqual } from '../../util/address';
+import { isSameOrigin } from '../../util/url';
 import PPOMUtil from '../../lib/ppom/ppom-util';
-import { isRelaySupported } from '../RPCMethods/transaction-relay';
+import { isRelaySupported } from '../../util/transactions/transaction-relay';
 import { selectSmartTransactionsEnabled } from '../../selectors/smartTransactionsController';
 import { AccountTreeController } from '@metamask/account-tree-controller';
 
@@ -139,8 +140,8 @@ export class BackgroundBridge extends EventEmitter {
     this.port = isRemoteConn
       ? new RemotePort(sendMessage)
       : this.isWalletConnect
-      ? new WalletConnectPort(wcRequestActions)
-      : new Port(this._webviewRef, isMainFrame);
+        ? new WalletConnectPort(wcRequestActions)
+        : new Port(this._webviewRef, isMainFrame);
 
     this.engine = null;
     this.multichainEngine = null;
@@ -183,6 +184,11 @@ export class BackgroundBridge extends EventEmitter {
 
     Engine.controllerMessenger.subscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
+      this.sendStateUpdate,
+    );
+
+    Engine.controllerMessenger.subscribe(
+      'AccountsController:selectedAccountChange',
       this.sendStateUpdate,
     );
 
@@ -422,13 +428,16 @@ export class BackgroundBridge extends EventEmitter {
     }
     // ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
     if (this.isWalletConnect || this.isRemoteConn) {
+      const accountControllerSelectedAddress = toFormattedAddress(
+        Engine.context.AccountsController.getSelectedAccount().address,
+      );
       if (
         this.addressSent != null &&
-        memState.selectedAddress != null &&
-        !areAddressesEqual(this.addressSent, memState.selectedAddress)
+        accountControllerSelectedAddress != null &&
+        !areAddressesEqual(this.addressSent, accountControllerSelectedAddress)
       ) {
-        this.addressSent = memState.selectedAddress;
-        this.notifySelectedAddressChanged(memState.selectedAddress);
+        this.addressSent = accountControllerSelectedAddress;
+        this.notifySelectedAddressChanged(accountControllerSelectedAddress);
       }
     }
   }
@@ -449,6 +458,19 @@ export class BackgroundBridge extends EventEmitter {
   };
 
   onMessage = (msg) => {
+    if (
+      !this.isWalletConnect &&
+      !this.isMMSDK &&
+      !isSameOrigin(msg.origin, this.origin)
+    ) {
+      console.warn(
+        '[BackgroundBridge]: message blocked from unknown origin. Expects',
+        this.origin,
+        'but received',
+        msg.origin,
+      );
+      return;
+    }
     this.port.emit('message', { name: msg.name, data: msg.data });
   };
 
@@ -464,6 +486,10 @@ export class BackgroundBridge extends EventEmitter {
     );
     controllerMessenger.tryUnsubscribe(
       'PreferencesController:stateChange',
+      this.sendStateUpdate,
+    );
+    controllerMessenger.tryUnsubscribe(
+      'AccountsController:selectedAccountChange',
       this.sendStateUpdate,
     );
 
@@ -1119,14 +1145,14 @@ export class BackgroundBridge extends EventEmitter {
    */
   getState() {
     const vault = Engine.context.KeyringController.state.vault;
-    const {
-      PreferencesController: { selectedAddress },
-    } = Engine.datamodel.state;
+    const accountControllerSelectedAddress = toFormattedAddress(
+      Engine.context.AccountsController.getSelectedAccount().address,
+    );
     return {
       isInitialized: !!vault,
       isUnlocked: true,
       network: legacyNetworkId(),
-      selectedAddress,
+      selectedAddress: accountControllerSelectedAddress,
     };
   }
 

@@ -76,3 +76,12 @@ export function getEmptyNavHeader({ theme }: { theme: Theme }) {
     gestureEnabled: false,
   };
 }
+
+export function getModalNavigationOptions() {
+  return {
+    title: '',
+    headerLeft: () => null,
+    headerTransparent: true,
+    headerRight: () => null,
+  };
+}

@@ -1,6 +1,6 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { LocalNodeType } from '../../framework/types';
-import SoftAssert from '../../utils/SoftAssert';
+import { LocalNode, LocalNodeType } from '../../framework/types';
+import SoftAssert from '../../framework/SoftAssert';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import Assertions from '../../framework/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
@@ -13,6 +13,8 @@ import { loginToApp } from '../../viewHelper';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
 import { logger } from '../../framework/logger';
 import { testSpecificMock } from './helpers/swap-mocks';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 const EVENT_NAMES = {
   SWAP_STARTED: 'Swap Started',
@@ -37,14 +39,30 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork(chainId)
-          .withMetaMetricsOptIn()
-          .withDisabledSmartTransactions()
-          .build(),
+        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+          const node = localNodes?.[0] as unknown as AnvilManager;
+          const rpcPort =
+            node instanceof AnvilManager
+              ? (node.getPort() ?? AnvilPort())
+              : undefined;
+
+          return new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: {
+                chainId,
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Localhost',
+                ticker: 'ETH',
+              },
+            })
+            .withMetaMetricsOptIn()
+            .withDisabledSmartTransactions()
+            .build();
+        },
         localNodeOptions: [
           {
-            type: LocalNodeType.ganache,
+            type: LocalNodeType.anvil,
             options: {
               chainId: 1,
             },
