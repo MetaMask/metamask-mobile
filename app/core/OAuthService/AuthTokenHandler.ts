@@ -116,9 +116,17 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
     }
 
     const responseData = await response.json();
+
+    const newRefreshToken = responseData.refresh_token;
+    const newRevokeToken = responseData.revoke_token;
+
+    if (!newRefreshToken || !newRevokeToken) {
+      throw new Error('Failed to renew refresh token - ' + response.statusText);
+    }
+
     return {
-      newRefreshToken: responseData.refresh_token,
-      newRevokeToken: responseData.revoke_token,
+      newRefreshToken,
+      newRevokeToken,
     };
   }
 
@@ -157,7 +165,6 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
         'Failed to revoke refresh token - ' + response.statusText,
       );
     }
-
     return;
   }
 }

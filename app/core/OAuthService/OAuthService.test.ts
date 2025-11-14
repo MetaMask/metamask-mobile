@@ -241,7 +241,7 @@ describe('OAuth login service', () => {
       const loginHandler = mockCreateLoginHandler();
 
       await expectOAuthError(
-        OAuthLoginService.handleOAuthLogin(loginHandler),
+        OAuthLoginService.handleOAuthLogin(loginHandler, false),
         OAuthErrorType.LoginError,
       );
 
