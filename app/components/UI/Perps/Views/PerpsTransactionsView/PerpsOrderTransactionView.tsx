@@ -48,10 +48,10 @@ const PerpsOrderTransactionView: React.FC = () => {
   const { totalFee, protocolFee, metamaskFee } = usePerpsOrderFees({
     orderType:
       transaction?.type === 'order'
-        ? (transaction.order.type ?? 'market')
+        ? (transaction.order?.type ?? 'market')
         : 'market',
     amount:
-      transaction?.type === 'order' ? (transaction.order.size ?? '0') : '0',
+      transaction?.type === 'order' ? (transaction.order?.size ?? '0') : '0',
   });
 
   // Type guard: Ensure this is an order transaction

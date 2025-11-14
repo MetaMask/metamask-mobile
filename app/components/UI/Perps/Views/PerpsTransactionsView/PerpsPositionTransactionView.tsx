@@ -63,7 +63,7 @@ const PerpsPositionTransactionView: React.FC = () => {
   navigation.setOptions(
     getPerpsTransactionsDetailsNavbar(
       navigation,
-      transaction.fill.shortTitle || '',
+      transaction.fill?.shortTitle || '',
     ),
   );
 

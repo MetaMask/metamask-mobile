@@ -81,7 +81,7 @@ const PerpsFundingTransactionView: React.FC = () => {
     });
   };
 
-  const feeNumber = transaction.fundingAmount.feeNumber || 0;
+  const feeNumber = transaction.fundingAmount?.feeNumber || 0;
 
   // Funding detail rows based on design
   const detailRows = [
