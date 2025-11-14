@@ -1183,15 +1183,15 @@ describe('PredictMarketDetails', () => {
       expect(yesButton).toBeDefined();
       fireEvent.press(yesButton as ReactTestInstance);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-        params: {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PREDICT.MODALS.BUY_PREVIEW,
+        {
           market: singleOutcomeMarket,
           outcome: singleOutcomeMarket.outcomes[0],
           outcomeToken: singleOutcomeMarket.outcomes[0].tokens[0],
           entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
         },
-      });
+      );
     });
 
     it('handles No button press for betting', () => {
@@ -1217,15 +1217,15 @@ describe('PredictMarketDetails', () => {
       expect(noButton).toBeDefined();
       fireEvent.press(noButton as ReactTestInstance);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-        params: {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PREDICT.MODALS.BUY_PREVIEW,
+        {
           market: singleOutcomeMarket,
           outcome: singleOutcomeMarket.outcomes[0],
           outcomeToken: singleOutcomeMarket.outcomes[0].tokens[1],
           entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
         },
-      });
+      );
     });
   });
 
