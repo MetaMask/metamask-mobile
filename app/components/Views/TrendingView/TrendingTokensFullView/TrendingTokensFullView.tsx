@@ -341,7 +341,7 @@ const TrendingTokensFullView = () => {
       </View>
       {isLoading || trendingTokensResults.length === 0 ? (
         <View style={styles.listContainer}>
-          <TrendingTokensSkeleton count={MAX_TOKENS} />
+          <TrendingTokensSkeleton count={10} />
         </View>
       ) : (
         <View style={styles.listContainer}>
