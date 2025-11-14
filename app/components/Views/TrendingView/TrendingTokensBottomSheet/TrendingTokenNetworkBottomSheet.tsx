@@ -1,6 +1,13 @@
-import React, { useRef, useState, useCallback, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import React, {
+  useRef,
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+} from 'react';
+import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
 import { useParams } from '../../../../util/navigation/navUtils';
 import BottomSheet, {
@@ -19,12 +26,15 @@ import Avatar, {
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
 import { strings } from '../../../../../locales/i18n';
-import {
-  useNetworksByNamespace,
-  NetworkType,
-  ProcessedNetwork,
-} from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { ProcessedNetwork } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { CaipChainId } from '@metamask/utils';
+import {
+  selectNetworkConfigurationsByCaipChainId,
+  EvmAndMultichainNetworkConfigurationsWithCaipChainId,
+} from '../../../../selectors/networkController';
+import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import { getNetworkImageSource } from '../../../../util/networks';
+import { POPULAR_NETWORK_CHAIN_IDS } from '../../../../constants/popular-networks';
 
 export enum NetworkOption {
   AllNetworks = 'all',
@@ -50,9 +60,43 @@ const TrendingTokenNetworkBottomSheet = () => {
   const { colors } = useTheme();
   const { onNetworkSelect, selectedNetwork: initialSelectedNetwork } =
     useParams<TrendingTokenNetworkBottomSheetParams>();
-  const { networks } = useNetworksByNamespace({
-    networkType: NetworkType.Popular,
-  });
+
+  const networkConfigurations = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
+
+  const networks = useMemo(() => {
+    const filteredConfigs: EvmAndMultichainNetworkConfigurationsWithCaipChainId[] =
+      [];
+
+    for (const [caipChainId, config] of Object.entries(networkConfigurations)) {
+      // Only include popular networks
+      const isPopular =
+        POPULAR_NETWORK_CHAIN_IDS.has(caipChainId as SupportedCaipChainId) ||
+        POPULAR_NETWORK_CHAIN_IDS.has(config.chainId as SupportedCaipChainId);
+
+      if (!isPopular) {
+        continue;
+      }
+
+      // Include all networks (EVM and non-EVM like Solana)
+      // No filtering by isEvm since we want to show all networks
+      filteredConfigs.push(config);
+    }
+
+    // Convert to ProcessedNetwork format
+    return filteredConfigs.map(
+      (config): ProcessedNetwork => ({
+        id: config.caipChainId,
+        name: config.name,
+        caipChainId: config.caipChainId,
+        isSelected: false,
+        imageSource: getNetworkImageSource({
+          chainId: config.caipChainId,
+        }),
+      }),
+    );
+  }, [networkConfigurations]);
 
   // Default to "All networks" if no selection
   const [selectedNetwork, setSelectedNetwork] = useState<
@@ -149,7 +193,7 @@ const TrendingTokenNetworkBottomSheet = () => {
           {strings('trending.networks')}
         </Text>
       </BottomSheetHeader>
-      <View style={optionStyles.optionsList}>
+      <ScrollView style={optionStyles.optionsList}>
         <TouchableOpacity
           style={[
             optionStyles.optionRow,
@@ -191,7 +235,7 @@ const TrendingTokenNetworkBottomSheet = () => {
             </TouchableOpacity>
           );
         })}
-      </View>
+      </ScrollView>
     </BottomSheet>
   );
 };
