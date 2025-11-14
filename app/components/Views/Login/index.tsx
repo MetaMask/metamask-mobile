@@ -24,8 +24,7 @@ import {
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { setExistingUser } from '../../../actions/user';
-import { connect, useDispatch, useSelector } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
 import {
   passcodeType,
@@ -60,6 +59,7 @@ import {
   TraceName,
   TraceOperation,
   endTrace,
+  TraceContext,
 } from '../../../util/trace';
 import TextField, {
   TextFieldSize,
@@ -106,7 +106,8 @@ const EmptyRecordConstant = {};
 
 interface LoginRouteParams {
   locked: boolean;
-  isVaultRecovery?: boolean;
+  oauthLoginSuccess?: boolean;
+  onboardingTraceCtx?: TraceContext;
 }
 
 interface LoginProps {
@@ -136,18 +137,19 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const [startFoxAnimation, setStartFoxAnimation] = useState<
     undefined | 'Start' | 'Loader'
   >(undefined);
+  const [rehydrationFailedAttempts] = useState(0);
 
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
-  const dispatch = useDispatch();
   const {
     styles,
     theme: { colors, themeAppearance },
   } = useStyles(stylesheet, EmptyRecordConstant);
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
-  // coming from vault recovery flow flag
-  const isComingFromVaultRecovery = route?.params?.isVaultRecovery ?? false;
+
+  // coming from oauth onboarding flow flag
+  const isComingFromOauthOnboarding = route?.params?.oauthLoginSuccess ?? false;
 
   const isSeedlessPasswordOutdated = useSelector(
     selectIsSeedlessPasswordOutdated,
@@ -157,17 +159,20 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setStartFoxAnimation('Start');
   };
 
-  const track = (
-    event: IMetaMetricsEvent,
-    properties: Record<string, string | boolean | number>,
-  ) => {
-    trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(event)
-        .addProperties(properties)
-        .build(),
-      saveOnboardingEvent,
-    );
-  };
+  const track = useCallback(
+    (
+      event: IMetaMetricsEvent,
+      properties: Record<string, string | boolean | number>,
+    ) => {
+      trackOnboarding(
+        MetricsEventBuilder.createEventBuilder(event)
+          .addProperties(properties)
+          .build(),
+        saveOnboardingEvent,
+      );
+    },
+    [saveOnboardingEvent],
+  );
 
   const handleBackPress = () => {
     Authentication.lockApp();
@@ -410,11 +415,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
       );
 
-      // CRITICAL: Set existingUser = true after successful vault unlock from recovery
-      // This prevents the vault recovery screen from appearing again on app restart
-      // Only set after successful unlock to ensure vault is unlocked and credentials are stored
-      if (isComingFromVaultRecovery) {
-        dispatch(setExistingUser(true));
+      if (isComingFromOauthOnboarding) {
+        track(MetaMetricsEvents.REHYDRATION_COMPLETED, {
+          account_type: 'social',
+          biometrics: biometryChoice,
+          failed_attempts: rehydrationFailedAttempts,
+        });
       }
 
       await checkMetricsUISeen();
@@ -431,8 +437,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     loading,
     handleLoginError,
     checkMetricsUISeen,
-    dispatch,
-    isComingFromVaultRecovery,
+    isComingFromOauthOnboarding,
+    rehydrationFailedAttempts,
+    track,
   ]);
 
   const handleLogin = async () => {
