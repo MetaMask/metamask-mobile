@@ -1331,6 +1331,7 @@
       "assetMappingFailed": "Failed to build asset mapping",
       "depositFailed": "Deposit failed",
       "orderLeverageReductionFailed": "You cannot reduce your leverage",
+      "insufficientLiquidity": "Insufficient liquidity to execute order. Try using a limit order or retry in a moment.",
       "connectionTimeout": "Connection timed out. Please check your network and try again.",
       "connectionFailed": {
         "title": "Couldn't connect to perps",
