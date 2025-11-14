@@ -132,7 +132,7 @@ const MultichainPermissionsSummary = ({
 
   const hostname = useMemo(() => {
     try {
-      return new URL(currentPageInformation.url).hostname;
+      return new URL(currentPageInformation.url).origin;
     } catch {
       return currentPageInformation.url;
     }
@@ -252,9 +252,7 @@ const MultichainPermissionsSummary = ({
                 params: {
                   hostInfo: {
                     metadata: {
-                      origin:
-                        currentPageInformation?.url &&
-                        new URL(currentPageInformation?.url).hostname,
+                      origin: hostname,
                     },
                   },
                   connectionDateTime: new Date().getTime(),
