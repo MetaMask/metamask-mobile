@@ -251,9 +251,6 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
    * - Migrations 105+ still expect to work with the old engine.backgroundState format
    * - This function temporarily recreates the old format so migrations can run
    * - "unpacking" distributed files back into a single object
-   *
-   * CRITICAL: Crashes if controller data cannot be loaded.
-   * This ensures migrations run with complete data and prevents silent data loss.
    */
   const inflateFromControllers = async (state: unknown) => {
     try {
@@ -278,22 +275,8 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
         },
       } as StateWithEngine;
       return inflated as unknown;
-    } catch (error) {
-      captureException(
-        new Error(
-          `inflateFromControllers: Critical error loading controller data: ${String(
-            error,
-          )}`,
-        ),
-      );
-
-      // CRASH on load failure, don't allow migrations to run with incomplete data
-      // This could result in data loss if migrations can't access all controller state
-      throw new Error(
-        `Critical: Failed to load controller data for migration. ` +
-          `Cannot continue safely as migrations may corrupt data without complete state. ` +
-          `App will restart to attempt recovery. Error: ${String(error)}`,
-      );
+    } catch {
+      return state;
     }
   };
 
@@ -307,8 +290,8 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
    * - Then strips engine.backgroundState from redux to maintain the new architecture
    * - "repacking" the single object back into distributed files
    *
-   * CRITICAL: Crashes immediately if ANY controller fails to save.
-   * This prevents partial migration state corruption and ensures clean recovery.
+   * CRITICAL: Only strips engine.backgroundState if ALL controllers save successfully.
+   * Failed controllers are preserved to prevent data loss.
    */
   const deflateToControllersAndStrip = async (state: unknown) => {
     try {
@@ -319,8 +302,9 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
         unknown,
       ][];
 
-      // Save all controller states to individual storage
-      // CRITICAL: If ANY controller fails to save, crash the app immediately
+      let failedControllers = 0;
+      const failedControllerStates: Record<string, unknown> = {};
+
       await Promise.all(
         entries.map(async ([controllerName, controllerState]) => {
           try {
@@ -329,7 +313,7 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
               JSON.stringify(controllerState),
             );
           } catch (error) {
-            // Log the error for debugging
+            failedControllers++;
             captureException(
               new Error(
                 `deflateToControllersAndStrip: Failed to save ${controllerName} to individual storage: ${String(
@@ -338,20 +322,33 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
               ),
             );
 
-            // CRASH immediately, don't allow partial migration success
-            // This ensures clean recovery and prevents state corruption
-            throw new Error(
-              `Critical: Migration failed for controller '${controllerName}'. ` +
-                `Cannot continue with partial migration as this would corrupt user data. ` +
-                `App will restart to attempt recovery. Error: ${String(error)}`,
-            );
+            // Preserve failed controller state to prevent data loss
+            failedControllerStates[controllerName] = controllerState;
           }
         }),
       );
 
-      // All controllers saved successfully, safe to strip engine state
-      const { engine: _engine, ...rest } = s;
-      return rest as unknown;
+      // Only strip engine.backgroundState if ALL controllers saved successfully
+      if (failedControllers === 0) {
+        // Return state without engine slice (kept out of redux)
+        const { engine: _engine, ...rest } = s;
+        return rest as unknown;
+      }
+
+      // Keep failed controllers in engine.backgroundState to prevent data loss
+      captureException(
+        new Error(
+          `deflateToControllersAndStrip: ${failedControllers} controllers failed to save, preserving their state in redux-persist`,
+        ),
+      );
+
+      return {
+        ...s,
+        engine: {
+          ...s.engine,
+          backgroundState: failedControllerStates,
+        },
+      };
     } catch (error) {
       captureException(
         new Error(
@@ -361,13 +358,7 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
         ),
       );
 
-      // CRASH on any deflation error, don't return original state
-      // Returning original state would mean user continues with unmigrated data
-      throw new Error(
-        `Critical: deflateToControllersAndStrip failed completely. ` +
-          `Cannot continue safely as this indicates severe migration system failure. ` +
-          `App will restart to attempt recovery. Error: ${String(error)}`,
-      );
+      return state;
     }
   };
 

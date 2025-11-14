@@ -28,7 +28,6 @@ import { isE2E } from '../../util/test/utils';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 import { INIT_BG_STATE_KEY, LOG_TAG, UPDATE_BG_STATE_KEY } from './constants';
 import { StateConstraint } from '@metamask/base-controller';
-import { hasPersistedState } from './utils/persistence-utils';
 
 export class EngineService {
   private engineInitialized = false;
@@ -49,57 +48,6 @@ export class EngineService {
       });
     }),
   );
-
-  private initializeControllers = (engine: TypedEngine) => {
-    // coordination mechanism to prevent race conditions between engine initialization and UI rendering
-    if (!engine.context) {
-      Logger.error(
-        new Error(
-          'Engine context does not exists. Redux will not be updated from controller state updates!',
-        ),
-      );
-      return;
-    }
-
-    engine.controllerMessenger.subscribeOnceIf(
-      'ComposableController:stateChange',
-      () => {
-        if (!engine.context.KeyringController.metadata?.vault) {
-          Logger.log('keyringController vault missing for INIT_BG_STATE_KEY');
-        }
-        this.updateBatcher.add(INIT_BG_STATE_KEY);
-        // immediately flush the redux action
-        // so that the initial state is available to the redux store
-        this.updateBatcher.flush();
-        this.engineInitialized = true;
-      },
-      () => !this.engineInitialized,
-    );
-
-    // Set up immediate Redux updates for all controller state changes
-    // This ensures Redux is updated right away when controllers change
-    const update_bg_state_cb = (controllerName: string) => {
-      if (!engine.context.KeyringController.metadata?.vault) {
-        Logger.log('keyringController vault missing for UPDATE_BG_STATE_KEY');
-      }
-      this.updateBatcher.add(controllerName);
-    };
-
-    BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
-      const controllerName = eventName.split(':')[0];
-
-      // Skip CronjobController state change events
-      // as they are handled separately in the CronjobControllerStorageManager.
-      // This prevents duplicate updates to the Redux store.
-      if (eventName === 'CronjobController:stateChange') {
-        return;
-      }
-
-      engine.controllerMessenger.subscribe(eventName, () =>
-        update_bg_state_cb(controllerName),
-      );
-    });
-  };
 
   /**
    * Starts the Engine and subscribes to the controller state changes
@@ -174,14 +122,41 @@ export class EngineService {
     endTrace({ name: TraceName.EngineInitialization });
   };
 
+  private initializeControllers = (engine: TypedEngine) => {
+    // coordination mechanism to prevent race conditions between engine initialization and UI rendering
+    if (!engine.context) {
+      Logger.error(
+        new Error(
+          'Engine context does not exists. Redux will not be updated from controller state updates!',
+        ),
+      );
+      return;
+    }
+
+    engine.controllerMessenger.subscribeOnceIf(
+      'ComposableController:stateChange',
+      () => {
+        if (!engine.context.KeyringController.metadata.vault) {
+          Logger.log('keyringController vault missing for INIT_BG_STATE_KEY');
+        }
+        this.updateBatcher.add(INIT_BG_STATE_KEY);
+        // immediately flush the redux action
+        // so that the initial state is available to the redux store
+        this.updateBatcher.flush();
+        this.engineInitialized = true;
+      },
+      () => !this.engineInitialized,
+    );
+  };
+
   /**
    * Sets up persistence subscriptions for all engine controllers.
    *
-   * This method subscribes to each controller's state change events and automatically
-   * persists the state to individual filesystem storage files.
+   * This method subscribes to each controller's state change events and automatically:
+   * 1. Updates Redux store with the new controller state
+   * 2. Persists the filtered state to individual filesystem storage files
    *
    * The persistence is debounced in createPersistController to prevent excessive disk writes during rapid state changes.
-   * Controllers with no persistent state are skipped to avoid storing empty objects.
    */
   private setupEnginePersistence = () => {
     try {
@@ -189,14 +164,10 @@ export class EngineService {
         BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
           const controllerName = eventName.split(':')[0];
 
-          // Check if controller has any persistent state before setting up persistence
-          const controllerMetadata =
-            // @ts-expect-error - Engine context has stateless controllers, so metadata may not be available
-            UntypedEngine.context[controllerName]?.metadata;
-          if (!hasPersistedState(controllerMetadata)) {
-            Logger.log(
-              `Skipping persistence setup for ${controllerName}, no persistent state`,
-            );
+          // Skip CronjobController state change events
+          // as they are handled separately in the CronjobControllerStorageManager.
+          // This prevents duplicate updates to the Redux store.
+          if (eventName === 'CronjobController:stateChange') {
             return;
           }
 
@@ -213,35 +184,26 @@ export class EngineService {
                   UntypedEngine.context[controllerName]?.metadata,
                 );
 
+                this.updateBatcher.add(controllerName);
+
                 await persistController(filteredState, controllerName);
               } catch (error) {
-                // Log and track persistence failures but don't crash
-                // Expected failures (low disk space, I/O errors) shouldn't crash the app
-                // The error is already logged in createPersistController, this provides additional context
                 Logger.error(
                   error as Error,
-                  `Failed to persist ${controllerName} state during state change`,
+                  `Failed to process ${controllerName} state change`,
                 );
-                // Continue running - graceful degradation is better than crashing for expected failures
               }
             },
           );
         });
         Logger.log(
-          'Individual controller persistence subscriptions set up successfully',
+          'Individual controller persistence and Redux update subscriptions set up successfully',
         );
       }
     } catch (error) {
       Logger.error(
         error as Error,
         'Failed to set up Engine persistence subscription',
-      );
-      // This is a critical failure, if we can't set up persistence,
-      // the wallet shouldn't continue as users will lose all data
-      throw new Error(
-        `Critical: Engine persistence setup failed. Cannot continue safely. ${
-          (error as Error).message
-        }`,
       );
     }
   };
