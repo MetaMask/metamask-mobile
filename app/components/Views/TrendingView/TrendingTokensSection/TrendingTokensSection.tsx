@@ -1,8 +1,4 @@
-import React, { useCallback } from 'react';
-import { View } from 'react-native';
-import { TrendingAsset } from '@metamask/assets-controllers';
-import TrendingTokensSkeleton from './TrendingTokenSkeleton/TrendingTokensSkeleton';
-import TrendingTokensList from './TrendingTokensList';
+import React from 'react';
 import { useTrendingRequest } from '../../../UI/Assets/hooks/useTrendingRequest';
 import SectionCard from '../components/SectionCard/SectionCard';
 
@@ -10,25 +6,12 @@ const TrendingTokensSection = () => {
   const { results: trendingTokensResults, isLoading } = useTrendingRequest({});
   const trendingTokens = trendingTokensResults.slice(0, 3);
 
-  const handleTokenPress = useCallback((token: TrendingAsset) => {
-    // eslint-disable-next-line no-console
-    console.log('🚀 ~ TrendingTokensSection ~ token:', token);
-    // TODO: Implement token press logic
-  }, []);
-
   return (
-    <View>
-      <SectionCard>
-        {isLoading || trendingTokens.length === 0 ? (
-          <TrendingTokensSkeleton count={3} />
-        ) : (
-          <TrendingTokensList
-            trendingTokens={trendingTokens}
-            onTokenPress={handleTokenPress}
-          />
-        )}
-      </SectionCard>
-    </View>
+    <SectionCard
+      sectionId="tokens"
+      isLoading={isLoading || trendingTokens.length === 0}
+      data={trendingTokens}
+    />
   );
 };
 
