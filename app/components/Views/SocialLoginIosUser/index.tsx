@@ -33,11 +33,12 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const route = useRoute();
 
-  const { accountName, oauthLoginSuccess, onboardingTraceCtx } =
+  const { accountName, oauthLoginSuccess, onboardingTraceCtx, provider } =
     (route.params as {
       accountName?: string;
       oauthLoginSuccess?: boolean;
       onboardingTraceCtx?: unknown;
+      provider?: string;
     }) || {};
 
   const handleSetMetaMaskPin = () => {
@@ -46,6 +47,7 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
       oauthLoginSuccess,
       onboardingTraceCtx,
       accountName,
+      provider,
     });
   };
 
