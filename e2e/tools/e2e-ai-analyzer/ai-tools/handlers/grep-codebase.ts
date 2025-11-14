@@ -10,17 +10,18 @@ import { TOOL_LIMITS } from '../../config';
 
 /**
  * Validates and sanitizes grep pattern
- * Rejects dangerous patterns, allows safe regex
+ * Rejects dangerous patterns, allows safe grep regex
  */
 function sanitizeGrepPattern(str: string): string {
-  // Reject patterns with potential command injection
+  // Reject patterns with command substitution or command chaining
   if (str.includes('`') || str.includes('$(') || str.includes('\n')) {
     throw new Error('Invalid pattern: contains dangerous characters');
   }
 
-  // Escape double quotes to prevent breaking out of quoted string
-  // Backslash is allowed for grep regex (e.g., \., \w, etc.)
-  return str.replace(/"/g, '\\"');
+  // Escape shell metacharacters that could cause issues
+  // Escapes: $, ", \ (shell interpretation)
+  // Preserves: |, *, ., [], {}, +, ? (grep regex)
+  return str.replace(/[$"\\]/g, '\\$&');
 }
 
 export function handleGrepCodebase(input: ToolInput, baseDir: string): string {

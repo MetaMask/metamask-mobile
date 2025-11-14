@@ -24,7 +24,7 @@ Use your judgment - selecting all tags is acceptable (recommended as conservativ
 Critical files (marked in file list) typically warrant testing. Use tools to investigate when uncertain.
 For E2E test infrastructure related changes, consider running the necessary tests or all of them in case the changes are wide-ranging.
 Balance thoroughness with efficiency, and be conservative in the assessment of risk and tags to run.
-Do not exceed the maximum number of analysis iterationss which is ${CLAUDE_CONFIG.maxIterations}.`;
+Do not exceed the maximum number of analysis iterations which is ${CLAUDE_CONFIG.maxIterations}.`;
 
   const prompt = [
     role,
