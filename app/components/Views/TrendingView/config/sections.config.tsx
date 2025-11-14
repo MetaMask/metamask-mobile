@@ -22,9 +22,23 @@ import { PerpsStreamProvider } from '../../../UI/Perps/providers/PerpsStreamMana
 
 export type SectionId = 'predictions' | 'tokens' | 'perps';
 
-export interface SectionData {
+interface SectionData {
   data: unknown[];
   isLoading: boolean;
+}
+
+interface SectionConfig {
+  id: SectionId;
+  title: string;
+  viewAllAction: (navigation: NavigationProp<ParamListBase>) => void;
+  renderRowItem: (
+    item: unknown,
+    navigation: NavigationProp<ParamListBase>,
+  ) => JSX.Element;
+  renderSkeleton: () => JSX.Element;
+  getSearchableText: (item: unknown) => string;
+  keyExtractor: (item: unknown) => string;
+  renderSection: () => JSX.Element;
 }
 
 /**
@@ -68,145 +82,6 @@ export const useSectionsData = (
 };
 
 /**
- * Configuration for each section in the Trending View.
- * This includes navigation, display, search functionality, and section rendering.
- */
-export interface SectionConfig {
-  title: string;
-  viewAllAction: (navigation: NavigationProp<ParamListBase>) => void;
-  renderRowItem: (
-    item: unknown,
-    navigation: NavigationProp<ParamListBase>,
-  ) => JSX.Element;
-  renderSkeleton: () => JSX.Element;
-  getSearchableText: (item: unknown) => string;
-  keyExtractor: (item: unknown) => string;
-  renderSection: () => JSX.Element;
-}
-
-const tokensConfig: SectionConfig = {
-  title: strings('trending.tokens'),
-  viewAllAction: (_navigation) => {
-    // TODO: Implement tokens navigation when ready
-    // _navigation.navigate(...);
-  },
-  renderRowItem: (item) => (
-    <TrendingTokenRowItem
-      token={item as TrendingAsset}
-      onPress={() => undefined}
-    />
-  ),
-  renderSkeleton: () => <TrendingTokensSkeleton />,
-  getSearchableText: (item) =>
-    `${(item as TrendingAsset).symbol} ${(item as TrendingAsset).name}`.toLowerCase(),
-  keyExtractor: (item) => `token-${(item as TrendingAsset).assetId}`,
-  renderSection: () => {
-    const TrendingTokensSection = () => {
-      const { results: trendingTokensResults, isLoading } = useTrendingRequest(
-        {},
-      );
-      const trendingTokens = trendingTokensResults.slice(0, 3);
-
-      return (
-        <SectionCard
-          sectionId="tokens"
-          isLoading={isLoading || trendingTokens.length === 0}
-          data={trendingTokens}
-        />
-      );
-    };
-
-    return <TrendingTokensSection />;
-  },
-};
-
-const perpsConfig: SectionConfig = {
-  title: strings('trending.perps'),
-  viewAllAction: (navigation) => {
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.MARKET_LIST,
-      params: {
-        defaultMarketTypeFilter: 'all',
-      },
-    });
-  },
-  renderRowItem: (item, navigation) => (
-    <PerpsMarketRowItem
-      market={item as PerpsMarketData}
-      onPress={() => {
-        (navigation as NavigationProp<PerpsNavigationParamList>)?.navigate(
-          Routes.PERPS.ROOT,
-          {
-            screen: Routes.PERPS.MARKET_DETAILS,
-            params: { market: item as PerpsMarketData },
-          },
-        );
-      }}
-      showBadge={false}
-    />
-  ),
-  renderSkeleton: () => <PerpsMarketRowSkeleton />,
-  getSearchableText: (item) =>
-    `${(item as PerpsMarketData).symbol} ${(item as PerpsMarketData).name || ''}`.toLowerCase(),
-  keyExtractor: (item) => `perp-${(item as PerpsMarketData).symbol}`,
-  renderSection: () => {
-    const PerpsSection = () => {
-      const { markets, isLoading } = usePerpsMarkets();
-      const perpsTokens = markets.slice(0, 3);
-
-      return (
-        <SectionCard
-          sectionId="perps"
-          isLoading={isLoading || perpsTokens.length === 0}
-          data={perpsTokens}
-        />
-      );
-    };
-
-    return (
-      <PerpsConnectionProvider>
-        <PerpsStreamProvider>
-          <PerpsSection />
-        </PerpsStreamProvider>
-      </PerpsConnectionProvider>
-    );
-  },
-};
-
-const predictionsConfig: SectionConfig = {
-  title: strings('wallet.predict'),
-  viewAllAction: (navigation) => {
-    navigation.navigate(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_LIST,
-    });
-  },
-  renderRowItem: (item) => <PredictMarket market={item as PredictMarketType} />,
-  renderSkeleton: () => <PredictMarketSkeleton />,
-  getSearchableText: (item) => (item as PredictMarketType).title.toLowerCase(),
-  keyExtractor: (item) => `prediction-${(item as PredictMarketType).id}`,
-  renderSection: () => {
-    const PredictionSection = () => {
-      const { marketData, isFetching } = usePredictMarketData({
-        category: 'trending',
-        pageSize: 6,
-      });
-
-      return (
-        <SectionCarrousel
-          sectionId="predictions"
-          isLoading={isFetching || marketData?.length === 0}
-          data={marketData}
-          showPagination
-          testIDPrefix="prediction-carousel"
-        />
-      );
-    };
-
-    return <PredictionSection />;
-  },
-};
-
-/**
  * Centralized configuration for all Trending View sections.
  * This config is used by QuickActions, SectionHeaders, Search, and TrendingView rendering.
  *
@@ -231,22 +106,149 @@ const predictionsConfig: SectionConfig = {
  * - Search results
  * - Section headers with "View All" navigation
  */
+
+/**
+ * Configuration for each section in the Trending View.
+ * This includes navigation, display, search functionality, and section rendering.
+ */
+
 export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
-  tokens: tokensConfig,
-  perps: perpsConfig,
-  predictions: predictionsConfig,
+  tokens: {
+    id: 'tokens',
+    title: strings('trending.tokens'),
+    viewAllAction: (_navigation) => {
+      // TODO: Implement tokens navigation when ready
+      // _navigation.navigate(...);
+    },
+    renderRowItem: (item) => (
+      <TrendingTokenRowItem
+        token={item as TrendingAsset}
+        onPress={() => undefined}
+      />
+    ),
+    renderSkeleton: () => <TrendingTokensSkeleton />,
+    getSearchableText: (item) =>
+      `${(item as TrendingAsset).symbol} ${(item as TrendingAsset).name}`.toLowerCase(),
+    keyExtractor: (item) => `token-${(item as TrendingAsset).assetId}`,
+    renderSection: () => {
+      const TrendingTokensSection = () => {
+        const { results: trendingTokensResults, isLoading } =
+          useTrendingRequest({});
+        const trendingTokens = trendingTokensResults.slice(0, 3);
+
+        return (
+          <SectionCard
+            sectionId="tokens"
+            isLoading={isLoading || trendingTokens.length === 0}
+            data={trendingTokens}
+          />
+        );
+      };
+
+      return <TrendingTokensSection />;
+    },
+  },
+  perps: {
+    id: 'perps',
+    title: strings('trending.perps'),
+    viewAllAction: (navigation) => {
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_LIST,
+        params: {
+          defaultMarketTypeFilter: 'all',
+        },
+      });
+    },
+    renderRowItem: (item, navigation) => (
+      <PerpsMarketRowItem
+        market={item as PerpsMarketData}
+        onPress={() => {
+          (navigation as NavigationProp<PerpsNavigationParamList>)?.navigate(
+            Routes.PERPS.ROOT,
+            {
+              screen: Routes.PERPS.MARKET_DETAILS,
+              params: { market: item as PerpsMarketData },
+            },
+          );
+        }}
+        showBadge={false}
+      />
+    ),
+    renderSkeleton: () => <PerpsMarketRowSkeleton />,
+    getSearchableText: (item) =>
+      `${(item as PerpsMarketData).symbol} ${(item as PerpsMarketData).name || ''}`.toLowerCase(),
+    keyExtractor: (item) => `perp-${(item as PerpsMarketData).symbol}`,
+    renderSection: () => {
+      const PerpsSection = () => {
+        const { markets, isLoading } = usePerpsMarkets();
+        const perpsTokens = markets.slice(0, 3);
+
+        return (
+          <SectionCard
+            sectionId="perps"
+            isLoading={isLoading || perpsTokens.length === 0}
+            data={perpsTokens}
+          />
+        );
+      };
+
+      return (
+        <PerpsConnectionProvider>
+          <PerpsStreamProvider>
+            <PerpsSection />
+          </PerpsStreamProvider>
+        </PerpsConnectionProvider>
+      );
+    },
+  },
+  predictions: {
+    id: 'predictions',
+    title: strings('wallet.predict'),
+    viewAllAction: (navigation) => {
+      navigation.navigate(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+      });
+    },
+    renderRowItem: (item) => (
+      <PredictMarket market={item as PredictMarketType} />
+    ),
+    renderSkeleton: () => <PredictMarketSkeleton />,
+    getSearchableText: (item) =>
+      (item as PredictMarketType).title.toLowerCase(),
+    keyExtractor: (item) => `prediction-${(item as PredictMarketType).id}`,
+    renderSection: () => {
+      const PredictionSection = () => {
+        const { marketData, isFetching } = usePredictMarketData({
+          category: 'trending',
+          pageSize: 6,
+        });
+
+        return (
+          <SectionCarrousel
+            sectionId="predictions"
+            isLoading={isFetching || marketData?.length === 0}
+            data={marketData}
+            showPagination
+            testIDPrefix="prediction-carousel"
+          />
+        );
+      };
+
+      return <PredictionSection />;
+    },
+  },
 };
 
 // Sorted by order on the main screen
 export const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
-  { id: 'predictions', ...predictionsConfig },
-  { id: 'tokens', ...tokensConfig },
-  { id: 'perps', ...perpsConfig },
+  SECTIONS_CONFIG.predictions,
+  SECTIONS_CONFIG.tokens,
+  SECTIONS_CONFIG.perps,
 ];
 
 // Sorted by order on the QuickAction buttons and SearchResults
 export const SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
-  { id: 'tokens', ...tokensConfig },
-  { id: 'perps', ...perpsConfig },
-  { id: 'predictions', ...predictionsConfig },
+  SECTIONS_CONFIG.tokens,
+  SECTIONS_CONFIG.perps,
+  SECTIONS_CONFIG.predictions,
 ];
