@@ -120,6 +120,7 @@ jest.mock('../Engine', () => ({
 
     MultichainAccountService: {
       init: jest.fn().mockResolvedValue(undefined),
+      resyncAccounts: jest.fn().mockResolvedValue(undefined),
     },
   },
 }));
