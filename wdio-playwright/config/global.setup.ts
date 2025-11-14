@@ -1,6 +1,6 @@
 import { type FullConfig } from '@playwright/test';
 import { WebDriverConfig } from '../../e2e/framework/types';
-import { createDeviceProvider } from '../services';
+import { createDeviceServiceProvider } from '../services';
 
 async function globalSetup(config: FullConfig<WebDriverConfig>) {
   const args = process.argv;
@@ -25,7 +25,7 @@ async function globalSetup(config: FullConfig<WebDriverConfig>) {
   }
   config.projects.forEach(async (project) => {
     if (projects.includes(project.name)) {
-      const provider = createDeviceProvider(project);
+      const provider = createDeviceServiceProvider(project);
       await provider.globalSetup?.();
     }
   });

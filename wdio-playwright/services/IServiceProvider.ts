@@ -1,4 +1,4 @@
-export interface DeviceProvider {
+export interface ServiceProviderInterface {
   /**
    * Identifier for the Appium session. Can be undefined if the session was not created.
    */
@@ -21,7 +21,7 @@ export interface DeviceProvider {
    * @param reason for the test status
    * @param name of the test
    */
-  syncTestDetails?: (details: {
+  syncTestDetailsStatus?: (details: {
     status?: string;
     reason?: string;
     name?: string;

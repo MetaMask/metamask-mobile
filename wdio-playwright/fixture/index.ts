@@ -1,8 +1,7 @@
 import { test as base, FullProject } from '@playwright/test';
 import { WebDriverConfig } from '../../e2e/framework';
-import { DeviceProvider } from '../services/common/interfaces/DeviceProvider';
-import { createDeviceProvider } from '../services';
-import { stopAppiumServer } from '../services/common/AppiumHelpers';
+import { ServiceProviderInterface } from '../services/IServiceProvider';
+import { createDeviceServiceProvider, stopAppiumServer } from '../services';
 
 // Extend globalThis to include driver property
 declare global {
@@ -15,7 +14,7 @@ interface TestLevelFixtures {
    * Device provider to be used for the test.
    * This creates and manages the device lifecycle for the test
    */
-  deviceProvider: DeviceProvider;
+  deviceProvider: ServiceProviderInterface;
 
   /**
    * The device instance that will be used for running the test.
@@ -28,7 +27,7 @@ interface TestLevelFixtures {
 export const test = base.extend<TestLevelFixtures>({
   // eslint-disable-next-line no-empty-pattern
   deviceProvider: async ({}, use, testInfo) => {
-    const deviceProvider = createDeviceProvider(testInfo.project);
+    const deviceProvider = createDeviceServiceProvider(testInfo.project);
     await use(deviceProvider);
   },
   driver: async ({ deviceProvider }, use, testInfo) => {
@@ -46,7 +45,7 @@ export const test = base.extend<TestLevelFixtures>({
       type: 'sessionId',
       description: deviceProvider.sessionId,
     });
-    await deviceProvider.syncTestDetails?.({ name: testInfo.title });
+    await deviceProvider.syncTestDetailsStatus?.({ name: testInfo.title });
     await use(driver);
     await driver.deleteSession();
     // Clean up global driver reference
@@ -54,7 +53,7 @@ export const test = base.extend<TestLevelFixtures>({
     if (deviceProviderName === 'emulator') {
       await stopAppiumServer();
     }
-    await deviceProvider.syncTestDetails?.({
+    await deviceProvider.syncTestDetailsStatus?.({
       name: testInfo.title,
       status: testInfo.status,
       reason: testInfo.error?.message,
