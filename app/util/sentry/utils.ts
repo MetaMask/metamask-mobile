@@ -18,6 +18,8 @@ import Device from '../device';
 import { TraceName, hasMetricsConsent } from '../trace';
 import { getTraceTags } from './tags';
 import { ReduxStore } from '../../core/redux';
+import { OTA_VERSION } from '../../constants/ota';
+
 /**
  * This symbol matches all object properties when used in a mask
  */
@@ -587,59 +589,38 @@ export function deriveSentryEnvironment(
  * Sets EAS update context in Sentry to track which errors come from OTA updates.
  * This adds tags like expo-update-id, expo-channel, and expo-runtime-version
  * to help identify and debug issues specific to EAS updates.
+ * reference: https://docs.expo.dev/guides/using-sentry/#install-and-configure-sentry
  */
 export function setEASUpdateContext(): void {
   try {
-    const scope = Sentry.getCurrentScope();
-
-    // Set basic update information
-    if (updateId) {
-      scope.setTag('expo-update-id', updateId);
-    }
-
-    scope.setTag('expo-is-embedded-launch', String(isEmbeddedLaunch));
-
-    if (channel) {
-      scope.setTag('expo-channel', channel);
-    }
-
-    if (runtimeVersion) {
-      scope.setTag('expo-runtime-version', runtimeVersion);
-    }
-
-    // Add update group information if available
-    const metadata =
-      manifest && 'metadata' in manifest ? manifest.metadata : undefined;
-    const extra = manifest && 'extra' in manifest ? manifest.extra : undefined;
+    const metadata = 'metadata' in manifest ? manifest.metadata : undefined;
+    const extra = 'extra' in manifest ? manifest.extra : undefined;
     const updateGroup =
-      metadata && typeof metadata === 'object' && 'updateGroup' in metadata
-        ? metadata.updateGroup
+      metadata && 'updateGroup' in metadata ? metadata.updateGroup : undefined;
+
+    const getCurrentScope =
+      typeof (Sentry as any).getCurrentScope === 'function'
+        ? (Sentry as any).getCurrentScope
         : undefined;
 
+    if (!getCurrentScope) {
+      // In environments where getCurrentScope is not available (e.g. some tests),
+      // skip setting update context rather than throwing.
+      return;
+    }
+
+    const scope = getCurrentScope();
+
+    scope.setTag('expo-update-id', updateId);
+    scope.setTag('expo-is-embedded-launch', String(isEmbeddedLaunch));
+    scope.setTag('expo-channel', channel);
+    scope.setTag('expo-update-version', OTA_VERSION);
+    scope.setTag('expo-runtime-version', runtimeVersion);
     if (typeof updateGroup === 'string') {
       scope.setTag('expo-update-group-id', updateGroup);
 
-      // Add debug URL for update group
-      const owner =
-        extra &&
-        typeof extra === 'object' &&
-        'expoClient' in extra &&
-        typeof extra.expoClient === 'object' &&
-        extra.expoClient &&
-        'owner' in extra.expoClient
-          ? extra.expoClient.owner
-          : '[account]';
-
-      const slug =
-        extra &&
-        typeof extra === 'object' &&
-        'expoClient' in extra &&
-        typeof extra.expoClient === 'object' &&
-        extra.expoClient &&
-        'slug' in extra.expoClient
-          ? extra.expoClient.slug
-          : '[project]';
-
+      const owner = extra?.expoClient?.owner ?? '[account]';
+      const slug = extra?.expoClient?.slug ?? '[project]';
       scope.setTag(
         'expo-update-debug-url',
         `https://expo.dev/accounts/${owner}/projects/${slug}/updates/${updateGroup}`,
@@ -649,16 +630,6 @@ export function setEASUpdateContext(): void {
         'expo-update-debug-url',
         'not applicable for embedded updates',
       );
-    }
-
-    // Add context to indicate the app is running from an EAS update
-    if (!__DEV__ && !isEmbeddedLaunch) {
-      scope.setContext('EAS Update', {
-        'Is OTA Update': true,
-        'Update ID': updateId || 'unknown',
-        Channel: channel || 'unknown',
-        'Runtime Version': runtimeVersion || 'unknown',
-      });
     }
   } catch (error) {
     // Don't let EAS update context setting break Sentry

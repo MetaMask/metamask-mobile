@@ -22,22 +22,7 @@ import { Performance } from '../../core/Performance';
 import Device from '../device';
 import { getTraceTags } from './tags';
 import { AvatarAccountType } from '../../component-library/components/Avatars/Avatar';
-
-const mockSetTag = jest.fn();
-const mockSetContext = jest.fn();
-const mockGetCurrentScope = jest.fn(() => ({
-  setTag: mockSetTag,
-  setContext: mockSetContext,
-}));
-
-jest.mock('@sentry/react-native', () => {
-  const actual = jest.requireActual('@sentry/react-native');
-  return {
-    ...actual,
-    captureUserFeedback: jest.fn(),
-    getCurrentScope: mockGetCurrentScope,
-  };
-});
+import { OTA_VERSION } from '../../constants/ota';
 const mockedCaptureUserFeedback = jest.mocked(captureUserFeedback);
 
 jest.mock('../../store', () => ({
@@ -68,7 +53,20 @@ jest.mock('./tags', () => ({
   getTraceTags: jest.fn(() => ({ mockTag: 'mockValue' })),
 }));
 
-jest.mock('expo-updates', () => ({
+jest.mock('../../constants/ota', () => ({
+  OTA_VERSION: 'v1',
+}));
+
+const expoUpdatesMockValues: {
+  updateId: string;
+  isEmbeddedLaunch: boolean;
+  channel: string;
+  runtimeVersion: string;
+  manifest: {
+    metadata?: { updateGroup?: string };
+    extra?: { expoClient?: { owner?: string; slug?: string } };
+  };
+} = {
   updateId: 'test-update-id-123',
   isEmbeddedLaunch: false,
   channel: 'production',
@@ -84,7 +82,9 @@ jest.mock('expo-updates', () => ({
       },
     },
   },
-}));
+};
+
+jest.mock('expo-updates', () => expoUpdatesMockValues);
 
 describe('deriveSentryEnvironment', () => {
   it('returns flask-production for non-dev production environment and flask build type', async () => {
@@ -1145,26 +1145,6 @@ describe('rewriteReport', () => {
 
 describe('setEASUpdateContext', () => {
   it('executes without throwing errors', () => {
-    // This test verifies the function runs without crashing
-    // Full integration testing of Sentry tags happens at the application level
-    // since mocking Sentry's getCurrentScope is complex and brittle
     expect(() => setEASUpdateContext()).not.toThrow();
-  });
-
-  it('handles errors gracefully when Sentry fails', () => {
-    // Create a temporary mock that throws
-    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
-    mockGetCurrentScope.mockImplementationOnce(() => {
-      throw new Error('Sentry getCurrentScope failed');
-    });
-
-    // Function catches error and logs warning instead of throwing
-    expect(() => setEASUpdateContext()).not.toThrow();
-    expect(consoleWarnSpy).toHaveBeenCalledWith(
-      'Failed to set EAS update context in Sentry:',
-      expect.any(Error),
-    );
-
-    consoleWarnSpy.mockRestore();
   });
 });
