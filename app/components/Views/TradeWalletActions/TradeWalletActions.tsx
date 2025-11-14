@@ -48,6 +48,7 @@ import {
 } from '../../UI/Earn/selectors/featureFlags';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
+import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 
@@ -146,6 +147,9 @@ function TradeWalletActions() {
     postCallback.current = () => {
       navigate(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
+        },
       });
     };
     handleNavigateBack();

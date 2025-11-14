@@ -26,6 +26,7 @@ import {
   PREDICT_GTM_MODAL_DECLINE,
   PREDICT_GTM_MODAL_ENGAGE,
   PREDICT_GTM_WHATS_NEW_MODAL,
+  PredictEventValues,
 } from '../../constants/eventNames';
 
 const PredictGTMModal = () => {
@@ -73,6 +74,9 @@ const PredictGTMModal = () => {
 
     navigate(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
+      params: {
+        entryPoint: PredictEventValues.ENTRY_POINT.GTM_MODAL,
+      },
     });
   };
 
