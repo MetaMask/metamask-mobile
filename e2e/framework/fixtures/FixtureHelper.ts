@@ -13,7 +13,7 @@ import {
   getFixturesServerPort,
   startResourceWithRetry,
   startMultiInstanceResourceWithRetry,
-  cleanupAndroidPortForwarding,
+  cleanupAllAndroidPortForwarding,
 } from './FixtureUtils';
 import Utilities from '../../framework/Utilities';
 import TestHelpers from '../../helpers';
@@ -498,6 +498,10 @@ export async function withFixtures(
     useCommandQueueServer = false,
   } = options;
 
+  // Clean up any stale port forwarding from previous failed tests
+  // This ensures we start with a clean slate on Android
+  await cleanupAllAndroidPortForwarding();
+
   // Prepare android devices for testing to avoid having this in all tests
   await TestHelpers.reverseServerPort();
 
@@ -640,14 +644,6 @@ export async function withFixtures(
     if (localNodes && localNodes.length > 0) {
       try {
         await handleLocalNodeCleanup(localNodes);
-        // Clean up port forwarding for local nodes
-        for (const node of localNodes) {
-          if (node instanceof AnvilManager) {
-            await cleanupAndroidPortForwarding(ResourceType.ANVIL);
-          } else if (node instanceof Ganache) {
-            await cleanupAndroidPortForwarding(ResourceType.GANACHE);
-          }
-        }
       } catch (cleanupError) {
         logger.error('Error during local node cleanup:', cleanupError);
         cleanupErrors.push(cleanupError as Error);
@@ -657,10 +653,6 @@ export async function withFixtures(
     if (dapps && dapps.length > 0) {
       try {
         await handleDappCleanup(dapps, dappServer);
-        // Clean up port forwarding for dapp servers
-        for (let i = 0; i < dapps.length; i++) {
-          await cleanupAndroidPortForwarding(ResourceType.DAPP_SERVER, i);
-        }
       } catch (cleanupError) {
         logger.error('Error during dapp cleanup:', cleanupError);
         cleanupErrors.push(cleanupError as Error);
@@ -671,7 +663,6 @@ export async function withFixtures(
     if (mockServerInstance?.isStarted()) {
       try {
         await mockServerInstance.stop();
-        await cleanupAndroidPortForwarding(ResourceType.MOCK_SERVER);
       } catch (cleanupError) {
         logger.error('Error during mock server cleanup:', cleanupError);
         cleanupErrors.push(cleanupError as Error);
@@ -682,7 +673,6 @@ export async function withFixtures(
     if (fixtureServer?.isStarted()) {
       try {
         await fixtureServer.stop();
-        await cleanupAndroidPortForwarding(ResourceType.FIXTURE_SERVER);
       } catch (cleanupError) {
         logger.error('Error during fixture server cleanup:', cleanupError);
         cleanupErrors.push(cleanupError as Error);
@@ -694,7 +684,6 @@ export async function withFixtures(
       if (commandQueueServer?.isStarted()) {
         try {
           await commandQueueServer.stop();
-          await cleanupAndroidPortForwarding(ResourceType.COMMAND_QUEUE_SERVER);
         } catch (cleanupError) {
           logger.error(
             'Error during command queue server cleanup:',

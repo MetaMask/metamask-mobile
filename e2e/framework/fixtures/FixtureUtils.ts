@@ -54,16 +54,10 @@ function getFallbackPort(resourceType: ResourceType): number {
 }
 
 /**
- * Removes a specific adb reverse binding for a port.
- * This is called when a resource is stopped to clean up its port forwarding.
- *
- * @param resourceType - The type of resource
- * @param instanceIndex - Optional instance index for multi-instance resources
+ * Removes all adb reverse bindings for the current device.
+ * This is called at the start of tests to clean up any stale bindings from previous failed tests.
  */
-export async function cleanupAndroidPortForwarding(
-  resourceType: ResourceType,
-  instanceIndex?: number,
-): Promise<void> {
+export async function cleanupAllAndroidPortForwarding(): Promise<void> {
   try {
     // Only remove port forwarding on Android
     if (device.getPlatform() !== 'android') {
@@ -75,32 +69,21 @@ export async function cleanupAndroidPortForwarding(
       return;
     }
 
-    // Calculate the correct fallback port for multi-instance resources
-    let fallbackPort = getFallbackPort(resourceType);
-    if (
-      resourceType === ResourceType.DAPP_SERVER &&
-      instanceIndex !== undefined
-    ) {
-      fallbackPort += instanceIndex;
-    }
-
     // Get device ID to target specific device (important for CI with multiple devices)
     const deviceId = device.id || '';
     const deviceFlag = deviceId ? `-s ${deviceId}` : '';
 
-    const command = `adb ${deviceFlag} reverse --remove tcp:${fallbackPort}`;
+    const command = `adb ${deviceFlag} reverse --remove-all`;
 
-    logger.debug(`Removing port forward: ${command}`);
+    logger.debug(`Cleaning up all port forwards before test: ${command}`);
     await execAsync(command);
 
-    logger.debug(
-      `✓ Removed Android port forwarding for port ${fallbackPort} (${resourceType}${instanceIndex !== undefined ? `:${instanceIndex}` : ''})`,
-    );
+    logger.debug('✓ Cleaned up all Android port forwarding');
   } catch (error) {
     // Don't throw on cleanup errors - just log them
-    // The port might not have been forwarded in the first place
+    // There might not be any bindings to remove
     logger.debug(
-      `Note: Could not remove port forwarding for ${resourceType}: ${error instanceof Error ? error.message : String(error)}`,
+      `Note: Could not clean up port forwarding (likely none existed): ${error instanceof Error ? error.message : String(error)}`,
     );
   }
 }
