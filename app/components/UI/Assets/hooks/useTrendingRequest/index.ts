@@ -101,10 +101,10 @@ export const useTrendingRequest = (options: {
   const {
     chainIds: providedChainIds = [],
     sortBy,
-    minLiquidity,
-    minVolume24hUsd,
+    minLiquidity = 0,
+    minVolume24hUsd = 0,
     maxVolume24hUsd,
-    minMarketCap,
+    minMarketCap = 0,
     maxMarketCap,
   } = options;
 
@@ -223,7 +223,6 @@ export const useTrendingRequest = (options: {
         minMarketCap: memoizedOptions.minMarketCap,
         maxMarketCap: memoizedOptions.maxMarketCap,
       });
-
       // Only update state if this is still the current request
       if (currentRequestId === requestIdRef.current) {
         setResults(resultsToStore);
