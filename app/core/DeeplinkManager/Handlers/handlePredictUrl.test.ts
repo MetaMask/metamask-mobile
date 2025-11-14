@@ -27,7 +27,7 @@ describe('handlePredictUrl', () => {
     it('navigates to market details when market parameter is provided', async () => {
       await handlePredictUrl({ predictPath: '?market=23246' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_DETAILS,
         params: {
           marketId: '23246',
@@ -39,7 +39,7 @@ describe('handlePredictUrl', () => {
     it('navigates to market details when marketId parameter is provided', async () => {
       await handlePredictUrl({ predictPath: '?marketId=12345' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_DETAILS,
         params: {
           marketId: '12345',
@@ -53,7 +53,7 @@ describe('handlePredictUrl', () => {
         predictPath: '?market=23246&marketId=99999',
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_DETAILS,
         params: {
           marketId: '23246',
@@ -65,7 +65,7 @@ describe('handlePredictUrl', () => {
     it('extracts market ID from full URL path', async () => {
       await handlePredictUrl({ predictPath: 'predict?market=abc789' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_DETAILS,
         params: {
           marketId: 'abc789',
@@ -79,7 +79,7 @@ describe('handlePredictUrl', () => {
         predictPath: '?market=xyz123&utm_source=campaign&debug=true',
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_DETAILS,
         params: {
           marketId: 'xyz123',
@@ -91,7 +91,7 @@ describe('handlePredictUrl', () => {
     it('handles numeric market IDs', async () => {
       await handlePredictUrl({ predictPath: '?market=9876543210' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_DETAILS,
         params: {
           marketId: '9876543210',
@@ -103,7 +103,7 @@ describe('handlePredictUrl', () => {
     it('handles alphanumeric market IDs', async () => {
       await handlePredictUrl({ predictPath: '?market=abc-123-xyz' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_DETAILS,
         params: {
           marketId: 'abc-123-xyz',
@@ -119,6 +119,9 @@ describe('handlePredictUrl', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+        },
       });
     });
 
@@ -127,6 +130,9 @@ describe('handlePredictUrl', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+        },
       });
     });
 
@@ -135,6 +141,9 @@ describe('handlePredictUrl', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+        },
       });
     });
 
@@ -143,6 +152,9 @@ describe('handlePredictUrl', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+        },
       });
     });
 
@@ -151,6 +163,9 @@ describe('handlePredictUrl', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+        },
       });
     });
   });
@@ -166,6 +181,9 @@ describe('handlePredictUrl', () => {
       expect(mockNavigate).toHaveBeenCalledTimes(2);
       expect(mockNavigate).toHaveBeenLastCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+        },
       });
     });
 
@@ -178,6 +196,9 @@ describe('handlePredictUrl', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+        },
       });
     });
 
@@ -188,6 +209,9 @@ describe('handlePredictUrl', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+        },
       });
     });
 
@@ -213,6 +237,8 @@ describe('handlePredictUrl', () => {
       expect(DevLogger.log).toHaveBeenCalledWith(
         '[handlePredictUrl] Starting predict deeplink handling with path:',
         '?market=23246',
+        'origin:',
+        undefined,
       );
     });
 
@@ -257,13 +283,16 @@ describe('handlePredictUrl', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+        },
       });
     });
 
     it('handles URL with multiple question marks', async () => {
       await handlePredictUrl({ predictPath: 'predict?market=123?extra=param' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_DETAILS,
         params: {
           marketId: '123',
@@ -277,7 +306,7 @@ describe('handlePredictUrl', () => {
         predictPath: '?market=test_market-123',
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_DETAILS,
         params: {
           marketId: 'test_market-123',
@@ -291,13 +320,93 @@ describe('handlePredictUrl', () => {
         predictPath: '?market=test%20market',
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_DETAILS,
         params: {
           marketId: 'test market',
           entryPoint: 'deeplink',
         },
       });
+    });
+  });
+
+  describe('origin parameter handling', () => {
+    it('sets entryPoint to carousel when origin is carousel', async () => {
+      await handlePredictUrl({
+        predictPath: '?market=23246',
+        origin: 'carousel',
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: '23246',
+          entryPoint: 'carousel',
+        },
+      });
+    });
+
+    it('sets entryPoint to deeplink when origin is undefined', async () => {
+      await handlePredictUrl({
+        predictPath: '?market=23246',
+        origin: undefined,
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: '23246',
+          entryPoint: 'deeplink',
+        },
+      });
+    });
+
+    it('sets entryPoint to deeplink when origin is deeplink', async () => {
+      await handlePredictUrl({
+        predictPath: '?market=23246',
+        origin: 'deeplink',
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: '23246',
+          entryPoint: 'deeplink',
+        },
+      });
+    });
+
+    it('sets entryPoint to notification when origin is notification', async () => {
+      await handlePredictUrl({
+        predictPath: '?market=23246',
+        origin: 'notification',
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: '23246',
+          entryPoint: 'notification',
+        },
+      });
+    });
+
+    it('logs origin and entry point', async () => {
+      await handlePredictUrl({
+        predictPath: '?market=23246',
+        origin: 'carousel',
+      });
+
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        '[handlePredictUrl] Starting predict deeplink handling with path:',
+        '?market=23246',
+        'origin:',
+        'carousel',
+      );
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        '[handlePredictUrl] Entry point:',
+        'carousel',
+      );
     });
   });
 });

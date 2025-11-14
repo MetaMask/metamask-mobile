@@ -1333,10 +1333,10 @@
       "orderLeverageReductionFailed": "You cannot reduce your leverage",
       "connectionTimeout": "Connection timed out. Please check your network and try again.",
       "connectionFailed": {
-        "title": "Perps is temporarily offline",
+        "title": "Couldn't connect to perps",
         "description": "We're working to get it back online soon.",
-        "retry": "Retry",
-        "go_back": "Go Back"
+        "retry": "Try again",
+        "go_back": "Go back"
       },
       "networkError": {
         "title": "Network Error",
@@ -1419,7 +1419,7 @@
       "orders": "Orders",
       "go_to_activity": "Go to your activity",
       "trading_24_7": "This asset may be traded 24/7",
-      "expect_more_volatility": "Expect more volatility outside of regular market hours",
+      "expect_more_volatility": "Expect more volatility outside of market hours",
       "after_hours_trading_banner": "After-hours trading",
       "pay_attention_to_volatility": "Pay attention to volatility and slippage",
       "badge": {
@@ -1784,7 +1784,8 @@
       "lost": "Lost",
       "market_unavailable": "Market unavailable",
       "amount_on_outcome": "${{amount}} on {{outcome}}",
-      "outcome_at_price": "{{outcome}} at {{price}}¢"
+      "outcome_at_price": "{{outcome}} at {{price}}¢",
+      "fee_exemption": "We don't charge any fees on this market."
     },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
@@ -1831,6 +1832,8 @@
     },
     "search_placeholder": "Search prediction markets",
     "search_cancel": "Cancel",
+    "search_empty_state": "No {{category}} markets available",
+    "search_no_markets_found": "No results found for \"{{q}}\"",
     "claim_button": "Claim",
     "markets_won": "Markets won",
     "won_markets_text": "Won {{count}} market{{s}}",
@@ -5839,7 +5842,8 @@
     "transaction": "Transaction",
     "available_balance": "Available: ",
     "edit_amount_done": "Done",
-    "deposit_edit_amount_done": "Add funds"
+    "deposit_edit_amount_done": "Add funds",
+    "deposit_edit_amount_predict_withdraw": "Withdraw"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
@@ -6593,6 +6597,8 @@
     "activity_empty_link": "See ways to earn",
     "events": {
       "to": "to",
+      "musd_deposit_for": "For {{date}}",
+      "for_deposit_period": "For deposit period",
       "type": {
         "swap": "Swap",
         "perps": "Perps",
@@ -6606,6 +6612,8 @@
         "close_position": "Closed position",
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
+        "predict": "Prediction",
+        "musd_deposit": "mUSD deposit",
         "uncategorized_event": "Uncategorized event"
       },
       "date": "Date",
@@ -6835,7 +6843,9 @@
   "transaction_details": {
     "title": {
       "perps_deposit": "Funded Perps account",
+      "predict_claim": "Claimed winnings",
       "predict_deposit": "Funded Predict account",
+      "predict_withdraw": "Withdrawal",
       "default": "Transaction details"
     },
     "label": {
@@ -6843,7 +6853,9 @@
       "network_fee": "Network fee",
       "paid_with": "Paid with",
       "retry_button": "Try again",
-      "total": "Total"
+      "total": "Total",
+      "account": "Account",
+      "received_total": "Received total"
     },
     "summary_title": {
       "bridge_approval": "Approve {{approveSymbol}}",

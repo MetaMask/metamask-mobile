@@ -35,8 +35,6 @@ export const TransactionPayControllerInit: ControllerInitFunction<
   }
 };
 
-async function getStrategy(
-  _transaction: TransactionMeta,
-): Promise<TransactionPayStrategy> {
+function getStrategy(_transaction: TransactionMeta): TransactionPayStrategy {
   return TransactionPayStrategy.Relay;
 }

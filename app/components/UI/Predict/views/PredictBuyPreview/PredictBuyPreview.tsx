@@ -62,6 +62,9 @@ import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
+import { usePredictRewards } from '../../hooks/usePredictRewards';
+import { TraceName } from '../../../../../util/trace';
+import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
@@ -135,6 +138,20 @@ const PredictBuyPreview = () => {
     autoRefreshTimeout: 1000,
   });
 
+  const { enabled: isRewardsEnabled, isLoading: isRewardsLoading } =
+    usePredictRewards();
+
+  // Track screen load performance (balance + initial preview)
+  usePredictMeasurement({
+    traceName: TraceName.PredictBuyPreviewView,
+    conditions: [!isBalanceLoading, balance !== undefined, !!market],
+    debugContext: {
+      marketId: market?.id,
+      hasBalance: balance !== undefined,
+      isBalanceLoading,
+    },
+  });
+
   // Track when user changes input to show skeleton only during user input changes
   useEffect(() => {
     if (!isCalculating) {
@@ -187,7 +204,7 @@ const PredictBuyPreview = () => {
   );
 
   // Show rewards row if we have a valid amount
-  const shouldShowRewards = currentValue > 0;
+  const shouldShowRewards = isRewardsEnabled && currentValue > 0;
 
   // Validation constants and states
   const MINIMUM_BET = 1; // $1 minimum bet
@@ -199,6 +216,7 @@ const PredictBuyPreview = () => {
     preview &&
     !isLoading &&
     !isBalanceLoading &&
+    !isRewardsLoading &&
     !isRateLimited;
 
   const title = market.title;
