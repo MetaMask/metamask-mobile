@@ -109,7 +109,10 @@ const QuoteDetailsCard: React.FC = () => {
                 alignItems={BoxAlignItems.Center}
                 gap={1}
               >
-                <Text variant={TextVariant.BodyMD}>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
                   {strings('bridge.rate')}
                 </Text>
                 <QuoteCountdownTimer />
@@ -129,6 +132,7 @@ const QuoteDetailsCard: React.FC = () => {
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 minimumFontScale={0.8}
+                color={TextColor.Alternative}
               >
                 {rate}
               </Text>
@@ -141,7 +145,7 @@ const QuoteDetailsCard: React.FC = () => {
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
           >
-            <Text variant={TextVariant.BodyMD}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {toSentenceCase(strings('bridge.network_fee'))}
             </Text>
             <Box
@@ -152,6 +156,7 @@ const QuoteDetailsCard: React.FC = () => {
               <Text
                 variant={TextVariant.BodyMD}
                 style={styles.strikethroughText}
+                color={TextColor.Alternative}
               >
                 {networkFee}
               </Text>
@@ -166,6 +171,7 @@ const QuoteDetailsCard: React.FC = () => {
               label: {
                 text: toSentenceCase(strings('bridge.network_fee')),
                 variant: TextVariant.BodyMD,
+                color: TextColor.Alternative,
               },
               tooltip: {
                 title: strings('bridge.network_fee_info_title'),
@@ -178,6 +184,7 @@ const QuoteDetailsCard: React.FC = () => {
               label: {
                 text: networkFee,
                 variant: TextVariant.BodyMD,
+                color: TextColor.Alternative,
               },
             }}
           />
@@ -188,6 +195,7 @@ const QuoteDetailsCard: React.FC = () => {
             label: {
               text: strings('bridge.slippage'),
               variant: TextVariant.BodyMD,
+              color: TextColor.Alternative,
             },
             tooltip: {
               title: strings('bridge.slippage_info_title'),
@@ -209,7 +217,12 @@ const QuoteDetailsCard: React.FC = () => {
                   size={IconSize.Sm}
                   color={IconColor.Alternative}
                 />
-                <Text variant={TextVariant.BodyMD}>{slippage}</Text>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {slippage}
+                </Text>
               </TouchableOpacity>
             ),
           }}
@@ -221,6 +234,7 @@ const QuoteDetailsCard: React.FC = () => {
               label: {
                 text: toSentenceCase(strings('bridge.minimum_received')),
                 variant: TextVariant.BodyMD,
+                color: TextColor.Alternative,
               },
               tooltip: {
                 title: strings('bridge.minimum_received_tooltip_title'),
@@ -233,6 +247,7 @@ const QuoteDetailsCard: React.FC = () => {
               label: {
                 text: `${formattedMinToTokenAmount} ${destToken?.symbol}`,
                 variant: TextVariant.BodyMD,
+                color: TextColor.Alternative,
               },
             }}
           />
@@ -244,6 +259,7 @@ const QuoteDetailsCard: React.FC = () => {
               label: {
                 text: toSentenceCase(strings('bridge.price_impact')),
                 variant: TextVariant.BodyMD,
+                color: TextColor.Alternative,
               },
               tooltip: {
                 title: strings('bridge.price_impact_info_title'),
@@ -260,7 +276,7 @@ const QuoteDetailsCard: React.FC = () => {
                 variant: TextVariant.BodyMD,
                 color: shouldShowPriceImpactWarning
                   ? TextColor.Error
-                  : undefined,
+                  : TextColor.Alternative,
               },
             }}
           />

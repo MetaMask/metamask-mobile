@@ -41,6 +41,7 @@ import { Transaction } from '@metamask/keyring-api';
 import { getMultichainTxFees } from '../../../../hooks/useMultichainTransactionDisplay/useMultichainTransactionDisplay';
 import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockExplorerTxUrl';
 import { StatusResponse } from '@metamask/bridge-status-controller';
+import { toDateFormat } from '../../../../../util/date';
 // import { renderShortAddress } from '../../../../../util/address';
 
 const styles = StyleSheet.create({
@@ -226,12 +227,7 @@ export const BridgeTransactionDetails = (
   ).toFixed(5);
 
   const submissionDate = startTime ? new Date(startTime) : null;
-  const submissionDateString = submissionDate
-    ? submissionDate.toLocaleString(undefined, {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-      })
-    : 'N/A';
+  const submissionDateString = startTime ? toDateFormat(startTime) : 'N/A';
 
   const estimatedCompletionDate = submissionDate
     ? new Date(
@@ -240,10 +236,7 @@ export const BridgeTransactionDetails = (
       )
     : null;
   const estimatedCompletionString = estimatedCompletionDate
-    ? estimatedCompletionDate.toLocaleString(undefined, {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-      })
+    ? toDateFormat(estimatedCompletionDate)
     : null;
 
   const evmTotalGasFee = evmTxMeta
