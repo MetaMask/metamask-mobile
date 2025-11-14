@@ -39,24 +39,6 @@ describe('useMultichainAccountsIntroModal', () => {
     });
 
     const initialState = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              enableMultichainAccounts: {
-                enabled: true,
-                featureVersion: '1',
-                minimumVersion: '1.0.0',
-              },
-              enableMultichainAccountsState2: {
-                enabled: true,
-                featureVersion: '2',
-                minimumVersion: '1.0.0',
-              },
-            },
-          },
-        },
-      },
       user: {
         multichainAccountsIntroModalSeen: false,
       },
@@ -79,19 +61,6 @@ describe('useMultichainAccountsIntroModal', () => {
     });
 
     const initialState = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              enableMultichainAccountsState2: {
-                enabled: true,
-                featureVersion: '2',
-                minimumVersion: '1.0.0',
-              },
-            },
-          },
-        },
-      },
       user: {
         multichainAccountsIntroModalSeen: false,
       },
@@ -116,19 +85,6 @@ describe('useMultichainAccountsIntroModal', () => {
     });
 
     const initialState = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              enableMultichainAccountsState2: {
-                enabled: true,
-                featureVersion: '2',
-                minimumVersion: '1.0.0',
-              },
-            },
-          },
-        },
-      },
       user: {
         multichainAccountsIntroModalSeen: true, // Already seen
       },
@@ -142,61 +98,8 @@ describe('useMultichainAccountsIntroModal', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('does not navigate when feature is disabled', async () => {
-    // Mock app update
-    mockStorageWrapper.getItem.mockImplementation((key: string) => {
-      if (key === CURRENT_APP_VERSION) return Promise.resolve('7.57.0');
-      if (key === LAST_APP_VERSION) return Promise.resolve('7.56.0');
-      return Promise.resolve(null);
-    });
-
-    const initialState = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              enableMultichainAccountsState2: {
-                enabled: false, // Feature disabled
-                featureVersion: '2',
-                minimumVersion: '1.0.0',
-              },
-            },
-          },
-        },
-      },
-      user: {
-        multichainAccountsIntroModalSeen: false,
-      },
-    };
-
-    renderHookWithProviders(initialState);
-
-    // Wait for the async operation to complete
-    await new Promise(setImmediate);
-
-    expect(mockNavigate).not.toHaveBeenCalled();
-  });
-
   it('returns correct state values', () => {
     const initialState = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              enableMultichainAccounts: {
-                enabled: true,
-                featureVersion: '1',
-                minimumVersion: '1.0.0',
-              },
-              enableMultichainAccountsState2: {
-                enabled: true,
-                featureVersion: '2',
-                minimumVersion: '1.0.0',
-              },
-            },
-          },
-        },
-      },
       user: {
         multichainAccountsIntroModalSeen: false,
       },
@@ -204,25 +107,11 @@ describe('useMultichainAccountsIntroModal', () => {
 
     const { result } = renderHookWithProviders(initialState);
 
-    expect(result.current.isMultichainAccountsState2Enabled).toBe(true);
     expect(result.current.hasSeenIntroModal).toBe(false);
   });
 
   describe('isMultichainAccountsUpdate version logic', () => {
     const createInitialState = () => ({
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              enableMultichainAccountsState2: {
-                enabled: true,
-                featureVersion: '2',
-                minimumVersion: '1.0.0',
-              },
-            },
-          },
-        },
-      },
       user: {
         multichainAccountsIntroModalSeen: false,
       },

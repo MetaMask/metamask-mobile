@@ -20,11 +20,7 @@ import {
   PermissionDoesNotExistError,
   RequestedPermissions,
 } from '@metamask/permission-controller';
-import {
-  blockTagParamIndex,
-  getAllNetworks,
-  isPerDappSelectedNetworkEnabled,
-} from '../../util/networks';
+import { blockTagParamIndex, getAllNetworks } from '../../util/networks';
 import { polyfillGasPrice } from './utils';
 import ImportedEngine from '../Engine';
 import { strings } from '../../../locales/i18n';
@@ -193,7 +189,7 @@ export const checkActiveAccountAndChainId = async ({
       networkType && getAllNetworks().includes(networkType);
     let activeChainId;
 
-    if (origin && isPerDappSelectedNetworkEnabled()) {
+    if (origin) {
       const perOriginChainId = selectPerOriginChainId(store.getState(), origin);
 
       activeChainId = perOriginChainId;

@@ -149,6 +149,7 @@ import { PreferencesController } from '@metamask/preferences-controller';
 import { preferencesControllerInit } from './controllers/preferences-controller-init';
 import { keyringControllerInit } from './controllers/keyring-controller-init';
 import { networkControllerInit } from './controllers/network-controller-init';
+import { TransactionPayControllerInit } from './controllers/transaction-pay-controller';
 import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-search-discovery-data-controller-init';
 import { assetsContractControllerInit } from './controllers/assets-contract-controller-init';
 import { tokensControllerInit } from './controllers/tokens-controller-init';
@@ -167,7 +168,6 @@ import { earnControllerInit } from './controllers/earn-controller-init';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
 import { swapsControllerInit } from './controllers/swaps-controller-init';
 import { remoteFeatureFlagControllerInit } from './controllers/remote-feature-flag-controller-init';
-import { ppomControllerInit } from './controllers/ppom-controller-init';
 import { errorReportingServiceInit } from './controllers/error-reporting-service-init';
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
@@ -188,6 +188,10 @@ export class Engine {
    * The global Engine singleton
    */
   static instance: Engine | null;
+  /**
+   * Flag to disable automatic vault backups (used during wallet reset)
+   */
+  static disableAutomaticVaultBackup = false;
   /**
    * A collection of all controller instances
    */
@@ -276,7 +280,7 @@ export class Engine {
       qrKeyringScanner: this.qrKeyringScanner,
       codefiTokenApiV2,
     };
-
+    // @ts-expect-error - metametrics id is required, this will be addressed on a follow up PR
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         ErrorReportingService: errorReportingServiceInit,
@@ -303,6 +307,7 @@ export class Engine {
         GatorPermissionsController: GatorPermissionsControllerInit,
         SmartTransactionsController: smartTransactionsControllerInit,
         TransactionController: TransactionControllerInit,
+        TransactionPayController: TransactionPayControllerInit,
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
         EarnController: earnControllerInit,
@@ -352,7 +357,6 @@ export class Engine {
         PerpsController: perpsControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
-        PPOMController: ppomControllerInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
@@ -381,7 +385,6 @@ export class Engine {
     const perpsController = controllersByName.PerpsController;
     const phishingController = controllersByName.PhishingController;
     const predictController = controllersByName.PredictController;
-    const ppomController = controllersByName.PPOMController;
     const rewardsController = controllersByName.RewardsController;
     const gatorPermissionsController =
       controllersByName.GatorPermissionsController;
@@ -486,6 +489,7 @@ export class Engine {
       TokenBalancesController: tokenBalancesController,
       TokenRatesController: tokenRatesController,
       TransactionController: this.transactionController,
+      TransactionPayController: controllersByName.TransactionPayController,
       SmartTransactionsController: this.smartTransactionsController,
       SwapsController: swapsController,
       GasFeeController: this.gasFeeController,
@@ -513,7 +517,6 @@ export class Engine {
       BackendWebSocketService: backendWebSocketService,
       AccountActivityService: accountActivityService,
       AccountsController: accountsController,
-      PPOMController: ppomController,
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainBalancesController: multichainBalancesController,
       MultichainAssetsController: multichainAssetsController,
@@ -697,6 +700,11 @@ export class Engine {
     this.controllerMessenger.subscribe(
       AppConstants.KEYRING_STATE_CHANGE_EVENT,
       (state: KeyringControllerState) => {
+        // Check if automatic backups are disabled (during wallet reset)
+        if (Engine.disableAutomaticVaultBackup) {
+          return;
+        }
+
         if (!state.vault) {
           return;
         }
@@ -1288,7 +1296,6 @@ export default {
       PermissionController,
       PerpsController,
       PhishingController,
-      PPOMController,
       PredictController,
       PreferencesController,
       RemoteFeatureFlagController,
@@ -1306,6 +1313,7 @@ export default {
       TokenSearchDiscoveryController,
       TokenSearchDiscoveryDataController,
       TransactionController,
+      TransactionPayController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       AuthenticationController,
       CronjobController,
@@ -1349,7 +1357,6 @@ export default {
       PermissionController,
       PerpsController,
       PhishingController,
-      PPOMController,
       PredictController,
       PreferencesController,
       RemoteFeatureFlagController,
@@ -1367,6 +1374,7 @@ export default {
       TokenSearchDiscoveryController,
       TokenSearchDiscoveryDataController,
       TransactionController,
+      TransactionPayController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       AuthenticationController,
       CronjobController,

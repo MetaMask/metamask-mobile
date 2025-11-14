@@ -49,6 +49,7 @@ export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
     let multichainState = {
       accountsAssets: {},
       assetsMetadata: {},
+      allIgnoredAssets: {},
       balances: {},
       conversionRates: {},
     };

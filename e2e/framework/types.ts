@@ -76,6 +76,25 @@ export interface RampsRegion {
   detected: boolean;
 }
 
+export enum ServerStatus {
+  STOPPED = 'stopped',
+  STARTED = 'started',
+}
+
+/**
+ * Interface representing a resource that can be started and stopped.
+ * Examples: FixtureServer, MockServer, CommandQueueServer, etc.
+ */
+export interface Resource {
+  stop(): Promise<void>;
+  start(): Promise<void>;
+  isStarted(): boolean;
+  setServerPort(port: number): void;
+  getServerPort(): number;
+  getServerStatus(): ServerStatus;
+  getServerUrl?: string;
+}
+
 // Fixtures and Local Node Types
 // Available local node types
 export enum LocalNodeType {

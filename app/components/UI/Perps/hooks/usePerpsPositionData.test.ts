@@ -1,7 +1,7 @@
-import { renderHook, act } from '@testing-library/react-hooks';
-import { usePerpsPositionData } from './usePerpsPositionData';
+import { act, renderHook } from '@testing-library/react-hooks';
 import Engine from '../../../../core/Engine';
 import { CandlePeriod, TimeDuration } from '../constants/chartConfig';
+import { usePerpsPositionData } from './usePerpsPositionData';
 
 // Type definitions for test helpers
 interface PriceUpdate {
@@ -29,6 +29,15 @@ jest.mock('../../../../core/Engine', () => ({
       subscribeToPrices: jest.fn(),
     },
   },
+}));
+
+// Mock Redux selector
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => 'initialized'), // Default to initialized state
+}));
+
+jest.mock('../selectors/perpsController', () => ({
+  selectPerpsInitializationState: jest.fn(),
 }));
 
 describe('usePerpsPositionData', () => {
@@ -255,7 +264,7 @@ describe('usePerpsPositionData', () => {
         expect.arrayContaining([
           expect.objectContaining({
             time: expectedStartTime,
-            open: '3000',
+            open: '3050',
             close: '3000',
           }),
         ]),
@@ -458,8 +467,8 @@ describe('usePerpsPositionData', () => {
         expect.arrayContaining([
           expect.objectContaining({
             time: expectedStartTime,
-            open: '3000',
-            high: '3000',
+            open: '3050',
+            high: '3050',
             low: '3000',
             close: '3000',
             volume: '0',
@@ -518,7 +527,7 @@ describe('usePerpsPositionData', () => {
         expect.arrayContaining([
           expect.objectContaining({
             time: expectedStartTime,
-            open: '3000', // Original
+            open: '3050', // Original
             high: '3100', // Updated to max
             low: '2900', // Updated to min
             close: '2900', // Latest price
@@ -572,7 +581,7 @@ describe('usePerpsPositionData', () => {
       expect(result.current.candleData?.candles).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            open: '3200',
+            open: '3000', // Opens at previous candle's close price
             close: '3200',
           }),
         ]),
@@ -615,7 +624,7 @@ describe('usePerpsPositionData', () => {
       });
 
       // Assert - Should have empty candles array (no historical + no live candle created)
-      expect(result.current.candleData?.candles).toEqual([]);
+      expect(result.current.candleData?.candles).toEqual(undefined);
 
       // Assert - priceData should be set to the update object (even without price field)
       // The hook doesn't validate price field existence, just coin matching
@@ -851,7 +860,7 @@ describe('usePerpsPositionData', () => {
       expect(result.current.candleData?.candles[2]).toEqual(
         expect.objectContaining({
           time: Math.floor(newCandleTime / (60 * 60 * 1000)) * (60 * 60 * 1000),
-          open: '3100',
+          open: '3000', // Open price is the close of the previous candle
           close: '3100',
         }),
       );
@@ -1214,7 +1223,7 @@ describe('usePerpsPositionData', () => {
       });
 
       // Assert
-      expect(result.current.candleData?.candles).toEqual([]);
+      expect(result.current.candleData?.candles).toEqual(undefined);
       expect(result.current.isLoadingHistory).toBe(false);
     });
 

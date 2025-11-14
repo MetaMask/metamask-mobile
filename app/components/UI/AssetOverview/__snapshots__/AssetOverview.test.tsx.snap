@@ -231,6 +231,7 @@ exports[`AssetOverview should render correctly 1`] = `
           "display": "flex",
           "flexDirection": "row",
           "justifyContent": "space-around",
+          "marginBottom": 16,
           "paddingHorizontal": 10,
           "paddingTop": 20,
         }
@@ -1154,6 +1155,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
           "display": "flex",
           "flexDirection": "row",
           "justifyContent": "space-around",
+          "marginBottom": 16,
           "paddingHorizontal": 10,
           "paddingTop": 20,
         }
@@ -2022,6 +2024,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
           "display": "flex",
           "flexDirection": "row",
           "justifyContent": "space-around",
+          "marginBottom": 16,
           "paddingHorizontal": 10,
           "paddingTop": 20,
         }

@@ -1,21 +1,37 @@
 import { renderHook } from '@testing-library/react-native';
 import React from 'react';
-import { captureException } from '@sentry/react-native';
 import { usePredictDeposit } from './usePredictDeposit';
 import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
 
-// Mock Sentry
-jest.mock('@sentry/react-native', () => ({
-  captureException: jest.fn(),
+// Mock Logger
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
 }));
 
-// Mock Engine
+// Mock Engine with AccountTreeController
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
       depositWithConfirmation: jest.fn(),
+    },
+    AccountTreeController: {
+      getAccountsFromSelectedAccountGroup: jest.fn(() => [
+        {
+          id: 'test-account-id',
+          address: '0x1234567890123456789012345678901234567890',
+          type: 'eip155:eoa',
+          name: 'Test Account',
+          metadata: {
+            lastSelected: 0,
+          },
+        },
+      ]),
     },
   },
 }));
@@ -131,9 +147,9 @@ const mockToastRef: React.RefObject<{
   },
 };
 
-// Typed mock for captureException
-const mockCaptureException = captureException as jest.MockedFunction<
-  typeof captureException
+// Typed mock for Logger.error
+const mockLoggerError = Logger.error as jest.MockedFunction<
+  typeof Logger.error
 >;
 
 // Helper to setup test
@@ -194,7 +210,7 @@ describe('usePredictDeposit', () => {
     mockNavigate.mockClear();
     mockGoBack.mockClear();
     mockShowToast.mockClear();
-    mockCaptureException.mockClear();
+    mockLoggerError.mockClear();
     mockEligibilityResult.isEligible = true;
     (
       Engine.context.PredictController.depositWithConfirmation as jest.Mock
@@ -268,7 +284,7 @@ describe('usePredictDeposit', () => {
   });
 
   describe('deposit function', () => {
-    it('calls navigateToConfirmation with loader and stack parameters', async () => {
+    it('calls navigateToConfirmation with loader parameter', async () => {
       (
         Engine.context.PredictController.depositWithConfirmation as jest.Mock
       ).mockResolvedValue({
@@ -281,7 +297,6 @@ describe('usePredictDeposit', () => {
 
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
         loader: ConfirmationLoader.CustomAmount,
-        stack: 'Predict',
       });
     });
 
@@ -553,14 +568,17 @@ describe('usePredictDeposit', () => {
       // Wait for async operation
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      expect(mockCaptureException).toHaveBeenCalledWith(mockError, {
+      expect(mockLoggerError).toHaveBeenCalledWith(mockError, {
         tags: {
           component: 'usePredictDeposit',
-          action: 'deposit_initialization',
-          operation: 'financial_operations',
+          feature: 'Predict',
         },
-        extra: {
-          depositContext: {
+        context: {
+          name: 'usePredictDeposit',
+          data: {
+            action: 'deposit_initialization',
+            method: 'deposit',
+            operation: 'financial_operations',
             providerId: 'polymarket',
           },
         },
@@ -582,21 +600,21 @@ describe('usePredictDeposit', () => {
       // Wait for async operation
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      expect(mockCaptureException).toHaveBeenCalledWith(
-        new Error('String error'),
-        {
-          tags: {
-            component: 'usePredictDeposit',
+      expect(mockLoggerError).toHaveBeenCalledWith(new Error('String error'), {
+        tags: {
+          component: 'usePredictDeposit',
+          feature: 'Predict',
+        },
+        context: {
+          name: 'usePredictDeposit',
+          data: {
             action: 'deposit_initialization',
+            method: 'deposit',
             operation: 'financial_operations',
-          },
-          extra: {
-            depositContext: {
-              providerId: 'polymarket',
-            },
+            providerId: 'polymarket',
           },
         },
-      );
+      });
 
       consoleErrorSpy.mockRestore();
     });
@@ -612,14 +630,17 @@ describe('usePredictDeposit', () => {
 
       await result.current.deposit();
 
-      expect(mockCaptureException).toHaveBeenCalledWith(mockError, {
+      expect(mockLoggerError).toHaveBeenCalledWith(mockError, {
         tags: {
           component: 'usePredictDeposit',
-          action: 'deposit_navigation',
-          operation: 'financial_operations',
+          feature: 'Predict',
         },
-        extra: {
-          depositContext: {
+        context: {
+          name: 'usePredictDeposit',
+          data: {
+            action: 'deposit_navigation',
+            method: 'deposit',
+            operation: 'financial_operations',
             providerId: 'polymarket',
           },
         },
@@ -638,16 +659,19 @@ describe('usePredictDeposit', () => {
 
       await result.current.deposit();
 
-      expect(mockCaptureException).toHaveBeenCalledWith(
+      expect(mockLoggerError).toHaveBeenCalledWith(
         new Error('[object Object]'),
         {
           tags: {
             component: 'usePredictDeposit',
-            action: 'deposit_navigation',
-            operation: 'financial_operations',
+            feature: 'Predict',
           },
-          extra: {
-            depositContext: {
+          context: {
+            name: 'usePredictDeposit',
+            data: {
+              action: 'deposit_navigation',
+              method: 'deposit',
+              operation: 'financial_operations',
               providerId: 'polymarket',
             },
           },
@@ -725,7 +749,7 @@ describe('usePredictDeposit', () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockGoBack).toHaveBeenCalled();
-      expect(mockCaptureException).toHaveBeenCalled();
+      expect(mockLoggerError).toHaveBeenCalled();
       expect(mockShowToast).not.toHaveBeenCalled();
 
       consoleErrorSpy.mockRestore();
@@ -741,7 +765,7 @@ describe('usePredictDeposit', () => {
       await result.current.deposit();
 
       expect(mockGoBack).toHaveBeenCalled();
-      expect(mockCaptureException).toHaveBeenCalled();
+      expect(mockLoggerError).toHaveBeenCalled();
       expect(mockShowToast).not.toHaveBeenCalled();
 
       consoleErrorSpy.mockRestore();

@@ -88,7 +88,14 @@ jest.mock('../../../Rewards/utils', () => ({
     (code) => `https://link.metamask.io/rewards?referral=${code}`,
   ),
 }));
+jest.mock('../../../Rewards/hooks/useReferralDetails', () => ({
+  useReferralDetails: jest.fn(),
+}));
 jest.mock('@metamask/design-tokens', () => ({
+  brandColor: {
+    black: '#000000',
+    white: '#FFFFFF',
+  },
   darkTheme: {
     colors: {
       background: {

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
@@ -19,6 +19,22 @@ jest.mock('../../hooks/useRegisterMailingAddress');
 jest.mock('../../hooks/useRegisterUserConsent');
 jest.mock('../../hooks/useRegistrationSettings');
 jest.mock('../../sdk');
+import useRegisterUserConsent from '../../hooks/useRegisterUserConsent';
+
+// Mock useMetrics
+jest.mock('../../../../hooks/useMetrics', () => ({
+  useMetrics: jest.fn(() => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn(),
+    })),
+  })),
+  MetaMetricsEvents: {
+    CARD_VIEWED: 'card_viewed',
+    CARD_BUTTON_CLICKED: 'card_button_clicked',
+  },
+}));
 
 // Mock OnboardingStep component
 jest.mock('./OnboardingStep', () => {
@@ -383,6 +399,8 @@ const mockUseRegisterMailingAddress =
   useRegisterMailingAddress as jest.MockedFunction<
     typeof useRegisterMailingAddress
   >;
+const mockUseRegisterUserConsent =
+  useRegisterUserConsent as jest.MockedFunction<typeof useRegisterUserConsent>;
 const mockUseRegistrationSettings =
   useRegistrationSettings as jest.MockedFunction<
     typeof useRegistrationSettings
@@ -409,6 +427,19 @@ describe('MailingAddress Component', () => {
       isSuccess: false,
       isError: false,
       error: null,
+      clearError: jest.fn(),
+      reset: jest.fn(),
+    });
+
+    // Mock useRegisterUserConsent
+    mockUseRegisterUserConsent.mockReturnValue({
+      createOnboardingConsent: jest.fn(),
+      linkUserToConsent: jest.fn(),
+      isLoading: false,
+      isSuccess: false,
+      isError: false,
+      error: null,
+      consentSetId: null,
       clearError: jest.fn(),
       reset: jest.fn(),
     });
@@ -652,17 +683,15 @@ describe('MailingAddress Component', () => {
         </Provider>,
       );
 
-      // Fill required fields
       fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
       fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
       fireEvent.press(getByTestId('state-select'));
 
-      // Wait for state updates
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      const button = getByTestId('mailing-address-continue-button');
-      expect(button.props.disabled).toBe(false);
+      await waitFor(() => {
+        const button = getByTestId('mailing-address-continue-button');
+        expect(button.props.disabled).toBe(false);
+      });
     });
   });
 
@@ -1096,17 +1125,20 @@ describe('MailingAddress Component', () => {
       fireEvent.press(getByTestId('state-select'));
 
       const button = getByTestId('mailing-address-continue-button');
-      fireEvent.press(button);
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await act(async () => {
+        fireEvent.press(button);
+      });
 
-      expect(mockRegisterAddress).toHaveBeenCalledWith({
-        onboardingId: 'test-id',
-        addressLine1: '123 Main St',
-        addressLine2: 'Apt 4B',
-        city: 'San Francisco',
-        usState: 'CA',
-        zip: '94102',
+      await waitFor(() => {
+        expect(mockRegisterAddress).toHaveBeenCalledWith({
+          onboardingId: 'test-id',
+          addressLine1: '123 Main St',
+          addressLine2: 'Apt 4B',
+          city: 'San Francisco',
+          usState: 'CA',
+          zip: '94102',
+        });
       });
     });
 
@@ -1153,17 +1185,20 @@ describe('MailingAddress Component', () => {
       fireEvent.changeText(getByTestId('zip-code-input'), 'M5H 2N2');
 
       const button = getByTestId('mailing-address-continue-button');
-      fireEvent.press(button);
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await act(async () => {
+        fireEvent.press(button);
+      });
 
-      expect(mockRegisterAddress).toHaveBeenCalledWith({
-        onboardingId: 'test-id',
-        addressLine1: '123 Main St',
-        addressLine2: '',
-        city: 'Toronto',
-        usState: undefined,
-        zip: 'M5H 2N2',
+      await waitFor(() => {
+        expect(mockRegisterAddress).toHaveBeenCalledWith({
+          onboardingId: 'test-id',
+          addressLine1: '123 Main St',
+          addressLine2: '',
+          city: 'Toronto',
+          usState: undefined,
+          zip: 'M5H 2N2',
+        });
       });
     });
 
@@ -1201,11 +1236,14 @@ describe('MailingAddress Component', () => {
       fireEvent.press(getByTestId('state-select'));
 
       const button = getByTestId('mailing-address-continue-button');
-      fireEvent.press(button);
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await act(async () => {
+        fireEvent.press(button);
+      });
 
-      expect(mockSetUser).toHaveBeenCalledWith(updatedUser);
+      await waitFor(() => {
+        expect(mockSetUser).toHaveBeenCalledWith(updatedUser);
+      });
     });
 
     it('stores access token and dispatches Redux actions on success', async () => {
@@ -1240,14 +1278,17 @@ describe('MailingAddress Component', () => {
       fireEvent.press(getByTestId('state-select'));
 
       const button = getByTestId('mailing-address-continue-button');
-      fireEvent.press(button);
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await act(async () => {
+        fireEvent.press(button);
+      });
 
-      expect(mockStoreCardBaanxToken).toHaveBeenCalledWith({
-        accessToken: 'test-access-token',
-        accessTokenExpiresAt: 3600000,
-        location: 'us',
+      await waitFor(() => {
+        expect(mockStoreCardBaanxToken).toHaveBeenCalledWith({
+          accessToken: 'test-access-token',
+          accessTokenExpiresAt: 3600000,
+          location: 'us',
+        });
       });
     });
 
@@ -1283,11 +1324,14 @@ describe('MailingAddress Component', () => {
       fireEvent.press(getByTestId('state-select'));
 
       const button = getByTestId('mailing-address-continue-button');
-      fireEvent.press(button);
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await act(async () => {
+        fireEvent.press(button);
+      });
 
-      expect(mockNavigate).toHaveBeenCalledWith('CardOnboardingComplete');
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('CardOnboardingComplete');
+      });
     });
 
     it('navigates to sign up when Onboarding ID not found error occurs', async () => {
@@ -1319,11 +1363,14 @@ describe('MailingAddress Component', () => {
       fireEvent.press(getByTestId('state-select'));
 
       const button = getByTestId('mailing-address-continue-button');
-      fireEvent.press(button);
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await act(async () => {
+        fireEvent.press(button);
+      });
 
-      expect(mockNavigate).toHaveBeenCalledWith('CardOnboardingSignUp');
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('CardOnboardingSignUp');
+      });
     });
 
     it('allows error display for general registration errors', async () => {
@@ -1351,12 +1398,14 @@ describe('MailingAddress Component', () => {
       fireEvent.press(getByTestId('state-select'));
 
       const button = getByTestId('mailing-address-continue-button');
-      fireEvent.press(button);
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await act(async () => {
+        fireEvent.press(button);
+      });
 
-      // Should not navigate on general errors
-      expect(mockNavigate).not.toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalled();
+      });
     });
   });
 
@@ -1494,10 +1543,10 @@ describe('MailingAddress Component', () => {
       fireEvent.changeText(getByTestId('city-input'), 'Toronto');
       fireEvent.changeText(getByTestId('zip-code-input'), 'M5H 2N2');
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      const button = getByTestId('mailing-address-continue-button');
-      expect(button.props.disabled).toBe(false);
+      await waitFor(() => {
+        const button = getByTestId('mailing-address-continue-button');
+        expect(button.props.disabled).toBe(false);
+      });
     });
 
     it('disables button when registration is in error state', () => {

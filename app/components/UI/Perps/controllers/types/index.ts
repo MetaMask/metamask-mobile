@@ -92,17 +92,23 @@ export interface TPSLTrackingData {
 export type OrderParams = {
   coin: string; // Asset symbol (e.g., 'ETH', 'BTC')
   isBuy: boolean; // true = BUY order, false = SELL order
-  size: string; // Order size as string
+  size: string; // Order size as string (derived for validation, provider recalculates from usdAmount)
   orderType: OrderType; // Order type
   price?: string; // Limit price (required for limit orders)
   reduceOnly?: boolean; // Reduce-only flag
+  isFullClose?: boolean; // Indicates closing 100% of position (skips $10 minimum validation)
   timeInForce?: 'GTC' | 'IOC' | 'ALO'; // Time in force
+
+  // USD as source of truth (hybrid approach)
+  usdAmount?: string; // USD amount (primary source of truth, provider calculates size from this)
+  priceAtCalculation?: number; // Price snapshot when size was calculated (for slippage validation)
+  maxSlippageBps?: number; // Slippage tolerance in basis points (e.g., 100 = 1%, default if not provided)
 
   // Advanced order features
   takeProfitPrice?: string; // Take profit price
   stopLossPrice?: string; // Stop loss price
   clientOrderId?: string; // Optional client-provided order ID
-  slippage?: number; // Slippage tolerance for market orders (e.g., 0.01 = 1%)
+  slippage?: number; // Slippage tolerance for market orders (default: ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS / 10000 = 3%)
   grouping?: 'na' | 'normalTpsl' | 'positionTpsl'; // Override grouping (defaults: 'na' without TP/SL, 'normalTpsl' with TP/SL)
   currentPrice?: number; // Current market price (avoids extra API call if provided)
   leverage?: number; // Leverage to apply for the order (e.g., 10 for 10x leverage)
@@ -181,6 +187,12 @@ export type ClosePositionParams = {
   orderType?: OrderType; // Close order type (default: market)
   price?: string; // Limit price (required for limit close)
   currentPrice?: number; // Current market price for validation
+
+  // USD as source of truth (hybrid approach - same as OrderParams)
+  usdAmount?: string; // USD amount (primary source of truth, provider calculates size from this)
+  priceAtCalculation?: number; // Price snapshot when size was calculated (for slippage validation)
+  maxSlippageBps?: number; // Slippage tolerance in basis points (e.g., 100 = 1%, default if not provided)
+
   // Optional tracking data for MetaMetrics events
   trackingData?: TrackingData;
 };
@@ -447,16 +459,27 @@ export interface PerpsControllerConfig {
    */
   fallbackBlockedRegions?: string[];
   /**
-   * HIP-3 equity perps master switch passed from client
-   * Controls whether HIP-3 (builder-deployed) DEXs are enabled
+   * Fallback HIP-3 equity perps master switch to use when RemoteFeatureFlagController fails to fetch.
+   * Controls whether HIP-3 (builder-deployed) DEXs are enabled.
+   * The fallback is set by default if defined and replaced with remote feature flag once available.
    */
-  equityEnabled?: boolean;
+  fallbackHip3Enabled?: boolean;
   /**
-   * HIP-3 DEX whitelist passed from client
-   * Empty array = auto-discover all DEXs, non-empty = whitelist specific DEXs
-   * Only applies when equityEnabled === true
+   * Fallback HIP-3 market allowlist to use when RemoteFeatureFlagController fails to fetch.
+   * Empty array = enable all markets (discovery mode), non-empty = allowlist specific markets.
+   * Supports wildcards: "xyz:*" (all xyz markets), "xyz" (shorthand for "xyz:*"), "BTC" (main DEX market).
+   * Only applies when HIP-3 is enabled.
+   * The fallback is set by default if defined and replaced with remote feature flag once available.
    */
-  enabledDexs?: string[];
+  fallbackHip3AllowlistMarkets?: string[];
+  /**
+   * Fallback HIP-3 market blocklist to use when RemoteFeatureFlagController fails to fetch.
+   * Empty array = no blocking, non-empty = block specific markets.
+   * Supports wildcards: "xyz:*" (block all xyz markets), "xyz" (shorthand for "xyz:*"), "BTC" (block main DEX market).
+   * Always applied regardless of HIP-3 enabled state.
+   * The fallback is set by default if defined and replaced with remote feature flag once available.
+   */
+  fallbackHip3BlocklistMarkets?: string[];
 }
 
 export interface PriceUpdate {
@@ -549,6 +572,7 @@ export interface GetAvailableDexsParams {
 export interface GetMarketsParams {
   symbols?: string[]; // Optional symbol filter (e.g., ['BTC', 'xyz:XYZ100'])
   dex?: string; // HyperLiquid HIP-3: DEX name (empty string '' or undefined for main DEX). Other protocols: ignored.
+  skipFilters?: boolean; // Skip market filtering (both allowlist and blocklist, default: false). When true, returns all markets without filtering.
 }
 
 export interface SubscribePricesParams {
@@ -581,6 +605,12 @@ export interface SubscribeAccountParams {
   callback: (account: AccountState) => void;
   accountId?: CaipAccountId; // Optional: defaults to selected account
 }
+
+export interface SubscribeOICapsParams {
+  callback: (caps: string[]) => void;
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+}
+
 export interface LiquidationPriceParams {
   entryPrice: number;
   leverage: number;
@@ -604,15 +634,15 @@ export interface FeeCalculationParams {
 
 export interface FeeCalculationResult {
   // Total fees (protocol + MetaMask)
-  feeRate: number; // Total fee rate as decimal (e.g., 0.00145 for 0.145%)
+  feeRate?: number; // Total fee rate as decimal (e.g., 0.00145 for 0.145%), undefined when unavailable
   feeAmount?: number; // Total fee amount in USD (when amount is provided)
 
   // Protocol-specific base fees
-  protocolFeeRate: number; // Protocol fee rate (e.g., 0.00045 for HyperLiquid taker)
+  protocolFeeRate?: number; // Protocol fee rate (e.g., 0.00045 for HyperLiquid taker), undefined when unavailable
   protocolFeeAmount?: number; // Protocol fee amount in USD
 
   // MetaMask builder/revenue fee
-  metamaskFeeRate: number; // MetaMask fee rate (e.g., 0.001 for 0.1%)
+  metamaskFeeRate?: number; // MetaMask fee rate (e.g., 0.001 for 0.1%), undefined when unavailable
   metamaskFeeAmount?: number; // MetaMask fee amount in USD
 
   // Optional detailed breakdown for transparency
@@ -767,6 +797,7 @@ export interface IPerpsProvider {
   subscribeToOrderFills(params: SubscribeOrderFillsParams): () => void;
   subscribeToOrders(params: SubscribeOrdersParams): () => void;
   subscribeToAccount(params: SubscribeAccountParams): () => void;
+  subscribeToOICaps(params: SubscribeOICapsParams): () => void;
 
   // Live data configuration
   setLiveDataConfig(config: Partial<LiveDataConfig>): void;

@@ -60,6 +60,11 @@ export const PredictMarketDetailsSelectorsIDs = {
   POSITIONS_TAB: 'predict-market-details-positions-tab',
   OUTCOMES_TAB: 'predict-market-details-outcomes-tab',
 
+  //Tab labels
+  POSITIONS_TAB_LABEL: 'predict-market-details-tab-bar-tab-0',
+  OUTCOMES_TAB_LABEL: 'predict-market-details-tab-bar-tab-1',
+  ABOUT_TAB_LABEL: 'predict-market-details-tab-bar-tab-2',
+
   // Tab content containers
   ABOUT_TAB_CONTENT: 'about-tab-content',
   POSITIONS_TAB_CONTENT: 'positions-tab-content',
@@ -154,4 +159,11 @@ export const PredictActivityDetailsSelectorsIDs = {
 
 export const PredictBalanceSelectorsIDs = {
   BALANCE_CARD: 'predict-balance-card',
+} as const;
+
+// ========================================
+// PREDICT ADD FUNDS SELECTORS
+// ========================================
+export const PredictAddFundsSelectorText = {
+  ADD_FUNDS: enContent.predict.deposit.add_funds,
 } as const;

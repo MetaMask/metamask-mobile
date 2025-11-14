@@ -672,8 +672,6 @@ export const getIsNetworkOnboarded = (chainId, networkOnboardedState) =>
 export const isPermissionsSettingsV1Enabled =
   process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === 'true';
 
-export const isPerDappSelectedNetworkEnabled = () => true;
-
 export const isRemoveGlobalNetworkSelectorEnabled = () =>
   process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';
 

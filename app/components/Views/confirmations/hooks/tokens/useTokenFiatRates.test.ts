@@ -3,6 +3,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { TokenFiatRateRequest, useTokenFiatRates } from './useTokenFiatRates';
 import { ARBITRUM_USDC } from '../../constants/perps';
+import { POLYGON_USDCE } from '../../constants/predict';
 
 jest.mock('../../../../../util/address', () => ({
   toChecksumAddress: jest.fn((address) => address),
@@ -112,6 +113,20 @@ describe('useTokenFiatRates', () => {
         {
           address: ARBITRUM_USDC.address,
           chainId: CHAIN_IDS.ARBITRUM,
+          currency: 'usd',
+        },
+      ],
+    });
+
+    expect(result).toEqual([1]);
+  });
+
+  it('returns fixed exchange rate if Polygon USDCE and selected currency is USD', () => {
+    const result = runHook({
+      requests: [
+        {
+          address: POLYGON_USDCE.address,
+          chainId: CHAIN_IDS.POLYGON,
           currency: 'usd',
         },
       ],

@@ -1,11 +1,18 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import PerpsCloseSummary from './PerpsCloseSummary';
 import { strings } from '../../../../../../locales/i18n';
 
 // Mock dependencies
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
+}));
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: jest.fn(() => ({
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+  })),
 }));
 
 jest.mock('../../../../hooks/useStyles', () => ({
@@ -204,5 +211,61 @@ describe('PerpsCloseSummary', () => {
 
     // Assert - rewards section still renders with error state
     expect(getByText('perps.estimated_points')).toBeTruthy();
+  });
+
+  it('handles tooltip press to open fees tooltip', () => {
+    const props = {
+      ...defaultProps,
+      enableTooltips: true,
+      testIDs: { feesTooltip: 'fees-tooltip' },
+    };
+
+    const { getByTestId } = render(<PerpsCloseSummary {...props} />);
+
+    fireEvent.press(getByTestId('fees-tooltip'));
+
+    expect(getByTestId('fees-tooltip')).toBeTruthy();
+  });
+
+  it('handles tooltip press to open receive amount tooltip', () => {
+    const props = {
+      ...defaultProps,
+      enableTooltips: true,
+      testIDs: { receiveTooltip: 'receive-tooltip' },
+    };
+
+    const { getByTestId } = render(<PerpsCloseSummary {...props} />);
+
+    fireEvent.press(getByTestId('receive-tooltip'));
+
+    expect(getByTestId('receive-tooltip')).toBeTruthy();
+  });
+
+  it('handles tooltip press to open points tooltip when rewards enabled', () => {
+    const props = {
+      ...defaultProps,
+      shouldShowRewards: true,
+      enableTooltips: true,
+      estimatedPoints: 100,
+      testIDs: { pointsTooltip: 'points-tooltip' },
+    };
+
+    const { getByTestId } = render(<PerpsCloseSummary {...props} />);
+
+    fireEvent.press(getByTestId('points-tooltip'));
+
+    expect(getByTestId('points-tooltip')).toBeTruthy();
+  });
+
+  it('does not trigger tooltip callback when tooltips are disabled', () => {
+    const props = {
+      ...defaultProps,
+      enableTooltips: false,
+      testIDs: { feesTooltip: 'fees-tooltip' },
+    };
+
+    const { queryByTestId } = render(<PerpsCloseSummary {...props} />);
+
+    expect(queryByTestId('fees-tooltip')).toBeNull();
   });
 });

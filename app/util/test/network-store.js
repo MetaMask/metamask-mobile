@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { Platform } from 'react-native';
 import { getFixturesServerPortInApp } from './utils';
 
 const FETCH_TIMEOUT = 40000; // Timeout in milliseconds
@@ -20,10 +21,6 @@ const fetchWithTimeout = (url) =>
       reject(new Error('Request timeout'));
     }, FETCH_TIMEOUT);
   });
-
-const FIXTURE_SERVER_HOST = 'localhost';
-const BROWSERSTACK_LOCALHOST = 'bs-local.com';
-const FIXTURE_SERVER_URL = `http://${FIXTURE_SERVER_HOST}:${getFixturesServerPortInApp()}/state.json`;
 
 class ReadOnlyNetworkStore {
   constructor() {
@@ -85,12 +82,23 @@ class ReadOnlyNetworkStore {
   }
 
   async _init() {
-    // List of URLs to check for Fixture Server availability.
-    // Browserstack requires that the HOST is bs-local.com instead of localhost.
-    const urls = [
-      FIXTURE_SERVER_URL,
-      FIXTURE_SERVER_URL.replace(FIXTURE_SERVER_HOST, BROWSERSTACK_LOCALHOST),
-    ];
+    // Dynamically get the port (works on iOS via LaunchArgs, fallback on Android)
+    const port = getFixturesServerPortInApp();
+    const isAndroid = Platform.OS === 'android';
+
+    // Build comprehensive URL list to try in order of likelihood:
+    // 1. localhost with actual port (works on iOS, might work on Android with adb reverse)
+    // 2. 10.0.2.2 with actual port (Android emulator host, direct access without adb reverse!)
+    // 3. bs-local.com (BrowserStack)
+    const urls = [`http://localhost:${port}/state.json`];
+
+    // Android emulator can access host via 10.0.2.2 without adb reverse
+    if (isAndroid) {
+      urls.push(`http://10.0.2.2:${port}/state.json`);
+    }
+
+    // BrowserStack uses bs-local.com
+    urls.push(`http://bs-local.com:${port}/state.json`);
 
     try {
       for (const url of urls) {
@@ -99,6 +107,8 @@ class ReadOnlyNetworkStore {
           if (response.status === 200) {
             this._state = response.data?.state;
             this._asyncState = response.data?.asyncState;
+            // eslint-disable-next-line no-console
+            console.debug(`Successfully loaded fixture state from ${url}`);
             return;
           }
         } catch (error) {

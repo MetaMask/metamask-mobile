@@ -151,6 +151,7 @@ describe('PerpsCloseAllPositionsView', () => {
     avgProtocolFeeRate: 0.00045,
     avgOriginalMetamaskFeeRate: 0.015,
     isLoading: false,
+    isFetchingInBackground: false,
     hasError: false,
     shouldShowRewards: true,
   };

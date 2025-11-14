@@ -122,7 +122,6 @@ jobs:
               - 'scripts/*'                        # Build/utility scripts (except build.sh which is in shared)
               - 'scripts/*/**'                     # Subdirectories in scripts/
               - 'patches/**'                       # Dependency patches
-              - 'ppom/**'                          # PPOM sub-project
 
             catch_all:
               - '**/*'                             # Matches everything for conservative fallback

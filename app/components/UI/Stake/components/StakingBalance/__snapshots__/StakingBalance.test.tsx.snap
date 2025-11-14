@@ -11,7 +11,6 @@ exports[`StakingBalance render matches snapshot 1`] = `
     style={
       {
         "alignItems": "center",
-        "flex": 1,
         "flexDirection": "row",
         "height": 64,
       }
@@ -804,7 +803,6 @@ exports[`StakingBalance should match the snapshot 1`] = `
     style={
       {
         "alignItems": "center",
-        "flex": 1,
         "flexDirection": "row",
         "height": 64,
       }

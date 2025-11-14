@@ -11,7 +11,7 @@ import {
   PredictMarket,
   PredictMarketStatus,
 } from '../../types';
-import { formatPercentage, formatPrice } from '../../utils/format';
+import { formatCents, formatPercentage, formatPrice } from '../../utils/format';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -24,6 +24,7 @@ import { PredictEventValues } from '../../constants/eventNames';
 import { strings } from '../../../../../../locales/i18n';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -37,8 +38,17 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   marketStatus,
 }: PredictPositionProps) => {
   const tw = useTailwind();
-  const { icon, initialValue, percentPnl, outcome, avgPrice, currentValue } =
-    position;
+
+  const {
+    icon,
+    initialValue,
+    percentPnl,
+    outcome,
+    avgPrice,
+    currentValue,
+    title,
+    optimistic,
+  } = position;
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { navigate } = navigation;
@@ -47,24 +57,33 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     navigation,
   });
 
+  const groupItemTitle = market?.outcomes.find(
+    (o) => o.id === position.outcomeId && o.groupItemTitle,
+  )?.groupItemTitle;
+
   const onCashOut = () => {
-    executeGuardedAction(() => {
-      const _outcome = market?.outcomes.find(
-        (o) => o.id === position.outcomeId,
-      );
-      navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
-        params: {
+    executeGuardedAction(
+      () => {
+        const _outcome = market?.outcomes.find(
+          (o) => o.id === position.outcomeId,
+        );
+        navigate(Routes.PREDICT.MODALS.SELL_PREVIEW, {
           market,
           position,
           outcome: _outcome,
           entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-        },
-      });
-    });
+        });
+      },
+      { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CASHOUT },
+    );
   };
 
   const renderValueText = () => {
+    // Show skeleton for optimistic positions
+    if (optimistic) {
+      return <Skeleton width={70} height={20} />;
+    }
+
     if (marketStatus === PredictMarketStatus.OPEN) {
       return (
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
@@ -91,47 +110,46 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   };
 
   return (
-    <Box twClassName="w-full p-4 mb-4 gap-3 bg-background-muted rounded-xl">
+    <Box twClassName="w-full p-4 mb-4 gap-3 bg-background-muted rounded-xl justify-between">
       <Box twClassName="flex-row items-start gap-4">
         {Boolean(icon) && (
-          <Image
-            source={{ uri: icon }}
-            resizeMode="cover"
-            style={tw.style('w-12 h-12 rounded-md self-center')}
-          />
+          <Box twClassName="w-10 h-10 self-start mt-1">
+            <Image
+              source={{ uri: icon }}
+              resizeMode="cover"
+              style={tw.style('w-full h-full rounded-lg')}
+            />
+          </Box>
         )}
-        <Box>
+        <Box twClassName="flex-1">
           <Text
             variant={TextVariant.BodyMDMedium}
             color={TextColor.Default}
-            numberOfLines={1}
             ellipsizeMode="tail"
           >
-            {strings('predict.market_details.amount_on_outcome', {
-              amount: initialValue.toFixed(2),
-              outcome,
-            })}
+            {groupItemTitle ?? title}
           </Text>
           <Text
             variant={TextVariant.BodySMMedium}
             color={TextColor.Alternative}
           >
-            {strings('predict.market_details.outcome_at_price', {
-              outcome,
-              price: (avgPrice * 100).toFixed(0),
-            })}
+            {formatPrice(initialValue, { maximumDecimals: 2 })} on {outcome} •{' '}
+            {formatCents(avgPrice)}
           </Text>
         </Box>
-        <Box twClassName="items-end justify-end ml-auto">
+        <Box twClassName="items-end justify-end ml-auto shrink-0">
           {renderValueText()}
-          {marketStatus === PredictMarketStatus.OPEN && (
-            <Text
-              variant={TextVariant.BodySMMedium}
-              color={percentPnl > 0 ? TextColor.Success : TextColor.Error}
-            >
-              {formatPercentage(percentPnl)}
-            </Text>
-          )}
+          {marketStatus === PredictMarketStatus.OPEN &&
+            (optimistic ? (
+              <Skeleton width={55} height={16} style={tw.style('mt-1')} />
+            ) : (
+              <Text
+                variant={TextVariant.BodySMMedium}
+                color={percentPnl > 0 ? TextColor.Success : TextColor.Error}
+              >
+                {formatPercentage(percentPnl)}
+              </Text>
+            ))}
         </Box>
       </Box>
       {marketStatus === PredictMarketStatus.OPEN && (
@@ -145,6 +163,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
             width={ButtonWidthTypes.Full}
             label={strings('predict.cash_out')}
             onPress={onCashOut}
+            isDisabled={optimistic}
           />
         </Box>
       )}

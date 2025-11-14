@@ -36,8 +36,6 @@ export interface CardToken {
   decimals: number | null;
   symbol: string | null;
   name: string | null;
-  delegationContract?: string | null;
-  stagingTokenAddress?: string | null; // Used in staging environment for actual on-chain token address
 }
 
 // Card token data interface
@@ -56,6 +54,8 @@ export interface AuthenticatedCardTokenAllowanceData {
   availableBalance?: string;
   walletAddress?: string;
   priority?: number; // Lower number = higher priority (1 is highest)
+  delegationContract?: string | null;
+  stagingTokenAddress?: string | null; // Used in staging environment for actual on-chain token address
 }
 
 export type CardTokenAllowance = {
@@ -283,6 +283,7 @@ export interface UserResponse {
   zip?: string;
   usState?: string; // Required for US users
   countryOfResidence?: string; // ISO 3166-1 alpha-2 country code
+  countryOfNationality?: string; // ISO 3166-1 alpha-2 country code
   ssn?: string; // Required for US users only
   mailingAddressLine1?: string;
   mailingAddressLine2?: string;
@@ -354,8 +355,8 @@ export interface Consent {
 export interface CreateOnboardingConsentRequest {
   policyType: 'US' | 'global';
   onboardingId: string;
-  tenantId: string;
   consents: Consent[];
+  tenantId: string;
   metadata?: ConsentMetadata;
 }
 

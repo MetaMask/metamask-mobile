@@ -15,6 +15,7 @@ import PerpsMarketRowItem from '../PerpsMarketRowItem';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsWatchlistMarkets.styles';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
+import { usePerpsLivePositions, usePerpsLiveOrders } from '../../hooks/stream';
 
 interface PerpsWatchlistMarketsProps {
   markets: PerpsMarketData[];
@@ -28,20 +29,41 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
+  // Subscribe to positions and orders to determine initialTab
+  const { positions } = usePerpsLivePositions({ throttleMs: 1000 });
+  const { orders } = usePerpsLiveOrders({ throttleMs: 1000 });
+
   const handleMarketPress = useCallback(
     (market: PerpsMarketData) => {
+      // Check if user has a position or order for this market
+      const hasPosition = positions.some((p) => p.coin === market.symbol);
+      const hasOrder = orders.some((o) => o.symbol === market.symbol);
+
+      // Determine which tab to open (same logic as PerpsCard)
+      let initialTab: 'position' | 'orders' | undefined;
+      if (hasPosition) {
+        initialTab = 'position';
+      } else if (hasOrder) {
+        initialTab = 'orders';
+      }
+      // If no position or order, initialTab remains undefined and defaults to Overview
+
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market },
+        params: {
+          market,
+          initialTab,
+        },
       });
     },
-    [navigation],
+    [navigation, positions, orders],
   );
 
   const renderMarket = useCallback(
     ({ item }: { item: PerpsMarketData }) => (
       <PerpsMarketRowItem
         market={item}
+        showBadge={false}
         onPress={() => handleMarketPress(item)}
       />
     ),

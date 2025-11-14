@@ -24,6 +24,7 @@ import { handleDeeplink } from './Handlers/handleDeeplink';
 import SharedDeeplinkManager from './SharedDeeplinkManager';
 import FCMService from '../../util/notifications/services/FCMService';
 import { handleRewardsUrl } from './Handlers/handleRewardsUrl';
+import { handlePredictUrl } from './Handlers/handlePredictUrl';
 import handleFastOnboarding from './Handlers/handleFastOnboarding';
 import { handleEnableCardButton } from './Handlers/handleEnableCardButton';
 
@@ -135,6 +136,13 @@ class DeeplinkManager {
   _handlePerps(perpsPath: string) {
     handlePerpsUrl({
       perpsPath,
+    });
+  }
+
+  _handlePredict(predictPath: string, origin?: string) {
+    handlePredictUrl({
+      predictPath,
+      origin,
     });
   }
 

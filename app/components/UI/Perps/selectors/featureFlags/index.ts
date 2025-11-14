@@ -4,7 +4,7 @@ import {
   VersionGatedFeatureFlag,
   validatedVersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
-import { hasProperty } from '@metamask/utils';
+import type { RootState } from '../../../../../reducers';
 
 export const selectPerpsEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
@@ -44,55 +44,13 @@ export const selectPerpsGtmOnboardingModalEnabledFlag = createSelector(
 );
 
 /**
- * Selector for HIP-3 equity perps master switch
- * Controls whether HIP-3 (builder-deployed) DEXs are enabled
+ * Selector for HIP-3 configuration version
+ * Used by ConnectionManager to detect when HIP-3 config changes and trigger reconnection
  *
- * @returns boolean - true = HIP-3 enabled, false = main DEX only
+ * @param state - Redux root state
+ * @returns number - Version increments when HIP-3 config changes
  */
-export const selectPerpsEquityEnabledFlag = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const localFlag = process.env.MM_PERPS_EQUITY_ENABLED === 'true';
-    const remoteFlag =
-      remoteFeatureFlags?.perpsEquityEnabled as unknown as VersionGatedFeatureFlag;
-
-    // Fallback to local flag if remote flag is not available
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
-  },
-);
-
-/**
- * Selector for HIP-3 DEX whitelist
- * Controls which specific HIP-3 DEXs are shown to users
- *
- * Only applies when perpsEquityEnabled === true
- *
- * @returns string[] - Empty array = auto-discover all DEXs, non-empty = whitelist
- */
-export const selectPerpsEnabledDexs = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    // Parse local fallback (comma-separated list or empty string)
-    const localFallback = process.env.MM_PERPS_ENABLED_DEXS
-      ? process.env.MM_PERPS_ENABLED_DEXS.split(',')
-          .map((s) => s.trim())
-          .filter((s) => s.length > 0)
-      : [];
-
-    if (!hasProperty(remoteFeatureFlags, 'perpsEnabledDexs')) {
-      return localFallback;
-    }
-
-    const enabledDexs = remoteFeatureFlags.perpsEnabledDexs;
-
-    // Validate it's an array of non-empty strings
-    if (
-      !Array.isArray(enabledDexs) ||
-      !enabledDexs.every((item) => typeof item === 'string' && item.length > 0)
-    ) {
-      return localFallback;
-    }
-
-    return enabledDexs as string[];
-  },
+export const selectHip3ConfigVersion = createSelector(
+  (state: RootState) => state?.engine?.backgroundState?.PerpsController,
+  (perpsController) => perpsController?.hip3ConfigVersion ?? 0,
 );

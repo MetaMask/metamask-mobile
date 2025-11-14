@@ -16,6 +16,35 @@ import { getIntlNumberFormatter } from '../../../../util/intl';
 import { parseAssetName } from './hyperLiquidAdapter';
 
 /**
+ * Calculate open interest in USD
+ * Open interest from HyperLiquid is in contracts/units, not USD
+ * To get USD value, multiply by current price
+ *
+ * @param openInterest - Raw open interest value in contracts/units
+ * @param currentPrice - Current price of the asset
+ * @returns Open interest in USD, or NaN if invalid
+ */
+export function calculateOpenInterestUSD(
+  openInterest: string | number | undefined,
+  currentPrice: string | number | undefined,
+): number {
+  if (openInterest == null || currentPrice == null) {
+    return NaN;
+  }
+
+  const openInterestNum =
+    typeof openInterest === 'string' ? parseFloat(openInterest) : openInterest;
+  const priceNum =
+    typeof currentPrice === 'string' ? parseFloat(currentPrice) : currentPrice;
+
+  if (isNaN(openInterestNum) || isNaN(priceNum)) {
+    return NaN;
+  }
+
+  return openInterestNum * priceNum;
+}
+
+/**
  * HyperLiquid-specific market data structure
  */
 export interface HyperLiquidMarketData {
@@ -170,11 +199,11 @@ export function transformMarketData(
     // If assetCtx is missing or dayNtlVlm is not available, use NaN to indicate missing data
     const volume = assetCtx?.dayNtlVlm ? parseFloat(assetCtx.dayNtlVlm) : NaN;
 
-    // Format open interest
-    // If assetCtx is missing or openInterest is not available, use NaN to indicate missing data
-    const openInterest = assetCtx?.openInterest
-      ? parseFloat(assetCtx.openInterest)
-      : NaN;
+    // Calculate open interest in USD
+    const openInterest = calculateOpenInterestUSD(
+      assetCtx?.openInterest,
+      currentPrice,
+    );
 
     // Get current funding rate from assetCtx - this is the actual current funding rate
     let fundingRate: number | undefined;
@@ -195,16 +224,21 @@ export function transformMarketData(
       fundingRate = fundingData.predictedFundingRate;
     }
 
-    // Extract DEX and determine market type for badge display
+    // Extract DEX and base symbol for display
+    // e.g., "flx:TSLA" → { dex: "flx", symbol: "TSLA" }
     const { dex } = parseAssetName(symbol);
     const marketSource = dex || undefined;
 
-    // Simple per-asset lookup from feature flag (e.g., 'xyz:GOLD' → 'commodity')
-    const marketType: MarketType | undefined = assetMarketTypes?.[symbol];
+    // Determine market type:
+    // 1. Check explicit mapping (e.g., 'xyz:GOLD' → 'commodity')
+    // 2. Default HIP-3 DEX markets to 'equity' (stocks) if not mapped
+    // 3. Main DEX markets remain undefined (crypto)
+    const marketType: MarketType | undefined =
+      assetMarketTypes?.[symbol] || (dex ? 'equity' : undefined);
 
     return {
       symbol,
-      name: symbol, // HyperLiquid uses symbol as name
+      name: symbol,
       maxLeverage: `${asset.maxLeverage}x`,
       price: isNaN(currentPrice)
         ? PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY

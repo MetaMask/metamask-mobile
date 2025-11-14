@@ -261,6 +261,7 @@ const mockState = ({
                 ],
               },
           },
+          allIgnoredAssets: {},
         },
         MultichainBalancesController: {
           balances: {
@@ -617,6 +618,7 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
                 units: [{ name: 'TRON', symbol: 'TRX', decimals: 6 }],
               },
             },
+            allIgnoredAssets: {},
           },
           MultichainBalancesController: {
             balances: {
@@ -874,6 +876,7 @@ describe('selectTronResourcesBySelectedAccountGroup', () => {
                 units: [{ name: 'TRON', symbol: 'TRX', decimals: 6 }],
               },
             },
+            allIgnoredAssets: {},
           },
           MultichainBalancesController: {
             balances: {
@@ -950,6 +953,7 @@ describe('selectTronResourcesBySelectedAccountGroup', () => {
                 ],
               },
             },
+            allIgnoredAssets: {},
           },
           MultichainBalancesController: {
             balances: {

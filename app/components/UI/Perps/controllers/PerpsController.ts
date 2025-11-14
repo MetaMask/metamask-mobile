@@ -15,7 +15,7 @@ import {
   TransactionParams,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { parseCaipAssetId, type Hex } from '@metamask/utils';
+import { parseCaipAssetId, type Hex, hasProperty } from '@metamask/utils';
 import performance from 'react-native-performance';
 import { setMeasurement } from '@sentry/react-native';
 import type { Span } from '@sentry/core';
@@ -23,6 +23,7 @@ import { v4 as uuidv4 } from 'uuid';
 import Engine from '../../../../core/Engine';
 import { generateDepositId } from '../utils/idUtils';
 import { USDC_SYMBOL } from '../constants/hyperLiquidConfig';
+import { isTPSLOrder } from '../constants/orderTypes';
 import {
   LastTransactionResult,
   TransactionStatus,
@@ -92,6 +93,7 @@ import type {
   PerpsControllerConfig,
   Position,
   SubscribeAccountParams,
+  SubscribeOICapsParams,
   SubscribeOrderFillsParams,
   SubscribeOrdersParams,
   SubscribePositionsParams,
@@ -110,13 +112,25 @@ import type {
   RemoteFeatureFlagControllerStateChangeEvent,
   RemoteFeatureFlagControllerGetStateAction,
 } from '@metamask/remote-feature-flag-controller';
-
-// Simple wait utility
-const wait = (ms: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms));
+import {
+  type VersionGatedFeatureFlag,
+  validatedVersionGatedFeatureFlag,
+} from '../../../../util/remoteFeatureFlag';
+import { parseCommaSeparatedString } from '../utils/stringParseUtils';
+import { wait } from '../utils/wait';
 
 // Re-export error codes from separate file to avoid circular dependencies
 export { PERPS_ERROR_CODES, type PerpsErrorCode } from './perpsErrorCodes';
+
+/**
+ * Initialization state enum for state machine tracking
+ */
+export enum InitializationState {
+  UNINITIALIZED = 'uninitialized',
+  INITIALIZING = 'initializing',
+  INITIALIZED = 'initialized',
+  FAILED = 'failed',
+}
 
 const ON_RAMP_GEO_BLOCKING_URLS = {
   // Use UAT endpoint since DEV endpoint is less reliable.
@@ -136,6 +150,11 @@ export type PerpsControllerState = {
   activeProvider: string;
   isTestnet: boolean; // Dev toggle for testnet
   connectionStatus: 'disconnected' | 'connecting' | 'connected';
+
+  // Initialization state machine
+  initializationState: InitializationState;
+  initializationError: string | null;
+  initializationAttempts: number;
 
   // Account data (persisted) - using HyperLiquid property names
   accountState: AccountState | null;
@@ -247,6 +266,10 @@ export type PerpsControllerState = {
   // Error handling
   lastError: string | null;
   lastUpdateTimestamp: number;
+
+  // HIP-3 Configuration Version (incremented when HIP-3 remote flags change)
+  // Used to trigger reconnection and cache invalidation in ConnectionManager
+  hip3ConfigVersion: number;
 };
 
 /**
@@ -256,6 +279,9 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   activeProvider: 'hyperliquid',
   isTestnet: false, // Default to mainnet
   connectionStatus: 'disconnected',
+  initializationState: InitializationState.UNINITIALIZED,
+  initializationError: null,
+  initializationAttempts: 0,
   accountState: null,
   positions: [],
   perpsBalances: {},
@@ -292,6 +318,7 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
     mainnet: {},
   },
   marketFilterPreferences: MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
+  hip3ConfigVersion: 0,
 });
 
 /**
@@ -333,6 +360,24 @@ const metadata: StateMetadata<PerpsControllerState> = {
     persist: false,
     includeInDebugSnapshot: false,
     usedInUi: true,
+  },
+  initializationState: {
+    includeInStateLogs: true,
+    persist: false,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  initializationError: {
+    includeInStateLogs: true,
+    persist: false,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  initializationAttempts: {
+    includeInStateLogs: true,
+    persist: false,
+    includeInDebugSnapshot: false,
+    usedInUi: false,
   },
   pendingOrders: {
     includeInStateLogs: true,
@@ -435,6 +480,12 @@ const metadata: StateMetadata<PerpsControllerState> = {
     persist: true,
     includeInDebugSnapshot: false,
     usedInUi: true,
+  },
+  hip3ConfigVersion: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: false,
   },
 };
 
@@ -625,9 +676,11 @@ export class PerpsController extends BaseController<
     source: 'fallback',
   };
 
-  // Store HIP-3 configuration from client
-  private readonly equityEnabled: boolean;
-  private readonly enabledDexs: string[];
+  // Store HIP-3 configuration (mutable for runtime updates from remote flags)
+  private hip3Enabled: boolean;
+  private hip3AllowlistMarkets: string[];
+  private hip3BlocklistMarkets: string[];
+  private hip3ConfigSource: 'remote' | 'fallback' = 'fallback';
 
   constructor({
     messenger,
@@ -641,10 +694,14 @@ export class PerpsController extends BaseController<
       state: { ...getDefaultPerpsControllerState(), ...state },
     });
 
-    // Store HIP-3 configuration from client (immutable after construction)
-    // Clone array to prevent external mutations
-    this.equityEnabled = clientConfig.equityEnabled ?? false;
-    this.enabledDexs = [...(clientConfig.enabledDexs ?? [])];
+    // Set HIP-3 fallback configuration from client (will be updated if remote flags available)
+    this.hip3Enabled = clientConfig.fallbackHip3Enabled ?? false;
+    this.hip3AllowlistMarkets = [
+      ...(clientConfig.fallbackHip3AllowlistMarkets ?? []),
+    ];
+    this.hip3BlocklistMarkets = [
+      ...(clientConfig.fallbackHip3BlocklistMarkets ?? []),
+    ];
 
     // Immediately set the fallback region list since RemoteFeatureFlagController is empty by default and takes a moment to populate.
     this.setBlockedRegionList(
@@ -683,10 +740,6 @@ export class PerpsController extends BaseController<
     );
 
     this.providers = new Map();
-
-    this.initializeProviders().catch((error) => {
-      Logger.error(ensureError(error), this.getErrorContext('constructor'));
-    });
   }
 
   private setBlockedRegionList(list: string[], source: 'remote' | 'fallback') {
@@ -729,6 +782,218 @@ export class PerpsController extends BaseController<
 
     if (Array.isArray(remoteBlockedRegions)) {
       this.setBlockedRegionList(remoteBlockedRegions, 'remote');
+    }
+
+    // Also check for HIP-3 config changes
+    this.refreshHip3ConfigOnFeatureFlagChange(remoteFeatureFlagControllerState);
+  }
+
+  /**
+   * Refresh HIP-3 configuration when remote feature flags change.
+   * This method extracts HIP-3 settings from remote flags, validates them,
+   * and updates internal state if they differ from current values.
+   * When config changes, increments hip3ConfigVersion to trigger ConnectionManager reconnection.
+   *
+   * Follows the "sticky remote" pattern: once remote config is loaded, never downgrade to fallback.
+   *
+   * @param remoteFeatureFlagControllerState - State from RemoteFeatureFlagController
+   */
+  private refreshHip3ConfigOnFeatureFlagChange(
+    remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState,
+  ): void {
+    const remoteFlags = remoteFeatureFlagControllerState.remoteFeatureFlags;
+
+    // Extract and validate remote HIP-3 equity enabled flag
+    const equityFlag =
+      remoteFlags?.perpsHip3Enabled as unknown as VersionGatedFeatureFlag;
+    const validatedEquity = validatedVersionGatedFeatureFlag(equityFlag);
+
+    DevLogger.log('PerpsController: HIP-3 equity flag validation', {
+      equityFlag,
+      validatedEquity,
+      willUse: validatedEquity !== undefined ? 'remote' : 'fallback',
+    });
+
+    // Extract and validate remote HIP-3 allowlist markets (allowlist)
+    let validatedAllowlistMarkets: string[] | undefined;
+    if (hasProperty(remoteFlags, 'perpsHip3AllowlistMarkets')) {
+      const remoteMarkets = remoteFlags.perpsHip3AllowlistMarkets;
+
+      DevLogger.log('PerpsController: HIP-3 allowlistMarkets validation', {
+        remoteMarkets,
+        type: typeof remoteMarkets,
+        isArray: Array.isArray(remoteMarkets),
+      });
+
+      // LaunchDarkly returns comma-separated strings for list values
+      if (typeof remoteMarkets === 'string') {
+        const parsed = parseCommaSeparatedString(remoteMarkets);
+
+        if (parsed.length > 0) {
+          validatedAllowlistMarkets = parsed;
+          DevLogger.log(
+            'PerpsController: HIP-3 allowlistMarkets validated from string',
+            { validatedAllowlistMarkets },
+          );
+        } else {
+          DevLogger.log(
+            'PerpsController: HIP-3 allowlistMarkets string was empty after parsing',
+            { fallbackValue: this.hip3AllowlistMarkets },
+          );
+        }
+      } else if (
+        Array.isArray(remoteMarkets) &&
+        remoteMarkets.every(
+          (item) => typeof item === 'string' && item.length > 0,
+        )
+      ) {
+        // Fallback: Validate array of non-empty strings (in case format changes)
+        validatedAllowlistMarkets = (remoteMarkets as string[])
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0);
+
+        DevLogger.log(
+          'PerpsController: HIP-3 allowlistMarkets validated from array',
+          { validatedAllowlistMarkets },
+        );
+      } else {
+        DevLogger.log(
+          'PerpsController: HIP-3 allowlistMarkets validation FAILED - falling back to local config',
+          {
+            reason: Array.isArray(remoteMarkets)
+              ? 'Array contains non-string or empty values'
+              : 'Invalid type (expected string or array)',
+            fallbackValue: this.hip3AllowlistMarkets,
+          },
+        );
+      }
+    }
+
+    // Extract and validate remote HIP-3 blocklist markets (blocklist)
+    let validatedBlocklistMarkets: string[] | undefined;
+    if (hasProperty(remoteFlags, 'perpsHip3BlocklistMarkets')) {
+      const remoteBlocked = remoteFlags.perpsHip3BlocklistMarkets;
+
+      DevLogger.log('PerpsController: HIP-3 blocklistMarkets validation', {
+        remoteBlocked,
+        type: typeof remoteBlocked,
+        isArray: Array.isArray(remoteBlocked),
+      });
+
+      // LaunchDarkly returns comma-separated strings for list values
+      if (typeof remoteBlocked === 'string') {
+        const parsed = parseCommaSeparatedString(remoteBlocked);
+
+        if (parsed.length > 0) {
+          validatedBlocklistMarkets = parsed;
+          DevLogger.log(
+            'PerpsController: HIP-3 blocklistMarkets validated from string',
+            { validatedBlocklistMarkets },
+          );
+        } else {
+          DevLogger.log(
+            'PerpsController: HIP-3 blocklistMarkets string was empty after parsing',
+            { fallbackValue: this.hip3BlocklistMarkets },
+          );
+        }
+      } else if (
+        Array.isArray(remoteBlocked) &&
+        remoteBlocked.every(
+          (item) => typeof item === 'string' && item.length > 0,
+        )
+      ) {
+        // Fallback: Validate array of non-empty strings (in case format changes)
+        validatedBlocklistMarkets = (remoteBlocked as string[])
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0);
+
+        DevLogger.log(
+          'PerpsController: HIP-3 blocklistMarkets validated from array',
+          { validatedBlocklistMarkets },
+        );
+      } else {
+        DevLogger.log(
+          'PerpsController: HIP-3 blocklistMarkets validation FAILED - falling back to local config',
+          {
+            reason: Array.isArray(remoteBlocked)
+              ? 'Array contains non-string or empty values'
+              : 'Invalid type (expected string or array)',
+            fallbackValue: this.hip3BlocklistMarkets,
+          },
+        );
+      }
+    }
+
+    // Detect changes (only if we have valid remote values)
+    const equityChanged =
+      validatedEquity !== undefined && validatedEquity !== this.hip3Enabled;
+    const allowlistMarketsChanged =
+      validatedAllowlistMarkets !== undefined &&
+      JSON.stringify(
+        [...validatedAllowlistMarkets].sort((a, b) => a.localeCompare(b)),
+      ) !==
+        JSON.stringify(
+          [...this.hip3AllowlistMarkets].sort((a, b) => a.localeCompare(b)),
+        );
+    const blocklistMarketsChanged =
+      validatedBlocklistMarkets !== undefined &&
+      JSON.stringify(
+        [...validatedBlocklistMarkets].sort((a, b) => a.localeCompare(b)),
+      ) !==
+        JSON.stringify(
+          [...this.hip3BlocklistMarkets].sort((a, b) => a.localeCompare(b)),
+        );
+
+    if (equityChanged || allowlistMarketsChanged || blocklistMarketsChanged) {
+      DevLogger.log(
+        'PerpsController: HIP-3 config changed via remote feature flags',
+        {
+          equityChanged,
+          allowlistMarketsChanged,
+          blocklistMarketsChanged,
+          oldEquity: this.hip3Enabled,
+          newEquity: validatedEquity,
+          oldAllowlistMarkets: this.hip3AllowlistMarkets,
+          newAllowlistMarkets: validatedAllowlistMarkets,
+          oldBlocklistMarkets: this.hip3BlocklistMarkets,
+          newBlocklistMarkets: validatedBlocklistMarkets,
+          source: 'remote',
+        },
+      );
+
+      // Update internal state (sticky remote - never downgrade)
+      if (validatedEquity !== undefined) {
+        this.hip3Enabled = validatedEquity;
+      }
+      if (validatedAllowlistMarkets !== undefined) {
+        this.hip3AllowlistMarkets = [...validatedAllowlistMarkets];
+      }
+      if (validatedBlocklistMarkets !== undefined) {
+        this.hip3BlocklistMarkets = [...validatedBlocklistMarkets];
+      }
+      this.hip3ConfigSource = 'remote';
+
+      // Increment version to trigger ConnectionManager reconnection and cache clearing
+      const newVersion = (this.state.hip3ConfigVersion || 0) + 1;
+      this.update((state) => {
+        state.hip3ConfigVersion = newVersion;
+      });
+
+      DevLogger.log(
+        'PerpsController: Incremented hip3ConfigVersion to trigger reconnection',
+        {
+          newVersion,
+          newHip3Enabled: this.hip3Enabled,
+          newHip3AllowlistMarkets: this.hip3AllowlistMarkets,
+          newHip3BlocklistMarkets: this.hip3BlocklistMarkets,
+        },
+      );
+
+      // Note: ConnectionManager will handle:
+      // 1. Detecting hip3ConfigVersion change via Redux monitoring
+      // 2. Clearing all StreamManager caches
+      // 3. Calling reconnectWithNewContext() -> initializeProviders()
+      // 4. Provider reinitialization will read the new HIP-3 config below
     }
   }
 
@@ -934,7 +1199,7 @@ export class PerpsController extends BaseController<
    * Must be called before using any other methods
    * Prevents double initialization with promise caching
    */
-  async initializeProviders(): Promise<void> {
+  async init(): Promise<void> {
     if (this.isInitialized) {
       return;
     }
@@ -948,58 +1213,125 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Actual initialization implementation
+   * Actual initialization implementation with retry logic
    */
   private async performInitialization(): Promise<void> {
+    const maxAttempts = 3;
+    const baseDelay = 1000;
+
+    this.update((state) => {
+      state.initializationState = InitializationState.INITIALIZING;
+      state.initializationError = null;
+      state.initializationAttempts = 0;
+    });
+
     DevLogger.log('PerpsController: Initializing providers', {
       currentNetwork: this.state.isTestnet ? 'testnet' : 'mainnet',
       existingProviders: Array.from(this.providers.keys()),
       timestamp: new Date().toISOString(),
     });
 
-    // Disconnect existing providers to close WebSocket connections
-    const existingProviders = Array.from(this.providers.values());
-    if (existingProviders.length > 0) {
-      DevLogger.log('PerpsController: Disconnecting existing providers', {
-        count: existingProviders.length,
-        timestamp: new Date().toISOString(),
-      });
-      await Promise.all(
-        existingProviders.map((provider) => provider.disconnect()),
-      );
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        this.update((state) => {
+          state.initializationAttempts = attempt;
+        });
+
+        // Disconnect existing providers to close WebSocket connections
+        const existingProviders = Array.from(this.providers.values());
+        if (existingProviders.length > 0) {
+          DevLogger.log('PerpsController: Disconnecting existing providers', {
+            count: existingProviders.length,
+            timestamp: new Date().toISOString(),
+          });
+          await Promise.all(
+            existingProviders.map((provider) => provider.disconnect()),
+          );
+        }
+        this.providers.clear();
+
+        DevLogger.log(
+          'PerpsController: Creating provider with HIP-3 configuration',
+          {
+            hip3Enabled: this.hip3Enabled,
+            hip3AllowlistMarkets: this.hip3AllowlistMarkets,
+            hip3BlocklistMarkets: this.hip3BlocklistMarkets,
+            hip3ConfigSource: this.hip3ConfigSource,
+            isTestnet: this.state.isTestnet,
+          },
+        );
+
+        this.providers.set(
+          'hyperliquid',
+          new HyperLiquidProvider({
+            isTestnet: this.state.isTestnet,
+            hip3Enabled: this.hip3Enabled,
+            allowlistMarkets: this.hip3AllowlistMarkets,
+            blocklistMarkets: this.hip3BlocklistMarkets,
+          }),
+        );
+
+        // Future providers can be added here with their own authentication patterns:
+        // - Some might use API keys: new BinanceProvider({ apiKey, apiSecret })
+        // - Some might use different wallet patterns: new GMXProvider({ signer })
+        // - Some might not need auth at all: new DydxProvider()
+
+        // Wait for WebSocket transport to be ready before marking as initialized
+        await wait(PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS);
+
+        this.isInitialized = true;
+        this.update((state) => {
+          state.initializationState = InitializationState.INITIALIZED;
+          state.initializationError = null;
+        });
+
+        DevLogger.log('PerpsController: Providers initialized successfully', {
+          providerCount: this.providers.size,
+          activeProvider: this.state.activeProvider,
+          timestamp: new Date().toISOString(),
+          attempts: attempt,
+        });
+
+        return; // Exit retry loop on success
+      } catch (error) {
+        lastError = ensureError(error);
+
+        Logger.error(
+          lastError,
+          this.getErrorContext('performInitialization', {
+            attempt,
+            maxAttempts,
+          }),
+        );
+
+        // If not the last attempt, wait before retrying (exponential backoff)
+        if (attempt < maxAttempts) {
+          const delay = baseDelay * Math.pow(2, attempt - 1); // 1s, 2s, 4s
+          DevLogger.log(
+            `PerpsController: Retrying initialization in ${delay}ms`,
+            {
+              attempt,
+              maxAttempts,
+              error: lastError.message,
+            },
+          );
+          await wait(delay);
+        }
+      }
     }
-    this.providers.clear();
 
-    DevLogger.log(
-      'PerpsController: Creating provider with HIP-3 configuration',
-      {
-        equityEnabled: this.equityEnabled,
-        enabledDexs: this.enabledDexs,
-        isTestnet: this.state.isTestnet,
-      },
-    );
+    this.isInitialized = false;
+    this.update((state) => {
+      state.initializationState = InitializationState.FAILED;
+      state.initializationError = lastError?.message ?? 'Unknown error';
+    });
+    this.initializationPromise = null; // Clear promise to allow retry
 
-    this.providers.set(
-      'hyperliquid',
-      new HyperLiquidProvider({
-        isTestnet: this.state.isTestnet,
-        equityEnabled: this.equityEnabled,
-        enabledDexs: this.enabledDexs,
-      }),
-    );
-
-    // Future providers can be added here with their own authentication patterns:
-    // - Some might use API keys: new BinanceProvider({ apiKey, apiSecret })
-    // - Some might use different wallet patterns: new GMXProvider({ signer })
-    // - Some might not need auth at all: new DydxProvider()
-
-    // Wait for WebSocket transport to be ready before marking as initialized
-    await wait(PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS);
-
-    this.isInitialized = true;
-    DevLogger.log('PerpsController: Providers initialized successfully', {
-      providerCount: this.providers.size,
-      activeProvider: this.state.activeProvider,
+    DevLogger.log('PerpsController: Initialization failed', {
+      error: lastError?.message,
+      attempts: maxAttempts,
       timestamp: new Date().toISOString(),
     });
   }
@@ -1054,12 +1386,20 @@ export class PerpsController extends BaseController<
     }
 
     // Check if not initialized
-    if (!this.isInitialized) {
+    if (
+      this.state.initializationState !== InitializationState.INITIALIZED ||
+      !this.isInitialized
+    ) {
+      const errorMessage =
+        this.state.initializationState === InitializationState.FAILED
+          ? `${PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED}: ${this.state.initializationError || 'Initialization failed'}`
+          : PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED;
+
       this.update((state) => {
-        state.lastError = PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED;
+        state.lastError = errorMessage;
         state.lastUpdateTimestamp = Date.now();
       });
-      throw new Error(PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED);
+      throw new Error(errorMessage);
     }
 
     const provider = this.providers.get(this.state.activeProvider);
@@ -1589,8 +1929,10 @@ export class PerpsController extends BaseController<
         // Filter orders based on params
         let ordersToCancel = orders;
         if (params.cancelAll || (!params.coins && !params.orderIds)) {
-          // Cancel all orders
-          ordersToCancel = orders;
+          // Cancel all orders (excluding TP/SL orders for positions)
+          ordersToCancel = orders.filter(
+            (o) => !isTPSLOrder(o.detailedOrderType),
+          );
         } else if (params.orderIds && params.orderIds.length > 0) {
           // Cancel specific order IDs
           ordersToCancel = orders.filter((o) =>
@@ -3508,7 +3850,7 @@ export class PerpsController extends BaseController<
       // Reset initialization state and reinitialize provider with new testnet setting
       this.isInitialized = false;
       this.initializationPromise = null;
-      await this.initializeProviders();
+      await this.init();
 
       DevLogger.log('PerpsController: Network toggle completed', {
         newNetwork,
@@ -3655,6 +3997,28 @@ export class PerpsController extends BaseController<
       Logger.error(
         ensureError(error),
         this.getErrorContext('subscribeToAccount', {
+          accountId: params.accountId,
+        }),
+      );
+      // Return a no-op unsubscribe function
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
+  }
+
+  /**
+   * Subscribe to open interest cap updates
+   * Zero additional network overhead - data comes from existing webData3 subscription
+   */
+  subscribeToOICaps(params: SubscribeOICapsParams): () => void {
+    try {
+      const provider = this.getActiveProvider();
+      return provider.subscribeToOICaps(params);
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('subscribeToOICaps', {
           accountId: params.accountId,
         }),
       );

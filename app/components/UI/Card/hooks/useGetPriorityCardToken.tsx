@@ -389,7 +389,7 @@ export const useGetPriorityCardToken = (
                 validAllowances,
                 chainBalances,
               );
-            finalToken = positiveBalanceAllowance || matchingAllowance;
+            finalToken = positiveBalanceAllowance ?? matchingAllowance;
           }
         } else {
           finalToken = cardTokenAllowances[0] || null;
@@ -440,12 +440,8 @@ export const useGetPriorityCardToken = (
         // Use provided data if available (to avoid duplicate calls)
         let priorityWalletDetail: CardTokenAllowance | null = null;
 
-        if (
-          externalWalletDetailsData &&
-          externalWalletDetailsData.priorityWalletDetail
-        ) {
+        if (externalWalletDetailsData?.priorityWalletDetail) {
           priorityWalletDetail = externalWalletDetailsData.priorityWalletDetail;
-          Logger.log('priorityWalletDetail', priorityWalletDetail);
         }
 
         const warning = !priorityWalletDetail
@@ -631,7 +627,7 @@ export const useGetPriorityCardToken = (
   return {
     fetchPriorityToken,
     priorityToken,
-    allTokensWithAllowances, // For asset selection in unauthenticated mode
+    allTokensWithAllowances,
     isLoading: isLoadingFinal,
     error: state.error,
     warning: state.warning,

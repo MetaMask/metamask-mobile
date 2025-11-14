@@ -14,7 +14,10 @@ import {
   POLYMARKET_EVENT_DETAILS_SPURS_PELICANS_RESPONSE,
 } from './polymarket-event-details-response';
 import { POLYMARKET_UPNL_RESPONSE } from './polymarket-upnl-response';
-import { POLYMARKET_ACTIVITY_RESPONSE } from './polymarket-activity-response';
+import {
+  POLYMARKET_ACTIVITY_RESPONSE,
+  POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE,
+} from './polymarket-activity-response';
 import {
   POLYMARKET_ORDER_BOOK_RESPONSE,
   POLYMARKET_ZOHRAN_ORDER_BOOK_RESPONSE,
@@ -983,6 +986,60 @@ export const POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS = async (
       statusCode: 200,
       json: [],
     }));
+};
+
+/**
+ * Post-claim mock that adds REDEEM transactions to the activity endpoint
+ * After claiming, REDEEM type transactions should appear in the activity feed
+ * @param mockServer - The mockttp server instance
+ */
+export const POLYMARKET_ADD_CLAIMED_POSITIONS_TO_ACTIVITY_MOCKS = async (
+  mockServer: Mockttp,
+) => {
+  // Override the activity mock to include REDEEM transactions for claimed positions
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        url &&
+          /^https:\/\/data-api\.polymarket\.com\/activity\?user=0x[a-fA-F0-9]{40}$/.test(
+            url,
+          ),
+      );
+    })
+    .asPriority(PRIORITY.API_OVERRIDE) // Higher priority to override the original activity mock
+    .thenCallback((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
+      const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
+
+      // Map claimed positions to use the actual user address
+      const claimedPositionsWithUserAddress =
+        POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE.map((activity) => ({
+          ...activity,
+          proxyWallet: userAddress,
+        }));
+
+      // Map existing activity to use the actual user address
+      const existingActivityWithUserAddress = POLYMARKET_ACTIVITY_RESPONSE.map(
+        (activity) => ({
+          ...activity,
+          proxyWallet: userAddress,
+        }),
+      );
+
+      // Add the REDEEM transactions at the beginning of the activity array (most recent first)
+      const activityWithClaims = [
+        ...claimedPositionsWithUserAddress,
+        ...existingActivityWithUserAddress,
+      ];
+
+      return {
+        statusCode: 200,
+        json: activityWithClaims,
+      };
+    });
 };
 
 /**
