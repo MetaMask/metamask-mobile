@@ -450,7 +450,7 @@ export const parsePolymarketEvents = (
 /**
  * Normalizes Polymarket /activity entries to PredictActivity[]
  * Keeps essential metadata used by UI (title/outcome/icon)
- * Filters out claim activities with no payout (lost positions - technical clearing only)
+ * Note: Lost redeems (activities with no payout) are excluded by the API via excludeLostRedeems parameter
  */
 export const parsePolymarketActivity = (
   activities: PolymarketApiActivity[],
@@ -459,66 +459,57 @@ export const parsePolymarketActivity = (
     return [];
   }
 
-  const parsedActivities: PredictActivity[] = activities
-    .map((activity) => {
-      // Normalize entry type: TRADE with explicit side => buy/sell, otherwise claimWinnings
-      const entryType: 'buy' | 'sell' | 'claimWinnings' =
-        activity.type === 'TRADE'
-          ? activity.side === 'BUY'
-            ? 'buy'
-            : activity.side === 'SELL'
-              ? 'sell'
-              : 'claimWinnings'
-          : 'claimWinnings';
+  const parsedActivities: PredictActivity[] = activities.map((activity) => {
+    // Normalize entry type: TRADE with explicit side => buy/sell, otherwise claimWinnings
+    const entryType: 'buy' | 'sell' | 'claimWinnings' =
+      activity.type === 'TRADE'
+        ? activity.side === 'BUY'
+          ? 'buy'
+          : activity.side === 'SELL'
+            ? 'sell'
+            : 'claimWinnings'
+        : 'claimWinnings';
 
-      const id =
-        activity.transactionHash ?? String(activity.timestamp ?? Math.random());
-      const timestamp = Number(activity.timestamp ?? Date.now());
+    const id =
+      activity.transactionHash ?? String(activity.timestamp ?? Math.random());
+    const timestamp = Number(activity.timestamp ?? Date.now());
 
-      const price = Number(activity.price ?? 0);
-      const amount = Number(activity.usdcSize ?? 0);
+    const price = Number(activity.price ?? 0);
+    const amount = Number(activity.usdcSize ?? 0);
 
-      const outcomeId = String(activity.conditionId ?? '');
-      const marketId = String(activity.conditionId ?? '');
-      const outcomeTokenId = Number(activity.outcomeIndex ?? 0);
-      const title = String(activity.title ?? 'Market');
-      const outcome = activity.outcome ? String(activity.outcome) : undefined;
-      const icon = activity.icon as string | undefined;
+    const outcomeId = String(activity.conditionId ?? '');
+    const marketId = String(activity.conditionId ?? '');
+    const outcomeTokenId = Number(activity.outcomeIndex ?? 0);
+    const title = String(activity.title ?? 'Market');
+    const outcome = activity.outcome ? String(activity.outcome) : undefined;
+    const icon = activity.icon as string | undefined;
 
-      const parsedActivity: PredictActivity = {
-        id,
-        providerId: 'polymarket',
-        entry:
-          entryType === 'claimWinnings'
-            ? { type: 'claimWinnings', timestamp, amount }
-            : {
-                type: entryType,
-                timestamp,
-                marketId,
-                outcomeId,
-                outcomeTokenId,
-                amount,
-                price,
-              },
-        title,
-        outcome,
-        icon,
-      } as PredictActivity & {
-        title?: string;
-        outcome?: string;
-        icon?: string;
-      };
+    const parsedActivity: PredictActivity = {
+      id,
+      providerId: 'polymarket',
+      entry:
+        entryType === 'claimWinnings'
+          ? { type: 'claimWinnings', timestamp, amount }
+          : {
+              type: entryType,
+              timestamp,
+              marketId,
+              outcomeId,
+              outcomeTokenId,
+              amount,
+              price,
+            },
+      title,
+      outcome,
+      icon,
+    } as PredictActivity & {
+      title?: string;
+      outcome?: string;
+      icon?: string;
+    };
 
-      return parsedActivity;
-    })
-    .filter((activity) => {
-      // Filter out claim activities with no actual payout
-      // These are lost positions being cleared - just technical operations with no transaction value
-      if (activity.entry.type === 'claimWinnings') {
-        return activity.entry.amount > 0;
-      }
-      return true;
-    });
+    return parsedActivity;
+  });
 
   return parsedActivities;
 };
