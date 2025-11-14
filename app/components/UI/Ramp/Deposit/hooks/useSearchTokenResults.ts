@@ -37,10 +37,9 @@ function useSearchTokenResults({
     () =>
       new Fuse<TokenWithNetworkName>(tokensWithNetworkName, {
         shouldSort: true,
-        threshold: 0.45,
+        threshold: 0.6,
         location: 0,
         distance: 100,
-        maxPatternLength: 32,
         minMatchCharLength: 1,
         keys: ['symbol', 'assetId', 'name', 'chainId', 'networkName'],
       }),
@@ -52,11 +51,7 @@ function useSearchTokenResults({
       return tokensWithNetworkName;
     }
 
-    const results = tokenFuse.search(searchString) as unknown as {
-      item: TokenWithNetworkName;
-    }[];
-
-    return results.map((result) => result.item);
+    return tokenFuse.search(searchString);
   }, [searchString, tokensWithNetworkName, tokenFuse]);
 }
 
