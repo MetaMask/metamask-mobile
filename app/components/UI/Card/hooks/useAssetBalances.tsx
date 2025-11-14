@@ -19,6 +19,11 @@ import I18n from '../../../../../locales/i18n';
 import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 
+const extractTrailingCurrencyCode = (value: string): string | undefined => {
+  const match = value.trim().match(/([A-Za-z]{3})$/);
+  return match ? match[1].toUpperCase() : undefined;
+};
+
 export interface AssetBalanceInfo {
   asset: TokenI | undefined;
   balanceFiat: string;
@@ -343,6 +348,20 @@ export const useAssetBalances = (
         );
 
         if (!isNaN(rawFiatNumber)) {
+          const originalCurrencyCode = extractTrailingCurrencyCode(
+            filteredToken.balanceFiat,
+          );
+          const hasCurrencyMismatch =
+            Boolean(originalCurrencyCode) &&
+            originalCurrencyCode !== currentCurrency?.toUpperCase();
+
+          if (hasCurrencyMismatch) {
+            return {
+              balanceFiat: filteredToken.balanceFiat,
+              rawFiatNumber,
+            };
+          }
+
           const balanceFiat = formatWithThreshold(
             rawFiatNumber,
             0.01,
@@ -387,6 +406,20 @@ export const useAssetBalances = (
         );
 
         if (!isNaN(rawFiatNumber)) {
+          const originalCurrencyCode = extractTrailingCurrencyCode(
+            walletAsset.balanceFiat,
+          );
+          const hasCurrencyMismatch =
+            Boolean(originalCurrencyCode) &&
+            originalCurrencyCode !== currentCurrency?.toUpperCase();
+
+          if (hasCurrencyMismatch) {
+            return {
+              balanceFiat: walletAsset.balanceFiat,
+              rawFiatNumber,
+            };
+          }
+
           const balanceFiat = formatWithThreshold(
             rawFiatNumber,
             0.01,
