@@ -68,13 +68,13 @@ const MultichainAccountsConnectedList = ({
   const handleSelectAccount = useCallback(
     (accountGroup: AccountGroupObject) => {
       const { AccountTreeController } = Engine.context;
+      AccountTreeController.setSelectedAccountGroup(accountGroup.id);
+
       // During connection flow, clicking an account should only change the selected account group instead of navigating
       if (isConnectionFlow) {
-        AccountTreeController.setSelectedAccountGroup(accountGroup.id);
         return;
       }
 
-      AccountTreeController.setSelectedAccountGroup(accountGroup.id);
       const address = iconSeedAddresses[accountGroup.id];
       const activeAccountName = accountGroups.find(
         (group) => group.id === accountGroup.id,
