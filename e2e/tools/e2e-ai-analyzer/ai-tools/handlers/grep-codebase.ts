@@ -9,15 +9,17 @@ import { ToolInput } from '../../types';
 import { TOOL_LIMITS } from '../../config';
 
 /**
- * Escapes shell special characters to prevent command injection
+ * Escapes shell special characters while preserving grep regex
+ * Only escapes: backticks, $, double quotes, newlines
+ * Preserves: regex chars like *, ., [], {}, etc.
  */
-function escapeShell(str: string): string {
-  return str.replace(/[`$\\"\n]/g, '\\$&');
+function escapeForGrep(str: string): string {
+  return str.replace(/[`$"\n]/g, '\\$&');
 }
 
 export function handleGrepCodebase(input: ToolInput, baseDir: string): string {
-  const pattern = escapeShell(input.pattern as string);
-  const filePattern = escapeShell((input.file_pattern as string) || '*');
+  const pattern = escapeForGrep(input.pattern as string);
+  const filePattern = escapeForGrep((input.file_pattern as string) || '*');
   const maxResults =
     (input.max_results as number) || TOOL_LIMITS.grepMaxResults;
 
@@ -26,7 +28,7 @@ export function handleGrepCodebase(input: ToolInput, baseDir: string): string {
   }
 
   try {
-    // Use grep with common source code file extensions
+    // Use grep with regex support
     // -r: recursive, -n: line numbers, -i: case insensitive, --include: file pattern
     const command = `grep -rni --include="${filePattern}" "${pattern}" app/ | head -${maxResults}`;
 

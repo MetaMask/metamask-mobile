@@ -135,8 +135,9 @@ function findImporters(
       return `Cannot extract filename from ${filePath}`;
     }
 
+    // Simplified pattern - avoid complex quote matching
     const importers = execSync(
-      `grep -r -l --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" "from.*['"].*${fileName}" app/ 2>/dev/null | grep -v "${filePath}" | head -${maxResults} || true`,
+      `grep -r -l --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" "from.*${fileName}" app/ 2>/dev/null | grep -v "${filePath}" | head -${maxResults} || true`,
       { encoding: 'utf-8', cwd: baseDir },
     )
       .trim()
