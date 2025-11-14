@@ -110,7 +110,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const insets = useSafeAreaInsets();
   const [isResolvedExpanded, setIsResolvedExpanded] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
-  const [isFeeExemption, setIsFeeExemption] = useState<boolean>(false);
 
   const { marketId, entryPoint, title, image } = route.params || {};
   const resolvedMarketId = marketId;
@@ -198,11 +197,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     }
   }, [market?.status]);
 
-  useEffect(() => {
-    if (market?.tags.includes('Middle East')) {
-      setIsFeeExemption(true);
-    }
-  }, [market?.tags]);
+  // check if market has fee exemption (note: worth moveing to a const or util at some point))
+  const isFeeExemption = market?.tags?.includes('Middle East') ?? false;
 
   // Tabs become ready when both market and positions queries have resolved
   const tabsReady = useMemo(

@@ -3093,5 +3093,65 @@ describe('PredictMarketDetails', () => {
         screen.getByText('predict.market_details.fee_exemption'),
       ).toBeOnTheScreen();
     });
+
+    it('removes fee exemption message when market updates without Middle East tag', async () => {
+      const { usePredictMarket } = jest.requireMock(
+        '../../hooks/usePredictMarket',
+      );
+
+      const marketWithMiddleEastTag = createMockMarket({
+        status: 'open',
+        tags: ['Middle East', 'Politics'],
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      const { rerender } = setupPredictMarketDetailsTest(
+        marketWithMiddleEastTag,
+      );
+
+      expect(
+        screen.getByText('predict.market_details.fee_exemption'),
+      ).toBeOnTheScreen();
+
+      const marketWithoutMiddleEastTag = createMockMarket({
+        status: 'open',
+        tags: ['Politics'],
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      usePredictMarket.mockReturnValue({
+        market: marketWithoutMiddleEastTag,
+        isFetching: false,
+        refetch: jest.fn(),
+      });
+
+      rerender(<PredictMarketDetails />);
+
+      await waitFor(() => {
+        expect(
+          screen.queryByText('predict.market_details.fee_exemption'),
+        ).not.toBeOnTheScreen();
+      });
+    });
   });
 });
