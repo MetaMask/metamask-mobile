@@ -245,6 +245,10 @@ class ChoosePassword extends PureComponent {
   // Flag to know if password in keyring was set or not
   keyringControllerPasswordSet = false;
 
+  // Track to blocked a spurious empty value
+  justBlockedSpuriousEmpty = false;
+  justBlockedSpuriousEmptyConfirm = false;
+
   track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
     eventBuilder.addProperties(properties);
@@ -662,6 +666,31 @@ class ChoosePassword extends PureComponent {
   };
 
   onPasswordChange = (val) => {
+    if (
+      val === '' &&
+      this.state.password !== '' &&
+      this.state.password.length > 1
+    ) {
+      this.justBlockedSpuriousEmpty = true;
+      return;
+    }
+
+    if (
+      this.justBlockedSpuriousEmpty &&
+      val.length > 0 &&
+      val.length < this.state.password.length
+    ) {
+      const correctedVal = this.state.password + val;
+      this.justBlockedSpuriousEmpty = false;
+      this.setState((prevState) => ({
+        password: correctedVal,
+        confirmPassword: prevState.confirmPassword,
+      }));
+      return;
+    }
+
+    this.justBlockedSpuriousEmpty = false;
+
     this.setState((prevState) => ({
       password: val,
       confirmPassword: val === '' ? '' : prevState.confirmPassword,
@@ -696,7 +725,31 @@ class ChoosePassword extends PureComponent {
     });
   };
 
-  setConfirmPassword = (val) => this.setState({ confirmPassword: val });
+  setConfirmPassword = (val) => {
+    if (
+      val === '' &&
+      this.state.confirmPassword !== '' &&
+      this.state.confirmPassword.length > 1
+    ) {
+      this.justBlockedSpuriousEmptyConfirm = true;
+      return;
+    }
+
+    if (
+      this.justBlockedSpuriousEmptyConfirm &&
+      val.length > 0 &&
+      val.length < this.state.confirmPassword.length
+    ) {
+      const correctedVal = this.state.confirmPassword + val;
+      this.justBlockedSpuriousEmptyConfirm = false;
+      this.setState({ confirmPassword: correctedVal });
+      return;
+    }
+
+    this.justBlockedSpuriousEmptyConfirm = false;
+
+    this.setState({ confirmPassword: val });
+  };
 
   checkError = () => {
     const { password, confirmPassword } = this.state;
@@ -715,7 +768,6 @@ class ChoosePassword extends PureComponent {
       canSubmit =
         passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
     }
-    const previousScreen = this.props.route.params?.[PREVIOUS_SCREEN];
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
     const styles = createStyles(colors);
