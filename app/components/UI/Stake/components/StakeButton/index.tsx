@@ -44,13 +44,10 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder, isEnabled } = useMetrics();
 
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const chainId = useSelector(selectEvmChainId);
-  const dataCollectionForMarketing = useSelector(
-    (state: RootState) => state.security.dataCollectionForMarketing,
-  );
   const { isEligible } = useStakingEligibility();
   const { isStakingSupportedChain } = useStakingChain();
 
@@ -92,10 +89,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       if (existingStakeTab) {
         existingTabId = existingStakeTab.id;
       } else {
-        const stakeUrl = buildPortfolioUrl(
-          AppConstants.STAKE.URL,
-          dataCollectionForMarketing,
-        );
+        const stakeUrl = buildPortfolioUrl(AppConstants.STAKE.URL, isEnabled());
         newTabUrl = stakeUrl.href;
       }
       const params = {

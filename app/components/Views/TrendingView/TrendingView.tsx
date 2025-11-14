@@ -2,7 +2,6 @@ import React, { useCallback, useMemo, useEffect } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import { createStackNavigator } from '@react-navigation/stack';
 import {
   Box,
@@ -77,14 +76,9 @@ const TrendingFeed: React.FC = () => {
     return unsubscribe;
   }, [navigation]);
 
-  const isDataCollectionForMarketingEnabled = useSelector(
-    (state: { security: { dataCollectionForMarketing?: boolean } }) =>
-      state.security.dataCollectionForMarketing,
-  );
-
   const portfolioUrl = buildPortfolioUrl(
     AppConstants.PORTFOLIO.URL,
-    isDataCollectionForMarketingEnabled ?? null,
+    isEnabled(),
     {
       metricsEnabled: isEnabled(),
     },

@@ -356,33 +356,33 @@ describe('Browser utils :: appendURLParams', () => {
 });
 
 describe('Browser utils :: buildPortfolioUrl', () => {
-  it('should include userAcceptedTracking=true when dataCollectionForMarketing is true', () => {
+  it('should include userAcceptedTracking=true when user accepted basic usage data tracking', () => {
     const baseUrl = 'https://portfolio.metamask.io';
-    const dataCollectionForMarketing = true;
+    const userAcceptedTracking = true;
 
-    const result = buildPortfolioUrl(baseUrl, dataCollectionForMarketing);
+    const result = buildPortfolioUrl(baseUrl, userAcceptedTracking);
 
     expect(result.toString()).toBe(
       'https://portfolio.metamask.io/?metamaskEntry=mobile&userAcceptedTracking=true',
     );
   });
 
-  it('should include userAcceptedTracking=false when dataCollectionForMarketing is false', () => {
+  it('should include userAcceptedTracking=false when user declined basic usage data tracking', () => {
     const baseUrl = 'https://portfolio.metamask.io';
-    const dataCollectionForMarketing = false;
+    const userAcceptedTracking = false;
 
-    const result = buildPortfolioUrl(baseUrl, dataCollectionForMarketing);
+    const result = buildPortfolioUrl(baseUrl, userAcceptedTracking);
 
     expect(result.toString()).toBe(
       'https://portfolio.metamask.io/?metamaskEntry=mobile&userAcceptedTracking=false',
     );
   });
 
-  it('should NOT include userAcceptedTracking parameter when dataCollectionForMarketing is null', () => {
+  it('should NOT include userAcceptedTracking parameter when user has not set tracking preference', () => {
     const baseUrl = 'https://portfolio.metamask.io';
-    const dataCollectionForMarketing = null;
+    const userAcceptedTracking = null;
 
-    const result = buildPortfolioUrl(baseUrl, dataCollectionForMarketing);
+    const result = buildPortfolioUrl(baseUrl, userAcceptedTracking);
 
     expect(result.toString()).toBe(
       'https://portfolio.metamask.io/?metamaskEntry=mobile',
@@ -392,7 +392,7 @@ describe('Browser utils :: buildPortfolioUrl', () => {
 
   it('should include additional parameters alongside userAcceptedTracking', () => {
     const baseUrl = 'https://portfolio.metamask.io';
-    const dataCollectionForMarketing = true;
+    const userAcceptedTracking = true;
     const additionalParams = {
       metricsEnabled: true,
       srcChain: 1,
@@ -400,7 +400,7 @@ describe('Browser utils :: buildPortfolioUrl', () => {
 
     const result = buildPortfolioUrl(
       baseUrl,
-      dataCollectionForMarketing,
+      userAcceptedTracking,
       additionalParams,
     );
 
@@ -411,7 +411,7 @@ describe('Browser utils :: buildPortfolioUrl', () => {
 
   it('should work with bridge URL', () => {
     const baseUrl = 'https://portfolio.metamask.io/bridge';
-    const dataCollectionForMarketing = true;
+    const userAcceptedTracking = true;
     const additionalParams = {
       srcChain: 1,
       token: '0x123',
@@ -419,7 +419,7 @@ describe('Browser utils :: buildPortfolioUrl', () => {
 
     const result = buildPortfolioUrl(
       baseUrl,
-      dataCollectionForMarketing,
+      userAcceptedTracking,
       additionalParams,
     );
 
@@ -430,9 +430,9 @@ describe('Browser utils :: buildPortfolioUrl', () => {
 
   it('should work with stake URL', () => {
     const baseUrl = 'https://portfolio.metamask.io/stake';
-    const dataCollectionForMarketing = false;
+    const userAcceptedTracking = false;
 
-    const result = buildPortfolioUrl(baseUrl, dataCollectionForMarketing);
+    const result = buildPortfolioUrl(baseUrl, userAcceptedTracking);
 
     expect(result.toString()).toBe(
       'https://portfolio.metamask.io/stake?metamaskEntry=mobile&userAcceptedTracking=false',
@@ -441,9 +441,9 @@ describe('Browser utils :: buildPortfolioUrl', () => {
 
   it('should handle URL with existing query parameters', () => {
     const baseUrl = 'https://portfolio.metamask.io?existing=param';
-    const dataCollectionForMarketing = true;
+    const userAcceptedTracking = true;
 
-    const result = buildPortfolioUrl(baseUrl, dataCollectionForMarketing);
+    const result = buildPortfolioUrl(baseUrl, userAcceptedTracking);
 
     expect(result.toString()).toContain('existing=param');
     expect(result.toString()).toContain('metamaskEntry=mobile');

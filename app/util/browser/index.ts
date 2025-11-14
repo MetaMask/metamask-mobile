@@ -206,13 +206,13 @@ export const appendURLParams = (
  * Builds a Portfolio URL with standard parameters including user tracking consent
  *
  * @param baseUrl - Base Portfolio URL string
- * @param dataCollectionForMarketing - User's marketing consent state (true, false, or null)
+ * @param userAcceptedTracking - User's basic usage data tracking consent state (true, false, or null)
  * @param additionalParams - Optional additional parameters to append
  * @returns - URL object with all parameters appended
  */
 export const buildPortfolioUrl = (
   baseUrl: string,
-  dataCollectionForMarketing: boolean | null,
+  userAcceptedTracking: boolean | null,
   additionalParams?: Record<string, string | boolean | number>,
 ): URL => {
   const params: Record<string, string | boolean | number> = {
@@ -222,8 +222,8 @@ export const buildPortfolioUrl = (
 
   // Only add userAcceptedTracking parameter if user has explicitly set their preference
   // null means no preference set yet, so we omit the parameter to show the modal
-  if (dataCollectionForMarketing !== null) {
-    params.userAcceptedTracking = dataCollectionForMarketing;
+  if (userAcceptedTracking !== null) {
+    params.userAcceptedTracking = userAcceptedTracking;
   }
 
   return appendURLParams(baseUrl, params);

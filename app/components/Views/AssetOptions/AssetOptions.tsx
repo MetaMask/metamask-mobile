@@ -30,7 +30,6 @@ import {
 } from '../../../util/networks';
 import { isPortfolioUrl } from '../../../util/url';
 import { BrowserTab, TokenI } from '../../../components/UI/Tokens/types';
-import { RootState } from '../../../reducers';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { buildPortfolioUrl } from '../../../util/browser';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
@@ -107,9 +106,6 @@ const AssetOptions = (props: Props) => {
   const chainId = useSelector(selectEvmChainId);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserTabs = useSelector((state: any) => state.browser.tabs);
-  const isDataCollectionForMarketingEnabled = useSelector(
-    (state: RootState) => state.security.dataCollectionForMarketing,
-  );
   // Get the selected account for the current network (works for all non-EVM chains)
   const selectInternalAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
@@ -229,7 +225,7 @@ const AssetOptions = (props: Props) => {
 
       const portfolioUrl = buildPortfolioUrl(
         AppConstants.PORTFOLIO.URL,
-        isDataCollectionForMarketingEnabled,
+        analyticsEnabled,
         {
           metricsEnabled: analyticsEnabled,
         },

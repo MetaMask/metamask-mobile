@@ -187,10 +187,6 @@ class AccountOverview extends PureComponent {
      */
     browserTabs: PropTypes.array,
     /**
-     * User's data collection for marketing consent (true, false, or null)
-     */
-    dataCollectionForMarketing: PropTypes.bool,
-    /**
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
@@ -306,7 +302,7 @@ class AccountOverview extends PureComponent {
   };
 
   onOpenPortfolio = () => {
-    const { navigation, browserTabs, dataCollectionForMarketing } = this.props;
+    const { navigation, browserTabs, metrics } = this.props;
     const existingPortfolioTab = browserTabs.find((tab) =>
       isPortfolioUrl(tab.url),
     );
@@ -317,7 +313,7 @@ class AccountOverview extends PureComponent {
     } else {
       const portfolioUrl = buildPortfolioUrl(
         AppConstants.PORTFOLIO.URL,
-        dataCollectionForMarketing,
+        metrics.isEnabled(),
       );
       newTabUrl = portfolioUrl.href;
     }
@@ -449,7 +445,6 @@ const mapStateToProps = (state) => ({
   currentCurrency: selectCurrentCurrency(state),
   chainId: selectChainId(state),
   browserTabs: state.browser.tabs,
-  dataCollectionForMarketing: state.security.dataCollectionForMarketing,
 });
 
 const mapDispatchToProps = (dispatch) => ({

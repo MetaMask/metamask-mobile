@@ -89,21 +89,14 @@ export const Browser = (props) => {
 
   const accountAvatarType = useSelector(selectAvatarAccountType);
 
-  const isDataCollectionForMarketingEnabled = useSelector(
-    (state) => state.security.dataCollectionForMarketing,
-  );
   const permittedAccountsList = useSelector(selectPermissionControllerState);
 
   const homePageUrl = useCallback(
     () =>
-      buildPortfolioUrl(
-        AppConstants.HOMEPAGE_URL,
-        isDataCollectionForMarketingEnabled,
-        {
-          metricsEnabled: isEnabled(),
-        },
-      ).href,
-    [isEnabled, isDataCollectionForMarketingEnabled],
+      buildPortfolioUrl(AppConstants.HOMEPAGE_URL, isEnabled(), {
+        metricsEnabled: isEnabled(),
+      }).href,
+    [isEnabled],
   );
 
   const newTab = useCallback(
@@ -123,7 +116,6 @@ export const Browser = (props) => {
   );
 
   const [currentUrl, setCurrentUrl] = useState(browserUrl || homePageUrl());
-
   const updateTabInfo = useCallback(
     (tabID, info) => {
       updateTab(tabID, info);
