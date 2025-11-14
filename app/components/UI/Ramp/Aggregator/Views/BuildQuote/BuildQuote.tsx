@@ -151,7 +151,7 @@ const BuildQuote = () => {
   } = useRampSDK();
 
   useEffect(() => {
-    if (intent && !intentHandled) {
+    if (intent && !intentHandled && Object.keys(intent).length > 0) {
       setIntent(intent);
       setIntentHandled(true);
     }
