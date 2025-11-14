@@ -160,7 +160,7 @@ const QuoteDetailsCard: React.FC = () => {
               >
                 {networkFee}
               </Text>
-              <Text variant={TextVariant.BodyMD}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('bridge.included')}
               </Text>
             </Box>
