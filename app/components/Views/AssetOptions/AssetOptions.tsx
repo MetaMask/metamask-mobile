@@ -32,7 +32,7 @@ import { isPortfolioUrl } from '../../../util/url';
 import { BrowserTab, TokenI } from '../../../components/UI/Tokens/types';
 import { RootState } from '../../../reducers';
 import { CaipAssetType, Hex } from '@metamask/utils';
-import { appendURLParams } from '../../../util/browser';
+import { buildPortfolioUrl } from '../../../util/browser';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
@@ -227,11 +227,13 @@ const AssetOptions = (props: Props) => {
     } else {
       const analyticsEnabled = isEnabled();
 
-      const portfolioUrl = appendURLParams(AppConstants.PORTFOLIO.URL, {
-        metamaskEntry: 'mobile',
-        metricsEnabled: analyticsEnabled,
-        marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
-      });
+      const portfolioUrl = buildPortfolioUrl(
+        AppConstants.PORTFOLIO.URL,
+        isDataCollectionForMarketingEnabled,
+        {
+          metricsEnabled: analyticsEnabled,
+        },
+      );
 
       newTabUrl = portfolioUrl.href;
     }

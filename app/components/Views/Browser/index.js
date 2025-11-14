@@ -41,7 +41,7 @@ import { useMetrics } from '../../hooks/useMetrics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
-  appendURLParams,
+  buildPortfolioUrl,
   isTokenDiscoveryBrowserEnabled,
 } from '../../../util/browser';
 import {
@@ -96,10 +96,13 @@ export const Browser = (props) => {
 
   const homePageUrl = useCallback(
     () =>
-      appendURLParams(AppConstants.HOMEPAGE_URL, {
-        metricsEnabled: isEnabled(),
-        marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
-      }).href,
+      buildPortfolioUrl(
+        AppConstants.HOMEPAGE_URL,
+        isDataCollectionForMarketingEnabled,
+        {
+          metricsEnabled: isEnabled(),
+        },
+      ).href,
     [isEnabled, isDataCollectionForMarketingEnabled],
   );
 

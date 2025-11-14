@@ -13,6 +13,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import AppConstants from '../../../../../core/AppConstants';
 import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
+import { buildPortfolioUrl } from '../../../../../util/browser';
 import {
   selectEvmChainId,
   selectNetworkConfigurationByChainId,
@@ -47,6 +48,9 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const chainId = useSelector(selectEvmChainId);
+  const dataCollectionForMarketing = useSelector(
+    (state: RootState) => state.security.dataCollectionForMarketing,
+  );
   const { isEligible } = useStakingEligibility();
   const { isStakingSupportedChain } = useStakingChain();
 
@@ -88,7 +92,11 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       if (existingStakeTab) {
         existingTabId = existingStakeTab.id;
       } else {
-        newTabUrl = `${AppConstants.STAKE.URL}?metamaskEntry=mobile`;
+        const stakeUrl = buildPortfolioUrl(
+          AppConstants.STAKE.URL,
+          dataCollectionForMarketing,
+        );
+        newTabUrl = stakeUrl.href;
       }
       const params = {
         ...(newTabUrl && { newTabUrl }),

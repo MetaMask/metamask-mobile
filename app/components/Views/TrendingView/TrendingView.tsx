@@ -15,7 +15,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
-import { appendURLParams } from '../../../util/browser';
+import { buildPortfolioUrl } from '../../../util/browser';
 import { useMetrics } from '../../hooks/useMetrics';
 import Browser from '../Browser';
 import Routes from '../../../constants/navigation/Routes';
@@ -82,11 +82,13 @@ const TrendingFeed: React.FC = () => {
       state.security.dataCollectionForMarketing,
   );
 
-  const portfolioUrl = appendURLParams(AppConstants.PORTFOLIO.URL, {
-    metamaskEntry: 'mobile',
-    metricsEnabled: isEnabled(),
-    marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
-  });
+  const portfolioUrl = buildPortfolioUrl(
+    AppConstants.PORTFOLIO.URL,
+    isDataCollectionForMarketingEnabled ?? null,
+    {
+      metricsEnabled: isEnabled(),
+    },
+  );
 
   const handleBrowserPress = useCallback(() => {
     updateLastTrendingScreen('TrendingBrowser');

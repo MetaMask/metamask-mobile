@@ -45,6 +45,7 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { isPortfolioUrl } from '../../../util/url';
+import { buildPortfolioUrl } from '../../../util/browser';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -186,6 +187,10 @@ class AccountOverview extends PureComponent {
      */
     browserTabs: PropTypes.array,
     /**
+     * User's data collection for marketing consent (true, false, or null)
+     */
+    dataCollectionForMarketing: PropTypes.bool,
+    /**
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
@@ -301,7 +306,7 @@ class AccountOverview extends PureComponent {
   };
 
   onOpenPortfolio = () => {
-    const { navigation, browserTabs } = this.props;
+    const { navigation, browserTabs, dataCollectionForMarketing } = this.props;
     const existingPortfolioTab = browserTabs.find((tab) =>
       isPortfolioUrl(tab.url),
     );
@@ -310,7 +315,11 @@ class AccountOverview extends PureComponent {
     if (existingPortfolioTab) {
       existingTabId = existingPortfolioTab.id;
     } else {
-      newTabUrl = `${AppConstants.PORTFOLIO.URL}/?metamaskEntry=mobile`;
+      const portfolioUrl = buildPortfolioUrl(
+        AppConstants.PORTFOLIO.URL,
+        dataCollectionForMarketing,
+      );
+      newTabUrl = portfolioUrl.href;
     }
     const params = {
       ...(newTabUrl && { newTabUrl }),
@@ -440,6 +449,7 @@ const mapStateToProps = (state) => ({
   currentCurrency: selectCurrentCurrency(state),
   chainId: selectChainId(state),
   browserTabs: state.browser.tabs,
+  dataCollectionForMarketing: state.security.dataCollectionForMarketing,
 });
 
 const mapDispatchToProps = (dispatch) => ({

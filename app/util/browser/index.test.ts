@@ -7,6 +7,7 @@ import {
   getUrlObj,
   getHost,
   appendURLParams,
+  buildPortfolioUrl,
   processUrlForBrowser,
 } from '.';
 import { strings } from '../../../locales/i18n';
@@ -351,5 +352,101 @@ describe('Browser utils :: appendURLParams', () => {
     const result = appendURLParams(baseUrl, params);
 
     expect(result.toString()).toBe('https://metamask.io/');
+  });
+});
+
+describe('Browser utils :: buildPortfolioUrl', () => {
+  it('should include userAcceptedTracking=true when dataCollectionForMarketing is true', () => {
+    const baseUrl = 'https://portfolio.metamask.io';
+    const dataCollectionForMarketing = true;
+
+    const result = buildPortfolioUrl(baseUrl, dataCollectionForMarketing);
+
+    expect(result.toString()).toBe(
+      'https://portfolio.metamask.io/?metamaskEntry=mobile&userAcceptedTracking=true',
+    );
+  });
+
+  it('should include userAcceptedTracking=false when dataCollectionForMarketing is false', () => {
+    const baseUrl = 'https://portfolio.metamask.io';
+    const dataCollectionForMarketing = false;
+
+    const result = buildPortfolioUrl(baseUrl, dataCollectionForMarketing);
+
+    expect(result.toString()).toBe(
+      'https://portfolio.metamask.io/?metamaskEntry=mobile&userAcceptedTracking=false',
+    );
+  });
+
+  it('should NOT include userAcceptedTracking parameter when dataCollectionForMarketing is null', () => {
+    const baseUrl = 'https://portfolio.metamask.io';
+    const dataCollectionForMarketing = null;
+
+    const result = buildPortfolioUrl(baseUrl, dataCollectionForMarketing);
+
+    expect(result.toString()).toBe(
+      'https://portfolio.metamask.io/?metamaskEntry=mobile',
+    );
+    expect(result.toString()).not.toContain('userAcceptedTracking');
+  });
+
+  it('should include additional parameters alongside userAcceptedTracking', () => {
+    const baseUrl = 'https://portfolio.metamask.io';
+    const dataCollectionForMarketing = true;
+    const additionalParams = {
+      metricsEnabled: true,
+      srcChain: 1,
+    };
+
+    const result = buildPortfolioUrl(
+      baseUrl,
+      dataCollectionForMarketing,
+      additionalParams,
+    );
+
+    expect(result.toString()).toBe(
+      'https://portfolio.metamask.io/?metamaskEntry=mobile&metricsEnabled=true&srcChain=1&userAcceptedTracking=true',
+    );
+  });
+
+  it('should work with bridge URL', () => {
+    const baseUrl = 'https://portfolio.metamask.io/bridge';
+    const dataCollectionForMarketing = true;
+    const additionalParams = {
+      srcChain: 1,
+      token: '0x123',
+    };
+
+    const result = buildPortfolioUrl(
+      baseUrl,
+      dataCollectionForMarketing,
+      additionalParams,
+    );
+
+    expect(result.toString()).toContain('srcChain=1');
+    expect(result.toString()).toContain('token=0x123');
+    expect(result.toString()).toContain('userAcceptedTracking=true');
+  });
+
+  it('should work with stake URL', () => {
+    const baseUrl = 'https://portfolio.metamask.io/stake';
+    const dataCollectionForMarketing = false;
+
+    const result = buildPortfolioUrl(baseUrl, dataCollectionForMarketing);
+
+    expect(result.toString()).toBe(
+      'https://portfolio.metamask.io/stake?metamaskEntry=mobile&userAcceptedTracking=false',
+    );
+  });
+
+  it('should handle URL with existing query parameters', () => {
+    const baseUrl = 'https://portfolio.metamask.io?existing=param';
+    const dataCollectionForMarketing = true;
+
+    const result = buildPortfolioUrl(baseUrl, dataCollectionForMarketing);
+
+    expect(result.toString()).toContain('existing=param');
+    expect(result.toString()).toContain('metamaskEntry=mobile');
+    expect(result.toString()).toContain('userAcceptedTracking=true');
   });
 });
