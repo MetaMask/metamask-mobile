@@ -440,6 +440,7 @@ describe('MailingAddress Component', () => {
       isError: false,
       error: null,
       consentSetId: null,
+      getOnboardingConsentSetByOnboardingId: jest.fn(),
       clearError: jest.fn(),
       reset: jest.fn(),
     });
@@ -500,7 +501,7 @@ describe('MailingAddress Component', () => {
         },
       },
       isLoading: false,
-      error: false,
+      error: null,
       fetchData: jest.fn(),
     });
 
@@ -843,7 +844,7 @@ describe('MailingAddress Component', () => {
       mockUseRegistrationSettings.mockReturnValue({
         data: null,
         isLoading: false,
-        error: false,
+        error: null,
         fetchData: jest.fn(),
       });
 
@@ -860,7 +861,7 @@ describe('MailingAddress Component', () => {
       mockUseRegistrationSettings.mockReturnValue({
         data: null,
         isLoading: true,
-        error: false,
+        error: null,
         fetchData: jest.fn(),
       });
 
