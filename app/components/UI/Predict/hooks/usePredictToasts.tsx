@@ -15,6 +15,7 @@ import { ToastContext } from '../../../../component-library/components/Toast';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import Engine from '../../../../core/Engine';
 import { useAppThemeFromContext } from '../../../../util/theme';
+import { strings } from '../../../../../locales/i18n';
 
 const toastStyles = StyleSheet.create({
   spinnerContainer: {
@@ -32,6 +33,7 @@ interface ToastConfig {
 
 interface PendingToastConfig extends ToastConfig {
   getAmount?: (transactionMeta: TransactionMeta) => string;
+  onPress?: () => void;
 }
 
 interface ConfirmedToastConfig extends ToastConfig {
@@ -48,12 +50,14 @@ interface UsePredictToastsParams {
   pendingToastConfig?: PendingToastConfig;
   confirmedToastConfig: ConfirmedToastConfig;
   errorToastConfig: ErrorToastConfig;
+  transactionBatchId?: string;
   clearTransaction?: () => void;
   onConfirmed?: () => void;
 }
 
 export const usePredictToasts = ({
   transactionType,
+  transactionBatchId,
   pendingToastConfig,
   confirmedToastConfig,
   errorToastConfig,
@@ -91,6 +95,14 @@ export const usePredictToasts = ({
             />
           </View>
         ),
+        ...(config.onPress
+          ? {
+              linkButtonOptions: {
+                label: strings('predict.deposit.in_progress_link'),
+                onPress: config.onPress,
+              },
+            }
+          : {}),
       });
     },
     [theme.colors.accent04.dark, theme.colors.accent04.normal, toastRef],
@@ -166,10 +178,17 @@ export const usePredictToasts = ({
     }: {
       transactionMeta: TransactionMeta;
     }) => {
-      const isTargetTransaction = transactionMeta?.nestedTransactions?.some(
-        (tx) => tx.type === transactionType,
-      );
-      if (!isTargetTransaction) {
+      const isTargetTransaction =
+        transactionMeta.batchId === transactionBatchId;
+
+      const isTargetNestedTransaction =
+        transactionMeta?.nestedTransactions?.some(
+          (tx) => tx.type === transactionType,
+        );
+
+      if (transactionBatchId && !isTargetTransaction) {
+        return;
+      } else if (!isTargetNestedTransaction) {
         return;
       }
 
@@ -212,6 +231,7 @@ export const usePredictToasts = ({
     showErrorToast,
     showPendingToast,
     toastRef,
+    transactionBatchId,
     transactionType,
   ]);
 

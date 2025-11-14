@@ -1,8 +1,8 @@
 import {
   type INotification,
   processNotification,
-  toRawOnChainNotification,
-  type UnprocessedOnChainRawNotification,
+  type UnprocessedRawNotification,
+  toRawAPINotification,
 } from '@metamask/notification-services-controller/notification-services';
 import messaging, {
   type FirebaseMessagingTypes,
@@ -33,7 +33,7 @@ function analyticsTrackPushClickEvent(
   try {
     if (remoteMessage?.data?.data) {
       const rawData = JSON.parse(remoteMessage.data.data?.toString() ?? null);
-      const kind = rawData?.kind ?? rawData?.data?.kind;
+      const kind = rawData?.kind ?? rawData?.data?.kind ?? rawData.type;
 
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder(
@@ -41,7 +41,7 @@ function analyticsTrackPushClickEvent(
         )
           .addProperties({
             deeplink: remoteMessage?.data?.deeplink?.toString(),
-            kind,
+            notification_type: kind,
             data: rawData,
           })
           .build(),
@@ -100,7 +100,7 @@ async function processAndHandleNotification(
     const payloadData = payload?.data?.data
       ? String(payload?.data?.data)
       : undefined;
-    const data: UnprocessedOnChainRawNotification | undefined = payloadData
+    const data: UnprocessedRawNotification | undefined = payloadData
       ? JSON.parse(payloadData)
       : undefined;
 
@@ -113,7 +113,7 @@ async function processAndHandleNotification(
     // Prevents duplicate notifications
     delete payload.notification;
 
-    const notificationData = toRawOnChainNotification(data);
+    const notificationData = toRawAPINotification(data);
     const notification = processNotification(notificationData);
     await handler(notification);
   } catch (error) {

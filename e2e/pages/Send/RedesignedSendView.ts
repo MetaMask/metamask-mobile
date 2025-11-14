@@ -22,11 +22,11 @@ class SendView {
   }
 
   get fiftyPercentButton(): DetoxElement {
-    return Matchers.getElementByText('50%');
+    return Matchers.getElementByID('percentage-button-50');
   }
 
   get maxButton(): DetoxElement {
-    return Matchers.getElementByText('Max');
+    return Matchers.getElementByID('percentage-button-100');
   }
 
   get continueButton(): DetoxElement {

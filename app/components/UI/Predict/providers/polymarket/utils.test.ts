@@ -10,6 +10,7 @@ import {
   PredictActivitySell,
   PredictActivityEntry,
 } from '../../types';
+import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import {
   ClobAuthDomain,
   EIP712Domain,
@@ -518,6 +519,32 @@ describe('polymarket utils', () => {
         'Network error',
       );
     });
+
+    it('throws PREVIEW_NO_ORDER_BOOK error when orderbook does not exist', async () => {
+      const mockResponse = {
+        ok: false,
+        json: jest.fn().mockResolvedValue({
+          error: 'No orderbook exists for the requested token id',
+        }),
+      };
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(getOrderBook({ tokenId: 'test-token' })).rejects.toThrow(
+        PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK,
+      );
+    });
+
+    it('throws error message from response when response is not ok', async () => {
+      const mockResponse = {
+        ok: false,
+        json: jest.fn().mockResolvedValue({ error: 'Custom error message' }),
+      };
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(getOrderBook({ tokenId: 'test-token' })).rejects.toThrow(
+        'Custom error message',
+      );
+    });
   });
 
   describe('generateSalt', () => {
@@ -685,11 +712,25 @@ describe('polymarket utils', () => {
         response: mockOrderResponse,
       });
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://clob.polymarket.com/order',
+        'https://predict.api.cx.metamask.io/order',
         {
           method: 'POST',
-          headers: mockHeaders,
-          body: JSON.stringify(mockClobOrder),
+          headers: {
+            POLY_ADDRESS: mockAddress,
+            POLY_SIGNATURE: 'test-signature_',
+            POLY_TIMESTAMP: '1704067200',
+            POLY_API_KEY: 'test-api-key',
+            POLY_PASSPHRASE: 'test-passphrase',
+            'POLY-ADDRESS': mockAddress,
+            'POLY-SIGNATURE': 'test-signature_',
+            'POLY-TIMESTAMP': '1704067200',
+            'POLY-API-KEY': 'test-api-key',
+            'POLY-PASSPHRASE': 'test-passphrase',
+          },
+          body: JSON.stringify({
+            ...mockClobOrder,
+            feeAuthorization: undefined,
+          }),
         },
       );
     });
@@ -698,12 +739,15 @@ describe('polymarket utils', () => {
       const error = new Error('Network error');
       mockFetch.mockRejectedValue(error);
 
-      await expect(
-        submitClobOrder({
-          headers: mockHeaders,
-          clobOrder: mockClobOrder,
-        }),
-      ).rejects.toThrow('Network error');
+      const result = await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+      });
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Failed to submit CLOB order: Network error',
+      });
     });
 
     it('includes feeAuthorization in request body when provided', async () => {
@@ -754,12 +798,24 @@ describe('polymarket utils', () => {
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://clob.polymarket.com/order',
+        'https://predict.api.cx.metamask.io/order',
         {
           method: 'POST',
-          headers: mockHeaders,
+          headers: {
+            POLY_ADDRESS: mockAddress,
+            POLY_SIGNATURE: 'test-signature_',
+            POLY_TIMESTAMP: '1704067200',
+            POLY_API_KEY: 'test-api-key',
+            POLY_PASSPHRASE: 'test-passphrase',
+            'POLY-ADDRESS': mockAddress,
+            'POLY-SIGNATURE': 'test-signature_',
+            'POLY-TIMESTAMP': '1704067200',
+            'POLY-API-KEY': 'test-api-key',
+            'POLY-PASSPHRASE': 'test-passphrase',
+          },
           body: JSON.stringify({
             ...mockClobOrder,
+            feeAuthorization: undefined,
           }),
         },
       );
@@ -793,25 +849,37 @@ describe('polymarket utils', () => {
       expect(parsedBody.feeAuthorization).toEqual(feeAuthorization);
     });
 
-    it('uses CLOB endpoint when feeAuthorization is not provided for BUY orders', async () => {
+    it('uses CLOB_RELAYER endpoint when feeAuthorization is not provided for BUY orders', async () => {
       await submitClobOrder({
         headers: mockHeaders,
         clobOrder: mockClobOrder,
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://clob.polymarket.com/order',
+        'https://predict.api.cx.metamask.io/order',
         {
           method: 'POST',
-          headers: mockHeaders,
+          headers: {
+            POLY_ADDRESS: mockAddress,
+            POLY_SIGNATURE: 'test-signature_',
+            POLY_TIMESTAMP: '1704067200',
+            POLY_API_KEY: 'test-api-key',
+            POLY_PASSPHRASE: 'test-passphrase',
+            'POLY-ADDRESS': mockAddress,
+            'POLY-SIGNATURE': 'test-signature_',
+            'POLY-TIMESTAMP': '1704067200',
+            'POLY-API-KEY': 'test-api-key',
+            'POLY-PASSPHRASE': 'test-passphrase',
+          },
           body: JSON.stringify({
             ...mockClobOrder,
+            feeAuthorization: undefined,
           }),
         },
       );
     });
 
-    it('uses CLOB endpoint for SELL orders even with feeAuthorization', async () => {
+    it('uses CLOB_RELAYER endpoint for SELL orders with feeAuthorization', async () => {
       const sellClobOrder: ClobOrderObject = {
         ...mockClobOrder,
         order: {
@@ -840,12 +908,24 @@ describe('polymarket utils', () => {
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://clob.polymarket.com/order',
+        'https://predict.api.cx.metamask.io/order',
         {
           method: 'POST',
-          headers: mockHeaders,
+          headers: {
+            POLY_ADDRESS: mockAddress,
+            POLY_SIGNATURE: 'test-signature_',
+            POLY_TIMESTAMP: '1704067200',
+            POLY_API_KEY: 'test-api-key',
+            POLY_PASSPHRASE: 'test-passphrase',
+            'POLY-ADDRESS': mockAddress,
+            'POLY-SIGNATURE': 'test-signature_',
+            'POLY-TIMESTAMP': '1704067200',
+            'POLY-API-KEY': 'test-api-key',
+            'POLY-PASSPHRASE': 'test-passphrase',
+          },
           body: JSON.stringify({
             ...sellClobOrder,
+            feeAuthorization,
           }),
         },
       );
@@ -903,7 +983,8 @@ describe('polymarket utils', () => {
         status: 'open',
         recurrence: 'daily',
         endDate: undefined,
-        categories: [mockCategory],
+        category: mockCategory,
+        tags: [],
         outcomes: [
           {
             id: 'market-1',
@@ -1476,7 +1557,7 @@ describe('polymarket utils', () => {
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('event-1');
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://gamma-api.polymarket.com/public-search?q=weather&type=events&events_status=active&sort=volume_24hr&presets=EventsTitle&presets=Events&limit_per_type=10&page=1',
+        'https://gamma-api.polymarket.com/public-search?q=weather&type=events&events_status=active&sort=volume_24hr&presets=EventsTitle&limit_per_type=10&page=1',
       );
     });
 
@@ -1856,6 +1937,7 @@ describe('polymarket utils', () => {
         ok: false,
         status: 403,
         statusText: 'Forbidden',
+        json: jest.fn().mockResolvedValue({}),
       });
 
       const result = await submitClobOrder({
@@ -1866,7 +1948,6 @@ describe('polymarket utils', () => {
       expect(result).toEqual({
         success: false,
         error: 'You are unable to access this provider.',
-        errorCode: 403,
       });
     });
 
@@ -1876,7 +1957,7 @@ describe('polymarket utils', () => {
         status: 400,
         statusText: 'Bad Request',
         json: jest.fn().mockResolvedValue({
-          error: 'Invalid order parameters',
+          errorMsg: 'Invalid order parameters',
         }),
       });
 
@@ -1907,6 +1988,25 @@ describe('polymarket utils', () => {
       expect(result).toEqual({
         success: false,
         error: 'Internal Server Error',
+      });
+    });
+
+    it('handle non-JSON error response (HTML body)', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 502,
+        statusText: 'Bad Gateway',
+        json: jest.fn().mockRejectedValue(new Error('Unexpected token <')),
+      });
+
+      const result = await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+      });
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Bad Gateway',
       });
     });
   });
@@ -1985,13 +2085,13 @@ describe('polymarket utils', () => {
       }
     });
 
-    it('maps non-TRADE to claimWinnings entries and handles defaults', () => {
+    it('maps REDEEM with payout to claimWinnings entries', () => {
       const input = [
         {
           type: 'REDEEM' as const,
           side: '' as const,
           timestamp: 3000,
-          usdcSize: 1.23,
+          usdcSize: 1.23, // Winning claim with actual payout
           price: 0,
           conditionId: '',
           outcomeIndex: 0,
@@ -2002,9 +2102,30 @@ describe('polymarket utils', () => {
         },
       ];
       const result = parsePolymarketActivity(input);
+      expect(result).toHaveLength(1);
       expect(result[0].entry.type).toBe('claimWinnings');
       expect(result[0].entry.amount).toBe(1.23);
       expect(result[0].id).toBe('0xhash3');
+    });
+
+    it('filters out REDEEM activities with no payout (lost positions)', () => {
+      const input = [
+        {
+          type: 'REDEEM' as const,
+          side: '' as const,
+          timestamp: 3000,
+          usdcSize: 0, // No payout - lost position
+          price: 0,
+          conditionId: '',
+          outcomeIndex: 0,
+          title: 'Lost Market',
+          outcome: '' as const,
+          icon: '',
+          transactionHash: '0xhash3',
+        },
+      ];
+      const result = parsePolymarketActivity(input);
+      expect(result).toHaveLength(0);
     });
 
     it('generates fallback id and timestamp when missing', () => {
@@ -2325,7 +2446,7 @@ describe('polymarket utils', () => {
           side: Side.BUY,
           size: 50,
         }),
-      ).rejects.toThrow('no orderbook');
+      ).rejects.toThrow('PREDICT_PREVIEW_NO_ORDER_BOOK');
     });
 
     it('throws error for BUY when no asks available', async () => {
@@ -2351,7 +2472,7 @@ describe('polymarket utils', () => {
           side: Side.BUY,
           size: 50,
         }),
-      ).rejects.toThrow('no order match (buy)');
+      ).rejects.toThrow('PREDICT_PREVIEW_NO_ORDER_MATCH_BUY');
     });
 
     it('throws error for SELL when no bids available', async () => {
@@ -2377,7 +2498,7 @@ describe('polymarket utils', () => {
           side: Side.SELL,
           size: 50,
         }),
-      ).rejects.toThrow('no order match (sell)');
+      ).rejects.toThrow('PREDICT_PREVIEW_NO_ORDER_MATCH_SELL');
     });
 
     it('includes fees for BUY orders', async () => {

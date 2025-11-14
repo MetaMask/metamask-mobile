@@ -31,6 +31,7 @@ import {
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { PerpsEventValues } from '../../UI/Perps/constants/eventNames';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
+import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
 import { earnSelectors } from '../../../selectors/earnController/earn';
 import {
@@ -136,7 +137,7 @@ const WalletActions = () => {
         navigate(Routes.PERPS.TUTORIAL);
       } else {
         navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.MARKETS,
+          screen: Routes.PERPS.PERPS_HOME,
           params: { source: PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON },
         });
       }
@@ -147,6 +148,9 @@ const WalletActions = () => {
     closeBottomSheetAndNavigate(() => {
       navigate(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
+        },
       });
     });
   }, [closeBottomSheetAndNavigate, navigate]);

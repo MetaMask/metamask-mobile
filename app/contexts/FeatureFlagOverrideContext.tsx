@@ -12,7 +12,14 @@ import {
   FeatureFlagInfo,
   getFeatureFlagDescription,
   getFeatureFlagType,
+  isMinimumRequiredVersionSupported,
 } from '../util/feature-flags';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../component-library/components/Toast';
+import { MinimumVersionFlagValue } from '../components/Views/FeatureFlagOverride/FeatureFlagOverride';
+import useMetrics from '../components/hooks/useMetrics/useMetrics';
 
 interface FeatureFlagOverrides {
   [key: string]: unknown;
@@ -21,7 +28,7 @@ interface FeatureFlagOverrides {
 export interface FeatureFlagOverrideContextType {
   featureFlags: { [key: string]: FeatureFlagInfo };
   originalFlags: FeatureFlagOverrides;
-  getFeatureFlag: (key: string) => FeatureFlagInfo;
+  getFeatureFlag: (key: string) => unknown;
   featureFlagsList: FeatureFlagInfo[];
   overrides: FeatureFlagOverrides;
   setOverride: (key: string, value: unknown) => void;
@@ -45,8 +52,15 @@ interface FeatureFlagOverrideProviderProps {
 export const FeatureFlagOverrideProvider: React.FC<
   FeatureFlagOverrideProviderProps
 > = ({ children }) => {
+  const { addTraitsToUser } = useMetrics();
   // Get the initial feature flags from Redux
-  const rawFeatureFlags = useSelector(selectRemoteFeatureFlags);
+  const rawFeatureFlagsSelected = useSelector(selectRemoteFeatureFlags);
+  const rawFeatureFlags = useMemo(
+    () => rawFeatureFlagsSelected || {},
+    [rawFeatureFlagsSelected],
+  );
+  const toastContext = useContext(ToastContext);
+  const toastRef = toastContext?.toastRef;
 
   // Local state for overrides
   const [overrides, setOverrides] = useState<FeatureFlagOverrides>({});
@@ -131,35 +145,106 @@ export const FeatureFlagOverrideProvider: React.FC<
     getAllOverrides,
   ]);
 
-  const featureFlagsList = Object.values(featureFlags).sort((a, b) =>
-    a.key.localeCompare(b.key),
+  const featureFlagsList = useMemo(
+    () =>
+      Object.values(featureFlags).sort((a, b) => a.key.localeCompare(b.key)),
+    [featureFlags],
+  );
+
+  const validateMinimumVersion = useCallback(
+    (flagKey: string, flagValue: MinimumVersionFlagValue) => {
+      if (
+        process.env.METAMASK_ENVIRONMENT !== 'production' &&
+        !isMinimumRequiredVersionSupported(flagValue.minimumVersion)
+      ) {
+        toastRef?.current?.showToast({
+          labelOptions: [
+            {
+              label: 'Unsupported version',
+              isBold: true,
+            },
+            {
+              label: `${flagKey} is not supported on your version of the app.`,
+            },
+          ],
+          hasNoTimeout: false,
+          variant: ToastVariants.Plain,
+        });
+        return false;
+      }
+      return flagValue.enabled;
+    },
+    [toastRef],
   );
 
   /**
    * get a specific feature flag value with overrides applied
    */
-  const getFeatureFlag = (key: string) => featureFlags[key];
+  const getFeatureFlag = useCallback(
+    (key: string) => {
+      const flag = featureFlags[key];
+      if (!flag) {
+        return undefined;
+      }
+
+      if (flag.type === 'boolean with minimumVersion') {
+        const flagValue = validateMinimumVersion(
+          flag.key,
+          flag.value as unknown as MinimumVersionFlagValue,
+        );
+        addTraitsToUser({
+          [flag.key]: flagValue,
+        });
+        return flagValue;
+      }
+      if (flag.type === 'boolean') {
+        addTraitsToUser({
+          [flag.key]: flag.value as boolean,
+        });
+      }
+
+      return flag.value;
+    },
+    [featureFlags, validateMinimumVersion, addTraitsToUser],
+  );
 
   const getOverrideCount = useCallback(
     (): number => Object.keys(overrides).length,
     [overrides],
   );
 
-  const contextValue: FeatureFlagOverrideContextType = {
-    featureFlags,
-    originalFlags: rawFeatureFlags,
-    getFeatureFlag,
-    featureFlagsList,
-    overrides,
-    setOverride,
-    removeOverride,
-    clearAllOverrides,
-    hasOverride,
-    getOverride,
-    getAllOverrides,
-    applyOverrides,
-    getOverrideCount,
-  };
+  const contextValue: FeatureFlagOverrideContextType = useMemo(
+    () => ({
+      featureFlags,
+      originalFlags: rawFeatureFlags,
+      getFeatureFlag,
+      featureFlagsList,
+      overrides,
+      setOverride,
+      removeOverride,
+      clearAllOverrides,
+      hasOverride,
+      getOverride,
+      getAllOverrides,
+      applyOverrides,
+      getOverrideCount,
+    }),
+    [
+      featureFlags,
+      rawFeatureFlags,
+      getFeatureFlag,
+      featureFlagsList,
+      overrides,
+      setOverride,
+      removeOverride,
+      clearAllOverrides,
+      hasOverride,
+      getOverride,
+      getAllOverrides,
+      applyOverrides,
+      getOverrideCount,
+    ],
+  );
 
   return (
     <FeatureFlagOverrideContext.Provider value={contextValue}>

@@ -1,19 +1,25 @@
+/* eslint-disable react/no-children-prop */
 import React from 'react';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
 import { renderHook, act } from '@testing-library/react-native';
 import { usePerpsOrderForm } from './usePerpsOrderForm';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 import { usePerpsLivePrices } from './stream/usePerpsLivePrices';
+import { usePerpsLivePositions } from './stream/usePerpsLivePositions';
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
 import {
   PerpsStreamProvider,
   PerpsStreamManager,
 } from '../providers/PerpsStreamManager';
+import type { Position } from '../controllers/types';
 
 jest.mock('./usePerpsNetwork');
 jest.mock('./stream/usePerpsLiveAccount');
 jest.mock('./stream/usePerpsLivePrices');
+jest.mock('./stream/usePerpsLivePositions');
 jest.mock('./usePerpsMarketData');
 
 // Create a mock stream manager for testing
@@ -59,13 +65,53 @@ const createMockStreamManager = (): PerpsStreamManager => {
   return mockStreamManager;
 };
 
-// Test wrapper component
-function TestWrapper({ children }: { children: React.ReactNode }) {
-  return React.createElement(PerpsStreamProvider, {
-    testStreamManager: createMockStreamManager(),
-    children,
-  } as React.ComponentProps<typeof PerpsStreamProvider>);
-}
+// Test wrapper with Redux Provider using configureStore pattern
+const createWrapper = () => {
+  const mockStore = configureStore({
+    reducer: {
+      engine: (
+        state = {
+          backgroundState: {
+            PerpsController: {},
+          },
+        },
+      ) => state,
+    },
+  });
+
+  return function TestWrapper({ children }: { children: React.ReactNode }) {
+    const streamProvider = React.createElement(PerpsStreamProvider, {
+      testStreamManager: createMockStreamManager(),
+      children,
+    } as React.ComponentProps<typeof PerpsStreamProvider>);
+
+    return React.createElement(Provider, {
+      store: mockStore,
+      children: streamProvider,
+    });
+  };
+};
+
+// Helper to create mock positions
+const createMockPosition = (coin: string, leverageValue: number): Position => ({
+  coin,
+  size: '1.5',
+  entryPrice: '50000',
+  positionValue: '75000',
+  unrealizedPnl: '0',
+  marginUsed: '7500',
+  leverage: { type: 'isolated', value: leverageValue },
+  liquidationPrice: '45000',
+  maxLeverage: 50,
+  returnOnEquity: '0',
+  cumulativeFunding: {
+    allTime: '0',
+    sinceOpen: '0',
+    sinceChange: '0',
+  },
+  takeProfitCount: 0,
+  stopLossCount: 0,
+});
 
 describe('usePerpsOrderForm', () => {
   const mockUsePerpsNetwork = usePerpsNetwork as jest.MockedFunction<
@@ -77,6 +123,8 @@ describe('usePerpsOrderForm', () => {
   const mockUsePerpsLivePrices = usePerpsLivePrices as jest.MockedFunction<
     typeof usePerpsLivePrices
   >;
+  const mockUsePerpsLivePositions =
+    usePerpsLivePositions as jest.MockedFunction<typeof usePerpsLivePositions>;
   const mockUsePerpsMarketData = usePerpsMarketData as jest.MockedFunction<
     typeof usePerpsMarketData
   >;
@@ -98,6 +146,10 @@ describe('usePerpsOrderForm', () => {
       BTC: { price: '50000', timestamp: Date.now(), coin: 'BTC' },
       ETH: { price: '3000', timestamp: Date.now(), coin: 'ETH' },
     });
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [],
+      isInitialLoading: false,
+    });
     mockUsePerpsMarketData.mockReturnValue({
       marketData: {
         szDecimals: 6,
@@ -114,7 +166,7 @@ describe('usePerpsOrderForm', () => {
   describe('initialization', () => {
     it('should initialize with default values', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       expect(result.current.orderForm).toEqual({
@@ -130,6 +182,200 @@ describe('usePerpsOrderForm', () => {
       });
     });
 
+    it('should prioritize existing position leverage over saved config', () => {
+      // Mock existing position with 10x leverage
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [createMockPosition('BTC', 10)],
+        isInitialLoading: false,
+      });
+
+      // Create a wrapper with saved config for BTC at 5x leverage
+      const mockStoreWithSavedConfig = configureStore({
+        reducer: {
+          engine: (
+            state = {
+              backgroundState: {
+                PerpsController: {
+                  isTestnet: false,
+                  tradeConfigurations: {
+                    mainnet: {
+                      BTC: { leverage: 5 },
+                    },
+                    testnet: {},
+                  },
+                },
+              },
+            },
+          ) => state,
+        },
+      });
+
+      const WrapperWithSavedConfig = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => {
+        const streamProvider = React.createElement(PerpsStreamProvider, {
+          testStreamManager: createMockStreamManager(),
+          children,
+        } as React.ComponentProps<typeof PerpsStreamProvider>);
+
+        return React.createElement(Provider, {
+          store: mockStoreWithSavedConfig,
+          children: streamProvider,
+        });
+      };
+
+      // Render hook - should use existing position leverage from mocked positions
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+          }),
+        { wrapper: WrapperWithSavedConfig },
+      );
+
+      // Should use existing position leverage (10x), not saved config (5x) or default (3x)
+      expect(result.current.orderForm.leverage).toBe(10);
+    });
+
+    it('should use saved config when no existing position leverage', () => {
+      // Create a wrapper with saved config for BTC at 5x leverage
+      const mockStoreWithSavedConfig = configureStore({
+        reducer: {
+          engine: (
+            state = {
+              backgroundState: {
+                PerpsController: {
+                  isTestnet: false,
+                  tradeConfigurations: {
+                    mainnet: {
+                      BTC: { leverage: 5 },
+                    },
+                    testnet: {},
+                  },
+                },
+              },
+            },
+          ) => state,
+        },
+      });
+
+      const WrapperWithSavedConfig = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => {
+        const streamProvider = React.createElement(PerpsStreamProvider, {
+          testStreamManager: createMockStreamManager(),
+          children,
+        } as React.ComponentProps<typeof PerpsStreamProvider>);
+
+        return React.createElement(Provider, {
+          store: mockStoreWithSavedConfig,
+          children: streamProvider,
+        });
+      };
+
+      // Render without existing position leverage
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+          }),
+        { wrapper: WrapperWithSavedConfig },
+      );
+
+      // Should use saved config (5x), not default (3x)
+      expect(result.current.orderForm.leverage).toBe(5);
+    });
+
+    it('should prioritize navigation param over existing position leverage', () => {
+      // Mock existing position with 10x leverage
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [createMockPosition('BTC', 10)],
+        isInitialLoading: false,
+      });
+
+      // Render with both navigation param (12x) and existing position leverage (10x)
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            initialLeverage: 12,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      // Should use navigation param (12x), highest priority
+      expect(result.current.orderForm.leverage).toBe(12);
+    });
+
+    it('should update leverage when existing position loads asynchronously', async () => {
+      // Initial render without existing position (positions haven't loaded via WebSocket yet)
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
+      });
+
+      const { result, rerender } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      // Initially should use default leverage (3x) since no position loaded yet
+      expect(result.current.orderForm.leverage).toBe(3);
+
+      // Simulate position loading asynchronously with 10x leverage
+      act(() => {
+        mockUsePerpsLivePositions.mockReturnValue({
+          positions: [createMockPosition('BTC', 10)],
+          isInitialLoading: false,
+        });
+      });
+
+      // Re-render the existing hook instance to trigger useEffect
+      rerender({});
+
+      // Should update to 10x when position loads
+      expect(result.current.orderForm.leverage).toBe(10);
+    });
+
+    it('should not update leverage if navigation param is provided even when position loads', () => {
+      // Initial render with navigation param but no existing position
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
+      });
+
+      const { result, rerender } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            initialLeverage: 12, // explicit navigation param
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      // Should use navigation param (12x)
+      expect(result.current.orderForm.leverage).toBe(12);
+
+      // Simulate position loading asynchronously with 10x leverage
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [createMockPosition('BTC', 10)],
+        isInitialLoading: false,
+      });
+
+      // Re-render the existing hook instance to trigger useEffect
+      rerender({});
+
+      // Should still be 12x (navigation param takes priority)
+      expect(result.current.orderForm.leverage).toBe(12);
+    });
+
     it('should initialize with provided values', () => {
       const { result } = renderHook(
         () =>
@@ -140,7 +386,7 @@ describe('usePerpsOrderForm', () => {
             initialLeverage: 20,
             initialType: 'limit',
           }),
-        { wrapper: TestWrapper },
+        { wrapper: createWrapper() },
       );
 
       expect(result.current.orderForm).toEqual({
@@ -160,7 +406,7 @@ describe('usePerpsOrderForm', () => {
       mockUsePerpsNetwork.mockReturnValue('testnet');
 
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       expect(result.current.orderForm.amount).toBe(
@@ -183,7 +429,7 @@ describe('usePerpsOrderForm', () => {
 
       // Act
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       // Assert
@@ -207,7 +453,7 @@ describe('usePerpsOrderForm', () => {
 
       // Act
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       // Assert
@@ -234,7 +480,7 @@ describe('usePerpsOrderForm', () => {
       mockUsePerpsLiveAccount.mockReturnValue(mockAccount);
 
       const { result, rerender } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       // Verify initial amount is set correctly
@@ -274,7 +520,7 @@ describe('usePerpsOrderForm', () => {
       });
 
       const { result: result1 } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       expect(result1.current.orderForm.amount).toBe('6'); // Should use maxPossibleAmount
@@ -292,7 +538,7 @@ describe('usePerpsOrderForm', () => {
       });
 
       const { result: result2 } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       expect(result2.current.orderForm.amount).toBe(
@@ -304,7 +550,7 @@ describe('usePerpsOrderForm', () => {
   describe('form updates', () => {
     it('should update amount', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -316,7 +562,7 @@ describe('usePerpsOrderForm', () => {
 
     it('should update leverage', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -328,7 +574,7 @@ describe('usePerpsOrderForm', () => {
 
     it('should update direction', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -340,7 +586,7 @@ describe('usePerpsOrderForm', () => {
 
     it('should update asset', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -352,7 +598,7 @@ describe('usePerpsOrderForm', () => {
 
     it('should update take profit price', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -364,7 +610,7 @@ describe('usePerpsOrderForm', () => {
 
     it('should update stop loss price', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -376,7 +622,7 @@ describe('usePerpsOrderForm', () => {
 
     it('should update limit price', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -388,7 +634,7 @@ describe('usePerpsOrderForm', () => {
 
     it('should update order type', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -400,7 +646,7 @@ describe('usePerpsOrderForm', () => {
 
     it('should update multiple fields at once', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -420,7 +666,7 @@ describe('usePerpsOrderForm', () => {
   describe('percentage handlers', () => {
     it('should handle percentage amount', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -432,7 +678,7 @@ describe('usePerpsOrderForm', () => {
 
     it('should handle max amount', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -444,7 +690,7 @@ describe('usePerpsOrderForm', () => {
 
     it('should handle min amount for mainnet', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -459,7 +705,7 @@ describe('usePerpsOrderForm', () => {
     it('should handle min amount for testnet', () => {
       mockUsePerpsNetwork.mockReturnValue('testnet');
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -484,7 +730,7 @@ describe('usePerpsOrderForm', () => {
       });
 
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
       const initialAmount = result.current.orderForm.amount;
 
@@ -499,7 +745,7 @@ describe('usePerpsOrderForm', () => {
   describe('empty amount handling', () => {
     it('should convert empty string to 0', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
+        wrapper: createWrapper(),
       });
 
       act(() => {
@@ -507,99 +753,6 @@ describe('usePerpsOrderForm', () => {
       });
 
       expect(result.current.orderForm.amount).toBe('0');
-    });
-  });
-
-  describe('optimizeOrderAmount', () => {
-    it('should not optimize when amount is empty', () => {
-      const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
-      });
-
-      act(() => {
-        result.current.setAmount('');
-        result.current.optimizeOrderAmount(50000, 6);
-      });
-
-      expect(result.current.orderForm.amount).toBe('0');
-    });
-
-    it('should not optimize when amount is zero', () => {
-      const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
-      });
-
-      act(() => {
-        result.current.setAmount('0');
-        result.current.optimizeOrderAmount(50000, 6);
-      });
-
-      expect(result.current.orderForm.amount).toBe('0');
-    });
-
-    it('should optimize amount when valid amount is provided', () => {
-      const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
-      });
-
-      act(() => {
-        result.current.setAmount('100');
-        result.current.optimizeOrderAmount(50000, 6);
-      });
-
-      // The optimized amount should be calculated by findOptimalAmount
-      expect(result.current.orderForm.amount).toBeTruthy();
-    });
-
-    it('should not update amount if optimized amount exceeds maxPossibleAmount', () => {
-      const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
-      });
-
-      const initialAmount = '100';
-
-      act(() => {
-        result.current.setAmount(initialAmount);
-        // Use a very low maxPossibleAmount to trigger the condition
-        result.current.optimizeOrderAmount(50000, 6);
-      });
-
-      // Amount should remain unchanged if optimization would exceed max
-      expect(result.current.orderForm.amount).toBe(initialAmount);
-    });
-
-    it('should only update amount if optimized amount is different from current', () => {
-      const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
-      });
-
-      act(() => {
-        result.current.setAmount('10'); // Use default amount
-        result.current.optimizeOrderAmount(50000, 6);
-      });
-
-      const optimizedAmount = result.current.orderForm.amount;
-
-      // Call optimize again with same parameters
-      act(() => {
-        result.current.optimizeOrderAmount(50000, 6);
-      });
-
-      // Amount should not change if already optimized
-      expect(result.current.orderForm.amount).toBe(optimizedAmount);
-    });
-
-    it('should handle undefined szDecimals parameter', () => {
-      const { result } = renderHook(() => usePerpsOrderForm(), {
-        wrapper: TestWrapper,
-      });
-
-      act(() => {
-        result.current.setAmount('100');
-        result.current.optimizeOrderAmount(50000, undefined);
-      });
-
-      expect(result.current.orderForm.amount).toBeTruthy();
     });
   });
 });

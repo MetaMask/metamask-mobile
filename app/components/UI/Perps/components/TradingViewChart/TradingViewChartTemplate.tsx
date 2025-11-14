@@ -50,6 +50,7 @@ export const createTradingViewChartTemplate = (
         window.lastDataKey = null; // Track the last dataset to avoid unnecessary autoscaling
         window.visibleCandleCount = 45; // Default visible candle count
         window.allCandleData = []; // Store all loaded data for zoom functionality
+        window.visiblePriceRange = null; // Track visible price range for dynamic decimal precision
         
         // Smart timestamp formatter using TradingView's native tickMarkType with fallback
         window.formatTimestamp = function(time, tickMarkType, isCrosshair = false) {
@@ -247,42 +248,50 @@ export const createTradingViewChartTemplate = (
                     },
                     localization: {
                         priceFormatter: (price) => {
-                            // Specialized chart Y-axis formatter with space constraints
-                            // Different rules than price displays to keep axis labels compact
-                            // Rules:
-                            // - ≥$100: No decimals (e.g., BTC: 121,613 not 121,612.50 - too long)
-                            // - $10-$100: 2 decimals (e.g., 56.12)
-                            // - $1-$10: 3 decimals for 4 sig figs (e.g., XRP: 2.801)
-                            // - <$1: 4 sig figs (e.g., 0.1234)
-
+                            // Dynamic Y-axis formatter that adjusts precision based on visible price range
+                            // This prevents duplicate labels (e.g., "160 160 161 161") by using more decimals when zoomed in
+                            
                             if (price === 0) return '0.00';
 
                             const absPrice = Math.abs(price);
 
-                            // For values >= 1, calculate decimals based on magnitude with chart space constraints
+                            // For values >= 1, use dynamic precision based on visible range
                             if (absPrice >= 1) {
                                 let targetDecimals;
 
-                                if (absPrice >= 100) {
-                                    // ≥$100: No decimals for compact display on Y-axis
-                                    // BTC example: 121,613 instead of 121,612.50 (saves space)
-                                    targetDecimals = 0;
-                                } else if (absPrice >= 10) {
-                                    // $10-$100: 2 decimals (currency standard)
-                                    // Example: 56.12, 89.45
-                                    targetDecimals = 2;
+                                // Use visible price range to determine precision (prevents duplicates when zoomed in)
+                                if (window.visiblePriceRange && window.visiblePriceRange.span > 0) {
+                                    const span = window.visiblePriceRange.span;
+                                    
+                                    if (span < 1) {
+                                        // Very tight range (e.g., 160.00-160.50): use 4 decimals
+                                        targetDecimals = 4;
+                                    } else if (span < 10) {
+                                        // Tight range (e.g., 160-165): use 3 decimals
+                                        targetDecimals = 3;
+                                    } else if (span < 100) {
+                                        // Medium range (e.g., 100-200): use 2 decimals
+                                        targetDecimals = 2;
+                                    } else {
+                                        // Wide range (e.g., 0-1000): use 1 decimal
+                                        targetDecimals = 1;
+                                    }
                                 } else {
-                                    // $1-$10: 3 decimals for 4 sig figs
-                                    // XRP example: 2.801 (1 integer + 3 decimals = 4 sig figs)
-                                    // SOL example: 5.123 (1 integer + 3 decimals = 4 sig figs)
-                                    targetDecimals = 3;
+                                    // Fallback to price-based rules when range not available
+                                    if (absPrice >= 100) {
+                                        targetDecimals = 2; // Increased from 0 to prevent duplicates
+                                    } else if (absPrice >= 10) {
+                                        targetDecimals = 2;
+                                    } else {
+                                        targetDecimals = 3;
+                                    }
                                 }
 
                                 // Round to prevent floating-point artifacts (e.g., 2.820000000000003 → 2.82)
                                 const roundedPrice = Number(price.toFixed(targetDecimals));
 
                                 return new Intl.NumberFormat('en-US', {
-                                    minimumFractionDigits: targetDecimals,
+                                    minimumFractionDigits: 0, // Allow trailing zeros to be removed
                                     maximumFractionDigits: targetDecimals
                                 }).format(roundedPrice);
                             }
@@ -474,6 +483,68 @@ export const createTradingViewChartTemplate = (
             return window.candlestickSeries;
         };
         
+        // Function to update visible price range for dynamic formatting
+        window.updateVisiblePriceRange = function() {
+            if (!window.allCandleData || window.allCandleData.length === 0) {
+                return;
+            }
+            
+            try {
+                // Get visible range from time scale
+                const timeScale = window.chart.timeScale();
+                const visibleLogicalRange = timeScale.getVisibleLogicalRange();
+                
+                if (!visibleLogicalRange) {
+                    // Fallback: use all data
+                    let minPrice = Infinity;
+                    let maxPrice = -Infinity;
+                    
+                    window.allCandleData.forEach(candle => {
+                        if (candle && candle.low !== undefined && candle.high !== undefined) {
+                            minPrice = Math.min(minPrice, candle.low);
+                            maxPrice = Math.max(maxPrice, candle.high);
+                        }
+                    });
+                    
+                    if (minPrice !== Infinity && maxPrice !== -Infinity) {
+                        window.visiblePriceRange = {
+                            min: minPrice,
+                            max: maxPrice,
+                            span: maxPrice - minPrice
+                        };
+                    }
+                    return;
+                }
+                
+                // Calculate visible data indices
+                const firstVisibleIndex = Math.max(0, Math.ceil(visibleLogicalRange.from));
+                const lastVisibleIndex = Math.min(window.allCandleData.length - 1, Math.floor(visibleLogicalRange.to));
+                
+                if (firstVisibleIndex <= lastVisibleIndex) {
+                    let minPrice = Infinity;
+                    let maxPrice = -Infinity;
+                    
+                    for (let i = firstVisibleIndex; i <= lastVisibleIndex; i++) {
+                        const candle = window.allCandleData[i];
+                        if (candle && candle.low !== undefined && candle.high !== undefined) {
+                            minPrice = Math.min(minPrice, candle.low);
+                            maxPrice = Math.max(maxPrice, candle.high);
+                        }
+                    }
+                    
+                    if (minPrice !== Infinity && maxPrice !== -Infinity) {
+                        window.visiblePriceRange = {
+                            min: minPrice,
+                            max: maxPrice,
+                            span: maxPrice - minPrice
+                        };
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating visible price range:', error);
+            }
+        };
+        
         // Function to create/update current price line
         window.updateCurrentPriceLine = function(currentPrice) {
             if (!window.candlestickSeries) {
@@ -498,9 +569,9 @@ export const createTradingViewChartTemplate = (
                         price: parseFloat(currentPrice),
                         color: '#FFF', // White
                         lineWidth: 1,
-                        lineStyle: 0, // Solid line
+                        lineStyle: 2, // Dashed line
                         axisLabelVisible: true,
-                        title: 'Current'
+                        title: ''
                     });
                     // Store reference for future removal
                     window.priceLines.currentPrice = priceLine;
@@ -640,15 +711,15 @@ export const createTradingViewChartTemplate = (
                         price: window.originalPriceLineData.currentPrice.price,
                         color: '#FFF',
                         lineWidth: 1,
-                        lineStyle: 0,
+                        lineStyle: 2,
                         axisLabelVisible: true,
-                        title: 'Current'
+                        title: ''
                     });
                 } catch (error) {
                     // Silent error handling
                 }
             }
-            
+
             // Recreate current price line from stored data
             if (window.originalPriceLineData.currentPrice) {
                 try {
@@ -656,9 +727,9 @@ export const createTradingViewChartTemplate = (
                         price: window.originalPriceLineData.currentPrice.price,
                         color: '#FFF',
                         lineWidth: 1,
-                        lineStyle: 0,
+                        lineStyle: 2,
                         axisLabelVisible: true,
-                        title: 'Current'
+                        title: ''
                     });
                 } catch (error) {
                     // Silent error handling
@@ -709,6 +780,9 @@ export const createTradingViewChartTemplate = (
             }
             
             window.visibleCandleCount = actualCandleCount;
+            
+            // Update visible price range for dynamic formatting after zoom
+            window.updateVisiblePriceRange();
         };
 
         // Update TPSL price lines
@@ -880,6 +954,9 @@ export const createTradingViewChartTemplate = (
                                     window.applyZoom(window.visibleCandleCount, true);
                                     console.log('📊 TradingView: Applied initial zoom to', window.visibleCandleCount, 'candles');
                                 }
+                                
+                                // Update visible price range for dynamic formatting
+                                window.updateVisiblePriceRange();
                                 
                                 // Mark initial load as complete
                                 window.isInitialDataLoad = false;

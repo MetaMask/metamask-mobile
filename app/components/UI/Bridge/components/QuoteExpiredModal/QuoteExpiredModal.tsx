@@ -72,9 +72,7 @@ const QuoteExpiredModal = () => {
   return (
     <BottomSheet ref={sheetRef}>
       <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('quote_expired_modal.title')}
-        </Text>
+        {strings('quote_expired_modal.title')}
       </BottomSheetHeader>
       <View style={styles.container}>
         <Text variant={TextVariant.BodyMD}>

@@ -169,7 +169,7 @@ describe('PredictBalance', () => {
       });
 
       // Assert
-      expect(getByText(/\$123\.46/)).toBeOnTheScreen();
+      expect(getByText(/\$123\.45/)).toBeOnTheScreen();
     });
 
     it('displays zero balance', () => {
@@ -209,7 +209,7 @@ describe('PredictBalance', () => {
       });
 
       // Assert
-      expect(getByText(/\$1,234,567\.89/)).toBeOnTheScreen();
+      expect(getByText(/\$1,234,567\.88/)).toBeOnTheScreen();
     });
 
     it('renders container with correct test ID', () => {
@@ -345,10 +345,11 @@ describe('PredictBalance', () => {
       fireEvent.press(addFundsButton);
 
       // Assert - executeGuardedAction is called (it executes the deposit function)
+      expect(mockExecuteGuardedAction).toHaveBeenCalledTimes(1);
       expect(mockDeposit).toHaveBeenCalled();
     });
 
-    it('calls executeGuardedAction with checkBalance option when Withdraw button is pressed', () => {
+    it('calls withdraw directly when Withdraw button is pressed', () => {
       // Arrange
       const mockWithdraw = jest.fn();
       mockUsePredictBalance.mockReturnValue({
@@ -370,8 +371,9 @@ describe('PredictBalance', () => {
       const withdrawButton = getByText(/Withdraw/i);
       fireEvent.press(withdrawButton);
 
-      // Assert - executeGuardedAction is called with checkBalance option (it executes the withdraw function)
-      expect(mockWithdraw).toHaveBeenCalled();
+      // Assert - withdraw is called directly without executeGuardedAction
+      expect(mockWithdraw).toHaveBeenCalledTimes(1);
+      expect(mockExecuteGuardedAction).not.toHaveBeenCalled();
     });
   });
 

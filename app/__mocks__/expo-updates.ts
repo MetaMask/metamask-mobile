@@ -3,10 +3,18 @@ export const channel = 'test-channel';
 export const runtimeVersion = '1.0.0';
 export const isEmbeddedLaunch = true;
 export const isEnabled = true;
+export const url = 'https://example.com';
+export const checkAutomatically = 'NEVER';
+export const updateId = 'mock-update-id';
 
-export const checkForUpdateAsync = jest.fn();
-export const fetchUpdateAsync = jest.fn();
-export const reloadAsync = jest.fn();
+export const checkForUpdateAsync = jest.fn().mockResolvedValue({
+  isAvailable: false,
+  manifest: null,
+});
+export const fetchUpdateAsync = jest.fn().mockResolvedValue({
+  isNew: false,
+});
+export const reloadAsync = jest.fn().mockResolvedValue(undefined);
 export const useUpdates = jest.fn();
 
 export const UpdateEventType = {
@@ -25,6 +33,9 @@ export default {
   runtimeVersion,
   isEmbeddedLaunch,
   isEnabled,
+  url,
+  updateId,
+  checkAutomatically,
   checkForUpdateAsync,
   fetchUpdateAsync,
   reloadAsync,

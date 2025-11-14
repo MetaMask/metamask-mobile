@@ -72,6 +72,17 @@ export const VALIDATION_THRESHOLDS = {
 } as const;
 
 /**
+ * Order slippage configuration
+ * Controls default slippage tolerance for market orders
+ */
+export const ORDER_SLIPPAGE_CONFIG = {
+  // Default slippage for all market orders (basis points)
+  // 100 basis points = 1% = 0.01 decimal
+  // Used when price moves between calculation and execution
+  DEFAULT_SLIPPAGE_BPS: 100,
+} as const;
+
+/**
  * Performance optimization constants
  * These values control debouncing and throttling for better performance
  */
@@ -82,7 +93,7 @@ export const PERFORMANCE_CONFIG = {
 
   // Order validation debounce delay (milliseconds)
   // Prevents excessive validation calls during rapid form input changes
-  VALIDATION_DEBOUNCE_MS: 1000,
+  VALIDATION_DEBOUNCE_MS: 300,
 
   // Liquidation price debounce delay (milliseconds)
   // Prevents excessive liquidation price calls during rapid form input changes
@@ -273,6 +284,11 @@ export const DECIMAL_PRECISION_CONFIG = {
   // Maximum decimal places for price input (matches Hyperliquid limit)
   // Used in TP/SL forms, limit price inputs, and price validation
   MAX_PRICE_DECIMALS: 6,
+  // Defensive fallback for size decimals when market data fails to load
+  // Real szDecimals should always come from market data API (varies by asset)
+  // Using 6 as safe maximum to prevent crashes (covers most assets)
+  // NOTE: This is NOT semantically correct - just a defensive measure
+  FALLBACK_SIZE_DECIMALS: 6,
 } as const;
 
 export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';
@@ -397,7 +413,7 @@ export type SortButtonPreset =
  */
 export const LEARN_MORE_CONFIG = {
   EXTERNAL_URL: 'https://metamask.io/perps',
-  TITLE_KEY: 'perps.learn_more.title',
+  TITLE_KEY: 'perps.tutorial.card.title',
   DESCRIPTION_KEY: 'perps.learn_more.description',
   CTA_KEY: 'perps.learn_more.cta',
 } as const;
@@ -410,4 +426,13 @@ export const SUPPORT_CONFIG = {
   URL: 'https://support.metamask.io',
   TITLE_KEY: 'perps.support.title',
   DESCRIPTION_KEY: 'perps.support.description',
+} as const;
+
+/**
+ * Support article URLs
+ * Links to specific MetaMask support articles for Perps features
+ */
+export const PERPS_SUPPORT_ARTICLES_URLS = {
+  ADL_URL:
+    'https://support.metamask.io/manage-crypto/trade/perps/leverage-and-liquidation/#what-is-auto-deleveraging-adl',
 } as const;

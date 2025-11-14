@@ -215,6 +215,7 @@ exports[`SnapUIAddressInput renders with an invalid CAIP Account ID 1`] = `
             "color": "#121314",
             "fontFamily": "Geist Regular",
             "fontSize": 16,
+            "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
             "lineHeight": 20,

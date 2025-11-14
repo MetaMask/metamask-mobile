@@ -10,33 +10,56 @@
 
 const fs = require('fs');
 const path = require('path');
-const { RUNTIME_VERSION } = require('../ota.config.js');
+const { RUNTIME_VERSION, UPDATE_URL } = require('../ota.config.js');
 
-// Valid environment values
-const VALID_ENVIRONMENTS = ['production', 'beta', 'rc', 'exp', 'test', 'e2e', 'dev'];
+const VALID_ENVIRONMENTS = ['beta', 'rc', 'exp', 'test', 'e2e', 'dev', 'production'];
 
-// File paths
 const ANDROID_MANIFEST_PATH = path.join(__dirname, '..', 'android', 'app', 'src', 'main', 'AndroidManifest.xml');
 const IOS_EXPO_PLIST_PATH = path.join(__dirname, '..', 'ios', 'Expo.plist');
 
-// Configuration map for each environment
+//TODO: add production channel when it's ready
 const CONFIG_MAP = {
   rc: {
     channel: 'preview',
     runtimeVersion: RUNTIME_VERSION,
     updatesEnabled: true,
-    updateUrl: 'https://u.expo.dev/fddf3e54-a014-4ba7-a695-d116a9ef9620',
+    updateUrl: UPDATE_URL,
     checkAutomatically: 'NEVER',
   },
 };
 
+// Official Expo Updates configuration keys
+// Reference: https://docs.expo.dev/versions/latest/sdk/updates/#configuration
+const EXPO_CONFIG_MAP = {
+  enabled: {
+    ios: 'EXUpdatesEnabled',
+    android: 'expo.modules.updates.ENABLED'
+  },
+  url: {
+    ios: 'EXUpdatesURL',
+    android: 'expo.modules.updates.EXPO_UPDATE_URL'
+  },
+  runtimeVersion: {
+    ios: 'EXUpdatesRuntimeVersion',
+    android: 'expo.modules.updates.EXPO_RUNTIME_VERSION'
+  },
+  requestHeaders: {
+    ios: 'EXUpdatesRequestHeaders',
+    android: 'expo.modules.updates.UPDATES_CONFIGURATION_REQUEST_HEADERS_KEY'
+  },
+  checkAutomatically: {
+    ios: 'EXUpdatesCheckOnLaunch',
+    android: 'expo.modules.updates.EXPO_UPDATES_CHECK_ON_LAUNCH'
+  }
+};
+
 /**
  * Gets the configuration for a given environment
- * @param {string} environment - The METAMASK_ENVIRONMENT value
  * @returns {Object} - The configuration object with channel, runtimeVersion, and updatesEnabled
  */
-function getConfigForEnvironment(environment) {
-  return environment === 'production' ? CONFIG_MAP.production : CONFIG_MAP.rc;
+function getConfigForEnvironment() {
+  // For now, all environments use RC configuration
+  return CONFIG_MAP.rc;
 }
 
 /**
@@ -51,82 +74,74 @@ function getConfigForEnvironment(environment) {
 function updateAndroidManifest(filePath, channelName, runtimeVersion, updatesEnabled, updateUrl, checkAutomatically) {
   let content = fs.readFileSync(filePath, 'utf8');
 
-  // Update or insert EXPO_UPDATES_CONFIGURATION_REQUEST_HEADERS_VALUE (channel)
-  if (content.includes('expo.modules.updates.EXPO_UPDATES_CONFIGURATION_REQUEST_HEADERS_VALUE')) {
-    content = content.replace(
-      /<meta-data android:name="expo\.modules\.updates\.EXPO_UPDATES_CONFIGURATION_REQUEST_HEADERS_VALUE" android:value="[^"]*" \/>/g,
-      `<meta-data android:name="expo.modules.updates.EXPO_UPDATES_CONFIGURATION_REQUEST_HEADERS_VALUE" android:value="${channelName}" />`
-    );
-  } else {
-    content = content.replace(
-      /(\s*)<\/application>/,
-      `\n\t\t<!-- EAS Update configuration -->\n\t\t<meta-data android:name="expo.modules.updates.EXPO_UPDATES_CONFIGURATION_REQUEST_HEADERS_VALUE" android:value="${channelName}" />$1</application>`
-    );
-  }
-
   // Update or insert UPDATES_CONFIGURATION_REQUEST_HEADERS_KEY (JSON header with channel)
-  if (content.includes('expo.modules.updates.UPDATES_CONFIGURATION_REQUEST_HEADERS_KEY')) {
+  const requestHeadersKey = EXPO_CONFIG_MAP.requestHeaders.android;
+  if (content.includes(requestHeadersKey)) {
     content = content.replace(
       /<meta-data android:name="expo\.modules\.updates\.UPDATES_CONFIGURATION_REQUEST_HEADERS_KEY" android:value="\{&quot;expo-channel-name&quot;:&quot;[^"]*&quot;\}"\/>/g,
-      `<meta-data android:name="expo.modules.updates.UPDATES_CONFIGURATION_REQUEST_HEADERS_KEY" android:value="{&quot;expo-channel-name&quot;:&quot;${channelName}&quot;}"/>`
+      `<meta-data android:name="${requestHeadersKey}" android:value="{&quot;expo-channel-name&quot;:&quot;${channelName}&quot;}"/>`
     );
   } else {
     content = content.replace(
       /(\s*)<\/application>/,
-      `\n\t\t<meta-data android:name="expo.modules.updates.UPDATES_CONFIGURATION_REQUEST_HEADERS_KEY" android:value="{&quot;expo-channel-name&quot;:&quot;${channelName}&quot;}"/>$1</application>`
+      `\n\t\t<!-- EAS Update configuration -->\n\t\t<meta-data android:name="${requestHeadersKey}" android:value="{&quot;expo-channel-name&quot;:&quot;${channelName}&quot;}"/>$1</application>`
     );
   }
 
   // Update or insert EXPO_RUNTIME_VERSION
-  if (content.includes('expo.modules.updates.EXPO_RUNTIME_VERSION')) {
+  const runtimeVersionKey = EXPO_CONFIG_MAP.runtimeVersion.android;
+  if (content.includes(runtimeVersionKey)) {
     content = content.replace(
       /<meta-data android:name="expo\.modules\.updates\.EXPO_RUNTIME_VERSION" android:value="[^"]*" \/>/g,
-      `<meta-data android:name="expo.modules.updates.EXPO_RUNTIME_VERSION" android:value="${runtimeVersion}" />`
+      `<meta-data android:name="${runtimeVersionKey}" android:value="${runtimeVersion}" />`
     );
   } else {
     content = content.replace(
       /(\s*)<\/application>/,
-      `\n\t\t<meta-data android:name="expo.modules.updates.EXPO_RUNTIME_VERSION" android:value="${runtimeVersion}" />$1</application>`
+      `\n\t\t<meta-data android:name="${runtimeVersionKey}" android:value="${runtimeVersion}" />$1</application>`
     );
   }
 
   // Update or insert EXPO_UPDATE_URL
-  if (content.includes('expo.modules.updates.EXPO_UPDATE_URL')) {
+  const updateUrlKey = EXPO_CONFIG_MAP.url.android;
+  if (content.includes(updateUrlKey)) {
     content = content.replace(
       /<meta-data android:name="expo\.modules\.updates\.EXPO_UPDATE_URL" android:value="[^"]*" \/>/g,
-      `<meta-data android:name="expo.modules.updates.EXPO_UPDATE_URL" android:value="${updateUrl}" />`
+      `<meta-data android:name="${updateUrlKey}" android:value="${updateUrl}" />`
     );
   } else {
     content = content.replace(
       /(\s*)<\/application>/,
-      `\n\t\t<meta-data android:name="expo.modules.updates.EXPO_UPDATE_URL" android:value="${updateUrl}" />$1</application>`
-    );
-  }
-
-  // Only toggle expo.modules.updates.ENABLED; rely on defaults for the rest
-  const enabledValue = updatesEnabled ? 'true' : 'false';
-  if (content.includes('expo.modules.updates.ENABLED')) {
-    content = content.replace(
-      /<meta-data android:name="expo\.modules\.updates\.ENABLED" android:value="(true|false)" \/>/g,
-      `<meta-data android:name="expo.modules.updates.ENABLED" android:value="${enabledValue}" />`
-    );
-  } else {
-    content = content.replace(
-      /(\s*)<\/application>/,
-      `\n\t\t<meta-data android:name="expo.modules.updates.ENABLED" android:value="${enabledValue}" />$1</application>`
+      `\n\t\t<meta-data android:name="${updateUrlKey}" android:value="${updateUrl}" />$1</application>`
     );
   }
 
   // Update or insert EXPO_UPDATES_CHECK_ON_LAUNCH
-  if (content.includes('expo.modules.updates.EXPO_UPDATES_CHECK_ON_LAUNCH')) {
+  const checkAutomaticallyKey = EXPO_CONFIG_MAP.checkAutomatically.android;
+  if (content.includes(checkAutomaticallyKey)) {
     content = content.replace(
       /<meta-data android:name="expo\.modules\.updates\.EXPO_UPDATES_CHECK_ON_LAUNCH" android:value="[^"]*" \/>/g,
-      `<meta-data android:name="expo.modules.updates.EXPO_UPDATES_CHECK_ON_LAUNCH" android:value="${checkAutomatically}" />`
+      `<meta-data android:name="${checkAutomaticallyKey}" android:value="${checkAutomatically}" />`
     );
   } else {
     content = content.replace(
       /(\s*)<\/application>/,
-      `\n\t\t<meta-data android:name="expo.modules.updates.EXPO_UPDATES_CHECK_ON_LAUNCH" android:value="${checkAutomatically}" />$1</application>`
+      `\n\t\t<meta-data android:name="${checkAutomaticallyKey}" android:value="${checkAutomatically}" />$1</application>`
+    );
+  }
+
+  // Only toggle expo.modules.updates.ENABLED; rely on defaults for the rest
+  const enabledKey = EXPO_CONFIG_MAP.enabled.android;
+  const enabledValue = updatesEnabled ? 'true' : 'false';
+  if (content.includes(enabledKey)) {
+    content = content.replace(
+      /<meta-data android:name="expo\.modules\.updates\.ENABLED" android:value="(true|false)" \/>/g,
+      `<meta-data android:name="${enabledKey}" android:value="${enabledValue}" />`
+    );
+  } else {
+    content = content.replace(
+      /(\s*)<\/application>/,
+      `\n\t\t<meta-data android:name="${enabledKey}" android:value="${enabledValue}" />$1</application>`
     );
   }
 
@@ -145,51 +160,41 @@ function updateAndroidManifest(filePath, channelName, runtimeVersion, updatesEna
  * @param {string} checkAutomatically
  */
 function updatePlistFile(filePath, channelName, runtimeVersion, fileName, updatesEnabled, updateUrl, checkAutomatically) {
-  console.log(`Updating ${fileName}: channel=${channelName}, runtime=${runtimeVersion}, EXUpdatesEnabled=${updatesEnabled}, updateUrl=${updateUrl}, checkOnLaunch=${checkAutomatically}`);
+  console.log(`Updating ${fileName}: channel=${channelName}, runtime=${runtimeVersion}, EXUpdatesEnabled=${updatesEnabled}, updateUrl=${updateUrl}, checkAutomatically=${checkAutomatically}`);
 
   let content = fs.readFileSync(filePath, 'utf8');
 
-  // Update or insert EXUpdatesChannel
-  if (content.includes('<key>EXUpdatesChannel</key>')) {
-    content = content.replace(
-      /(<key>EXUpdatesChannel<\/key>\s*<string>)[^<]*(<\/string>)/,
-      `$1${channelName}$2`
-    );
-  } else {
-    content = content.replace(
-      /(\s*)<\/dict>\s*<\/plist>/,
-      `\n\t<key>EXUpdatesChannel</key>\n\t<string>${channelName}</string>$1</dict>\n</plist>`
-    );
-  }
-
   // Update or insert EXUpdatesRuntimeVersion
-  if (content.includes('<key>EXUpdatesRuntimeVersion</key>')) {
+  const runtimeVersionKey = EXPO_CONFIG_MAP.runtimeVersion.ios;
+  if (content.includes(`<key>${runtimeVersionKey}</key>`)) {
     content = content.replace(
-      /(<key>EXUpdatesRuntimeVersion<\/key>\s*<string>)[^<]*(<\/string>)/,
+      new RegExp(`(<key>${runtimeVersionKey}<\\/key>\\s*<string>)[^<]*(<\\/string>)`),
       `$1${runtimeVersion}$2`
     );
   } else {
     content = content.replace(
       /(\s*)<\/dict>\s*<\/plist>/,
-      `\n\t<key>EXUpdatesRuntimeVersion</key>\n\t<string>${runtimeVersion}</string>$1</dict>\n</plist>`
+      `\n\t<key>${runtimeVersionKey}</key>\n\t<string>${runtimeVersion}</string>$1</dict>\n</plist>`
     );
   }
 
   // Update or insert EXUpdatesURL
-  if (content.includes('<key>EXUpdatesURL</key>')) {
+  const updateUrlKey = EXPO_CONFIG_MAP.url.ios;
+  if (content.includes(`<key>${updateUrlKey}</key>`)) {
     content = content.replace(
-      /(<key>EXUpdatesURL<\/key>\s*<string>)[^<]*(<\/string>)/,
+      new RegExp(`(<key>${updateUrlKey}<\\/key>\\s*<string>)[^<]*(<\\/string>)`),
       `$1${updateUrl}$2`
     );
   } else {
     content = content.replace(
       /(\s*)<\/dict>\s*<\/plist>/,
-      `\n\t<key>EXUpdatesURL</key>\n\t<string>${updateUrl}</string>$1</dict>\n</plist>`
+      `\n\t<key>${updateUrlKey}</key>\n\t<string>${updateUrl}</string>$1</dict>\n</plist>`
     );
   }
 
   // Update or insert EXUpdatesRequestHeaders.expo-channel-name
-  if (content.includes('<key>EXUpdatesRequestHeaders</key>')) {
+  const requestHeadersKey = EXPO_CONFIG_MAP.requestHeaders.ios;
+  if (content.includes(`<key>${requestHeadersKey}</key>`)) {
     if (content.includes('<key>expo-channel-name</key>')) {
       content = content.replace(
         /(<key>expo-channel-name<\/key>\s*<string>)[^<]*(<\/string>)/,
@@ -197,40 +202,42 @@ function updatePlistFile(filePath, channelName, runtimeVersion, fileName, update
       );
     } else {
       content = content.replace(
-        /(<key>EXUpdatesRequestHeaders<\/key>\s*<dict>)/,
+        new RegExp(`(<key>${requestHeadersKey}<\\/key>\\s*<dict>)`),
         `$1\n\t\t<key>expo-channel-name</key>\n\t\t<string>${channelName}</string>`
       );
     }
   } else {
     content = content.replace(
       /(\s*)<\/dict>\s*<\/plist>/,
-      `\n\t<key>EXUpdatesRequestHeaders</key>\n\t<dict>\n\t\t<key>expo-channel-name</key>\n\t\t<string>${channelName}</string>\n\t</dict>$1</dict>\n</plist>`
-    );
-  }
-
-  // Only toggle EXUpdatesEnabled; do not modify CheckOnLaunch or LaunchWaitMs
-  if (content.includes('<key>EXUpdatesEnabled</key>')) {
-    content = content.replace(
-      /<key>EXUpdatesEnabled<\/key>\s*<(true|false)\/>/,
-      `<key>EXUpdatesEnabled</key>\n\t<${updatesEnabled ? 'true' : 'false'}/>`
-    );
-  } else {
-    content = content.replace(
-      /(\s*)<\/dict>\s*<\/plist>/,
-      `\n\t<key>EXUpdatesEnabled</key>\n\t<${updatesEnabled ? 'true' : 'false'}/>\n$1</dict>\n</plist>`
+      `\n\t<key>${requestHeadersKey}</key>\n\t<dict>\n\t\t<key>expo-channel-name</key>\n\t\t<string>${channelName}</string>\n\t</dict>$1</dict>\n</plist>`
     );
   }
 
   // Update or insert EXUpdatesCheckOnLaunch
-  if (content.includes('<key>EXUpdatesCheckOnLaunch</key>')) {
+  const checkAutomaticallyKey = EXPO_CONFIG_MAP.checkAutomatically.ios;
+  if (content.includes(`<key>${checkAutomaticallyKey}</key>`)) {
     content = content.replace(
-      /(<key>EXUpdatesCheckOnLaunch<\/key>\s*<string>)[^<]*(<\/string>)/,
+      new RegExp(`(<key>${checkAutomaticallyKey}<\\/key>\\s*<string>)[^<]*(<\\/string>)`),
       `$1${checkAutomatically}$2`
     );
   } else {
     content = content.replace(
       /(\s*)<\/dict>\s*<\/plist>/,
-      `\n\t<key>EXUpdatesCheckOnLaunch</key>\n\t<string>${checkAutomatically}</string>$1</dict>\n</plist>`
+      `\n\t<key>${checkAutomaticallyKey}</key>\n\t<string>${checkAutomatically}</string>$1</dict>\n</plist>`
+    );
+  }
+
+  // Only toggle EXUpdatesEnabled; do not modify LaunchWaitMs
+  const enabledKey = EXPO_CONFIG_MAP.enabled.ios;
+  if (content.includes(`<key>${enabledKey}</key>`)) {
+    content = content.replace(
+      new RegExp(`<key>${enabledKey}<\\/key>\\s*<(true|false)\\/>`),
+      `<key>${enabledKey}</key>\n\t<${updatesEnabled ? 'true' : 'false'}/>`
+    );
+  } else {
+    content = content.replace(
+      /(\s*)<\/dict>\s*<\/plist>/,
+      `\n\t<key>${enabledKey}</key>\n\t<${updatesEnabled ? 'true' : 'false'}/>\n$1</dict>\n</plist>`
     );
   }
 
@@ -264,15 +271,15 @@ function main() {
 
   console.log(`Environment: ${environment}`);
 
+  // Skip configuration for production environment
+  if (environment === 'production' || environment === 'dev') {
+    console.log('ℹ️  Production environment detected - skipping Expo Updates configuration');
+    console.log('✓ No configuration changes made');
+    return;
+  }
+
   // Get configuration for this environment
   const { channel, runtimeVersion, updatesEnabled, updateUrl, checkAutomatically } = getConfigForEnvironment(environment);
-
-  console.log(`Channel: ${channel}`);
-  console.log(`Runtime Version: ${runtimeVersion}`);
-  console.log(`Updates Enabled: ${updatesEnabled}`);
-  console.log(`Update URL: ${updateUrl}`);
-  console.log(`Check Automatically: ${checkAutomatically}`);
-  console.log('');
 
   // Check if files exist
   if (!fs.existsSync(ANDROID_MANIFEST_PATH)) {
@@ -307,4 +314,3 @@ module.exports = {
   updatePlistFile,
   CONFIG_MAP,
 };
-

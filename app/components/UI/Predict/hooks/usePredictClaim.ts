@@ -1,15 +1,18 @@
 import { useNavigation } from '@react-navigation/native';
-import { captureException } from '@sentry/react-native';
 import { useCallback, useContext } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
 import Routes from '../../../../constants/navigation/Routes';
+import Logger from '../../../../util/Logger';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
+import { PREDICT_CONSTANTS } from '../constants/errors';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
+import { ensureError } from '../utils/predictErrorHandler';
 import { usePredictTrading } from './usePredictTrading';
+import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 
 interface UsePredictClaimParams {
   providerId?: string;
@@ -29,18 +32,22 @@ export const usePredictClaim = ({
       navigateToConfirmation({
         headerShown: false,
         stack: Routes.PREDICT.ROOT,
+        loader: ConfirmationLoader.PredictClaim,
       });
       await claimWinnings({ providerId });
     } catch (err) {
-      // Capture exception with claim context
-      captureException(err instanceof Error ? err : new Error(String(err)), {
+      // Log error with claim context
+      Logger.error(ensureError(err), {
         tags: {
+          feature: PREDICT_CONSTANTS.FEATURE_NAME,
           component: 'usePredictClaim',
-          action: 'claim_winnings',
-          operation: 'position_management',
         },
-        extra: {
-          claimContext: {
+        context: {
+          name: 'usePredictClaim',
+          data: {
+            method: 'claim',
+            action: 'claim_winnings',
+            operation: 'position_management',
             providerId,
           },
         },

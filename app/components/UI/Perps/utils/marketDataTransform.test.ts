@@ -4,6 +4,7 @@
 
 import {
   transformMarketData,
+  calculateOpenInterestUSD,
   formatChange,
   formatPercentage,
   HyperLiquidMarketData,
@@ -13,6 +14,7 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from './formatUtils';
+import { HIP3_ASSET_MARKET_TYPES } from '../constants/hyperLiquidConfig';
 import type {
   AllMidsResponse,
   PerpsAssetCtx,
@@ -77,6 +79,7 @@ describe('marketDataTransform', () => {
         fundingRate: 0.01,
         marketSource: undefined, // Main DEX has no source
         marketType: undefined, // Main DEX has no type
+        openInterest: '$52.00B', // 1M contracts * $52K price
       });
     });
 
@@ -304,7 +307,7 @@ describe('marketDataTransform', () => {
       expect(result[0].fundingIntervalHours).toBeUndefined();
     });
 
-    it('extracts marketSource and marketType for HIP-3 DEX assets', () => {
+    it('extracts marketSource and marketType for HIP-3 equity assets', () => {
       const xyzAsset = {
         name: 'xyz:XYZ100',
         maxLeverage: 20,
@@ -318,7 +321,10 @@ describe('marketDataTransform', () => {
         allMids: { 'xyz:XYZ100': '105' },
       };
 
-      const result = transformMarketData(hyperLiquidData);
+      const result = transformMarketData(
+        hyperLiquidData,
+        HIP3_ASSET_MARKET_TYPES,
+      );
 
       expect(result).toHaveLength(1);
       expect(result[0].symbol).toBe('xyz:XYZ100');
@@ -326,7 +332,32 @@ describe('marketDataTransform', () => {
       expect(result[0].marketType).toBe('equity');
     });
 
-    it('handles unmapped HIP-3 DEX with marketSource but no marketType', () => {
+    it('extracts marketSource and marketType for HIP-3 commodity assets', () => {
+      const goldAsset = {
+        name: 'xyz:GOLD',
+        maxLeverage: 20,
+        szDecimals: 2,
+        marginTableId: 0,
+      };
+      const goldAssetCtx = createMockAssetCtx({ prevDayPx: '2000' });
+      const hyperLiquidData: HyperLiquidMarketData = {
+        universe: [goldAsset],
+        assetCtxs: [goldAssetCtx],
+        allMids: { 'xyz:GOLD': '2050' },
+      };
+
+      const result = transformMarketData(
+        hyperLiquidData,
+        HIP3_ASSET_MARKET_TYPES,
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0].symbol).toBe('xyz:GOLD');
+      expect(result[0].marketSource).toBe('xyz');
+      expect(result[0].marketType).toBe('commodity');
+    });
+
+    it('handles unmapped HIP-3 DEX - defaults to equity marketType', () => {
       const unknownDexAsset = {
         name: 'unknown:ASSET1',
         maxLeverage: 10,
@@ -345,7 +376,7 @@ describe('marketDataTransform', () => {
       expect(result).toHaveLength(1);
       expect(result[0].symbol).toBe('unknown:ASSET1');
       expect(result[0].marketSource).toBe('unknown');
-      expect(result[0].marketType).toBeUndefined();
+      expect(result[0].marketType).toBe('equity');
     });
 
     it('handles main DEX assets with no marketSource or marketType', () => {
@@ -360,6 +391,176 @@ describe('marketDataTransform', () => {
       expect(result[0].symbol).toBe('BTC');
       expect(result[0].marketSource).toBeUndefined();
       expect(result[0].marketType).toBeUndefined();
+    });
+  });
+
+  describe('calculateOpenInterestUSD', () => {
+    it('calculates open interest correctly with string inputs', () => {
+      // Arrange
+      const openInterest = '1000000'; // 1M contracts
+      const price = '50000'; // $50K per contract
+
+      // Act
+      const result = calculateOpenInterestUSD(openInterest, price);
+
+      // Assert
+      expect(result).toBe(50000000000); // $50B
+    });
+
+    it('calculates open interest correctly with number inputs', () => {
+      // Arrange
+      const openInterest = 1000000;
+      const price = 50000;
+
+      // Act
+      const result = calculateOpenInterestUSD(openInterest, price);
+
+      // Assert
+      expect(result).toBe(50000000000);
+    });
+
+    it('calculates open interest correctly with mixed inputs', () => {
+      // Arrange
+      const openInterest = '500000'; // string
+      const price = 100000; // number
+
+      // Act
+      const result = calculateOpenInterestUSD(openInterest, price);
+
+      // Assert
+      expect(result).toBe(50000000000);
+    });
+
+    it('returns NaN when open interest is undefined', () => {
+      // Arrange
+      const openInterest = undefined;
+      const price = '50000';
+
+      // Act
+      const result = calculateOpenInterestUSD(openInterest, price);
+
+      // Assert
+      expect(result).toBeNaN();
+    });
+
+    it('returns NaN when price is undefined', () => {
+      // Arrange
+      const openInterest = '1000000';
+      const price = undefined;
+
+      // Act
+      const result = calculateOpenInterestUSD(openInterest, price);
+
+      // Assert
+      expect(result).toBeNaN();
+    });
+
+    it('returns NaN when both inputs are undefined', () => {
+      // Arrange
+      const openInterest = undefined;
+      const price = undefined;
+
+      // Act
+      const result = calculateOpenInterestUSD(openInterest, price);
+
+      // Assert
+      expect(result).toBeNaN();
+    });
+
+    it('returns NaN when open interest is empty string', () => {
+      // Arrange
+      const openInterest = '';
+      const price = '50000';
+
+      // Act
+      const result = calculateOpenInterestUSD(openInterest, price);
+
+      // Assert
+      expect(result).toBeNaN();
+    });
+
+    it('returns 0 when price is zero', () => {
+      // Arrange
+      const openInterest = '1000000';
+      const price = '0';
+
+      // Act
+      const result = calculateOpenInterestUSD(openInterest, price);
+
+      // Assert
+      expect(result).toBe(0); // 1M * 0 = 0
+    });
+
+    it('returns 0 when open interest is zero', () => {
+      // Arrange
+      const openInterest = '0';
+      const price = '50000';
+
+      // Act
+      const result = calculateOpenInterestUSD(openInterest, price);
+
+      // Assert
+      expect(result).toBe(0); // 0 * $50K = 0
+    });
+
+    it('returns NaN when open interest contains invalid characters', () => {
+      // Arrange
+      const openInterest = 'invalid';
+      const price = '50000';
+
+      // Act
+      const result = calculateOpenInterestUSD(openInterest, price);
+
+      // Assert
+      expect(result).toBeNaN();
+    });
+
+    it('returns NaN when price contains invalid characters', () => {
+      // Arrange
+      const openInterest = '1000000';
+      const price = 'invalid';
+
+      // Act
+      const result = calculateOpenInterestUSD(openInterest, price);
+
+      // Assert
+      expect(result).toBeNaN();
+    });
+
+    it('handles decimal values correctly', () => {
+      // Arrange
+      const openInterest = '1234.5678';
+      const price = '98765.4321';
+
+      // Act
+      const result = calculateOpenInterestUSD(openInterest, price);
+
+      // Assert
+      expect(result).toBeCloseTo(121932622.22, 2);
+    });
+
+    it('handles very large numbers without precision loss', () => {
+      // Arrange
+      const openInterest = '10000000'; // 10M contracts
+      const price = '100000'; // $100K per contract
+
+      // Act
+      const result = calculateOpenInterestUSD(openInterest, price);
+
+      // Assert
+      expect(result).toBe(1000000000000); // $1T
+    });
+
+    it('handles very small decimal numbers', () => {
+      // Arrange
+      const openInterest = '0.001';
+      const price = '50000';
+
+      // Act
+      const result = calculateOpenInterestUSD(openInterest, price);
+
+      // Assert
+      expect(result).toBe(50);
     });
   });
 

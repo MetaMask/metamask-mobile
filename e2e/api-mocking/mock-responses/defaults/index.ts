@@ -165,7 +165,7 @@ export const DEFAULT_MOCKS = {
             decimals: 18,
           },
           network: 'monad-mainnet',
-          explorer: 'http://monadscan.com/',
+          explorer: 'https://monadscan.com/',
           confirmations: true,
           smartTransactions: false,
           relayTransactions: false,
@@ -275,6 +275,16 @@ export const DEFAULT_MOCKS = {
     },
     {
       urlEndpoint: 'https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io/',
+      responseCode: 200,
+      response: {},
+    },
+    {
+      urlEndpoint: 'https://tx-sentinel-localhost.api.cx.metamask.io/',
+      responseCode: 200,
+      response: {},
+    },
+    {
+      urlEndpoint: 'https://tx-sentinel-127.0.0.1.api.cx.metamask.io/',
       responseCode: 200,
       response: {},
     },

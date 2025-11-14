@@ -30,7 +30,22 @@ const OTA_VERSION = 'v0';
  */
 const RUNTIME_VERSION = packageJson.version;
 
+/**
+ * Expo Project ID
+ * The unique identifier for the Expo project
+ * Loaded from environment variables
+ */
+const PROJECT_ID = process.env.EXPO_PROJECT_ID || '';
+
+/**
+ * Expo Updates URL
+ * The URL endpoint for fetching OTA updates
+ */
+const UPDATE_URL = `https://u.expo.dev/${PROJECT_ID}`;
+
 module.exports = {
   OTA_VERSION,
   RUNTIME_VERSION,
+  PROJECT_ID,
+  UPDATE_URL,
 };

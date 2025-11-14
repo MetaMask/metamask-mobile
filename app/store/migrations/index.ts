@@ -106,10 +106,10 @@ import migration102 from './102';
 import migration103 from './103';
 import migration104 from './104';
 import migration105 from './105';
+import migration106 from './106';
+import migration107 from './107';
 
 // Add migrations above this line
-import { validatePostMigrationState } from '../validateMigration/validateMigration';
-import { RootState } from '../../reducers';
 import { ControllerStorage } from '../persistConfig';
 import { captureException } from '@sentry/react-native';
 
@@ -230,13 +230,12 @@ export const migrationList: MigrationsList = {
   103: migration103,
   104: migration104,
   105: migration105,
+  106: migration106,
+  107: migration107,
 };
 
 // Enable both synchronous and asynchronous migrations
-export const asyncifyMigrations = (
-  inputMigrations: MigrationsList,
-  onMigrationsComplete?: (state: unknown) => void,
-) => {
+export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
   const lastVersion = Math.max(...Object.keys(inputMigrations).map(Number));
   let didInflate = false;
 
@@ -379,20 +378,13 @@ export const asyncifyMigrations = (
       ) => {
         let state = await incomingState;
 
-        if (!didInflate && Number(migrationNumber) > 104) {
+        if (!didInflate && Number(migrationNumber) > 106) {
           state = await inflateFromControllers(state);
           didInflate = true;
         }
 
         const migratedState = await migrationFunction(state);
-
-        if (
-          onMigrationsComplete &&
-          Number(migrationNumber) === Object.keys(inputMigrations).length - 1
-        ) {
-          onMigrationsComplete(migratedState);
-        }
-        if (Number(migrationNumber) === lastVersion && lastVersion > 104) {
+        if (Number(migrationNumber) === lastVersion && lastVersion >= 106) {
           const s2 = migratedState as StateWithEngine;
           const hasControllers = Boolean(
             s2.engine?.backgroundState &&
@@ -413,9 +405,9 @@ export const asyncifyMigrations = (
 };
 
 // Convert all migrations to async
-export const migrations = asyncifyMigrations(migrationList, (state) => {
-  validatePostMigrationState(state as RootState);
-}) as unknown as MigrationManifest;
+export const migrations = asyncifyMigrations(
+  migrationList,
+) as unknown as MigrationManifest;
 
 // The latest (i.e. highest) version number.
 export const version = Object.keys(migrations).length - 1;

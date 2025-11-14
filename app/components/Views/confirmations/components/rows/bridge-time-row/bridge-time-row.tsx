@@ -1,47 +1,48 @@
 import React from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import InfoRow from '../../UI/info-row';
-import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { selectTransactionBridgeQuotesById } from '../../../../../../core/redux/slices/confirmationMetrics';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../../../../reducers';
-import Text from '../../../../../../component-library/components/Texts/Text';
-import { SkeletonRow } from '../skeleton-row';
-import { useIsTransactionPayLoading } from '../../../hooks/pay/useIsTransactionPayLoading';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
+import {
+  useIsTransactionPayLoading,
+  useTransactionPayQuotes,
+  useTransactionPayTotals,
+} from '../../../hooks/pay/useTransactionPayData';
+import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 
-const SAME_CHAIN_DURATION_SECONDS = 2;
+const SAME_CHAIN_DURATION_SECONDS = '< 10';
 
 export function BridgeTimeRow() {
-  const { id: transactionId } = useTransactionMetadataOrThrow();
-  const { isLoading } = useIsTransactionPayLoading();
-
-  const quotes = useSelector((state: RootState) =>
-    selectTransactionBridgeQuotesById(state, transactionId),
-  );
+  const isLoading = useIsTransactionPayLoading();
+  const { estimatedDuration } = useTransactionPayTotals() ?? {};
+  const quotes = useTransactionPayQuotes();
+  const { payToken } = useTransactionPayToken();
+  const { chainId } = useTransactionMetadataRequest() ?? {};
 
   const showEstimate = isLoading || Boolean(quotes?.length);
-
-  const estimatedTimeSeconds = quotes?.reduce(
-    (acc, quote) => acc + quote.estimatedProcessingTimeInSeconds,
-    0,
-  );
-
-  const isSameChainPayment = (quotes ?? []).some(
-    (quote) => quote.quote.srcChainId === quote.quote.destChainId,
-  );
 
   if (!showEstimate) {
     return null;
   }
 
   if (isLoading) {
-    return <SkeletonRow testId="bridge-time-row-skeleton" />;
+    return <InfoRowSkeleton testId="bridge-time-row-skeleton" />;
   }
 
+  const isSameChain = payToken?.chainId === chainId;
+  const formattedSeconds = formatSeconds(estimatedDuration ?? 0, isSameChain);
+
   return (
-    <InfoRow label={strings('confirm.label.bridge_estimated_time')}>
-      <Text>
-        {formatSeconds(estimatedTimeSeconds ?? 0, isSameChainPayment)}
+    <InfoRow
+      label={strings('confirm.label.bridge_estimated_time')}
+      rowVariant={InfoRowVariant.Small}
+    >
+      <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+        {formattedSeconds}
       </Text>
     </InfoRow>
   );
