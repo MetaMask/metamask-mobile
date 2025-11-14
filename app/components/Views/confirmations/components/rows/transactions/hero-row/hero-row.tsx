@@ -6,12 +6,20 @@ import { useIsNft } from '../../../../hooks/nft/useIsNft';
 import { HeroNft } from '../../../hero-nft';
 import { HeroToken } from '../../../hero-token';
 import { useStyles } from '../../../../../../../component-library/hooks';
+import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
 import styleSheet from './hero-row.styles';
 
-const LoadingHeroRow = () => {
+export function HeroRowSkeleton() {
   const { styles } = useStyles(styleSheet, {});
-  return <View style={styles.loadingWrapper} />;
-};
+
+  return (
+    <View style={styles.wrapper}>
+      <Skeleton width={64} height={64} style={{ borderRadius: 32 }} />
+      <Skeleton width={150} height={24} style={{ borderRadius: 6, marginTop: 16 }} />
+      <Skeleton width={80} height={18} style={{ borderRadius: 4, marginTop: 8, marginBottom: 14 }} />
+    </View>
+  );
+}
 
 export const HeroRow = ({ amountWei }: { amountWei?: string }) => {
   const { isNft, isPending } = useIsNft();
@@ -22,9 +30,11 @@ export const HeroRow = ({ amountWei }: { amountWei?: string }) => {
       style={styles.wrapper}
       testID={ConfirmationRowComponentIDs.TOKEN_HERO}
     >
-      {isPending && <LoadingHeroRow />}
+      {isPending && <HeroRowSkeleton />}
       {!isPending &&
         (isNft ? <HeroNft /> : <HeroToken amountWei={amountWei} />)}
     </View>
   );
 };
+
+

@@ -30,6 +30,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
+import { TransferInfoSkeleton } from '../info/transfer/transfer';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 
 const TRANSACTION_TYPES_DISABLE_SCROLL = [TransactionType.predictClaim];
 
@@ -43,6 +45,7 @@ export enum ConfirmationLoader {
   Default = 'default',
   CustomAmount = 'customAmount',
   PredictClaim = 'predictClaim',
+  Transfer = 'transfer',
 }
 
 export interface ConfirmationParams {
@@ -186,6 +189,14 @@ function Loader() {
     );
   }
 
+  if (loader === ConfirmationLoader.Transfer) {
+    return (
+      <InfoLoader testId="confirm-loader-transfer">
+        <TransferInfoSkeleton />
+      </InfoLoader>
+    );
+  }
+
   return (
     <View style={styles.spinnerContainer} testID="confirm-loader-default">
       <AnimatedSpinner size={SpinnerSize.MD} />
@@ -214,7 +225,19 @@ function InfoLoader({
       >
         {children}
       </ScrollView>
+      <FooterSkeleton />
     </SafeAreaView>
+  );
+}
+
+function FooterSkeleton() {
+  const { styles } = useStyles(styleSheet, { isFullScreenConfirmation: true });
+
+  return (
+    <View style={styles.footerSkeletonContainer}>
+      <Skeleton height={48} style={styles.footerButtonSkeleton} />
+      <Skeleton height={48} style={styles.footerButtonSkeleton} />
+    </View>
   );
 }
 

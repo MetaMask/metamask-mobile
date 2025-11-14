@@ -22,6 +22,7 @@ import { MMM_ORIGIN } from '../../../../constants/confirmations';
 import InfoSection from '../../../UI/info-row/info-section';
 import InfoRow from '../../../UI/info-row/info-row';
 import Address from '../../../UI/info-row/info-value/address';
+import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
 import styleSheet from './network-and-origin-row.styles';
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import AlertRow from '../../../UI/info-row/alert-row';
@@ -89,3 +90,22 @@ export const NetworkAndOriginRow = () => {
     </InfoSection>
   );
 };
+
+export function NetworkAndOriginRowSkeleton() {
+  return (
+    <InfoSection>
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingBottom: 8,
+          paddingHorizontal: 8,
+        }}
+      >
+        <Skeleton width={70} height={20} style={{ borderRadius: 4 }} />
+        <Skeleton width={100} height={20} style={{ borderRadius: 4 }} />
+      </View>
+    </InfoSection>
+  );
+}
