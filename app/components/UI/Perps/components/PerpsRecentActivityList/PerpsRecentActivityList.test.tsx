@@ -2,7 +2,11 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsRecentActivityList from './PerpsRecentActivityList';
 import Routes from '../../../../../constants/navigation/Routes';
-import { FillType } from '../../types/transactionHistory';
+import {
+  FillType,
+  PerpsOrderTransactionStatus,
+  PerpsOrderTransactionStatusType,
+} from '../../types/transactionHistory';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -367,45 +371,55 @@ describe('PerpsRecentActivityList', () => {
   });
 
   describe('Transaction Display', () => {
-    it('renders transactions without fill data correctly', () => {
-      const transactionsWithoutFill = [
+    it('renders order transactions correctly', () => {
+      const orderTransactions = [
         {
           id: 'order-3',
-          type: 'trade' as const,
-          category: 'position_open' as const,
-          title: 'Opened long',
+          type: 'order' as const,
+          category: 'limit_order' as const,
+          title: 'Limit Order',
           subtitle: '1.0 SOL',
           timestamp: 1698680000000,
           asset: 'SOL',
-          fill: undefined,
+          order: {
+            text: PerpsOrderTransactionStatus.Open,
+            statusType: PerpsOrderTransactionStatusType.Pending,
+            type: 'limit' as const,
+            size: '1.0',
+            limitPrice: '100',
+            filled: '0%',
+          },
         },
       ];
 
-      render(
-        <PerpsRecentActivityList transactions={transactionsWithoutFill} />,
-      );
+      render(<PerpsRecentActivityList transactions={orderTransactions} />);
 
-      expect(screen.getByText('Opened long')).toBeOnTheScreen();
+      expect(screen.getByText('Limit Order')).toBeOnTheScreen();
       expect(screen.getByText('1.0 SOL')).toBeOnTheScreen();
     });
 
-    it('does not render amount when fill is undefined', () => {
-      const transactionsWithoutFill = [
+    it('does not render amount for order transactions', () => {
+      const orderTransactions = [
         {
           id: 'order-3',
-          type: 'trade' as const,
-          category: 'position_open' as const,
-          title: 'Opened long',
+          type: 'order' as const,
+          category: 'limit_order' as const,
+          title: 'Limit Order',
           subtitle: '1.0 SOL',
           timestamp: 1698680000000,
           asset: 'SOL',
-          fill: undefined,
+          order: {
+            text: PerpsOrderTransactionStatus.Open,
+            statusType: PerpsOrderTransactionStatusType.Pending,
+            type: 'limit' as const,
+            size: '1.0',
+            limitPrice: '100',
+            filled: '0%',
+          },
         },
       ];
 
-      render(
-        <PerpsRecentActivityList transactions={transactionsWithoutFill} />,
-      );
+      render(<PerpsRecentActivityList transactions={orderTransactions} />);
 
       expect(screen.queryByText(/\$/)).not.toBeOnTheScreen();
     });

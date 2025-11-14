@@ -44,13 +44,18 @@ const PerpsOrderTransactionView: React.FC = () => {
   // Get transaction from route params
   const transaction = route.params?.transaction;
 
-  // Call hooks before conditional return
+  // Call hooks before type guard (hooks must be called unconditionally)
   const { totalFee, protocolFee, metamaskFee } = usePerpsOrderFees({
-    orderType: transaction?.order?.type ?? 'market',
-    amount: transaction?.order?.size ?? '0',
+    orderType:
+      transaction?.type === 'order'
+        ? (transaction.order.type ?? 'market')
+        : 'market',
+    amount:
+      transaction?.type === 'order' ? (transaction.order.size ?? '0') : '0',
   });
 
-  if (!transaction) {
+  // Type guard: Ensure this is an order transaction
+  if (!transaction || transaction.type !== 'order') {
     return (
       <ScreenView>
         <View style={styles.content}>

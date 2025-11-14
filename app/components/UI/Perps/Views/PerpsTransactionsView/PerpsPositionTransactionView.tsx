@@ -49,15 +49,8 @@ const PerpsPositionTransactionView: React.FC = () => {
   // Get transaction from route params
   const transaction = route.params?.transaction as PerpsTransaction;
 
-  navigation.setOptions(
-    getPerpsTransactionsDetailsNavbar(
-      navigation,
-      transaction?.fill?.shortTitle || '',
-    ),
-  );
-
-  if (!transaction) {
-    // Handle missing transaction data
+  // Type guard: Ensure this is a trade transaction
+  if (!transaction || transaction.type !== 'trade') {
     return (
       <ScreenView>
         <View style={styles.content}>
@@ -66,6 +59,13 @@ const PerpsPositionTransactionView: React.FC = () => {
       </ScreenView>
     );
   }
+
+  navigation.setOptions(
+    getPerpsTransactionsDetailsNavbar(
+      navigation,
+      transaction.fill.shortTitle || '',
+    ),
+  );
 
   const handleViewOnBlockExplorer = () => {
     if (!selectedInternalAccount) {

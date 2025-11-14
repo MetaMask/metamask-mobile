@@ -263,7 +263,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
 
   // Render right content based on transaction type
   const renderRightContent = (item: PerpsTransaction) => {
-    if (item.fill) {
+    if (item.type === 'trade') {
       return (
         <Text
           variant={TextVariant.BodySM}
@@ -274,7 +274,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       );
     }
 
-    if (item.order) {
+    if (item.type === 'order') {
       let statusStyle;
       if (item.order.statusType === 'filled') {
         statusStyle = styles.statusFilled;
@@ -291,7 +291,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       );
     }
 
-    if (item.fundingAmount) {
+    if (item.type === 'funding') {
       return (
         <Text
           variant={TextVariant.BodySM}

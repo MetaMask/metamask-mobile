@@ -40,7 +40,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   const handleTransactionPress = useCallback(
     (transaction: PerpsTransaction) => {
       // Navigate to appropriate transaction detail view
-      if (transaction.fill) {
+      if (transaction.type === 'trade') {
         navigation.navigate(Routes.PERPS.ROOT, {
           screen: Routes.PERPS.MARKET_DETAILS,
           params: {
@@ -54,7 +54,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
 
   // Render right content for trades (only type shown)
   const renderRightContent = useCallback((transaction: PerpsTransaction) => {
-    if (!transaction.fill) return null;
+    if (transaction.type !== 'trade') return null;
 
     const pnlColor = transaction.fill.isPositive
       ? TextColor.Success
