@@ -212,7 +212,30 @@ describe('useRampNavigation', () => {
     });
 
     describe('smart routing based on routing decision', () => {
-      it('navigates to deposit when routing decision is DEPOSIT', () => {
+      it('navigates to deposit when routing decision is DEPOSIT and mode is AGGREGATOR and params specify BUY', () => {
+        mockRampRoutingDecision = UnifiedRampRoutingType.DEPOSIT;
+        const mockNavDetails = [Routes.DEPOSIT.ID] as const;
+        mockCreateDepositNavigationDetails.mockReturnValue(mockNavDetails);
+
+        const { result } = renderHookWithProvider(() => useRampNavigation(), {
+          state: createMockState(),
+        });
+
+        result.current.goToRamps({
+          mode: RampMode.AGGREGATOR,
+          params: {
+            rampType: AggregatorRampType.BUY,
+          },
+        });
+
+        expect(mockCreateDepositNavigationDetails).toHaveBeenCalledWith(
+          undefined,
+        );
+        expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
+        expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
+      });
+
+      it('navigates to deposit when routing decision is DEPOSIT and mode is AGGREGATOR and params are not present', () => {
         mockRampRoutingDecision = UnifiedRampRoutingType.DEPOSIT;
         const mockNavDetails = [Routes.DEPOSIT.ID] as const;
         mockCreateDepositNavigationDetails.mockReturnValue(mockNavDetails);
@@ -228,6 +251,29 @@ describe('useRampNavigation', () => {
         );
         expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
         expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
+      });
+
+      it('navigates to aggregator when routing decision is DEPOSIT and params specify SELL', () => {
+        mockRampRoutingDecision = UnifiedRampRoutingType.DEPOSIT;
+        const mockNavDetails = [Routes.RAMP.BUY] as const;
+        mockCreateDepositNavigationDetails.mockReturnValue(mockNavDetails);
+
+        const { result } = renderHookWithProvider(() => useRampNavigation(), {
+          state: createMockState(),
+        });
+
+        result.current.goToRamps({
+          mode: RampMode.AGGREGATOR,
+          params: {
+            rampType: AggregatorRampType.SELL,
+          },
+        });
+
+        expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalledWith(
+          undefined,
+        );
+        expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
+        expect(mockCreateRampNavigationDetails).toHaveBeenCalled();
       });
 
       it('navigates to deposit with params when routing decision is DEPOSIT and mode is DEPOSIT', () => {
