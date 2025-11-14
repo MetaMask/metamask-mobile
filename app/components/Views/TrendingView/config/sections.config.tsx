@@ -42,74 +42,19 @@ interface SectionConfig {
 }
 
 /**
- * Centralized hook that fetches data for all sections.
- * When adding a new section, add its hook call here.
- * This keeps all section-related logic in one file.
- *
- * @param searchQuery - Optional search query for sections that support search
- * @returns Data and loading state for all sections
- */
-export const useSectionsData = (
-  searchQuery?: string,
-): Record<SectionId, SectionData> => {
-  const { results: trendingTokens, isLoading: isTokensLoading } =
-    useTrendingRequest({});
-
-  const { markets: perpsMarkets, isLoading: isPerpsLoading } =
-    usePerpsMarkets();
-
-  const { marketData: predictionMarkets, isFetching: isPredictionsLoading } =
-    usePredictMarketData({
-      category: 'trending',
-      q: searchQuery || undefined,
-      pageSize: searchQuery ? 20 : 3,
-    });
-
-  return {
-    tokens: {
-      data: trendingTokens,
-      isLoading: isTokensLoading,
-    },
-    perps: {
-      data: perpsMarkets,
-      isLoading: isPerpsLoading,
-    },
-    predictions: {
-      data: predictionMarkets,
-      isLoading: isPredictionsLoading,
-    },
-  };
-};
-
-/**
  * Centralized configuration for all Trending View sections.
  * This config is used by QuickActions, SectionHeaders, Search, and TrendingView rendering.
  *
  * To add a new section (EVERYTHING IN THIS FILE):
  * 1. Add the section ID to the SectionId type above
- * 2. Add the data hook call to useSectionsData hook above
- * 3. Create a config constant with all required properties (see examples above)
- * 4. Add the config to SECTIONS_CONFIG, HOME_SECTIONS_ARRAY, and SECTIONS_ARRAY below
- *
- * Required properties:
- * - title: section title string
- * - viewAllAction: handler for "View All" button
- * - renderRowItem: how to render each item in the list (receives item and navigation)
- * - renderSkeleton: loading skeleton component
- * - getSearchableText: extract searchable text from items for search functionality
- * - keyExtractor: unique key for each item (for React list rendering)
- * - renderSection: inline component that calls the data hook and returns SectionCard or SectionCarrousel
+ * 2. Add the config to SECTIONS_CONFIG, HOME_SECTIONS_ARRAY, and SECTIONS_ARRAY below
+ * 3. Add the hook to useSectionsData below
  *
  * The section will automatically appear in:
  * - TrendingView main feed
  * - QuickActions buttons
  * - Search results
  * - Section headers with "View All" navigation
- */
-
-/**
- * Configuration for each section in the Trending View.
- * This includes navigation, display, search functionality, and section rendering.
  */
 
 export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
@@ -252,3 +197,43 @@ export const SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
   SECTIONS_CONFIG.perps,
   SECTIONS_CONFIG.predictions,
 ];
+
+/**
+ * Centralized hook that fetches data for all sections.
+ * When adding a new section, add its hook call here.
+ * This keeps all section-related logic in one file.
+ *
+ * @param searchQuery - Optional search query for sections that support search
+ * @returns Data and loading state for all sections
+ */
+export const useSectionsData = (
+  searchQuery?: string,
+): Record<SectionId, SectionData> => {
+  const { results: trendingTokens, isLoading: isTokensLoading } =
+    useTrendingRequest({});
+
+  const { markets: perpsMarkets, isLoading: isPerpsLoading } =
+    usePerpsMarkets();
+
+  const { marketData: predictionMarkets, isFetching: isPredictionsLoading } =
+    usePredictMarketData({
+      category: 'trending',
+      q: searchQuery || undefined,
+      pageSize: searchQuery ? 20 : 3,
+    });
+
+  return {
+    tokens: {
+      data: trendingTokens,
+      isLoading: isTokensLoading,
+    },
+    perps: {
+      data: perpsMarkets,
+      isLoading: isPerpsLoading,
+    },
+    predictions: {
+      data: predictionMarkets,
+      isLoading: isPredictionsLoading,
+    },
+  };
+};
