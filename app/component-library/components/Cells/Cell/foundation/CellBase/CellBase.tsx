@@ -43,14 +43,18 @@ const CellBase = ({
         {...avatarProps}
       />
       <View style={styles.cellBaseInfo}>
-        <Text
-          numberOfLines={1}
-          variant={DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT}
-          testID={CellComponentSelectorsIDs.BASE_TITLE}
-          {...titleProps}
-        >
-          {title}
-        </Text>
+        {typeof title === 'string' ? (
+          <Text
+            numberOfLines={1}
+            variant={DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT}
+            testID={CellComponentSelectorsIDs.BASE_TITLE}
+            {...titleProps}
+          >
+            {title}
+          </Text>
+        ) : (
+          <View testID={CellComponentSelectorsIDs.BASE_TITLE}>{title}</View>
+        )}
         {!!secondaryText && (
           <Text
             numberOfLines={1}

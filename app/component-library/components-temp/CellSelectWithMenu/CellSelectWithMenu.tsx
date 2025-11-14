@@ -60,7 +60,7 @@ const CellSelectWithMenu = ({
         ) : null}
 
         <View style={styles.cellBaseInfo}>
-          {title === undefined || typeof title === 'string' ? (
+          {typeof title === 'string' ? (
             <Text
               numberOfLines={1}
               variant={DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT}
@@ -70,7 +70,7 @@ const CellSelectWithMenu = ({
               {title}
             </Text>
           ) : (
-            title
+            <View testID={CellComponentSelectorsIDs.BASE_TITLE}>{title}</View>
           )}
           {!!secondaryText &&
             (props.onTextClick ? (
