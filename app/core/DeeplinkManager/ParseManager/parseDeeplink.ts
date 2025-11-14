@@ -87,13 +87,17 @@ async function parseDeeplink({
     if (error && !isPrivateKey) {
       Logger.log('DeepLinkManager:parse error parsing deeplink');
       if (origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) {
+        // Navigate back first, then show alert
+        onHandled?.();
         Alert.alert(
           strings('qr_scanner.unrecognized_address_qr_code_title'),
           strings('qr_scanner.unrecognized_address_qr_code_desc'),
         );
-      } else {
-        Alert.alert(strings('deeplink.invalid'), `Invalid URL: ${url}`);
+
+        // Return true to indicate we handled this
+        return true;
       }
+      Alert.alert(strings('deeplink.invalid'), `Invalid URL: ${url}`);
     }
 
     return false;

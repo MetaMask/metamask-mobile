@@ -63,6 +63,7 @@ jest.mock('../NotificationMenuItem', () => ({
       <div>{isRead ? 'Read Icon' : 'Unread Icon'}</div>
     )),
     Content: jest.fn(() => <div>Mocked Content</div>),
+    Cta: jest.fn(() => null),
   },
 }));
 
@@ -157,7 +158,7 @@ describe('useNotificationOnClick', () => {
     );
     const notification = processNotification(createMockNotificationEthSent());
 
-    await act(() => hook.result.current(notification));
+    await act(() => hook.result.current.onNotificationClick(notification));
 
     // Assert - Controller Action
     expect(mocks.mockMarkNotificationAsRead).toHaveBeenCalledWith([

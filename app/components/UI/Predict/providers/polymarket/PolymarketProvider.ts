@@ -7,6 +7,8 @@ import { Hex, numberToHex } from '@metamask/utils';
 import { parseUnits } from 'ethers/lib/utils';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../../util/Logger';
+import { MetaMetrics } from '../../../../../core/Analytics';
+import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import {
   generateTransferData,
   isSmartContractAddress,
@@ -586,6 +588,12 @@ export class PolymarketProvider implements PredictProvider {
     apiPosition: PredictPosition,
     update: OptimisticPositionUpdate,
   ): boolean {
+    // If API position is claimable, it's always updated since we cannot
+    // perform updates on claimable positions, other than REMOVE
+    if (apiPosition.claimable) {
+      return true;
+    }
+
     const { expectedSize } = update;
 
     // Use a small tolerance for floating point comparison (0.1%)
@@ -603,9 +611,15 @@ export class PolymarketProvider implements PredictProvider {
   private applyOptimisticPositionUpdates({
     address,
     positions,
+    claimable,
+    marketId,
+    outcomeId,
   }: {
     address: string;
     positions: PredictPosition[];
+    claimable: boolean;
+    marketId?: string;
+    outcomeId?: string;
   }): PredictPosition[] {
     const optimisticUpdates =
       this.#optimisticPositionUpdatesByAddress.get(address);
@@ -634,6 +648,11 @@ export class PolymarketProvider implements PredictProvider {
         return;
       }
 
+      // Check if this update matches the query filters
+      const matchesFilter =
+        (!outcomeId || update.outcomeTokenId === outcomeId) &&
+        (!marketId || outcomeId || update.marketId === marketId);
+
       const apiPositionIndex = result.findIndex(
         (p) => p.outcomeTokenId === outcomeTokenId,
       );
@@ -656,12 +675,16 @@ export class PolymarketProvider implements PredictProvider {
                   expectedSize: update.expectedSize,
                 },
               );
-            } else if (update.optimisticPosition) {
-              // API not yet updated, use optimistic position
+            } else if (
+              update.optimisticPosition &&
+              !claimable &&
+              matchesFilter
+            ) {
+              // API not yet updated, use optimistic position (only if matches filter)
               result[apiPositionIndex] = update.optimisticPosition;
             }
-          } else if (update.optimisticPosition) {
-            // New position not in API yet, add optimistic position
+          } else if (update.optimisticPosition && !claimable && matchesFilter) {
+            // New position not in API yet, add optimistic position (only if matches filter)
             result.push(update.optimisticPosition);
           }
           break;
@@ -751,6 +774,9 @@ export class PolymarketProvider implements PredictProvider {
     const positionsWithOptimisticUpdates = this.applyOptimisticPositionUpdates({
       address,
       positions: parsedPositions,
+      claimable,
+      marketId,
+      outcomeId,
     });
 
     return positionsWithOptimisticUpdates;
@@ -1274,6 +1300,32 @@ export class PolymarketProvider implements PredictProvider {
     return result;
   }
 
+  /**
+   * Set user trait for Polymarket account creation via MetaMask
+   * Fire-and-forget operation that logs errors but doesn't fail
+   */
+  private setPolymarketAccountCreatedTrait(): void {
+    MetaMetrics.getInstance()
+      .addTraitsToUser({
+        [UserProfileProperty.CREATED_POLYMARKET_ACCOUNT_VIA_MM]: true,
+      })
+      .catch((error) => {
+        // Log error but don't fail the deposit preparation
+        Logger.error(error as Error, {
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            provider: 'polymarket',
+          },
+          context: {
+            name: 'PolymarketProvider',
+            data: {
+              method: 'setPolymarketAccountCreatedTrait',
+            },
+          },
+        });
+      });
+  }
+
   public async prepareDeposit(
     params: PrepareDepositParams & { signer: Signer },
   ): Promise<PrepareDepositResponse> {
@@ -1316,6 +1368,9 @@ export class PolymarketProvider implements PredictProvider {
       }
 
       transactions.push(deployTransaction);
+
+      // Set user trait for Polymarket account creation via MetaMask
+      this.setPolymarketAccountCreatedTrait();
     }
 
     if (!accountState.hasAllowances) {
@@ -1461,7 +1516,7 @@ export class PolymarketProvider implements PredictProvider {
       transaction: {
         params: {
           to: MATIC_CONTRACTS.collateral as Hex,
-          data: callData as Hex,
+          data: callData,
         },
         type: TransactionType.predictWithdraw,
       },

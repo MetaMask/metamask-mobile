@@ -65,8 +65,8 @@ import ErrorBoundary from '../ErrorBoundary';
 import FastOnboarding from './FastOnboarding';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import FoxAnimation from './FoxAnimation';
-import OnboardingAnimation from './OnboardingAnimation';
+import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
+import OnboardingAnimation from '../../UI/OnboardingAnimation/OnboardingAnimation';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -625,6 +625,7 @@ class Onboarding extends PureComponent {
       const loginHandler = createLoginHandler(Platform.OS, provider);
       const result = await OAuthLoginService.handleOAuthLogin(
         loginHandler,
+        !createWallet,
       ).catch((error) => {
         this.props.unsetLoading();
         this.handleLoginError(error, provider);
