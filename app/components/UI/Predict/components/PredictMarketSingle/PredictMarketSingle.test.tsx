@@ -311,14 +311,11 @@ describe('PredictMarketSingle', () => {
     );
     fireEvent.press(marketTitle);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MARKET_DETAILS,
-      params: {
-        marketId: mockMarket.id,
-        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-        title: mockMarket.title,
-        image: mockMarket.image,
-      },
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MARKET_DETAILS, {
+      marketId: mockMarket.id,
+      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+      title: mockMarket.title,
+      image: mockMarket.image,
     });
   });
 

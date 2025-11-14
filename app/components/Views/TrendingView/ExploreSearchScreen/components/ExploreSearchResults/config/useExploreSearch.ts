@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
-  SEARCH_SECTION_ARRAY,
+  SECTIONS_ARRAY,
   type SectionId,
   type SectionData,
-} from './exploreSearchConfig';
+} from '../../../../config/sections.config';
 import { usePerpsMarkets } from '../../../../../../UI/Perps/hooks/usePerpsMarkets';
 import { usePredictMarketData } from '../../../../../../UI/Predict/hooks/usePredictMarketData';
 import { useTrendingRequest } from '../../../../../../UI/Assets/hooks/useTrendingRequest';
@@ -53,14 +53,14 @@ const useExploreSearchData = (
  * GENERIC EXPLORE SEARCH HOOK
  *
  * This hook is completely generic and processes data from any sections
- * defined in exploreSearchConfig.tsx. It handles:
+ * defined in sections.config.tsx. It handles:
  * - Debouncing the search query
  * - Filtering results based on section configurations
  * - Returning top 3 items when no query is present
  *
  * TO ADD A NEW SECTION:
- * 1. Add section configuration to exploreSearchConfig.tsx
- * 2. Add hook call to useEploreSearchData above
+ * 1. Add section configuration to sections.config.tsx
+ * 2. Add hook call to useExploreSearchData above
  *
  * @param query - Search query string
  * @returns Search results grouped by section
@@ -92,7 +92,7 @@ export const useExploreSearch = (query: string): ExploreSearchResult => {
     const searchTerm = debouncedQuery.toLowerCase();
 
     // Process each section generically
-    SEARCH_SECTION_ARRAY.forEach((section) => {
+    SECTIONS_ARRAY.forEach((section) => {
       const sectionData = allSectionsData[section.id];
       isLoading[section.id] = sectionData.isLoading;
 

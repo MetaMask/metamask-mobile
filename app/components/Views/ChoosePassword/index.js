@@ -127,7 +127,6 @@ const createStyles = (colors) =>
       width: '100%',
       flexDirection: 'column',
       rowGap: 18,
-      marginTop: 'auto',
       marginBottom: Platform.select({
         ios: 16,
         android: 24,
@@ -140,7 +139,6 @@ const createStyles = (colors) =>
       justifyContent: 'flex-start',
       gap: 8,
       marginTop: 8,
-      marginBottom: 16,
       backgroundColor: colors.background.section,
       borderRadius: 8,
       padding: 16,
@@ -717,7 +715,6 @@ class ChoosePassword extends PureComponent {
       canSubmit =
         passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
     }
-    const previousScreen = this.props.route.params?.[PREVIOUS_SCREEN];
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
     const styles = createStyles(colors);
@@ -788,6 +785,7 @@ class ChoosePassword extends PureComponent {
                     {strings('choose_password.password')}
                   </Label>
                   <TextField
+                    autoFocus
                     secureTextEntry={this.state.showPasswordIndex.includes(0)}
                     value={password}
                     onChangeText={this.onPasswordChange}

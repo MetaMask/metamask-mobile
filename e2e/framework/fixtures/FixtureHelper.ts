@@ -13,6 +13,7 @@ import {
   getFixturesServerPort,
   startResourceWithRetry,
   startMultiInstanceResourceWithRetry,
+  cleanupAllAndroidPortForwarding,
 } from './FixtureUtils';
 import Utilities from '../../framework/Utilities';
 import TestHelpers from '../../helpers';
@@ -496,6 +497,10 @@ export async function withFixtures(
     skipReactNativeReload = false,
     useCommandQueueServer = false,
   } = options;
+
+  // Clean up any stale port forwarding from previous failed tests
+  // This ensures we start with a clean slate on Android
+  await cleanupAllAndroidPortForwarding();
 
   // Prepare android devices for testing to avoid having this in all tests
   await TestHelpers.reverseServerPort();
