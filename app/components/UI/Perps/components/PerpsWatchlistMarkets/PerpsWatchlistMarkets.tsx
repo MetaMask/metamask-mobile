@@ -63,6 +63,7 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
     ({ item }: { item: PerpsMarketData }) => (
       <PerpsMarketRowItem
         market={item}
+        showBadge={false}
         onPress={() => handleMarketPress(item)}
       />
     ),

@@ -7,12 +7,12 @@ import { Hex, Json } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
-import { useTokenAmount } from '../useTokenAmount';
 import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
 import { getNativeTokenAddress } from '../../utils/asset';
 import { hasTransactionType } from '../../utils/transaction';
 import {
   useTransactionPayQuotes,
+  useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from './useTransactionPayData';
 import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
@@ -22,7 +22,7 @@ export function useTransactionPayMetrics() {
   const dispatch = useDispatch();
   const transactionMeta = useTransactionMetadataRequest();
   const { payToken } = useTransactionPayToken();
-  const { amountPrecise } = useTokenAmount();
+  const requiredTokens = useTransactionPayRequiredTokens();
   const automaticPayToken = useRef<BridgeToken>();
   const quotes = useTransactionPayQuotes();
   const totals = useTransactionPayTotals();
@@ -33,6 +33,8 @@ export function useTransactionPayMetrics() {
 
   const transactionId = transactionMeta?.id ?? '';
   const { chainId, type } = transactionMeta ?? {};
+  const primaryRequiredToken = requiredTokens.find((t) => !t.skipIfBalance);
+  const sendingValue = Number(primaryRequiredToken?.amountHuman ?? '0');
 
   if (!automaticPayToken.current && payToken) {
     automaticPayToken.current = payToken;
@@ -61,7 +63,7 @@ export function useTransactionPayMetrics() {
 
   if (payToken && type === TransactionType.perpsDeposit) {
     properties.mm_pay_use_case = 'perps_deposit';
-    properties.simulation_sending_assets_total_value = amountPrecise ?? null;
+    properties.simulation_sending_assets_total_value = sendingValue;
   }
 
   if (
@@ -69,7 +71,7 @@ export function useTransactionPayMetrics() {
     hasTransactionType(transactionMeta, [TransactionType.predictDeposit])
   ) {
     properties.mm_pay_use_case = 'predict_deposit';
-    properties.simulation_sending_assets_total_value = amountPrecise ?? null;
+    properties.simulation_sending_assets_total_value = sendingValue;
   }
 
   const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
