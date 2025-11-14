@@ -560,6 +560,9 @@ describe('WaysToEarn', () => {
       expect(mockGoBack).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: expect.any(String),
+        },
       });
       expect(mockTrackEvent).toHaveBeenCalled();
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
