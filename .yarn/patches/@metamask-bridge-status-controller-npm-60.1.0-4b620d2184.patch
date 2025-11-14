@@ -1,0 +1,52 @@
+diff --git a/dist/constants.cjs b/dist/constants.cjs
+index c7e030b88736d18bc57076a5fa4f5384904aaee3..ced618b4252181896a185eb7759b77397a56e2b5 100644
+--- a/dist/constants.cjs
++++ b/dist/constants.cjs
+@@ -7,7 +7,7 @@ exports.BRIDGE_STATUS_CONTROLLER_NAME = 'BridgeStatusController';
+ exports.DEFAULT_BRIDGE_STATUS_CONTROLLER_STATE = {
+     txHistory: {},
+ };
+-exports.BRIDGE_PROD_API_BASE_URL = 'https://bridge.api.cx.metamask.io';
++exports.BRIDGE_PROD_API_BASE_URL = 'https://bridge-698.dev-api.cx.metamask.io';
+ exports.APPROVAL_DELAY_MS = 5000;
+ var TraceName;
+ (function (TraceName) {
+diff --git a/dist/constants.d.cts b/dist/constants.d.cts
+index fa0ed5959075bf6f4a8cd2541dba466967b0741b..4d9d358e2d53f2d929d13863a9d4a106c7298858 100644
+--- a/dist/constants.d.cts
++++ b/dist/constants.d.cts
+@@ -3,7 +3,7 @@ export declare const REFRESH_INTERVAL_MS: number;
+ export declare const MAX_ATTEMPTS = 7;
+ export declare const BRIDGE_STATUS_CONTROLLER_NAME = "BridgeStatusController";
+ export declare const DEFAULT_BRIDGE_STATUS_CONTROLLER_STATE: BridgeStatusControllerState;
+-export declare const BRIDGE_PROD_API_BASE_URL = "https://bridge.api.cx.metamask.io";
++export declare const BRIDGE_PROD_API_BASE_URL = "https://bridge-698.dev-api.cx.metamask.io";
+ export declare const APPROVAL_DELAY_MS = 5000;
+ export declare enum TraceName {
+     BridgeTransactionApprovalCompleted = "Bridge Transaction Approval Completed",
+diff --git a/dist/constants.d.mts b/dist/constants.d.mts
+index c0d858fa2898da9e2922f582ecc668f21c008731..3cf1a57ba1d473402768d68c0f752e6f6a7df98b 100644
+--- a/dist/constants.d.mts
++++ b/dist/constants.d.mts
+@@ -3,7 +3,7 @@ export declare const REFRESH_INTERVAL_MS: number;
+ export declare const MAX_ATTEMPTS = 7;
+ export declare const BRIDGE_STATUS_CONTROLLER_NAME = "BridgeStatusController";
+ export declare const DEFAULT_BRIDGE_STATUS_CONTROLLER_STATE: BridgeStatusControllerState;
+-export declare const BRIDGE_PROD_API_BASE_URL = "https://bridge.api.cx.metamask.io";
++export declare const BRIDGE_PROD_API_BASE_URL = "https://bridge-698.dev-api.cx.metamask.io";
+ export declare const APPROVAL_DELAY_MS = 5000;
+ export declare enum TraceName {
+     BridgeTransactionApprovalCompleted = "Bridge Transaction Approval Completed",
+diff --git a/dist/constants.mjs b/dist/constants.mjs
+index bc4a2f5a5d33350af3d2634d7a1e90e9265a75c2..33495cdfdd521c51930ac715a0953d0cb5e58514 100644
+--- a/dist/constants.mjs
++++ b/dist/constants.mjs
+@@ -4,7 +4,7 @@ export const BRIDGE_STATUS_CONTROLLER_NAME = 'BridgeStatusController';
+ export const DEFAULT_BRIDGE_STATUS_CONTROLLER_STATE = {
+     txHistory: {},
+ };
+-export const BRIDGE_PROD_API_BASE_URL = 'https://bridge.api.cx.metamask.io';
++export const BRIDGE_PROD_API_BASE_URL = 'https://bridge-698.dev-api.cx.metamask.io';
+ export const APPROVAL_DELAY_MS = 5000;
+ export var TraceName;
+ (function (TraceName) {
