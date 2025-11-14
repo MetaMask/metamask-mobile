@@ -77,6 +77,7 @@ const SWAP_SUPPORTED_CHAIN_IDS = [
   NETWORKS_CHAIN_ID.AVAXCCHAIN,
   NETWORKS_CHAIN_ID.ZKSYNC_ERA,
   NETWORKS_CHAIN_ID.SEI,
+  NETWORKS_CHAIN_ID.MONAD,
 ];
 
 export const SwapSupportedNetworksSection = () => {
@@ -130,8 +131,8 @@ export const SwapSupportedNetworksSection = () => {
           flexDirection={BoxFlexDirection.Row}
           twClassName="flex-wrap -mx-2 -my-1"
         >
-          {supportedNetworks.map((network, index) => (
-            <Box key={index} twClassName="basis-1/2 px-2 py-1">
+          {supportedNetworks.map((network) => (
+            <Box key={network.chainId} twClassName="basis-1/2 px-2 py-1">
               <SwapSupportedNetworkItem network={network} />
             </Box>
           ))}
