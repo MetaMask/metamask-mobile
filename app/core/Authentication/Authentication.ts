@@ -100,11 +100,6 @@ class AuthenticationService {
 
     const { MultichainAccountService } = Engine.context;
     await MultichainAccountService.init();
-    // READ THIS CAREFULLY:
-    // There is is/was a bug with Snap accounts that can be desynchronized (Solana). To
-    // automatically "fix" this corrupted state, we run this method which will re-sync
-    // MetaMask accounts and Snap accounts upon login.
-    await MultichainAccountService.resyncAccounts();
 
     ReduxService.store.dispatch(logIn());
   }
@@ -242,8 +237,19 @@ class AuthenticationService {
     });
   };
 
-  private retryDiscoveryIfPending = async (): Promise<void> => {
+  private postLoginAsyncOperations = async (): Promise<void> => {
     if (isMultichainAccountsState2Enabled()) {
+      // READ THIS CAREFULLY:
+      // There is is/was a bug with Snap accounts that can be desynchronized (Solana). To
+      // automatically "fix" this corrupted state, we run this method which will re-sync
+      // MetaMask accounts and Snap accounts upon login.
+      try {
+        const { MultichainAccountService } = Engine.context;
+        await MultichainAccountService.resyncAccounts();
+      } catch (error) {
+        console.warn('Failed to resync accounts:', error);
+      }
+
       // We just re-run the same discovery here.
       // 1. Each wallets know their highest group index and restart the discovery from
       // there, thus acting naturally as a "retry".
@@ -251,13 +257,24 @@ class AuthenticationService {
       // have been added on external wallets.
       // 3. We run the alignment at the end of the discovery, thus, automatically
       // creating accounts for new account providers.
-      await Promise.allSettled(
+      const results = await Promise.allSettled(
         this.getEntropySourceIds().map(
           async (entropySource) =>
             await this.attemptMultichainAccountWalletDiscovery(entropySource),
         ),
       );
+      if (results.some((result) => result.status === 'rejected')) {
+        let error = 'Failed to check discovery:';
+
+        for (const result of results) {
+          if (result.status === 'rejected') {
+            error += `\n- ${result.reason}`;
+          }
+        }
+        console.warn(error);
+      }
     } else {
+      // Try to complete any pending account discovery
       await Promise.all(
         Object.values(WalletClientType).map(async (clientType) => {
           const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
@@ -606,8 +623,11 @@ class AuthenticationService {
       this.authData = authData;
       this.dispatchPasswordSet();
 
-      // Try to complete any pending account discovery
-      this.retryDiscoveryIfPending();
+      // We run some post-login operations asynchronously to make login feels smoother and faster (re-sync,
+      // discovery...).
+      // NOTE: We do not await on purpose, to run those operations in the background.
+      // eslint-disable-next-line no-void
+      void this.postLoginAsyncOperations();
 
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -676,8 +696,11 @@ class AuthenticationService {
       ReduxService.store.dispatch(authSuccess(bioStateMachineId));
       this.dispatchPasswordSet();
 
-      // Try to complete any pending account discovery
-      this.retryDiscoveryIfPending();
+      // We run some post-login operations asynchronously to make login feels smoother and faster (re-sync,
+      // discovery...).
+      // NOTE: We do not await on purpose, to run those operations in the background.
+      // eslint-disable-next-line no-void
+      void this.postLoginAsyncOperations();
 
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
