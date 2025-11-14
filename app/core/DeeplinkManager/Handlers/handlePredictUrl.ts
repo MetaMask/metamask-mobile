@@ -58,7 +58,7 @@ const handleMarketNavigation = (marketId: string, entryPoint: string) => {
 
   // Navigate to market details with the market ID
   // Note: Market details is under MODALS.ROOT, not the main ROOT
-  NavigationService.navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+  NavigationService.navigation.navigate(Routes.PREDICT.ROOT, {
     screen: Routes.PREDICT.MARKET_DETAILS,
     params: {
       marketId,
