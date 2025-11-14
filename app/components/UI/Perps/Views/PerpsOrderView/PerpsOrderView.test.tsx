@@ -135,6 +135,7 @@ jest.mock('../../hooks', () => ({
   usePerpsPrices: jest.fn(),
   usePerpsLivePrices: jest.fn(() => ({
     ETH: { price: '3000', percentChange24h: '2.5' },
+    BTC: { price: '3000', percentChange24h: '2.5' },
   })),
   usePerpsPaymentTokens: jest.fn(),
   usePerpsConnection: jest.fn(() => ({
@@ -2934,7 +2935,7 @@ describe('PerpsOrderView', () => {
       expect(orderTypeText).toBeOnTheScreen();
     });
 
-    it('should display correct asset and price in header', () => {
+    it('should display correct asset and price in header', async () => {
       // Arrange - Mock specific asset data
       (usePerpsOrderContext as jest.Mock).mockReturnValue({
         ...defaultMockHooks.usePerpsOrderContext,
@@ -2944,7 +2945,7 @@ describe('PerpsOrderView', () => {
         },
       });
 
-      const { getByTestId, getByText } = render(
+      const { getByTestId, findByText } = render(
         <SafeAreaProvider initialMetrics={initialMetrics}>
           <TestWrapper>
             <PerpsOrderView />
@@ -2955,7 +2956,9 @@ describe('PerpsOrderView', () => {
       // Assert - Should display asset in header title using testID to avoid duplicate text matches
       const headerTitle = getByTestId('perps-order-header-asset-title');
       expect(headerTitle).toHaveTextContent('Long BTC');
-      expect(getByText('$3,000')).toBeOnTheScreen(); // Price from mock data
+      // Wait for price to appear after isDataReady becomes true
+      const priceText = await findByText('$3,000');
+      expect(priceText).toBeOnTheScreen();
     });
   });
 });
