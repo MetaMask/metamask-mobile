@@ -37,7 +37,6 @@ import {
   getFeatureFlagAppDistribution,
   getFeatureFlagAppEnvironment,
 } from '../../../../core/Engine/controllers/remote-feature-flag-controller/utils';
-import { getFullVersion } from '../../../../constants/ota';
 
 const createStyles = (colors) =>
   StyleSheet.create({
