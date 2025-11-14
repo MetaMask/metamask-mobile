@@ -137,5 +137,41 @@ describe('TokenSelection Component', () => {
 
       expect(toJSON()).toMatchSnapshot();
     });
+
+    it('navigates to buy route when token is pressed with BUY rampType', () => {
+      (useParams as jest.Mock).mockReturnValue({
+        rampType: 'BUY',
+      });
+      const { getAllByRole } = renderWithProvider(TokenSelection);
+
+      const tokenButtons = getAllByRole('button');
+      const firstToken = tokenButtons[0];
+      fireEvent.press(firstToken);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'AggregatorBuy',
+        expect.objectContaining({
+          assetId: mockTokens[0].assetId,
+        }),
+      );
+    });
+
+    it('navigates to deposit route when token is pressed with DEPOSIT rampType', () => {
+      (useParams as jest.Mock).mockReturnValue({
+        rampType: 'DEPOSIT',
+      });
+      const { getAllByRole } = renderWithProvider(TokenSelection);
+
+      const tokenButtons = getAllByRole('button');
+      const firstToken = tokenButtons[0];
+      fireEvent.press(firstToken);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'DepositAmount',
+        expect.objectContaining({
+          assetId: mockTokens[0].assetId,
+        }),
+      );
+    });
   });
 });
