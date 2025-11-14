@@ -20835,21 +20835,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wdio/globals@npm:^9.17.0":
-  version: 9.17.0
-  resolution: "@wdio/globals@npm:9.17.0"
-  peerDependencies:
-    expect-webdriverio: ^5.3.4
-    webdriverio: ^9.0.0
-  peerDependenciesMeta:
-    expect-webdriverio:
-      optional: false
-    webdriverio:
-      optional: false
-  checksum: 10/5e0b33a56accab13be3cb419683bb882c09654078b190da228b0bdae79ef2671028622e706056bbc79e5b73a7e9135b008fd12f577ba6c4352a76d0e111527b5
-  languageName: node
-  linkType: hard
-
 "@wdio/junit-reporter@npm:^7.25.4":
   version: 7.31.1
   resolution: "@wdio/junit-reporter@npm:7.31.1"
@@ -36872,7 +36857,6 @@ __metadata:
     "@wdio/browserstack-service": "npm:^7.26.0"
     "@wdio/cli": "npm:^7.19.1"
     "@wdio/cucumber-framework": "npm:^7.19.1"
-    "@wdio/globals": "npm:^9.17.0"
     "@wdio/junit-reporter": "npm:^7.25.4"
     "@wdio/local-runner": "npm:^7.19.1"
     "@wdio/spec-reporter": "npm:^7.19.1"
@@ -37097,7 +37081,6 @@ __metadata:
     viem: "npm:^2.28.0"
     vm-browserify: "npm:1.1.2"
     wdio-cucumberjs-json-reporter: "npm:^4.4.3"
-    wdio-wait-for: "npm:^3.1.0"
     webdriverio: "npm:9.20.0"
     webextension-polyfill: "npm:^0.12.0"
     webpack: "npm:^5.88.2"
@@ -48114,13 +48097,6 @@ __metadata:
   peerDependencies:
     "@wdio/cucumber-framework": 7.x
   checksum: 10/b4b3c2cd229f61d0d38d91ccfcb4f8ed5f4e1a760177fc1d711a01e8f39690bb2bc83afa6a319d30c23759640e0e9e15c7ec390036987679e69ae76b2b1c4110
-  languageName: node
-  linkType: hard
-
-"wdio-wait-for@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "wdio-wait-for@npm:3.1.0"
-  checksum: 10/dc0c853900e6a7515c72ccb5d5e26b2eff5e790c472f82ffa1b10ff9ba09d20b5e6b99a456eae6e43a16f0e724b533de6e0fb347f189af17871bc31f0e2fd6ea
   languageName: node
   linkType: hard
 
