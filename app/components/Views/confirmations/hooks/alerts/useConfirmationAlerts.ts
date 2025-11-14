@@ -7,7 +7,6 @@ import { useSignedOrSubmittedAlert } from './useSignedOrSubmittedAlert';
 import { usePendingTransactionAlert } from './usePendingTransactionAlert';
 import { Alert } from '../../types/alerts';
 import { useBatchedUnusedApprovalsAlert } from './useBatchedUnusedApprovalsAlert';
-import { usePerpsDepositMinimumAlert } from './usePerpsDepositMinimumAlert';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
 import { useInsufficientPayTokenNativeAlert } from './useInsufficientPayTokenNativeAlert';
@@ -26,7 +25,6 @@ function useTransactionAlerts(): Alert[] {
   const signedOrSubmittedAlert = useSignedOrSubmittedAlert();
   const pendingTransactionAlert = usePendingTransactionAlert();
   const batchedUnusedApprovalsAlert = useBatchedUnusedApprovalsAlert();
-  const perpsDepositMinimumAlert = usePerpsDepositMinimumAlert();
   const insufficientPayTokenBalanceAlert =
     useInsufficientPayTokenBalanceAlert();
   const noPayTokenQuotesAlert = useNoPayTokenQuotesAlert();
@@ -41,7 +39,6 @@ function useTransactionAlerts(): Alert[] {
       ...batchedUnusedApprovalsAlert,
       ...pendingTransactionAlert,
       ...signedOrSubmittedAlert,
-      ...perpsDepositMinimumAlert,
       ...insufficientPayTokenBalanceAlert,
       ...noPayTokenQuotesAlert,
       ...insufficientPayTokenNativeAlert,
@@ -54,7 +51,6 @@ function useTransactionAlerts(): Alert[] {
       batchedUnusedApprovalsAlert,
       pendingTransactionAlert,
       signedOrSubmittedAlert,
-      perpsDepositMinimumAlert,
       insufficientPayTokenBalanceAlert,
       noPayTokenQuotesAlert,
       insufficientPayTokenNativeAlert,

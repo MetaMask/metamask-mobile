@@ -329,7 +329,7 @@ const Settings = () => {
             onPress={onPressDeveloperOptions}
           />
         )}
-        {process.env.NODE_ENV !== 'production' && (
+        {process.env.METAMASK_ENVIRONMENT !== 'production' && (
           <SettingsDrawer
             title={strings('app_settings.feature_flag_override.title')}
             description={strings(

@@ -30,6 +30,9 @@ export const PredictEventProperties = {
   ORDER_ID: 'order_id',
   USER_ADDRESS: 'user_address',
 
+  // Trade status
+  STATUS: 'status',
+
   // Performance metrics
   COMPLETION_DURATION: 'completion_duration',
 
@@ -41,6 +44,10 @@ export const PredictEventProperties = {
 
   // Activity specific
   ACTIVITY_TYPE: 'activity_type',
+
+  // Geo-blocking specific
+  COUNTRY: 'country',
+  ATTEMPTED_ACTION: 'attempted_action',
 
   // Feed session specific
   PREDICT_FEED_TAB: 'predict_feed_tab',
@@ -55,6 +62,7 @@ export const PredictEventProperties = {
  */
 export const PredictEventValues = {
   ENTRY_POINT: {
+    CAROUSEL: 'carousel',
     PREDICT_FEED: 'predict_feed',
     PREDICT_MARKET_DETAILS: 'predict_market_details',
     SEARCH: 'search',
@@ -62,6 +70,8 @@ export const PredictEventValues = {
     HOMEPAGE_NEW_PREDICTION: 'homepage_new_prediction',
     HOMEPAGE_BALANCE: 'homepage_balance',
     MAIN_TRADE_BUTTON: 'main_trade_button',
+    REWARDS: 'rewards',
+    GTM_MODAL: 'gtm_modal',
     BACKGROUND: 'background',
   },
   TRANSACTION_TYPE: {
@@ -83,17 +93,36 @@ export const PredictEventValues = {
     CASHED_OUT: 'cashed_out',
     CLAIMED: 'claimed',
   },
+  ATTEMPTED_ACTION: {
+    DEPOSIT: 'deposit',
+    PREDICT: 'predict_action',
+    CASHOUT: 'cashout',
+    CLAIM: 'claim',
+    WITHDRAW: 'withdraw',
+  },
 } as const;
 
 /**
- * Event type constants for analytics tracking
+ * Trade transaction status values for analytics tracking
+ * Used as the 'status' property in PREDICT_TRADE_TRANSACTION event
  */
-export const PredictEventType = {
-  INITIATED: 'INITIATED',
-  SUBMITTED: 'SUBMITTED',
-  COMPLETED: 'COMPLETED',
-  FAILED: 'FAILED',
+export const PredictTradeStatus = {
+  INITIATED: 'initiated',
+  SUBMITTED: 'submitted',
+  SUCCEEDED: 'succeeded',
+  FAILED: 'failed',
 } as const;
 
-export type PredictEventTypeValue =
-  (typeof PredictEventType)[keyof typeof PredictEventType];
+export type PredictTradeStatusValue =
+  (typeof PredictTradeStatus)[keyof typeof PredictTradeStatus];
+
+// Legacy export for backward compatibility during transition
+export const PredictEventType = PredictTradeStatus;
+export type PredictEventTypeValue = PredictTradeStatusValue;
+
+/**
+ * GTM Modal constants for analytics tracking
+ */
+export const PREDICT_GTM_WHATS_NEW_MODAL = 'predict-gtm-whats-new-modal';
+export const PREDICT_GTM_MODAL_ENGAGE = 'engage';
+export const PREDICT_GTM_MODAL_DECLINE = 'decline';

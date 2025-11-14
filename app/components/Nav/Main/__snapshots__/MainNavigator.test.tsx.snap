@@ -50,11 +50,7 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   <Screen
     component={[Function]}
     name="AddAsset"
-    options={
-      {
-        "headerShown": false,
-      }
-    }
+    options={[Function]}
   />
   <Screen
     component={[Function]}
@@ -131,6 +127,10 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   <Screen
     component={[Function]}
     name="PaymentRequestView"
+  />
+  <Screen
+    component={[Function]}
+    name="RampTokenSelection"
   />
   <Screen
     name="RampBuy"

@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef, useEffect } from 'react';
 import Engine from '../../../../../core/Engine';
 import { type GenericQuoteRequest } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
@@ -9,13 +9,15 @@ import {
   selectSelectedDestChainId,
   selectSlippage,
   selectDestAddress,
+  selectGasIncluded,
 } from '../../../../../core/redux/slices/bridge';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { calcTokenValue } from '../../../../../util/transactions';
 import { debounce } from 'lodash';
 import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
-import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
+import useIsInsufficientBalance from '../useInsufficientBalance';
+import { useLatestBalance } from '../useLatestBalance';
 
 export const DEBOUNCE_WAIT = 300;
 
@@ -32,9 +34,26 @@ export const useBridgeQuoteRequest = () => {
   const walletAddress = useSelector(selectSourceWalletAddress);
   const destAddress = useSelector(selectDestAddress);
   const context = useUnifiedSwapBridgeContext();
-  const shouldUseSmartTransaction = useSelector(
-    selectShouldUseSmartTransaction,
-  );
+
+  const latestSourceBalance = useLatestBalance({
+    address: sourceToken?.address,
+    decimals: sourceToken?.decimals,
+    chainId: sourceToken?.chainId,
+  });
+  const insufficientBal = useIsInsufficientBalance({
+    amount: sourceAmount,
+    token: sourceToken,
+    latestAtomicBalance: latestSourceBalance?.atomicBalance,
+  });
+
+  // Use a ref to track the latest insufficientBal value without triggering callback recreation
+  const insufficientBalRef = useRef(insufficientBal);
+  useEffect(() => {
+    insufficientBalRef.current = insufficientBal;
+  }, [insufficientBal]);
+
+  const gasIncluded = useSelector(selectGasIncluded);
+
   /**
    * Updates quote parameters in the bridge controller
    */
@@ -66,8 +85,9 @@ export const useBridgeQuoteRequest = () => {
       slippage: slippage ? Number(slippage) : undefined,
       walletAddress,
       destWalletAddress: destAddress ?? walletAddress,
-      gasIncluded: shouldUseSmartTransaction,
-      gasIncluded7702: false, // TODO research how to handle this
+      gasIncluded,
+      gasIncluded7702: false, // TODO: https://consensyssoftware.atlassian.net/browse/STX-263
+      insufficientBal: insufficientBalRef.current,
     };
 
     await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
@@ -83,7 +103,7 @@ export const useBridgeQuoteRequest = () => {
     walletAddress,
     destAddress,
     context,
-    shouldUseSmartTransaction,
+    gasIncluded,
   ]);
 
   // Create a stable debounced function that persists across renders

@@ -17,7 +17,7 @@ import {
   updateFiatOrder,
 } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
-import { getFiatOnRampAggNavbar } from '../../../../Navbar';
+import { getDepositNavbarOptions } from '../../../../Navbar';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { processFiatOrder } from '../../../index';
 import {
@@ -31,10 +31,8 @@ import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import ErrorView from '../../components/ErrorView';
 import useInterval from '../../../../../hooks/useInterval';
 import AppConstants from '../../../../../../core/AppConstants';
-import {
-  createBuyNavigationDetails,
-  createSellNavigationDetails,
-} from '../../routes/utils';
+import { useRampNavigation, RampMode } from '../../../hooks/useRampNavigation';
+import { RampType as AggregatorRampType } from '../../types';
 import { useAggregatorOrderNetworkName } from '../../hooks/useAggregatorOrderNetworkName';
 
 interface OrderDetailsParams {
@@ -55,28 +53,29 @@ const OrderDetails = () => {
     order?.state === FIAT_ORDER_STATES.CREATED,
   );
   const [error, setError] = useState<string | null>(null);
-  const { colors } = useTheme();
+  const theme = useTheme();
+  const { colors } = theme;
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
   const getAggregatorOrderNetworkName = useAggregatorOrderNetworkName();
+  const { goToRamps } = useRampNavigation();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isRefreshingInterval, setIsRefreshingInterval] = useState(false);
 
   useEffect(() => {
     navigation.setOptions(
-      getFiatOnRampAggNavbar(
+      getDepositNavbarOptions(
         navigation,
         {
           title: strings('fiat_on_ramp_aggregator.order_details.details_main'),
-          showCancel: false,
-          showNetwork: false,
+          showClose: false,
         },
-        colors,
+        theme,
       ),
     );
-  }, [colors, navigation]);
+  }, [theme, navigation]);
 
   const navigateToSendTransaction = useCallback(() => {
     if (order?.id) {
@@ -189,11 +188,17 @@ const OrderDetails = () => {
   const handleMakeAnotherPurchase = useCallback(() => {
     navigation.goBack();
     if (order?.orderType === OrderOrderTypeEnum.Buy) {
-      navigation.navigate(...createBuyNavigationDetails());
+      goToRamps({
+        mode: RampMode.AGGREGATOR,
+        params: { rampType: AggregatorRampType.BUY },
+      });
     } else {
-      navigation.navigate(...createSellNavigationDetails());
+      goToRamps({
+        mode: RampMode.AGGREGATOR,
+        params: { rampType: AggregatorRampType.SELL },
+      });
     }
-  }, [navigation, order?.orderType]);
+  }, [navigation, order?.orderType, goToRamps]);
 
   useInterval(
     () => {

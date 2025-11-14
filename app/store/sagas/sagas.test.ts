@@ -17,6 +17,7 @@ import {
   startAppServices,
   initializeSDKServices,
   handleDeeplinkSaga,
+  handleSnapsRegistry,
 } from './';
 import { NavigationActionType } from '../../actions/navigation';
 import EngineService from '../../core/EngineService';
@@ -85,6 +86,9 @@ jest.mock('../../core/Engine', () => ({
     },
     KeyringController: {
       isUnlocked: jest.fn().mockReturnValue(false),
+    },
+    SnapController: {
+      updateRegistry: jest.fn(),
     },
   },
 }));
@@ -595,5 +599,47 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
     callback({ uri: mockUri });
     await new Promise((resolve) => setImmediate(resolve));
     expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockUri });
+  });
+});
+
+describe('handleSnapsRegistry', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('triggers on login', async () => {
+    await expectSaga(handleSnapsRegistry)
+      .withState({ onboarding: { completedOnboarding: true } })
+      .dispatch({ type: UserActionType.LOGIN })
+      .silentRun();
+
+    expect(Engine.context.SnapController.updateRegistry).toHaveBeenCalled();
+  });
+
+  it('triggers when onboarding has finished', async () => {
+    await expectSaga(handleSnapsRegistry)
+      .withState({ onboarding: { completedOnboarding: false } })
+      .dispatch(setCompletedOnboarding(true))
+      .silentRun();
+
+    expect(Engine.context.SnapController.updateRegistry).toHaveBeenCalled();
+  });
+
+  it('does not trigger if onboarding has not been completed', async () => {
+    await expectSaga(handleSnapsRegistry)
+      .withState({ onboarding: { completedOnboarding: false } })
+      .dispatch({ type: UserActionType.LOGIN })
+      .silentRun();
+
+    expect(Engine.context.SnapController.updateRegistry).not.toHaveBeenCalled();
+  });
+
+  it('does not trigger when onboarding is reset', async () => {
+    await expectSaga(handleSnapsRegistry)
+      .withState({ onboarding: { completedOnboarding: false } })
+      .dispatch(setCompletedOnboarding(false))
+      .silentRun();
+
+    expect(Engine.context.SnapController.updateRegistry).not.toHaveBeenCalled();
   });
 });
