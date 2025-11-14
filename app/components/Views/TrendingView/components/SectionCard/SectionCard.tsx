@@ -15,7 +15,7 @@ const createStyles = (theme: Theme) =>
       paddingVertical: 16,
       paddingHorizontal: 16,
       backgroundColor: theme.colors.background.muted,
-      borderColor: theme.colors.border.muted,
+      borderWidth: 0,
     },
   });
 interface SectionCardProps {
