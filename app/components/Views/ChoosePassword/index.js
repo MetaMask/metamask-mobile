@@ -715,7 +715,6 @@ class ChoosePassword extends PureComponent {
       canSubmit =
         passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
     }
-    const previousScreen = this.props.route.params?.[PREVIOUS_SCREEN];
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
     const styles = createStyles(colors);
