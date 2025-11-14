@@ -17,6 +17,7 @@ import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { Authentication } from '../../../core';
 import { useAppThemeFromContext } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
@@ -49,20 +50,21 @@ const WalletRestored = () => {
     );
   }, [deviceMetaData, trackEvent, createEventBuilder]);
 
-  const finishWalletRestore = useCallback((): void => {
-    // After vault recovery, navigate to Login for manual password entry
-    // This unlocks the restored vault AND stores credentials in keychain
-    // Note: appTriggeredAuth cannot work here - no credentials exist yet
-    navigation.replace(Routes.ONBOARDING.LOGIN, {
-      isVaultRecovery: true,
-    });
+  const finishWalletRestore = useCallback(async (): Promise<void> => {
+    try {
+      await Authentication.appTriggeredAuth();
+      navigation.replace(Routes.ONBOARDING.HOME_NAV);
+    } catch (e) {
+      // we were not able to log in automatically so we will go back to login
+      navigation.replace(Routes.ONBOARDING.LOGIN);
+    }
   }, [navigation]);
 
   const onPressBackupSRP = useCallback(async (): Promise<void> => {
     Linking.openURL(SRP_GUIDE_URL);
   }, []);
 
-  const handleOnNext = useCallback((): void => {
+  const handleOnNext = useCallback(async (): Promise<void> => {
     setLoading(true);
     trackEvent(
       createEventBuilder(
@@ -71,7 +73,7 @@ const WalletRestored = () => {
         .addProperties({ ...deviceMetaData })
         .build(),
     );
-    finishWalletRestore();
+    await finishWalletRestore();
   }, [deviceMetaData, finishWalletRestore, trackEvent, createEventBuilder]);
 
   return (

@@ -2,10 +2,8 @@ import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 import useDeleteWallet from './useDeleteWallet';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import Engine from '../../../core/Engine';
-import { Engine as EngineClass } from '../../../core/Engine/Engine';
 import Logger from '../../../util/Logger';
 import { Authentication } from '../../../core';
-import { clearAllVaultBackups } from '../../../core/BackupVault';
 import { resetProviderToken as depositResetProviderToken } from '../../UI/Ramp/Deposit/utils/ProviderTokenVault';
 
 jest.mock('../../../core/Engine', () => ({
@@ -16,12 +14,6 @@ jest.mock('../../../core/Engine', () => ({
   },
   controllerMessenger: {
     call: jest.fn(),
-  },
-}));
-
-jest.mock('../../../core/Engine/Engine', () => ({
-  Engine: {
-    disableAutomaticVaultBackup: false,
   },
 }));
 
@@ -60,65 +52,16 @@ jest.mock('../../UI/Ramp/Deposit/utils/ProviderTokenVault', () => ({
 describe('useDeleteWallet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    EngineClass.disableAutomaticVaultBackup = false;
   });
 
-  test('provides two functions for wallet operations', () => {
-    // Arrange & Act
+  test('it should provide two outputs of type function', () => {
     const { result } = renderHookWithProvider(() => useDeleteWallet());
     const [resetWalletState, deleteUser] = result.current;
-
-    // Assert
     expect(typeof resetWalletState).toBe('function');
     expect(typeof deleteUser).toBe('function');
   });
 
-  test('calls vault backup clear before creating temporary wallet', async () => {
-    // Arrange
-    const { result } = renderHookWithProvider(() => useDeleteWallet());
-    const [resetWalletState] = result.current;
-    const clearVaultSpy = jest.mocked(clearAllVaultBackups);
-    const newWalletSpy = jest.spyOn(Authentication, 'newWalletAndKeychain');
-
-    // Act
-    await resetWalletState();
-
-    // Assert
-    expect(clearVaultSpy).toHaveBeenCalledTimes(1);
-    const clearCallOrder = clearVaultSpy.mock.invocationCallOrder[0];
-    const newWalletCallOrder = newWalletSpy.mock.invocationCallOrder[0];
-    expect(clearCallOrder).toBeLessThan(newWalletCallOrder);
-  });
-
-  test('disables automatic vault backup during wallet reset', async () => {
-    // Arrange
-    const { result } = renderHookWithProvider(() => useDeleteWallet());
-    const [resetWalletState] = result.current;
-
-    // Act
-    await resetWalletState();
-
-    // Assert - flag is re-enabled after reset completes
-    expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
-  });
-
-  test('re-enables automatic vault backup even when error occurs', async () => {
-    // Arrange
-    const { result } = renderHookWithProvider(() => useDeleteWallet());
-    const [resetWalletState] = result.current;
-    jest
-      .spyOn(Authentication, 'newWalletAndKeychain')
-      .mockRejectedValueOnce(new Error('Authentication failed'));
-
-    // Act
-    await resetWalletState();
-
-    // Assert - flag is still re-enabled despite error
-    expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
-  });
-
-  test('calls all required methods to reset wallet state', async () => {
-    // Arrange
+  test('it should call the appropriate methods to reset the wallet', async () => {
     const { result } = renderHookWithProvider(() => useDeleteWallet());
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [resetWalletState, _] = result.current;
@@ -130,14 +73,14 @@ describe('useDeleteWallet', () => {
       Engine.context.SeedlessOnboardingController,
       'clearState',
     );
+
     const resetRewardsSpy = jest.spyOn(Engine.controllerMessenger, 'call');
+
     const loggerSpy = jest.spyOn(Logger, 'log');
     const resetProviderTokenSpy = jest.mocked(depositResetProviderToken);
 
-    // Act
     await resetWalletState();
 
-    // Assert
     expect(newWalletAndKeychain).toHaveBeenCalledWith(expect.any(String), {
       currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
     });
@@ -148,10 +91,10 @@ describe('useDeleteWallet', () => {
     expect(resetProviderTokenSpy).toHaveBeenCalledTimes(1);
   });
 
-  test('logs error when resetWalletState fails', async () => {
-    // Arrange
+  test('it should handle errors gracefully when resetWalletState fails', async () => {
     const { result } = renderHookWithProvider(() => useDeleteWallet());
     const [resetWalletState] = result.current;
+
     const newWalletAndKeychain = jest.spyOn(
       Authentication,
       'newWalletAndKeychain',
@@ -161,10 +104,7 @@ describe('useDeleteWallet', () => {
       new Error('Authentication failed'),
     );
 
-    // Act
-    await resetWalletState();
-
-    // Assert
+    await expect(resetWalletState()).resolves.not.toThrow();
     expect(newWalletAndKeychain).toHaveBeenCalled();
     expect(loggerSpy).toHaveBeenCalledWith(
       expect.any(Error),
@@ -172,27 +112,25 @@ describe('useDeleteWallet', () => {
     );
   });
 
-  test('dispatches Redux action to delete user', async () => {
-    // Arrange
+  test('it should call the appropriate methods to delete the user', async () => {
     const { result } = renderHookWithProvider(() => useDeleteWallet());
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_, deleteUser] = result.current;
     const loggerSpy = jest.spyOn(Logger, 'log');
 
-    // Act
     await deleteUser();
 
-    // Assert - Redux action was dispatched (handled by store)
+    // Check that the Redux action was dispatched (this is handled by the store)
     expect(loggerSpy).not.toHaveBeenCalled();
   });
 
-  test('completes without throwing when deleteUser succeeds', async () => {
-    // Arrange
+  test('it should handle errors gracefully when deleteUser fails', async () => {
     const { result } = renderHookWithProvider(() => useDeleteWallet());
     const [, deleteUser] = result.current;
-    const loggerSpy = jest.spyOn(Logger, 'log');
 
-    // Act & Assert
+    const loggerSpy = jest.spyOn(Logger, 'log');
+    // Since the metrics hook is already mocked to return a working function,
+    // we'll just verify that the function completes without throwing
     await expect(deleteUser()).resolves.not.toThrow();
     expect(loggerSpy).not.toHaveBeenCalled();
   });

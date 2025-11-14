@@ -109,8 +109,6 @@ import migration105 from './105';
 import migration106 from './106';
 
 // Add migrations above this line
-import { ControllerStorage } from '../persistConfig';
-import { captureException } from '@sentry/react-native';
 
 type MigrationFunction = (state: unknown) => unknown;
 type AsyncMigrationFunction = (state: unknown) => Promise<unknown>;
@@ -233,164 +231,25 @@ export const migrationList: MigrationsList = {
 };
 
 // Enable both synchronous and asynchronous migrations
-export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
-  const lastVersion = Math.max(...Object.keys(inputMigrations).map(Number));
-  let didInflate = false;
-
-  type StateWithEngine = Record<string, unknown> & {
-    engine?: { backgroundState?: Record<string, unknown> };
-  };
-
-  /**
-   * Loads controller data from individual filesystem storage back into engine.backgroundState
-   * for migrations to process.
-   *
-   * - Migration 104 moved controller data from redux-persist to individual files
-   * - Migrations 105+ still expect to work with the old engine.backgroundState format
-   * - This function temporarily recreates the old format so migrations can run
-   * - "unpacking" distributed files back into a single object
-   *
-   * CRITICAL: Crashes if controller data cannot be loaded.
-   * This ensures migrations run with complete data and prevents silent data loss.
-   */
-  const inflateFromControllers = async (state: unknown) => {
-    try {
-      const fsState = (await ControllerStorage.getAllPersistedState()) as
-        | {
-            backgroundState?: Record<string, unknown>;
-          }
-        | undefined;
-
-      const s = state as StateWithEngine;
-      const fsControllers = fsState?.backgroundState || {};
-
-      if (Object.keys(fsControllers).length === 0) {
-        return state;
-      }
-
-      const inflated: StateWithEngine = {
-        ...(s as object),
-        engine: {
-          ...(s.engine || {}),
-          backgroundState: fsControllers,
-        },
-      } as StateWithEngine;
-      return inflated as unknown;
-    } catch (error) {
-      captureException(
-        new Error(
-          `inflateFromControllers: Critical error loading controller data: ${String(
-            error,
-          )}`,
-        ),
-      );
-
-      // CRASH on load failure, don't allow migrations to run with incomplete data
-      // This could result in data loss if migrations can't access all controller state
-      throw new Error(
-        `Critical: Failed to load controller data for migration. ` +
-          `Cannot continue safely as migrations may corrupt data without complete state. ` +
-          `App will restart to attempt recovery. Error: ${String(error)}`,
-      );
-    }
-  };
-
-  /**
-   * Saves controller data from engine.backgroundState back to individual filesystem storage
-   * and removes the engine slice from redux state.
-   *
-   * - After migrations run, we need to save updated controller data back to individual files
-   * - The engine.backgroundState should not persist in redux (it's just temporary for migrations)
-   * - This function "redistributes" the single object back into individual controller files
-   * - Then strips engine.backgroundState from redux to maintain the new architecture
-   * - "repacking" the single object back into distributed files
-   *
-   * CRITICAL: Crashes immediately if ANY controller fails to save.
-   * This prevents partial migration state corruption and ensures clean recovery.
-   */
-  const deflateToControllersAndStrip = async (state: unknown) => {
-    try {
-      const s = state as StateWithEngine;
-      const migratedControllers = s.engine?.backgroundState || {};
-      const entries = Object.entries(migratedControllers) as [
-        string,
-        unknown,
-      ][];
-
-      // Save all controller states to individual storage
-      // CRITICAL: If ANY controller fails to save, crash the app immediately
-      await Promise.all(
-        entries.map(async ([controllerName, controllerState]) => {
-          try {
-            await ControllerStorage.setItem(
-              `persist:${controllerName}`,
-              JSON.stringify(controllerState),
-            );
-          } catch (error) {
-            // Log the error for debugging
-            captureException(
-              new Error(
-                `deflateToControllersAndStrip: Failed to save ${controllerName} to individual storage: ${String(
-                  error,
-                )}`,
-              ),
-            );
-
-            // CRASH immediately, don't allow partial migration success
-            // This ensures clean recovery and prevents state corruption
-            throw new Error(
-              `Critical: Migration failed for controller '${controllerName}'. ` +
-                `Cannot continue with partial migration as this would corrupt user data. ` +
-                `App will restart to attempt recovery. Error: ${String(error)}`,
-            );
-          }
-        }),
-      );
-
-      // All controllers saved successfully, safe to strip engine state
-      const { engine: _engine, ...rest } = s;
-      return rest as unknown;
-    } catch (error) {
-      captureException(
-        new Error(
-          `deflateToControllersAndStrip: Critical error during deflation: ${String(
-            error,
-          )}`,
-        ),
-      );
-
-      // CRASH on any deflation error, don't return original state
-      // Returning original state would mean user continues with unmigrated data
-      throw new Error(
-        `Critical: deflateToControllersAndStrip failed completely. ` +
-          `Cannot continue safely as this indicates severe migration system failure. ` +
-          `App will restart to attempt recovery. Error: ${String(error)}`,
-      );
-    }
-  };
-
-  return Object.entries(inputMigrations).reduce(
+export const asyncifyMigrations = (
+  inputMigrations: MigrationsList,
+  onMigrationsComplete?: (state: unknown) => void,
+) =>
+  Object.entries(inputMigrations).reduce(
     (newMigrations, [migrationNumber, migrationFunction]) => {
+      // Handle migrations as async
       const asyncMigration = async (
         incomingState: Promise<unknown> | unknown,
       ) => {
-        let state = await incomingState;
-
-        if (!didInflate && Number(migrationNumber) > 106) {
-          state = await inflateFromControllers(state);
-          didInflate = true;
-        }
-
+        const state = await incomingState;
         const migratedState = await migrationFunction(state);
-        if (Number(migrationNumber) === lastVersion && lastVersion >= 106) {
-          const s2 = migratedState as StateWithEngine;
-          const hasControllers = Boolean(
-            s2.engine?.backgroundState &&
-              Object.keys(s2.engine.backgroundState).length > 0,
-          );
-          if (hasControllers) {
-            return await deflateToControllersAndStrip(migratedState);
-          }
+
+        // If this is the last migration and we have a callback, run it
+        if (
+          onMigrationsComplete &&
+          Number(migrationNumber) === Object.keys(inputMigrations).length - 1
+        ) {
+          onMigrationsComplete(migratedState);
         }
 
         return migratedState;
@@ -400,7 +259,6 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
     },
     {} as Record<string, AsyncMigrationFunction>,
   );
-};
 
 // Convert all migrations to async
 export const migrations = asyncifyMigrations(
