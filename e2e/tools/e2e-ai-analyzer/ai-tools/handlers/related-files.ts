@@ -135,11 +135,14 @@ function findImporters(
       return `Cannot extract filename from ${filePath}`;
     }
 
-    // Use literal string matching for "from" keyword + filename
-    // Pattern: Look for "from" (with quotes) and the filename
-    // Using -F for literal matching to avoid regex issues and be more secure
+    // Find files that import this file
+    // Pattern matches: from './fileName' or from "../fileName" (with space after from)
+    const singleQuote = "'";
+    const doubleQuote = '"';
+    const pattern = `from [${singleQuote}${doubleQuote}].*${fileName}`;
+
     const importers = execSync(
-      `grep -r -l --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" -e "from '.*${fileName}" -e "from \\".*${fileName}" app/ 2>/dev/null | grep -v "${filePath}" | head -${maxResults} || true`,
+      `grep -r -l --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" -E "${pattern}" app/ 2>/dev/null | grep -v "${filePath}" | head -${maxResults} || true`,
       { encoding: 'utf-8', cwd: baseDir },
     )
       .trim()
