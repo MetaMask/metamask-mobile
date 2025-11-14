@@ -224,16 +224,21 @@ export function transformMarketData(
       fundingRate = fundingData.predictedFundingRate;
     }
 
-    // Extract DEX and determine market type for badge display
+    // Extract DEX and base symbol for display
+    // e.g., "flx:TSLA" → { dex: "flx", symbol: "TSLA" }
     const { dex } = parseAssetName(symbol);
     const marketSource = dex || undefined;
 
-    // Simple per-asset lookup from feature flag (e.g., 'xyz:GOLD' → 'commodity')
-    const marketType: MarketType | undefined = assetMarketTypes?.[symbol];
+    // Determine market type:
+    // 1. Check explicit mapping (e.g., 'xyz:GOLD' → 'commodity')
+    // 2. Default HIP-3 DEX markets to 'equity' (stocks) if not mapped
+    // 3. Main DEX markets remain undefined (crypto)
+    const marketType: MarketType | undefined =
+      assetMarketTypes?.[symbol] || (dex ? 'equity' : undefined);
 
     return {
       symbol,
-      name: symbol, // HyperLiquid uses symbol as name
+      name: symbol,
       maxLeverage: `${asset.maxLeverage}x`,
       price: isNaN(currentPrice)
         ? PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY

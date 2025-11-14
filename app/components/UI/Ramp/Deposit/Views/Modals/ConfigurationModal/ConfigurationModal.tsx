@@ -9,7 +9,11 @@ import {
 } from '../../../../../../../component-library/components/Icons/Icon';
 
 import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
-import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils';
+import {
+  useRampNavigation,
+  RampMode,
+} from '../../../../hooks/useRampNavigation';
+import { RampType as AggregatorRampType } from '../../../../Aggregator/types';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { TRANSAK_SUPPORT_URL } from '../../../constants/constants';
@@ -36,6 +40,7 @@ function ConfigurationModal() {
   const { toastRef } = useContext(ToastContext);
   const trackEvent = useAnalytics();
 
+  const { goToRamps } = useRampNavigation();
   const { logoutFromProvider, isAuthenticated, selectedRegion } =
     useDepositSDK();
 
@@ -61,8 +66,12 @@ function ConfigurationModal() {
       region: selectedRegion?.isoCode as string,
     });
     navigation.dangerouslyGetParent()?.dangerouslyGetParent()?.goBack();
-    navigation.navigate(...createBuyNavigationDetails());
-  }, [navigation, selectedRegion?.isoCode, trackEvent]);
+    goToRamps({
+      mode: RampMode.AGGREGATOR,
+      params: { rampType: AggregatorRampType.BUY },
+      overrideUnifiedBuyFlag: true,
+    });
+  }, [navigation, selectedRegion?.isoCode, trackEvent, goToRamps]);
 
   const handleLogOut = useCallback(async () => {
     try {

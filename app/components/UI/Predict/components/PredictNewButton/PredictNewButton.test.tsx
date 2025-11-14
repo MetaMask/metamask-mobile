@@ -167,6 +167,9 @@ describe('PredictNewButton', () => {
         Routes.PREDICT.ROOT,
         {
           screen: Routes.PREDICT.MARKET_LIST,
+          params: {
+            entryPoint: expect.any(String),
+          },
         },
       );
     });
@@ -193,6 +196,9 @@ describe('PredictNewButton', () => {
         Routes.PREDICT.ROOT,
         {
           screen: Routes.PREDICT.MARKET_LIST,
+          params: {
+            entryPoint: expect.any(String),
+          },
         },
       );
     });

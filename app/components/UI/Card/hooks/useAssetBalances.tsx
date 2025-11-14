@@ -71,6 +71,7 @@ export const useAssetBalances = (
           }
         }
       });
+
     return map;
   });
 
@@ -114,6 +115,7 @@ export const useAssetBalances = (
         }
       }
     });
+
     return map;
   });
 
@@ -487,8 +489,13 @@ export const useAssetBalances = (
         : safeFormatChainIdToHex(token.caipChainId);
 
       // Find the token in tokensWithBalance
+      // Note: tokensWithBalance uses hex chainId (e.g., "0xe708") while token has CAIP chainId (e.g., "eip155:59144")
+      // We need to use assetChainId which is already normalized to the correct format
+      // Also need case-insensitive address comparison since tokensWithBalance may have checksum addresses
       const filteredToken = tokensWithBalance.find(
-        (t) => t.address === assetAddress && t.chainId === token.caipChainId,
+        (t) =>
+          t.address?.toLowerCase() === assetAddress?.toLowerCase() &&
+          t.chainId === assetChainId,
       );
 
       // Get wallet asset as fallback

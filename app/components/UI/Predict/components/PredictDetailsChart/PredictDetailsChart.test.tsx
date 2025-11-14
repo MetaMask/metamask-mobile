@@ -90,11 +90,6 @@ jest.mock('../../../../../util/theme', () => ({
 }));
 
 describe('PredictDetailsChart', () => {
-  const BASE_TIMESTAMP = 1_700_000_000_000;
-  const FORTY_FIVE_MINUTES_IN_MS = 45 * 60 * 1000;
-  const TWELVE_HOURS_IN_MS = 12 * 60 * 60 * 1000;
-  const TWENTY_FOUR_HOURS_IN_MS = 24 * 60 * 60 * 1000;
-
   const mockSingleSeries: ChartSeries[] = [
     {
       label: 'Outcome 1',
@@ -180,27 +175,7 @@ describe('PredictDetailsChart', () => {
     });
 
     it('highlights selected timeframe', () => {
-      const daySpanSeries: ChartSeries[] = [
-        {
-          label: 'Extended Outcome',
-          color: '#28C76F',
-          data: [
-            { timestamp: BASE_TIMESTAMP, value: 0.4 },
-            {
-              timestamp: BASE_TIMESTAMP + 18 * 60 * 60 * 1000,
-              value: 0.5,
-            },
-            {
-              timestamp: BASE_TIMESTAMP + 36 * 60 * 60 * 1000,
-              value: 0.6,
-            },
-          ],
-        },
-      ];
-      const { getByText } = setupTest({
-        data: daySpanSeries,
-        selectedTimeframe: '1d',
-      });
+      const { getByText } = setupTest({ selectedTimeframe: '1d' });
 
       expect(getByText('1D')).toBeOnTheScreen();
     });
@@ -221,124 +196,14 @@ describe('PredictDetailsChart', () => {
       expect(queryByText('Loading price history...')).not.toBeOnTheScreen();
     });
 
-    it('returns null when no data provided even with custom empty label', () => {
+    it('renders custom empty label when provided', () => {
       const customLabel = 'No data available';
-      const { queryByTestId, queryByText } = setupTest({
+      const { getByText } = setupTest({
         data: [{ label: 'Empty', color: '#000', data: [] }],
         emptyLabel: customLabel,
       });
 
-      expect(queryByTestId('line-chart')).toBeNull();
-      expect(queryByText(customLabel)).toBeNull();
-    });
-  });
-
-  describe('Timeframe filtering', () => {
-    it('returns null when all series fall outside selected timeframe', () => {
-      const dataOutsideTimeframe: ChartSeries[] = [
-        {
-          label: 'Outcome Short',
-          color: '#123456',
-          data: [
-            { timestamp: BASE_TIMESTAMP, value: 0.5 },
-            { timestamp: BASE_TIMESTAMP + 30 * 60 * 1000, value: 0.6 },
-          ],
-        },
-      ];
-
-      const { queryByTestId, queryByText } = setupTest({
-        data: dataOutsideTimeframe,
-        selectedTimeframe: '1d',
-        isLoading: false,
-      });
-
-      expect(queryByTestId('line-chart')).toBeNull();
-      expect(queryByText('1D')).toBeNull();
-    });
-
-    it('omits series that do not span selected timeframe', () => {
-      const longSpanSeriesA: ChartSeries = {
-        label: 'Outcome Long A',
-        color: '#28C76F',
-        data: [
-          { timestamp: BASE_TIMESTAMP, value: 0.4 },
-          {
-            timestamp: BASE_TIMESTAMP + TWELVE_HOURS_IN_MS,
-            value: 0.5,
-          },
-          {
-            timestamp: BASE_TIMESTAMP + TWENTY_FOUR_HOURS_IN_MS,
-            value: 0.6,
-          },
-        ],
-      };
-      const longSpanSeriesB: ChartSeries = {
-        label: 'Outcome Long B',
-        color: '#4459FF',
-        data: [
-          { timestamp: BASE_TIMESTAMP, value: 0.3 },
-          {
-            timestamp: BASE_TIMESTAMP + TWENTY_FOUR_HOURS_IN_MS,
-            value: 0.35,
-          },
-          {
-            timestamp: BASE_TIMESTAMP + 2 * TWENTY_FOUR_HOURS_IN_MS,
-            value: 0.38,
-          },
-        ],
-      };
-      const shortSpanSeries: ChartSeries = {
-        label: 'Outcome Short',
-        color: '#CA3542',
-        data: [
-          { timestamp: BASE_TIMESTAMP, value: 0.2 },
-          {
-            timestamp: BASE_TIMESTAMP + 30 * 60 * 1000,
-            value: 0.25,
-          },
-        ],
-      };
-
-      const { getAllByTestId, getByText, queryByText } = setupTest({
-        data: [longSpanSeriesA, longSpanSeriesB, shortSpanSeries],
-        selectedTimeframe: '1d',
-      });
-
-      expect(getAllByTestId('line-chart').length).toBeGreaterThan(0);
-      expect(getByText(/Outcome Long A/)).toBeOnTheScreen();
-      expect(getByText(/Outcome Long B/)).toBeOnTheScreen();
-      expect(queryByText('Outcome Short')).toBeNull();
-    });
-
-    it('renders series that cover at least half of selected timeframe span', () => {
-      const halfDaySpanSeries: ChartSeries = {
-        label: 'Outcome Half Day',
-        color: '#FFAA00',
-        data: [
-          { timestamp: BASE_TIMESTAMP, value: 0.45 },
-          {
-            timestamp: BASE_TIMESTAMP + TWELVE_HOURS_IN_MS,
-            value: 0.5,
-          },
-        ],
-      };
-
-      const { getByTestId } = setupTest({
-        data: [halfDaySpanSeries],
-        selectedTimeframe: '1d',
-      });
-
-      expect(getByTestId('line-chart')).toBeOnTheScreen();
-    });
-
-    it('hides chart when series contain no data points for selected timeframe', () => {
-      const { queryByTestId } = setupTest({
-        data: [{ label: 'Empty', color: '#000000', data: [] }],
-        selectedTimeframe: '1d',
-        isLoading: false,
-      });
-
-      expect(queryByTestId('line-chart')).toBeNull();
+      expect(getByText(customLabel)).toBeOnTheScreen();
     });
   });
 
@@ -432,9 +297,12 @@ describe('PredictDetailsChart', () => {
           data: [{ timestamp: 1640995200000, value: 0.5 }],
         },
       ];
-      const { queryByTestId } = setupTest({ data: singlePointData });
+      const { getByTestId } = setupTest({ data: singlePointData });
 
-      expect(queryByTestId('line-chart')).toBeNull();
+      const chartData = getByTestId('chart-data');
+      const data = JSON.parse(String(chartData.children[0]));
+
+      expect(data).toEqual([0.5]);
     });
 
     it('handles empty data array', () => {
@@ -445,9 +313,12 @@ describe('PredictDetailsChart', () => {
           data: [],
         },
       ];
-      const { queryByTestId } = setupTest({ data: emptyData });
+      const { getByTestId } = setupTest({ data: emptyData });
 
-      expect(queryByTestId('line-chart')).toBeNull();
+      const chartData = getByTestId('chart-data');
+      const data = JSON.parse(String(chartData.children[0]));
+
+      expect(data).toEqual(expect.arrayContaining([0]));
     });
 
     it('calculates correct chart bounds with padding', () => {
@@ -654,22 +525,16 @@ describe('PredictDetailsChart', () => {
             label: 'Series A',
             color: '#4459FF',
             data: [
-              { timestamp: BASE_TIMESTAMP, value: 0.3 },
-              {
-                timestamp: BASE_TIMESTAMP + FORTY_FIVE_MINUTES_IN_MS,
-                value: 0.7,
-              },
+              { timestamp: 1, value: 0.3 },
+              { timestamp: 2, value: 0.7 },
             ],
           },
           {
             label: 'Series B',
             color: '#FF6B6B',
             data: [
-              { timestamp: BASE_TIMESTAMP, value: 0.7 },
-              {
-                timestamp: BASE_TIMESTAMP + FORTY_FIVE_MINUTES_IN_MS,
-                value: 0.3,
-              },
+              { timestamp: 1, value: 0.7 },
+              { timestamp: 2, value: 0.3 },
             ],
           },
         ];
@@ -687,22 +552,16 @@ describe('PredictDetailsChart', () => {
             label: 'Close A',
             color: '#4459FF',
             data: [
-              { timestamp: BASE_TIMESTAMP, value: 0.5 },
-              {
-                timestamp: BASE_TIMESTAMP + FORTY_FIVE_MINUTES_IN_MS,
-                value: 0.501,
-              },
+              { timestamp: 1, value: 0.5 },
+              { timestamp: 2, value: 0.501 },
             ],
           },
           {
             label: 'Close B',
             color: '#FF6B6B',
             data: [
-              { timestamp: BASE_TIMESTAMP, value: 0.502 },
-              {
-                timestamp: BASE_TIMESTAMP + FORTY_FIVE_MINUTES_IN_MS,
-                value: 0.503,
-              },
+              { timestamp: 1, value: 0.502 },
+              { timestamp: 2, value: 0.503 },
             ],
           },
         ];
@@ -755,24 +614,12 @@ describe('PredictDetailsChart', () => {
           {
             label: 'Blue',
             color: '#0000FF',
-            data: [
-              { timestamp: BASE_TIMESTAMP, value: 0.5 },
-              {
-                timestamp: BASE_TIMESTAMP + FORTY_FIVE_MINUTES_IN_MS,
-                value: 0.55,
-              },
-            ],
+            data: [{ timestamp: 1, value: 0.5 }],
           },
           {
             label: 'Red',
             color: '#FF0000',
-            data: [
-              { timestamp: BASE_TIMESTAMP, value: 0.5 },
-              {
-                timestamp: BASE_TIMESTAMP + FORTY_FIVE_MINUTES_IN_MS,
-                value: 0.45,
-              },
-            ],
+            data: [{ timestamp: 1, value: 0.5 }],
           },
         ];
 
@@ -798,33 +645,24 @@ describe('PredictDetailsChart', () => {
             label: 'Series 1',
             color: '#4459FF',
             data: [
-              { timestamp: BASE_TIMESTAMP, value: 0.5 },
-              {
-                timestamp: BASE_TIMESTAMP + FORTY_FIVE_MINUTES_IN_MS,
-                value: 0.6,
-              },
+              { timestamp: 1, value: 0.5 },
+              { timestamp: 2, value: 0.6 },
             ],
           },
           {
             label: 'Series 2',
             color: '#FF6B6B',
             data: [
-              { timestamp: BASE_TIMESTAMP, value: 0.3 },
-              {
-                timestamp: BASE_TIMESTAMP + FORTY_FIVE_MINUTES_IN_MS,
-                value: 0.4,
-              },
+              { timestamp: 1, value: 0.3 },
+              { timestamp: 2, value: 0.4 },
             ],
           },
           {
             label: 'Series 3',
             color: '#F0B034',
             data: [
-              { timestamp: BASE_TIMESTAMP, value: 0.2 },
-              {
-                timestamp: BASE_TIMESTAMP + FORTY_FIVE_MINUTES_IN_MS,
-                value: 0.25,
-              },
+              { timestamp: 1, value: 0.2 },
+              { timestamp: 2, value: 0.25 },
             ],
           },
         ];

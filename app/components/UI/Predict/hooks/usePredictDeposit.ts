@@ -5,7 +5,6 @@ import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
-import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
@@ -46,7 +45,6 @@ export const usePredictDeposit = ({
     try {
       navigateToConfirmation({
         loader: ConfirmationLoader.CustomAmount,
-        stack: Routes.PREDICT.ROOT,
       });
 
       depositWithConfirmation({

@@ -163,7 +163,6 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
                 variant={BadgeVariant.Network}
                 imageSource={images.POL}
                 name="Polygon"
-                style={tw.style('rounded-2xl')}
               />
             }
           >

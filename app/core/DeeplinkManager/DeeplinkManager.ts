@@ -139,9 +139,10 @@ class DeeplinkManager {
     });
   }
 
-  _handlePredict(predictPath: string) {
+  _handlePredict(predictPath: string, origin?: string) {
     handlePredictUrl({
       predictPath,
+      origin,
     });
   }
 

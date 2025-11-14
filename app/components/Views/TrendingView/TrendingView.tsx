@@ -31,13 +31,13 @@ import { PredictModalStack } from '../../UI/Predict/routes';
 import PredictionSection from './PredictionSection/PredictionSection';
 import PerpsSection from './PerpsSection/PerpsSection';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
+import QuickActions from './components/QuickActions/QuickActions';
 
 const Stack = createStackNavigator();
 
 const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
-    marginTop: 10,
     paddingLeft: 16,
     paddingRight: 16,
   },
@@ -128,6 +128,7 @@ const TrendingFeed: React.FC = () => {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
+        <QuickActions />
         <PredictionSection />
         <TrendingTokensSection />
         <PerpsConnectionProvider>
