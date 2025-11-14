@@ -14,26 +14,35 @@ export interface TrendingTokensListProps {
   onTokenPress: (token: TrendingAsset) => void;
 }
 
-const TrendingTokensList: React.FC<TrendingTokensListProps> = ({
-  trendingTokens,
-  onTokenPress,
-}) => {
-  const renderItem = useCallback(
-    ({ item }: { item: TrendingAsset }) => (
-      <TrendingTokenRowItem token={item} onPress={() => onTokenPress(item)} />
-    ),
-    [onTokenPress],
-  );
+/**
+ * Optimized list component to prevent unnecessary re-renders
+ * - React.memo: Prevents re-render when props haven't changed
+ * - useCallback: Provides stable function references for FlashList
+ * (renderItem and keyExtractor) to avoid recreating them on every render
+ */
+const TrendingTokensList: React.FC<TrendingTokensListProps> = React.memo(
+  ({ trendingTokens, onTokenPress }) => {
+    const renderItem = useCallback(
+      ({ item }: { item: TrendingAsset }) => (
+        <TrendingTokenRowItem token={item} onPress={() => onTokenPress(item)} />
+      ),
+      [onTokenPress],
+    );
 
-  return (
-    <FlashList
-      data={trendingTokens}
-      renderItem={renderItem}
-      keyExtractor={(item: TrendingAsset) => item.assetId}
-      keyboardShouldPersistTaps="handled"
-      testID="trending-tokens-list"
-    />
-  );
-};
+    const keyExtractor = useCallback((item: TrendingAsset) => item.assetId, []);
+
+    return (
+      <FlashList
+        data={trendingTokens}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        keyboardShouldPersistTaps="handled"
+        testID="trending-tokens-list"
+      />
+    );
+  },
+);
+
+TrendingTokensList.displayName = 'TrendingTokensList';
 
 export default TrendingTokensList;

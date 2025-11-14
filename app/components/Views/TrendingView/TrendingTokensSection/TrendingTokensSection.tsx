@@ -16,7 +16,6 @@ const TrendingTokensSection = () => {
   const trendingTokens = trendingTokensResults.slice(0, 3);
 
   const handleViewAll = useCallback(() => {
-    // TODO: Implement view all logic
     navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW);
   }, [navigation]);
 

@@ -12,7 +12,71 @@ import {
   ProcessedNetwork,
 } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworksToUse } from '../../../../hooks/useNetworksToUse/useNetworksToUse';
+
 export const DEBOUNCE_WAIT = 500;
+
+/**
+ * Performance Optimization: Simple cache with TTL (30 seconds)
+ *
+ * The key optimization that makes navigation snappy is using lazy initialization
+ * in useState to check the cache synchronously during component mount. This allows:
+ * 1. Immediate render with cached data (no async state updates blocking navigation)
+ * 2. Avoids unnecessary API calls when navigating back and forth
+ * 3. Component renders instantly if cache exists, fetch happens in background if needed
+ *
+ * Without this pattern, async state updates in useEffect would block navigation,
+ * causing the "view all" button to require multiple clicks and feel laggy.
+ */
+const CACHE_DURATION_MS = 30 * 1000;
+const cache = new Map<
+  string,
+  { data: Awaited<ReturnType<typeof getTrendingTokens>>; timestamp: number }
+>();
+
+// Generate cache key from options
+const getCacheKey = (options: {
+  chainIds: CaipChainId[];
+  sortBy?: SortTrendingBy;
+  minLiquidity?: number;
+  minVolume24hUsd?: number;
+  maxVolume24hUsd?: number;
+  minMarketCap?: number;
+  maxMarketCap?: number;
+}): string => {
+  const sortedChainIds = [...options.chainIds].sort();
+  return JSON.stringify({
+    chainIds: sortedChainIds,
+    sortBy: options.sortBy,
+    minLiquidity: options.minLiquidity,
+    minVolume24hUsd: options.minVolume24hUsd,
+    maxVolume24hUsd: options.maxVolume24hUsd,
+    minMarketCap: options.minMarketCap,
+    maxMarketCap: options.maxMarketCap,
+  });
+};
+
+// Check if cache entry is valid
+const isCacheValid = (
+  entry:
+    | { data: Awaited<ReturnType<typeof getTrendingTokens>>; timestamp: number }
+    | undefined,
+): boolean => {
+  if (!entry) return false;
+  return Date.now() - entry.timestamp < CACHE_DURATION_MS;
+};
+
+/**
+ * Simple cleanup: Remove expired entries from cache
+ * Only called when storing new entries (non-blocking, doesn't affect navigation)
+ */
+const cleanupExpiredEntries = (): void => {
+  const now = Date.now();
+  for (const [key, entry] of cache.entries()) {
+    if (now - entry.timestamp >= CACHE_DURATION_MS) {
+      cache.delete(key);
+    }
+  }
+};
 
 /**
  * Hook for handling trending tokens request
@@ -57,12 +121,6 @@ export const useTrendingRequest = (options: {
     );
   }, [providedChainIds, networksToUse]);
 
-  const [results, setResults] = useState<Awaited<
-    ReturnType<typeof getTrendingTokens>
-  > | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
   // Track the current request ID to prevent stale results from overwriting current ones
   const requestIdRef = useRef(0);
 
@@ -91,12 +149,55 @@ export const useTrendingRequest = (options: {
     ],
   );
 
+  /**
+   * Performance Optimization: Lazy initialization in useState
+   *
+   * This is the critical fix that makes navigation snappy. By checking the cache
+   * synchronously in the useState initializer function, we can:
+   * - Render immediately with cached data (no loading state delay)
+   * - Avoid blocking navigation with async state updates
+   * - Ensure the component is ready to render as soon as it mounts
+   *
+   * If we used useEffect to check cache, it would run after render, causing:
+   * - Initial render with loading state
+   * - Async state update that could block navigation
+   * - Multiple clicks needed on "view all" button
+   */
+  const [results, setResults] = useState<Awaited<
+    ReturnType<typeof getTrendingTokens>
+  > | null>(() => {
+    if (!stableChainIds.length) return null;
+    const cacheKey = getCacheKey(memoizedOptions);
+    const cached = cache.get(cacheKey);
+    if (cached && isCacheValid(cached)) {
+      return cached.data;
+    }
+    return null;
+  });
+
+  const [isLoading, setIsLoading] = useState(() => {
+    if (!stableChainIds.length) return false;
+    const cacheKey = getCacheKey(memoizedOptions);
+    return !isCacheValid(cache.get(cacheKey));
+  });
+
+  const [error, setError] = useState<Error | null>(null);
+
   const fetchTrendingTokens = useCallback(async () => {
     if (!memoizedOptions.chainIds.length) {
-      // Increment request ID to invalidate any pending requests
       ++requestIdRef.current;
       setResults(null);
       setIsLoading(false);
+      return;
+    }
+
+    // Check cache first
+    const cacheKey = getCacheKey(memoizedOptions);
+    const cached = cache.get(cacheKey);
+    if (cached && isCacheValid(cached)) {
+      setResults(cached.data);
+      setIsLoading(false);
+      setError(null);
       return;
     }
 
@@ -106,10 +207,26 @@ export const useTrendingRequest = (options: {
     setError(null);
 
     try {
-      const trendingResults = await getTrendingTokens(memoizedOptions);
+      const resultsToStore = await getTrendingTokens({
+        chainIds: memoizedOptions.chainIds,
+        sortBy: memoizedOptions.sortBy,
+        minLiquidity: memoizedOptions.minLiquidity,
+        minVolume24hUsd: memoizedOptions.minVolume24hUsd,
+        maxVolume24hUsd: memoizedOptions.maxVolume24hUsd,
+        minMarketCap: memoizedOptions.minMarketCap,
+        maxMarketCap: memoizedOptions.maxMarketCap,
+      });
+
       // Only update state if this is still the current request
       if (currentRequestId === requestIdRef.current) {
-        setResults(trendingResults || null);
+        setResults(resultsToStore);
+        // Store in cache and cleanup expired entries (non-blocking)
+        cache.set(cacheKey, {
+          data: resultsToStore,
+          timestamp: Date.now(),
+        });
+        // Cleanup expired entries when storing new data (doesn't block navigation)
+        cleanupExpiredEntries();
       }
     } catch (err) {
       // Only update state if this is still the current request
@@ -138,17 +255,19 @@ export const useTrendingRequest = (options: {
 
     // If chainIds is empty, don't trigger fetch
     if (!stableChainIds.length) {
+      setResults(null);
+      setIsLoading(false);
       return;
     }
 
-    // Trigger new fetch
+    // Fetch new data
     debouncedFetchTrendingTokens();
 
     // Cleanup: cancel on unmount or when dependencies change
     return () => {
       debouncedFetchTrendingTokens.cancel();
     };
-  }, [debouncedFetchTrendingTokens, stableChainIds]);
+  }, [debouncedFetchTrendingTokens, stableChainIds, memoizedOptions]);
 
   return {
     results: results || [],

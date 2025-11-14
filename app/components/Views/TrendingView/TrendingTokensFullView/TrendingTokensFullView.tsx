@@ -143,41 +143,50 @@ const TrendingTokensFullView = () => {
   });
   // Sort and display tokens based on selected option and direction
   const trendingTokens = useMemo(() => {
-    const sorted = [...trendingTokensResults];
-
-    if (selectedPriceChangeOption) {
-      sorted.sort((a, b) => {
-        let aValue: number;
-        let bValue: number;
-
-        switch (selectedPriceChangeOption) {
-          case PriceChangeOption.PriceChange:
-            // For price change, use priceChangePct?.h24 for 24-hour price change percentage
-            aValue = a.priceChangePct?.h24
-              ? parseFloat(a.priceChangePct.h24) || 0
-              : 0;
-            bValue = b.priceChangePct?.h24
-              ? parseFloat(b.priceChangePct.h24) || 0
-              : 0;
-            break;
-          case PriceChangeOption.Volume:
-            aValue = a.aggregatedUsdVolume ?? 0;
-            bValue = b.aggregatedUsdVolume ?? 0;
-            break;
-          case PriceChangeOption.MarketCap:
-            aValue = a.marketCap ?? 0;
-            bValue = b.marketCap ?? 0;
-            break;
-          default:
-            return 0;
-        }
-
-        const comparison = aValue - bValue;
-        return priceChangeSortDirection === SortDirection.Ascending
-          ? comparison
-          : -comparison;
-      });
+    // Early return if no results
+    if (trendingTokensResults.length === 0) {
+      return [];
     }
+
+    // If no sort option selected, return results as-is (already sorted by API)
+    if (!selectedPriceChangeOption) {
+      return trendingTokensResults.slice(0, MAX_TOKENS);
+    }
+
+    // Only sort if we have results and a sort option
+    // Create a new array and sort in-place for better performance
+    const sorted = [...trendingTokensResults];
+    sorted.sort((a, b) => {
+      let aValue: number;
+      let bValue: number;
+
+      switch (selectedPriceChangeOption) {
+        case PriceChangeOption.PriceChange:
+          // For price change, use priceChangePct?.h24 for 24-hour price change percentage
+          aValue = a.priceChangePct?.h24
+            ? parseFloat(a.priceChangePct.h24) || 0
+            : 0;
+          bValue = b.priceChangePct?.h24
+            ? parseFloat(b.priceChangePct.h24) || 0
+            : 0;
+          break;
+        case PriceChangeOption.Volume:
+          aValue = a.aggregatedUsdVolume ?? 0;
+          bValue = b.aggregatedUsdVolume ?? 0;
+          break;
+        case PriceChangeOption.MarketCap:
+          aValue = a.marketCap ?? 0;
+          bValue = b.marketCap ?? 0;
+          break;
+        default:
+          return 0;
+      }
+
+      const comparison = aValue - bValue;
+      return priceChangeSortDirection === SortDirection.Ascending
+        ? comparison
+        : -comparison;
+    });
 
     return sorted.slice(0, MAX_TOKENS);
   }, [
