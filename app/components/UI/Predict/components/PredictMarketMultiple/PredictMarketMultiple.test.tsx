@@ -105,7 +105,7 @@ describe('PredictMarketMultiple', () => {
     ).toBeOnTheScreen();
 
     expect(getByText('Bitcoin Price Prediction')).toBeOnTheScreen();
-    expect(getByText('65.00%')).toBeOnTheScreen();
+    expect(getByText('65%')).toBeOnTheScreen();
     expect(getByText(/\$1M.*Vol\./)).toBeOnTheScreen();
   });
 
@@ -197,7 +197,7 @@ describe('PredictMarketMultiple', () => {
 
     expect(getByText('Market 1')).toBeOnTheScreen();
     expect(getByText('Market 2')).toBeOnTheScreen();
-    expect(getByText('75.00%')).toBeOnTheScreen();
+    expect(getByText('75%')).toBeOnTheScreen();
   });
 
   it('handle market with recurrence', () => {

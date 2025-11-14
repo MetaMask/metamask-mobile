@@ -1,4 +1,5 @@
 import {
+  CHAIN_IDS,
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
@@ -253,6 +254,19 @@ describe('Transaction Pay Utils', () => {
 
       const result = getAvailableTokens({
         tokens: [tokenWithWrongAccountType] as AssetType[],
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('does not return token if on testnet', async () => {
+      const tokenOnTestNet = {
+        ...TOKEN_MOCK,
+        chainId: CHAIN_IDS.SEPOLIA,
+      } as AssetType;
+
+      const result = getAvailableTokens({
+        tokens: [tokenOnTestNet] as AssetType[],
       });
 
       expect(result).toStrictEqual([]);

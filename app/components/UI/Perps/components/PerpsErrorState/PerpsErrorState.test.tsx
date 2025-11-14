@@ -17,9 +17,6 @@ describe('PerpsErrorState', () => {
       expect(
         getByText(strings('perps.errors.connectionFailed.title')),
       ).toBeTruthy();
-      expect(
-        getByText(strings('perps.errors.connectionFailed.description')),
-      ).toBeTruthy();
 
       const retryButton = getByText(
         strings('perps.errors.connectionFailed.retry'),

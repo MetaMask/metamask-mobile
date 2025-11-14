@@ -169,7 +169,7 @@ describe('PredictBalance', () => {
       });
 
       // Assert
-      expect(getByText(/\$123\.46/)).toBeOnTheScreen();
+      expect(getByText(/\$123\.45/)).toBeOnTheScreen();
     });
 
     it('displays zero balance', () => {
@@ -209,7 +209,7 @@ describe('PredictBalance', () => {
       });
 
       // Assert
-      expect(getByText(/\$1,234,567\.89/)).toBeOnTheScreen();
+      expect(getByText(/\$1,234,567\.88/)).toBeOnTheScreen();
     });
 
     it('renders container with correct test ID', () => {

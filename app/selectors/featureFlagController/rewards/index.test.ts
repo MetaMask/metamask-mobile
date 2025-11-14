@@ -2,7 +2,7 @@ import {
   selectRewardsEnabledFlag,
   selectRewardsAnnouncementModalEnabledFlag,
   selectRewardsCardSpendFeatureFlags,
-  selectRewardsPredictEnabledFlag,
+  selectRewardsMusdDepositEnabledFlag,
 } from '.';
 import {
   VersionGatedFeatureFlag,
@@ -213,10 +213,10 @@ describe('Rewards Feature Flag Selectors', () => {
     });
   });
 
-  describe('selectRewardsPredictEnabledFlag', () => {
+  describe('selectRewardsMusdDepositEnabledFlag', () => {
     it('returns true when remote flag is valid and enabled', () => {
-      const result = selectRewardsPredictEnabledFlag.resultFunc({
-        rewardsEnablePredict: {
+      const result = selectRewardsMusdDepositEnabledFlag.resultFunc({
+        rewardsEnableMusdDeposit: {
           enabled: true,
           minimumVersion: '1.0.0',
         },
@@ -225,8 +225,8 @@ describe('Rewards Feature Flag Selectors', () => {
     });
 
     it('returns false when remote flag is valid but disabled', () => {
-      const result = selectRewardsPredictEnabledFlag.resultFunc({
-        rewardsEnablePredict: {
+      const result = selectRewardsMusdDepositEnabledFlag.resultFunc({
+        rewardsEnableMusdDeposit: {
           enabled: false,
           minimumVersion: '1.0.0',
         },
@@ -236,8 +236,8 @@ describe('Rewards Feature Flag Selectors', () => {
 
     it('returns false when version check fails', () => {
       mockHasMinimumRequiredVersion.mockReturnValue(false);
-      const result = selectRewardsPredictEnabledFlag.resultFunc({
-        rewardsEnablePredict: {
+      const result = selectRewardsMusdDepositEnabledFlag.resultFunc({
+        rewardsEnableMusdDeposit: {
           enabled: true,
           minimumVersion: '99.0.0',
         },
@@ -246,8 +246,8 @@ describe('Rewards Feature Flag Selectors', () => {
     });
 
     it('returns false when remote flag is invalid', () => {
-      const result = selectRewardsPredictEnabledFlag.resultFunc({
-        rewardsEnablePredict: {
+      const result = selectRewardsMusdDepositEnabledFlag.resultFunc({
+        rewardsEnableMusdDeposit: {
           enabled: 'invalid',
           minimumVersion: 123,
         },
@@ -256,7 +256,7 @@ describe('Rewards Feature Flag Selectors', () => {
     });
 
     it('returns false when remote feature flags are empty', () => {
-      const result = selectRewardsPredictEnabledFlag.resultFunc({});
+      const result = selectRewardsMusdDepositEnabledFlag.resultFunc({});
       expect(result).toBe(false);
     });
   });
