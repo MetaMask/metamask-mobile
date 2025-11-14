@@ -12,9 +12,11 @@ import PredictMarket from '../../../UI/Predict/components/PredictMarket';
 import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import PredictMarketSkeleton from '../../../UI/Predict/components/PredictMarketSkeleton';
-import TrendingTokensSection from '../TrendingTokensSection/TrendingTokensSection';
-import PredictionSection from '../PredictionSection/PredictionSection';
-import PerpsSection from '../PerpsSection/PerpsSection';
+import SectionCard from '../components/SectionCard/SectionCard';
+import SectionCarrousel from '../components/SectionCarrousel/SectionCarrousel';
+import { useTrendingRequest } from '../../../UI/Assets/hooks/useTrendingRequest';
+import { usePredictMarketData } from '../../../UI/Predict/hooks/usePredictMarketData';
+import { usePerpsMarkets } from '../../../UI/Perps/hooks';
 import { PerpsConnectionProvider } from '../../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../../UI/Perps/providers/PerpsStreamManager';
 
@@ -58,7 +60,24 @@ const tokensConfig: SectionConfig = {
   getSearchableText: (item) =>
     `${(item as TrendingAsset).symbol} ${(item as TrendingAsset).name}`.toLowerCase(),
   keyExtractor: (item) => `token-${(item as TrendingAsset).assetId}`,
-  renderSection: () => <TrendingTokensSection />,
+  renderSection: () => {
+    const TrendingTokensSection = () => {
+      const { results: trendingTokensResults, isLoading } = useTrendingRequest(
+        {},
+      );
+      const trendingTokens = trendingTokensResults.slice(0, 3);
+
+      return (
+        <SectionCard
+          sectionId="tokens"
+          isLoading={isLoading || trendingTokens.length === 0}
+          data={trendingTokens}
+        />
+      );
+    };
+
+    return <TrendingTokensSection />;
+  },
 };
 
 const perpsConfig: SectionConfig = {
@@ -91,13 +110,28 @@ const perpsConfig: SectionConfig = {
       },
     );
   },
-  renderSection: () => (
-    <PerpsConnectionProvider>
-      <PerpsStreamProvider>
-        <PerpsSection />
-      </PerpsStreamProvider>
-    </PerpsConnectionProvider>
-  ),
+  renderSection: () => {
+    const PerpsSection = () => {
+      const { markets, isLoading } = usePerpsMarkets();
+      const perpsTokens = markets.slice(0, 3);
+
+      return (
+        <SectionCard
+          sectionId="perps"
+          isLoading={isLoading || perpsTokens.length === 0}
+          data={perpsTokens}
+        />
+      );
+    };
+
+    return (
+      <PerpsConnectionProvider>
+        <PerpsStreamProvider>
+          <PerpsSection />
+        </PerpsStreamProvider>
+      </PerpsConnectionProvider>
+    );
+  },
 };
 
 const predictionsConfig: SectionConfig = {
@@ -111,7 +145,26 @@ const predictionsConfig: SectionConfig = {
   renderSkeleton: () => <PredictMarketSkeleton />,
   getSearchableText: (item) => (item as PredictMarketType).title.toLowerCase(),
   keyExtractor: (item) => `prediction-${(item as PredictMarketType).id}`,
-  renderSection: () => <PredictionSection />,
+  renderSection: () => {
+    const PredictionSection = () => {
+      const { marketData, isFetching } = usePredictMarketData({
+        category: 'trending',
+        pageSize: 6,
+      });
+
+      return (
+        <SectionCarrousel
+          sectionId="predictions"
+          isLoading={isFetching || marketData?.length === 0}
+          data={marketData}
+          showPagination
+          testIDPrefix="prediction-carousel"
+        />
+      );
+    };
+
+    return <PredictionSection />;
+  },
 };
 
 /**
@@ -119,11 +172,19 @@ const predictionsConfig: SectionConfig = {
  * This config is used by QuickActions, SectionHeaders, Search, and TrendingView rendering.
  *
  * To add a new section:
- * 1. Add the section ID to the SectionId type
- * 2. Create a section component (e.g., NewSection.tsx)
- * 3. Create a config constant above with all required properties including renderSection
- * 4. Add it to both SECTIONS_CONFIG and SECTIONS_ARRAY below
- * 5. Add data fetching in useExploreSearchData hook
+ * 1. Add the section ID to the SectionId type above
+ * 2. Create a config constant with all required properties (see examples above)
+ * 3. Add the config to SECTIONS_CONFIG, HOME_SECTIONS_ARRAY, and SECTIONS_ARRAY below
+ * 4. Add data fetching in useExploreSearchData hook for search functionality
+ *
+ * Required properties:
+ * - title: section title string
+ * - navigationAction: handler for "View All" button
+ * - renderItem: how to render each item in the list
+ * - renderSkeleton: loading skeleton component
+ * - getSearchableText: extract searchable text from items
+ * - keyExtractor: unique key for each item
+ * - renderSection: inline component that calls the data hook and returns SectionCard or SectionCarrousel
  *
  * The section will automatically appear in:
  * - TrendingView main feed
