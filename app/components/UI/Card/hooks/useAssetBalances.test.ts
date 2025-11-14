@@ -1575,13 +1575,13 @@ describe('useAssetBalances', () => {
             address: notEnabledToken.address?.toLowerCase() || '',
             chainId: '0xe708',
             balance: '100.5',
-            balanceFiat: '55.61632 brl',
+            balanceFiat: '55.61632 usd',
             symbol: 'USDC',
             decimals: 18,
           } as any,
         ]);
 
-        mockFormatWithThreshold.mockReturnValue('R$ 55,62');
+        mockFormatWithThreshold.mockReturnValue('$55.62');
 
         const { result } = renderHook(() =>
           useAssetBalances([notEnabledToken]),
@@ -1590,7 +1590,7 @@ describe('useAssetBalances', () => {
         const key = `${notEnabledToken.address?.toLowerCase()}-${notEnabledToken.caipChainId}-${notEnabledToken.walletAddress?.toLowerCase()}`;
         const balanceInfo = result.current.get(key);
 
-        expect(balanceInfo?.balanceFiat).toBe('R$ 55,62');
+        expect(balanceInfo?.balanceFiat).toBe('$55.62');
         expect(balanceInfo?.rawFiatNumber).toBe(55.61632);
         expect(mockFormatWithThreshold).toHaveBeenCalledWith(
           55.61632,
@@ -1632,6 +1632,46 @@ describe('useAssetBalances', () => {
 
         expect(balanceInfo?.balanceFiat).toBe('$1,234.56');
         expect(balanceInfo?.rawFiatNumber).toBe(1234.56);
+      });
+
+      it('formats currency mismatch values using detected currency', () => {
+        const notEnabledToken = {
+          ...mockNotEnabledToken,
+          symbol: 'USDC',
+          availableBalance: undefined,
+        };
+
+        mockUseTokensWithBalance.mockReturnValue([
+          {
+            address: notEnabledToken.address?.toLowerCase() || '',
+            chainId: '0xe708',
+            balance: '100.5',
+            balanceFiat: '55.61632 brl',
+            symbol: 'USDC',
+            decimals: 18,
+          } as any,
+        ]);
+
+        mockFormatWithThreshold.mockReturnValue('R$ 55,62');
+
+        const { result } = renderHook(() =>
+          useAssetBalances([notEnabledToken]),
+        );
+
+        const key = `${notEnabledToken.address?.toLowerCase()}-${notEnabledToken.caipChainId}-${notEnabledToken.walletAddress?.toLowerCase()}`;
+        const balanceInfo = result.current.get(key);
+
+        expect(balanceInfo?.balanceFiat).toBe('R$ 55,62');
+        expect(balanceInfo?.rawFiatNumber).toBe(55.61632);
+        expect(mockFormatWithThreshold).toHaveBeenCalledWith(
+          55.61632,
+          0.01,
+          'en-US',
+          expect.objectContaining({
+            style: 'currency',
+            currency: 'BRL',
+          }),
+        );
       });
     });
 
@@ -1713,6 +1753,38 @@ describe('useAssetBalances', () => {
           chainId: '0xe708',
           symbol: 'USDC',
           balance: '500.50',
+          balanceFiat: '15.62376 usd',
+          isETH: false,
+          aggregators: [],
+        };
+
+        mockUseTokensWithBalance.mockReturnValue([]);
+        mockSelectAsset.mockReturnValue(walletAsset as any);
+        mockFormatWithThreshold.mockReturnValue('$15.62');
+
+        const { result } = renderHook(() =>
+          useAssetBalances([notEnabledToken]),
+        );
+
+        const key = `${notEnabledToken.address?.toLowerCase()}-${notEnabledToken.caipChainId}-${notEnabledToken.walletAddress?.toLowerCase()}`;
+        const balanceInfo = result.current.get(key);
+
+        expect(balanceInfo?.balanceFiat).toBe('$15.62');
+        expect(balanceInfo?.rawFiatNumber).toBe(15.62376);
+      });
+
+      it('formats currency mismatch values using detected currency', () => {
+        const notEnabledToken = {
+          ...mockNotEnabledToken,
+          symbol: 'USDC',
+          availableBalance: undefined,
+        };
+
+        const walletAsset = {
+          address: notEnabledToken.address,
+          chainId: '0xe708',
+          symbol: 'USDC',
+          balance: '500.50',
           balanceFiat: '15.62376 brl',
           isETH: false,
           aggregators: [],
@@ -1731,6 +1803,15 @@ describe('useAssetBalances', () => {
 
         expect(balanceInfo?.balanceFiat).toBe('R$ 15,62');
         expect(balanceInfo?.rawFiatNumber).toBe(15.62376);
+        expect(mockFormatWithThreshold).toHaveBeenCalledWith(
+          15.62376,
+          0.01,
+          'en-US',
+          expect.objectContaining({
+            style: 'currency',
+            currency: 'BRL',
+          }),
+        );
       });
     });
   });

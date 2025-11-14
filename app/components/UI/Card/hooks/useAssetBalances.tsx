@@ -351,16 +351,10 @@ export const useAssetBalances = (
           const originalCurrencyCode = extractTrailingCurrencyCode(
             filteredToken.balanceFiat,
           );
-          const hasCurrencyMismatch =
-            Boolean(originalCurrencyCode) &&
-            originalCurrencyCode !== currentCurrency?.toUpperCase();
 
-          if (hasCurrencyMismatch) {
-            return {
-              balanceFiat: filteredToken.balanceFiat,
-              rawFiatNumber,
-            };
-          }
+          // Use the detected currency code if available, otherwise use current currency
+          const currencyToUse =
+            originalCurrencyCode || currentCurrency?.toUpperCase() || 'USD';
 
           const balanceFiat = formatWithThreshold(
             rawFiatNumber,
@@ -368,7 +362,7 @@ export const useAssetBalances = (
             I18n.locale,
             {
               style: 'currency',
-              currency: currentCurrency?.toUpperCase() || 'USD',
+              currency: currencyToUse,
             },
           );
 
@@ -409,16 +403,10 @@ export const useAssetBalances = (
           const originalCurrencyCode = extractTrailingCurrencyCode(
             walletAsset.balanceFiat,
           );
-          const hasCurrencyMismatch =
-            Boolean(originalCurrencyCode) &&
-            originalCurrencyCode !== currentCurrency?.toUpperCase();
 
-          if (hasCurrencyMismatch) {
-            return {
-              balanceFiat: walletAsset.balanceFiat,
-              rawFiatNumber,
-            };
-          }
+          // Use the detected currency code if available, otherwise use current currency
+          const currencyToUse =
+            originalCurrencyCode || currentCurrency?.toUpperCase() || 'USD';
 
           const balanceFiat = formatWithThreshold(
             rawFiatNumber,
@@ -426,7 +414,7 @@ export const useAssetBalances = (
             I18n.locale,
             {
               style: 'currency',
-              currency: currentCurrency?.toUpperCase() || 'USD',
+              currency: currencyToUse,
             },
           );
 
