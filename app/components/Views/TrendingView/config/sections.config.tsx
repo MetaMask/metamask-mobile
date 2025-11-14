@@ -38,9 +38,8 @@ export interface SectionConfig {
 
 const tokensConfig: SectionConfig = {
   title: strings('trending.tokens'),
-  navigationAction: (_navigation) => {
-    // TODO: Implement tokens navigation when ready
-    // _navigation.navigate(...);
+  navigationAction: (navigation) => {
+    navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW);
   },
   renderItem: (item) => (
     <TrendingTokenRowItem
