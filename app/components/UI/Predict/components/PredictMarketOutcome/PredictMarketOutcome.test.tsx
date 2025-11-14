@@ -114,7 +114,7 @@ describe('PredictMarketOutcome', () => {
     );
 
     expect(getByText('Crypto Markets')).toBeOnTheScreen();
-    expect(getByText('+65%')).toBeOnTheScreen();
+    expect(getByText('65%')).toBeOnTheScreen();
     expect(getByText(/\$1M.*Vol\./)).toBeOnTheScreen();
   });
 
@@ -124,8 +124,8 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    expect(getByText(/65\.00¢/)).toBeOnTheScreen();
-    expect(getByText(/35\.00¢/)).toBeOnTheScreen();
+    expect(getByText(/65¢/)).toBeOnTheScreen();
+    expect(getByText(/35¢/)).toBeOnTheScreen();
   });
 
   it('handles button press events', () => {
@@ -134,29 +134,23 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    const yesButton = getByText(/65\.00¢/);
-    const noButton = getByText(/35\.00¢/);
+    const yesButton = getByText(/65¢/);
+    const noButton = getByText(/35¢/);
 
     fireEvent.press(yesButton);
-    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
-      screen: 'PredictBuyPreview',
-      params: {
-        market: mockMarket,
-        outcome: mockOutcome,
-        outcomeToken: mockOutcome.tokens[0],
-        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-      },
+    expect(mockNavigate).toHaveBeenCalledWith('PredictBuyPreview', {
+      market: mockMarket,
+      outcome: mockOutcome,
+      outcomeToken: mockOutcome.tokens[0],
+      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
     });
 
     fireEvent.press(noButton);
-    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
-      screen: 'PredictBuyPreview',
-      params: {
-        market: mockMarket,
-        outcome: mockOutcome,
-        outcomeToken: mockOutcome.tokens[1],
-        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-      },
+    expect(mockNavigate).toHaveBeenCalledWith('PredictBuyPreview', {
+      market: mockMarket,
+      outcome: mockOutcome,
+      outcomeToken: mockOutcome.tokens[1],
+      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
     });
   });
 
@@ -218,7 +212,7 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    const yesButton = getByText(/65\.00¢/);
+    const yesButton = getByText(/65¢/);
     fireEvent.press(yesButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
@@ -237,7 +231,7 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    const noButton = getByText(/35\.00¢/);
+    const noButton = getByText(/35¢/);
     fireEvent.press(noButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
@@ -257,7 +251,7 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    const yesButton = getByText(/65\.00¢/);
+    const yesButton = getByText(/65¢/);
     fireEvent.press(yesButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
@@ -277,7 +271,7 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    const noButton = getByText(/35\.00¢/);
+    const noButton = getByText(/35¢/);
     fireEvent.press(noButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
@@ -300,7 +294,7 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    const yesButton = getByText(/65\.00¢/);
+    const yesButton = getByText(/65¢/);
     fireEvent.press(yesButton);
 
     // Should navigate to unavailable (not add funds sheet)
@@ -327,7 +321,7 @@ describe('PredictMarketOutcome', () => {
       { state: initialState },
     );
 
-    const noButton = getByText(/35\.00¢/);
+    const noButton = getByText(/35¢/);
     fireEvent.press(noButton);
 
     // Should navigate to unavailable (not add funds sheet)
@@ -358,7 +352,7 @@ describe('PredictMarketOutcome', () => {
 
     expect(getByText('0%')).toBeOnTheScreen();
     // Should show two buttons with 0.00¢ prices
-    expect(getAllByText(/0\.00¢/)).toHaveLength(2);
+    expect(getAllByText(/0¢/)).toHaveLength(2);
   });
 
   it('displays empty title when groupItemTitle is missing', () => {
@@ -374,7 +368,7 @@ describe('PredictMarketOutcome', () => {
 
     // The component now shows the groupItemTitle directly, even if it's undefined
     // We can verify the component renders without errors by checking other elements
-    expect(getByText('+65%')).toBeOnTheScreen();
+    expect(getByText('65%')).toBeOnTheScreen();
     expect(getByText(/\$1M.*Vol\./)).toBeOnTheScreen();
   });
 
@@ -444,8 +438,8 @@ describe('PredictMarketOutcome', () => {
         { state: initialState },
       );
 
-      expect(queryByText(/65\.00¢/)).not.toBeOnTheScreen();
-      expect(queryByText(/35\.00¢/)).not.toBeOnTheScreen();
+      expect(queryByText(/65¢/)).not.toBeOnTheScreen();
+      expect(queryByText(/35¢/)).not.toBeOnTheScreen();
     });
 
     it('shows action buttons when market is not closed', () => {
@@ -458,8 +452,8 @@ describe('PredictMarketOutcome', () => {
         { state: initialState },
       );
 
-      expect(getByText(/65\.00¢/)).toBeOnTheScreen();
-      expect(getByText(/35\.00¢/)).toBeOnTheScreen();
+      expect(getByText(/65¢/)).toBeOnTheScreen();
+      expect(getByText(/35¢/)).toBeOnTheScreen();
     });
 
     it('uses outcomeToken title when market is closed and outcomeToken is provided', () => {
@@ -493,6 +487,186 @@ describe('PredictMarketOutcome', () => {
       );
 
       expect(getByText('Crypto Markets')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Button Label Formatting', () => {
+    it('uses bullet separator when both token titles are 6 characters or less', () => {
+      const outcomeWithShortLabels: PredictOutcome = {
+        ...mockOutcome,
+        tokens: [
+          { id: 'token-yes', title: 'Short', price: 0.65 },
+          { id: 'token-no', title: 'Label', price: 0.35 },
+        ],
+      };
+
+      const { getByText } = renderWithProvider(
+        <PredictMarketOutcome
+          outcome={outcomeWithShortLabels}
+          market={mockMarket}
+        />,
+        { state: initialState },
+      );
+
+      expect(getByText(/Short/)).toBeOnTheScreen();
+      expect(getByText(/Label/)).toBeOnTheScreen();
+    });
+
+    it('uses newline separator when first token title exceeds 6 characters', () => {
+      const outcomeWithLongFirstLabel: PredictOutcome = {
+        ...mockOutcome,
+        tokens: [
+          { id: 'token-yes', title: 'VeryLongLabel', price: 0.65 },
+          { id: 'token-no', title: 'No', price: 0.35 },
+        ],
+      };
+
+      const { getByText } = renderWithProvider(
+        <PredictMarketOutcome
+          outcome={outcomeWithLongFirstLabel}
+          market={mockMarket}
+        />,
+        { state: initialState },
+      );
+
+      expect(getByText(/VeryLongLabel/)).toBeOnTheScreen();
+      expect(getByText(/65¢/)).toBeOnTheScreen();
+    });
+
+    it('uses newline separator when second token title exceeds 6 characters', () => {
+      const outcomeWithLongSecondLabel: PredictOutcome = {
+        ...mockOutcome,
+        tokens: [
+          { id: 'token-yes', title: 'Yes', price: 0.65 },
+          { id: 'token-no', title: 'VeryLongLabel', price: 0.35 },
+        ],
+      };
+
+      const { getByText } = renderWithProvider(
+        <PredictMarketOutcome
+          outcome={outcomeWithLongSecondLabel}
+          market={mockMarket}
+        />,
+        { state: initialState },
+      );
+
+      expect(getByText(/VeryLongLabel/)).toBeOnTheScreen();
+      expect(getByText(/35¢/)).toBeOnTheScreen();
+    });
+
+    it('uses newline separator when both token titles exceed 6 characters', () => {
+      const outcomeWithLongLabels: PredictOutcome = {
+        ...mockOutcome,
+        tokens: [
+          { id: 'token-yes', title: 'LongFirst', price: 0.65 },
+          { id: 'token-no', title: 'LongSecond', price: 0.35 },
+        ],
+      };
+
+      const { getByText } = renderWithProvider(
+        <PredictMarketOutcome
+          outcome={outcomeWithLongLabels}
+          market={mockMarket}
+        />,
+        { state: initialState },
+      );
+
+      expect(getByText(/LongFirst/)).toBeOnTheScreen();
+      expect(getByText(/LongSecond/)).toBeOnTheScreen();
+      expect(getByText(/65¢/)).toBeOnTheScreen();
+      expect(getByText(/35¢/)).toBeOnTheScreen();
+    });
+
+    it('uses bullet separator for token titles with exactly 6 characters', () => {
+      const outcomeWithExactLabels: PredictOutcome = {
+        ...mockOutcome,
+        tokens: [
+          { id: 'token-yes', title: 'Exact6', price: 0.65 },
+          { id: 'token-no', title: 'Size6!', price: 0.35 },
+        ],
+      };
+
+      const { getByText } = renderWithProvider(
+        <PredictMarketOutcome
+          outcome={outcomeWithExactLabels}
+          market={mockMarket}
+        />,
+        { state: initialState },
+      );
+
+      expect(getByText(/Exact6/)).toBeOnTheScreen();
+      expect(getByText(/Size6!/)).toBeOnTheScreen();
+      expect(getByText(/65¢/)).toBeOnTheScreen();
+    });
+
+    it('handles very long token titles gracefully', () => {
+      const outcomeWithVeryLongLabels: PredictOutcome = {
+        ...mockOutcome,
+        tokens: [
+          {
+            id: 'token-yes',
+            title: 'Very Long Label That Exceeds Maximum',
+            price: 0.65,
+          },
+          {
+            id: 'token-no',
+            title: 'Another Extremely Long Label',
+            price: 0.35,
+          },
+        ],
+      };
+
+      const { getByText } = renderWithProvider(
+        <PredictMarketOutcome
+          outcome={outcomeWithVeryLongLabels}
+          market={mockMarket}
+        />,
+        { state: initialState },
+      );
+
+      expect(
+        getByText(/Very Long Label That Exceeds Maximum/),
+      ).toBeOnTheScreen();
+      expect(getByText(/Another Extremely Long Label/)).toBeOnTheScreen();
+    });
+
+    it('renders buttons with correct interaction when labels are long', () => {
+      const outcomeWithLongLabels: PredictOutcome = {
+        ...mockOutcome,
+        tokens: [
+          { id: 'token-yes', title: 'LongYesLabel', price: 0.65 },
+          { id: 'token-no', title: 'LongNoLabel', price: 0.35 },
+        ],
+      };
+
+      const { getByText } = renderWithProvider(
+        <PredictMarketOutcome
+          outcome={outcomeWithLongLabels}
+          market={mockMarket}
+        />,
+        { state: initialState },
+      );
+
+      const yesButton = getByText(/LongYesLabel/);
+      const noButton = getByText(/LongNoLabel/);
+
+      fireEvent.press(yesButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith('PredictBuyPreview', {
+        market: mockMarket,
+        outcome: outcomeWithLongLabels,
+        outcomeToken: outcomeWithLongLabels.tokens[0],
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+      });
+
+      fireEvent.press(noButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith('PredictBuyPreview', {
+        market: mockMarket,
+        outcome: outcomeWithLongLabels,
+        outcomeToken: outcomeWithLongLabels.tokens[1],
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+      });
     });
   });
 });

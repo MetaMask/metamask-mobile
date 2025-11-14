@@ -189,6 +189,10 @@ export class Engine {
    */
   static instance: Engine | null;
   /**
+   * Flag to disable automatic vault backups (used during wallet reset)
+   */
+  static disableAutomaticVaultBackup = false;
+  /**
    * A collection of all controller instances
    */
   context: EngineContext;
@@ -696,6 +700,11 @@ export class Engine {
     this.controllerMessenger.subscribe(
       AppConstants.KEYRING_STATE_CHANGE_EVENT,
       (state: KeyringControllerState) => {
+        // Check if automatic backups are disabled (during wallet reset)
+        if (Engine.disableAutomaticVaultBackup) {
+          return;
+        }
+
         if (!state.vault) {
           return;
         }

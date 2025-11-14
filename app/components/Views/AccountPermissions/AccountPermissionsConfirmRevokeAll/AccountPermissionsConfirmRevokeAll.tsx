@@ -72,9 +72,7 @@ const AccountPermissionsConfirmRevokeAll = (
     <BottomSheet ref={sheetRef}>
       <View style={styles.container}>
         <BottomSheetHeader>
-          <Text variant={TextVariant.HeadingMD}>
-            {strings('accounts.disconnect_all')}
-          </Text>
+          {strings('accounts.disconnect_all')}
         </BottomSheetHeader>
         <View style={styles.descriptionContainer}>
           <Text variant={TextVariant.BodyMD}>

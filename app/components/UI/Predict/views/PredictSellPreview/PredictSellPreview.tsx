@@ -24,7 +24,7 @@ import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import {
-  PredictEventType,
+  PredictTradeStatus,
   PredictEventValues,
 } from '../../constants/eventNames';
 import { formatPercentage, formatPrice } from '../../utils/format';
@@ -38,6 +38,8 @@ import {
   ButtonSize as ButtonSizeHero,
 } from '@metamask/design-system-react-native';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
+import { TraceName } from '../../../../../util/trace';
+import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 
 const PredictSellPreview = () => {
   const tw = useTailwind();
@@ -94,12 +96,23 @@ const PredictSellPreview = () => {
     autoRefreshTimeout: 1000,
   });
 
-  // Track Predict Action Initiated when screen mounts
+  // Track screen load performance (position data + preview)
+  usePredictMeasurement({
+    traceName: TraceName.PredictSellPreviewView,
+    conditions: [!!position, !!preview, !!market],
+    debugContext: {
+      marketId: market?.id,
+      hasPosition: !!position,
+      hasPreview: !!preview,
+    },
+  });
+
+  // Track Predict Trade Transaction with initiated status when screen mounts
   useEffect(() => {
     const controller = Engine.context.PredictController;
 
     controller.trackPredictOrderEvent({
-      eventType: PredictEventType.INITIATED,
+      status: PredictTradeStatus.INITIATED,
       analyticsProperties,
       providerId: position.providerId,
       sharePrice: position?.price,
@@ -215,7 +228,7 @@ const PredictSellPreview = () => {
               color={TextColor.Error}
               style={tw.style('text-center')}
             >
-              {strings('predict.order.order_failed_generic')}
+              {placeOrderError}
             </Text>
           )}
           <Box twClassName="flex-row items-center gap-4">

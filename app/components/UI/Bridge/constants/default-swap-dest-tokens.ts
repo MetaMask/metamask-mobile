@@ -1,4 +1,9 @@
-import { BtcScope, CaipChainId, SolScope } from '@metamask/keyring-api';
+import {
+  BtcScope,
+  CaipChainId,
+  SolScope,
+  TrxScope,
+} from '@metamask/keyring-api';
 import { BridgeToken } from '../types';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -113,6 +118,15 @@ export const DefaultSwapDestTokens: Record<Hex | CaipChainId, BridgeToken> = {
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png',
     chainId: SolScope.Mainnet,
   },
+  [TrxScope.Mainnet]: {
+    address: 'tron:728126428/trc20:TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+    symbol: 'USDT',
+    name: 'Tether USD',
+    decimals: 6,
+    image:
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/tron/728126428/trc20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t.png',
+    chainId: TrxScope.Mainnet,
+  },
 };
 
 export const Bip44TokensForDefaultPairs: Record<CaipAssetType, BridgeToken> = {
@@ -172,4 +186,13 @@ export const Bip44TokensForDefaultPairs: Record<CaipAssetType, BridgeToken> = {
       chainId: SolScope.Mainnet,
       name: 'USD Coin',
     },
+  'tron:728126428/trc20:TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t': {
+    address: 'tron:728126428/trc20:TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+    symbol: 'USDT',
+    decimals: 6,
+    image:
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/tron/728126428/trc20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t.png',
+    chainId: TrxScope.Mainnet,
+    name: 'Tether USD',
+  },
 };
