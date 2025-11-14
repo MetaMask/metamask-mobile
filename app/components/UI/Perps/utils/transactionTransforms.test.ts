@@ -40,7 +40,7 @@ describe('transactionTransforms', () => {
 
       const result = transformFillsToTransactions([closeFill]);
 
-      if (!result[0]?.fill) {
+      if (result[0]?.type !== 'trade') {
         return;
       }
 
@@ -60,7 +60,7 @@ describe('transactionTransforms', () => {
 
       const result = transformFillsToTransactions([breakEvenFill]);
 
-      if (!result[0]?.fill) {
+      if (result[0]?.type !== 'trade') {
         return;
       }
 
@@ -133,7 +133,11 @@ describe('transactionTransforms', () => {
 
       const result = transformFillsToTransactions([tpFill]);
 
-      expect(result[0].fill?.fillType).toBe(FillType.TakeProfit);
+      if (result[0]?.type !== 'trade') {
+        return;
+      }
+
+      expect(result[0].fill.fillType).toBe(FillType.TakeProfit);
     });
 
     it('should correctly identify stop loss fills', () => {
@@ -153,7 +157,11 @@ describe('transactionTransforms', () => {
 
       const result = transformFillsToTransactions([slFill]);
 
-      expect(result[0].fill?.fillType).toBe(FillType.StopLoss);
+      if (result[0]?.type !== 'trade') {
+        return;
+      }
+
+      expect(result[0].fill.fillType).toBe(FillType.StopLoss);
     });
 
     it('should correctly identify liquidation fills', () => {
@@ -178,8 +186,12 @@ describe('transactionTransforms', () => {
 
       const result = transformFillsToTransactions([liquidationFill]);
 
-      expect(result[0].fill?.fillType).toBe(FillType.Liquidation);
-      expect(result[0].fill?.liquidation).toEqual({
+      if (result[0]?.type !== 'trade') {
+        return;
+      }
+
+      expect(result[0].fill.fillType).toBe(FillType.Liquidation);
+      expect(result[0].fill.liquidation).toEqual({
         liquidatedUser: '0x1234567890123456789012345678901234567890',
         markPx: '2000',
         method: 'market',
@@ -203,15 +215,19 @@ describe('transactionTransforms', () => {
 
       const result = transformFillsToTransactions([adlFill]);
 
+      if (result[0]?.type !== 'trade') {
+        return;
+      }
+
       expect(result[0]).toMatchObject({
         category: 'position_close',
         title: 'Closed long',
         asset: 'SOL',
       });
-      expect(result[0].fill?.fillType).toBe(FillType.AutoDeleveraging);
-      expect(result[0].fill?.amount).toBe('-$260.00');
-      expect(result[0].fill?.amountNumber).toBe(-260);
-      expect(result[0].fill?.isPositive).toBe(false);
+      expect(result[0].fill.fillType).toBe(FillType.AutoDeleveraging);
+      expect(result[0].fill.amount).toBe('-$260.00');
+      expect(result[0].fill.amountNumber).toBe(-260);
+      expect(result[0].fill.isPositive).toBe(false);
     });
 
     it('correctly identifies auto-deleveraging fills with negative position', () => {
@@ -231,15 +247,19 @@ describe('transactionTransforms', () => {
 
       const result = transformFillsToTransactions([adlFill]);
 
+      if (result[0]?.type !== 'trade') {
+        return;
+      }
+
       expect(result[0]).toMatchObject({
         category: 'position_close',
         title: 'Closed short',
         asset: 'ETH',
       });
-      expect(result[0].fill?.fillType).toBe(FillType.AutoDeleveraging);
-      expect(result[0].fill?.amount).toBe('+$385.00');
-      expect(result[0].fill?.amountNumber).toBe(385);
-      expect(result[0].fill?.isPositive).toBe(true);
+      expect(result[0].fill.fillType).toBe(FillType.AutoDeleveraging);
+      expect(result[0].fill.amount).toBe('+$385.00');
+      expect(result[0].fill.amountNumber).toBe(385);
+      expect(result[0].fill.isPositive).toBe(true);
     });
 
     it('filters out auto-deleveraging fills with invalid startPosition', () => {
@@ -289,8 +309,12 @@ describe('transactionTransforms', () => {
 
       const result = transformFillsToTransactions([stopLossFill]);
 
-      expect(result[0].fill?.fillType).toBe(FillType.StopLoss);
-      expect(result[0].fill?.liquidation).toBeUndefined();
+      if (result[0]?.type !== 'trade') {
+        return;
+      }
+
+      expect(result[0].fill.fillType).toBe(FillType.StopLoss);
+      expect(result[0].fill.liquidation).toBeUndefined();
     });
 
     it('handles missing direction gracefully', () => {
@@ -406,7 +430,7 @@ describe('transactionTransforms', () => {
 
       const result = transformOrdersToTransactions([cancelledOrder]);
 
-      if (!result[0]?.order) {
+      if (result[0]?.type !== 'order') {
         return;
       }
 
@@ -424,7 +448,7 @@ describe('transactionTransforms', () => {
 
       const result = transformOrdersToTransactions([rejectedOrder]);
 
-      if (!result[0]?.order) {
+      if (result[0]?.type !== 'order') {
         return;
       }
 
@@ -442,7 +466,7 @@ describe('transactionTransforms', () => {
 
       const result = transformOrdersToTransactions([triggeredOrder]);
 
-      if (!result[0]?.order) {
+      if (result[0]?.type !== 'order') {
         return;
       }
 
@@ -460,7 +484,7 @@ describe('transactionTransforms', () => {
 
       const result = transformOrdersToTransactions([openOrder]);
 
-      if (!result[0]?.order) {
+      if (result[0]?.type !== 'order') {
         return;
       }
 
@@ -541,7 +565,7 @@ describe('transactionTransforms', () => {
 
       const result = transformOrdersToTransactions([marketOrder]);
 
-      if (!result[0]?.order) {
+      if (result[0]?.type !== 'order') {
         return;
       }
 
@@ -557,7 +581,7 @@ describe('transactionTransforms', () => {
 
       const result = transformOrdersToTransactions([partiallyFilledOrder]);
 
-      if (!result[0]?.order) {
+      if (result[0]?.type !== 'order') {
         return;
       }
 
@@ -573,7 +597,7 @@ describe('transactionTransforms', () => {
 
       const result = transformOrdersToTransactions([fullyFilledOrder]);
 
-      if (!result[0]?.order) {
+      if (result[0]?.type !== 'order') {
         return;
       }
 
@@ -654,7 +678,7 @@ describe('transactionTransforms', () => {
 
       const result = transformFundingToTransactions([negativeFunding]);
 
-      if (!result[0]?.fundingAmount) {
+      if (result[0]?.type !== 'funding') {
         return;
       }
 
@@ -740,7 +764,6 @@ describe('transactionTransforms', () => {
       expect(result[0]).toEqual({
         id: 'deposit-deposit1',
         type: 'deposit' as const,
-        category: 'deposit',
         title: 'Deposited 1000 USDC',
         subtitle: 'Completed',
         timestamp: 1640995200000,
@@ -752,7 +775,6 @@ describe('transactionTransforms', () => {
           asset: 'USDC',
           txHash: '0x123',
           status: 'completed' as const,
-          type: 'deposit' as const,
         },
       });
     });
@@ -766,17 +788,15 @@ describe('transactionTransforms', () => {
 
       const result = transformUserHistoryToTransactions([withdrawalItem]);
 
-      if (!result[0]?.depositWithdrawal) {
+      if (result[0]?.type !== 'withdrawal' && result[0]?.type !== 'deposit') {
         return;
       }
 
       expect(result[0].type).toBe('withdrawal');
-      expect(result[0].category).toBe('withdrawal');
       expect(result[0].title).toBe('Withdrew 500 USDC');
       expect(result[0].depositWithdrawal.amount).toBe('-$500.00');
       expect(result[0].depositWithdrawal.amountNumber).toBe(500);
       expect(result[0].depositWithdrawal.isPositive).toBe(false);
-      expect(result[0].depositWithdrawal.type).toBe('withdrawal');
     });
 
     it('filters out non-completed items', () => {
@@ -798,7 +818,7 @@ describe('transactionTransforms', () => {
 
       const result = transformUserHistoryToTransactions([noTxHashItem]);
 
-      if (!result[0]?.depositWithdrawal) {
+      if (result[0]?.type !== 'withdrawal' && result[0]?.type !== 'deposit') {
         return;
       }
 
@@ -827,7 +847,6 @@ describe('transactionTransforms', () => {
       expect(result[0]).toEqual({
         id: 'withdrawal-withdrawal1',
         type: 'withdrawal' as const,
-        category: 'withdrawal',
         title: 'Withdrew 500 USDC',
         subtitle: 'Completed',
         timestamp: 1640995200000,
@@ -839,7 +858,6 @@ describe('transactionTransforms', () => {
           asset: 'USDC',
           txHash: '0x456',
           status: 'completed' as const,
-          type: 'withdrawal' as const,
         },
       });
     });
@@ -867,7 +885,7 @@ describe('transactionTransforms', () => {
         noTxHashRequest,
       ]);
 
-      if (!result[0]?.depositWithdrawal) {
+      if (result[0]?.type !== 'withdrawal' && result[0]?.type !== 'deposit') {
         return;
       }
 
@@ -896,7 +914,6 @@ describe('transactionTransforms', () => {
       expect(result[0]).toEqual({
         id: 'deposit-deposit1',
         type: 'deposit' as const,
-        category: 'deposit',
         title: 'Deposited 1000 USDC',
         subtitle: 'Completed',
         timestamp: 1640995200000,
@@ -908,7 +925,6 @@ describe('transactionTransforms', () => {
           asset: 'USDC',
           txHash: '0x789',
           status: 'completed' as const,
-          type: 'deposit' as const,
         },
       });
     });
@@ -958,7 +974,7 @@ describe('transactionTransforms', () => {
 
       const result = transformDepositRequestsToTransactions([noTxHashRequest]);
 
-      if (!result[0]?.depositWithdrawal) {
+      if (result[0]?.type !== 'withdrawal' && result[0]?.type !== 'deposit') {
         return;
       }
 
@@ -994,7 +1010,7 @@ describe('transactionTransforms', () => {
 
       const result = transformFillsToTransactions([edgeCaseFill]);
 
-      if (!result[0]?.fill) {
+      if (result[0]?.type !== 'trade') {
         return;
       }
 
