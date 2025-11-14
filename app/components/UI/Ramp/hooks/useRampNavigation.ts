@@ -51,7 +51,12 @@ export const useRampNavigation = () => {
 
   const goToRamps = useCallback(
     ({ mode, params, overrideUnifiedBuyFlag }: GoToRampsParams) => {
-      if (isRampsUnifiedV1Enabled && !overrideUnifiedBuyFlag) {
+      if (
+        (mode === RampMode.DEPOSIT ||
+          params?.rampType === AggregatorRampType.BUY) &&
+        isRampsUnifiedV1Enabled &&
+        !overrideUnifiedBuyFlag
+      ) {
         if (rampRoutingDecision === UnifiedRampRoutingType.DEPOSIT) {
           navigation.navigate(
             ...createDepositNavigationDetails(
