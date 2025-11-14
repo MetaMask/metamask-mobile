@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
 import TrendingTokensFullView from './TrendingTokensFullView';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 
@@ -11,6 +12,7 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
   }),
+  createNavigatorFactory: () => ({}),
 }));
 
 const mockUseTrendingRequest = jest.fn();
@@ -208,6 +210,21 @@ const createMockToken = (
 });
 
 describe('TrendingTokensFullView', () => {
+  const mockState = {
+    engine: {
+      backgroundState: {
+        NetworkController: {
+          networkConfigurations: {},
+          networkConfigurationsByChainId: {},
+        },
+        MultichainNetworkController: {
+          selectedMultichainNetworkChainId: undefined,
+          multichainNetworkConfigurationsByChainId: {},
+        },
+      },
+    },
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseTrendingRequest.mockReturnValue({
@@ -219,7 +236,11 @@ describe('TrendingTokensFullView', () => {
   });
 
   it('renders header with title and buttons', () => {
-    const { getByText, getByTestId } = render(<TrendingTokensFullView />);
+    const { getByText, getByTestId } = renderWithProvider(
+      <TrendingTokensFullView />,
+      { state: mockState },
+      false, // Exclude NavigationContainer since we're mocking navigation
+    );
 
     expect(getByText('Trending Tokens')).toBeTruthy();
     expect(getByTestId('back-button')).toBeTruthy();
@@ -227,7 +248,11 @@ describe('TrendingTokensFullView', () => {
   });
 
   it('renders control buttons', () => {
-    const { getByTestId, getByText } = render(<TrendingTokensFullView />);
+    const { getByTestId, getByText } = renderWithProvider(
+      <TrendingTokensFullView />,
+      { state: mockState },
+      false,
+    );
 
     expect(getByTestId('price-change-button')).toBeTruthy();
     expect(getByTestId('all-networks-button')).toBeTruthy();
@@ -238,7 +263,11 @@ describe('TrendingTokensFullView', () => {
   });
 
   it('navigates back when back button is pressed', () => {
-    const { getByTestId } = render(<TrendingTokensFullView />);
+    const { getByTestId } = renderWithProvider(
+      <TrendingTokensFullView />,
+      { state: mockState },
+      false,
+    );
 
     const backButton = getByTestId('back-button');
     fireEvent.press(backButton);
@@ -247,7 +276,11 @@ describe('TrendingTokensFullView', () => {
   });
 
   it('navigates to time bottom sheet when 24h button is pressed', () => {
-    const { getByTestId } = render(<TrendingTokensFullView />);
+    const { getByTestId } = renderWithProvider(
+      <TrendingTokensFullView />,
+      { state: mockState },
+      false,
+    );
 
     const button24h = getByTestId('24h-button');
     fireEvent.press(button24h);
@@ -265,7 +298,11 @@ describe('TrendingTokensFullView', () => {
   });
 
   it('navigates to network bottom sheet when all networks button is pressed', () => {
-    const { getByTestId } = render(<TrendingTokensFullView />);
+    const { getByTestId } = renderWithProvider(
+      <TrendingTokensFullView />,
+      { state: mockState },
+      false,
+    );
 
     const allNetworksButton = getByTestId('all-networks-button');
     fireEvent.press(allNetworksButton);
@@ -283,7 +320,11 @@ describe('TrendingTokensFullView', () => {
   });
 
   it('navigates to price change bottom sheet when price change button is pressed', () => {
-    const { getByTestId } = render(<TrendingTokensFullView />);
+    const { getByTestId } = renderWithProvider(
+      <TrendingTokensFullView />,
+      { state: mockState },
+      false,
+    );
 
     const priceChangeButton = getByTestId('price-change-button');
     fireEvent.press(priceChangeButton);
@@ -309,7 +350,11 @@ describe('TrendingTokensFullView', () => {
       fetch: jest.fn(),
     });
 
-    const { getByTestId } = render(<TrendingTokensFullView />);
+    const { getByTestId } = renderWithProvider(
+      <TrendingTokensFullView />,
+      { state: mockState },
+      false,
+    );
 
     expect(getByTestId('trending-tokens-skeleton')).toBeTruthy();
   });
@@ -322,7 +367,11 @@ describe('TrendingTokensFullView', () => {
       fetch: jest.fn(),
     });
 
-    const { getByTestId } = render(<TrendingTokensFullView />);
+    const { getByTestId } = renderWithProvider(
+      <TrendingTokensFullView />,
+      { state: mockState },
+      false,
+    );
 
     expect(getByTestId('trending-tokens-skeleton')).toBeTruthy();
   });
@@ -340,7 +389,11 @@ describe('TrendingTokensFullView', () => {
       fetch: jest.fn(),
     });
 
-    const { getByTestId, getByText } = render(<TrendingTokensFullView />);
+    const { getByTestId, getByText } = renderWithProvider(
+      <TrendingTokensFullView />,
+      { state: mockState },
+      false,
+    );
 
     expect(getByTestId('trending-tokens-list')).toBeTruthy();
     expect(getByText('Token 1')).toBeTruthy();
@@ -348,7 +401,7 @@ describe('TrendingTokensFullView', () => {
   });
 
   it('calls useTrendingRequest with correct initial parameters', () => {
-    render(<TrendingTokensFullView />);
+    renderWithProvider(<TrendingTokensFullView />, { state: mockState }, false);
 
     expect(mockUseTrendingRequest).toHaveBeenCalledWith({
       sortBy: undefined,
@@ -357,7 +410,11 @@ describe('TrendingTokensFullView', () => {
   });
 
   it('updates sortBy when time option is selected', async () => {
-    const { getByTestId } = render(<TrendingTokensFullView />);
+    const { getByTestId } = renderWithProvider(
+      <TrendingTokensFullView />,
+      { state: mockState },
+      false,
+    );
 
     const button24h = getByTestId('24h-button');
     fireEvent.press(button24h);
@@ -383,7 +440,11 @@ describe('TrendingTokensFullView', () => {
   });
 
   it('updates chainIds when network is selected', async () => {
-    const { getByTestId } = render(<TrendingTokensFullView />);
+    const { getByTestId } = renderWithProvider(
+      <TrendingTokensFullView />,
+      { state: mockState },
+      false,
+    );
 
     const allNetworksButton = getByTestId('all-networks-button');
     fireEvent.press(allNetworksButton);

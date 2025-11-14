@@ -1,6 +1,7 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import { ImageSourcePropType } from 'react-native';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { TrendingTokenNetworkBottomSheet } from './TrendingTokenNetworkBottomSheet';
 import { CaipChainId } from '@metamask/utils';
 import type { ProcessedNetwork } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
@@ -14,11 +15,23 @@ jest.mock('@react-navigation/native', () => ({
     goBack: mockGoBack,
     canGoBack: mockCanGoBack,
   }),
+  NavigationContainer: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
+jest.mock('@react-navigation/stack', () => ({
+  createStackNavigator: jest.fn(),
 }));
 
 const mockUseParams = jest.fn();
 jest.mock('../../../../util/navigation/navUtils', () => ({
   useParams: () => mockUseParams(),
+}));
+
+const mockGetNetworkImageSource = jest.fn();
+jest.mock('../../../../util/networks', () => ({
+  getNetworkImageSource: (params: { chainId: string }) =>
+    mockGetNetworkImageSource(params),
 }));
 
 const mockNetworks: ProcessedNetwork[] = [
@@ -127,6 +140,10 @@ jest.mock('../../../../component-library/components/Texts/Text', () => {
       HeadingMD: 'HeadingMD',
       BodyMD: 'BodyMD',
     },
+    TextColor: {
+      Default: 'Default',
+      Alternative: 'Alternative',
+    },
   };
 });
 
@@ -178,6 +195,33 @@ jest.mock('../../../../component-library/components/Avatars/Avatar', () => {
 });
 
 describe('TrendingTokenNetworkBottomSheet', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mockState: any = {
+    engine: {
+      backgroundState: {
+        NetworkController: {
+          networkConfigurations: {},
+          networkConfigurationsByChainId: {
+            '0x1': {
+              chainId: '0x1' as const,
+              name: 'Ethereum Mainnet',
+              caipChainId: 'eip155:1',
+            },
+            '0x89': {
+              chainId: '0x89' as const,
+              name: 'Polygon',
+              caipChainId: 'eip155:137',
+            },
+          },
+        },
+        MultichainNetworkController: {
+          selectedMultichainNetworkChainId: undefined,
+          multichainNetworkConfigurationsByChainId: {},
+        },
+      },
+    },
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     storedOnClose = undefined;
@@ -185,11 +229,24 @@ describe('TrendingTokenNetworkBottomSheet', () => {
     mockUseNetworksByNamespace.mockReturnValue({
       networks: mockNetworks,
     });
+    mockGetNetworkImageSource.mockImplementation(
+      (params: { chainId: string }) => {
+        if (params.chainId === 'eip155:1') {
+          return { uri: 'https://example.com/ethereum.png' };
+        }
+        if (params.chainId === 'eip155:137') {
+          return { uri: 'https://example.com/polygon.png' };
+        }
+        return { uri: 'https://example.com/default.png' };
+      },
+    );
   });
 
   it('renders with default "All networks" selected', () => {
-    const { getByText, getByTestId } = render(
+    const { getByText, getByTestId } = renderWithProvider(
       <TrendingTokenNetworkBottomSheet />,
+      { state: mockState },
+      false,
     );
 
     expect(getByText('Networks')).toBeTruthy();
@@ -198,7 +255,11 @@ describe('TrendingTokenNetworkBottomSheet', () => {
   });
 
   it('renders all network options', () => {
-    const { getByText } = render(<TrendingTokenNetworkBottomSheet />);
+    const { getByText } = renderWithProvider(
+      <TrendingTokenNetworkBottomSheet />,
+      { state: mockState },
+      false,
+    );
 
     expect(getByText('All networks')).toBeTruthy();
     expect(getByText('Ethereum Mainnet')).toBeTruthy();
@@ -211,7 +272,11 @@ describe('TrendingTokenNetworkBottomSheet', () => {
       onNetworkSelect: mockOnNetworkSelect,
     });
 
-    const { getByText } = render(<TrendingTokenNetworkBottomSheet />);
+    const { getByText } = renderWithProvider(
+      <TrendingTokenNetworkBottomSheet />,
+      { state: mockState },
+      false,
+    );
 
     const allNetworksOption = getByText('All networks');
     const parent = allNetworksOption.parent;
@@ -227,7 +292,11 @@ describe('TrendingTokenNetworkBottomSheet', () => {
       onNetworkSelect: mockOnNetworkSelect,
     });
 
-    const { getByText } = render(<TrendingTokenNetworkBottomSheet />);
+    const { getByText } = renderWithProvider(
+      <TrendingTokenNetworkBottomSheet />,
+      { state: mockState },
+      false,
+    );
 
     const ethereumOption = getByText('Ethereum Mainnet');
     const parent = ethereumOption.parent;
@@ -243,7 +312,11 @@ describe('TrendingTokenNetworkBottomSheet', () => {
       onNetworkSelect: mockOnNetworkSelect,
     });
 
-    const { getByText } = render(<TrendingTokenNetworkBottomSheet />);
+    const { getByText } = renderWithProvider(
+      <TrendingTokenNetworkBottomSheet />,
+      { state: mockState },
+      false,
+    );
 
     const allNetworksOption = getByText('All networks');
     const parent = allNetworksOption.parent;
@@ -254,7 +327,11 @@ describe('TrendingTokenNetworkBottomSheet', () => {
   });
 
   it('navigates back when close button is pressed', () => {
-    const { getByTestId } = render(<TrendingTokenNetworkBottomSheet />);
+    const { getByTestId } = renderWithProvider(
+      <TrendingTokenNetworkBottomSheet />,
+      { state: mockState },
+      false,
+    );
 
     const closeButton = getByTestId('close-button');
     fireEvent.press(closeButton);
@@ -264,7 +341,11 @@ describe('TrendingTokenNetworkBottomSheet', () => {
   });
 
   it('navigates back when sheet is closed via onClose', () => {
-    render(<TrendingTokenNetworkBottomSheet />);
+    renderWithProvider(
+      <TrendingTokenNetworkBottomSheet />,
+      { state: mockState },
+      false,
+    );
 
     if (storedOnClose) {
       storedOnClose();
@@ -278,8 +359,10 @@ describe('TrendingTokenNetworkBottomSheet', () => {
       selectedNetwork: ['eip155:1'],
     });
 
-    const { getByText, getByTestId } = render(
+    const { getByText, getByTestId } = renderWithProvider(
       <TrendingTokenNetworkBottomSheet />,
+      { state: mockState },
+      false,
     );
 
     expect(getByText('Ethereum Mainnet')).toBeTruthy();
@@ -287,8 +370,10 @@ describe('TrendingTokenNetworkBottomSheet', () => {
   });
 
   it('displays check icon for "All networks" when selected', () => {
-    const { getByText, getByTestId } = render(
+    const { getByText, getByTestId } = renderWithProvider(
       <TrendingTokenNetworkBottomSheet />,
+      { state: mockState },
+      false,
     );
 
     expect(getByText('All networks')).toBeTruthy();
@@ -296,7 +381,11 @@ describe('TrendingTokenNetworkBottomSheet', () => {
   });
 
   it('renders network avatars with correct props', () => {
-    const { getByTestId } = render(<TrendingTokenNetworkBottomSheet />);
+    const { getByTestId } = renderWithProvider(
+      <TrendingTokenNetworkBottomSheet />,
+      { state: mockState },
+      false,
+    );
 
     const ethereumAvatar = getByTestId('avatar-Ethereum Mainnet');
     expect(ethereumAvatar).toBeTruthy();
@@ -312,7 +401,11 @@ describe('TrendingTokenNetworkBottomSheet', () => {
   });
 
   it('renders global icon for "All networks" option', () => {
-    const { getByTestId } = render(<TrendingTokenNetworkBottomSheet />);
+    const { getByTestId } = renderWithProvider(
+      <TrendingTokenNetworkBottomSheet />,
+      { state: mockState },
+      false,
+    );
 
     expect(getByTestId('icon-Global')).toBeTruthy();
   });

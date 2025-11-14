@@ -4,6 +4,14 @@ import { TouchableOpacity } from 'react-native';
 import TrendingTokenRowItem from './TrendingTokenRowItem';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
+
 jest.mock('../../../../../../component-library/hooks', () => ({
   useStyles: jest.fn(() => {
     const actualStyleSheet = jest.requireActual(
