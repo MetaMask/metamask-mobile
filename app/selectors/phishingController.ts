@@ -16,7 +16,7 @@ const selectPhishingControllerState = (state: RootState) =>
  */
 export const selectTokenScanResult = createDeepEqualSelector(
   selectPhishingControllerState,
-  (_state: RootState, params: { tokenAddress: string; chainId?: string }) =>
+  (_state: RootState, params: { tokenAddress: string; chainId: string }) =>
     params,
   (phishingControllerState, params) => {
     const { tokenAddress, chainId } = params;
