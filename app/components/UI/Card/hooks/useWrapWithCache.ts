@@ -92,20 +92,21 @@ export const useWrapWithCache = <T>(
 
     try {
       const result = await fetchFn();
+      const normalizedResult = result ?? null;
 
       // Only update cache if we got actual data (not null from missing dependencies)
       // This prevents caching "null" responses when dependencies aren't ready
-      if (result !== null) {
+      if (normalizedResult !== null) {
         dispatch(
           setCacheData({
             key: cacheKey,
-            data: result,
+            data: normalizedResult,
             timestamp: Date.now(),
           }),
         );
       }
 
-      return result;
+      return normalizedResult;
     } catch (err) {
       const errorObject = err instanceof Error ? err : new Error(String(err));
       setError(errorObject);

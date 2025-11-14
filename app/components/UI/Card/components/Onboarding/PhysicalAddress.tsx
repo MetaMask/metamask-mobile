@@ -517,6 +517,7 @@ const PhysicalAddress = () => {
         // Step 10: Link consent to user (only if needed)
         if (shouldLinkConsent && consentSetId) {
           await linkUserToConsent(consentSetId, updatedUser.id);
+          dispatch(setConsentSetId(null));
         }
 
         // Navigate to completion screen

@@ -1424,6 +1424,100 @@ describe('PhysicalAddress Component', () => {
         );
       });
     });
+
+    it('clears consent set ID from Redux after linking consent', async () => {
+      const mockGetOnboardingConsentSetByOnboardingId = jest
+        .fn()
+        .mockResolvedValue(null);
+      const mockCreateOnboardingConsent = jest
+        .fn()
+        .mockResolvedValue('consent-set-123');
+      const mockLinkUserToConsent = jest.fn().mockResolvedValue(undefined);
+      const mockRegisterAddress = jest.fn().mockResolvedValue({
+        accessToken: 'test-token',
+        user: { id: 'user-id' },
+      });
+      const mockDispatch = jest.fn();
+
+      // Mock useDispatch
+      const { useDispatch } = jest.requireMock('react-redux');
+      useDispatch.mockReturnValue(mockDispatch);
+
+      mockUseRegisterPhysicalAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      mockUseRegisterUserConsent.mockReturnValue({
+        createOnboardingConsent: mockCreateOnboardingConsent,
+        linkUserToConsent: mockLinkUserToConsent,
+        getOnboardingConsentSetByOnboardingId:
+          mockGetOnboardingConsentSetByOnboardingId,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        consentSetId: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      // Given: User fills all required fields
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
+      fireEvent.changeText(getByTestId('zip-code-input'), '12345');
+      fireEvent.press(getByTestId('state-select'));
+      fireEvent.press(
+        getByTestId('physical-address-electronic-consent-checkbox'),
+      );
+      fireEvent.press(
+        getByTestId('physical-address-account-opening-disclosure-checkbox'),
+      );
+      fireEvent.press(
+        getByTestId('physical-address-terms-and-conditions-checkbox'),
+      );
+      fireEvent.press(getByTestId('physical-address-privacy-policy-checkbox'));
+
+      await waitFor(() => {
+        const button = getByTestId('physical-address-continue-button');
+        expect(button.props.disabled).toBe(false);
+      });
+
+      const button = getByTestId('physical-address-continue-button');
+
+      // When: User submits the form and consent is linked
+      await act(async () => {
+        fireEvent.press(button);
+      });
+
+      await waitFor(() => {
+        expect(mockLinkUserToConsent).toHaveBeenCalledWith(
+          'consent-set-123',
+          'user-id',
+        );
+      });
+
+      // Then: Should dispatch action to clear consent set ID after linking
+      await waitFor(() => {
+        expect(mockDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: expect.stringContaining('setConsentSetId'),
+            payload: null,
+          }),
+        );
+      });
+    });
   });
 
   describe('Error Handling', () => {
