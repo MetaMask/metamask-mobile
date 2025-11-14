@@ -393,8 +393,8 @@ describe('orderCalculations', () => {
         // Verify limit price is 10% BELOW trigger (85500)
         const expectedLimitPrice =
           95000 * (1 - ORDER_SLIPPAGE_CONFIG.DEFAULT_TPSL_SLIPPAGE_BPS / 10000);
-        expect(parseFloat(slOrder.p)).toBe(expectedLimitPrice);
-        expect(parseFloat(slOrder.p)).toBe(85500); // 95000 * 0.90
+        expect(parseFloat(String(slOrder.p))).toBe(expectedLimitPrice);
+        expect(parseFloat(String(slOrder.p))).toBe(85500); // 95000 * 0.90
       });
 
       it('should apply slippage ABOVE trigger price for short position stop loss (buy to exit)', () => {
@@ -420,7 +420,7 @@ describe('orderCalculations', () => {
         });
 
         // Verify limit price is 10% ABOVE trigger (115500)
-        const limitPrice = parseFloat(slOrder.p);
+        const limitPrice = parseFloat(String(slOrder.p));
         expect(limitPrice).toBeCloseTo(115500, 0); // 105000 * 1.10 (allow rounding)
         expect(limitPrice).toBeGreaterThan(105000); // Most importantly: ABOVE trigger
       });
@@ -438,7 +438,7 @@ describe('orderCalculations', () => {
           ORDER_SLIPPAGE_CONFIG.DEFAULT_TPSL_SLIPPAGE_BPS / 10000;
 
         expect(slippageValue).toBe(0.1); // 10%
-        expect(parseFloat(slOrder.p)).toBe(100000 * 0.9); // 90000
+        expect(parseFloat(String(slOrder.p))).toBe(100000 * 0.9); // 90000
       });
 
       it('should protect against adverse price movements in volatile conditions', () => {
@@ -451,7 +451,7 @@ describe('orderCalculations', () => {
         });
 
         const slOrder = result.orders[1];
-        const limitPrice = parseFloat(slOrder.p);
+        const limitPrice = parseFloat(String(slOrder.p));
 
         // SL triggers at $95K, limit allows execution down to $85.5K
         expect(limitPrice).toBe(85500);
@@ -470,7 +470,7 @@ describe('orderCalculations', () => {
         });
 
         const slOrder = result.orders[1];
-        const limitPrice = parseFloat(slOrder.p);
+        const limitPrice = parseFloat(String(slOrder.p));
 
         // For short: limit should be 10% ABOVE trigger
         // Most importantly: verify direction is correct (ABOVE trigger)
@@ -509,8 +509,10 @@ describe('orderCalculations', () => {
         });
 
         const slOrder = result.orders[1];
-        expect(slOrder.t.trigger?.isMarket).toBe(true);
-        expect(slOrder.t.trigger?.tpsl).toBe('sl');
+        expect('trigger' in slOrder.t && slOrder.t.trigger?.isMarket).toBe(
+          true,
+        );
+        expect('trigger' in slOrder.t && slOrder.t.trigger?.tpsl).toBe('sl');
       });
 
       it('should set SL order direction opposite to main order', () => {
