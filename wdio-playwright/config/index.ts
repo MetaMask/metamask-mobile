@@ -1,1 +1,1 @@
-export { defineConfig } from './config';
+export { defineConfig } from './ConfigHandler';
