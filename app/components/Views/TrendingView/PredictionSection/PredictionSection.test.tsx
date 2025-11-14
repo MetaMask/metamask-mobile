@@ -1,21 +1,18 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import PredictionSection from './PredictionSection';
 import { usePredictMarketData } from '../../../UI/Predict/hooks/usePredictMarketData';
-import Routes from '../../../../constants/navigation/Routes';
 import {
   PredictMarket as PredictMarketType,
   Recurrence,
 } from '../../../UI/Predict/types';
 
 // Mock navigation
-const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
-    navigate: mockNavigate,
+    navigate: jest.fn(),
   }),
 }));
 
@@ -82,7 +79,6 @@ describe('PredictionSection', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockNavigate.mockClear();
   });
 
   afterEach(() => {
@@ -90,7 +86,7 @@ describe('PredictionSection', () => {
   });
 
   describe('loading state', () => {
-    it('renders skeleton loaders when fetching data', () => {
+    it('renders carousel with isLoading true when fetching data', () => {
       mockUsePredictMarketData.mockReturnValue({
         marketData: [],
         isFetching: true,
@@ -101,57 +97,37 @@ describe('PredictionSection', () => {
         fetchMore: jest.fn(),
       });
 
-      const { getByText, getAllByTestId } = renderWithProvider(
-        <PredictionSection />,
-        { state: initialState },
-      );
+      const { getByTestId } = renderWithProvider(<PredictionSection />, {
+        state: initialState,
+      });
 
-      expect(getByText('Predictions')).toBeOnTheScreen();
-      expect(getByText('View all')).toBeOnTheScreen();
+      expect(getByTestId('prediction-carousel-flash-list')).toBeOnTheScreen();
+    });
+
+    it('renders pagination dots during loading', () => {
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: true,
+        isFetchingMore: false,
+        error: null,
+        hasMore: false,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+
+      const { getByTestId } = renderWithProvider(<PredictionSection />, {
+        state: initialState,
+      });
+
       expect(
-        getAllByTestId('prediction-carousel-skeleton').length,
-      ).toBeGreaterThan(0);
-    });
-
-    it('renders header with view all button during loading', () => {
-      mockUsePredictMarketData.mockReturnValue({
-        marketData: [],
-        isFetching: true,
-        isFetchingMore: false,
-        error: null,
-        hasMore: false,
-        refetch: jest.fn(),
-        fetchMore: jest.fn(),
-      });
-
-      const { getByText } = renderWithProvider(<PredictionSection />, {
-        state: initialState,
-      });
-
-      expect(getByText('Predictions')).toBeOnTheScreen();
-      expect(getByText('View all')).toBeOnTheScreen();
-    });
-
-    it('navigates to market list when view all is pressed during loading', () => {
-      mockUsePredictMarketData.mockReturnValue({
-        marketData: [],
-        isFetching: true,
-        isFetchingMore: false,
-        error: null,
-        hasMore: false,
-        refetch: jest.fn(),
-        fetchMore: jest.fn(),
-      });
-
-      const { getByText } = renderWithProvider(<PredictionSection />, {
-        state: initialState,
-      });
-
-      fireEvent.press(getByText('View all'));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_LIST,
-      });
+        getByTestId('prediction-carousel-pagination-dot-0'),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId('prediction-carousel-pagination-dot-1'),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId('prediction-carousel-pagination-dot-2'),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -190,42 +166,26 @@ describe('PredictionSection', () => {
       });
     });
 
-    it('renders section header with title and view all button', () => {
-      const { getByText } = renderWithProvider(<PredictionSection />, {
+    it('renders carousel with market data', () => {
+      const { getByTestId } = renderWithProvider(<PredictionSection />, {
         state: initialState,
       });
 
-      expect(getByText('Predictions')).toBeOnTheScreen();
-      expect(getByText('View all')).toBeOnTheScreen();
-    });
-  });
-
-  describe('view all button', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-      jest.resetAllMocks();
-      mockNavigate.mockClear();
-      mockUsePredictMarketData.mockReturnValue({
-        marketData: mockMarketData,
-        isFetching: false,
-        isFetchingMore: false,
-        error: null,
-        hasMore: false,
-        refetch: jest.fn(),
-        fetchMore: jest.fn(),
-      });
+      expect(getByTestId('prediction-carousel-flash-list')).toBeOnTheScreen();
     });
 
-    it('navigates to market list when view all button is pressed', () => {
-      const { getByText } = renderWithProvider(<PredictionSection />, {
+    it('renders pagination dots for market data', () => {
+      const { getByTestId } = renderWithProvider(<PredictionSection />, {
         state: initialState,
       });
 
-      fireEvent.press(getByText('View all'));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_LIST,
-      });
+      // Should have pagination dots for all 6 markets
+      expect(
+        getByTestId('prediction-carousel-pagination-dot-0'),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId('prediction-carousel-pagination-dot-5'),
+      ).toBeOnTheScreen();
     });
   });
 

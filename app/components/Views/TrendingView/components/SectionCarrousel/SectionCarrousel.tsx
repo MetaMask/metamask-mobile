@@ -15,6 +15,8 @@ import {
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { useStyles } from '../../../../../component-library/hooks';
 import { Theme } from '../../../../../util/theme/models';
+import { SectionId, SECTIONS_CONFIG } from '../../config/sections.config';
+import { useNavigation } from '@react-navigation/native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32; // 16px padding on each side
@@ -73,30 +75,35 @@ const styleSheet = (params: {
   });
 };
 
-export interface SectionCarrouselProps<T> {
-  data: T[];
-  renderItem: (item: T, index: number) => React.ReactElement;
-  keyExtractor: (item: T) => string;
+export interface SectionCarrouselProps {
+  sectionId: SectionId;
+  isLoading: boolean;
+  data: unknown[];
   showPagination?: boolean;
   testIDPrefix?: string;
 }
 
-const SectionCarrousel = <T,>({
+const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
+  sectionId,
+  isLoading,
   data,
-  renderItem,
-  keyExtractor,
   showPagination = true,
   testIDPrefix = 'carousel',
-}: SectionCarrouselProps<T>) => {
+}) => {
+  const navigation = useNavigation();
   const [activeIndex, setActiveIndex] = useState(0);
-  const flashListRef = useRef<FlashListRef<T>>(null);
+  const flashListRef = useRef<FlashListRef<unknown>>(null);
 
   const { styles } = useStyles(styleSheet, {
     activeIndex,
     cardWidth: CARD_WIDTH,
   });
 
-  const dataLength = data.length;
+  const section = SECTIONS_CONFIG[sectionId];
+  const skeletonCount = 3;
+  const skeletonData = Array.from({ length: skeletonCount });
+
+  const displayDataLength = isLoading ? skeletonCount : data.length;
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -115,20 +122,37 @@ const SectionCarrousel = <T,>({
     setActiveIndex(index);
   }, []);
 
-  const renderCarouselItem = useCallback(
-    ({ item, index }: { item: T; index: number }) => {
-      const isLast = index === dataLength - 1;
+  const renderSkeletonItem = useCallback(
+    ({ index }: { item: unknown; index: number }) => {
+      const isLast = index === skeletonCount - 1;
 
       return (
         <Box
           style={isLast ? styles.carouselItemLast : styles.carouselItem}
           twClassName="mr-4"
         >
-          {renderItem(item, index)}
+          {section.renderSkeleton()}
         </Box>
       );
     },
-    [styles, dataLength, renderItem],
+    [styles, section],
+  );
+
+  const renderDataItem = useCallback(
+    ({ item, index }: { item: unknown; index: number }) => {
+      const isLast = index === data.length - 1;
+      const onPressHandler = section.getOnPressHandler?.(navigation as never);
+
+      return (
+        <Box
+          style={isLast ? styles.carouselItemLast : styles.carouselItem}
+          twClassName="mr-4"
+        >
+          {section.renderItem(item, onPressHandler)}
+        </Box>
+      );
+    },
+    [styles, data.length, section, navigation],
   );
 
   const renderPaginationDots = useCallback(
@@ -139,7 +163,7 @@ const SectionCarrousel = <T,>({
         justifyContent={BoxJustifyContent.Center}
         style={styles.paginationContainer}
       >
-        {Array.from({ length: dataLength }).map((_, index) => {
+        {Array.from({ length: displayDataLength }).map((_, index) => {
           const isActive = activeIndex === index;
           return (
             <Pressable
@@ -154,31 +178,50 @@ const SectionCarrousel = <T,>({
         })}
       </Box>
     ),
-    [dataLength, activeIndex, scrollToIndex, styles, testIDPrefix],
+    [displayDataLength, activeIndex, scrollToIndex, styles, testIDPrefix],
   );
 
   return (
-    <>
+    <Box twClassName="mb-6">
       <Box>
-        <FlashList
-          ref={flashListRef}
-          data={data}
-          renderItem={renderCarouselItem}
-          keyExtractor={keyExtractor}
-          horizontal
-          pagingEnabled={false}
-          showsHorizontalScrollIndicator={false}
-          snapToInterval={SNAP_INTERVAL}
-          decelerationRate="fast"
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
-          contentContainerStyle={styles.carouselContentContainer}
-          testID={`${testIDPrefix}-flash-list`}
-        />
+        {isLoading && (
+          <FlashList
+            ref={flashListRef}
+            data={skeletonData}
+            renderItem={renderSkeletonItem}
+            keyExtractor={(_, index) => `skeleton-${index}`}
+            horizontal
+            pagingEnabled={false}
+            showsHorizontalScrollIndicator={false}
+            snapToInterval={SNAP_INTERVAL}
+            decelerationRate="fast"
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            contentContainerStyle={styles.carouselContentContainer}
+            testID={`${testIDPrefix}-flash-list`}
+          />
+        )}
+        {!isLoading && (
+          <FlashList
+            ref={flashListRef}
+            data={data}
+            renderItem={renderDataItem}
+            keyExtractor={(item) => section.keyExtractor(item as never)}
+            horizontal
+            pagingEnabled={false}
+            showsHorizontalScrollIndicator={false}
+            snapToInterval={SNAP_INTERVAL}
+            decelerationRate="fast"
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            contentContainerStyle={styles.carouselContentContainer}
+            testID={`${testIDPrefix}-flash-list`}
+          />
+        )}
       </Box>
 
       {showPagination && <Box twClassName="px-1">{renderPaginationDots()}</Box>}
-    </>
+    </Box>
   );
 };
 
