@@ -3,8 +3,10 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { Theme } from '../../../../util/theme/models';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../../selectors/networkController';
 import HeaderBase, {
   HeaderBaseVariant,
 } from '../../../../component-library/components/HeaderBase';
@@ -136,6 +138,22 @@ const TrendingTokensFullView = () => {
   const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const networkConfigurations = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
+
+  // Derive network name from selectedNetwork chain IDs
+  const selectedNetworkName = useMemo(() => {
+    if (!selectedNetwork || selectedNetwork.length === 0) {
+      return strings('trending.all_networks');
+    }
+    const selectedNetworkChainId = selectedNetwork[0];
+    return (
+      networkConfigurations[selectedNetworkChainId]?.name ||
+      strings('trending.all_networks')
+    );
+  }, [selectedNetwork, networkConfigurations]);
 
   const { results: trendingTokensResults, isLoading } = useTrendingRequest({
     sortBy,
@@ -310,7 +328,7 @@ const TrendingTokensFullView = () => {
             >
               <View style={styles.controlButtonContent}>
                 <Text style={styles.controlButtonText}>
-                  {strings('trending.all_networks')}
+                  {selectedNetworkName}
                 </Text>
                 <Icon
                   name={IconName.ArrowDown}
@@ -327,7 +345,7 @@ const TrendingTokensFullView = () => {
             >
               <View style={styles.controlButtonContent}>
                 <Text style={styles.controlButtonText}>
-                  {strings('trending.24h')}
+                  {selectedTimeOption}
                 </Text>
                 <Icon
                   name={IconName.ArrowDown}
