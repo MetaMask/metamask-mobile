@@ -1,6 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
 import { usePredictWithdraw } from './usePredictWithdraw';
-import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 
 // Create mock functions
@@ -205,7 +204,6 @@ describe('usePredictWithdraw', () => {
       await result.current.withdraw();
 
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
-        stack: Routes.PREDICT.ROOT,
         loader: ConfirmationLoader.CustomAmount,
       });
     });
