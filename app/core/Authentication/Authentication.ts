@@ -257,22 +257,12 @@ class AuthenticationService {
       // have been added on external wallets.
       // 3. We run the alignment at the end of the discovery, thus, automatically
       // creating accounts for new account providers.
-      const results = await Promise.allSettled(
+      Promise.allSettled(
         this.getEntropySourceIds().map(
           async (entropySource) =>
             await this.attemptMultichainAccountWalletDiscovery(entropySource),
         ),
       );
-      if (results.some((result) => result.status === 'rejected')) {
-        let error = 'Failed to check discovery:';
-
-        for (const result of results) {
-          if (result.status === 'rejected') {
-            error += `\n- ${result.reason}`;
-          }
-        }
-        console.warn(error);
-      }
     } else {
       // Try to complete any pending account discovery
       await Promise.all(
