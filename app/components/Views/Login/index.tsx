@@ -27,8 +27,7 @@ import {
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { setExistingUser } from '../../../actions/user';
-import { connect, useDispatch, useSelector } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
 import {
   passcodeType,
@@ -125,7 +124,6 @@ interface LoginRouteParams {
   locked: boolean;
   oauthLoginSuccess?: boolean;
   onboardingTraceCtx?: TraceContext;
-  isVaultRecovery?: boolean;
 }
 
 interface LoginProps {
@@ -155,7 +153,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const [rehydrationFailedAttempts, setRehydrationFailedAttempts] = useState(0);
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
-  const dispatch = useDispatch();
   const {
     styles,
     theme: { colors, themeAppearance },
@@ -166,8 +163,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   // coming from oauth onboarding flow flag
   const isComingFromOauthOnboarding = route?.params?.oauthLoginSuccess ?? false;
-  // coming from vault recovery flow flag
-  const isComingFromVaultRecovery = route?.params?.isVaultRecovery ?? false;
 
   const { isDeletingInProgress, promptSeedlessRelogin } =
     usePromptSeedlessRelogin();
@@ -672,13 +667,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           await Authentication.userEntryAuth(password, authType);
         },
       );
-
-      // CRITICAL: Set existingUser = true after successful vault unlock from recovery
-      // This prevents the vault recovery screen from appearing again on app restart
-      // Only set after successful unlock to ensure vault is unlocked and credentials are stored
-      if (isComingFromVaultRecovery) {
-        dispatch(setExistingUser(true));
-      }
 
       if (isComingFromOauthOnboarding) {
         track(MetaMetricsEvents.REHYDRATION_COMPLETED, {
