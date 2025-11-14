@@ -4,9 +4,8 @@ import {
   fetchUpdateAsync,
   reloadAsync,
 } from 'expo-updates';
-import { useSelector } from 'react-redux';
-import { selectOTAUpdatesEnabled } from '../../selectors/featureFlagController/otaUpdatesEnabled';
 import Logger from '../../util/Logger';
+import { useFeatureFlag, FeatureFlagNames } from './useFeatureFlag';
 
 /**
  * Hook to manage OTA updates based on feature flag
@@ -15,18 +14,16 @@ import Logger from '../../util/Logger';
  * Returns isCheckingUpdates to gate rendering until check is complete
  */
 export const useOTAUpdates = () => {
-  const otaUpdatesEnabled = useSelector(selectOTAUpdatesEnabled);
+  const otaUpdatesEnabled = useFeatureFlag(FeatureFlagNames.otaUpdatesEnabled);
   const [isCheckingUpdates, setIsCheckingUpdates] = useState(true);
 
   useEffect(() => {
     const checkForUpdates = async () => {
-      // Skip if feature flag is disabled
       if (!otaUpdatesEnabled) {
         setIsCheckingUpdates(false);
         return;
       }
 
-      // Skip in development mode
       if (__DEV__) {
         setIsCheckingUpdates(false);
         return;
