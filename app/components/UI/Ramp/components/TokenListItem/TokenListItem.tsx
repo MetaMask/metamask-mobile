@@ -43,6 +43,7 @@ function TokenListItem({
       isDisabled={isDisabled}
       accessibilityRole="button"
       accessible
+      testID={`token-list-item-${token.assetId}`}
     >
       <ListItemColumn widthType={WidthType.Auto}>
         <BadgeWrapper

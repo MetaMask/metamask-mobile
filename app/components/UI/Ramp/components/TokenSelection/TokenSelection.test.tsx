@@ -142,16 +142,21 @@ describe('TokenSelection Component', () => {
       (useParams as jest.Mock).mockReturnValue({
         rampType: 'BUY',
       });
-      const { getAllByRole } = renderWithProvider(TokenSelection);
+      const { getByTestId } = renderWithProvider(TokenSelection);
 
-      const tokenButtons = getAllByRole('button');
-      const firstToken = tokenButtons[0];
+      const firstToken = getByTestId(
+        `token-list-item-${mockTokens[0].assetId}`,
+      );
       fireEvent.press(firstToken);
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        'AggregatorBuy',
+        'RampBuy',
         expect.objectContaining({
-          assetId: mockTokens[0].assetId,
+          params: expect.objectContaining({
+            params: expect.objectContaining({
+              assetId: mockTokens[0].assetId,
+            }),
+          }),
         }),
       );
     });
@@ -160,16 +165,21 @@ describe('TokenSelection Component', () => {
       (useParams as jest.Mock).mockReturnValue({
         rampType: 'DEPOSIT',
       });
-      const { getAllByRole } = renderWithProvider(TokenSelection);
+      const { getByTestId } = renderWithProvider(TokenSelection);
 
-      const tokenButtons = getAllByRole('button');
-      const firstToken = tokenButtons[0];
+      const firstToken = getByTestId(
+        `token-list-item-${mockTokens[0].assetId}`,
+      );
       fireEvent.press(firstToken);
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        'DepositAmount',
+        'Deposit',
         expect.objectContaining({
-          assetId: mockTokens[0].assetId,
+          params: expect.objectContaining({
+            params: expect.objectContaining({
+              assetId: mockTokens[0].assetId,
+            }),
+          }),
         }),
       );
     });
