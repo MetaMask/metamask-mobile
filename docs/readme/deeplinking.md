@@ -12,6 +12,7 @@
 - [Signature Verification](#signature-verification) → [See Verification Diagrams](./deeplinking-graphs.md#signature-creation-and-verification-detail)
 - [Testing Links](#testing-links)
 - [Security Considerations](#security-considerations)
+- [Custom Schemes Explained](#custom-uri-schemes-explained)
 
 Please note that custom `metamask://...` schemed links are being phased out in favor of universal links: `https://link.metamask.io/somePath?someParam=someValue`
 
@@ -797,7 +798,7 @@ describe('Dynamic signature verification', () => {
 
 MetaMask Mobile supports four custom URI schemes, each serving a specific purpose:
 
-#### **`metamask://` - MetaMask App Actions**
+### `metamask://` - MetaMask App Actions
 
 The primary custom scheme for MetaMask-specific actions and features. Used for:
 
@@ -809,11 +810,11 @@ The primary custom scheme for MetaMask-specific actions and features. Used for:
 **Flow**: Converts to universal link format internally → Routes to appropriate handler → Executes action
 
 **Example**:
+
+```
 metamask://swap?sourceToken=ETH&destinationToken=USDC&sourceAmount=1.5
-
-# Opens the swap screen with ETH→USDC pre-filled with 1.5 ETH---
-
-#### **`wc://` - WalletConnect Protocol**
+# Opens the swap screen with ETH→USDC pre-filled with 1.5 ETH### `wc://` - WalletConnect Protocol
+```
 
 Industry-standard protocol for connecting MetaMask to dapps via WalletConnect v2. Used for:
 
@@ -824,6 +825,7 @@ Industry-standard protocol for connecting MetaMask to dapps via WalletConnect v2
 **Flow**: WalletConnect URI → WC2Manager → Connection approval modal → Establishes session
 
 **Example**:
+
 wc:abc123def456@2?relay-protocol=irn&symKey=xyz789
 
 # WalletConnect v2 pairing URI (typically from QR code)
@@ -837,9 +839,7 @@ metamask://wc?uri=wc:abc123def456@2?relay-protocol=irn&symKey=xyz789
 - `relay-protocol` = Relay server type
 - `symKey` = Symmetric encryption key
 
----
-
-#### **`ethereum://` - EIP-681 Payment Requests**
+### `ethereum://` - EIP-681 Payment Requests
 
 [EIP-681](https://eips.ethereum.org/EIPS/eip-681) standard for Ethereum payment and transaction requests. Used for:
 
@@ -852,17 +852,18 @@ metamask://wc?uri=wc:abc123def456@2?relay-protocol=irn&symKey=xyz789
 
 **Examples**:
 
-### Simple ETH transfer
-
+```
+# Simple ETH transfer
 ethereum:0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb?value=1.5e18
 
-### Token transfer (calls ERC-20 transfer function)
-
+# Token transfer (calls ERC-20 transfer function)
 ethereum:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/transfer?address=0x123&uint256=1000000
 
-### Contract function call with parameters
+# Contract function call with parameters
+ethereum:0x123ABC@1/approve?address=0x456DEF&uint256=1000000000000000000
+```
 
-ethereum:0x123ABC@1/approve?address=0x456DEF&uint256=1000000000000000000**Supported Actions** (from `eth-url-parser`):
+**Supported Actions** (from `eth-url-parser`):
 
 - `transfer` - ERC-20 token transfers
 - `approve` - Token spending approvals
@@ -870,9 +871,7 @@ ethereum:0x123ABC@1/approve?address=0x456DEF&uint256=1000000000000000000**Suppor
 
 **Network Handling**: The `@1` suffix specifies chain ID (e.g., `@1` = Mainnet, `@137` = Polygon)
 
----
-
-#### **`dapp://` - In-App Browser Navigation**
+### `dapp://` - In-App Browser Navigation
 
 Opens external websites in MetaMask's built-in browser (similar to opening links in the browser tab). Used for:
 
@@ -884,14 +883,17 @@ Opens external websites in MetaMask's built-in browser (similar to opening links
 
 **Examples**:
 
+```
 # Basic dapp opening
+dapp://uniswap.org
+# → Opens https://uniswap.org in MetaMask browser
 
-dapp://uniswap.org → Opens https://uniswap.org in MetaMask browser
+# With deep path
+dapp://app.1inch.io/#/1/simple/swap/ETH/DAI
+# → Opens https://app.1inch.io/#/1/simple/swap/ETH/DAI
 
-### With deep path
+# Via universal link (shows security modal)
+https://metamask.app.link/dapp/commerce.coinbase.com
+```
 
-dapp://app.1inch.io/#/1/simple/swap/ETH/DAI → Opens https://app.1inch.io/#/1/simple/swap/ETH/DAI
-
-### Via universal link (shows security modal)
-
-https://metamask.app.link/dapp/commerce.coinbase.com**Key Difference\*\*: `dapp://` bypasses the interstitial warning modal, making it ideal for trusted payment flows and in-app navigation.
+**Key Difference**: `dapp://` bypasses the interstitial warning modal, making it ideal for trusted payment flows and in-app navigation.
