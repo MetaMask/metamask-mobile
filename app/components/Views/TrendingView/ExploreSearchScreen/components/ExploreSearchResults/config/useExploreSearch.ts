@@ -1,53 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   SECTIONS_ARRAY,
+  useSectionsData,
   type SectionId,
-  type SectionData,
 } from '../../../../config/sections.config';
-import { usePerpsMarkets } from '../../../../../../UI/Perps/hooks/usePerpsMarkets';
-import { usePredictMarketData } from '../../../../../../UI/Predict/hooks/usePredictMarketData';
-import { useTrendingRequest } from '../../../../../../UI/Assets/hooks/useTrendingRequest';
 
 export interface ExploreSearchResult {
   data: Record<SectionId, unknown[]>;
   isLoading: Record<SectionId, boolean>;
 }
-
-/**
- * Internal hook to fetch data from all sections.
- * When adding a new section, add the hook call here.
- */
-const useExploreSearchData = (
-  debouncedQuery: string,
-): Record<SectionId, SectionData> => {
-  const { results: trendingTokens, isLoading: isTokensLoading } =
-    useTrendingRequest({});
-
-  const { markets: perpsMarkets, isLoading: isPerpsLoading } =
-    usePerpsMarkets();
-
-  const { marketData: predictionMarkets, isFetching: isPredictionsLoading } =
-    usePredictMarketData({
-      category: 'trending',
-      q: debouncedQuery || undefined,
-      pageSize: debouncedQuery ? 20 : 3,
-    });
-
-  return {
-    tokens: {
-      data: trendingTokens,
-      isLoading: isTokensLoading,
-    },
-    perps: {
-      data: perpsMarkets,
-      isLoading: isPerpsLoading,
-    },
-    predictions: {
-      data: predictionMarkets,
-      isLoading: isPredictionsLoading,
-    },
-  };
-};
 
 /**
  * GENERIC EXPLORE SEARCH HOOK
@@ -59,8 +20,7 @@ const useExploreSearchData = (
  * - Returning top 3 items when no query is present
  *
  * TO ADD A NEW SECTION:
- * 1. Add section configuration to sections.config.tsx
- * 2. Add hook call to useExploreSearchData above
+ * Edit sections.config.tsx only - this file requires no changes!
  *
  * @param query - Search query string
  * @returns Search results grouped by section
@@ -76,7 +36,8 @@ export const useExploreSearch = (query: string): ExploreSearchResult => {
     return () => clearTimeout(timer);
   }, [query]);
 
-  const allSectionsData = useExploreSearchData(debouncedQuery);
+  // Fetch data for all sections using centralized hook
+  const allSectionsData = useSectionsData(debouncedQuery);
 
   const filteredResults = useMemo(() => {
     const isLoading: Record<SectionId, boolean> = {} as Record<
