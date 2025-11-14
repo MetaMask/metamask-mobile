@@ -25,7 +25,11 @@ import {
 } from '../../Nav/Main/MainNavigator';
 import ExploreSearchScreen from './ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
-import { PredictModalStack } from '../../UI/Predict/routes';
+import {
+  PredictScreenStack,
+  PredictModalStack,
+  PredictMarketDetails,
+} from '../../UI/Predict';
 import QuickActions from './components/QuickActions/QuickActions';
 import SectionHeader from './components/SectionHeader/SectionHeader';
 import { HOME_SECTIONS_ARRAY } from './config/sections.config';
@@ -155,6 +159,17 @@ const TrendingView: React.FC = () => {
         component={ExploreSearchScreen}
       />
       <Stack.Screen
+        name={Routes.PREDICT.ROOT}
+        component={PredictScreenStack}
+        options={{
+          headerShown: false,
+          cardStyle: {
+            backgroundColor: 'transparent',
+          },
+          animationEnabled: false,
+        }}
+      />
+      <Stack.Screen
         name={Routes.PREDICT.MODALS.ROOT}
         component={PredictModalStack}
         options={{
@@ -163,6 +178,13 @@ const TrendingView: React.FC = () => {
             backgroundColor: 'transparent',
           },
           animationEnabled: false,
+        }}
+      />
+      <Stack.Screen
+        name={Routes.PREDICT.MARKET_DETAILS}
+        component={PredictMarketDetails}
+        options={{
+          headerShown: false,
         }}
       />
     </Stack.Navigator>

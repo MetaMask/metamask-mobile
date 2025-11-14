@@ -39,6 +39,10 @@ interface SectionConfig {
   getSearchableText: (item: unknown) => string;
   keyExtractor: (item: unknown) => string;
   renderSection: () => JSX.Element;
+  useSectionData: (searchQuery?: string) => {
+    data: unknown[];
+    isLoading: boolean;
+  };
 }
 
 /**
@@ -75,22 +79,11 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     getSearchableText: (item) =>
       `${(item as TrendingAsset).symbol} ${(item as TrendingAsset).name}`.toLowerCase(),
     keyExtractor: (item) => `token-${(item as TrendingAsset).assetId}`,
-    renderSection: () => {
-      const TrendingTokensSection = () => {
-        const { results: trendingTokensResults, isLoading } =
-          useTrendingRequest({});
-        const trendingTokens = trendingTokensResults.slice(0, 3);
+    renderSection: () => <SectionCard sectionId="tokens" />,
+    useSectionData: () => {
+      const { results, isLoading } = useTrendingRequest({});
 
-        return (
-          <SectionCard
-            sectionId="tokens"
-            isLoading={isLoading || trendingTokens.length === 0}
-            data={trendingTokens}
-          />
-        );
-      };
-
-      return <TrendingTokensSection />;
+      return { data: results, isLoading };
     },
   },
   perps: {
@@ -123,27 +116,17 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     getSearchableText: (item) =>
       `${(item as PerpsMarketData).symbol} ${(item as PerpsMarketData).name || ''}`.toLowerCase(),
     keyExtractor: (item) => `perp-${(item as PerpsMarketData).symbol}`,
-    renderSection: () => {
-      const PerpsSection = () => {
-        const { markets, isLoading } = usePerpsMarkets();
-        const perpsTokens = markets.slice(0, 3);
+    renderSection: () => (
+      <PerpsConnectionProvider>
+        <PerpsStreamProvider>
+          <SectionCard sectionId="perps" />
+        </PerpsStreamProvider>
+      </PerpsConnectionProvider>
+    ),
+    useSectionData: () => {
+      const { markets, isLoading } = usePerpsMarkets();
 
-        return (
-          <SectionCard
-            sectionId="perps"
-            isLoading={isLoading || perpsTokens.length === 0}
-            data={perpsTokens}
-          />
-        );
-      };
-
-      return (
-        <PerpsConnectionProvider>
-          <PerpsStreamProvider>
-            <PerpsSection />
-          </PerpsStreamProvider>
-        </PerpsConnectionProvider>
-      );
+      return { data: markets, isLoading };
     },
   },
   predictions: {
@@ -161,25 +144,21 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     getSearchableText: (item) =>
       (item as PredictMarketType).title.toLowerCase(),
     keyExtractor: (item) => `prediction-${(item as PredictMarketType).id}`,
-    renderSection: () => {
-      const PredictionSection = () => {
-        const { marketData, isFetching } = usePredictMarketData({
-          category: 'trending',
-          pageSize: 6,
-        });
+    renderSection: () => (
+      <SectionCarrousel
+        sectionId="predictions"
+        showPagination
+        testIDPrefix="prediction-carousel"
+      />
+    ),
+    useSectionData: (searchQuery?: string) => {
+      const { marketData, isFetching } = usePredictMarketData({
+        category: 'trending',
+        pageSize: searchQuery ? 20 : 6,
+        q: searchQuery || undefined,
+      });
 
-        return (
-          <SectionCarrousel
-            sectionId="predictions"
-            isLoading={isFetching || marketData?.length === 0}
-            data={marketData}
-            showPagination
-            testIDPrefix="prediction-carousel"
-          />
-        );
-      };
-
-      return <PredictionSection />;
+      return { data: marketData, isLoading: isFetching };
     },
   },
 };
@@ -209,18 +188,12 @@ export const SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
 export const useSectionsData = (
   searchQuery?: string,
 ): Record<SectionId, SectionData> => {
-  const { results: trendingTokens, isLoading: isTokensLoading } =
-    useTrendingRequest({});
-
-  const { markets: perpsMarkets, isLoading: isPerpsLoading } =
-    usePerpsMarkets();
-
-  const { marketData: predictionMarkets, isFetching: isPredictionsLoading } =
-    usePredictMarketData({
-      category: 'trending',
-      q: searchQuery || undefined,
-      pageSize: searchQuery ? 20 : 3,
-    });
+  const { data: trendingTokens, isLoading: isTokensLoading } =
+    SECTIONS_CONFIG.tokens.useSectionData();
+  const { data: perpsMarkets, isLoading: isPerpsLoading } =
+    SECTIONS_CONFIG.perps.useSectionData();
+  const { data: predictionMarkets, isLoading: isPredictionsLoading } =
+    SECTIONS_CONFIG.predictions.useSectionData(searchQuery);
 
   return {
     tokens: {

@@ -77,16 +77,12 @@ const styleSheet = (params: {
 
 export interface SectionCarrouselProps {
   sectionId: SectionId;
-  isLoading: boolean;
-  data: unknown[];
   showPagination?: boolean;
   testIDPrefix?: string;
 }
 
 const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
   sectionId,
-  isLoading,
-  data,
   showPagination = true,
   testIDPrefix = 'carousel',
 }) => {
@@ -94,12 +90,14 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
   const [activeIndex, setActiveIndex] = useState(0);
   const flashListRef = useRef<FlashListRef<unknown>>(null);
 
+  const section = SECTIONS_CONFIG[sectionId];
+  const { data, isLoading } = section.useSectionData();
+
   const { styles } = useStyles(styleSheet, {
     activeIndex,
     cardWidth: CARD_WIDTH,
   });
 
-  const section = SECTIONS_CONFIG[sectionId];
   const skeletonCount = 3;
   const skeletonData = Array.from({ length: skeletonCount });
 

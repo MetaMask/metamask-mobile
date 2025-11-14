@@ -20,18 +20,14 @@ const createStyles = (theme: Theme) =>
   });
 interface SectionCardProps {
   sectionId: SectionId;
-  isLoading: boolean;
-  data: unknown[];
 }
 
-const SectionCard: React.FC<SectionCardProps> = ({
-  sectionId,
-  isLoading,
-  data,
-}) => {
+const SectionCard: React.FC<SectionCardProps> = ({ sectionId }) => {
   const navigation = useNavigation();
   const theme = useAppThemeFromContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
+
+  const { data, isLoading } = SECTIONS_CONFIG[sectionId].useSectionData();
 
   const renderFlatItem: ListRenderItem<unknown> = useCallback(
     ({ item }) => {
@@ -52,7 +48,7 @@ const SectionCard: React.FC<SectionCardProps> = ({
       )}
       {!isLoading && (
         <FlashList
-          data={data}
+          data={data.slice(0, 3)}
           renderItem={renderFlatItem}
           keyExtractor={(item) => SECTIONS_CONFIG[sectionId].keyExtractor(item)}
           keyboardShouldPersistTaps="handled"
