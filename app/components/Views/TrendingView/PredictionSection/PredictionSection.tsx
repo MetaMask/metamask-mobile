@@ -5,7 +5,6 @@ import PredictMarket from '../../../UI/Predict/components/PredictMarket';
 import { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
 import { PredictEventValues } from '../../../UI/Predict/constants/eventNames';
 import PredictMarketSkeleton from '../../../UI/Predict/components/PredictMarketSkeleton';
-import SectionHeader from '../components/SectionHeader/SectionHeader';
 import SectionCarrousel from '../components/SectionCarrousel/SectionCarrousel';
 
 const PredictionSection = () => {
@@ -39,7 +38,6 @@ const PredictionSection = () => {
   if (isFetching) {
     return (
       <Box twClassName="mb-6">
-        <SectionHeader sectionId="predictions" />
         <SectionCarrousel
           data={[1, 2, 3]}
           renderItem={renderSkeleton}
@@ -58,7 +56,6 @@ const PredictionSection = () => {
 
   return (
     <Box twClassName="mb-6">
-      <SectionHeader sectionId="predictions" />
       <SectionCarrousel
         data={marketData ?? []}
         renderItem={renderPredictMarket}

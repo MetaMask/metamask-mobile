@@ -1,6 +1,5 @@
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
-import SectionHeader from '../components/SectionHeader/SectionHeader';
 import SectionCard from '../components/SectionCard/SectionCard';
 import PerpsMarketRowSkeleton from '../../../UI/Perps/Views/PerpsMarketListView/components/PerpsMarketRowSkeleton';
 import { FlashList } from '@shopify/flash-list';
@@ -27,7 +26,6 @@ const PerpsSection = () => {
 
   return (
     <View>
-      <SectionHeader sectionId="perps" />
       <SectionCard>
         {isLoading || perpsTokens.length === 0 ? (
           <>

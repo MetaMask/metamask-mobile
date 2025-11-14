@@ -12,6 +12,11 @@ import PredictMarket from '../../../UI/Predict/components/PredictMarket';
 import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import PredictMarketSkeleton from '../../../UI/Predict/components/PredictMarketSkeleton';
+import TrendingTokensSection from '../TrendingTokensSection/TrendingTokensSection';
+import PredictionSection from '../PredictionSection/PredictionSection';
+import PerpsSection from '../PerpsSection/PerpsSection';
+import { PerpsConnectionProvider } from '../../../UI/Perps/providers/PerpsConnectionProvider';
+import { PerpsStreamProvider } from '../../../UI/Perps/providers/PerpsStreamManager';
 
 export type SectionId = 'predictions' | 'tokens' | 'perps';
 
@@ -22,7 +27,7 @@ export interface SectionData {
 
 /**
  * Configuration for each section in the Trending View.
- * This includes navigation, display, and search functionality.
+ * This includes navigation, display, search functionality, and section rendering.
  */
 export interface SectionConfig {
   title: string;
@@ -34,6 +39,7 @@ export interface SectionConfig {
   getOnPressHandler?: (
     navigation: NavigationProp<ParamListBase>,
   ) => (item: unknown) => void;
+  renderSection: () => JSX.Element;
 }
 
 const tokensConfig: SectionConfig = {
@@ -52,6 +58,7 @@ const tokensConfig: SectionConfig = {
   getSearchableText: (item) =>
     `${(item as TrendingAsset).symbol} ${(item as TrendingAsset).name}`.toLowerCase(),
   keyExtractor: (item) => `token-${(item as TrendingAsset).assetId}`,
+  renderSection: () => <TrendingTokensSection />,
 };
 
 const perpsConfig: SectionConfig = {
@@ -84,6 +91,13 @@ const perpsConfig: SectionConfig = {
       },
     );
   },
+  renderSection: () => (
+    <PerpsConnectionProvider>
+      <PerpsStreamProvider>
+        <PerpsSection />
+      </PerpsStreamProvider>
+    </PerpsConnectionProvider>
+  ),
 };
 
 const predictionsConfig: SectionConfig = {
@@ -97,17 +111,25 @@ const predictionsConfig: SectionConfig = {
   renderSkeleton: () => <PredictMarketSkeleton />,
   getSearchableText: (item) => (item as PredictMarketType).title.toLowerCase(),
   keyExtractor: (item) => `prediction-${(item as PredictMarketType).id}`,
+  renderSection: () => <PredictionSection />,
 };
 
 /**
  * Centralized configuration for all Trending View sections.
- * This config is used by QuickActions, SectionHeaders, and Search functionality.
+ * This config is used by QuickActions, SectionHeaders, Search, and TrendingView rendering.
  *
  * To add a new section:
  * 1. Add the section ID to the SectionId type
- * 2. Create a config constant above (e.g., newSectionConfig)
- * 3. Add it to both SECTIONS_CONFIG and SECTIONS_ARRAY below
- * 4. Add data fetching in useExploreSearchData hook
+ * 2. Create a section component (e.g., NewSection.tsx)
+ * 3. Create a config constant above with all required properties including renderSection
+ * 4. Add it to both SECTIONS_CONFIG and SECTIONS_ARRAY below
+ * 5. Add data fetching in useExploreSearchData hook
+ *
+ * The section will automatically appear in:
+ * - TrendingView main feed
+ * - QuickActions buttons
+ * - Search results
+ * - Section headers with "View All" navigation
  */
 export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   tokens: tokensConfig,
@@ -115,6 +137,14 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   predictions: predictionsConfig,
 };
 
+// Sorted by order on the main screen
+export const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
+  { id: 'predictions', ...predictionsConfig },
+  { id: 'tokens', ...tokensConfig },
+  { id: 'perps', ...perpsConfig },
+];
+
+// Sorted by order on the QuickAction buttons and SearchResults
 export const SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
   { id: 'tokens', ...tokensConfig },
   { id: 'perps', ...perpsConfig },

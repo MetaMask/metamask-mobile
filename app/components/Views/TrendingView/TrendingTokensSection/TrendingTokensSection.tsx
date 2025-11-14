@@ -4,7 +4,6 @@ import { TrendingAsset } from '@metamask/assets-controllers';
 import TrendingTokensSkeleton from './TrendingTokenSkeleton/TrendingTokensSkeleton';
 import TrendingTokensList from './TrendingTokensList';
 import { useTrendingRequest } from '../../../UI/Assets/hooks/useTrendingRequest';
-import SectionHeader from '../components/SectionHeader/SectionHeader';
 import SectionCard from '../components/SectionCard/SectionCard';
 
 const TrendingTokensSection = () => {
@@ -19,7 +18,6 @@ const TrendingTokensSection = () => {
 
   return (
     <View>
-      <SectionHeader sectionId="tokens" />
       <SectionCard>
         {isLoading || trendingTokens.length === 0 ? (
           <TrendingTokensSkeleton count={3} />

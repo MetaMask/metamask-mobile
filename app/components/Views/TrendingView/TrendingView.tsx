@@ -23,15 +23,12 @@ import {
   lastTrendingScreenRef,
   updateLastTrendingScreen,
 } from '../../Nav/Main/MainNavigator';
-import TrendingTokensSection from './TrendingTokensSection/TrendingTokensSection';
-import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import ExploreSearchScreen from './ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
 import { PredictModalStack } from '../../UI/Predict/routes';
-import PredictionSection from './PredictionSection/PredictionSection';
-import PerpsSection from './PerpsSection/PerpsSection';
-import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import QuickActions from './components/QuickActions/QuickActions';
+import SectionHeader from './components/SectionHeader/SectionHeader';
+import { HOME_SECTIONS_ARRAY } from './config/sections.config';
 
 const Stack = createStackNavigator();
 
@@ -129,13 +126,13 @@ const TrendingFeed: React.FC = () => {
         showsVerticalScrollIndicator={false}
       >
         <QuickActions />
-        <PredictionSection />
-        <TrendingTokensSection />
-        <PerpsConnectionProvider>
-          <PerpsStreamProvider>
-            <PerpsSection />
-          </PerpsStreamProvider>
-        </PerpsConnectionProvider>
+
+        {HOME_SECTIONS_ARRAY.map((section) => (
+          <React.Fragment key={section.id}>
+            <SectionHeader sectionId={section.id} />
+            {section.renderSection()}
+          </React.Fragment>
+        ))}
       </ScrollView>
     </Box>
   );
