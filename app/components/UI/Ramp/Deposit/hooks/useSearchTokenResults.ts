@@ -47,14 +47,16 @@ function useSearchTokenResults({
     [tokensWithNetworkName],
   );
 
-  return useMemo(() => {
+  return useMemo((): TokenWithNetworkName[] => {
     if (!searchString || tokensWithNetworkName.length === 0) {
       return tokensWithNetworkName;
     }
 
-    const results = tokenFuse.search(searchString);
+    const results = tokenFuse.search(searchString) as unknown as {
+      item: TokenWithNetworkName;
+    }[];
 
-    return results.length > 0 ? results : [];
+    return results.map((result) => result.item);
   }, [searchString, tokensWithNetworkName, tokenFuse]);
 }
 
