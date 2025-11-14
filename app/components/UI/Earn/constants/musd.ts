@@ -97,26 +97,15 @@ export const convertSymbolAllowlistToAddresses = (
   return result;
 };
 
-// Stablecoins by chain ID
-export const CONVERTIBLE_STABLECOINS_BY_CHAIN: Record<Hex, Hex[]> = {
-  [NETWORKS_CHAIN_ID.MAINNET]: [
-    '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
-    '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
-    '0x6b175474e89094c44da98b954eedeac495271d0f', // DAI
-  ],
-  [NETWORKS_CHAIN_ID.ARBITRUM]: [
-    '0xaf88d065e77c8cc2239327c5edb3a432268e5831', // USDC
-    '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9', // USDT
-    '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1', // DAI
-  ],
-  [NETWORKS_CHAIN_ID.LINEA_MAINNET]: [
-    '0x176211869ca2b568f2a7d4ee941e073a821ee1ff', // USDC
-    '0xa219439258ca9da29e9cc4ce5596924745e12b93', // USDT
-  ],
-  [NETWORKS_CHAIN_ID.BASE]: [
-    '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913', // USDC
-  ],
-};
+export const CONVERTIBLE_STABLECOINS_BY_CHAIN: Record<Hex, Hex[]> = (() => {
+  const result: Record<Hex, Hex[]> = {};
+  for (const [chainId, symbolMap] of Object.entries(
+    STABLECOIN_SYMBOL_TO_ADDRESS_BY_CHAIN,
+  )) {
+    result[chainId as Hex] = Object.values(symbolMap);
+  }
+  return result;
+})();
 
 /**
  * Checks if a token is eligible for mUSD conversion based on its address and chain ID.
