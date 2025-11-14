@@ -275,6 +275,20 @@ export function createStateFixture(options?: {
                       },
                     },
                   },
+                  bridgeConfigV2: {
+                    minimumVersion: '0.0.0',
+                    maxRefreshCount: 5,
+                    refreshRate: 30000,
+                    support: true,
+                    chains: {
+                      // enable mainnet as src/dest
+                      [`eip155:${parseInt(chainIdHex, 16)}`]: {
+                        isActiveSrc: true,
+                        isActiveDest: true,
+                        isGaslessSwapEnabled: false,
+                      },
+                    },
+                  },
                 },
               },
               CurrencyRateController: {

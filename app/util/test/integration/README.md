@@ -1,4 +1,4 @@
-# Integration Test Framework
+# Component View Test Framework
 
 This folder contains a lightweight integration testing framework with the following goals:
 
@@ -6,6 +6,33 @@ This folder contains a lightweight integration testing framework with the follow
 - Build and control application state through a single, composable fixture
 - Provide view-specific presets and render helpers for concise, declarative tests
 - Avoid mocking hooks or selectors – the UI should consume Redux state naturally
+
+## Platform Matrix (iOS / Android)
+
+- By default, you can execute tests for both platforms using the platform helpers.
+- Import helpers and define tests parameterized by platform:
+
+```ts
+import { itForPlatforms, describeForPlatforms } from '../../platform';
+import { renderBridgeView } from './renderers/bridge';
+
+describeForPlatforms('BridgeView', ({ os }) => {
+  itForPlatforms('renders BridgeView', () => {
+    const { getByTestId } = renderBridgeView({ deterministicFiat: true });
+    // Platform-specific assertions if needed
+    // if (os === 'ios') { ... } else { ... }
+  });
+});
+```
+
+- To filter globally, use `TEST_OS`:
+  - `TEST_OS=ios yarn jest <path>`
+  - `TEST_OS=android yarn jest <path>`
+  - Without `TEST_OS`, both `ios` and `android` run.
+
+- To filter per test:
+  - `itForPlatforms('name', fn, { only: 'ios' })`
+  - `itForPlatforms('name', fn, { skip: ['android'] })`
 
 ## Principles
 

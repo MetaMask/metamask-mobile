@@ -9,8 +9,9 @@ import { renderIntegrationScreenWithRoutes } from '../../../../../util/test/inte
 import Routes from '../../../../../constants/navigation/Routes';
 import { initialStateBridge } from '../../../../../util/test/integration/presets/bridge';
 import BridgeView from './index';
+import { describeForPlatforms } from '../../../../../util/test/platform';
 
-describe('BridgeView (integration)', () => {
+describeForPlatforms('BridgeView (integration)', () => {
   it('renders input areas and hides confirm button without tokens or amount', () => {
     const { getByTestId, queryByTestId } = renderBridgeView({
       overrides: {
