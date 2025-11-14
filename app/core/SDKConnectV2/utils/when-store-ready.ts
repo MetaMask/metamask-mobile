@@ -2,7 +2,7 @@ import { store } from '../../../store';
 
 const isStoreReady = () => {
   try {
-    if (store && typeof store.dispatch === 'function') {
+    if (store && typeof store.dispatch === 'function' && store.getState().engine.backgroundState.NetworkController) {
       return true;
     }
     return false;
@@ -20,6 +20,6 @@ const isStoreReady = () => {
  */
 export const whenStoreReady = async (): Promise<void> => {
   while (!isStoreReady()) {
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
 };

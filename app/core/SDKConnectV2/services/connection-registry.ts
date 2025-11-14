@@ -199,11 +199,12 @@ export class ConnectionRegistry {
           return;
         }
 
-        // First 'active' event on a cold start is ignored
-        if (isColdStart) {
-          isColdStart = false;
-          return;
-        }
+        // // First 'active' event on a cold start is ignored
+        // if (isColdStart) {
+        //   isColdStart = false;
+        //   Logger.log('App state changed: cold start');
+        //   return;
+        // }
 
         // For all subsequent 'active' events, we reconnect, but only after
         // the initial setup is guaranteed to be complete to avoid race conditions.
