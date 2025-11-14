@@ -12,6 +12,7 @@ import { PredictNavigationParamList } from '../types/navigation';
 import PredictAddFundsModal from '../views/PredictAddFundsModal/PredictAddFundsModal';
 import PredictFeed from '../views/PredictFeed/PredictFeed';
 import PredictGTMModal from '../components/PredictGTMModal';
+import { Dimensions } from 'react-native';
 
 const Stack = createStackNavigator<PredictNavigationParamList>();
 const ModalStack = createStackNavigator<PredictNavigationParamList>();
@@ -58,21 +59,6 @@ const PredictModalStack = () => (
           },
         }),
       }}
-    />
-    <ModalStack.Screen
-      name={Routes.PREDICT.MARKET_DETAILS}
-      component={PredictMarketDetails}
-      options={{
-        headerShown: false,
-      }}
-    />
-    <ModalStack.Screen
-      name={Routes.PREDICT.MODALS.BUY_PREVIEW}
-      component={PredictBuyPreview}
-    />
-    <ModalStack.Screen
-      name={Routes.PREDICT.MODALS.SELL_PREVIEW}
-      component={PredictSellPreview}
     />
     <ModalStack.Screen
       name={Routes.PREDICT.ACTIVITY_DETAIL}
@@ -127,6 +113,69 @@ const PredictScreenStack = () => (
       component={Confirm}
       options={{
         headerShown: false,
+      }}
+    />
+
+    <Stack.Screen
+      name={Routes.PREDICT.MARKET_DETAILS}
+      component={PredictMarketDetails}
+      options={{
+        headerShown: false,
+        // slide from right to left when entering
+        cardStyleInterpolator: ({ current }) => ({
+          cardStyle: {
+            transform: [
+              {
+                translateX: current.progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [Dimensions.get('window').width, 0],
+                }),
+              },
+            ],
+          },
+        }),
+      }}
+    />
+
+    <Stack.Screen
+      name={Routes.PREDICT.MODALS.BUY_PREVIEW}
+      component={PredictBuyPreview}
+      options={{
+        headerShown: false,
+        // slide from right to left when entering
+        cardStyleInterpolator: ({ current }) => ({
+          cardStyle: {
+            transform: [
+              {
+                translateX: current.progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [Dimensions.get('window').width, 0],
+                }),
+              },
+            ],
+          },
+        }),
+      }}
+    />
+
+    <Stack.Screen
+      name={Routes.PREDICT.MODALS.SELL_PREVIEW}
+      component={PredictSellPreview}
+      options={{
+        headerShown: false,
+        // slide from right to left when entering
+        cardStyleInterpolator: ({ current }) => ({
+          cardStyle: {
+            transform: [
+              {
+                translateX: current.progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [Dimensions.get('window').width, 0],
+                }),
+              },
+            ],
+          },
+        }),
       }}
     />
   </Stack.Navigator>
