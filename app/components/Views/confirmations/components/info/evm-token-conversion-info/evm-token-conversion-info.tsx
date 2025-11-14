@@ -38,11 +38,19 @@ export const EvmTokenConversionInfo = () => {
 
   const tokenToAdd = outputTokenInfo || MUSD_TOKEN_MAINNET;
 
-  useNavbar(
-    strings('earn.token_conversion.title', {
+  const navbarTitle = useMemo(() => {
+    if (outputTokenInfo?.symbol === MUSD_TOKEN_MAINNET.symbol) {
+      return strings('earn.token_conversion.earn_rewards_with', {
+        tokenSymbol: outputTokenInfo?.symbol || MUSD_TOKEN_MAINNET.symbol,
+      });
+    }
+
+    return strings('earn.token_conversion.title', {
       tokenSymbol: outputTokenInfo?.symbol || MUSD_TOKEN_MAINNET.symbol,
-    }),
-  );
+    });
+  }, [outputTokenInfo]);
+
+  useNavbar(navbarTitle);
 
   useAddToken({
     chainId: tokenToAdd.chainId as Hex,

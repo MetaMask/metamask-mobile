@@ -216,11 +216,41 @@ const actionKeys = {
   [TransactionType.predictWithdraw]: strings(
     'transactions.tx_review_predict_withdraw',
   ),
-  // Temp: Hardcoded to display mUSD conversion until we support storing token in transaction metadata.
-  [EVM_TOKEN_CONVERSION_TRANSACTION_TYPE]: strings(
-    'transactions.tx_review_musd_conversion',
-  ),
 };
+
+/**
+ * Gets the token symbol for a transaction by looking up
+ * the 'to' address (output token) in the TokensController
+ *
+ * @param {object} transaction - Transaction object
+ * @returns {string | null} - Token symbol or null if not found
+ */
+function getOutputTokenSymbol(transaction) {
+  try {
+    const { TokensController } = Engine.context;
+    const tokenAddress = transaction?.txParams?.to;
+    const chainId = transaction?.chainId;
+    const fromAddress = transaction?.txParams?.from;
+
+    if (!tokenAddress || !chainId || !fromAddress) {
+      return null;
+    }
+
+    const tokensForChainAndAccount =
+      TokensController.state.allTokens?.[chainId]?.[
+        fromAddress?.toLowerCase()
+      ] || [];
+
+    const token = tokensForChainAndAccount.find(
+      (t) => t.address?.toLowerCase() === tokenAddress.toLowerCase(),
+    );
+
+    return token?.symbol || null;
+  } catch (error) {
+    Logger.log('Error getting token symbol for conversion:', error);
+    return null;
+  }
+}
 
 /**
  * Checks if a transaction is a legacy transaction by examining its type.
@@ -707,6 +737,14 @@ export async function getActionKey(tx, selectedAddress, ticker, chainId) {
     return transactionActionKey;
   }
 
+  // Special handling for token conversion to get dynamic symbol
+  if (actionKey === EVM_TOKEN_CONVERSION_TRANSACTION_TYPE) {
+    const tokenSymbol = getOutputTokenSymbol(tx);
+    return strings('transactions.tx_review_token_conversion', {
+      tokenSymbol: tokenSymbol || 'token',
+    });
+  }
+
   return actionKey;
 }
 
@@ -723,6 +761,15 @@ export async function getTransactionReviewActionKey(transaction, chainId) {
   if (transactionReviewActionKey) {
     return transactionReviewActionKey;
   }
+
+  // Special handling for token conversion to get dynamic symbol
+  if (actionKey === EVM_TOKEN_CONVERSION_TRANSACTION_TYPE) {
+    const tokenSymbol = getOutputTokenSymbol(transaction);
+    return strings('transactions.tx_review_token_conversion', {
+      tokenSymbol: tokenSymbol || 'token',
+    });
+  }
+
   return actionKey;
 }
 

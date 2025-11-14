@@ -3470,6 +3470,7 @@
     "tx_review_predict_claim": "Claimed Wins",
     "tx_review_predict_withdraw": "Predictions Withdraw",
     "tx_review_musd_conversion": "mUSD Conversion",
+    "tx_review_token_conversion": "Convert to {{tokenSymbol}}",
     "sent_ether": "Sent Ether",
     "self_sent_ether": "Sent Yourself Ether",
     "received_ether": "Received Ether",
@@ -5457,6 +5458,7 @@
     "token_conversion": {
       "title": "Convert to {{tokenSymbol}}",
       "confirmation_button": "Convert to {{tokenSymbol}}",
+      "earn_rewards_with": "Earn rewards with {{tokenSymbol}}",
       "toasts": {
         "in_progress": "{{tokenSymbol}} conversion in progress",
         "success": "{{tokenSymbol}} conversion succeeded",
