@@ -55,12 +55,6 @@ jest.mock('@react-navigation/stack', () => ({
   }),
 }));
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: jest.fn(() => ({
-    style: jest.fn((...args) => args.join(' ')),
-  })),
-}));
-
 jest.mock('@metamask/design-system-react-native', () => {
   const { View } = jest.requireActual('react-native');
   return {
@@ -431,6 +425,7 @@ function createMockMarket(overrides = {}) {
     image: 'https://example.com/bitcoin.png',
     endDate: '2024-12-31T23:59:59Z',
     providerId: 'polymarket',
+    tags: [],
     outcomes: [
       {
         id: 'outcome-1',
@@ -2936,6 +2931,211 @@ describe('PredictMarketDetails', () => {
       expect(
         screen.getByTestId('predict-market-details-screen'),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Fee Exemption Display', () => {
+    it('displays fee exemption message when market has Middle East tag', () => {
+      const marketWithMiddleEastTag = createMockMarket({
+        status: 'open',
+        tags: ['Middle East'],
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(marketWithMiddleEastTag);
+
+      expect(
+        screen.getByText('predict.market_details.fee_exemption'),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides fee exemption message when market does not have Middle East tag', () => {
+      const marketWithoutMiddleEastTag = createMockMarket({
+        status: 'open',
+        tags: ['Sports', 'Politics'],
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(marketWithoutMiddleEastTag);
+
+      expect(
+        screen.queryByText('predict.market_details.fee_exemption'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides fee exemption message when market has no tags', () => {
+      const marketWithoutTags = createMockMarket({
+        status: 'open',
+        tags: [],
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(marketWithoutTags);
+
+      expect(
+        screen.queryByText('predict.market_details.fee_exemption'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides fee exemption message when market tags property is undefined', () => {
+      const marketWithUndefinedTags = createMockMarket({
+        status: 'open',
+        tags: undefined,
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(marketWithUndefinedTags);
+
+      expect(
+        screen.queryByText('predict.market_details.fee_exemption'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('displays fee exemption message when Middle East tag exists among multiple tags', () => {
+      const marketWithMultipleTags = createMockMarket({
+        status: 'open',
+        tags: ['Politics', 'Middle East', 'International'],
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(marketWithMultipleTags);
+
+      expect(
+        screen.getByText('predict.market_details.fee_exemption'),
+      ).toBeOnTheScreen();
+    });
+
+    it('displays fee exemption message when market is closed with Middle East tag', () => {
+      const closedMarketWithMiddleEastTag = createMockMarket({
+        status: 'closed',
+        tags: ['Middle East'],
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [{ id: 'token-1', price: 1.0 }],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(closedMarketWithMiddleEastTag);
+
+      // Note: The component currently shows the fee exemption message for closed markets
+      // if they have the Middle East tag. This behavior matches the current implementation.
+      expect(
+        screen.getByText('predict.market_details.fee_exemption'),
+      ).toBeOnTheScreen();
+    });
+
+    it('removes fee exemption message when market updates without Middle East tag', async () => {
+      const { usePredictMarket } = jest.requireMock(
+        '../../hooks/usePredictMarket',
+      );
+
+      const marketWithMiddleEastTag = createMockMarket({
+        status: 'open',
+        tags: ['Middle East', 'Politics'],
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      const { rerender } = setupPredictMarketDetailsTest(
+        marketWithMiddleEastTag,
+      );
+
+      expect(
+        screen.getByText('predict.market_details.fee_exemption'),
+      ).toBeOnTheScreen();
+
+      const marketWithoutMiddleEastTag = createMockMarket({
+        status: 'open',
+        tags: ['Politics'],
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      usePredictMarket.mockReturnValue({
+        market: marketWithoutMiddleEastTag,
+        isFetching: false,
+        refetch: jest.fn(),
+      });
+
+      rerender(<PredictMarketDetails />);
+
+      await waitFor(() => {
+        expect(
+          screen.queryByText('predict.market_details.fee_exemption'),
+        ).not.toBeOnTheScreen();
+      });
     });
   });
 });

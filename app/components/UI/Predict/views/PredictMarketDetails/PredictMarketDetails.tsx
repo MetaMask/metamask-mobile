@@ -197,6 +197,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     }
   }, [market?.status]);
 
+  // check if market has fee exemption (note: worth moveing to a const or util at some point))
+  const isFeeExemption = market?.tags?.includes('Middle East') ?? false;
+
   // Tabs become ready when both market and positions queries have resolved
   const tabsReady = useMemo(
     () =>
@@ -1124,7 +1127,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   return (
     <SafeAreaView
-      style={tw.style('flex-1 bg-default')}
+      style={tw.style('flex-1 bg-default', isFeeExemption ? 'pb-6' : '')}
       edges={['left', 'right', 'bottom']}
       testID={PredictMarketDetailsSelectorsIDs.SCREEN}
     >
@@ -1176,6 +1179,19 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       <Box twClassName="px-3 bg-default border-t border-muted">
         {renderActionButtons()}
       </Box>
+      {isFeeExemption && (
+        <Box
+          style={tw`absolute inset-x-0 bottom-4 pb-3`}
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="gap-1"
+        >
+          <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
+            {strings('predict.market_details.fee_exemption')}
+          </Text>
+        </Box>
+      )}
     </SafeAreaView>
   );
 };
