@@ -45,6 +45,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - update changelog for 7.59.0 (hotfix - no test plan)
 - update changelog for 7.59.0 (hotfix - no test plan)
 - update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- chore: fix changelog category header format
+- [skip ci] Bump version number to 3003
+- [skip ci] Bump version number to 3002
+- [skip ci] Bump version number to 3000
+- [skip ci] Bump version number to 2983
+- [skip ci] Bump version number to 2980
+- [skip ci] Bump version number to 2970
+- [skip ci] Bump version number to 2968
+- Merge commit 'afe7d2240ba43e4ea48983ace93c2b8bef52daf1' into release/7.59.0
+- [skip ci] Bump version number to 2952
+- remove v7.57.3
+- fix changelog duplicate sections
+- keep main
+- take main corrections
+- Merge origin/main into stable-main-7.59.0
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
 - chore: fix changelog category header format
 - [skip ci] Bump version number to 3003
 - [skip ci] Bump version number to 3002
