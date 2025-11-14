@@ -28,6 +28,27 @@ const PredictModalStack = () => (
     <ModalStack.Screen
       name={Routes.PREDICT.MODALS.UNAVAILABLE}
       component={PredictUnavailableModal}
+<<<<<<< HEAD
+=======
+      options={{
+        cardStyleInterpolator: ({ current }) => ({
+          cardStyle: {
+            opacity: current.progress,
+          },
+        }),
+      }}
+    />
+    <ModalStack.Screen
+      name={Routes.PREDICT.MODALS.GTM_MODAL}
+      component={PredictGTMModal}
+      options={{
+        cardStyleInterpolator: ({ current }) => ({
+          cardStyle: {
+            opacity: current.progress,
+          },
+        }),
+      }}
+>>>>>>> ded0b2d592 (fix: Fix Predict Navigation to Cash Out and Single Market (#22711))
     />
     <ModalStack.Screen
       name={Routes.PREDICT.MODALS.ADD_FUNDS_SHEET}

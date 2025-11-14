@@ -242,12 +242,12 @@ describe('PredictPositionDetail', () => {
 
     fireEvent.press(screen.getByText('Cash out'));
 
-    expect(global.__mockNavigate).toHaveBeenCalledWith('PREDICT_MODALS_ROOT', {
-      screen: 'PREDICT_SELL_PREVIEW',
-      params: expect.objectContaining({
+    expect(global.__mockNavigate).toHaveBeenCalledWith(
+      'PREDICT_SELL_PREVIEW',
+      expect.objectContaining({
         position: expect.objectContaining({ id: 'pos-1' }),
         outcome: expect.objectContaining({ id: 'outcome-1' }),
       }),
-    });
+    );
   });
 });

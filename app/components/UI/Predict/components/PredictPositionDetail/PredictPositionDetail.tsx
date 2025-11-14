@@ -60,6 +60,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   )?.groupItemTitle;
 
   const onCashOut = () => {
+<<<<<<< HEAD
     executeGuardedAction(() => {
       const _outcome = market?.outcomes.find(
         (o) => o.id === position.outcomeId,
@@ -67,13 +68,28 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
       navigate(Routes.PREDICT.MODALS.ROOT, {
         screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
         params: {
+=======
+    executeGuardedAction(
+      () => {
+        const _outcome = market?.outcomes.find(
+          (o) => o.id === position.outcomeId,
+        );
+        navigate(Routes.PREDICT.MODALS.SELL_PREVIEW, {
+>>>>>>> ded0b2d592 (fix: Fix Predict Navigation to Cash Out and Single Market (#22711))
           market,
           position,
           outcome: _outcome,
           entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+<<<<<<< HEAD
         },
       });
     });
+=======
+        });
+      },
+      { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CASHOUT },
+    );
+>>>>>>> ded0b2d592 (fix: Fix Predict Navigation to Cash Out and Single Market (#22711))
   };
 
   const renderValueText = () => {

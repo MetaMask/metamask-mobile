@@ -912,15 +912,15 @@ describe('PredictMarketDetails', () => {
       const cashOutButton = screen.getByText('predict.cash_out');
       fireEvent.press(cashOutButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
-        params: {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PREDICT.MODALS.SELL_PREVIEW,
+        {
           position: mockPosition,
           outcome: expect.any(Object),
           market: expect.any(Object),
           entryPoint: 'predict_market_details',
         },
-      });
+      );
     });
 
     it('handles Yes button press for betting', () => {
