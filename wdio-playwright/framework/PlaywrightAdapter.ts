@@ -1,5 +1,5 @@
 import { ChainablePromiseElement } from 'webdriverio';
-import { boxedStep } from '../utils';
+import { boxedStep } from './utils';
 
 /**
  * PlaywrightAdapter - Provides Playwright-like API on top of WebdriverIO elems

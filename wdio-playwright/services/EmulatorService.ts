@@ -2,13 +2,13 @@ import {
   WebDriverConfig,
   Platform,
   EmulatorConfig,
-} from '../../../e2e/framework/types';
-import { DeviceProvider } from '../common/interfaces/DeviceProvider';
-import { installDriver, startAppiumServer } from '../common/AppiumHelpers';
+} from '../../e2e/framework/types';
+import { ServiceProviderInterface } from './IServiceProvider';
+import { installDriver, startAppiumServer } from './AppiumHelpers';
 import { FullProject } from '@playwright/test';
 import { remote } from 'webdriverio';
 
-export default class EmulatorProvider implements DeviceProvider {
+export default class EmulatorProvider implements ServiceProviderInterface {
   sessionId?: string;
   private readonly project: FullProject<WebDriverConfig>;
 

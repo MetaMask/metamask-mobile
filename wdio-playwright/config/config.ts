@@ -7,7 +7,7 @@ import {
 } from '@playwright/test';
 import { WebDriverConfig } from '../../e2e/framework/types';
 
-const resolveGlobalSetup = () => path.join(__dirname, 'global-setup.ts');
+const resolveGlobalSetup = () => path.join(__dirname, 'global.setup.ts');
 
 const defaultConfig: PlaywrightTestConfig<WebDriverConfig> = {
   globalSetup: resolveGlobalSetup(),

@@ -1,5 +1,5 @@
 import { PlaywrightElement, wrapElement } from './PlaywrightAdapter';
-import { getDriver } from '../utils';
+import { getDriver } from './utils';
 import { ChainablePromiseElement } from 'webdriverio';
 
 /**

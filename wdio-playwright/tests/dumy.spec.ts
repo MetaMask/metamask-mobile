@@ -14,7 +14,7 @@ test.only('login with password - page object helper functions flow', async ({
   expect(driver).toBeDefined();
 
   // High-level method - works with both frameworks
-  await LoginView.enterPassword('asdsad');
+  await LoginView.enterPassword(E2E_PASSWORD);
 
   await new Promise((resolve) => setTimeout(resolve, 5000));
 });

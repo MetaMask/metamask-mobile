@@ -1,7 +1,7 @@
 /* eslint-disable import/no-nodejs-modules */
 import { exec, spawn, type ChildProcess } from 'child_process';
-import { createLogger } from '../../../e2e/framework/logger';
-import { Platform } from '../../../e2e/framework/types';
+import { createLogger } from '../../e2e/framework/logger';
+import { Platform } from '../../e2e/framework/types';
 import path from 'path';
 
 const logger = createLogger({

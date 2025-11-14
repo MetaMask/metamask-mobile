@@ -32,7 +32,15 @@ export interface EmulatorConfig {
   orientation?: DeviceOrientation;
 }
 
-export type DeviceConfig = EmulatorConfig;
+export interface BrowserStackConfig {
+  provider: 'browserstack';
+  name: string;
+  osVersion: string;
+  orientation?: DeviceOrientation;
+  enableCameraImageInjection?: boolean;
+}
+
+export type DeviceConfig = EmulatorConfig | BrowserStackConfig;
 
 export interface TimeoutOptions {
   /**
