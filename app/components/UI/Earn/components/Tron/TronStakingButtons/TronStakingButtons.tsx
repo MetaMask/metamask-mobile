@@ -48,9 +48,8 @@ const TronStakingButtons = ({
     () =>
       !isStakedTrx
         ? asset
-        :
-        (unstakedTrxAsset ?? (asset as TokenI).nativeAsset ?? asset),
-  [asset, isStakedTrx, unstakedTrxAsset],
+        : (unstakedTrxAsset ?? (asset as TokenI).nativeAsset ?? asset),
+    [asset, isStakedTrx, unstakedTrxAsset],
   );
 
   const onStakePress = () => {

@@ -365,7 +365,7 @@ export const selectTronResourcesBySelectedAccountGroup =
               asset.symbol?.toLowerCase() as TronResourceSymbol,
             ),
         );
-console.log('selectTronResourcesBySelectedAccountGroup', assets);
+
       return assets;
     },
   );

@@ -150,7 +150,7 @@ export const TRON_RESOURCE = {
 export enum TronResourceType {
   ENERGY = 'ENERGY',
   BANDWIDTH = 'BANDWIDTH',
-};
+}
 
 export type TronResourceSymbol =
   (typeof TRON_RESOURCE)[keyof typeof TRON_RESOURCE];

@@ -44,19 +44,16 @@ const useTronUnstake = (): UseTronUnstakeReturn => {
 
       const assetId = `${chainId}/slip44:195` as CaipAssetType;
 
-      console.log('useTronUnstake - validation 0', amount, chainId, assetId);
       const validation = await validateTronUnstakeAmount(selectedTronAccount, {
         value: amount,
         accountId: selectedTronAccount.id,
         assetId,
         options: { purpose: purpose.toUpperCase() as TronResourceType },
       });
-      console.log('useTronUnstake - validation 1', validation);
 
       setErrors(validation?.errors);
       setValidating(false);
 
-      console.log('useTronUnstake - validation 2', validation);
       return validation;
     },
     [selectedTronAccount],
@@ -79,7 +76,6 @@ const useTronUnstake = (): UseTronUnstakeReturn => {
       setValidating(false);
       setErrors(confirmation?.errors);
 
-      console.log('useTronUnstake - confirmation', confirmation);
       return confirmation;
     },
     [selectedTronAccount],

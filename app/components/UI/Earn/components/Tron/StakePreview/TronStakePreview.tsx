@@ -9,7 +9,7 @@ import {
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { TRON_RESOURCE } from '../../../../../../core/Multichain/constants';
+// import { TRON_RESOURCE } from '../../../../../../core/Multichain/constants';
 import { ResourceType } from '../ResourceToggle';
 import { ComputeFeeResult } from '../../../utils/tron-staking';
 
@@ -18,13 +18,7 @@ export interface TronStakePreviewProps {
   fee?: ComputeFeeResult | ComputeFeeResult[0];
 }
 
-const Row = ({
-  label,
-  value,
-}: {
-  label: string;
-  value: React.ReactNode;
-}) => (
+const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
@@ -37,15 +31,19 @@ const Row = ({
 );
 
 const TronStakePreview = ({
-  resourceType = TRON_RESOURCE.ENERGY,
+  // resourceType = TRON_RESOURCE.ENERGY,
   fee,
 }: TronStakePreviewProps) => {
   const tw = useTailwind();
 
-  const feeItem: ComputeFeeResult[0] | undefined = Array.isArray(fee) ? fee[0] : fee;
+  const feeItem: ComputeFeeResult[0] | undefined = Array.isArray(fee)
+    ? fee[0]
+    : fee;
 
   return (
-    <Box twClassName="w-full bg-default pl-6 pr-6 rounded-lg" style={tw.style()}
+    <Box
+      twClassName="w-full bg-default pl-6 pr-6 rounded-lg"
+      style={tw.style()}
     >
       {/* <Row
         label={strings('asset_overview.tron.daily_resource_new_energy')}

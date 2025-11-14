@@ -7,7 +7,6 @@ import {
   confirmTronStake,
   validateTronStakeAmount,
   TronStakeResult,
-  computeTronFee,
 } from '../utils/tron-staking';
 import { TronResourceType } from '../../../../core/Multichain/constants';
 
@@ -17,8 +16,15 @@ interface UseTronStakeReturn {
   validating: boolean;
   errors?: string[];
   preview?: Record<string, unknown>;
-  validate: (amount: string, chainId: string) => Promise<TronStakeResult | null>;
-  confirm: (amount: string, purpose: Purpose, chainId: string) => Promise<TronStakeResult | null>;
+  validate: (
+    amount: string,
+    chainId: string,
+  ) => Promise<TronStakeResult | null>;
+  confirm: (
+    amount: string,
+    purpose: Purpose,
+    chainId: string,
+  ) => Promise<TronStakeResult | null>;
 }
 
 /**
@@ -72,14 +78,13 @@ const useTronStake = (): UseTronStakeReturn => {
         };
         nextPreview = { ...(nextPreview ?? {}), fee };
       } catch {
-        console.error('Error computing fee preview');
+        // ignore for now
       }
 
       if (nextPreview) setPreview(nextPreview);
       setErrors(validationErrors);
       setValidating(false);
 
-      console.log('useTronStake - validation', validation);
       return validation;
     },
     [selectedTronAccount],
@@ -97,12 +102,11 @@ const useTronStake = (): UseTronStakeReturn => {
         fromAccountId: selectedTronAccount.id,
         assetId,
         value: amount,
-        options: { purpose: purpose.toUpperCase() as TronResourceType},
+        options: { purpose: purpose.toUpperCase() as TronResourceType },
       });
       setValidating(false);
       setErrors(confirmation?.errors);
 
-      console.log('useTronStake - confirmation', confirmation);
       return confirmation;
     },
     [selectedTronAccount],

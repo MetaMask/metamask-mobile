@@ -1,6 +1,5 @@
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 /* eslint-disable arrow-body-style */
-import { MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET } from '../../core/Multichain/constants';
 import { RootState } from '../../reducers';
 import {
   selectChainId,
@@ -16,7 +15,7 @@ import {
   Balance,
   SolScope,
   Transaction as NonEvmTransaction,
-} from '@metamask/keyring-api';
+ TrxScope } from '@metamask/keyring-api';
 import { isMainNet } from '../../util/networks';
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
 import { selectShowFiatInTestnets } from '../settings';
@@ -47,10 +46,10 @@ import { createSelector } from 'reselect';
 import { selectSelectedAccountGroupInternalAccounts } from '../multichainAccounts/accountTreeController';
 import { selectAccountTokensAcrossChains } from '../multichain';
 import {
+  MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET,
   TRON_RESOURCE_SYMBOLS_SET,
   TronResourceSymbol,
 } from '../../core/Multichain/constants';
-import { TrxScope } from '@metamask/keyring-api';
 
 export const selectMultichainDefaultToken = createDeepEqualSelector(
   selectIsEvmNetworkSelected,
@@ -388,7 +387,7 @@ export const selectAccountTokensAcrossChainsUnified = createDeepEqualSelector(
         if (!merged[key]) {
           merged[key] = [];
         }
-        
+
         // This is the shape we want to return for the Earn list
         merged[key].push({
           address: token.address,

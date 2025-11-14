@@ -12,7 +12,6 @@ export const TRON_WALLET_SNAP_ID: SnapId =
 
 export const TRON_WALLET_NAME: string = 'Tron';
 
-
 export interface TronStakeValidateParams {
   value: string;
   accountId: string;
@@ -72,10 +71,6 @@ export async function validateTronStakeAmount(
   fromAccount: InternalAccount,
   params: TronStakeValidateParams,
 ): Promise<TronStakeResult> {
-
-
-console.log('validateTronStakeAmount 0', fromAccount.metadata?.snap?.id, params);
-
   return (await handleSnapRequest(controllerMessenger, {
     snapId: fromAccount.metadata?.snap?.id as SnapId,
     origin: 'metamask',
@@ -91,10 +86,6 @@ export async function confirmTronStake(
   fromAccount: InternalAccount,
   params: TronStakeConfirmParams,
 ): Promise<TronStakeResult> {
-
-console.log('confirmTronStake confirmTronStake', fromAccount.metadata?.snap?.id, params);
-
-
   return (await handleSnapRequest(controllerMessenger, {
     snapId: fromAccount.metadata?.snap?.id as SnapId,
     origin: 'metamask',
@@ -125,9 +116,6 @@ export async function validateTronUnstakeAmount(
   fromAccount: InternalAccount,
   params: TronUnstakeValidateParams,
 ): Promise<TronUnstakeResult> {
-
-  console.log('validateTronUnstakeAmount 0', fromAccount.metadata?.snap?.id, params);
-
   return (await handleSnapRequest(controllerMessenger, {
     snapId: fromAccount.metadata?.snap?.id as SnapId,
     origin: 'metamask',
@@ -143,9 +131,6 @@ export async function confirmTronUnstake(
   fromAccount: InternalAccount,
   params: TronUnstakeConfirmParams,
 ): Promise<TronUnstakeResult> {
-
-  console.log('confirmTronUnstake 0', fromAccount.metadata?.snap?.id, params);
-
   return (await handleSnapRequest(controllerMessenger, {
     snapId: fromAccount.metadata?.snap?.id as SnapId,
     origin: 'metamask',

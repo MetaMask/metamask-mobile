@@ -51,7 +51,8 @@ import { EARN_INPUT_VIEW_ACTIONS } from '../EarnInputView/EarnInputView.types';
 import styleSheet from './EarnWithdrawInputView.styles';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
 import BN from 'bnjs4';
-import { renderFromTokenMinimalUnit ,
+import {
+  renderFromTokenMinimalUnit,
   toTokenMinimalUnit,
   normalizeToDotDecimal,
 } from '../../../../../util/number';
