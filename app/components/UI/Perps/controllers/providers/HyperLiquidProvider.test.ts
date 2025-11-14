@@ -810,15 +810,18 @@ describe('HyperLiquidProvider', () => {
         currentPrice: 0.003918,
       };
 
-      mockClientService
-        .getExchangeClient()
-        .order.mockRejectedValueOnce(
-          new Error('Order must have minimum value of $10'),
-        )
-        .mockResolvedValueOnce({
-          status: 'ok',
-          response: { data: { statuses: [{ resting: { oid: 456 } }] } },
-        });
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue({
+        ...createMockExchangeClient(),
+        order: jest
+          .fn()
+          .mockRejectedValueOnce(
+            new Error('Order must have minimum value of $10'),
+          )
+          .mockResolvedValueOnce({
+            status: 'ok',
+            response: { data: { statuses: [{ resting: { oid: 456 } }] } },
+          }),
+      });
 
       const result = await provider.placeOrder(orderParams);
 
@@ -870,15 +873,18 @@ describe('HyperLiquidProvider', () => {
         currentPrice: 0.003918,
       };
 
-      mockClientService
-        .getExchangeClient()
-        .order.mockRejectedValueOnce(
-          new Error('Order 0: Order must have minimum value'),
-        )
-        .mockResolvedValueOnce({
-          status: 'ok',
-          response: { data: { statuses: [{ resting: { oid: 789 } }] } },
-        });
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue({
+        ...createMockExchangeClient(),
+        order: jest
+          .fn()
+          .mockRejectedValueOnce(
+            new Error('Order 0: Order must have minimum value'),
+          )
+          .mockResolvedValueOnce({
+            status: 'ok',
+            response: { data: { statuses: [{ resting: { oid: 789 } }] } },
+          }),
+      });
 
       const result = await provider.placeOrder(orderParams);
 
@@ -929,11 +935,14 @@ describe('HyperLiquidProvider', () => {
         orderType: 'market',
       };
 
-      mockClientService
-        .getExchangeClient()
-        .order.mockRejectedValueOnce(
-          new Error('Order must have minimum value of $10'),
-        );
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue({
+        ...createMockExchangeClient(),
+        order: jest
+          .fn()
+          .mockRejectedValueOnce(
+            new Error('Order must have minimum value of $10'),
+          ),
+      });
 
       const result = await provider.placeOrder(orderParams);
 
