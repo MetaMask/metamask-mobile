@@ -39,14 +39,6 @@ export async function getAuthTokens(
 
   if (res.status === 200 || res.status === 201) {
     const data: AuthResponse = (await res.json()) satisfies AuthResponse;
-
-    if (!data.id_token || !data.access_token || !data.metadata_access_token) {
-      throw new OAuthError(
-        'Invalid auth response',
-        OAuthErrorType.AuthServerError,
-      );
-    }
-
     return data;
   }
 
