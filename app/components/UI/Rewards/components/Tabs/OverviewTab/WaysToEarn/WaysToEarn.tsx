@@ -32,6 +32,7 @@ import {
   selectRewardsMusdDepositEnabledFlag,
 } from '../../../../../../../selectors/featureFlagController/rewards';
 import { selectPredictEnabledFlag } from '../../../../../Predict/selectors/featureFlags';
+import { PredictEventValues } from '../../../../../Predict/constants/eventNames';
 import {
   MetaMetricsEvents,
   useMetrics,
@@ -272,6 +273,9 @@ export const WaysToEarn = () => {
       case WayToEarnType.PREDICT:
         navigation.navigate(Routes.PREDICT.ROOT, {
           screen: Routes.PREDICT.MARKET_LIST,
+          params: {
+            entryPoint: PredictEventValues.ENTRY_POINT.REWARDS,
+          },
         });
         break;
       case WayToEarnType.CARD:

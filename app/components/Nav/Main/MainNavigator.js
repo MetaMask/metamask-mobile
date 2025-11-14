@@ -943,8 +943,8 @@ const MainNavigator = () => {
   // Get feature flag state for conditional Predict screen registration
   const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
   const isPredictEnabled = useMemo(
-    () => predictEnabledFlag && isEvmSelected,
-    [predictEnabledFlag, isEvmSelected],
+    () => predictEnabledFlag,
+    [predictEnabledFlag],
   );
   const { enabled: isSendRedesignEnabled } = useSelector(
     selectSendRedesignFlags,

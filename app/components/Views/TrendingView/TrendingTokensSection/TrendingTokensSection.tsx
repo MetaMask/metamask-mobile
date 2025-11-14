@@ -1,23 +1,15 @@
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
-import { strings } from '../../../../../locales/i18n';
 import { TrendingAsset } from '@metamask/assets-controllers';
 import TrendingTokensSkeleton from './TrendingTokenSkeleton/TrendingTokensSkeleton';
 import TrendingTokensList from './TrendingTokensList';
 import { useTrendingRequest } from '../../../UI/Assets/hooks/useTrendingRequest';
 import SectionHeader from '../components/SectionHeader/SectionHeader';
 import SectionCard from '../components/SectionCard/SectionCard';
-import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../constants/navigation/Routes';
 
 const TrendingTokensSection = () => {
-  const navigation = useNavigation();
   const { results: trendingTokensResults, isLoading } = useTrendingRequest({});
   const trendingTokens = trendingTokensResults.slice(0, 3);
-
-  const handleViewAll = useCallback(() => {
-    navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW);
-  }, [navigation]);
 
   const handleTokenPress = useCallback((token: TrendingAsset) => {
     // eslint-disable-next-line no-console
@@ -27,10 +19,7 @@ const TrendingTokensSection = () => {
 
   return (
     <View>
-      <SectionHeader
-        title={strings('trending.tokens')}
-        onViewAll={handleViewAll}
-      />
+      <SectionHeader sectionId="tokens" />
       <SectionCard>
         {isLoading || trendingTokens.length === 0 ? (
           <TrendingTokensSkeleton count={3} />
