@@ -12,24 +12,22 @@ export function getDriver(): WebdriverIO.Browser {
  * @param context - The context of the function
  * @returns - The wrapped function
  */
-export function boxedStep(
-  target: (...args: unknown[]) => unknown,
+export function boxedStep<This, Args extends unknown[], Return>(
+  target: (this: This, ...args: Args) => Return,
   context: ClassMethodDecoratorContext,
-) {
-  return function replacementMethod(
-    this: {
+): (this: This, ...args: Args) => Return {
+  const replacementMethod = function (this: This, ...args: Args): Return {
+    const self = this as This & {
       constructor: {
         name: string;
       };
       elem?: WebdriverIO.Element | { selector: string }; // WebdriverIO element with selector
-    },
-    ...args: unknown[]
-  ) {
+    };
     const methodName = context.name as string;
-    let stepName = this.constructor.name + '.' + methodName;
+    let stepName = self.constructor.name + '.' + methodName;
 
-    if (this.elem?.selector) {
-      stepName += ` [${this.elem.selector}]`;
+    if (self.elem?.selector) {
+      stepName += ` [${self.elem.selector}]`;
     }
 
     // Add args info for certain methods
@@ -67,6 +65,8 @@ export function boxedStep(
         }
       },
       { box: true },
-    );
+    ) as Return;
   };
+
+  return replacementMethod;
 }
