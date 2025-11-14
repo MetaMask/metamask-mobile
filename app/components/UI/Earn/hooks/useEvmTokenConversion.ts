@@ -3,23 +3,24 @@ import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { generateTransferData } from '../../../../util/transactions';
-import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../constants/musd';
+import { EVM_TOKEN_CONVERSION_TRANSACTION_TYPE } from '../constants/musd';
 import { MMM_ORIGIN } from '../../../Views/confirmations/constants/confirmations';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import { EVM_SCOPE } from '../constants/networks';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 
 /**
- * Type guard to validate allowedTokenAddresses structure.
+ * Type guard to validate allowedPaymentTokens structure.
  * Checks if the value is a valid Record<Hex, Hex[]> mapping.
  * Validates that both keys (chain IDs) and values (token addresses) are hex strings.
  *
  * @param value - Value to validate
  * @returns true if valid, false otherwise
  */
-export const isValidAllowedTokenAddresses = (
+export const areValidAllowedPaymentTokens = (
   value: unknown,
 ): value is Record<Hex, Hex[]> => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -56,11 +57,11 @@ export interface TokenConversionConfig {
     chainId: Hex;
   };
   /**
-   * Optional allowlist of tokens that can be used to pay for the conversion, organized by chain ID.
+   * Optional allowlist of payment tokens that can be used to pay for the conversion, organized by chain ID.
    * Maps chain IDs to arrays of allowed token addresses.
    * If not provided, all tokens will be available for selection.
    */
-  allowedTokenAddresses?: Record<Hex, Hex[]>;
+  allowedPaymentTokens?: Record<Hex, Hex[]>;
   /**
    * Optional navigation stack to use (defaults to Routes.EARN.ROOT)
    */
@@ -83,6 +84,9 @@ export interface TokenConversionConfig {
  *   outputToken: {
  *     address: MUSD_ADDRESS_ETHEREUM,
  *     chainId: ETHEREUM_MAINNET_CHAIN_ID,
+ *     symbol: 'mUSD',
+ *     name: 'mUSD',
+ *     decimals: 6,
  *   },
  *   preferredPaymentToken: {
  *     address: USDC_ADDRESS_ARBITRUM,
@@ -94,15 +98,15 @@ export const useEvmTokenConversion = () => {
   const [error, setError] = useState<string | null>(null);
   const navigation = useNavigation();
 
-  // TODO: Double check this when adding support for other networks. We want to ensure the user correctly sends to themselves.
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
+  const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
+    EVM_SCOPE,
   );
+
+  const selectedAddress = selectedAccount?.address;
 
   /**
    * Converts tokens by creating a placeholder transaction and navigating to confirmation.
    * Navigation happens immediately, then transaction creation happens in background.
-   * This matches the pattern used by Predict feature hooks.
    */
   const initiateConversion = useCallback(
     async (config: TokenConversionConfig): Promise<string> => {
@@ -112,14 +116,14 @@ export const useEvmTokenConversion = () => {
         navigationStack = Routes.EARN.ROOT,
       } = config;
 
-      if (!outputToken || !preferredPaymentToken) {
-        throw new Error(
-          'Output token and preferred payment token are required',
-        );
-      }
-
       try {
         setError(null);
+
+        if (!outputToken || !preferredPaymentToken) {
+          throw new Error(
+            'Output token and preferred payment token are required',
+          );
+        }
 
         if (!selectedAddress) {
           throw new Error('No account selected');
@@ -136,7 +140,11 @@ export const useEvmTokenConversion = () => {
           );
         }
 
-        // Navigate to confirmation screen immediately for better UX.
+        /**
+         * Navigate to the confirmation screen immediately for better UX,
+         * since there can be a delay between the user's button press and
+         * transaction creation in the background.
+         */
         navigation.navigate(navigationStack, {
           screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
           params: {
@@ -149,16 +157,18 @@ export const useEvmTokenConversion = () => {
               name: outputToken.name,
               decimals: outputToken.decimals,
             },
-            allowedTokenAddresses: config.allowedTokenAddresses,
+            allowedPaymentTokens: config.allowedPaymentTokens,
           },
         });
 
         const ZERO_HEX_VALUE = '0x0';
 
-        // Create minimal transfer data with amount = 0
-        // The actual amount will be set by the user on the confirmation screen
+        /**
+         * Create minimal transfer data with amount = 0
+         * The actual amount will be set by the user on the confirmation screen
+         */
         const transferData = generateTransferData('transfer', {
-          toAddress: selectedAddress, // Transfer to self
+          toAddress: selectedAddress,
           amount: ZERO_HEX_VALUE,
         });
 
@@ -175,8 +185,8 @@ export const useEvmTokenConversion = () => {
           {
             networkClientId,
             origin: MMM_ORIGIN,
-            type: MUSD_CONVERSION_TRANSACTION_TYPE,
-            // Nested transaction is required for Relay to work. This will be fixed in a future iteration.
+            type: EVM_TOKEN_CONVERSION_TRANSACTION_TYPE,
+            // Important: Nested transaction is required for Relay to work. This will be fixed in a future iteration.
             nestedTransactions: [
               {
                 to: outputToken.address,

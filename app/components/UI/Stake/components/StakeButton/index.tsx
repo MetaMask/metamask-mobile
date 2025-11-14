@@ -26,7 +26,7 @@ import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
   selectIsMusdConversionFlowEnabledFlag,
-  selectConvertibleTokensAllowlist,
+  selectMusdConversionPaymentTokensAllowlist,
 } from '../../../Earn/selectors/featureFlags';
 import createStyles from '../../../Tokens/styles';
 import { BrowserTab, TokenI } from '../../../Tokens/types';
@@ -43,11 +43,11 @@ import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagCon
 import {
   ETHEREUM_MAINNET_CHAIN_ID,
   MUSD_ADDRESS_ETHEREUM,
-  isConvertibleToken,
+  isMusdConversionPaymentToken,
 } from '../../../Earn/constants/musd';
 import { useEvmTokenConversion } from '../../../Earn/hooks/useEvmTokenConversion';
 import Logger from '../../../../../util/Logger';
-import { MUSD_TOKEN } from '../../../../Views/confirmations/constants/musd';
+import { MUSD_TOKEN_MAINNET } from '../../../../Views/confirmations/constants/musd';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -72,8 +72,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const isMusdConversionFlowEnabled = useSelector(
     selectIsMusdConversionFlowEnabledFlag,
   );
-  const convertibleTokensAllowlist = useSelector(
-    selectConvertibleTokensAllowlist,
+  const musdConversionPaymentTokensAllowlist = useSelector(
+    selectMusdConversionPaymentTokensAllowlist,
   );
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
@@ -102,16 +102,16 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       isMusdConversionFlowEnabled &&
       asset?.chainId &&
       asset?.address &&
-      isConvertibleToken(
+      isMusdConversionPaymentToken(
         asset.address,
         asset.chainId,
-        convertibleTokensAllowlist,
+        musdConversionPaymentTokensAllowlist,
       ),
     [
       isMusdConversionFlowEnabled,
       asset?.chainId,
       asset?.address,
-      convertibleTokensAllowlist,
+      musdConversionPaymentTokensAllowlist,
     ],
   );
 
@@ -243,15 +243,15 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
           address: MUSD_ADDRESS_ETHEREUM,
           // We want to convert to mUSD on Ethereum Mainnet only for now.
           chainId: ETHEREUM_MAINNET_CHAIN_ID,
-          symbol: MUSD_TOKEN.symbol,
-          name: MUSD_TOKEN.name,
-          decimals: MUSD_TOKEN.decimals,
+          symbol: MUSD_TOKEN_MAINNET.symbol,
+          name: MUSD_TOKEN_MAINNET.name,
+          decimals: MUSD_TOKEN_MAINNET.decimals,
         },
         preferredPaymentToken: {
           address: toHex(earnToken.address),
           chainId: toHex(earnToken.chainId),
         },
-        allowedTokenAddresses: convertibleTokensAllowlist,
+        allowedPaymentTokens: musdConversionPaymentTokensAllowlist,
         navigationStack: Routes.EARN.ROOT,
       });
     } catch (error) {
@@ -272,7 +272,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     earnToken?.address,
     earnToken?.chainId,
     initiateConversion,
-    convertibleTokensAllowlist,
+    musdConversionPaymentTokensAllowlist,
   ]);
 
   const onEarnButtonPress = async () => {

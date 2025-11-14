@@ -50,15 +50,15 @@ export function useAutomaticTransactionPayToken({
   // Reset automatic token selection state when switching to a new transaction.
   //
   // This fixes a bug where isUpdated.current stays true after visiting one transaction type
-  // (e.g., Perps deposit), preventing proper token selection when visiting a different
+  // (e.g., Perps deposit), preventing proper token pre-selection when visiting a different
   // transaction type (e.g., mUSD conversion). Without this reset, the automatic selection
   // useEffect would early-return and skip token selection entirely for the new transaction.
   //
   // Example scenario:
   // 1. User visits Perps deposit -> isUpdated.current = true, USDC on Arbitrum selected
   // 2. User navigates away and clicks "Convert" for mUSD
-  // 3. Without reset: isUpdated.current still true -> no token selection runs
-  // 4. With reset: isUpdated.current = false -> proper token selection for mUSD conversion
+  // 3. Without reset: isUpdated.current still true -> no token pre-selection runs
+  // 4. With reset: isUpdated.current = false -> proper token pre-selection for mUSD conversion
   useEffect(() => {
     if (transactionId && transactionId !== previousTransactionId.current) {
       isUpdated.current = false;

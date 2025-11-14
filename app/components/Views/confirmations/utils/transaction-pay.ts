@@ -85,12 +85,12 @@ export function getAvailableTokens({
   payToken,
   requiredTokens,
   tokens,
-  allowedTokenAddresses,
+  allowedPaymentTokens,
 }: {
   tokens: AssetType[];
   payToken?: TransactionPaymentToken;
   requiredTokens?: TransactionPayRequiredToken[];
-  allowedTokenAddresses?: {
+  allowedPaymentTokens?: {
     [chainId: string]: string[];
   };
 }): AssetType[] {
@@ -105,9 +105,9 @@ export function getAvailableTokens({
       }
 
       // Apply custom token address filter if provided
-      if (allowedTokenAddresses) {
+      if (allowedPaymentTokens) {
         const allowedAddresses =
-          allowedTokenAddresses[token.chainId as string] || [];
+          allowedPaymentTokens[token.chainId as string] || [];
         const isAllowedToken = allowedAddresses.some(
           (address) => address.toLowerCase() === token.address.toLowerCase(),
         );

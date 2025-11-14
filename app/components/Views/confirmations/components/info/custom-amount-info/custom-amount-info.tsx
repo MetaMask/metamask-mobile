@@ -51,18 +51,18 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import { useAlerts } from '../../../context/alert-system-context';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
-import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../../../../../UI/Earn/constants/musd';
-import { MUSD_TOKEN } from '../../../constants/musd';
+import { EVM_TOKEN_CONVERSION_TRANSACTION_TYPE } from '../../../../../UI/Earn/constants/musd';
+import { MUSD_TOKEN_MAINNET } from '../../../constants/musd';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
   currency?: string;
   disablePay?: boolean;
   /**
-   * Optional map of allowed token addresses by chain ID.
+   * Optional map of allowed payment token addresses by chain ID.
    * When provided, restricts token selection in PayWithModal to only these tokens.
    */
-  allowedTokenAddresses?: {
+  allowedPaymentTokens?: {
     [chainId: string]: string[];
   };
   /**
@@ -80,7 +80,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     children,
     currency,
     disablePay,
-    allowedTokenAddresses,
+    allowedPaymentTokens,
     preferredPaymentToken,
   }) => {
     useClearConfirmationOnBackSwipe();
@@ -141,7 +141,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           )}
           {children}
           {disablePay !== true && hasTokens && (
-            <PayWithRow allowedTokenAddresses={allowedTokenAddresses} />
+            <PayWithRow allowedPaymentTokens={allowedPaymentTokens} />
           )}
         </Box>
         <Box gap={25}>
@@ -293,9 +293,11 @@ function useButtonLabel() {
     return strings('confirm.deposit_edit_amount_predict_withdraw');
   }
 
-  if (hasTransactionType(transaction, [MUSD_CONVERSION_TRANSACTION_TYPE])) {
+  if (
+    hasTransactionType(transaction, [EVM_TOKEN_CONVERSION_TRANSACTION_TYPE])
+  ) {
     return strings('earn.token_conversion.confirmation_button', {
-      tokenSymbol: MUSD_TOKEN.symbol,
+      tokenSymbol: MUSD_TOKEN_MAINNET.symbol,
     });
   }
 

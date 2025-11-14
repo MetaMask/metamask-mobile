@@ -5,7 +5,7 @@ import {
 import { useEffect, useRef } from 'react';
 import Engine from '../../../../core/Engine';
 import useEarnToasts from './useEarnToasts';
-import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../constants/musd';
+import { EVM_TOKEN_CONVERSION_TRANSACTION_TYPE } from '../constants/musd';
 
 /**
  * Hook to monitor mUSD conversion transaction status and show appropriate toasts
@@ -25,7 +25,6 @@ import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../constants/musd';
 export const useMusdConversionStatus = () => {
   const { showToast, EarnToastOptions } = useEarnToasts();
 
-  // Track which transaction IDs we've already shown toasts for to prevent duplicates
   const shownToastsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
@@ -34,21 +33,18 @@ export const useMusdConversionStatus = () => {
     }: {
       transactionMeta: TransactionMeta;
     }) => {
-      if (transactionMeta.type !== MUSD_CONVERSION_TRANSACTION_TYPE) {
+      if (transactionMeta.type !== EVM_TOKEN_CONVERSION_TRANSACTION_TYPE) {
         return;
       }
 
       const { id: transactionId, status } = transactionMeta;
 
-      // Create a unique key for this transaction + status combination
       const toastKey = `${transactionId}-${status}`;
 
-      // Skip if we've already shown a toast for this transaction status
       if (shownToastsRef.current.has(toastKey)) {
         return;
       }
 
-      // Show appropriate toast based on status
       switch (status) {
         case TransactionStatus.submitted:
           showToast(EarnToastOptions.mUsdConversion.inProgress);
@@ -85,13 +81,11 @@ export const useMusdConversionStatus = () => {
       }
     };
 
-    // Subscribe to transaction status updates
     Engine.controllerMessenger.subscribe(
       'TransactionController:transactionStatusUpdated',
       handleTransactionStatusUpdated,
     );
 
-    // Cleanup subscription on unmount
     return () => {
       Engine.controllerMessenger.unsubscribe(
         'TransactionController:transactionStatusUpdated',

@@ -25,7 +25,7 @@ import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfo } from '../info/predict-claim-info';
 import { PredictWithdrawInfo } from '../info/predict-withdraw-info';
 import { EvmTokenConversionInfo } from '../info/evm-token-conversion-info';
-import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../../../../UI/Earn/constants/musd';
+import { EVM_TOKEN_CONVERSION_TRANSACTION_TYPE } from '../../../../UI/Earn/constants/musd';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -95,7 +95,9 @@ const Info = ({ route }: InfoProps) => {
 
   if (
     transactionMetadata &&
-    hasTransactionType(transactionMetadata, [MUSD_CONVERSION_TRANSACTION_TYPE])
+    hasTransactionType(transactionMetadata, [
+      EVM_TOKEN_CONVERSION_TRANSACTION_TYPE,
+    ])
   ) {
     return <EvmTokenConversionInfo />;
   }

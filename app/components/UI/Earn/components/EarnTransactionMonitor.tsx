@@ -6,7 +6,6 @@ import { useMusdConversionStatus } from '../hooks/useMusdConversionStatus';
  *
  * This component acts as a mount point for persistent transaction monitoring hooks,
  * allowing them to remain active even when navigating away from Earn screens.
- * It's mounted globally in the Main component to ensure consistent toast notifications.
  */
 const EarnTransactionMonitor: React.FC = () => {
   // Enable mUSD conversion status monitoring and toasts

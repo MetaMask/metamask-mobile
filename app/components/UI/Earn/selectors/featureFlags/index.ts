@@ -70,16 +70,16 @@ export const selectIsMusdConversionFlowEnabledFlag = createSelector(
 );
 
 /**
- * Selects the convertible tokens allowlist from remote config or local fallback.
- * Returns a mapping of chain IDs to arrays of token addresses that are eligible for mUSD conversion.
+ * Selects the allowed payment tokens for mUSD conversion from remote config or local fallback.
+ * Returns a mapping of chain IDs to arrays of token addresses that users can pay with to convert to mUSD.
  *
  * The flag uses JSON format: { "hexChainId": ["tokenSymbol1", "tokenSymbol2"] }
  *
  * Example: { "0x1": ["USDC", "USDT"], "0xa4b1": ["USDC", "DAI"] }
  *
- * If both remote and local are unavailable, falls back to CONVERTIBLE_STABLECOINS_BY_CHAIN.
+ * If both remote and local are unavailable, allows all supported payment tokens.
  */
-export const selectConvertibleTokensAllowlist = createSelector(
+export const selectMusdConversionPaymentTokensAllowlist = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): Record<Hex, Hex[]> => {
     let localAllowlist: Record<Hex, Hex[]> | null = null;

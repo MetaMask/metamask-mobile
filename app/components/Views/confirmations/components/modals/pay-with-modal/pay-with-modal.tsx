@@ -17,11 +17,11 @@ import { useRoute, RouteProp } from '@react-navigation/native';
  */
 interface PayWithModalRouteParams {
   /**
-   * Optional map of allowed token addresses by chain ID.
+   * Optional map of allowed payment token addresses by chain ID.
    * When provided, only tokens matching these addresses will be shown.
    * Format: { [chainId: string]: string[] }
    */
-  allowedTokenAddresses?: {
+  allowedPaymentTokens?: {
     [chainId: string]: string[];
   };
 }
@@ -33,7 +33,7 @@ export function PayWithModal() {
 
   const route =
     useRoute<RouteProp<Record<string, PayWithModalRouteParams>, string>>();
-  const allowedTokenAddresses = route.params?.allowedTokenAddresses;
+  const allowedPaymentTokens = route.params?.allowedPaymentTokens;
 
   const handleClose = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet();
@@ -57,9 +57,9 @@ export function PayWithModal() {
         payToken,
         requiredTokens,
         tokens,
-        allowedTokenAddresses,
+        allowedPaymentTokens,
       }),
-    [payToken, requiredTokens, allowedTokenAddresses],
+    [payToken, requiredTokens, allowedPaymentTokens],
   );
 
   return (

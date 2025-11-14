@@ -29,16 +29,16 @@ import { useTransactionPayFiat } from '../../../hooks/pay/useTransactionPayFiat'
 
 export interface PayWithRowProps {
   /**
-   * Optional map of allowed token addresses by chain ID.
+   * Optional map of allowed payment token addresses by chain ID.
    * When provided, only tokens matching these addresses will be shown in PayWithModal.
    */
-  allowedTokenAddresses?: {
+  allowedPaymentTokens?: {
     [chainId: string]: string[];
   };
 }
 
 export const PayWithRow: React.FC<PayWithRowProps> = ({
-  allowedTokenAddresses,
+  allowedPaymentTokens,
 }) => {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
@@ -55,9 +55,9 @@ export const PayWithRow: React.FC<PayWithRowProps> = ({
     if (!canEdit) return;
 
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
-      allowedTokenAddresses,
+      allowedPaymentTokens,
     });
-  }, [canEdit, navigation, allowedTokenAddresses]);
+  }, [canEdit, navigation, allowedPaymentTokens]);
 
   const balanceUsdFormatted = useMemo(
     () => formatFiat(new BigNumber(payToken?.balanceFiat ?? '0')),
