@@ -133,6 +133,9 @@ jest.mock('../../hooks', () => ({
   usePerpsTrading: jest.fn(),
   usePerpsNetwork: jest.fn(),
   usePerpsPrices: jest.fn(),
+  usePerpsLivePrices: jest.fn(() => ({
+    ETH: { price: '3000', percentChange24h: '2.5' },
+  })),
   usePerpsPaymentTokens: jest.fn(),
   usePerpsConnection: jest.fn(() => ({
     isConnected: true,
@@ -1249,7 +1252,9 @@ describe('PerpsOrderView', () => {
       expect(placeOrderButton).toBeDefined();
 
       // Verify validation errors are shown (indicating disabled state)
-      expect(screen.getByText('Insufficient balance')).toBeDefined();
+      // Wait for error to appear after isDataReady becomes true
+      const errorText = await screen.findByText('Insufficient balance');
+      expect(errorText).toBeDefined();
     });
 
     it('disables button when order is placing', async () => {
