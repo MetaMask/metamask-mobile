@@ -561,7 +561,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       navigation,
       track,
       navigateToOrder,
-      market.symbol,
+      market?.symbol,
     ],
   );
 
