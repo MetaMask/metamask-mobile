@@ -54,6 +54,80 @@ function getFallbackPort(resourceType: ResourceType): number {
 }
 
 /**
+ * Removes an existing adb reverse binding for a specific port.
+ * This is needed to handle cases where a previous test didn't clean up properly
+ * or when ports are reused in CI environments.
+ *
+ * @param fallbackPort - The fallback port to remove the binding for
+ */
+async function removeAndroidPortForwarding(
+  fallbackPort: number,
+): Promise<void> {
+  try {
+    // Only remove port forwarding on Android
+    if (device.getPlatform() !== 'android') {
+      return;
+    }
+
+    // Skip on BrowserStack
+    if (isBrowserStack()) {
+      return;
+    }
+
+    // Get device ID to target specific device (important for CI with multiple devices)
+    const deviceId = device.id || '';
+    const deviceFlag = deviceId ? `-s ${deviceId}` : '';
+
+    const command = `adb ${deviceFlag} reverse --remove tcp:${fallbackPort}`;
+
+    logger.debug(`Removing port forward: ${command}`);
+    await execAsync(command);
+
+    logger.debug(`✓ Removed Android port forwarding for port ${fallbackPort}`);
+  } catch (error) {
+    // Don't throw on cleanup errors - just log them
+    // The port might not have been forwarded in the first place
+    logger.debug(
+      `Note: Could not remove port forwarding for port ${fallbackPort} (may not exist): ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+}
+
+/**
+ * Removes all adb reverse bindings for the current device.
+ * This is called during test cleanup to ensure no stale bindings remain.
+ */
+export async function removeAllAndroidPortForwarding(): Promise<void> {
+  try {
+    // Only remove port forwarding on Android
+    if (device.getPlatform() !== 'android') {
+      return;
+    }
+
+    // Skip on BrowserStack
+    if (isBrowserStack()) {
+      return;
+    }
+
+    // Get device ID to target specific device (important for CI with multiple devices)
+    const deviceId = device.id || '';
+    const deviceFlag = deviceId ? `-s ${deviceId}` : '';
+
+    const command = `adb ${deviceFlag} reverse --remove-all`;
+
+    logger.debug(`Removing all port forwards: ${command}`);
+    await execAsync(command);
+
+    logger.debug('✓ Removed all Android port forwarding');
+  } catch (error) {
+    // Don't throw on cleanup errors - just log them
+    logger.debug(
+      `Note: Could not remove all port forwarding: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+}
+
+/**
  * Sets up adb reverse for Android to map fallback port to actual allocated port.
  *
  * WHY THIS IS NEEDED:
@@ -116,6 +190,8 @@ async function setupAndroidPortForwarding(
     ) {
       fallbackPort += instanceIndex;
     }
+    // This handles cases where a previous test didn't clean up properly
+    await removeAndroidPortForwarding(fallbackPort);
 
     // Get device ID to target specific device (important for CI with multiple devices)
     const deviceId = device.id || '';

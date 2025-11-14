@@ -13,6 +13,7 @@ import {
   getFixturesServerPort,
   startResourceWithRetry,
   startMultiInstanceResourceWithRetry,
+  removeAllAndroidPortForwarding,
 } from './FixtureUtils';
 import Utilities from '../../framework/Utilities';
 import TestHelpers from '../../helpers';
@@ -687,6 +688,18 @@ export async function withFixtures(
           cleanupErrors.push(cleanupError as Error);
         }
       }
+    }
+
+    // Clean up all Android adb reverse port forwarding
+    // This ensures no stale bindings remain for the next test
+    try {
+      await removeAllAndroidPortForwarding();
+    } catch (cleanupError) {
+      logger.warn(
+        'Error during Android port forwarding cleanup (non-critical):',
+        cleanupError,
+      );
+      // Don't add to cleanupErrors as this is a non-critical cleanup operation
     }
 
     if (!skipReactNativeReload) {
