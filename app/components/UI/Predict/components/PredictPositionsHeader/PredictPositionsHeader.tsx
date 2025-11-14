@@ -105,6 +105,9 @@ const PredictPositionsHeader = forwardRef<
   const handleBalanceTouch = () => {
     navigation.navigate(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
+      params: {
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+      },
     });
   };
 
