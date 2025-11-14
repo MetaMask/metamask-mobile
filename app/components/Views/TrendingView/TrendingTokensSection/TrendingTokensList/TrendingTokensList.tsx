@@ -29,7 +29,10 @@ const TrendingTokensList: React.FC<TrendingTokensListProps> = React.memo(
       [onTokenPress],
     );
 
-    const keyExtractor = useCallback((item: TrendingAsset) => item.assetId, []);
+    const keyExtractor = useCallback(
+      (item: TrendingAsset, index: number) => `${item.assetId}-${index}`,
+      [],
+    );
 
     return (
       <FlashList
