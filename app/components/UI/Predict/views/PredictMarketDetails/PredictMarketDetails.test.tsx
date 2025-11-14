@@ -55,22 +55,6 @@ jest.mock('@react-navigation/stack', () => ({
   }),
 }));
 
-jest.mock('@metamask/design-system-twrnc-preset', () => {
-  const mockTw = jest.fn((strings) => {
-    // Handle template literal usage
-    if (Array.isArray(strings) && strings.raw) {
-      return strings.join('');
-    }
-    // Handle function call usage
-    return strings;
-  });
-  mockTw.style = jest.fn((...args) => args.flat().filter(Boolean).join(' '));
-
-  return {
-    useTailwind: jest.fn(() => mockTw),
-  };
-});
-
 jest.mock('@metamask/design-system-react-native', () => {
   const { View } = jest.requireActual('react-native');
   return {
@@ -480,8 +464,6 @@ function createMockMarket(overrides = {}) {
   const mergedMarket = {
     ...defaultMarket,
     ...overrides,
-    // Ensure tags is always an array to prevent undefined.includes() errors
-    tags: overrides.tags === undefined ? defaultMarket.tags : overrides.tags,
   };
 
   const normalizedOutcomes =
