@@ -33,7 +33,6 @@ export {
   LocatorStrategy,
   type LocatorConfig,
   type PlatformLocator,
-  type AppiumLocatorConfig,
   TestFramework,
   FrameworkDetector,
   PlatformDetector,

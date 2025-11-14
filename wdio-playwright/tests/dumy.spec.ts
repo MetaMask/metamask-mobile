@@ -1,13 +1,14 @@
 import LoginView from '../../e2e/pages/wallet/LoginView';
-import { asPlaywrightElement , PlaywrightElement } from '../framework';
+import { asPlaywrightElement, PlaywrightElement } from '../framework';
 import { test } from '../fixture';
+import { expect } from '@playwright/test';
 
 const E2E_PASSWORD = process.env.E2E_PASSWORD || '';
 
 /**
  * Using helper functions, check LoginView to see the flow
  */
-test('login with password - page object helper functions flow', async ({
+test.only('login with password - page object helper functions flow', async ({
   driver,
 }) => {
   expect(driver).toBeDefined();
@@ -35,7 +36,7 @@ test('login with password - playing with locator types', async ({ driver }) => {
 
 test('wfa', async ({ driver }) => {
   // Fetching the elements directly from the driver.
-  const welcomeText = await driver.$('~welcome-message');
+  const welcomeText = await driver.$('~Welcome');
   const text = await welcomeText.getText();
   console.log('Welcome message:', text);
 });
