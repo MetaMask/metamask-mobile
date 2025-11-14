@@ -219,6 +219,7 @@ describe('Amount', () => {
     fireEvent.press(getByTestId('fiat_toggle'));
     fireEvent.press(getByRole('button', { name: '5' }));
     expect(getByText('1 ETH')).toBeTruthy();
+    expect(getByText('$ 250.00 available')).toBeTruthy();
   });
 
   it('calls metrics methods on changing fiat mode', () => {

@@ -4,10 +4,20 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import PredictionSection from './PredictionSection';
 import { usePredictMarketData } from '../../../UI/Predict/hooks/usePredictMarketData';
+import Routes from '../../../../constants/navigation/Routes';
 import {
   PredictMarket as PredictMarketType,
   Recurrence,
 } from '../../../UI/Predict/types';
+
+// Mock navigation
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
 
 // Mock dependencies
 jest.mock('../../../UI/Predict/hooks/usePredictMarketData');
@@ -72,6 +82,7 @@ describe('PredictionSection', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockNavigate.mockClear();
   });
 
   afterEach(() => {
@@ -119,6 +130,28 @@ describe('PredictionSection', () => {
 
       expect(getByText('Predictions')).toBeOnTheScreen();
       expect(getByText('View all')).toBeOnTheScreen();
+    });
+
+    it('navigates to market list when view all is pressed during loading', () => {
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: true,
+        isFetchingMore: false,
+        error: null,
+        hasMore: false,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+
+      const { getByText } = renderWithProvider(<PredictionSection />, {
+        state: initialState,
+      });
+
+      fireEvent.press(getByText('View all'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+      });
     });
   });
 
@@ -171,6 +204,7 @@ describe('PredictionSection', () => {
     beforeEach(() => {
       jest.clearAllMocks();
       jest.resetAllMocks();
+      mockNavigate.mockClear();
       mockUsePredictMarketData.mockReturnValue({
         marketData: mockMarketData,
         isFetching: false,
@@ -182,16 +216,16 @@ describe('PredictionSection', () => {
       });
     });
 
-    it('logs to console when view all button is pressed', () => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+    it('navigates to market list when view all button is pressed', () => {
       const { getByText } = renderWithProvider(<PredictionSection />, {
         state: initialState,
       });
 
       fireEvent.press(getByText('View all'));
 
-      expect(consoleSpy).toHaveBeenCalledWith('View all predictions');
-      consoleSpy.mockRestore();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+      });
     });
   });
 

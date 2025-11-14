@@ -29,13 +29,15 @@ import ExploreSearchScreen from './ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
 import { PredictModalStack } from '../../UI/Predict/routes';
 import PredictionSection from './PredictionSection/PredictionSection';
+import PerpsSection from './PerpsSection/PerpsSection';
+import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
+import QuickActions from './components/QuickActions/QuickActions';
 
 const Stack = createStackNavigator();
 
 const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
-    marginTop: 10,
     paddingLeft: 16,
     paddingRight: 16,
   },
@@ -126,8 +128,14 @@ const TrendingFeed: React.FC = () => {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
+        <QuickActions />
         <PredictionSection />
         <TrendingTokensSection />
+        <PerpsConnectionProvider>
+          <PerpsStreamProvider>
+            <PerpsSection />
+          </PerpsStreamProvider>
+        </PerpsConnectionProvider>
       </ScrollView>
     </Box>
   );
@@ -137,32 +145,30 @@ const TrendingView: React.FC = () => {
   const initialRoot = lastTrendingScreenRef.current || 'TrendingFeed';
 
   return (
-    <PerpsStreamProvider>
-      <Stack.Navigator
-        initialRouteName={initialRoot}
-        screenOptions={{
+    <Stack.Navigator
+      initialRouteName={initialRoot}
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="TrendingFeed" component={TrendingFeed} />
+      <Stack.Screen name="TrendingBrowser" component={BrowserWrapper} />
+      <Stack.Screen
+        name={Routes.EXPLORE_SEARCH}
+        component={ExploreSearchScreen}
+      />
+      <Stack.Screen
+        name={Routes.PREDICT.MODALS.ROOT}
+        component={PredictModalStack}
+        options={{
           headerShown: false,
+          cardStyle: {
+            backgroundColor: 'transparent',
+          },
+          animationEnabled: false,
         }}
-      >
-        <Stack.Screen name="TrendingFeed" component={TrendingFeed} />
-        <Stack.Screen name="TrendingBrowser" component={BrowserWrapper} />
-        <Stack.Screen
-          name={Routes.EXPLORE_SEARCH}
-          component={ExploreSearchScreen}
-        />
-        <Stack.Screen
-          name={Routes.PREDICT.MODALS.ROOT}
-          component={PredictModalStack}
-          options={{
-            headerShown: false,
-            cardStyle: {
-              backgroundColor: 'transparent',
-            },
-            animationEnabled: false,
-          }}
-        />
-      </Stack.Navigator>
-    </PerpsStreamProvider>
+      />
+    </Stack.Navigator>
   );
 };
 

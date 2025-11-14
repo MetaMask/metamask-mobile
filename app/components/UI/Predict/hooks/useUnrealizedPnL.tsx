@@ -75,13 +75,21 @@ export const useUnrealizedPnL = (
         }
         setError(null);
 
-        const unrealizedPnLData =
-          await Engine.context.PredictController.getUnrealizedPnL({
+        const [unrealizedPnLData, positions] = await Promise.all([
+          Engine.context.PredictController.getUnrealizedPnL({
             address: address ?? selectedInternalAccountAddress,
             providerId,
-          });
+          }),
+          Engine.context.PredictController.getPositions({
+            providerId,
+            limit: 1,
+            offset: 0,
+            claimable: false,
+          }),
+        ]);
 
-        setUnrealizedPnL(unrealizedPnLData ?? null);
+        const _unrealizedPnL = unrealizedPnLData ?? null;
+        setUnrealizedPnL(positions.length > 0 ? _unrealizedPnL : null);
 
         DevLogger.log('useUnrealizedPnL: Loaded unrealized P&L', {
           unrealizedPnL: unrealizedPnLData,
