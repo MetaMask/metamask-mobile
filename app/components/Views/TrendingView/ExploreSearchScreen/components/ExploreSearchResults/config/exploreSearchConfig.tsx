@@ -9,9 +9,8 @@ import type { PerpsMarketData } from '../../../../../../UI/Perps/controllers/typ
 import PredictMarket from '../../../../../../UI/Predict/components/PredictMarket';
 import type { PredictMarket as PredictMarketType } from '../../../../../../UI/Predict/types';
 import type { PerpsNavigationParamList } from '../../../../../../UI/Perps/types/navigation';
-import { Box } from '@metamask/design-system-react-native';
-import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
 import Routes from '../../../../../../../constants/navigation/Routes';
+import PredictMarketSkeleton from '../../../../../../UI/Predict/components/PredictMarketSkeleton';
 
 export type SectionId = 'tokens' | 'perps' | 'predictions';
 
@@ -75,11 +74,7 @@ const predictionsConfig: SearchSectionConfig<PredictMarketType> = {
   id: 'predictions',
   title: 'Predictions',
   renderItem: (item) => <PredictMarket market={item} />,
-  renderSkeleton: () => (
-    <Box twClassName="mb-2">
-      <Skeleton height={200} width="100%" />
-    </Box>
-  ),
+  renderSkeleton: () => <PredictMarketSkeleton />,
   getSearchableText: (item) => item.title.toLowerCase(),
   keyExtractor: (item) => `prediction-${item.id}`,
 };

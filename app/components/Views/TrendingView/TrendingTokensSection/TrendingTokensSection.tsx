@@ -1,30 +1,14 @@
-import React, { useCallback, useMemo } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useCallback } from 'react';
+import { View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { TrendingAsset } from '@metamask/assets-controllers';
-import { useAppThemeFromContext } from '../../../../util/theme';
-import { Theme } from '../../../../util/theme/models';
 import TrendingTokensSkeleton from './TrendingTokenSkeleton/TrendingTokensSkeleton';
 import TrendingTokensList from './TrendingTokensList';
-import Card from '../../../../component-library/components/Cards/Card';
 import { useTrendingRequest } from '../../../UI/Assets/hooks/useTrendingRequest';
-import SectionHeader from '../SectionHeader';
-
-const createStyles = (theme: Theme) =>
-  StyleSheet.create({
-    cardContainer: {
-      borderRadius: 12,
-      paddingVertical: 16,
-      paddingHorizontal: 16,
-      backgroundColor: theme.colors.background.muted,
-      borderColor: theme.colors.border.muted,
-    },
-  });
+import SectionHeader from '../components/SectionHeader/SectionHeader';
+import SectionCard from '../components/SectionCard/SectionCard';
 
 const TrendingTokensSection = () => {
-  const theme = useAppThemeFromContext();
-  const styles = useMemo(() => createStyles(theme), [theme]);
-
   const { results: trendingTokensResults, isLoading } = useTrendingRequest({});
   const trendingTokens = trendingTokensResults.slice(0, 3);
 
@@ -38,35 +22,22 @@ const TrendingTokensSection = () => {
     // TODO: Implement token press logic
   }, []);
 
-  // Show skeleton during initial load or when there are no tokens
-  if (isLoading || trendingTokens.length === 0) {
-    return (
-      <View>
-        <SectionHeader
-          title={strings('trending.tokens')}
-          viewAllText={strings('trending.view_all')}
-          onViewAll={handleViewAll}
-        />
-        <Card style={styles.cardContainer} disabled>
-          <TrendingTokensSkeleton count={3} />
-        </Card>
-      </View>
-    );
-  }
-
   return (
     <View>
       <SectionHeader
         title={strings('trending.tokens')}
-        viewAllText={strings('trending.view_all')}
         onViewAll={handleViewAll}
       />
-      <Card style={styles.cardContainer} disabled>
-        <TrendingTokensList
-          trendingTokens={trendingTokens}
-          onTokenPress={handleTokenPress}
-        />
-      </Card>
+      <SectionCard>
+        {isLoading || trendingTokens.length === 0 ? (
+          <TrendingTokensSkeleton count={3} />
+        ) : (
+          <TrendingTokensList
+            trendingTokens={trendingTokens}
+            onTokenPress={handleTokenPress}
+          />
+        )}
+      </SectionCard>
     </View>
   );
 };

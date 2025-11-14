@@ -8,6 +8,7 @@ import { getEventDetails } from '../../../utils/eventDetailsUtils';
 import { IconName } from '@metamask/design-system-react-native';
 import TEST_ADDRESS from '../../../../../../constants/address';
 import { useActivityDetailsConfirmAction } from '../../../hooks/useActivityDetailsConfirmAction';
+import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 
 // Mock the utility functions
 jest.mock('../../../utils/formatUtils', () => ({
@@ -15,6 +16,25 @@ jest.mock('../../../utils/formatUtils', () => ({
   formatNumber: jest
     .fn()
     .mockImplementation((value) => value?.toString() || '0'),
+  formatRewardsMusdDepositPayloadDate: jest.fn(
+    (isoDate: string | undefined) => {
+      // Mock implementation that matches the real implementation behavior
+      if (
+        !isoDate ||
+        typeof isoDate !== 'string' ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(isoDate)
+      ) {
+        return null;
+      }
+      const date = new Date(`${isoDate}T00:00:00Z`);
+      return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        timeZone: 'UTC',
+      }).format(date);
+    },
+  ),
 }));
 
 jest.mock('../../../utils/eventDetailsUtils', () => ({
@@ -191,6 +211,34 @@ describe('ActivityEventRow', () => {
             txHash: '0xabc123def456789012345678901234567890abcd',
           },
           updatedAt: new Date('2025-09-15T10:30:00.000Z'),
+          ...overrides,
+        } as PointsEventDto;
+
+      case 'PREDICT':
+        return {
+          id: 'predict-event-1',
+          timestamp: new Date('2025-09-15T10:30:00.000Z'),
+          type: 'PREDICT' as const,
+          value: 20,
+          bonus: null,
+          accountAddress: '0x069060A475c76C77427CcC8CbD7eCB0B293f5beD',
+          payload: null,
+          updatedAt: new Date('2025-09-15T10:30:00.000Z'),
+          ...overrides,
+        } as PointsEventDto;
+
+      case 'MUSD_DEPOSIT':
+        return {
+          id: 'musd-deposit-event-1',
+          timestamp: new Date('2025-11-11T10:30:00.000Z'),
+          type: 'MUSD_DEPOSIT' as const,
+          value: 10,
+          bonus: null,
+          accountAddress: '0x069060A475c76C77427CcC8CbD7eCB0B293f5beD',
+          payload: {
+            date: '2025-11-11',
+          },
+          updatedAt: new Date('2025-11-11T10:30:00.000Z'),
           ...overrides,
         } as PointsEventDto;
 
@@ -515,6 +563,30 @@ describe('ActivityEventRow', () => {
       expect(getByText('+15')).toBeOnTheScreen();
       expect(getByText('+50%')).toBeOnTheScreen();
       expect(mockGetEventDetails).toHaveBeenCalledWith(event, TEST_ADDRESS);
+    });
+
+    it('renders PREDICT event without description', () => {
+      // Arrange
+      const event = createMockEvent({ type: 'PREDICT' });
+      mockGetEventDetails.mockReturnValue({
+        title: 'Predict',
+        details: undefined,
+        icon: IconName.Speedometer,
+      });
+
+      // Act
+      const { getByText, getByTestId } = render(
+        <ActivityEventRow event={event} accountName={TEST_ADDRESS} />,
+      );
+
+      // Assert
+      expect(getByText('Predict')).toBeOnTheScreen();
+      expect(getByText('+20')).toBeOnTheScreen();
+      const detailsElement = getByTestId(
+        `${REWARDS_VIEW_SELECTORS.ACTIVITY_EVENT_ROW_DETAILS}-${undefined}`,
+      );
+      expect(detailsElement.props.children).toBeUndefined();
+      expect(detailsElement).toHaveTextContent('');
     });
   });
 

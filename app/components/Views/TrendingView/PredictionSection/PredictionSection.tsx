@@ -4,7 +4,7 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   Dimensions,
   NativeScrollEvent,
@@ -20,17 +20,20 @@ import { PredictEventValues } from '../../../UI/Predict/constants/eventNames';
 import PredictMarketSkeleton from '../../../UI/Predict/components/PredictMarketSkeleton';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './PredictionSection.styles';
-import SectionHeader from '../SectionHeader';
+import SectionHeader from '../components/SectionHeader/SectionHeader';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../constants/navigation/Routes';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32; // 16px padding on each side
 const CARD_SPACING = 16;
-const ACTUAL_CARD_WIDTH = CARD_WIDTH * 0.85; // Actual rendered card width
+const ACTUAL_CARD_WIDTH = CARD_WIDTH * 0.8; // Actual rendered card width (80% to show peek of next card)
 const SNAP_INTERVAL = ACTUAL_CARD_WIDTH + CARD_SPACING;
 
 const PredictionSection = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const flashListRef = useRef<FlashListRef<PredictMarketType>>(null);
+  const navigation = useNavigation();
 
   const { styles } = useStyles(styleSheet, {
     activeIndex,
@@ -43,11 +46,7 @@ const PredictionSection = () => {
     pageSize: 6,
   });
 
-  // Limit to 6 items
-  const carouselData = useMemo(
-    () => (marketData ? marketData.slice(0, 6) : []),
-    [marketData],
-  );
+  const marketDataLength = marketData?.length ?? 0;
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -67,22 +66,29 @@ const PredictionSection = () => {
   }, []);
 
   const handleViewAll = useCallback(() => {
-    // TODO: Navigate to predictions view all screen
-    // eslint-disable-next-line no-console
-    console.log('View all predictions');
-  }, []);
+    navigation.navigate(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_LIST,
+    });
+  }, [navigation]);
 
   const renderCarouselItem = useCallback(
-    ({ item, index }: { item: PredictMarketType; index: number }) => (
-      <Box style={styles.carouselItem}>
-        <PredictMarket
-          market={item}
-          entryPoint={PredictEventValues.ENTRY_POINT.PREDICT_FEED}
-          testID={`prediction-carousel-card-${index + 1}`}
-        />
-      </Box>
-    ),
-    [styles],
+    ({ item, index }: { item: PredictMarketType; index: number }) => {
+      const isLast = index === marketDataLength - 1;
+
+      return (
+        <Box
+          style={isLast ? styles.carouselItemLast : styles.carouselItem}
+          twClassName="mr-4"
+        >
+          <PredictMarket
+            market={item}
+            entryPoint={PredictEventValues.ENTRY_POINT.PREDICT_FEED}
+            testID={`prediction-carousel-card-${index + 1}`}
+          />
+        </Box>
+      );
+    },
+    [styles, marketDataLength],
   );
 
   const renderPaginationDots = useCallback(
@@ -93,7 +99,7 @@ const PredictionSection = () => {
         justifyContent={BoxJustifyContent.Center}
         style={styles.paginationContainer}
       >
-        {carouselData.map((_, index) => {
+        {Array.from({ length: marketDataLength }).map((_, index) => {
           const isActive = activeIndex === index;
           return (
             <Pressable
@@ -107,7 +113,7 @@ const PredictionSection = () => {
         })}
       </Box>
     ),
-    [carouselData, activeIndex, scrollToIndex, styles],
+    [marketDataLength, activeIndex, scrollToIndex, styles],
   );
 
   // Show loading state while fetching
@@ -116,7 +122,6 @@ const PredictionSection = () => {
       <Box twClassName="mb-6">
         <SectionHeader
           title={strings('wallet.predict')}
-          viewAllText={strings('trending.view_all')}
           onViewAll={handleViewAll}
         />
         <Box>
@@ -124,20 +129,40 @@ const PredictionSection = () => {
             data={[1, 2, 3]}
             horizontal
             showsHorizontalScrollIndicator={false}
-            renderItem={() => (
-              <Box style={styles.carouselItem}>
-                <PredictMarketSkeleton testID="prediction-carousel-skeleton" />
-              </Box>
-            )}
+            renderItem={({ index }) => {
+              const isLast = index === 2; // 3 items (0, 1, 2)
+
+              return (
+                <Box
+                  style={isLast ? styles.carouselItemLast : styles.carouselItem}
+                  twClassName="mr-4"
+                >
+                  <PredictMarketSkeleton testID="prediction-carousel-skeleton" />
+                </Box>
+              );
+            }}
             keyExtractor={(item) => `skeleton-${item}`}
+            contentContainerStyle={styles.carouselContentContainer}
           />
+        </Box>
+        <Box twClassName="px-1">
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Center}
+            style={styles.paginationContainer}
+          >
+            {[0, 1, 2].map((index) => (
+              <Box key={`skeleton-dot-${index}`} style={styles.dot} />
+            ))}
+          </Box>
         </Box>
       </Box>
     );
   }
 
   // Show empty state when no data
-  if (carouselData.length === 0) {
+  if (marketDataLength === 0) {
     return null; // Don't show the section if there are no predictions
   }
 
@@ -145,14 +170,13 @@ const PredictionSection = () => {
     <Box twClassName="mb-6">
       <SectionHeader
         title={strings('wallet.predict')}
-        viewAllText={strings('trending.view_all')}
         onViewAll={handleViewAll}
       />
 
       <Box>
         <FlashList
           ref={flashListRef}
-          data={carouselData}
+          data={marketData ?? []}
           renderItem={renderCarouselItem}
           keyExtractor={(item) => item.id}
           horizontal
@@ -162,6 +186,7 @@ const PredictionSection = () => {
           decelerationRate="fast"
           onScroll={handleScroll}
           scrollEventThrottle={16}
+          contentContainerStyle={styles.carouselContentContainer}
         />
       </Box>
 

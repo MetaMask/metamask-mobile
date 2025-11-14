@@ -19,7 +19,6 @@ import {
   MAINNET_DISPLAY_NAME,
   OPTIMISM_DISPLAY_NAME,
   POLYGON_DISPLAY_NAME,
-  SEI_DISPLAY_NAME,
 } from '../../../core/Engine/constants';
 
 jest.mock('../../../core/Engine', () => ({
@@ -138,7 +137,6 @@ describe('AccountSelector', () => {
     expect(networkNames).toEqual([
       MAINNET_DISPLAY_NAME,
       BNB_DISPLAY_NAME,
-      SEI_DISPLAY_NAME,
       POLYGON_DISPLAY_NAME,
       OPTIMISM_DISPLAY_NAME,
       ARBITRUM_DISPLAY_NAME,

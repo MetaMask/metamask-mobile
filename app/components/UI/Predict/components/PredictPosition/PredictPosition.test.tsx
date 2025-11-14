@@ -50,13 +50,13 @@ describe('PredictPosition', () => {
       screen.getByText('$123.45 on Yes · 10 shares at 34¢'),
     ).toBeOnTheScreen();
     expect(screen.getByText('$2,345.67')).toBeOnTheScreen();
-    expect(screen.getByText('+5.25%')).toBeOnTheScreen();
+    expect(screen.getByText('5%')).toBeOnTheScreen();
   });
 
   it.each([
-    { value: -3.5, expected: '-3.50%' },
+    { value: -3.5, expected: '-3%' },
     { value: 0, expected: '0%' },
-    { value: 7.5, expected: '+7.50%' },
+    { value: 7.5, expected: '8%' },
   ])('formats percentPnl $value as $expected', ({ value, expected }) => {
     renderComponent({ percentPnl: value });
 
@@ -71,7 +71,9 @@ describe('PredictPosition', () => {
       size: 10,
     });
 
-    expect(screen.getByText('$50 on No · 10 shares at 70¢')).toBeOnTheScreen();
+    expect(
+      screen.getByText('$50.00 on No · 10 shares at 70¢'),
+    ).toBeOnTheScreen();
   });
 
   it('displays singular share when size is 1', () => {
@@ -82,7 +84,7 @@ describe('PredictPosition', () => {
       size: 1,
     });
 
-    expect(screen.getByText('$50 on No · 1 share at 70¢')).toBeOnTheScreen();
+    expect(screen.getByText('$50.00 on No · 1 share at 70¢')).toBeOnTheScreen();
   });
 
   it('renders icon image with correct URI', () => {
@@ -168,14 +170,16 @@ describe('PredictPosition', () => {
   it('formats initialValue without decimals when minimumDecimals is 0', () => {
     renderComponent({ initialValue: 100, size: 3 });
 
-    expect(screen.getByText('$100 on Yes · 3 shares at 34¢')).toBeOnTheScreen();
+    expect(
+      screen.getByText('$100.00 on Yes · 3 shares at 34¢'),
+    ).toBeOnTheScreen();
   });
 
   it('formats size with 2 decimal places', () => {
     renderComponent({ size: 10.5555, initialValue: 200 });
 
     expect(
-      screen.getByText('$200 on Yes · 10.56 shares at 34¢'),
+      screen.getByText('$200.00 on Yes · 10.56 shares at 34¢'),
     ).toBeOnTheScreen();
   });
 
@@ -209,7 +213,7 @@ describe('PredictPosition', () => {
       screen.getByText('$75.25 on Maybe · 7.50 shares at 62.5¢'),
     ).toBeOnTheScreen();
     expect(screen.getByText('$100.75')).toBeOnTheScreen();
-    expect(screen.getByText('+15.75%')).toBeOnTheScreen();
+    expect(screen.getByText('16%')).toBeOnTheScreen();
   });
 
   describe('optimistic updates UI', () => {
@@ -229,7 +233,7 @@ describe('PredictPosition', () => {
       renderComponent({ optimistic: false });
 
       expect(screen.getByText('$2,345.67')).toBeOnTheScreen();
-      expect(screen.getByText('+5.25%')).toBeOnTheScreen();
+      expect(screen.getByText('5%')).toBeOnTheScreen();
     });
 
     it('shows initial value line when optimistic', () => {

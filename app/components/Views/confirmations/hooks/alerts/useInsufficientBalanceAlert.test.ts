@@ -1,5 +1,8 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { useInsufficientBalanceAlert } from './useInsufficientBalanceAlert';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useAccountNativeBalance } from '../useAccountNativeBalance';
@@ -223,11 +226,11 @@ describe('useInsufficientBalanceAlert', () => {
     expect(result.current[0].key).toBe(AlertKeys.InsufficientBalance);
   });
 
-  it('returns empty array if pay token selected', () => {
-    mockUseTransactionPayToken.mockReturnValue({
-      setPayToken: noop as never,
-      payToken: {} as never,
-    });
+  it('returns empty array if transaction type ignored', () => {
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      ...mockTransaction,
+      type: TransactionType.perpsDeposit,
+    } as unknown as TransactionMeta);
 
     const { result } = renderHook(() => useInsufficientBalanceAlert());
 
