@@ -197,6 +197,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     }
   }, [market?.status]);
 
+  // check if market has fee exemption (note: worth moveing to a const or util at some point))
+  const isFeeExemption = market?.tags?.includes('Middle East') ?? false;
+
   // Tabs become ready when both market and positions queries have resolved
   const tabsReady = useMemo(
     () =>
@@ -294,6 +297,24 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       (outcome) => outcome.resolutionStatus === 'resolved',
     );
 
+  // Chart-specific data preparation (pending a larger refactor)
+  // Isolated from the rest of the component for now to avoid regressions
+  const chartOpenOutcomes = useMemo(
+    () =>
+      (market?.outcomes ?? [])
+        .filter((outcome) => outcome.status === 'open')
+        .slice(0, 3),
+    [market?.outcomes],
+  );
+
+  const chartOutcomeTokenIds = useMemo(
+    () =>
+      chartOpenOutcomes
+        .map((outcome) => outcome?.tokens?.[0]?.id)
+        .filter((tokenId): tokenId is string => Boolean(tokenId)),
+    [chartOpenOutcomes],
+  );
+
   const selectedFidelity = DEFAULT_FIDELITY_BY_INTERVAL[selectedTimeframe];
   const {
     priceHistories,
@@ -301,27 +322,26 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     errors,
     refetch: refetchPriceHistory,
   } = usePredictPriceHistory({
-    marketIds: loadedOutcomeTokenIds,
+    marketIds: chartOutcomeTokenIds,
     interval: selectedTimeframe,
     providerId,
     fidelity: selectedFidelity,
-    enabled: hasAnyOutcomeToken,
+    enabled: chartOutcomeTokenIds.length > 0,
   });
 
-  // Transform data for the unified chart component
   const chartData: ChartSeries[] = useMemo(() => {
     const palette = [
       colors.primary.default,
       colors.error.default,
       colors.success.default,
     ];
-    return loadedOutcomeTokenIds.map((_tokenId, index) => ({
+    return chartOutcomeTokenIds.map((_tokenId, index) => ({
       label:
-        outcomeSlices[index]?.groupItemTitle ||
-        outcomeSlices[index]?.title ||
+        chartOpenOutcomes[index]?.groupItemTitle ||
+        chartOpenOutcomes[index]?.title ||
         `Outcome ${index + 1}`,
       color:
-        loadedOutcomeTokenIds.length === 1
+        chartOutcomeTokenIds.length === 1
           ? colors.success.default
           : (palette[index] ?? colors.success.default),
       data: (priceHistories[index] ?? []).map((point) => ({
@@ -330,8 +350,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       })),
     }));
   }, [
-    loadedOutcomeTokenIds,
-    outcomeSlices,
+    chartOutcomeTokenIds,
+    chartOpenOutcomes,
     priceHistories,
     colors.primary.default,
     colors.error.default,
@@ -437,14 +457,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       () => {
         // Use open outcomes with updated prices if available
         const firstOpenOutcome = openOutcomes[0];
-        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-          params: {
-            market,
-            outcome: firstOpenOutcome ?? market?.outcomes?.[0],
-            outcomeToken: token,
-            entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-          },
+        navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
+          market,
+          outcome: firstOpenOutcome ?? market?.outcomes?.[0],
+          outcomeToken: token,
+          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
         });
       },
       {
@@ -1127,7 +1144,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   return (
     <SafeAreaView
-      style={tw.style('flex-1 bg-default')}
+      style={tw.style('flex-1 bg-default', isFeeExemption ? 'pb-6' : '')}
       edges={['left', 'right', 'bottom']}
       testID={PredictMarketDetailsSelectorsIDs.SCREEN}
     >
@@ -1150,14 +1167,16 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         {/* Header content - scrollable */}
         <Box twClassName="px-3 gap-4">
           {renderMarketStatus()}
-          <PredictDetailsChart
-            data={chartData}
-            timeframes={PRICE_HISTORY_TIMEFRAMES}
-            selectedTimeframe={selectedTimeframe}
-            onTimeframeChange={handleTimeframeChange}
-            isLoading={isPriceHistoryFetching}
-            emptyLabel={chartEmptyLabel}
-          />
+          {chartOpenOutcomes.length > 0 && (
+            <PredictDetailsChart
+              data={chartData}
+              timeframes={PRICE_HISTORY_TIMEFRAMES}
+              selectedTimeframe={selectedTimeframe}
+              onTimeframeChange={handleTimeframeChange}
+              isLoading={isPriceHistoryFetching}
+              emptyLabel={chartEmptyLabel}
+            />
+          )}
         </Box>
 
         {/* Show content skeleton while initial market data is fetching */}
@@ -1177,6 +1196,19 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       <Box twClassName="px-3 bg-default border-t border-muted">
         {renderActionButtons()}
       </Box>
+      {isFeeExemption && (
+        <Box
+          style={tw`absolute inset-x-0 bottom-4 pb-3`}
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="gap-1"
+        >
+          <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
+            {strings('predict.market_details.fee_exemption')}
+          </Text>
+        </Box>
+      )}
     </SafeAreaView>
   );
 };

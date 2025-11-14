@@ -5,7 +5,6 @@ import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
-import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
@@ -143,8 +142,8 @@ describe('usePredictClaim', () => {
       // Assert
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
         headerShown: false,
-        stack: Routes.PREDICT.ROOT,
         loader: ConfirmationLoader.PredictClaim,
+        stack: 'Predict',
       });
       expect(mockClaimWinnings).toHaveBeenCalledWith({
         providerId: POLYMARKET_PROVIDER_ID,
@@ -274,8 +273,8 @@ describe('usePredictClaim', () => {
       // Assert - second attempt should succeed
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
         headerShown: false,
-        stack: Routes.PREDICT.ROOT,
         loader: ConfirmationLoader.PredictClaim,
+        stack: 'Predict',
       });
       expect(mockClaimWinnings).toHaveBeenCalledWith({
         providerId: POLYMARKET_PROVIDER_ID,
