@@ -106,55 +106,69 @@ const SignUp = () => {
     setIsConfirmPasswordError(debouncedConfirmPassword !== debouncedPassword);
   }, [debouncedConfirmPassword, debouncedPassword]);
 
-  const isDisabled = useMemo(
-    () =>
-      !debouncedEmail ||
-      !debouncedPassword ||
-      !debouncedConfirmPassword ||
+  const isDisabled = useMemo(() => {
+    // Check the actual values, not the debounced ones
+    const isEmailValid = email ? validateEmail(email) : false;
+    const isPasswordValid = password ? validatePassword(password) : false;
+    const isConfirmPasswordValid = confirmPassword
+      ? confirmPassword === password
+      : false;
+
+    return (
+      !email ||
+      !password ||
+      !confirmPassword ||
       !selectedCountry ||
-      isPasswordError ||
-      isConfirmPasswordError ||
-      isEmailError ||
+      !isEmailValid ||
+      !isPasswordValid ||
+      !isConfirmPasswordValid ||
       emailVerificationIsError ||
-      emailVerificationIsLoading,
-    [
-      debouncedEmail,
-      debouncedPassword,
-      debouncedConfirmPassword,
-      selectedCountry,
-      isPasswordError,
-      isConfirmPasswordError,
-      isEmailError,
-      emailVerificationIsError,
-      emailVerificationIsLoading,
-    ],
-  );
+      emailVerificationIsLoading
+    );
+  }, [
+    email,
+    password,
+    confirmPassword,
+    selectedCountry,
+    emailVerificationIsError,
+    emailVerificationIsLoading,
+  ]);
 
   const handleEmailChange = useCallback(
-    (email: string) => {
+    (emailText: string) => {
       resetEmailVerificationSend();
-      setEmail(email);
+      setEmail(emailText);
     },
     [resetEmailVerificationSend],
   );
 
   const handlePasswordChange = useCallback(
-    (password: string) => {
+    (passwordText: string) => {
       resetEmailVerificationSend();
-      setPassword(password);
+      setPassword(passwordText);
     },
     [resetEmailVerificationSend],
   );
 
   const handleContinue = useCallback(async () => {
-    if (
-      !debouncedEmail ||
-      !debouncedPassword ||
-      !debouncedConfirmPassword ||
-      !selectedCountry
-    ) {
+    // Use actual values, not debounced ones
+    if (!email || !password || !confirmPassword || !selectedCountry) {
       return;
     }
+
+    // Validate current values before submitting
+    const isEmailValid = validateEmail(email);
+    const isPasswordValid = validatePassword(password);
+    const isConfirmPasswordValid = confirmPassword === password;
+
+    if (!isEmailValid || !isPasswordValid || !isConfirmPasswordValid) {
+      // Set error states
+      setIsEmailError(!isEmailValid);
+      setIsPasswordError(!isPasswordValid);
+      setIsConfirmPasswordError(!isConfirmPasswordValid);
+      return;
+    }
+
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -163,15 +177,14 @@ const SignUp = () => {
           })
           .build(),
       );
-      const { contactVerificationId } =
-        await sendEmailVerification(debouncedEmail);
+      const { contactVerificationId } = await sendEmailVerification(email);
 
       dispatch(setContactVerificationId(contactVerificationId));
 
       if (contactVerificationId) {
         navigation.navigate(Routes.CARD.ONBOARDING.CONFIRM_EMAIL, {
-          email: debouncedEmail,
-          password: debouncedConfirmPassword,
+          email,
+          password: confirmPassword,
         });
       } else {
         // If no contactVerificationId, assume user is registered or email not valid
@@ -181,9 +194,9 @@ const SignUp = () => {
       // Allow error message to display
     }
   }, [
-    debouncedConfirmPassword,
-    debouncedEmail,
-    debouncedPassword,
+    confirmPassword,
+    email,
+    password,
     dispatch,
     navigation,
     selectedCountry,

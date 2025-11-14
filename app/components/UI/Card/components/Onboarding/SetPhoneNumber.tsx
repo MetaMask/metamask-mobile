@@ -84,11 +84,13 @@ const SetPhoneNumber = () => {
   }, [trackEvent, createEventBuilder]);
 
   const handleContinue = async () => {
-    if (
-      !debouncedPhoneNumber ||
-      !selectedCountryAreaCode ||
-      !contactVerificationId
-    ) {
+    if (!phoneNumber || !selectedCountryAreaCode || !contactVerificationId) {
+      return;
+    }
+
+    const isCurrentPhoneNumberValid = /^\d{4,15}$/.test(phoneNumber);
+    if (!isCurrentPhoneNumberValid) {
+      setIsPhoneNumberError(true);
       return;
     }
 
@@ -103,21 +105,21 @@ const SetPhoneNumber = () => {
       );
       const { success } = await sendPhoneVerification({
         phoneCountryCode: selectedCountryAreaCode,
-        phoneNumber: debouncedPhoneNumber,
+        phoneNumber,
         contactVerificationId,
       });
+
       if (success) {
         navigation.navigate(Routes.CARD.ONBOARDING.CONFIRM_PHONE_NUMBER, {
           phoneCountryCode: selectedCountryAreaCode,
-          phoneNumber: debouncedPhoneNumber,
+          phoneNumber,
         });
       }
-    } catch (error) {
+    } catch (err: unknown) {
       if (
-        error instanceof CardError &&
-        error.message.includes('Invalid or expired contact verification ID')
+        err instanceof CardError &&
+        err.message.includes('Invalid or expired contact verification ID')
       ) {
-        // navigate back and restart the flow
         dispatch(resetOnboardingState());
         navigation.navigate(Routes.CARD.ONBOARDING.SIGN_UP);
       }
@@ -141,29 +143,29 @@ const SetPhoneNumber = () => {
       return;
     }
 
-    setIsPhoneNumberError(
-      // 4-15 digits
-      !/^\d{4,15}$/.test(debouncedPhoneNumber),
-    );
+    setIsPhoneNumberError(!/^\d{4,15}$/.test(debouncedPhoneNumber));
   }, [debouncedPhoneNumber]);
 
-  const isDisabled = useMemo(
-    () =>
-      !debouncedPhoneNumber ||
+  const isDisabled = useMemo(() => {
+    const isCurrentPhoneNumberValid = phoneNumber
+      ? /^\d{4,15}$/.test(phoneNumber)
+      : false;
+
+    return (
+      !phoneNumber ||
       !selectedCountryAreaCode ||
       !contactVerificationId ||
-      isPhoneNumberError ||
+      !isCurrentPhoneNumberValid ||
       phoneVerificationIsLoading ||
-      phoneVerificationIsError,
-    [
-      debouncedPhoneNumber,
-      selectedCountryAreaCode,
-      contactVerificationId,
-      isPhoneNumberError,
-      phoneVerificationIsLoading,
-      phoneVerificationIsError,
-    ],
-  );
+      phoneVerificationIsError
+    );
+  }, [
+    phoneNumber,
+    selectedCountryAreaCode,
+    contactVerificationId,
+    phoneVerificationIsLoading,
+    phoneVerificationIsError,
+  ]);
 
   const renderFormFields = () => (
     <Box>
