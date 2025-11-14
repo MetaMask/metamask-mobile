@@ -2488,7 +2488,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
           throw new Error(`No price available for ${position.coin}`);
         }
 
-        // Calculate order price with slippage (8% for IOC market-like execution)
+        // Calculate order price with slippage
         const slippage =
           ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS / 10000;
         const orderPrice = isBuy
