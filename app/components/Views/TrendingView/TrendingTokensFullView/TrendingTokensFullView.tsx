@@ -1,7 +1,10 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useAppThemeFromContext } from '../../../../util/theme';
@@ -47,6 +50,10 @@ const createStyles = (theme: Theme) =>
       flex: 1,
       backgroundColor: theme.colors.background.default,
       paddingBottom: 16,
+    },
+    headerContainer: {
+      backgroundColor: theme.colors.background.default,
+      zIndex: 10,
     },
     header: {
       paddingTop: 16,
@@ -122,6 +129,7 @@ const TrendingTokensFullView = () => {
     useNavigation<StackNavigationProp<TrendingTokensNavigationParamList>>();
   const theme = useAppThemeFromContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const insets = useSafeAreaInsets();
   const [sortBy, setSortBy] = useState<SortTrendingBy | undefined>(undefined);
   const [selectedTimeOption, setSelectedTimeOption] = useState<TimeOption>(
     TimeOption.TwentyFourHours,
@@ -159,6 +167,7 @@ const TrendingTokensFullView = () => {
     sortBy,
     chainIds: selectedNetwork ?? undefined,
   });
+
   // Sort and display tokens based on selected option and direction
   const trendingTokens = useMemo(() => {
     // Early return if no results
@@ -273,33 +282,42 @@ const TrendingTokensFullView = () => {
   }, [navigation, handleTimeSelect, selectedTimeOption]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <HeaderBase
-        variant={HeaderBaseVariant.Display}
-        startAccessory={
-          <ButtonIcon
-            size={ButtonIconSizes.Lg}
-            onPress={handleBackPress}
-            iconName={IconName.ArrowLeft}
-            testID="back-button"
-          />
-        }
-        endAccessory={
-          <ButtonIcon
-            size={ButtonIconSizes.Lg}
-            onPress={() => {
-              // TODO: Implement search functionality
-            }}
-            iconName={IconName.Search}
-            testID="search-button"
-          />
-        }
-        style={styles.header}
+    <SafeAreaView style={styles.safeArea} edges={['left', 'right', 'bottom']}>
+      <View
+        style={[
+          styles.headerContainer,
+          {
+            paddingTop: insets.top,
+          },
+        ]}
       >
-        <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-          {strings('trending.trending_tokens')}
-        </Text>
-      </HeaderBase>
+        <HeaderBase
+          variant={HeaderBaseVariant.Display}
+          startAccessory={
+            <ButtonIcon
+              size={ButtonIconSizes.Lg}
+              onPress={handleBackPress}
+              iconName={IconName.ArrowLeft}
+              testID="back-button"
+            />
+          }
+          endAccessory={
+            <ButtonIcon
+              size={ButtonIconSizes.Lg}
+              onPress={() => {
+                // TODO: Implement search functionality
+              }}
+              iconName={IconName.Search}
+              testID="search-button"
+            />
+          }
+          style={styles.header}
+        >
+          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+            {strings('trending.trending_tokens')}
+          </Text>
+        </HeaderBase>
+      </View>
       <View style={styles.controlBarWrapper}>
         <View style={styles.controlButtonOuterWrapper}>
           <TouchableOpacity
