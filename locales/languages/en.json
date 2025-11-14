@@ -1784,7 +1784,8 @@
       "lost": "Lost",
       "market_unavailable": "Market unavailable",
       "amount_on_outcome": "${{amount}} on {{outcome}}",
-      "outcome_at_price": "{{outcome}} at {{price}}¢"
+      "outcome_at_price": "{{outcome}} at {{price}}¢",
+      "fee_exemption": "We don't charge any fees on this market."
     },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
