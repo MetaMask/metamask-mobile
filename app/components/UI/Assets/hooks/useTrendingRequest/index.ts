@@ -79,6 +79,13 @@ const cleanupExpiredEntries = (): void => {
 };
 
 /**
+ * Clear all cache entries - useful for testing
+ */
+export const clearCache = (): void => {
+  cache.clear();
+};
+
+/**
  * Hook for handling trending tokens request
  * @returns {Object} An object containing the trending tokens results, loading state, error, and a function to trigger fetch
  */
