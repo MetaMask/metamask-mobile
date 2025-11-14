@@ -876,11 +876,73 @@ export const POLYMARKET_UPDATE_USDC_BALANCE_MOCKS = async (
 /**
  * Mocks for cash-out transaction and balance update
  * This mock should be triggered before tapping the cash-out button
- * - Mocks the CLOB API (polymarket order submission)
+ * - Mocks the MetaMask relayer endpoint (predict.dev-api.cx.metamask.io/order)
+ * - Mocks the CLOB API (polymarket order submission) as fallback
  * - Updates global USDC balance to post-cash-out amount (58.66 USDC)
  */
 export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
-  // Mock CLOB API for cash-out order submission
+  // Mock MetaMask relayer endpoint for order submission (cash-out uses SELL orders)
+  // In e2e, all requests go through /proxy with the actual URL in the url query parameter
+  // Matches request payload structure with PROXY_WALLET_ADDRESS as maker and USER_WALLET_ADDRESS as signer
+  // Response uses decimal string format (not wei)
+  await mockServer
+    .forPost('/proxy')
+    .matching(async (request) => {
+      try {
+        const urlParam = new URL(request.url).searchParams.get('url');
+        if (!urlParam?.includes('predict.dev-api.cx.metamask.io/order')) {
+          return false;
+        }
+
+        const bodyText = await request.body.getText();
+        const body = bodyText ? JSON.parse(bodyText) : {};
+        const order = body?.order;
+
+        // Verify the request matches cash-out order structure
+        // Only check consistent fields - allow variable values for dynamic fields (salt, tokenId, amounts, signature, owner)
+        return (
+          order &&
+          body.orderType === 'FOK' &&
+          order.maker?.toLowerCase() === PROXY_WALLET_ADDRESS.toLowerCase() &&
+          order.signer?.toLowerCase() === USER_WALLET_ADDRESS.toLowerCase() &&
+          order.taker === '0x0000000000000000000000000000000000000000' &&
+          order.expiration === '0' &&
+          order.nonce === '0' &&
+          order.feeRateBps === '0' &&
+          order.side === 'SELL' &&
+          order.signatureType === 2 &&
+          typeof order.salt === 'number' &&
+          typeof order.tokenId === 'string' &&
+          order.tokenId.length > 0 &&
+          typeof order.makerAmount === 'string' &&
+          order.makerAmount.length > 0 &&
+          typeof order.takerAmount === 'string' &&
+          order.takerAmount.length > 0 &&
+          typeof order.signature === 'string' &&
+          order.signature.startsWith('0x') &&
+          order.signature.length > 10
+        );
+      } catch {
+        return false;
+      }
+    })
+    .asPriority(PRIORITY.API_OVERRIDE)
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: {
+        success: true,
+        orderID:
+          '0xa16ab020abcd8e48100463d7bcbe75e3a3e659dcee1c42e09ef2ef8cecb0ce2c',
+        transactionsHashes: [
+          '0x24ca9d1399d72efc9c5f83b0f37c88fb7d42e61095cf657f9dcfa857249adf6f',
+        ],
+        takingAmount: '30.50',
+        makingAmount: '5.00',
+      },
+    }));
+
+  // Mock CLOB API for cash-out order submission (fallback for direct CLOB calls)
+  // Response uses decimal string format (not wei)
   await mockServer
     .forPost('/proxy')
     .matching((request) => {
@@ -893,16 +955,14 @@ export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
       const response = {
         statusCode: 200,
         json: {
-          errorMsg: '',
+          success: true,
           orderID:
-            '0x58531391ac95ce6430875c66d13187bc7813c2dab20c9217ce51b57ce7d215bf',
+            '0xa16ab020abcd8e48100463d7bcbe75e3a3e659dcee1c42e09ef2ef8cecb0ce2c',
+          transactionsHashes: [
+            '0x24ca9d1399d72efc9c5f83b0f37c88fb7d42e61095cf657f9dcfa857249adf6f',
+          ],
           takingAmount: '30.50',
           makingAmount: '5.00',
-          status: 'matched',
-          transactionsHashes: [
-            '0x935d74ec29bcbe63d2144430669b250c1fd476ac38cba7c0ecab97774cbc152e',
-          ],
-          success: true,
         },
       };
 
