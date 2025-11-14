@@ -141,14 +141,13 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
   const renderDataItem = useCallback(
     ({ item, index }: { item: unknown; index: number }) => {
       const isLast = index === data.length - 1;
-      const onPressHandler = section.getOnPressHandler?.(navigation as never);
 
       return (
         <Box
           style={isLast ? styles.carouselItemLast : styles.carouselItem}
           twClassName="mr-4"
         >
-          {section.renderItem(item, onPressHandler)}
+          {section.renderRowItem(item, navigation)}
         </Box>
       );
     },
@@ -206,7 +205,7 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
             ref={flashListRef}
             data={data}
             renderItem={renderDataItem}
-            keyExtractor={(item) => section.keyExtractor(item as never)}
+            keyExtractor={(item) => section.keyExtractor(item)}
             horizontal
             pagingEnabled={false}
             showsHorizontalScrollIndicator={false}

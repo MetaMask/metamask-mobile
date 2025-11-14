@@ -36,8 +36,7 @@ const SectionCard: React.FC<SectionCardProps> = ({
   const renderFlatItem: ListRenderItem<unknown> = useCallback(
     ({ item }) => {
       const section = SECTIONS_CONFIG[sectionId];
-      const onPressHandler = section.getOnPressHandler?.(navigation as never);
-      return section.renderItem(item, onPressHandler);
+      return section.renderRowItem(item, navigation);
     },
     [navigation, sectionId],
   );
@@ -55,9 +54,7 @@ const SectionCard: React.FC<SectionCardProps> = ({
         <FlashList
           data={data}
           renderItem={renderFlatItem}
-          keyExtractor={(item) =>
-            SECTIONS_CONFIG[sectionId].keyExtractor(item as never)
-          }
+          keyExtractor={(item) => SECTIONS_CONFIG[sectionId].keyExtractor(item)}
           keyboardShouldPersistTaps="handled"
           testID="perps-tokens-list"
         />

@@ -33,24 +33,24 @@ export interface SectionData {
  */
 export interface SectionConfig {
   title: string;
-  navigationAction: (navigation: NavigationProp<ParamListBase>) => void;
-  renderItem: (item: unknown, onPress?: (item: unknown) => void) => JSX.Element;
+  viewAllAction: (navigation: NavigationProp<ParamListBase>) => void;
+  renderRowItem: (
+    item: unknown,
+    navigation: NavigationProp<ParamListBase>,
+  ) => JSX.Element;
   renderSkeleton: () => JSX.Element;
   getSearchableText: (item: unknown) => string;
   keyExtractor: (item: unknown) => string;
-  getOnPressHandler?: (
-    navigation: NavigationProp<ParamListBase>,
-  ) => (item: unknown) => void;
   renderSection: () => JSX.Element;
 }
 
 const tokensConfig: SectionConfig = {
   title: strings('trending.tokens'),
-  navigationAction: (_navigation) => {
+  viewAllAction: (_navigation) => {
     // TODO: Implement tokens navigation when ready
     // _navigation.navigate(...);
   },
-  renderItem: (item) => (
+  renderRowItem: (item) => (
     <TrendingTokenRowItem
       token={item as TrendingAsset}
       onPress={() => undefined}
@@ -82,7 +82,7 @@ const tokensConfig: SectionConfig = {
 
 const perpsConfig: SectionConfig = {
   title: strings('trending.perps'),
-  navigationAction: (navigation) => {
+  viewAllAction: (navigation) => {
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_LIST,
       params: {
@@ -90,10 +90,18 @@ const perpsConfig: SectionConfig = {
       },
     });
   },
-  renderItem: (item, onPress) => (
+  renderRowItem: (item, navigation) => (
     <PerpsMarketRowItem
       market={item as PerpsMarketData}
-      onPress={() => onPress?.(item)}
+      onPress={() => {
+        (navigation as NavigationProp<PerpsNavigationParamList>)?.navigate(
+          Routes.PERPS.ROOT,
+          {
+            screen: Routes.PERPS.MARKET_DETAILS,
+            params: { market: item as PerpsMarketData },
+          },
+        );
+      }}
       showBadge={false}
     />
   ),
@@ -101,15 +109,6 @@ const perpsConfig: SectionConfig = {
   getSearchableText: (item) =>
     `${(item as PerpsMarketData).symbol} ${(item as PerpsMarketData).name || ''}`.toLowerCase(),
   keyExtractor: (item) => `perp-${(item as PerpsMarketData).symbol}`,
-  getOnPressHandler: (navigation) => (market) => {
-    (navigation as NavigationProp<PerpsNavigationParamList>).navigate(
-      Routes.PERPS.ROOT,
-      {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market: market as PerpsMarketData },
-      },
-    );
-  },
   renderSection: () => {
     const PerpsSection = () => {
       const { markets, isLoading } = usePerpsMarkets();
@@ -136,12 +135,12 @@ const perpsConfig: SectionConfig = {
 
 const predictionsConfig: SectionConfig = {
   title: strings('wallet.predict'),
-  navigationAction: (navigation) => {
+  viewAllAction: (navigation) => {
     navigation.navigate(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
     });
   },
-  renderItem: (item) => <PredictMarket market={item as PredictMarketType} />,
+  renderRowItem: (item) => <PredictMarket market={item as PredictMarketType} />,
   renderSkeleton: () => <PredictMarketSkeleton />,
   getSearchableText: (item) => (item as PredictMarketType).title.toLowerCase(),
   keyExtractor: (item) => `prediction-${(item as PredictMarketType).id}`,

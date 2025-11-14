@@ -102,7 +102,7 @@ export const useExploreSearch = (query: string): ExploreSearchResult => {
       } else {
         // Filter items based on section's searchable text
         data[section.id] = sectionData.data.filter((item) =>
-          section.getSearchableText(item as never).includes(searchTerm),
+          section.getSearchableText(item).includes(searchTerm),
         );
       }
     });
