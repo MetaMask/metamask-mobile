@@ -191,7 +191,7 @@ exports[`Onboarding renders correctly 1`] = `
         },
       ]
     }
-    testID="fox-animation"
+    testID="fox-animation-mock"
   />
   <View />
 </RNCSafeAreaView>
@@ -388,7 +388,7 @@ exports[`Onboarding renders correctly with android 1`] = `
         },
       ]
     }
-    testID="fox-animation"
+    testID="fox-animation-mock"
   />
   <View />
 </RNCSafeAreaView>
@@ -585,7 +585,7 @@ exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
         },
       ]
     }
-    testID="fox-animation"
+    testID="fox-animation-mock"
   />
   <View />
 </RNCSafeAreaView>
@@ -782,7 +782,7 @@ exports[`Onboarding renders correctly with medium device and android 1`] = `
         },
       ]
     }
-    testID="fox-animation"
+    testID="fox-animation-mock"
   />
   <View />
 </RNCSafeAreaView>

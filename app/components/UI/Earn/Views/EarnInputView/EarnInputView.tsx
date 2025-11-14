@@ -78,10 +78,16 @@ import { useEndTraceOnMount } from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
-import { toTokenMinimalUnit, normalizeToDotDecimal } from '../../../../../util/number';
+import {
+  toTokenMinimalUnit,
+  normalizeToDotDecimal,
+} from '../../../../../util/number';
 import useTronStake from '../../hooks/useTronStake';
 import TronStakePreview from '../../components/Tron/StakePreview/TronStakePreview';
-import { TRON_RESOURCE, TronResourceType } from '../../../../../core/Multichain/constants';
+import {
+  TRON_RESOURCE,
+  TronResourceType,
+} from '../../../../../core/Multichain/constants';
 import { ComputeFeeResult } from '../../utils/tron-staking';
 import { isTronChainId } from '../../../../../core/Multichain/utils';
 ///: END:ONLY_INCLUDE_IF
@@ -136,9 +142,10 @@ const EarnInputView = () => {
   const { getEarnToken } = useEarnTokens();
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const [resourceType, setResourceType] = useState<ResourceType>(TRON_RESOURCE.ENERGY);
-  const isTronNative =
-    token.isNative && isTronChainId(String(token.chainId));
+  const [resourceType, setResourceType] = useState<ResourceType>(
+    TRON_RESOURCE.ENERGY,
+  );
+  const isTronNative = token.isNative && isTronChainId(String(token.chainId));
 
   const {
     validate: tronValidate,
@@ -161,16 +168,17 @@ const EarnInputView = () => {
         token.decimals ?? 0,
       ).toString();
 
+      const experiences = [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }];
+
       return {
         ...token,
+        isETH: false,
         balanceMinimalUnit,
         balanceFormatted: token.balance ?? '0',
         balanceFiat: token.balanceFiat ?? '0',
         tokenUsdExchangeRate: 0,
-        experiences: [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }],
-        get experience() {
-          return this.experiences[0];
-        },
+        experiences,
+        experience: experiences[0],
       } as EarnTokenDetails;
     }
     ///: END:ONLY_INCLUDE_IF
@@ -610,6 +618,7 @@ const EarnInputView = () => {
     attemptDepositTransaction,
     createEventBuilder,
     earnToken?.chainId,
+    earnToken?.isETH,
     estimatedGasFeeWei,
     getDepositTxGasPercentage,
     isHighGasCostImpact,
@@ -621,7 +630,6 @@ const EarnInputView = () => {
   const handleEarnPress = useCallback(async () => {
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     if (isTrxStakingEnabled && isTronNative) {
-      
       const result = await tronConfirm?.(
         amountToken,
         resourceType as TronResourceType,
@@ -653,7 +661,7 @@ const EarnInputView = () => {
       return;
     }
     ///: END:ONLY_INCLUDE_IF
-    
+
     // Stablecoin Lending Flow
     if (
       earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING &&
@@ -668,6 +676,13 @@ const EarnInputView = () => {
   }, [
     earnToken?.experience?.type,
     isStablecoinLendingEnabled,
+    amountToken,
+    isTronNative,
+    isTrxStakingEnabled,
+    navigation,
+    resourceType,
+    token.chainId,
+    tronConfirm,
     handlePooledStakingFlow,
     handleLendingFlow,
   ]);
@@ -773,7 +788,9 @@ const EarnInputView = () => {
 
   const balanceText = strings('stake.balance');
   const buttonLabel =
-    isTrxStakingEnabled && isTronNative ? strings('stake.stake') : getButtonLabel();
+    isTrxStakingEnabled && isTronNative
+      ? strings('stake.stake')
+      : getButtonLabel();
 
   useFocusEffect(
     useCallback(() => {
@@ -946,8 +963,8 @@ const EarnInputView = () => {
           currencyToggleValue={currencyToggleValue}
         />
         <View style={styles.rewardsRateContainer}>
-          {!isTrxStakingEnabled && (
-            isStablecoinLendingEnabled ? (
+          {!isTrxStakingEnabled &&
+            (isStablecoinLendingEnabled ? (
               <>
                 <View style={styles.spacer} />
                 <EarnTokenSelector
@@ -969,8 +986,7 @@ const EarnInputView = () => {
                 })}
                 isLoading={isLoadingEarnMetadata}
               />
-            )
-          )}
+            ))}
         </View>
       </ScrollView>
       {
@@ -978,7 +994,7 @@ const EarnInputView = () => {
         isTrxStakingEnabled && isTronNative && isNonZeroAmount && (
           <TronStakePreview
             resourceType={resourceType}
-            fee={tronPreview?.['fee'] as ComputeFeeResult}
+            fee={tronPreview?.fee as ComputeFeeResult}
           />
         )
         ///: END:ONLY_INCLUDE_IF

@@ -40,7 +40,6 @@ const KYCWebview: React.FC = () => {
         source={{ uri: url }}
         onNavigationStateChange={handleNavigationStateChange}
         mediaPlaybackRequiresUserAction={false}
-        mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"
         geolocationEnabled
         javaScriptEnabled
         domStorageEnabled

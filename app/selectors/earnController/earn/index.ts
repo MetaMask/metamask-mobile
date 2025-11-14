@@ -190,7 +190,7 @@ const selectEarnTokens = createDeepEqualSelector(
 
       const isStakingToken =
         (token.isETH && !token.isStaked && isStakingSupportedChain) ||
-        (isTrxStakingEnabled && isTronNative && !token.isStaked);
+        (isTronNative && isTrxStakingEnabled && !token.isStaked);
       const isStakingOutputToken =
         token.isETH && token.isStaked && isStakingSupportedChain;
 
@@ -255,22 +255,20 @@ const selectEarnTokens = createDeepEqualSelector(
         ethToUsdConversionRate,
         2,
       );
-      const tronOrDerived =
-        isTronNative
-          ? {
-              balanceValueFormatted: token.balance ?? '0',
-              balanceFiat: token.balanceFiat ?? '0',
-              balanceFiatCalculation: parseFloat(token.balanceFiat ?? '0'),
-            }
-          : deriveBalanceFromAssetMarketDetails(
-              token,
-              tokenExchangeRates,
-              tokenBalances?.[selectedAddress as Hex]?.[
-                token.chainId as Hex
-              ] || {},
-              ethToUserSelectedFiatConversionRate,
-              currentCurrency || '',
-            );
+      const tronOrDerived = isTronNative
+        ? {
+            balanceValueFormatted: token.balance ?? '0',
+            balanceFiat: token.balanceFiat ?? '0',
+            balanceFiatCalculation: parseFloat(token.balanceFiat ?? '0'),
+          }
+        : deriveBalanceFromAssetMarketDetails(
+            token,
+            tokenExchangeRates,
+            tokenBalances?.[selectedAddress as Hex]?.[token.chainId as Hex] ||
+              {},
+            ethToUserSelectedFiatConversionRate,
+            currentCurrency || '',
+          );
       const balanceValueFormatted = tronOrDerived.balanceValueFormatted || '0';
       const balanceFiat = tronOrDerived.balanceFiat || '0';
       const balanceFiatCalculation = tronOrDerived.balanceFiatCalculation;
@@ -373,9 +371,7 @@ const selectEarnTokens = createDeepEqualSelector(
           // i.e. 100.12345
           balanceFiatNumber: assetBalanceFiatNumber,
           tokenUsdExchangeRate,
-          get experience() {
-            return this.experiences[0];
-          },
+          experience: experiences[0],
           // asset apr info per experience
           // i.e. 4.5%
           // estimated annual rewards per experience
@@ -567,6 +563,29 @@ const selectEarnTokenPair = createSelector(
   },
 );
 
+const selectPrimaryEarnExperienceTypeForAsset = createSelector(
+  [
+    (_state: RootState, asset: TokenI) => asset,
+    selectEarnToken,
+    selectEarnOutputToken,
+    selectTrxStakingEnabled,
+  ],
+  (asset, earnToken, outputToken, isTrxStakingEnabled) => {
+    const typeFromMetadata =
+      earnToken?.experience?.type ?? outputToken?.experience?.type;
+    if (typeFromMetadata) {
+      return typeFromMetadata;
+    }
+
+    const isTronNative =
+      asset?.ticker === 'TRX' && asset?.chainId?.startsWith('tron:');
+    if (isTronNative && isTrxStakingEnabled) {
+      return EARN_EXPERIENCES.POOLED_STAKING;
+    }
+    return undefined;
+  },
+);
+
 export const earnSelectors = {
   selectEarnControllerState,
   selectEarnTokens,
@@ -575,4 +594,5 @@ export const earnSelectors = {
   selectEarnTokenPair,
   selectPairedEarnToken,
   selectPairedEarnOutputToken,
+  selectPrimaryEarnExperienceTypeForAsset,
 };

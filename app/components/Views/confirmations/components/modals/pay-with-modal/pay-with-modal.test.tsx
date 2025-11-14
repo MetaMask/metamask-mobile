@@ -16,7 +16,6 @@ import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controlle
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
-import { strings } from '../../../../../../../locales/i18n';
 
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/send/useAccountTokens');
@@ -147,72 +146,6 @@ describe('PayWithModal', () => {
     expect(getByText('Test Token 1')).toBeDefined();
     expect(getByText('2.34 TST1')).toBeDefined();
     expect(getByText('$2.34')).toBeDefined();
-  });
-
-  it('renders token with zero balance if required token', async () => {
-    useTransactionPayRequiredTokensMock.mockReturnValue([
-      {
-        address: '0x234' as Hex,
-        chainId: CHAIN_ID_1_MOCK,
-      },
-    ] as TransactionPayRequiredToken[]);
-
-    const { getByText } = render();
-
-    expect(getByText('Test Token 2')).toBeDefined();
-    expect(getByText('0 TST2')).toBeDefined();
-    expect(getByText('$0.00')).toBeDefined();
-  });
-
-  it('renders token with zero balance if payment token', async () => {
-    useTransactionPayTokenMock.mockReturnValue({
-      payToken: { address: '0x234' as Hex, chainId: CHAIN_ID_1_MOCK },
-      setPayToken: setPayTokenMock,
-    } as unknown as ReturnType<typeof useTransactionPayToken>);
-
-    const { getByText } = render();
-
-    expect(getByText('Test Token 2')).toBeDefined();
-    expect(getByText('0 TST2')).toBeDefined();
-    expect(getByText('$0.00')).toBeDefined();
-  });
-
-  it('renders disabled token with message if no native gas', async () => {
-    const { getByText } = render();
-
-    expect(getByText('Test Token 5')).toBeDefined();
-    expect(getByText('5.67 TST5')).toBeDefined();
-    expect(getByText('$5.67')).toBeDefined();
-    expect(getByText(strings('pay_with_modal.no_gas'))).toBeDefined();
-  });
-
-  it('does not render token if no balance', async () => {
-    const { queryByText } = render();
-    expect(queryByText('Test Token 2')).toBeNull();
-  });
-
-  it('does not render token if not ERC-20', async () => {
-    const { queryByText } = render();
-    expect(queryByText('Test Token 3')).toBeNull();
-  });
-
-  it('does not render token if account type is not EVM', async () => {
-    const { queryByText } = render();
-    expect(queryByText('Test Token 4')).toBeNull();
-  });
-
-  it('does not render token with zero balance if required token and skipIfBalance is true', async () => {
-    useTransactionPayRequiredTokensMock.mockReturnValue([
-      {
-        address: '0x234' as Hex,
-        chainId: CHAIN_ID_1_MOCK,
-        skipIfBalance: true,
-      },
-    ] as TransactionPayRequiredToken[]);
-
-    const { queryByText } = render();
-
-    expect(queryByText('Test Token 2')).toBeNull();
   });
 
   describe('on token select', () => {

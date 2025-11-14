@@ -34,8 +34,10 @@ import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { Hex } from '@metamask/utils';
 import { trace, TraceName } from '../../../../../util/trace';
+import { earnSelectors } from '../../../../../selectors/earnController/earn';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
+import { isTronChainId } from '../../../../../core/Multichain/utils';
 ///: END:ONLY_INCLUDE_IF
 interface StakeButtonProps {
   asset: TokenI;
@@ -59,8 +61,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
-  const isTronNative =
-    asset?.ticker === 'TRX' && asset?.chainId?.startsWith('tron:');
+  const isTronNative = asset?.isNative && isTronChainId(asset.chainId as Hex);
   ///: END:ONLY_INCLUDE_IF
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
@@ -68,6 +69,10 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
   const { getEarnToken } = useEarnTokens();
   const earnToken = getEarnToken(asset);
+
+  const primaryExperienceType = useSelector((state: RootState) =>
+    earnSelectors.selectPrimaryEarnExperienceTypeForAsset(state, asset),
+  );
 
   const areEarnExperiencesDisabled =
     !isPooledStakingEnabled && !isStablecoinLendingEnabled;
@@ -190,11 +195,11 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   };
 
   const onEarnButtonPress = async () => {
-    if (earnToken?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING) {
+    if (primaryExperienceType === EARN_EXPERIENCES.POOLED_STAKING) {
       return handleStakeRedirect();
     }
 
-    if (earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING) {
+    if (primaryExperienceType === EARN_EXPERIENCES.STABLECOIN_LENDING) {
       return handleLendingRedirect();
     }
     ///: BEGIN:ONLY_INCLUDE_IF(tron)

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 import { BackHandler, TouchableWithoutFeedback, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
@@ -27,10 +27,14 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import { CustomAmountInfoSkeleton } from '../info/custom-amount-info';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
+import { hasTransactionType } from '../../utils/transaction';
+import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
 
 export enum ConfirmationLoader {
   Default = 'default',
   CustomAmount = 'customAmount',
+  PredictClaim = 'predictClaim',
 }
 
 export interface ConfirmationParams {
@@ -46,6 +50,7 @@ const ConfirmWrapped = ({
   route?: UnstakeConfirmationViewProps['route'];
 }) => {
   const alerts = useConfirmationAlerts();
+  const isScrollDisabled = useDisableScroll();
 
   return (
     <ConfirmationContextProvider>
@@ -58,6 +63,7 @@ const ConfirmWrapped = ({
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollViewContent}
                 nestedScrollEnabled
+                scrollEnabled={!isScrollDisabled}
               >
                 <TouchableWithoutFeedback>
                   <>
@@ -156,18 +162,17 @@ function Loader() {
 
   if (loader === ConfirmationLoader.CustomAmount) {
     return (
-      <SafeAreaView
-        edges={['right', 'bottom', 'left']}
-        style={styles.flatContainer}
-        testID="confirm-loader-custom-amount"
-      >
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollViewContent}
-        >
-          <CustomAmountInfoSkeleton />
-        </ScrollView>
-      </SafeAreaView>
+      <InfoLoader testId="confirm-loader-custom-amount">
+        <CustomAmountInfoSkeleton />
+      </InfoLoader>
+    );
+  }
+
+  if (loader === ConfirmationLoader.PredictClaim) {
+    return (
+      <InfoLoader testId="confirm-loader-predict-claim">
+        <PredictClaimInfoSkeleton />
+      </InfoLoader>
     );
   }
 
@@ -176,4 +181,34 @@ function Loader() {
       <AnimatedSpinner size={SpinnerSize.MD} />
     </View>
   );
+}
+
+function InfoLoader({
+  children,
+  testId,
+}: {
+  children: ReactNode;
+  testId?: string;
+}) {
+  const { styles } = useStyles(styleSheet, { isFullScreenConfirmation: true });
+
+  return (
+    <SafeAreaView
+      edges={['right', 'bottom', 'left']}
+      style={styles.flatContainer}
+      testID={testId}
+    >
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+      >
+        {children}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+function useDisableScroll() {
+  const transaction = useTransactionMetadataRequest();
+  return hasTransactionType(transaction, [TransactionType.predictClaim]);
 }

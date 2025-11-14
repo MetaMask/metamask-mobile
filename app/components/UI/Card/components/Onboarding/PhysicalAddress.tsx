@@ -185,7 +185,7 @@ export const AddressFields = ({
           numberOfLines={1}
           size={TextFieldSize.Lg}
           value={zipCode}
-          keyboardType="number-pad"
+          keyboardType="default"
           maxLength={255}
           accessibilityLabel={strings(
             'card.card_onboarding.physical_address.zip_code_label',

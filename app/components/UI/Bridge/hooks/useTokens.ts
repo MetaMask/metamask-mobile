@@ -8,6 +8,7 @@ import {
 } from '@metamask/bridge-controller';
 import { zeroAddress } from 'ethereumjs-util';
 import { POLYGON_NATIVE_TOKEN } from '../constants/assets';
+import { isTradableToken } from '../utils/isTradableToken';
 
 interface UseTokensProps {
   topTokensChainId?: Hex | CaipChainId;
@@ -77,6 +78,10 @@ export function useTokens({
   const tokensWithoutBalance = (topTokens ?? [])
     .concat(remainingTokens ?? [])
     .filter((token) => {
+      if (!isTradableToken(token)) {
+        return false;
+      }
+
       const tokenKey = getTokenKey(token);
       return !tokensWithBalanceSet.has(tokenKey);
     });
@@ -85,6 +90,10 @@ export function useTokens({
   const allTokens = tokensWithBalance
     .concat(tokensWithoutBalance)
     .filter((token) => {
+      if (!isTradableToken(token)) {
+        return false;
+      }
+
       const tokenKey = getTokenKey(token);
       return !excludedTokensSet.has(tokenKey);
     });
@@ -97,6 +106,10 @@ export function useTokens({
       }) ?? [],
     )
     .filter((token) => {
+      if (!isTradableToken(token)) {
+        return false;
+      }
+
       const tokenKey = getTokenKey(token);
       return !excludedTokensSet.has(tokenKey);
     });

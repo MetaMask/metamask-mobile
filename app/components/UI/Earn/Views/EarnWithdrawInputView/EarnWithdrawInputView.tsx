@@ -51,7 +51,10 @@ import { EARN_INPUT_VIEW_ACTIONS } from '../EarnInputView/EarnInputView.types';
 import styleSheet from './EarnWithdrawInputView.styles';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
 import BN from 'bnjs4';
-import { renderFromTokenMinimalUnit } from '../../../../../util/number';
+import { renderFromTokenMinimalUnit ,
+  toTokenMinimalUnit,
+  normalizeToDotDecimal,
+} from '../../../../../util/number';
 import { TokenI } from '../../../Tokens/types';
 import useEarnTokens from '../../hooks/useEarnTokens';
 import { EarnTokenDetails } from '../../types/lending.types';
@@ -63,10 +66,14 @@ import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
-import { toTokenMinimalUnit, normalizeToDotDecimal } from '../../../../../util/number';
 import useTronUnstake from '../../hooks/useTronUnstake';
-import ResourceToggle, { type ResourceType } from '../../components/Tron/ResourceToggle';
-import { TRON_RESOURCE, TronResourceType } from '../../../../../core/Multichain/constants';
+import ResourceToggle, {
+  type ResourceType,
+} from '../../components/Tron/ResourceToggle';
+import {
+  TRON_RESOURCE,
+  TronResourceType,
+} from '../../../../../core/Multichain/constants';
 import { isTronChainId } from '../../../../../core/Multichain/utils';
 ///: END:ONLY_INCLUDE_IF
 
@@ -87,12 +94,11 @@ const EarnWithdrawInputView = () => {
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTronAsset = isTronChainId(String(token.chainId));
-  const [resourceType, setResourceType] = useState<ResourceType>(TRON_RESOURCE.ENERGY);
-  const {
-    validate: tronValidateUnstake,
-    confirm: tronConfirmUnstake,
-    validating: isTronUnstakeValidating,
-  } = useTronUnstake();
+  const [resourceType, setResourceType] = useState<ResourceType>(
+    TRON_RESOURCE.ENERGY,
+  );
+  const { validate: tronValidateUnstake, confirm: tronConfirmUnstake } =
+    useTronUnstake();
   ///: END:ONLY_INCLUDE_IF
 
   const earnToken = React.useMemo(() => {
@@ -106,6 +112,7 @@ const EarnWithdrawInputView = () => {
         token.decimals ?? 0,
       ).toString();
 
+      const experiences = [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }];
       return {
         ...token,
         isETH: false,
@@ -113,10 +120,8 @@ const EarnWithdrawInputView = () => {
         balanceFormatted: token.balance ?? '0',
         balanceFiat: token.balanceFiat ?? '0',
         tokenUsdExchangeRate: 0,
-        experiences: [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }],
-        get experience() {
-          return this.experiences[0];
-        },
+        experiences,
+        experience: experiences[0],
       } as EarnTokenDetails;
     }
     ///: END:ONLY_INCLUDE_IF
@@ -133,6 +138,20 @@ const EarnWithdrawInputView = () => {
   const receiptTokenToUse: EarnTokenDetails | undefined = receiptToken
     ? (receiptToken as EarnTokenDetails)
     : (earnToken as EarnTokenDetails);
+
+  const withdrawalToken: EarnTokenDetails | undefined = useMemo(() => {
+    if (
+      receiptTokenToUse?.experience?.type ===
+        EARN_EXPERIENCES.STABLECOIN_LENDING ||
+      receiptTokenToUse?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING
+    ) {
+      return receiptTokenToUse;
+    }
+    if (earnToken) {
+      return earnToken as EarnTokenDetails;
+    }
+    return undefined;
+  }, [receiptTokenToUse, earnToken]);
 
   const navigation =
     useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
@@ -183,7 +202,7 @@ const EarnWithdrawInputView = () => {
     handleKeypadChange,
     earnBalanceValue,
   } = useEarnWithdrawInput({
-    earnToken: receiptTokenToUse as EarnTokenDetails,
+    earnToken: withdrawalToken as EarnTokenDetails,
     conversionRate,
     exchangeRate,
   });
@@ -192,11 +211,11 @@ const EarnWithdrawInputView = () => {
       createEventBuilder(MetaMetricsEvents.EARN_INPUT_OPENED)
         .addProperties({
           action_type: 'withdrawal',
-          token: receiptTokenToUse?.symbol,
-          token_name: receiptTokenToUse?.name,
+          token: withdrawalToken?.symbol,
+          token_name: withdrawalToken?.name,
           network: network?.name,
-          user_token_balance: receiptTokenToUse?.balanceFormatted,
-          experience: receiptTokenToUse?.experience?.type,
+          user_token_balance: withdrawalToken?.balanceFormatted,
+          experience: withdrawalToken?.experience?.type,
         })
         .build(),
     );
@@ -215,11 +234,11 @@ const EarnWithdrawInputView = () => {
   // For lending withdrawals, fetch AAVE pool metadata once on render.
   useEffect(() => {
     if (
-      receiptTokenToUse?.experience?.type !==
+      withdrawalToken?.experience?.type !==
         EARN_EXPERIENCES.STABLECOIN_LENDING ||
       !selectedAccount?.address ||
-      !receiptTokenToUse?.address ||
-      !receiptTokenToUse?.chainId
+      !withdrawalToken?.address ||
+      !withdrawalToken?.chainId
     )
       return;
     setMaxRiskAwareWithdrawalAmount(undefined);
@@ -228,7 +247,7 @@ const EarnWithdrawInputView = () => {
 
     getAaveV3MaxRiskAwareWithdrawalAmount(
       selectedAccount.address,
-      receiptToken as EarnTokenDetails,
+      withdrawalToken,
     )
       .then((maxAmount) => {
         setMaxRiskAwareWithdrawalAmount(maxAmount);
@@ -239,10 +258,10 @@ const EarnWithdrawInputView = () => {
     // Call once on render and only once
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    receiptTokenToUse?.experience?.type,
+    withdrawalToken?.experience?.type,
     selectedAccount?.address,
-    receiptTokenToUse?.address,
-    receiptTokenToUse?.chainId,
+    withdrawalToken?.address,
+    withdrawalToken?.chainId,
   ]);
 
   const stakedBalanceText = strings('stake.staked_balance');
@@ -399,12 +418,12 @@ const EarnWithdrawInputView = () => {
         createEventBuilder(MetaMetricsEvents.EARN_REVIEW_BUTTON_CLICKED)
           .addProperties({
             action_type: 'withdrawal',
-            token: receiptToken?.symbol,
+            token: withdrawalToken?.symbol,
             network: network?.name,
-            user_token_balance: receiptToken?.balanceFormatted,
-            transaction_value: `${amountToken} ${receiptToken?.symbol}`,
+            user_token_balance: withdrawalToken?.balanceFormatted,
+            transaction_value: `${amountToken} ${withdrawalToken?.symbol}`,
             lastQuickAmountButtonPressed: lastQuickAmountButtonPressed.current,
-            experience: receiptToken?.experience?.type,
+            experience: withdrawalToken?.experience?.type,
           })
           .build(),
       );
@@ -414,9 +433,9 @@ const EarnWithdrawInputView = () => {
     // We likely want to inform the user if this data is missing and the withdrawal fails.
     if (
       !selectedAccount?.address ||
-      !receiptToken?.experience?.market?.underlying.address ||
-      !receiptToken?.address ||
-      !receiptToken?.chainId
+      !withdrawalToken?.experience?.market?.underlying.address ||
+      !withdrawalToken?.address ||
+      !withdrawalToken?.chainId
     )
       return;
 
@@ -424,7 +443,7 @@ const EarnWithdrawInputView = () => {
       await calculateAaveV3HealthFactorAfterWithdrawal(
         selectedAccount.address,
         amountTokenMinimalUnit.toString(),
-        receiptToken as EarnTokenDetails,
+        withdrawalToken,
       );
 
     setIsSubmittingStakeWithdrawalTransaction(true);
@@ -434,16 +453,16 @@ const EarnWithdrawInputView = () => {
     try {
       const lendingPoolContractAddress =
         CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS[
-          receiptTokenToUse.chainId as Hex
+          withdrawalToken?.chainId as Hex
         ] ?? '';
 
       navigation.navigate(Routes.EARN.ROOT, {
         screen: Routes.EARN.LENDING_WITHDRAWAL_CONFIRMATION,
         params: {
-          token: receiptTokenToUse,
+          token: withdrawalToken,
           amountTokenMinimalUnit: amountToWithdraw,
           amountFiat: amountFiatNumber,
-          lendingProtocol: receiptTokenToUse.experience?.market?.protocol,
+          lendingProtocol: withdrawalToken?.experience?.market?.protocol,
           lendingContractAddress: lendingPoolContractAddress,
           healthFactorSimulation: simulatedHealthFactorAfterWithdrawal,
         },
@@ -460,8 +479,7 @@ const EarnWithdrawInputView = () => {
     createEventBuilder,
     navigation,
     network?.name,
-    receiptToken,
-    receiptTokenToUse,
+    withdrawalToken,
     trackEvent,
   ]);
 
@@ -584,15 +602,12 @@ const EarnWithdrawInputView = () => {
     }
     ///: END:ONLY_INCLUDE_IF
     if (
-      receiptTokenToUse?.experience?.type ===
-      EARN_EXPERIENCES.STABLECOIN_LENDING
+      withdrawalToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING
     ) {
       return handleLendingWithdrawalFlow();
     }
 
-    if (
-      receiptTokenToUse?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING
-    ) {
+    if (withdrawalToken?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING) {
       return handleUnstakeWithdrawalFlow();
     }
   }, [
@@ -603,8 +618,9 @@ const EarnWithdrawInputView = () => {
     amountToken,
     token.chainId,
     navigation,
+    resourceType,
     ///: END:ONLY_INCLUDE_IF
-    receiptTokenToUse?.experience?.type,
+    withdrawalToken?.experience?.type,
     handleLendingWithdrawalFlow,
     handleUnstakeWithdrawalFlow,
   ]);
@@ -619,7 +635,7 @@ const EarnWithdrawInputView = () => {
     if (isLoadingMaxSafeWithdrawalAmount) return;
 
     // We don't want to display the max safe withdrawal text if it isn't applicable.
-    if (maxRiskAwareWithdrawalAmount === receiptToken?.balanceMinimalUnit)
+    if (maxRiskAwareWithdrawalAmount === withdrawalToken?.balanceMinimalUnit)
       return;
 
     if (!maxRiskAwareWithdrawalAmount) {
@@ -628,19 +644,19 @@ const EarnWithdrawInputView = () => {
 
     return renderFromTokenMinimalUnit(
       maxRiskAwareWithdrawalAmount,
-      receiptToken?.decimals as number,
+      withdrawalToken?.decimals as number,
     );
   }, [
     isLoadingMaxSafeWithdrawalAmount,
     maxRiskAwareWithdrawalAmount,
-    receiptToken?.balanceMinimalUnit,
-    receiptToken?.decimals,
+    withdrawalToken?.balanceMinimalUnit,
+    withdrawalToken?.decimals,
   ]);
 
   const isWithdrawingMoreThanAvailableForLendingToken = useMemo(() => {
     // This check only applies to lending experience.
     if (
-      receiptToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING
+      withdrawalToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING
     ) {
       return false;
     }
@@ -654,7 +670,7 @@ const EarnWithdrawInputView = () => {
     );
   }, [
     amountTokenMinimalUnit,
-    receiptToken?.experience?.type,
+    withdrawalToken?.experience?.type,
     maxRiskAwareWithdrawalAmount,
   ]);
 
@@ -664,7 +680,7 @@ const EarnWithdrawInputView = () => {
     }
     if (isOverMaximum.isOverMaximumToken) {
       return strings('stake.not_enough_token', {
-        ticker: receiptTokenToUse?.ticker ?? receiptTokenToUse?.symbol ?? '',
+        ticker: withdrawalToken?.ticker ?? withdrawalToken?.symbol ?? '',
       });
     }
     if (isOverMaximum.isOverMaximumEth) {
@@ -683,10 +699,10 @@ const EarnWithdrawInputView = () => {
     isOverMaximum.isOverMaximumToken,
     isOverMaximum.isOverMaximumEth,
     isWithdrawingMoreThanAvailableForLendingToken,
-    receiptTokenToUse?.ticker,
-    receiptTokenToUse?.symbol,
     isTrxStakingEnabled,
     isTronAsset,
+    withdrawalToken?.ticker,
+    withdrawalToken?.symbol,
   ]);
 
   const handleCurrencySwitchWithTracking = useCallback(() => {
@@ -835,7 +851,7 @@ const EarnWithdrawInputView = () => {
           <View style={styles.earnTokenSelectorContainer}>
             <View style={styles.spacer} />
             <EarnTokenSelector
-              token={receiptTokenToUse as TokenI}
+              token={withdrawalToken as TokenI}
               action={EARN_INPUT_VIEW_ACTIONS.WITHDRAW}
             />
           </View>
@@ -877,13 +893,11 @@ const EarnWithdrawInputView = () => {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             (isTronAsset
               ? !isNonZeroAmount
-              :
-            ///: END:ONLY_INCLUDE_IF
-              isWithdrawingMoreThanAvailableForLendingToken ||
-              isOverMaximum.isOverMaximumToken ||
-              isOverMaximum.isOverMaximumEth ||
-              !isNonZeroAmount) ||
-            isSubmittingStakeWithdrawalTransaction
+              : ///: END:ONLY_INCLUDE_IF
+                isWithdrawingMoreThanAvailableForLendingToken ||
+                isOverMaximum.isOverMaximumToken ||
+                isOverMaximum.isOverMaximumEth ||
+                !isNonZeroAmount) || isSubmittingStakeWithdrawalTransaction
           }
           width={ButtonWidthTypes.Full}
           onPress={handleWithdrawPress}

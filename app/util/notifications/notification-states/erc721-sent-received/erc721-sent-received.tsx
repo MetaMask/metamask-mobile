@@ -28,7 +28,10 @@ const isERC721Notification = isOfTypeNodeGuard([
 const isSent = (n: ERC721Notification) => n.type === TRIGGER_TYPES.ERC721_SENT;
 
 const title = (n: ERC721Notification) => {
-  const address = formatAddress(isSent(n) ? n.data.to : n.data.from, 'short');
+  const address = formatAddress(
+    isSent(n) ? n.payload.data.to : n.payload.data.from,
+    'short',
+  );
   return strings(`notifications.menu_item_title.${n.type}`, {
     address,
   });
@@ -47,12 +50,12 @@ const state: NotificationState<ERC721Notification> = {
     title: title(notification),
 
     description: {
-      start: notification.data.nft.collection.name,
-      end: `#${notification.data.nft.token_id}`,
+      start: notification.payload.data.nft.collection.name,
+      end: `#${notification.payload.data.nft.token_id}`,
     },
 
     image: {
-      url: notification.data.nft.image,
+      url: notification.payload.data.nft.image,
       variant: 'square',
     },
 
@@ -62,35 +65,35 @@ const state: NotificationState<ERC721Notification> = {
   }),
   createModalDetails: (notification) => {
     const nativeTokenDetails = getNativeTokenDetailsByChainId(
-      notification.chain_id,
+      notification.payload.chain_id,
     );
     return {
       title: modalTitle(notification),
       createdAt: notification.createdAt.toString(),
       header: {
         type: ModalHeaderType.NFT_IMAGE,
-        nftImageUrl: notification.data.nft.image,
+        nftImageUrl: notification.payload.data.nft.image,
         networkBadgeUrl: nativeTokenDetails?.image,
       },
       fields: [
         {
           type: ModalFieldType.ADDRESS,
           label: label_address_from(notification),
-          address: notification.data.from,
+          address: notification.payload.data.from,
         },
         {
           type: ModalFieldType.ADDRESS,
           label: label_address_to(notification),
-          address: notification.data.to,
+          address: notification.payload.data.to,
         },
         {
           type: ModalFieldType.TRANSACTION,
-          txHash: notification.tx_hash,
+          txHash: notification.payload.tx_hash,
         },
         {
           type: ModalFieldType.NFT_COLLECTION_IMAGE,
-          collectionName: notification.data.nft.collection.name,
-          collectionImageUrl: notification.data.nft.collection.image,
+          collectionName: notification.payload.data.nft.collection.name,
+          collectionImageUrl: notification.payload.data.nft.collection.image,
           networkBadgeUrl: nativeTokenDetails?.image,
         },
         {
@@ -101,8 +104,8 @@ const state: NotificationState<ERC721Notification> = {
       ],
       footer: {
         type: ModalFooterType.BLOCK_EXPLORER,
-        chainId: notification.chain_id,
-        txHash: notification.tx_hash,
+        chainId: notification.payload.chain_id,
+        txHash: notification.payload.tx_hash,
       },
     };
   },
