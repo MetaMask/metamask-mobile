@@ -31,8 +31,6 @@ import { ToastVariants } from '../../../../component-library/components/Toast/To
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { RootState } from '../../../../reducers';
 import { selectIconSeedAddressesByAccountGroupIds } from '../../../../selectors/multichainAccounts/accounts';
-import Routes from '../../../../constants/navigation/Routes';
-import { useNavigation } from '@react-navigation/native';
 
 const MultichainAccountsConnectedList = ({
   privacyMode,
@@ -49,7 +47,6 @@ const MultichainAccountsConnectedList = ({
   });
   const { toastRef } = useContext(ToastContext);
   const accountAvatarType = useSelector(selectAvatarAccountType);
-  const navigation = useNavigation();
 
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
   const accountGroups = useSelector(selectAccountGroups);
@@ -86,9 +83,8 @@ const MultichainAccountsConnectedList = ({
         accountAvatarType,
         hasNoTimeout: false,
       });
-      navigation.navigate(Routes.BROWSER.HOME);
     },
-    [navigation, iconSeedAddresses, accountAvatarType, toastRef, accountGroups],
+    [iconSeedAddresses, accountAvatarType, toastRef, accountGroups],
   );
 
   const renderItem = useCallback(
