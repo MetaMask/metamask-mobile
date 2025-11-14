@@ -3448,15 +3448,17 @@ describe('PredictController', () => {
           providerId: 'polymarket',
         });
 
-        expect(addTransactionBatch).toHaveBeenCalledWith({
-          from: '0x1234567890123456789012345678901234567890',
-          origin: 'metamask',
-          networkClientId: expect.any(String),
-          disableHook: true,
-          disableSequential: true,
-          requireApproval: true,
-          transactions: [mockWithdrawResponse.transaction],
-        });
+        expect(addTransactionBatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            from: '0x1234567890123456789012345678901234567890',
+            origin: 'metamask',
+            networkClientId: expect.any(String),
+            disableHook: true,
+            disableSequential: true,
+            requireApproval: true,
+            transactions: [mockWithdrawResponse.transaction],
+          }),
+        );
       });
     });
 

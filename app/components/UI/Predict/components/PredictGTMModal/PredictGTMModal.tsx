@@ -16,6 +16,7 @@ import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PredictMarketingImage from '../../../../../images/predict-marketing.png';
+import PoweredByPolymarketImage from '../../../../../images/powered-by-polymarket.png';
 import StorageWrapper from '../../../../../store/storage-wrapper';
 import { PREDICT_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
 import { useTheme } from '../../../../../util/theme';
@@ -25,6 +26,7 @@ import {
   PREDICT_GTM_MODAL_DECLINE,
   PREDICT_GTM_MODAL_ENGAGE,
   PREDICT_GTM_WHATS_NEW_MODAL,
+  PredictEventValues,
 } from '../../constants/eventNames';
 
 const PredictGTMModal = () => {
@@ -72,6 +74,9 @@ const PredictGTMModal = () => {
 
     navigate(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
+      params: {
+        entryPoint: PredictEventValues.ENTRY_POINT.GTM_MODAL,
+      },
     });
   };
 
@@ -84,6 +89,11 @@ const PredictGTMModal = () => {
       <SafeAreaView style={styles.contentContainer}>
         {/* Header Section */}
         <View style={styles.headerContainer}>
+          <Image
+            source={PoweredByPolymarketImage}
+            style={styles.poweredByImage}
+            resizeMode="contain"
+          />
           <Text style={styles.title} variant={TextVariant.HeadingLG}>
             {titleText}
           </Text>
