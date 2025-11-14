@@ -17,7 +17,7 @@ export function useTokenTrustSignalAlerts(): Alert[] {
     );
 
   const tokenAddress = incomingToken?.address || '';
-  const chainId = transactionMetadata?.chainId;
+  const chainId = transactionMetadata?.chainId || '';
 
   const tokenScanResult = useSelector((state: RootState) =>
     selectTokenScanResult(state, { tokenAddress, chainId }),

@@ -19,6 +19,7 @@ import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
 import { useInsufficientPayTokenNativeAlert } from './useInsufficientPayTokenNativeAlert';
 import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBalanceAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
+import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
 
 jest.mock('./useBlockaidAlerts');
 jest.mock('./useDomainMismatchAlerts');
@@ -33,6 +34,7 @@ jest.mock('./useNoPayTokenQuotesAlert');
 jest.mock('./useInsufficientPayTokenNativeAlert');
 jest.mock('./useInsufficientPredictBalanceAlert');
 jest.mock('./useBurnAddressAlert');
+jest.mock('./useTokenTrustSignalAlerts');
 
 describe('useConfirmationAlerts', () => {
   const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
@@ -155,6 +157,15 @@ describe('useConfirmationAlerts', () => {
     },
   ];
 
+  const mockTokenTrustSignalAlerts: Alert[] = [
+    {
+      key: 'TokenTrustSignalAlert',
+      title: 'Test Token Trust Signal Alert',
+      message: ALERT_MESSAGE_MOCK,
+      severity: Severity.Danger,
+    },
+  ];
+
   beforeEach(() => {
     jest.clearAllMocks();
     (useBlockaidAlerts as jest.Mock).mockReturnValue([]);
@@ -170,6 +181,7 @@ describe('useConfirmationAlerts', () => {
     (useInsufficientPayTokenNativeAlert as jest.Mock).mockReturnValue([]);
     (useInsufficientPredictBalanceAlert as jest.Mock).mockReturnValue([]);
     (useBurnAddressAlert as jest.Mock).mockReturnValue([]);
+    (useTokenTrustSignalAlerts as jest.Mock).mockReturnValue([]);
   });
 
   it('returns empty array if no alerts', () => {
@@ -241,6 +253,9 @@ describe('useConfirmationAlerts', () => {
       mockInsufficientPredictBalanceAlert,
     );
     (useBurnAddressAlert as jest.Mock).mockReturnValue(mockBurnAddressAlert);
+    (useTokenTrustSignalAlerts as jest.Mock).mockReturnValue(
+      mockTokenTrustSignalAlerts,
+    );
     const { result } = renderHookWithProvider(() => useConfirmationAlerts(), {
       state: siweSignatureConfirmationState,
     });
@@ -257,6 +272,7 @@ describe('useConfirmationAlerts', () => {
       ...mockInsufficientPayTokenNativeAlert,
       ...mockInsufficientPredictBalanceAlert,
       ...mockBurnAddressAlert,
+      ...mockTokenTrustSignalAlerts,
       ...mockUpgradeAccountAlert,
     ]);
   });
