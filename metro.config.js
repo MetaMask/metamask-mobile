@@ -38,6 +38,31 @@ const {
   wrapWithReanimatedMetroConfig,
 } = require('react-native-reanimated/metro-config');
 
+/**
+ * By default, Metro will spawn as many workers as cores. This can quickly eat
+ * up memory and resources.
+ *
+ * We assume that each worker takes up 3GB, and we assume that you don't want
+ * Metro to take up more than 50% of your available memory and 80% of your
+ * available CPU power.
+ *
+ * Examples:
+ *
+ * - 8 cores, 48GB of RAM => 6 workers spawned (fits the 80% of CPU requirement)
+ * - 14 cores, 48GB of RAM => 8 workers spawned (fits the 50% of memory requirement)
+ */
+function calculateNumberOfWorkers(totalNumberOfCores, totalMemory) {
+  const estimatedMemoryPerWorker = 3 * 1024 * 1024 * 1024;
+  const desiredMaxNumberOfCores = totalNumberOfCores * 0.8;
+  const desiredMaxMemory = totalMemory * 0.5;
+  return Math.floor(
+    Math.min(
+      desiredMaxNumberOfCores,
+      desiredMaxMemory / estimatedMemoryPerWorker,
+    ),
+  );
+}
+
 module.exports = function (baseConfig) {
   const defaultConfig = mergeConfig(baseConfig, getDefaultConfig(__dirname));
   const {
@@ -46,12 +71,9 @@ module.exports = function (baseConfig) {
   const isE2E =
     process.env.IS_TEST === 'true' ||
     process.env.METAMASK_ENVIRONMENT === 'e2e';
-
-  // For less powerful machines, leave room to do other tasks. For instance,
-  // if you have 10 cores but only 16GB, only 3 workers would get used.
-  const maxWorkers = Math.ceil(
-    os.availableParallelism() *
-      Math.min(1, os.totalmem() / (64 * 1024 * 1024 * 1024)),
+  const maxWorkers = calculateNumberOfWorkers(
+    os.availableParallelism(),
+    os.totalmem(),
   );
 
   return wrapWithReanimatedMetroConfig(
