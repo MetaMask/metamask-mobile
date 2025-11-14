@@ -17,9 +17,7 @@ const VALID_ENVIRONMENTS = ['beta', 'rc', 'exp', 'test', 'e2e', 'dev', 'producti
 const ANDROID_MANIFEST_PATH = path.join(__dirname, '..', 'android', 'app', 'src', 'main', 'AndroidManifest.xml');
 const IOS_EXPO_PLIST_PATH = path.join(__dirname, '..', 'ios', 'Expo.plist');
 
-const DEFAULT_CERTIFICATE_PATH = path.join(__dirname, '..', 'certs', 'certificate.pem');
-const CERTIFICATE_PATH =
-  process.env.EXPO_UPDATES_CODE_SIGNING_CERTIFICATE_PATH || DEFAULT_CERTIFICATE_PATH;
+const CERTIFICATE_PATH = path.join(__dirname, '..', 'certs', 'certificate.pem');
 const CODE_SIGNING_KEY_ID = 'main';
 const CODE_SIGNING_ALGORITHM = 'rsa-v1_5-sha256';
 
