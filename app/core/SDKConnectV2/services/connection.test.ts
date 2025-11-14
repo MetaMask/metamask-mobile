@@ -331,5 +331,74 @@ describe('Connection', () => {
         responsePayload,
       );
     });
+
+    it('shows error toast when bridge response includes an error', async () => {
+      await Connection.create(
+        mockConnectionInfo,
+        mockKeyManager,
+        RELAY_URL,
+        mockHostApp,
+      );
+
+      const errorResponsePayload = {
+        data: {
+          id: 1,
+          jsonrpc: '2.0',
+          error: {
+            code: -32000,
+            message: 'User rejected the request',
+          },
+        },
+      };
+
+      // Simulate the RPCBridgeAdapter emitting an error response
+      onBridgeResponseCallback(errorResponsePayload);
+
+      // Should show error toast, not success toast
+      expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.showConnectionError).toHaveBeenCalledWith(
+        mockConnectionInfo,
+      );
+      expect(mockHostApp.showReturnToApp).not.toHaveBeenCalled();
+
+      // And still send the error response to the client
+      expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledTimes(1);
+      expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledWith(
+        errorResponsePayload,
+      );
+    });
+
+    it('shows success toast for successful response with result', async () => {
+      await Connection.create(
+        mockConnectionInfo,
+        mockKeyManager,
+        RELAY_URL,
+        mockHostApp,
+      );
+
+      const successResponsePayload = {
+        data: {
+          id: 1,
+          jsonrpc: '2.0',
+          result: ['0x123'],
+        },
+      };
+
+      // Simulate the RPCBridgeAdapter emitting a success response
+      onBridgeResponseCallback(successResponsePayload);
+
+      // Should show success toast, not error toast
+      expect(mockHostApp.showReturnToApp).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.showReturnToApp).toHaveBeenCalledWith(
+        mockConnectionInfo,
+      );
+      expect(mockHostApp.showConnectionError).not.toHaveBeenCalled();
+
+      // And still send the response to the client
+      expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledTimes(1);
+      expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledWith(
+        successResponsePayload,
+      );
+    });
   });
 });
