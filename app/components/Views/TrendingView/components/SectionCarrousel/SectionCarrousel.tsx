@@ -77,15 +77,9 @@ const styleSheet = (params: {
 
 export interface SectionCarrouselProps {
   sectionId: SectionId;
-  showPagination?: boolean;
-  testIDPrefix?: string;
 }
 
-const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
-  sectionId,
-  showPagination = true,
-  testIDPrefix = 'carousel',
-}) => {
+const SectionCarrousel: React.FC<SectionCarrouselProps> = ({ sectionId }) => {
   const navigation = useNavigation();
   const [activeIndex, setActiveIndex] = useState(0);
   const flashListRef = useRef<FlashListRef<unknown>>(null);
@@ -167,7 +161,7 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
               key={`dot-${index}`}
               onPress={() => scrollToIndex(index)}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              testID={`${testIDPrefix}-pagination-dot-${index}`}
+              testID={`${sectionId}-pagination-dot-${index}`}
             >
               <Box style={isActive ? styles.dotActive : styles.dot} />
             </Pressable>
@@ -175,7 +169,7 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
         })}
       </Box>
     ),
-    [displayDataLength, activeIndex, scrollToIndex, styles, testIDPrefix],
+    [displayDataLength, activeIndex, scrollToIndex, styles, sectionId],
   );
 
   return (
@@ -195,7 +189,7 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
             onScroll={handleScroll}
             scrollEventThrottle={16}
             contentContainerStyle={styles.carouselContentContainer}
-            testID={`${testIDPrefix}-flash-list`}
+            testID={`${sectionId}-flash-list`}
           />
         )}
         {!isLoading && (
@@ -212,12 +206,12 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
             onScroll={handleScroll}
             scrollEventThrottle={16}
             contentContainerStyle={styles.carouselContentContainer}
-            testID={`${testIDPrefix}-flash-list`}
+            testID={`${sectionId}-flash-list`}
           />
         )}
       </Box>
 
-      {showPagination && <Box twClassName="px-1">{renderPaginationDots()}</Box>}
+      <Box twClassName="px-1">{renderPaginationDots()}</Box>
     </Box>
   );
 };

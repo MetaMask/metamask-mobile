@@ -144,13 +144,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     getSearchableText: (item) =>
       (item as PredictMarketType).title.toLowerCase(),
     keyExtractor: (item) => `prediction-${(item as PredictMarketType).id}`,
-    renderSection: () => (
-      <SectionCarrousel
-        sectionId="predictions"
-        showPagination
-        testIDPrefix="prediction-carousel"
-      />
-    ),
+    renderSection: () => <SectionCarrousel sectionId="predictions" />,
     useSectionData: (searchQuery?: string) => {
       const { marketData, isFetching } = usePredictMarketData({
         category: 'trending',

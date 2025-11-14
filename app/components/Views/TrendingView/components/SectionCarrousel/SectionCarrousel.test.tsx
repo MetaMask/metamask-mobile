@@ -29,6 +29,12 @@ jest.mock(
   () => 'PredictMarketSkeleton',
 );
 
+// Mock Predict data hook
+const mockUsePredictMarketData = jest.fn();
+jest.mock('../../../../UI/Predict/hooks/usePredictMarketData', () => ({
+  usePredictMarketData: () => mockUsePredictMarketData(),
+}));
+
 const initialState = {
   engine: {
     backgroundState,
@@ -41,7 +47,7 @@ const createMockPredictMarket = (id: string, title: string): PredictMarket =>
     title,
     outcomes: [],
     status: 'active',
-  }) as PredictMarket;
+  }) as unknown as PredictMarket;
 
 describe('SectionCarrousel', () => {
   const mockData: PredictMarket[] = [
@@ -52,6 +58,10 @@ describe('SectionCarrousel', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUsePredictMarketData.mockReturnValue({
+      marketData: mockData,
+      isFetching: false,
+    });
   });
 
   afterEach(() => {
@@ -61,126 +71,70 @@ describe('SectionCarrousel', () => {
   describe('rendering', () => {
     it('renders all items using section config renderItem', () => {
       const { getByTestId } = renderWithProvider(
-        <SectionCarrousel
-          sectionId="predictions"
-          isLoading={false}
-          data={mockData}
-        />,
+        <SectionCarrousel sectionId="predictions" />,
         { state: initialState },
       );
 
-      expect(getByTestId('carousel-flash-list')).toBeOnTheScreen();
+      expect(getByTestId('predictions-flash-list')).toBeOnTheScreen();
     });
 
-    it('renders pagination dots when showPagination is true', () => {
+    it('renders pagination dots', () => {
       const { getByTestId } = renderWithProvider(
-        <SectionCarrousel
-          sectionId="predictions"
-          isLoading={false}
-          data={mockData}
-          showPagination
-          testIDPrefix="test-carousel"
-        />,
+        <SectionCarrousel sectionId="predictions" />,
         { state: initialState },
       );
 
-      expect(getByTestId('test-carousel-pagination-dot-0')).toBeOnTheScreen();
-      expect(getByTestId('test-carousel-pagination-dot-1')).toBeOnTheScreen();
-      expect(getByTestId('test-carousel-pagination-dot-2')).toBeOnTheScreen();
+      expect(getByTestId('predictions-pagination-dot-0')).toBeOnTheScreen();
+      expect(getByTestId('predictions-pagination-dot-1')).toBeOnTheScreen();
+      expect(getByTestId('predictions-pagination-dot-2')).toBeOnTheScreen();
     });
 
-    it('hides pagination dots when showPagination is false', () => {
-      const { queryByTestId } = renderWithProvider(
-        <SectionCarrousel
-          sectionId="predictions"
-          isLoading={false}
-          data={mockData}
-          showPagination={false}
-          testIDPrefix="test-carousel"
-        />,
-        { state: initialState },
-      );
-
-      expect(queryByTestId('test-carousel-pagination-dot-0')).toBeNull();
-      expect(queryByTestId('test-carousel-pagination-dot-1')).toBeNull();
-      expect(queryByTestId('test-carousel-pagination-dot-2')).toBeNull();
-    });
-
-    it('renders FlashList with correct testID prefix', () => {
+    it('renders FlashList with sectionId as testID prefix', () => {
       const { getByTestId } = renderWithProvider(
-        <SectionCarrousel
-          sectionId="predictions"
-          isLoading={false}
-          data={mockData}
-          testIDPrefix="custom-prefix"
-        />,
+        <SectionCarrousel sectionId="predictions" />,
         { state: initialState },
       );
 
-      expect(getByTestId('custom-prefix-flash-list')).toBeOnTheScreen();
-    });
-
-    it('uses default testID prefix when not provided', () => {
-      const { getByTestId } = renderWithProvider(
-        <SectionCarrousel
-          sectionId="predictions"
-          isLoading={false}
-          data={mockData}
-        />,
-        { state: initialState },
-      );
-
-      expect(getByTestId('carousel-flash-list')).toBeOnTheScreen();
+      expect(getByTestId('predictions-flash-list')).toBeOnTheScreen();
     });
   });
 
   describe('loading state', () => {
     it('renders skeleton items when isLoading is true', () => {
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: true,
+      });
+
       const { getByTestId } = renderWithProvider(
-        <SectionCarrousel
-          sectionId="predictions"
-          isLoading
-          data={[]}
-          showPagination
-          testIDPrefix="test-carousel"
-        />,
+        <SectionCarrousel sectionId="predictions" />,
         { state: initialState },
       );
 
-      expect(getByTestId('carousel-flash-list')).toBeOnTheScreen();
-      expect(getByTestId('test-carousel-pagination-dot-0')).toBeOnTheScreen();
-      expect(getByTestId('test-carousel-pagination-dot-1')).toBeOnTheScreen();
-      expect(getByTestId('test-carousel-pagination-dot-2')).toBeOnTheScreen();
+      expect(getByTestId('predictions-flash-list')).toBeOnTheScreen();
+      expect(getByTestId('predictions-pagination-dot-0')).toBeOnTheScreen();
+      expect(getByTestId('predictions-pagination-dot-1')).toBeOnTheScreen();
+      expect(getByTestId('predictions-pagination-dot-2')).toBeOnTheScreen();
     });
 
     it('renders actual data when isLoading is false', () => {
       const { getByTestId } = renderWithProvider(
-        <SectionCarrousel
-          sectionId="predictions"
-          isLoading={false}
-          data={mockData}
-        />,
+        <SectionCarrousel sectionId="predictions" />,
         { state: initialState },
       );
 
-      expect(getByTestId('carousel-flash-list')).toBeOnTheScreen();
+      expect(getByTestId('predictions-flash-list')).toBeOnTheScreen();
     });
   });
 
   describe('pagination interaction', () => {
     it('renders pressable pagination dot without errors', () => {
       const { getByTestId } = renderWithProvider(
-        <SectionCarrousel
-          sectionId="predictions"
-          isLoading={false}
-          data={mockData}
-          showPagination
-          testIDPrefix="test-carousel"
-        />,
+        <SectionCarrousel sectionId="predictions" />,
         { state: initialState },
       );
 
-      const dot = getByTestId('test-carousel-pagination-dot-1');
+      const dot = getByTestId('predictions-pagination-dot-1');
 
       expect(dot).toBeOnTheScreen();
     });
@@ -188,52 +142,46 @@ describe('SectionCarrousel', () => {
 
   describe('empty data', () => {
     it('renders without items when data is empty and not loading', () => {
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: false,
+      });
+
       const { queryByTestId, getByTestId } = renderWithProvider(
-        <SectionCarrousel
-          sectionId="predictions"
-          isLoading={false}
-          data={[]}
-          testIDPrefix="test-carousel"
-        />,
+        <SectionCarrousel sectionId="predictions" />,
         { state: initialState },
       );
 
-      expect(getByTestId('carousel-flash-list')).toBeOnTheScreen();
-      expect(queryByTestId('test-carousel-pagination-dot-0')).toBeNull();
+      expect(getByTestId('predictions-flash-list')).toBeOnTheScreen();
+      expect(queryByTestId('predictions-pagination-dot-0')).toBeNull();
     });
   });
 
   describe('single item', () => {
     it('renders pagination dot for single item', () => {
       const singleItem = [createMockPredictMarket('1', 'Single Market')];
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: singleItem,
+        isFetching: false,
+      });
 
       const { getByTestId } = renderWithProvider(
-        <SectionCarrousel
-          sectionId="predictions"
-          isLoading={false}
-          data={singleItem}
-          showPagination
-          testIDPrefix="test-carousel"
-        />,
+        <SectionCarrousel sectionId="predictions" />,
         { state: initialState },
       );
 
-      expect(getByTestId('test-carousel-pagination-dot-0')).toBeOnTheScreen();
+      expect(getByTestId('predictions-pagination-dot-0')).toBeOnTheScreen();
     });
   });
 
   describe('section configuration', () => {
     it('uses section config keyExtractor for items', () => {
       const { getByTestId } = renderWithProvider(
-        <SectionCarrousel
-          sectionId="predictions"
-          isLoading={false}
-          data={mockData}
-        />,
+        <SectionCarrousel sectionId="predictions" />,
         { state: initialState },
       );
 
-      expect(getByTestId('carousel-flash-list')).toBeOnTheScreen();
+      expect(getByTestId('predictions-flash-list')).toBeOnTheScreen();
     });
   });
 });
