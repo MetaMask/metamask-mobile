@@ -2039,19 +2039,38 @@ export class HyperLiquidProvider implements IPerpsProvider {
         errorMessage.includes('Order must have minimum value of $10') ||
         errorMessage.includes('Order 0: Order must have minimum value');
 
-      if (isMinimumOrderError && retryCount === 0 && params.usdAmount) {
+      if (isMinimumOrderError && retryCount === 0) {
+        let adjustedUsdAmount: string;
+        let originalValue: string | undefined;
+
+        if (params.usdAmount) {
+          // USD-based order: adjust the USD amount directly
+          originalValue = params.usdAmount;
+          adjustedUsdAmount = (parseFloat(params.usdAmount) * 1.015).toFixed(2);
+        } else if (params.currentPrice) {
+          // Size-based order: calculate USD from size and adjust
+          const sizeValue = parseFloat(params.size);
+          const estimatedUsd = sizeValue * params.currentPrice;
+          originalValue = `${estimatedUsd.toFixed(2)} (calculated from size ${params.size})`;
+          adjustedUsdAmount = (estimatedUsd * 1.015).toFixed(2);
+        } else {
+          // No price information available - cannot retry
+          return this.handleOrderError({
+            error,
+            coin: params.coin,
+            orderType: params.orderType,
+            isBuy: params.isBuy,
+          });
+        }
+
         Logger.log(
           'Retrying order with adjusted size due to minimum value error',
           {
-            originalUsdAmount: params.usdAmount,
+            originalValue,
+            adjustedUsdAmount,
             retryCount,
           },
         );
-
-        // Add small buffer (1-2%) to account for price differences
-        const adjustedUsdAmount = (
-          parseFloat(params.usdAmount) * 1.015
-        ).toFixed(2);
 
         return this.placeOrder(
           {
