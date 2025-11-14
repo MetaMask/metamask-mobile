@@ -1152,6 +1152,25 @@ describe('CardSDK', () => {
       );
     });
 
+    it('throws ACCOUNT_DISABLED error when account has been disabled', async () => {
+      const disabledAccountMessage =
+        'Your account has been disabled. Please contact support.';
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 403,
+        json: jest.fn().mockResolvedValue({
+          message: disabledAccountMessage,
+        }),
+      });
+
+      await expect(cardSDK.login(mockLoginData)).rejects.toThrow(CardError);
+
+      await expect(cardSDK.login(mockLoginData)).rejects.toMatchObject({
+        type: CardErrorType.ACCOUNT_DISABLED,
+        message: disabledAccountMessage,
+      });
+    });
+
     it('throws error with invalid credentials', async () => {
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: false,
@@ -2753,6 +2772,169 @@ describe('CardSDK', () => {
         type: CardErrorType.CONFLICT_ERROR,
         message: 'Failed to create onboarding consent',
       });
+    });
+  });
+
+  describe('getConsentSetByOnboardingId', () => {
+    const onboardingId = 'onboarding123';
+
+    it('gets consent set successfully', async () => {
+      const mockResponse = {
+        consentSetId: 'consentSet123',
+        onboardingId,
+        consents: [
+          {
+            consentId: 'consent1',
+            title: 'Terms of Service',
+            accepted: true,
+          },
+        ],
+        policyType: 'US',
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponse),
+      });
+
+      const result = await cardSDK.getConsentSetByOnboardingId(onboardingId);
+
+      expect(result).toEqual(mockResponse);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining(`/v2/consent/onboarding/${onboardingId}`),
+        expect.objectContaining({
+          method: 'GET',
+        }),
+      );
+    });
+
+    it('returns null when consent set not found (404)', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 404,
+        json: jest.fn().mockResolvedValue({
+          message: 'Consent set not found',
+        }),
+      });
+
+      const result = await cardSDK.getConsentSetByOnboardingId(onboardingId);
+
+      expect(result).toBeNull();
+    });
+
+    it('throws CONFLICT_ERROR for 4xx errors (except 404)', async () => {
+      const errorMessage = 'Bad request - invalid onboarding id';
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: jest.fn().mockResolvedValue({
+          message: errorMessage,
+        }),
+      });
+
+      await expect(
+        cardSDK.getConsentSetByOnboardingId(onboardingId),
+      ).rejects.toMatchObject({
+        type: CardErrorType.CONFLICT_ERROR,
+        message: errorMessage,
+      });
+    });
+
+    it('throws CONFLICT_ERROR with default message when response has no message', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 403,
+        json: jest.fn().mockResolvedValue({}),
+      });
+
+      await expect(
+        cardSDK.getConsentSetByOnboardingId(onboardingId),
+      ).rejects.toMatchObject({
+        type: CardErrorType.CONFLICT_ERROR,
+        message: 'Failed to get consent set by onboarding id',
+      });
+    });
+
+    it('throws SERVER_ERROR for 5xx errors', async () => {
+      const errorMessage = 'Internal server error';
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue({
+          message: errorMessage,
+        }),
+      });
+
+      await expect(
+        cardSDK.getConsentSetByOnboardingId(onboardingId),
+      ).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+        message: errorMessage,
+      });
+    });
+
+    it('throws SERVER_ERROR with default message when response parsing fails', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 503,
+        json: jest.fn().mockRejectedValue(new Error('Invalid JSON')),
+      });
+
+      await expect(
+        cardSDK.getConsentSetByOnboardingId(onboardingId),
+      ).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+        message: 'Server error while getting consent set by onboarding id',
+      });
+    });
+
+    it('handles network errors', async () => {
+      const networkError = new Error('Network failure');
+      (global.fetch as jest.Mock).mockRejectedValue(networkError);
+
+      await expect(
+        cardSDK.getConsentSetByOnboardingId(onboardingId),
+      ).rejects.toMatchObject({
+        type: CardErrorType.NETWORK_ERROR,
+        message: 'Network error. Please check your connection.',
+      });
+    });
+
+    it('handles timeout errors from makeRequest', async () => {
+      const timeoutError = new Error('Request timeout');
+      timeoutError.name = 'AbortError';
+      (global.fetch as jest.Mock).mockRejectedValue(timeoutError);
+
+      await expect(
+        cardSDK.getConsentSetByOnboardingId(onboardingId),
+      ).rejects.toMatchObject({
+        type: CardErrorType.TIMEOUT_ERROR,
+      });
+    });
+
+    it('makes unauthenticated request', async () => {
+      const mockResponse = {
+        consentSetId: 'consentSet123',
+        onboardingId,
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponse),
+      });
+
+      await cardSDK.getConsentSetByOnboardingId(onboardingId);
+
+      // Verify it's called without Authorization header (unauthenticated)
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.not.objectContaining({
+            Authorization: expect.anything(),
+          }),
+        }),
+      );
     });
   });
 
