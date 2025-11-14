@@ -283,6 +283,17 @@ export interface CardEventPayload {
 }
 
 /**
+ * mUSD deposit event payload
+ */
+export interface MusdDepositEventPayload {
+  /**
+   * Date of the deposit
+   * @example '2025-11-11'
+   */
+  date: string;
+}
+
+/**
  * Base points event interface
  */
 interface BasePointsEventDto {
@@ -343,6 +354,14 @@ export type PointsEventDto = BasePointsEventDto &
     | {
         type: 'CARD';
         payload: CardEventPayload | null;
+      }
+    | {
+        type: 'PREDICT';
+        payload: null;
+      }
+    | {
+        type: 'MUSD_DEPOSIT';
+        payload: MusdDepositEventPayload | null;
       }
     | {
         type: 'REFERRAL' | 'SIGN_UP_BONUS' | 'LOYALTY_BONUS' | 'ONE_TIME_BONUS';
@@ -717,7 +736,10 @@ export interface Patch {
  */
 export interface RewardsControllerOptInAction {
   type: 'RewardsController:optIn';
-  handler: (referralCode?: string) => Promise<string | null>;
+  handler: (
+    accounts: InternalAccount[],
+    referralCode?: string,
+  ) => Promise<string | null>;
 }
 
 /**
