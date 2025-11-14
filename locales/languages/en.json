@@ -5456,6 +5456,7 @@
     "allowance_reset": "Allowance Reset",
     "token_conversion": {
       "title": "Convert to {{tokenSymbol}}",
+      "confirmation_button": "Convert to {{tokenSymbol}}",
       "toasts": {
         "in_progress": "{{tokenSymbol}} conversion in progress",
         "success": "{{tokenSymbol}} conversion succeeded",
