@@ -1,4 +1,4 @@
-import { createLogger, Logger , LogLevel } from '../../e2e/framework/logger';
+import { createLogger, Logger, LogLevel } from '../../e2e/framework/logger';
 import { PlaywrightElement } from './PlaywrightAdapter';
 
 /**
@@ -40,7 +40,13 @@ export interface LocatorConfig {
   // This allows you to use your existing Matchers helpers!
   detox?: () => DetoxElement;
   // Appium/WebdriverIO locator - can be a function that returns a Promise<PlaywrightElement>
-  appium?: () => Promise<PlaywrightElement>;
+  // Can be either a generic function for both platforms, or platform-specific functions
+  appium?:
+    | (() => Promise<PlaywrightElement>) // Generic locator for both platforms
+    | {
+        android?: () => Promise<PlaywrightElement>; // Android-specific locator
+        ios?: () => Promise<PlaywrightElement>; // iOS-specific locator
+      };
 }
 
 /**
@@ -173,7 +179,7 @@ export class EncapsulatedElement {
    * @returns DetoxElement or Promise<PlaywrightElement> based on current framework
    *
    * @example
-   * // Using existing Matchers helpers for Detox
+   * // Using existing Matchers helpers for Detox with generic Appium locator
    * get passwordInput(): EncapsulatedElementType {
    *   return EncapsulatedElement.create({
    *     detox: () => Matchers.getElementByID('login-password-input'),
@@ -182,11 +188,23 @@ export class EncapsulatedElement {
    * }
    *
    * @example
-   * // Using text locator
+   * // Using text locator with generic Appium
    * get unlockButton(): EncapsulatedElementType {
    *   return EncapsulatedElement.create({
    *     detox: () => Matchers.getElementByText('Unlock'),
    *     appium: () => PlaywrightMatchers.getByText('Unlock')
+   *   });
+   * }
+   *
+   * @example
+   * // Using platform-specific Appium locators
+   * get submitButton(): EncapsulatedElementType {
+   *   return EncapsulatedElement.create({
+   *     detox: () => Matchers.getElementByID('submit-button'),
+   *     appium: {
+   *       android: () => PlaywrightMatchers.getByXPath('//*[@resource-id="submit-button"]'),
+   *       ios: () => PlaywrightMatchers.getByAccessibilityId('submit-button')
+   *     }
    *   });
    * }
    */
@@ -196,8 +214,7 @@ export class EncapsulatedElement {
     if (framework === TestFramework.DETOX) {
       return this.createDetoxElement(config);
     }
-      return this.createAppiumElement(config);
-
+    return this.createAppiumElement(config);
   }
 
   /**
@@ -217,7 +234,7 @@ export class EncapsulatedElement {
   /**
    * Create Appium/WebdriverIO element from configuration
    */
-  private static createAppiumElement(
+  private static async createAppiumElement(
     config: LocatorConfig,
   ): Promise<PlaywrightElement> {
     if (!config.appium) {
@@ -226,8 +243,23 @@ export class EncapsulatedElement {
       );
     }
 
-    // Execute the function to get the Promise<PlaywrightElement>
-    return config.appium();
+    // If appium is a function, use it as a generic locator
+    if (typeof config.appium === 'function') {
+      return config.appium();
+    }
+
+    // Otherwise, it's a platform-specific configuration
+    const platform = await PlatformDetector.getPlatform();
+    const platformLocator = config.appium[platform];
+
+    if (!platformLocator) {
+      throw new Error(
+        `Appium locator for platform '${platform}' is not provided in the configuration`,
+      );
+    }
+
+    // Execute the platform-specific function to get the Promise<PlaywrightElement>
+    return platformLocator();
   }
 }
 
