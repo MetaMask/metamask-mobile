@@ -137,9 +137,9 @@ function findImporters(
 
     // Find files that import this file
     // Pattern matches: from './fileName' or from "../fileName" (with space after from)
-    const singleQuote = "'";
-    const doubleQuote = '"';
-    const pattern = `from [${singleQuote}${doubleQuote}].*${fileName}`;
+    // Build pattern with properly escaped quotes for shell
+    // eslint-disable-next-line no-useless-escape
+    const pattern = `from ['\\\"].*${fileName}`; // Escaped: from ['\"].*fileName
 
     const importers = execSync(
       `grep -r -l --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" -E "${pattern}" app/ 2>/dev/null | grep -v "${filePath}" | head -${maxResults} || true`,
