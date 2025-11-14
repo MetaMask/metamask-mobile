@@ -301,7 +301,7 @@ export function calculateOrderPriceAndSize(
   let formattedSize: string;
 
   if (orderType === 'market') {
-    // Market orders: add slippage (8% default per HyperLiquid recommendations)
+    // Market orders: add slippage (3% conservative default)
     const slippageValue =
       slippage ?? ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS / 10000;
     orderPrice = isBuy

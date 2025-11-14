@@ -2094,7 +2094,7 @@ describe('PerpsClosePositionView', () => {
         slippage: {
           usdAmount: undefined, // undefined for full close to bypass $10 minimum validation
           priceAtCalculation: 3000, // effectivePrice: currentPrice for market orders
-          maxSlippageBps: 800, // maxSlippageBps: 8% slippage tolerance (800 basis points) - HyperLiquid standard
+          maxSlippageBps: 300, // maxSlippageBps: 3% slippage tolerance (300 basis points) - conservative default
         },
       });
     });
