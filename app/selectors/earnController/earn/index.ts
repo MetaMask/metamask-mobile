@@ -34,6 +34,8 @@ import { createDeepEqualSelector } from '../../util';
 import { toFormattedAddress } from '../../../util/address';
 import { EVM_SCOPE } from '../../../components/UI/Earn/constants/networks';
 
+import { selectTrxStakingEnabled } from '../../featureFlagController/trxStakingEnabled';
+
 const selectEarnControllerState = (state: RootState) =>
   state.engine.backgroundState.EarnController;
 
@@ -52,6 +54,7 @@ const selectEarnTokenBaseData = createSelector(
     selectAccountTokensAcrossChains,
     selectCurrencyRates,
     selectAccountsByChainId,
+    selectTrxStakingEnabled,
   ],
   (
     earnState,
@@ -67,6 +70,7 @@ const selectEarnTokenBaseData = createSelector(
     accountTokensAcrossChains,
     currencyRates,
     accountsByChainId,
+    isTrxStakingEnabled,
   ) => ({
     earnState,
     isPooledStakingEnabled,
@@ -81,6 +85,7 @@ const selectEarnTokenBaseData = createSelector(
     accountTokensAcrossChains,
     currencyRates,
     accountsByChainId,
+    isTrxStakingEnabled,
   }),
 );
 
@@ -101,6 +106,7 @@ const selectEarnTokens = createDeepEqualSelector(
       currencyRates,
       networkConfigs,
       accountsByChainId,
+      isTrxStakingEnabled,
     } = earnTokenBaseData;
     // TODO: replace with selector for this in controller
     const isStablecoinLendingEligible = isPooledStakingEligible;
@@ -172,10 +178,23 @@ const selectEarnTokens = createDeepEqualSelector(
         isSupportedPooledStakingChain(decimalChainId);
       const isLendingToken = lendingMarketsForToken.length > 0;
       const isLendingOutputToken = lendingMarketsForOutputToken.length > 0;
+
+      const isTronNative =
+        token.isNative &&
+        token.chainId?.startsWith('tron:') &&
+        token.ticker === 'TRX';
+
       const isStakingToken =
-        token.isETH && !token.isStaked && isStakingSupportedChain;
+        (token.isETH && !token.isStaked && isStakingSupportedChain) ||
+        (isTrxStakingEnabled && isTronNative && !token.isStaked);
       const isStakingOutputToken =
         token.isETH && token.isStaked && isStakingSupportedChain;
+
+      const stakingAprForChain = token.isETH
+        ? pooledStakingVaultAprForChain
+        : // TODO: Comeback after we have a TRX APR value
+          '0';
+
       const isEarnToken = isStakingToken || isLendingToken;
       const isEarnOutputToken = isStakingOutputToken || isLendingOutputToken;
 
@@ -250,12 +269,13 @@ const selectEarnTokens = createDeepEqualSelector(
       // it allows Eth to still be seen as an earn token to get earn token details
       // if (isPooledStakingEnabled && isPooledStakingEligible) {
       // TODO: we could add direct validator staking as an additional earn experience
+
       if (isStakingToken || isStakingOutputToken) {
         experiences.push({
           type: EARN_EXPERIENCES.POOLED_STAKING,
-          apr: pooledStakingVaultAprForChain,
+          apr: stakingAprForChain,
           ...getEstimatedAnnualRewards(
-            pooledStakingVaultAprForChain,
+            stakingAprForChain,
             assetBalanceFiatNumber,
             tokenBalanceMinimalUnit.toString(),
             currentCurrency,
@@ -327,9 +347,7 @@ const selectEarnTokens = createDeepEqualSelector(
           // i.e. 100.12345
           balanceFiatNumber: assetBalanceFiatNumber,
           tokenUsdExchangeRate,
-          get experience() {
-            return this.experiences[0];
-          },
+          experience: experiences[0],
           // asset apr info per experience
           // i.e. 4.5%
           // estimated annual rewards per experience
@@ -521,6 +539,29 @@ const selectEarnTokenPair = createSelector(
   },
 );
 
+const selectPrimaryEarnExperienceTypeForAsset = createSelector(
+  [
+    (_state: RootState, asset: TokenI) => asset,
+    selectEarnToken,
+    selectEarnOutputToken,
+    selectTrxStakingEnabled,
+  ],
+  (asset, earnToken, outputToken, isTrxStakingEnabled) => {
+    const typeFromMetadata =
+      earnToken?.experience?.type ?? outputToken?.experience?.type;
+    if (typeFromMetadata) {
+      return typeFromMetadata;
+    }
+
+    const isTronNative =
+      asset?.ticker === 'TRX' && asset?.chainId?.startsWith('tron:');
+    if (isTronNative && isTrxStakingEnabled) {
+      return EARN_EXPERIENCES.POOLED_STAKING;
+    }
+    return undefined;
+  },
+);
+
 export const earnSelectors = {
   selectEarnControllerState,
   selectEarnTokens,
@@ -529,4 +570,5 @@ export const earnSelectors = {
   selectEarnTokenPair,
   selectPairedEarnToken,
   selectPairedEarnOutputToken,
+  selectPrimaryEarnExperienceTypeForAsset,
 };

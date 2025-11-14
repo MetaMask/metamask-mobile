@@ -53,6 +53,7 @@ import { SOLANA_MAINNET } from '../../Ramp/Deposit/constants/networks';
 import { CaipChainId } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { SolScope } from '@metamask/keyring-api';
+import { isZeroValue } from '../../../../util/number';
 
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
@@ -890,7 +891,11 @@ export class CardSDK {
     const combinedDetails = externalWalletDetails
       .map((wallet: CardWalletExternalResponse) => {
         const networkLower = wallet.network?.toLowerCase();
-        if (!SUPPORTED_ASSET_NETWORKS.includes(networkLower)) {
+        if (
+          !SUPPORTED_ASSET_NETWORKS.includes(networkLower) ||
+          isNaN(parseInt(wallet.allowance)) ||
+          isZeroValue(parseInt(wallet.allowance))
+        ) {
           return null;
         }
 

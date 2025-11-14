@@ -3,7 +3,7 @@ import BN from 'bnjs4';
 
 /* eslint-disable-next-line import/no-namespace */
 import * as controllerUtilsModule from '@metamask/controller-utils';
-import { ERC721, ERC1155 } from '@metamask/controller-utils';
+import { ERC721, ERC1155, ORIGIN_METAMASK } from '@metamask/controller-utils';
 
 import { handleMethodData } from '../../util/transaction-controller';
 
@@ -57,6 +57,7 @@ import {
   getEther,
   validateTransactionActionBalance,
   isSmartContractAddress,
+  isTransactionIncomplete,
 } from '.';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
@@ -536,6 +537,33 @@ describe('Transactions utils :: getMethodData', () => {
   });
 });
 
+describe('Transactions utils :: isTransactionIncomplete', () => {
+  it.each([
+    'submitted',
+    'approved',
+    'unapproved',
+    'pending',
+    'cancelled',
+    'rejected',
+    'failed',
+  ])('returns true for %s status', (status) => {
+    const result = isTransactionIncomplete(status);
+
+    expect(result).toBe(true);
+  });
+
+  it.each([
+    ['confirmed', 'confirmed'],
+    ['undefined', undefined],
+    ['empty string', ''],
+    ['unknown', 'unknown_status'],
+  ])('returns false for %s status', (_description, status) => {
+    const result = isTransactionIncomplete(status);
+
+    expect(result).toBe(false);
+  });
+});
+
 describe('Transactions utils :: getActionKey', () => {
   beforeEach(() => {
     jest
@@ -699,6 +727,124 @@ describe('Transactions utils :: getActionKey', () => {
       MOCK_CHAIN_ID,
     );
     expect(result).toBe(strings('transactions.contract_deploy'));
+  });
+
+  it.each([
+    'pending',
+    'submitted',
+    'approved',
+    'cancelled',
+    'rejected',
+    'failed',
+  ])('returns "Send Ether" for %s transactions', async (status) => {
+    spyOnQueryMethod(undefined);
+    const tx = {
+      txParams: {
+        from: MOCK_ADDRESS1,
+        to: MOCK_ADDRESS2,
+      },
+      status,
+    };
+
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      undefined,
+      MOCK_CHAIN_ID,
+    );
+
+    expect(result).toBe(strings('transactions.send_ether'));
+  });
+
+  it.each([
+    'pending',
+    'submitted',
+    'approved',
+    'cancelled',
+    'rejected',
+    'failed',
+  ])('returns "Send UNI" for %s transactions with ticker', async (status) => {
+    spyOnQueryMethod(undefined);
+    const tx = {
+      txParams: {
+        from: MOCK_ADDRESS1,
+        to: MOCK_ADDRESS2,
+      },
+      status,
+    };
+
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      UNI_TICKER,
+      MOCK_CHAIN_ID,
+    );
+
+    expect(result).toBe(
+      strings('transactions.send_unit', { unit: UNI_TICKER }),
+    );
+  });
+
+  it('returns "Sent Ether" for confirmed transactions', async () => {
+    spyOnQueryMethod(undefined);
+    const tx = {
+      txParams: {
+        from: MOCK_ADDRESS1,
+        to: MOCK_ADDRESS2,
+      },
+      status: 'confirmed',
+    };
+
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      undefined,
+      MOCK_CHAIN_ID,
+    );
+
+    expect(result).toBe(strings('transactions.sent_ether'));
+  });
+
+  it('returns "Sent UNI" for confirmed transactions with ticker', async () => {
+    spyOnQueryMethod(undefined);
+    const tx = {
+      txParams: {
+        from: MOCK_ADDRESS1,
+        to: MOCK_ADDRESS2,
+      },
+      status: 'confirmed',
+    };
+
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      UNI_TICKER,
+      MOCK_CHAIN_ID,
+    );
+
+    expect(result).toBe(
+      strings('transactions.sent_unit', { unit: UNI_TICKER }),
+    );
+  });
+
+  it('returns "Sent Ether" when status is undefined (defaults to completed)', async () => {
+    spyOnQueryMethod(undefined);
+    const tx = {
+      txParams: {
+        from: MOCK_ADDRESS1,
+        to: MOCK_ADDRESS2,
+      },
+      // status intentionally not provided
+    };
+
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      undefined,
+      MOCK_CHAIN_ID,
+    );
+
+    expect(result).toBe(strings('transactions.sent_ether'));
   });
 });
 
@@ -1078,6 +1224,29 @@ describe('Transactions utils :: getIsSwapApproveOrSwapTransaction', () => {
     );
     expect(result).toBe(false);
   });
+  it('returns false if the transaction is a token transfer from swap origin', () => {
+    const tokenTransferFromSwapOrigin = {
+      chainId: '0x1',
+      origin: ORIGIN_METAMASK,
+      transaction: {
+        from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
+        data: '0xa9059cbb000000000000000000000000dc738206f559bdae106894a62876a119e470aee20000000000000000000000000000000000000000000000000de0b6b3a7640000',
+        gas: '0xc350',
+        nonce: '0x10',
+        to: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+        value: '0x0',
+      },
+    };
+
+    const result = getIsSwapApproveOrSwapTransaction(
+      tokenTransferFromSwapOrigin.transaction.data,
+      tokenTransferFromSwapOrigin.origin,
+      tokenTransferFromSwapOrigin.transaction.to,
+      tokenTransferFromSwapOrigin.chainId,
+    );
+
+    expect(result).toBe(false);
+  });
 });
 
 describe('Transactions utils :: getIsSwapApproveTransaction', () => {
@@ -1341,21 +1510,26 @@ describe('Transactions utils :: isApprovalTransaction', () => {
 describe('Transactions utils :: getTransactionReviewActionKey', () => {
   const transaction = { to: '0x1234567890123456789012345678901234567890' };
   const chainId = '1';
-  it('returns `Unknown Method` review action key when transaction action key exists', async () => {
-    const expectedReviewActionKey = 'Unknown Method';
+
+  it('returns "Confirm" review action key for ETH send transaction', async () => {
+    const expectedReviewActionKey = 'Confirm';
+
     const result = await getTransactionReviewActionKey(
       { transaction },
       chainId,
     );
+
     expect(result).toEqual(expectedReviewActionKey);
   });
 
-  it('returns correct review action key', async () => {
+  it('returns "Increase Allowance" review action key for increase allowance transaction', async () => {
     const expectedReviewActionKey = 'Increase Allowance';
+
     const result = await getTransactionReviewActionKey(
       { transaction: { ...transaction, data: INCREASE_ALLOWANCE_SIGNATURE } },
       chainId,
     );
+
     expect(result).toEqual(expectedReviewActionKey);
   });
 });

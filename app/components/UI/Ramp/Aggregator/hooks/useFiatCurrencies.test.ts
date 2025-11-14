@@ -1,3 +1,4 @@
+import { act } from '@testing-library/react-native';
 import { RampSDK } from '../sdk';
 import useFiatCurrencies from './useFiatCurrencies';
 import useSDKMethod from './useSDKMethod';
@@ -324,5 +325,108 @@ describe('useFiatCurrencies', () => {
     expect(
       mockUseRampSDKValues.setSelectedFiatCurrencyId,
     ).not.toHaveBeenCalled();
+  });
+
+  it('updates currency when region changes and using default currency', async () => {
+    const mockQueryDefaultFiatCurrency = jest.fn();
+    const mockSetSelectedFiatCurrencyId = jest.fn();
+
+    mockUseRampSDKValues.selectedRegion = { id: 'region-1' };
+    mockUseRampSDKValues.selectedFiatCurrencyId = 'default-fiat-currency-id';
+    mockUseRampSDKValues.setSelectedFiatCurrencyId =
+      mockSetSelectedFiatCurrencyId;
+
+    mockQueryDefaultFiatCurrency.mockResolvedValue({
+      id: 'new-region-currency',
+    });
+
+    (useSDKMethod as jest.Mock)
+      .mockReturnValueOnce([
+        {
+          data: { id: 'default-fiat-currency-id' },
+          error: null,
+          isFetching: false,
+        },
+        mockQueryDefaultFiatCurrency,
+      ])
+      .mockReturnValueOnce([
+        {
+          data: [{ id: 'default-fiat-currency-id' }],
+          error: null,
+          isFetching: false,
+        },
+        jest.fn(),
+      ])
+      .mockReturnValueOnce([
+        {
+          data: { id: 'default-fiat-currency-id' },
+          error: null,
+          isFetching: false,
+        },
+        mockQueryDefaultFiatCurrency,
+      ])
+      .mockReturnValueOnce([
+        {
+          data: [{ id: 'default-fiat-currency-id' }],
+          error: null,
+          isFetching: false,
+        },
+        jest.fn(),
+      ]);
+
+    const { rerender } = renderHookWithProvider(() => useFiatCurrencies());
+
+    mockUseRampSDKValues.selectedRegion = { id: 'region-2' };
+
+    await act(async () => {
+      rerender(() => useFiatCurrencies());
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    });
+
+    expect(mockQueryDefaultFiatCurrency).toHaveBeenCalledWith('region-2');
+    expect(mockSetSelectedFiatCurrencyId).toHaveBeenCalledWith(
+      'new-region-currency',
+    );
+  });
+
+  it('does not update currency when region changes but not using default currency', async () => {
+    const mockQueryDefaultFiatCurrency = jest.fn();
+    const mockSetSelectedFiatCurrencyId = jest.fn();
+
+    mockUseRampSDKValues.selectedRegion = { id: 'region-1' };
+    mockUseRampSDKValues.selectedFiatCurrencyId = 'custom-currency-id';
+    mockUseRampSDKValues.setSelectedFiatCurrencyId =
+      mockSetSelectedFiatCurrencyId;
+
+    (useSDKMethod as jest.Mock)
+      .mockReturnValue([
+        {
+          data: { id: 'default-fiat-currency-id' },
+          error: null,
+          isFetching: false,
+        },
+        mockQueryDefaultFiatCurrency,
+      ])
+      .mockReturnValue([
+        {
+          data: [
+            { id: 'custom-currency-id' },
+            { id: 'default-fiat-currency-id' },
+          ],
+          error: null,
+          isFetching: false,
+        },
+        jest.fn(),
+      ]);
+
+    const { rerender } = renderHookWithProvider(() => useFiatCurrencies());
+
+    mockUseRampSDKValues.selectedRegion = { id: 'region-2' };
+
+    rerender(() => useFiatCurrencies());
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(mockSetSelectedFiatCurrencyId).not.toHaveBeenCalled();
   });
 });

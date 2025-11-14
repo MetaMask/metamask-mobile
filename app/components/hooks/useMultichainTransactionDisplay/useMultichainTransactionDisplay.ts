@@ -6,6 +6,7 @@ import {
 import I18n, { strings } from '../../../../locales/i18n';
 import { formatWithThreshold } from '../../../util/assets';
 import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
+import { isTransactionIncomplete } from '../../../util/transactions';
 
 interface Asset {
   unit: string;
@@ -74,9 +75,13 @@ export function useMultichainTransactionDisplay(
     locale,
   );
 
+  const isIncomplete = isTransactionIncomplete(transaction.status);
+
   const typeToTitle: Partial<Record<TransactionType, string>> = {
-    [TransactionType.Send]: strings('transactions.sent'),
-    [TransactionType.Receive]: strings('transactions.received'),
+    [TransactionType.Send]: isIncomplete
+      ? `${strings('transactions.send')} ${from?.unit || ''}`
+      : `${strings('transactions.sent')} ${from?.unit || ''}`,
+    [TransactionType.Receive]: `${strings('transactions.received')} ${to?.unit || ''}`,
     [TransactionType.Swap]: `${strings('transactions.swap')} ${
       from?.unit
     } ${strings('transactions.to').toLowerCase()} ${to?.unit}`,

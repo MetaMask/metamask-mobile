@@ -211,4 +211,4 @@ const PerpsMarketRowItem = ({
   );
 };
 
-export default PerpsMarketRowItem;
+export default React.memo(PerpsMarketRowItem);

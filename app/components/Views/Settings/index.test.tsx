@@ -6,6 +6,7 @@ import { SettingsViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Set
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { fireEvent } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
+import { strings } from '../../../../locales/i18n';
 
 // Mock Authentication module
 jest.mock('../../../core', () => ({
@@ -170,5 +171,41 @@ describe('Settings', () => {
       locked: false,
     });
     expect(Authentication.lockApp).toHaveBeenCalledTimes(1);
+  });
+
+  describe('Feature Flag Override', () => {
+    const originalEnv = process.env.METAMASK_ENVIRONMENT;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      // Reset to original value before each test
+      if (originalEnv !== undefined) {
+        process.env.METAMASK_ENVIRONMENT = originalEnv;
+      } else {
+        delete process.env.METAMASK_ENVIRONMENT;
+      }
+    });
+
+    afterEach(() => {
+      if (originalEnv !== undefined) {
+        process.env.METAMASK_ENVIRONMENT = originalEnv;
+      } else {
+        delete process.env.METAMASK_ENVIRONMENT;
+      }
+    });
+
+    it('renders feature flag override drawer when METAMASK_ENVIRONMENT is not production', () => {
+      process.env.METAMASK_ENVIRONMENT = 'development';
+
+      const { getByText } = renderWithProvider(<Settings />, {
+        state: initialState,
+      });
+
+      const featureFlagOverrideTitle = getByText(
+        strings('app_settings.feature_flag_override.title'),
+      );
+
+      expect(featureFlagOverrideTitle).toBeDefined();
+    });
   });
 });

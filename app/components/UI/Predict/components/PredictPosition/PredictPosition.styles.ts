@@ -36,6 +36,9 @@ const styleSheet = () =>
       justifyContent: 'flex-end',
       alignItems: 'flex-end',
     },
+    skeletonSpacing: {
+      marginBottom: 4,
+    },
     marketEntry: {
       flexDirection: 'column',
       justifyContent: 'space-between',

@@ -468,14 +468,14 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                 style={
                                   {
                                     "color": "#121314",
-                                    "flex": 1,
                                     "fontFamily": "Geist Bold",
-                                    "fontSize": 18,
+                                    "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
                                   }
                                 }
+                                testID="header-title"
                               >
                                 Select network
                               </Text>
@@ -637,7 +637,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                                   }
                                                 }
                                               >
-                                                Optimism
+                                                Bitcoin
                                               </Text>
                                             </View>
                                           </View>
@@ -831,7 +831,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                                   }
                                                 }
                                               >
-                                                Bitcoin
+                                                Optimism
                                               </Text>
                                             </View>
                                           </View>

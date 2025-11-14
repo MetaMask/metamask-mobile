@@ -1,15 +1,18 @@
 import React, { useMemo } from 'react';
-import Text from '../../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
 import InfoRow from '../../UI/info-row';
 import { strings } from '../../../../../../../locales/i18n';
 import { View } from 'react-native';
-import { SkeletonRow } from '../skeleton-row';
 import { BigNumber } from 'bignumber.js';
 import {
   useIsTransactionPayLoading,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPayFiat } from '../../../hooks/pay/useTransactionPayFiat';
+import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 
 export function TotalRow() {
   const { formatFiat } = useTransactionPayFiat();
@@ -23,13 +26,18 @@ export function TotalRow() {
   }, [totals, formatFiat]);
 
   if (isLoading) {
-    return <SkeletonRow testId="total-row-skeleton" />;
+    return <InfoRowSkeleton testId="total-row-skeleton" />;
   }
 
   return (
     <View testID="total-row">
-      <InfoRow label={strings('confirm.label.total')}>
-        <Text>{totalUsd}</Text>
+      <InfoRow
+        label={strings('confirm.label.total')}
+        rowVariant={InfoRowVariant.Small}
+      >
+        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          {totalUsd}
+        </Text>
       </InfoRow>
     </View>
   );

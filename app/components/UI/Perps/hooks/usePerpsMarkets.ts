@@ -50,7 +50,7 @@ export interface UsePerpsMarketsOptions {
   skipInitialFetch?: boolean;
   /**
    * Show markets with zero or invalid volume
-   * @default false
+   * @default __DEV__ (true in development, false in production)
    */
   showZeroVolume?: boolean;
 }
@@ -112,7 +112,7 @@ export const usePerpsMarkets = (
     enablePolling = false,
     pollingInterval = 60000, // 1 minute default
     skipInitialFetch = false,
-    showZeroVolume = false,
+    showZeroVolume = __DEV__, // Show zero-volume markets in development mode
   } = options;
 
   const streamManager = usePerpsStream();

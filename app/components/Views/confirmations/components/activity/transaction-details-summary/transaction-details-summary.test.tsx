@@ -19,6 +19,7 @@ import { useNetworkName } from '../../../hooks/useNetworkName';
 import { Hex } from '@metamask/utils';
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
+import { POLYGON_USDCE } from '../../../constants/predict';
 
 const mockNavigate = jest.fn();
 
@@ -184,7 +185,12 @@ describe('TransactionDetailsSummary', () => {
     });
 
     expect(
-      getByText(strings('transaction_details.summary_title.predict_deposit')),
+      getByText(
+        strings('transaction_details.summary_title.bridge_receive', {
+          targetSymbol: POLYGON_USDCE.symbol,
+          targetChain: 'Polygon',
+        }),
+      ),
     ).toBeDefined();
   });
 
@@ -402,7 +408,7 @@ describe('TransactionDetailsSummary', () => {
         {
           ...TRANSACTION_META_MOCK,
           id: REQUIRED_TRANSACTION_ID_MOCK,
-          type: TransactionType.predictDeposit,
+          type: TransactionType.contractInteraction,
         },
         {
           ...TRANSACTION_META_MOCK,
@@ -413,7 +419,7 @@ describe('TransactionDetailsSummary', () => {
     });
 
     expect(
-      getByText(strings('transaction_details.summary_title.predict_deposit')),
+      getByText(strings('transaction_details.summary_title.default')),
     ).toBeDefined();
 
     expect(
@@ -435,7 +441,7 @@ describe('TransactionDetailsSummary', () => {
           ...TRANSACTION_META_MOCK,
           id: REQUIRED_TRANSACTION_ID_MOCK,
           batchId: BATCH_ID_MOCK,
-          type: TransactionType.predictDeposit,
+          type: TransactionType.contractInteraction,
         },
         {
           ...TRANSACTION_META_MOCK,
@@ -447,7 +453,7 @@ describe('TransactionDetailsSummary', () => {
     });
 
     expect(
-      getByText(strings('transaction_details.summary_title.predict_deposit')),
+      getByText(strings('transaction_details.summary_title.default')),
     ).toBeDefined();
 
     expect(

@@ -39,6 +39,7 @@ import { toHex } from '@metamask/controller-utils';
 import { useNetworkName } from '../../../hooks/useNetworkName';
 import { TransactionDetailsStatus } from '../transaction-details-status';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
+import { POLYGON_USDCE } from '../../../constants/predict';
 
 export function TransactionDetailsSummary() {
   const { styles } = useStyles(styleSheet, {});
@@ -272,10 +273,6 @@ function getLineTitle({
   const { type } = transactionMeta;
   const approveSymbol = approvalBridgeHistory?.quote?.srcAsset?.symbol;
 
-  if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
-    return strings('transaction_details.summary_title.predict_deposit');
-  }
-
   if (isReceive) {
     return symbol && networkName
       ? strings('transaction_details.summary_title.bridge_receive', {
@@ -358,7 +355,21 @@ function useBridgeReceiveData(
     };
   }
 
-  if (hasTransactionType(parentTransaction, [TransactionType.perpsDeposit])) {
+  if (hasTransactionType(transaction, [TransactionType.predictDeposit])) {
+    return {
+      chainId: CHAIN_IDS.POLYGON,
+      isReceiveOnly: true,
+      targetNetworkName: 'Polygon',
+      targetSymbol: POLYGON_USDCE.symbol,
+    };
+  }
+
+  if (
+    hasTransactionType(parentTransaction, [
+      TransactionType.perpsDeposit,
+      TransactionType.predictDeposit,
+    ])
+  ) {
     return {
       sourceNetworkName,
       sourceSymbol: sourceToken?.symbol,

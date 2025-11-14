@@ -183,7 +183,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -2057,7 +2057,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -3931,7 +3931,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -5805,7 +5805,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -7618,7 +7618,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -9430,7 +9430,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -11243,7 +11243,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -13149,7 +13149,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -14917,7 +14917,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -16730,7 +16730,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -18543,7 +18543,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -20356,7 +20356,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -22169,7 +22169,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -24075,7 +24075,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -25886,7 +25886,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -27790,7 +27790,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -29696,7 +29696,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {

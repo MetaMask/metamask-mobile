@@ -167,6 +167,38 @@ export enum TraceName {
   PerpsWithdrawView = 'Perps Withdraw View',
   PerpsConnectionEstablishment = 'Perps Connection Establishment',
   PerpsAccountSwitchReconnection = 'Perps Account Switch Reconnection',
+  // Predict
+  PredictFeedView = 'Predict Feed View',
+  PredictMarketDetailsView = 'Predict Market Details View',
+  PredictBuyPreviewView = 'Predict Buy Preview View',
+  PredictSellPreviewView = 'Predict Sell Preview View',
+  PredictActivityDetailView = 'Predict Activity Detail View',
+  PredictTransactionHistoryView = 'Predict Transaction History View',
+  PredictTabView = 'Predict Tab View',
+  PredictAddFundsModal = 'Predict Add Funds Modal',
+  PredictUnavailableModal = 'Predict Unavailable Modal',
+  PredictOrderSubmissionToast = 'Predict Order Submission Toast',
+  PredictOrderConfirmationToast = 'Predict Order Confirmation Toast',
+  PredictCashoutSubmissionToast = 'Predict Cashout Submission Toast',
+  PredictCashoutConfirmationToast = 'Predict Cashout Confirmation Toast',
+
+  // Predict Operations
+  PredictPlaceOrder = 'Predict Place Order',
+  PredictOrderPreview = 'Predict Order Preview',
+  PredictClaim = 'Predict Claim',
+  PredictDeposit = 'Predict Deposit',
+  PredictWithdraw = 'Predict Withdraw',
+
+  // Predict Data Fetches
+  PredictGetMarkets = 'Predict Get Markets',
+  PredictGetMarket = 'Predict Get Market',
+  PredictGetPositions = 'Predict Get Positions',
+  PredictGetActivity = 'Predict Get Activity',
+  PredictGetBalance = 'Predict Get Balance',
+  PredictGetAccountState = 'Predict Get Account State',
+  PredictGetPriceHistory = 'Predict Get Price History',
+  PredictGetPrices = 'Predict Get Prices',
+  PredictGetUnrealizedPnL = 'Predict Get Unrealized PnL',
 }
 
 export enum TraceOperation {
@@ -208,6 +240,10 @@ export enum TraceOperation {
   PerpsMarketData = 'perps.market_data',
   PerpsOrderSubmission = 'perps.order_submission',
   PerpsPositionManagement = 'perps.position_management',
+  // Predict
+  PredictOperation = 'predict.operation',
+  PredictOrderSubmission = 'predict.order_submission',
+  PredictDataFetch = 'predict.data_fetch',
 }
 
 const ID_DEFAULT = 'default';

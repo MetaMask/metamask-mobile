@@ -42,7 +42,6 @@ describe('PerpsOrderContext', () => {
     handlePercentageAmount: jest.fn(),
     handleMaxAmount: jest.fn(),
     handleMinAmount: jest.fn(),
-    optimizeOrderAmount: jest.fn(),
     maxPossibleAmount: 1000,
   };
 
@@ -137,7 +136,6 @@ describe('PerpsOrderContext', () => {
       expect(result.current.handlePercentageAmount).toBeDefined();
       expect(result.current.handleMaxAmount).toBeDefined();
       expect(result.current.handleMinAmount).toBeDefined();
-      expect(result.current.optimizeOrderAmount).toBeDefined();
       expect(result.current.maxPossibleAmount).toBeDefined();
 
       // Check that functions are callable
@@ -217,7 +215,6 @@ describe('PerpsOrderContext', () => {
     it('provides access to calculations methods and data from the hook', () => {
       const { result } = renderHookWithProvider(() => usePerpsOrderContext());
 
-      expect(result.current.optimizeOrderAmount).toBeDefined();
       expect(result.current.maxPossibleAmount).toBe(1000);
     });
   });
@@ -283,7 +280,6 @@ describe('PerpsOrderContext', () => {
       expect(typeof contextResult.orderForm).toBe('object');
       expect(typeof contextResult.updateOrderForm).toBe('function');
       expect(typeof contextResult.setAmount).toBe('function');
-      expect(typeof contextResult.optimizeOrderAmount).toBe('function');
       expect(typeof contextResult.maxPossibleAmount).toBe('number');
     });
   });

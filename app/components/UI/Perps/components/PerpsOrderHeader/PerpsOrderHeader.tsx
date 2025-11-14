@@ -24,6 +24,7 @@ import {
 } from '../../utils/formatUtils';
 import { createStyles } from './PerpsOrderHeader.styles';
 import { strings } from '../../../../../../locales/i18n';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 
 interface PerpsOrderHeaderProps {
   asset: string;
@@ -112,7 +113,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
               direction === 'long'
                 ? strings('perps.market.long')
                 : strings('perps.market.short')
-            } ${asset}`}
+            } ${getPerpsDisplaySymbol(asset)}`}
         </Text>
         <View style={styles.priceRow}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>

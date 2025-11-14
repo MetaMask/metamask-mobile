@@ -7,6 +7,7 @@ import {
   matchesMarketPattern,
   shouldIncludeMarket,
   validateMarketPattern,
+  getPerpsDisplaySymbol,
 } from './marketUtils';
 import type { CandleData } from '../types/perps-types';
 import { CandlePeriod } from '../constants/chartConfig';
@@ -758,6 +759,160 @@ describe('marketUtils', () => {
         expect(() => validateMarketPattern('BTC%')).toThrow(
           'Market pattern contains invalid characters',
         );
+      });
+    });
+  });
+
+  describe('getPerpsDisplaySymbol', () => {
+    describe('hip3 assets with DEX prefix', () => {
+      it('strips hip3 prefix from symbol', () => {
+        const result = getPerpsDisplaySymbol('hip3:BTC');
+
+        expect(result).toBe('BTC');
+      });
+
+      it('strips xyz DEX prefix from symbol', () => {
+        const result = getPerpsDisplaySymbol('xyz:TSLA');
+
+        expect(result).toBe('TSLA');
+      });
+
+      it('strips abc DEX prefix from symbol', () => {
+        const result = getPerpsDisplaySymbol('abc:AAPL');
+
+        expect(result).toBe('AAPL');
+      });
+
+      it('strips prefix with numbers', () => {
+        const result = getPerpsDisplaySymbol('dex1:MARKET1');
+
+        expect(result).toBe('MARKET1');
+      });
+
+      it('strips prefix with hyphens', () => {
+        const result = getPerpsDisplaySymbol('dex-name:MARKET');
+
+        expect(result).toBe('MARKET');
+      });
+
+      it('strips prefix with underscores', () => {
+        const result = getPerpsDisplaySymbol('dex_name:MARKET');
+
+        expect(result).toBe('MARKET');
+      });
+
+      it('handles multiple colons by taking first occurrence', () => {
+        const result = getPerpsDisplaySymbol('hip3:BTC:USD');
+
+        expect(result).toBe('BTC:USD');
+      });
+    });
+
+    describe('regular assets without DEX prefix', () => {
+      it('returns BTC unchanged', () => {
+        const result = getPerpsDisplaySymbol('BTC');
+
+        expect(result).toBe('BTC');
+      });
+
+      it('returns ETH unchanged', () => {
+        const result = getPerpsDisplaySymbol('ETH');
+
+        expect(result).toBe('ETH');
+      });
+
+      it('returns SOL unchanged', () => {
+        const result = getPerpsDisplaySymbol('SOL');
+
+        expect(result).toBe('SOL');
+      });
+
+      it('returns multi-character symbol unchanged', () => {
+        const result = getPerpsDisplaySymbol('BONK');
+
+        expect(result).toBe('BONK');
+      });
+    });
+
+    describe('edge cases', () => {
+      it('returns empty string for empty input', () => {
+        const result = getPerpsDisplaySymbol('');
+
+        expect(result).toBe('');
+      });
+
+      it('returns null for null input', () => {
+        const result = getPerpsDisplaySymbol(null as unknown as string);
+
+        expect(result).toBe(null);
+      });
+
+      it('returns undefined for undefined input', () => {
+        const result = getPerpsDisplaySymbol(undefined as unknown as string);
+
+        expect(result).toBe(undefined);
+      });
+
+      it('returns symbol unchanged when colon is at start', () => {
+        const result = getPerpsDisplaySymbol(':BTC');
+
+        expect(result).toBe(':BTC');
+      });
+
+      it('returns symbol unchanged when colon is at end', () => {
+        const result = getPerpsDisplaySymbol('BTC:');
+
+        expect(result).toBe('BTC:');
+      });
+
+      it('returns symbol unchanged when only colon', () => {
+        const result = getPerpsDisplaySymbol(':');
+
+        expect(result).toBe(':');
+      });
+
+      it('handles symbols with special characters after colon', () => {
+        const result = getPerpsDisplaySymbol('hip3:BTC-PERP');
+
+        expect(result).toBe('BTC-PERP');
+      });
+
+      it('handles symbols with numbers after colon', () => {
+        const result = getPerpsDisplaySymbol('hip3:1INCH');
+
+        expect(result).toBe('1INCH');
+      });
+
+      it('handles lowercase symbols', () => {
+        const result = getPerpsDisplaySymbol('hip3:btc');
+
+        expect(result).toBe('btc');
+      });
+
+      it('handles mixed case symbols', () => {
+        const result = getPerpsDisplaySymbol('Hip3:BtC');
+
+        expect(result).toBe('BtC');
+      });
+    });
+
+    describe('preserves display format', () => {
+      it('preserves lowercase after stripping prefix', () => {
+        const result = getPerpsDisplaySymbol('xyz:tsla');
+
+        expect(result).toBe('tsla');
+      });
+
+      it('preserves uppercase after stripping prefix', () => {
+        const result = getPerpsDisplaySymbol('xyz:TSLA');
+
+        expect(result).toBe('TSLA');
+      });
+
+      it('preserves mixed case after stripping prefix', () => {
+        const result = getPerpsDisplaySymbol('xyz:TsLa');
+
+        expect(result).toBe('TsLa');
       });
     });
   });

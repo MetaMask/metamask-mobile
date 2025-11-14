@@ -598,6 +598,7 @@ const UnifiedTransactionsView = ({
           i={index}
           navigation={navigation}
           txChainId={getEvmChainId(item.tx)}
+          selectedAddress={selectedInternalAccount?.address}
           onSpeedUpAction={onSpeedUpAction}
           onCancelAction={onCancelAction}
           signQRTransaction={signQRTransaction}
@@ -632,8 +633,8 @@ const UnifiedTransactionsView = ({
         transaction={item.tx}
         navigation={navigation}
         index={index}
-        // Fallback to provided prop; component expects SupportedCaipChainId but only used for links
-        chainId={(chainId ?? item.tx.chain) as unknown as SupportedCaipChainId}
+        // Use the transaction's chain property for non-EVM transactions (contains CAIP chainId)
+        chainId={item.tx.chain as unknown as SupportedCaipChainId}
       />
     );
   };

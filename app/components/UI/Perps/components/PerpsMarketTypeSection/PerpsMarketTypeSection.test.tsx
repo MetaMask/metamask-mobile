@@ -242,7 +242,7 @@ describe('PerpsMarketTypeSection', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_LIST,
         params: {
-          defaultMarketTypeFilter: 'all',
+          defaultMarketTypeFilter: 'crypto',
         },
       });
     });
@@ -261,7 +261,7 @@ describe('PerpsMarketTypeSection', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_LIST,
         params: {
-          defaultMarketTypeFilter: 'all',
+          defaultMarketTypeFilter: 'equity',
         },
       });
     });
@@ -280,7 +280,7 @@ describe('PerpsMarketTypeSection', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_LIST,
         params: {
-          defaultMarketTypeFilter: 'all',
+          defaultMarketTypeFilter: 'commodity',
         },
       });
     });

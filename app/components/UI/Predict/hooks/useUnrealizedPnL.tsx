@@ -4,8 +4,7 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
 import { UnrealizedPnL } from '../types';
-import { useSelector } from 'react-redux';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
 
@@ -61,9 +60,8 @@ export const useUnrealizedPnL = (
   const [error, setError] = useState<string | null>(null);
   const isInitialMount = useRef(true);
 
-  const selectedInternalAccountAddress = useSelector(
-    selectSelectedInternalAccountAddress,
-  );
+  const evmAccount = getEvmAccountFromSelectedAccountGroup();
+  const selectedInternalAccountAddress = evmAccount?.address ?? '0x0';
 
   const loadUnrealizedPnL = useCallback(
     async (loadOptions?: { isRefresh?: boolean }) => {
@@ -77,13 +75,21 @@ export const useUnrealizedPnL = (
         }
         setError(null);
 
-        const unrealizedPnLData =
-          await Engine.context.PredictController.getUnrealizedPnL({
+        const [unrealizedPnLData, positions] = await Promise.all([
+          Engine.context.PredictController.getUnrealizedPnL({
             address: address ?? selectedInternalAccountAddress,
             providerId,
-          });
+          }),
+          Engine.context.PredictController.getPositions({
+            providerId,
+            limit: 1,
+            offset: 0,
+            claimable: false,
+          }),
+        ]);
 
-        setUnrealizedPnL(unrealizedPnLData ?? null);
+        const _unrealizedPnL = unrealizedPnLData ?? null;
+        setUnrealizedPnL(positions.length > 0 ? _unrealizedPnL : null);
 
         DevLogger.log('useUnrealizedPnL: Loaded unrealized P&L', {
           unrealizedPnL: unrealizedPnLData,

@@ -98,6 +98,14 @@ export const Amount = () => {
     assetSymbol ??
     (parseInt(balance) === 1 ? strings('send.unit') : strings('send.units'));
 
+  const balanceDisplayValue = useMemo(
+    () =>
+      fiatMode
+        ? `${getFiatDisplayValue(balance)} ${strings('send.available')}`
+        : `${balance} ${balanceUnit} ${strings('send.available')}`,
+    [balance, balanceUnit, fiatMode, getFiatDisplayValue],
+  );
+
   const defaultValue = fiatMode ? '0.00' : '0';
   let textColor = TextColor.Default;
   if (amountError) {
@@ -166,9 +174,7 @@ export const Amount = () => {
       </View>
       <View>
         <View style={styles.balanceSection}>
-          <Text
-            color={TextColor.Alternative}
-          >{`${balance} ${balanceUnit} ${strings('send.available')}`}</Text>
+          <Text color={TextColor.Alternative}>{balanceDisplayValue}</Text>
         </View>
         <AmountKeyboard
           amount={amount}

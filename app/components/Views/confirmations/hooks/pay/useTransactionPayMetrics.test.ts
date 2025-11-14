@@ -11,18 +11,19 @@ import {
   tokenAddress1Mock,
 } from '../../__mocks__/controllers/other-controllers-mock';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import { useTokenAmount } from '../useTokenAmount';
 import { act } from '@testing-library/react-native';
 import { updateConfirmationMetric } from '../../../../../core/redux/slices/confirmationMetrics';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
 import {
   TransactionPayQuote,
+  TransactionPayRequiredToken,
   TransactionPayStrategy,
 } from '@metamask/transaction-pay-controller';
 import { Json } from '@metamask/utils';
 import {
   useTransactionPayQuotes,
+  useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from './useTransactionPayData';
 
@@ -72,10 +73,12 @@ function runHook({ type }: { type?: TransactionType } = {}) {
 
 describe('useTransactionPayMetrics', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
-  const useTokenAmountMock = jest.mocked(useTokenAmount);
   const updateConfirmationMetricMock = jest.mocked(updateConfirmationMetric);
   const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
   const useTransactionPayTotalsMock = jest.mocked(useTransactionPayTotals);
+  const useTransactionPayRequiredTokensMock = jest.mocked(
+    useTransactionPayRequiredTokens,
+  );
 
   const useAutomaticTransactionPayTokenMock = jest.mocked(
     useAutomaticTransactionPayToken,
@@ -89,9 +92,11 @@ describe('useTransactionPayMetrics', () => {
       setPayToken: noop as never,
     });
 
-    useTokenAmountMock.mockReturnValue({
-      amountPrecise: TOKEN_AMOUNT_MOCK,
-    } as ReturnType<typeof useTokenAmount>);
+    useTransactionPayRequiredTokensMock.mockReturnValue([
+      {
+        amountHuman: TOKEN_AMOUNT_MOCK,
+      } as TransactionPayRequiredToken,
+    ]);
 
     updateConfirmationMetricMock.mockReturnValue({
       type: 'test',
@@ -192,7 +197,7 @@ describe('useTransactionPayMetrics', () => {
       params: {
         properties: expect.objectContaining({
           mm_pay_use_case: 'perps_deposit',
-          simulation_sending_assets_total_value: TOKEN_AMOUNT_MOCK,
+          simulation_sending_assets_total_value: 1.23,
         }),
         sensitiveProperties: {},
       },
@@ -220,7 +225,7 @@ describe('useTransactionPayMetrics', () => {
       params: {
         properties: expect.objectContaining({
           mm_pay_use_case: 'predict_deposit',
-          simulation_sending_assets_total_value: TOKEN_AMOUNT_MOCK,
+          simulation_sending_assets_total_value: 1.23,
         }),
         sensitiveProperties: {},
       },

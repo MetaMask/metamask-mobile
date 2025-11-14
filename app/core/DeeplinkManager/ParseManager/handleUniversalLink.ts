@@ -260,7 +260,7 @@ async function handleUniversalLink({
     instance._handleRewards(rewardsPath);
   } else if (action === SUPPORTED_ACTIONS.PREDICT) {
     const predictPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    instance._handlePredict(predictPath);
+    instance._handlePredict(predictPath, source);
   } else if (action === SUPPORTED_ACTIONS.WC) {
     const { params } = extractURLParams(urlObj.href);
     const wcURL = params?.uri;

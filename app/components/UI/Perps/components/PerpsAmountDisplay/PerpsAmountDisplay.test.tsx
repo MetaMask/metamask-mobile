@@ -249,6 +249,68 @@ describe('PerpsAmountDisplay', () => {
       // No token amount should be displayed
       expect(screen.queryByText(/BTC|ETH|SOL/)).toBeNull();
     });
+
+    it('strips hip3 prefix from token symbol when showing token amount', () => {
+      // Arrange
+      const tokenAmount = '1.5';
+      const tokenSymbol = 'hip3:BTC';
+      const amount = '50000';
+
+      // Act
+      render(
+        <PerpsAmountDisplay
+          amount={amount}
+          showTokenAmount
+          tokenAmount={tokenAmount}
+          tokenSymbol={tokenSymbol}
+        />,
+      );
+
+      // Assert
+      const tokenElements = screen.getAllByText('1.5 BTC');
+      expect(tokenElements.length).toBe(2); // Main display and token amount section
+    });
+
+    it('strips DEX prefix from token symbol when showing max amount', () => {
+      // Arrange
+      const amount = '10000';
+      const tokenAmount = '100';
+      const tokenSymbol = 'xyz:TSLA';
+
+      // Act
+      const { getByText } = render(
+        <PerpsAmountDisplay
+          amount={amount}
+          showMaxAmount
+          tokenAmount={tokenAmount}
+          tokenSymbol={tokenSymbol}
+        />,
+      );
+
+      // Assert
+      expect(getByText('100 TSLA')).toBeTruthy();
+    });
+
+    it('keeps regular token symbols unchanged', () => {
+      // Arrange
+      const amount = '5000';
+      const tokenAmount = '2.5';
+      const tokenSymbol = 'SOL';
+
+      // Act
+      render(
+        <PerpsAmountDisplay
+          amount={amount}
+          showTokenAmount
+          tokenAmount={tokenAmount}
+          tokenSymbol={tokenSymbol}
+        />,
+      );
+
+      // Assert
+      const tokenElements = screen.getAllByText('2.5 SOL');
+      expect(tokenElements.length).toBe(2);
+    });
   });
 
   describe('Formatting', () => {

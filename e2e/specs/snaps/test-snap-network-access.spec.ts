@@ -4,7 +4,7 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestSnaps from '../../pages/Browser/TestSnaps';
-import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import { getAnvilPortForTest } from '../../framework/fixtures/FixtureUtils';
 import { LocalNodeType } from '../../framework';
 import { defaultOptions } from '../../seeder/anvil-manager';
 
@@ -22,7 +22,6 @@ describe(FlaskBuildTests('Network Access Snap Tests'), () => {
             type: LocalNodeType.anvil,
             options: {
               ...defaultOptions,
-              port: AnvilPort(),
               blockTime: 2,
             },
           },
@@ -43,7 +42,7 @@ describe(FlaskBuildTests('Network Access Snap Tests'), () => {
         );
 
         // Use WebSockets
-        const webSocketUrl = `ws://localhost:${AnvilPort()}`;
+        const webSocketUrl = `ws://localhost:${getAnvilPortForTest()}`;
         await TestSnaps.fillMessage('webSocketUrlInput', webSocketUrl);
         await TestSnaps.tapButton('startWebSocket');
 

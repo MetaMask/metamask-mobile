@@ -7,7 +7,7 @@ export type PredictErrorCode =
  * Predict feature constants for error handling and logging
  */
 export const PREDICT_CONSTANTS = {
-  FEATURE_NAME: 'Predict',
+  FEATURE_NAME: 'Predict', // For Sentry error filtering - enables "feature:Predict" queries
   CONTROLLER_NAME: 'PredictController',
 } as const;
 

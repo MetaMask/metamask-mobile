@@ -3,7 +3,6 @@ import {
   IconSize as ReactNativeDsIconSize,
   Text,
   TextVariant,
-  TextColor,
 } from '@metamask/design-system-react-native';
 import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useNavigation } from '@react-navigation/native';
@@ -26,6 +25,7 @@ import { formatPerpsFiat } from '../utils/formatUtils';
 import { handlePerpsError } from '../utils/perpsErrorHandler';
 import { formatDurationForDisplay } from '../utils/time';
 import { Position } from '../controllers/types';
+import { getPerpsDisplaySymbol } from '../utils/marketUtils';
 
 export type PerpsToastOptions = Omit<ToastOptions, 'labelOptions'> & {
   hapticsType: NotificationFeedbackType;
@@ -435,7 +435,7 @@ const usePerpsToasts = (): {
               strings('perps.order.order_placement_subtitle', {
                 direction: capitalize(direction),
                 amount,
-                assetSymbol,
+                assetSymbol: getPerpsDisplaySymbol(assetSymbol),
               }),
             ),
           }),
@@ -451,7 +451,7 @@ const usePerpsToasts = (): {
               strings('perps.order.order_placement_subtitle', {
                 direction: capitalize(direction),
                 amount,
-                assetSymbol,
+                assetSymbol: getPerpsDisplaySymbol(assetSymbol),
               }),
             ),
           }),
@@ -480,7 +480,7 @@ const usePerpsToasts = (): {
               strings('perps.order.order_placement_subtitle', {
                 direction: capitalize(direction),
                 amount,
-                assetSymbol,
+                assetSymbol: getPerpsDisplaySymbol(assetSymbol),
               }),
             ),
           }),
@@ -496,7 +496,7 @@ const usePerpsToasts = (): {
               strings('perps.order.order_placement_subtitle', {
                 direction: capitalize(direction),
                 amount,
-                assetSymbol,
+                assetSymbol: getPerpsDisplaySymbol(assetSymbol),
               }),
             ),
           }),
@@ -542,7 +542,7 @@ const usePerpsToasts = (): {
                 strings('perps.order.cancelling_order_subtitle', {
                   direction,
                   amount,
-                  assetSymbol,
+                  assetSymbol: getPerpsDisplaySymbol(assetSymbol),
                 }),
               );
             }
@@ -582,7 +582,7 @@ const usePerpsToasts = (): {
                 strings('perps.order.order_placement_subtitle', {
                   direction,
                   amount: Math.abs(Number.parseFloat(amount)),
-                  assetSymbol,
+                  assetSymbol: getPerpsDisplaySymbol(assetSymbol),
                 }),
               );
             } else if (!isReduceOnly) {
@@ -622,7 +622,7 @@ const usePerpsToasts = (): {
                     {
                       direction,
                       amount: Math.abs(Number.parseFloat(amount)),
-                      assetSymbol,
+                      assetSymbol: getPerpsDisplaySymbol(assetSymbol),
                     },
                   );
                 }
@@ -651,10 +651,7 @@ const usePerpsToasts = (): {
                     ),
                   labelOptions: getPerpsToastLabels(
                     strings('perps.close_position.position_closed'),
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.OverlayInverse}
-                    >
+                    <Text variant={TextVariant.BodyMd}>
                       {strings('perps.close_position.your_pnl_is')}
                       <Text
                         variant={TextVariant.BodyMd}
@@ -696,7 +693,7 @@ const usePerpsToasts = (): {
                     {
                       direction,
                       amount: Math.abs(Number.parseFloat(amount)),
-                      assetSymbol,
+                      assetSymbol: getPerpsDisplaySymbol(assetSymbol),
                     },
                   );
                 }
@@ -725,10 +722,7 @@ const usePerpsToasts = (): {
                     ),
                   labelOptions: getPerpsToastLabels(
                     strings('perps.close_position.position_partially_closed'),
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.OverlayInverse}
-                    >
+                    <Text variant={TextVariant.BodyMd}>
                       {strings('perps.close_position.your_pnl_is')}
                       <Text
                         variant={TextVariant.BodyMd}
@@ -770,7 +764,7 @@ const usePerpsToasts = (): {
                   strings('perps.close_position.closing_position_subtitle', {
                     direction,
                     amount: Math.abs(Number.parseFloat(amount)),
-                    assetSymbol,
+                    assetSymbol: getPerpsDisplaySymbol(assetSymbol),
                   }),
                 ),
               }),
@@ -787,7 +781,7 @@ const usePerpsToasts = (): {
                   strings('perps.close_position.closing_position_subtitle', {
                     direction,
                     amount: Math.abs(Number.parseFloat(amount)),
-                    assetSymbol,
+                    assetSymbol: getPerpsDisplaySymbol(assetSymbol),
                   }),
                 ),
               }),
@@ -853,7 +847,7 @@ const usePerpsToasts = (): {
               labelOptions: getPerpsToastLabels(
                 strings('perps.order.error.invalid_asset'),
                 strings('perps.order.error.asset_not_tradable', {
-                  asset: assetSymbol,
+                  asset: getPerpsDisplaySymbol(assetSymbol),
                 }),
               ),
               closeButtonOptions: {

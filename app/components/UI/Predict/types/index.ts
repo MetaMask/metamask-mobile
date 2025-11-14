@@ -272,6 +272,7 @@ export type PredictPosition = {
   avgPrice: number;
   endDate: string;
   negRisk?: boolean;
+  optimistic?: boolean;
 };
 
 export type PredictBalance = {
@@ -327,12 +328,6 @@ export type PredictWithdraw = {
   amount: number;
 };
 
-export interface AcceptAgreementParams {
-  providerId: string;
-  address: string;
-}
-
 export type PredictAccountMeta = {
   isOnboarded: boolean;
-  acceptedToS: boolean;
 };
