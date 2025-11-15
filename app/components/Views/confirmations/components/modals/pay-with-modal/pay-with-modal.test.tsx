@@ -2,6 +2,7 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { PayWithModal } from './pay-with-modal';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { BridgeToken } from '../../../../../UI/Bridge/types';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
 import { merge } from 'lodash';
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
@@ -9,91 +10,92 @@ import { simpleSendTransactionControllerMock } from '../../../__mocks__/controll
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 import { initialState } from '../../../../../UI/Bridge/_mocks_/initialState';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import { BridgeSourceNetworksBar } from '../../../../../UI/Bridge/components/BridgeSourceNetworksBar';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
-import { AssetType, TokenStandard } from '../../../types/token';
-import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
-import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
-import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
-import { Hex } from '@metamask/utils';
+import { useSortedSourceNetworks } from '../../../../../UI/Bridge/hooks/useSortedSourceNetworks';
+import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
+
+jest.useFakeTimers();
+
+const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+const mockSetPayToken = jest.fn();
 
 jest.mock('../../../hooks/pay/useTransactionPayToken');
-jest.mock('../../../hooks/send/useAccountTokens');
-jest.mock('../../../hooks/pay/useTransactionPayData');
+jest.mock('../../../../../UI/Bridge/components/BridgeSourceNetworksBar');
+jest.mock('../../../../../UI/Bridge/hooks/useSortedSourceNetworks');
+jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens');
 
-const CHAIN_ID_1_MOCK = CHAIN_IDS.MAINNET as Hex;
-const CHAIN_ID_2_MOCK = '0x2' as Hex;
+jest.mock(
+  '../../../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion',
+  () => ({
+    hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
+  }),
+);
 
-const TOKENS_MOCK = [
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    goBack: mockGoBack,
+  }),
+}));
+
+const CHAIN_ID_1_MOCK = CHAIN_IDS.MAINNET;
+const CHAIN_ID_2_MOCK = CHAIN_IDS.OPTIMISM;
+
+const TOKENS_MOCK: BridgeToken[] = [
   {
-    accountType: EthAccountType.Eoa,
-    address: NATIVE_TOKEN_ADDRESS,
-    balance: '1.23',
-    balanceInSelectedCurrency: '$1.23',
-    chainId: CHAIN_ID_1_MOCK,
-    decimals: 18,
-    name: 'Native Token 1',
-    standard: TokenStandard.ERC20,
-    symbol: 'NTV1',
-  },
-  {
-    accountType: EthAccountType.Eoa,
     address: '0x123',
-    balance: '2.34',
-    balanceInSelectedCurrency: '$2.34',
-    chainId: CHAIN_ID_1_MOCK,
-    decimals: 6,
-    name: 'Test Token 1',
-    standard: TokenStandard.ERC20,
     symbol: 'TST1',
-  },
-  {
-    accountType: EthAccountType.Eoa,
-    address: '0x234',
-    balance: '0',
-    balanceInSelectedCurrency: '$0.00',
+    name: 'Test Token 1',
+    decimals: 3,
     chainId: CHAIN_ID_1_MOCK,
-    decimals: 6,
-    name: 'Test Token 2',
-    standard: TokenStandard.ERC20,
-    symbol: 'TST2',
+    balanceFiat: '$1.23',
+    balance: '123',
+    tokenFiatAmount: 1.23,
   },
   {
-    accountType: EthAccountType.Eoa,
-    address: '0x345',
-    balance: '3.45',
-    balanceInSelectedCurrency: '$3.45',
-    chainId: CHAIN_ID_1_MOCK,
-    decimals: 6,
-    name: 'Test Token 3',
-    standard: TokenStandard.ERC721,
-    symbol: 'TST3',
-  },
-  {
-    accountType: SolAccountType.DataAccount,
     address: '0x456',
-    balance: '4.56',
-    balanceInSelectedCurrency: '$4.56',
-    chainId: CHAIN_ID_1_MOCK,
-    decimals: 6,
-    name: 'Test Token 4',
-    standard: TokenStandard.ERC20,
-    symbol: 'TST4',
+    symbol: 'TST2',
+    name: 'Test Token 2',
+    decimals: 4,
+    chainId: CHAIN_ID_2_MOCK,
+    balanceFiat: '$4.56',
+    balance: '456',
+    tokenFiatAmount: 4.56,
   },
   {
-    accountType: EthAccountType.Eoa,
-    address: '0x567',
-    balance: '5.67',
-    balanceInSelectedCurrency: '$5.67',
-    chainId: CHAIN_ID_2_MOCK,
-    decimals: 6,
-    name: 'Test Token 5',
-    standard: TokenStandard.ERC20,
-    symbol: 'TST5',
+    address: '0x789',
+    symbol: 'TST3',
+    name: 'Test Token 3',
+    decimals: 5,
+    chainId: CHAIN_ID_1_MOCK,
+    balanceFiat: '$7.89',
+    balance: '789',
+    tokenFiatAmount: 7.89,
   },
-] as AssetType[];
-
-const REQUIRED_TOKENS_MOCK = [] as TransactionPayRequiredToken[];
+  {
+    address: NATIVE_TOKEN_ADDRESS,
+    symbol: 'TST4',
+    name: 'Native Token 1',
+    decimals: 18,
+    chainId: CHAIN_ID_1_MOCK,
+    balanceFiat: '$1.00',
+    balance: '1',
+    tokenFiatAmount: 1,
+  },
+  {
+    address: NATIVE_TOKEN_ADDRESS,
+    symbol: 'TST5',
+    name: 'Native Token 2',
+    decimals: 18,
+    chainId: CHAIN_ID_2_MOCK,
+    balanceFiat: '$1.00',
+    balance: '1',
+    tokenFiatAmount: 1,
+  },
+];
 
 function render({ minimumFiatBalance }: { minimumFiatBalance?: number } = {}) {
   return renderScreen(
@@ -117,35 +119,82 @@ function render({ minimumFiatBalance }: { minimumFiatBalance?: number } = {}) {
 }
 
 describe('PayWithModal', () => {
-  const setPayTokenMock = jest.fn();
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
-  const useAccountTokensMock = jest.mocked(useAccountTokens);
-  const useTransactionPayRequiredTokensMock = jest.mocked(
-    useTransactionPayRequiredTokens,
+  const BridgeSourceNetworksBarMock = jest.mocked(BridgeSourceNetworksBar);
+  const useSortedSourceNetworksMock = jest.mocked(useSortedSourceNetworks);
+
+  const useTransactionPayAvailableTokensMock = jest.mocked(
+    useTransactionPayAvailableTokens,
   );
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
 
-    useAccountTokensMock.mockReturnValue(TOKENS_MOCK);
-    useTransactionPayRequiredTokensMock.mockReturnValue(REQUIRED_TOKENS_MOCK);
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableChainIds: [CHAIN_ID_1_MOCK, CHAIN_ID_2_MOCK],
+      availableTokens: TOKENS_MOCK as never,
+    });
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: { address: '0x0', chainId: '0x0' },
-      setPayToken: setPayTokenMock,
+      setPayToken: mockSetPayToken,
     } as unknown as ReturnType<typeof useTransactionPayToken>);
+
+    useSortedSourceNetworksMock.mockReturnValue({
+      sortedSourceNetworks: [
+        {
+          chainId: CHAIN_ID_1_MOCK,
+          totalFiatValue: 1,
+        },
+        {
+          chainId: CHAIN_ID_2_MOCK,
+          totalFiatValue: 1,
+        },
+      ] as unknown as ReturnType<
+        typeof useSortedSourceNetworks
+      >['sortedSourceNetworks'],
+    });
   });
 
   it('renders tokens', async () => {
     const { getByText } = render();
 
-    expect(getByText('Native Token 1')).toBeDefined();
-    expect(getByText('1.23 NTV1')).toBeDefined();
-    expect(getByText('$1.23')).toBeDefined();
+    await waitFor(() => {
+      expect(getByText('Test Token 1')).toBeDefined();
+      expect(getByText('123 TST1')).toBeDefined();
+      expect(getByText('$1.23')).toBeDefined();
+    });
 
-    expect(getByText('Test Token 1')).toBeDefined();
-    expect(getByText('2.34 TST1')).toBeDefined();
-    expect(getByText('$2.34')).toBeDefined();
+    await waitFor(() => {
+      expect(getByText('Test Token 2')).toBeDefined();
+      expect(getByText('456 TST2')).toBeDefined();
+      expect(getByText('$4.56')).toBeDefined();
+    });
+
+    await waitFor(() => {
+      expect(getByText('Test Token 3')).toBeDefined();
+      expect(getByText('789 TST3')).toBeDefined();
+      expect(getByText('$7.89')).toBeDefined();
+    });
+  });
+
+  it('displays supported networks in networks bar', async () => {
+    render();
+
+    expect(BridgeSourceNetworksBarMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        networksToShow: [
+          expect.objectContaining({ chainId: CHAIN_ID_1_MOCK }),
+          expect.objectContaining({ chainId: CHAIN_ID_2_MOCK }),
+        ],
+        enabledSourceChains: [
+          expect.objectContaining({ chainId: CHAIN_ID_1_MOCK }),
+          expect.objectContaining({ chainId: CHAIN_ID_2_MOCK }),
+        ],
+        selectedSourceChainIds: [CHAIN_ID_1_MOCK, CHAIN_ID_2_MOCK],
+      }),
+      expect.anything(),
+    );
   });
 
   describe('on token select', () => {
@@ -153,13 +202,45 @@ describe('PayWithModal', () => {
       const { getByText } = render();
 
       await waitFor(() => {
-        fireEvent.press(getByText('Test Token 1'));
+        fireEvent.press(getByText('Test Token 2'));
       });
 
-      expect(setPayTokenMock).toHaveBeenCalledWith({
+      expect(mockSetPayToken).toHaveBeenCalledWith({
         address: TOKENS_MOCK[1].address,
         chainId: TOKENS_MOCK[1].chainId,
       });
+    });
+
+    it('navigates back', async () => {
+      const { getByText } = render();
+
+      await waitFor(() => {
+        fireEvent.press(getByText('Test Token 2'));
+      });
+
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+  });
+
+  describe('on network select', () => {
+    it('navigates to network selector', async () => {
+      const originalNetworkBar = jest.requireActual(
+        '../../../../../UI/Bridge/components/BridgeSourceNetworksBar',
+      ).BridgeSourceNetworksBar;
+
+      BridgeSourceNetworksBarMock.mockImplementation((props) =>
+        originalNetworkBar(props),
+      );
+
+      const { getByText } = render();
+
+      await waitFor(() => {
+        fireEvent.press(getByText('All networks'));
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CONFIRMATION_PAY_WITH_NETWORK_MODAL,
+      );
     });
   });
 });

@@ -9,10 +9,6 @@ const styleSheet = (_params: { theme: Theme }) =>
       justifyContent: 'space-between',
       paddingBottom: 22,
     },
-
-    disabledButton: {
-      opacity: 0.5,
-    },
   });
 
 export default styleSheet;

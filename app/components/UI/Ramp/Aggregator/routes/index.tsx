@@ -15,7 +15,6 @@ import { colors } from '../../../../../styles/common';
 import IncompatibleAccountTokenModal from '../components/IncompatibleAccountTokenModal';
 import RegionSelectorModal from '../components/RegionSelectorModal';
 import UnsupportedRegionModal from '../components/UnsupportedRegionModal';
-import SettingsModal from '../Views/Modals/Settings';
 
 const Stack = createStackNavigator();
 const ModalsStack = createStackNavigator();
@@ -49,17 +48,7 @@ const MainRoutes = () => (
         detachPreviousScreen: false,
       }}
     />
-    <Stack.Screen
-      name={Routes.RAMP.CHECKOUT}
-      component={CheckoutWebView}
-      options={{
-        headerShown: false,
-        cardStyle: { backgroundColor: colors.transparent },
-        animationEnabled: false,
-        gestureEnabled: false,
-        detachPreviousScreen: false,
-      }}
-    />
+    <Stack.Screen name={Routes.RAMP.CHECKOUT} component={CheckoutWebView} />
   </Stack.Navigator>
 );
 
@@ -92,10 +81,6 @@ const RampModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.UNSUPPORTED_REGION}
       component={UnsupportedRegionModal}
-    />
-    <ModalsStack.Screen
-      name={Routes.RAMP.MODALS.SETTINGS}
-      component={SettingsModal}
     />
   </ModalsStack.Navigator>
 );

@@ -12,8 +12,6 @@ import styleSheet from './PredictPositionEmpty.styles';
 import PredictionsDark from '../../../../../images/predictions-dark.svg';
 import PredictionsLight from '../../../../../images/predictions-light.svg';
 import { useAssetFromTheme } from '../../../../../util/theme';
-import { PredictEventValues } from '../../constants/eventNames';
-
 interface PredictPositionEmptyProps {}
 
 const PredictPositionEmpty: React.FC<PredictPositionEmptyProps> = () => {
@@ -28,8 +26,8 @@ const PredictPositionEmpty: React.FC<PredictPositionEmptyProps> = () => {
     <Box testID="predict-position-empty" style={styles.emptyState}>
       <ThemedPredictions
         testID="icon"
-        width={72}
-        height={72}
+        width={100}
+        height={100}
         style={styles.emptyStateIcon}
       />
       <Text
@@ -45,9 +43,6 @@ const PredictPositionEmpty: React.FC<PredictPositionEmptyProps> = () => {
         onPress={() =>
           navigation.navigate(Routes.PREDICT.ROOT, {
             screen: Routes.PREDICT.MARKET_LIST,
-            params: {
-              entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-            },
           })
         }
         label={strings('predict.tab.explore')}

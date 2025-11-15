@@ -6,7 +6,6 @@ export enum RowAlertKey {
   Blockaid = 'blockaid',
   EstimatedFee = 'estimatedFee',
   PayWith = 'payWith',
-  PayWithFee = 'payWithFee',
   PendingTransaction = 'pendingTransaction',
   RequestFrom = 'requestFrom',
 }

@@ -11,7 +11,6 @@ import Text from '../../../../../../component-library/components/Texts/Text';
 export interface CustomAmountProps {
   amountFiat: string;
   currency?: string;
-  disabled?: boolean;
   hasAlert?: boolean;
   isLoading?: boolean;
   onPress?: () => void;
@@ -21,7 +20,6 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
   const {
     amountFiat,
     currency: currencyProp,
-    disabled = false,
     hasAlert = false,
     isLoading,
     onPress,
@@ -35,7 +33,6 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
   const { styles } = useStyles(styleSheet, {
     amountLength,
     hasAlert,
-    disabled,
   });
 
   if (isLoading) {
@@ -47,11 +44,7 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
       <Text testID="custom-amount-symbol" style={styles.input}>
         {fiatSymbol}
       </Text>
-      <Text
-        testID="custom-amount-input"
-        style={styles.input}
-        onPress={disabled ? undefined : onPress}
-      >
+      <Text testID="custom-amount-input" style={styles.input} onPress={onPress}>
         {amountFiat}
       </Text>
     </View>
@@ -62,7 +55,6 @@ export function CustomAmountSkeleton() {
   const { styles } = useStyles(styleSheet, {
     amountLength: 1,
     hasAlert: false,
-    disabled: false,
   });
 
   return (

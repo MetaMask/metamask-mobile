@@ -478,7 +478,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                   </Text>
                   {onTooltipPress && (
                     <TouchableOpacity
-                      onPress={() => onTooltipPress('funding_payments')}
+                      onPress={() => onTooltipPress('funding_rate')}
                     >
                       <Icon
                         name={IconName.Info}

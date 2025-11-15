@@ -18,8 +18,6 @@ import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { useNetworkName } from '../../../hooks/useNetworkName';
 import { Hex } from '@metamask/utils';
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
-import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
-import { POLYGON_USDCE } from '../../../constants/predict';
 
 const mockNavigate = jest.fn();
 
@@ -29,7 +27,6 @@ jest.mock('../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl');
 jest.mock('../../../../../../selectors/bridgeStatusController');
 jest.mock('../../../hooks/useNetworkName');
 jest.mock('../../../hooks/useTokenAmount');
-jest.mock('../../../hooks/tokens/useTokenWithBalance');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -82,7 +79,6 @@ describe('TransactionDetailsSummary', () => {
   const useBridgeTxHistoryDataMock = jest.mocked(useBridgeTxHistoryData);
   const useNetworkNameMock = jest.mocked(useNetworkName);
   const useTokenAmountMock = jest.mocked(useTokenAmount);
-  const useTokenWithBalanceMock = jest.mocked(useTokenWithBalance);
 
   const useMultichainBlockExplorerTxUrlMock = jest.mocked(
     useMultichainBlockExplorerTxUrl,
@@ -151,10 +147,6 @@ describe('TransactionDetailsSummary', () => {
     });
 
     useTokenAmountMock.mockReturnValue({} as ReturnType<typeof useTokenAmount>);
-
-    useTokenWithBalanceMock.mockReturnValue(
-      {} as ReturnType<typeof useTokenWithBalance>,
-    );
   });
 
   it('renders perps deposit line title', () => {
@@ -165,12 +157,7 @@ describe('TransactionDetailsSummary', () => {
     });
 
     expect(
-      getByText(
-        strings('transaction_details.summary_title.bridge_receive', {
-          targetSymbol: 'USDC',
-          targetChain: 'Hyperliquid',
-        }),
-      ),
+      getByText(strings('transaction_details.summary_title.perps_deposit')),
     ).toBeDefined();
   });
 
@@ -185,12 +172,7 @@ describe('TransactionDetailsSummary', () => {
     });
 
     expect(
-      getByText(
-        strings('transaction_details.summary_title.bridge_receive', {
-          targetSymbol: POLYGON_USDCE.symbol,
-          targetChain: 'Polygon',
-        }),
-      ),
+      getByText(strings('transaction_details.summary_title.predict_deposit')),
     ).toBeDefined();
   });
 
@@ -408,7 +390,7 @@ describe('TransactionDetailsSummary', () => {
         {
           ...TRANSACTION_META_MOCK,
           id: REQUIRED_TRANSACTION_ID_MOCK,
-          type: TransactionType.contractInteraction,
+          type: TransactionType.perpsDeposit,
         },
         {
           ...TRANSACTION_META_MOCK,
@@ -419,7 +401,7 @@ describe('TransactionDetailsSummary', () => {
     });
 
     expect(
-      getByText(strings('transaction_details.summary_title.default')),
+      getByText(strings('transaction_details.summary_title.perps_deposit')),
     ).toBeDefined();
 
     expect(
@@ -441,7 +423,7 @@ describe('TransactionDetailsSummary', () => {
           ...TRANSACTION_META_MOCK,
           id: REQUIRED_TRANSACTION_ID_MOCK,
           batchId: BATCH_ID_MOCK,
-          type: TransactionType.contractInteraction,
+          type: TransactionType.perpsDeposit,
         },
         {
           ...TRANSACTION_META_MOCK,
@@ -453,7 +435,7 @@ describe('TransactionDetailsSummary', () => {
     });
 
     expect(
-      getByText(strings('transaction_details.summary_title.default')),
+      getByText(strings('transaction_details.summary_title.perps_deposit')),
     ).toBeDefined();
 
     expect(

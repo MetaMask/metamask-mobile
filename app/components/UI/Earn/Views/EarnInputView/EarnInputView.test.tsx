@@ -61,7 +61,6 @@ import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
 import { selectConversionRate } from '../../../../../selectors/currencyRateController';
 import { trace, TraceName } from '../../../../../util/trace';
 import { MAINNET_DISPLAY_NAME } from '../../../../../core/Engine/constants';
-import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 
 jest.mock('./utils');
 
@@ -172,13 +171,6 @@ jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
 }));
 
 jest.mock('../../../../../selectors/featureFlagController/confirmations');
-
-jest.mock(
-  '../../../../../selectors/featureFlagController/trxStakingEnabled',
-  () => ({
-    selectTrxStakingEnabled: jest.fn(() => false),
-  }),
-);
 
 jest.mock('../../../../../util/trace', () => ({
   ...jest.requireActual('../../../../../util/trace'),
@@ -396,8 +388,6 @@ describe('EarnInputView', () => {
 
     selectStablecoinLendingEnabledFlagMock.mockReturnValue(false);
 
-    (selectTrxStakingEnabled as unknown as jest.Mock).mockReturnValue(false);
-
     (useEarnTokens as jest.Mock).mockReturnValue({
       getEarnToken: jest.fn(() => ({
         ...MOCK_ETH_MAINNET_ASSET,
@@ -498,7 +488,7 @@ describe('EarnInputView', () => {
   });
 
   describe('when erc20 token is selected', () => {
-    it('renders the correct "Supply <token name>" for stablecoin lending', async () => {
+    it('renders the correct USDC token', async () => {
       selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
 
       selectConversionRateMock.mockReturnValueOnce(1);
@@ -546,8 +536,7 @@ describe('EarnInputView', () => {
       });
 
       expect(mockGetStakingNavbar).toHaveBeenCalledWith(
-        'Supply USDC',
-        expect.anything(),
+        'Deposit',
         expect.anything(),
         expect.anything(),
         expect.anything(),
@@ -575,39 +564,6 @@ describe('EarnInputView', () => {
       });
 
       expect(mockNavigate).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('TRON staking flow', () => {
-    it('constructs TRX earnToken and shows the ResourceToggle when staking enabled', () => {
-      (selectTrxStakingEnabled as unknown as jest.Mock).mockReturnValue(true);
-
-      (useEarnTokens as jest.Mock).mockReturnValue({
-        getEarnToken: jest.fn(() => undefined),
-        getOutputToken: jest.fn(() => undefined),
-      });
-
-      const TRX_TOKEN = {
-        name: 'TRON',
-        symbol: 'TRX',
-        ticker: 'TRX',
-        chainId: 'tron:main',
-        address: 'T1111111111111111111111111111111111',
-        balance: '0',
-        balanceFiat: '$0',
-        isETH: false,
-      } as unknown as typeof MOCK_ETH_MAINNET_ASSET;
-
-      const { getByTestId } = render(EarnInputView, {
-        params: {
-          token: TRX_TOKEN,
-        },
-        key: Routes.STAKING.STAKE,
-        name: 'params',
-      });
-
-      expect(getByTestId('resource-toggle-energy')).toBeTruthy();
-      expect(getByTestId('resource-toggle-bandwidth')).toBeTruthy();
     });
   });
 
@@ -1118,7 +1074,7 @@ describe('EarnInputView', () => {
   });
 
   describe('title bar', () => {
-    it('displays "Stake <token name>" for staking', () => {
+    it('displays "deposit" for all assets', () => {
       selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
 
       render(EarnInputView, {
@@ -1131,8 +1087,7 @@ describe('EarnInputView', () => {
       });
 
       expect(mockGetStakingNavbar).toHaveBeenCalledWith(
-        'Stake ETH',
-        expect.anything(),
+        'Deposit',
         expect.anything(),
         expect.anything(),
         expect.anything(),

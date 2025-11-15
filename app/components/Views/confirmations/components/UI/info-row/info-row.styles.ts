@@ -2,13 +2,9 @@ import { StyleSheet } from 'react-native';
 
 import { Theme } from '../../../../../../util/theme/models';
 import { fontStyles } from '../../../../../../styles/common';
-import { InfoRowVariant } from './info-row';
 
-const styleSheet = (params: {
-  theme: Theme;
-  vars: { variant: InfoRowVariant };
-}) => {
-  const { theme, vars } = params;
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
 
   return StyleSheet.create({
     container: {
@@ -17,7 +13,7 @@ const styleSheet = (params: {
       justifyContent: 'flex-end',
       alignItems: 'center',
       flexWrap: 'wrap',
-      paddingBottom: vars.variant === InfoRowVariant.Small ? 10 : 8,
+      paddingBottom: 8,
       paddingHorizontal: 8,
     },
     labelContainer: {
@@ -25,7 +21,7 @@ const styleSheet = (params: {
       flexDirection: 'row',
       alignSelf: 'flex-start',
       alignItems: 'center',
-      minHeight: vars.variant === InfoRowVariant.Small ? 0 : 24,
+      minHeight: 38,
       paddingEnd: 4,
       marginRight: 'auto',
     },

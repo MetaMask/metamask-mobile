@@ -27,10 +27,7 @@ const isERC20Notification = isOfTypeNodeGuard([
 const isSent = (n: ERC20Notification) => n.type === TRIGGER_TYPES.ERC20_SENT;
 
 const menuTitle = (n: ERC20Notification) => {
-  const address = formatAddress(
-    isSent(n) ? n.payload.data.to : n.payload.data.from,
-    'short',
-  );
+  const address = formatAddress(isSent(n) ? n.data.to : n.data.from, 'short');
   return strings(`notifications.menu_item_title.${n.type}`, {
     address,
   });
@@ -38,11 +35,9 @@ const menuTitle = (n: ERC20Notification) => {
 
 const modalTitle = (n: ERC20Notification) =>
   isSent(n)
-    ? strings('notifications.modal.title_sent', {
-        symbol: n.payload.data.token.symbol,
-      })
+    ? strings('notifications.modal.title_sent', { symbol: n.data.token.symbol })
     : strings('notifications.modal.title_received', {
-        symbol: n.payload.data.token.symbol,
+        symbol: n.data.token.symbol,
       });
 
 const state: NotificationState<ERC20Notification> = {
@@ -51,18 +46,18 @@ const state: NotificationState<ERC20Notification> = {
     title: menuTitle(notification),
 
     description: {
-      start: notification.payload.data.token.name,
+      start: notification.data.token.name,
       end: `${getAmount(
-        notification.payload.data.token.amount,
-        notification.payload.data.token.decimals,
+        notification.data.token.amount,
+        notification.data.token.decimals,
         {
           shouldEllipse: true,
         },
-      )} ${notification.payload.data.token.symbol}`,
+      )} ${notification.data.token.symbol}`,
     },
 
     image: {
-      url: notification.payload.data.token.image,
+      url: notification.data.token.image,
     },
 
     badgeIcon: getNotificationBadge(notification.type),
@@ -71,7 +66,7 @@ const state: NotificationState<ERC20Notification> = {
   }),
   createModalDetails: (notification) => {
     const nativeTokenDetails = getNativeTokenDetailsByChainId(
-      notification.payload.chain_id,
+      notification.chain_id,
     );
     return {
       title: modalTitle(notification),
@@ -80,24 +75,24 @@ const state: NotificationState<ERC20Notification> = {
         {
           type: ModalFieldType.ADDRESS,
           label: label_address_from(notification),
-          address: notification.payload.data.from,
+          address: notification.data.from,
         },
         {
           type: ModalFieldType.ADDRESS,
           label: label_address_to(notification),
-          address: notification.payload.data.to,
+          address: notification.data.to,
         },
         {
           type: ModalFieldType.TRANSACTION,
-          txHash: notification.payload.tx_hash,
+          txHash: notification.tx_hash,
         },
         {
           type: ModalFieldType.ASSET,
           label: strings('notifications.modal.label_asset'),
-          description: notification.payload.data.token.name,
-          amount: getTokenAmount(notification.payload.data.token),
-          usdAmount: getTokenUSDAmount(notification.payload.data.token),
-          tokenIconUrl: notification.payload.data.token.image,
+          description: notification.data.token.name,
+          amount: getTokenAmount(notification.data.token),
+          usdAmount: getTokenUSDAmount(notification.data.token),
+          tokenIconUrl: notification.data.token.image,
           tokenNetworkUrl: nativeTokenDetails?.image,
         },
         {
@@ -108,8 +103,8 @@ const state: NotificationState<ERC20Notification> = {
       ],
       footer: {
         type: ModalFooterType.BLOCK_EXPLORER,
-        chainId: notification.payload.chain_id,
-        txHash: notification.payload.tx_hash,
+        chainId: notification.chain_id,
+        txHash: notification.tx_hash,
       },
     };
   },

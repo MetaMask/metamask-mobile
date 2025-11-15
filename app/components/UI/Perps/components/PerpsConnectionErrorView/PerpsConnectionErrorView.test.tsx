@@ -41,7 +41,7 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     default: ({ name, ...props }: any) => <View {...props} testID={name} />,
     IconName: {
-      Warning: 'Warning',
+      Details: 'Details',
     },
     IconColor: {
       Muted: 'Muted',
@@ -146,6 +146,7 @@ describe('PerpsConnectionErrorView', () => {
     );
 
     expect(getByText('perps.errors.connectionFailed.title')).toBeTruthy();
+    expect(getByText('perps.errors.connectionFailed.description')).toBeTruthy();
     expect(getByText('perps.errors.connectionFailed.retry')).toBeTruthy();
   });
 

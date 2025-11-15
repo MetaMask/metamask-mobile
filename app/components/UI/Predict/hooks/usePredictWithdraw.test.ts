@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import { usePredictWithdraw } from './usePredictWithdraw';
+import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 
 // Create mock functions
@@ -34,6 +35,8 @@ jest.mock('@react-navigation/native', () => ({
     goBack: mockGoBack,
   })),
 }));
+
+// usePredictEligibility mock removed - no longer needed after geo-block validation skip
 
 // Mock toast context
 const mockToastRef = {
@@ -196,6 +199,9 @@ describe('usePredictWithdraw', () => {
   });
 
   describe('withdraw function', () => {
+    // Test removed: navigates to unavailable modal when user is not eligible
+    // This functionality was removed as geo-block validation is now skipped for withdraw
+
     it('calls navigateToConfirmation with correct params when eligible', async () => {
       mockPrepareWithdraw.mockResolvedValue({ success: true });
 
@@ -204,6 +210,7 @@ describe('usePredictWithdraw', () => {
       await result.current.withdraw();
 
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+        stack: Routes.PREDICT.ROOT,
         loader: ConfirmationLoader.CustomAmount,
       });
     });
@@ -392,6 +399,9 @@ describe('usePredictWithdraw', () => {
       consoleErrorSpy.mockRestore();
     });
 
+    // Test removed: returns undefined when user is not eligible
+    // This functionality was removed as geo-block validation is now skipped for withdraw
+
     it('returns undefined when error occurs', async () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       mockPrepareWithdraw.mockRejectedValue(new Error('Withdraw failed'));
@@ -471,6 +481,9 @@ describe('usePredictWithdraw', () => {
       });
     });
   });
+
+  // Eligibility checks describe block removed
+  // These tests are no longer needed as geo-block validation is now skipped for withdraw
 
   describe('sequential withdraw calls', () => {
     it('handles multiple withdraw calls independently', async () => {

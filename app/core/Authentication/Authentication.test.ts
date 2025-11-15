@@ -124,13 +124,6 @@ jest.mock('../Engine', () => ({
   },
 }));
 
-// Mock for Engine class (used in error recovery)
-jest.mock('../Engine/Engine', () => ({
-  Engine: class MockEngine {
-    static disableAutomaticVaultBackup = false;
-  },
-}));
-
 jest.mock('../NavigationService', () => ({
   navigation: {
     reset: jest.fn(),

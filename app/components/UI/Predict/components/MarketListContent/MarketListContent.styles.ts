@@ -24,13 +24,6 @@ const styleSheet = () =>
       width: '100%',
       padding: 16,
     },
-    emptySearchContainer: {
-      justifyContent: 'center',
-      alignItems: 'center',
-      width: '100%',
-      marginTop: 42,
-      padding: 16,
-    },
     marketListContainer: {
       flex: 1,
       width: '100%',

@@ -6,10 +6,14 @@ import React, {
 } from 'react';
 
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
+import { IconColor } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
+import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 import Engine from '../../../../../core/Engine';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { PredictPosition as PredictPositionType } from '../../types';
@@ -19,7 +23,6 @@ import PredictNewButton from '../PredictNewButton';
 import PredictPosition from '../PredictPosition/PredictPosition';
 import PredictPositionEmpty from '../PredictPositionEmpty';
 import PredictPositionResolved from '../PredictPositionResolved/PredictPositionResolved';
-import PredictPositionSkeleton from '../PredictPositionSkeleton';
 import { PredictPositionsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 export interface PredictPositionsHandle {
@@ -38,8 +41,12 @@ const PredictPositions = forwardRef<
   PredictPositionsHandle,
   PredictPositionsProps
 >(({ isVisible, onError }, ref) => {
+  const tw = useTailwind();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
   const { positions, isRefreshing, loadPositions, isLoading, error } =
     usePredictPositions({
       loadOnMount: true,
@@ -84,7 +91,7 @@ const PredictPositions = forwardRef<
       <PredictPosition
         position={item}
         onPress={() => {
-          navigation.navigate(Routes.PREDICT.ROOT, {
+          navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
             screen: Routes.PREDICT.MARKET_DETAILS,
             params: {
               marketId: item.marketId,
@@ -103,7 +110,7 @@ const PredictPositions = forwardRef<
       <PredictPositionResolved
         position={item}
         onPress={() => {
-          navigation.navigate(Routes.PREDICT.ROOT, {
+          navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
             screen: Routes.PREDICT.MARKET_DETAILS,
             params: {
               marketId: item.marketId,
@@ -117,6 +124,30 @@ const PredictPositions = forwardRef<
     [navigation],
   );
 
+  if (isLoading || (isRefreshing && positions.length === 0)) {
+    return (
+      <View
+        style={tw.style(
+          isHomepageRedesignV1Enabled ? 'bg-default' : 'flex-1 bg-default',
+        )}
+      >
+        <Box
+          style={tw.style(
+            isHomepageRedesignV1Enabled
+              ? 'px-4 py-20 justify-center items-center'
+              : 'flex-1 px-4 py-4 justify-center items-center',
+          )}
+        >
+          <ActivityIndicator
+            testID="activity-indicator"
+            size="large"
+            color={IconColor.Alternative}
+          />
+        </Box>
+      </View>
+    );
+  }
+
   const isTrulyEmpty =
     positions.length === 0 && claimablePositions.length === 0;
 
@@ -124,17 +155,7 @@ const PredictPositions = forwardRef<
   return (
     <>
       <View testID={PredictPositionsSelectorsIDs.ACTIVE_POSITIONS_LIST}>
-        {isLoading || (isRefreshing && positions.length === 0) ? (
-          // Show skeleton loaders during initial load
-          <>
-            {[1, 2, 3, 4].map((index) => (
-              <PredictPositionSkeleton
-                key={`skeleton-${index}`}
-                testID={`predict-position-skeleton-${index}`}
-              />
-            ))}
-          </>
-        ) : isTrulyEmpty ? (
+        {isTrulyEmpty ? (
           <PredictPositionEmpty />
         ) : (
           <>
@@ -146,7 +167,7 @@ const PredictPositions = forwardRef<
           </>
         )}
       </View>
-      {!isTrulyEmpty && !isLoading && <PredictNewButton />}
+      {!isTrulyEmpty && <PredictNewButton />}
       {claimablePositions.length > 0 && (
         <>
           <Box>

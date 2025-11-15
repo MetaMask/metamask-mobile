@@ -18,6 +18,7 @@ import {
 } from '@metamask/account-tree-controller';
 import AccountDetails from '../../../pages/MultichainAccounts/AccountDetails';
 import EditAccountName from '../../../pages/MultichainAccounts/EditAccountName';
+import TestHelpers from '../../../helpers';
 
 describe(
   SmokeIdentity('Account syncing - Adding and Renaming Accounts'),
@@ -57,12 +58,8 @@ describe(
         },
         async ({ userStorageMockttpController }) => {
           await loginToApp();
-
-          // Wait for wallet to be ready after login
-          await Assertions.expectElementToBeVisible(WalletView.container, {
-            description: 'wallet should be visible after login',
-            timeout: 15000,
-          });
+          // KDF Delay
+          await TestHelpers.delay(3000);
 
           await WalletView.tapIdenticon();
 
@@ -128,12 +125,8 @@ describe(
             );
 
           await loginToApp();
-
-          // Wait for wallet to be ready after login
-          await Assertions.expectElementToBeVisible(WalletView.container, {
-            description: 'wallet should be visible after login',
-            timeout: 15000,
-          });
+          // KDF Delay
+          await TestHelpers.delay(3000);
 
           await WalletView.tapIdenticon();
           await Assertions.expectElementToBeVisible(
@@ -172,16 +165,6 @@ describe(
           // Bottom sheet remains open after renaming account
           await AccountDetails.tapBackButton();
 
-          // Wait for navigation to complete and account list to be stable
-          await Assertions.expectElementToBeVisible(
-            AccountListBottomSheet.accountList,
-            {
-              description:
-                'Account list should be visible after navigating back',
-              timeout: 10000,
-            },
-          );
-
           await AccountListBottomSheet.tapAddAccountButtonV2();
 
           await waitUntilEventsEmittedNumberEquals(2);
@@ -204,12 +187,10 @@ describe(
         },
         async () => {
           await loginToApp();
+          // KDF Delay
+          await TestHelpers.delay(3000);
 
-          // Wait for wallet to be ready after login
-          await Assertions.expectElementToBeVisible(WalletView.container, {
-            description: 'wallet should be visible after login',
-            timeout: 15000,
-          });
+          await device.disableSynchronization();
 
           await WalletView.tapIdenticon();
           await Assertions.expectElementToBeVisible(

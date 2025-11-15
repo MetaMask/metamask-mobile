@@ -9,7 +9,7 @@ import { usePredictClaim } from './usePredictClaim';
 import { usePredictPositions } from './usePredictPositions';
 import { usePredictToasts } from './usePredictToasts';
 import Engine from '../../../../core/Engine';
-import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
+import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 
 export const usePredictClaimToasts = () => {
   const { claim } = usePredictClaim();
@@ -18,8 +18,8 @@ export const usePredictClaimToasts = () => {
     loadOnMount: true,
   });
 
-  const evmAccount = getEvmAccountFromSelectedAccountGroup();
-  const selectedAddress = evmAccount?.address ?? '0x0';
+  const selectedAddress =
+    useSelector(selectSelectedInternalAccountAddress) ?? '0x0';
   const wonPositions = useSelector(
     selectPredictWonPositions({ address: selectedAddress }),
   );

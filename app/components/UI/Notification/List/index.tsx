@@ -1,9 +1,7 @@
-import React, { useCallback, useMemo } from 'react';
-import { ActivityIndicator, FlatList, FlatListProps, View } from 'react-native';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { Box } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import React, { useCallback, useMemo } from 'react';
 import NotificationsService from '../../../../util/notifications/services/NotificationService';
+import { ActivityIndicator, FlatList, FlatListProps, View } from 'react-native';
 import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/NotificationsView.selectors';
 import {
   hasNotificationComponents,
@@ -57,8 +55,7 @@ export function useNotificationOnClick(
 ) {
   const { markNotificationAsRead } = useMarkNotificationAsRead();
   const { trackEvent, createEventBuilder } = useMetrics();
-
-  const handleNotificationClickMetricsAndUpdates = useCallback(
+  const onNotificationClick = useCallback(
     (item: INotification) => {
       markNotificationAsRead([
         {
@@ -67,18 +64,19 @@ export function useNotificationOnClick(
           isRead: item.isRead,
         },
       ]);
+      if (hasNotificationModal(item?.type)) {
+        props.navigation.navigate(Routes.NOTIFICATIONS.DETAILS, {
+          notification: item,
+        });
+      }
 
-      const otherNotificationProperties = () => {
-        if (
-          'notification_type' in item &&
-          item.notification_type === 'on-chain' &&
-          item.payload?.chain_id
-        ) {
-          return { chain_id: item.payload.chain_id };
+      NotificationsService.getBadgeCount().then((count) => {
+        if (count > 0) {
+          NotificationsService.decrementBadgeCount(count - 1);
+        } else {
+          NotificationsService.setBadgeCount(0);
         }
-
-        return undefined;
-      };
+      });
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NOTIFICATION_CLICKED)
@@ -86,49 +84,19 @@ export function useNotificationOnClick(
             notification_id: item.id,
             notification_type: item.type,
             previously_read: item.isRead,
-            ...otherNotificationProperties(),
-            data: item, // data blob for feature teams to analyse their notification shapes
+            ...('chain_id' in item && { chain_id: item.chain_id }),
           })
           .build(),
       );
-
-      NotificationsService.getBadgeCount().then((count) => {
-        if (count > 0) {
-          NotificationsService.decrementBadgeCount(1);
-        } else {
-          NotificationsService.setBadgeCount(0);
-        }
-      });
     },
-    [createEventBuilder, markNotificationAsRead, trackEvent],
+    [markNotificationAsRead, props.navigation, trackEvent, createEventBuilder],
   );
 
-  const onNavigation = useCallback(
-    (item: INotification) => {
-      if (hasNotificationModal(item?.type)) {
-        props.navigation.navigate(Routes.NOTIFICATIONS.DETAILS, {
-          notification: item,
-        });
-      }
-    },
-    [props.navigation],
-  );
-
-  const onNotificationClick = useCallback(
-    (item: INotification) => {
-      handleNotificationClickMetricsAndUpdates(item);
-      onNavigation(item);
-    },
-    [handleNotificationClickMetricsAndUpdates, onNavigation],
-  );
-
-  return { onNotificationClick, handleNotificationClickMetricsAndUpdates };
+  return onNotificationClick;
 }
 
 export function NotificationsListItem(props: NotificationsListItemProps) {
-  const { onNotificationClick, handleNotificationClickMetricsAndUpdates } =
-    useNotificationOnClick(props);
-  const tw = useTailwind();
+  const onNotificationClick = useNotificationOnClick(props);
 
   const menuItemState = useMemo(() => {
     const notificationState =
@@ -149,21 +117,12 @@ export function NotificationsListItem(props: NotificationsListItemProps) {
       handleOnPress={() => onNotificationClick(props.notification)}
       isRead={props.notification.isRead}
       testID={NotificationMenuViewSelectorsIDs.ITEM(props.notification.id)}
-      style={tw`gap-2`}
     >
-      <Box style={tw`flex-row gap-4`}>
-        <NotificationMenuItem.Icon
-          isRead={props.notification.isRead}
-          {...menuItemState}
-        />
-        <NotificationMenuItem.Content {...menuItemState} />
-      </Box>
-      <NotificationMenuItem.Cta
-        cta={menuItemState.cta}
-        onClick={() =>
-          handleNotificationClickMetricsAndUpdates(props.notification)
-        }
+      <NotificationMenuItem.Icon
+        isRead={props.notification.isRead}
+        {...menuItemState}
       />
+      <NotificationMenuItem.Content {...menuItemState} />
     </NotificationMenuItem.Root>
   );
 }

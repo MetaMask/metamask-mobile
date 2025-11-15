@@ -33,12 +33,6 @@ class NotificationsSettingsView {
     );
   }
 
-  get featureAnnouncementSeparator() {
-    return Matchers.getElementByID(
-      NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENT_SEPARATOR,
-    );
-  }
-
   get accountActivitySection() {
     return Matchers.getElementByText(
       NotificationSettingsViewSelectorsText.ACCOUNT_ACTIVITY_SECTION,

@@ -62,7 +62,6 @@ import UpdateEIP1559Tx from '../confirmations/legacy/components/UpdateEIP1559Tx'
 import styleSheet from './UnifiedTransactionsView.styles';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import useBlockExplorer from '../../hooks/useBlockExplorer';
-import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 
 type SmartTransactionWithId = SmartTransaction & { id: string };
 type EvmTransaction = TransactionMeta | SmartTransactionWithId;
@@ -159,8 +158,6 @@ const UnifiedTransactionsView = ({
   // we need to use the selected account group chain ids
   const currentEvmChainId = useSelector(selectChainId);
 
-  const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
-
   const { data, nonEvmTransactionsForSelectedChain } = useMemo<{
     data: UnifiedItem[];
     nonEvmTransactionsForSelectedChain: NonEvmTransaction[];
@@ -202,7 +199,7 @@ const UnifiedTransactionsView = ({
 
       const isReceivedOrSentTransaction =
         selectedAccountGroupInternalAccountsAddresses.some((addr) =>
-          filterByAddress(tx, tokens, addr, transactionMetaPool, bridgeHistory),
+          filterByAddress(tx, tokens, addr, transactionMetaPool),
         );
       if (!isReceivedOrSentTransaction) return false;
 
@@ -359,7 +356,6 @@ const UnifiedTransactionsView = ({
     selectedInternalAccount,
     tokens,
     currentEvmChainId,
-    bridgeHistory,
   ]);
 
   const hasEvmChainsEnabled = enabledEVMChainIds.length > 0;
@@ -598,7 +594,6 @@ const UnifiedTransactionsView = ({
           i={index}
           navigation={navigation}
           txChainId={getEvmChainId(item.tx)}
-          selectedAddress={selectedInternalAccount?.address}
           onSpeedUpAction={onSpeedUpAction}
           onCancelAction={onCancelAction}
           signQRTransaction={signQRTransaction}
@@ -633,8 +628,8 @@ const UnifiedTransactionsView = ({
         transaction={item.tx}
         navigation={navigation}
         index={index}
-        // Use the transaction's chain property for non-EVM transactions (contains CAIP chainId)
-        chainId={item.tx.chain as unknown as SupportedCaipChainId}
+        // Fallback to provided prop; component expects SupportedCaipChainId but only used for links
+        chainId={(chainId ?? item.tx.chain) as unknown as SupportedCaipChainId}
       />
     );
   };

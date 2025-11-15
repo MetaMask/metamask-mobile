@@ -32,7 +32,6 @@ export class CoreLinkNormalizer {
     [ACTIONS.ONBOARDING]: 'onboardingPath',
     [ACTIONS.CREATE_ACCOUNT]: 'createAccountPath',
     [ACTIONS.DEPOSIT]: 'depositCashPath',
-    [ACTIONS.PERPS_MARKETS]: 'perpsMarketsPath',
   };
 
   /**

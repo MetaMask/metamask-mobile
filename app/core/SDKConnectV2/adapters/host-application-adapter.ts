@@ -33,10 +33,10 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
     store.dispatch(hideNotificationById(conninfo.id));
   }
 
-  showConnectionError(conninfo?: ConnectionInfo): void {
+  showConnectionError(): void {
     store.dispatch(
       showSimpleNotification({
-        id: conninfo?.id || Date.now().toString(),
+        id: Date.now().toString(),
         autodismiss: 5000,
         title: strings('sdk_connect_v2.show_error.title'),
         description: strings('sdk_connect_v2.show_error.description'),

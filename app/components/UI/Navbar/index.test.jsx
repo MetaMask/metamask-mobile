@@ -13,14 +13,18 @@ import {
   getTransparentOnboardingNavbarOptions,
   getWalletNavbarOptions,
   getSendFlowTitle,
-  getStakingNavbar,
+  getTransactionOptionsTitle,
+  getPaymentRequestSuccessOptionsTitle,
+  getApproveNavbar,
+  getModalNavbarOptions,
 } from '.';
 import { mockTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import { View } from 'react-native';
 import { BridgeViewMode } from '../Bridge/types';
 import { SendViewSelectorsIDs } from '../../../../e2e/selectors/SendFlow/SendView.selectors';
-import { strings } from '../../../../locales/i18n';
+import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
+import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/Receive/SendLinkView.selectors';
 
 jest.mock('../../../util/device', () => ({
   isAndroid: jest.fn(),
@@ -98,10 +102,6 @@ jest.mock('../../../core/Analytics', () => ({
 
 jest.mock('../../../util/blockaid', () => ({
   getBlockaidTransactionMetricsParams: jest.fn(() => ({})),
-}));
-
-jest.mock('../Stake/utils/metaMetrics/withMetaMetrics', () => ({
-  withMetaMetrics: jest.fn((fn) => () => fn()),
 }));
 
 describe('getNetworkNavbarOptions', () => {
@@ -1319,98 +1319,5 @@ describe('getBridgeNavbar', () => {
         getSendFlowTitle();
       }).toThrow();
     });
-  });
-});
-
-describe('getStakingNavbar', () => {
-  const mockNavigation = {
-    goBack: jest.fn(),
-  };
-  const {
-    withMetaMetrics,
-  } = require('../Stake/utils/metaMetrics/withMetaMetrics');
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('renders balance and APR when earnToken is provided', () => {
-    const mockNavigation = { goBack: jest.fn() };
-    const earnToken = {
-      balanceFormatted: '1,234.56 USDC',
-      experience: { apr: '5.234' },
-    };
-
-    const options = getStakingNavbar(
-      'Stake',
-      mockNavigation,
-      mockTheme.colors,
-      { hasBackButton: false, hasCancelButton: false },
-      undefined,
-      earnToken,
-    );
-
-    const HeaderTitle = options.headerTitle;
-    const { getByText } = renderWithProvider(<HeaderTitle />, {
-      state: { engine: { backgroundState } },
-    });
-
-    expect(getByText(earnToken.balanceFormatted)).toBeTruthy();
-
-    const expectedApr = `${parseFloat(earnToken.experience.apr).toFixed(
-      1,
-    )}% ${strings('earn.apr')}`;
-    expect(getByText(expectedApr)).toBeTruthy();
-  });
-
-  it('invokes goBack on back button press and records metrics when provided', () => {
-    const options = getStakingNavbar(
-      'Stake',
-      mockNavigation,
-      mockTheme.colors,
-      { hasBackButton: true },
-      {
-        backButtonEvent: { event: 'BACK_EVT', properties: { source: 'test' } },
-      },
-    );
-
-    const headerLeft = options.headerLeft();
-    headerLeft.props.onPress();
-
-    expect(withMetaMetrics).toHaveBeenCalledTimes(1);
-    expect(withMetaMetrics).toHaveBeenCalledWith(expect.any(Function), {
-      event: 'BACK_EVT',
-      properties: { source: 'test' },
-    });
-    expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
-  });
-
-  it('invokes icon handler and records metrics when icon button is pressed', () => {
-    const handleIconPress = jest.fn();
-
-    const options = getStakingNavbar(
-      'Stake',
-      mockNavigation,
-      mockTheme.colors,
-      {
-        hasBackButton: false,
-        hasCancelButton: false,
-        hasIconButton: true,
-        handleIconPress,
-      },
-      {
-        iconButtonEvent: { event: 'ICON_EVT', properties: { from: 'header' } },
-      },
-    );
-
-    const headerRight = options.headerRight();
-    headerRight.props.onPress();
-
-    expect(withMetaMetrics).toHaveBeenCalledTimes(1);
-    expect(withMetaMetrics).toHaveBeenCalledWith(expect.any(Function), {
-      event: 'ICON_EVT',
-      properties: { from: 'header' },
-    });
-    expect(handleIconPress).toHaveBeenCalledTimes(1);
   });
 });

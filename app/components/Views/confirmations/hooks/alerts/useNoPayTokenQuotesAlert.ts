@@ -1,35 +1,26 @@
+import { useSelector } from 'react-redux';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { selectTransactionBridgeQuotesById } from '../../../../../core/redux/slices/confirmationMetrics';
+import { RootState } from '../../../../../reducers';
 import { useMemo } from 'react';
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  useIsTransactionPayLoading,
-  useTransactionPayQuotes,
-  useTransactionPayRequiredTokens,
-  useTransactionPaySourceAmounts,
-} from '../pay/useTransactionPayData';
+import { useIsTransactionPayLoading } from '../pay/useIsTransactionPayLoading';
 
 export function useNoPayTokenQuotesAlert() {
+  const transactionMeta = useTransactionMetadataRequest();
+  const transactionId = transactionMeta?.id ?? '';
   const { payToken } = useTransactionPayToken();
-  const quotes = useTransactionPayQuotes();
-  const isQuotesLoading = useIsTransactionPayLoading();
-  const sourceAmounts = useTransactionPaySourceAmounts();
-  const requiredTokens = useTransactionPayRequiredTokens();
+  const { isLoading } = useIsTransactionPayLoading();
 
-  const isOptionalOnly = (sourceAmounts ?? []).every(
-    (t) =>
-      requiredTokens?.find((rt) => rt.address === t.targetTokenAddress)
-        ?.skipIfBalance,
+  const quotes = useSelector((state: RootState) =>
+    selectTransactionBridgeQuotesById(state, transactionId),
   );
 
-  const showAlert =
-    payToken &&
-    !isQuotesLoading &&
-    sourceAmounts?.length &&
-    !quotes?.length &&
-    !isOptionalOnly;
+  const showAlert = payToken && !isLoading && quotes === undefined;
 
   return useMemo(() => {
     if (!showAlert) {

@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Box } from '../../Box/Box';
 import Text, {
+  TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
@@ -19,6 +20,7 @@ import { FlatList } from 'react-native-gesture-handler';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
+import { ButtonIconSizes } from '../../../../component-library/components/Buttons/ButtonIcon';
 
 // FlashList on iOS had some issues so we use FlatList for both platforms now
 const ListComponent = FlatList;
@@ -222,9 +224,12 @@ export const BridgeTokenSelectorBase: React.FC<
         onClose={dismissModal}
         closeButtonProps={{
           testID: 'bridge-token-selector-close-button',
+          size: ButtonIconSizes.Lg,
         }}
       >
-        {title ?? strings('bridge.select_token')}
+        <Text variant={TextVariant.HeadingMD}>
+          {title ?? strings('bridge.select_token')}
+        </Text>
       </BottomSheetHeader>
 
       <Box style={styles.buttonContainer} gap={20}>

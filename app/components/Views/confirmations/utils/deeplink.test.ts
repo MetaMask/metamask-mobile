@@ -4,12 +4,10 @@ import { ETH_ACTIONS } from '../../../../constants/deeplinks';
 import { selectConfirmationRedesignFlagsFromRemoteFeatureFlags } from '../../../../selectors/featureFlagController/confirmations';
 import Engine from '../../../../core/Engine';
 import { generateTransferData } from '../../../../util/transactions';
-import ppomUtil from '../../../../lib/ppom/ppom-util';
 
 import {
   addTransactionForDeeplink,
   isDeeplinkRedesignedConfirmationCompatible,
-  validateWithPPOM,
   type DeeplinkRequest,
 } from './deeplink';
 
@@ -53,14 +51,6 @@ jest.mock('../../../../selectors/featureFlagController/confirmations', () => ({
 
 jest.mock('../../../../util/transactions', () => ({
   generateTransferData: jest.fn(),
-}));
-
-jest.mock('../../../../lib/ppom/ppom-util', () => ({
-  validateRequest: jest.fn(),
-}));
-
-jest.mock('uuid', () => ({
-  v4: jest.fn(),
 }));
 
 describe('isDeeplinkRedesignedConfirmationCompatible', () => {
@@ -171,9 +161,6 @@ describe('addTransactionForDeeplink', () => {
         networkClientId: 'another-network',
         origin: ORIGIN_MOCK,
         type: TransactionType.simpleSend,
-        securityAlertResponse: {
-          securityAlertId: undefined,
-        },
       },
     );
   });
@@ -197,9 +184,6 @@ describe('addTransactionForDeeplink', () => {
         networkClientId: 'mainnet',
         origin: ORIGIN_MOCK,
         type: TransactionType.simpleSend,
-        securityAlertResponse: {
-          securityAlertId: undefined,
-        },
       },
     );
   });
@@ -261,50 +245,6 @@ describe('addTransactionForDeeplink', () => {
         networkClientId: 'mainnet',
         origin: ORIGIN_MOCK,
         type: TransactionType.tokenMethodTransfer,
-        securityAlertResponse: {
-          securityAlertId: undefined,
-        },
-      },
-    );
-  });
-});
-
-describe('validateWithPPOM', () => {
-  const mockPpomUtil = jest.mocked(ppomUtil);
-  const mockUuid = jest.requireMock('uuid').v4;
-
-  const txParams = {
-    from: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
-    to: '0x6D404AfE1a6A07Aa3CbcBf9Fd027671Df628ebFc',
-    value: '0x3e8',
-  };
-  const origin = 'example.test-dapp.com';
-  const chainId = '0x1';
-  const networkClientId = 'mainnet';
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockUuid.mockReturnValue('test-uuid-123');
-  });
-
-  it('calls ppomUtil.validateRequest with correct parameters', () => {
-    validateWithPPOM({ txParams, origin, chainId, networkClientId });
-
-    expect(mockPpomUtil.validateRequest).toHaveBeenCalledWith(
-      {
-        id: 'test-uuid-123',
-        jsonrpc: '2.0',
-        method: 'eth_sendTransaction',
-        origin: 'example.test-dapp.com',
-        params: [txParams],
-      },
-      {
-        transactionMeta: {
-          chainId: '0x1',
-          networkClientId: 'mainnet',
-          txParams,
-        },
-        securityAlertId: 'test-uuid-123',
       },
     );
   });

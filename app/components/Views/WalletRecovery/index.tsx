@@ -1,6 +1,5 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../../util/theme';
 import Text, {
   TextVariant,
@@ -176,10 +175,8 @@ const WalletRecovery = () => {
   const seedlessOnboardingUserId = useSelector(selectSeedlessOnboardingUserId);
 
   const styles = StyleSheet.create({
-    safeArea: {
-      flex: 1,
-    },
     root: {
+      flex: 1,
       flexDirection: 'column',
       rowGap: 24,
       paddingVertical: 8,
@@ -280,59 +277,57 @@ const WalletRecovery = () => {
   }, [userEmail]);
 
   return (
-    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.safeArea}>
-      <ScrollView>
-        <View style={styles.root}>
-          {authConnection && (
-            <View style={styles.socialContainer}>
-              <Text
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Alternative}
-              >
-                {strings('protect_your_wallet.social_recovery_title', {
-                  authConnection: authConnection
-                    ? authConnection.toUpperCase()
-                    : 'GOOGLE OR APPLE',
-                })}
-              </Text>
-              {authConnection && seedlessOnboardingUserId ? (
-                <SocialLinked
-                  email={finalUserEmail || ''}
-                  authConnection={authConnection}
-                />
-              ) : (
-                <SocialNotLinked />
-              )}
-              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-                {strings('protect_your_wallet.social_login_description', {
-                  authConnection: capitalize(authConnection) || 'Google',
-                })}
-              </Text>
-            </View>
-          )}
-
-          {authConnection && (
-            <View style={styles.lineBreakContainer}>
-              <View style={styles.lineBreak} />
-            </View>
-          )}
-
-          <View style={styles.srpContainer}>
+    <ScrollView>
+      <View style={styles.root}>
+        {authConnection && (
+          <View style={styles.socialContainer}>
             <Text
               variant={TextVariant.BodySMMedium}
               color={TextColor.Alternative}
-              style={styles.srpTitle}
             >
-              {strings('protect_your_wallet.srps_title')}
+              {strings('protect_your_wallet.social_recovery_title', {
+                authConnection: authConnection
+                  ? authConnection.toUpperCase()
+                  : 'GOOGLE OR APPLE',
+              })}
             </Text>
-            <SelectSRP
-              containerStyle={styles.srpListContainer}
-              showArrowName={strings('protect_your_wallet.reveal')}
-            />
+            {authConnection && seedlessOnboardingUserId ? (
+              <SocialLinked
+                email={finalUserEmail || ''}
+                authConnection={authConnection}
+              />
+            ) : (
+              <SocialNotLinked />
+            )}
+            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              {strings('protect_your_wallet.social_login_description', {
+                authConnection: capitalize(authConnection) || 'Google',
+              })}
+            </Text>
           </View>
+        )}
+
+        {authConnection && (
+          <View style={styles.lineBreakContainer}>
+            <View style={styles.lineBreak} />
+          </View>
+        )}
+
+        <View style={styles.srpContainer}>
+          <Text
+            variant={TextVariant.BodySMMedium}
+            color={TextColor.Alternative}
+            style={styles.srpTitle}
+          >
+            {strings('protect_your_wallet.srps_title')}
+          </Text>
+          <SelectSRP
+            containerStyle={styles.srpListContainer}
+            showArrowName={strings('protect_your_wallet.reveal')}
+          />
         </View>
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+    </ScrollView>
   );
 };
 

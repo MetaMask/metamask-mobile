@@ -14,7 +14,6 @@ import { useAmountSelectionMetrics } from '../../../../hooks/send/metrics/useAmo
 import { useAmountValidation } from '../../../../hooks/send/useAmountValidation';
 import { useCurrencyConversions } from '../../../../hooks/send/useCurrencyConversions';
 import { usePercentageAmount } from '../../../../hooks/send/usePercentageAmount';
-import { useSendType } from '../../../../hooks/send/useSendType';
 import { useSendContext } from '../../../../context/send-context';
 import { useSendScreenNavigation } from '../../../../hooks/send/useSendScreenNavigation';
 import { EditAmountKeyboard } from '../../../edit-amount-keyboard';
@@ -43,9 +42,8 @@ export const AmountKeyboard = ({
   const { getFiatValue, getNativeValue } = useCurrencyConversions();
   const { gotToSendScreen } = useSendScreenNavigation();
   const { isMaxAmountSupported, getPercentageAmount } = usePercentageAmount();
-  const { amountError, validateNonEvmAmountAsync } = useAmountValidation();
+  const { amountError } = useAmountValidation();
   const { asset, updateValue } = useSendContext();
-  const { isNonEvmSendType } = useSendType();
   const isNFT = asset?.standard === TokenStandard.ERC1155;
   const { styles } = useStyles(styleSheet, {
     amountError: Boolean(amountError),
@@ -90,23 +88,10 @@ export const AmountKeyboard = ({
     [asset, fiatMode, getNativeValue, updateAmount, updateValue],
   );
 
-  const goToNextPage = useCallback(async () => {
-    if (isNonEvmSendType) {
-      // Non EVM flows need an extra validation because "value" can be empty dependent on the blockchain (e.g it's fine for Solana but not for Bitcoin)
-      // Hence we do a call for `validateNonEvmAmountAsync` here to raise UI validation errors if exists
-      const nonEvmAmountError = await validateNonEvmAmountAsync();
-      if (nonEvmAmountError) {
-        return;
-      }
-    }
+  const goToNextPage = useCallback(() => {
     captureAmountSelected();
     gotToSendScreen(Routes.SEND.RECIPIENT);
-  }, [
-    captureAmountSelected,
-    gotToSendScreen,
-    isNonEvmSendType,
-    validateNonEvmAmountAsync,
-  ]);
+  }, [captureAmountSelected, gotToSendScreen]);
 
   return (
     <EditAmountKeyboard

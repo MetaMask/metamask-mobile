@@ -149,17 +149,10 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
 
   const getYesPercentage = (): number => {
     const prices = getOutcomePrices();
-    if (prices.length === 0) {
-      return 0;
+    if (prices.length > 0) {
+      return Math.round(prices[0] * 100);
     }
-
-    const yesPrice = Number(prices[0]);
-
-    if (!Number.isFinite(yesPrice)) {
-      return 0;
-    }
-
-    return Math.round(yesPrice * 100);
+    return 0;
   };
 
   const getTitle = (): string => outcome.title ?? 'Unknown Market';
@@ -173,17 +166,17 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   const handleBuy = (token: PredictOutcomeToken) => {
     executeGuardedAction(
       () => {
-        navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
-          market,
-          outcome,
-          outcomeToken: token,
-          entryPoint,
+        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+          params: {
+            market,
+            outcome,
+            outcomeToken: token,
+            entryPoint,
+          },
         });
       },
-      {
-        checkBalance: true,
-        attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
-      },
+      { checkBalance: true },
     );
   };
 
@@ -240,7 +233,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text style={tw.style('font-medium')} color={TextColor.Success}>
-                {outcome.tokens[0].title}
+                {strings('predict.buy_yes')}
               </Text>
             }
             onPress={() => handleBuy(outcome.tokens[0])}
@@ -252,7 +245,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text style={tw.style('font-medium')} color={TextColor.Error}>
-                {outcome.tokens[1].title}
+                {strings('predict.buy_no')}
               </Text>
             }
             onPress={() => handleBuy(outcome.tokens[1])}

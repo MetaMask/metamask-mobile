@@ -1,104 +1,163 @@
 import {
-  IsAtomicBatchSupportedRequest,
-  TransactionController,
-  TransactionMeta,
-} from '@metamask/transaction-controller';
-import { SignMessenger, getDelegationTransaction } from './delegation';
-import { MOCK_ANY_NAMESPACE, Messenger } from '@metamask/messenger';
-import { Hex } from '@metamask/utils';
+  KeyringControllerSignTypedMessageAction,
+  SignTypedDataVersion,
+} from '@metamask/keyring-controller';
+import {
+  Messenger,
+  MOCK_ANY_NAMESPACE,
+  MockAnyNamespace,
+} from '@metamask/messenger';
+import {
+  Delegation,
+  Execution,
+  ExecutionMode,
+  encodeRedeemDelegations,
+  signDelegation,
+} from './delegation';
+import { TransactionControllerInitMessenger } from '../../core/Engine/messengers/transaction-controller-messenger';
 
-const mockGetNonceLock = jest.fn();
+const FROM_MOCK = '0x123456789012345678901234567890123456789a';
+const CHAIN_ID_MOCK = '0x123';
 
-const mockIsAtomicBatchSupported: jest.MockedFn<
-  TransactionController['isAtomicBatchSupported']
-> = jest.fn();
-
-jest.spyOn(Math, 'random').mockReturnValue(0);
-
-jest.mock('../../core/Engine', () => ({
-  context: {
-    TransactionController: {
-      getNonceLock: () => mockGetNonceLock(),
-      isAtomicBatchSupported: (request: IsAtomicBatchSupportedRequest) =>
-        mockIsAtomicBatchSupported(request),
-    },
-  },
-}));
-
-const DELEGATION_SIGNATURE_MOCK = '0x111222333';
-const UPGRADE_CONTRACT_ADDRESS_MOCK = '0x456' as Hex;
-const NONCE_MOCK = 123;
-
-const AUTHORIZATION_SIGNATURE_MOCK =
-  '0xf85c827a6994663f3ad617193148711d28f5334ee4ed070166028080a040e292da533253143f134643a03405f1af1de1d305526f44ed27e62061368d4ea051cfb0af34e491aa4d6796dececf95569088322e116c4b2f312bb23f20699269';
-
-const TRANSACTION_META_MOCK = {
-  chainId: '0x1' as Hex,
-  nestedTransactions: [
+const DELEGATION_MOCK: Delegation = {
+  authority:
+    '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+  caveats: [
     {
-      data: '0x123456781234' as Hex,
-      to: '0x1234567890abcdef1234567890abcdef12345678' as Hex,
+      enforcer: '0x1234567890123456789012345678901234567896',
+      terms: '0x1234',
+      args: '0x4321',
     },
   ],
-  txParams: {
-    from: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-  },
-} as TransactionMeta;
+  delegate: '0x1234567890123456789012345678901234567892',
+  delegator: '0x1234567890123456789012345678901234567893',
+  salt: 123,
+  signature: '0x7890',
+};
 
-describe('Transaction Delegation Utils', () => {
-  const signDelegationMock = jest.fn();
-  const sign7702Mock = jest.fn();
-  let messengerMock: SignMessenger;
+const EXECUTION_MOCK: Execution = {
+  target: '0x1234567890123456789012345678901234567894',
+  value: '0x123',
+  callData: '0x1234567890123456789012345678901234567895',
+};
+
+type RootMessenger = Messenger<
+  MockAnyNamespace,
+  KeyringControllerSignTypedMessageAction,
+  never
+>;
+
+const getRootMessenger = (): RootMessenger =>
+  new Messenger({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+
+describe('Delegation Utils', () => {
+  let keyringControllerSignTypedMessageMock: jest.MockedFn<
+    KeyringControllerSignTypedMessageAction['handler']
+  >;
+
+  let initMessenger: TransactionControllerInitMessenger;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
 
-    messengerMock = new Messenger({
-      namespace: MOCK_ANY_NAMESPACE,
+    keyringControllerSignTypedMessageMock = jest.fn();
+
+    const rootMessenger = getRootMessenger();
+
+    rootMessenger.registerActionHandler(
+      'KeyringController:signTypedMessage',
+      keyringControllerSignTypedMessageMock,
+    );
+
+    initMessenger = new Messenger<
+      'Test',
+      KeyringControllerSignTypedMessageAction,
+      never,
+      RootMessenger
+    >({
+      namespace: 'Test',
+      parent: rootMessenger,
     });
 
-    messengerMock.registerActionHandler(
-      'DelegationController:signDelegation',
-      signDelegationMock,
-    );
-
-    messengerMock.registerActionHandler(
-      'KeyringController:signEip7702Authorization',
-      sign7702Mock,
-    );
-
-    signDelegationMock.mockResolvedValue(DELEGATION_SIGNATURE_MOCK);
-    sign7702Mock.mockResolvedValue(AUTHORIZATION_SIGNATURE_MOCK);
-
-    mockIsAtomicBatchSupported.mockResolvedValue([
-      {
-        chainId: TRANSACTION_META_MOCK.chainId,
-        isSupported: true,
-        upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
-      },
-    ]);
-
-    mockGetNonceLock.mockResolvedValue({
-      nextNonce: NONCE_MOCK,
-      releaseLock: jest.fn(),
+    rootMessenger.delegate({
+      actions: ['KeyringController:signTypedMessage'],
+      events: [],
+      messenger: initMessenger,
     });
   });
 
-  it('returns delegation data', async () => {
-    const result = await getDelegationTransaction(
-      messengerMock,
-      TRANSACTION_META_MOCK,
-    );
+  describe('signDelegation', () => {
+    it('calls keyring controller', async () => {
+      await signDelegation({
+        chainId: CHAIN_ID_MOCK,
+        delegation: DELEGATION_MOCK,
+        from: FROM_MOCK,
+        messenger: initMessenger,
+      });
 
-    expect(result).toMatchSnapshot();
-  });
-
-  it('does not include authorization if already upgraded', async () => {
-    const result = await getDelegationTransaction(messengerMock, {
-      ...TRANSACTION_META_MOCK,
-      delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+      expect(keyringControllerSignTypedMessageMock).toHaveBeenCalledTimes(1);
+      expect(keyringControllerSignTypedMessageMock).toHaveBeenCalledWith(
+        {
+          from: FROM_MOCK,
+          data: expect.any(Object),
+        },
+        SignTypedDataVersion.V4,
+      );
     });
 
-    expect(result.authorizationList).toBeUndefined();
+    it('returns hash from keyring controller', async () => {
+      keyringControllerSignTypedMessageMock.mockResolvedValueOnce(
+        DELEGATION_MOCK.signature,
+      );
+
+      const result = await signDelegation({
+        chainId: CHAIN_ID_MOCK,
+        delegation: DELEGATION_MOCK,
+        from: FROM_MOCK,
+        messenger: initMessenger,
+      });
+
+      expect(result).toBe(DELEGATION_MOCK.signature);
+    });
+  });
+
+  describe('encodeRedeemDelegations', () => {
+    it('returns encoded hex if single delegation and single execution', () => {
+      expect(
+        encodeRedeemDelegations(
+          [[DELEGATION_MOCK]],
+          [ExecutionMode.BATCH_DEFAULT_MODE],
+          [[EXECUTION_MOCK]],
+        ),
+      ).toMatchSnapshot();
+    });
+
+    it('returns encoded hex if delegation chains and batch execution', () => {
+      expect(
+        encodeRedeemDelegations(
+          [[DELEGATION_MOCK, DELEGATION_MOCK]],
+          [ExecutionMode.BATCH_DEFAULT_MODE],
+          [[EXECUTION_MOCK, EXECUTION_MOCK]],
+        ),
+      ).toMatchSnapshot();
+    });
+
+    it('returns encoded hex if multiple delegation chains and multiple batch executions', () => {
+      expect(
+        encodeRedeemDelegations(
+          [
+            [DELEGATION_MOCK, DELEGATION_MOCK],
+            [DELEGATION_MOCK, DELEGATION_MOCK],
+          ],
+          [ExecutionMode.BATCH_DEFAULT_MODE, ExecutionMode.BATCH_DEFAULT_MODE],
+          [
+            [EXECUTION_MOCK, EXECUTION_MOCK],
+            [EXECUTION_MOCK, EXECUTION_MOCK],
+          ],
+        ),
+      ).toMatchSnapshot();
+    });
   });
 });

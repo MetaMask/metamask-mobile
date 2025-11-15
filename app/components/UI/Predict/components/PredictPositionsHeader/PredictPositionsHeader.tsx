@@ -33,13 +33,11 @@ import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 import { selectPredictWonPositions } from '../../selectors/predictController';
+import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import { PredictPosition } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
-import { formatPercentage, formatPrice } from '../../utils/format';
+import { formatPrice } from '../../utils/format';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
-import { PredictEventValues } from '../../constants/eventNames';
-import { getEvmAccountFromSelectedAccountGroup } from '../../utils/accounts';
 
 export interface PredictPositionsHeaderHandle {
   refresh: () => Promise<void>;
@@ -74,8 +72,8 @@ const PredictPositionsHeader = forwardRef<
     loadOnMount: true,
     refreshOnFocus: true,
   });
-  const evmAccount = getEvmAccountFromSelectedAccountGroup();
-  const selectedAddress = evmAccount?.address ?? '0x0';
+  const selectedAddress =
+    useSelector(selectSelectedInternalAccountAddress) ?? '0x0';
   const { isDepositPending } = usePredictDeposit();
   const wonPositions = useSelector(
     selectPredictWonPositions({ address: selectedAddress }),
@@ -105,9 +103,6 @@ const PredictPositionsHeader = forwardRef<
   const handleBalanceTouch = () => {
     navigation.navigate(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
-      params: {
-        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
-      },
     });
   };
 
@@ -139,30 +134,25 @@ const PredictPositionsHeader = forwardRef<
 
   const formatPercent = (percent: number) => {
     const sign = percent >= 0 ? '+' : '';
-    return `${sign}${formatPercentage(percent)}`;
+    return `${sign}${percent.toFixed(1)}%`;
   };
 
   const hasClaimableAmount =
     wonPositions.length > 0 && totalClaimableAmount !== undefined;
   const hasAvailableBalance = balance !== undefined && balance > 0;
   const hasUnrealizedPnL = unrealizedPnL?.cashUpnl !== undefined;
+  const shouldShowMainCard = hasAvailableBalance || hasUnrealizedPnL;
 
   const handleClaim = async () => {
-    await executeGuardedAction(
-      async () => {
-        await claim();
-      },
-      { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
-    );
+    await executeGuardedAction(async () => {
+      await claim();
+    });
   };
 
-  // Show component if there's a claimable amount, or if we have/are loading balance or P&L data
   if (
-    !hasClaimableAmount &&
-    !hasAvailableBalance &&
-    !hasUnrealizedPnL &&
-    !isBalanceLoading &&
-    !isUnrealizedPnLLoading
+    isBalanceLoading ||
+    isUnrealizedPnLLoading ||
+    (!hasClaimableAmount && !shouldShowMainCard)
   ) {
     return null;
   }
@@ -184,27 +174,18 @@ const PredictPositionsHeader = forwardRef<
         </ButtonHero>
       )}
 
-      {(hasAvailableBalance ||
-        hasUnrealizedPnL ||
-        isBalanceLoading ||
-        isUnrealizedPnLLoading) && (
+      {shouldShowMainCard && (
         <Box
           style={tw.style(
             'bg-muted rounded-xl pt-3',
-            !(hasUnrealizedPnL || isUnrealizedPnLLoading) && 'pb-3',
+            !hasUnrealizedPnL && 'pb-3',
           )}
           testID="markets-won-card"
         >
-          {(hasAvailableBalance || isBalanceLoading) && (
-            <TouchableOpacity
-              onPress={handleBalanceTouch}
-              disabled={isBalanceLoading}
-            >
+          {hasAvailableBalance && (
+            <TouchableOpacity onPress={handleBalanceTouch}>
               <Box
-                style={tw.style(
-                  'px-4',
-                  (hasUnrealizedPnL || isUnrealizedPnLLoading) && 'pb-3',
-                )}
+                style={tw.style('px-4', hasUnrealizedPnL && 'pb-3')}
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
@@ -226,68 +207,55 @@ const PredictPositionsHeader = forwardRef<
                   alignItems={BoxAlignItems.Center}
                   twClassName="flex-row items-center"
                 >
-                  {isBalanceLoading ? (
-                    <Skeleton
-                      width={80}
-                      height={20}
-                      style={tw.style('rounded-md mr-1')}
-                    />
-                  ) : (
-                    <>
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        twClassName="text-primary mr-1"
-                        testID="claimable-amount"
-                      >
-                        {formatPrice(balance, { maximumDecimals: 2 })}
-                      </Text>
-                      <Icon
-                        name={IconName.ArrowRight}
-                        size={IconSize.Sm}
-                        color={IconColor.Alternative}
-                      />
-                    </>
-                  )}
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    twClassName="text-primary mr-1"
+                    testID="claimable-amount"
+                  >
+                    {formatPrice(balance, { maximumDecimals: 2 })}
+                  </Text>
+                  <Icon
+                    name={IconName.ArrowRight}
+                    size={IconSize.Sm}
+                    color={IconColor.Alternative}
+                  />
                 </Box>
               </Box>
             </TouchableOpacity>
           )}
-          {(hasUnrealizedPnL || isUnrealizedPnLLoading) && (
+          {hasUnrealizedPnL && (
             <>
-              <Box twClassName="h-px bg-default" />
+              <Box twClassName="h-px bg-alternative" />
               <Box
                 twClassName="px-4 pb-3 mt-3"
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
               >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  twClassName="text-alternative"
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
                 >
-                  {strings('predict.unrealized_pnl_label')}
-                </Text>
-                {isUnrealizedPnLLoading ? (
-                  <Skeleton
-                    width={120}
-                    height={20}
-                    style={tw.style('rounded-md')}
-                  />
-                ) : (
                   <Text
                     variant={TextVariant.BodyMd}
-                    twClassName={
-                      unrealizedAmount >= 0
-                        ? 'text-success-default'
-                        : 'text-error-default'
-                    }
+                    twClassName="text-alternative"
                   >
-                    {strings('predict.unrealized_pnl_value', {
-                      amount: formatAmount(unrealizedAmount),
-                      percent: formatPercent(unrealizedPercent),
-                    })}
+                    {strings('predict.unrealized_pnl_label')}
                   </Text>
-                )}
+                </Box>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  twClassName={
+                    unrealizedAmount >= 0
+                      ? 'text-success-default'
+                      : 'text-error-default'
+                  }
+                >
+                  {strings('predict.unrealized_pnl_value', {
+                    amount: formatAmount(unrealizedAmount),
+                    percent: formatPercent(unrealizedPercent),
+                  })}
+                </Text>
               </Box>
             </>
           )}

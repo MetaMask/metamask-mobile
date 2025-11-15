@@ -1,43 +1,24 @@
-import React, { useMemo } from 'react';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+import React from 'react';
+import Text from '../../../../../../component-library/components/Texts/Text';
 import InfoRow from '../../UI/info-row';
+import { useTransactionTotalFiat } from '../../../hooks/pay/useTransactionTotalFiat';
 import { strings } from '../../../../../../../locales/i18n';
 import { View } from 'react-native';
-import { BigNumber } from 'bignumber.js';
-import {
-  useIsTransactionPayLoading,
-  useTransactionPayTotals,
-} from '../../../hooks/pay/useTransactionPayData';
-import { useTransactionPayFiat } from '../../../hooks/pay/useTransactionPayFiat';
-import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
+import { SkeletonRow } from '../skeleton-row';
+import { useIsTransactionPayLoading } from '../../../hooks/pay/useIsTransactionPayLoading';
 
 export function TotalRow() {
-  const { formatFiat } = useTransactionPayFiat();
-  const isLoading = useIsTransactionPayLoading();
-  const totals = useTransactionPayTotals();
-
-  const totalUsd = useMemo(() => {
-    if (!totals?.total) return '';
-
-    return formatFiat(new BigNumber(totals.total.usd));
-  }, [totals, formatFiat]);
+  const { totalFormatted } = useTransactionTotalFiat({ log: true });
+  const { isLoading } = useIsTransactionPayLoading();
 
   if (isLoading) {
-    return <InfoRowSkeleton testId="total-row-skeleton" />;
+    return <SkeletonRow testId="total-row-skeleton" />;
   }
 
   return (
     <View testID="total-row">
-      <InfoRow
-        label={strings('confirm.label.total')}
-        rowVariant={InfoRowVariant.Small}
-      >
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-          {totalUsd}
-        </Text>
+      <InfoRow label={strings('confirm.label.total')}>
+        <Text>{totalFormatted}</Text>
       </InfoRow>
     </View>
   );

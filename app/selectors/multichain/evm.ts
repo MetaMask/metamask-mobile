@@ -39,7 +39,10 @@ import { selectTokensBalances } from '../tokenBalancesController';
 import { isZero } from '../../util/lodash';
 import { selectIsTokenNetworkFilterEqualCurrentNetwork } from '../preferencesController';
 import { selectIsEvmNetworkSelected } from '../multichainNetworkController';
-import { isTestNet } from '../../util/networks';
+import {
+  isTestNet,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../util/networks';
 import { selectTokenMarketData } from '../tokenRatesController';
 import { deriveBalanceFromAssetMarketDetails } from '../../components/UI/Tokens/util';
 import { RootState } from '../../reducers';
@@ -417,24 +420,32 @@ export const selectEvmTokens = createDeepEqualSelector(
     enabledNetworksByNamespace,
   ) => {
     // Apply network filtering
-
-    const enabledEip155Networks =
-      enabledNetworksByNamespace?.[KnownCaipNamespace.Eip155];
-
     let filteredTokens: TokenI[];
-    if (!enabledEip155Networks) {
-      // Fall back to default behavior when network enablement data is unavailable
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      const enabledEip155Networks =
+        enabledNetworksByNamespace?.[KnownCaipNamespace.Eip155];
+
+      if (!enabledEip155Networks) {
+        // Fall back to default behavior when network enablement data is unavailable
+        filteredTokens =
+          isAllNetworks && isPopularNetwork && isEvmSelected
+            ? tokensToDisplay
+            : tokensToDisplay.filter(
+                (token: TokenI) => token.chainId === currentChainId,
+              );
+      } else {
+        filteredTokens = tokensToDisplay.filter((currentToken: TokenI) => {
+          const chainId = currentToken.chainId || '';
+          return enabledEip155Networks[chainId as Hex];
+        });
+      }
+    } else {
       filteredTokens =
         isAllNetworks && isPopularNetwork && isEvmSelected
           ? tokensToDisplay
           : tokensToDisplay.filter(
               (token: TokenI) => token.chainId === currentChainId,
             );
-    } else {
-      filteredTokens = tokensToDisplay.filter((currentToken: TokenI) => {
-        const chainId = currentToken.chainId || '';
-        return enabledEip155Networks[chainId as Hex];
-      });
     }
 
     // Categorize tokens as native or non-native, filtering out testnet tokens if applicable
@@ -445,7 +456,11 @@ export const selectEvmTokens = createDeepEqualSelector(
       const token = currToken as TokenI & { chainId: string };
 
       // Skip tokens if they are on a test network and the current chain is not a test network
-      if (isTestNet(token.chainId) && !isTestNet(currentChainId)) {
+      if (
+        isTestNet(token.chainId) &&
+        !isTestNet(currentChainId) &&
+        !isRemoveGlobalNetworkSelectorEnabled()
+      ) {
         continue;
       }
 

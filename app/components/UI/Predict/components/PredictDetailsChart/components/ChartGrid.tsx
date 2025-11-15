@@ -28,7 +28,7 @@ const ChartGrid: React.FC<ChartGridProps> = ({
       {ticks.map((tick: number, index: number) => (
         <Line
           key={`grid-${tick}-${index}`}
-          x1={8}
+          x1={0}
           x2={x(lastIndex)}
           y1={y(tick)}
           y2={y(tick)}
@@ -41,9 +41,9 @@ const ChartGrid: React.FC<ChartGridProps> = ({
         <SvgText
           key={`label-${tick}-${index}`}
           x={x(lastIndex) + 4}
-          y={y(tick) - 4}
+          y={y(tick)}
           fontSize="12"
-          fill={colors.text.alternative}
+          fill={colors.text.default}
           textAnchor="start"
           alignmentBaseline="middle"
         >

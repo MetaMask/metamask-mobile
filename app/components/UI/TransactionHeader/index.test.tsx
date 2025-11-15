@@ -66,8 +66,6 @@ describe('TransactionHeader', () => {
     const wrapper = renderWithProvider(
       <TransactionHeader {...defaultProps} />,
       { state: mockInitialState },
-      true,
-      false,
     );
     expect(wrapper).toMatchSnapshot();
   });
@@ -86,8 +84,6 @@ describe('TransactionHeader', () => {
         }}
       />,
       { state: mockInitialState },
-      true,
-      false,
     );
 
     expect(

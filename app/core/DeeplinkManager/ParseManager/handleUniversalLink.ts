@@ -36,7 +36,6 @@ enum SUPPORTED_ACTIONS {
   PERPS_MARKETS = ACTIONS.PERPS_MARKETS,
   PERPS_ASSET = ACTIONS.PERPS_ASSET,
   REWARDS = ACTIONS.REWARDS,
-  PREDICT = ACTIONS.PREDICT,
   WC = ACTIONS.WC,
   ONBOARDING = ACTIONS.ONBOARDING,
   ENABLE_CARD_BUTTON = ACTIONS.ENABLE_CARD_BUTTON,
@@ -258,9 +257,6 @@ async function handleUniversalLink({
   } else if (action === SUPPORTED_ACTIONS.REWARDS) {
     const rewardsPath = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handleRewards(rewardsPath);
-  } else if (action === SUPPORTED_ACTIONS.PREDICT) {
-    const predictPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    instance._handlePredict(predictPath, source);
   } else if (action === SUPPORTED_ACTIONS.WC) {
     const { params } = extractURLParams(urlObj.href);
     const wcURL = params?.uri;

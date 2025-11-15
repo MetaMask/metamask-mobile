@@ -7,9 +7,9 @@ function getIconSize(variant: TokenIconVariant) {
     case TokenIconVariant.Hero:
       return 44;
     case TokenIconVariant.Row:
-      return 20;
+      return 16;
     default:
-      return 32;
+      return 34;
   }
 }
 

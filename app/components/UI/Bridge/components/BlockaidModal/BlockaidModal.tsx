@@ -59,7 +59,9 @@ const BlockaidModal = () => {
   return (
     <BottomSheet ref={sheetRef}>
       <BottomSheetHeader onClose={handleClose}>
-        {strings(`blockaid_modal.${errorType}_title`)}
+        <Text variant={TextVariant.HeadingMD}>
+          {strings(`blockaid_modal.${errorType}_title`)}
+        </Text>
       </BottomSheetHeader>
       <View style={styles.container}>
         <Text variant={TextVariant.BodyMD} style={styles.errorMessage}>

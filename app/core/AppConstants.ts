@@ -73,11 +73,9 @@ export default {
     POLLING_FREQUENCY: 10000,
   },
   DEEPLINKS: {
-    ORIGIN_CAROUSEL: 'carousel',
     ORIGIN_DEEPLINK: 'deeplink',
     ORIGIN_QR_CODE: 'qr-code',
     ORIGIN_NOTIFICATION: 'notifications',
-    ORIGIN_IN_APP_BROWSER: 'in-app-browser',
   },
   WALLET_CONNECT: {
     //One day in hours

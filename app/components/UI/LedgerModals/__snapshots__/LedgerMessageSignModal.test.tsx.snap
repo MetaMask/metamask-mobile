@@ -323,38 +323,23 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                         }
                       }
                     >
-                      <TouchableOpacity
-                        activeOpacity={1}
-                        disabled={false}
-                        onPress={[Function]}
+                      <View
                         style={
-                          {
-                            "bottom": 0,
-                            "left": 0,
-                            "position": "absolute",
-                            "right": 0,
-                            "top": 0,
-                          }
+                          [
+                            {
+                              "backgroundColor": "#3f434a66",
+                              "bottom": 0,
+                              "left": 0,
+                              "position": "absolute",
+                              "right": 0,
+                              "top": 0,
+                            },
+                            {
+                              "opacity": undefined,
+                            },
+                          ]
                         }
-                      >
-                        <View
-                          style={
-                            [
-                              {
-                                "backgroundColor": "#3f434a66",
-                                "bottom": 0,
-                                "left": 0,
-                                "position": "absolute",
-                                "right": 0,
-                                "top": 0,
-                              },
-                              {
-                                "opacity": undefined,
-                              },
-                            ]
-                          }
-                        />
-                      </TouchableOpacity>
+                      />
                       <View
                         collapsable={false}
                         enabled={true}
@@ -389,6 +374,19 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                           ]
                         }
                       >
+                        <TouchableOpacity
+                          disabled={false}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "bottom": 0,
+                              "left": 0,
+                              "position": "absolute",
+                              "right": 0,
+                              "top": 0,
+                            }
+                          }
+                        />
                         <View
                           style={
                             {

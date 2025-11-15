@@ -137,23 +137,14 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
   const onPress = () => {
     setIsCollapsed(!isCollapsed);
     if (!isCollapsed) {
-      const otherNotificationProperties = () => {
-        if (
-          'notification_type' in notification &&
-          notification.notification_type === 'on-chain' &&
-          notification.payload?.chain_id
-        ) {
-          return { chain_id: notification.payload.chain_id };
-        }
-
-        return undefined;
-      };
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED)
           .addProperties({
             notification_id: notification.id,
             notification_type: notification.type,
-            ...otherNotificationProperties(),
+            ...('chain_id' in notification && {
+              chain_id: notification.chain_id,
+            }),
             clicked_item: 'fee_details',
           })
           .build(),

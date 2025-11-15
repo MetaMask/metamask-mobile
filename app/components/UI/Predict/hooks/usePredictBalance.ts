@@ -3,13 +3,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
+import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { usePredictTrading } from './usePredictTrading';
 import { usePredictNetworkManagement } from './usePredictNetworkManagement';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 import { selectPredictBalanceByAddress } from '../selectors/predictController';
 import { ensureError } from '../utils/predictErrorHandler';
-import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 
 interface UsePredictBalanceOptions {
   /**
@@ -60,8 +60,9 @@ export function usePredictBalance(
   const isInitialMount = useRef(true);
   const isLoadingRef = useRef(false);
 
-  const evmAccount = getEvmAccountFromSelectedAccountGroup();
-  const selectedInternalAccountAddress = evmAccount?.address ?? '0x0';
+  const selectedInternalAccountAddress = useSelector(
+    selectSelectedInternalAccountAddress,
+  );
 
   const balance =
     useSelector(
@@ -145,7 +146,6 @@ export function usePredictBalance(
         setIsRefreshing(false);
       }
     },
-    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [getBalance, selectedInternalAccountAddress, providerId],
   );

@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { FlatList, Linking } from 'react-native';
+import { FlatList } from 'react-native';
 import {
   Box,
   Text,
@@ -27,12 +27,7 @@ import {
 } from '../../../../../Bridge/hooks/useSwapBridgeNavigation';
 import { useSelector } from 'react-redux';
 import { selectIsFirstTimePerpsUser } from '../../../../../Perps/selectors/perpsController';
-import {
-  selectRewardsCardSpendFeatureFlags,
-  selectRewardsMusdDepositEnabledFlag,
-} from '../../../../../../../selectors/featureFlagController/rewards';
-import { selectPredictEnabledFlag } from '../../../../../Predict/selectors/featureFlags';
-import { PredictEventValues } from '../../../../../Predict/constants/eventNames';
+import { selectRewardsCardSpendFeatureFlags } from '../../../../../../../selectors/featureFlagController/rewards';
 import {
   MetaMetricsEvents,
   useMetrics,
@@ -44,9 +39,7 @@ export enum WayToEarnType {
   PERPS = 'perps',
   REFERRALS = 'referrals',
   LOYALTY = 'loyalty',
-  PREDICT = 'predict',
   CARD = 'card',
-  DEPOSIT_MUSD = 'deposit_musd',
 }
 
 interface WayToEarn {
@@ -70,12 +63,6 @@ const waysToEarn: WayToEarn[] = [
     icon: IconName.Candlestick,
   },
   {
-    type: WayToEarnType.PREDICT,
-    title: strings('rewards.ways_to_earn.predict.title'),
-    description: strings('rewards.ways_to_earn.predict.description'),
-    icon: IconName.Speedometer,
-  },
-  {
     type: WayToEarnType.REFERRALS,
     title: strings('rewards.ways_to_earn.referrals.title'),
     description: strings('rewards.ways_to_earn.referrals.description'),
@@ -92,12 +79,6 @@ const waysToEarn: WayToEarn[] = [
     title: strings('rewards.ways_to_earn.card.title'),
     description: strings('rewards.ways_to_earn.card.description'),
     icon: IconName.Card,
-  },
-  {
-    type: WayToEarnType.DEPOSIT_MUSD,
-    title: strings('rewards.ways_to_earn.deposit_musd.title'),
-    description: strings('rewards.ways_to_earn.deposit_musd.description'),
-    icon: IconName.Coin,
   },
 ];
 
@@ -177,21 +158,6 @@ const getBottomSheetData = (type: WayToEarnType) => {
         ),
         ctaLabel: strings('rewards.ways_to_earn.loyalty.sheet.cta_label'),
       };
-    case WayToEarnType.PREDICT:
-      return {
-        title: (
-          <WaysToEarnSheetTitle
-            title={strings('rewards.ways_to_earn.predict.sheet.title')}
-            points={strings('rewards.ways_to_earn.predict.sheet.points')}
-          />
-        ),
-        description: (
-          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-            {strings('rewards.ways_to_earn.predict.sheet.description')}
-          </Text>
-        ),
-        ctaLabel: strings('rewards.ways_to_earn.predict.sheet.cta_label'),
-      };
     case WayToEarnType.CARD:
       return {
         title: (
@@ -207,21 +173,6 @@ const getBottomSheetData = (type: WayToEarnType) => {
         ),
         ctaLabel: strings('rewards.ways_to_earn.card.sheet.cta_label'),
       };
-    case WayToEarnType.DEPOSIT_MUSD:
-      return {
-        title: (
-          <WaysToEarnSheetTitle
-            title={strings('rewards.ways_to_earn.deposit_musd.sheet.title')}
-            points={strings('rewards.ways_to_earn.deposit_musd.sheet.points')}
-          />
-        ),
-        description: (
-          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-            {strings('rewards.ways_to_earn.deposit_musd.sheet.description')}
-          </Text>
-        ),
-        ctaLabel: strings('rewards.ways_to_earn.deposit_musd.sheet.cta_label'),
-      };
     default:
       throw new Error(`Unknown earning way type: ${type}`);
   }
@@ -231,8 +182,6 @@ export const WaysToEarn = () => {
   const navigation = useNavigation();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
   const isCardSpendEnabled = useSelector(selectRewardsCardSpendFeatureFlags);
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-  const isMusdDepositEnabled = useSelector(selectRewardsMusdDepositEnabledFlag);
   const { trackEvent, createEventBuilder } = useMetrics();
 
   // Use the swap/bridge navigation hook
@@ -270,19 +219,8 @@ export const WaysToEarn = () => {
       case WayToEarnType.LOYALTY:
         navigation.navigate(Routes.REWARDS_SETTINGS_VIEW);
         break;
-      case WayToEarnType.PREDICT:
-        navigation.navigate(Routes.PREDICT.ROOT, {
-          screen: Routes.PREDICT.MARKET_LIST,
-          params: {
-            entryPoint: PredictEventValues.ENTRY_POINT.REWARDS,
-          },
-        });
-        break;
       case WayToEarnType.CARD:
         navigation.navigate(Routes.CARD.ROOT);
-        break;
-      case WayToEarnType.DEPOSIT_MUSD:
-        Linking.openURL('https://go.metamask.io/turtle-musd');
         break;
     }
   };
@@ -300,9 +238,7 @@ export const WaysToEarn = () => {
       case WayToEarnType.SWAPS:
       case WayToEarnType.LOYALTY:
       case WayToEarnType.PERPS:
-      case WayToEarnType.PREDICT:
-      case WayToEarnType.CARD:
-      case WayToEarnType.DEPOSIT_MUSD: {
+      case WayToEarnType.CARD: {
         const { title, description, ctaLabel } = getBottomSheetData(
           wayToEarn.type,
         );
@@ -338,21 +274,11 @@ export const WaysToEarn = () => {
       <Box twClassName="rounded-xl bg-muted">
         <FlatList
           horizontal={false}
-          data={waysToEarn.filter((wte) => {
-            if (wte.type === WayToEarnType.CARD && !isCardSpendEnabled) {
-              return false;
-            }
-            if (wte.type === WayToEarnType.PREDICT && !isPredictEnabled) {
-              return false;
-            }
-            if (
-              wte.type === WayToEarnType.DEPOSIT_MUSD &&
-              !isMusdDepositEnabled
-            ) {
-              return false;
-            }
-            return true;
-          })}
+          data={
+            isCardSpendEnabled
+              ? waysToEarn
+              : waysToEarn.filter((way) => way.type !== WayToEarnType.CARD)
+          }
           keyExtractor={(wayToEarn) => wayToEarn.title}
           ItemSeparatorComponent={Separator}
           scrollEnabled={false}

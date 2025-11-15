@@ -26,10 +26,7 @@ const isSent = (n: NativeSentReceiveNotification) =>
   n.type === TRIGGER_TYPES.ETH_SENT;
 
 const title = (n: NativeSentReceiveNotification) => {
-  const address = formatAddress(
-    isSent(n) ? n.payload.data.to : n.payload.data.from,
-    'short',
-  );
+  const address = formatAddress(isSent(n) ? n.data.to : n.data.from, 'short');
   return strings(`notifications.menu_item_title.${n.type}`, {
     address,
   });
@@ -38,9 +35,7 @@ const title = (n: NativeSentReceiveNotification) => {
 const state: NotificationState<NativeSentReceiveNotification> = {
   guardFn: isNativeTokenNotification,
   createMenuItem: (notification) => {
-    const tokenDetails = getNativeTokenDetailsByChainId(
-      notification.payload.chain_id,
-    );
+    const tokenDetails = getNativeTokenDetailsByChainId(notification.chain_id);
 
     return {
       title: title(notification),
@@ -48,7 +43,7 @@ const state: NotificationState<NativeSentReceiveNotification> = {
       description: {
         start: tokenDetails?.name ?? '',
         end: tokenDetails
-          ? `${formatAmount(parseFloat(notification.payload.data.amount.eth), {
+          ? `${formatAmount(parseFloat(notification.data.amount.eth), {
               shouldEllipse: true,
             })} ${tokenDetails.symbol}`
           : '',
@@ -65,7 +60,7 @@ const state: NotificationState<NativeSentReceiveNotification> = {
   },
   createModalDetails: (notification) => {
     const nativeTokenDetails = getNativeTokenDetailsByChainId(
-      notification.payload.chain_id,
+      notification.chain_id,
     );
     return {
       title: isSent(notification)
@@ -80,29 +75,26 @@ const state: NotificationState<NativeSentReceiveNotification> = {
         {
           type: ModalFieldType.ADDRESS,
           label: label_address_from(notification),
-          address: notification.payload.data.from,
+          address: notification.data.from,
         },
         {
           type: ModalFieldType.ADDRESS,
           label: label_address_to(notification),
-          address: notification.payload.data.to,
+          address: notification.data.to,
         },
         {
           type: ModalFieldType.TRANSACTION,
-          txHash: notification.payload.tx_hash,
+          txHash: notification.tx_hash,
         },
         {
           type: ModalFieldType.ASSET,
           label: strings('notifications.modal.label_asset'),
           description: nativeTokenDetails?.name ?? '',
-          amount: `${formatAmount(
-            parseFloat(notification.payload.data.amount.eth),
-            {
-              shouldEllipse: true,
-            },
-          )} ${nativeTokenDetails?.symbol}`,
+          amount: `${formatAmount(parseFloat(notification.data.amount.eth), {
+            shouldEllipse: true,
+          })} ${nativeTokenDetails?.symbol}`,
           usdAmount: `$${formatAmount(
-            parseFloat(notification.payload.data.amount.usd),
+            parseFloat(notification.data.amount.usd),
             {
               shouldEllipse: true,
             },
@@ -118,8 +110,8 @@ const state: NotificationState<NativeSentReceiveNotification> = {
       ],
       footer: {
         type: ModalFooterType.BLOCK_EXPLORER,
-        chainId: notification.payload.chain_id,
-        txHash: notification.payload.tx_hash,
+        chainId: notification.chain_id,
+        txHash: notification.tx_hash,
       },
     };
   },

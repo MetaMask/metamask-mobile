@@ -35,7 +35,9 @@ const PermittedNetworksInfoSheet = () => {
         testID={PermittedNetworksInfoSheetTestIds.CONTAINER}
       >
         <BottomSheetHeader>
-          {strings('permissions.permitted_networks')}
+          <Text variant={TextVariant.HeadingMD}>
+            {strings('permissions.permitted_networks')}
+          </Text>
         </BottomSheetHeader>
         <View
           style={styles.descriptionContainer}

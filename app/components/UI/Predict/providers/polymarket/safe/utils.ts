@@ -23,17 +23,14 @@ import Logger, { type LoggerErrorOptions } from '../../../../../../util/Logger';
 import { isSmartContractAddress } from '../../../../../../util/transactions';
 import { Signer } from '../../types';
 import {
-  COLLATERAL_TOKEN_DECIMALS,
   CONDITIONAL_TOKEN_DECIMALS,
   MATIC_CONTRACTS,
-  MIN_COLLATERAL_BALANCE_FOR_CLAIM,
   POLYGON_MAINNET_CHAIN_ID,
 } from '../constants';
 import {
   encodeApprove,
   encodeClaim,
   encodeErc1155Approve,
-  encodeErc20Transfer,
   getAllowance,
   getContractConfig,
   getIsApprovedForAll,
@@ -611,12 +608,7 @@ export const hasAllowances = async ({ address }: { address: string }) => {
   );
 };
 
-export const createClaimSafeTransaction = (
-  positions: PredictPosition[],
-  includeTransfer?: {
-    address: string;
-  },
-) => {
+export const createClaimSafeTransaction = (positions: PredictPosition[]) => {
   const safeTxns: SafeTransaction[] = [];
   const contractConfig = getContractConfig(POLYGON_MAINNET_CHAIN_ID);
 
@@ -642,21 +634,6 @@ export const createClaimSafeTransaction = (
     });
   }
 
-  if (includeTransfer) {
-    safeTxns.push({
-      to: MATIC_CONTRACTS.collateral,
-      data: encodeErc20Transfer({
-        to: includeTransfer.address,
-        value: parseUnits(
-          MIN_COLLATERAL_BALANCE_FOR_CLAIM.toString(),
-          COLLATERAL_TOKEN_DECIMALS,
-        ).toBigInt(),
-      }),
-      operation: OperationType.Call,
-      value: '0',
-    });
-  }
-
   const safeTxn = aggregateTransaction(safeTxns);
 
   return safeTxn;
@@ -666,17 +643,12 @@ export const getClaimTransaction = async ({
   signer,
   positions,
   safeAddress,
-  includeTransferTransaction,
 }: {
   signer: Signer;
   positions: PredictPosition[];
   safeAddress: string;
-  includeTransferTransaction?: boolean;
 }) => {
-  const includeTransfer = includeTransferTransaction
-    ? { address: signer.address }
-    : undefined;
-  const safeTxn = createClaimSafeTransaction(positions, includeTransfer);
+  const safeTxn = createClaimSafeTransaction(positions);
   const callData = await getSafeTransactionCallData({
     signer,
     safeAddress,

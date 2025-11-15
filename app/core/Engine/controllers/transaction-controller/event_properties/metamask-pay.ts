@@ -4,13 +4,6 @@ import { JsonMap } from '../../../../Analytics/MetaMetrics.types';
 import { orderBy } from 'lodash';
 import { NATIVE_TOKEN_ADDRESS } from '../../../../../components/Views/confirmations/constants/tokens';
 import { hasTransactionType } from '../../../../../components/Views/confirmations/utils/transaction';
-import {
-  TransactionPayBridgeQuote,
-  TransactionPayQuote,
-  TransactionPayStrategy,
-} from '@metamask/transaction-pay-controller';
-
-const FOUR_BYTE_SAFE_PROXY_CREATE = '0xa1884d2c';
 
 const COPY_METRICS = [
   'mm_pay',
@@ -38,12 +31,6 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
       tx.requiredTransactionIds?.includes(transactionId) ||
       (batchId && hasTransactionType(tx, PAY_TYPES) && tx.batchId === batchId),
   );
-
-  if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
-    properties.polymarket_account_created = (
-      transactionMeta?.nestedTransactions ?? []
-    ).some((t) => t.data?.startsWith(FOUR_BYTE_SAFE_PROXY_CREATE));
-  }
 
   if (hasTransactionType(transactionMeta, PAY_TYPES) || !parentTransaction) {
     return {
@@ -82,8 +69,9 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
     )
   ) {
     const quotes =
-      getState().engine.backgroundState.TransactionPayController
-        .transactionData[parentTransaction.id]?.quotes ?? [];
+      getState().confirmationMetrics.transactionBridgeQuotesById[
+        parentTransaction.id
+      ] ?? [];
 
     const quoteTransactionIds = relatedTransactionIds.filter((id) =>
       allTransactions.some(
@@ -98,16 +86,11 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
     const quoteIndex = quoteTransactionIds.indexOf(transactionMeta.id);
     const quote = quotes[quoteIndex];
 
-    if (quote?.strategy === TransactionPayStrategy.Bridge) {
-      const bridgeQuote =
-        quote as TransactionPayQuote<TransactionPayBridgeQuote>;
-
-      const metrics = bridgeQuote.original.metrics;
-
-      properties.mm_pay_quotes_attempts = metrics?.attempts;
-      properties.mm_pay_quotes_buffer_size = metrics?.buffer;
-      properties.mm_pay_quotes_latency = metrics?.latency;
-      properties.mm_pay_bridge_provider = bridgeQuote.original.quote.bridgeId;
+    if (quote) {
+      properties.mm_pay_quotes_attempts = quote.metrics?.attempts;
+      properties.mm_pay_quotes_buffer_size = quote.metrics?.buffer;
+      properties.mm_pay_quotes_latency = quote.metrics?.latency;
+      properties.mm_pay_bridge_provider = quote.quote.bridgeId;
     }
 
     if (quote && quote.request.targetTokenAddress !== NATIVE_TOKEN_ADDRESS) {

@@ -1,10 +1,7 @@
 export const flushPromises = () => new Promise(setImmediate);
 
-// Fallback ports - used in fixture data and when LaunchArgs are unavailable
-// Android: These are mapped to actual PortManager-allocated ports via adb reverse
-// iOS: These are overridden by LaunchArgs at runtime
-export const FALLBACK_FIXTURE_SERVER_PORT = 12345;
-export const FALLBACK_COMMAND_QUEUE_SERVER_PORT = 2446;
+export const FIXTURE_SERVER_PORT = 12345;
+export const COMMAND_QUEUE_SERVER_PORT = 2446;
 
 // E2E test configuration required in app
 export const testConfig = {};
@@ -34,8 +31,8 @@ export const isE2E =
   process.env.IS_TEST === 'true' || process.env.METAMASK_ENVIRONMENT === 'e2e';
 export const enableApiCallLogs = process.env.LOG_API_CALLS === 'true';
 export const getFixturesServerPortInApp = () =>
-  testConfig.fixtureServerPort ?? FALLBACK_FIXTURE_SERVER_PORT;
+  testConfig.fixtureServerPort ?? FIXTURE_SERVER_PORT;
 export const getCommandQueueServerPortInApp = () =>
-  testConfig.commandQueueServerPort ?? FALLBACK_COMMAND_QUEUE_SERVER_PORT;
+  testConfig.commandQueueServerPort ?? COMMAND_QUEUE_SERVER_PORT;
 
 export const isRc = process.env.METAMASK_ENVIRONMENT === 'rc';

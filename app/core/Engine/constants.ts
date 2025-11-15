@@ -45,7 +45,6 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'TokenSearchDiscoveryController:stateChange',
   'TokenSearchDiscoveryDataController:stateChange',
   'TransactionController:stateChange',
-  'TransactionPayController:stateChange',
   'MultichainNetworkController:stateChange',
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   'SnapController:stateChange',

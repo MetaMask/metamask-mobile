@@ -188,11 +188,6 @@ export class BackgroundBridge extends EventEmitter {
     );
 
     Engine.controllerMessenger.subscribe(
-      'AccountsController:selectedAccountChange',
-      this.sendStateUpdate,
-    );
-
-    Engine.controllerMessenger.subscribe(
       'PreferencesController:stateChange',
       this.sendStateUpdate,
     );
@@ -428,16 +423,13 @@ export class BackgroundBridge extends EventEmitter {
     }
     // ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
     if (this.isWalletConnect || this.isRemoteConn) {
-      const accountControllerSelectedAddress = toFormattedAddress(
-        Engine.context.AccountsController.getSelectedAccount().address,
-      );
       if (
         this.addressSent != null &&
-        accountControllerSelectedAddress != null &&
-        !areAddressesEqual(this.addressSent, accountControllerSelectedAddress)
+        memState.selectedAddress != null &&
+        !areAddressesEqual(this.addressSent, memState.selectedAddress)
       ) {
-        this.addressSent = accountControllerSelectedAddress;
-        this.notifySelectedAddressChanged(accountControllerSelectedAddress);
+        this.addressSent = memState.selectedAddress;
+        this.notifySelectedAddressChanged(memState.selectedAddress);
       }
     }
   }
@@ -486,10 +478,6 @@ export class BackgroundBridge extends EventEmitter {
     );
     controllerMessenger.tryUnsubscribe(
       'PreferencesController:stateChange',
-      this.sendStateUpdate,
-    );
-    controllerMessenger.tryUnsubscribe(
-      'AccountsController:selectedAccountChange',
       this.sendStateUpdate,
     );
 
@@ -1145,14 +1133,14 @@ export class BackgroundBridge extends EventEmitter {
    */
   getState() {
     const vault = Engine.context.KeyringController.state.vault;
-    const accountControllerSelectedAddress = toFormattedAddress(
-      Engine.context.AccountsController.getSelectedAccount().address,
-    );
+    const {
+      PreferencesController: { selectedAddress },
+    } = Engine.datamodel.state;
     return {
       isInitialized: !!vault,
       isUnlocked: true,
       network: legacyNetworkId(),
-      selectedAddress: accountControllerSelectedAddress,
+      selectedAddress,
     };
   }
 

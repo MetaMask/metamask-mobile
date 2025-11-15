@@ -468,14 +468,14 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                 style={
                                   {
                                     "color": "#121314",
+                                    "flex": 1,
                                     "fontFamily": "Geist Bold",
-                                    "fontSize": 16,
+                                    "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
                                   }
                                 }
-                                testID="header-title"
                               >
                                 Select network
                               </Text>

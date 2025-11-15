@@ -123,7 +123,9 @@ function PaymentMethodSelectorModal() {
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
-        {strings('deposit.payment_modal.select_a_payment_method')}
+        <Text variant={TextVariant.HeadingMD}>
+          {strings('deposit.payment_modal.select_a_payment_method')}
+        </Text>
       </BottomSheetHeader>
 
       <FlatList

@@ -15,7 +15,7 @@ type NavigationParams = Record<string, { notification: INotification }>;
 
 function isINotification(n: unknown): n is INotification {
   const assumedShape = n as INotification;
-  return Boolean(assumedShape?.type);
+  return Boolean(assumedShape?.type) && Boolean(assumedShape?.data);
 }
 
 /**

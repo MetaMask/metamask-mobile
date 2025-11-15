@@ -45,9 +45,9 @@ const PerpsErrorState: React.FC<PerpsErrorStateProps> = ({
     switch (errorType) {
       case PerpsErrorType.CONNECTION_FAILED:
         return {
-          icon: IconName.Warning,
+          icon: IconName.Wifi,
           title: strings('perps.errors.connectionFailed.title'),
-          description: undefined,
+          description: strings('perps.errors.connectionFailed.description'),
           primaryAction: {
             label: strings('perps.errors.connectionFailed.retry'),
             onPress: onRetry,
@@ -97,15 +97,13 @@ const PerpsErrorState: React.FC<PerpsErrorStateProps> = ({
         >
           {errorContent.title}
         </Text>
-        {errorContent.description && (
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Muted}
-            style={styles.description}
-          >
-            {errorContent.description}
-          </Text>
-        )}
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Muted}
+          style={styles.description}
+        >
+          {errorContent.description}
+        </Text>
         {errorContent.primaryAction?.onPress && (
           <Button
             variant={ButtonVariants.Primary}

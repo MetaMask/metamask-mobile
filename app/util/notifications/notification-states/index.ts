@@ -9,7 +9,6 @@ import StakeState from './stake/stake';
 import SwapCompletedState from './swap-completed/swap-completed';
 import LidoWithdrawalRequestedState from './lido-withdrawal-requested/lido-withdrawal-requested';
 import LidoStakeReadyToBeWithdrawnState from './lido-stake-ready-to-be-withdrawn/lido-stake-ready-to-be-withdrawn';
-import PlatformNotificationState from './platform-notifications/platform-notifications';
 import { NotificationState } from './types/NotificationState';
 
 const { TRIGGER_TYPES } = NotificationServicesController.Constants;
@@ -58,7 +57,6 @@ export const NotificationComponentState = {
   [TRIGGER_TYPES.LIDO_STAKE_READY_TO_BE_WITHDRAWN]: expandComponentsType(
     LidoStakeReadyToBeWithdrawnState,
   ),
-  [TRIGGER_TYPES.PLATFORM]: expandComponentsType(PlatformNotificationState),
 };
 
 export const hasNotificationComponents = (

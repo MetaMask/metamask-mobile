@@ -129,7 +129,6 @@ export function calculateGasEstimate({
   estimatedBaseFee,
   layer1GasFee,
   getFeesFromHexFn,
-  receiptGasPrice,
 }: {
   feePerGas: string;
   priorityFeePerGas: string;
@@ -138,7 +137,6 @@ export function calculateGasEstimate({
   shouldUseEIP1559FeeLogic: boolean;
   estimatedBaseFee: string | undefined;
   layer1GasFee?: string;
-  receiptGasPrice?: string;
   getFeesFromHexFn: (hexFee: string) => {
     currentCurrencyFee: string | null;
     nativeCurrencyFee: string | null;
@@ -147,10 +145,6 @@ export function calculateGasEstimate({
     preciseNativeFeeInHex: string | null;
   };
 }) {
-  if (receiptGasPrice) {
-    return getFeesFromHexFn(multiplyHexes(receiptGasPrice as Hex, gas as Hex));
-  }
-
   let minimumFeePerGas = addHexes(
     decGWEIToHexWEI(estimatedBaseFee) ?? HEX_ZERO,
     decimalToHex(priorityFeePerGas),

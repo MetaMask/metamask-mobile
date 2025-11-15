@@ -16,14 +16,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 const mockAlert = jest.fn();
 jest.spyOn(Alert, 'alert').mockImplementation(mockAlert);
 
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    PredictController: {
-      trackGeoBlockTriggered: jest.fn(),
-    },
-  },
-}));
-
 // Mock navigation
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -140,26 +132,26 @@ describe('PredictMarketSingle', () => {
     const noButton = getByText('No');
 
     fireEvent.press(yesButton);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.PREDICT.MODALS.BUY_PREVIEW,
-      {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+      params: {
         market: mockMarket,
         outcome: mockOutcome,
         outcomeToken: mockOutcome.tokens[0],
         entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       },
-    );
+    });
 
     fireEvent.press(noButton);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.PREDICT.MODALS.BUY_PREVIEW,
-      {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+      params: {
         market: mockMarket,
         outcome: mockOutcome,
         outcomeToken: mockOutcome.tokens[1],
         entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       },
-    );
+    });
   });
 
   it('handle missing or invalid market data gracefully', () => {

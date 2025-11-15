@@ -211,37 +211,6 @@ export interface GetPriceHistoryParams {
   interval?: PredictPriceHistoryInterval;
 }
 
-/**
- * Parameters for fetching prices from CLOB /prices endpoint
- */
-export interface GetPriceParams {
-  providerId: string;
-  queries: PriceQuery[];
-}
-
-export interface PriceQuery {
-  marketId: string;
-  outcomeId: string;
-  outcomeTokenId: string;
-}
-
-export interface GetPriceResponse {
-  providerId: string;
-  results: PriceResult[];
-}
-
-export interface PriceResult {
-  marketId: string;
-  outcomeId: string;
-  outcomeTokenId: string;
-  entry: PriceEntry;
-}
-
-export interface PriceEntry {
-  buy: number;
-  sell: number;
-}
-
 export enum PredictPositionStatus {
   OPEN = 'open',
   REDEEMABLE = 'redeemable',
@@ -272,7 +241,6 @@ export type PredictPosition = {
   avgPrice: number;
   endDate: string;
   negRisk?: boolean;
-  optimistic?: boolean;
 };
 
 export type PredictBalance = {
@@ -328,6 +296,12 @@ export type PredictWithdraw = {
   amount: number;
 };
 
+export interface AcceptAgreementParams {
+  providerId: string;
+  address: string;
+}
+
 export type PredictAccountMeta = {
   isOnboarded: boolean;
+  acceptedToS: boolean;
 };

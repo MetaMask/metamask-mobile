@@ -1,4 +1,4 @@
-import { SolScope, BtcScope, TrxScope } from '@metamask/keyring-api';
+import { SolScope, BtcScope } from '@metamask/keyring-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { CaipChainId, Hex } from '@metamask/utils';
 import {
@@ -22,7 +22,6 @@ export const ALLOWED_BRIDGE_CHAIN_IDS = [
   // TODO: Update to use CHAIN_IDS.MONAD when it is added to the transaction controller
   NETWORK_CHAIN_ID.MONAD_MAINNET,
   SolScope.Mainnet as const,
-  TrxScope.Mainnet as const,
 ];
 
 export type AllowedBridgeChainIds = (typeof ALLOWED_BRIDGE_CHAIN_IDS)[number];
@@ -47,7 +46,6 @@ export const NETWORK_TO_SHORT_NETWORK_NAME_MAP: Record<
   [NETWORK_CHAIN_ID.MONAD_MAINNET]: 'Monad',
   [SolScope.Mainnet]: 'Solana',
   [BtcScope.Mainnet]: 'Bitcoin',
-  [TrxScope.Mainnet]: 'Tron',
 };
 
 export const BRIDGE_API_BASE_URL =

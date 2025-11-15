@@ -1,7 +1,10 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
-import { getDecimalChainId } from '../../../util/networks';
+import {
+  getDecimalChainId,
+  isPerDappSelectedNetworkEnabled,
+} from '../../../util/networks';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import {
   InfuraNetworkType,
@@ -119,7 +122,7 @@ export function useSwitchNetworks({
       const networkConfigurationId =
         rpcEndpoints[defaultRpcEndpointIndex].networkClientId;
 
-      if (domainIsConnectedDapp) {
+      if (domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()) {
         SelectedNetworkController.setNetworkClientIdForDomain(
           origin,
           networkConfigurationId,
@@ -133,7 +136,7 @@ export function useSwitchNetworks({
         ).update((state: { activeDappNetwork: string | null }) => {
           state.activeDappNetwork = networkConfigurationId;
         });
-        dismissModal?.();
+        isPerDappSelectedNetworkEnabled() && dismissModal?.();
       } else {
         trace({
           name: TraceName.SwitchCustomNetwork,
@@ -146,8 +149,9 @@ export function useSwitchNetworks({
         } catch (error) {
           Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
         }
-        dismissModal?.();
       }
+      if (!(domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()))
+        dismissModal?.();
       endTrace({ name: TraceName.SwitchCustomNetwork });
       endTrace({ name: TraceName.NetworkSwitch });
       trackEvent(
@@ -189,7 +193,7 @@ export function useSwitchNetworks({
         SelectedNetworkController,
       } = Engine.context;
 
-      if (domainIsConnectedDapp) {
+      if (domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()) {
         SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
         (
           SelectedNetworkController as typeof SelectedNetworkController & {
@@ -200,7 +204,7 @@ export function useSwitchNetworks({
         ).update((state: { activeDappNetwork: string | null }) => {
           state.activeDappNetwork = type;
         });
-        dismissModal?.();
+        isPerDappSelectedNetworkEnabled() && dismissModal?.();
       } else {
         const networkConfiguration =
           networkConfigurations[BUILT_IN_NETWORKS[type].chainId];
@@ -220,8 +224,9 @@ export function useSwitchNetworks({
         setTimeout(async () => {
           await updateIncomingTransactions();
         }, 1000);
-        dismissModal?.();
       }
+
+      dismissModal?.();
       endTrace({ name: TraceName.SwitchBuiltInNetwork });
       endTrace({ name: TraceName.NetworkSwitch });
 

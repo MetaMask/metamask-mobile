@@ -627,7 +627,7 @@ describe('TradeWalletActions', () => {
     expect(mockOnDismiss).not.toHaveBeenCalled();
   });
 
-  it('should show Predict button on non-EVM networks', () => {
+  it('should not show Predict button on non-EVM networks', () => {
     (
       selectPredictEnabledFlag as jest.MockedFunction<
         typeof selectPredictEnabledFlag
@@ -643,7 +643,7 @@ describe('TradeWalletActions', () => {
       ...mockInitialState,
     };
 
-    const { getByTestId } = renderScreen(
+    const { queryByTestId } = renderScreen(
       TradeWalletActions,
       {
         name: 'TradeWalletActions',
@@ -654,7 +654,7 @@ describe('TradeWalletActions', () => {
     );
 
     expect(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON),
-    ).toBeOnTheScreen();
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON),
+    ).toBeNull();
   });
 });

@@ -261,11 +261,6 @@ describe('Asset', () => {
     expect(screen.getByText('NftList with 2 nfts')).toBeOnTheScreen();
   });
 
-  it('does not render NftList when hideNfts is true', () => {
-    render(<Asset hideNfts />);
-    expect(screen.queryByTestId('nft-list')).toBeNull();
-  });
-
   it('handles search input changes', () => {
     render(<Asset />);
 
@@ -671,21 +666,5 @@ describe('Asset', () => {
     expect(screen.getByText('NFTs')).toBeOnTheScreen();
     expect(screen.getByText('TokenList with 2 tokens')).toBeOnTheScreen();
     expect(screen.getByText('NftList with 2 nfts')).toBeOnTheScreen();
-  });
-
-  it('renders only tokens from tokenFilter prop if provided', () => {
-    const tokenFilter = (assets: AssetType[]) =>
-      assets.filter(
-        (asset) =>
-          asset.address === '0x1234567890123456789012345678901234567890',
-      );
-
-    render(<Asset tokenFilter={tokenFilter} />);
-
-    expect(mockUseTokenSearch).toHaveBeenCalledWith(
-      [mockTokens[0]],
-      expect.anything(),
-      expect.anything(),
-    );
   });
 });

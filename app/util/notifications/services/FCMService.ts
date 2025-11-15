@@ -1,8 +1,8 @@
 import {
   type INotification,
   processNotification,
-  type UnprocessedRawNotification,
-  toRawAPINotification,
+  toRawOnChainNotification,
+  type UnprocessedOnChainRawNotification,
 } from '@metamask/notification-services-controller/notification-services';
 import messaging, {
   type FirebaseMessagingTypes,
@@ -100,7 +100,7 @@ async function processAndHandleNotification(
     const payloadData = payload?.data?.data
       ? String(payload?.data?.data)
       : undefined;
-    const data: UnprocessedRawNotification | undefined = payloadData
+    const data: UnprocessedOnChainRawNotification | undefined = payloadData
       ? JSON.parse(payloadData)
       : undefined;
 
@@ -113,7 +113,7 @@ async function processAndHandleNotification(
     // Prevents duplicate notifications
     delete payload.notification;
 
-    const notificationData = toRawAPINotification(data);
+    const notificationData = toRawOnChainNotification(data);
     const notification = processNotification(notificationData);
     await handler(notification);
   } catch (error) {

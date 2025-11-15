@@ -23,7 +23,6 @@ import {
 } from '../../../util/feature-flags';
 import { useFeatureFlagOverride } from '../../../contexts/FeatureFlagOverrideContext';
 import { useFeatureFlagStats } from '../../../hooks/useFeatureFlagStats';
-import { FeatureFlagNames } from '../../hooks/useFeatureFlag';
 
 interface FeatureFlagRowProps {
   flag: FeatureFlagInfo;
@@ -57,19 +56,13 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           <Box twClassName="items-end">
             <Switch
               value={(localValue as MinimumVersionFlagValue).enabled}
-              disabled={
-                !isVersionSupported &&
-                !Object.values(FeatureFlagNames).includes(
-                  flag.key as FeatureFlagNames,
-                )
-              }
+              disabled //={!isVersionSupported} TODO: Uncomment this when we support overrides for minimum version
               onValueChange={(newValue: boolean) => {
-                const updatedValue = {
+                setLocalValue({
                   ...(localValue as MinimumVersionFlagValue),
                   enabled: newValue,
-                };
-                setLocalValue(updatedValue);
-                onToggle(flag.key, updatedValue);
+                });
+                onToggle(flag.key, newValue);
               }}
               trackColor={{
                 true: theme.colors.primary.default,
@@ -96,11 +89,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
       case 'boolean':
         return (
           <Switch
-            disabled={
-              !Object.values(FeatureFlagNames).includes(
-                flag.key as FeatureFlagNames,
-              )
-            }
+            disabled
             value={localValue as boolean}
             onValueChange={(newValue: boolean) => {
               setLocalValue(newValue);

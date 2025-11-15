@@ -1,45 +1,21 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { TransactionDetailsRow } from '../transaction-details-row/transaction-details-row';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { strings } from '../../../../../../../locales/i18n';
-import { useTokenAmount } from '../../../hooks/useTokenAmount';
-import { TransactionType } from '@metamask/transaction-controller';
-import { hasTransactionType } from '../../../utils/transaction';
-import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
-import { BigNumber } from 'bignumber.js';
-
-const FALLBACK_TYPES = [TransactionType.predictWithdraw];
 
 export function TransactionDetailsTotalRow() {
-  const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { transactionMeta } = useTransactionDetails();
-  const { amount } = useTokenAmount({ transactionMeta }) ?? {};
-
   const { metamaskPay } = transactionMeta;
-  const { totalFiat: payTotal } = metamaskPay || {};
+  const { totalFiat } = metamaskPay || {};
 
-  const total = payTotal ?? amount;
-
-  const totalFormatted = useMemo(
-    () => formatFiat(new BigNumber(total ?? '0')),
-    [formatFiat, total],
-  );
-
-  if (!payTotal && !hasTransactionType(transactionMeta, FALLBACK_TYPES)) {
+  if (!totalFiat) {
     return null;
   }
 
-  const label = hasTransactionType(transactionMeta, [
-    TransactionType.predictClaim,
-    TransactionType.predictWithdraw,
-  ])
-    ? strings('transaction_details.label.received_total')
-    : strings('transaction_details.label.total');
-
   return (
-    <TransactionDetailsRow label={label}>
-      <Text>{totalFormatted}</Text>
+    <TransactionDetailsRow label={strings('transaction_details.label.total')}>
+      <Text>{totalFiat}</Text>
     </TransactionDetailsRow>
   );
 }

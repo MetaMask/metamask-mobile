@@ -14,7 +14,7 @@ const useClearConfirmationOnBackSwipe = () => {
   const { onReject } = useConfirmActions();
 
   useEffect(() => {
-    if (isFullScreenConfirmation) {
+    if (isFullScreenConfirmation && Device.isIos()) {
       const unsubscribe = navigation.addListener('gestureEnd', () => {
         onReject();
       });

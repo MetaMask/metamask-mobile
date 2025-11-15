@@ -77,9 +77,6 @@ describe('LearnMoreBottomSheet', () => {
   it('renders correctly with all elements', () => {
     const { getByTestId } = renderWithProvider(
       <LearnMoreBottomSheet onClose={mockOnClose} />,
-      undefined,
-      true,
-      false,
     );
 
     expect(
@@ -108,9 +105,6 @@ describe('LearnMoreBottomSheet', () => {
   it('displays correct title', () => {
     const { getByTestId } = renderWithProvider(
       <LearnMoreBottomSheet onClose={mockOnClose} />,
-      undefined,
-      true,
-      false,
     );
 
     expect(
@@ -121,9 +115,6 @@ describe('LearnMoreBottomSheet', () => {
   it('displays correct description', () => {
     const { getByTestId } = renderWithProvider(
       <LearnMoreBottomSheet onClose={mockOnClose} />,
-      undefined,
-      true,
-      false,
     );
 
     expect(
@@ -134,9 +125,6 @@ describe('LearnMoreBottomSheet', () => {
   it('displays correct checkbox label', () => {
     const { getByTestId } = renderWithProvider(
       <LearnMoreBottomSheet onClose={mockOnClose} />,
-      undefined,
-      true,
-      false,
     );
 
     expect(
@@ -149,9 +137,6 @@ describe('LearnMoreBottomSheet', () => {
   it('displays correct confirm button label', () => {
     const { getByTestId } = renderWithProvider(
       <LearnMoreBottomSheet onClose={mockOnClose} />,
-      undefined,
-      true,
-      false,
     );
 
     expect(
@@ -164,9 +149,6 @@ describe('LearnMoreBottomSheet', () => {
   it('renders confirm button', () => {
     const { getByTestId } = renderWithProvider(
       <LearnMoreBottomSheet onClose={mockOnClose} />,
-      undefined,
-      true,
-      false,
     );
 
     const confirmButton = getByTestId(
@@ -178,9 +160,6 @@ describe('LearnMoreBottomSheet', () => {
   it('handles back button press', () => {
     const { getByTestId } = renderWithProvider(
       <LearnMoreBottomSheet onClose={mockOnClose} />,
-      undefined,
-      true,
-      false,
     );
 
     const backButton = getByTestId(
@@ -194,9 +173,6 @@ describe('LearnMoreBottomSheet', () => {
   it('handles close button press', () => {
     const { getByTestId } = renderWithProvider(
       <LearnMoreBottomSheet onClose={mockOnClose} />,
-      undefined,
-      true,
-      false,
     );
 
     const closeButton = getByTestId(
@@ -210,9 +186,6 @@ describe('LearnMoreBottomSheet', () => {
   it('handles checkbox press and toggles state', () => {
     const { getByTestId } = renderWithProvider(
       <LearnMoreBottomSheet onClose={mockOnClose} />,
-      undefined,
-      true,
-      false,
     );
 
     const checkbox = getByTestId(LEARN_MORE_BOTTOM_SHEET_TEST_IDS.CHECKBOX);
@@ -233,9 +206,6 @@ describe('LearnMoreBottomSheet', () => {
   it('handles confirm button press when checkbox is checked', () => {
     const { getByTestId } = renderWithProvider(
       <LearnMoreBottomSheet onClose={mockOnClose} />,
-      undefined,
-      true,
-      false,
     );
 
     const checkbox = getByTestId(LEARN_MORE_BOTTOM_SHEET_TEST_IDS.CHECKBOX);
@@ -256,9 +226,6 @@ describe('LearnMoreBottomSheet', () => {
   it('does not navigate when confirm button pressed without checkbox checked', () => {
     const { getByTestId } = renderWithProvider(
       <LearnMoreBottomSheet onClose={mockOnClose} />,
-      undefined,
-      true,
-      false,
     );
 
     const confirmButton = getByTestId(
@@ -286,9 +253,6 @@ describe('LearnMoreBottomSheet', () => {
 
     const { getByTestId } = renderWithProvider(
       <LearnMoreBottomSheet onClose={mockOnClose} />,
-      undefined,
-      true,
-      false,
     );
 
     const checkbox = getByTestId(LEARN_MORE_BOTTOM_SHEET_TEST_IDS.CHECKBOX);

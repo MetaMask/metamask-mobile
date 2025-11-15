@@ -92,7 +92,7 @@ describe('PerpsMarketHoursBanner', () => {
       );
 
       expect(
-        getByText('Expect more volatility outside of market hours'),
+        getByText('Expect more volatility outside of regular market hours'),
       ).toBeTruthy();
     });
   });

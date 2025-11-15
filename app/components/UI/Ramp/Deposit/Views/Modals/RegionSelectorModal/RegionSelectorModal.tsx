@@ -227,7 +227,9 @@ function RegionSelectorModal() {
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
-        {strings('deposit.region_modal.select_a_region')}
+        <Text variant={TextVariant.HeadingMD}>
+          {strings('deposit.region_modal.select_a_region')}
+        </Text>
       </BottomSheetHeader>
       <View style={styles.searchContainer}>
         <TextFieldSearch

@@ -45,7 +45,11 @@ export function useModalNavbar() {
   const { onReject } = useConfirmActions();
 
   useEffect(() => {
-    navigation.setOptions(getModalNavigationOptions());
+    navigation.setOptions(
+      getModalNavigationOptions({
+        onBack: () => onReject(),
+      }),
+    );
   }, [navigation, onReject]);
 }
 

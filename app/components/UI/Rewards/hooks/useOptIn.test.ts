@@ -4,17 +4,14 @@ import useOptin from './useOptIn';
 import Engine from '../../../../core/Engine';
 import { setCandidateSubscriptionId } from '../../../../reducers/rewards';
 import { useMetrics } from '../../../hooks/useMetrics';
+import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import {
   selectSelectedAccountGroup,
   selectAccountGroupsByWallet,
   selectWalletByAccount,
-  selectSelectedAccountGroupInternalAccounts,
 } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { selectInternalAccountsByGroupId } from '../../../../selectors/multichainAccounts/accounts';
-import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { useLinkAccountGroup } from './useLinkAccountGroup';
 import { AccountGroupId } from '@metamask/account-api';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -42,22 +39,20 @@ jest.mock('../../../hooks/useMetrics', () => ({
 }));
 
 jest.mock(
+  '../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: jest.fn(),
+  }),
+);
+
+jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
   () => ({
     selectSelectedAccountGroup: jest.fn(),
     selectAccountGroupsByWallet: jest.fn(),
     selectWalletByAccount: jest.fn(),
-    selectSelectedAccountGroupInternalAccounts: jest.fn(),
   }),
 );
-
-jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
-  selectInternalAccountsByGroupId: jest.fn(),
-}));
-
-jest.mock('../../../../selectors/accountsController', () => ({
-  selectSelectedInternalAccount: jest.fn(),
-}));
 
 jest.mock(
   '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types',
@@ -65,8 +60,6 @@ jest.mock(
     UserProfileProperty: {
       HAS_REWARDS_OPTED_IN: 'has_rewards_opted_in',
       ON: 'on',
-      REWARDS_REFERRED: 'rewards_referred',
-      REWARDS_REFERRAL_CODE_USED: 'rewards_referral_code_used',
     },
   }),
 );
@@ -105,19 +98,13 @@ describe('useOptIn', () => {
   const mockSelectSelectedAccountGroup = jest.mocked(
     selectSelectedAccountGroup,
   );
+  const mockSelectMultichainAccountsState2Enabled = jest.mocked(
+    selectMultichainAccountsState2Enabled,
+  );
   const mockSelectAccountGroupsByWallet = jest.mocked(
     selectAccountGroupsByWallet,
   );
   const mockSelectWalletByAccount = jest.mocked(selectWalletByAccount);
-  const mockSelectSelectedAccountGroupInternalAccounts = jest.mocked(
-    selectSelectedAccountGroupInternalAccounts,
-  );
-  const mockSelectInternalAccountsByGroupId = jest.mocked(
-    selectInternalAccountsByGroupId,
-  );
-  const mockSelectSelectedInternalAccount = jest.mocked(
-    selectSelectedInternalAccount,
-  );
   const mockUseLinkAccountGroup = jest.mocked(useLinkAccountGroup);
 
   const mockTrackEvent = jest.fn();
@@ -168,24 +155,6 @@ describe('useOptIn', () => {
     metadata: { name: 'Account 1' },
   } as never;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mockActiveGroupAccounts: InternalAccount[] = [
-    {
-      id: 'account-1',
-      address: '0x123',
-      metadata: { name: 'Account 1' },
-    } as InternalAccount,
-  ];
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mockSideEffectAccounts: InternalAccount[] = [
-    {
-      id: 'account-2',
-      address: '0x456',
-      metadata: { name: 'Account 2' },
-    } as InternalAccount,
-  ];
-
   const mockLinkAccountGroup = jest.fn();
 
   beforeEach(() => {
@@ -199,29 +168,20 @@ describe('useOptIn', () => {
 
     // Setup default selector values
     mockSelectSelectedAccountGroup.mockReturnValue(mockAccountGroup);
+    mockSelectMultichainAccountsState2Enabled.mockReturnValue(false);
     mockSelectAccountGroupsByWallet.mockReturnValue([mockWalletSection]);
     mockSelectWalletByAccount.mockReturnValue(
       (_accountId: string) => mockWallet,
     );
-    mockSelectSelectedAccountGroupInternalAccounts.mockReturnValue(
-      mockActiveGroupAccounts,
-    );
-    mockSelectInternalAccountsByGroupId.mockReturnValue(
-      (_groupId: string) => [],
-    );
-    mockSelectSelectedInternalAccount.mockReturnValue(mockActiveAccount);
 
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSelectedAccountGroup) return mockAccountGroup;
+      if (selector === selectMultichainAccountsState2Enabled) return false;
       if (selector === selectAccountGroupsByWallet) return [mockWalletSection];
       if (selector === selectWalletByAccount)
         return (_accountId: string) => mockWallet;
-      if (selector === selectSelectedAccountGroupInternalAccounts)
-        return mockActiveGroupAccounts;
-      if (selector === selectInternalAccountsByGroupId)
-        return (_groupId: string) => [];
-      if (selector === selectSelectedInternalAccount) return mockActiveAccount;
-      return undefined;
+      // Return mockActiveAccount for any other selector (e.g., selectSelectedInternalAccount)
+      return mockActiveAccount;
     });
 
     // Setup useMetrics mock
@@ -254,7 +214,7 @@ describe('useOptIn', () => {
       });
     });
 
-    it('should handle successful optin with active group accounts', async () => {
+    it('should handle successful optin without multichain accounts', async () => {
       const { result } = renderHook(() => useOptin());
 
       await act(async () => {
@@ -263,7 +223,6 @@ describe('useOptIn', () => {
 
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:optIn',
-        mockActiveGroupAccounts,
         undefined,
       );
       expect(mockDispatch).toHaveBeenCalledWith(
@@ -296,18 +255,12 @@ describe('useOptIn', () => {
 
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:optIn',
-        mockActiveGroupAccounts,
         'ABC123',
       );
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         'Rewards Opt-in Started',
       );
       expect(mockTrackEvent).toHaveBeenCalledTimes(2); // Started and Completed
-      expect(mockAddTraitsToUser).toHaveBeenCalledWith({
-        has_rewards_opted_in: 'on',
-        rewards_referred: true,
-        rewards_referral_code_used: 'ABC123',
-      });
     });
 
     it('should handle optin failure', async () => {
@@ -342,17 +295,12 @@ describe('useOptIn', () => {
       mockSelectSelectedAccountGroup.mockReturnValue(null);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectSelectedAccountGroup) return null;
+        if (selector === selectMultichainAccountsState2Enabled) return false;
         if (selector === selectAccountGroupsByWallet)
           return [mockWalletSection];
         if (selector === selectWalletByAccount)
           return (_accountId: string) => mockWallet;
-        if (selector === selectSelectedAccountGroupInternalAccounts)
-          return mockActiveGroupAccounts;
-        if (selector === selectInternalAccountsByGroupId)
-          return (_groupId: string) => [];
-        if (selector === selectSelectedInternalAccount)
-          return mockActiveAccount;
-        return undefined;
+        return mockActiveAccount;
       });
 
       const { result } = renderHook(() => useOptin());
@@ -375,17 +323,12 @@ describe('useOptIn', () => {
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectSelectedAccountGroup)
           return accountGroupWithoutId;
+        if (selector === selectMultichainAccountsState2Enabled) return false;
         if (selector === selectAccountGroupsByWallet)
           return [mockWalletSection];
         if (selector === selectWalletByAccount)
           return (_accountId: string) => mockWallet;
-        if (selector === selectSelectedAccountGroupInternalAccounts)
-          return mockActiveGroupAccounts;
-        if (selector === selectInternalAccountsByGroupId)
-          return (_groupId: string) => [];
-        if (selector === selectSelectedInternalAccount)
-          return mockActiveAccount;
-        return undefined;
+        return mockActiveAccount;
       });
 
       const { result } = renderHook(() => useOptin());
@@ -396,47 +339,25 @@ describe('useOptIn', () => {
 
       expect(mockEngineCall).not.toHaveBeenCalled();
     });
-
-    it('should throw error when subscriptionId is null', async () => {
-      mockEngineCall.mockResolvedValue(null);
-
-      const { result } = renderHook(() => useOptin());
-
-      await act(async () => {
-        await result.current.optin({});
-      });
-
-      expect(result.current.optinError).toBe(
-        'Error: Failed to opt in any account from the account group',
-      );
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          event: 'Rewards Opt-in Failed',
-        }),
-      );
-      expect(mockDispatch).not.toHaveBeenCalled();
-    });
   });
 
-  describe('Side effect account group behavior', () => {
+  describe('Multichain accounts behavior', () => {
     beforeEach(() => {
+      // Enable multichain accounts state 2
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
+
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectSelectedAccountGroup) return mockAccountGroup;
+        if (selector === selectMultichainAccountsState2Enabled) return true;
         if (selector === selectAccountGroupsByWallet)
           return [mockWalletSection];
         if (selector === selectWalletByAccount)
           return (_accountId: string) => mockWallet;
-        if (selector === selectSelectedAccountGroupInternalAccounts)
-          return mockActiveGroupAccounts;
-        if (selector === selectInternalAccountsByGroupId)
-          return (_groupId: string) => [];
-        if (selector === selectSelectedInternalAccount)
-          return mockActiveAccount;
-        return undefined;
+        return mockActiveAccount;
       });
     });
 
-    it('should use side effect accounts and link selected account group when side effect accounts exist', async () => {
+    it('should link side effect account group when multichain accounts is enabled', async () => {
       // Setup wallet section with a different group ID for side effect
       const sideEffectWalletSection = {
         title: 'Test Wallet',
@@ -445,7 +366,7 @@ describe('useOptIn', () => {
           {
             type: 'single' as const,
             id: 'side-effect-group-1', // Different from current account group
-            accounts: ['account-2'],
+            accounts: ['account-1'],
             metadata: { name: 'Side Effect Group' },
           },
         ],
@@ -454,31 +375,15 @@ describe('useOptIn', () => {
       mockSelectAccountGroupsByWallet.mockReturnValue([
         sideEffectWalletSection,
       ]);
-      mockSelectInternalAccountsByGroupId.mockReturnValue((groupId: string) => {
-        if (groupId === 'side-effect-group-1') {
-          return mockSideEffectAccounts;
-        }
-        return [];
-      });
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectSelectedAccountGroup) return mockAccountGroup;
+        if (selector === selectMultichainAccountsState2Enabled) return true;
         if (selector === selectAccountGroupsByWallet)
           return [sideEffectWalletSection];
         if (selector === selectWalletByAccount)
           return (_accountId: string) => mockWallet;
-        if (selector === selectSelectedAccountGroupInternalAccounts)
-          return mockActiveGroupAccounts;
-        if (selector === selectInternalAccountsByGroupId)
-          return (groupId: string) => {
-            if (groupId === 'side-effect-group-1') {
-              return mockSideEffectAccounts;
-            }
-            return [];
-          };
-        if (selector === selectSelectedInternalAccount)
-          return mockActiveAccount;
-        return undefined;
+        return mockActiveAccount;
       });
 
       const { result } = renderHook(() => useOptin());
@@ -487,15 +392,14 @@ describe('useOptIn', () => {
         await result.current.optin({});
       });
 
-      // Should call optin with side effect accounts
+      // Should call optin first
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:optIn',
-        mockSideEffectAccounts,
         undefined,
       );
 
-      // Then should link the selected account group (group-1) after optin completes
-      expect(mockLinkAccountGroup).toHaveBeenCalledWith('group-1');
+      // Then should link the side effect account group after optin completes
+      expect(mockLinkAccountGroup).toHaveBeenCalledWith('side-effect-group-1');
 
       // Should dispatch subscription ID after linkAccountGroup
       expect(mockDispatch).toHaveBeenCalledWith(
@@ -503,42 +407,31 @@ describe('useOptIn', () => {
       );
     });
 
-    it('should use active group accounts and link side effect account group when side effect accounts are empty', async () => {
-      // Setup wallet section with a different group ID for side effect
-      const sideEffectWalletSection = {
+    it('should not link side effect account group when it is the same as current account group', async () => {
+      // Mock side effect account group with same ID as current account group
+      const sameGroupWalletSection = {
         title: 'Test Wallet',
         wallet: mockWallet,
         data: [
           {
             type: 'single' as const,
-            id: 'side-effect-group-1', // Different from current account group
-            accounts: ['account-2'],
-            metadata: { name: 'Side Effect Group' },
+            id: 'group-1', // Same as current account group
+            accounts: ['account-1'],
+            metadata: { name: 'Same Group' },
           },
         ],
       } as never;
 
-      mockSelectAccountGroupsByWallet.mockReturnValue([
-        sideEffectWalletSection,
-      ]);
-      // Return empty array for side effect accounts
-      mockSelectInternalAccountsByGroupId.mockReturnValue(
-        (_groupId: string) => [],
-      );
+      mockSelectAccountGroupsByWallet.mockReturnValue([sameGroupWalletSection]);
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectSelectedAccountGroup) return mockAccountGroup;
+        if (selector === selectMultichainAccountsState2Enabled) return true;
         if (selector === selectAccountGroupsByWallet)
-          return [sideEffectWalletSection];
+          return [sameGroupWalletSection];
         if (selector === selectWalletByAccount)
           return (_accountId: string) => mockWallet;
-        if (selector === selectSelectedAccountGroupInternalAccounts)
-          return mockActiveGroupAccounts;
-        if (selector === selectInternalAccountsByGroupId)
-          return (_groupId: string) => [];
-        if (selector === selectSelectedInternalAccount)
-          return mockActiveAccount;
-        return undefined;
+        return mockActiveAccount;
       });
 
       const { result } = renderHook(() => useOptin());
@@ -547,20 +440,13 @@ describe('useOptIn', () => {
         await result.current.optin({});
       });
 
-      // Should call optin with active group accounts
+      // Should only call optin, not link account group
+      expect(mockEngineCall).toHaveBeenCalledTimes(1);
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:optIn',
-        mockActiveGroupAccounts,
         undefined,
       );
-
-      // Should link the side effect account group
-      expect(mockLinkAccountGroup).toHaveBeenCalledWith('side-effect-group-1');
-
-      // Should dispatch subscription ID
-      expect(mockDispatch).toHaveBeenCalledWith(
-        mockSetCandidateSubscriptionId('subscription-123'),
-      );
+      expect(mockLinkAccountGroup).not.toHaveBeenCalled();
     });
 
     it('should handle case when side effect account group is not found', async () => {
@@ -568,16 +454,11 @@ describe('useOptIn', () => {
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectSelectedAccountGroup) return mockAccountGroup;
+        if (selector === selectMultichainAccountsState2Enabled) return true;
         if (selector === selectAccountGroupsByWallet) return [];
         if (selector === selectWalletByAccount)
           return (_accountId: string) => mockWallet;
-        if (selector === selectSelectedAccountGroupInternalAccounts)
-          return mockActiveGroupAccounts;
-        if (selector === selectInternalAccountsByGroupId)
-          return (_groupId: string) => [];
-        if (selector === selectSelectedInternalAccount)
-          return mockActiveAccount;
-        return undefined;
+        return mockActiveAccount;
       });
 
       const { result } = renderHook(() => useOptin());
@@ -586,11 +467,10 @@ describe('useOptIn', () => {
         await result.current.optin({});
       });
 
-      // Should only call optin with active group accounts, not link account group
+      // Should only call optin, not link account group
       expect(mockEngineCall).toHaveBeenCalledTimes(1);
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:optIn',
-        mockActiveGroupAccounts,
         undefined,
       );
       expect(mockLinkAccountGroup).not.toHaveBeenCalled();
@@ -614,6 +494,7 @@ describe('useOptIn', () => {
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectSelectedAccountGroup) return mockAccountGroup;
+        if (selector === selectMultichainAccountsState2Enabled) return true;
         if (selector === selectAccountGroupsByWallet)
           return [
             {
@@ -631,13 +512,7 @@ describe('useOptIn', () => {
           ];
         if (selector === selectWalletByAccount)
           return (_accountId: string) => mockWallet;
-        if (selector === selectSelectedAccountGroupInternalAccounts)
-          return mockActiveGroupAccounts;
-        if (selector === selectInternalAccountsByGroupId)
-          return (_groupId: string) => [];
-        if (selector === selectSelectedInternalAccount)
-          return mockActiveAccount;
-        return undefined;
+        return mockActiveAccount;
       });
 
       const { result } = renderHook(() => useOptin());
@@ -646,11 +521,10 @@ describe('useOptIn', () => {
         await result.current.optin({});
       });
 
-      // Should only call optin with active group accounts, not link account group
+      // Should only call optin, not link account group
       expect(mockEngineCall).toHaveBeenCalledTimes(1);
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:optIn',
-        mockActiveGroupAccounts,
         undefined,
       );
       expect(mockLinkAccountGroup).not.toHaveBeenCalled();
@@ -665,7 +539,7 @@ describe('useOptIn', () => {
           {
             type: 'single' as const,
             id: 'side-effect-group-1', // Different from current account group
-            accounts: ['account-2'],
+            accounts: ['account-1'],
             metadata: { name: 'Side Effect Group' },
           },
         ],
@@ -674,31 +548,15 @@ describe('useOptIn', () => {
       mockSelectAccountGroupsByWallet.mockReturnValue([
         sideEffectWalletSection,
       ]);
-      mockSelectInternalAccountsByGroupId.mockReturnValue((groupId: string) => {
-        if (groupId === 'side-effect-group-1') {
-          return mockSideEffectAccounts;
-        }
-        return [];
-      });
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectSelectedAccountGroup) return mockAccountGroup;
+        if (selector === selectMultichainAccountsState2Enabled) return true;
         if (selector === selectAccountGroupsByWallet)
           return [sideEffectWalletSection];
         if (selector === selectWalletByAccount)
           return (_accountId: string) => mockWallet;
-        if (selector === selectSelectedAccountGroupInternalAccounts)
-          return mockActiveGroupAccounts;
-        if (selector === selectInternalAccountsByGroupId)
-          return (groupId: string) => {
-            if (groupId === 'side-effect-group-1') {
-              return mockSideEffectAccounts;
-            }
-            return [];
-          };
-        if (selector === selectSelectedInternalAccount)
-          return mockActiveAccount;
-        return undefined;
+        return mockActiveAccount;
       });
 
       // Mock linkAccountGroup to throw an error
@@ -712,15 +570,14 @@ describe('useOptIn', () => {
         await result.current.optin({});
       });
 
-      // Should call optin with side effect accounts
+      // Should call optin
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:optIn',
-        mockSideEffectAccounts,
         undefined,
       );
 
-      // Should attempt to link the selected account group (group-1)
-      expect(mockLinkAccountGroup).toHaveBeenCalledWith('group-1');
+      // Should attempt to link the side effect account group
+      expect(mockLinkAccountGroup).toHaveBeenCalledWith('side-effect-group-1');
 
       // Should still dispatch subscription ID even though linkAccountGroup failed
       expect(mockDispatch).toHaveBeenCalledWith(
@@ -750,7 +607,7 @@ describe('useOptIn', () => {
           {
             type: 'single' as const,
             id: 'side-effect-group-1', // Different from current account group
-            accounts: ['account-2'],
+            accounts: ['account-1'],
             metadata: { name: 'Side Effect Group' },
           },
         ],
@@ -759,31 +616,15 @@ describe('useOptIn', () => {
       mockSelectAccountGroupsByWallet.mockReturnValue([
         sideEffectWalletSection,
       ]);
-      mockSelectInternalAccountsByGroupId.mockReturnValue((groupId: string) => {
-        if (groupId === 'side-effect-group-1') {
-          return mockSideEffectAccounts;
-        }
-        return [];
-      });
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectSelectedAccountGroup) return mockAccountGroup;
+        if (selector === selectMultichainAccountsState2Enabled) return true;
         if (selector === selectAccountGroupsByWallet)
           return [sideEffectWalletSection];
         if (selector === selectWalletByAccount)
           return (_accountId: string) => mockWallet;
-        if (selector === selectSelectedAccountGroupInternalAccounts)
-          return mockActiveGroupAccounts;
-        if (selector === selectInternalAccountsByGroupId)
-          return (groupId: string) => {
-            if (groupId === 'side-effect-group-1') {
-              return mockSideEffectAccounts;
-            }
-            return [];
-          };
-        if (selector === selectSelectedInternalAccount)
-          return mockActiveAccount;
-        return undefined;
+        return mockActiveAccount;
       });
 
       // Mock optin to fail
@@ -796,10 +637,9 @@ describe('useOptIn', () => {
         await result.current.optin({});
       });
 
-      // Should have attempted optin with side effect accounts
+      // Should have attempted optin
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:optIn',
-        mockSideEffectAccounts,
         undefined,
       );
 

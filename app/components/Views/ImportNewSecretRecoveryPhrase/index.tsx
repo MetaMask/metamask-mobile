@@ -238,24 +238,17 @@ const ImportNewSecretRecoveryPhrase = () => {
 
       navigation.navigate('WalletView');
     } catch (e) {
-      switch ((e as Error)?.message) {
-        case 'This mnemonic has already been imported.':
-          Alert.alert(
-            strings('import_new_secret_recovery_phrase.error_duplicate_srp'),
-          );
-          break;
-        case 'KeyringController - The account you are trying to import is a duplicate':
-          Alert.alert(
-            strings(
-              'import_new_secret_recovery_phrase.error_duplicate_account',
-            ),
-          );
-          break;
-        default:
-          Alert.alert(
-            strings('import_new_secret_recovery_phrase.error_title'),
-            strings('import_new_secret_recovery_phrase.error_message'),
-          );
+      if (
+        (e as Error)?.message === 'This mnemonic has already been imported.'
+      ) {
+        Alert.alert(
+          strings('import_new_secret_recovery_phrase.error_duplicate_srp'),
+        );
+      } else {
+        Alert.alert(
+          strings('import_new_secret_recovery_phrase.error_title'),
+          strings('import_new_secret_recovery_phrase.error_message'),
+        );
       }
       setLoading(false);
     }

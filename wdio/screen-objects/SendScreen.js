@@ -81,11 +81,7 @@ class SendScreen {
   }
 
   get searchTokenField() {
-    if (AppwrightSelectors.isIOS(this._device)) {
-      return AppwrightSelectors.getElementByCatchAll(this._device, 'Search tokens and NFTs');
-    } else {
-      return AppwrightSelectors.getElementByID(this._device, 'textfieldsearch');
-    }
+    return AppwrightSelectors.getElementByCatchAll(this._device, 'Search tokens and NFTs');
   }
   
 
@@ -207,7 +203,7 @@ class SendScreen {
   }
 
   async clickOnFirstTokenBadge() {
-    const firstTokenBadge = AppwrightSelectors.isIOS(this._device) ? await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeOther[@name="badge-wrapper-badge"]`) : await AppwrightSelectors.getElementByID(this._device, 'badge-wrapper-badge');
+    const firstTokenBadge = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeOther[@name="badge-wrapper-badge"]`);
     appwrightExpect(firstTokenBadge).toBeVisible();
     await AppwrightGestures.tap(firstTokenBadge);
   }

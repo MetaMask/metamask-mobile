@@ -256,10 +256,6 @@ jest.mock('../../../../../component-library/components/Skeleton', () => {
   };
 });
 
-jest.mock('../../../../../contexts/FeatureFlagOverrideContext', () => ({
-  FeatureFlagOverrideProvider: jest.fn(({ children }) => children),
-}));
-
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
   return {

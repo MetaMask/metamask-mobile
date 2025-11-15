@@ -1,21 +1,18 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { handleRewardsErrorMessage } from '../utils';
+import Engine from '../../../../core/Engine';
 import { setCandidateSubscriptionId } from '../../../../reducers/rewards';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import {
   selectSelectedAccountGroup,
   selectAccountGroupsByWallet,
   selectWalletByAccount,
-  selectSelectedAccountGroupInternalAccounts,
 } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { selectInternalAccountsByGroupId } from '../../../../selectors/multichainAccounts/accounts';
-import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
-import Engine from '../../../../core/Engine';
 import { useLinkAccountGroup } from './useLinkAccountGroup';
-import { InternalAccount } from '@metamask/keyring-internal-api';
-import { AccountGroupId } from '@metamask/account-api';
+import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 
 export interface UseOptinResult {
   /**
@@ -64,20 +61,9 @@ export const useOptin = (): UseOptinResult => {
       )?.data?.[0]?.id,
     [accountGroupsByWallet, currentAccountWalletId],
   );
-  const activeGroupAccounts = useSelector(
-    selectSelectedAccountGroupInternalAccounts,
+  const multichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
   );
-  const selectInternalAccountsByGroupIdSelector = useSelector(
-    selectInternalAccountsByGroupId,
-  );
-  const sideEffectAccounts = useMemo(() => {
-    if (!sideEffectAccountGroupIdToLink) {
-      return [];
-    }
-    return selectInternalAccountsByGroupIdSelector(
-      sideEffectAccountGroupIdToLink,
-    );
-  }, [sideEffectAccountGroupIdToLink, selectInternalAccountsByGroupIdSelector]);
 
   const handleOptin = useCallback(
     async ({
@@ -90,7 +76,6 @@ export const useOptin = (): UseOptinResult => {
       if (!accountGroup?.id) {
         return;
       }
-      const selectedAccountGroupId = accountGroup.id;
       const referred = Boolean(referralCode);
       const metricsProps = {
         referred,
@@ -109,32 +94,11 @@ export const useOptin = (): UseOptinResult => {
         setOptinLoading(true);
         setOptinError(null);
 
-        const accountsToOptIn =
-          sideEffectAccountGroupIdToLink && sideEffectAccounts.length > 0
-            ? sideEffectAccounts
-            : activeGroupAccounts;
-
-        const accountGroupToLinkAfterOptIn =
-          sideEffectAccountGroupIdToLink && sideEffectAccounts.length > 0
-            ? selectedAccountGroupId
-            : sideEffectAccountGroupIdToLink;
-
         subscriptionId = await Engine.controllerMessenger.call(
-          'RewardsController:optIn',
-          accountsToOptIn as InternalAccount[],
+          'RewardsController:optIn', // for active account group
           referralCode || undefined,
         );
-
         if (subscriptionId) {
-          if (accountGroupToLinkAfterOptIn) {
-            try {
-              await linkAccountGroup(
-                accountGroupToLinkAfterOptIn as AccountGroupId,
-              );
-            } catch {
-              // Failed to link first account group in same wallet.
-            }
-          }
           addTraitsToUser({
             [UserProfileProperty.HAS_REWARDS_OPTED_IN]: UserProfileProperty.ON,
             ...(referralCode && {
@@ -147,10 +111,6 @@ export const useOptin = (): UseOptinResult => {
               .addProperties(metricsProps)
               .build(),
           );
-        } else {
-          throw new Error(
-            'Failed to opt in any account from the account group',
-          );
         }
       } catch (error) {
         trackEvent(
@@ -160,6 +120,23 @@ export const useOptin = (): UseOptinResult => {
         );
         const errorMessage = handleRewardsErrorMessage(error);
         setOptinError(errorMessage);
+      }
+
+      if (
+        multichainAccountsState2Enabled &&
+        sideEffectAccountGroupIdToLink &&
+        subscriptionId
+      ) {
+        if (
+          sideEffectAccountGroupIdToLink &&
+          sideEffectAccountGroupIdToLink !== accountGroup?.id
+        ) {
+          try {
+            await linkAccountGroup(sideEffectAccountGroupIdToLink);
+          } catch {
+            // Failed to link first account group in same wallet.
+          }
+        }
       }
 
       if (subscriptionId) {
@@ -173,11 +150,10 @@ export const useOptin = (): UseOptinResult => {
       trackEvent,
       createEventBuilder,
       sideEffectAccountGroupIdToLink,
-      sideEffectAccounts,
-      activeGroupAccounts,
+      multichainAccountsState2Enabled,
+      dispatch,
       addTraitsToUser,
       linkAccountGroup,
-      dispatch,
     ],
   );
 

@@ -6,10 +6,6 @@ const styleSheet = (_params: { theme: Theme }) =>
     centered: {
       textAlign: 'center',
     },
-    textRow: {
-      flexDirection: 'row',
-      gap: 4,
-    },
     content: {
       flex: 1,
       justifyContent: 'center',

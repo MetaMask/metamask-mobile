@@ -85,7 +85,7 @@ const EarnLendingDepositConfirmationView = () => {
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
 
-  getStakingNavbar(strings('earn.supply'), navigation, theme.colors);
+  getStakingNavbar(strings('earn.deposit'), navigation, theme.colors);
 
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, token?.chainId as Hex),
@@ -216,11 +216,8 @@ const EarnLendingDepositConfirmationView = () => {
         .build(),
     );
 
-    const tokenLabel = token?.ticker ?? token?.symbol ?? token?.name ?? '';
-    const title = `${strings('earn.supply')} ${tokenLabel}`;
-
     navigation.setOptions(
-      getStakingNavbar(title, navigation, theme.colors, {
+      getStakingNavbar(strings('earn.deposit'), navigation, theme.colors, {
         hasCancelButton: false,
         backgroundColor: theme.colors.background.alternative,
       }),

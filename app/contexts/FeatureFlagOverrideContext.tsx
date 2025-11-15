@@ -19,7 +19,6 @@ import {
   ToastVariants,
 } from '../component-library/components/Toast';
 import { MinimumVersionFlagValue } from '../components/Views/FeatureFlagOverride/FeatureFlagOverride';
-import useMetrics from '../components/hooks/useMetrics/useMetrics';
 
 interface FeatureFlagOverrides {
   [key: string]: unknown;
@@ -52,13 +51,8 @@ interface FeatureFlagOverrideProviderProps {
 export const FeatureFlagOverrideProvider: React.FC<
   FeatureFlagOverrideProviderProps
 > = ({ children }) => {
-  const { addTraitsToUser } = useMetrics();
   // Get the initial feature flags from Redux
-  const rawFeatureFlagsSelected = useSelector(selectRemoteFeatureFlags);
-  const rawFeatureFlags = useMemo(
-    () => rawFeatureFlagsSelected || {},
-    [rawFeatureFlagsSelected],
-  );
+  const rawFeatureFlags = useSelector(selectRemoteFeatureFlags);
   const toastContext = useContext(ToastContext);
   const toastRef = toastContext?.toastRef;
 
@@ -188,24 +182,15 @@ export const FeatureFlagOverrideProvider: React.FC<
       }
 
       if (flag.type === 'boolean with minimumVersion') {
-        const flagValue = validateMinimumVersion(
+        return validateMinimumVersion(
           flag.key,
           flag.value as unknown as MinimumVersionFlagValue,
         );
-        addTraitsToUser({
-          [flag.key]: flagValue,
-        });
-        return flagValue;
-      }
-      if (flag.type === 'boolean') {
-        addTraitsToUser({
-          [flag.key]: flag.value as boolean,
-        });
       }
 
       return flag.value;
     },
-    [featureFlags, validateMinimumVersion, addTraitsToUser],
+    [featureFlags, validateMinimumVersion],
   );
 
   const getOverrideCount = useCallback(

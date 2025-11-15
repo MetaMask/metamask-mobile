@@ -177,7 +177,7 @@ export const selectMultichainAssetsMetadata = createDeepEqualSelector(
 export const selectMultichainAssetsAllIgnoredAssets = createDeepEqualSelector(
   selectMultichainAssetsControllerState,
   (multichainAssetsControllerState) =>
-    multichainAssetsControllerState.allIgnoredAssets ?? {},
+    multichainAssetsControllerState.allIgnoredAssets,
 );
 
 function selectMultichainAssetsRatesState(state: RootState) {
@@ -521,9 +521,7 @@ export const selectNonEvmTransactionsForSelectedAccountGroup =
       }
 
       const aggregated = {
-        transactions: [],
-        next: null,
-        lastUpdated: 0,
+        ...DEFAULT_TRANSACTION_STATE_ENTRY,
       } as NonEvmTransactionStateEntry;
 
       for (const account of selectedGroupAccounts) {

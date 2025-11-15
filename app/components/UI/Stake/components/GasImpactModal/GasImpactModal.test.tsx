@@ -94,9 +94,6 @@ const renderGasImpactModal = () =>
     <SafeAreaProvider initialMetrics={initialMetrics}>
       <GasImpactModal {...props} />,
     </SafeAreaProvider>,
-    undefined,
-    true,
-    false,
   );
 
 describe('GasImpactModal', () => {

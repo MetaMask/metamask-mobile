@@ -1,9 +1,10 @@
 import {
-  getGanachePortForFixture,
-  getAnvilPortForFixture,
-  getMockServerPortForFixture,
-  getDappUrl,
-  getDappUrlForFixture,
+  getGanachePort,
+  getSecondTestDappLocalUrl,
+  getTestDappLocalUrl,
+  getMockServerPort,
+  getTestDappLocalUrlByDappCounter,
+  AnvilPort,
 } from './FixtureUtils';
 import { merge } from 'lodash';
 import { encryptVault } from './helpers';
@@ -310,7 +311,7 @@ class FixtureBuilder {
                   rpcEndpoints: [
                     {
                       networkClientId: 'networkId1',
-                      url: `http://localhost:${getGanachePortForFixture()}`,
+                      url: `http://localhost:${getGanachePort()}`,
                       type: 'custom',
                       name: 'Local RPC',
                     },
@@ -592,7 +593,7 @@ class FixtureBuilder {
           whitelist: [],
           tabs: [
             {
-              url: `http://localhost:${getMockServerPortForFixture()}/health-check`,
+              url: `http://localhost:${getMockServerPort()}/health-check`,
               id: 1692550481062,
             },
           ],
@@ -882,7 +883,7 @@ class FixtureBuilder {
    */
   createPermissionControllerConfig(
     additionalPermissions: Record<string, unknown> = {},
-    dappUrl = getDappUrlForFixture(0),
+    dappUrl = getTestDappLocalUrl(),
   ) {
     const permission = additionalPermissions?.[
       Caip25EndowmentPermissionName
@@ -956,7 +957,7 @@ class FixtureBuilder {
     if (connectSecondDapp) {
       secondDappPermissions = this.createPermissionControllerConfig(
         additionalPermissions,
-        getDappUrlForFixture(1),
+        getSecondTestDappLocalUrl(),
       );
     }
     this.withPermissionController(
@@ -1273,7 +1274,7 @@ class FixtureBuilder {
    * @param port
    * @returns
    */
-  withGanacheNetwork(chainId = '0x539', port = getAnvilPortForFixture()) {
+  withGanacheNetwork(chainId = '0x539', port = AnvilPort()) {
     const fixtures = this.fixture.state.engine.backgroundState;
 
     // Generate a unique key for the new network client ID
@@ -1369,7 +1370,7 @@ class FixtureBuilder {
       rpcEndpoints: [
         {
           networkClientId: newNetworkClientId,
-          url: `http://localhost:${getMockServerPortForFixture()}/proxy?url=https://polygon-rpc.com`,
+          url: `http://localhost:${getMockServerPort()}/proxy?url=https://polygon-rpc.com`,
           type: 'custom',
           name: 'Polygon Localhost',
         },
@@ -1856,7 +1857,7 @@ class FixtureBuilder {
     // We start at 1 to easily identify the tab across all tests
     for (let i = 1; i <= extraTabs; i++) {
       this.fixture.state.browser.tabs.push({
-        url: getDappUrl(i),
+        url: getTestDappLocalUrlByDappCounter(i),
         id: DEFAULT_TAB_ID + i,
         isArchived: false,
       });

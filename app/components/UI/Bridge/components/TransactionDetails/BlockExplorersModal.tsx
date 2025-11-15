@@ -75,7 +75,9 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
   return (
     <BottomSheet>
       <BottomSheetHeader>
-        {strings('bridge_transaction_details.view_on_block_explorer')}
+        <Text variant={TextVariant.HeadingMD}>
+          {strings('bridge_transaction_details.view_on_block_explorer')}
+        </Text>
       </BottomSheetHeader>
       <Box
         style={styles.container}

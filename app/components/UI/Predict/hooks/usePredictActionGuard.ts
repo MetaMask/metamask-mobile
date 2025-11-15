@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { NavigationProp } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
-import Engine from '../../../../core/Engine';
 import { PredictNavigationParamList } from '../types/navigation';
 import { usePredictEligibility } from './usePredictEligibility';
 import { usePredictBalance } from './usePredictBalance';
@@ -13,7 +12,6 @@ interface UsePredictActionGuardOptions {
 
 interface ExecuteGuardedActionOptions {
   checkBalance?: boolean;
-  attemptedAction?: string;
 }
 
 interface UsePredictActionGuardResult {
@@ -37,17 +35,9 @@ export const usePredictActionGuard = ({
       action: () => void | Promise<void>,
       options: ExecuteGuardedActionOptions = {},
     ) => {
-      const { checkBalance = false, attemptedAction } = options;
+      const { checkBalance = false } = options;
 
       if (!isEligible) {
-        // Track geo-block analytics if attemptedAction is provided
-        if (attemptedAction) {
-          Engine.context.PredictController.trackGeoBlockTriggered({
-            providerId,
-            attemptedAction,
-          });
-        }
-
         navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
           screen: Routes.PREDICT.MODALS.UNAVAILABLE,
         });
@@ -63,7 +53,7 @@ export const usePredictActionGuard = ({
 
       return action();
     },
-    [isEligible, hasNoBalance, navigation, providerId],
+    [isEligible, hasNoBalance, navigation],
   );
 
   return {

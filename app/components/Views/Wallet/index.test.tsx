@@ -63,12 +63,8 @@ jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
 
 // Mock the Predict feature flag selector - will be controlled per test
 let mockPredictEnabled = true;
-let mockPredictGTMModalEnabled = false;
 jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   selectPredictEnabledFlag: jest.fn(() => mockPredictEnabled),
-  selectPredictGtmOnboardingModalEnabledFlag: jest.fn(
-    () => mockPredictGTMModalEnabled,
-  ),
 }));
 
 // Create shared mock reference for TabsList
@@ -381,6 +377,11 @@ jest.mock('../../../util/address', () => ({
       },
     },
   }),
+}));
+
+jest.mock('../../../util/networks', () => ({
+  ...jest.requireActual('../../../util/networks'),
+  isRemoveGlobalNetworkSelectorEnabled: jest.fn(() => false),
 }));
 
 jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
@@ -975,7 +976,10 @@ describe('Wallet', () => {
     });
   });
 
-  describe('Network Manager Integration', () => {
+  describe('Feature Flag: isRemoveGlobalNetworkSelectorEnabled', () => {
+    const { isRemoveGlobalNetworkSelectorEnabled } = jest.requireMock(
+      '../../../util/networks',
+    );
     const { useNetworkSelection } = jest.requireMock(
       '../../../components/hooks/useNetworkSelection/useNetworkSelection',
     );
@@ -1005,7 +1009,13 @@ describe('Wallet', () => {
       },
     });
 
-    const setupMocks = (mockSelectNetwork: jest.Mock) => {
+    const setupMocks = (
+      mockSelectNetwork: jest.Mock,
+      featureFlagEnabled: boolean,
+    ) => {
+      jest
+        .mocked(isRemoveGlobalNetworkSelectorEnabled)
+        .mockReturnValue(featureFlagEnabled);
       jest.mocked(useNetworkSelection).mockReturnValue({
         selectNetwork: mockSelectNetwork,
       });
@@ -1023,27 +1033,40 @@ describe('Wallet', () => {
       jest.clearAllMocks();
     });
 
-    it('should call selectNetwork when no enabled EVM networks', () => {
-      const mockSelectNetwork = createMockSelectNetwork();
-      setupMocks(mockSelectNetwork);
+    describe('when feature flag is enabled', () => {
+      it('should call selectNetwork when no enabled EVM networks', () => {
+        const mockSelectNetwork = createMockSelectNetwork();
+        setupMocks(mockSelectNetwork, true);
 
-      const stateWithNoEnabledNetworks = createStateWithEnabledNetworks([]);
-      renderWalletWithState(stateWithNoEnabledNetworks);
+        const stateWithNoEnabledNetworks = createStateWithEnabledNetworks([]);
+        renderWalletWithState(stateWithNoEnabledNetworks);
 
-      expect(mockSelectNetwork).toHaveBeenCalledWith('0x1');
+        expect(mockSelectNetwork).toHaveBeenCalledWith('0x1');
+      });
+
+      it('should not call selectNetwork when there are enabled EVM networks', () => {
+        const mockSelectNetwork = createMockSelectNetwork();
+        setupMocks(mockSelectNetwork, true);
+
+        const stateWithEnabledNetworks = createStateWithEnabledNetworks([
+          '0x1',
+          '0x5',
+        ]);
+        renderWalletWithState(stateWithEnabledNetworks);
+
+        expect(mockSelectNetwork).not.toHaveBeenCalled();
+      });
     });
 
-    it('should not call selectNetwork when there are enabled EVM networks', () => {
-      const mockSelectNetwork = createMockSelectNetwork();
-      setupMocks(mockSelectNetwork);
+    describe('when feature flag is disabled', () => {
+      it('should not call selectNetwork', () => {
+        const mockSelectNetwork = createMockSelectNetwork();
+        setupMocks(mockSelectNetwork, false);
 
-      const stateWithEnabledNetworks = createStateWithEnabledNetworks([
-        '0x1',
-        '0x5',
-      ]);
-      renderWalletWithState(stateWithEnabledNetworks);
+        renderWalletWithState(mockInitialState);
 
-      expect(mockSelectNetwork).not.toHaveBeenCalled();
+        expect(mockSelectNetwork).not.toHaveBeenCalled();
+      });
     });
   });
 
@@ -1066,17 +1089,13 @@ describe('Wallet', () => {
 
       // Default to enabled
       mockPerpsEnabled = true;
-      mockPerpsGTMModalEnabled = false;
       mockPredictEnabled = true;
-      mockPredictGTMModalEnabled = false;
     });
 
     afterEach(() => {
       jest.clearAllMocks();
       mockPerpsEnabled = true; // Reset to default
-      mockPerpsGTMModalEnabled = false; // Reset to default
       mockPredictEnabled = true; // Reset to default
-      mockPredictGTMModalEnabled = false; // Reset to default
     });
 
     it('should register visibility callback when Perps is enabled', () => {
@@ -1242,17 +1261,13 @@ describe('Wallet', () => {
 
       // Default to enabled
       mockPerpsEnabled = true;
-      mockPerpsGTMModalEnabled = false;
       mockPredictEnabled = true;
-      mockPredictGTMModalEnabled = false;
     });
 
     afterEach(() => {
       jest.clearAllMocks();
       mockPerpsEnabled = true; // Reset to default
-      mockPerpsGTMModalEnabled = false; // Reset to default
       mockPredictEnabled = true; // Reset to default
-      mockPredictGTMModalEnabled = false; // Reset to default
     });
 
     it('should render PredictTabView when Predict is enabled', () => {
@@ -1270,10 +1285,7 @@ describe('Wallet', () => {
                   string,
                   Json
                 >),
-                predictTradingEnabled: {
-                  enabled: true,
-                  minimumVersion: '7.60.0',
-                },
+                predictEnabled: true,
               },
             },
           },
@@ -1311,10 +1323,7 @@ describe('Wallet', () => {
                   string,
                   Json
                 >),
-                predictTradingEnabled: {
-                  enabled: true,
-                  minimumVersion: '7.60.0',
-                },
+                predictEnabled: true,
               },
             },
           },
@@ -1349,10 +1358,7 @@ describe('Wallet', () => {
                   enabled: false,
                   minimumVersion: '1.0.0',
                 },
-                predictTradingEnabled: {
-                  enabled: true,
-                  minimumVersion: '7.60.0',
-                },
+                predictEnabled: true,
               },
             },
           },
@@ -1387,10 +1393,7 @@ describe('Wallet', () => {
                   string,
                   Json
                 >),
-                predictTradingEnabled: {
-                  enabled: false,
-                  minimumVersion: '7.60.0',
-                },
+                predictEnabled: false,
               },
             },
           },
@@ -1424,10 +1427,7 @@ describe('Wallet', () => {
                   string,
                   Json
                 >),
-                predictTradingEnabled: {
-                  enabled: false,
-                  minimumVersion: '7.60.0',
-                },
+                predictEnabled: false,
               },
             },
           },
@@ -1469,7 +1469,6 @@ describe('Wallet', () => {
       mockPerpsEnabled = true;
       mockPerpsGTMModalEnabled = false;
       mockPredictEnabled = true;
-      mockPredictGTMModalEnabled = false;
     });
 
     afterEach(() => {
@@ -1477,7 +1476,6 @@ describe('Wallet', () => {
       mockPerpsEnabled = true;
       mockPerpsGTMModalEnabled = false;
       mockPredictEnabled = true;
-      mockPredictGTMModalEnabled = false;
       jest.clearAllMocks();
     });
 

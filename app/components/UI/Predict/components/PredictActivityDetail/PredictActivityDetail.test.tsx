@@ -199,7 +199,7 @@ describe('PredictActivityDetail', () => {
     expect(screen.getByText(expectedPricePerShare)).toBeOnTheScreen();
 
     expect(screen.getByText('Price impact')).toBeOnTheScreen();
-    expect(screen.getByText('2%')).toBeOnTheScreen();
+    expect(screen.getByText('+1.50%')).toBeOnTheScreen();
 
     expect(screen.queryByLabelText('USDC')).toBeNull();
   });
