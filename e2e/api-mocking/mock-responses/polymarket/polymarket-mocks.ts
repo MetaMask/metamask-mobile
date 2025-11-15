@@ -890,7 +890,9 @@ export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
     .matching(async (request) => {
       try {
         const urlParam = new URL(request.url).searchParams.get('url');
-        if (!urlParam?.includes('predict.dev-api.cx.metamask.io/order')) {
+        const relayerEndpointPattern =
+          /predict\.(dev-)?api\.cx\.metamask\.io\/order/;
+        if (!urlParam || !relayerEndpointPattern.test(urlParam)) {
           return false;
         }
 
