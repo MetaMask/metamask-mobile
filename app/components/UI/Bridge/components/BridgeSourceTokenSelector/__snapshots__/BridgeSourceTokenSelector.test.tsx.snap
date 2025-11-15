@@ -891,7 +891,13 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                           </View>
                           <View>
                             <RCTScrollView
-                              ListEmptyComponent={[Function]}
+                              ListEmptyComponent={
+                                {
+                                  "$$typeof": Symbol(react.memo),
+                                  "compare": null,
+                                  "type": [Function],
+                                }
+                              }
                               bounces={true}
                               collapsable={false}
                               data={
