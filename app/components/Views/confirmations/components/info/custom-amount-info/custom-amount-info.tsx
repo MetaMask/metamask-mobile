@@ -1,5 +1,12 @@
-import React, { ReactNode, memo, useCallback, useState } from 'react';
+import React, {
+  ReactNode,
+  memo,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
+import InfoSection from '../../UI/info-row/info-section';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
 import { BridgeTimeRow } from '../../rows/bridge-time-row';
@@ -13,44 +20,21 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './custom-amount-info.styles';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
 import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
+import AlertBanner from '../../alert-banner';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useAutomaticTransactionPayToken } from '../../../hooks/pay/useAutomaticTransactionPayToken';
+import { useConfirmationContext } from '../../../context/confirmation-context';
 import { AlertMessage } from '../../alerts/alert-message';
 import {
   CustomAmount,
   CustomAmountSkeleton,
 } from '../../transactions/custom-amount';
-import {
-  useIsTransactionPayLoading,
-  useTransactionPayQuotes,
-  useTransactionPayRequiredTokens,
-  useTransactionPaySourceAmounts,
-} from '../../../hooks/pay/useTransactionPayData';
-import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMetrics';
-import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
-import {
-  RampMode,
-  useRampNavigation,
-} from '../../../../../UI/Ramp/hooks/useRampNavigation';
-import { RampType } from '../../../../../../reducers/fiatOrders/types';
-import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
-import { getNativeTokenAddress } from '../../../utils/asset';
-import { toCaipAssetType } from '@metamask/utils';
-import { AlignItems } from '../../../../../UI/Box/box.types';
-import { strings } from '../../../../../../../locales/i18n';
-import { hasTransactionType } from '../../../utils/transaction';
+import { useSelector } from 'react-redux';
+import { selectTransactionBridgeQuotesById } from '../../../../../../core/redux/slices/confirmationMetrics';
+import { RootState } from '../../../../../../reducers';
+import { useTransactionPayTokenAmounts } from '../../../hooks/pay/useTransactionPayTokenAmounts';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { TransactionType } from '@metamask/transaction-controller';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
-import { useAlerts } from '../../../context/alert-system-context';
-import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
+import { useIsTransactionPayLoading } from '../../../hooks/pay/useIsTransactionPayLoading';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -62,13 +46,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
   ({ children, currency, disablePay }) => {
     useClearConfirmationOnBackSwipe();
     useAutomaticTransactionPayToken({ disable: disablePay });
-    useTransactionPayMetrics();
 
     const { styles } = useStyles(styleSheet, {});
-    const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
-    const availableTokens = useTransactionPayAvailableTokens();
-    const hasTokens = availableTokens.length > 0;
-    const buttonLabel = useButtonLabel();
+    const [isKeyboardVisible, setKeyboardVisible] = useState(true);
+    const { setIsFooterVisible } = useConfirmationContext();
 
     const isResultReady = useIsResultReady({
       isKeyboardVisible,
@@ -85,19 +66,23 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       updateTokenAmount,
     } = useTransactionCustomAmount({ currency });
 
-    const { alertMessage, alertTitle } = useTransactionCustomAmountAlerts({
-      isInputChanged,
-      isKeyboardVisible,
-      pendingTokenAmount: amountHumanDebounced,
-    });
+    const { alertMessage, keyboardAlertMessage, excludeBannerKeys } =
+      useTransactionCustomAmountAlerts({
+        isInputChanged,
+        pendingTokenAmount: amountHumanDebounced,
+      });
+
+    useEffect(() => {
+      setIsFooterVisible(!isKeyboardVisible);
+    }, [isKeyboardVisible, setIsFooterVisible]);
 
     const handleDone = useCallback(async () => {
       await updateTokenAmount();
-      setIsKeyboardVisible(false);
+      setKeyboardVisible(false);
     }, [updateTokenAmount]);
 
     const handleAmountPress = useCallback(() => {
-      setIsKeyboardVisible(true);
+      setKeyboardVisible(true);
     }, []);
 
     return (
@@ -106,39 +91,45 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           <CustomAmount
             amountFiat={amountFiat}
             currency={currency}
-            hasAlert={Boolean(alertMessage)}
+            hasAlert={Boolean(keyboardAlertMessage)}
             onPress={handleAmountPress}
-            disabled={!hasTokens}
           />
-          {disablePay !== true && (
-            <PayTokenAmount amountHuman={amountHuman} disabled={!hasTokens} />
-          )}
+          {disablePay !== true && <PayTokenAmount amountHuman={amountHuman} />}
           {children}
-          {disablePay !== true && hasTokens && <PayWithRow />}
-        </Box>
-        <Box gap={25}>
-          <AlertMessage alertMessage={alertMessage} />
-          {isResultReady && (
-            <Box>
-              <BridgeFeeRow />
-              <BridgeTimeRow />
-              <TotalRow />
-            </Box>
-          )}
-          {isKeyboardVisible && hasTokens && (
-            <DepositKeyboard
-              alertMessage={alertTitle}
-              doneLabel={buttonLabel}
-              value={amountFiat}
-              onChange={updatePendingAmount}
-              onDonePress={handleDone}
-              onPercentagePress={updatePendingAmountPercentage}
-              hasInput={hasInput}
+          {!isKeyboardVisible && (
+            <AlertBanner
+              blockingOnly
+              excludeKeys={excludeBannerKeys}
+              includeFields
+              inline
             />
           )}
-          {!hasTokens && <BuySection />}
-          {!isKeyboardVisible && <ConfirmButton alertTitle={alertTitle} />}
+          {disablePay !== true && (
+            <InfoSection>
+              <PayWithRow />
+            </InfoSection>
+          )}
+          {isKeyboardVisible && <AlertMessage alertMessage={alertMessage} />}
+          {isResultReady && (
+            <>
+              <InfoSection>
+                <BridgeFeeRow />
+                <BridgeTimeRow />
+                <TotalRow />
+              </InfoSection>
+            </>
+          )}
         </Box>
+        {isKeyboardVisible && (
+          <DepositKeyboard
+            alertMessage={keyboardAlertMessage}
+            value={amountFiat}
+            onChange={updatePendingAmount}
+            onDonePress={handleDone}
+            onPercentagePress={updatePendingAmountPercentage}
+            hasInput={hasInput}
+          />
+        )}
       </Box>
     );
   },
@@ -152,94 +143,12 @@ export function CustomAmountInfoSkeleton() {
       <Box>
         <CustomAmountSkeleton />
         <PayTokenAmountSkeleton />
-        <PayWithRowSkeleton />
+        <InfoSection>
+          <PayWithRowSkeleton />
+        </InfoSection>
       </Box>
       <DepositKeyboardSkeleton />
     </Box>
-  );
-}
-
-function BuySection() {
-  const transactionMeta = useTransactionMetadataRequest();
-  const tokens = useAccountTokens({ includeNoBalance: true });
-  const requiredTokens = useTransactionPayRequiredTokens();
-
-  const primaryRequiredToken = requiredTokens.find(
-    (token) => token.address !== getNativeTokenAddress(token.chainId),
-  );
-
-  const asset = tokens.find(
-    (token) =>
-      token.address?.toLowerCase() ===
-        primaryRequiredToken?.address.toLowerCase() &&
-      token.chainId === primaryRequiredToken?.chainId,
-  );
-
-  const assetId = toCaipAssetType(
-    'eip155',
-    Number(primaryRequiredToken?.chainId ?? '0x0').toString(),
-    'erc20',
-    asset?.assetId ?? '0x0',
-  );
-
-  const { goToRamps } = useRampNavigation();
-
-  const handleBuyPress = useCallback(() => {
-    goToRamps({
-      mode: RampMode.AGGREGATOR,
-      params: {
-        rampType: RampType.BUY,
-        intent: { assetId },
-      },
-    });
-  }, [assetId, goToRamps]);
-
-  let message: string | undefined;
-
-  if (hasTransactionType(transactionMeta, [TransactionType.perpsDeposit])) {
-    message = strings('confirm.custom_amount.buy_perps');
-  }
-
-  if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
-    message = strings('confirm.custom_amount.buy_predict');
-  }
-
-  return (
-    <Box alignItems={AlignItems.center} gap={20}>
-      {message && (
-        <Text variant={TextVariant.BodySM} color={TextColor.Error}>
-          {message}
-        </Text>
-      )}
-      <Button
-        label={strings('confirm.custom_amount.buy_button')}
-        variant={ButtonVariants.Primary}
-        onPress={handleBuyPress}
-        width={ButtonWidthTypes.Full}
-      />
-    </Box>
-  );
-}
-
-function ConfirmButton({
-  alertTitle,
-}: Readonly<{ alertTitle: string | undefined }>) {
-  const { styles } = useStyles(styleSheet, {});
-  const { hasBlockingAlerts } = useAlerts();
-  const isLoading = useIsTransactionPayLoading();
-  const { onConfirm } = useTransactionConfirm();
-  const disabled = hasBlockingAlerts || isLoading;
-  const buttonLabel = useButtonLabel();
-
-  return (
-    <Button
-      style={[disabled && styles.disabledButton]}
-      label={alertTitle ?? buttonLabel}
-      variant={ButtonVariants.Primary}
-      width={ButtonWidthTypes.Full}
-      disabled={disabled}
-      onPress={onConfirm}
-    />
   );
 }
 
@@ -248,22 +157,17 @@ function useIsResultReady({
 }: {
   isKeyboardVisible: boolean;
 }) {
-  const quotes = useTransactionPayQuotes();
-  const isQuotesLoading = useIsTransactionPayLoading();
-  const sourceAmounts = useTransactionPaySourceAmounts();
+  const transactionMeta = useTransactionMetadataRequest();
+  const { amounts: sourceAmounts } = useTransactionPayTokenAmounts();
+  const transactionId = transactionMeta?.id ?? '';
+  const { isLoading } = useIsTransactionPayLoading();
+
+  const quotes = useSelector((state: RootState) =>
+    selectTransactionBridgeQuotesById(state, transactionId),
+  );
 
   return (
     !isKeyboardVisible &&
-    (isQuotesLoading || Boolean(quotes?.length) || !sourceAmounts?.length)
+    (isLoading || Boolean(quotes?.length) || !sourceAmounts?.length)
   );
-}
-
-function useButtonLabel() {
-  const transaction = useTransactionMetadataRequest();
-
-  if (hasTransactionType(transaction, [TransactionType.predictWithdraw])) {
-    return strings('confirm.deposit_edit_amount_predict_withdraw');
-  }
-
-  return strings('confirm.deposit_edit_amount_done');
 }

@@ -3,34 +3,39 @@ import { Alert, Severity } from '../../types/alerts';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
-import { strings } from '../../../../../../locales/i18n';
 import { BigNumber } from 'bignumber.js';
-import { useTransactionPayRequiredTokens } from '../pay/useTransactionPayData';
+import { useTransactionPayTokenAmounts } from '../pay/useTransactionPayTokenAmounts';
+import { strings } from '../../../../../../locales/i18n';
+import { Hex } from '@metamask/utils';
+import { getNativeTokenAddress } from '../../utils/asset';
 
 export function useInsufficientPayTokenBalanceAlert({
-  amountFiatOverride,
+  amountOverrides,
 }: {
-  amountFiatOverride?: string;
+  amountOverrides?: Record<Hex, string>;
 } = {}): Alert[] {
   const { payToken } = useTransactionPayToken();
-  const { balanceUsd } = payToken ?? {};
-  const requiredTokens = useTransactionPayRequiredTokens();
+  const { balance, symbol } = payToken ?? {};
+  const nativeTokenAddress = getNativeTokenAddress(payToken?.chainId ?? '0x0');
 
-  const totalAmountUsd = (requiredTokens ?? [])
-    .filter((t) => !t.skipIfBalance)
-    .reduce<BigNumber>(
-      (total, token) => total.plus(token.amountUsd),
-      new BigNumber(0),
-    );
+  const { totalHuman, amounts } = useTransactionPayTokenAmounts({
+    amountOverrides,
+  });
+
+  const tokenAmount =
+    amounts?.find((a) => a.address !== nativeTokenAddress)
+      ?.amountHumanOriginal ?? '0';
+
+  const balanceValue = new BigNumber(balance ?? '0');
+
+  const isInsufficientForFees =
+    Boolean(payToken) && balanceValue.isLessThan(totalHuman ?? '0');
 
   const isInsufficientForAmount =
-    payToken &&
-    new BigNumber(balanceUsd ?? '0').isLessThan(
-      amountFiatOverride ?? totalAmountUsd,
-    );
+    isInsufficientForFees && balanceValue.isLessThan(tokenAmount);
 
   return useMemo(() => {
-    if (!isInsufficientForAmount) {
+    if (!isInsufficientForFees && !isInsufficientForAmount) {
       return [];
     }
 
@@ -38,10 +43,18 @@ export function useInsufficientPayTokenBalanceAlert({
       {
         key: AlertKeys.InsufficientPayTokenBalance,
         field: RowAlertKey.Amount,
-        message: strings('alert_system.insufficient_pay_token_balance.message'),
+        message: isInsufficientForAmount
+          ? strings('alert_system.insufficient_pay_token_balance.message')
+          : strings(
+              'alert_system.insufficient_pay_token_balance_fees.message',
+              { symbol },
+            ),
+        title: isInsufficientForAmount
+          ? undefined
+          : strings('alert_system.insufficient_pay_token_balance_fees.title'),
         severity: Severity.Danger,
         isBlocking: true,
       },
     ];
-  }, [isInsufficientForAmount]);
+  }, [isInsufficientForFees, isInsufficientForAmount, symbol]);
 }

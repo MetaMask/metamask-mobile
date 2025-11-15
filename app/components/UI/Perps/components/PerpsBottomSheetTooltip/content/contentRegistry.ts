@@ -24,7 +24,6 @@ export const tooltipContentRegistry: ContentRegistry = {
   margin: undefined,
   open_interest: undefined,
   funding_rate: undefined,
-  funding_payments: undefined,
   geo_block: undefined,
   estimated_pnl: undefined,
   limit_price: undefined,

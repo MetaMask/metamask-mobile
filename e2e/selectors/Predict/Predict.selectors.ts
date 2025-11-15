@@ -160,10 +160,3 @@ export const PredictActivityDetailsSelectorsIDs = {
 export const PredictBalanceSelectorsIDs = {
   BALANCE_CARD: 'predict-balance-card',
 } as const;
-
-// ========================================
-// PREDICT ADD FUNDS SELECTORS
-// ========================================
-export const PredictAddFundsSelectorText = {
-  ADD_FUNDS: enContent.predict.deposit.add_funds,
-} as const;

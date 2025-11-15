@@ -5,7 +5,7 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { Pressable, ImageSourcePropType } from 'react-native';
+import { ScrollView, Pressable, ImageSourcePropType } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import { strings } from '../../../../../../locales/i18n';
@@ -19,7 +19,6 @@ import {
   useNetworkFilter,
   NETWORK_FILTER_ALL,
 } from '../../hooks/send/useNetworkFilter';
-import { ScrollView } from 'react-native-gesture-handler';
 
 interface NetworkFilterTabProps {
   label: string;

@@ -10,7 +10,7 @@ function getFontSize(length: number) {
 
 const styleSheet = (params: {
   theme: Theme;
-  vars: { amountLength: number; hasAlert: boolean; disabled: boolean };
+  vars: { amountLength: number; hasAlert: boolean };
 }) =>
   StyleSheet.create({
     container: {
@@ -18,8 +18,8 @@ const styleSheet = (params: {
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
-      marginTop: 70,
-      marginBottom: 0,
+      marginTop: 40,
+      marginBottom: 12,
       minHeight: 100,
       gap: 5,
     },
@@ -30,9 +30,7 @@ const styleSheet = (params: {
       fontWeight: '500',
       color: params.vars.hasAlert
         ? params.theme.colors.error.default
-        : params.vars.disabled
-          ? params.theme.colors.text.muted
-          : params.theme.colors.text.default,
+        : params.theme.colors.text.default,
     },
     alertMessage: {
       textAlign: 'center',

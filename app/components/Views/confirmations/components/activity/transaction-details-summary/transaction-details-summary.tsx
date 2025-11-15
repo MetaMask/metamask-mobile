@@ -21,7 +21,6 @@ import { useSelector } from 'react-redux';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { RootState } from '../../../../../../reducers';
 import {
-  CHAIN_IDS,
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
@@ -38,8 +37,6 @@ import { Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { useNetworkName } from '../../../hooks/useNetworkName';
 import { TransactionDetailsStatus } from '../transaction-details-status';
-import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
-import { POLYGON_USDCE } from '../../../constants/predict';
 
 export function TransactionDetailsSummary() {
   const { styles } = useStyles(styleSheet, {});
@@ -61,7 +58,7 @@ export function TransactionDetailsSummary() {
   const transactionIds = [
     ...(requiredTransactionIds ?? []),
     ...(batchTransactionIds ?? []),
-    transactionId,
+    transactionMeta.id,
   ];
 
   const transactions = useSelector((state: RootState) =>
@@ -77,7 +74,6 @@ export function TransactionDetailsSummary() {
             key={index}
             transaction={item}
             isLast={index === transactions.length - 1}
-            parentTransaction={transactionMeta}
           />
         ))}
       </Box>
@@ -88,23 +84,11 @@ export function TransactionDetailsSummary() {
 function TransactionSummary({
   isLast,
   transaction,
-  parentTransaction,
 }: {
   isLast: boolean;
   transaction: TransactionMeta;
-  parentTransaction: TransactionMeta;
 }) {
-  const {
-    chainId: receiveChainId,
-    hash: receiveHash,
-    isReceiveOnly,
-    sourceNetworkName,
-    sourceSymbol,
-    targetNetworkName,
-    targetSymbol,
-    time: receiveTime,
-  } = useBridgeReceiveData(transaction, parentTransaction);
-
+  const bridgeHistory = useBridgeTxHistoryData({ evmTxMeta: transaction });
   const allBridgeHistory = useSelector(selectBridgeHistoryForAccount);
 
   const approvalBridgeHistory = Object.values(allBridgeHistory).find(
@@ -114,20 +98,37 @@ function TransactionSummary({
   const { chainId: chainIdHex, hash: txHash } = transaction;
   const time = transaction.submittedTime ?? transaction.time;
 
-  const title = getLineTitle({
+  const receiveTime =
+    bridgeHistory?.bridgeTxHistoryItem?.completionTime ?? time;
+
+  const receiveChainIdNumber =
+    bridgeHistory?.bridgeTxHistoryItem?.quote?.destChainId;
+
+  const receiveChainId = receiveChainIdNumber
+    ? toHex(receiveChainIdNumber)
+    : undefined;
+
+  const receiveHash =
+    bridgeHistory?.bridgeTxHistoryItem?.status?.destChain?.txHash;
+
+  const sourceChainName = useNetworkName(chainIdHex);
+  const targetChainName = useNetworkName(receiveChainId);
+
+  const title = getLineTitle(
+    transaction,
+    bridgeHistory.bridgeTxHistoryItem,
     approvalBridgeHistory,
-    networkName: sourceNetworkName,
-    symbol: sourceSymbol,
-    transactionMeta: transaction,
-  });
+    sourceChainName,
+  );
 
   const receiveTitle =
-    getLineTitle({
-      isReceive: true,
-      networkName: targetNetworkName,
-      symbol: targetSymbol,
-      transactionMeta: transaction,
-    }) ?? '';
+    getLineTitle(
+      transaction,
+      bridgeHistory.bridgeTxHistoryItem,
+      approvalBridgeHistory,
+      targetChainName,
+      true,
+    ) ?? '';
 
   if (!title) {
     return null;
@@ -135,22 +136,20 @@ function TransactionSummary({
 
   return (
     <>
-      {!isReceiveOnly && (
-        <SummaryLine
-          chainId={chainIdHex}
-          isLast={isLast}
-          time={time}
-          title={title}
-          transaction={transaction}
-          transactionHash={txHash}
-        />
-      )}
+      <SummaryLine
+        chainId={chainIdHex}
+        isLast={isLast}
+        time={time}
+        title={title}
+        transaction={transaction}
+        transactionHash={txHash}
+      />
       {receiveChainId && (
         <SummaryLine
           chainId={receiveChainId}
           isBridgeReceive
           isLast={isLast}
-          time={receiveTime ?? time}
+          time={receiveTime}
           title={receiveTitle}
           transaction={transaction}
           transactionHash={receiveHash}
@@ -257,43 +256,40 @@ function getDateString(timestamp: number): string {
   return `${timeString} • ${dateString}`;
 }
 
-function getLineTitle({
-  approvalBridgeHistory,
-  isReceive,
-  networkName,
-  symbol,
-  transactionMeta,
-}: {
-  approvalBridgeHistory?: BridgeHistoryItem;
-  isReceive?: boolean;
-  networkName?: string;
-  symbol?: string;
-  transactionMeta: TransactionMeta;
-}): string | undefined {
+function getLineTitle(
+  transactionMeta: TransactionMeta,
+  bridgeHistory: BridgeHistoryItem | undefined,
+  approvalBridgeHistory: BridgeHistoryItem | undefined,
+  networkName: string | undefined,
+  isReceive = false,
+): string | undefined {
   const { type } = transactionMeta;
+  const sourceSymbol = bridgeHistory?.quote?.srcAsset?.symbol;
+  const targetSymbol = bridgeHistory?.quote?.destAsset?.symbol;
   const approveSymbol = approvalBridgeHistory?.quote?.srcAsset?.symbol;
 
-  if (isReceive) {
-    return symbol && networkName
+  if (hasTransactionType(transactionMeta, [TransactionType.perpsDeposit])) {
+    return strings('transaction_details.summary_title.perps_deposit');
+  }
+
+  if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
+    return strings('transaction_details.summary_title.predict_deposit');
+  }
+
+  if (isReceive && type === TransactionType.bridge) {
+    return targetSymbol && networkName
       ? strings('transaction_details.summary_title.bridge_receive', {
-          targetSymbol: symbol,
+          targetSymbol,
           targetChain: networkName,
         })
       : strings('transaction_details.summary_title.bridge_receive_loading');
   }
 
-  if (symbol && networkName) {
-    return strings('transaction_details.summary_title.bridge_send', {
-      sourceSymbol: symbol,
-      sourceChain: networkName,
-    });
-  }
-
   switch (type) {
     case TransactionType.bridge:
-      return symbol && networkName
+      return sourceSymbol && networkName
         ? strings('transaction_details.summary_title.bridge_send', {
-            sourceSymbol: symbol,
+            sourceSymbol,
             sourceChain: networkName,
           })
         : strings('transaction_details.summary_title.bridge_send_loading');
@@ -310,79 +306,4 @@ function getLineTitle({
     default:
       return strings('transaction_details.summary_title.default');
   }
-}
-
-function useBridgeReceiveData(
-  transaction: TransactionMeta,
-  parentTransaction: TransactionMeta,
-): {
-  chainId?: Hex;
-  hash?: Hex;
-  isReceiveOnly?: boolean;
-  sourceNetworkName?: string;
-  sourceSymbol?: string;
-  targetNetworkName?: string;
-  targetSymbol?: string;
-  time?: number;
-} {
-  const bridgeHistory = useBridgeTxHistoryData({ evmTxMeta: transaction });
-
-  const item = bridgeHistory?.bridgeTxHistoryItem;
-  const time = item?.completionTime;
-  const chainIdNumber = item?.quote?.destChainId;
-  const chainId = chainIdNumber ? toHex(chainIdNumber) : undefined;
-  const sourceSymbol = item?.quote?.srcAsset?.symbol;
-  const targetSymbol = item?.quote?.destAsset?.symbol;
-  const hash = item?.status?.destChain?.txHash as Hex | undefined;
-
-  const { chainId: payChainId, tokenAddress } =
-    parentTransaction.metamaskPay ?? {};
-
-  const sourceToken = useTokenWithBalance(
-    tokenAddress ?? '0x0',
-    payChainId ?? '0x0',
-  );
-
-  const sourceNetworkName = useNetworkName(transaction.chainId);
-  const targetNetworkName = useNetworkName(chainId);
-
-  if (hasTransactionType(transaction, [TransactionType.perpsDeposit])) {
-    return {
-      chainId: CHAIN_IDS.ARBITRUM,
-      isReceiveOnly: true,
-      targetNetworkName: 'Hyperliquid',
-      targetSymbol: 'USDC',
-    };
-  }
-
-  if (hasTransactionType(transaction, [TransactionType.predictDeposit])) {
-    return {
-      chainId: CHAIN_IDS.POLYGON,
-      isReceiveOnly: true,
-      targetNetworkName: 'Polygon',
-      targetSymbol: POLYGON_USDCE.symbol,
-    };
-  }
-
-  if (
-    hasTransactionType(parentTransaction, [
-      TransactionType.perpsDeposit,
-      TransactionType.predictDeposit,
-    ])
-  ) {
-    return {
-      sourceNetworkName,
-      sourceSymbol: sourceToken?.symbol,
-    };
-  }
-
-  return {
-    chainId,
-    hash,
-    sourceNetworkName,
-    sourceSymbol,
-    targetNetworkName,
-    targetSymbol,
-    time,
-  };
 }

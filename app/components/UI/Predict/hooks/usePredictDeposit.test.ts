@@ -14,24 +14,11 @@ jest.mock('../../../../util/Logger', () => ({
   },
 }));
 
-// Mock Engine with AccountTreeController
+// Mock Engine
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
       depositWithConfirmation: jest.fn(),
-    },
-    AccountTreeController: {
-      getAccountsFromSelectedAccountGroup: jest.fn(() => [
-        {
-          id: 'test-account-id',
-          address: '0x1234567890123456789012345678901234567890',
-          type: 'eip155:eoa',
-          name: 'Test Account',
-          metadata: {
-            lastSelected: 0,
-          },
-        },
-      ]),
     },
   },
 }));
@@ -284,7 +271,7 @@ describe('usePredictDeposit', () => {
   });
 
   describe('deposit function', () => {
-    it('calls navigateToConfirmation with loader parameter', async () => {
+    it('calls navigateToConfirmation with loader and stack parameters', async () => {
       (
         Engine.context.PredictController.depositWithConfirmation as jest.Mock
       ).mockResolvedValue({
@@ -297,6 +284,7 @@ describe('usePredictDeposit', () => {
 
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
         loader: ConfirmationLoader.CustomAmount,
+        stack: 'Predict',
       });
     });
 

@@ -184,9 +184,6 @@ describe('PredictPositionEmpty', () => {
         Routes.PREDICT.ROOT,
         {
           screen: Routes.PREDICT.MARKET_LIST,
-          params: {
-            entryPoint: expect.any(String),
-          },
         },
       );
     });

@@ -1,7 +1,6 @@
 /**
  * Shared formatting utilities for Perps components
  */
-import { BigNumber } from 'bignumber.js';
 import { formatWithThreshold } from '../../../../util/assets';
 import {
   FUNDING_RATE_CONFIG,
@@ -340,26 +339,6 @@ export const formatPerpsFiat = (
   }
 
   return formatted;
-};
-
-/**
- * Formats a fee value as USD currency with appropriate decimal places
- * @param fee - Raw numeric or string fee value (e.g., 1234.56, not token minimal denomination)
- * @returns Formatted currency string with variable decimals based on configured ranges
- * @example formatFee(1234.56) => "$1,234.56"
- * @example formatFee(0.005) => "< $0.01"
- * @example formatFee(0) => "$0"
- */
-export const formatFee = (fee: number | string): string => {
-  const smallFeeThreshold = 0.01;
-
-  if (BigNumber(fee).isEqualTo(0)) {
-    return '$0';
-  }
-  if (BigNumber(fee).isLessThan(smallFeeThreshold)) {
-    return '< $0.01';
-  }
-  return formatPerpsFiat(fee);
 };
 
 /**

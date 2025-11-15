@@ -29,7 +29,6 @@ export const mockBridgeReducerState: BridgeState = {
   selectedDestChainId: '0xa',
   slippage: '0.5',
   isSubmittingTx: false,
-  gasIncluded: false,
   bridgeViewMode: BridgeViewMode.Bridge,
   isSelectingRecipient: false,
 };

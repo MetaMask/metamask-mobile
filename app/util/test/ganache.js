@@ -1,6 +1,5 @@
 import { getGanachePort } from '../../../e2e/framework/fixtures/FixtureUtils';
 import ganache from 'ganache';
-import { ServerStatus } from '../../../e2e/framework/types';
 
 export const DEFAULT_GANACHE_PORT = 8545;
 
@@ -14,43 +13,15 @@ const defaultOptions = {
 };
 
 export default class Ganache {
-  constructor() {
-    this._startOptions = {};
-    this._serverPort = undefined;
-    this._serverStatus = ServerStatus.STOPPED;
-  }
-
-  /**
-   * Set start options that will be used when start() is called
-   * @param {Object} opts - Ganache node options
-   */
-  setStartOptions(opts) {
-    this._startOptions = opts;
-  }
-
-  /**
-   * Set the port that Ganache should listen on
-   * @param {number} port - Port number
-   */
-  setServerPort(port) {
-    this._serverPort = port;
-  }
-
-  async start(opts = {}) {
-    // Use stored options if no options provided, otherwise use provided opts
-    const optsToUse = Object.keys(opts).length > 0 ? opts : this._startOptions;
-
-    if (!optsToUse.mnemonic) {
+  async start(opts) {
+    if (!opts.mnemonic) {
       throw new Error('Missing required mnemonic');
     }
-
-    const port = this._serverPort || getGanachePort();
-    const options = { ...defaultOptions, ...optsToUse, port };
-
+    const options = { ...defaultOptions, ...opts, port: getGanachePort() };
+    const { port } = options;
     try {
       this._server = ganache.server(options);
       await this._server.listen(port);
-      this._serverStatus = ServerStatus.STARTED;
     } catch (error) {
       console.error(error);
       throw error;
@@ -88,31 +59,5 @@ export default class Ganache {
     }
     await this._server.close();
     this._server = undefined;
-    this._serverStatus = ServerStatus.STOPPED;
-    this._serverPort = undefined;
-  }
-
-  /**
-   * Check if the Ganache server is running
-   * @returns {boolean} True if the server is running, false otherwise
-   */
-  isStarted() {
-    return this._serverStatus === ServerStatus.STARTED;
-  }
-
-  /**
-   * Get the port the Ganache server is listening on
-   * @returns {number} The port number
-   */
-  getServerPort() {
-    return this._serverPort ?? 0;
-  }
-
-  /**
-   * Get the current server status
-   * @returns {ServerStatus} The server status
-   */
-  getServerStatus() {
-    return this._serverStatus;
   }
 }

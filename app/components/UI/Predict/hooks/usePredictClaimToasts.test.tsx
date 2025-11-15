@@ -61,19 +61,6 @@ jest.mock('../../../../core/Engine', () => ({
     PredictController: {
       confirmClaim: jest.fn(),
     },
-    AccountTreeController: {
-      getAccountsFromSelectedAccountGroup: jest.fn(() => [
-        {
-          id: 'test-account-id',
-          address: '0x1234567890123456789012345678901234567890',
-          type: 'eip155:eoa',
-          name: 'Test Account',
-          metadata: {
-            lastSelected: 0,
-          },
-        },
-      ]),
-    },
   },
   controllerMessenger: {
     subscribe: jest.fn(),

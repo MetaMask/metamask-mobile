@@ -1,5 +1,12 @@
 import { waitFor, web } from 'detox';
-import { getFixturesServerPort } from './framework/fixtures/FixtureUtils';
+import {
+  getFixturesServerPort,
+  getGanachePort,
+  getLocalTestDappPort,
+  getMockServerPort,
+  getCommandQueueServerPort,
+  getSecondTestDappPort,
+} from './framework/fixtures/FixtureUtils';
 import Utilities from './framework/Utilities';
 import { resolveConfig } from 'detox/internals';
 import { createLogger } from './framework/logger';
@@ -373,14 +380,14 @@ export default class TestHelpers {
   }
 
   static async reverseServerPort() {
-    // Port forwarding is now handled automatically in FixtureUtils.startResourceWithRetry()
-    // and startMultiInstanceResourceWithRetry() when ports are allocated.
-    // This function is kept for backwards compatibility with existing tests.
-    // will be removed in future.
-    logger.debug(
-      'reverseServerPort() called but port forwarding is now automatic',
-    );
-    return;
+    if (device.getPlatform() === 'android') {
+      await device.reverseTcpPort(getGanachePort());
+      await device.reverseTcpPort(getFixturesServerPort());
+      await device.reverseTcpPort(getCommandQueueServerPort());
+      await device.reverseTcpPort(getLocalTestDappPort());
+      await device.reverseTcpPort(getSecondTestDappPort());
+      await device.reverseTcpPort(getMockServerPort());
+    }
   }
 
   static async terminateApp() {

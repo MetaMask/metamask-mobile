@@ -469,13 +469,11 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   {
                                     "color": "#121314",
                                     "fontFamily": "Geist Bold",
-                                    "fontSize": 16,
+                                    "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
-                                    "textAlign": "center",
                                   }
                                 }
-                                testID="header-title"
                               >
                                 Select token
                               </Text>
@@ -1008,7 +1006,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               "flexDirection": "row",
                                               "gap": 4,
                                             },
-                                            {},
+                                            undefined,
                                           ]
                                         }
                                       >
@@ -1319,7 +1317,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               "flexDirection": "row",
                                               "gap": 4,
                                             },
-                                            {},
+                                            undefined,
                                           ]
                                         }
                                       >
@@ -1630,7 +1628,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                               "flexDirection": "row",
                                               "gap": 4,
                                             },
-                                            {},
+                                            undefined,
                                           ]
                                         }
                                       >
@@ -1669,10 +1667,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                                     },
                                                     undefined,
                                                     undefined,
-                                                    {
-                                                      "height": 32,
-                                                      "width": 32,
-                                                    },
+                                                    undefined,
                                                   ]
                                                 }
                                                 testID="network-logo-ETH"
@@ -1695,8 +1690,8 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                                     [
                                                       {
                                                         "borderRadius": 18,
-                                                        "height": 32,
-                                                        "width": 32,
+                                                        "height": 36,
+                                                        "width": 36,
                                                       },
                                                       {
                                                         "backgroundColor": "#eee",

@@ -16,22 +16,26 @@ import AssetIcon from '../AssetIcon';
 import { strings } from '../../../../locales/i18n';
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
-import { BridgeToken } from '../Bridge/types';
-import { FlashList } from '@shopify/flash-list';
 
 interface Props {
   /**
    * Array of assets objects returned from the search
    */
-  searchResults: BridgeToken[];
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  searchResults: any[];
   /**
    * Callback triggered when a token is selected
    */
-  handleSelectAsset: (asset: BridgeToken) => void;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  handleSelectAsset: (asset: any) => void;
   /**
    * Object of the currently-selected token
    */
-  selectedAsset: BridgeToken[];
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  selectedAsset: any[];
   /**
    * Search query that generated "searchResults"
    */
@@ -48,10 +52,6 @@ interface Props {
    * Name of the network
    */
   networkName?: string;
-  /**
-   * Set of already added token addresses (lowercase)
-   */
-  alreadyAddedTokens?: Set<string>;
 }
 
 const MultiAssetListItems = ({
@@ -60,31 +60,29 @@ const MultiAssetListItems = ({
   selectedAsset,
   searchQuery,
   networkName,
-  alreadyAddedTokens,
 }: Props) => {
   const { styles } = useStyles(stylesheet, {});
 
   return (
-    <FlashList
-      data={searchResults}
-      renderItem={({ item, index }) => {
-        const { symbol, name, address, image } = item || {};
+    <View style={styles.rowWrapper}>
+      {searchResults.length === 0 && searchQuery?.length ? (
+        <Text style={styles.normalText}>
+          {strings('token.no_tokens_found')}
+        </Text>
+      ) : null}
+      {searchResults.slice(0, 6)?.map((_, i) => {
+        const { symbol, name, address, iconUrl } = searchResults[i] || {};
         const isOnSelected = selectedAsset.some(
           (token) => token.address === address,
         );
         const isSelected = selectedAsset && isOnSelected;
 
-        // Check if token is already added
-        const isAlreadyAdded = alreadyAddedTokens?.has(address.toLowerCase());
-        const isDisabled = isAlreadyAdded;
-
         return (
           <ListItemMultiSelect
-            isSelected={isSelected || isAlreadyAdded}
-            isDisabled={isDisabled}
+            isSelected={isSelected}
             style={styles.base}
-            key={`search-result-${index}`}
-            onPress={() => !isDisabled && handleSelectAsset(item)}
+            key={i}
+            onPress={() => handleSelectAsset(searchResults[i])}
             testID={ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT}
           >
             <View style={styles.Icon}>
@@ -93,20 +91,16 @@ const MultiAssetListItems = ({
                 badgeElement={
                   <Badge
                     variant={BadgeVariant.Network}
-                    imageSource={NetworkBadgeSource(
-                      item?.chainId as `0x${string}`,
-                    )}
+                    imageSource={NetworkBadgeSource(searchResults[i]?.chainId)}
                     name={networkName}
                   />
                 }
               >
-                {image && (
-                  <AssetIcon
-                    address={address}
-                    logo={image}
-                    customStyle={styles.assetIcon}
-                  />
-                )}
+                <AssetIcon
+                  address={address}
+                  logo={iconUrl}
+                  customStyle={styles.assetIcon}
+                />
               </BadgeWrapper>
             </View>
             <View style={styles.tokens}>
@@ -115,17 +109,8 @@ const MultiAssetListItems = ({
             </View>
           </ListItemMultiSelect>
         );
-      }}
-      keyExtractor={(_, index) => `token-search-row-${index}`}
-      decelerationRate="fast"
-      ListEmptyComponent={
-        searchQuery?.length > 0 ? (
-          <Text style={styles.normalText}>
-            {strings('token.no_tokens_found')}
-          </Text>
-        ) : null
-      }
-    />
+      })}
+    </View>
   );
 };
 

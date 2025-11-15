@@ -58,12 +58,12 @@ exports[`SendTransaction View renders correctly 1`] = `
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
+                "shadowColor": "transparent",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0,
+                "shadowOpacity": 0.85,
                 "shadowRadius": 0,
               }
             }
@@ -116,87 +116,29 @@ exports[`SendTransaction View renders correctly 1`] = `
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <Text
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 23.57142857142857,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                >
+                  Back
+                </Text>
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -234,6 +176,23 @@ exports[`SendTransaction View renders correctly 1`] = `
                   Sell crypto
                 </Text>
               </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <View />
             </View>
           </View>
         </View>
@@ -490,11 +449,16 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   ]
                                 }
                               >
-                                <View
+                                <Text
+                                  accessibilityRole="text"
                                   style={
                                     {
-                                      "flexDirection": "row",
-                                      "gap": 4,
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "center",
                                     }
                                   }
                                 >
@@ -512,6 +476,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     }
                                   >
                                     Send
+                                     
                                   </Text>
                                   <Text
                                     accessibilityRole="text"
@@ -526,6 +491,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     }
                                   >
                                     0.012361263
+                                     
                                   </Text>
                                   <View
                                     style={
@@ -552,6 +518,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                       testID="token-avatar-image"
                                     />
                                   </View>
+                                   
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -566,7 +533,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   >
                                     ETH
                                   </Text>
-                                </View>
+                                </Text>
                               </View>
                               <View
                                 style={
@@ -875,12 +842,12 @@ exports[`SendTransaction View renders correctly for custom action payment method
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
+                "shadowColor": "transparent",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0,
+                "shadowOpacity": 0.85,
                 "shadowRadius": 0,
               }
             }
@@ -933,87 +900,29 @@ exports[`SendTransaction View renders correctly for custom action payment method
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <Text
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 23.57142857142857,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                >
+                  Back
+                </Text>
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -1051,6 +960,23 @@ exports[`SendTransaction View renders correctly for custom action payment method
                   Sell crypto
                 </Text>
               </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <View />
             </View>
           </View>
         </View>
@@ -1307,11 +1233,16 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                   ]
                                 }
                               >
-                                <View
+                                <Text
+                                  accessibilityRole="text"
                                   style={
                                     {
-                                      "flexDirection": "row",
-                                      "gap": 4,
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "center",
                                     }
                                   }
                                 >
@@ -1329,6 +1260,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                     }
                                   >
                                     Send
+                                     
                                   </Text>
                                   <Text
                                     accessibilityRole="text"
@@ -1343,6 +1275,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                     }
                                   >
                                     0.0123456
+                                     
                                   </Text>
                                   <View
                                     style={
@@ -1373,6 +1306,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                       testID="token-avatar-image"
                                     />
                                   </View>
+                                   
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -1387,7 +1321,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                   >
                                     USDC
                                   </Text>
-                                </View>
+                                </Text>
                               </View>
                               <View
                                 style={
@@ -1610,12 +1544,12 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
+                "shadowColor": "transparent",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0,
+                "shadowOpacity": 0.85,
                 "shadowRadius": 0,
               }
             }
@@ -1668,87 +1602,29 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <Text
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 23.57142857142857,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                >
+                  Back
+                </Text>
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -1786,6 +1662,23 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                   Sell crypto
                 </Text>
               </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <View />
             </View>
           </View>
         </View>
@@ -2042,11 +1935,16 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   ]
                                 }
                               >
-                                <View
+                                <Text
+                                  accessibilityRole="text"
                                   style={
                                     {
-                                      "flexDirection": "row",
-                                      "gap": 4,
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "center",
                                     }
                                   }
                                 >
@@ -2064,6 +1962,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     }
                                   >
                                     Send
+                                     
                                   </Text>
                                   <Text
                                     accessibilityRole="text"
@@ -2078,6 +1977,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     }
                                   >
                                     0.0123456
+                                     
                                   </Text>
                                   <View
                                     style={
@@ -2108,6 +2008,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                       testID="token-avatar-image"
                                     />
                                   </View>
+                                   
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -2122,7 +2023,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   >
                                     USDC
                                   </Text>
-                                </View>
+                                </Text>
                               </View>
                               <View
                                 style={

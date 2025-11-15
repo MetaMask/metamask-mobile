@@ -4,7 +4,8 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
 import { UnrealizedPnL } from '../types';
-import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
+import { useSelector } from 'react-redux';
+import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
 
@@ -60,8 +61,9 @@ export const useUnrealizedPnL = (
   const [error, setError] = useState<string | null>(null);
   const isInitialMount = useRef(true);
 
-  const evmAccount = getEvmAccountFromSelectedAccountGroup();
-  const selectedInternalAccountAddress = evmAccount?.address ?? '0x0';
+  const selectedInternalAccountAddress = useSelector(
+    selectSelectedInternalAccountAddress,
+  );
 
   const loadUnrealizedPnL = useCallback(
     async (loadOptions?: { isRefresh?: boolean }) => {
@@ -75,21 +77,13 @@ export const useUnrealizedPnL = (
         }
         setError(null);
 
-        const [unrealizedPnLData, positions] = await Promise.all([
-          Engine.context.PredictController.getUnrealizedPnL({
+        const unrealizedPnLData =
+          await Engine.context.PredictController.getUnrealizedPnL({
             address: address ?? selectedInternalAccountAddress,
             providerId,
-          }),
-          Engine.context.PredictController.getPositions({
-            providerId,
-            limit: 1,
-            offset: 0,
-            claimable: false,
-          }),
-        ]);
+          });
 
-        const _unrealizedPnL = unrealizedPnLData ?? null;
-        setUnrealizedPnL(positions.length > 0 ? _unrealizedPnL : null);
+        setUnrealizedPnL(unrealizedPnLData ?? null);
 
         DevLogger.log('useUnrealizedPnL: Loaded unrealized P&L', {
           unrealizedPnL: unrealizedPnLData,
@@ -131,7 +125,6 @@ export const useUnrealizedPnL = (
     if (loadOnMount) {
       loadUnrealizedPnL();
     }
-    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadOnMount]);
 

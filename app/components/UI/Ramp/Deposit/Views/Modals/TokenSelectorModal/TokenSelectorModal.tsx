@@ -5,7 +5,6 @@ import { CaipChainId } from '@metamask/utils';
 
 import NetworksFilterBar from '../../../components/NetworksFilterBar';
 import NetworksFilterSelector from '../../../components/NetworksFilterSelector/NetworksFilterSelector';
-import TokenListItem from '../../../../components/TokenListItem';
 
 import Text, {
   TextVariant,
@@ -15,6 +14,15 @@ import BottomSheet, {
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import ListItemSelect from '../../../../../../../component-library/components/List/ListItemSelect';
+import ListItemColumn, {
+  WidthType,
+} from '../../../../../../../component-library/components/List/ListItemColumn';
+import AvatarToken from '../../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import { AvatarSize } from '../../../../../../../component-library/components/Avatars/Avatar';
+import BadgeNetwork from '../../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../../../component-library/components/Badges/BadgeWrapper';
 import TextFieldSearch from '../../../../../../../component-library/components/Form/TextFieldSearch';
 
 import styleSheet from './TokenSelectorModal.styles';
@@ -27,9 +35,11 @@ import {
   useParams,
 } from '../../../../../../../util/navigation/navUtils';
 import { useDepositCryptoCurrencyNetworkName } from '../../../hooks/useDepositCryptoCurrencyNetworkName';
+import { getNetworkImageSource } from '../../../../../../../util/networks';
 import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
+import { DEPOSIT_NETWORKS_BY_CHAIN_ID } from '../../../constants/networks';
 import { useTheme } from '../../../../../../../util/theme';
 import useAnalytics from '../../../../hooks/useAnalytics';
 
@@ -128,15 +138,48 @@ function TokenSelectorModal() {
   }, [handleSearchTextChange]);
 
   const renderToken = useCallback(
-    ({ item: token }: { item: DepositCryptoCurrency }) => (
-      <TokenListItem
-        token={token}
-        isSelected={selectedCryptoCurrency?.assetId === token.assetId}
-        onPress={() => handleSelectAssetIdCallback(token.assetId)}
-        textColor={colors.text.alternative}
-      />
-    ),
+    ({ item: token }: { item: DepositCryptoCurrency }) => {
+      const networkName = getNetworkName(token.chainId);
+      const networkImageSource = getNetworkImageSource({
+        chainId: token.chainId,
+      });
+      const depositNetworkName =
+        DEPOSIT_NETWORKS_BY_CHAIN_ID[token.chainId]?.name;
+      return (
+        <ListItemSelect
+          isSelected={selectedCryptoCurrency?.assetId === token.assetId}
+          onPress={() => handleSelectAssetIdCallback(token.assetId)}
+          accessibilityRole="button"
+          accessible
+        >
+          <ListItemColumn widthType={WidthType.Auto}>
+            <BadgeWrapper
+              badgePosition={BadgePosition.BottomRight}
+              badgeElement={
+                <BadgeNetwork
+                  name={networkName}
+                  imageSource={networkImageSource}
+                />
+              }
+            >
+              <AvatarToken
+                name={token.name}
+                imageSource={{ uri: token.iconUrl }}
+                size={AvatarSize.Md}
+              />
+            </BadgeWrapper>
+          </ListItemColumn>
+          <ListItemColumn widthType={WidthType.Fill}>
+            <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
+            <Text variant={TextVariant.BodyMD} color={colors.text.alternative}>
+              {depositNetworkName ?? networkName}
+            </Text>
+          </ListItemColumn>
+        </ListItemSelect>
+      );
+    },
     [
+      getNetworkName,
       colors.text.alternative,
       handleSelectAssetIdCallback,
       selectedCryptoCurrency?.assetId,

@@ -1,18 +1,12 @@
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
-import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import { TransactionMeta } from '@metamask/transaction-controller';
 import { TransactionDetailsNetworkFeeRow } from './transaction-details-network-fee-row';
-import { useFeeCalculations } from '../../../hooks/gas/useFeeCalculations';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
-jest.mock('../../../hooks/gas/useFeeCalculations');
 
-const PAY_FEE_MOCK = '123.45';
-const CALCULATED_FEE_MOCK = '234.56';
+const NETWORK_FEE_FIAT_MOCK = '$123.45';
 
 function render() {
   return renderWithProvider(<TransactionDetailsNetworkFeeRow />, {});
@@ -20,7 +14,6 @@ function render() {
 
 describe('TransactionDetailsNetworkFeeRow', () => {
   const useTransactionDetailsMock = jest.mocked(useTransactionDetails);
-  const useFeeCalculationsMock = jest.mocked(useFeeCalculations);
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -28,41 +21,26 @@ describe('TransactionDetailsNetworkFeeRow', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {
         metamaskPay: {
-          networkFeeFiat: PAY_FEE_MOCK,
+          networkFeeFiat: NETWORK_FEE_FIAT_MOCK,
         },
       } as unknown as TransactionMeta,
     });
-
-    useFeeCalculationsMock.mockReturnValue({
-      estimatedFeeFiatPrecise: CALCULATED_FEE_MOCK,
-    } as unknown as ReturnType<typeof useFeeCalculations>);
   });
 
-  it('renders network fee from pay metadata', () => {
+  it('renders network fee fiat', () => {
     const { getByText } = render();
-    expect(getByText(`$${PAY_FEE_MOCK}`)).toBeDefined();
+    expect(getByText(NETWORK_FEE_FIAT_MOCK)).toBeDefined();
   });
 
-  it('renders network fee from calculation', () => {
-    useTransactionDetailsMock.mockReturnValue({
-      transactionMeta: {
-        type: TransactionType.predictWithdraw,
-      } as unknown as TransactionMeta,
-    });
-
-    const { getByText } = render();
-    expect(getByText(`$${CALCULATED_FEE_MOCK}`)).toBeDefined();
-  });
-
-  it('renders nothing if no pay metadata and type not supported', () => {
+  it('renders nothing if no network fee fiat', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {
         metamaskPay: {},
       } as unknown as TransactionMeta,
     });
 
-    const { toJSON } = render();
+    const { queryByText } = render();
 
-    expect(toJSON()).toBeNull();
+    expect(queryByText(NETWORK_FEE_FIAT_MOCK)).toBeNull();
   });
 });

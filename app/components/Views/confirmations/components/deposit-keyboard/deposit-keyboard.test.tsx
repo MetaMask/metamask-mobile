@@ -79,13 +79,4 @@ describe('DepositKeyboard', () => {
     expect(queryByTestId('deposit-keyboard-done-button')).toBeNull();
     expect(queryByText('50%')).toBeNull();
   });
-
-  it('renders doneLabel if specified', async () => {
-    const { getByText } = render({
-      doneLabel: 'Test Button',
-      hasInput: true,
-    });
-
-    expect(getByText('Test Button')).toBeDefined();
-  });
 });

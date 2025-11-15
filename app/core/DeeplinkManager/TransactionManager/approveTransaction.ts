@@ -3,7 +3,6 @@ import { generateApprovalData } from '../../../util/transactions';
 import { ParseOutput } from 'eth-url-parser';
 import { strings } from '../../../../locales/i18n';
 import { getAddress } from '../../../util/address';
-import { validateWithPPOM } from '../../../components/Views/confirmations/utils/deeplink';
 import { addTransaction } from '../../../util/transaction-controller';
 import DeeplinkManager from '../DeeplinkManager';
 import Engine from '../../Engine';
@@ -71,22 +70,14 @@ async function approveTransaction({
     data: generateApprovalData({ spender: spenderAddress, value }),
   };
 
-  const chainId = toHexOrFallback(chain_id as string);
-  const networkClientId =
-    NetworkController.findNetworkClientIdByChainId(chainId);
-
-  const securityAlertResponse = validateWithPPOM({
-    txParams,
-    origin,
-    chainId,
-    networkClientId,
-  });
+  const networkClientId = NetworkController.findNetworkClientIdByChainId(
+    toHexOrFallback(chain_id as string),
+  );
 
   addTransaction(txParams, {
     deviceConfirmedOn: WalletDevice.MM_MOBILE,
     networkClientId,
     origin,
-    securityAlertResponse,
   });
 }
 

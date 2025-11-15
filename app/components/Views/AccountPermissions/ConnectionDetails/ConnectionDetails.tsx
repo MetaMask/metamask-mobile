@@ -48,7 +48,9 @@ const ConnectionDetails = (props: ConnectionDetailsProps) => {
     <BottomSheet ref={sheetRef}>
       <View style={styles.container}>
         <BottomSheetHeader>
-          {strings('permissions.connection_details_title')}
+          <Text variant={TextVariant.HeadingMD}>
+            {strings('permissions.connection_details_title')}
+          </Text>
         </BottomSheetHeader>
         <View style={styles.descriptionContainer}>
           <Text variant={TextVariant.BodyMD}>

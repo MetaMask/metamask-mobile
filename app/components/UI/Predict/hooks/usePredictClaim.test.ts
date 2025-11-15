@@ -5,12 +5,12 @@ import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
+import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 import { usePredictClaim } from './usePredictClaim';
 import { usePredictTrading } from './usePredictTrading';
-import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 
 // Create mock functions
 const mockNavigate = jest.fn();
@@ -142,8 +142,7 @@ describe('usePredictClaim', () => {
       // Assert
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
         headerShown: false,
-        loader: ConfirmationLoader.PredictClaim,
-        stack: 'Predict',
+        stack: Routes.PREDICT.ROOT,
       });
       expect(mockClaimWinnings).toHaveBeenCalledWith({
         providerId: POLYMARKET_PROVIDER_ID,
@@ -273,8 +272,7 @@ describe('usePredictClaim', () => {
       // Assert - second attempt should succeed
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
         headerShown: false,
-        loader: ConfirmationLoader.PredictClaim,
-        stack: 'Predict',
+        stack: Routes.PREDICT.ROOT,
       });
       expect(mockClaimWinnings).toHaveBeenCalledWith({
         providerId: POLYMARKET_PROVIDER_ID,

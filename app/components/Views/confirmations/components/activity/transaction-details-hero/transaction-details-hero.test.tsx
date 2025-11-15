@@ -6,12 +6,12 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { TransactionDetailsHero } from './transaction-details-hero';
+import { useTokensWithBalance } from '../../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { merge } from 'lodash';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
-import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
-jest.mock('../../../hooks/tokens/useTokenWithBalance');
+jest.mock('../../../../../UI/Bridge/hooks/useTokensWithBalance');
 
 const TOKEN_ADDRESS_MOCK = '0x1234567890abcdef1234567890abcdef12345678';
 const CHAIN_ID_MOCK = '0x123';
@@ -36,7 +36,7 @@ function render() {
 
 describe('TransactionDetailsHero', () => {
   const useTransactionDetailsMock = jest.mocked(useTransactionDetails);
-  const useTokenWithBalanceMock = jest.mocked(useTokenWithBalance);
+  const useTokensWithBalanceMock = jest.mocked(useTokensWithBalance);
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -45,17 +45,19 @@ describe('TransactionDetailsHero', () => {
       transactionMeta: TRANSACTION_META_MOCK,
     });
 
-    useTokenWithBalanceMock.mockReturnValue({
-      address: TOKEN_ADDRESS_MOCK,
-      chainId: CHAIN_ID_MOCK,
-      decimals: DECIMALS_MOCK,
-      symbol: 'TST',
-    } as unknown as ReturnType<typeof useTokenWithBalance>);
+    useTokensWithBalanceMock.mockReturnValue([
+      {
+        address: TOKEN_ADDRESS_MOCK,
+        chainId: CHAIN_ID_MOCK,
+        decimals: DECIMALS_MOCK,
+        symbol: 'TST',
+      },
+    ]);
   });
 
   it('renders human amount', () => {
     const { getByText } = render();
-    expect(getByText('$123.46')).toBeDefined();
+    expect(getByText('$123.456')).toBeDefined();
   });
 
   it('renders human amount if token transfer is nested call', () => {
@@ -78,7 +80,7 @@ describe('TransactionDetailsHero', () => {
 
     const { getByText } = render();
 
-    expect(getByText('$123.46')).toBeDefined();
+    expect(getByText('$123.456')).toBeDefined();
   });
 
   it('renders nothing if no to', () => {
@@ -112,9 +114,7 @@ describe('TransactionDetailsHero', () => {
   });
 
   it('renders nothing if no decimals', () => {
-    useTokenWithBalanceMock.mockReturnValue(
-      undefined as unknown as ReturnType<typeof useTokenWithBalance>,
-    );
+    useTokensWithBalanceMock.mockReturnValue([]);
 
     const { queryByTestId } = render();
     expect(queryByTestId('transaction-details-hero')).toBeNull();

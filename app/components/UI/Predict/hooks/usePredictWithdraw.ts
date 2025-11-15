@@ -1,5 +1,6 @@
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useCallback, useContext } from 'react';
+import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { PredictNavigationParamList } from '../types/navigation';
@@ -37,6 +38,7 @@ export const usePredictWithdraw = ({
   const withdraw = useCallback(async () => {
     try {
       navigateToConfirmation({
+        stack: Routes.PREDICT.ROOT,
         loader: ConfirmationLoader.CustomAmount,
       });
 

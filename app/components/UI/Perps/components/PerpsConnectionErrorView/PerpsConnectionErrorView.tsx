@@ -85,7 +85,7 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
     <View style={styles.container}>
       <View style={styles.errorContainer}>
         <Icon
-          name={IconName.Warning}
+          name={IconName.Details}
           color={IconColor.Muted}
           size={IconSize.Xl}
           style={styles.errorIcon}
@@ -97,6 +97,14 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
           style={styles.errorTitle}
         >
           {strings('perps.errors.connectionFailed.title')}
+        </Text>
+
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Muted}
+          style={styles.errorMessage}
+        >
+          {strings('perps.errors.connectionFailed.description')}
         </Text>
 
         {/* Only show debug details in development */}

@@ -903,11 +903,13 @@ describe('Predict Controller Selectors', () => {
         polymarket: {
           '0x123': {
             isOnboarded: true,
+            acceptedToS: true,
           },
         },
         kalshi: {
           '0xabc': {
             isOnboarded: false,
+            acceptedToS: false,
           },
         },
       };
@@ -965,14 +967,17 @@ describe('Predict Controller Selectors', () => {
         polymarket: {
           '0x123': {
             isOnboarded: true,
+            acceptedToS: true,
           },
           '0x456': {
             isOnboarded: false,
+            acceptedToS: false,
           },
         },
         kalshi: {
           '0xabc': {
             isOnboarded: true,
+            acceptedToS: true,
           },
         },
       };
@@ -1000,6 +1005,7 @@ describe('Predict Controller Selectors', () => {
         polymarket: {
           '0x123': {
             isOnboarded: true,
+            acceptedToS: true,
           },
         },
       };
@@ -1021,7 +1027,7 @@ describe('Predict Controller Selectors', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = selector(mockState as any);
 
-      expect(result).toEqual({ isOnboarded: true });
+      expect(result).toEqual({ isOnboarded: true, acceptedToS: true });
     });
 
     it('returns account meta with false values when not onboarded or accepted', () => {
@@ -1029,6 +1035,7 @@ describe('Predict Controller Selectors', () => {
         polymarket: {
           '0x123': {
             isOnboarded: false,
+            acceptedToS: false,
           },
         },
       };
@@ -1050,7 +1057,7 @@ describe('Predict Controller Selectors', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = selector(mockState as any);
 
-      expect(result).toEqual({ isOnboarded: false });
+      expect(result).toEqual({ isOnboarded: false, acceptedToS: false });
     });
 
     it('returns empty object when provider does not exist', () => {
@@ -1058,6 +1065,7 @@ describe('Predict Controller Selectors', () => {
         polymarket: {
           '0x123': {
             isOnboarded: true,
+            acceptedToS: true,
           },
         },
       };
@@ -1087,6 +1095,7 @@ describe('Predict Controller Selectors', () => {
         polymarket: {
           '0x123': {
             isOnboarded: true,
+            acceptedToS: true,
           },
         },
       };
@@ -1135,17 +1144,21 @@ describe('Predict Controller Selectors', () => {
         polymarket: {
           '0x123': {
             isOnboarded: true,
+            acceptedToS: true,
           },
           '0x456': {
             isOnboarded: false,
+            acceptedToS: false,
           },
         },
         kalshi: {
           '0xabc': {
             isOnboarded: true,
+            acceptedToS: true,
           },
           '0xdef': {
             isOnboarded: false,
+            acceptedToS: false,
           },
         },
       };
@@ -1174,8 +1187,8 @@ describe('Predict Controller Selectors', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result2 = selector2(mockState as any);
 
-      expect(result1).toEqual({ isOnboarded: false });
-      expect(result2).toEqual({ isOnboarded: true });
+      expect(result1).toEqual({ isOnboarded: false, acceptedToS: false });
+      expect(result2).toEqual({ isOnboarded: true, acceptedToS: true });
     });
 
     it('returns account meta with partial onboarding', () => {
@@ -1183,6 +1196,7 @@ describe('Predict Controller Selectors', () => {
         polymarket: {
           '0x123': {
             isOnboarded: true,
+            acceptedToS: false,
           },
         },
       };
@@ -1204,7 +1218,7 @@ describe('Predict Controller Selectors', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = selector(mockState as any);
 
-      expect(result).toEqual({ isOnboarded: true });
+      expect(result).toEqual({ isOnboarded: true, acceptedToS: false });
     });
 
     it('returns empty object when accountMeta object is empty', () => {

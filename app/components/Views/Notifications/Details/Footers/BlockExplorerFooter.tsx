@@ -44,25 +44,15 @@ export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
   const txHashUrl = `${url}/tx/${props.txHash}`;
 
   const onPress = () => {
-    const otherNotificationProperties = () => {
-      if (
-        'notification_type' in notification &&
-        notification.notification_type === 'on-chain' &&
-        notification.payload?.chain_id
-      ) {
-        return { chain_id: notification.payload.chain_id };
-      }
-
-      return undefined;
-    };
-
     Linking.openURL(txHashUrl);
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED)
         .addProperties({
           notification_id: notification.id,
           notification_type: notification.type,
-          ...otherNotificationProperties(),
+          ...('chain_id' in notification && {
+            chain_id: notification.chain_id,
+          }),
           clicked_item: 'block_explorer',
         })
         .build(),

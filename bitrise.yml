@@ -3520,6 +3520,9 @@ app:
       MM_NETWORK_UI_REDESIGN_ENABLED: false
     - opts:
         is_expand: false
+      MM_PER_DAPP_SELECTED_NETWORK: false
+    - opts:
+        is_expand: false
       MM_PERMISSIONS_SETTINGS_V1_ENABLED: false
     - opts:
         is_expand: false
@@ -3574,16 +3577,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.60.0
+      VERSION_NAME: 7.59.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 2993
+      VERSION_NUMBER: 3054
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.60.0
+      FLASK_VERSION_NAME: 7.59.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 2993
+      FLASK_VERSION_NUMBER: 3054
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

@@ -222,7 +222,7 @@ describe('Transaction Element Utils', () => {
 
       // Assert
       expect(transactionElement).toEqual({
-        actionKey: 'Received USDT',
+        actionKey: 'Sent USDT',
         renderFrom: '0x1440ec793aE50fA046B95bFeCa5aF475b6003f9e',
         renderTo: '0x77648F1407986479fb1fA5Cc3597084B5dbDB057',
         value: '5.43 USDT',
@@ -280,7 +280,7 @@ describe('Transaction Element Utils', () => {
 
       // Assert
       expect(transactionElement).toEqual({
-        actionKey: 'Received USDT',
+        actionKey: 'Sent USDT',
         renderFrom: '0x1440ec793aE50fA046B95bFeCa5aF475b6003f9e',
         renderTo: '0x77648F1407986479fb1fA5Cc3597084B5dbDB057',
         value: '1000 USDT',
@@ -343,8 +343,7 @@ describe('Transaction Element Utils', () => {
         renderTo: '0x1234567890abcdef1234567890abcdef12345678',
         value: '5.43 USDC',
         fiatValue: false,
-        nonce: undefined,
-        transactionType: 'transaction_sent_token',
+        transactionType: 'transaction_received_token',
       });
 
       expect(transactionDetails).toEqual({

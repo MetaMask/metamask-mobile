@@ -1907,7 +1907,9 @@ export class NetworkSettings extends PureComponent {
                 }}
                 style={styles.baseAll}
               >
-                {strings('app_settings.add_rpc_url')}
+                <Text style={styles.heading}>
+                  {strings('app_settings.add_rpc_url')}
+                </Text>
               </BottomSheetHeader>
               {/* Keyboard Aware Scrollable Middle Content */}
               <KeyboardAwareScrollView
@@ -1987,7 +1989,9 @@ export class NetworkSettings extends PureComponent {
               }}
               style={styles.baseAll}
             >
-              {strings('app_settings.add_block_explorer_url')}
+              <Text style={styles.heading}>
+                {strings('app_settings.add_block_explorer_url')}
+              </Text>
             </BottomSheetHeader>
             <KeyboardAwareScrollView
               enableOnAndroid
@@ -2060,7 +2064,9 @@ export class NetworkSettings extends PureComponent {
             <View style={styles.container}>
               {/* Sticky Header */}
               <BottomSheetHeader>
-                {strings('app_settings.add_block_explorer_url')}
+                <Text style={styles.heading}>
+                  {strings('app_settings.add_block_explorer_url')}
+                </Text>
               </BottomSheetHeader>
 
               {/* Scrollable Middle Content */}
@@ -2125,7 +2131,9 @@ export class NetworkSettings extends PureComponent {
             <View style={styles.container}>
               {/* Sticky Header */}
               <BottomSheetHeader>
-                {strings('app_settings.add_rpc_url')}
+                <Text style={styles.heading}>
+                  {strings('app_settings.add_rpc_url')}
+                </Text>
               </BottomSheetHeader>
 
               {/* Scrollable Middle Content */}

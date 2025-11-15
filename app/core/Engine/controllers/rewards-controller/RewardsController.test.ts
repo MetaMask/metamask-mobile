@@ -7348,7 +7348,11 @@ describe('RewardsController', () => {
       // Arrange
       const mockAccounts = [mockEvmInternalAccount, mockEvmInternalAccount2];
       mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
           return Promise.resolve('0xsignature123');
         } else if (method === 'RewardsDataService:mobileOptin') {
           return Promise.resolve(mockOptinResponse);
@@ -7364,10 +7368,13 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await controller.optIn(mockAccounts);
+      const result = await controller.optIn();
 
       // Assert
       expect(result).toBe(mockSubscriptionId);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      );
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:mobileOptin',
         expect.objectContaining({
@@ -7390,7 +7397,11 @@ describe('RewardsController', () => {
       const referralCode = 'REF123';
       const mockAccounts = [mockEvmInternalAccount];
       mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
           return Promise.resolve('0xsignature123');
         } else if (method === 'RewardsDataService:mobileOptin') {
           const params = _args[0] as any;
@@ -7406,7 +7417,7 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await controller.optIn(mockAccounts, referralCode);
+      const result = await controller.optIn(referralCode);
 
       // Assert
       expect(result).toBe(mockSubscriptionId);
@@ -7422,10 +7433,9 @@ describe('RewardsController', () => {
     it('should return null when rewards feature is disabled', async () => {
       // Arrange
       mockSelectRewardsEnabledFlag.mockReturnValue(false);
-      const mockAccounts = [mockEvmInternalAccount];
 
       // Act
-      const result = await controller.optIn(mockAccounts);
+      const result = await controller.optIn();
 
       // Assert
       expect(result).toBeNull();
@@ -7434,15 +7444,22 @@ describe('RewardsController', () => {
 
     it('should return null when no accounts found in selected account group', async () => {
       // Arrange
-      const mockAccounts: InternalAccount[] = [];
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [];
+        }
+        return Promise.resolve();
+      });
 
       // Act
-      const result = await controller.optIn(mockAccounts);
+      const result = await controller.optIn();
 
       // Assert
       expect(result).toBeNull();
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: No accounts provided, skipping optin',
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
       );
     });
 
@@ -7450,7 +7467,11 @@ describe('RewardsController', () => {
       // Arrange
       const mockAccounts = [mockEvmInternalAccount, mockEvmInternalAccount2];
       mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
           return Promise.reject(new Error('Signature failed'));
         }
         return Promise.resolve();
@@ -7462,7 +7483,7 @@ describe('RewardsController', () => {
       }));
 
       // Act & Assert
-      await expect(controller.optIn(mockAccounts)).rejects.toThrow(
+      await expect(controller.optIn()).rejects.toThrow(
         'Failed to opt in any account from the account group',
       );
     });
@@ -7474,7 +7495,11 @@ describe('RewardsController', () => {
 
       let callCount = 0;
       mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
           return Promise.resolve('0xsignature123');
         } else if (method === 'RewardsDataService:mobileOptin') {
           callCount++;
@@ -7492,7 +7517,7 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await controller.optIn(mockAccounts);
+      const result = await controller.optIn();
 
       // Assert
       expect(result).toBe(mockSubscriptionId);
@@ -7503,7 +7528,11 @@ describe('RewardsController', () => {
       // Arrange
       const mockAccounts = [mockEvmInternalAccount];
       mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
           return Promise.resolve('0xsignature123');
         } else if (method === 'RewardsDataService:mobileOptin') {
           return Promise.reject(new Error('Optin service error'));
@@ -7517,7 +7546,7 @@ describe('RewardsController', () => {
       }));
 
       // Act & Assert
-      await expect(controller.optIn(mockAccounts)).rejects.toThrow(
+      await expect(controller.optIn()).rejects.toThrow(
         'Failed to opt in any account from the account group',
       );
     });
@@ -7526,7 +7555,11 @@ describe('RewardsController', () => {
       // Arrange
       const mockAccounts = [mockEvmInternalAccount];
       mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
           return Promise.reject(new Error('Signature failed'));
         }
         return Promise.resolve();
@@ -7538,7 +7571,7 @@ describe('RewardsController', () => {
       }));
 
       // Act & Assert
-      await expect(controller.optIn(mockAccounts)).rejects.toThrow(
+      await expect(controller.optIn()).rejects.toThrow(
         'Failed to opt in any account from the account group',
       );
     });
@@ -7547,7 +7580,11 @@ describe('RewardsController', () => {
       // Arrange
       const mockAccounts = [mockEvmInternalAccount];
       mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
           return Promise.resolve('0xsignature123');
         } else if (method === 'RewardsDataService:mobileOptin') {
           return Promise.resolve(mockOptinResponse);
@@ -7561,7 +7598,7 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await controller.optIn(mockAccounts);
+      const result = await controller.optIn();
 
       // Assert
       expect(result).toBe(mockSubscriptionId);
@@ -7578,7 +7615,11 @@ describe('RewardsController', () => {
       // Arrange
       const mockAccounts = [mockEvmInternalAccount, mockEvmInternalAccount2];
       mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
           return Promise.resolve('0xsignature123');
         } else if (method === 'RewardsDataService:mobileOptin') {
           // Only succeed for the first account
@@ -7599,7 +7640,7 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await controller.optIn(mockAccounts);
+      const result = await controller.optIn();
 
       // Assert
       expect(result).toBe(mockSubscriptionId);
@@ -7617,7 +7658,11 @@ describe('RewardsController', () => {
       // Arrange
       const mockAccounts = [mockEvmInternalAccount, mockEvmInternalAccount2];
       mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
           return Promise.resolve('0xsignature123');
         } else if (method === 'RewardsDataService:mobileOptin') {
           // Only succeed for the first account
@@ -7638,7 +7683,7 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await controller.optIn(mockAccounts);
+      const result = await controller.optIn();
 
       // Assert
       expect(result).toBe(mockSubscriptionId); // Should still return the subscription ID even if linking fails
@@ -7654,7 +7699,11 @@ describe('RewardsController', () => {
       }));
 
       mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
           return Promise.resolve('0xsignature123');
         } else if (method === 'RewardsDataService:mobileOptin') {
           return Promise.resolve(mockOptinResponse);
@@ -7668,7 +7717,7 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await controller.optIn(mockAccounts);
+      const result = await controller.optIn();
 
       // Assert
       expect(result).toBe(mockSubscriptionId); // Should still succeed even if token storage fails
@@ -7693,7 +7742,11 @@ describe('RewardsController', () => {
       const mockAccounts = [mockSolanaAccount, mockEvmInternalAccount];
       const sortedAccounts = [mockEvmInternalAccount, mockSolanaAccount]; // EVM first
       mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
           return Promise.resolve('0xsignature123');
         } else if (method === 'RewardsDataService:mobileOptin') {
           return Promise.resolve(mockOptinResponse);
@@ -7707,7 +7760,7 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await controller.optIn(mockAccounts);
+      const result = await controller.optIn();
 
       // Assert
       expect(result).toBe(mockSubscriptionId); // Should try EVM account first due to sorting
@@ -7723,7 +7776,11 @@ describe('RewardsController', () => {
       // Arrange
       const mockAccounts = [mockEvmInternalAccount];
       mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
           return Promise.resolve('0xsignature123');
         } else if (method === 'RewardsDataService:mobileOptin') {
           return Promise.resolve(mockOptinResponse);
@@ -7737,7 +7794,7 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await controller.optIn(mockAccounts);
+      const result = await controller.optIn();
 
       // Assert
       expect(result).toBe(mockSubscriptionId); // Should not call mobileJoin since there are no remaining accounts
@@ -7755,7 +7812,11 @@ describe('RewardsController', () => {
       let callCount = 0;
 
       mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
           return Promise.resolve('0xsignature123');
         } else if (method === 'RewardsDataService:mobileOptin') {
           callCount++;
@@ -7773,7 +7834,7 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await controller.optIn(mockAccounts);
+      const result = await controller.optIn();
 
       // Assert
       expect(result).toBe(mockSubscriptionId);
@@ -7786,7 +7847,11 @@ describe('RewardsController', () => {
       const mockError = new InvalidTimestampError('Invalid timestamp', 12345);
 
       mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
           return Promise.resolve('0xsignature123');
         } else if (method === 'RewardsDataService:mobileOptin') {
           throw mockError; // Always throw InvalidTimestampError
@@ -7800,7 +7865,7 @@ describe('RewardsController', () => {
       }));
 
       // Act & Assert
-      await expect(controller.optIn(mockAccounts)).rejects.toThrow(
+      await expect(controller.optIn()).rejects.toThrow(
         'Failed to opt in any account from the account group',
       );
     });
@@ -7811,7 +7876,11 @@ describe('RewardsController', () => {
       const mockError = new Error('Network error');
 
       mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
           return Promise.resolve('0xsignature123');
         } else if (method === 'RewardsDataService:mobileOptin') {
           throw mockError;
@@ -7825,7 +7894,7 @@ describe('RewardsController', () => {
       }));
 
       // Act & Assert
-      await expect(controller.optIn(mockAccounts)).rejects.toThrow(
+      await expect(controller.optIn()).rejects.toThrow(
         'Failed to opt in any account from the account group',
       );
     });
@@ -7841,9 +7910,14 @@ describe('RewardsController', () => {
         return callCount === 1;
       });
 
-      mockMessenger.call.mockImplementation((_, ..._args): any =>
-        Promise.resolve(),
-      );
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        }
+        return Promise.resolve();
+      });
 
       // Mock sortAccounts
       jest.doMock('./utils/sortAccounts', () => ({
@@ -7851,7 +7925,7 @@ describe('RewardsController', () => {
       }));
 
       // Act & Assert
-      await expect(controller.optIn(mockAccounts)).rejects.toThrow(
+      await expect(controller.optIn()).rejects.toThrow(
         'Failed to opt in any account from the account group',
       );
     });
@@ -7866,7 +7940,11 @@ describe('RewardsController', () => {
         .mockReturnValue(null);
 
       mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
           return Promise.resolve('0xsignature123');
         } else if (method === 'RewardsDataService:mobileOptin') {
           return Promise.resolve(mockOptinResponse);
@@ -7880,7 +7958,7 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await controller.optIn(mockAccounts);
+      const result = await controller.optIn();
 
       // Assert
       expect(result).toBe(mockSubscriptionId); // Should still succeed even if convertInternalAccountToCaipAccountId returns null
@@ -7895,7 +7973,11 @@ describe('RewardsController', () => {
       };
 
       mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
           return Promise.resolve('0xsignature123');
         } else if (method === 'RewardsDataService:mobileOptin') {
           return Promise.resolve(incompleteResponse);
@@ -7909,7 +7991,7 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await controller.optIn(mockAccounts);
+      const result = await controller.optIn();
 
       // Assert
       expect(result).toBe(mockSubscriptionId); // Should still succeed even if sessionId is missing
@@ -7924,7 +8006,11 @@ describe('RewardsController', () => {
       };
 
       mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
           return Promise.resolve('0xsignature123');
         } else if (method === 'RewardsDataService:mobileOptin') {
           return Promise.resolve(incompleteResponse);
@@ -7938,7 +8024,7 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await controller.optIn(mockAccounts);
+      const result = await controller.optIn();
 
       // Assert
       expect(result).toBeNull(); // Should return null when subscription id is missing
@@ -7973,7 +8059,11 @@ describe('RewardsController', () => {
         .mockResolvedValue(mockSubscriptionId);
 
       mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
+        if (
+          method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return mockAccounts;
+        } else if (method === 'KeyringController:signPersonalMessage') {
           return Promise.resolve('0xsignature123');
         } else if (method === 'RewardsDataService:mobileOptin') {
           return Promise.reject(mockError);
@@ -7997,7 +8087,7 @@ describe('RewardsController', () => {
       }));
 
       // Act
-      const result = await testController.optIn(mockAccounts);
+      const result = await testController.optIn();
 
       // Assert
       expect(result).toBe(mockSubscriptionId);
@@ -8558,43 +8648,67 @@ describe('RewardsController', () => {
     describe('optIn edge cases', () => {
       it('should handle empty account group gracefully', async () => {
         // Arrange
-        const mockAccounts: InternalAccount[] = [];
+        mockMessenger.call.mockImplementation((method, ..._args): any => {
+          if (
+            method ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return [];
+          }
+          return Promise.resolve();
+        });
 
         // Act
-        const result = await controller.optIn(mockAccounts);
+        const result = await controller.optIn();
 
         // Assert
         expect(result).toBeNull();
-        expect(mockLogger.log).toHaveBeenCalledWith(
-          'RewardsController: No accounts provided, skipping optin',
+        expect(mockMessenger.call).toHaveBeenCalledWith(
+          'AccountTreeController:getAccountsFromSelectedAccountGroup',
         );
       });
 
       it('should handle null account group gracefully', async () => {
         // Arrange
-        const mockAccounts = null as unknown as InternalAccount[];
+        mockMessenger.call.mockImplementation((method, ..._args): any => {
+          if (
+            method ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return null;
+          }
+          return Promise.resolve();
+        });
 
         // Act
-        const result = await controller.optIn(mockAccounts);
+        const result = await controller.optIn();
 
         // Assert
         expect(result).toBeNull();
-        expect(mockLogger.log).toHaveBeenCalledWith(
-          'RewardsController: No accounts provided, skipping optin',
+        expect(mockMessenger.call).toHaveBeenCalledWith(
+          'AccountTreeController:getAccountsFromSelectedAccountGroup',
         );
       });
 
       it('should handle undefined account group gracefully', async () => {
         // Arrange
-        const mockAccounts = undefined as unknown as InternalAccount[];
+        mockMessenger.call.mockImplementation((method, ..._args): any => {
+          if (
+            method ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return undefined;
+          }
+          return Promise.resolve();
+        });
 
         // Act
-        const result = await controller.optIn(mockAccounts);
+        const result = await controller.optIn();
 
         // Assert
         expect(result).toBeNull();
-        expect(mockLogger.log).toHaveBeenCalledWith(
-          'RewardsController: No accounts provided, skipping optin',
+        expect(mockMessenger.call).toHaveBeenCalledWith(
+          'AccountTreeController:getAccountsFromSelectedAccountGroup',
         );
       });
 
@@ -8615,9 +8729,15 @@ describe('RewardsController', () => {
         } as InternalAccount;
 
         const mockAccounts = [unsupportedAccount];
-        mockMessenger.call.mockImplementation((_, ..._args): any =>
-          Promise.resolve(),
-        );
+        mockMessenger.call.mockImplementation((method, ..._args): any => {
+          if (
+            method ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return mockAccounts;
+          }
+          return Promise.resolve();
+        });
 
         // Mock sortAccounts
         jest.doMock('./utils/sortAccounts', () => ({
@@ -8625,7 +8745,7 @@ describe('RewardsController', () => {
         }));
 
         // Act & Assert
-        await expect(controller.optIn(mockAccounts)).rejects.toThrow(
+        await expect(controller.optIn()).rejects.toThrow(
           'Failed to opt in any account from the account group',
         );
       });
@@ -8648,7 +8768,12 @@ describe('RewardsController', () => {
         } as InternalAccount;
         const mockAccounts = [mockEvmInternalAccount];
         mockMessenger.call.mockImplementation((method, ..._args): any => {
-          if (method === 'KeyringController:signPersonalMessage') {
+          if (
+            method ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return mockAccounts;
+          } else if (method === 'KeyringController:signPersonalMessage') {
             return Promise.resolve('0xsignature123');
           } else if (method === 'RewardsDataService:mobileOptin') {
             const params = _args[0] as any;
@@ -8667,7 +8792,7 @@ describe('RewardsController', () => {
         }));
 
         // Act
-        const result = await controller.optIn(mockAccounts, longReferralCode);
+        const result = await controller.optIn(longReferralCode);
 
         // Assert
         expect(result).toBe('test-subscription-id');
@@ -8691,7 +8816,12 @@ describe('RewardsController', () => {
         } as InternalAccount;
         const mockAccounts = [mockEvmInternalAccount];
         mockMessenger.call.mockImplementation((method, ..._args): any => {
-          if (method === 'KeyringController:signPersonalMessage') {
+          if (
+            method ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return mockAccounts;
+          } else if (method === 'KeyringController:signPersonalMessage') {
             return Promise.resolve('0xsignature123');
           } else if (method === 'RewardsDataService:mobileOptin') {
             const params = _args[0] as any;
@@ -8710,10 +8840,7 @@ describe('RewardsController', () => {
         }));
 
         // Act
-        const result = await controller.optIn(
-          mockAccounts,
-          specialReferralCode,
-        );
+        const result = await controller.optIn(specialReferralCode);
 
         // Assert
         expect(result).toBe('test-subscription-id');

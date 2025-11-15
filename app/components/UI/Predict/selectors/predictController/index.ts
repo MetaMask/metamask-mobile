@@ -70,7 +70,7 @@ const selectPredictPendingDepositByAddress = ({
 }) =>
   createSelector(
     selectPredictPendingDeposits,
-    (pendingDeposits) => pendingDeposits[providerId]?.[address] || undefined,
+    (pendingDeposits) => pendingDeposits[providerId]?.[address] || false,
   );
 
 const selectPredictAccountMeta = createSelector(

@@ -313,7 +313,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                       },
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -1175,7 +1175,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                       },
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -2051,7 +2051,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                       },
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -2913,7 +2913,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                       },
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"

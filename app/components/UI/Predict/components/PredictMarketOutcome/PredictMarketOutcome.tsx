@@ -33,11 +33,7 @@ import {
   PredictEntryPoint,
 } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
-import {
-  formatCents,
-  formatPercentage,
-  formatVolume,
-} from '../../utils/format';
+import { formatPercentage, formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketOutcome.styles';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 interface PredictMarketOutcomeProps {
@@ -47,8 +43,6 @@ interface PredictMarketOutcomeProps {
   outcomeToken?: PredictOutcomeToken;
   isClosed?: boolean;
 }
-
-const MAX_LABEL_LENGTH = 6;
 
 const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   market,
@@ -89,24 +83,20 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
 
   const getVolumeDisplay = (): string => formatVolume(outcome.volume ?? 0);
 
-  const isBiggerLabel =
-    outcome.tokens[0].title.length > MAX_LABEL_LENGTH ||
-    outcome.tokens[1].title.length > MAX_LABEL_LENGTH;
-
   const handleBuy = (token: PredictOutcomeToken) => {
     executeGuardedAction(
       () => {
-        navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
-          market,
-          outcome,
-          outcomeToken: token,
-          entryPoint,
+        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+          params: {
+            market,
+            outcome,
+            outcomeToken: token,
+            entryPoint,
+          },
         });
       },
-      {
-        checkBalance: true,
-        attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
-      },
+      { checkBalance: true },
     );
   };
 
@@ -118,7 +108,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
           alignItems={BoxAlignItems.Center}
           twClassName="flex-1 gap-3"
         >
-          <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden self-start">
+          <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
             {getImageUrl() ? (
               <Image
                 source={{ uri: getImageUrl() }}
@@ -129,19 +119,25 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
               <Box twClassName="w-full h-full bg-muted" />
             )}
           </Box>
-          <Box twClassName="flex-1 -mt-1">
-            <Text
-              variant={TextVariant.HeadingMD}
-              color={TextColor.Default}
-              style={tw.style('font-medium')}
+          <View style={tw.style('flex-1')}>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-2"
             >
-              {getTitle()}
-            </Text>
+              <Text
+                variant={TextVariant.HeadingMD}
+                color={TextColor.Default}
+                style={tw.style('font-medium')}
+              >
+                {getTitle()}
+              </Text>
+            </Box>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               ${getVolumeDisplay()} {strings('predict.volume_abbreviated')}
             </Text>
-          </Box>
-          <Box>
+          </View>
+          <Text>
             {isClosed && outcomeToken ? (
               <Box
                 flexDirection={BoxFlexDirection.Row}
@@ -180,7 +176,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
                 {getYesPercentage()}
               </Text>
             )}
-          </Box>
+          </Text>
         </Box>
       </View>
       {!isClosed && (
@@ -190,34 +186,26 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
             size={ButtonSize.Md}
             width={ButtonWidthTypes.Full}
             label={
-              <Text
-                style={tw.style('font-medium text-center')}
-                color={TextColor.Success}
-              >
-                {outcome.tokens[0].title}
-                {isBiggerLabel ? '\n' : ' • '}
-                {formatCents(outcome.tokens[0].price)}
+              <Text style={tw.style('font-medium')} color={TextColor.Success}>
+                {outcome.tokens[0].title} •{' '}
+                {(outcome.tokens[0].price * 100).toFixed(2)}¢
               </Text>
             }
             onPress={() => handleBuy(outcome.tokens[0])}
-            style={[styles.buttonYes, isBiggerLabel && tw.style('h-18')]}
+            style={styles.buttonYes}
           />
           <Button
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Md}
             width={ButtonWidthTypes.Full}
             label={
-              <Text
-                style={tw.style('font-medium text-center')}
-                color={TextColor.Error}
-              >
-                {outcome.tokens[1].title}
-                {isBiggerLabel ? '\n' : ' • '}
-                {formatCents(outcome.tokens[1].price)}
+              <Text style={tw.style('font-medium')} color={TextColor.Error}>
+                {outcome.tokens[1].title} •{' '}
+                {(outcome.tokens[1].price * 100).toFixed(2)}¢
               </Text>
             }
             onPress={() => handleBuy(outcome.tokens[1])}
-            style={[styles.buttonNo, isBiggerLabel && tw.style('h-18')]}
+            style={styles.buttonNo}
           />
         </View>
       )}

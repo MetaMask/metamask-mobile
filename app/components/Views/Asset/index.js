@@ -431,8 +431,7 @@ class Asset extends PureComponent {
         if (
           (this.txs.length === 0 && !this.state.transactionsUpdated) ||
           this.txs.length !== filteredTransactions.length ||
-          this.chainId !== chainId ||
-          this.state.loading // Ensure loading is reset even if nothing else changed
+          this.chainId !== chainId
         ) {
           this.txs = filteredTransactions;
           this.txsPending = [];
@@ -513,8 +512,7 @@ class Asset extends PureComponent {
           (this.txs.length === 0 && !this.state.transactionsUpdated) ||
           this.txs.length !== filteredTransactions.length ||
           this.chainId !== chainId ||
-          this.didTxStatusesChange(newPendingTxs) ||
-          this.state.loading // Ensure loading is reset even if nothing else changed
+          this.didTxStatusesChange(newPendingTxs)
         ) {
           this.txs = filteredTransactions;
           this.txsPending = newPendingTxs;
@@ -527,7 +525,7 @@ class Asset extends PureComponent {
           });
         }
       }
-    } else if (!this.state.transactionsUpdated || this.state.loading) {
+    } else if (!this.state.transactionsUpdated) {
       this.setState({ transactionsUpdated: true, loading: false });
     }
     this.isNormalizing = false;

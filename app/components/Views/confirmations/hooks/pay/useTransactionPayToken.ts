@@ -1,43 +1,57 @@
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  TransactionPayToken,
+  selectTransactionPayToken,
+  setTransactionPayToken,
+} from '../../../../../core/redux/slices/confirmationMetrics';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { RootState } from '../../../../../reducers';
-import Engine from '../../../../../core/Engine';
-import { selectTransactionPaymentTokenByTransactionId } from '../../../../../selectors/transactionPayController';
-import { Hex } from '@metamask/utils';
+import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
+import { BigNumber } from 'bignumber.js';
+import { useTransactionPayFiat } from './useTransactionPayFiat';
 
 export function useTransactionPayToken() {
-  const { id: transactionId } = useTransactionMetadataRequest() || { id: '' };
+  const dispatch = useDispatch();
+  const { id: transactionId } = useTransactionMetadataRequest() || {};
+  const { formatFiat } = useTransactionPayFiat();
 
-  const payToken = useSelector((state: RootState) =>
-    selectTransactionPaymentTokenByTransactionId(state, transactionId),
+  const selectedPayToken = useSelector((state: RootState) =>
+    selectTransactionPayToken(state, transactionId as string),
+  );
+
+  const payTokenRaw = useTokenWithBalance(
+    selectedPayToken?.address ?? '0x0',
+    selectedPayToken?.chainId ?? '0x0',
   );
 
   const setPayToken = useCallback(
-    async (newPayToken: { address: Hex; chainId: Hex }) => {
-      const { GasFeeController, NetworkController, TransactionPayController } =
-        Engine.context;
-
-      const networkClientId = NetworkController.findNetworkClientIdByChainId(
-        newPayToken.chainId,
-      );
-
-      await GasFeeController.fetchGasFeeEstimates({
-        networkClientId,
-      });
-
-      try {
-        TransactionPayController.updatePaymentToken({
+    (newPayToken: TransactionPayToken) => {
+      dispatch(
+        setTransactionPayToken({
           transactionId: transactionId as string,
-          tokenAddress: newPayToken.address,
-          chainId: newPayToken.chainId,
-        });
-      } catch (e) {
-        console.error('Error updating payment token', e);
-      }
+          payToken: newPayToken,
+        }),
+      );
     },
-    [transactionId],
+    [dispatch, transactionId],
   );
+
+  const payToken = useMemo(() => {
+    if (!payTokenRaw) return undefined;
+
+    const balanceRaw = new BigNumber(payTokenRaw.balance)
+      .shiftedBy(payTokenRaw.decimals)
+      .toFixed(0);
+
+    const balanceFiat = formatFiat(payTokenRaw?.tokenFiatAmount ?? '0');
+
+    return {
+      ...payTokenRaw,
+      balanceFiat,
+      balanceRaw,
+    };
+  }, [formatFiat, payTokenRaw]);
 
   return {
     payToken,

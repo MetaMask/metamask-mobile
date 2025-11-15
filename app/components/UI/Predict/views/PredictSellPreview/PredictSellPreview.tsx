@@ -5,7 +5,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { ActivityIndicator, Image, View } from 'react-native';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
@@ -24,7 +24,7 @@ import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import {
-  PredictTradeStatus,
+  PredictEventType,
   PredictEventValues,
 } from '../../constants/eventNames';
 import { formatPercentage, formatPrice } from '../../utils/format';
@@ -38,12 +38,15 @@ import {
   ButtonSize as ButtonSizeHero,
 } from '@metamask/design-system-react-native';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
-import { TraceName } from '../../../../../util/trace';
-import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
+import PredictConsentSheet, {
+  type PredictConsentSheetRef,
+} from '../../components/PredictConsentSheet';
+import { usePredictAgreement } from '../../hooks/usePredictAgreement';
 
 const PredictSellPreview = () => {
   const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
+  const consentSheetRef = useRef<PredictConsentSheetRef>(null);
   const { goBack, dispatch } =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const route =
@@ -96,30 +99,22 @@ const PredictSellPreview = () => {
     autoRefreshTimeout: 1000,
   });
 
-  // Track screen load performance (position data + preview)
-  usePredictMeasurement({
-    traceName: TraceName.PredictSellPreviewView,
-    conditions: [!!position, !!preview, !!market],
-    debugContext: {
-      marketId: market?.id,
-      hasPosition: !!position,
-      hasPreview: !!preview,
-    },
+  const { isAgreementAccepted } = usePredictAgreement({
+    providerId: position.providerId,
   });
 
-  // Track Predict Trade Transaction with initiated status when screen mounts
+  // Track Predict Action Initiated when screen mounts
   useEffect(() => {
     const controller = Engine.context.PredictController;
 
     controller.trackPredictOrderEvent({
-      status: PredictTradeStatus.INITIATED,
+      eventType: PredictEventType.INITIATED,
       analyticsProperties,
       providerId: position.providerId,
       sharePrice: position?.price,
       amountUsd: position?.amount,
       pnl: position?.percentPnl, // PnL as percentage for sell orders
     });
-    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -130,20 +125,31 @@ const PredictSellPreview = () => {
   }, [dispatch, result]);
 
   const currentValue = preview?.minAmountReceived ?? 0;
-  const currentPrice = preview?.sharePrice ?? position?.price;
-  const { cashPnl, percentPnl, avgPrice } = position;
+  const { cashPnl, percentPnl } = position;
 
   const signal = useMemo(() => (cashPnl >= 0 ? '+' : '-'), [cashPnl]);
 
   const onCashOut = useCallback(async () => {
     if (!preview) return;
 
+    // Check if user has accepted the agreement
+    if (!isAgreementAccepted) {
+      consentSheetRef.current?.onOpenBottomSheet();
+      return;
+    }
+
     await placeOrder({
       providerId: position.providerId,
       analyticsProperties,
       preview,
     });
-  }, [preview, placeOrder, analyticsProperties, position.providerId]);
+  }, [
+    preview,
+    isAgreementAccepted,
+    placeOrder,
+    analyticsProperties,
+    position.providerId,
+  ]);
 
   const renderCashOutButton = () => {
     if (isLoading) {
@@ -191,9 +197,7 @@ const PredictSellPreview = () => {
   return (
     <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
       <BottomSheetHeader onClose={() => goBack()}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('predict.cash_out')}
-        </Text>
+        <Text variant={TextVariant.HeadingMD}>Cash Out</Text>
       </BottomSheetHeader>
       <View
         testID={PredictCashOutSelectorsIDs.CONTAINER}
@@ -202,14 +206,6 @@ const PredictSellPreview = () => {
         <View style={styles.cashOutContainer}>
           <Text style={styles.currentValue} variant={TextVariant.BodyMDMedium}>
             {formatPrice(currentValue, { maximumDecimals: 2 })}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Alternative}
-          >
-            {strings('predict.at_price_per_share', {
-              price: (currentPrice * 100).toFixed(0),
-            })}
           </Text>
           <Text
             style={styles.percentPnl}
@@ -228,29 +224,33 @@ const PredictSellPreview = () => {
               color={TextColor.Error}
               style={tw.style('text-center')}
             >
-              {placeOrderError}
+              {strings('predict.order.order_failed_generic')}
             </Text>
           )}
-          <Box twClassName="flex-row items-center gap-4">
-            <Box twClassName="w-10 h-10 self-start mt-1">
+          <View style={styles.positionContainer}>
+            <View>
               <Image source={{ uri: icon }} style={styles.positionIcon} />
-            </Box>
-            <Box twClassName="flex-col gap-1 flex-1">
-              <Text variant={TextVariant.HeadingSM}>{outcomeTitle}</Text>
+            </View>
+            <View style={styles.positionDetails}>
               <Text
                 numberOfLines={1}
                 ellipsizeMode="tail"
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Alternative}
+                style={styles.detailsLeft}
+                variant={TextVariant.HeadingSM}
               >
-                {strings('predict.cashout_info', {
-                  amount: formatPrice(initialValue, { maximumDecimals: 2 }),
-                  outcome: outcomeSideText,
-                  initialPrice: (avgPrice * 100).toFixed(0),
-                })}
+                {outcomeTitle}
               </Text>
-            </Box>
-          </Box>
+              <Text
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                style={styles.detailsResolves}
+                variant={TextVariant.BodySMMedium}
+              >
+                {formatPrice(initialValue, { maximumDecimals: 2 })} on{' '}
+                {outcomeSideText}
+              </Text>
+            </View>
+          </View>
           <View style={styles.cashOutButtonContainer}>
             {renderCashOutButton()}
             <Text variant={TextVariant.BodyXS} style={styles.cashOutButtonText}>
@@ -259,6 +259,11 @@ const PredictSellPreview = () => {
           </View>
         </View>
       </View>
+      <PredictConsentSheet
+        ref={consentSheetRef}
+        providerId={position.providerId}
+        onAgree={onCashOut}
+      />
     </SafeAreaView>
   );
 };

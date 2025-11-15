@@ -2,13 +2,13 @@ import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { TransactionDetailsPaidWithRow } from './transaction-details-paid-with-row';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
+import { useTokensWithBalance } from '../../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { merge } from 'lodash';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
-import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
-jest.mock('../../../hooks/tokens/useTokenWithBalance');
+jest.mock('../../../../../UI/Bridge/hooks/useTokensWithBalance');
 
 const TOKEN_ADDRESS_MOCK = '0x1234567890abcdef1234567890abcdef12345678';
 const CHAIN_ID_MOCK = '0x1';
@@ -22,7 +22,7 @@ function render() {
 
 describe('TransactionDetailsPaidWithRow', () => {
   const useTransactionDetailsMock = jest.mocked(useTransactionDetails);
-  const useTokenWithBalanceMock = jest.mocked(useTokenWithBalance);
+  const useTokensWithBalanceMock = jest.mocked(useTokensWithBalance);
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -36,12 +36,14 @@ describe('TransactionDetailsPaidWithRow', () => {
       } as unknown as TransactionMeta,
     });
 
-    useTokenWithBalanceMock.mockReturnValue({
-      address: TOKEN_ADDRESS_MOCK,
-      chainId: CHAIN_ID_MOCK,
-      decimals: 6,
-      symbol: TOKEN_SYMBOL_MOCK,
-    } as unknown as ReturnType<typeof useTokenWithBalance>);
+    useTokensWithBalanceMock.mockReturnValue([
+      {
+        address: TOKEN_ADDRESS_MOCK,
+        chainId: CHAIN_ID_MOCK,
+        decimals: 6,
+        symbol: TOKEN_SYMBOL_MOCK,
+      },
+    ]);
   });
 
   it('renders token symbol', () => {
@@ -67,7 +69,7 @@ describe('TransactionDetailsPaidWithRow', () => {
   });
 
   it('renders nothing if token not found', () => {
-    useTokenWithBalanceMock.mockReturnValue(undefined);
+    useTokensWithBalanceMock.mockReturnValue([]);
 
     const { queryByText } = render();
 

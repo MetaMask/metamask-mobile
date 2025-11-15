@@ -20,12 +20,16 @@ import { TraceName, trace } from '../../../../../util/trace';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import AssetElement from '../../../AssetElement';
 import { StakeButton } from '../../../Stake/components/StakeButton';
+import { useStakingChainByChainId } from '../../../Stake/hooks/useStakingChain';
 import createStyles from '../../styles';
 import { TokenI } from '../../types';
 import { ScamWarningIcon } from '../ScamWarningIcon';
 import { FlashListAssetKey } from '..';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
-import { selectStablecoinLendingEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
 import Tag from '../../../../../component-library/components/Tags/Tag';
@@ -35,8 +39,6 @@ import SensitiveText, {
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-labels';
-
-import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -74,6 +76,7 @@ export const TokenListItemBip44 = React.memo(
     const { getEarnToken } = useEarnTokens();
 
     // Earn feature flags
+    const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
     const isStablecoinLendingEnabled = useSelector(
       selectStablecoinLendingEnabledFlag,
     );
@@ -106,6 +109,7 @@ export const TokenListItemBip44 = React.memo(
         )}%`
       : undefined;
 
+    const { isStakingSupportedChain } = useStakingChainByChainId(chainId);
     const earnToken = getEarnToken(asset as TokenI);
 
     const networkBadgeSource = useMemo(
@@ -130,25 +134,29 @@ export const TokenListItemBip44 = React.memo(
       });
     };
 
-    const isStakeable = useSelector((state: RootState) =>
-      selectIsStakeableToken(state, asset as TokenI),
-    );
-
     const renderEarnCta = useCallback(() => {
       if (!asset) {
         return null;
       }
-
-      const shouldShowStakeCta = isStakeable && !asset?.isStaked;
+      const isCurrentAssetEth =
+        asset.isNative && asset.chainId?.startsWith('eip') && !asset.isStaked;
+      const shouldShowPooledStakingCta =
+        isCurrentAssetEth && isStakingSupportedChain && isPooledStakingEnabled;
 
       const shouldShowStablecoinLendingCta =
         earnToken && isStablecoinLendingEnabled;
 
-      if (shouldShowStakeCta || shouldShowStablecoinLendingCta) {
+      if (shouldShowPooledStakingCta || shouldShowStablecoinLendingCta) {
         // TODO: Rename to EarnCta
         return <StakeButton asset={asset} />;
       }
-    }, [asset, earnToken, isStablecoinLendingEnabled, isStakeable]);
+    }, [
+      asset,
+      earnToken,
+      isPooledStakingEnabled,
+      isStablecoinLendingEnabled,
+      isStakingSupportedChain,
+    ]);
 
     if (!asset || !chainId) {
       return null;

@@ -29,7 +29,7 @@ export interface NotificationMenuItem {
   /**
    * This is the small badge icon on the notification icon
    */
-  badgeIcon?: IconName;
+  badgeIcon: IconName;
 
   /**
    * Timestamp of the notification.
@@ -38,10 +38,7 @@ export interface NotificationMenuItem {
   createdAt: string;
 
   /**
-   * A CTA Link for a notification item
+   * A boolean that indicates if the notification is read or not
    */
-  cta?: {
-    content: string;
-    link: string;
-  };
+  isRead?: boolean;
 }

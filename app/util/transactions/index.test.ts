@@ -57,7 +57,6 @@ import {
   getEther,
   validateTransactionActionBalance,
   isSmartContractAddress,
-  isTransactionIncomplete,
 } from '.';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
@@ -537,33 +536,6 @@ describe('Transactions utils :: getMethodData', () => {
   });
 });
 
-describe('Transactions utils :: isTransactionIncomplete', () => {
-  it.each([
-    'submitted',
-    'approved',
-    'unapproved',
-    'pending',
-    'cancelled',
-    'rejected',
-    'failed',
-  ])('returns true for %s status', (status) => {
-    const result = isTransactionIncomplete(status);
-
-    expect(result).toBe(true);
-  });
-
-  it.each([
-    ['confirmed', 'confirmed'],
-    ['undefined', undefined],
-    ['empty string', ''],
-    ['unknown', 'unknown_status'],
-  ])('returns false for %s status', (_description, status) => {
-    const result = isTransactionIncomplete(status);
-
-    expect(result).toBe(false);
-  });
-});
-
 describe('Transactions utils :: getActionKey', () => {
   beforeEach(() => {
     jest
@@ -727,124 +699,6 @@ describe('Transactions utils :: getActionKey', () => {
       MOCK_CHAIN_ID,
     );
     expect(result).toBe(strings('transactions.contract_deploy'));
-  });
-
-  it.each([
-    'pending',
-    'submitted',
-    'approved',
-    'cancelled',
-    'rejected',
-    'failed',
-  ])('returns "Send Ether" for %s transactions', async (status) => {
-    spyOnQueryMethod(undefined);
-    const tx = {
-      txParams: {
-        from: MOCK_ADDRESS1,
-        to: MOCK_ADDRESS2,
-      },
-      status,
-    };
-
-    const result = await getActionKey(
-      tx,
-      MOCK_ADDRESS1,
-      undefined,
-      MOCK_CHAIN_ID,
-    );
-
-    expect(result).toBe(strings('transactions.send_ether'));
-  });
-
-  it.each([
-    'pending',
-    'submitted',
-    'approved',
-    'cancelled',
-    'rejected',
-    'failed',
-  ])('returns "Send UNI" for %s transactions with ticker', async (status) => {
-    spyOnQueryMethod(undefined);
-    const tx = {
-      txParams: {
-        from: MOCK_ADDRESS1,
-        to: MOCK_ADDRESS2,
-      },
-      status,
-    };
-
-    const result = await getActionKey(
-      tx,
-      MOCK_ADDRESS1,
-      UNI_TICKER,
-      MOCK_CHAIN_ID,
-    );
-
-    expect(result).toBe(
-      strings('transactions.send_unit', { unit: UNI_TICKER }),
-    );
-  });
-
-  it('returns "Sent Ether" for confirmed transactions', async () => {
-    spyOnQueryMethod(undefined);
-    const tx = {
-      txParams: {
-        from: MOCK_ADDRESS1,
-        to: MOCK_ADDRESS2,
-      },
-      status: 'confirmed',
-    };
-
-    const result = await getActionKey(
-      tx,
-      MOCK_ADDRESS1,
-      undefined,
-      MOCK_CHAIN_ID,
-    );
-
-    expect(result).toBe(strings('transactions.sent_ether'));
-  });
-
-  it('returns "Sent UNI" for confirmed transactions with ticker', async () => {
-    spyOnQueryMethod(undefined);
-    const tx = {
-      txParams: {
-        from: MOCK_ADDRESS1,
-        to: MOCK_ADDRESS2,
-      },
-      status: 'confirmed',
-    };
-
-    const result = await getActionKey(
-      tx,
-      MOCK_ADDRESS1,
-      UNI_TICKER,
-      MOCK_CHAIN_ID,
-    );
-
-    expect(result).toBe(
-      strings('transactions.sent_unit', { unit: UNI_TICKER }),
-    );
-  });
-
-  it('returns "Sent Ether" when status is undefined (defaults to completed)', async () => {
-    spyOnQueryMethod(undefined);
-    const tx = {
-      txParams: {
-        from: MOCK_ADDRESS1,
-        to: MOCK_ADDRESS2,
-      },
-      // status intentionally not provided
-    };
-
-    const result = await getActionKey(
-      tx,
-      MOCK_ADDRESS1,
-      undefined,
-      MOCK_CHAIN_ID,
-    );
-
-    expect(result).toBe(strings('transactions.sent_ether'));
   });
 });
 
@@ -1510,26 +1364,21 @@ describe('Transactions utils :: isApprovalTransaction', () => {
 describe('Transactions utils :: getTransactionReviewActionKey', () => {
   const transaction = { to: '0x1234567890123456789012345678901234567890' };
   const chainId = '1';
-
-  it('returns "Confirm" review action key for ETH send transaction', async () => {
-    const expectedReviewActionKey = 'Confirm';
-
+  it('returns `Unknown Method` review action key when transaction action key exists', async () => {
+    const expectedReviewActionKey = 'Unknown Method';
     const result = await getTransactionReviewActionKey(
       { transaction },
       chainId,
     );
-
     expect(result).toEqual(expectedReviewActionKey);
   });
 
-  it('returns "Increase Allowance" review action key for increase allowance transaction', async () => {
+  it('returns correct review action key', async () => {
     const expectedReviewActionKey = 'Increase Allowance';
-
     const result = await getTransactionReviewActionKey(
       { transaction: { ...transaction, data: INCREASE_ALLOWANCE_SIGNATURE } },
       chainId,
     );
-
     expect(result).toEqual(expectedReviewActionKey);
   });
 });

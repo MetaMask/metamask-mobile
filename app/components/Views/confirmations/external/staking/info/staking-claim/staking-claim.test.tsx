@@ -110,7 +110,7 @@ describe('StakingClaim', () => {
     expect(getByText('Pooled Staking')).toBeDefined();
     expect(getByText('Network')).toBeDefined();
     expect(getByText('Ethereum Mainnet')).toBeDefined();
-    expect(getByText('Network fee')).toBeDefined();
+    expect(getByText('Network Fee')).toBeDefined();
 
     expect(mockGetNavbar).toHaveBeenCalled();
     expect(mockGetNavbar).toHaveBeenCalledWith({

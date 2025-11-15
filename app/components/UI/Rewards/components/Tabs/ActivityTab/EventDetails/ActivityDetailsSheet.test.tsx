@@ -37,7 +37,6 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
       'rewards.events.points_base': 'Base',
       'rewards.events.points_boost': 'Boost',
       'rewards.events.points_total': 'Total',
-      'rewards.events.for_deposit_period': 'For deposit period',
     };
     return t[key] || key;
   }),
@@ -47,25 +46,6 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
 jest.mock('../../../../utils/formatUtils', () => ({
   formatRewardsDate: jest.fn(() => 'Sep 9, 2025'),
   formatNumber: jest.fn((n: number) => n.toString()),
-  formatRewardsMusdDepositPayloadDate: jest.fn(
-    (isoDate: string | undefined) => {
-      // Mock implementation that matches the real implementation behavior
-      if (
-        !isoDate ||
-        typeof isoDate !== 'string' ||
-        !/^\d{4}-\d{2}-\d{2}$/.test(isoDate)
-      ) {
-        return null;
-      }
-      const date = new Date(`${isoDate}T00:00:00Z`);
-      return new Intl.DateTimeFormat('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        timeZone: 'UTC',
-      }).format(date);
-    },
-  ),
 }));
 
 // Mock eventDetailsUtils
@@ -158,29 +138,6 @@ describe('ActivityDetailsSheet', () => {
       // Verify CardEventDetails specific content
       expect(screen.getByText('Amount')).toBeTruthy();
       expect(screen.getByText('43.25 USDC')).toBeTruthy();
-    });
-
-    it('renders MusdDepositEventDetails for MUSD_DEPOSIT event type', () => {
-      const musdDepositEvent: Extract<
-        PointsEventDto,
-        { type: 'MUSD_DEPOSIT' }
-      > = {
-        ...baseEvent,
-        type: 'MUSD_DEPOSIT',
-        payload: {
-          date: '2025-11-11',
-        },
-      };
-
-      render(
-        <ActivityDetailsSheet event={musdDepositEvent} accountName="Primary" />,
-      );
-
-      // Verify GenericEventDetails content is rendered (base component)
-      expect(screen.getByText('Details')).toBeTruthy();
-      // Verify MusdDepositEventDetails specific content
-      expect(screen.getByText('For deposit period')).toBeTruthy();
-      expect(screen.getByText('Nov 11, 2025')).toBeTruthy();
     });
 
     it('renders GenericEventDetails for other event types', () => {

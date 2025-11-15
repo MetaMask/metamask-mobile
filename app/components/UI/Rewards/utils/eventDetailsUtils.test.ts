@@ -16,7 +16,7 @@ import {
 
 // Mock i18n strings
 jest.mock('../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string, params?: Record<string, string>) => {
+  strings: jest.fn((key: string) => {
     const t: Record<string, string> = {
       'rewards.events.to': 'to',
       'rewards.events.type.swap': 'Swap',
@@ -29,47 +29,20 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.events.type.close_position': 'Closed position',
       'rewards.events.type.take_profit': 'Take profit',
       'rewards.events.type.stop_loss': 'Stop loss',
-      'rewards.events.type.predict': 'Prediction',
-      'rewards.events.type.musd_deposit': 'mUSD deposit',
-      'rewards.events.musd_deposit_for': 'For {{date}}',
       'rewards.events.type.uncategorized_event': 'Uncategorized event',
       'perps.market.long': 'Long',
       'perps.market.short': 'Short',
     };
-    const template = t[key] || key;
-    if (params && template.includes('{{date}}')) {
-      return template.replace('{{date}}', params.date || '');
-    }
-    return template;
+    return t[key] || key;
   }),
   default: {
     locale: 'en-US',
   },
 }));
 
-// Mock formatUtils
+// Mock formatNumber utility
 jest.mock('./formatUtils', () => ({
   formatNumber: jest.fn((value: number) => value.toString()),
-  formatRewardsMusdDepositPayloadDate: jest.fn(
-    (isoDate: string | undefined) => {
-      // Mock implementation that matches the real implementation behavior
-      if (
-        !isoDate ||
-        typeof isoDate !== 'string' ||
-        !/^\d{4}-\d{2}-\d{2}$/.test(isoDate)
-      ) {
-        return null;
-      }
-      // Mock implementation that formats the date
-      const date = new Date(`${isoDate}T00:00:00Z`);
-      return new Intl.DateTimeFormat('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        timeZone: 'UTC',
-      }).format(date);
-    },
-  ),
 }));
 
 describe('eventDetailsUtils', () => {
@@ -506,20 +479,6 @@ describe('eventDetailsUtils', () => {
             type: 'CARD' as const,
             payload: payload as (PointsEventDto & { type: 'CARD' })['payload'],
           };
-        case 'PREDICT':
-          return {
-            ...baseEvent,
-            type: 'PREDICT' as const,
-            payload: null,
-          };
-        case 'MUSD_DEPOSIT':
-          return {
-            ...baseEvent,
-            type: 'MUSD_DEPOSIT' as const,
-            payload: payload as (PointsEventDto & {
-              type: 'MUSD_DEPOSIT';
-            })['payload'],
-          };
         default:
           return {
             ...baseEvent,
@@ -878,175 +837,6 @@ describe('eventDetailsUtils', () => {
           title: 'One-time bonus',
           details: undefined,
           icon: IconName.Gift,
-        });
-      });
-    });
-
-    describe('PREDICT events', () => {
-      it('returns correct details for PREDICT event', () => {
-        const event = createMockEvent('PREDICT');
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'Prediction',
-          details: undefined,
-          icon: IconName.Speedometer,
-        });
-      });
-    });
-
-    describe('MUSD_DEPOSIT events', () => {
-      it('returns correct details for MUSD_DEPOSIT event with date', () => {
-        // Given a MUSD_DEPOSIT event with a date
-        const event = createMockEvent('MUSD_DEPOSIT', {
-          date: '2025-01-15',
-        });
-
-        // When getting event details
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        // Then it should return mUSD deposit details with formatted date
-        expect(result).toEqual({
-          title: 'mUSD deposit',
-          details: 'For Jan 15, 2025',
-          icon: IconName.Coin,
-        });
-      });
-
-      it('returns correct details for MUSD_DEPOSIT event with different date format', () => {
-        // Given a MUSD_DEPOSIT event with a different date
-        const event = createMockEvent('MUSD_DEPOSIT', {
-          date: '2025-11-11',
-        });
-
-        // When getting event details
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        // Then it should return mUSD deposit details with formatted date
-        expect(result).toEqual({
-          title: 'mUSD deposit',
-          details: 'For Nov 11, 2025',
-          icon: IconName.Coin,
-        });
-      });
-
-      it('returns undefined details for MUSD_DEPOSIT event without payload', () => {
-        // Given a MUSD_DEPOSIT event without payload
-        const event = createMockEvent('MUSD_DEPOSIT', null);
-
-        // When getting event details
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        // Then it should return mUSD deposit title with undefined details
-        expect(result).toEqual({
-          title: 'mUSD deposit',
-          details: undefined,
-          icon: IconName.Coin,
-        });
-      });
-
-      it('returns undefined details for MUSD_DEPOSIT event with payload but no date', () => {
-        // Given a MUSD_DEPOSIT event with payload but no date
-        const event = createMockEvent('MUSD_DEPOSIT', {
-          // @ts-expect-error - We are testing the function with undefined date
-          date: undefined,
-        });
-
-        // When getting event details
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        // Then it should return mUSD deposit title with undefined details
-        expect(result).toEqual({
-          title: 'mUSD deposit',
-          details: undefined,
-          icon: IconName.Coin,
-        });
-      });
-
-      it('returns undefined details for MUSD_DEPOSIT event with date that is not a string', () => {
-        // Given a MUSD_DEPOSIT event with date that is not a string
-        const event = createMockEvent('MUSD_DEPOSIT', {
-          // @ts-expect-error - We are testing the function with non-string date
-          date: 20250115,
-        });
-
-        // When getting event details
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        // Then it should return mUSD deposit title with undefined details
-        expect(result).toEqual({
-          title: 'mUSD deposit',
-          details: undefined,
-          icon: IconName.Coin,
-        });
-      });
-
-      it('returns undefined details for MUSD_DEPOSIT event with date that does not match YYYY-MM-DD format', () => {
-        // Given a MUSD_DEPOSIT event with date in wrong format
-        const event = createMockEvent('MUSD_DEPOSIT', {
-          date: '2025-1-15', // Missing leading zero in month
-        });
-
-        // When getting event details
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        // Then it should return mUSD deposit title with undefined details
-        expect(result).toEqual({
-          title: 'mUSD deposit',
-          details: undefined,
-          icon: IconName.Coin,
-        });
-      });
-
-      it('returns undefined details for MUSD_DEPOSIT event with date in ISO format with time', () => {
-        // Given a MUSD_DEPOSIT event with date in ISO format with time
-        const event = createMockEvent('MUSD_DEPOSIT', {
-          date: '2025-01-15T00:00:00Z', // ISO format with time
-        });
-
-        // When getting event details
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        // Then it should return mUSD deposit title with undefined details
-        expect(result).toEqual({
-          title: 'mUSD deposit',
-          details: undefined,
-          icon: IconName.Coin,
-        });
-      });
-
-      it('returns undefined details for MUSD_DEPOSIT event with invalid date string', () => {
-        // Given a MUSD_DEPOSIT event with invalid date string
-        const event = createMockEvent('MUSD_DEPOSIT', {
-          date: 'invalid-date',
-        });
-
-        // When getting event details
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        // Then it should return mUSD deposit title with undefined details
-        expect(result).toEqual({
-          title: 'mUSD deposit',
-          details: undefined,
-          icon: IconName.Coin,
-        });
-      });
-
-      it('returns undefined details for MUSD_DEPOSIT event with empty date string', () => {
-        // Given a MUSD_DEPOSIT event with empty date string
-        const event = createMockEvent('MUSD_DEPOSIT', {
-          date: '',
-        });
-
-        // When getting event details
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        // Then it should return mUSD deposit title with undefined details
-        expect(result).toEqual({
-          title: 'mUSD deposit',
-          details: undefined,
-          icon: IconName.Coin,
         });
       });
     });

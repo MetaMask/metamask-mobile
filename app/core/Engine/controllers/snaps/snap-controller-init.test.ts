@@ -57,6 +57,7 @@ describe('SnapControllerInit', () => {
 
     const controllerMock = jest.mocked(SnapController);
     expect(controllerMock).toHaveBeenCalledWith({
+      dynamicPermissions: expect.any(Array),
       messenger: expect.any(Object),
       state: undefined,
       clientCryptography: {
@@ -71,7 +72,6 @@ describe('SnapControllerInit', () => {
         disableSnapInstallation: true,
         requireAllowlist: true,
         forcePreinstalledSnaps: false,
-        autoUpdatePreinstalledSnaps: true,
       },
       getFeatureFlags: expect.any(Function),
       getMnemonicSeed: expect.any(Function),

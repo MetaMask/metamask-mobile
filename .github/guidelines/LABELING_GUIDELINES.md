@@ -29,11 +29,6 @@ Using any of these labels should be exceptional in case of CI friction and urgen
 
 - **skip-sonar-cloud**: The PR will be merged without running SonarCloud checks.
 - **skip-e2e**: The PR will be merged without running E2E tests.
-- **skip-e2e-quality-gate**: This label will disable the default test retries for E2E test files modified in a PR. Useful when making large refactors or when changes don't pose flakiness risk.
-
-### Skip Smart E2E Selection
-
-- **skip-smart-e2e-selection**: This label is used to bypass the Smart E2E Selection (select E2E tests to run depending on the PR changes). Useful when we do want all E2E tests to run for a given PR.
 
 ### Block merge if any is present
 

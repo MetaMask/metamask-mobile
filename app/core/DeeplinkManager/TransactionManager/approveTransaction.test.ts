@@ -8,7 +8,6 @@ import approveTransaction from './approveTransaction';
 import { addTransaction } from '../../../util/transaction-controller';
 import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
 import { toHex } from '@metamask/controller-utils';
-import { validateWithPPOM } from '../../../components/Views/confirmations/utils/deeplink';
 
 const MOCK_SENDER_ADDRESS = '0xMockSenderAddress';
 const MOCK_TARGET_ADDRESS = '0xTargetAddress';
@@ -47,7 +46,6 @@ jest.mock('../../../util/transaction-controller', () => ({
   __esModule: true,
   addTransaction: jest.fn(),
 }));
-jest.mock('../../../components/Views/confirmations/utils/deeplink');
 
 const mockEthUrl = {
   parameters: { uint256: '123', address: '0xMockAddress' },
@@ -87,19 +85,11 @@ describe('approveTransaction', () => {
     'showSimpleNotification',
   );
 
-  const spyValidateWithPPOM = validateWithPPOM as jest.Mock;
-
-  const spyFindNetworkClientIdByChainId = jest.spyOn(
-    Engine.context.NetworkController,
-    'findNetworkClientIdByChainId',
-  );
-
   beforeEach(() => {
     jest.clearAllMocks();
 
     spyGetNetworkTypeById.mockReturnValue('fakeNetworkType');
     spyGenerateApproveData.mockReturnValue('fakeApproveData');
-    spyFindNetworkClientIdByChainId.mockReturnValue('mockNetworkClientId');
   });
 
   it('should call setProviderType with the correct network type', async () => {
@@ -161,9 +151,7 @@ describe('approveTransaction', () => {
       },
       {
         deviceConfirmedOn: 'metamask_mobile',
-        networkClientId: 'mockNetworkClientId',
         origin: mockOrigin,
-        securityAlertResponse: undefined,
       },
     );
   });
@@ -315,31 +303,5 @@ describe('approveTransaction', () => {
     });
 
     expect(spySetProviderType).toHaveBeenCalledWith(fakeNetworkType);
-  });
-
-  it('calls validateWithPPOM with the correct parameters', async () => {
-    spyGetAddress.mockResolvedValue('0xMockAddress');
-
-    await approveTransaction({
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      deeplinkManager: mockDeeplinkManager as any,
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ethUrl: mockEthUrl as any,
-      origin: mockOrigin,
-    });
-
-    expect(spyValidateWithPPOM).toHaveBeenCalledWith({
-      txParams: {
-        to: MOCK_TARGET_ADDRESS,
-        from: MOCK_SENDER_ADDRESS,
-        value: '0x0',
-        data: 'fakeApproveData',
-      },
-      origin: mockOrigin,
-      chainId: toHex(mockEthUrl.chain_id),
-      networkClientId: 'mockNetworkClientId',
-    });
   });
 });

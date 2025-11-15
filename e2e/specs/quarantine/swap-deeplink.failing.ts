@@ -2,17 +2,14 @@
 /* eslint-disable no-console */
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import Ganache from '../../../app/util/test/ganache';
 import {
   loadFixture,
   createMockAPIServer,
 } from '../../framework/fixtures/FixtureHelper';
 import TestHelpers from '../../helpers.js';
 import FixtureServer from '../../framework/fixtures/FixtureServer';
-import {
-  getFixturesServerPort,
-  AnvilPort,
-} from '../../framework/fixtures/FixtureUtils';
+import { getFixturesServerPort } from '../../framework/fixtures/FixtureUtils';
 import { SmokeTrade } from '../../tags.js';
 import Assertions from '../../framework/Assertions';
 import QuoteView from '../../pages/swaps/QuoteView';
@@ -20,6 +17,7 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { Assertions as FrameworkAssertions } from '../../framework';
 import { testSpecificMock as swapTestSpecificMock } from '../swaps/helpers/swap-mocks';
+import { localNodeOptions } from '../swaps/helpers/constants';
 import MockServerE2E from '../../api-mocking/MockServerE2E';
 
 const fixtureServer: FixtureServer = new FixtureServer();
@@ -32,29 +30,19 @@ const SWAP_DEEPLINK_FULL = `${SWAP_DEEPLINK_BASE}?from=eip155:1/erc20:0xA0b86991
 describe(
   SmokeTrade('Swap Deep Link Tests - Unified Bridge Experience'),
   (): void => {
-    let localNode: AnvilManager;
+    let localNode: Ganache;
     let mockServerInstance: MockServerE2E;
 
     beforeAll(async (): Promise<void> => {
-      localNode = new AnvilManager();
-      localNode.setStartOptions({ chainId: 1 });
-      localNode.setServerPort(AnvilPort());
-      await localNode.start();
+      localNode = new Ganache();
+      await localNode.start(localNodeOptions);
 
       mockServerInstance = (await createMockAPIServer(swapTestSpecificMock))
         .mockServerInstance;
 
       await TestHelpers.reverseServerPort();
       const fixture = new FixtureBuilder()
-        .withNetworkController({
-          providerConfig: {
-            chainId: '0x1',
-            rpcUrl: `http://localhost:${AnvilPort()}`,
-            type: 'custom',
-            nickname: 'Localhost',
-            ticker: 'ETH',
-          },
-        })
+        .withGanacheNetwork('0x1')
         .withMetaMetricsOptIn()
         .build();
       await fixtureServer.start();

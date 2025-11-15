@@ -468,6 +468,16 @@ jest.mock('../../Views/AccountAction', () => {
 });
 
 jest.mock(
+  '../../../component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader',
+  () => {
+    const { View: RNView } = jest.requireActual('react-native');
+    return ({ children }: { children: React.ReactNode }) => (
+      <RNView testID="bottom-sheet-header">{children}</RNView>
+    );
+  },
+);
+
+jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter',
   () => {
     const {
@@ -526,16 +536,6 @@ jest.mock('../../../component-library/components/Icons/Icon', () => ({
   IconName: {
     Edit: 'edit',
     Trash: 'trash',
-    ArrowLeft: 'arrow-left',
-    Close: 'close',
-  },
-  IconSize: {
-    Sm: 'sm',
-    Md: 'md',
-    Lg: 'lg',
-  },
-  IconColor: {
-    Default: 'default',
   },
 }));
 
@@ -816,7 +816,7 @@ describe('NetworkManager Component', () => {
 
       expect(mockOnCloseBottomSheet).toHaveBeenCalled();
       await waitFor(() => {
-        expect(getByTestId('header')).toBeOnTheScreen();
+        expect(getByTestId('bottom-sheet-header')).toBeOnTheScreen();
         expect(getByTestId('bottom-sheet-footer')).toBeOnTheScreen();
       });
     });
@@ -833,7 +833,7 @@ describe('NetworkManager Component', () => {
       });
 
       await waitFor(() => {
-        expect(getByTestId('header')).toBeOnTheScreen();
+        expect(getByTestId('bottom-sheet-header')).toBeOnTheScreen();
         // The network name appears as part of a larger text string, use partial match
         expect(getByText(/Ethereum Mainnet/)).toBeOnTheScreen();
         expect(getByText(/app_settings\.network_delete/)).toBeOnTheScreen();

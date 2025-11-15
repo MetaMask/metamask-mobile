@@ -313,7 +313,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                       },
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -1899,7 +1899,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                       },
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -3485,7 +3485,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                       },
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -5071,7 +5071,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                       },
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -6657,7 +6657,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                       },
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -8303,7 +8303,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                       },
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -9934,7 +9934,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                       },
                     ]
                   }
-                  testID="deposit-close-navbar-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"

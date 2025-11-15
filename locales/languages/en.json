@@ -65,7 +65,7 @@
     },
     "signed_or_submitted_perps_deposit": {
       "title": "Deposit in progress",
-      "message": "Wait for the last deposit to finish before making another."
+      "message": "You already have a deposit in progress. You'll need to wait for it to go through before depositing again."
     },
     "pending_transaction": {
       "title": "Pending transaction",
@@ -87,15 +87,14 @@
       "title": "Insufficient funds"
     },
     "insufficient_pay_token_native": {
-      "message": "Not enough {{ticker}} to cover fees. Use a token on another network or add more {{ticker}} to continue.",
-      "title": "Insufficient funds"
+      "message": "Insufficient {{ticker}} to cover fees. Select a token on a different network to continue."
     },
     "no_pay_token_quotes": {
       "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option."
     },
     "perps_hardware_account": {
       "title": "Wallet not supported",
-      "message": "Hardware wallets aren't supported.\nSwitch wallets to continue."
+      "message": "Perps doesn't support hardware wallets.\nSwitch accounts to continue funding."
     },
     "burn_address": {
       "message": "You're sending your assets to a burn address. If you continue, you'll lose your assets.",
@@ -355,7 +354,7 @@
   "login": {
     "title": "Welcome Back!",
     "password": "Password",
-    "password_placeholder": "Enter password",
+    "password_placeholder": "Enter MetaMask password",
     "unlock_button": "Unlock",
     "go_back": "Wallet won't unlock? You can ERASE your current wallet and setup a new one",
     "forgot_password": "Forgot password?",
@@ -443,7 +442,7 @@
     "security_alert_title": "Security Alert",
     "security_alert_message": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
     "i_understand": "I understand that MetaMask cannot recover this password for me.",
-    "learn_more": "Learn more",
+    "learn_more": "Learn more.",
     "secure": "Secure wallet",
     "confirm": "Confirm Secret Recovery Phrase",
     "disable_biometric_error": "You have disabled biometrics for the app. Update Remember Me settings and try again.",
@@ -474,7 +473,7 @@
     "security_alert_title": "Security Alert",
     "security_alert_message": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
     "i_understand": "I understand that MetaMask cannot recover this password for me.",
-    "learn_more": "Learn more",
+    "learn_more": "Learn more.",
     "secure": "Secure wallet",
     "confirm": "Confirm Secret Recovery Phrase",
     "password_updated": "New password saved",
@@ -603,7 +602,6 @@
     "network_not_found_title": "Network not found",
     "network_not_found_description": "Network with chain id {{chain_id}} not found in your wallet. Please add the network first.",
     "network_missing_id": "Missing chain id.",
-    "search_tokens":"Search tokens",
     "search_tokens_and_nfts": "Search tokens and NFTs",
     "tokens": "Tokens",
     "nfts": "NFTs",
@@ -613,11 +611,6 @@
     "could_not_resolve_name": "Couldn't resolve name",
     "invalid_address": "Invalid address",
     "contractAddressError": "You are sending tokens to the token's contract address. This may result in the loss of these tokens."
-  },
-  "unified_ramp": {
-    "networks_filter_bar": {
-      "all_networks": "All"
-    }
   },
   "deposit": {
     "title": "Deposit",
@@ -648,15 +641,13 @@
       "apply": "Apply"
     },
     "configuration_modal": {
-      "title": "Settings",
+      "title": "Options",
       "view_order_history": "View order history",
       "contact_support": "Contact support",
-      "log_out": "Log out of Transak",
+      "log_out": "Log out",
       "logged_out_success": "Successfully logged out",
       "error_sdk_not_initialized": "SDK not initialized",
-      "logged_out_error": "Error logging out",
-      "more_ways_to_buy": "More ways to buy",
-      "more_ways_to_buy_description": "Use a different payment provider"
+      "logged_out_error": "Error logging out"
     },
     "region_modal": {
       "select_a_region": "Select a region",
@@ -785,9 +776,7 @@
       "dob_required": "Date of birth is required",
       "dob_invalid": "Please enter a valid date of birth",
       "ssn_required": "Social security number is required",
-      "unexpected_error": "An unexpected error occurred. Please try again.",
-      "phone_already_registered": "This phone number is already in use by {{email}}. Log in using this email to continue.",
-      "login_with_email": "Log in with email"
+      "unexpected_error": "An unexpected error occurred. Please try again."
     },
     "enter_address": {
       "navbar_title": "Verify your identity",
@@ -1333,10 +1322,10 @@
       "orderLeverageReductionFailed": "You cannot reduce your leverage",
       "connectionTimeout": "Connection timed out. Please check your network and try again.",
       "connectionFailed": {
-        "title": "Couldn't connect to perps",
+        "title": "Perps is temporarily offline",
         "description": "We're working to get it back online soon.",
-        "retry": "Try again",
-        "go_back": "Go back"
+        "retry": "Retry",
+        "go_back": "Go Back"
       },
       "networkError": {
         "title": "Network Error",
@@ -1419,7 +1408,7 @@
       "orders": "Orders",
       "go_to_activity": "Go to your activity",
       "trading_24_7": "This asset may be traded 24/7",
-      "expect_more_volatility": "Expect more volatility outside of market hours",
+      "expect_more_volatility": "Expect more volatility outside of regular market hours",
       "after_hours_trading_banner": "After-hours trading",
       "pay_attention_to_volatility": "Pay attention to volatility and slippage",
       "badge": {
@@ -1479,10 +1468,6 @@
       "funding_rate": {
         "title": "Funding rate",
         "content": "An hourly fee paid between traders to keep prices in line with the market. If the rate is positive, longs pay shorts. If negative, shorts pay longs."
-      },
-      "funding_payments": {
-        "title": "Funding payments",
-        "content": "This is the amount you've paid in funding fees since the position was opened. Funding is paid or received every hour to keep the perp price close to the actual token price."
       },
       "geo_block": {
         "title": "Perps unavailable in your region",
@@ -1615,11 +1600,6 @@
       "error_title": "Failed to cancel orders",
       "error_message": "Failed to cancel {{count}} order(s)"
     },
-    "crossMargin": {
-      "title": "Cross Margin Not Supported",
-      "message": "MetaMask Perps only support trading with isolated margin. You need to first close your cross margin position before you can trade on MetaMask.",
-      "dismiss": "Got it"
-    },
     "sort": {
       "volume": "Volume",
       "price_change": "Price Change",
@@ -1733,7 +1713,6 @@
         "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperCore for no added fee."
       },
       "got_it": "Got it",
-      "lets_go": "Let's go",
       "card": {
         "title": "Learn the basics of perps"
       }
@@ -1760,12 +1739,6 @@
     "prediction_markets": "Prediction Markets",
     "market_list": "Market List",
     "loading": "Loading...",
-    "gtm_content": {
-      "title": "PREDICT AND WIN",
-      "title_description": "Trade on the outcome of real-world events, like sports or elections.",
-      "get_started": "Get started",
-      "not_now": "Not now"
-    },
     "market_details": {
       "title": "Market Details",
       "market_ended_on": "Market ended on {{outcome}}",
@@ -1784,8 +1757,7 @@
       "lost": "Lost",
       "market_unavailable": "Market unavailable",
       "amount_on_outcome": "${{amount}} on {{outcome}}",
-      "outcome_at_price": "{{outcome}} at {{price}}¢",
-      "fee_exemption": "We don't charge any fees on this market."
+      "outcome_at_price": "{{outcome}} at {{price}}¢"
     },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
@@ -1801,10 +1773,6 @@
     "sell_position": "Sell Position",
     "cash_out": "Cash out",
     "cash_out_info": "Funds will be added to your available balance",
-    "at_price_per_share": "At price: {{price}}¢ per share",
-    "cashout_info": "{{amount}} on {{outcome}} at {{initialPrice}}¢",
-    "position_info_plural": "{{amount}} on {{outcome}} · {{shares}} shares at {{priceCents}}",
-    "position_info_singular": "{{amount}} on {{outcome}} · {{shares}} share at {{priceCents}}",
     "buy_yes": "Yes",
     "buy_no": "No",
     "outcomes": "outcomes",
@@ -1821,7 +1789,6 @@
     "outcomes_plural": "outcomes",
     "outcome_winner": "Winner",
     "outcome_loser": "Loser",
-    "outcome_draw": "Draw",
     "resolved_outcomes": "Resolved outcomes",
     "category": {
       "trending": "Trending",
@@ -1832,8 +1799,6 @@
     },
     "search_placeholder": "Search prediction markets",
     "search_cancel": "Cancel",
-    "search_empty_state": "No {{category}} markets available",
-    "search_no_markets_found": "No results found for \"{{q}}\"",
     "claim_button": "Claim",
     "markets_won": "Markets won",
     "won_markets_text": "Won {{count}} market{{s}}",
@@ -1896,9 +1861,7 @@
       "net_pnl": "Net P&L",
       "total_net_pnl": "Total Net P&L",
       "market_net_pnl": "Market Net P&L",
-      "activity_details": "Activity details",
-      "today": "Today",
-      "yesterday": "Yesterday"
+      "activity_details": "Activity details"
     },
     "claim": {
       "toasts": {
@@ -1928,8 +1891,8 @@
       "prediction_placed": "Prediction placed",
       "order_failed": "Order failed",
       "payments_made_in_usdc": "All payments are made in USDC",
-      "prediction_insufficient_funds": "Not enough funds. You can use up to {{amount}}.",
-      "prediction_minimum_bet": "Minimum amount is {{amount}}",
+      "prediction_insufficient_funds": "Insufficient funds. Lower the amount or add funds to continue.",
+      "prediction_minimum_bet": "Minimum bet is {{amount}}",
       "to_win": "To win",
       "order_failed_generic": "Transaction failed. Please try again."
     },
@@ -1943,17 +1906,9 @@
       "try_again": "Try again"
     },
     "fee_summary": {
-      "fees": "Fees",
-      "provider_fee_label": "Polymarket fee",
       "provider_fee": "Provider fee",
       "metamask_fee": "MetaMask fee",
-      "total": "Total",
-      "estimated_points": "Est. points",
-      "points_tooltip": "Points",
-      "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or predict.",
-      "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
-      "points_error": "We can't load points right now",
-      "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour."
+      "total": "Total"
     },
     "error": {
       "title": "Unable to connect to predictions",
@@ -1961,15 +1916,13 @@
       "retry": "Retry"
     },
     "error_messages": {
-      "not_eligible": "Not available in your region",
       "place_order_failed": "Failed to place order",
       "preview_failed": "Failed to preview order",
       "preview_no_order_book": "No order book found",
       "preview_no_order_match_buy": "No order match found for buy",
       "preview_no_order_match_sell": "No order match found for sell",
       "claim_failed": "Failed to claim",
-      "unknown_error": "An unknown error occurred",
-      "order_not_fully_filled": "Failed to fill your order"
+      "unknown_error": "An unknown error occurred"
     }
   },
   "receive": {
@@ -3479,11 +3432,6 @@
     "self_sent_unit": "Sent Yourself {{unit}}",
     "received_unit": "Received {{unit}}",
     "sent_collectible": "Sent Collectible",
-    "received_collectible": "Received Collectible",
-    "send_ether": "Send Ether",
-    "send_unit": "Send {{unit}}",
-    "send_collectible": "Send Collectible",
-    "receive_collectible": "Receive Collectible",
     "sent": "Sent",
     "received": "Received",
     "receive": "Receive",
@@ -3542,7 +3490,7 @@
     "transaction_id": "Transaction ID",
     "network": "Network",
     "request_from": "Request from",
-    "network_fee": "Network fee",
+    "network_fee": "Network Fee",
     "network_fee_tooltip": "Amount paid to process the transaction on network.",
     "confirm_gas_fee_token_tooltip": "This is paid to the network to process your transaction. It includes a {{metamaskFeeFiat}} MetaMask fee for non-ETH tokens or pre-funded ETH.",
     "paid_by_metamask": "Paid by MetaMask",
@@ -3857,7 +3805,6 @@
     "error_multiple_srp_word_error_3": " are incorrect or misspelled.",
     "error_invalid_srp": "Invalid Secret Recovery Phrase",
     "error_duplicate_srp": "This Secret Recovery Phrase has already been imported.",
-    "error_duplicate_account": "The account you are trying to import is a duplicate.",
     "invalid_qr_code_title": "Invalid QR Code",
     "invalid_qr_code_message": "The QR code does not contain a valid Secret Recovery Phrase",
     "success_1": "Wallet",
@@ -4477,13 +4424,6 @@
     "order_status_completed": "Completed",
     "order_status_failed": "Failed",
     "order_status_cancelled": "Cancelled",
-    "webview_no_url_provided": "No URL was provided to continue",
-    "webview_error_no_address_provided": "No wallet address was provided to continue",
-    "settings_modal": {
-      "title": "Settings",
-      "use_new_buy_experience": "Use new buy experience",
-      "use_new_buy_experience_description": "Try new native on ramp"
-    },
     "onboarding": {
       "what_to_expect": "What to Expect",
       "quotes": "Our buy crypto feature aggregates quotes from integrated vendors, providing quotes from those sources to get crypto directly into your wallet with no waiting period.",
@@ -4583,12 +4523,6 @@
       "title": "Incompatible Account",
       "description": "Your current account cannot support tokens on {{networkName}}. Please switch to a compatible account to continue.",
       "cta": "Got it"
-    },
-    "eligibility_failed_modal": {
-      "title": "Eligibility Check Failed",
-      "description": "We couldn't confirm access based on your region. Please try again. If the issue continues, contact support.",
-      "contact_support": "Contact Support",
-      "got_it": "Got It"
     },
     "region": {
       "buy_crypto_tokens": "Buy Crypto Tokens",
@@ -5382,7 +5316,6 @@
     "service_interruption_banner": {
       "maintenance_message": "We're down for maintenance. We'll be back online soon!"
     },
-    "supply": "Supply",
     "deposit": "Deposit",
     "approve": "Approve",
     "approval": "Approval",
@@ -5498,11 +5431,6 @@
     "your_balance": "Your balance",
     "stake_your_eth_cta": {
       "base": "Stake your ETH with MetaMask Pool and earn",
-      "annually": "annually.",
-      "learn_more_with_period": "Learn more."
-    },
-    "stake_your_trx_cta": {
-      "base": "Stake your TRX with MetaMask Pool and earn",
       "annually": "annually.",
       "learn_more_with_period": "Learn more."
     },
@@ -5825,11 +5753,6 @@
       "footer_bottom": "Funds will be added to your available balance",
       "footer_top": "Winnings from {{count}} markets"
     },
-    "custom_amount": {
-      "buy_button": "Buy crypto",
-      "buy_predict": "Add funds to your wallet to use Predictions.",
-      "buy_perps": "Add funds to your wallet to use Perps."
-    },
     "unlimited": "Unlimited",
     "all": "All",
     "none": "None",
@@ -5842,8 +5765,7 @@
     "transaction": "Transaction",
     "available_balance": "Available: ",
     "edit_amount_done": "Done",
-    "deposit_edit_amount_done": "Add funds",
-    "deposit_edit_amount_predict_withdraw": "Withdraw"
+    "deposit_edit_amount_done": "Continue"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
@@ -6506,8 +6428,7 @@
     "report_submitted": "Error report has been submitted."
   },
   "pay_with_modal": {
-    "title": "Select payment method",
-    "no_gas": "No native balance for gas"
+    "title": "Select payment method"
   },
   "connection_removed_modal": {
     "title": "Connections removed",
@@ -6597,8 +6518,6 @@
     "activity_empty_link": "See ways to earn",
     "events": {
       "to": "to",
-      "musd_deposit_for": "For {{date}}",
-      "for_deposit_period": "For deposit period",
       "type": {
         "swap": "Swap",
         "perps": "Perps",
@@ -6612,8 +6531,6 @@
         "close_position": "Closed position",
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
-        "predict": "Prediction",
-        "musd_deposit": "mUSD deposit",
         "uncategorized_event": "Uncategorized event"
       },
       "date": "Date",
@@ -6761,16 +6678,6 @@
           "cta_label": "Add accounts"
         }
       },
-      "predict": {
-        "title": "Prediction markets",
-        "description": "20 points per $10 prediction",
-        "sheet": {
-          "title": "Prediction markets",
-          "points": "20 points per $10",
-          "description": "Earn points on every $10 you trade.",
-          "cta_label": "Browse markets"
-        }
-      },
       "card": {
         "title": "MetaMask Card",
         "description": "1 point per $1 spent",
@@ -6779,16 +6686,6 @@
           "points": "1 point per $1 spent",
           "description": "Earn points every time you use your MetaMask Card for purchases, plus 1% cash back (3% for Metal cardholders).",
           "cta_label": "Manage Card"
-        }
-      },
-      "deposit_musd": {
-        "title": "Deposit mUSD",
-        "description": "2 points per $100 deposited",
-        "sheet": {
-          "title": "Deposit mUSD",
-          "points": "2 points per $100",
-          "description": "Earn points on every $100 mUSD you deposit.",
-          "cta_label": "Deposit mUSD"
         }
       }
     },
@@ -6843,9 +6740,7 @@
   "transaction_details": {
     "title": {
       "perps_deposit": "Funded Perps account",
-      "predict_claim": "Claimed winnings",
       "predict_deposit": "Funded Predict account",
-      "predict_withdraw": "Withdrawal",
       "default": "Transaction details"
     },
     "label": {
@@ -6853,9 +6748,7 @@
       "network_fee": "Network fee",
       "paid_with": "Paid with",
       "retry_button": "Try again",
-      "total": "Total",
-      "account": "Account",
-      "received_total": "Received total"
+      "total": "Total"
     },
     "summary_title": {
       "bridge_approval": "Approve {{approveSymbol}}",
@@ -6895,11 +6788,6 @@
   },
   "trending": {
     "title": "Trending",
-    "view_all": "View all",
-    "search_placeholder": "Search tokens, sites, URLs",
-    "tokens": "Tokens",
-    "perps": "Perps",
-    "predictions": "Predictions",
-    "no_results": "No results found"
+    "coming_soon": "Trending tokens coming soon"
   }
 }

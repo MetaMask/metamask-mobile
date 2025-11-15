@@ -26,7 +26,10 @@ import Logger from '../../../../../../util/Logger';
 import { safeToChecksumAddress } from '../../../../../../util/address';
 import { getBlockaidMetricsParams } from '../../../../../../util/blockaid';
 import Device from '../../../../../../util/device';
-import { isMultiLayerFeeNetwork } from '../../../../../../util/networks';
+import {
+  isMultiLayerFeeNetwork,
+  isPerDappSelectedNetworkEnabled,
+} from '../../../../../../util/networks';
 import { fetchEstimatedMultiLayerL1Fee } from '../../../../../../util/networks/engineNetworkUtils';
 import {
   balanceToFiat,
@@ -612,7 +615,11 @@ class TransactionReview extends PureComponent {
                         <AccountFromToInfoCard
                           transactionState={transaction}
                           layout="vertical"
-                          origin={origin}
+                          origin={
+                            isPerDappSelectedNetworkEnabled()
+                              ? origin
+                              : undefined
+                          }
                         />
                       </View>
                     )}

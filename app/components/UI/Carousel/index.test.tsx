@@ -6,7 +6,6 @@ import {
   renderHook,
 } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import { Linking } from 'react-native';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import AppConstants from '../../../core/AppConstants';
 import Carousel, { useFetchCarouselSlides } from './';
@@ -69,10 +68,6 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
 
 jest.mock('../../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
   parse: jest.fn(() => Promise.resolve()),
-}));
-
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('./fetchCarouselSlidesFromContentful', () => ({
@@ -205,10 +200,8 @@ describe('Carousel Slide Filtering', () => {
 
 describe('Carousel Navigation', () => {
   it('opens external URLs when slide is clicked', async () => {
-    const slideID = 'deeplink-slide';
-    const slideTestID = `carousel-slide-${slideID}`;
     const urlSlide = createMockSlide({
-      id: slideID,
+      id: 'url-slide',
       navigation: { type: 'url', href: 'https://metamask.io' },
     });
     mockFetchCarouselSlides.mockResolvedValue({
@@ -217,36 +210,14 @@ describe('Carousel Navigation', () => {
     });
 
     const { findByTestId } = render(<Carousel />);
-    const slide = await findByTestId(slideTestID);
+    const slide = await findByTestId('carousel-slide-url-slide');
     fireEvent.press(slide);
-
-    expect(Linking.openURL).toHaveBeenCalledWith('https://metamask.io');
-    expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
-  });
-
-  it('handles internal deeplinks through SharedDeeplinkManager', async () => {
-    const slideID = 'deeplink-slide';
-    const slideTestID = `carousel-slide-${slideID}`;
-    const deeplinkSlide = createMockSlide({
-      id: slideID,
-      navigation: { type: 'url', href: 'https://link.metamask.io/swap' },
-    });
-    mockFetchCarouselSlides.mockResolvedValue({
-      prioritySlides: [],
-      regularSlides: [deeplinkSlide],
-    });
-
-    const { findByTestId } = render(<Carousel />);
-    const slide = await findByTestId(slideTestID);
-    fireEvent.press(slide);
-
     expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
-      'https://link.metamask.io/swap',
+      'https://metamask.io',
       {
-        origin: AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
+        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
       },
     );
-    expect(Linking.openURL).not.toHaveBeenCalled();
   });
 
   it('navigates to buy flow for fund slides', async () => {

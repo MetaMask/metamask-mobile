@@ -32,7 +32,11 @@ import {
   PerpsEventValues,
 } from '../../constants/eventNames';
 
-import { usePerpsFirstTimeUser } from '../../hooks';
+import {
+  usePerpsFirstTimeUser,
+  usePerpsTrading,
+  usePerpsNetworkManagement,
+} from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 import createStyles from './PerpsTutorialCarousel.styles';
@@ -44,6 +48,7 @@ const PerpsOnboardingAnimationDark = require('../../animations/perps-onboarding-
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
 import Character from '../../../../../images/character_3x.png';
 import { PerpsTutorialSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { useSelector } from 'react-redux';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
@@ -132,6 +137,8 @@ const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
 const PerpsTutorialCarousel: React.FC = () => {
   const { markTutorialCompleted } = usePerpsFirstTimeUser();
   const { track } = usePerpsEventTracking();
+  const { depositWithConfirmation } = usePerpsTrading();
+  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
   const [currentTab, setCurrentTab] = useState(0);
   const safeAreaInsets = useSafeAreaInsets();
 
@@ -144,6 +151,7 @@ const PerpsTutorialCarousel: React.FC = () => {
   const continueDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const previousTabRef = useRef(0);
   const isProgrammaticNavigationRef = useRef(false);
+  const { navigateToConfirmation } = useConfirmNavigation();
 
   const isEligible = useSelector(selectPerpsEligibility);
 
@@ -159,7 +167,10 @@ const PerpsTutorialCarousel: React.FC = () => {
     [currentTab, tutorialScreens.length],
   );
 
-  const shouldShowSkipButton = useMemo(() => !isLastScreen, [isLastScreen]);
+  const shouldShowSkipButton = useMemo(
+    () => !isLastScreen || isEligible,
+    [isLastScreen, isEligible],
+  );
 
   const { styles } = useStyles(createStyles, {
     shouldShowSkipButton,
@@ -285,7 +296,26 @@ const PerpsTutorialCarousel: React.FC = () => {
 
       // Mark tutorial as completed
       markTutorialCompleted();
-      // Navigate all users to perps home screen for a more natural experience
+
+      // We need to enable Arbitrum for deposits to work
+      // Arbitrum One is already added for all users as a default network
+      // For devs on testnet, Arbitrum Sepolia will be added/enabled
+      await ensureArbitrumNetworkExists();
+
+      if (isEligible) {
+        // Navigate immediately to confirmations screen for instant UI response
+        // Note: When from deeplink, user will go through deposit flow
+        // and should return to markets after completion
+        navigateToConfirmation({ stack: Routes.PERPS.ROOT });
+
+        // Initialize deposit in the background without blocking
+        depositWithConfirmation().catch((error) => {
+          console.error('Failed to initialize deposit:', error);
+        });
+
+        return;
+      }
+
       navigateToMarketsList();
     } else {
       // Go to next screen using the ref
@@ -328,6 +358,10 @@ const PerpsTutorialCarousel: React.FC = () => {
     currentTab,
     tutorialScreens,
     markTutorialCompleted,
+    isEligible,
+    navigateToConfirmation,
+    depositWithConfirmation,
+    ensureArbitrumNetworkExists,
     navigateToMarketsList,
   ]);
 
@@ -360,12 +394,20 @@ const PerpsTutorialCarousel: React.FC = () => {
   const renderTabBar = () => <View />;
 
   const buttonLabel = useMemo(() => {
+    if (!isEligible && isLastScreen) {
+      return strings('perps.tutorial.got_it');
+    }
+
     if (isLastScreen) {
-      return strings('perps.tutorial.lets_go');
+      return strings('perps.tutorial.add_funds');
     }
 
     return strings('perps.tutorial.continue');
-  }, [isLastScreen]);
+  }, [isEligible, isLastScreen]);
+
+  const skipLabel = isLastScreen
+    ? strings('perps.tutorial.got_it')
+    : strings('perps.tutorial.skip');
 
   return (
     <View style={[styles.container, { paddingTop: safeAreaInsets.top }]}>
@@ -482,7 +524,7 @@ const PerpsTutorialCarousel: React.FC = () => {
                 variant={TextVariant.BodyMDMedium}
                 color={TextColor.Alternative}
               >
-                {strings('perps.tutorial.skip')}
+                {skipLabel}
               </Text>
             </TouchableOpacity>
           </View>

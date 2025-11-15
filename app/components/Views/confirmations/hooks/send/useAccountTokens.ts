@@ -13,9 +13,7 @@ import { getNetworkBadgeSource } from '../../utils/network';
 import { AssetType, TokenStandard } from '../../types/token';
 import { useSendScope } from './useSendScope';
 
-export function useAccountTokens({
-  includeNoBalance = false,
-} = {}): AssetType[] {
+export function useAccountTokens() {
   const assets = useSelector(selectAssetsBySelectedAccountGroup);
   const { isEvmOnly, isSolanaOnly } = useSendScope();
   const fiatCurrency = useSelector(selectCurrentCurrency);
@@ -38,10 +36,6 @@ export function useAccountTokens({
     }
 
     const assetsWithBalance = filteredAssets.filter((asset) => {
-      if (includeNoBalance) {
-        return true;
-      }
-
       const haveBalance =
         (asset.fiat?.balance &&
           new BigNumber(asset.fiat.balance).isGreaterThan(0)) ||
@@ -85,11 +79,5 @@ export function useAccountTokens({
           new BigNumber(a.fiat?.balance || 0),
         ) || 0,
     );
-  }, [
-    assets,
-    includeNoBalance,
-    isEvmOnly,
-    isSolanaOnly,
-    fiatCurrency,
-  ]) as unknown as AssetType[];
+  }, [assets, isEvmOnly, isSolanaOnly, fiatCurrency]) as unknown as AssetType[];
 }

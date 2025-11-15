@@ -169,7 +169,7 @@ describe('ContractInteraction', () => {
       state: generateContractInteractionState,
     });
     expect(getByText('Estimated changes')).toBeDefined();
-    expect(getByText('Network fee')).toBeDefined();
+    expect(getByText('Network Fee')).toBeDefined();
   });
 
   it('tracks mockTrackPageViewedEvent metrics event', () => {

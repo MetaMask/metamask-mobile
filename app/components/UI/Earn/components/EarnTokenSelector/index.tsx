@@ -45,19 +45,8 @@ const EarnTokenSelector = ({
   const { getEarnToken, getOutputToken } = useEarnTokens();
   const earnToken = getEarnToken(someEarnToken);
   const outputToken = getOutputToken(someEarnToken);
-
-  const tokenToRender = (earnToken || outputToken || someEarnToken) as
-    | EarnTokenDetails
-    | TokenI
-    | undefined;
-
-  const rawApr =
-    (tokenToRender as EarnTokenDetails | undefined)?.experience?.apr ?? '';
-
-  const aprValue = parseFloat(rawApr);
-
-  const apr =
-    Number.isFinite(aprValue) && aprValue > 0 ? aprValue.toFixed(1) : undefined;
+  const token = (earnToken || outputToken) as EarnTokenDetails;
+  const apr = parseFloat(token?.experience?.apr ?? '0').toFixed(1);
 
   const handlePress = () => {
     trace({ name: TraceName.EarnTokenList });
@@ -80,14 +69,14 @@ const EarnTokenSelector = ({
   };
 
   const renderTokenAvatar = () => {
-    if (tokenToRender?.isNative) {
+    if (token.isNative) {
       return (
         <NetworkAssetLogo
-          chainId={tokenToRender.chainId ?? ''}
-          ticker={tokenToRender.ticker ?? ''}
+          chainId={token.chainId ?? ''}
+          ticker={token.ticker ?? ''}
           big={false}
           biggest
-          testID={`earn-token-selector-${tokenToRender.symbol}-${tokenToRender.chainId}`}
+          testID={`earn-token-selector-${token.symbol}-${token.chainId}`}
           style={styles.networkAvatar}
         />
       );
@@ -95,8 +84,8 @@ const EarnTokenSelector = ({
 
     return (
       <AvatarToken
-        name={(tokenToRender as TokenI).symbol ?? ''}
-        imageSource={{ uri: (tokenToRender as TokenI).image }}
+        name={token.symbol}
+        imageSource={{ uri: token.image }}
         size={AvatarSize.Md}
       />
     );
@@ -110,11 +99,8 @@ const EarnTokenSelector = ({
           <Badge
             variant={BadgeVariant.Network}
             name={networkName}
-            imageSource={
-              tokenToRender?.chainId
-                ? getNetworkImageSource({ chainId: tokenToRender.chainId })
-                : undefined
-            }
+            // @ts-expect-error The utils/network file is still JS and this function expects a networkType that should be optional
+            imageSource={getNetworkImageSource({ chainId: token.chainId })}
           />
         }
       >
@@ -125,25 +111,22 @@ const EarnTokenSelector = ({
         style={styles.tokenText}
         numberOfLines={1}
       >
-        {tokenToRender?.name ?? ''}
+        {token.name}
       </Text>
     </View>
   );
 
   const renderEndAccessory = () => (
     <View style={styles.endAccessoryContainer}>
-      {apr ? (
-        <Text
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Success}
-          numberOfLines={1}
-        >
-          {`${apr}% APR`}
-        </Text>
-      ) : null}
+      <Text
+        variant={TextVariant.BodyMDMedium}
+        color={TextColor.Success}
+        numberOfLines={1}
+      >
+        {`${apr}% APR`}
+      </Text>
 
-      {(tokenToRender as EarnTokenDetails | undefined)?.balanceFormatted !==
-        undefined && (
+      {token?.balanceFormatted !== undefined && (
         <Text
           style={styles.balanceText}
           variant={TextVariant.BodySMMedium}
@@ -151,7 +134,7 @@ const EarnTokenSelector = ({
           numberOfLines={1}
           ellipsizeMode="tail"
         >
-          {(tokenToRender as EarnTokenDetails | undefined)?.balanceFormatted}
+          {token?.balanceFormatted}
         </Text>
       )}
     </View>

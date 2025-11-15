@@ -616,35 +616,6 @@ export const initialState = {
             startTime: Date.now(),
             estimatedProcessingTimeInSeconds: 300,
           },
-          'solana-swap-tx': {
-            quote: {
-              srcChainId: 1151111081099710, // Solana Mainnet
-              destChainId: 1151111081099710, // Same chain = swap
-              srcAsset: {
-                address: 'So11111111111111111111111111111111111111112',
-                symbol: 'SOL',
-                decimals: 9,
-                name: 'Solana',
-              },
-              destAsset: {
-                address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-                symbol: 'USDC',
-                decimals: 6,
-                name: 'USD Coin',
-              },
-              srcTokenAmount: '1000000000',
-              destTokenAmount: '100000000',
-            },
-            status: {
-              status: StatusTypes.PENDING,
-              srcChain: {
-                txHash: 'solana-tx-hash-123',
-              },
-            },
-            account: 'pXwSggYaFeUryz86UoCs9ugZ4VWoZ7R1U5CVhxYjL61', // Solana account from initialState
-            startTime: Date.now(),
-            estimatedProcessingTimeInSeconds: 60,
-          },
         },
       },
     },

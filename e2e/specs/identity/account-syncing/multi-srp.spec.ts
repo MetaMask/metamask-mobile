@@ -59,12 +59,8 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
       },
       async ({ userStorageMockttpController }) => {
         await loginToApp();
-
-        // Wait for wallet to be ready after login
-        await Assertions.expectElementToBeVisible(WalletView.container, {
-          description: 'wallet should be visible after login',
-          timeout: 15000,
-        });
+        // KDF Delay
+        await TestHelpers.delay(3000);
 
         await WalletView.tapIdenticon();
         await Assertions.expectElementToBeVisible(
@@ -99,14 +95,14 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
         await AccountListBottomSheet.swipeToDismissAccountsModal(); // the next action taps on the identicon again
 
         // Add SRP 2
+        await device.disableSynchronization();
         await goToImportSrp();
         await inputSrp(IDENTITY_TEAM_SEED_PHRASE_2);
         await ImportSrpView.tapImportButton();
-        // Wait for wallet to be ready after SRP import
-        await Assertions.expectElementToBeVisible(WalletView.container, {
-          description: 'wallet should be visible after SRP import',
-          timeout: 20000,
-        });
+        // KDF Delay
+        await TestHelpers.delay(3000);
+
+        await Assertions.expectElementToBeVisible(WalletView.container);
         await WalletView.tapIdenticon();
 
         await waitUntilSyncedAccountsNumberEquals(3);
@@ -117,15 +113,7 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
         });
 
         await waitUntilSyncedAccountsNumberEquals(4);
-
-        // Wait for account to be visible before interacting
-        await Assertions.expectElementToBeVisible(
-          AccountListBottomSheet.getAccountElementByAccountNameV2('Account 1'),
-          {
-            description: 'fourth account should be visible after creation',
-            timeout: 10000,
-          },
-        );
+        await TestHelpers.delay(3000);
 
         await AccountListBottomSheet.tapAccountEllipsisButtonV2(3);
         await AccountDetails.tapEditAccountName();
@@ -133,17 +121,15 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
         await EditAccountName.tapSave();
         await AccountDetails.tapBackButton();
 
-        // Wait for navigation to complete and renamed account to be visible
         await Assertions.expectElementToBeVisible(
           AccountListBottomSheet.getAccountElementByAccountNameV2(
             SRP_2_SECOND_ACCOUNT,
           ),
           {
             description: `Account with name "${SRP_2_SECOND_ACCOUNT}" should be visible`,
-            timeout: 10000,
           },
         );
-
+        await device.enableSynchronization();
         await waitUntilEventsEmittedNumberEquals(5);
       },
     );
@@ -164,21 +150,17 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
       },
       async () => {
         await loginToApp();
-        // Wait for wallet to be ready after login
-        await Assertions.expectElementToBeVisible(WalletView.container, {
-          description: 'wallet should be visible after login',
-          timeout: 15000,
-        });
+        // KDF Delay
+        await TestHelpers.delay(3000);
 
         await goToImportSrp();
+        await device.disableSynchronization();
         await inputSrp(IDENTITY_TEAM_SEED_PHRASE_2);
         await ImportSrpView.tapImportButton();
-        // Wait for wallet to be ready after second SRP import
-        await Assertions.expectElementToBeVisible(WalletView.container, {
-          description: 'wallet should be visible after second SRP import',
-          timeout: 20000,
-        });
+        // KDF Delay
+        await TestHelpers.delay(3000);
 
+        await Assertions.expectElementToBeVisible(WalletView.container);
         await WalletView.tapIdenticon();
         const visibleAccounts = [
           DEFAULT_ACCOUNT_NAME,

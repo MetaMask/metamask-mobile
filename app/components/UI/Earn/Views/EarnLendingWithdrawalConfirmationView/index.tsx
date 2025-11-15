@@ -101,12 +101,9 @@ const EarnLendingWithdrawalConfirmationView = () => {
   useEndTraceOnMount(TraceName.EarnWithdrawReviewScreen);
 
   useEffect(() => {
-    const tokenLabel = token?.ticker ?? token?.symbol ?? token?.name ?? '';
-    const title = `${strings('earn.withdraw')} ${tokenLabel}`;
-
     navigation.setOptions(
       getStakingNavbar(
-        title,
+        strings('earn.withdraw'),
         navigation,
         theme.colors,
         {
@@ -142,8 +139,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
     outputToken?.symbol,
     theme.colors,
     token.symbol,
-    token.name,
-    token.ticker,
   ]);
 
   // const riskTextColor = useMemo(() => {

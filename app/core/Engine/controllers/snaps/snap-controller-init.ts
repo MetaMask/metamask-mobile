@@ -20,6 +20,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { store } from '../../../../store';
 import PREINSTALLED_SNAPS from '../../../../lib/snaps/preinstalled-snaps';
+import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 import { MetaMetrics } from '../../../Analytics';
 import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
 
@@ -42,7 +43,6 @@ export const snapControllerInit: ControllerInitFunction<
   const requireAllowlist = process.env.METAMASK_BUILD_TYPE !== 'flask';
   const disableSnapInstallation = process.env.METAMASK_BUILD_TYPE !== 'flask';
   const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
-  const autoUpdatePreinstalledSnaps = true;
 
   ///: BEGIN:ONLY_INCLUDE_IF(flask)
   const forcePreinstalledSnaps =
@@ -86,6 +86,7 @@ export const snapControllerInit: ControllerInitFunction<
   }
 
   const controller = new SnapController({
+    dynamicPermissions: [Caip25EndowmentPermissionName],
     environmentEndowmentPermissions: Object.values(EndowmentPermissions),
     excludedPermissions: {
       ...ExcludedSnapPermissions,
@@ -107,7 +108,6 @@ export const snapControllerInit: ControllerInitFunction<
       allowLocalSnaps,
       disableSnapInstallation,
       requireAllowlist,
-      autoUpdatePreinstalledSnaps,
       ///: BEGIN:ONLY_INCLUDE_IF(flask)
       forcePreinstalledSnaps,
       ///: END:ONLY_INCLUDE_IF

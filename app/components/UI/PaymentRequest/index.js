@@ -669,8 +669,6 @@ class PaymentRequest extends PureComponent {
     const { conversionRate, contractExchangeRates, currentCurrency } =
       this.props;
     const currencySymbol = currencySymbols[currentCurrency];
-    // Normalize amount: trim whitespace and replace comma with period
-    amount = amount?.replace(',', '.')?.trim();
     const exchangeRate =
       selectedAsset &&
       selectedAsset.address &&
@@ -684,9 +682,9 @@ class PaymentRequest extends PureComponent {
       conversionRate &&
       (exchangeRate || selectedAsset.isETH)
     ) {
-      res = this.handleFiatPrimaryCurrency(amount);
+      res = this.handleFiatPrimaryCurrency(amount?.replace(',', '.'));
     } else {
-      res = this.handleETHPrimaryCurrency(amount);
+      res = this.handleETHPrimaryCurrency(amount?.replace(',', '.'));
     }
     const { cryptoAmount, symbol } = res;
     if (amount && amount[0] === currencySymbol) amount = amount.substr(1);

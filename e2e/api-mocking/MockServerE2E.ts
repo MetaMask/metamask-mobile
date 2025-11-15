@@ -1,7 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-shadow
 import { getLocal, Headers, Mockttp } from 'mockttp';
 import { ALLOWLISTED_HOSTS, ALLOWLISTED_URLS } from './mock-e2e-allowlist';
-import { SUPPRESSED_LOGS_URLS } from './mock-config/suppressed-logs';
 import { createLogger, LogLevel } from '../framework/logger';
 import {
   MockApiEndpoint,
@@ -15,12 +14,6 @@ import {
   processPostRequestBody,
 } from './helpers/mockHelpers';
 import { getLocalHost } from '../framework/fixtures/FixtureUtils';
-import PortManager, { ResourceType } from '../framework/PortManager';
-import {
-  FALLBACK_GANACHE_PORT,
-  FALLBACK_DAPP_SERVER_PORT,
-} from '../framework/Constants';
-import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager';
 
 const logger = createLogger({
   name: 'MockServer',
@@ -35,61 +28,6 @@ interface LiveRequest {
 export interface InternalMockServer extends Mockttp {
   _liveRequests?: LiveRequest[];
 }
-
-/**
- * Translates fallback ports to actual allocated ports in URLs.
- * This allows the MockServer (running on host) to forward requests to dynamically allocated local resources.
- *
- * @param url - The URL that may contain a fallback port
- * @returns The URL with fallback port replaced by actual allocated port, or original URL
- */
-const translateFallbackPortToActual = (url: string): string => {
-  try {
-    const parsedUrl = new URL(url);
-    const port = parsedUrl.port;
-
-    if (!port) {
-      return url;
-    }
-
-    const portNum = parseInt(port, 10);
-    const portManager = PortManager.getInstance();
-    let actualPort: number | undefined;
-
-    // Map fallback ports to actual allocated ports
-    // Try Ganache first, fallback to Anvil if Ganache not running
-    if (portNum === FALLBACK_GANACHE_PORT) {
-      actualPort = portManager.getPort(ResourceType.GANACHE);
-      if (actualPort === undefined) {
-        actualPort = portManager.getPort(ResourceType.ANVIL);
-      }
-    } else if (portNum === DEFAULT_ANVIL_PORT) {
-      actualPort = portManager.getPort(ResourceType.ANVIL);
-    } else if (
-      portNum >= FALLBACK_DAPP_SERVER_PORT &&
-      portNum < FALLBACK_DAPP_SERVER_PORT + 100
-    ) {
-      // Dapp server ports start at FALLBACK_DAPP_SERVER_PORT (8085, 8086, etc.)
-      const dappIndex = portNum - FALLBACK_DAPP_SERVER_PORT;
-      actualPort = portManager.getMultiInstancePort(
-        ResourceType.DAPP_SERVER,
-        `dapp-server-${dappIndex}`,
-      );
-    }
-
-    if (actualPort !== undefined) {
-      parsedUrl.port = actualPort.toString();
-      const translatedUrl = parsedUrl.toString();
-      logger.info(`Port translation: ${url} → ${translatedUrl}`);
-      return translatedUrl;
-    }
-
-    return url;
-  } catch (error) {
-    logger.warn('Failed to parse URL for port translation:', url, error);
-    return url;
-  }
-};
 
 const isUrlAllowed = (url: string): boolean => {
   try {
@@ -117,9 +55,6 @@ const isUrlAllowed = (url: string): boolean => {
   }
 };
 
-const isUrlSuppressedFromLogs = (url: string): boolean =>
-  SUPPRESSED_LOGS_URLS.some((pattern: RegExp) => pattern.test(url));
-
 const handleDirectFetch = async (
   url: string,
   method: string,
@@ -143,9 +78,7 @@ const handleDirectFetch = async (
     const responseBody = await response.text();
     return { statusCode: response.status, body: responseBody };
   } catch (error) {
-    if (!isUrlSuppressedFromLogs(url)) {
-      logger.error('Error forwarding request:', url, error);
-    }
+    logger.error('Error forwarding request:', url, error);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Failed to forward request' }),
@@ -162,10 +95,11 @@ export default class MockServerE2E implements Resource {
 
   constructor(params: {
     events: MockEventsObject;
+    port: number;
     testSpecificMock?: TestSpecificMock;
   }) {
     this._events = params.events;
-    this._serverPort = 0; // Will be set when starting the server
+    this._serverPort = params.port;
     this._testSpecificMock = params.testSpecificMock;
   }
 
@@ -192,28 +126,34 @@ export default class MockServerE2E implements Resource {
     return this._server;
   }
 
-  setServerPort(port: number): void {
-    this._serverPort = port;
-  }
-
   async start(): Promise<void> {
     if (this._serverStatus === ServerStatus.STARTED) {
       logger.debug('Mock server already started');
       return;
     }
 
-    this._server = getLocal() as InternalMockServer;
-    this._server._liveRequests = [];
-    await this._server.start(this._serverPort);
+    const mockServer = getLocal() as InternalMockServer;
+    mockServer._liveRequests = [];
 
-    logger.info(
+    try {
+      await mockServer.start(this._serverPort);
+    } catch (error) {
+      logger.error(
+        `Failed to start mock server on port ${this._serverPort}: ${error}`,
+      );
+      throw new Error(
+        `Failed to start mock server on port ${this._serverPort}: ${error}`,
+      );
+    }
+
+    logger.debug(
       `Mockttp server running at http://${getLocalHost()}:${this._serverPort}`,
     );
 
-    await this._server
+    await mockServer
       .forGet('/health-check')
       .thenReply(200, 'Mock server is running');
-    await this._server
+    await mockServer
       .forGet(
         /^http:\/\/(localhost|127\.0\.0\.1|10\.0\.2\.2)(:\\d+)?\/favicon\.ico$/,
       )
@@ -221,10 +161,10 @@ export default class MockServerE2E implements Resource {
 
     if (this._testSpecificMock) {
       logger.info('Applying testSpecificMock function (takes precedence)');
-      await this._testSpecificMock(this._server);
+      await this._testSpecificMock(mockServer);
     }
 
-    await this._server
+    await mockServer
       .forAnyRequest()
       .matching((request) => request.path.startsWith('/proxy'))
       .thenCallback(async (request) => {
@@ -283,8 +223,8 @@ export default class MockServerE2E implements Resource {
         }
 
         if (matchingEvent) {
-          logger.debug(`Mocking ${method} request to: ${urlEndpoint}`);
-          logger.debug(`Response status: ${matchingEvent.responseCode}`);
+          logger.info(`Mocking ${method} request to: ${urlEndpoint}`);
+          logger.info(`Response status: ${matchingEvent.responseCode}`);
           logger.debug('Response:', matchingEvent.response);
           if (method === 'POST' && matchingEvent.requestBody) {
             const result = processPostRequestBody(
@@ -311,18 +251,15 @@ export default class MockServerE2E implements Resource {
           };
         }
 
-        let updatedUrl =
+        const updatedUrl =
           device.getPlatform() === 'android'
             ? urlEndpoint.replace('localhost', '127.0.0.1')
             : urlEndpoint;
 
-        // Translate fallback ports to actual allocated ports (host-side forwarding)
-        updatedUrl = translateFallbackPortToActual(updatedUrl);
-
         if (!isUrlAllowed(updatedUrl)) {
           const errorMessage = `Request going to live server: ${updatedUrl}`;
           logger.warn(errorMessage);
-          this._server?._liveRequests?.push({
+          mockServer._liveRequests?.push({
             url: updatedUrl,
             method,
             timestamp: new Date().toISOString(),
@@ -342,51 +279,31 @@ export default class MockServerE2E implements Resource {
         );
       });
 
-    await this._server.forUnmatchedRequest().thenCallback(async (request) => {
-      // Check for MockServer self-reference to prevent ECONNREFUSED
-      try {
-        const url = new URL(request.url);
-        const isLocalhost =
-          url.hostname === 'localhost' ||
-          url.hostname === '127.0.0.1' ||
-          url.hostname === '10.0.2.2';
-        const isMockServerPort =
-          url.port === '8000' || url.port === this._serverPort.toString();
-
-        if (isLocalhost && isMockServerPort) {
-          logger.debug(`Ignoring MockServer self-reference: ${request.url}`);
-          return { statusCode: 204, body: '' };
-        }
-      } catch (e) {
-        // Ignore URL parsing errors
-      }
-
-      // Translate fallback ports to actual allocated ports (host-side forwarding)
-      const translatedUrl = translateFallbackPortToActual(request.url);
-
-      if (!isUrlAllowed(translatedUrl)) {
-        const errorMessage = `Request going to live server: ${translatedUrl}`;
+    await mockServer.forUnmatchedRequest().thenCallback(async (request) => {
+      if (!isUrlAllowed(request.url)) {
+        const errorMessage = `Request going to live server: ${request.url}`;
         logger.warn(errorMessage);
-        this._server?._liveRequests?.push({
-          url: translatedUrl,
+        mockServer._liveRequests?.push({
+          url: request.url,
           method: request.method,
           timestamp: new Date().toISOString(),
         });
-      } else if (ALLOWLISTED_URLS.includes(translatedUrl)) {
-        logger.warn(`Allowed URL: ${translatedUrl}`);
+      } else if (ALLOWLISTED_URLS.includes(request.url)) {
+        logger.warn(`Allowed URL: ${request.url}`);
         if (request.method === 'POST') {
           logger.warn(`Request Body: ${await request.body.getText()}`);
         }
       }
 
       return handleDirectFetch(
-        translatedUrl,
+        request.url,
         request.method,
         request.headers,
         await request.body.getText(),
       );
     });
 
+    this._server = mockServer;
     this._serverStatus = ServerStatus.STARTED;
   }
 
@@ -404,10 +321,6 @@ export default class MockServerE2E implements Resource {
     } finally {
       this._server = null;
       this._serverStatus = ServerStatus.STOPPED;
-      // Release the port after server is stopped
-      if (this._serverPort > 0) {
-        PortManager.getInstance().releasePort(ResourceType.MOCK_SERVER);
-      }
     }
   }
 

@@ -1,117 +1,80 @@
 import { Dimensions } from 'react-native';
+import { formatWithThreshold } from '../../../../util/assets';
 import { PredictSeries, Recurrence } from '../types';
 
 /**
- * Formats a percentage value with no decimals
+ * Formats a percentage value with sign prefix
  * @param value - Raw percentage value (e.g., 5.25 for 5.25%, not 0.0525)
- * @returns Format: "X%" with no decimals
- * - For values >= 99: ">99%"
- * - For values < 1 (but > 0): "<1%"
- * - For negative values: rounded normally (e.g., "-3%", "-99%")
- * @example formatPercentage(5.25) => "5%"
- * @example formatPercentage(99.5) => ">99%"
- * @example formatPercentage(0.5) => "<1%"
- * @example formatPercentage(-2.75) => "-3%"
- * @example formatPercentage(-99.5) => "-100%"
+ * @returns Format: "+X.XX%" or "-X.XX%" (always shows sign, 2 decimals)
+ * @example formatPercentage(5.25) => "+5.25%"
+ * @example formatPercentage(-2.75) => "-2.75%"
  * @example formatPercentage(0) => "0%"
+ * @example formatPercentage(100) => "+100%"
  */
 export const formatPercentage = (value: string | number): string => {
   const num = typeof value === 'string' ? parseFloat(value) : value;
 
   if (isNaN(num)) {
-    return '0%';
+    return '0.00%';
   }
 
-  // Handle special cases for positive numbers only
-  if (num >= 99) {
-    return '>99%';
+  const sign = num >= 0 ? '+' : '';
+  const absoluteValue = Math.abs(num);
+
+  // If the number is a whole number (no decimal places), don't show .00
+  if (absoluteValue === Math.floor(absoluteValue)) {
+    if (num === 0) {
+      return '0%';
+    }
+    return `${sign}${num}%`;
   }
 
-  if (num > 0 && num < 1) {
-    return '<1%';
-  }
-
-  // Round to nearest integer
-  return `${Math.round(num)}%`;
+  return `${sign}${num.toFixed(2)}%`;
 };
 
 /**
- * Formats a price value as USD currency with exactly 2 decimal places (truncated, no rounding)
+ * Formats a price value as USD currency with variable decimal places based on magnitude
  * @param price - Raw numeric price value
- * @param options - Optional formatting options (kept for backwards compatibility, but not used)
- * @returns USD formatted string with exactly 2 decimals (truncated, not rounded)
- * @example formatPrice(1234.5678) => "$1,234.56"
- * @example formatPrice(0.1234) => "$0.12"
- * @example formatPrice(50000) => "$50,000.00"
- * @example formatPrice(1234.999) => "$1,234.99" (truncated, not rounded to $1,235.00)
+ * @param options - Optional formatting options
+ * @param options.minimumDecimals - Minimum decimal places (default: 2, use 0 for whole numbers)
+ * @param options.maximumDecimals - Maximum decimal places (default: 2 for prices >= $1000, 4 for prices < $1000)
+ * @returns USD formatted string with variable decimals:
+ * - Prices >= $1000: "$X,XXX.XX" (2 decimals by default)
+ * - Prices < $1000: "$X.XXXX" (up to 4 decimals)
+ * @example formatPrice(1234.5678) => "$1,234.57"
+ * @example formatPrice(0.1234) => "$0.1234"
+ * @example formatPrice(50000, { minimumDecimals: 0 }) => "$50,000"
  */
 export const formatPrice = (
   price: string | number,
-  _options?: { minimumDecimals?: number; maximumDecimals?: number },
+  options?: { minimumDecimals?: number; maximumDecimals?: number },
 ): string => {
   const num = typeof price === 'string' ? parseFloat(price) : price;
+  const minDecimals = options?.minimumDecimals ?? 2;
+  const maxDecimals = options?.maximumDecimals ?? 4;
 
   if (isNaN(num)) {
-    return '$0.00';
+    return minDecimals === 0 ? '$0' : '$0.00';
   }
 
-  // Truncate to 2 decimal places (no rounding)
-  const truncated = Math.floor(num * 100) / 100;
+  // For prices >= 1000, use specified minimum decimal places
+  if (num >= 1000) {
+    return formatWithThreshold(num, 1000, 'en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: minDecimals,
+      maximumFractionDigits:
+        options?.maximumDecimals ?? Math.max(minDecimals, 2),
+    });
+  }
 
-  // Format with exactly 2 decimal places
-  return new Intl.NumberFormat('en-US', {
+  // For prices < 1000, use up to 4 decimal places
+  return formatWithThreshold(num, 0.0001, 'en-US', {
     style: 'currency',
     currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(truncated);
-};
-
-/**
- * Calculates the net amount after deducting bridge and network fees from the total fiat amount
- * @param params - Object containing fee and total amount information
- * @param params.totalFiat - Total fiat amount as string
- * @param params.bridgeFeeFiat - Bridge fee amount as string
- * @param params.networkFeeFiat - Network fee amount as string
- * @returns Net amount as string after deducting fees, or "0" if calculation fails
- * @example
- * calculateNetAmount({
- *   totalFiat: "1.04361142938843253220839271649743403",
- *   bridgeFeeFiat: "0.036399",
- *   networkFeeFiat: "0.008024478270232503211154803918368"
- * }) => "0.999187951118199"
- */
-export const calculateNetAmount = (params: {
-  totalFiat?: string;
-  bridgeFeeFiat?: string;
-  networkFeeFiat?: string;
-}): string => {
-  const { totalFiat, bridgeFeeFiat, networkFeeFiat } = params;
-
-  // totalFiat is required - return "0" if missing or invalid
-  if (!totalFiat) {
-    return '0';
-  }
-
-  const total = parseFloat(totalFiat);
-  if (isNaN(total)) {
-    return '0';
-  }
-
-  // Treat missing fees as 0, but validate they are numbers if provided
-  const bridgeFee = bridgeFeeFiat ? parseFloat(bridgeFeeFiat) : 0;
-  const networkFee = networkFeeFiat ? parseFloat(networkFeeFiat) : 0;
-
-  // Return "0" if any provided fee is invalid
-  if (isNaN(bridgeFee) || isNaN(networkFee)) {
-    return '0';
-  }
-
-  // Calculate net amount: totalFiat - bridgeFee - networkFee
-  const netAmount = total - bridgeFee - networkFee;
-
-  // Ensure we don't return negative amounts
-  return netAmount > 0 ? netAmount.toString() : '0';
+    minimumFractionDigits: minDecimals,
+    maximumFractionDigits: maxDecimals,
+  });
 };
 
 /**
@@ -190,19 +153,10 @@ export const formatCents = (dollars: string | number): string => {
     return '0¢';
   }
 
-  // Convert dollars to cents (multiply by 100)
-  const cents = num * 100;
+  // Convert dollars to cents (multiply by 100) and round to whole cents
+  const cents = Math.round(num * 100);
 
-  // Round to 1 decimal precision to check if decimals are needed
-  const roundedCents = Number(cents.toFixed(1));
-
-  // If it's a whole number, don't show decimals
-  if (roundedCents === Math.floor(roundedCents)) {
-    return `${Math.floor(roundedCents)}¢`;
-  }
-
-  // Otherwise, show decimals up to 1 decimal place
-  return `${cents.toFixed(1)}¢`;
+  return `${cents}¢`;
 };
 
 /**
@@ -216,10 +170,7 @@ export const formatCents = (dollars: string | number): string => {
  * @example formatPositionSize(0.5678) => "0.5678"
  * @example formatPositionSize(123.456) => "123.46"
  */
-export const formatPositionSize = (
-  size: string | number,
-  options?: { minimumDecimals?: number; maximumDecimals?: number },
-): string => {
+export const formatPositionSize = (size: string | number): string => {
   const num = typeof size === 'string' ? parseFloat(size) : size;
 
   if (isNaN(num)) {
@@ -227,22 +178,19 @@ export const formatPositionSize = (
   }
 
   const abs = Math.abs(num);
-  const minimumDecimals = options?.minimumDecimals ?? 2;
-  const maximumDecimals = options?.maximumDecimals ?? 4;
 
-  // Determine appropriate decimal places based on size
-  const decimals = abs < 1 ? maximumDecimals : minimumDecimals;
-
-  // Round to the target precision to check if decimals are needed
-  const rounded = Number(num.toFixed(decimals));
-
-  // If it's a whole number, don't show decimals
-  if (rounded === Math.floor(rounded)) {
-    return Math.floor(rounded).toString();
+  // For very small numbers, use more decimal places
+  if (abs < 0.01) {
+    return num.toFixed(6);
   }
 
-  // Otherwise, show decimals up to the determined precision
-  return num.toFixed(decimals);
+  // For small numbers, use 4 decimal places
+  if (abs < 1) {
+    return num.toFixed(4);
+  }
+
+  // For normal numbers, use 2 decimal places
+  return num.toFixed(2);
 };
 
 export const formatCurrencyValue = (

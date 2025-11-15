@@ -404,7 +404,7 @@ const ManualBackupStep2 = ({
             >
               <Text
                 variant={TextVariant.BodyMDMedium}
-                color={isUsed ? TextColor.Alternative : TextColor.Primary}
+                color={isUsed ? TextColor.Default : TextColor.Primary}
                 testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM_MISSING}-${i}`}
                 adjustsFontSizeToFit
                 allowFontScaling

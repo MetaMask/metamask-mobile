@@ -422,7 +422,11 @@ const NetworkManager = () => {
             shouldNavigateBack={false}
           >
             <BottomSheetHeader>
-              {`${strings('app_settings.delete')} ${showConfirmDeleteModal.networkName} ${strings('asset_details.network')}`}
+              <Text variant={TextVariant.HeadingMD}>
+                {strings('app_settings.delete')}{' '}
+                {showConfirmDeleteModal.networkName}{' '}
+                {strings('asset_details.network')}
+              </Text>
             </BottomSheetHeader>
             <View style={styles.containerDeleteText}>
               <Text style={styles.textCentred}>

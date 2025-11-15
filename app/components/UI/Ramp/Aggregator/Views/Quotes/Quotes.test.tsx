@@ -232,9 +232,9 @@ describe('Quotes', () => {
 
   it('navigates and tracks event on cancel button press', async () => {
     render(Quotes);
-    fireEvent.press(screen.getByTestId('deposit-close-navbar-button'));
+    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
     expect(mockPop).toHaveBeenCalled();
-    expect(mockTrackEvent).toHaveBeenCalledWith('ONRAMP_CANCELED', {
+    expect(mockTrackEvent).toBeCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '1',
       location: 'Quotes Screen',
       results_count:
@@ -251,8 +251,8 @@ describe('Quotes', () => {
     mockUseRampSDKValues.isSell = true;
     mockUseRampSDKValues.isBuy = false;
     render(Quotes);
-    fireEvent.press(screen.getByTestId('deposit-close-navbar-button'));
-    expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_CANCELED', {
+    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
+    expect(mockTrackEvent).toBeCalledWith('OFFRAMP_CANCELED', {
       chain_id_source: '1',
       location: 'Quotes Screen',
       results_count:
@@ -604,12 +604,12 @@ describe('Quotes', () => {
       };
       await simulateCustomActionCtaPress();
 
-      expect(createWidgetMock).toHaveBeenCalledWith(
+      expect(createWidgetMock).toBeCalledWith(
         mockUseRampSDKValues.callbackBaseUrl,
       );
 
       expect(mockNavigate).toBeCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.CHECKOUT, {
+      expect(mockNavigate).toBeCalledWith(Routes.RAMP.CHECKOUT, {
         provider: mockCustomAction.buy.provider,
         customOrderId: 'test-order-id',
         url: 'https://test-url.on-ramp.metamask',
@@ -630,7 +630,7 @@ describe('Quotes', () => {
 
       await simulateCustomActionCtaPress();
 
-      expect(mockRenderInAppBrowser).toHaveBeenCalledWith(
+      expect(mockRenderInAppBrowser).toBeCalledWith(
         mockedBuyAction,
         mockCustomAction.buy.provider,
         50,
@@ -646,7 +646,7 @@ describe('Quotes', () => {
       ProviderBuyFeatureBrowserEnum.AppBrowser,
     );
     expect(mockNavigate).toBeCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.CHECKOUT, {
+    expect(mockNavigate).toBeCalledWith(Routes.RAMP.CHECKOUT, {
       provider: mockedRecommendedQuote.provider,
       customOrderId: 'test-order-id',
       url: 'https://test-url.on-ramp.metamask',
@@ -720,7 +720,7 @@ describe('Quotes', () => {
         ProviderBuyFeatureBrowserEnum.InAppOsBrowser,
       );
 
-    expect(mockRenderInAppBrowser).toHaveBeenCalledWith(
+    expect(mockRenderInAppBrowser).toBeCalledWith(
       mockedBuyAction,
       mockedRecommendedQuote.provider,
       mockedRecommendedQuote.amountIn,

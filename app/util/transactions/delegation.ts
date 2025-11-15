@@ -1,274 +1,207 @@
-import {
-  AuthorizationList,
-  TransactionMeta,
-} from '@metamask/transaction-controller';
-import {
-  BATCH_DEFAULT_MODE,
-  Caveat,
-  DeleGatorEnvironment,
-  ExecutionMode,
-  ExecutionStruct,
-  SINGLE_DEFAULT_MODE,
-  createCaveatBuilder,
-  getDeleGatorEnvironment,
-} from '../../core/Delegation';
-import {
-  ANY_BENEFICIARY,
-  Delegation,
-  UnsignedDelegation,
-  createDelegation,
-  encodeRedeemDelegations,
-} from '../../core/Delegation/delegation';
-import { Hex, add0x, createProjectLogger } from '@metamask/utils';
-import { limitedCalls } from '../../core/Delegation/caveatBuilder/limitedCallsBuilder';
-import { Messenger } from '@metamask/messenger';
-import { DelegationControllerSignDelegationAction } from '@metamask/delegation-controller';
-import { KeyringControllerSignEip7702AuthorizationAction } from '@metamask/keyring-controller';
-import { toHex } from '@metamask/controller-utils';
-import Engine from '../../core/Engine';
-import { exactExecutionBatch } from '../../core/Delegation/caveatBuilder/exactExecutionBatchBuilder';
-import { exactExecution } from '../../core/Delegation/caveatBuilder/exactExecutionBuilder';
+import { MessageParamsTypedData } from '@metamask/signature-controller';
+import { Hex, hexToNumber } from '@metamask/utils';
+import { SignTypedDataVersion } from '@metamask/keyring-controller';
+import { Interface, ParamType, defaultAbiCoder } from '@ethersproject/abi';
+import { TransactionControllerInitMessenger } from '../../core/Engine/messengers/transaction-controller-messenger';
+import AppConstants from '../../core/AppConstants';
 
-const log = createProjectLogger('transaction-delegation');
+export interface Caveat {
+  enforcer: Hex;
+  terms: Hex;
+  args: Hex;
+}
 
-export type SignMessenger = Messenger<
-  string,
-  | DelegationControllerSignDelegationAction
-  | KeyringControllerSignEip7702AuthorizationAction,
-  never
->;
+export interface UnsignedDelegation {
+  delegate: Hex;
+  delegator: Hex;
+  authority: Hex;
+  caveats: Caveat[];
+  salt: number;
+}
 
-export interface DelegationTransaction {
-  authorizationList?: AuthorizationList;
-  data: Hex;
-  to: Hex;
+export interface Delegation extends UnsignedDelegation {
+  signature: Hex;
+}
+
+export interface Execution {
+  target: Hex;
   value: Hex;
+  callData: Hex;
 }
 
-export async function getDelegationTransaction<
-  MessengerType extends SignMessenger,
->(
-  messenger: MessengerType,
-  transaction: TransactionMeta,
-): Promise<DelegationTransaction> {
-  const { chainId } = transaction;
-  const delegationEnvironment = getDeleGatorEnvironment(parseInt(chainId, 16));
-
-  const delegationManagerAddress =
-    delegationEnvironment.DelegationManager as Hex;
-
-  const delegations = await buildDelegation(
-    delegationEnvironment,
-    transaction,
-    messenger,
-  );
-
-  const executions = buildExecutions(transaction);
-
-  const modes: ExecutionMode[] = [
-    executions[0].length > 1 ? BATCH_DEFAULT_MODE : SINGLE_DEFAULT_MODE,
-  ];
-
-  log('Built delegations', { delegations, modes, executions });
-
-  const transactionData = encodeRedeemDelegations({
-    delegations,
-    modes,
-    executions,
-  });
-
-  const authorizationList = await buildAuthorizationList(
-    transaction,
-    messenger,
-  );
-
-  return {
-    authorizationList,
-    data: transactionData,
-    to: delegationManagerAddress,
-    value: '0x0',
-  };
+export enum ExecutionMode {
+  BATCH_DEFAULT_MODE = '0x0100000000000000000000000000000000000000000000000000000000000000',
 }
 
-async function buildAuthorizationList<MessengerType extends SignMessenger>(
-  transactionMeta: TransactionMeta,
-  messenger: MessengerType,
-): Promise<AuthorizationList | undefined> {
-  const { TransactionController } = Engine.context;
+export const ROOT_AUTHORITY =
+  '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
 
-  const { chainId, delegationAddress, networkClientId, txParams } =
-    transactionMeta;
+export const ANY_BENEFICIARY = '0x0000000000000000000000000000000000000a11';
 
-  const { from } = txParams;
+const PRIMARY_TYPE_DELEGATION = 'Delegation';
+const DOMAIN_NAME = 'DelegationManager';
 
-  if (delegationAddress) {
-    log('Skipping authorization list as already upgraded');
-    return undefined;
-  }
+const ABI_TYPES_CAVEAT = [
+  { type: 'address', name: 'enforcer' },
+  { type: 'bytes', name: 'terms' },
+  { type: 'bytes', name: 'args' },
+];
 
-  log('Including authorization as not upgraded');
+const ABI_TYPES_DELEGATION = [
+  { type: 'address', name: 'delegate' },
+  { type: 'address', name: 'delegator' },
+  { type: 'bytes32', name: 'authority' },
+  { type: 'tuple[]', name: 'caveats', components: ABI_TYPES_CAVEAT },
+  { type: 'uint256', name: 'salt' },
+  { type: 'bytes', name: 'signature' },
+];
 
-  const atomicBatchResult = await TransactionController.isAtomicBatchSupported({
-    address: from as Hex,
-    chainIds: [chainId],
-  });
+const ABI_TYPES_EXECUTION = [
+  { type: 'address', name: 'target' },
+  { type: 'uint256', name: 'value' },
+  { type: 'bytes', name: 'callData' },
+];
 
-  const upgradeContractAddress = atomicBatchResult.find(
-    (r) => r.chainId.toLowerCase() === chainId.toLowerCase(),
-  )?.upgradeContractAddress;
-
-  if (!upgradeContractAddress) {
-    throw new Error('Upgrade contract address not found');
-  }
-
-  const nonceLock = await TransactionController.getNonceLock(
-    from,
-    networkClientId,
-  );
-
-  const nonce = nonceLock.nextNonce;
-  nonceLock.releaseLock();
-
-  const authorizationSignature = (await messenger.call(
-    'KeyringController:signEip7702Authorization',
-    {
-      chainId: parseInt(chainId, 16),
-      contractAddress: upgradeContractAddress,
-      from,
-      nonce,
-    },
-  )) as Hex;
-
-  const { r, s, yParity } = decodeAuthorizationSignature(
-    authorizationSignature,
-  );
-
-  log('Authorization signature', {
-    authorizationSignature,
-    r,
-    s,
-    yParity,
-    nonce,
-  });
-
-  return [
-    {
-      address: upgradeContractAddress,
-      chainId,
-      nonce: toHex(nonce),
-      r,
-      s,
-      yParity,
-    },
-  ];
-}
-
-async function buildDelegation<MessengerType extends SignMessenger>(
-  delegationEnvironment: DeleGatorEnvironment,
-  transactionMeta: TransactionMeta,
-  messenger: MessengerType,
-): Promise<Delegation[][]> {
-  const unsignedDelegation = buildUnsignedDelegation(
-    delegationEnvironment,
-    transactionMeta,
-  );
-
-  log('Signing delegation');
-
-  const delegationSignature = (await messenger.call(
-    'DelegationController:signDelegation',
-    {
-      chainId: transactionMeta.chainId,
-      delegation: unsignedDelegation,
-    },
-  )) as Hex;
-
-  log('Delegation signature', delegationSignature);
-
-  const delegations: Delegation[][] = [
-    [
+const ABI_REDEEM_DELEGATIONS = [
+  {
+    type: 'function',
+    name: 'redeemDelegations',
+    inputs: [
       {
-        ...unsignedDelegation,
-
-        signature: delegationSignature,
+        name: '_permissionContexts',
+        type: 'bytes[]',
+        internalType: 'bytes[]',
+      },
+      {
+        name: '_modes',
+        type: 'bytes32[]',
+        internalType: 'ModeCode[]',
+      },
+      {
+        name: '_executionCallDatas',
+        type: 'bytes[]',
+        internalType: 'bytes[]',
       },
     ],
-  ];
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+];
 
-  return delegations;
-}
+const TYPES_EIP_712_DOMAIN = [
+  { name: 'name', type: 'string' },
+  { name: 'version', type: 'string' },
+  { name: 'chainId', type: 'uint256' },
+  { name: 'verifyingContract', type: 'address' },
+];
 
-function buildExecutions(
-  transactionMeta: TransactionMeta,
-): ExecutionStruct[][] {
-  const { nestedTransactions } = transactionMeta;
+const TYPES_DELEGATION = {
+  EIP712Domain: TYPES_EIP_712_DOMAIN,
+  Caveat: [
+    { name: 'enforcer', type: 'address' },
+    { name: 'terms', type: 'bytes' },
+  ],
+  Delegation: [
+    { name: 'delegate', type: 'address' },
+    { name: 'delegator', type: 'address' },
+    { name: 'authority', type: 'bytes32' },
+    { name: 'caveats', type: 'Caveat[]' },
+    { name: 'salt', type: 'uint256' },
+  ],
+};
 
-  return [
-    (nestedTransactions ?? []).map((tx) => ({
-      target: tx.to as Hex,
-      value: BigInt(tx.value ?? '0x0'),
-      callData: tx.data as Hex,
-    })),
-  ];
-}
-
-function buildUnsignedDelegation(
-  environment: DeleGatorEnvironment,
-  transactionMeta: TransactionMeta,
-): UnsignedDelegation {
-  const caveats = buildCaveats(environment, transactionMeta);
-
-  log('Caveats', caveats);
-
-  const delegation = createDelegation({
-    from: transactionMeta.txParams.from as Hex,
-    to: ANY_BENEFICIARY,
-    caveats,
-  });
-
-  log('Delegation', delegation);
-
-  return delegation;
-}
-
-function buildCaveats(
-  environment: DeleGatorEnvironment,
-  transaction: TransactionMeta,
-): Caveat[] {
-  const caveatBuilder = createCaveatBuilder(environment);
-  const { nestedTransactions } = transaction;
-
-  const executions = (transaction.nestedTransactions ?? []).map((tx) => ({
-    to: tx.to as string,
-    value: tx.value ?? '0x0',
-    data: tx.data as string | undefined,
-  }));
-
-  if ((nestedTransactions ?? []).length > 1) {
-    caveatBuilder.addCaveat(exactExecutionBatch, executions);
-  } else {
-    caveatBuilder.addCaveat(
-      exactExecution,
-      executions[0].to,
-      executions[0].value,
-      executions[0].data,
-    );
-  }
-
-  caveatBuilder.addCaveat(limitedCalls, 1);
-
-  return caveatBuilder.build();
-}
-
-function decodeAuthorizationSignature(signature: Hex) {
-  const r = signature.slice(0, 66) as Hex;
-  const s = add0x(signature.slice(66, 130));
-  const v = parseInt(signature.slice(130, 132), 16);
-  const yParity = toHex(v - 27 === 0 ? 0 : 1);
-
-  return {
-    r,
-    s,
-    yParity,
+export async function signDelegation({
+  chainId,
+  delegation,
+  from,
+  messenger,
+}: {
+  chainId: Hex;
+  delegation: UnsignedDelegation;
+  from: Hex;
+  messenger: TransactionControllerInitMessenger;
+}): Promise<Hex> {
+  const data: MessageParamsTypedData = {
+    types: TYPES_DELEGATION,
+    primaryType: PRIMARY_TYPE_DELEGATION,
+    domain: {
+      chainId: String(hexToNumber(chainId)),
+      name: DOMAIN_NAME,
+      version: '1',
+      verifyingContract: AppConstants.DELEGATION_MANAGER_ADDRESS as Hex,
+    },
+    message: {
+      delegate: delegation.delegate.toString(),
+      delegator: delegation.delegator.toString(),
+      authority: delegation.authority.toString(),
+      caveats: delegation.caveats.map((caveat) => ({
+        enforcer: caveat.enforcer.toString(),
+        terms: caveat.terms.toString(),
+        args: caveat.args.toString(),
+      })),
+      salt: delegation.salt,
+      chainId: hexToNumber(chainId),
+    },
   };
+
+  return (await messenger.call(
+    'KeyringController:signTypedMessage',
+    {
+      from,
+      data,
+    },
+    SignTypedDataVersion.V4,
+  )) as Hex;
+}
+
+export function encodeRedeemDelegations(
+  delegations: Delegation[][],
+  modes: ExecutionMode[],
+  executions: Execution[][],
+): Hex {
+  const redeemDelegationsInterface = new Interface(ABI_REDEEM_DELEGATIONS);
+
+  return redeemDelegationsInterface.encodeFunctionData('redeemDelegations', [
+    encodePermissionContexts(delegations),
+    modes,
+    encodeExecutionCalldatas(executions),
+  ]) as Hex;
+}
+
+function encodePermissionContexts(permissionContexts: Delegation[][]) {
+  const encodedDelegations = permissionContexts.map((delegationChain) =>
+    encodeDelegation(delegationChain),
+  );
+
+  return encodedDelegations;
+}
+
+function encodeExecutionCalldatas(executionsBatch: Execution[][]): Hex[] {
+  return executionsBatch.map(encodeBatchExecution);
+}
+
+function encodeBatchExecution(executions: Execution[]): Hex {
+  return defaultAbiCoder.encode(
+    [
+      ParamType.from({
+        components: ABI_TYPES_EXECUTION,
+        name: 'executions',
+        type: 'tuple[]',
+      }),
+    ],
+    [executions],
+  ) as Hex;
+}
+
+function encodeDelegation(delegations: Delegation[]): Hex {
+  return defaultAbiCoder.encode(
+    [
+      ParamType.from({
+        components: ABI_TYPES_DELEGATION,
+        name: 'delegations',
+        type: 'tuple[]',
+      }),
+    ],
+    [delegations],
+  ) as Hex;
 }

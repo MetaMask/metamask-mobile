@@ -52,7 +52,7 @@ import BadgeWrapper, {
 import BadgeNetwork from '../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
-import { getDepositNavbarOptions } from '../../../../Navbar';
+import { getFiatOnRampAggNavbar } from '../../../../Navbar';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   createNavigationDetails,
@@ -100,7 +100,6 @@ import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { createUnsupportedRegionModalNavigationDetails } from '../../components/UnsupportedRegionModal';
 import { regex } from '../../../../../../util/regex';
-import { createBuySettingsModalNavigationDetails } from '../Modals/Settings/SettingsModal';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -116,8 +115,10 @@ export const createBuildQuoteNavDetails =
 const BuildQuote = () => {
   const navigation = useNavigation();
   const params = useParams<BuildQuoteParams>();
-  const { styles, theme } = useStyles(styleSheet, {});
-  const { colors, themeAppearance } = theme;
+  const {
+    styles,
+    theme: { colors, themeAppearance },
+  } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
   const [amountFocused, setAmountFocused] = useState(false);
   const [amount, setAmount] = useState('0');
@@ -418,34 +419,22 @@ const BuildQuote = () => {
     }
   }, [screenLocation, isBuy, selectedAsset?.network?.chainId, trackEvent]);
 
-  const handleConfigurationPress = useCallback(() => {
-    navigation.navigate(...createBuySettingsModalNavigationDetails());
-  }, [navigation]);
-
   useEffect(() => {
     navigation.setOptions(
-      getDepositNavbarOptions(
+      getFiatOnRampAggNavbar(
         navigation,
         {
           title: isBuy
             ? strings('fiat_on_ramp_aggregator.amount_to_buy')
             : strings('fiat_on_ramp_aggregator.amount_to_sell'),
           showBack: params.showBack,
-          showConfiguration: isBuy,
-          onConfigurationPress: handleConfigurationPress,
+          showNetwork: false,
         },
-        theme,
+        colors,
         handleCancelPress,
       ),
     );
-  }, [
-    navigation,
-    theme,
-    handleCancelPress,
-    params.showBack,
-    isBuy,
-    handleConfigurationPress,
-  ]);
+  }, [navigation, colors, handleCancelPress, params.showBack, isBuy]);
 
   /**
    * * Keypad style, handlers and effects

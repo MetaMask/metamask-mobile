@@ -30,10 +30,7 @@ const isSent = (n: ERC1155Notification) =>
   n.type === TRIGGER_TYPES.ERC1155_SENT;
 
 const title = (n: ERC1155Notification) => {
-  const address = formatAddress(
-    isSent(n) ? n.payload.data.to : n.payload.data.from,
-    'short',
-  );
+  const address = formatAddress(isSent(n) ? n.data.to : n.data.from, 'short');
   return strings(`notifications.menu_item_title.${n.type}`, {
     address,
   });
@@ -52,14 +49,13 @@ const state: NotificationState<ERC1155Notification> = {
     title: title(notification),
 
     description: {
-      start: notification.payload.data.nft?.collection.name || '',
+      start: notification.data.nft?.collection.name || '',
       end:
-        notification.payload.data.nft?.token_id &&
-        `#${notification.payload.data.nft.token_id}`,
+        notification.data.nft?.token_id && `#${notification.data.nft.token_id}`,
     },
 
     image: {
-      url: notification.payload.data.nft?.image,
+      url: notification.data.nft?.image,
       variant: 'square',
     },
 
@@ -69,16 +65,15 @@ const state: NotificationState<ERC1155Notification> = {
   }),
   createModalDetails: (notification) => {
     const nativeTokenDetails = getNativeTokenDetailsByChainId(
-      notification.payload.chain_id,
+      notification.chain_id,
     );
 
-    const collectionField: ModalField[] = notification.payload.data.nft
-      ?.collection
+    const collectionField: ModalField[] = notification.data.nft?.collection
       ? [
           {
             type: ModalFieldType.NFT_COLLECTION_IMAGE,
-            collectionName: notification.payload.data.nft.collection.name,
-            collectionImageUrl: notification.payload.data.nft.collection.image,
+            collectionName: notification.data.nft.collection.name,
+            collectionImageUrl: notification.data.nft.collection.image,
             networkBadgeUrl: nativeTokenDetails?.image,
           },
         ]
@@ -88,23 +83,23 @@ const state: NotificationState<ERC1155Notification> = {
       createdAt: notification.createdAt.toString(),
       header: {
         type: ModalHeaderType.NFT_IMAGE,
-        nftImageUrl: notification.payload.data.nft?.image ?? '',
+        nftImageUrl: notification.data.nft?.image ?? '',
         networkBadgeUrl: nativeTokenDetails?.image,
       },
       fields: [
         {
           type: ModalFieldType.ADDRESS,
           label: label_address_from(notification),
-          address: notification.payload.data.from,
+          address: notification.data.from,
         },
         {
           type: ModalFieldType.ADDRESS,
           label: label_address_to(notification),
-          address: notification.payload.data.to,
+          address: notification.data.to,
         },
         {
           type: ModalFieldType.TRANSACTION,
-          txHash: notification.payload.tx_hash,
+          txHash: notification.tx_hash,
         },
         ...collectionField,
         {
@@ -115,8 +110,8 @@ const state: NotificationState<ERC1155Notification> = {
       ],
       footer: {
         type: ModalFooterType.BLOCK_EXPLORER,
-        chainId: notification.payload.chain_id,
-        txHash: notification.payload.tx_hash,
+        chainId: notification.chain_id,
+        txHash: notification.tx_hash,
       },
     };
   },

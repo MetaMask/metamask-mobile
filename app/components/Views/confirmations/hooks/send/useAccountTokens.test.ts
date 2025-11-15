@@ -526,49 +526,5 @@ describe('useAccountTokens', () => {
       expect(result.current).toEqual([]);
       expect(mockIsTestNet).toHaveBeenCalledWith('0x5');
     });
-
-    it('includes all assets when includeNoBalance is true', () => {
-      const assets = {
-        '0x1': [
-          {
-            chainId: '0x1',
-            accountType: 'eip155:1/erc20:0xtoken1',
-            fiat: { balance: '0' },
-            rawBalance: '0x0',
-            symbol: 'TOKEN1',
-          },
-          {
-            chainId: '0x1',
-            accountType: 'eip155:1/erc20:0xtoken2',
-            fiat: { balance: null },
-            rawBalance: '0x0',
-            symbol: 'TOKEN2',
-          },
-        ],
-      };
-
-      mockSelectAssetsBySelectedAccountGroup.mockReturnValue(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        assets as any,
-      );
-
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectAssetsBySelectedAccountGroup) {
-          return assets;
-        }
-        if (selector === selectCurrentCurrency) {
-          return 'USD';
-        }
-        return undefined;
-      });
-
-      const { result } = renderHook(() =>
-        useAccountTokens({ includeNoBalance: true }),
-      );
-
-      expect(result.current).toHaveLength(2);
-      expect(result.current[0].symbol).toBe('TOKEN1');
-      expect(result.current[1].symbol).toBe('TOKEN2');
-    });
   });
 });

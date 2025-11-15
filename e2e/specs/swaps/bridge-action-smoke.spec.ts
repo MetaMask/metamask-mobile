@@ -1,5 +1,5 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { LocalNode, LocalNodeType } from '../../framework/types';
+import { LocalNodeType } from '../../framework/types';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import QuoteView from '../../pages/swaps/QuoteView';
@@ -12,8 +12,6 @@ import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
 import { testSpecificMock } from './helpers/bridge-mocks';
 import SoftAssert from '../../framework/SoftAssert';
-import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../seeder/anvil-manager';
 
 enum eventsToCheck {
   BRIDGE_BUTTON_CLICKED = 'Bridge Button Clicked',
@@ -41,29 +39,13 @@ describe(SmokeTrade('Bridge functionality'), () => {
 
     await withFixtures(
       {
-        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
-          const node = localNodes?.[0] as unknown as AnvilManager;
-          const rpcPort =
-            node instanceof AnvilManager
-              ? (node.getPort() ?? AnvilPort())
-              : undefined;
-
-          return new FixtureBuilder()
-            .withNetworkController({
-              providerConfig: {
-                chainId,
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Localhost',
-                ticker: 'ETH',
-              },
-            })
-            .withDisabledSmartTransactions()
-            .build();
-        },
+        fixture: new FixtureBuilder()
+          .withGanacheNetwork(chainId)
+          .withDisabledSmartTransactions()
+          .build(),
         localNodeOptions: [
           {
-            type: LocalNodeType.anvil,
+            type: LocalNodeType.ganache,
             options: {
               chainId: 1,
             },

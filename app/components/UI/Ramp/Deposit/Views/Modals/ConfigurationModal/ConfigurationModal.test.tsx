@@ -7,7 +7,6 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { TRANSAK_SUPPORT_URL } from '../../../constants/constants';
 import { ToastContext } from '../../../../../../../component-library/components/Toast';
-import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils';
 
 const mockShowToast = jest.fn();
 const mockToastRef = {
@@ -46,16 +45,12 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockClearAuthToken = jest.fn();
-const mockTrackEvent = jest.fn();
-
-jest.mock('../../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
     ...actualReactNavigation,
     useNavigation: () => ({
-      ...actualReactNavigation.useNavigation(),
       navigate: mockNavigate,
       goBack: mockGoBack,
       setOptions: mockSetNavigationOptions.mockImplementation(
@@ -99,7 +94,6 @@ describe('ConfigurationModal', () => {
     mockUseDepositSDK.mockReturnValue({
       logoutFromProvider: mockClearAuthToken,
       isAuthenticated: false,
-      selectedRegion: { isoCode: 'us' },
     });
   });
 
@@ -118,13 +112,6 @@ describe('ConfigurationModal', () => {
     });
   });
 
-  it('navigates to aggregator when more ways to buy is pressed', () => {
-    const { getByText } = renderWithProvider(ConfigurationModal);
-    const moreWaysToBuyButton = getByText('More ways to buy');
-    fireEvent.press(moreWaysToBuyButton);
-    expect(mockNavigate).toHaveBeenCalledWith(...createBuyNavigationDetails());
-  });
-
   it('should open support URL when contact support is pressed', () => {
     const { getByText } = renderWithProvider(ConfigurationModal);
     const contactSupportButton = getByText('Contact support');
@@ -132,35 +119,23 @@ describe('ConfigurationModal', () => {
     expect(Linking.openURL).toHaveBeenCalledWith(TRANSAK_SUPPORT_URL);
   });
 
-  it('tracks event when more ways to buy is pressed', () => {
-    const { getByText } = renderWithProvider(ConfigurationModal);
-    const moreWaysToBuyButton = getByText('More ways to buy');
-    fireEvent.press(moreWaysToBuyButton);
-    expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_BUTTON_CLICKED', {
-      location: 'Deposit Settings Modal',
-      ramp_type: 'BUY',
-      region: 'us',
-    });
-  });
-
   describe('when user is authenticated', () => {
     beforeEach(() => {
       mockUseDepositSDK.mockReturnValue({
         logoutFromProvider: mockClearAuthToken,
         isAuthenticated: true,
-        selectedRegion: { isoCode: 'us' },
       });
     });
 
     it('should display logout option', () => {
       const { getByText } = renderWithProvider(ConfigurationModal);
-      expect(getByText('Log out of Transak')).toBeTruthy();
+      expect(getByText('Log out')).toBeTruthy();
     });
 
     it('should clear auth token and show success toast when logout is successful', async () => {
       mockClearAuthToken.mockResolvedValue(undefined);
       const { getByText } = renderWithProvider(ConfigurationModal);
-      const logoutButton = getByText('Log out of Transak');
+      const logoutButton = getByText('Log out');
       fireEvent.press(logoutButton);
 
       expect(mockClearAuthToken).toHaveBeenCalled();
@@ -180,7 +155,7 @@ describe('ConfigurationModal', () => {
       const mockError = new Error('Logout failed');
       mockClearAuthToken.mockRejectedValue(mockError);
       const { getByText } = renderWithProvider(ConfigurationModal);
-      const logoutButton = getByText('Log out of Transak');
+      const logoutButton = getByText('Log out');
 
       fireEvent.press(logoutButton);
 

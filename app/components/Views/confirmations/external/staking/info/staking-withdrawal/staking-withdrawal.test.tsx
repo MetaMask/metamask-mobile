@@ -131,7 +131,7 @@ describe('StakingWithdrawal', () => {
     expect(getByText('Interacting with')).toBeDefined();
     expect(getByText('Network')).toBeDefined();
 
-    expect(getByText('Network fee')).toBeDefined();
+    expect(getByText('Network Fee')).toBeDefined();
 
     expect(mockGetNavbar).toHaveBeenCalled();
     expect(mockGetNavbar).toHaveBeenCalledWith({

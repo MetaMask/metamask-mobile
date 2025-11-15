@@ -126,44 +126,7 @@ const EarnInputView = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { attemptDepositTransaction } = usePoolStakedDeposit();
   const { getEarnToken } = useEarnTokens();
-
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const [resourceType, setResourceType] = useState<ResourceType>('energy');
-  const isTronNative =
-    token.ticker === 'TRX' && String(token.chainId).startsWith('tron:');
-  ///: END:ONLY_INCLUDE_IF
-
-  const earnTokenFromMap = getEarnToken(token);
-
-  const earnToken = React.useMemo(() => {
-    if (earnTokenFromMap) return earnTokenFromMap;
-
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
-    if (isTrxStakingEnabled && isTronNative) {
-      const experiences = [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }];
-      return {
-        ...token,
-        isETH: false,
-        balanceMinimalUnit: '0',
-        balanceFormatted: token.balance ?? '0',
-        balanceFiat: token.balanceFiat ?? '0',
-        tokenUsdExchangeRate: 0,
-        experiences,
-        experience: experiences[0],
-      } as EarnTokenDetails;
-    }
-    ///: END:ONLY_INCLUDE_IF
-
-    return undefined;
-  }, [
-    earnTokenFromMap,
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
-    isTrxStakingEnabled,
-    isTronNative,
-    token,
-    ///: END:ONLY_INCLUDE_IF
-  ]);
-
+  const earnToken = getEarnToken(token);
   const networkClientId = useSelector(selectNetworkClientId);
   const {
     isFiat,
@@ -195,6 +158,12 @@ const EarnInputView = () => {
     conversionRate,
     exchangeRate,
   });
+
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const [resourceType, setResourceType] = useState<ResourceType>('energy');
+  const isTronNative =
+    token.ticker === 'TRX' && String(token.chainId).startsWith('tron:');
+  ///: END:ONLY_INCLUDE_IF
 
   const { shouldLogStablecoinEvent, shouldLogStakingEvent } =
     useEarnAnalyticsEventLogging({
@@ -677,27 +646,26 @@ const EarnInputView = () => {
     // Call the original handler first
     handleCurrencySwitch();
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.EARN_INPUT_CURRENCY_SWITCH_CLICKED)
-        .addProperties({
-          selected_provider: EVENT_PROVIDERS.CONSENSYS,
-          text: 'Currency Switch Clicked',
-          location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
-          currency_type: !isFiat ? 'fiat' : 'native',
-          experience: earnToken?.experience?.type,
-          token_symbol: earnToken?.symbol,
-          chain_id: earnToken?.chainId ? toHex(earnToken.chainId) : undefined,
-        })
-        .build(),
-    );
+    if (shouldLogStablecoinEvent()) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.EARN_INPUT_CURRENCY_SWITCH_CLICKED)
+          .addProperties({
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            text: 'Currency Switch Clicked',
+            location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+            currency_type: !isFiat ? 'fiat' : 'native',
+            experience: earnToken?.experience?.type,
+          })
+          .build(),
+      );
+    }
   }, [
+    shouldLogStablecoinEvent,
     handleCurrencySwitch,
     trackEvent,
     createEventBuilder,
     isFiat,
     earnToken?.experience?.type,
-    earnToken?.symbol,
-    earnToken?.chainId,
   ]);
 
   const getButtonLabel = () => {
@@ -776,39 +744,16 @@ const EarnInputView = () => {
     : stakingNavBarEventOptions;
 
   useEffect(() => {
-    const isLending =
-      earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING;
-    const tokenLabel =
-      earnToken?.ticker ?? earnToken?.symbol ?? earnToken?.name ?? '';
-
-    const title = isLending
-      ? `${strings('earn.supply')} ${tokenLabel}`
-      : `${strings('stake.stake')} ${tokenLabel}`;
-
     navigation.setOptions(
       getStakingNavbar(
-        title,
+        strings('earn.deposit'),
         navigation,
         theme.colors,
         navBarOptions,
         navBarEventOptions,
-        ///: BEGIN:ONLY_INCLUDE_IF(tron)
-        earnToken,
-        ///: END:ONLY_INCLUDE_IF
       ),
     );
-  }, [
-    navigation,
-    token,
-    theme.colors,
-    navBarEventOptions,
-    navBarOptions,
-    earnToken?.experience?.type,
-    earnToken?.ticker,
-    earnToken?.symbol,
-    earnToken?.name,
-    earnToken,
-  ]);
+  }, [navigation, token, theme.colors, navBarEventOptions, navBarOptions]);
 
   useEffect(() => {
     calculateEstimatedAnnualRewards();

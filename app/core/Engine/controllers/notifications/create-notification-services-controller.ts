@@ -4,7 +4,6 @@ import {
   NotificationServicesControllerState,
   Controller as NotificationServicesController,
 } from '@metamask/notification-services-controller/notification-services';
-import I18n from '../../../../../locales/i18n';
 
 export const createNotificationServicesController = (props: {
   messenger: NotificationServicesControllerMessenger;
@@ -20,7 +19,6 @@ export const createNotificationServicesController = (props: {
         spaceId: process.env.FEATURES_ANNOUNCEMENTS_SPACE_ID ?? '',
         platformVersion: getVersion(),
       },
-      locale: () => I18n.locale,
     },
   });
   return notificationServicesController;

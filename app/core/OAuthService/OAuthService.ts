@@ -20,9 +20,6 @@ import {
 import { OAuthError, OAuthErrorType } from './error';
 import { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
 import { Platform } from 'react-native';
-import { MetaMetrics } from '../Analytics';
-import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
-import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 
 export interface MarketingOptInRequest {
   opt_in_status: boolean;
@@ -51,7 +48,6 @@ interface OAuthServiceLocalState {
   loginInProgress: boolean;
   oauthLoginSuccess: boolean;
   oauthLoginError: string | null;
-  userClickedRehydration?: boolean;
 }
 export class OAuthService {
   public localState: OAuthServiceLocalState;
@@ -144,44 +140,8 @@ export class OAuthService {
     }
   };
 
-  #trackSocialLoginFailure = ({
-    authConnection,
-    errorCategory,
-    error,
-  }: {
-    authConnection: AuthConnection;
-    errorCategory: 'provider_login' | 'get_auth_tokens' | 'seedless_auth';
-    error: unknown;
-  }) => {
-    const isUserCancelled =
-      error instanceof OAuthError &&
-      (error.code === OAuthErrorType.UserCancelled ||
-        error.code === OAuthErrorType.UserDismissed);
-
-    let userClickedRehydration: 'true' | 'false' | 'unknown' = 'unknown';
-    if (this.localState.userClickedRehydration !== undefined) {
-      userClickedRehydration = this.localState.userClickedRehydration
-        ? 'true'
-        : 'false';
-    }
-
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.SOCIAL_LOGIN_FAILED,
-      )
-        .addProperties({
-          account_type: `default_${authConnection}`,
-          is_rehydration: userClickedRehydration,
-          failure_type: isUserCancelled ? 'user_cancelled' : 'error',
-          error_category: errorCategory,
-        })
-        .build(),
-    );
-  };
-
   handleOAuthLogin = async (
     loginHandler: BaseLoginHandler,
-    userClickedRehydration: boolean,
   ): Promise<HandleOAuthLoginResult> => {
     const web3AuthNetwork = this.config.web3AuthNetwork;
 
@@ -191,7 +151,6 @@ export class OAuthService {
         OAuthErrorType.LoginInProgress,
       );
     }
-    this.updateLocalState({ userClickedRehydration });
     this.#dispatchLogin();
 
     try {
@@ -215,12 +174,6 @@ export class OAuthService {
         });
         endTrace({ name: TraceName.OnboardingOAuthProviderLoginError });
 
-        this.#trackSocialLoginFailure({
-          authConnection: loginHandler.authConnection,
-          errorCategory: 'provider_login',
-          error,
-        });
-
         throw error;
       } finally {
         endTrace({
@@ -243,9 +196,6 @@ export class OAuthService {
             { ...result, web3AuthNetwork },
             this.config.authServerUrl,
           );
-          if (!data.id_token) {
-            throw new OAuthError('No token found', OAuthErrorType.LoginError);
-          }
           getAuthTokensSuccess = true;
         } catch (error) {
           const errorMessage =
@@ -260,18 +210,16 @@ export class OAuthService {
             name: TraceName.OnboardingOAuthBYOAServerGetAuthTokensError,
           });
 
-          this.#trackSocialLoginFailure({
-            authConnection,
-            errorCategory: 'get_auth_tokens',
-            error,
-          });
-
           throw error;
         } finally {
           endTrace({
             name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
             data: { success: getAuthTokensSuccess },
           });
+        }
+
+        if (!data.id_token) {
+          throw new OAuthError('No token found', OAuthErrorType.LoginError);
         }
 
         const jwtPayload = JSON.parse(
@@ -307,12 +255,6 @@ export class OAuthService {
           });
           endTrace({
             name: TraceName.OnboardingOAuthSeedlessAuthenticateError,
-          });
-
-          this.#trackSocialLoginFailure({
-            authConnection,
-            errorCategory: 'seedless_auth',
-            error,
           });
 
           throw error;
