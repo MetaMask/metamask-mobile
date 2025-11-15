@@ -206,7 +206,7 @@ export default class AppInformation extends PureComponent {
       >
         <ScrollView contentContainerStyle={styles.wrapperContent}>
           <View style={styles.logoWrapper}>
-            <TouchableOpacity
+            {/* <TouchableOpacity
               delayLongPress={10 * 1000} // 10 seconds
               onLongPress={this.handleLongPressFox}
               activeOpacity={1}
@@ -216,7 +216,7 @@ export default class AppInformation extends PureComponent {
                 style={styles.image}
                 resizeMethod={'auto'}
               />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
             <Text style={styles.versionInfo}>
               {getFullVersion(this.state.appInfo)}
             </Text>
