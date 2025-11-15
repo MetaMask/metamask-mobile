@@ -3,7 +3,6 @@ import { ActivityIndicator, FlatList, FlatListProps, View } from 'react-native';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/NotificationsView.selectors';
 import {
   hasNotificationComponents,
@@ -22,11 +21,14 @@ import Empty from '../Empty';
 import { NotificationMenuItem } from '../NotificationMenuItem';
 import useStyles from './useStyles';
 import { NotificationMenuViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationMenuView.selectors';
+
+export const TEST_IDS = {
+  loadingContainer: 'notification-list-loading',
+};
+
 interface NotificationsListProps {
   navigation: NavigationProp<ParamListBase>;
   allNotifications: INotification[];
-  walletNotifications: INotification[];
-  web3Notifications: INotification[];
   loading: boolean;
 }
 
@@ -46,7 +48,7 @@ function Loading() {
   } = useStyles();
 
   return (
-    <View style={styles.loaderContainer}>
+    <View style={styles.loaderContainer} testID={TEST_IDS.loadingContainer}>
       <ActivityIndicator color={colors.primary.default} size="large" />
     </View>
   );
@@ -91,14 +93,6 @@ export function useNotificationOnClick(
           })
           .build(),
       );
-
-      NotificationsService.getBadgeCount().then((count) => {
-        if (count > 0) {
-          NotificationsService.decrementBadgeCount(1);
-        } else {
-          NotificationsService.setBadgeCount(0);
-        }
-      });
     },
     [createEventBuilder, markNotificationAsRead, trackEvent],
   );

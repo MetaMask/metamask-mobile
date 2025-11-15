@@ -80,7 +80,7 @@ describe('useGetDelegationSettings', () => {
   const mockCacheReturn = {
     data: null,
     isLoading: false,
-    error: false,
+    error: null,
     fetchData: mockFetchData,
   };
 
@@ -117,7 +117,7 @@ describe('useGetDelegationSettings', () => {
 
       expect(result.current.data).toBeNull();
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBe(false);
+      expect(result.current.error).toBe(null);
       expect(result.current.fetchData).toBe(mockFetchData);
     });
 
@@ -362,7 +362,7 @@ describe('useGetDelegationSettings', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: mockDelegationSettingsResponse,
         isLoading: false,
-        error: false,
+        error: null,
         fetchData: mockFetchData,
       });
 
@@ -375,7 +375,7 @@ describe('useGetDelegationSettings', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: true,
-        error: false,
+        error: null,
         fetchData: mockFetchData,
       });
 
@@ -388,13 +388,13 @@ describe('useGetDelegationSettings', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: false,
-        error: true,
+        error: new Error('Test error'),
         fetchData: mockFetchData,
       });
 
       const { result } = renderHook(() => useGetDelegationSettings());
 
-      expect(result.current.error).toBe(true);
+      expect(result.current.error).toBeInstanceOf(Error);
     });
 
     it('uses consistent cache key across renders', () => {
@@ -481,7 +481,7 @@ describe('useGetDelegationSettings', () => {
       const { result } = renderHook(() => useGetDelegationSettings());
 
       expect(typeof result.current.isLoading).toBe('boolean');
-      expect(typeof result.current.error).toBe('boolean');
+      expect(typeof result.current.error).toBe('object');
       expect(typeof result.current.fetchData).toBe('function');
     });
   });
