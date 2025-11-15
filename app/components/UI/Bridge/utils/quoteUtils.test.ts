@@ -33,6 +33,7 @@ describe('quoteUtils', () => {
           refreshRate: 3000,
         },
       },
+      chainRanking: [{ chainId: 'eip155:1' }, { chainId: 'eip155:137' }],
     };
 
     const mockBridgeToken: BridgeToken = {
