@@ -28,7 +28,7 @@ const CONFIG_MAP = {
     runtimeVersion: RUNTIME_VERSION,
     updatesEnabled: true,
     updateUrl: UPDATE_URL,
-    checkAutomatically: 'ALWAYS',
+    checkAutomatically: 'NEVER',
   },
 };
 
