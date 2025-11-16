@@ -290,8 +290,6 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
         ),
       );
 
-      // CRASH on load failure, don't allow migrations to run with incomplete data
-      // This could result in data loss if migrations can't access all controller state
       throw new Error(
         `Critical: Failed to load controller data for migration. ` +
           `Cannot continue safely as migrations may corrupt data without complete state. ` +
@@ -321,8 +319,6 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
         string,
         unknown,
       ][];
-      // Save all controller states to individual storage
-      // CRITICAL: If ANY controller fails to save, crash the app immediately
       await Promise.all(
         entries.map(async ([controllerName, controllerState]) => {
           try {
@@ -331,7 +327,6 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
               JSON.stringify(controllerState),
             );
           } catch (error) {
-            // Log the error for debugging
             captureException(
               new Error(
                 `deflateToControllersAndStrip: Failed to save ${controllerName} to individual storage: ${String(
@@ -340,8 +335,6 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
               ),
             );
 
-            // CRASH immediately, don't allow partial migration success
-            // This ensures clean recovery and prevents state corruption
             throw new Error(
               `Critical: Migration failed for controller '${controllerName}'. ` +
                 `Cannot continue with partial migration as this would corrupt user data. ` +
@@ -351,7 +344,6 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
         }),
       );
 
-      // All controllers saved successfully, safe to strip engine state
       const { engine: _engine, ...rest } = s;
       return rest as unknown;
     } catch (error) {
@@ -363,8 +355,6 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
         ),
       );
 
-      // CRASH on any deflation error, don't return original state
-      // Returning original state would mean user continues with unmigrated data
       throw new Error(
         `Critical: deflateToControllersAndStrip failed completely. ` +
           `Cannot continue safely as this indicates severe migration system failure. ` +
@@ -401,7 +391,6 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
           return migratedState;
         } catch (error) {
           console.error(' DEBUG: Migration error:', error);
-          // Set migration error flag in AsyncStorage
           try {
             await AsyncStorage.setItem(MIGRATION_ERROR_FLAG_KEY, 'true');
           } catch (storageError) {
