@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import TrendingTokensList from './TrendingTokensList';
 import type { TrendingAsset } from '@metamask/assets-controllers';
+import { TimeOption } from '../../TrendingTokensBottomSheet';
 
 // Mock FlashList
 jest.mock('@shopify/flash-list', () => {
@@ -34,7 +35,6 @@ jest.mock('@shopify/flash-list', () => {
 
 // Mock TrendingTokenRowItem
 jest.mock('./TrendingTokenRowItem/TrendingTokenRowItem', () => {
-  const React = jest.requireActual('react');
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -80,6 +80,7 @@ describe('TrendingTokensList', () => {
       <TrendingTokensList
         trendingTokens={[]}
         onTokenPress={mockOnTokenPress}
+        selectedTimeOption={TimeOption.TwentyFourHours}
       />,
     );
 
@@ -109,6 +110,7 @@ describe('TrendingTokensList', () => {
       <TrendingTokensList
         trendingTokens={tokens}
         onTokenPress={mockOnTokenPress}
+        selectedTimeOption={TimeOption.TwentyFourHours}
       />,
     );
 
@@ -129,6 +131,7 @@ describe('TrendingTokensList', () => {
       <TrendingTokensList
         trendingTokens={tokens}
         onTokenPress={mockOnTokenPress}
+        selectedTimeOption={TimeOption.TwentyFourHours}
       />,
     );
 
@@ -160,6 +163,7 @@ describe('TrendingTokensList', () => {
       <TrendingTokensList
         trendingTokens={tokens}
         onTokenPress={mockOnTokenPress}
+        selectedTimeOption={TimeOption.TwentyFourHours}
       />,
     );
 

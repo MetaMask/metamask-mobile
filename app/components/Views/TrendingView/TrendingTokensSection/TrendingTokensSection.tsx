@@ -6,6 +6,7 @@ import TrendingTokensList from './TrendingTokensList';
 import { useTrendingRequest } from '../../../UI/Assets/hooks/useTrendingRequest';
 import SectionHeader from '../components/SectionHeader/SectionHeader';
 import SectionCard from '../components/SectionCard/SectionCard';
+import { TimeOption } from '../TrendingTokensBottomSheet';
 
 const TrendingTokensSection = () => {
   const { results: trendingTokensResults, isLoading } = useTrendingRequest({});
@@ -27,6 +28,7 @@ const TrendingTokensSection = () => {
           <TrendingTokensList
             trendingTokens={trendingTokens}
             onTokenPress={handleTokenPress}
+            selectedTimeOption={TimeOption.TwentyFourHours}
           />
         )}
       </SectionCard>
