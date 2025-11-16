@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import { Linking } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import WalletRestored from './WalletRestored';
 import { useNavigation } from '@react-navigation/native';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -8,6 +9,7 @@ import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import Routes from '../../../constants/navigation/Routes';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import Logger from '../../../util/Logger';
 
 // Mock all external dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -18,6 +20,10 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   removeItem: jest.fn(() => Promise.resolve()),
   setItem: jest.fn(() => Promise.resolve()),
   getItem: jest.fn(() => Promise.resolve(null)),
+}));
+jest.mock('../../../util/Logger', () => ({
+  error: jest.fn(),
+  log: jest.fn(),
 }));
 jest.mock('../../../util/theme', () => ({
   useAppThemeFromContext: jest.fn(() => ({
@@ -154,5 +160,70 @@ describe('WalletRestored', () => {
 
     // Assert
     expect(mockNavigation.replace).not.toHaveBeenCalled();
+  });
+
+  it('clears migration error flag when continue is pressed', async () => {
+    // Arrange
+    const mockAsyncStorageRemoveItem = AsyncStorage.removeItem as jest.Mock;
+    mockAsyncStorageRemoveItem.mockResolvedValue(undefined);
+    const { getByText } = renderWithProvider(<WalletRestored />);
+    const continueButton = getByText('Continue to wallet');
+
+    // Act
+    await act(async () => {
+      fireEvent.press(continueButton);
+    });
+
+    // Assert
+    await waitFor(() => {
+      expect(mockAsyncStorageRemoveItem).toHaveBeenCalledWith(
+        'MIGRATION_ERROR_HAPPENED',
+      );
+    });
+  });
+
+  it('logs error when clearing migration error flag fails', async () => {
+    // Arrange
+    const mockError = new Error('AsyncStorage removeItem failed');
+    const mockAsyncStorageRemoveItem = AsyncStorage.removeItem as jest.Mock;
+    mockAsyncStorageRemoveItem.mockRejectedValue(mockError);
+    const mockLoggerError = Logger.error as jest.Mock;
+    const { getByText } = renderWithProvider(<WalletRestored />);
+    const continueButton = getByText('Continue to wallet');
+
+    // Act
+    await act(async () => {
+      fireEvent.press(continueButton);
+    });
+
+    // Assert
+    await waitFor(() => {
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        mockError,
+        'Failed to clear migration error flag',
+      );
+    });
+  });
+
+  it('navigates to LOGIN even when clearing migration error flag fails', async () => {
+    // Arrange
+    const mockError = new Error('AsyncStorage removeItem failed');
+    const mockAsyncStorageRemoveItem = AsyncStorage.removeItem as jest.Mock;
+    mockAsyncStorageRemoveItem.mockRejectedValue(mockError);
+    const { getByText } = renderWithProvider(<WalletRestored />);
+    const continueButton = getByText('Continue to wallet');
+
+    // Act
+    await act(async () => {
+      fireEvent.press(continueButton);
+    });
+
+    // Assert
+    await waitFor(() => {
+      expect(mockNavigation.replace).toHaveBeenCalledWith(
+        Routes.ONBOARDING.LOGIN,
+        { isVaultRecovery: true },
+      );
+    });
   });
 });
