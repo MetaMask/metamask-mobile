@@ -328,7 +328,6 @@ class Onboarding extends PureComponent {
     this.props.disableNewPrivacyPolicyToast();
 
     InteractionManager.runAfterInteractions(() => {
-      this.checkForMigrationFailureAndVaultBackup();
       PreventScreenshot.forbid();
       if (this.props.route.params?.delete) {
         this.showNotification();
