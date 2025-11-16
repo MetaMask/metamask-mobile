@@ -163,6 +163,12 @@ const createMockToken = (
   price: '1.00135763432467',
   aggregatedUsdVolume: 974248822.2,
   marketCap: 75641301011.76,
+  priceChangePct: {
+    h24: '+3.44',
+    h6: '+1.23',
+    h1: '+0.56',
+    m5: '+0.12',
+  },
   ...overrides,
 });
 
