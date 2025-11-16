@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import WalletRestored from './WalletRestored';
 import { useNavigation } from '@react-navigation/native';
@@ -13,6 +13,11 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
+}));
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  removeItem: jest.fn(() => Promise.resolve()),
+  setItem: jest.fn(() => Promise.resolve()),
+  getItem: jest.fn(() => Promise.resolve(null)),
 }));
 jest.mock('../../../util/theme', () => ({
   useAppThemeFromContext: jest.fn(() => ({
@@ -96,35 +101,43 @@ describe('WalletRestored', () => {
     });
   });
 
-  it('navigates to LOGIN with vault recovery flag when continue is pressed', () => {
+  it('navigates to LOGIN with vault recovery flag when continue is pressed', async () => {
     // Arrange
     const { getByText } = renderWithProvider(<WalletRestored />);
     const continueButton = getByText('Continue to wallet');
 
     // Act
-    fireEvent.press(continueButton);
+    await act(async () => {
+      fireEvent.press(continueButton);
+    });
 
     // Assert
-    expect(mockNavigation.replace).toHaveBeenCalledWith(
-      Routes.ONBOARDING.LOGIN,
-      { isVaultRecovery: true },
-    );
+    await waitFor(() => {
+      expect(mockNavigation.replace).toHaveBeenCalledWith(
+        Routes.ONBOARDING.LOGIN,
+        { isVaultRecovery: true },
+      );
+    });
   });
 
-  it('tracks continue button press event with device metadata', () => {
+  it('tracks continue button press event with device metadata', async () => {
     // Arrange
     const { getByText } = renderWithProvider(<WalletRestored />);
     const continueButton = getByText('Continue to wallet');
 
     // Act
-    fireEvent.press(continueButton);
+    await act(async () => {
+      fireEvent.press(continueButton);
+    });
 
     // Assert
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: expect.any(String),
-      }),
-    );
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: expect.any(String),
+        }),
+      );
+    });
   });
 
   it('generates device metadata once using useMemo', () => {
