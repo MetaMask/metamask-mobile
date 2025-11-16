@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import { FlashList } from '@shopify/flash-list';
 import { TrendingAsset } from '@metamask/assets-controllers';
 import TrendingTokenRowItem from './TrendingTokenRowItem/TrendingTokenRowItem';
+import { TimeOption } from '../../TrendingTokensBottomSheet';
 
 export interface TrendingTokensListProps {
   /**
@@ -12,6 +13,10 @@ export interface TrendingTokensListProps {
    * Callback when a token is pressed
    */
   onTokenPress: (token: TrendingAsset) => void;
+  /**
+   * Selected time option to determine which price change field to display
+   */
+  selectedTimeOption: TimeOption;
 }
 
 /**
@@ -21,12 +26,16 @@ export interface TrendingTokensListProps {
  * (renderItem and keyExtractor) to avoid recreating them on every render
  */
 const TrendingTokensList: React.FC<TrendingTokensListProps> = React.memo(
-  ({ trendingTokens, onTokenPress }) => {
+  ({ trendingTokens, onTokenPress, selectedTimeOption }) => {
     const renderItem = useCallback(
       ({ item }: { item: TrendingAsset }) => (
-        <TrendingTokenRowItem token={item} onPress={() => onTokenPress(item)} />
+        <TrendingTokenRowItem
+          token={item}
+          onPress={() => onTokenPress(item)}
+          selectedTimeOption={selectedTimeOption}
+        />
       ),
-      [onTokenPress],
+      [onTokenPress, selectedTimeOption],
     );
 
     const keyExtractor = useCallback(

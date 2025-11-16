@@ -384,6 +384,7 @@ const TrendingTokensFullView = () => {
           <TrendingTokensList
             trendingTokens={trendingTokens}
             onTokenPress={handleTokenPress}
+            selectedTimeOption={selectedTimeOption}
           />
         </View>
       )}

@@ -34,17 +34,40 @@ import {
 } from '../../../../../../util/networks/customNetworks';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import { formatMarketStats } from './utils';
-import { formatPrice } from '../../../../../UI/Predict/utils/format';
+import { formatPriceWithDecimals } from '../../../../../UI/Predict/utils/format';
+import { TimeOption } from '../../../TrendingTokensBottomSheet';
+
+/**
+ * Maps TimeOption to the corresponding priceChangePct field key
+ */
+const getPriceChangeFieldKey = (
+  timeOption: TimeOption,
+): 'h24' | 'h6' | 'h1' | 'm5' => {
+  switch (timeOption) {
+    case TimeOption.TwentyFourHours:
+      return 'h24';
+    case TimeOption.SixHours:
+      return 'h6';
+    case TimeOption.OneHour:
+      return 'h1';
+    case TimeOption.FiveMinutes:
+      return 'm5';
+    default:
+      return 'h24';
+  }
+};
 
 interface TrendingTokenRowItemProps {
   token: TrendingAsset;
   onPress: () => void;
   iconSize?: number;
+  selectedTimeOption?: TimeOption;
 }
 const TrendingTokenRowItem = ({
   token,
   onPress,
   iconSize = 44,
+  selectedTimeOption = TimeOption.TwentyFourHours,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
@@ -90,19 +113,20 @@ const TrendingTokenRowItem = ({
     }
   }, []);
 
-  // TODO: Get pricePercentChange1d from token or trending hook
-  const pricePercentChange1d: number | undefined = token.priceChangePct?.h24
-    ? parseFloat(token.priceChangePct?.h24)
-    : 3.44; // This should come from the trending hook
+  // Parse price change percentage from API (comes as string like "-3.44" or "+0.456")
+  // Use the correct field based on selected time option
+  const priceChangeFieldKey = getPriceChangeFieldKey(selectedTimeOption);
+  const pricePercentChangeString = token.priceChangePct?.[priceChangeFieldKey];
+  const pricePercentChange = pricePercentChangeString
+    ? parseFloat(pricePercentChangeString)
+    : undefined;
 
   // Determine the color for percentage change
   // Handle 0 as neutral (not positive or negative)
   const hasPercentageChange =
-    pricePercentChange1d !== undefined && pricePercentChange1d !== null;
-  const isPositiveChange =
-    hasPercentageChange && (pricePercentChange1d as number) > 0;
-  const isNeutralChange =
-    hasPercentageChange && (pricePercentChange1d as number) === 0;
+    pricePercentChange !== undefined && !isNaN(pricePercentChange);
+  const isPositiveChange = hasPercentageChange && pricePercentChange > 0;
+  const isNeutralChange = hasPercentageChange && pricePercentChange === 0;
 
   const handlePress = useCallback(() => {
     // Parse assetId to extract chainId and address
@@ -178,9 +202,9 @@ const TrendingTokenRowItem = ({
       </View>
       <View style={styles.rightContainer}>
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-          {formatPrice(token.price, {
+          {formatPriceWithDecimals(token.price, {
             minimumDecimals: 2,
-            maximumDecimals: 2,
+            maximumDecimals: 4,
           })}
         </Text>
         {hasPercentageChange && (
@@ -195,7 +219,7 @@ const TrendingTokenRowItem = ({
             }
           >
             {isNeutralChange ? '' : isPositiveChange ? '+' : '-'}
-            {Math.abs(pricePercentChange1d as number)}%
+            {Math.abs(pricePercentChange).toFixed(2)}%
           </Text>
         )}
       </View>

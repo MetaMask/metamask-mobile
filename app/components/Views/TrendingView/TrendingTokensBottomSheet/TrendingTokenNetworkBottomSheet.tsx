@@ -1,13 +1,6 @@
-import React, {
-  useRef,
-  useState,
-  useCallback,
-  useEffect,
-  useMemo,
-} from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
 import { useParams } from '../../../../util/navigation/navUtils';
 import BottomSheet, {
@@ -28,13 +21,7 @@ import Avatar, {
 import { strings } from '../../../../../locales/i18n';
 import { ProcessedNetwork } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { CaipChainId } from '@metamask/utils';
-import {
-  selectNetworkConfigurationsByCaipChainId,
-  EvmAndMultichainNetworkConfigurationsWithCaipChainId,
-} from '../../../../selectors/networkController';
-import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { getNetworkImageSource } from '../../../../util/networks';
-import { POPULAR_NETWORK_CHAIN_IDS } from '../../../../constants/popular-networks';
+import { usePopularNetworks } from '../../../hooks/usePopularNetworks';
 
 export enum NetworkOption {
   AllNetworks = 'all',
@@ -61,42 +48,7 @@ const TrendingTokenNetworkBottomSheet = () => {
   const { onNetworkSelect, selectedNetwork: initialSelectedNetwork } =
     useParams<TrendingTokenNetworkBottomSheetParams>();
 
-  const networkConfigurations = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
-  );
-
-  const networks = useMemo(() => {
-    const filteredConfigs: EvmAndMultichainNetworkConfigurationsWithCaipChainId[] =
-      [];
-
-    for (const [caipChainId, config] of Object.entries(networkConfigurations)) {
-      // Only include popular networks
-      const isPopular =
-        POPULAR_NETWORK_CHAIN_IDS.has(caipChainId as SupportedCaipChainId) ||
-        POPULAR_NETWORK_CHAIN_IDS.has(config.chainId as SupportedCaipChainId);
-
-      if (!isPopular) {
-        continue;
-      }
-
-      // Include all networks (EVM and non-EVM like Solana)
-      // No filtering by isEvm since we want to show all networks
-      filteredConfigs.push(config);
-    }
-
-    // Convert to ProcessedNetwork format
-    return filteredConfigs.map(
-      (config): ProcessedNetwork => ({
-        id: config.caipChainId,
-        name: config.name,
-        caipChainId: config.caipChainId,
-        isSelected: false,
-        imageSource: getNetworkImageSource({
-          chainId: config.caipChainId,
-        }),
-      }),
-    );
-  }, [networkConfigurations]);
+  const networks = usePopularNetworks();
 
   // Default to "All networks" if no selection
   const [selectedNetwork, setSelectedNetwork] = useState<
