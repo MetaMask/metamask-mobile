@@ -81,14 +81,7 @@ exports[`TrendingTokenRowItem matches snapshot 1`] = `
     <Text
       accessibilityRole="text"
     >
-      $1.00
-    </Text>
-    <Text
-      accessibilityRole="text"
-    >
-      +
-      3.44
-      %
+      $1.0014
     </Text>
   </View>
 </TouchableOpacity>
