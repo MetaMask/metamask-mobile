@@ -7,6 +7,7 @@ import {
   Text as RNText,
   Linking,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { strings } from '../../../../locales/i18n';
 import { createStyles } from './styles';
 import Text, {
@@ -23,6 +24,7 @@ import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import Logger from '../../../util/Logger';
 
 export const createWalletRestoredNavDetails = createNavigationDetails(
   Routes.VAULT_RECOVERY.WALLET_RESTORED,
@@ -49,7 +51,14 @@ const WalletRestored = () => {
     );
   }, [deviceMetaData, trackEvent, createEventBuilder]);
 
-  const finishWalletRestore = useCallback((): void => {
+  const finishWalletRestore = useCallback(async (): Promise<void> => {
+    // Clear migration error flag after successful vault recovery
+    try {
+      await AsyncStorage.removeItem('MIGRATION_ERROR_HAPPENED');
+    } catch (error) {
+      Logger.error(error as Error, 'Failed to clear migration error flag');
+    }
+
     // After vault recovery, navigate to Login for manual password entry
     // This unlocks the restored vault AND stores credentials in keychain
     // Note: appTriggeredAuth cannot work here - no credentials exist yet

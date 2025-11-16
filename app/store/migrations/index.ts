@@ -112,6 +112,9 @@ import migration107 from './107';
 // Add migrations above this line
 import { ControllerStorage } from '../persistConfig';
 import { captureException } from '@sentry/react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const MIGRATION_ERROR_FLAG_KEY = 'MIGRATION_ERROR_HAPPENED';
 
 type MigrationFunction = (state: unknown) => unknown;
 type AsyncMigrationFunction = (state: unknown) => Promise<unknown>;
@@ -318,7 +321,6 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
         string,
         unknown,
       ][];
-
       // Save all controller states to individual storage
       // CRITICAL: If ANY controller fails to save, crash the app immediately
       await Promise.all(
@@ -376,26 +378,39 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
       const asyncMigration = async (
         incomingState: Promise<unknown> | unknown,
       ) => {
-        let state = await incomingState;
+        try {
+          let state = await incomingState;
 
-        if (!didInflate && Number(migrationNumber) > 106) {
-          state = await inflateFromControllers(state);
-          didInflate = true;
-        }
-
-        const migratedState = await migrationFunction(state);
-        if (Number(migrationNumber) === lastVersion && lastVersion >= 106) {
-          const s2 = migratedState as StateWithEngine;
-          const hasControllers = Boolean(
-            s2.engine?.backgroundState &&
-              Object.keys(s2.engine.backgroundState).length > 0,
-          );
-          if (hasControllers) {
-            return await deflateToControllersAndStrip(migratedState);
+          if (!didInflate && Number(migrationNumber) > 106) {
+            state = await inflateFromControllers(state);
+            didInflate = true;
           }
-        }
 
-        return migratedState;
+          const migratedState = await migrationFunction(state);
+          if (Number(migrationNumber) === lastVersion && lastVersion >= 106) {
+            const s2 = migratedState as StateWithEngine;
+            const hasControllers = Boolean(
+              s2.engine?.backgroundState &&
+                Object.keys(s2.engine.backgroundState).length > 0,
+            );
+            if (hasControllers) {
+              return await deflateToControllersAndStrip(migratedState);
+            }
+          }
+
+          return migratedState;
+        } catch (error) {
+          console.error(' DEBUG: Migration error:', error);
+          // Set migration error flag in AsyncStorage
+          try {
+            await AsyncStorage.setItem(MIGRATION_ERROR_FLAG_KEY, 'true');
+          } catch (storageError) {
+            captureException(storageError as Error);
+          }
+
+          // Re-throw to let redux-persist handle it
+          throw error;
+        }
       };
       newMigrations[migrationNumber] = asyncMigration;
       return newMigrations;

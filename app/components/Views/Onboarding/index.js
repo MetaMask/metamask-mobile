@@ -11,6 +11,7 @@ import {
   Easing,
   Platform,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { captureException } from '@sentry/react-native';
 import Text, {
   TextVariant,
@@ -380,21 +381,22 @@ class Onboarding extends PureComponent {
       return;
     }
 
-    const { existingUser } = this.props;
-
     try {
-      const vaultBackupResult = await getVaultFromBackup();
+      // Check for migration error flag
+      const migrationErrorFlag = await AsyncStorage.getItem(
+        'MIGRATION_ERROR_HAPPENED',
+      );
 
-      // Detect migration failure scenario:
-      // - existingUser is false (Redux state was corrupted/reset)
-      // - BUT vault backup exists (user previously had a wallet)
-      const migrationFailureDetected =
-        !existingUser && vaultBackupResult.success && vaultBackupResult.vault;
+      if (migrationErrorFlag === 'true') {
+        // Migration failed, check if vault backup exists
+        const vaultBackupResult = await getVaultFromBackup();
 
-      if (migrationFailureDetected) {
-        this.props.navigation.reset({
-          routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
-        });
+        if (vaultBackupResult.success && vaultBackupResult.vault) {
+          // Both migration error and vault backup exist - trigger recovery
+          this.props.navigation.reset({
+            routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
+          });
+        }
       }
     } catch (error) {
       Logger.error(
