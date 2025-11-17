@@ -435,6 +435,25 @@ class AuthenticationService {
   };
 
   /**
+   * Fallback to password authType if the storePassword with non Password authType fails
+   * @param authData - authentication data
+   * @param password - password to store
+   * @returns void
+   */
+  storePasswordFallback = async (
+    authData: AuthData,
+    password: string,
+    error: Error,
+  ) => {
+    if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSWORD) {
+      throw error;
+    }
+
+    // Fall back to password authType
+    await this.storePassword(password, AUTHENTICATION_TYPE.PASSWORD);
+  };
+
+  /**
    * Fetches the password from the keychain using the auth method it was originally stored
    */
   getPassword: () => Promise<false | UserCredentials | null> = async () =>
@@ -512,12 +531,7 @@ class AuthenticationService {
 
       await this.storePassword(password, authData?.currentAuthType).catch(
         async (error) => {
-          if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSWORD) {
-            throw error;
-          }
-
-          // Fall back to password authType
-          await this.storePassword(password, AUTHENTICATION_TYPE.PASSWORD);
+          this.storePasswordFallback(authData, password, error);
         },
       );
 
@@ -558,12 +572,7 @@ class AuthenticationService {
       await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
       await this.storePassword(password, authData.currentAuthType).catch(
         async (error) => {
-          if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSWORD) {
-            throw error;
-          }
-
-          // Fall back to password authType
-          await this.storePassword(password, AUTHENTICATION_TYPE.PASSWORD);
+          this.storePasswordFallback(authData, password, error);
         },
       );
 
