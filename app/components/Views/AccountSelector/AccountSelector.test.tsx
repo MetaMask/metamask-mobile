@@ -18,6 +18,15 @@ import {
   internalSolanaAccount1,
 } from '../../../util/test/accountsControllerTestUtils';
 
+jest.mock('../../hooks/useFeatureFlag', () => ({
+  useFeatureFlag: jest.fn(() => false), // Default to BottomSheet version for tests
+  FeatureFlagNames: {
+    rewardsEnabled: 'rewardsEnabled',
+    otaUpdatesEnabled: 'otaUpdatesEnabled',
+    fullPageAccountList: 'fullPageAccountList',
+  },
+}));
+
 const mockAvatarAccountType = 'Maskicon' as const;
 
 const mockAccounts = [
@@ -201,6 +210,7 @@ const AccountSelectorWrapper = () => <AccountSelector route={mockRoute} />;
 
 describe('AccountSelector', () => {
   beforeEach(() => {
+    jest.useFakeTimers();
     jest.clearAllMocks();
     // Reset multichain selectors to disabled state by default
     mockSelectMultichainAccountsState2Enabled.mockReturnValue(false);
@@ -212,6 +222,13 @@ describe('AccountSelector', () => {
       areAnyOperationsLoading: false,
       loadingMessage: undefined,
     });
+  });
+
+  afterEach(() => {
+    // Flush all pending timers and microtasks before cleanup
+    jest.runOnlyPendingTimers();
+    jest.clearAllTimers();
+    jest.useRealTimers();
   });
 
   it('should render correctly', () => {
@@ -355,6 +372,9 @@ describe('AccountSelector', () => {
     });
 
     it('handles navigation to add account actions', () => {
+      // Use real timers for this test to avoid animation timing issues
+      jest.useRealTimers();
+
       mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
 
       const routeWithNavigation = {
@@ -378,9 +398,15 @@ describe('AccountSelector', () => {
       );
 
       expect(screen.getAllByText('Import a wallet')).toBeDefined();
+
+      // Restore fake timers for other tests
+      jest.useFakeTimers();
     });
 
     it('clicks Add wallet button and displays MultichainAddWalletActions bottomsheet', () => {
+      // Use real timers for this test to avoid animation timing issues
+      jest.useRealTimers();
+
       // Enable the multichain accounts state 2 feature flag for this test
       mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
 
@@ -408,6 +434,9 @@ describe('AccountSelector', () => {
       expect(
         screen.getByTestId(AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON),
       ).toBeDefined();
+
+      // Restore fake timers for other tests
+      jest.useFakeTimers();
     });
   });
 
@@ -470,6 +499,9 @@ describe('AccountSelector', () => {
     });
 
     it('shows activity indicator when syncing is in progress', () => {
+      // Use real timers for this test to avoid animation timing issues
+      jest.useRealTimers();
+
       mockUseAccountsOperationsLoadingStates.mockReturnValue({
         isAccountSyncingInProgress: true,
         areAnyOperationsLoading: true,
@@ -493,9 +525,15 @@ describe('AccountSelector', () => {
       );
       expect(addButton).toBeDefined();
       expect(addButton).toHaveTextContent('Syncing...');
+
+      // Restore fake timers for other tests
+      jest.useFakeTimers();
     });
 
     it('shows different button text based on multichain feature flag when not syncing', () => {
+      // Use real timers for this test to avoid animation timing issues
+      jest.useRealTimers();
+
       // Test with multichain enabled
       mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
 
@@ -514,6 +552,9 @@ describe('AccountSelector', () => {
         AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
       );
       expect(addButton).toHaveTextContent('Add wallet');
+
+      // Restore fake timers for other tests
+      jest.useFakeTimers();
     });
 
     it('shows default button text when multichain is disabled and not syncing', () => {
@@ -538,6 +579,9 @@ describe('AccountSelector', () => {
     });
 
     it('prioritizes syncing message over feature flag text', () => {
+      // Use real timers for this test to avoid animation timing issues
+      jest.useRealTimers();
+
       mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
       mockUseAccountsOperationsLoadingStates.mockReturnValue({
         isAccountSyncingInProgress: true,
@@ -561,6 +605,9 @@ describe('AccountSelector', () => {
       );
       // Should show syncing message, not "Add wallet"
       expect(addButton).toHaveTextContent('Syncing...');
+
+      // Restore fake timers for other tests
+      jest.useFakeTimers();
     });
 
     it('enables button when syncing completes', () => {
