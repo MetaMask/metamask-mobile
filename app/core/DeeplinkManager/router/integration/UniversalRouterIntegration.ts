@@ -49,7 +49,7 @@ export class UniversalRouterIntegration {
       const context: HandlerContext = {
         navigation: {
           navigate: (routeName: string, params?: Record<string, unknown>) => {
-            instance.navigation?.navigate(routeName, params);
+            instance.navigation.navigate(routeName, params);
           },
         },
         dispatch: instance.dispatch,
