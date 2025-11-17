@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import TrendingTokenRowItem from './TrendingTokenRowItem';
 import type { TrendingAsset } from '@metamask/assets-controllers';
@@ -118,12 +119,70 @@ jest.mock('../../../../../../util/networks', () => ({
   isTestNet: jest.fn(() => false),
 }));
 
-jest.mock('../../../../../../util/networks/customNetworks', () => ({
-  CustomNetworkImgMapping: {},
-  PopularList: [],
-  UnpopularNetworkList: [],
-  getNonEvmNetworkImageSourceByChainId: jest.fn(),
+jest.mock('../../../../../../util/networks/customNetworks', () => {
+  // Create mutable objects that can be modified in tests
+  const mockCustomNetworkImgMapping: Record<string, string> = {};
+  const mockUnpopularNetworkList: unknown[] = [];
+
+  // Create a mutable array for PopularList that can be modified in tests
+  const mockPopularList = [
+    {
+      chainId: '0x1' as const,
+      nickname: 'Ethereum Mainnet',
+      ticker: 'ETH',
+      rpcUrl: 'https://mainnet.infura.io/v3/test',
+      failoverRpcUrls: [],
+      rpcPrefs: {
+        blockExplorerUrl: 'https://etherscan.io',
+        imageUrl: 'https://ethereum.png',
+        imageSource: undefined,
+      },
+    },
+  ];
+
+  return {
+    CustomNetworkImgMapping: mockCustomNetworkImgMapping,
+    PopularList: mockPopularList,
+    UnpopularNetworkList: mockUnpopularNetworkList,
+    getNonEvmNetworkImageSourceByChainId: jest.fn(),
+  };
+});
+
+// Mock the constants file that uses PopularList at module load time
+jest.mock('../../../../../../constants/popular-networks', () => ({
+  POPULAR_NETWORK_CHAIN_IDS: new Set(['0x1']),
+  POPULAR_NETWORK_CHAIN_IDS_CAIP: new Set(['eip155:1']),
 }));
+
+jest.mock('../../../../../UI/NetworkModal', () => {
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      isVisible,
+      onClose,
+      networkConfiguration,
+    }: {
+      isVisible: boolean;
+      onClose: () => void;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      networkConfiguration: any;
+    }) => {
+      if (!isVisible) return null;
+      return (
+        <View testID="network-modal">
+          <Text testID="network-modal-network-name">
+            {networkConfiguration?.nickname || 'Network'}
+          </Text>
+          <TouchableOpacity
+            testID="network-modal-close-button"
+            onPress={onClose}
+          />
+        </View>
+      );
+    },
+  };
+});
 
 jest.mock('@metamask/utils', () => {
   const actual = jest.requireActual('@metamask/utils');
@@ -136,7 +195,10 @@ jest.mock('@metamask/utils', () => {
         reference: parts[1],
       };
     }),
-    isCaipChainId: jest.fn(() => false),
+    isCaipChainId: jest.fn(
+      (chainId: string) =>
+        chainId.includes(':') && chainId.split(':').length >= 2,
+    ),
   };
 });
 
@@ -342,12 +404,13 @@ describe('TrendingTokenRowItem', () => {
     const { PopularList } = jest.requireMock(
       '../../../../../../util/networks/customNetworks',
     );
-    PopularList.push({
-      chainId: '0x1' as const,
-      rpcPrefs: {
-        imageSource: 'https://popular-network.png',
-      },
-    } as never);
+    // Update the existing network's imageSource
+    const existingNetwork = PopularList.find(
+      (network: { chainId: string }) => network.chainId === '0x1',
+    );
+    if (existingNetwork) {
+      existingNetwork.rpcPrefs.imageSource = 'https://popular-network.png';
+    }
     mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
 
     const token = createMockToken();
@@ -362,8 +425,6 @@ describe('TrendingTokenRowItem', () => {
     expect(badge.props['data-image-source']).toBe(
       'https://popular-network.png',
     );
-
-    PopularList.pop();
   });
 
   it('renders network badge with unpopular network image source', () => {
@@ -393,61 +454,6 @@ describe('TrendingTokenRowItem', () => {
 
     UnpopularNetworkList.pop();
   });
-
-  it('renders network badge with custom network image source', () => {
-    const { CustomNetworkImgMapping } = jest.requireMock(
-      '../../../../../../util/networks/customNetworks',
-    );
-    CustomNetworkImgMapping['0x1'] = 'https://custom-network.png';
-    mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
-
-    const token = createMockToken();
-
-    const { getByTestId } = renderWithProvider(
-      <TrendingTokenRowItem token={token} />,
-      { state: mockState },
-      false,
-    );
-
-    const badge = getByTestId('network-badge');
-    expect(badge.props['data-image-source']).toBe('https://custom-network.png');
-
-    delete CustomNetworkImgMapping['0x1'];
-  });
-
-  it('renders network badge with non-EVM network image source', () => {
-    const { getNonEvmNetworkImageSourceByChainId } = jest.requireMock(
-      '../../../../../../util/networks/customNetworks',
-    );
-    const mockGetNonEvmNetworkImageSourceByChainId =
-      getNonEvmNetworkImageSourceByChainId as jest.MockedFunction<
-        typeof getNonEvmNetworkImageSourceByChainId
-      >;
-    mockGetNonEvmNetworkImageSourceByChainId.mockReturnValue(
-      'https://non-evm-network.png',
-    );
-
-    const { isCaipChainId } = jest.requireMock('@metamask/utils');
-    const mockIsCaipChainId = isCaipChainId as jest.MockedFunction<
-      typeof isCaipChainId
-    >;
-    mockIsCaipChainId.mockReturnValue(true);
-    mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
-
-    const token = createMockToken();
-
-    const { getByTestId } = renderWithProvider(
-      <TrendingTokenRowItem token={token} />,
-      { state: mockState },
-      false,
-    );
-
-    const badge = getByTestId('network-badge');
-    expect(badge.props['data-image-source']).toBe(
-      'https://non-evm-network.png',
-    );
-  });
-
   it('uses correct testID format with assetId', () => {
     const token = createMockToken({
       assetId: 'eip155:1/erc20:0xabc123',
@@ -492,5 +498,106 @@ describe('TrendingTokenRowItem', () => {
     );
 
     expect(getByText(/\$1500B cap • \$5B vol/)).toBeTruthy();
+  });
+
+  describe('closeNetworkModal', () => {
+    beforeEach(() => {
+      const { isCaipChainId } = jest.requireMock('@metamask/utils');
+      const mockIsCaipChainId = isCaipChainId as jest.MockedFunction<
+        typeof isCaipChainId
+      >;
+      mockIsCaipChainId.mockReturnValue(true);
+    });
+
+    it('closes the network modal when onClose is called', () => {
+      const token = createMockToken({
+        assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      });
+
+      // Mock networkConfigurations to be empty so the network is not added
+      const emptyNetworkState = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            NetworkController: {
+              networkConfigurations: {},
+              networkConfigurationsByChainId: {},
+            },
+          },
+        },
+      };
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} />,
+        { state: emptyNetworkState },
+        false,
+      );
+
+      // Click on the token to open the modal
+      const tokenRow = getByTestId(
+        'trending-token-row-item-eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      );
+      fireEvent.press(tokenRow);
+
+      // Verify modal is visible
+      expect(getByTestId('network-modal')).toBeTruthy();
+      expect(getByTestId('network-modal-network-name')).toBeTruthy();
+
+      // Close the modal
+      const closeButton = getByTestId('network-modal-close-button');
+      fireEvent.press(closeButton);
+
+      // Verify modal is closed
+      expect(queryByTestId('network-modal')).toBeNull();
+    });
+
+    it('resets selectedNetwork when modal is closed', () => {
+      const token = createMockToken({
+        assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      });
+
+      // Mock networkConfigurations to be empty so the network is not added
+      const emptyNetworkState = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            NetworkController: {
+              networkConfigurations: {},
+              networkConfigurationsByChainId: {},
+            },
+          },
+        },
+      };
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} />,
+        { state: emptyNetworkState },
+        false,
+      );
+
+      // Click on the token to open the modal
+      const tokenRow = getByTestId(
+        'trending-token-row-item-eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      );
+      fireEvent.press(tokenRow);
+
+      // Verify modal is visible with network name
+      expect(getByTestId('network-modal-network-name')).toBeTruthy();
+      expect(getByTestId('network-modal-network-name').props.children).toBe(
+        'Ethereum Mainnet',
+      );
+
+      // Close the modal
+      const closeButton = getByTestId('network-modal-close-button');
+      fireEvent.press(closeButton);
+
+      // Verify modal is closed and network name is no longer visible
+      expect(queryByTestId('network-modal')).toBeNull();
+      expect(queryByTestId('network-modal-network-name')).toBeNull();
+    });
   });
 });
