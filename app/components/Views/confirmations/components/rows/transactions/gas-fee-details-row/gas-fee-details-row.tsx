@@ -23,6 +23,7 @@ import useBalanceChanges from '../../../../../../UI/SimulationDetails/useBalance
 import { useFeeCalculations } from '../../../../hooks/gas/useFeeCalculations';
 import { useFeeCalculationsTransactionBatch } from '../../../../hooks/gas/useFeeCalculationsTransactionBatch';
 import { useSelectedGasFeeToken } from '../../../../hooks/gas/useGasFeeToken';
+import { useIsGaslessSupported } from '../../../../hooks/gas/useIsGaslessSupported';
 import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
 import { useTransactionBatchesMetadata } from '../../../../hooks/transactions/useTransactionBatchesMetadata';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
@@ -228,14 +229,20 @@ const GasFeesDetailsRow = ({
   const transactionBatchesMetadata = useTransactionBatchesMetadata();
   const gasFeeToken = useSelectedGasFeeToken();
   const metamaskFeeFiat = gasFeeToken?.metamaskFeeFiat;
+  const {
+    userFeeLevel: isUserFeeLevelExists,
+    isGasFeeSponsored: doesSentinelAllowSponsorship,
+  } = transactionMetadata ?? {};
 
   const hideFiatForTestnet = useHideFiatForTestnet(
     transactionMetadata?.chainId,
   );
   const { trackTooltipClickedEvent } = useConfirmationMetricEvents();
 
-  const isUserFeeLevelExists = transactionMetadata?.userFeeLevel;
-  const isGasFeeSponsored = transactionMetadata?.isGasFeeSponsored;
+  // This prevents the gas fee row from showing as sponsored if stx is disabled
+  // by the user and 7702 is not supported in the chain.
+  const { isSupported: isGaslessSupported } = useIsGaslessSupported();
+  const isGasFeeSponsored = isGaslessSupported && doesSentinelAllowSponsorship;
 
   const handleNetworkFeeTooltipClickedEvent = () => {
     trackTooltipClickedEvent({

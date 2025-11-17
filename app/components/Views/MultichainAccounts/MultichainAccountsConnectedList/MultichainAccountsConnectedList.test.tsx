@@ -423,8 +423,10 @@ describe('MultichainAccountsConnectedList', () => {
   });
 
   describe('handleSelectAccount functionality', () => {
-    it('calls setSelectedAccountGroup when account is selected', () => {
-      const { getByText } = renderMultichainAccountsConnectedList();
+    it('calls setSelectedAccountGroup when account is selected (not in connection flow)', () => {
+      const { getByText } = renderMultichainAccountsConnectedList({
+        isConnectionFlow: false,
+      });
 
       const accountCell = getByText('Account 1');
 
@@ -437,7 +439,9 @@ describe('MultichainAccountsConnectedList', () => {
     });
 
     it('calls setSelectedAccountGroup with correct account ID for different accounts', () => {
-      const { getByText } = renderMultichainAccountsConnectedList();
+      const { getByText } = renderMultichainAccountsConnectedList({
+        isConnectionFlow: false,
+      });
 
       const account1Cell = getByText('Account 1');
       const account2Cell = getByText('Account 2');
@@ -456,6 +460,22 @@ describe('MultichainAccountsConnectedList', () => {
 
       expect(mockSetSelectedAccountGroup).toHaveBeenCalledTimes(2);
     });
+
+    it('only calls setSelectedAccountGroup when account is selected in connection flow', () => {
+      const mockHandleEdit = jest.fn();
+      const { getByText } = renderMultichainAccountsConnectedList({
+        isConnectionFlow: true,
+        handleEditAccountsButtonPress: mockHandleEdit,
+      });
+
+      const accountCell = getByText('Account 1');
+      fireEvent.press(accountCell);
+
+      // Should only call set selected account group instead of navigating
+      expect(mockSetSelectedAccountGroup).toHaveBeenCalledTimes(1);
+      expect(mockHandleEdit).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
   });
 
   describe('Toast Functionality', () => {
@@ -465,8 +485,10 @@ describe('MultichainAccountsConnectedList', () => {
       mockSetSelectedAccountGroup.mockClear();
     });
 
-    it('shows toast when account is selected', () => {
-      const { getByText } = renderMultichainAccountsConnectedList();
+    it('shows toast when account is selected (not in connection flow)', () => {
+      const { getByText } = renderMultichainAccountsConnectedList({
+        isConnectionFlow: false,
+      });
 
       const accountCell = getByText('Account 1');
       fireEvent.press(accountCell);
@@ -487,9 +509,11 @@ describe('MultichainAccountsConnectedList', () => {
       });
     });
 
-    it('navigates to browser home after showing toast', () => {
-      // Given a connected account
-      const { getByText } = renderMultichainAccountsConnectedList();
+    it('navigates to browser home after showing toast (not in connection flow)', () => {
+      // Given a connected account (not in connection flow)
+      const { getByText } = renderMultichainAccountsConnectedList({
+        isConnectionFlow: false,
+      });
 
       // When selecting an account
       const accountCell = getByText('Account 1');
@@ -498,6 +522,21 @@ describe('MultichainAccountsConnectedList', () => {
       // Then should navigate to browser home
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME);
+    });
+
+    it('does not show toast or navigate when in connection flow', () => {
+      const mockHandleEdit = jest.fn();
+      const { getByText } = renderMultichainAccountsConnectedList({
+        isConnectionFlow: true,
+        handleEditAccountsButtonPress: mockHandleEdit,
+      });
+
+      const accountCell = getByText('Account 1');
+      fireEvent.press(accountCell);
+
+      // Should not show toast or navigate
+      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 });

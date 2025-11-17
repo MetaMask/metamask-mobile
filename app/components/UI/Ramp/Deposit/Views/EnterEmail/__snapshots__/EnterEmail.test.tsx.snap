@@ -313,7 +313,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -768,6 +768,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "Geist Regular",
                                         "fontSize": 16,
+                                        "fontWeight": "400",
                                         "height": 46,
                                         "letterSpacing": 0,
                                         "lineHeight": 20,
@@ -1174,7 +1175,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -1629,6 +1630,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                         "color": "#121314",
                                         "fontFamily": "Geist Regular",
                                         "fontSize": 16,
+                                        "fontWeight": "400",
                                         "height": 46,
                                         "letterSpacing": 0,
                                         "lineHeight": 20,
@@ -2049,7 +2051,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -2504,6 +2506,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "Geist Regular",
                                         "fontSize": 16,
+                                        "fontWeight": "400",
                                         "height": 46,
                                         "letterSpacing": 0,
                                         "lineHeight": 20,
@@ -2910,7 +2913,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -3365,6 +3368,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                         "color": "#121314",
                                         "fontFamily": "Geist Regular",
                                         "fontSize": 16,
+                                        "fontWeight": "400",
                                         "height": 46,
                                         "letterSpacing": 0,
                                         "lineHeight": 20,

@@ -1,6 +1,25 @@
 import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { usePredictBalance } from './usePredictBalance';
 
+// Mock Engine with AccountTreeController - MUST BE FIRST
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    AccountTreeController: {
+      getAccountsFromSelectedAccountGroup: jest.fn(() => [
+        {
+          id: 'test-account-id',
+          address: '0x1234567890123456789012345678901234567890',
+          type: 'eip155:eoa',
+          name: 'Test Account',
+          metadata: {
+            lastSelected: 0,
+          },
+        },
+      ]),
+    },
+  },
+}));
+
 // Mock DevLogger
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
@@ -36,10 +55,6 @@ jest.mock('./usePredictNetworkManagement', () => ({
 const mockSelectedAddress = '0x1234567890123456789012345678901234567890';
 let mockCachedBalance = 0;
 
-jest.mock('../../../../selectors/accountsController', () => ({
-  selectSelectedInternalAccountAddress: jest.fn(),
-}));
-
 jest.mock('../selectors/predictController', () => ({
   selectPredictBalanceByAddress: jest.fn(() =>
     jest.fn(() => mockCachedBalance),
@@ -68,15 +83,14 @@ jest.mock('react-redux', () => {
           },
         };
         const result = selector(mockState);
-        // If result is the mock balance, return it
+        // Return the balance from the mock state
         if (typeof result === 'number') {
           return result;
         }
       } catch (e) {
-        // If selector doesn't work with mock state, check if it's the address selector
+        // Selector doesn't match our mock state shape
       }
-      // Default to returning the address
-      return mockSelectedAddress;
+      return undefined;
     }),
   };
 });

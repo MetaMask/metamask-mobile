@@ -9,10 +9,6 @@ import Text from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import {
-  selectEvmNetworkImageSource,
-  selectEvmNetworkName,
-} from '../../../selectors/networkInfos';
-import {
   getLabelTextByAddress,
   renderAccountName,
   toChecksumAddress,
@@ -21,7 +17,6 @@ import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
 import stylesheet from './AddressFrom.styles';
 import { selectInternalEvmAccounts } from '../../../selectors/accountsController';
 import useNetworkInfo from '../../Views/confirmations/hooks/useNetworkInfo';
-import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 import { selectAvatarAccountType } from '../../../selectors/settings';
 
 interface Asset {
@@ -57,7 +52,7 @@ const AddressFrom = ({
     asset,
     from,
     dontWatchAsset,
-    isPerDappSelectedNetworkEnabled() ? chainId : undefined,
+    chainId,
   );
 
   const accountsByChainId = useSelector(selectAccountsByChainId);
@@ -65,8 +60,6 @@ const AddressFrom = ({
   const internalAccounts = useSelector(selectInternalEvmAccounts);
   const activeAddress = toChecksumAddress(from);
 
-  const networkName = useSelector(selectEvmNetworkName);
-  const networkImage = useSelector(selectEvmNetworkImageSource);
   const perDappNetworkInfo = useNetworkInfo(chainId);
 
   const avatarAccountType = useSelector(selectAvatarAccountType);
@@ -82,13 +75,9 @@ const AddressFrom = ({
     }
   }, [accountsByChainId, internalAccounts, activeAddress, origin]);
 
-  const displayNetworkName = isPerDappSelectedNetworkEnabled()
-    ? perDappNetworkInfo.networkName
-    : networkName;
+  const displayNetworkName = perDappNetworkInfo.networkName;
 
-  const displayNetworkImage = isPerDappSelectedNetworkEnabled()
-    ? perDappNetworkInfo.networkImage
-    : networkImage;
+  const displayNetworkImage = perDappNetworkInfo.networkImage;
 
   const accountTypeLabel = getLabelTextByAddress(activeAddress);
 
