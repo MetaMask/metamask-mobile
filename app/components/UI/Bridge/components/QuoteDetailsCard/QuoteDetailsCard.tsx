@@ -31,12 +31,11 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useRewards } from '../../hooks/useRewards';
-import RewardsAnimations, {
-  RewardAnimationState,
-} from '../../../Rewards/components/RewardPointsAnimation';
 import QuoteCountdownTimer from '../QuoteCountdownTimer';
 import QuoteDetailsRecipientKeyValueRow from '../QuoteDetailsRecipientKeyValueRow/QuoteDetailsRecipientKeyValueRow';
 import { toSentenceCase } from '../../../../../util/string';
+import { BridgeRewardsAnimation } from '../BridgeRewardsAnimation/BridgeRewardsAnimation';
+import { BridgeRewardAnimationState } from '../BridgeRewardsAnimation/types';
 
 if (
   Platform.OS === 'android' &&
@@ -287,23 +286,16 @@ const QuoteDetailsCard: React.FC = () => {
             }}
             value={{
               label: (
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  justifyContent={BoxJustifyContent.Center}
-                  gap={1}
-                >
-                  <RewardsAnimations
-                    value={estimatedPoints ?? 0}
-                    state={
-                      isRewardsLoading
-                        ? RewardAnimationState.Loading
-                        : hasRewardsError
-                          ? RewardAnimationState.ErrorState
-                          : RewardAnimationState.Idle
-                    }
-                  />
-                </Box>
+                <BridgeRewardsAnimation
+                  value={estimatedPoints ?? 0}
+                  state={
+                    isRewardsLoading
+                      ? BridgeRewardAnimationState.Loading
+                      : hasRewardsError
+                        ? BridgeRewardAnimationState.ErrorState
+                        : BridgeRewardAnimationState.Idle
+                  }
+                />
               ),
               ...(hasRewardsError && {
                 tooltip: {
