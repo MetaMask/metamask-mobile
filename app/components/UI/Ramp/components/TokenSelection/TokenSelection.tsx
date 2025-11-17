@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 
 import TokenNetworkFilterBar from '../TokenNetworkFilterBar';
 import TokenListItem from '../TokenListItem';
+import { createUnsupportedTokenModalNavigationDetails } from '../UnsupportedTokenModal/UnsupportedTokenModal';
 
 import Text, {
   TextVariant,
@@ -33,10 +34,12 @@ import {
   createNavigationDetails,
   useParams,
 } from '../../../../../util/navigation/navUtils';
-import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
-import { MOCK_CRYPTOCURRENCIES } from '../../Deposit/constants/mockCryptoCurrencies';
+import {
+  MOCK_CRYPTOCURRENCIES,
+  MockDepositCryptoCurrency,
+} from '../../Deposit/constants/mockCryptoCurrencies';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useRampNavigation } from '../../hooks/useRampNavigation';
 // TODO: Fetch these tokens from the API new enpoint for top 25 with supported status
@@ -101,19 +104,26 @@ function TokenSelection() {
     handleSearchTextChange('');
   }, [handleSearchTextChange]);
 
+  const handleUnsupportedInfoPress = useCallback(() => {
+    navigation.navigate(...createUnsupportedTokenModalNavigationDetails());
+  }, [navigation]);
+
   const renderToken = useCallback(
-    ({ item: token }: { item: DepositCryptoCurrency }) => (
+    ({ item: token }: { item: MockDepositCryptoCurrency }) => (
       <TokenListItem
         token={token}
         isSelected={selectedCryptoAssetId === token.assetId}
         onPress={() => handleSelectAssetIdCallback(token.assetId)}
         textColor={colors.text.alternative}
+        isDisabled={token.unsupported}
+        onInfoPress={handleUnsupportedInfoPress}
       />
     ),
     [
       colors.text.alternative,
       handleSelectAssetIdCallback,
       selectedCryptoAssetId,
+      handleUnsupportedInfoPress,
     ],
   );
 
