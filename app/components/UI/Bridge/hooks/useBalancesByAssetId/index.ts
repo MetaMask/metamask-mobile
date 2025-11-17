@@ -22,13 +22,16 @@ export type BalancesByAssetId = Record<string, BalanceData>;
 /**
  * Hook to get balances indexed by assetId (CAIP format) for O(1) lookup
  * @param params - Configuration object containing chainIds
- * @returns Map of assetId to balance data
+ * @returns Object containing tokens array and map of assetId to balance data
  */
 export const useBalancesByAssetId = ({
   chainIds,
 }: {
   chainIds: (Hex | CaipChainId)[] | undefined;
-}): BalancesByAssetId => {
+}): {
+  tokensWithBalance: ReturnType<typeof useTokensWithBalance>;
+  balancesByAssetId: BalancesByAssetId;
+} => {
   const tokensWithBalance = useTokensWithBalance({ chainIds });
 
   const balancesByAssetId = useMemo(() => {
@@ -49,5 +52,5 @@ export const useBalancesByAssetId = ({
     return balancesMap;
   }, [tokensWithBalance]);
 
-  return balancesByAssetId;
+  return { tokensWithBalance, balancesByAssetId };
 };

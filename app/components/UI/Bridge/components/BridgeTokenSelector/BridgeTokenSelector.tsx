@@ -33,7 +33,6 @@ import { SkeletonItem } from '../BridgeTokenSelectorBase';
 import { TokenSelectorItem } from '../TokenSelectorItem';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { BridgeToken } from '../../types';
-import { useTokensWithBalance } from '../../hooks/useTokensWithBalance';
 import {
   usePopularTokens,
   PopularToken,
@@ -106,7 +105,10 @@ export const BridgeTokenSelector: React.FC = () => {
     return bridgeFeatureFlags.chainRanking.map((chain) => chain.chainId);
   }, [selectedChainId, bridgeFeatureFlags]);
 
-  const tokensWithBalance = useTokensWithBalance({ chainIds: chainIdsToFetch });
+  // Get balances indexed by assetId for O(1) lookup when merging with API results
+  const { tokensWithBalance, balancesByAssetId } = useBalancesByAssetId({
+    chainIds: chainIdsToFetch,
+  });
   const filteredTokensWithBalance = useMemo(() => {
     const filteredTokens = tokensWithBalance.filter(
       (token) => token.balance && parseFloat(token.balance) > 0,
@@ -124,11 +126,6 @@ export const BridgeTokenSelector: React.FC = () => {
         token.address.toLowerCase().includes(searchLower),
     );
   }, [tokensWithBalance, searchString]);
-
-  // Get balances indexed by assetId for O(1) lookup when merging with API results
-  const balancesByAssetId = useBalancesByAssetId({
-    chainIds: chainIdsToFetch,
-  });
 
   // Create includeAssets array from tokens with balance to be sent to API
   // Stringified to avoid triggering the useEffect when only balances change
