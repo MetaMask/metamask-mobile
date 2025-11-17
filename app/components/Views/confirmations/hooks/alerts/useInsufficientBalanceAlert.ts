@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { Hex, add0x } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   addHexes,
@@ -10,15 +9,27 @@ import {
 } from '../../../../../util/conversions';
 import { strings } from '../../../../../../locales/i18n';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import { createBuyNavigationDetails } from '../../../../UI/Ramp/Aggregator/routes/utils';
+import {
+  useRampNavigation,
+  RampMode,
+} from '../../../../UI/Ramp/hooks/useRampNavigation';
+import { RampType as AggregatorRampType } from '../../../../UI/Ramp/Aggregator/types';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useAccountNativeBalance } from '../useAccountNativeBalance';
 import { useConfirmActions } from '../useConfirmActions';
-import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useConfirmationContext } from '../../context/confirmation-context';
+import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
+import { TransactionType } from '@metamask/transaction-controller';
+import { hasTransactionType } from '../../utils/transaction';
+
+const IGNORE_TYPES = [
+  TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
+  TransactionType.predictWithdraw,
+];
 
 const HEX_ZERO = '0x0';
 
@@ -27,7 +38,7 @@ export const useInsufficientBalanceAlert = ({
 }: {
   ignoreGasFeeToken?: boolean;
 } = {}): Alert[] => {
-  const navigation = useNavigation();
+  const { goToRamps } = useRampNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const { balanceWeiInHex } = useAccountNativeBalance(
@@ -36,7 +47,7 @@ export const useInsufficientBalanceAlert = ({
   );
   const { isTransactionValueUpdating } = useConfirmationContext();
   const { onReject } = useConfirmActions();
-  const { payToken } = useTransactionPayToken();
+  const { isSupported: isGaslessSupported } = useIsGaslessSupported();
 
   return useMemo(() => {
     if (!transactionMetadata || isTransactionValueUpdating) {
@@ -65,11 +76,13 @@ export const useInsufficientBalanceAlert = ({
       totalTransactionValueBN,
     );
 
+    const isSponsoredTransaction = isGasFeeSponsored && isGaslessSupported;
+
     const showAlert =
       hasInsufficientBalance &&
       (ignoreGasFeeToken || !selectedGasFeeToken) &&
-      !payToken &&
-      !isGasFeeSponsored;
+      !hasTransactionType(transactionMetadata, IGNORE_TYPES) &&
+      !isSponsoredTransaction;
 
     if (!showAlert) {
       return [];
@@ -82,7 +95,10 @@ export const useInsufficientBalanceAlert = ({
             nativeCurrency,
           }),
           callback: () => {
-            navigation.navigate(...createBuyNavigationDetails());
+            goToRamps({
+              mode: RampMode.AGGREGATOR,
+              params: { rampType: AggregatorRampType.BUY },
+            });
             onReject(undefined, true);
           },
         },
@@ -100,11 +116,11 @@ export const useInsufficientBalanceAlert = ({
   }, [
     balanceWeiInHex,
     ignoreGasFeeToken,
+    isGaslessSupported,
     isTransactionValueUpdating,
-    navigation,
     networkConfigurations,
     onReject,
-    payToken,
     transactionMetadata,
+    goToRamps,
   ]);
 };

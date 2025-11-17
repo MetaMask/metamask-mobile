@@ -25,8 +25,18 @@ import {
 } from '../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
 import { withCardSDK } from '../sdk';
+import AddFundsBottomSheet from '../components/AddFundsBottomSheet/AddFundsBottomSheet';
+import AssetSelectionBottomSheet from '../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
+import { colors } from '../../../../styles/common';
 
 const Stack = createStackNavigator();
+const ModalsStack = createStackNavigator();
+
+const clearStackNavigatorOptions = {
+  headerShown: false,
+  cardStyle: { backgroundColor: colors.transparent },
+  animationEnabled: false,
+};
 
 export const headerStyle = StyleSheet.create({
   icon: { marginHorizontal: 16 },
@@ -118,7 +128,7 @@ export const cardSpendingLimitNavigationOptions = ({
   };
 };
 
-const CardRoutes = () => {
+const MainRoutes = () => {
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
   const isCardholder = useSelector(selectIsCardholder);
 
@@ -158,5 +168,35 @@ const CardRoutes = () => {
     </Stack.Navigator>
   );
 };
+
+const CardModalsRoutes = () => (
+  <ModalsStack.Navigator
+    mode="modal"
+    screenOptions={clearStackNavigatorOptions}
+  >
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.ADD_FUNDS}
+      component={AddFundsBottomSheet}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.ASSET_SELECTION}
+      component={AssetSelectionBottomSheet}
+    />
+  </ModalsStack.Navigator>
+);
+
+const CardRoutes = () => (
+  <Stack.Navigator initialRouteName={Routes.CARD.HOME} headerMode="none">
+    <Stack.Screen name={Routes.CARD.HOME} component={MainRoutes} />
+    <Stack.Screen
+      name={Routes.CARD.MODALS.ID}
+      component={CardModalsRoutes}
+      options={{
+        ...clearStackNavigatorOptions,
+        detachPreviousScreen: false,
+      }}
+    />
+  </Stack.Navigator>
+);
 
 export default withCardSDK(CardRoutes);

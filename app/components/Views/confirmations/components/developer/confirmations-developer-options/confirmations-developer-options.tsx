@@ -67,6 +67,7 @@ function PredictClaim() {
     addTransactionBatchAndNavigate({
       headerShown: false,
       transactionType: TransactionType.predictClaim,
+      loader: ConfirmationLoader.PredictClaim,
     });
   }, [addTransactionBatchAndNavigate]);
 

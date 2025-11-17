@@ -1,8 +1,6 @@
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import useAccountTrackerPolling from './useAccountTrackerPolling';
-// eslint-disable-next-line import/no-namespace
-import * as networks from '../../../util/networks';
 import { RootState } from '../../../reducers';
 import { SolScope } from '@metamask/keyring-api';
 
@@ -327,10 +325,6 @@ describe('useAccountTrackerPolling', () => {
     } as unknown as RootState;
 
     it('should poll enabled EVM networks when global network selector is removed', () => {
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(true);
-
       const { unmount } = renderHookWithProvider(
         () => useAccountTrackerPolling(),
         { state: baseState },
@@ -358,10 +352,6 @@ describe('useAccountTrackerPolling', () => {
     });
 
     it('should handle empty enabled networks gracefully', () => {
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(true);
-
       const stateWithEmptyNetworks = {
         ...baseState,
         engine: {
@@ -397,10 +387,6 @@ describe('useAccountTrackerPolling', () => {
     });
 
     it('should handle missing network configurations gracefully', () => {
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(true);
-
       const stateWithMissingConfigs = {
         ...baseState,
         engine: {
@@ -442,10 +428,6 @@ describe('useAccountTrackerPolling', () => {
     });
 
     it('should handle undefined enabled networks gracefully', () => {
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(true);
-
       const stateWithUndefinedNetworks = {
         ...baseState,
         engine: {
@@ -484,10 +466,6 @@ describe('useAccountTrackerPolling', () => {
     });
 
     it('should handle undefined selectedNetworkClientId gracefully', () => {
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(true);
-
       const stateWithUndefinedClientId = {
         ...baseState,
         engine: {

@@ -325,6 +325,39 @@ describe('transactionTransforms', () => {
 
       expect(result[0].id).toBe(`fill-${mockFill.timestamp}`);
     });
+
+    it('strips hip3 prefix from symbol in subtitle', () => {
+      const hip3Fill = {
+        ...mockFill,
+        symbol: 'hip3:BTC',
+      };
+
+      const result = transformFillsToTransactions([hip3Fill]);
+
+      expect(result[0].subtitle).toBe('1 BTC');
+    });
+
+    it('strips DEX prefix from symbol in subtitle', () => {
+      const dexFill = {
+        ...mockFill,
+        symbol: 'xyz:TSLA',
+      };
+
+      const result = transformFillsToTransactions([dexFill]);
+
+      expect(result[0].subtitle).toBe('1 TSLA');
+    });
+
+    it('keeps regular symbols unchanged in subtitle', () => {
+      const regularFill = {
+        ...mockFill,
+        symbol: 'SOL',
+      };
+
+      const result = transformFillsToTransactions([regularFill]);
+
+      expect(result[0].subtitle).toBe('1 SOL');
+    });
   });
 
   describe('transformOrdersToTransactions', () => {
@@ -546,6 +579,42 @@ describe('transactionTransforms', () => {
 
       expect(result[0].order.filled).toBe('100%');
     });
+
+    it('strips hip3 prefix from symbol in subtitle', () => {
+      const hip3Order = {
+        ...mockOrder,
+        symbol: 'hip3:ETH',
+        originalSize: '2.5',
+      };
+
+      const result = transformOrdersToTransactions([hip3Order]);
+
+      expect(result[0].subtitle).toBe('2.5 ETH');
+    });
+
+    it('strips DEX prefix from symbol in subtitle', () => {
+      const dexOrder = {
+        ...mockOrder,
+        symbol: 'abc:AAPL',
+        originalSize: '10',
+      };
+
+      const result = transformOrdersToTransactions([dexOrder]);
+
+      expect(result[0].subtitle).toBe('10 AAPL');
+    });
+
+    it('keeps regular symbols unchanged in subtitle', () => {
+      const regularOrder = {
+        ...mockOrder,
+        symbol: 'BTC',
+        originalSize: '0.5',
+      };
+
+      const result = transformOrdersToTransactions([regularOrder]);
+
+      expect(result[0].subtitle).toBe('0.5 BTC');
+    });
   });
 
   describe('transformFundingToTransactions', () => {
@@ -609,6 +678,39 @@ describe('transactionTransforms', () => {
       expect(result[0].timestamp).toBe(2000);
       expect(result[1].timestamp).toBe(1500);
       expect(result[2].timestamp).toBe(1000);
+    });
+
+    it('strips hip3 prefix from symbol in subtitle', () => {
+      const hip3Funding = {
+        ...mockFunding,
+        symbol: 'hip3:BTC',
+      };
+
+      const result = transformFundingToTransactions([hip3Funding]);
+
+      expect(result[0].subtitle).toBe('BTC');
+    });
+
+    it('strips DEX prefix from symbol in subtitle', () => {
+      const dexFunding = {
+        ...mockFunding,
+        symbol: 'xyz:TSLA',
+      };
+
+      const result = transformFundingToTransactions([dexFunding]);
+
+      expect(result[0].subtitle).toBe('TSLA');
+    });
+
+    it('keeps regular symbols unchanged in subtitle', () => {
+      const regularFunding = {
+        ...mockFunding,
+        symbol: 'SOL',
+      };
+
+      const result = transformFundingToTransactions([regularFunding]);
+
+      expect(result[0].subtitle).toBe('SOL');
     });
   });
 

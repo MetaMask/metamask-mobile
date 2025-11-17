@@ -15,6 +15,7 @@ import {
   type PredictMarket,
   type PredictPosition,
   PredictActivity,
+  Result,
 } from '../../types';
 import { getRecurrence } from '../../utils/format';
 import type {
@@ -324,54 +325,62 @@ export const submitClobOrder = async ({
   headers: ClobHeaders;
   clobOrder: ClobOrderObject;
   feeAuthorization?: SafeFeeAuthorization;
-}) => {
-  const { CLOB_ENDPOINT, CLOB_RELAYER } = getPolymarketEndpoints();
-  let url = `${CLOB_ENDPOINT}/order`;
-  let body: ClobOrderObject & { feeAuthorization?: SafeFeeAuthorization } = {
+}): Promise<Result<OrderResponse>> => {
+  const { CLOB_RELAYER } = getPolymarketEndpoints();
+  const url = `${CLOB_RELAYER}/order`;
+  const body: ClobOrderObject & { feeAuthorization?: SafeFeeAuthorization } = {
     ...clobOrder,
+    feeAuthorization,
   };
 
-  // If a feeAuthorization is provided, we need to use our clob
-  // relayer to submit the order and collect the fee.
-  if (clobOrder.order.side === Side.BUY && feeAuthorization) {
-    url = `${CLOB_RELAYER}/order`;
-    body = { ...body, feeAuthorization };
-    // For our relayer, we need to replace the underscores with dashes
-    // since underscores are not standardly allowed in headers
-    headers = {
-      ...headers,
-      ...Object.entries(headers)
-        .map(([key, value]) => ({
-          [key.replace(/_/g, '-')]: value,
-        }))
-        .reduce((acc, curr) => ({ ...acc, ...curr }), {}),
-    };
-  }
+  // For our relayer, we need to replace the underscores with dashes
+  // since underscores are not standardly allowed in headers
+  headers = {
+    ...headers,
+    ...Object.entries(headers)
+      .map(([key, value]) => ({
+        [key.replace(/_/g, '-')]: value,
+      }))
+      .reduce((acc, curr) => ({ ...acc, ...curr }), {}),
+  };
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body),
-  });
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+    });
 
-  if (!response.ok) {
     if (response.status === 403) {
       return {
         success: false,
         error: 'You are unable to access this provider.',
-        errorCode: response.status,
       };
     }
-    const responseData = await response.json();
-    const error = responseData.error ?? response.statusText;
+
+    let responseData;
+    try {
+      responseData = (await response.json()) as OrderResponse;
+    } catch (error) {
+      responseData = undefined;
+    }
+
+    if (!response.ok || !responseData || responseData?.success === false) {
+      const error = responseData?.errorMsg ?? response.statusText;
+      return {
+        success: false,
+        error,
+      };
+    }
+
+    return { success: true, response: responseData };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : 'Unknown error';
     return {
       success: false,
-      error,
+      error: `Failed to submit CLOB order: ${msg}`,
     };
   }
-
-  const responseData = (await response.json()) as OrderResponse;
-  return { success: true, response: responseData };
 };
 
 export const parsePolymarketEvents = (
@@ -441,6 +450,7 @@ export const parsePolymarketEvents = (
 /**
  * Normalizes Polymarket /activity entries to PredictActivity[]
  * Keeps essential metadata used by UI (title/outcome/icon)
+ * Filters out claim activities with no payout (lost positions - technical clearing only)
  */
 export const parsePolymarketActivity = (
   activities: PolymarketApiActivity[],
@@ -449,53 +459,67 @@ export const parsePolymarketActivity = (
     return [];
   }
 
-  const parsedActivities: PredictActivity[] = activities.map((activity) => {
-    // Normalize entry type: TRADE with explicit side => buy/sell, otherwise claimWinnings
-    const entryType: 'buy' | 'sell' | 'claimWinnings' =
-      activity.type === 'TRADE'
-        ? activity.side === 'BUY'
-          ? 'buy'
-          : activity.side === 'SELL'
-            ? 'sell'
-            : 'claimWinnings'
-        : 'claimWinnings';
+  const parsedActivities: PredictActivity[] = activities
+    .map((activity) => {
+      // Normalize entry type: TRADE with explicit side => buy/sell, otherwise claimWinnings
+      const entryType: 'buy' | 'sell' | 'claimWinnings' =
+        activity.type === 'TRADE'
+          ? activity.side === 'BUY'
+            ? 'buy'
+            : activity.side === 'SELL'
+              ? 'sell'
+              : 'claimWinnings'
+          : 'claimWinnings';
 
-    const id =
-      activity.transactionHash ?? String(activity.timestamp ?? Math.random());
-    const timestamp = Number(activity.timestamp ?? Date.now());
+      const id =
+        activity.transactionHash ?? String(activity.timestamp ?? Math.random());
+      const timestamp = Number(activity.timestamp ?? Date.now());
 
-    const price = Number(activity.price ?? 0);
-    const amount = Number(activity.usdcSize ?? 0);
+      const price = Number(activity.price ?? 0);
+      const amount = Number(activity.usdcSize ?? 0);
 
-    const outcomeId = String(activity.conditionId ?? '');
-    const marketId = String(activity.conditionId ?? '');
-    const outcomeTokenId = Number(activity.outcomeIndex ?? 0);
-    const title = String(activity.title ?? 'Market');
-    const outcome = activity.outcome ? String(activity.outcome) : undefined;
-    const icon = activity.icon as string | undefined;
+      const outcomeId = String(activity.conditionId ?? '');
+      const marketId = String(activity.conditionId ?? '');
+      const outcomeTokenId = Number(activity.outcomeIndex ?? 0);
+      const title = String(activity.title ?? 'Market');
+      const outcome = activity.outcome ? String(activity.outcome) : undefined;
+      const icon = activity.icon as string | undefined;
 
-    const parsedActivity: PredictActivity = {
-      id,
-      providerId: 'polymarket',
-      entry:
-        entryType === 'claimWinnings'
-          ? { type: 'claimWinnings', timestamp, amount }
-          : {
-              type: entryType,
-              timestamp,
-              marketId,
-              outcomeId,
-              outcomeTokenId,
-              amount,
-              price,
-            },
-      title,
-      outcome,
-      icon,
-    } as PredictActivity & { title?: string; outcome?: string; icon?: string };
+      const parsedActivity: PredictActivity = {
+        id,
+        providerId: 'polymarket',
+        entry:
+          entryType === 'claimWinnings'
+            ? { type: 'claimWinnings', timestamp, amount }
+            : {
+                type: entryType,
+                timestamp,
+                marketId,
+                outcomeId,
+                outcomeTokenId,
+                amount,
+                price,
+              },
+        title,
+        outcome,
+        icon,
+      } as PredictActivity & {
+        title?: string;
+        outcome?: string;
+        icon?: string;
+      };
 
-    return parsedActivity;
-  });
+      return parsedActivity;
+    })
+    .filter((activity) => {
+      // Filter out claim activities with no actual payout
+      // These are lost positions being cleared - just technical operations with no transaction value
+      if (activity.entry.type === 'claimWinnings') {
+        return activity.entry.amount > 0;
+      }
+      return true;
+    });
+
   return parsedActivities;
 };
 
@@ -542,10 +566,9 @@ export const getParsedMarketsFromPolymarketApi = async (
   const eventsStatus = `events_status=active`;
   const sort = `sort=volume_24hr`;
   const presetsTitle = `presets=EventsTitle`;
-  const presetsEvents = `presets=Events`;
   const page = `page=${Math.floor(offset / limit) + 1}`;
 
-  const queryParamsSearch = `${type}&${eventsStatus}&${sort}&${presetsTitle}&${presetsEvents}&${limitPerType}&${page}`;
+  const queryParamsSearch = `${type}&${eventsStatus}&${sort}&${presetsTitle}&${limitPerType}&${page}`;
 
   // Use search endpoint if q parameter is provided
   const endpoint = q
@@ -747,6 +770,9 @@ export async function calculateFees({
   let totalFee = 0;
 
   totalFee = (userBetAmount * FEE_PERCENTAGE) / 100;
+
+  // Round to 4 decimals
+  totalFee = Math.round(totalFee * 10000) / 10000;
 
   // split total 50/50 between metamask and provider
   const metamaskFee = totalFee / 2;
