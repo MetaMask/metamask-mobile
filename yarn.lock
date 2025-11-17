@@ -8178,12 +8178,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/phishing-controller@npm:^15.0.0":
+"@metamask/phishing-controller@file:./../core/packages/phishing-controller::locator=metamask%40workspace%3A.":
   version: 15.0.0
-  resolution: "@metamask/phishing-controller@npm:15.0.0"
+  resolution: "@metamask/phishing-controller@file:./../core/packages/phishing-controller#./../core/packages/phishing-controller::hash=a28ce1&locator=metamask%40workspace%3A."
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/controller-utils": "npm:^11.14.1"
+    "@metamask/controller-utils": "npm:^11.15.0"
     "@metamask/messenger": "npm:^0.3.0"
     "@noble/hashes": "npm:^1.8.0"
     "@types/punycode": "npm:^2.1.0"
@@ -8192,7 +8192,7 @@ __metadata:
     punycode: "npm:^2.1.1"
   peerDependencies:
     "@metamask/transaction-controller": ^61.0.0
-  checksum: 10/84e10ddcba9bb1351538c2de1105863dda030ad5f6dfa54bb17d731e436e948e6bcc4630fa914162046bda1b925514de37224f34cc00145e102b2f7f3f83059e
+  checksum: 10/d7db9c5316faf6acd54ebc8ea6a8439581acbe3c50e142fbcda30b041015b17daec3999f01b95d94bc2450eb596c409113b26efa82bf4844913fa8dc8898930e
   languageName: node
   linkType: hard
 
