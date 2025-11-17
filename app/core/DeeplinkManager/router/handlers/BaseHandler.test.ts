@@ -6,12 +6,15 @@ import {
 } from '../interfaces/UniversalLinkHandler';
 import { createMockContext, createMockLink } from '../testUtils';
 import Engine from '../../../Engine';
+import type { KeyringControllerState } from '@metamask/keyring-controller';
 
 jest.mock('../../../../util/Logger');
 jest.mock('../../../Engine', () => ({
   context: {
     KeyringController: {
-      isUnlocked: jest.fn(() => true),
+      state: {
+        isUnlocked: true,
+      },
     },
   },
 }));
@@ -48,17 +51,17 @@ describe('BaseHandler', () => {
 
   describe('isAuthenticated', () => {
     it('returns true when wallet is unlocked', () => {
-      (
-        Engine.context.KeyringController.isUnlocked as jest.Mock
-      ).mockReturnValue(true);
       expect(handler.testIsAuthenticated(mockContext)).toBe(true);
     });
 
     it('returns false when wallet is locked', () => {
-      (
-        Engine.context.KeyringController.isUnlocked as jest.Mock
-      ).mockReturnValue(false);
+      // Override the mock to simulate locked state
+      const state = Engine.context.KeyringController
+        .state as KeyringControllerState;
+      state.isUnlocked = false;
       expect(handler.testIsAuthenticated(mockContext)).toBe(false);
+      // Reset for other tests
+      state.isUnlocked = true;
     });
   });
 

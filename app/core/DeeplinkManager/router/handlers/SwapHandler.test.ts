@@ -3,12 +3,15 @@ import { ACTIONS } from '../../../../constants/deeplinks';
 import { createMockContext, createMockLink } from '../testUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../Engine';
+import type { KeyringControllerState } from '@metamask/keyring-controller';
 
 jest.mock('../../../../util/Logger');
 jest.mock('../../../Engine', () => ({
   context: {
     KeyringController: {
-      isUnlocked: jest.fn(() => true),
+      state: {
+        isUnlocked: true,
+      },
     },
   },
 }));
@@ -44,9 +47,9 @@ describe('SwapHandler', () => {
   });
 
   it('requires authentication for swap', async () => {
-    (Engine.context.KeyringController.isUnlocked as jest.Mock).mockReturnValue(
-      false,
-    );
+    const state = Engine.context.KeyringController
+      .state as KeyringControllerState;
+    state.isUnlocked = false;
     const link = createMockLink(ACTIONS.SWAP, {}, true);
 
     const result = await handler.handle(link, mockContext);

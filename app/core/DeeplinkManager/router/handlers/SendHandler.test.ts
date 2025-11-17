@@ -3,12 +3,15 @@ import { ACTIONS } from '../../../../constants/deeplinks';
 import Routes from '../../../../constants/navigation/Routes';
 import { createMockContext, createMockLink } from '../testUtils';
 import Engine from '../../../Engine';
+import type { KeyringControllerState } from '@metamask/keyring-controller';
 
 jest.mock('../../../../util/Logger');
 jest.mock('../../../Engine', () => ({
   context: {
     KeyringController: {
-      isUnlocked: jest.fn(() => true),
+      state: {
+        isUnlocked: true,
+      },
     },
   },
 }));
@@ -54,9 +57,9 @@ describe('SendHandler', () => {
     });
 
     it('requires authentication for send transactions', async () => {
-      (
-        Engine.context.KeyringController.isUnlocked as jest.Mock
-      ).mockReturnValue(false);
+      const state = Engine.context.KeyringController
+        .state as KeyringControllerState;
+      state.isUnlocked = false;
       const link = createMockLink(ACTIONS.SEND, { to: '0x123' }, true);
 
       const result = await handler.handle(link, mockContext);
