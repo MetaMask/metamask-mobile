@@ -279,15 +279,17 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
         );
         setState({ isLoading: false, error: null });
       } catch (error) {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.CARD_DELEGATION_PROCESS_FAILED)
-            .addProperties(metricsProps)
-            .build(),
-        );
+        if (!(error instanceof UserCancelledError)) {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.CARD_DELEGATION_PROCESS_FAILED)
+              .addProperties(metricsProps)
+              .build(),
+          );
+          Logger.error(error as Error, 'useCardDelegation: Delegation failed');
+        }
         const errorMessage =
           error instanceof Error ? error.message : 'Delegation failed';
         setState({ isLoading: false, error: errorMessage });
-        Logger.error(error as Error, 'useCardDelegation: Delegation failed');
         throw error;
       }
     },

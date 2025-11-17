@@ -832,6 +832,32 @@ describe('useCardDelegation', () => {
         }),
       );
     });
+
+    it('does not track failed event when user cancels transaction', async () => {
+      const error = new Error('User denied transaction signature');
+      Engine.context.TransactionController.addTransaction = jest
+        .fn()
+        .mockRejectedValue(error);
+
+      const mockToken = createMockToken();
+      const params = createMockDelegationParams();
+
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      await act(async () => {
+        await expect(result.current.submitDelegation(params)).rejects.toThrow(
+          UserCancelledError,
+        );
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_DELEGATION_PROCESS_STARTED,
+      );
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_DELEGATION_PROCESS_FAILED,
+      );
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
   });
 
   describe('generateSignatureMessage', () => {
