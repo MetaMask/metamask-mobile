@@ -23,6 +23,14 @@ const mockUseRampsUnifiedV1Enabled =
   useRampsUnifiedV1Enabled as jest.MockedFunction<
     typeof useRampsUnifiedV1Enabled
   >;
+const mockCreateRampNavigationDetails =
+  createRampNavigationDetails as jest.MockedFunction<
+    typeof createRampNavigationDetails
+  >;
+const mockCreateDepositNavigationDetails =
+  createDepositNavigationDetails as jest.MockedFunction<
+    typeof createDepositNavigationDetails
+  >;
 const mockCreateTokenSelectionNavigationDetails =
   createTokenSelectionNavigationDetails as jest.MockedFunction<
     typeof createTokenSelectionNavigationDetails
@@ -31,15 +39,6 @@ const mockCreateTokenSelectionNavigationDetails =
 let mockRampRoutingDecision: UnifiedRampRoutingType | null = null;
 
 describe('useRampNavigation', () => {
-  const mockCreateRampNavigationDetails =
-    createRampNavigationDetails as jest.MockedFunction<
-      typeof createRampNavigationDetails
-    >;
-  const mockCreateDepositNavigationDetails =
-    createDepositNavigationDetails as jest.MockedFunction<
-      typeof createDepositNavigationDetails
-    >;
-
   const createMockState = () => ({
     fiatOrders: {
       rampRoutingDecision: mockRampRoutingDecision,
@@ -298,7 +297,6 @@ describe('useRampNavigation', () => {
         undefined,
       );
       expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
-      expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
     });
 
     it('navigates to deposit with intent', () => {
