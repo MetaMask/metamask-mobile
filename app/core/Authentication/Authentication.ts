@@ -257,7 +257,7 @@ class AuthenticationService {
       // have been added on external wallets.
       // 3. We run the alignment at the end of the discovery, thus, automatically
       // creating accounts for new account providers.
-      Promise.allSettled(
+      await Promise.allSettled(
         this.getEntropySourceIds().map(
           async (entropySource) =>
             await this.attemptMultichainAccountWalletDiscovery(entropySource),
