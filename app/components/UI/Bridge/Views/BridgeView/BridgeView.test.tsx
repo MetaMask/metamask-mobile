@@ -309,8 +309,8 @@ describe('BridgeView', () => {
     fireEvent.press(tokenButton);
 
     // Verify navigation to BridgeTokenSelector
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.TOKEN_SELECTOR, {
+      type: 'source',
     });
   });
 
@@ -330,11 +330,8 @@ describe('BridgeView', () => {
     fireEvent.press(destTokenArea);
 
     // Verify navigation to BridgeTokenSelector
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
-      params: {
-        shouldGoToTokens: true,
-      },
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.TOKEN_SELECTOR, {
+      type: 'dest',
     });
   });
 
