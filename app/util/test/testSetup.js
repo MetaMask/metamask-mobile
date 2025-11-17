@@ -609,6 +609,11 @@ jest.mock('@sentry/react-native', () => ({
 
   // User feedback
   lastEventId: jest.fn(),
+
+  // Global scope
+  getGlobalScope: jest.fn(() => ({
+    setTag: jest.fn(),
+  })),
 }));
 
 jest.mock('@react-native-firebase/messaging', () => {

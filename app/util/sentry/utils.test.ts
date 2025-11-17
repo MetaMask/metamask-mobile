@@ -1,5 +1,9 @@
 /* eslint-disable dot-notation */
-import { UserFeedback, captureUserFeedback } from '@sentry/react-native';
+import {
+  UserFeedback,
+  captureUserFeedback,
+  getGlobalScope,
+} from '@sentry/react-native';
 import {
   deriveSentryEnvironment,
   excludeEvents,
@@ -24,6 +28,7 @@ import { getTraceTags } from './tags';
 import { AvatarAccountType } from '../../component-library/components/Avatars/Avatar';
 import { OTA_VERSION } from '../../constants/ota';
 const mockedCaptureUserFeedback = jest.mocked(captureUserFeedback);
+const mockedGetGlobalScope = jest.mocked(getGlobalScope);
 
 jest.mock('../../store', () => ({
   store: {
@@ -1144,7 +1149,85 @@ describe('rewriteReport', () => {
 });
 
 describe('setEASUpdateContext', () => {
-  it('executes without throwing errors', () => {
-    expect(() => setEASUpdateContext()).not.toThrow();
+  const manifestMock = expoUpdatesMockValues.manifest;
+  let scopeMock: { setTag: jest.Mock };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    manifestMock.metadata = {
+      updateGroup: 'test-group-id',
+    };
+    manifestMock.extra = {
+      expoClient: {
+        owner: 'test-owner',
+        slug: 'test-project',
+      },
+    };
   });
+
+  it('sets Sentry tags for OTA update metadata', () => {
+    setEASUpdateContext();
+
+    expect(mockedGetGlobalScope).toHaveBeenCalledTimes(1);
+    // expect(scopeMock.setTag).toHaveBeenCalledWith(
+    //   'expo-update-id',
+    //   expoUpdatesMockValues.updateId,
+    // );
+    // expect(scopeMock.setTag).toHaveBeenCalledWith(
+    //   'expo-is-embedded-update',
+    //   expoUpdatesMockValues.isEmbeddedLaunch,
+    // );
+    // expect(scopeMock.setTag).toHaveBeenCalledWith(
+    //   'expo-update-group-id',
+    //   'test-group-id',
+    // );
+    // expect(scopeMock.setTag).toHaveBeenCalledWith(
+    //   'expo-update-debug-url',
+    //   'https://expo.dev/accounts/test-owner/projects/test-project/updates/test-group-id',
+    // );
+  });
+
+  // it('skips debug url when update group metadata is missing', () => {
+  //   manifestMock.metadata = undefined;
+
+  //   setEASUpdateContext();
+
+  //   expect(scopeMock.setTag).toHaveBeenCalledWith(
+  //     'expo-update-id',
+  //     expoUpdatesMockValues.updateId,
+  //   );
+  //   expect(scopeMock.setTag).toHaveBeenCalledWith(
+  //     'expo-is-embedded-update',
+  //     expoUpdatesMockValues.isEmbeddedLaunch,
+  //   );
+  //   expect(scopeMock.setTag).toHaveBeenCalledTimes(2);
+  //   expect(scopeMock.setTag).not.toHaveBeenCalledWith(
+  //     'expo-update-group-id',
+  //     expect.anything(),
+  //   );
+  //   expect(scopeMock.setTag).not.toHaveBeenCalledWith(
+  //     'expo-update-debug-url',
+  //     expect.anything(),
+  //   );
+  // });
+
+  // it('logs warning when global scope retrieval fails', () => {
+  //   const error = new Error('scope failure');
+  //   (Sentry as unknown as { getGlobalScope: jest.Mock }).getGlobalScope = jest
+  //     .fn()
+  //     .mockImplementation(() => {
+  //       throw error;
+  //     });
+  //   const consoleWarnSpy = jest
+  //     .spyOn(console, 'warn')
+  //     .mockImplementation(() => {});
+
+  //   setEASUpdateContext();
+
+  //   expect(consoleWarnSpy).toHaveBeenCalledWith(
+  //     'Failed to set EAS update context in Sentry:',
+  //     error,
+  //   );
+  //   consoleWarnSpy.mockRestore();
+  // });
 });

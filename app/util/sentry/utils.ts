@@ -6,7 +6,6 @@ import {
   updateId,
   manifest,
   isEmbeddedLaunch,
-  channel,
   runtimeVersion,
 } from 'expo-updates';
 import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
@@ -598,24 +597,13 @@ export function setEASUpdateContext(): void {
     const updateGroup =
       metadata && 'updateGroup' in metadata ? metadata.updateGroup : undefined;
 
-    const getCurrentScope =
-      typeof (Sentry as any).getCurrentScope === 'function'
-        ? (Sentry as any).getCurrentScope
-        : undefined;
-
-    if (!getCurrentScope) {
-      // In environments where getCurrentScope is not available (e.g. some tests),
-      // skip setting update context rather than throwing.
-      return;
-    }
-
-    const scope = getCurrentScope();
+    const scope = Sentry.getGlobalScope();
 
     scope.setTag('expo-update-id', updateId);
-    scope.setTag('expo-is-embedded-launch', String(isEmbeddedLaunch));
-    scope.setTag('expo-channel', channel);
-    scope.setTag('expo-update-version', OTA_VERSION);
+    scope.setTag('expo-is-embedded-update', isEmbeddedLaunch);
+    scope.setTag('expo-ota-version', OTA_VERSION);
     scope.setTag('expo-runtime-version', runtimeVersion);
+
     if (typeof updateGroup === 'string') {
       scope.setTag('expo-update-group-id', updateGroup);
 
@@ -632,7 +620,6 @@ export function setEASUpdateContext(): void {
       );
     }
   } catch (error) {
-    // Don't let EAS update context setting break Sentry
     console.warn('Failed to set EAS update context in Sentry:', error);
   }
 }
