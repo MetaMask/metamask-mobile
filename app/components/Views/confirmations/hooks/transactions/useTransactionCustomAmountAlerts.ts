@@ -38,25 +38,32 @@ export function useTransactionCustomAmountAlerts({
   const { alerts: confirmationAlerts } = useAlerts();
   const pendingTokenAlerts = usePendingAmountAlerts({ pendingTokenAmount });
 
-  const filteredConfirmationAlerts = useMemo(
+  const uniqueAlerts = useMemo(
     () =>
       confirmationAlerts.filter(
+        (a_) => !PENDING_AMOUNT_ALERTS.includes(a_.key as AlertKeys),
+      ),
+    [confirmationAlerts],
+  );
+
+  const allAlerts = useMemo(
+    () => [...pendingTokenAlerts, ...uniqueAlerts],
+    [uniqueAlerts, pendingTokenAlerts],
+  );
+
+  const filteredAlerts = useMemo(
+    () =>
+      allAlerts.filter(
         (a) =>
           a.isBlocking &&
-          !PENDING_AMOUNT_ALERTS.includes(a.key as AlertKeys) &&
           (!isKeyboardVisible ||
             KEYBOARD_ALERTS.includes(a.key as AlertKeys)) &&
           (isInputChanged || !ON_CHANGE_ALERTS.includes(a.key as AlertKeys)),
       ),
-    [confirmationAlerts, isInputChanged, isKeyboardVisible],
+    [allAlerts, isInputChanged, isKeyboardVisible],
   );
 
-  const alerts = useMemo(
-    () => [...pendingTokenAlerts, ...filteredConfirmationAlerts],
-    [filteredConfirmationAlerts, pendingTokenAlerts],
-  );
-
-  const firstAlert = alerts?.[0];
+  const firstAlert = filteredAlerts?.[0];
 
   if (!firstAlert) {
     return {};
