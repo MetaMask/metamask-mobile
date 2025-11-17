@@ -115,7 +115,15 @@ export const createBuildQuoteNavDetails =
 
 const BuildQuote = () => {
   const navigation = useNavigation();
-  const { showBack, ...intent } = useParams<BuildQuoteParams>();
+  const params = useParams<BuildQuoteParams>();
+  const { showBack } = params;
+
+  // Memoize the intent object to prevent unnecessary re-renders
+  const intent = useMemo(() => {
+    const { showBack: _, ...intentParams } = params;
+    return intentParams;
+  }, [params]);
+
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors, themeAppearance } = theme;
   const trackEvent = useAnalytics();
@@ -151,7 +159,7 @@ const BuildQuote = () => {
   } = useRampSDK();
 
   useEffect(() => {
-    if (intent && !intentHandled && Object.keys(intent).length > 0) {
+    if (intent && !intentHandled && Object.keys(intent || {}).length > 0) {
       setIntent(intent);
       setIntentHandled(true);
     }
