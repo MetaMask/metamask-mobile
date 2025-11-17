@@ -28,12 +28,18 @@ import { EarnTokenDetails } from '../../types/lending.types';
 
 jest.mock('../../selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn().mockImplementation(() => true),
+  selectPooledStakingEnabledFlag: jest.fn().mockImplementation(() => true),
 }));
 
-jest.mock('../../../../../../components/hooks/useFeatureFlag', () => ({
-  useFeatureFlag: jest.fn().mockReturnValue(true),
-  FeatureFlagNames,
-}));
+jest.mock('../../../../../components/hooks/useFeatureFlag', () => {
+  const actual = jest.requireActual(
+    '../../../../../components/hooks/useFeatureFlag',
+  );
+  return {
+    ...actual,
+    useFeatureFlag: jest.fn().mockReturnValue(true),
+  };
+});
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -145,7 +151,14 @@ describe('EarnTokenList', () => {
     (
       selectStablecoinLendingEnabledFlag as unknown as jest.Mock
     ).mockReturnValue(true);
-    (useFeatureFlag as unknown as jest.Mock).mockReturnValue(true);
+    (useFeatureFlag as unknown as jest.Mock).mockImplementation(
+      (flagName: string) => {
+        if (flagName === FeatureFlagNames.earnPooledStakingEnabled) {
+          return true;
+        }
+        return true;
+      },
+    );
 
     jest
       .spyOn(ReactNative.Image, 'getSize')

@@ -24,7 +24,7 @@ import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import {
   useFeatureFlag,
   FeatureFlagNames,
-} from '../../../../../../components/hooks/useFeatureFlag';
+} from '../../../../../components/hooks/useFeatureFlag';
 import { TokenI } from '../../../Tokens/types';
 
 const mockEarnTokenPair = getMockUseEarnTokens(EARN_EXPERIENCES.POOLED_STAKING);
@@ -180,18 +180,22 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 jest.mock('../../../Earn/selectors/featureFlags', () => ({
+  selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(true),
   selectStablecoinLendingEnabledFlag: jest.fn(),
   selectPooledStakingServiceInterruptionBannerEnabledFlag: jest
     .fn()
     .mockReturnValue(false),
 }));
 
-jest.mock('../../../../../../components/hooks/useFeatureFlag', () => ({
-  useFeatureFlag: jest.fn(),
-  FeatureFlagNames: {
-    earnPooledStakingEnabled: 'earnPooledStakingEnabled',
-  },
-}));
+jest.mock('../../../../../components/hooks/useFeatureFlag', () => {
+  const actual = jest.requireActual(
+    '../../../../../components/hooks/useFeatureFlag',
+  );
+  return {
+    ...actual,
+    useFeatureFlag: jest.fn(),
+  };
+});
 
 afterEach(() => {
   jest.clearAllMocks();
