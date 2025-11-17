@@ -1,11 +1,8 @@
 import React from 'react';
-import { useRampNavigation, RampMode } from './useRampNavigation';
-import { RampType as AggregatorRampType } from '../Aggregator/types';
+import { useRampNavigation } from './useRampNavigation';
 
 export interface WithRampNavigationProps {
   goToBuy: ReturnType<typeof useRampNavigation>['goToBuy'];
-  RampMode: typeof RampMode;
-  AggregatorRampType: typeof AggregatorRampType;
 }
 
 export function withRampNavigation<P extends WithRampNavigationProps>(
@@ -16,13 +13,6 @@ export function withRampNavigation<P extends WithRampNavigationProps>(
   ) {
     const { goToBuy } = useRampNavigation();
 
-    return (
-      <Component
-        {...(props as P)}
-        goToBuy={goToBuy}
-        RampMode={RampMode}
-        AggregatorRampType={AggregatorRampType}
-      />
-    );
+    return <Component {...(props as P)} goToBuy={goToBuy} />;
   };
 }

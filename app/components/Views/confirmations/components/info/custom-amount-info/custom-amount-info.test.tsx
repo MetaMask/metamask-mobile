@@ -21,8 +21,6 @@ import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransacti
 import { strings } from '../../../../../../../locales/i18n';
 import { Hex } from '@metamask/utils';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
-import { RampMode } from '../../../../../UI/Ramp/hooks/useRampNavigation';
-import { RampType } from '../../../../../UI/Ramp/Aggregator/types';
 import { fireEvent } from '@testing-library/react-native';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
@@ -224,13 +222,7 @@ describe('CustomAmountInfo', () => {
 
     expect(mockGoToBuy).toHaveBeenCalledTimes(1);
     expect(mockGoToBuy).toHaveBeenCalledWith({
-      mode: RampMode.AGGREGATOR,
-      params: {
-        rampType: RampType.BUY,
-        intent: {
-          assetId: 'eip155:1/erc20:0x123',
-        },
-      },
+      assetId: 'eip155:1/erc20:0x123',
     });
   });
 

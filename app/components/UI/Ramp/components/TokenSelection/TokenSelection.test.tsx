@@ -59,6 +59,14 @@ jest.mock('../../Deposit/hooks/useSearchTokenResults', () => jest.fn());
 
 jest.mock('../../hooks/useRampsUnifiedV1Enabled', () => jest.fn(() => true));
 
+const mockGoToBuy = jest.fn();
+
+jest.mock('../../hooks/useRampNavigation', () => ({
+  useRampNavigation: () => ({
+    goToBuy: mockGoToBuy,
+  }),
+}));
+
 const mockTokens = MOCK_CRYPTOCURRENCIES;
 
 describe('TokenSelection Component', () => {
@@ -152,58 +160,17 @@ describe('TokenSelection Component', () => {
       expect(toJSON()).toMatchSnapshot();
     });
 
-    it('navigates to buy route when token is pressed with BUY rampType', () => {
-      (useParams as jest.Mock).mockReturnValue({
-        rampType: 'BUY',
-      });
-      const { getByTestId } = renderWithProvider(TokenSelection, {
-        fiatOrders: {
-          rampRoutingDecision: UnifiedRampRoutingType.AGGREGATOR,
-        },
-      });
+    it('calls goToBuy when token is pressed', () => {
+      const { getByTestId } = renderWithProvider(TokenSelection);
 
       const firstToken = getByTestId(
         `token-list-item-${mockTokens[0].assetId}`,
       );
       fireEvent.press(firstToken);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'RampBuy',
-        expect.objectContaining({
-          params: expect.objectContaining({
-            params: expect.objectContaining({
-              assetId: mockTokens[0].assetId,
-            }),
-          }),
-        }),
-      );
-    });
-
-    it('navigates to deposit route when token is pressed with DEPOSIT rampType', () => {
-      (useParams as jest.Mock).mockReturnValue({
-        rampType: 'DEPOSIT',
+      expect(mockGoToBuy).toHaveBeenCalledWith({
+        assetId: mockTokens[0].assetId,
       });
-      const { getByTestId } = renderWithProvider(TokenSelection, {
-        fiatOrders: {
-          rampRoutingDecision: UnifiedRampRoutingType.DEPOSIT,
-        },
-      });
-
-      const firstToken = getByTestId(
-        `token-list-item-${mockTokens[0].assetId}`,
-      );
-      fireEvent.press(firstToken);
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'Deposit',
-        expect.objectContaining({
-          params: expect.objectContaining({
-            params: expect.objectContaining({
-              assetId: mockTokens[0].assetId,
-            }),
-          }),
-        }),
-      );
     });
   });
 });

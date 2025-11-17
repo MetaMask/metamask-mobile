@@ -7,6 +7,7 @@ import {
 import { useTransactionDetails } from './useTransactionDetails';
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../util/navigation/navUtils'),
   useParams: jest.fn(),
 }));
 

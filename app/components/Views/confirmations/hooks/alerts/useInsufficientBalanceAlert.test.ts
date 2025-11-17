@@ -19,6 +19,7 @@ import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../util/navigation/navUtils'),
   useParams: jest.fn().mockReturnValue({
     params: {
       maxValueMode: false,
@@ -51,7 +52,6 @@ jest.mock('../../../../../reducers/transaction', () => ({
 jest.mock('../../context/confirmation-context');
 jest.mock('../../../../UI/Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: jest.fn(),
-  RampMode: { AGGREGATOR: 'AGGREGATOR', DEPOSIT: 'DEPOSIT' },
 }));
 jest.mock('../gas/useIsGaslessSupported');
 
@@ -125,6 +125,9 @@ describe('useInsufficientBalanceAlert', () => {
     } as unknown as ReturnType<typeof useConfirmationContext>);
     mockUseRampNavigation.mockReturnValue({
       goToBuy: mockGoToBuy,
+      goToAggregator: jest.fn(),
+      goToSell: jest.fn(),
+      goToDeposit: jest.fn(),
     });
   });
 

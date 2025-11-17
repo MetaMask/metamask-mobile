@@ -2,7 +2,7 @@ export type { Region } from '../../../../../reducers/fiatOrders/types';
 export { RampType } from '../../../../../reducers/fiatOrders/types';
 
 export * from './analytics';
-export { RampIntent } from '../../types';
+export type { RampIntent } from '../../types';
 
 export enum PROVIDER_LINKS {
   HOMEPAGE = 'Homepage',
