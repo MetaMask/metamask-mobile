@@ -17,10 +17,7 @@ import { RootState } from '../../../../../reducers';
 import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../../../core/Engine';
 import { selectStablecoinLendingEnabledFlag } from '../../../Earn/selectors/featureFlags';
-import {
-  useFeatureFlag,
-  FeatureFlagNames,
-} from '../../../../../components/hooks/useFeatureFlag';
+import { useFeatureFlag } from '../../../../../components/hooks/useFeatureFlag';
 import { TokenI } from '../../../Tokens/types';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 
@@ -89,10 +86,15 @@ jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(true),
 }));
 
-jest.mock('../../../../../components/hooks/useFeatureFlag', () => ({
-  useFeatureFlag: jest.fn().mockReturnValue(true),
-  FeatureFlagNames,
-}));
+jest.mock('../../../../../components/hooks/useFeatureFlag', () => {
+  const actual = jest.requireActual(
+    '../../../../../components/hooks/useFeatureFlag',
+  );
+  return {
+    useFeatureFlag: jest.fn().mockReturnValue(true),
+    FeatureFlagNames: actual.FeatureFlagNames,
+  };
+});
 
 jest.mock('../../../../../selectors/earnController/earn', () => {
   const { EARN_EXPERIENCES } = jest.requireActual(
