@@ -15,6 +15,11 @@ import PredictMarketSkeleton from '../../../UI/Predict/components/PredictMarketS
 import SectionCard from '../components/SectionCard/SectionCard';
 import SectionCarrousel from '../components/SectionCarrousel/SectionCarrousel';
 import { useTrendingRequest } from '../../../UI/Trending/hooks/useTrendingRequest';
+import { sortTrendingTokens } from '../../../UI/Trending/utils/sortTrendingTokens';
+import {
+  PriceChangeOption,
+  SortDirection,
+} from '../../../UI/Trending/components/TrendingTokensBottomSheet';
 import { usePredictMarketData } from '../../../UI/Predict/hooks/usePredictMarketData';
 import { usePerpsMarkets } from '../../../UI/Perps/hooks';
 import { PerpsConnectionProvider } from '../../../UI/Perps/providers/PerpsConnectionProvider';
@@ -79,7 +84,15 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     useSectionData: () => {
       const { results, isLoading } = useTrendingRequest({});
 
-      return { data: results, isLoading };
+      // Apply default sorting to match full view (PriceChange, Descending)
+      // This ensures the section view shows the same order as the full view
+      const sortedResults = sortTrendingTokens(
+        results,
+        PriceChangeOption.PriceChange,
+        SortDirection.Descending,
+      );
+
+      return { data: sortedResults, isLoading };
     },
   },
   perps: {

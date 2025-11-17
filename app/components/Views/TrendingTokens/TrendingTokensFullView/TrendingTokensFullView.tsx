@@ -40,6 +40,7 @@ import {
   SortDirection,
   TimeOption,
 } from '../../../UI/Trending/components/TrendingTokensBottomSheet';
+import { sortTrendingTokens } from '../../../UI/Trending/utils/sortTrendingTokens';
 
 interface TrendingTokensNavigationParamList {
   [key: string]: undefined | object;
@@ -205,40 +206,12 @@ const TrendingTokensFullView = () => {
       return trendingTokensResults.slice(0, MAX_TOKENS);
     }
 
-    // Only sort if we have results and a sort option
-    // Create a new array and sort in-place for better performance
-    const sorted = [...trendingTokensResults];
-    sorted.sort((a, b) => {
-      let aValue: number;
-      let bValue: number;
-
-      switch (selectedPriceChangeOption) {
-        case PriceChangeOption.PriceChange:
-          // For price change, use priceChangePct?.h24 for 24-hour price change percentage
-          aValue = a.priceChangePct?.h24
-            ? parseFloat(a.priceChangePct.h24) || 0
-            : 0;
-          bValue = b.priceChangePct?.h24
-            ? parseFloat(b.priceChangePct.h24) || 0
-            : 0;
-          break;
-        case PriceChangeOption.Volume:
-          aValue = a.aggregatedUsdVolume ?? 0;
-          bValue = b.aggregatedUsdVolume ?? 0;
-          break;
-        case PriceChangeOption.MarketCap:
-          aValue = a.marketCap ?? 0;
-          bValue = b.marketCap ?? 0;
-          break;
-        default:
-          return 0;
-      }
-
-      const comparison = aValue - bValue;
-      return priceChangeSortDirection === SortDirection.Ascending
-        ? comparison
-        : -comparison;
-    });
+    // Sort using the shared utility function
+    const sorted = sortTrendingTokens(
+      trendingTokensResults,
+      selectedPriceChangeOption,
+      priceChangeSortDirection,
+    );
 
     return sorted.slice(0, MAX_TOKENS);
   }, [
