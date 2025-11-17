@@ -11,9 +11,12 @@ jest.mock('dayjs', () => {
   const originalDayjs = jest.requireActual('dayjs');
   const mockDayjs = (date?: string | number | Date | undefined) => {
     if (date) {
+      const dayjsInstance = originalDayjs(date);
       return {
         fromNow: () => '2 days ago',
-        ...originalDayjs(date),
+        isAfter: (other: ReturnType<typeof originalDayjs>) =>
+          dayjsInstance.isAfter(other),
+        ...dayjsInstance,
       };
     }
     return originalDayjs();
@@ -42,7 +45,7 @@ const basePosition: PredictPositionType = {
   currentValue: 2345.67,
   avgPrice: 0.34,
   claimable: false,
-  endDate: '2025-12-31T00:00:00Z',
+  endDate: '2020-01-01T00:00:00Z', // Past date so it shows "Ended X ago" instead of "Resolved early"
 };
 
 const renderComponent = (overrides?: Partial<PredictPositionType>) => {
@@ -58,10 +61,9 @@ describe('PredictPositionResolved', () => {
     renderComponent();
 
     expect(screen.getByText(basePosition.title)).toBeOnTheScreen();
-    expect(
-      screen.getByText('$123.45 on Yes • Ended 2 days ago'),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('Won $2,345.67')).toBeOnTheScreen();
+    expect(screen.getByText(/\$123\.45 on Yes/)).toBeOnTheScreen();
+    expect(screen.getByText(/Ended 2 days ago/)).toBeOnTheScreen();
+    expect(screen.getByText(/Won\s+\$2,345\.67/)).toBeOnTheScreen();
   });
 
   it('renders losing position correctly', () => {
@@ -71,18 +73,16 @@ describe('PredictPositionResolved', () => {
       percentPnl: -50,
     });
 
-    expect(
-      screen.getByText('$100.00 on Yes • Ended 2 days ago'),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('Lost $50.00')).toBeOnTheScreen();
+    expect(screen.getByText(/\$100\.00 on Yes/)).toBeOnTheScreen();
+    expect(screen.getByText(/Ended 2 days ago/)).toBeOnTheScreen();
+    expect(screen.getByText(/Lost \$50\.00/)).toBeOnTheScreen();
   });
 
   it('renders different outcome text', () => {
     renderComponent({ outcome: 'No' });
 
-    expect(
-      screen.getByText('$123.45 on No • Ended 2 days ago'),
-    ).toBeOnTheScreen();
+    expect(screen.getByText(/\$123\.45 on No/)).toBeOnTheScreen();
+    expect(screen.getByText(/Ended 2 days ago/)).toBeOnTheScreen();
   });
 
   it('handles zero profit/loss correctly', () => {
@@ -92,7 +92,7 @@ describe('PredictPositionResolved', () => {
       percentPnl: 0,
     });
 
-    expect(screen.getByText('Lost $0.00')).toBeOnTheScreen();
+    expect(screen.getByText(/Lost \$0\.00/)).toBeOnTheScreen();
   });
 
   it('calls onPress when position is tapped', () => {
