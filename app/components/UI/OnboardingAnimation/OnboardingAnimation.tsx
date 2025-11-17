@@ -55,10 +55,12 @@ const OnboardingAnimation = ({
   children,
   startOnboardingAnimation,
   setStartFoxAnimation,
+  isOnboarding = true,
 }: {
   children: React.ReactNode;
   startOnboardingAnimation: boolean;
   setStartFoxAnimation: (value: boolean) => void;
+  isOnboarding?: boolean;
 }) => {
   const logoRef = useRef<RiveRef>(null);
   const logoPosition = useMemo(() => new Animated.Value(0), []);
@@ -66,6 +68,10 @@ const OnboardingAnimation = ({
 
   const { themeAppearance } = useAppThemeFromContext();
   const styles = createStyles();
+
+  const animationSource = isOnboarding
+    ? MetaMaskWordmarkAnimation
+    : MetaMaskWordmarkAnimation;
 
   const moveLogoUp = useCallback(() => {
     Animated.parallel([
@@ -138,7 +144,7 @@ const OnboardingAnimation = ({
           <Rive
             ref={logoRef}
             style={styles.image}
-            source={MetaMaskWordmarkAnimation}
+            source={animationSource}
             fit={Fit.Contain}
             alignment={Alignment.Center}
             autoplay={false}

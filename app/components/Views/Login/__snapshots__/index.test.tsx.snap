@@ -3,15 +3,10 @@
 exports[`Login renders matching snapshot 1`] = `
 <RCTSafeAreaView
   style={
-    [
-      {
-        "flex": 1,
-        "paddingTop": 0,
-      },
-      {
-        "backgroundColor": "#FFF2EB",
-      },
-    ]
+    {
+      "flex": 1,
+      "paddingTop": 0,
+    }
   }
 >
   <RCTScrollView
@@ -136,7 +131,7 @@ exports[`Login renders matching snapshot 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#FFF2EB",
+                  "backgroundColor": "#ffffff",
                   "borderColor": "#b7bbc8",
                   "borderRadius": 8,
                   "borderWidth": 1,
@@ -362,15 +357,10 @@ exports[`Login renders matching snapshot 1`] = `
 exports[`Login renders matching snapshot when password input is focused 1`] = `
 <RCTSafeAreaView
   style={
-    [
-      {
-        "flex": 1,
-        "paddingTop": 0,
-      },
-      {
-        "backgroundColor": "#FFF2EB",
-      },
-    ]
+    {
+      "flex": 1,
+      "paddingTop": 0,
+    }
   }
 >
   <RCTScrollView
@@ -495,7 +485,7 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#FFF2EB",
+                  "backgroundColor": "#ffffff",
                   "borderColor": "#b7bbc8",
                   "borderRadius": 8,
                   "borderWidth": 1,

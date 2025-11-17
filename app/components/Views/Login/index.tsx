@@ -8,7 +8,6 @@ import {
   TextInput,
   Platform,
 } from 'react-native';
-import { colors as importedColors } from '../../../styles/common';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -514,17 +513,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   return (
     <ErrorBoundary navigation={navigation} view="Login">
-      <SafeAreaView
-        style={[
-          styles.mainWrapper,
-          {
-            backgroundColor:
-              themeAppearance === 'dark'
-                ? importedColors.gettingStartedTextColor
-                : importedColors.gettingStartedPageBackgroundColorLightMode,
-          },
-        ]}
-      >
+      <SafeAreaView style={styles.mainWrapper}>
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
           resetScrollToCoords={{ x: 0, y: 0 }}
@@ -537,6 +526,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             <OnboardingAnimation
               startOnboardingAnimation={startOnboardingAnimation}
               setStartFoxAnimation={setStartFoxAnimationCallback}
+              isOnboarding={false}
             >
               <View style={styles.field}>
                 <TextField
@@ -560,7 +550,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                   }
                   keyboardAppearance={themeAppearance}
                   isError={!!error}
-                  style={styles.textField}
                 />
               </View>
 
