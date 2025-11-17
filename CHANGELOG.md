@@ -769,7 +769,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.57.2]
 
-### Added 
+### Added
 
 - feat: Implement extra validations and alert when sending burn address in EVM transfer transactions ([#22018](https://github.com/MetaMask/metamask-mobile/pull/22018))
 - feat: Accurate opt out translations for rewards cp-7.57.2 ([#22021](https://github.com/MetaMask/metamask-mobile/pull/22021))
