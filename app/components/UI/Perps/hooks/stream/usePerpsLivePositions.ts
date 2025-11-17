@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import type { Position, PriceUpdate } from '../../controllers/types';
+import { calculateRoEForPrice } from '../../utils/tpslValidation';
 
 // Stable empty array reference to prevent re-renders
 const EMPTY_POSITIONS: Position[] = [];
@@ -49,22 +50,31 @@ export function enrichPositionsWithLivePnL(
 
     const entryPrice = Number.parseFloat(position.entryPrice);
     const size = Number.parseFloat(position.size);
-    const marginUsed = Number.parseFloat(position.marginUsed);
+    const leverage = position.leverage?.value ?? 1;
 
-    if (
-      Number.isNaN(entryPrice) ||
-      Number.isNaN(size) ||
-      Number.isNaN(marginUsed)
-    ) {
+    if (Number.isNaN(entryPrice) || Number.isNaN(size) || entryPrice <= 0) {
       return position;
     }
 
-    // Calculate unrealized PnL: (markPrice - entryPrice) * size
+    const direction = size >= 0 ? 'long' : 'short';
+
     const calculatedUnrealizedPnl = (markPrice - entryPrice) * size;
 
-    // Calculate ROE: (unrealizedPnl / marginUsed) as decimal (not percentage)
-    const calculatedRoe =
-      marginUsed > 0 ? calculatedUnrealizedPnl / marginUsed : 0;
+    const roePercentage = calculateRoEForPrice(
+      markPrice.toString(),
+      calculatedUnrealizedPnl >= 0, // isProfit
+      true, // isForPositionBoundTpsl - true for existing positions
+      {
+        currentPrice: markPrice,
+        direction,
+        leverage,
+        entryPrice,
+      },
+    );
+
+    const calculatedRoe = roePercentage
+      ? Number.parseFloat(roePercentage) / 100
+      : 0;
 
     return {
       ...position,
