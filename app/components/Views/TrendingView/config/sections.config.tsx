@@ -65,9 +65,8 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   tokens: {
     id: 'tokens',
     title: strings('trending.tokens'),
-    viewAllAction: (_navigation) => {
-      // TODO: Implement tokens navigation when ready
-      // _navigation.navigate(...);
+    viewAllAction: (navigation) => {
+      navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW);
     },
     renderRowItem: (item) => (
       <TrendingTokenRowItem token={item as TrendingAsset} />
