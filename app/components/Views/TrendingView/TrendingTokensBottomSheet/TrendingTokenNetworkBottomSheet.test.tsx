@@ -55,19 +55,11 @@ const mockNetworks: ProcessedNetwork[] = [
   },
 ];
 
-const mockUseNetworksByNamespace = jest.fn(() => ({
-  networks: mockNetworks,
-}));
+const mockUsePopularNetworks = jest.fn(() => mockNetworks);
 
-jest.mock(
-  '../../../hooks/useNetworksByNamespace/useNetworksByNamespace',
-  () => ({
-    useNetworksByNamespace: () => mockUseNetworksByNamespace(),
-    NetworkType: {
-      Popular: 'popular',
-    },
-  }),
-);
+jest.mock('../../../hooks/usePopularNetworks', () => ({
+  usePopularNetworks: () => mockUsePopularNetworks(),
+}));
 
 let storedOnClose: (() => void) | undefined;
 
@@ -226,9 +218,7 @@ describe('TrendingTokenNetworkBottomSheet', () => {
     jest.clearAllMocks();
     storedOnClose = undefined;
     mockUseParams.mockReturnValue({});
-    mockUseNetworksByNamespace.mockReturnValue({
-      networks: mockNetworks,
-    });
+    mockUsePopularNetworks.mockReturnValue(mockNetworks);
     mockGetNetworkImageSource.mockImplementation(
       (params: { chainId: string }) => {
         if (params.chainId === 'eip155:1') {
