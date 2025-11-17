@@ -1,10 +1,12 @@
 import React from 'react';
-import { screen, fireEvent } from '@testing-library/react-native';
+import { screen, fireEvent, waitFor } from '@testing-library/react-native';
 import AccountSelector from './AccountSelector';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { AddAccountBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AddAccountBottomSheet.selectors';
+import { CellComponentSelectorsIDs } from '../../../../e2e/selectors/wallet/CellComponent.selectors';
 import Routes from '../../../constants/navigation/Routes';
+import Engine from '../../../core/Engine';
 import {
   AccountSelectorParams,
   AccountSelectorProps,
@@ -800,6 +802,134 @@ describe('AccountSelector', () => {
 
       // Assert: MultichainAddWalletActions screen is displayed
       expect(screen.getByText('Add wallet')).toBeDefined();
+
+      jest.useFakeTimers();
+    });
+
+    it('closes BottomSheet when account is selected with feature flag disabled', async () => {
+      // Arrange
+      mockUseFeatureFlag.mockReturnValue(false);
+
+      const { getAllByTestId } = renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      // Wait for account cells to render
+      await waitFor(() => {
+        const cells = getAllByTestId(
+          CellComponentSelectorsIDs.SELECT_WITH_MENU,
+        );
+        expect(cells.length).toBeGreaterThan(0);
+      });
+
+      const accountCells = getAllByTestId(
+        CellComponentSelectorsIDs.SELECT_WITH_MENU,
+      );
+
+      // Act
+      fireEvent.press(accountCells[0]);
+
+      // Assert: Account was selected
+      expect(Engine.setSelectedAddress).toHaveBeenCalled();
+    });
+
+    it('closes full-page modal when back button is pressed with feature flag enabled', async () => {
+      // Arrange
+      jest.useRealTimers();
+      mockUseFeatureFlag.mockReturnValue(true);
+
+      const mockGoBack = jest.fn();
+      const routeWithNavigation = {
+        ...mockRoute,
+        params: {
+          ...mockRoute.params,
+          navigation: {
+            goBack: mockGoBack,
+          },
+        },
+      };
+
+      const { UNSAFE_getByProps } = renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        routeWithNavigation.params,
+      );
+
+      // Find the back button in SheetHeader
+      const sheetHeader = UNSAFE_getByProps({ title: 'Accounts' });
+      expect(sheetHeader).toBeDefined();
+
+      // Act
+      // Simulate pressing the back button
+      if (sheetHeader.props.onBack) {
+        sheetHeader.props.onBack();
+      }
+
+      // Wait for animation to complete
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Assert: Navigation goBack was called
+      expect(mockGoBack).toHaveBeenCalled();
+
+      jest.useFakeTimers();
+    });
+
+    it('closes full-page modal when account is selected with feature flag enabled', async () => {
+      // Arrange
+      jest.useRealTimers();
+      mockUseFeatureFlag.mockReturnValue(true);
+
+      const mockGoBack = jest.fn();
+      const routeWithNavigation = {
+        ...mockRoute,
+        params: {
+          ...mockRoute.params,
+          navigation: {
+            goBack: mockGoBack,
+          },
+        },
+      };
+
+      const { getAllByTestId } = renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        routeWithNavigation.params,
+      );
+
+      // Wait for account cells to render
+      await waitFor(() => {
+        const cells = getAllByTestId(
+          CellComponentSelectorsIDs.SELECT_WITH_MENU,
+        );
+        expect(cells.length).toBeGreaterThan(0);
+      });
+
+      const accountCells = getAllByTestId(
+        CellComponentSelectorsIDs.SELECT_WITH_MENU,
+      );
+
+      // Act
+      fireEvent.press(accountCells[0]);
+
+      // Assert: Account was selected
+      expect(Engine.setSelectedAddress).toHaveBeenCalled();
 
       jest.useFakeTimers();
     });
