@@ -28,12 +28,15 @@ const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockDispatch = jest.fn();
-const mockGoToRamps = jest.fn();
+const mockGoToBuy = jest.fn();
+const mockGoToSell = jest.fn();
 
 jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 jest.mock('../../../hooks/useRampNavigation', () => ({
-  useRampNavigation: jest.fn(() => ({ goToRamps: mockGoToRamps })),
-  RampMode: { AGGREGATOR: 'AGGREGATOR', DEPOSIT: 'DEPOSIT' },
+  useRampNavigation: jest.fn(() => ({
+    goToBuy: mockGoToBuy,
+    goToSell: mockGoToSell,
+  })),
 }));
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -307,10 +310,7 @@ describe('OrderDetails', () => {
     fireEvent.press(screen.getByRole('button', { name: 'Start a new order' }));
 
     expect(mockGoBack).toHaveBeenCalled();
-    expect(mockGoToRamps).toHaveBeenCalledWith({
-      mode: 'AGGREGATOR',
-      params: { rampType: expect.anything() },
-    });
+    expect(mockGoToBuy).toHaveBeenCalledWith();
   });
 
   it('navigates to sell flow when the user attempts to make another purchase', async () => {
@@ -330,10 +330,7 @@ describe('OrderDetails', () => {
     fireEvent.press(screen.getByRole('button', { name: 'Start a new order' }));
 
     expect(mockGoBack).toHaveBeenCalled();
-    expect(mockGoToRamps).toHaveBeenCalledWith({
-      mode: 'AGGREGATOR',
-      params: { rampType: expect.anything() },
-    });
+    expect(mockGoToSell).toHaveBeenCalledWith();
   });
 
   it('renders a created order', async () => {

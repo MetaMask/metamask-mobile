@@ -30,10 +30,7 @@ import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { strings } from '../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
-import {
-  useRampNavigation,
-  RampMode,
-} from '../../../Ramp/hooks/useRampNavigation';
+import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import {
@@ -64,7 +61,7 @@ const AddFundsBottomSheet: React.FC = () => {
   });
   const { trackEvent, createEventBuilder } = useMetrics();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
-  const { goToRamps } = useRampNavigation();
+  const { goToDeposit } = useRampNavigation();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -82,7 +79,7 @@ const AddFundsBottomSheet: React.FC = () => {
 
   const openDeposit = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      goToRamps({ mode: RampMode.DEPOSIT });
+      goToDeposit();
     });
     trackEvent(
       createEventBuilder(
@@ -108,7 +105,7 @@ const AddFundsBottomSheet: React.FC = () => {
   }, [
     rampGeodetectedRegion,
     closeBottomSheetAndNavigate,
-    goToRamps,
+    goToDeposit,
     trackEvent,
     createEventBuilder,
     priorityToken,

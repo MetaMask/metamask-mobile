@@ -6,6 +6,7 @@ import useSearchTokenResults from '../../Deposit/hooks/useSearchTokenResults';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { MOCK_CRYPTOCURRENCIES } from '../../Deposit/testUtils';
+import { UnifiedRampRoutingType } from '../../../../../reducers/fiatOrders';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -19,7 +20,16 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-function renderWithProvider(component: React.ComponentType) {
+interface CustomTestState {
+  fiatOrders?: {
+    rampRoutingDecision?: UnifiedRampRoutingType;
+  };
+}
+
+function renderWithProvider(
+  component: React.ComponentType,
+  customState?: CustomTestState,
+) {
   return renderScreen(
     component,
     {
@@ -32,6 +42,8 @@ function renderWithProvider(component: React.ComponentType) {
         },
         fiatOrders: {
           detectedGeolocation: 'US',
+          rampRoutingDecision: null,
+          ...customState?.fiatOrders,
         },
       },
     },
@@ -44,6 +56,8 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 }));
 
 jest.mock('../../Deposit/hooks/useSearchTokenResults', () => jest.fn());
+
+jest.mock('../../hooks/useRampsUnifiedV1Enabled', () => jest.fn(() => true));
 
 const mockTokens = MOCK_CRYPTOCURRENCIES;
 
@@ -142,7 +156,11 @@ describe('TokenSelection Component', () => {
       (useParams as jest.Mock).mockReturnValue({
         rampType: 'BUY',
       });
-      const { getByTestId } = renderWithProvider(TokenSelection);
+      const { getByTestId } = renderWithProvider(TokenSelection, {
+        fiatOrders: {
+          rampRoutingDecision: UnifiedRampRoutingType.AGGREGATOR,
+        },
+      });
 
       const firstToken = getByTestId(
         `token-list-item-${mockTokens[0].assetId}`,
@@ -165,7 +183,11 @@ describe('TokenSelection Component', () => {
       (useParams as jest.Mock).mockReturnValue({
         rampType: 'DEPOSIT',
       });
-      const { getByTestId } = renderWithProvider(TokenSelection);
+      const { getByTestId } = renderWithProvider(TokenSelection, {
+        fiatOrders: {
+          rampRoutingDecision: UnifiedRampRoutingType.DEPOSIT,
+        },
+      });
 
       const firstToken = getByTestId(
         `token-list-item-${mockTokens[0].assetId}`,

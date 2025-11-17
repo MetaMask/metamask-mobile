@@ -28,7 +28,6 @@ import TextFieldSearch from '../../../../../component-library/components/Form/Te
 import styleSheet from './TokenSelection.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import useSearchTokenResults from '../../Deposit/hooks/useSearchTokenResults';
-import { createBuyNavigationDetails } from '../../Aggregator/routes/utils';
 
 import {
   createNavigationDetails,
@@ -39,12 +38,11 @@ import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import { MOCK_CRYPTOCURRENCIES } from '../../Deposit/constants/mockCryptoCurrencies';
 import Routes from '../../../../../constants/navigation/Routes';
-import { createDepositNavigationDetails } from '../../Deposit/routes/utils';
+import { useRampNavigation } from '../../hooks/useRampNavigation';
 // TODO: Fetch these tokens from the API new enpoint for top 25 with supported status
 //https://consensyssoftware.atlassian.net/browse/TRAM-2816
 
 interface TokenSelectionParams {
-  rampType: 'BUY' | 'DEPOSIT';
   selectedCryptoAssetId?: string;
 }
 
@@ -63,7 +61,7 @@ function TokenSelection() {
   const theme = useTheme();
   const navigation = useNavigation();
 
-  const { selectedCryptoAssetId, rampType } = useParams<TokenSelectionParams>();
+  const { selectedCryptoAssetId } = useParams<TokenSelectionParams>();
 
   const supportedTokens = MOCK_CRYPTOCURRENCIES;
 
@@ -73,23 +71,13 @@ function TokenSelection() {
     searchString,
   });
 
+  const { goToRamps } = useRampNavigation();
+
   const handleSelectAssetIdCallback = useCallback(
-    (_assetId: string) => {
-      if (rampType === 'BUY') {
-        navigation.navigate(
-          ...createBuyNavigationDetails({
-            assetId: _assetId,
-          }),
-        );
-      } else {
-        navigation.navigate(
-          ...createDepositNavigationDetails({
-            assetId: _assetId,
-          }),
-        );
-      }
+    (assetId: string) => {
+      goToRamps({ assetId });
     },
-    [rampType, navigation],
+    [goToRamps],
   );
 
   const scrollToTop = useCallback(() => {

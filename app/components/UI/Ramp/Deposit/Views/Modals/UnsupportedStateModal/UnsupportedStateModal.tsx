@@ -27,11 +27,7 @@ import { strings } from '../../../../../../../../locales/i18n';
 
 import { createStateSelectorModalNavigationDetails } from '../StateSelectorModal';
 import { useDepositSDK } from '../../../sdk';
-import {
-  useRampNavigation,
-  RampMode,
-} from '../../../../hooks/useRampNavigation';
-import { RampType as AggregatorRampType } from '../../../../Aggregator/types';
+import { useRampNavigation } from '../../../../hooks/useRampNavigation';
 
 export interface UnsupportedStateModalParams {
   stateCode?: string;
@@ -51,7 +47,7 @@ function UnsupportedStateModal() {
   const { selectedRegion } = useDepositSDK();
   const { stateCode, stateName, onStateSelect } =
     useParams<UnsupportedStateModalParams>();
-  const { goToRamps } = useRampNavigation();
+  const { goToBuy } = useRampNavigation();
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -77,13 +73,9 @@ function UnsupportedStateModal() {
     closeBottomSheetAndNavigate(() => {
       // @ts-expect-error navigation prop mismatch
       navigation.dangerouslyGetParent()?.pop();
-      goToRamps({
-        mode: RampMode.AGGREGATOR,
-        params: { rampType: AggregatorRampType.BUY },
-        overrideUnifiedBuyFlag: true,
-      });
+      goToBuy();
     });
-  }, [closeBottomSheetAndNavigate, navigation, goToRamps]);
+  }, [closeBottomSheetAndNavigate, navigation, goToBuy]);
 
   const handleClose = useCallback(() => {
     closeBottomSheetAndNavigate(() => {

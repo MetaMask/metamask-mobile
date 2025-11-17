@@ -5,44 +5,28 @@ import {
   RampIntent,
   RampType as AggregatorRampType,
 } from '../Aggregator/types';
-import { DepositNavigationParams } from '../Deposit/types/navigationParams';
 import { createRampNavigationDetails } from '../Aggregator/routes/utils';
 import { createDepositNavigationDetails } from '../Deposit/routes/utils';
+import { createTokenSelectionNavigationDetails } from '../components/TokenSelection/TokenSelection';
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
 import {
   getRampRoutingDecision,
   UnifiedRampRoutingType,
 } from '../../../../reducers/fiatOrders';
 
-export enum RampMode {
+enum RampMode {
   AGGREGATOR = 'AGGREGATOR',
   DEPOSIT = 'DEPOSIT',
 }
 
-interface AggregatorParams {
-  intent?: RampIntent;
-  rampType?: AggregatorRampType;
-}
-
-interface AggregatorGoToRampsParams {
-  mode: RampMode.AGGREGATOR;
-  params?: AggregatorParams;
-  overrideUnifiedBuyFlag?: boolean;
-}
-
-interface DepositGoToRampsParams {
-  mode: RampMode.DEPOSIT;
-  params?: DepositNavigationParams;
-  overrideUnifiedBuyFlag?: boolean;
-}
-
-type GoToRampsParams = AggregatorGoToRampsParams | DepositGoToRampsParams;
-
 /**
- * Hook that returns a function to navigate to the appropriate ramp flow.
+ * Hook that returns functions to navigate to ramp flows.
  *
- * @returns An object containing the goToRamps function
- * - goToRamps: Function that navigates to the appropriate ramp flow based on mode and params
+ * @returns An object containing navigation functions:
+ * - goToRamps: Smart routing based on unified V1 settings and routing decision
+ * - goToBuy: Always navigates to aggregator BUY flow
+ * - goToSell: Always navigates to aggregator SELL flow
+ * - goToDeposit: Always navigates to deposit flow
  */
 export const useRampNavigation = () => {
   const navigation = useNavigation();
@@ -50,34 +34,81 @@ export const useRampNavigation = () => {
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
 
   const goToRamps = useCallback(
-    ({ mode, params, overrideUnifiedBuyFlag }: GoToRampsParams) => {
-      if (isRampsUnifiedV1Enabled && !overrideUnifiedBuyFlag) {
-        if (rampRoutingDecision === UnifiedRampRoutingType.DEPOSIT) {
-          navigation.navigate(
-            ...createDepositNavigationDetails(
-              mode === RampMode.DEPOSIT ? params : undefined,
-            ),
-          );
-        } else {
-          const aggregatorParams =
-            mode === RampMode.AGGREGATOR ? params : undefined;
-          const { intent, rampType = AggregatorRampType.BUY } =
-            aggregatorParams || {};
+    (
+      intent?: RampIntent,
+      options?: {
+        rampType?: AggregatorRampType;
+        mode?: RampMode;
+        overrideUnifiedRouting?: boolean;
+      },
+    ) => {
+      const {
+        rampType = AggregatorRampType.BUY,
+        mode = RampMode.AGGREGATOR,
+        overrideUnifiedRouting = false,
+      } = options || {};
 
+      if (isRampsUnifiedV1Enabled && !overrideUnifiedRouting) {
+        // If no assetId is provided, route to TokenSelection
+        if (!intent?.assetId) {
+          navigation.navigate(
+            ...createTokenSelectionNavigationDetails({
+              selectedCryptoAssetId: undefined,
+            }),
+          );
+          return;
+        }
+
+        // If assetId is provided, route based on rampRoutingDecision
+        if (rampRoutingDecision === UnifiedRampRoutingType.DEPOSIT) {
+          navigation.navigate(...createDepositNavigationDetails(intent));
+        } else {
           navigation.navigate(...createRampNavigationDetails(rampType, intent));
         }
         return;
       }
 
+      // When overriding unified routing or when v1 is disabled
       if (mode === RampMode.DEPOSIT) {
-        navigation.navigate(...createDepositNavigationDetails(params));
+        navigation.navigate(...createDepositNavigationDetails(intent));
       } else {
-        const { intent, rampType = AggregatorRampType.BUY } = params || {};
         navigation.navigate(...createRampNavigationDetails(rampType, intent));
       }
     },
     [navigation, isRampsUnifiedV1Enabled, rampRoutingDecision],
   );
 
-  return { goToRamps };
+  const goToBuy = useCallback(
+    (intent?: RampIntent) => {
+      goToRamps(intent, {
+        rampType: AggregatorRampType.BUY,
+        mode: RampMode.AGGREGATOR,
+        overrideUnifiedRouting: true,
+      });
+    },
+    [goToRamps],
+  );
+
+  const goToSell = useCallback(
+    (intent?: RampIntent) => {
+      goToRamps(intent, {
+        rampType: AggregatorRampType.SELL,
+        mode: RampMode.AGGREGATOR,
+        overrideUnifiedRouting: true,
+      });
+    },
+    [goToRamps],
+  );
+
+  const goToDeposit = useCallback(
+    (intent?: RampIntent) => {
+      goToRamps(intent, {
+        mode: RampMode.DEPOSIT,
+        overrideUnifiedRouting: true,
+      });
+    },
+    [goToRamps],
+  );
+
+  return { goToRamps, goToBuy, goToSell, goToDeposit };
 };
