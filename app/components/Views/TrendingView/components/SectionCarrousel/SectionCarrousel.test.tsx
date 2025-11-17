@@ -4,14 +4,6 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import SectionCarrousel from './SectionCarrousel';
 import type { PredictMarket } from '../../../../UI/Predict/types';
 
-// Mock FlashList
-jest.mock('@shopify/flash-list', () => {
-  const { FlatList } = jest.requireActual('react-native');
-  return {
-    FlashList: FlatList,
-  };
-});
-
 // Mock navigation
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
