@@ -383,7 +383,7 @@ describe('usePerpsLivePositions', () => {
       });
     });
 
-    it('uses price price over mark price when available', async () => {
+    it('uses price over mark price when available', async () => {
       let positionsCallback: (positions: Position[]) => void = jest.fn();
       let pricesCallback: (prices: Record<string, PriceUpdate>) => void =
         jest.fn();
