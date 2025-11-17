@@ -60,6 +60,13 @@ export const handleSendPageNavigation = (
   location: string,
   isSendRedesignEnabled: boolean,
   asset?: AssetType | Nft,
+  predefinedRecipient?: {
+    address: string;
+    isEvm?: boolean;
+    isSolana?: boolean;
+    isBitcoin?: boolean;
+    isTron?: boolean;
+  },
 ) => {
   if (isSendRedesignEnabled) {
     captureSendStartedEvent(location);
@@ -71,10 +78,12 @@ export const handleSendPageNavigation = (
         screen = Routes.SEND.AMOUNT;
       }
     }
+
     navigate(Routes.SEND.DEFAULT, {
       screen,
       params: {
         asset,
+        predefinedRecipient,
       },
     });
   } else {

@@ -14,34 +14,76 @@ import {
   isTronChainId,
   /// END:ONLY_INCLUDE_IF
 } from '../../../../../core/Multichain/utils';
+import { useParams } from '../../../../../util/navigation/navUtils';
 
 export const useSendType = () => {
   const { asset } = useSendContext();
+  const { predefinedRecipient } = useParams<{
+    predefinedRecipient: {
+      address: string;
+      isEvm: boolean;
+      isBitcoin: boolean;
+      isSolana: boolean;
+      isTron: boolean;
+    };
+  }>();
+
+  const {
+    isEvm: isPredefinedEvm,
+    isBitcoin: isPredefinedBitcoin,
+    isSolana: isPredefinedSolana,
+    isTron: isPredefinedTron,
+  } = predefinedRecipient || {};
+
+  const isPredefinedNonEvm = useMemo(
+    () =>
+      isPredefinedEvm ||
+      isPredefinedSolana ||
+      isPredefinedBitcoin ||
+      isPredefinedTron,
+    [
+      isPredefinedEvm,
+      isPredefinedSolana,
+      isPredefinedBitcoin,
+      isPredefinedTron,
+    ],
+  );
+
   const isEvmSendType = useMemo(
-    () => (asset?.address ? isEvmAddress(asset.address) : undefined),
-    [asset?.address],
+    () =>
+      isPredefinedEvm ||
+      (asset?.address ? isEvmAddress(asset.address) : undefined),
+    [asset?.address, isPredefinedEvm],
   );
   const isNonEvmSendType = useMemo(
-    () => (asset?.chainId ? isNonEvmChainId(asset.chainId) : undefined),
-    [asset?.chainId],
+    () =>
+      isPredefinedNonEvm ||
+      (asset?.chainId ? isNonEvmChainId(asset.chainId) : undefined),
+    [asset?.chainId, isPredefinedNonEvm],
   );
 
   const isSolanaSendType = useMemo(
-    () => (asset?.chainId ? isSolanaChainId(asset.chainId) : undefined),
-    [asset?.chainId],
+    () =>
+      isPredefinedSolana ||
+      (asset?.chainId ? isSolanaChainId(asset.chainId) : undefined),
+    [asset?.chainId, isPredefinedSolana],
   );
 
   /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
   const isBitcoinSendType = useMemo(
-    () => (asset?.chainId ? isBitcoinChainId(asset.chainId) : undefined),
-    [asset?.chainId],
+    () =>
+      isPredefinedBitcoin ||
+      (asset?.chainId ? isBitcoinChainId(asset.chainId) : undefined),
+    [asset?.chainId, isPredefinedBitcoin],
   );
   /// END:ONLY_INCLUDE_IF
 
   /// BEGIN:ONLY_INCLUDE_IF(tron)
   const isTronSendType = useMemo(
-    () => (asset?.chainId ? isTronChainId(asset.chainId) : undefined),
-    [asset?.chainId],
+    () =>
+      isPredefinedTron ||
+      (asset?.chainId ? isTronChainId(asset.chainId) : undefined),
+    [asset?.chainId, isPredefinedTron],
   );
   /// END:ONLY_INCLUDE_IF
 
