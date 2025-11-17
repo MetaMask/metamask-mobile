@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import Text, {
   TextColor,
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './pay-token-amount.styles';
@@ -72,7 +73,7 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
 
   return (
     <View testID="pay-token-amount" style={styles.container}>
-      <Text>
+      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
         {formattedAmount} {payToken?.symbol}
       </Text>
     </View>
@@ -82,8 +83,8 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
 export function PayTokenAmountSkeleton() {
   const { styles } = useStyles(styleSheet, {});
   return (
-    <View testID="pay-token-amount-skeleton">
-      <Skeleton height={30} width={90} style={styles.skeleton} />
+    <View testID="pay-token-amount-skeleton" style={styles.skeleton}>
+      <Skeleton height={25} width={90} style={styles.container} />
     </View>
   );
 }

@@ -1761,6 +1761,12 @@ export const getIsSwapApproveOrSwapTransaction = (
     return false;
   }
 
+  // Exclude token transfers (e.g., WETH sends) - these are not swap transactions
+  const fourByteSignature = getFourByteSignature(data);
+  if (fourByteSignature === TRANSFER_FUNCTION_SIGNATURE) {
+    return false;
+  }
+
   const isLegacySwap = origin === process.env.MM_FOX_CODE;
   const isUnifiedSwap = origin === ORIGIN_METAMASK;
 

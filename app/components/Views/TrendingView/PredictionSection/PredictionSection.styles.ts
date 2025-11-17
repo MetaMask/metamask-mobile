@@ -15,12 +15,23 @@ const styleSheet = (params: {
 
   return StyleSheet.create({
     carouselItem: {
-      width: params.vars.cardWidth * 0.85,
+      width: params.vars.cardWidth * 0.8,
       borderRadius: 16,
       paddingHorizontal: 8,
       overflow: 'hidden',
       borderColor: colors.border.default,
       shadowColor: colors.shadow.default,
+    },
+    carouselItemLast: {
+      width: params.vars.cardWidth,
+      borderRadius: 16,
+      paddingHorizontal: 8,
+      overflow: 'hidden',
+      borderColor: colors.border.default,
+      shadowColor: colors.shadow.default,
+    },
+    carouselContentContainer: {
+      paddingRight: 16,
     },
     paginationContainer: {
       marginTop: 16,
