@@ -5859,7 +5859,7 @@
     "nested_transaction_heading": "Transaction {{index}}",
     "transaction": "Transaction",
     "available_balance": "Available: ",
-    "edit_amount_done": "Done",
+    "edit_amount_done": "Continue",
     "deposit_edit_amount_done": "Add funds",
     "deposit_edit_amount_predict_withdraw": "Withdraw"
   },
@@ -6830,7 +6830,8 @@
       "unsupported": "Unsupported",
       "tracked_count": "{{optedIn}}/{{total}} tracked",
       "link_account_success": "{{accountName}} added successfully",
-      "link_account_error": "Failed to add one or more addresses for {{accountName}}"
+      "link_account_error": "Failed to add one or more addresses for {{accountName}}",
+      "link_account_address_error": "Failed to add {{address}}"
     },
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
