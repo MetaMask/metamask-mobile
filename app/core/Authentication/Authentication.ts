@@ -436,14 +436,17 @@ class AuthenticationService {
 
   /**
    * Fallback to password authType if the storePassword with non Password authType fails
+   * it should only apply for account creation for now
+   *
    * @param authData - authentication data
    * @param password - password to store
+   * @param error - error thrown by storePassword
    * @returns void
    */
   storePasswordFallback = async (
     authData: AuthData,
     password: string,
-    error: Error,
+    error: unknown,
   ) => {
     if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSWORD) {
       throw error;
@@ -529,11 +532,11 @@ class AuthenticationService {
         await this.createWalletVaultAndKeychain(password);
       }
 
-      await this.storePassword(password, authData?.currentAuthType).catch(
-        async (error) => {
-          await this.storePasswordFallback(authData, password, error);
-        },
-      );
+      try {
+        await this.storePassword(password, authData?.currentAuthType);
+      } catch (error) {
+        await this.storePasswordFallback(authData, password, error);
+      }
 
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
@@ -570,11 +573,11 @@ class AuthenticationService {
   ): Promise<void> => {
     try {
       await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
-      await this.storePassword(password, authData.currentAuthType).catch(
-        async (error) => {
-          await this.storePasswordFallback(authData, password, error);
-        },
-      );
+      try {
+        await this.storePassword(password, authData.currentAuthType);
+      } catch (error) {
+        await this.storePasswordFallback(authData, password, error);
+      }
 
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
