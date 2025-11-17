@@ -11,6 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Uncategorized
 
+- update changelog for 7.60.0 (hotfix - no test plan)
+- chore: update release pr approval trigger
+- chore: fix changelog format
+- [skip ci] Bump version number to 3047
+- Merge origin/main into stable-sync
+- Merge branch 'main' into stable-main-7.59.0
+- remove v7.57.3
+- fix changelog duplicate sections
+- keep main
+- take main corrections
+- Merge origin/main into stable-main-7.59.0
 - chore(runway): cherry-pick fix: Fix Predict Navigation to Cash Out and Single Market ([#22817](https://github.com/MetaMask/metamask-mobile/pull/22817))
 - chore(runway): cherry-pick fix: cp-7.60.0 predict confirmation design ([#22809](https://github.com/MetaMask/metamask-mobile/pull/22809))
 - chore: update release pr approval trigger
