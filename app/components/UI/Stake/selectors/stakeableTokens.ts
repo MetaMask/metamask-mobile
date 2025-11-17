@@ -2,7 +2,34 @@ import { createSelector } from 'reselect';
 import { RootState } from '../../../../reducers';
 import { TokenI } from '../../Tokens/types';
 import { selectTrxStakingEnabled } from '../../../../selectors/featureFlagController/trxStakingEnabled';
-import { isMainnetByChainId } from '../../../../util/networks';
+import {
+  getDecimalChainId,
+  isMainnetByChainId,
+} from '../../../../util/networks';
+import { INFURA_TESTNET_CHAIN_IDS } from '../../../../util/networks/customNetworks';
+
+const HOODI_CHAIN_ID_DECIMAL = getDecimalChainId(
+  INFURA_TESTNET_CHAIN_IDS.HOODI,
+);
+const HOODI_CHAIN_ID_HEX = INFURA_TESTNET_CHAIN_IDS.HOODI.toLowerCase();
+const HOODI_CHAIN_ID_CAIP = `eip155:${HOODI_CHAIN_ID_DECIMAL}`;
+
+const isHoodiChainId = (chainId?: string) => {
+  if (typeof chainId !== 'string' || !chainId) {
+    return false;
+  }
+
+  const normalizedChainId = chainId.toLowerCase();
+
+  if (
+    normalizedChainId === HOODI_CHAIN_ID_HEX ||
+    normalizedChainId === HOODI_CHAIN_ID_CAIP
+  ) {
+    return true;
+  }
+
+  return getDecimalChainId(chainId) === HOODI_CHAIN_ID_DECIMAL;
+};
 
 /**
  * Returns true if the given asset should surface staking UI.
@@ -14,9 +41,9 @@ export const selectIsStakeableToken = createSelector(
   (asset, trxStakingEnabled) => {
     if (!asset) return false;
 
-    // Only allow staking/earn for ETH on Ethereum mainnet
+    // Only allow staking/earn for ETH on Ethereum mainnet or Hoodi testnet
     if (asset.isETH) {
-      return isMainnetByChainId(asset.chainId);
+      return isMainnetByChainId(asset.chainId) || isHoodiChainId(asset.chainId);
     }
 
     const isTronNative =

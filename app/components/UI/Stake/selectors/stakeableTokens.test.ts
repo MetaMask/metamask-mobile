@@ -2,6 +2,7 @@ import { selectIsStakeableToken } from './stakeableTokens';
 import { selectTrxStakingEnabled } from '../../../../selectors/featureFlagController/trxStakingEnabled';
 import { TokenI } from '../../Tokens/types';
 import { isMainnetByChainId } from '../../../../util/networks';
+import { INFURA_TESTNET_CHAIN_IDS } from '../../../../util/networks/customNetworks';
 
 jest.mock(
   '../../../../selectors/featureFlagController/trxStakingEnabled',
@@ -48,6 +49,19 @@ describe('selectIsStakeableToken', () => {
     const result = selectIsStakeableToken(mockState, ethAsset);
 
     expect(result).toBe(false);
+  });
+
+  it('returns true for ETH on Hoodi testnet', () => {
+    (jest.mocked(selectTrxStakingEnabled) as jest.Mock).mockReturnValue(false);
+    (jest.mocked(isMainnetByChainId) as jest.Mock).mockReturnValue(false);
+    const ethAsset = {
+      isETH: true,
+      chainId: INFURA_TESTNET_CHAIN_IDS.HOODI.toUpperCase(),
+    } as TokenI;
+
+    const result = selectIsStakeableToken(mockState, ethAsset);
+
+    expect(result).toBe(true);
   });
 
   it('returns true for TRX native when TRX staking flag is enabled', () => {
