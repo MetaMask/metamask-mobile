@@ -307,6 +307,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                     collapsable={false}
                     data={
                       [
+                        "eip155:0:0xc4955c0d639d99699bfd7ec54d9fafee40e4d272",
                         "eip155:0:0xc4966c0d659d99699bfd7eb54d8fafee40e4a756",
                       ]
                     }
@@ -327,12 +328,150 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                     removeClippedSubviews={false}
                     renderItem={[Function]}
                     renderScrollComponent={[Function]}
-                    scrollEnabled={false}
+                    scrollEnabled={true}
                     scrollEventThrottle={0.0001}
                     stickyHeaderIndices={[]}
                     viewabilityConfigCallbackPairs={[]}
                   >
                     <View>
+                      <View
+                        onFocusCapture={[Function]}
+                        onLayout={[Function]}
+                        style={null}
+                      >
+                        <TouchableOpacity
+                          avatarProps={
+                            {
+                              "accountAddress": "0xc4955c0d639d99699bfd7ec54d9fafee40e4d272",
+                              "type": "Maskicon",
+                              "variant": "Account",
+                            }
+                          }
+                          secondaryText="0xC4955...4D272"
+                          showSecondaryTextIcon={false}
+                          style={
+                            {
+                              "backgroundColor": "#ffffff",
+                              "borderColor": "#b7bbc8",
+                              "borderRadius": 4,
+                              "borderWidth": 0,
+                              "height": 75,
+                              "justifyContent": "center",
+                              "padding": 16,
+                            }
+                          }
+                          testID="celldisplay"
+                        >
+                          <View
+                            style={
+                              {
+                                "flexDirection": "row",
+                              }
+                            }
+                          >
+                            <View
+                              style={
+                                {
+                                  "backgroundColor": "#ffffff",
+                                  "borderRadius": 8,
+                                  "height": 32,
+                                  "marginRight": 16,
+                                  "overflow": "hidden",
+                                  "width": 32,
+                                }
+                              }
+                              testID="cellbase-avatar"
+                            >
+                              <View
+                                style={
+                                  {
+                                    "height": 32,
+                                    "width": 32,
+                                  }
+                                }
+                              />
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "alignItems": "flex-start",
+                                  "flex": 1,
+                                }
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                numberOfLines={1}
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "Geist Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                                testID="cellbase-avatar-title"
+                              />
+                              <Text
+                                accessibilityRole="text"
+                                numberOfLines={1}
+                                style={
+                                  {
+                                    "color": "#686e7d",
+                                    "fontFamily": "Geist Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                0xC4955...4D272
+                              </Text>
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "marginLeft": 16,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "flex-end",
+                                    "flexDirection": "column",
+                                  }
+                                }
+                                testID="account-connected-item-0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "right",
+                                    }
+                                  }
+                                />
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                  testID="avatar-group-container"
+                                />
+                              </View>
+                            </View>
+                          </View>
+                        </TouchableOpacity>
+                      </View>
                       <View
                         onFocusCapture={[Function]}
                         onLayout={[Function]}
@@ -627,7 +766,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                                 }
                               }
                             >
-                              Requesting for Account 2
+                              Requesting for 2 accounts
                             </Text>
                           </Text>
                         </View>
@@ -656,6 +795,38 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                                 }
                               }
                               testID="avatargroup-avatar-container-0"
+                            >
+                              <View
+                                style={
+                                  {
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#ffffff",
+                                    "borderRadius": 4,
+                                    "borderWidth": 1.5,
+                                    "height": 16,
+                                    "overflow": "hidden",
+                                    "width": 16,
+                                  }
+                                }
+                                testID="avatargroup-avatar"
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "height": 16,
+                                      "width": 16,
+                                    }
+                                  }
+                                />
+                              </View>
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "marginLeft": -6,
+                                }
+                              }
+                              testID="avatargroup-avatar-container-1"
                             >
                               <View
                                 style={
@@ -1373,7 +1544,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                     collapsable={false}
                     data={
                       [
-                        "eip155:0:0xc4966c0d659d99699bfd7eb54d8fafee40e4a756",
+                        "eip155:0:0xc4955c0d639d99699bfd7ec54d9fafee40e4d272",
                       ]
                     }
                     getItem={[Function]}
@@ -1407,12 +1578,12 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                         <TouchableOpacity
                           avatarProps={
                             {
-                              "accountAddress": "0xc4966c0d659d99699bfd7eb54d8fafee40e4a756",
+                              "accountAddress": "0xc4955c0d639d99699bfd7ec54d9fafee40e4d272",
                               "type": "Maskicon",
                               "variant": "Account",
                             }
                           }
-                          secondaryText="0xC4966...4a756"
+                          secondaryText="0xC4955...4D272"
                           showSecondaryTextIcon={false}
                           style={
                             {
@@ -1491,7 +1662,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                                   }
                                 }
                               >
-                                0xC4966...4a756
+                                0xC4955...4D272
                               </Text>
                             </View>
                             <View
@@ -1508,7 +1679,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                                     "flexDirection": "column",
                                   }
                                 }
-                                testID="account-connected-item-0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756"
+                                testID="account-connected-item-0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -1693,7 +1864,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                                 }
                               }
                             >
-                              Requesting for Account 2
+                              Requesting for Account 1
                             </Text>
                           </Text>
                         </View>
@@ -2439,7 +2610,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                     collapsable={false}
                     data={
                       [
-                        "eip155:0:0xc4966c0d659d99699bfd7eb54d8fafee40e4a756",
+                        "eip155:0:0xc4955c0d639d99699bfd7ec54d9fafee40e4d272",
                       ]
                     }
                     getItem={[Function]}
@@ -2473,12 +2644,12 @@ exports[`AccountConnect renders correctly with request including chains and acco
                         <TouchableOpacity
                           avatarProps={
                             {
-                              "accountAddress": "0xc4966c0d659d99699bfd7eb54d8fafee40e4a756",
+                              "accountAddress": "0xc4955c0d639d99699bfd7ec54d9fafee40e4d272",
                               "type": "Maskicon",
                               "variant": "Account",
                             }
                           }
-                          secondaryText="0xC4966...4a756"
+                          secondaryText="0xC4955...4D272"
                           showSecondaryTextIcon={false}
                           style={
                             {
@@ -2557,7 +2728,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                   }
                                 }
                               >
-                                0xC4966...4a756
+                                0xC4955...4D272
                               </Text>
                             </View>
                             <View
@@ -2574,7 +2745,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                     "flexDirection": "column",
                                   }
                                 }
-                                testID="account-connected-item-0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756"
+                                testID="account-connected-item-0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -2759,7 +2930,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                 }
                               }
                             >
-                              Requesting for Account 2
+                              Requesting for Account 1
                             </Text>
                           </Text>
                         </View>
@@ -3505,7 +3676,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                     collapsable={false}
                     data={
                       [
-                        "eip155:0:0xc4966c0d659d99699bfd7eb54d8fafee40e4a756",
+                        "eip155:0:0xc4955c0d639d99699bfd7ec54d9fafee40e4d272",
                       ]
                     }
                     getItem={[Function]}
@@ -3539,12 +3710,12 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                         <TouchableOpacity
                           avatarProps={
                             {
-                              "accountAddress": "0xc4966c0d659d99699bfd7eb54d8fafee40e4a756",
+                              "accountAddress": "0xc4955c0d639d99699bfd7ec54d9fafee40e4d272",
                               "type": "Maskicon",
                               "variant": "Account",
                             }
                           }
-                          secondaryText="0xC4966...4a756"
+                          secondaryText="0xC4955...4D272"
                           showSecondaryTextIcon={false}
                           style={
                             {
@@ -3623,7 +3794,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                   }
                                 }
                               >
-                                0xC4966...4a756
+                                0xC4955...4D272
                               </Text>
                             </View>
                             <View
@@ -3640,7 +3811,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                     "flexDirection": "column",
                                   }
                                 }
-                                testID="account-connected-item-0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756"
+                                testID="account-connected-item-0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -3825,7 +3996,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                 }
                               }
                             >
-                              Requesting for Account 2
+                              Requesting for Account 1
                             </Text>
                           </Text>
                         </View>

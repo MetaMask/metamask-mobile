@@ -25,6 +25,7 @@ import {
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 import { HardwareDeviceTypes } from '../../../../constants/keyringTypes';
+import { getConnectedDevicesCount } from '../../../../core/HardwareWallets/analytics';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -102,15 +103,26 @@ const SelectHardwareWallet = () => {
     );
   }, [navigation, colors]);
 
-  const navigateToConnectQRWallet = () => {
+  const navigateToConnectQRWallet = async () => {
+    const connectedDeviceCount = await getConnectedDevicesCount();
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CONNECT_HARDWARE_WALLET)
+        .addProperties({
+          device_type: HardwareDeviceTypes.QR,
+          connected_devices_count: connectedDeviceCount.toString(),
+        })
+        .build(),
+    );
     navigation.navigate(Routes.HW.CONNECT_QR_DEVICE);
   };
 
   const navigateToConnectLedger = async () => {
+    const connectedDeviceCount = await getConnectedDevicesCount();
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CONNECT_LEDGER)
+      createEventBuilder(MetaMetricsEvents.CONNECT_HARDWARE_WALLET)
         .addProperties({
           device_type: HardwareDeviceTypes.LEDGER,
+          connected_devices_count: connectedDeviceCount.toString(),
         })
         .build(),
     );
@@ -120,15 +132,23 @@ const SelectHardwareWallet = () => {
 
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const renderHardwareButton = (image: any, onPress: any) => (
-    <TouchableOpacity onPress={onPress} style={styles.hardwareButton}>
+  const renderHardwareButton = (image: any, onPress: any, testID?: string) => (
+    <TouchableOpacity
+      onPress={onPress}
+      style={styles.hardwareButton}
+      testID={testID}
+    >
       <Image style={styles.image} source={image} resizeMode={'contain'} />
     </TouchableOpacity>
   );
 
   const LedgerButton = () => {
     const ledgerLogo = useAssetFromTheme(ledgerLogoLight, ledgerLogoDark);
-    return renderHardwareButton(ledgerLogo, navigateToConnectLedger);
+    return renderHardwareButton(
+      ledgerLogo,
+      navigateToConnectLedger,
+      'ledger-hardware-button',
+    );
   };
 
   const QRButton = () => {
@@ -136,7 +156,11 @@ const SelectHardwareWallet = () => {
       qrHardwareLogoLight,
       qrHardwareLogoDark,
     );
-    return renderHardwareButton(qrHardwareLogo, navigateToConnectQRWallet);
+    return renderHardwareButton(
+      qrHardwareLogo,
+      navigateToConnectQRWallet,
+      'qr-hardware-button',
+    );
   };
 
   return (

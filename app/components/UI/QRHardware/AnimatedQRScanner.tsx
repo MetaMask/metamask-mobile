@@ -33,6 +33,8 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
+import { withQrKeyring } from '../../../core/QrKeyring/QrKeyring';
+import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -164,21 +166,28 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   );
 
   const onError = useCallback(
-    (error: Error) => {
+    async (error: Error) => {
       if (onScanError && error) {
+        const deviceName = await withQrKeyring(
+          async ({ keyring }) => await keyring.getName(),
+        );
         trackEvent(
           createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
-            .addProperties({ purpose, error: error.message })
+            .addProperties({
+              error: error.message,
+              device_model: deviceName,
+              device_type: HardwareDeviceTypes.QR,
+            })
             .build(),
         );
         onScanError(error.message);
       }
     },
-    [purpose, onScanError, trackEvent, createEventBuilder],
+    [onScanError, trackEvent, createEventBuilder],
   );
 
   const onBarCodeRead = useCallback(
-    (codes: Code[]) => {
+    async (codes: Code[]) => {
       if (!visible || !codes.length) {
         return;
       }
@@ -186,14 +195,22 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
       if (!response.data) {
         return;
       }
+      const deviceName = await withQrKeyring(
+        async ({ keyring }) => await keyring.getName(),
+      );
       try {
         const content = response.data;
         urDecoder.receivePart(content);
         setProgress(Math.ceil(urDecoder.getProgress() * 100));
+
         if (urDecoder.isError()) {
           trackEvent(
             createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
-              .addProperties({ purpose, error: urDecoder.resultError() })
+              .addProperties({
+                error: urDecoder.resultError(),
+                device_model: deviceName,
+                device_type: HardwareDeviceTypes.QR,
+              })
               .build(),
           );
           onScanError(strings('transaction.unknown_qr_code'));
@@ -207,9 +224,10 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
             trackEvent(
               createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
                 .addProperties({
-                  purpose,
                   received_ur_type: ur.type,
                   error: 'invalid `sync` qr code',
+                  device_model: deviceName,
+                  device_type: HardwareDeviceTypes.QR,
                 })
                 .build(),
             );
@@ -218,9 +236,9 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
             trackEvent(
               createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
                 .addProperties({
-                  purpose,
-                  received_ur_type: ur.type,
                   error: 'invalid `sign` qr code',
+                  device_model: deviceName,
+                  device_type: HardwareDeviceTypes.QR,
                 })
                 .build(),
             );
@@ -228,6 +246,15 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
           }
         }
       } catch (e) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
+            .addProperties({
+              error: strings('transaction.unknown_qr_code'),
+              device_model: deviceName,
+              device_type: HardwareDeviceTypes.QR,
+            })
+            .build(),
+        );
         onScanError(strings('transaction.unknown_qr_code'));
       }
     },
