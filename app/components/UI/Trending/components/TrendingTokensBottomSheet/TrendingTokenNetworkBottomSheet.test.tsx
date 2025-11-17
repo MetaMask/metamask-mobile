@@ -6,30 +6,11 @@ import { TrendingTokenNetworkBottomSheet } from './TrendingTokenNetworkBottomShe
 import { CaipChainId } from '@metamask/utils';
 import type { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 
-const mockGoBack = jest.fn();
-const mockCanGoBack = jest.fn(() => true);
 const mockOnCloseBottomSheet = jest.fn();
-
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    goBack: mockGoBack,
-    canGoBack: mockCanGoBack,
-  }),
-  NavigationContainer: ({ children }: { children: React.ReactNode }) =>
-    children,
-}));
-
-jest.mock('@react-navigation/stack', () => ({
-  createStackNavigator: jest.fn(),
-}));
-
-const mockUseParams = jest.fn();
-jest.mock('../../../../util/navigation/navUtils', () => ({
-  useParams: () => mockUseParams(),
-}));
+const mockOnOpenBottomSheet = jest.fn();
 
 const mockGetNetworkImageSource = jest.fn();
-jest.mock('../../../../util/networks', () => ({
+jest.mock('../../../../../util/networks', () => ({
   getNetworkImageSource: (params: { chainId: string }) =>
     mockGetNetworkImageSource(params),
 }));
@@ -57,14 +38,14 @@ const mockNetworks: ProcessedNetwork[] = [
 
 const mockUsePopularNetworks = jest.fn(() => mockNetworks);
 
-jest.mock('../../../hooks/usePopularNetworks', () => ({
+jest.mock('../../../../hooks/usePopularNetworks', () => ({
   usePopularNetworks: () => mockUsePopularNetworks(),
 }));
 
 let storedOnClose: (() => void) | undefined;
 
 jest.mock(
-  '../../../../component-library/components/BottomSheets/BottomSheet',
+  '../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
     const { View } = jest.requireActual('react-native');
     const { forwardRef, useImperativeHandle } = jest.requireActual('react');
@@ -79,12 +60,17 @@ jest.mock(
           onClose?: () => void;
         },
         ref: React.Ref<{
+          onOpenBottomSheet: (cb?: () => void) => void;
           onCloseBottomSheet: (cb?: () => void) => void;
         }>,
       ) => {
         // eslint-disable-next-line react-hooks/rules-of-hooks
         storedOnClose = onClose;
         useImperativeHandle(ref, () => ({
+          onOpenBottomSheet: (cb?: () => void) => {
+            mockOnOpenBottomSheet();
+            cb?.();
+          },
           onCloseBottomSheet: (cb?: () => void) => {
             mockOnCloseBottomSheet();
             cb?.();
@@ -103,7 +89,7 @@ jest.mock(
 );
 
 jest.mock(
-  '../../../../component-library/components/BottomSheets/BottomSheetHeader',
+  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
   () => {
     const { TouchableOpacity, View } = jest.requireActual('react-native');
     return ({
@@ -123,7 +109,7 @@ jest.mock(
   },
 );
 
-jest.mock('../../../../component-library/components/Texts/Text', () => {
+jest.mock('../../../../../component-library/components/Texts/Text', () => {
   const { Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -139,7 +125,7 @@ jest.mock('../../../../component-library/components/Texts/Text', () => {
   };
 });
 
-jest.mock('../../../../component-library/components/Icons/Icon', () => {
+jest.mock('../../../../../component-library/components/Icons/Icon', () => {
   const { View: RNView } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -160,7 +146,7 @@ jest.mock('../../../../component-library/components/Icons/Icon', () => {
   };
 });
 
-jest.mock('../../../../component-library/components/Avatars/Avatar', () => {
+jest.mock('../../../../../component-library/components/Avatars/Avatar', () => {
   const { View: RNView } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -187,6 +173,7 @@ jest.mock('../../../../component-library/components/Avatars/Avatar', () => {
 });
 
 describe('TrendingTokenNetworkBottomSheet', () => {
+  const mockOnClose = jest.fn();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mockState: any = {
     engine: {
@@ -217,7 +204,8 @@ describe('TrendingTokenNetworkBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     storedOnClose = undefined;
-    mockUseParams.mockReturnValue({});
+    mockOnClose.mockClear();
+    mockOnOpenBottomSheet.mockClear();
     mockUsePopularNetworks.mockReturnValue(mockNetworks);
     mockGetNetworkImageSource.mockImplementation(
       (params: { chainId: string }) => {
@@ -234,7 +222,7 @@ describe('TrendingTokenNetworkBottomSheet', () => {
 
   it('renders with default "All networks" selected', () => {
     const { getByText, getByTestId } = renderWithProvider(
-      <TrendingTokenNetworkBottomSheet />,
+      <TrendingTokenNetworkBottomSheet isVisible onClose={mockOnClose} />,
       { state: mockState },
       false,
     );
@@ -246,7 +234,7 @@ describe('TrendingTokenNetworkBottomSheet', () => {
 
   it('renders all network options', () => {
     const { getByText } = renderWithProvider(
-      <TrendingTokenNetworkBottomSheet />,
+      <TrendingTokenNetworkBottomSheet isVisible onClose={mockOnClose} />,
       { state: mockState },
       false,
     );
@@ -258,12 +246,13 @@ describe('TrendingTokenNetworkBottomSheet', () => {
 
   it('calls onNetworkSelect with null when "All networks" is pressed', () => {
     const mockOnNetworkSelect = jest.fn();
-    mockUseParams.mockReturnValue({
-      onNetworkSelect: mockOnNetworkSelect,
-    });
 
     const { getByText } = renderWithProvider(
-      <TrendingTokenNetworkBottomSheet />,
+      <TrendingTokenNetworkBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        onNetworkSelect={mockOnNetworkSelect}
+      />,
       { state: mockState },
       false,
     );
@@ -278,12 +267,13 @@ describe('TrendingTokenNetworkBottomSheet', () => {
 
   it('calls onNetworkSelect with chainIds when network is pressed', () => {
     const mockOnNetworkSelect = jest.fn();
-    mockUseParams.mockReturnValue({
-      onNetworkSelect: mockOnNetworkSelect,
-    });
 
     const { getByText } = renderWithProvider(
-      <TrendingTokenNetworkBottomSheet />,
+      <TrendingTokenNetworkBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        onNetworkSelect={mockOnNetworkSelect}
+      />,
       { state: mockState },
       false,
     );
@@ -298,12 +288,13 @@ describe('TrendingTokenNetworkBottomSheet', () => {
 
   it('closes bottom sheet when network option is pressed', () => {
     const mockOnNetworkSelect = jest.fn();
-    mockUseParams.mockReturnValue({
-      onNetworkSelect: mockOnNetworkSelect,
-    });
 
     const { getByText } = renderWithProvider(
-      <TrendingTokenNetworkBottomSheet />,
+      <TrendingTokenNetworkBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        onNetworkSelect={mockOnNetworkSelect}
+      />,
       { state: mockState },
       false,
     );
@@ -314,11 +305,12 @@ describe('TrendingTokenNetworkBottomSheet', () => {
     fireEvent.press(parent);
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalled();
+    expect(mockOnClose).toHaveBeenCalled();
   });
 
-  it('navigates back when close button is pressed', () => {
+  it('calls onClose when close button is pressed', () => {
     const { getByTestId } = renderWithProvider(
-      <TrendingTokenNetworkBottomSheet />,
+      <TrendingTokenNetworkBottomSheet isVisible onClose={mockOnClose} />,
       { state: mockState },
       false,
     );
@@ -326,13 +318,13 @@ describe('TrendingTokenNetworkBottomSheet', () => {
     const closeButton = getByTestId('close-button');
     fireEvent.press(closeButton);
 
-    expect(mockGoBack).toHaveBeenCalled();
     expect(mockOnCloseBottomSheet).toHaveBeenCalled();
+    expect(mockOnClose).toHaveBeenCalled();
   });
 
-  it('navigates back when sheet is closed via onClose', () => {
+  it('calls onClose when sheet is closed via onClose callback', () => {
     renderWithProvider(
-      <TrendingTokenNetworkBottomSheet />,
+      <TrendingTokenNetworkBottomSheet isVisible onClose={mockOnClose} />,
       { state: mockState },
       false,
     );
@@ -341,16 +333,16 @@ describe('TrendingTokenNetworkBottomSheet', () => {
       storedOnClose();
     }
 
-    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockOnClose).toHaveBeenCalled();
   });
 
   it('displays check icon for selected network', () => {
-    mockUseParams.mockReturnValue({
-      selectedNetwork: ['eip155:1'],
-    });
-
     const { getByText, getByTestId } = renderWithProvider(
-      <TrendingTokenNetworkBottomSheet />,
+      <TrendingTokenNetworkBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        selectedNetwork={['eip155:1']}
+      />,
       { state: mockState },
       false,
     );
@@ -361,7 +353,7 @@ describe('TrendingTokenNetworkBottomSheet', () => {
 
   it('displays check icon for "All networks" when selected', () => {
     const { getByText, getByTestId } = renderWithProvider(
-      <TrendingTokenNetworkBottomSheet />,
+      <TrendingTokenNetworkBottomSheet isVisible onClose={mockOnClose} />,
       { state: mockState },
       false,
     );
@@ -372,7 +364,7 @@ describe('TrendingTokenNetworkBottomSheet', () => {
 
   it('renders network avatars with correct props', () => {
     const { getByTestId } = renderWithProvider(
-      <TrendingTokenNetworkBottomSheet />,
+      <TrendingTokenNetworkBottomSheet isVisible onClose={mockOnClose} />,
       { state: mockState },
       false,
     );
@@ -392,11 +384,43 @@ describe('TrendingTokenNetworkBottomSheet', () => {
 
   it('renders global icon for "All networks" option', () => {
     const { getByTestId } = renderWithProvider(
-      <TrendingTokenNetworkBottomSheet />,
+      <TrendingTokenNetworkBottomSheet isVisible onClose={mockOnClose} />,
       { state: mockState },
       false,
     );
 
     expect(getByTestId('icon-Global')).toBeTruthy();
+  });
+
+  it('does not render when isVisible is false', () => {
+    const { queryByTestId } = renderWithProvider(
+      <TrendingTokenNetworkBottomSheet
+        isVisible={false}
+        onClose={mockOnClose}
+      />,
+      { state: mockState },
+      false,
+    );
+
+    expect(queryByTestId('bottom-sheet')).toBeNull();
+  });
+
+  it('calls onOpenBottomSheet when isVisible becomes true', () => {
+    const { rerender } = renderWithProvider(
+      <TrendingTokenNetworkBottomSheet
+        isVisible={false}
+        onClose={mockOnClose}
+      />,
+      { state: mockState },
+      false,
+    );
+
+    expect(mockOnOpenBottomSheet).not.toHaveBeenCalled();
+
+    rerender(
+      <TrendingTokenNetworkBottomSheet isVisible onClose={mockOnClose} />,
+    );
+
+    expect(mockOnOpenBottomSheet).toHaveBeenCalled();
   });
 });

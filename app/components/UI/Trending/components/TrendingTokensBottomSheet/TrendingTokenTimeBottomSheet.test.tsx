@@ -6,26 +6,13 @@ import {
 } from './TrendingTokenTimeBottomSheet';
 import { SortTrendingBy } from '@metamask/assets-controllers';
 
-const mockGoBack = jest.fn();
-const mockCanGoBack = jest.fn(() => true);
 const mockOnCloseBottomSheet = jest.fn();
-
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    goBack: mockGoBack,
-    canGoBack: mockCanGoBack,
-  }),
-}));
-
-const mockUseParams = jest.fn();
-jest.mock('../../../../util/navigation/navUtils', () => ({
-  useParams: () => mockUseParams(),
-}));
+const mockOnOpenBottomSheet = jest.fn();
 
 let storedOnClose: (() => void) | undefined;
 
 jest.mock(
-  '../../../../component-library/components/BottomSheets/BottomSheet',
+  '../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
     const { View } = jest.requireActual('react-native');
     const { forwardRef, useImperativeHandle } = jest.requireActual('react');
@@ -40,12 +27,17 @@ jest.mock(
           onClose?: () => void;
         },
         ref: React.Ref<{
+          onOpenBottomSheet: (cb?: () => void) => void;
           onCloseBottomSheet: (cb?: () => void) => void;
         }>,
       ) => {
         // eslint-disable-next-line react-hooks/rules-of-hooks
         storedOnClose = onClose;
         useImperativeHandle(ref, () => ({
+          onOpenBottomSheet: (cb?: () => void) => {
+            mockOnOpenBottomSheet();
+            cb?.();
+          },
           onCloseBottomSheet: (cb?: () => void) => {
             mockOnCloseBottomSheet();
             cb?.();
@@ -64,7 +56,7 @@ jest.mock(
 );
 
 jest.mock(
-  '../../../../component-library/components/BottomSheets/BottomSheetHeader',
+  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
   () => {
     const { TouchableOpacity, View } = jest.requireActual('react-native');
     return ({
@@ -84,7 +76,7 @@ jest.mock(
   },
 );
 
-jest.mock('../../../../component-library/components/Texts/Text', () => {
+jest.mock('../../../../../component-library/components/Texts/Text', () => {
   const { Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -96,7 +88,7 @@ jest.mock('../../../../component-library/components/Texts/Text', () => {
   };
 });
 
-jest.mock('../../../../component-library/components/Icons/Icon', () => {
+jest.mock('../../../../../component-library/components/Icons/Icon', () => {
   const { View: RNView } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -117,14 +109,19 @@ jest.mock('../../../../component-library/components/Icons/Icon', () => {
 });
 
 describe('TrendingTokenTimeBottomSheet', () => {
+  const mockOnClose = jest.fn();
+
   beforeEach(() => {
     jest.clearAllMocks();
     storedOnClose = undefined;
-    mockUseParams.mockReturnValue({});
+    mockOnClose.mockClear();
+    mockOnOpenBottomSheet.mockClear();
   });
 
   it('renders with default 24 hours selected', () => {
-    const { getByText, getByTestId } = render(<TrendingTokenTimeBottomSheet />);
+    const { getByText, getByTestId } = render(
+      <TrendingTokenTimeBottomSheet isVisible onClose={mockOnClose} />,
+    );
 
     expect(getByText('Time')).toBeTruthy();
     expect(getByText('24 hours')).toBeTruthy();
@@ -132,7 +129,9 @@ describe('TrendingTokenTimeBottomSheet', () => {
   });
 
   it('renders all time options', () => {
-    const { getByText } = render(<TrendingTokenTimeBottomSheet />);
+    const { getByText } = render(
+      <TrendingTokenTimeBottomSheet isVisible onClose={mockOnClose} />,
+    );
 
     expect(getByText('24 hours')).toBeTruthy();
     expect(getByText('6 hours')).toBeTruthy();
@@ -142,11 +141,14 @@ describe('TrendingTokenTimeBottomSheet', () => {
 
   it('calls onTimeSelect with correct sortBy when 24 hours is pressed', () => {
     const mockOnTimeSelect = jest.fn();
-    mockUseParams.mockReturnValue({
-      onTimeSelect: mockOnTimeSelect,
-    });
 
-    const { getByText } = render(<TrendingTokenTimeBottomSheet />);
+    const { getByText } = render(
+      <TrendingTokenTimeBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        onTimeSelect={mockOnTimeSelect}
+      />,
+    );
 
     const option24h = getByText('24 hours');
     const parent = option24h.parent;
@@ -161,11 +163,14 @@ describe('TrendingTokenTimeBottomSheet', () => {
 
   it('calls onTimeSelect with correct sortBy when 6 hours is pressed', () => {
     const mockOnTimeSelect = jest.fn();
-    mockUseParams.mockReturnValue({
-      onTimeSelect: mockOnTimeSelect,
-    });
 
-    const { getByText } = render(<TrendingTokenTimeBottomSheet />);
+    const { getByText } = render(
+      <TrendingTokenTimeBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        onTimeSelect={mockOnTimeSelect}
+      />,
+    );
 
     const option6h = getByText('6 hours');
     const parent = option6h.parent;
@@ -180,11 +185,14 @@ describe('TrendingTokenTimeBottomSheet', () => {
 
   it('calls onTimeSelect with correct sortBy when 1 hour is pressed', () => {
     const mockOnTimeSelect = jest.fn();
-    mockUseParams.mockReturnValue({
-      onTimeSelect: mockOnTimeSelect,
-    });
 
-    const { getByText } = render(<TrendingTokenTimeBottomSheet />);
+    const { getByText } = render(
+      <TrendingTokenTimeBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        onTimeSelect={mockOnTimeSelect}
+      />,
+    );
 
     const option1h = getByText('1 hour');
     const parent = option1h.parent;
@@ -199,11 +207,14 @@ describe('TrendingTokenTimeBottomSheet', () => {
 
   it('calls onTimeSelect with correct sortBy when 5 minutes is pressed', () => {
     const mockOnTimeSelect = jest.fn();
-    mockUseParams.mockReturnValue({
-      onTimeSelect: mockOnTimeSelect,
-    });
 
-    const { getByText } = render(<TrendingTokenTimeBottomSheet />);
+    const { getByText } = render(
+      <TrendingTokenTimeBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        onTimeSelect={mockOnTimeSelect}
+      />,
+    );
 
     const option5m = getByText('5 minutes');
     const parent = option5m.parent;
@@ -218,11 +229,14 @@ describe('TrendingTokenTimeBottomSheet', () => {
 
   it('closes bottom sheet when time option is pressed', () => {
     const mockOnTimeSelect = jest.fn();
-    mockUseParams.mockReturnValue({
-      onTimeSelect: mockOnTimeSelect,
-    });
 
-    const { getByText } = render(<TrendingTokenTimeBottomSheet />);
+    const { getByText } = render(
+      <TrendingTokenTimeBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        onTimeSelect={mockOnTimeSelect}
+      />,
+    );
 
     const option24h = getByText('24 hours');
     const parent = option24h.parent;
@@ -230,32 +244,70 @@ describe('TrendingTokenTimeBottomSheet', () => {
     fireEvent.press(parent);
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalled();
+    expect(mockOnClose).toHaveBeenCalled();
   });
 
-  it('navigates back when close button is pressed', () => {
-    const { getByTestId } = render(<TrendingTokenTimeBottomSheet />);
+  it('calls onClose when close button is pressed', () => {
+    const { getByTestId } = render(
+      <TrendingTokenTimeBottomSheet isVisible onClose={mockOnClose} />,
+    );
 
     const closeButton = getByTestId('close-button');
     fireEvent.press(closeButton);
 
-    expect(mockGoBack).toHaveBeenCalled();
     expect(mockOnCloseBottomSheet).toHaveBeenCalled();
+    expect(mockOnClose).toHaveBeenCalled();
   });
 
-  it('navigates back when sheet is closed via onClose', () => {
-    render(<TrendingTokenTimeBottomSheet />);
+  it('calls onClose when sheet is closed via onClose callback', () => {
+    render(<TrendingTokenTimeBottomSheet isVisible onClose={mockOnClose} />);
 
     if (storedOnClose) {
       storedOnClose();
     }
 
-    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockOnClose).toHaveBeenCalled();
   });
 
   it('displays check icon for selected time option', () => {
-    const { getByText, getByTestId } = render(<TrendingTokenTimeBottomSheet />);
+    const { getByText, getByTestId } = render(
+      <TrendingTokenTimeBottomSheet isVisible onClose={mockOnClose} />,
+    );
 
     expect(getByText('24 hours')).toBeTruthy();
     expect(getByTestId('icon-Check')).toBeTruthy();
+  });
+
+  it('does not render when isVisible is false', () => {
+    const { queryByTestId } = render(
+      <TrendingTokenTimeBottomSheet isVisible={false} onClose={mockOnClose} />,
+    );
+
+    expect(queryByTestId('bottom-sheet')).toBeNull();
+  });
+
+  it('uses selectedTime prop when provided', () => {
+    const { getByText, getByTestId } = render(
+      <TrendingTokenTimeBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        selectedTime={TimeOption.SixHours}
+      />,
+    );
+
+    expect(getByText('6 hours')).toBeTruthy();
+    expect(getByTestId('icon-Check')).toBeTruthy();
+  });
+
+  it('calls onOpenBottomSheet when isVisible becomes true', () => {
+    const { rerender } = render(
+      <TrendingTokenTimeBottomSheet isVisible={false} onClose={mockOnClose} />,
+    );
+
+    expect(mockOnOpenBottomSheet).not.toHaveBeenCalled();
+
+    rerender(<TrendingTokenTimeBottomSheet isVisible onClose={mockOnClose} />);
+
+    expect(mockOnOpenBottomSheet).toHaveBeenCalled();
   });
 });

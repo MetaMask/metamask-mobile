@@ -6,26 +6,13 @@ import {
   SortDirection,
 } from './TrendingTokenPriceChangeBottomSheet';
 
-const mockGoBack = jest.fn();
-const mockCanGoBack = jest.fn(() => true);
 const mockOnCloseBottomSheet = jest.fn();
-
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    goBack: mockGoBack,
-    canGoBack: mockCanGoBack,
-  }),
-}));
-
-const mockUseParams = jest.fn();
-jest.mock('../../../../util/navigation/navUtils', () => ({
-  useParams: () => mockUseParams(),
-}));
+const mockOnOpenBottomSheet = jest.fn();
 
 let storedOnClose: (() => void) | undefined;
 
 jest.mock(
-  '../../../../component-library/components/BottomSheets/BottomSheet',
+  '../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
     const { View } = jest.requireActual('react-native');
     const { forwardRef, useImperativeHandle } = jest.requireActual('react');
@@ -40,12 +27,17 @@ jest.mock(
           onClose?: () => void;
         },
         ref: React.Ref<{
+          onOpenBottomSheet: (cb?: () => void) => void;
           onCloseBottomSheet: (cb?: () => void) => void;
         }>,
       ) => {
         // eslint-disable-next-line react-hooks/rules-of-hooks
         storedOnClose = onClose;
         useImperativeHandle(ref, () => ({
+          onOpenBottomSheet: (cb?: () => void) => {
+            mockOnOpenBottomSheet();
+            cb?.();
+          },
           onCloseBottomSheet: (cb?: () => void) => {
             mockOnCloseBottomSheet();
             cb?.();
@@ -64,7 +56,7 @@ jest.mock(
 );
 
 jest.mock(
-  '../../../../component-library/components/BottomSheets/BottomSheetHeader',
+  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
   () => {
     const { TouchableOpacity, View } = jest.requireActual('react-native');
     return ({
@@ -85,7 +77,7 @@ jest.mock(
 );
 
 jest.mock(
-  '../../../../component-library/components/Buttons/Button/foundation/ButtonBase',
+  '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase',
   () => {
     const { TouchableOpacity, View } = jest.requireActual('react-native');
     return ({
@@ -105,14 +97,19 @@ jest.mock(
 );
 
 describe('TrendingTokenPriceChangeBottomSheet', () => {
+  const mockOnClose = jest.fn();
+
   beforeEach(() => {
     jest.clearAllMocks();
     storedOnClose = undefined;
-    mockUseParams.mockReturnValue({});
+    mockOnClose.mockClear();
+    mockOnOpenBottomSheet.mockClear();
   });
 
   it('renders with default "Price change" selected', () => {
-    const { getByText } = render(<TrendingTokenPriceChangeBottomSheet />);
+    const { getByText } = render(
+      <TrendingTokenPriceChangeBottomSheet isVisible onClose={mockOnClose} />,
+    );
 
     expect(getByText('Sort by')).toBeTruthy();
     expect(getByText('Price change')).toBeTruthy();
@@ -120,7 +117,9 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
   });
 
   it('renders all sort options', () => {
-    const { getByText } = render(<TrendingTokenPriceChangeBottomSheet />);
+    const { getByText } = render(
+      <TrendingTokenPriceChangeBottomSheet isVisible onClose={mockOnClose} />,
+    );
 
     expect(getByText('Price change')).toBeTruthy();
     expect(getByText('Volume')).toBeTruthy();
@@ -129,7 +128,7 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
 
   it('renders Apply button', () => {
     const { getByTestId, getByText } = render(
-      <TrendingTokenPriceChangeBottomSheet />,
+      <TrendingTokenPriceChangeBottomSheet isVisible onClose={mockOnClose} />,
     );
 
     expect(getByTestId('apply-button')).toBeTruthy();
@@ -137,14 +136,16 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
   });
 
   it('displays "High to low" and down arrow for descending sort', () => {
-    const { getByText } = render(<TrendingTokenPriceChangeBottomSheet />);
+    const { getByText } = render(
+      <TrendingTokenPriceChangeBottomSheet isVisible onClose={mockOnClose} />,
+    );
 
     expect(getByText('High to low')).toBeTruthy();
   });
 
   it('toggles sort direction when same option is pressed', () => {
     const { getByText, queryByText } = render(
-      <TrendingTokenPriceChangeBottomSheet />,
+      <TrendingTokenPriceChangeBottomSheet isVisible onClose={mockOnClose} />,
     );
 
     const priceChangeOption = getByText('Price change');
@@ -159,7 +160,9 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
   });
 
   it('selects new option with descending direction when different option is pressed', () => {
-    const { getByText } = render(<TrendingTokenPriceChangeBottomSheet />);
+    const { getByText } = render(
+      <TrendingTokenPriceChangeBottomSheet isVisible onClose={mockOnClose} />,
+    );
 
     const volumeOption = getByText('Volume');
     const parent = volumeOption.parent;
@@ -172,11 +175,14 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
 
   it('calls onPriceChangeSelect with correct values when Apply is pressed', () => {
     const mockOnPriceChangeSelect = jest.fn();
-    mockUseParams.mockReturnValue({
-      onPriceChangeSelect: mockOnPriceChangeSelect,
-    });
 
-    const { getByTestId } = render(<TrendingTokenPriceChangeBottomSheet />);
+    const { getByTestId } = render(
+      <TrendingTokenPriceChangeBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        onPriceChangeSelect={mockOnPriceChangeSelect}
+      />,
+    );
 
     const applyButton = getByTestId('apply-button');
     fireEvent.press(applyButton);
@@ -189,12 +195,13 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
 
   it('calls onPriceChangeSelect with updated sort direction after toggle', () => {
     const mockOnPriceChangeSelect = jest.fn();
-    mockUseParams.mockReturnValue({
-      onPriceChangeSelect: mockOnPriceChangeSelect,
-    });
 
     const { getByText, getByTestId } = render(
-      <TrendingTokenPriceChangeBottomSheet />,
+      <TrendingTokenPriceChangeBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        onPriceChangeSelect={mockOnPriceChangeSelect}
+      />,
     );
 
     const priceChangeOption = getByText('Price change');
@@ -213,36 +220,85 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
 
   it('closes bottom sheet when Apply is pressed', () => {
     const mockOnPriceChangeSelect = jest.fn();
-    mockUseParams.mockReturnValue({
-      onPriceChangeSelect: mockOnPriceChangeSelect,
-    });
 
-    const { getByTestId } = render(<TrendingTokenPriceChangeBottomSheet />);
+    const { getByTestId } = render(
+      <TrendingTokenPriceChangeBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        onPriceChangeSelect={mockOnPriceChangeSelect}
+      />,
+    );
 
     const applyButton = getByTestId('apply-button');
     fireEvent.press(applyButton);
 
-    expect(mockGoBack).toHaveBeenCalled();
     expect(mockOnCloseBottomSheet).toHaveBeenCalled();
+    expect(mockOnClose).toHaveBeenCalled();
   });
 
-  it('navigates back when close button is pressed', () => {
-    const { getByTestId } = render(<TrendingTokenPriceChangeBottomSheet />);
+  it('calls onClose when close button is pressed', () => {
+    const { getByTestId } = render(
+      <TrendingTokenPriceChangeBottomSheet isVisible onClose={mockOnClose} />,
+    );
 
     const closeButton = getByTestId('close-button');
     fireEvent.press(closeButton);
 
-    expect(mockGoBack).toHaveBeenCalled();
     expect(mockOnCloseBottomSheet).toHaveBeenCalled();
+    expect(mockOnClose).toHaveBeenCalled();
   });
 
-  it('navigates back when sheet is closed via onClose', () => {
-    render(<TrendingTokenPriceChangeBottomSheet />);
+  it('calls onClose when sheet is closed via onClose callback', () => {
+    render(
+      <TrendingTokenPriceChangeBottomSheet isVisible onClose={mockOnClose} />,
+    );
 
     if (storedOnClose) {
       storedOnClose();
     }
 
-    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockOnClose).toHaveBeenCalled();
+  });
+
+  it('does not render when isVisible is false', () => {
+    const { queryByTestId } = render(
+      <TrendingTokenPriceChangeBottomSheet
+        isVisible={false}
+        onClose={mockOnClose}
+      />,
+    );
+
+    expect(queryByTestId('bottom-sheet')).toBeNull();
+  });
+
+  it('uses selectedOption and sortDirection props when provided', () => {
+    const { getByText } = render(
+      <TrendingTokenPriceChangeBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        selectedOption={PriceChangeOption.Volume}
+        sortDirection={SortDirection.Ascending}
+      />,
+    );
+
+    expect(getByText('Volume')).toBeTruthy();
+    expect(getByText('Low to high')).toBeTruthy();
+  });
+
+  it('calls onOpenBottomSheet when isVisible becomes true', () => {
+    const { rerender } = render(
+      <TrendingTokenPriceChangeBottomSheet
+        isVisible={false}
+        onClose={mockOnClose}
+      />,
+    );
+
+    expect(mockOnOpenBottomSheet).not.toHaveBeenCalled();
+
+    rerender(
+      <TrendingTokenPriceChangeBottomSheet isVisible onClose={mockOnClose} />,
+    );
+
+    expect(mockOnOpenBottomSheet).toHaveBeenCalled();
   });
 });
