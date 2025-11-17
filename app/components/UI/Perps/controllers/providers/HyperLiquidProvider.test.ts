@@ -1937,6 +1937,7 @@ describe('HyperLiquidProvider', () => {
         isBuy: true,
         size: '0.1',
         orderType: 'market',
+        currentPrice: 50000, // Add price so validation passes, then fails on asset lookup
       };
 
       const result = await provider.placeOrder(orderParams);
@@ -1960,7 +1961,7 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.placeOrder(orderParams);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('No price available for BTC');
+      expect(result.error).toContain('perps.order.validation.price_required');
     });
 
     it('should handle missing position in close operation', async () => {
@@ -2590,6 +2591,7 @@ describe('HyperLiquidProvider', () => {
           isBuy: true,
           size: '0.1',
           orderType: 'market',
+          currentPrice: 50000, // Add price for validation
         };
 
         const result = await freshProvider.placeOrder(orderParams);
@@ -2664,19 +2666,19 @@ describe('HyperLiquidProvider', () => {
         expect(result.error).toContain('Failed to update leverage');
       });
 
-      it('should handle market order without current price (fallback to API)', async () => {
+      it('should fail market order without current price or usdAmount', async () => {
         const orderParams: OrderParams = {
           coin: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
-          // No currentPrice provided - should fetch from API
+          // No currentPrice or usdAmount provided - should fail validation
         };
 
         const result = await provider.placeOrder(orderParams);
 
-        expect(result.success).toBe(true);
-        expect(mockClientService.getInfoClient().allMids).toHaveBeenCalled();
+        expect(result.success).toBe(false);
+        expect(result.error).toContain('perps.order.validation.price_required');
       });
 
       it('should handle order with custom slippage', async () => {
@@ -3709,6 +3711,7 @@ describe('HyperLiquidProvider', () => {
             isBuy: true,
             size: '0.001',
             orderType: 'market',
+            currentPrice: 50000, // Add price for validation
           });
 
           // Assert: Verify exchangeClient.order called with discounted fee
@@ -3986,6 +3989,7 @@ describe('HyperLiquidProvider', () => {
         coin: 'BTC',
         size: '0.1',
         price: undefined,
+        orderType: 'market',
       });
     });
 
@@ -4060,6 +4064,7 @@ describe('HyperLiquidProvider', () => {
         coin: 'ETH',
         size: '1',
         price: '3000',
+        orderType: 'limit',
       });
     });
 

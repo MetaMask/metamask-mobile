@@ -867,6 +867,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                       "color": "#121314",
                                       "fontFamily": "Geist Regular",
                                       "fontSize": 16,
+                                      "fontWeight": "400",
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "lineHeight": 20,

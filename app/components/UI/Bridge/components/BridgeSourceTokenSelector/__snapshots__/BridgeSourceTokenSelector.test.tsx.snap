@@ -872,6 +872,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                       "color": "#121314",
                                       "fontFamily": "Geist Regular",
                                       "fontSize": 16,
+                                      "fontWeight": "400",
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "lineHeight": 20,

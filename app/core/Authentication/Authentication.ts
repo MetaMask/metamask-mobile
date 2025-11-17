@@ -124,6 +124,16 @@ class AuthenticationService {
   }
 
   /**
+   * This method gets the entropy source IDs for all HD wallets.
+   * @returns All known entropy source IDs.
+   */
+  private getEntropySourceIds(): EntropySourceId[] {
+    return Engine.context.KeyringController.state.keyrings
+      .filter((keyring) => keyring.type === KeyringTypes.hd)
+      .map((keyring) => keyring.metadata.id);
+  }
+
+  /**
    * This method recreates the vault upon login if user is new and is not using the latest encryption lib
    * @param password - password entered on login
    */
@@ -227,9 +237,19 @@ class AuthenticationService {
 
   private retryDiscoveryIfPending = async (): Promise<void> => {
     if (isMultichainAccountsState2Enabled()) {
-      // We just re-run the same discovery here. Each wallets know their highest group index and restart
-      // the discovery from there, thus acting as a "retry".
-      await this.attemptMultichainAccountWalletDiscovery();
+      // We just re-run the same discovery here.
+      // 1. Each wallets know their highest group index and restart the discovery from
+      // there, thus acting naturally as a "retry".
+      // 2. Running the discovery every time allow to auto-discover accounts that could
+      // have been added on external wallets.
+      // 3. We run the alignment at the end of the discovery, thus, automatically
+      // creating accounts for new account providers.
+      await Promise.allSettled(
+        this.getEntropySourceIds().map(
+          async (entropySource) =>
+            await this.attemptMultichainAccountWalletDiscovery(entropySource),
+        ),
+      );
     } else {
       await Promise.all(
         Object.values(WalletClientType).map(async (clientType) => {
