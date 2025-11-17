@@ -10,10 +10,6 @@ export interface TrendingTokensListProps {
    */
   trendingTokens: TrendingAsset[];
   /**
-   * Callback when a token is pressed
-   */
-  onTokenPress: (token: TrendingAsset) => void;
-  /**
    * Selected time option to determine which price change field to display
    */
   selectedTimeOption: TimeOption;
@@ -26,16 +22,15 @@ export interface TrendingTokensListProps {
  * (renderItem and keyExtractor) to avoid recreating them on every render
  */
 const TrendingTokensList: React.FC<TrendingTokensListProps> = React.memo(
-  ({ trendingTokens, onTokenPress, selectedTimeOption }) => {
+  ({ trendingTokens, selectedTimeOption }) => {
     const renderItem = useCallback(
       ({ item }: { item: TrendingAsset }) => (
         <TrendingTokenRowItem
           token={item}
-          onPress={() => onTokenPress(item)}
           selectedTimeOption={selectedTimeOption}
         />
       ),
-      [onTokenPress, selectedTimeOption],
+      [selectedTimeOption],
     );
 
     const keyExtractor = useCallback(

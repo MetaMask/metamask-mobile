@@ -1,6 +1,5 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { View } from 'react-native';
-import { TrendingAsset } from '@metamask/assets-controllers';
 import TrendingTokensSkeleton from './TrendingTokenSkeleton/TrendingTokensSkeleton';
 import TrendingTokensList from './TrendingTokensList';
 import { useTrendingRequest } from '../../../UI/Assets/hooks/useTrendingRequest';
@@ -12,12 +11,6 @@ const TrendingTokensSection = () => {
   const { results: trendingTokensResults, isLoading } = useTrendingRequest({});
   const trendingTokens = trendingTokensResults.slice(0, 3);
 
-  const handleTokenPress = useCallback((token: TrendingAsset) => {
-    // eslint-disable-next-line no-console
-    console.log('🚀 ~ TrendingTokensSection ~ token:', token);
-    // TODO: Implement token press logic
-  }, []);
-
   return (
     <View>
       <SectionHeader sectionId="tokens" />
@@ -27,7 +20,6 @@ const TrendingTokensSection = () => {
         ) : (
           <TrendingTokensList
             trendingTokens={trendingTokens}
-            onTokenPress={handleTokenPress}
             selectedTimeOption={TimeOption.TwentyFourHours}
           />
         )}

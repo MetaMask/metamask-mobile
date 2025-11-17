@@ -25,7 +25,7 @@ import { strings } from '../../../../../locales/i18n';
 import TrendingTokensList from '../TrendingTokensSection/TrendingTokensList/TrendingTokensList';
 import TrendingTokensSkeleton from '../TrendingTokensSection/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import { useTrendingRequest } from '../../../UI/Assets/hooks/useTrendingRequest';
-import { TrendingAsset, SortTrendingBy } from '@metamask/assets-controllers';
+import { SortTrendingBy } from '@metamask/assets-controllers';
 import { CaipChainId } from '@metamask/utils';
 import {
   createTrendingTokenTimeBottomSheetNavDetails,
@@ -222,12 +222,6 @@ const TrendingTokensFullView = () => {
     priceChangeSortDirection,
   ]);
 
-  const handleTokenPress = useCallback((token: TrendingAsset) => {
-    // TODO: Implement token press logic
-    // eslint-disable-next-line no-console
-    console.log('🚀 ~ TrendingTokensFullView ~ token:', token);
-  }, []);
-
   const handlePriceChangeSelect = useCallback(
     (option: PriceChangeOption, sortDirection: SortDirection) => {
       setSelectedPriceChangeOption(option);
@@ -383,7 +377,6 @@ const TrendingTokensFullView = () => {
         <View style={styles.listContainer}>
           <TrendingTokensList
             trendingTokens={trendingTokens}
-            onTokenPress={handleTokenPress}
             selectedTimeOption={selectedTimeOption}
           />
         </View>

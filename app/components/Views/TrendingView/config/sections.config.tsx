@@ -41,12 +41,7 @@ const tokensConfig: SectionConfig = {
   navigationAction: (navigation) => {
     navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW);
   },
-  renderItem: (item) => (
-    <TrendingTokenRowItem
-      token={item as TrendingAsset}
-      onPress={() => undefined}
-    />
-  ),
+  renderItem: (item) => <TrendingTokenRowItem token={item as TrendingAsset} />,
   renderSkeleton: () => <TrendingTokensSkeleton />,
   getSearchableText: (item) =>
     `${(item as TrendingAsset).symbol} ${(item as TrendingAsset).name}`.toLowerCase(),

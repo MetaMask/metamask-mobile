@@ -1,15 +1,16 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
-import { TouchableOpacity } from 'react-native';
+import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import TrendingTokenRowItem from './TrendingTokenRowItem';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 
 const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
   }),
+  createNavigatorFactory: () => ({}),
 }));
 
 jest.mock('../../../../../../component-library/hooks', () => ({
@@ -173,6 +174,22 @@ const createMockToken = (
 });
 
 describe('TrendingTokenRowItem', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mockState: any = {
+    engine: {
+      backgroundState: {
+        NetworkController: {
+          networkConfigurations: {},
+          networkConfigurationsByChainId: {},
+        },
+        MultichainNetworkController: {
+          selectedMultichainNetworkChainId: undefined,
+          multichainNetworkConfigurationsByChainId: {},
+        },
+      },
+    },
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsTestNet.mockReturnValue(false);
@@ -191,35 +208,23 @@ describe('TrendingTokenRowItem', () => {
 
   it('matches snapshot', () => {
     const token = createMockToken();
-    const mockOnPress = jest.fn();
 
-    const { toJSON } = render(
-      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    const { toJSON } = renderWithProvider(
+      <TrendingTokenRowItem token={token} />,
+      { state: mockState },
+      false,
     );
 
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('calls onPress when pressed', () => {
-    const token = createMockToken();
-    const mockOnPress = jest.fn();
-
-    const { root } = render(
-      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
-    );
-
-    const touchableOpacity = root.findByType(TouchableOpacity);
-    fireEvent.press(touchableOpacity);
-
-    expect(mockOnPress).toHaveBeenCalledTimes(1);
-  });
-
   it('renders token name', () => {
     const token = createMockToken({ name: 'Ethereum' });
-    const mockOnPress = jest.fn();
 
-    const { getByText } = render(
-      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    const { getByText } = renderWithProvider(
+      <TrendingTokenRowItem token={token} />,
+      { state: mockState },
+      false,
     );
 
     expect(getByText('Ethereum')).toBeTruthy();
@@ -230,10 +235,11 @@ describe('TrendingTokenRowItem', () => {
       marketCap: 75641301011.76,
       aggregatedUsdVolume: 974248822.2,
     });
-    const mockOnPress = jest.fn();
 
-    const { getByText } = render(
-      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    const { getByText } = renderWithProvider(
+      <TrendingTokenRowItem token={token} />,
+      { state: mockState },
+      false,
     );
 
     expect(getByText(/\$76B cap • \$974\.2M vol/)).toBeTruthy();
@@ -241,10 +247,11 @@ describe('TrendingTokenRowItem', () => {
 
   it('renders formatted price', () => {
     const token = createMockToken({ price: '1.50' });
-    const mockOnPress = jest.fn();
 
-    const { getByText } = render(
-      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    const { getByText } = renderWithProvider(
+      <TrendingTokenRowItem token={token} />,
+      { state: mockState },
+      false,
     );
 
     expect(getByText('$1.50')).toBeTruthy();
@@ -252,10 +259,11 @@ describe('TrendingTokenRowItem', () => {
 
   it('renders percentage change with positive indicator', () => {
     const token = createMockToken();
-    const mockOnPress = jest.fn();
 
-    const { getByText } = render(
-      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    const { getByText } = renderWithProvider(
+      <TrendingTokenRowItem token={token} />,
+      { state: mockState },
+      false,
     );
 
     expect(getByText('+3.44%')).toBeTruthy();
@@ -266,10 +274,11 @@ describe('TrendingTokenRowItem', () => {
       assetId: 'eip155:1/erc20:0x123',
       symbol: 'ETH',
     });
-    const mockOnPress = jest.fn();
 
-    const { getByTestId } = render(
-      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    const { getByTestId } = renderWithProvider(
+      <TrendingTokenRowItem token={token} />,
+      { state: mockState },
+      false,
     );
 
     const logo = getByTestId('trending-token-logo-ETH');
@@ -279,14 +288,11 @@ describe('TrendingTokenRowItem', () => {
 
   it('renders token logo with custom iconSize', () => {
     const token = createMockToken({ symbol: 'BTC' });
-    const mockOnPress = jest.fn();
 
-    const { getByTestId } = render(
-      <TrendingTokenRowItem
-        token={token}
-        onPress={mockOnPress}
-        iconSize={60}
-      />,
+    const { getByTestId } = renderWithProvider(
+      <TrendingTokenRowItem token={token} iconSize={60} />,
+      { state: mockState },
+      false,
     );
 
     const logo = getByTestId('trending-token-logo-BTC');
@@ -295,10 +301,11 @@ describe('TrendingTokenRowItem', () => {
 
   it('renders network badge with default network image source', () => {
     const token = createMockToken();
-    const mockOnPress = jest.fn();
 
-    const { getByTestId } = render(
-      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    const { getByTestId } = renderWithProvider(
+      <TrendingTokenRowItem token={token} />,
+      { state: mockState },
+      false,
     );
 
     const badge = getByTestId('network-badge');
@@ -320,10 +327,11 @@ describe('TrendingTokenRowItem', () => {
     mockIsTestNet.mockReturnValue(true);
 
     const token = createMockToken();
-    const mockOnPress = jest.fn();
 
-    const { getByTestId } = render(
-      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    const { getByTestId } = renderWithProvider(
+      <TrendingTokenRowItem token={token} />,
+      { state: mockState },
+      false,
     );
 
     const badge = getByTestId('network-badge');
@@ -343,10 +351,11 @@ describe('TrendingTokenRowItem', () => {
     mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
 
     const token = createMockToken();
-    const mockOnPress = jest.fn();
 
-    const { getByTestId } = render(
-      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    const { getByTestId } = renderWithProvider(
+      <TrendingTokenRowItem token={token} />,
+      { state: mockState },
+      false,
     );
 
     const badge = getByTestId('network-badge');
@@ -370,10 +379,11 @@ describe('TrendingTokenRowItem', () => {
     mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
 
     const token = createMockToken();
-    const mockOnPress = jest.fn();
 
-    const { getByTestId } = render(
-      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    const { getByTestId } = renderWithProvider(
+      <TrendingTokenRowItem token={token} />,
+      { state: mockState },
+      false,
     );
 
     const badge = getByTestId('network-badge');
@@ -392,10 +402,11 @@ describe('TrendingTokenRowItem', () => {
     mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
 
     const token = createMockToken();
-    const mockOnPress = jest.fn();
 
-    const { getByTestId } = render(
-      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    const { getByTestId } = renderWithProvider(
+      <TrendingTokenRowItem token={token} />,
+      { state: mockState },
+      false,
     );
 
     const badge = getByTestId('network-badge');
@@ -424,10 +435,11 @@ describe('TrendingTokenRowItem', () => {
     mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
 
     const token = createMockToken();
-    const mockOnPress = jest.fn();
 
-    const { getByTestId } = render(
-      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    const { getByTestId } = renderWithProvider(
+      <TrendingTokenRowItem token={token} />,
+      { state: mockState },
+      false,
     );
 
     const badge = getByTestId('network-badge');
@@ -440,10 +452,11 @@ describe('TrendingTokenRowItem', () => {
     const token = createMockToken({
       assetId: 'eip155:1/erc20:0xabc123',
     });
-    const mockOnPress = jest.fn();
 
-    const { getByTestId } = render(
-      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    const { getByTestId } = renderWithProvider(
+      <TrendingTokenRowItem token={token} />,
+      { state: mockState },
+      false,
     );
 
     expect(
@@ -456,10 +469,11 @@ describe('TrendingTokenRowItem', () => {
       marketCap: 0,
       aggregatedUsdVolume: 0,
     });
-    const mockOnPress = jest.fn();
 
-    const { getByText } = render(
-      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    const { getByText } = renderWithProvider(
+      <TrendingTokenRowItem token={token} />,
+      { state: mockState },
+      false,
     );
 
     expect(getByText(/\$0\.00 cap • \$0\.00 vol/)).toBeTruthy();
@@ -470,10 +484,11 @@ describe('TrendingTokenRowItem', () => {
       marketCap: 1500000000000,
       aggregatedUsdVolume: 5000000000,
     });
-    const mockOnPress = jest.fn();
 
-    const { getByText } = render(
-      <TrendingTokenRowItem token={token} onPress={mockOnPress} />,
+    const { getByText } = renderWithProvider(
+      <TrendingTokenRowItem token={token} />,
+      { state: mockState },
+      false,
     );
 
     expect(getByText(/\$1500B cap • \$5B vol/)).toBeTruthy();

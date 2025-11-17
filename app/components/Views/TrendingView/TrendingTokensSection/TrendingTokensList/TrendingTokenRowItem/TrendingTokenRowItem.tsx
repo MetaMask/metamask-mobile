@@ -1,6 +1,7 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import Text, {
   TextColor,
   TextVariant,
@@ -36,6 +37,9 @@ import { AvatarSize } from '../../../../../../component-library/components/Avata
 import { formatMarketStats } from './utils';
 import { formatPriceWithDecimals } from '../../../../../UI/Predict/utils/format';
 import { TimeOption } from '../../../TrendingTokensBottomSheet';
+import NetworkModals from '../../../../../UI/NetworkModal';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
+import type { Network } from '../../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 
 /**
  * Maps TimeOption to the corresponding priceChangePct field key
@@ -59,19 +63,22 @@ const getPriceChangeFieldKey = (
 
 interface TrendingTokenRowItemProps {
   token: TrendingAsset;
-  onPress: () => void;
   iconSize?: number;
   selectedTimeOption?: TimeOption;
 }
 const TrendingTokenRowItem = ({
   token,
-  onPress,
   iconSize = 44,
   selectedTimeOption = TimeOption.TwentyFourHours,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const chainId = token.assetId.split('/')[0] as CaipChainId;
+  const networkConfigurations = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
+  const [isNetworkModalVisible, setIsNetworkModalVisible] = useState(false);
+  const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null);
 
   const networkBadgeSource = useCallback((currentChainId: CaipChainId) => {
     const { reference } = parseCaipChainId(currentChainId);
@@ -135,16 +142,33 @@ const TrendingTokenRowItem = ({
     const address = assetIdentifier?.split(':')[1] as Hex | undefined;
 
     if (!address || !isCaipChainId(caipChainId)) {
-      onPress?.();
       return;
     }
 
-    // Convert CAIP chainId to Hex format
+    // Convert CAIP chainId to Hex format for EVM networks
     const { namespace, reference } = parseCaipChainId(caipChainId);
     const hexChainId =
       namespace === 'eip155'
         ? (`0x${Number(reference).toString(16)}` as Hex)
         : (caipChainId as Hex);
+
+    // Check if network is already added by user
+    const isNetworkAdded = Boolean(
+      networkConfigurations[caipChainId as CaipChainId],
+    );
+
+    // If network is not added, show modal to add it
+    if (!isNetworkAdded) {
+      const popularNetwork = PopularList.find(
+        (network) => network.chainId === hexChainId,
+      );
+
+      if (popularNetwork) {
+        setSelectedNetwork(popularNetwork);
+        setIsNetworkModalVisible(true);
+        return;
+      }
+    }
 
     // Navigate to Asset page with token data
     navigation.navigate('Asset', {
@@ -154,76 +178,128 @@ const TrendingTokenRowItem = ({
       name: token.name,
       decimals: token.decimals,
     });
+  }, [token, navigation, networkConfigurations]);
 
-    onPress?.();
-  }, [token, navigation, onPress]);
+  const closeNetworkModal = useCallback(() => {
+    setIsNetworkModalVisible(false);
+    setSelectedNetwork(null);
+  }, []);
+
+  const handleNetworkModalAccept = useCallback(() => {
+    // Network has been added by NetworkModals' closeModal function
+    // Now navigate to Asset page
+    const [caipChainId, assetIdentifier] = token.assetId.split('/');
+    const address = assetIdentifier?.split(':')[1] as Hex | undefined;
+
+    if (address && isCaipChainId(caipChainId)) {
+      const { namespace, reference } = parseCaipChainId(caipChainId);
+      const hexChainId =
+        namespace === 'eip155'
+          ? (`0x${Number(reference).toString(16)}` as Hex)
+          : (caipChainId as Hex);
+
+      navigation.navigate('Asset', {
+        chainId: hexChainId,
+        address,
+        symbol: token.symbol,
+        name: token.name,
+        decimals: token.decimals,
+      });
+    }
+
+    closeNetworkModal();
+  }, [token, navigation, closeNetworkModal]);
 
   return (
-    <TouchableOpacity
-      style={styles.container}
-      onPress={handlePress}
-      testID={`trending-token-row-item-${token.assetId}`}
-    >
-      <View>
-        <BadgeWrapper
-          style={styles.badge}
-          badgePosition={BadgePosition.BottomRight}
-          badgeElement={
-            <Badge
-              size={AvatarSize.Xs}
-              variant={BadgeVariant.Network}
-              imageSource={networkBadgeSource(chainId)}
-              isScaled={false}
-            />
-          }
-        >
-          <TrendingTokenLogo
-            assetId={token.assetId}
-            symbol={token.symbol}
-            size={iconSize}
-            recyclingKey={token.assetId}
-          />
-        </BadgeWrapper>
-      </View>
-      <View style={styles.leftContainer}>
-        <View style={styles.tokenHeaderRow}>
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Default}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {token.name}
-          </Text>
-        </View>
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-          {formatMarketStats(token.marketCap, token.aggregatedUsdVolume)}
-        </Text>
-      </View>
-      <View style={styles.rightContainer}>
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-          {formatPriceWithDecimals(token.price, {
-            minimumDecimals: 2,
-            maximumDecimals: 4,
-          })}
-        </Text>
-        {hasPercentageChange && (
-          <Text
-            variant={TextVariant.BodySM}
-            color={
-              isNeutralChange
-                ? TextColor.Default
-                : isPositiveChange
-                  ? TextColor.Success
-                  : TextColor.Error
+    <>
+      {isNetworkModalVisible && selectedNetwork && (
+        <NetworkModals
+          showPopularNetworkModal
+          isVisible={isNetworkModalVisible}
+          onClose={closeNetworkModal}
+          networkConfiguration={{
+            chainId: selectedNetwork.chainId,
+            nickname: selectedNetwork.nickname,
+            ticker: selectedNetwork.ticker,
+            rpcUrl: selectedNetwork.rpcUrl,
+            failoverRpcUrls: selectedNetwork.failoverRpcUrls,
+            formattedRpcUrl: selectedNetwork.rpcUrl,
+            rpcPrefs: {
+              blockExplorerUrl: selectedNetwork.rpcPrefs.blockExplorerUrl,
+              imageUrl: selectedNetwork.rpcPrefs.imageUrl,
+            },
+          }}
+          allowNetworkSwitch={false}
+          skipEnableNetwork
+          onAccept={handleNetworkModalAccept}
+        />
+      )}
+      <TouchableOpacity
+        style={styles.container}
+        onPress={handlePress}
+        testID={`trending-token-row-item-${token.assetId}`}
+      >
+        <View>
+          <BadgeWrapper
+            style={styles.badge}
+            badgePosition={BadgePosition.BottomRight}
+            badgeElement={
+              <Badge
+                size={AvatarSize.Xs}
+                variant={BadgeVariant.Network}
+                imageSource={networkBadgeSource(chainId)}
+                isScaled={false}
+              />
             }
           >
-            {isNeutralChange ? '' : isPositiveChange ? '+' : '-'}
-            {Math.abs(pricePercentChange).toFixed(2)}%
+            <TrendingTokenLogo
+              assetId={token.assetId}
+              symbol={token.symbol}
+              size={iconSize}
+              recyclingKey={token.assetId}
+            />
+          </BadgeWrapper>
+        </View>
+        <View style={styles.leftContainer}>
+          <View style={styles.tokenHeaderRow}>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Default}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {token.name}
+            </Text>
+          </View>
+          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            {formatMarketStats(token.marketCap, token.aggregatedUsdVolume)}
           </Text>
-        )}
-      </View>
-    </TouchableOpacity>
+        </View>
+        <View style={styles.rightContainer}>
+          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            {formatPriceWithDecimals(token.price, {
+              minimumDecimals: 2,
+              maximumDecimals: 4,
+            })}
+          </Text>
+          {hasPercentageChange && (
+            <Text
+              variant={TextVariant.BodySM}
+              color={
+                isNeutralChange
+                  ? TextColor.Default
+                  : isPositiveChange
+                    ? TextColor.Success
+                    : TextColor.Error
+              }
+            >
+              {isNeutralChange ? '' : isPositiveChange ? '+' : '-'}
+              {Math.abs(pricePercentChange).toFixed(2)}%
+            </Text>
+          )}
+        </View>
+      </TouchableOpacity>
+    </>
   );
 };
 
