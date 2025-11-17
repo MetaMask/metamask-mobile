@@ -9,7 +9,7 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './TrendingTokenRowItem.styles';
 import { TrendingAsset } from '@metamask/assets-controllers';
-import TrendingTokenLogo from '../../../../Views/TrendingView/TrendingTokensSection/TrendingTokenLogo';
+import TrendingTokenLogo from '../TrendingTokenLogo';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';

@@ -8,7 +8,7 @@ import { useTokenLogo } from '../../../../hooks/useTokenLogo';
 
 interface TrendingTokenLogoProps {
   assetId: string;
-  symbol: string;
+  symbol?: string;
   size?: number;
   style?: ViewStyle;
   testID?: string;
@@ -30,10 +30,11 @@ const TrendingTokenLogo: React.FC<TrendingTokenLogoProps> = ({
     return imageUrl;
   }, [assetId]);
 
-  const fallbackText = useMemo(
-    () => symbol.substring(0, 2).toUpperCase(),
-    [symbol],
-  );
+  const fallbackText = useMemo(() => {
+    const displaySymbol = symbol || '';
+    // Get first 2 letters, uppercase
+    return displaySymbol.substring(0, 2).toUpperCase();
+  }, [symbol]);
 
   const {
     isLoading,
@@ -46,11 +47,12 @@ const TrendingTokenLogo: React.FC<TrendingTokenLogoProps> = ({
     handleLoadEnd,
     handleError,
   } = useTokenLogo({
-    symbol,
+    symbol: symbol || '',
     size,
   });
 
-  if (!imageUri || hasError) {
+  // Show custom two-letter fallback if no symbol or error
+  if (!symbol || !imageUri || hasError) {
     return (
       <View style={[containerStyle, style]} testID={testID}>
         <Text variant={TextVariant.BodyMD} style={fallbackTextStyle}>
