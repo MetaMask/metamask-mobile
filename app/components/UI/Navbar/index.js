@@ -918,7 +918,6 @@ export function getOfflineModalNavbar() {
  * @param {number} unreadNotificationCount - The number of unread notifications
  * @param {number} readNotificationCount - The number of read notifications
  * @param {boolean} shouldDisplayCardButton - Whether to display the card button
- * @param {boolean} isRewardsEnabled - Whether rewards are enabled
  * @returns {Object} An object containing the navbar options for the wallet screen
  */
 export function getWalletNavbarOptions(
@@ -935,7 +934,6 @@ export function getWalletNavbarOptions(
   unreadNotificationCount,
   readNotificationCount,
   shouldDisplayCardButton,
-  isRewardsEnabled = false,
 ) {
   const innerStyles = StyleSheet.create({
     headerContainer: {
@@ -1152,16 +1150,14 @@ export function getWalletNavbarOptions(
                     />
                   </BadgeWrapper>
                 )}
-                {isRewardsEnabled && (
-                  <ButtonIcon
-                    iconProps={{ color: MMDSIconColor.Default }}
-                    onPress={handleHamburgerPress}
-                    iconName={IconName.Menu}
-                    size={ButtonIconSize.Lg}
-                    testID="navbar-hamburger-menu-button"
-                    hitSlop={innerStyles.touchAreaSlop}
-                  />
-                )}
+                <ButtonIcon
+                  iconProps={{ color: MMDSIconColor.Default }}
+                  onPress={handleHamburgerPress}
+                  iconName={IconName.Menu}
+                  size={ButtonIconSize.Lg}
+                  testID="navbar-hamburger-menu-button"
+                  hitSlop={innerStyles.touchAreaSlop}
+                />
               </View>
             }
           </View>
@@ -2025,7 +2021,6 @@ export const getSettingsNavigationOptions = (
   title,
   themeColors,
   navigation,
-  isRewardsEnabled = false,
 ) => {
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -2047,16 +2042,15 @@ export const getSettingsNavigationOptions = (
         {title}
       </MorphText>
     ),
-    headerRight: () =>
-      isRewardsEnabled ? (
-        <ButtonIcon
-          size={ButtonIconSize.Lg}
-          iconName={IconName.Close}
-          onPress={() => navigation?.goBack()}
-          style={innerStyles.accessories}
-          testID={NetworksViewSelectorsIDs.CLOSE_ICON}
-        />
-      ) : null,
+    headerRight: () => (
+      <ButtonIcon
+        size={ButtonIconSize.Lg}
+        iconName={IconName.Close}
+        onPress={() => navigation?.goBack()}
+        style={innerStyles.accessories}
+        testID={NetworksViewSelectorsIDs.CLOSE_ICON}
+      />
+    ),
     ...innerStyles,
   };
 };

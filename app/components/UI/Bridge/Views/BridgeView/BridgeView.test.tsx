@@ -89,6 +89,11 @@ jest.mock('../../../../../core/Engine', () => {
     '../../../../../util/test/keyringControllerTestUtils',
   );
   return {
+    controllerMessenger: {
+      call: jest.fn(),
+      subscribe: jest.fn(),
+      unsubscribe: jest.fn(),
+    },
     context: {
       SwapsController: {
         fetchAggregatorMetadataWithCache: jest.fn(),
@@ -271,6 +276,21 @@ jest.mock('../../../../../util/address', () => ({
   ...jest.requireActual('../../../../../util/address'),
   isHardwareAccount: jest.fn(),
 }));
+
+jest.mock('react-native-fade-in-image', () => {
+  const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      children,
+      placeholderStyle,
+    }: {
+      children: React.ReactNode;
+      placeholderStyle?: unknown;
+    }) => React.createElement(View, { style: placeholderStyle }, children),
+  };
+});
 
 describe('BridgeView', () => {
   const token2Address = '0x0000000000000000000000000000000000000002' as Hex;

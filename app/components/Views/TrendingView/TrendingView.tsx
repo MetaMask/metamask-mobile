@@ -23,21 +23,24 @@ import {
   lastTrendingScreenRef,
   updateLastTrendingScreen,
 } from '../../Nav/Main/MainNavigator';
-import TrendingTokensSection from './TrendingTokensSection/TrendingTokensSection';
-import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import ExploreSearchScreen from './ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
-import { PredictModalStack } from '../../UI/Predict/routes';
-import PredictionSection from './PredictionSection/PredictionSection';
-import PerpsSection from './PerpsSection/PerpsSection';
-import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
+import {
+  PredictScreenStack,
+  PredictModalStack,
+  PredictMarketDetails,
+  PredictSellPreview,
+} from '../../UI/Predict';
+import PredictBuyPreview from '../../UI/Predict/views/PredictBuyPreview/PredictBuyPreview';
+import QuickActions from './components/QuickActions/QuickActions';
+import SectionHeader from './components/SectionHeader/SectionHeader';
+import { HOME_SECTIONS_ARRAY } from './config/sections.config';
 
 const Stack = createStackNavigator();
 
 const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
-    marginTop: 10,
     paddingLeft: 16,
     paddingRight: 16,
   },
@@ -128,13 +131,14 @@ const TrendingFeed: React.FC = () => {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
-        <PredictionSection />
-        <TrendingTokensSection />
-        <PerpsConnectionProvider>
-          <PerpsStreamProvider>
-            <PerpsSection />
-          </PerpsStreamProvider>
-        </PerpsConnectionProvider>
+        <QuickActions />
+
+        {HOME_SECTIONS_ARRAY.map((section) => (
+          <React.Fragment key={section.id}>
+            <SectionHeader sectionId={section.id} />
+            {section.renderSection()}
+          </React.Fragment>
+        ))}
       </ScrollView>
     </Box>
   );
@@ -157,6 +161,17 @@ const TrendingView: React.FC = () => {
         component={ExploreSearchScreen}
       />
       <Stack.Screen
+        name={Routes.PREDICT.ROOT}
+        component={PredictScreenStack}
+        options={{
+          headerShown: false,
+          cardStyle: {
+            backgroundColor: 'transparent',
+          },
+          animationEnabled: false,
+        }}
+      />
+      <Stack.Screen
         name={Routes.PREDICT.MODALS.ROOT}
         component={PredictModalStack}
         options={{
@@ -165,6 +180,27 @@ const TrendingView: React.FC = () => {
             backgroundColor: 'transparent',
           },
           animationEnabled: false,
+        }}
+      />
+      <Stack.Screen
+        name={Routes.PREDICT.MARKET_DETAILS}
+        component={PredictMarketDetails}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name={Routes.PREDICT.MODALS.BUY_PREVIEW}
+        component={PredictBuyPreview}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name={Routes.PREDICT.MODALS.SELL_PREVIEW}
+        component={PredictSellPreview}
+        options={{
+          headerShown: false,
         }}
       />
     </Stack.Navigator>
