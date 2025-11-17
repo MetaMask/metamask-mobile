@@ -679,6 +679,28 @@ export function isTransactionIncomplete(status) {
  */
 export async function getActionKey(tx, selectedAddress, ticker, chainId) {
   const actionKey = await getTransactionActionKey(tx, chainId);
+
+  // Handle token transfers with direction logic (similar to ETH transfers)
+  if (actionKey === SEND_TOKEN_ACTION_KEY) {
+    const fromAddress = safeToChecksumAddress(tx.txParams.from)?.toLowerCase();
+    const toAddress = safeToChecksumAddress(tx.txParams.to)?.toLowerCase();
+    const selectedAddr = selectedAddress?.toLowerCase();
+
+    const sentByUser = fromAddress === selectedAddr;
+    const incoming = !sentByUser;
+    const selfSent = fromAddress === selectedAddr && toAddress === selectedAddr;
+
+    if (selfSent) {
+      return strings('transactions.self_sent_tokens');
+    }
+
+    if (incoming) {
+      return strings('transactions.received_tokens');
+    }
+
+    return strings('transactions.sent_tokens');
+  }
+
   if (actionKey === SEND_ETHER_ACTION_KEY) {
     let currencySymbol = ticker;
 
