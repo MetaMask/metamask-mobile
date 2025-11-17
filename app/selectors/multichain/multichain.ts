@@ -15,7 +15,8 @@ import {
   Balance,
   SolScope,
   Transaction as NonEvmTransaction,
- TrxScope } from '@metamask/keyring-api';
+  TrxScope,
+} from '@metamask/keyring-api';
 import { isMainNet } from '../../util/networks';
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
 import { selectShowFiatInTestnets } from '../settings';
