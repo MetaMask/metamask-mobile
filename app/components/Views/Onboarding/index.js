@@ -525,6 +525,7 @@ class Onboarding extends PureComponent {
             accountName: result.accountName,
             oauthLoginSuccess: true,
             onboardingTraceCtx: this.onboardingTraceCtx,
+            provider,
           });
         } else {
           trace({
@@ -542,6 +543,7 @@ class Onboarding extends PureComponent {
                 accountName: result.accountName,
                 oauthLoginSuccess: true,
                 onboardingTraceCtx: this.onboardingTraceCtx,
+                provider,
               },
             );
           } else {
@@ -550,6 +552,7 @@ class Onboarding extends PureComponent {
               [PREVIOUS_SCREEN]: ONBOARDING,
               oauthLoginSuccess: true,
               onboardingTraceCtx: this.onboardingTraceCtx,
+              provider,
             });
           }
         }
@@ -580,6 +583,7 @@ class Onboarding extends PureComponent {
             accountName: result.accountName,
             oauthLoginSuccess: true,
             onboardingTraceCtx: this.onboardingTraceCtx,
+            provider,
           });
         }
       }
