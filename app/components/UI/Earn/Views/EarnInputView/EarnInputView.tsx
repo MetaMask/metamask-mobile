@@ -233,6 +233,36 @@ const EarnInputView = () => {
       actionType: 'deposit',
     });
 
+  // Preview visibility: when true, hide keypad/quick amounts and show the Tron preview box
+  const [isPreviewVisible, setIsPreviewVisible] = useState(false);
+
+  // Build quick-amounts list, replacing the last "Max" with "Done" when editing and a value is entered
+  const quickAmounts = React.useMemo(() => {
+    // Only adjust for TRON staking flow; otherwise, use defaults
+    if (
+      isTrxStakingEnabled &&
+      isTronNative &&
+      !isPreviewVisible &&
+      isNonZeroAmount
+    ) {
+      const modified = [...percentageOptions];
+      modified[modified.length - 1] = {
+        ...modified[modified.length - 1],
+        label: strings('onboarding_success.done'),
+      };
+      return modified;
+    }
+    return percentageOptions;
+  }, [
+    isTrxStakingEnabled,
+    isTronNative,
+    isPreviewVisible,
+    isNonZeroAmount,
+    percentageOptions,
+  ]);
+
+  // (moved below after handleMaxPressWithTracking declaration)
+
   useEffect(() => {
     if (shouldLogStablecoinEvent()) {
       trackEvent(
@@ -744,6 +774,26 @@ const EarnInputView = () => {
     isFiat,
   ]);
 
+  // Right action press: act as "Done" in TRON editing with non-zero amount; otherwise behave as Max
+  const onRightActionPress = React.useCallback(() => {
+    if (
+      isTrxStakingEnabled &&
+      isTronNative &&
+      isNonZeroAmount &&
+      !isPreviewVisible
+    ) {
+      setIsPreviewVisible(true);
+      return;
+    }
+    handleMaxPressWithTracking();
+  }, [
+    isTrxStakingEnabled,
+    isTronNative,
+    isNonZeroAmount,
+    isPreviewVisible,
+    handleMaxPressWithTracking,
+  ]);
+
   const handleCurrencySwitchWithTracking = useCallback(() => {
     // Call the original handler first
     handleCurrencySwitch();
@@ -961,6 +1011,10 @@ const EarnInputView = () => {
           currentCurrency={currentCurrency}
           handleCurrencySwitch={handleCurrencySwitchWithTracking}
           currencyToggleValue={currencyToggleValue}
+          onPressAmount={() => {
+            // Re-open editing if preview mode is active
+            setIsPreviewVisible(false);
+          }}
         />
         <View style={styles.rewardsRateContainer}>
           {!isTrxStakingEnabled &&
@@ -991,34 +1045,41 @@ const EarnInputView = () => {
       </ScrollView>
       {
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
-        isTrxStakingEnabled && isTronNative && isNonZeroAmount && (
-          <TronStakePreview
-            resourceType={resourceType}
-            fee={tronPreview?.fee as ComputeFeeResult}
-          />
-        )
+        isTrxStakingEnabled &&
+          isTronNative &&
+          isPreviewVisible &&
+          isNonZeroAmount && (
+            <TronStakePreview
+              resourceType={resourceType}
+              fee={tronPreview?.fee as ComputeFeeResult}
+            />
+          )
         ///: END:ONLY_INCLUDE_IF
       }
-      <QuickAmounts
-        amounts={percentageOptions}
-        onAmountPress={handleQuickAmountPressWithTracking}
-        onMaxPress={handleMaxPressWithTracking}
-      />
-      <Keypad
-        value={!isFiat ? amountToken : amountFiatNumber}
-        // Debounce used to avoid error message flicker from recalculating gas fee estimate
-        onChange={debounce((data) => {
-          handleKeypadChange(data);
-          ///: BEGIN:ONLY_INCLUDE_IF(tron)
-          if (isTrxStakingEnabled && isTronNative && !isFiat) {
-            tronValidate?.(String(data.value), String(token.chainId));
-          }
-          ///: END:ONLY_INCLUDE_IF
-        }, 1)}
-        style={styles.keypad}
-        currency={token.symbol}
-        decimals={!isFiat ? 5 : 2}
-      />
+      {!isPreviewVisible && (
+        <>
+          <QuickAmounts
+            amounts={quickAmounts}
+            onAmountPress={handleQuickAmountPressWithTracking}
+            onMaxPress={onRightActionPress}
+          />
+          <Keypad
+            value={!isFiat ? amountToken : amountFiatNumber}
+            // Debounce used to avoid error message flicker from recalculating gas fee estimate
+            onChange={debounce((data) => {
+              handleKeypadChange(data);
+              ///: BEGIN:ONLY_INCLUDE_IF(tron)
+              if (isTrxStakingEnabled && isTronNative && !isFiat) {
+                tronValidate?.(String(data.value), String(token.chainId));
+              }
+              ///: END:ONLY_INCLUDE_IF
+            }, 1)}
+            style={styles.keypad}
+            currency={token.symbol}
+            decimals={!isFiat ? 5 : 2}
+          />
+        </>
+      )}
       <View style={styles.reviewButtonContainer}>
         <Button
           label={buttonLabel}
