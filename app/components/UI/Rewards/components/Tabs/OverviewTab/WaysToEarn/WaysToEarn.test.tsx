@@ -11,10 +11,7 @@ import {
   selectRewardsCardSpendFeatureFlags,
   selectRewardsMusdDepositEnabledFlag,
 } from '../../../../../../../selectors/featureFlagController/rewards';
-import {
-  useFeatureFlag,
-  FeatureFlagNames,
-} from '../../../../../../../components/hooks/useFeatureFlag';
+import { useFeatureFlag } from '../../../../../../../components/hooks/useFeatureFlag';
 import { MetaMetricsEvents } from '../../../../../../hooks/useMetrics';
 import { RewardsMetricsButtons } from '../../../../utils';
 
@@ -62,10 +59,15 @@ jest.mock('../../../../../../hooks/useMetrics', () => ({
 }));
 
 // Mock useFeatureFlag hook
-jest.mock('../../../../../../components/hooks/useFeatureFlag', () => ({
-  useFeatureFlag: jest.fn(),
-  FeatureFlagNames,
-}));
+jest.mock('../../../../../../../components/hooks/useFeatureFlag', () => {
+  const actual = jest.requireActual(
+    '../../../../../../../components/hooks/useFeatureFlag',
+  );
+  return {
+    useFeatureFlag: jest.fn(),
+    FeatureFlagNames: actual.FeatureFlagNames,
+  };
+});
 
 // Mock getNativeAssetForChainId
 jest.mock('@metamask/bridge-controller', () => ({
@@ -515,6 +517,7 @@ describe('WaysToEarn', () => {
 
       // Enable flag
       mockIsPredictEnabled = true;
+      mockUseFeatureFlag.mockReturnValue(mockIsPredictEnabled);
       rerender(<WaysToEarn />);
 
       // Assert visible now
@@ -525,6 +528,7 @@ describe('WaysToEarn', () => {
     it('opens modal for predict earning way when pressed', () => {
       // Arrange
       mockIsPredictEnabled = true;
+      mockUseFeatureFlag.mockReturnValue(mockIsPredictEnabled);
       const { getByText } = render(<WaysToEarn />);
       const predictButton = getByText('Prediction markets');
 
@@ -553,6 +557,7 @@ describe('WaysToEarn', () => {
     it('navigates to predict market list when predict CTA is pressed', () => {
       // Arrange
       mockIsPredictEnabled = true;
+      mockUseFeatureFlag.mockReturnValue(mockIsPredictEnabled);
       const { getByText } = render(<WaysToEarn />);
       const predictButton = getByText('Prediction markets');
 
