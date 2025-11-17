@@ -38,29 +38,30 @@ export function useTransactionCustomAmountAlerts({
   const { alerts: confirmationAlerts } = useAlerts();
   const pendingTokenAlerts = usePendingAmountAlerts({ pendingTokenAmount });
 
-  const uniqueAlerts = useMemo(
-    () =>
-      confirmationAlerts.filter(
-        (a_) => !PENDING_AMOUNT_ALERTS.includes(a_.key as AlertKeys),
-      ),
-    [confirmationAlerts],
-  );
+  const filteredAlerts = useMemo(() => {
+    const blockingAlerts = confirmationAlerts.filter((a) => a.isBlocking);
 
-  const allAlerts = useMemo(
-    () => [...pendingTokenAlerts, ...uniqueAlerts],
-    [uniqueAlerts, pendingTokenAlerts],
-  );
+    return blockingAlerts.filter((a) => {
+      const isIgnoredAsNoInput =
+        !isInputChanged && ON_CHANGE_ALERTS.includes(a.key as AlertKeys);
 
-  const filteredAlerts = useMemo(
-    () =>
-      allAlerts.filter(
-        (a) =>
-          a.isBlocking &&
-          (!isKeyboardVisible ||
-            KEYBOARD_ALERTS.includes(a.key as AlertKeys)) &&
-          (isInputChanged || !ON_CHANGE_ALERTS.includes(a.key as AlertKeys)),
-      ),
-    [allAlerts, isInputChanged, isKeyboardVisible],
+      const isIgnoredAsKeyboardVisible =
+        isKeyboardVisible && !KEYBOARD_ALERTS.includes(a.key as AlertKeys);
+
+      const isIgnoredAsPending =
+        isKeyboardVisible && PENDING_AMOUNT_ALERTS.includes(a.key as AlertKeys);
+
+      return (
+        !isIgnoredAsNoInput &&
+        !isIgnoredAsKeyboardVisible &&
+        !isIgnoredAsPending
+      );
+    });
+  }, [confirmationAlerts, isInputChanged, isKeyboardVisible]);
+
+  const alerts = useMemo(
+    () => [...pendingTokenAlerts, ...filteredAlerts],
+    [filteredAlerts, pendingTokenAlerts],
   );
 
   const firstAlert = filteredAlerts?.[0];
