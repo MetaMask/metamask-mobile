@@ -378,7 +378,18 @@ exports[`PermissionsSummary should render correctly 1`] = `
                           }
                         }
                       >
-                        <View
+                        <Text
+                          accessibilityRole="text"
+                          numberOfLines={1}
+                          style={
+                            {
+                              "color": "#121314",
+                              "fontFamily": "Geist Regular",
+                              "fontSize": 16,
+                              "letterSpacing": 0,
+                              "lineHeight": 24,
+                            }
+                          }
                           testID="cellbase-avatar-title"
                         />
                         <Text
@@ -3462,7 +3473,18 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                           }
                         }
                       >
-                        <View
+                        <Text
+                          accessibilityRole="text"
+                          numberOfLines={1}
+                          style={
+                            {
+                              "color": "#121314",
+                              "fontFamily": "Geist Regular",
+                              "fontSize": 16,
+                              "letterSpacing": 0,
+                              "lineHeight": 24,
+                            }
+                          }
                           testID="cellbase-avatar-title"
                         />
                         <Text
@@ -4586,7 +4608,18 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                           }
                         }
                       >
-                        <View
+                        <Text
+                          accessibilityRole="text"
+                          numberOfLines={1}
+                          style={
+                            {
+                              "color": "#121314",
+                              "fontFamily": "Geist Regular",
+                              "fontSize": 16,
+                              "letterSpacing": 0,
+                              "lineHeight": 24,
+                            }
+                          }
                           testID="cellbase-avatar-title"
                         />
                         <Text

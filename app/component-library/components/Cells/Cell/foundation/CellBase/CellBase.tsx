@@ -43,7 +43,7 @@ const CellBase = ({
         {...avatarProps}
       />
       <View style={styles.cellBaseInfo}>
-        {typeof title === 'string' ? (
+        {title === undefined || typeof title === 'string' ? (
           <Text
             numberOfLines={1}
             variant={DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT}
@@ -53,7 +53,7 @@ const CellBase = ({
             {title}
           </Text>
         ) : (
-          <View testID={CellComponentSelectorsIDs.BASE_TITLE}>{title}</View>
+          title
         )}
         {!!secondaryText && (
           <Text
