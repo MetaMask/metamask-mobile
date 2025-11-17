@@ -507,7 +507,7 @@ const BridgeView = () => {
             isSourceToken
           />
           <FLipQuoteButton
-            onPress={handleSwitchTokens}
+            onPress={handleSwitchTokens(destTokenAmount)}
             disabled={!destChainId || !destToken || !sourceToken}
           />
           <TokenInputArea

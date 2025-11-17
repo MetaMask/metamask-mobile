@@ -62,7 +62,8 @@ import {
 } from '../../../util/analytics/actionButtonTracking';
 import { selectSelectedAccountGroup } from '../../../selectors/multichainAccounts/accountTreeController';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
-import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
+import { useRampNavigation, RampMode } from '../Ramp/hooks/useRampNavigation';
+import { RampType as AggregatorRampType } from '../Ramp/Aggregator/types';
 import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
 import {
@@ -168,6 +169,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   ///: END:ONLY_INCLUDE_IF
 
   const currentAddress = asset.address as Hex;
+  const { goToRamps } = useRampNavigation();
 
   const { data: prices = [], isLoading } = useTokenHistoricalPrices({
     asset,
@@ -337,11 +339,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       assetId = undefined;
     }
 
-    navigation.navigate(
-      ...createBuyNavigationDetails({
-        assetId,
-      }),
-    );
+    goToRamps({
+      mode: RampMode.AGGREGATOR,
+      params: {
+        rampType: AggregatorRampType.BUY,
+        intent: assetId ? { assetId } : undefined,
+      },
+    });
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
