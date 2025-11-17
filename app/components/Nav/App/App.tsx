@@ -148,7 +148,7 @@ import MultichainAccountActions from '../../Views/MultichainAccounts/sheets/Mult
 import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
-import { useOTAUpdates } from '../../hooks/useOTAUpdates';
+// import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { useMetrics } from '../../hooks/useMetrics';
@@ -1074,7 +1074,7 @@ const AppFlow = () => {
   );
 };
 
-const AppContent: React.FC = () => {
+const App: React.FC = () => {
   const navigation = useNavigation();
   const routes = useNavigationState((state) => state.routes);
   const { toastRef } = useContext(ToastContext);
@@ -1266,14 +1266,14 @@ const AppContent: React.FC = () => {
   );
 };
 
-const App: React.FC = () => {
-  const { isCheckingUpdates } = useOTAUpdates();
+// const App: React.FC = () => {
+//   const { isCheckingUpdates } = useOTAUpdates();
 
-  if (isCheckingUpdates) {
-    return <FoxLoader />;
-  }
+//   if (isCheckingUpdates) {
+//     return <FoxLoader />;
+//   }
 
-  return <AppContent />;
-};
+//   return <AppContent />;
+// };
 
 export default App;
