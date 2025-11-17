@@ -989,7 +989,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 }
                                                 testID="multichain-address-row-network-name"
                                               >
-                                                BNB Chain
+                                                Solana
                                               </Text>
                                               <Text
                                                 accessibilityRole="text"
@@ -1008,7 +1008,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 }
                                                 testID="multichain-address-row-address"
                                               >
-                                                0x4FeC2...fdcB5
+                                                FcdCd3m...GPZgj
                                               </Text>
                                             </View>
                                             <View
@@ -1031,549 +1031,6 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                   </View>
                                   <View
                                     index={2}
-                                    onLayout={[Function]}
-                                    style={
-                                      {
-                                        "flexDirection": "column",
-                                        "height": undefined,
-                                        "left": 0,
-                                        "maxHeight": undefined,
-                                        "maxWidth": undefined,
-                                        "minHeight": undefined,
-                                        "minWidth": undefined,
-                                        "position": "absolute",
-                                        "top": 0,
-                                        "width": 0,
-                                      }
-                                    }
-                                  >
-                                    <TouchableOpacity
-                                      disabled={false}
-                                      onPress={[Function]}
-                                      style={
-                                        {
-                                          "backgroundColor": "#ffffff",
-                                          "borderRadius": 4,
-                                          "opacity": 1,
-                                          "position": "relative",
-                                        }
-                                      }
-                                    >
-                                      <View
-                                        accessibilityRole="none"
-                                        accessible={true}
-                                        style={
-                                          {
-                                            "padding": 16,
-                                          }
-                                        }
-                                      >
-                                        <View
-                                          style={
-                                            {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                            }
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              [
-                                                {
-                                                  "alignItems": "center",
-                                                  "backgroundColor": "#ffffff",
-                                                  "display": "flex",
-                                                  "flexDirection": "row",
-                                                  "gap": 16,
-                                                  "justifyContent": "space-between",
-                                                  "paddingBottom": 0,
-                                                  "paddingLeft": 0,
-                                                  "paddingRight": 0,
-                                                  "paddingTop": 0,
-                                                },
-                                                undefined,
-                                              ]
-                                            }
-                                            testID="multichain-address-row"
-                                          >
-                                            <View
-                                              collapsable={false}
-                                              pointerEvents="none"
-                                              style={
-                                                {
-                                                  "backgroundColor": "#457a391a",
-                                                  "bottom": 0,
-                                                  "left": 0,
-                                                  "opacity": 0,
-                                                  "position": "absolute",
-                                                  "right": 0,
-                                                  "top": 0,
-                                                }
-                                              }
-                                            />
-                                            <View
-                                              style={
-                                                {
-                                                  "alignItems": "center",
-                                                  "backgroundColor": "#ffffff",
-                                                  "borderRadius": 8,
-                                                  "height": 32,
-                                                  "justifyContent": "center",
-                                                  "overflow": "hidden",
-                                                  "width": 32,
-                                                }
-                                              }
-                                              testID="multichain-address-row-network-icon"
-                                            >
-                                              <Image
-                                                onError={[Function]}
-                                                resizeMode="contain"
-                                                source={1}
-                                                style={
-                                                  {
-                                                    "height": 32,
-                                                    "width": 32,
-                                                  }
-                                                }
-                                                testID="network-avatar-image"
-                                              />
-                                            </View>
-                                            <View
-                                              style={
-                                                [
-                                                  {
-                                                    "alignItems": "flex-start",
-                                                    "display": "flex",
-                                                    "flexBasis": "0%",
-                                                    "flexDirection": "column",
-                                                    "flexGrow": 1,
-                                                    "flexShrink": 1,
-                                                  },
-                                                  undefined,
-                                                ]
-                                              }
-                                            >
-                                              <Text
-                                                accessibilityRole="text"
-                                                style={
-                                                  [
-                                                    {
-                                                      "color": "#121314",
-                                                      "fontFamily": "Geist Medium",
-                                                      "fontSize": 16,
-                                                      "fontWeight": 400,
-                                                      "letterSpacing": 0,
-                                                      "lineHeight": 24,
-                                                    },
-                                                    undefined,
-                                                  ]
-                                                }
-                                                testID="multichain-address-row-network-name"
-                                              >
-                                                Polygon
-                                              </Text>
-                                              <Text
-                                                accessibilityRole="text"
-                                                style={
-                                                  [
-                                                    {
-                                                      "color": "#686e7d",
-                                                      "fontFamily": "Geist Medium",
-                                                      "fontSize": 14,
-                                                      "fontWeight": 400,
-                                                      "letterSpacing": 0,
-                                                      "lineHeight": 22,
-                                                    },
-                                                    undefined,
-                                                  ]
-                                                }
-                                                testID="multichain-address-row-address"
-                                              >
-                                                0x4FeC2...fdcB5
-                                              </Text>
-                                            </View>
-                                            <View
-                                              style={
-                                                [
-                                                  {
-                                                    "alignItems": "center",
-                                                    "display": "flex",
-                                                    "flexDirection": "row",
-                                                    "gap": 16,
-                                                  },
-                                                  undefined,
-                                                ]
-                                              }
-                                            />
-                                          </View>
-                                        </View>
-                                      </View>
-                                    </TouchableOpacity>
-                                  </View>
-                                  <View
-                                    index={3}
-                                    onLayout={[Function]}
-                                    style={
-                                      {
-                                        "flexDirection": "column",
-                                        "height": undefined,
-                                        "left": 0,
-                                        "maxHeight": undefined,
-                                        "maxWidth": undefined,
-                                        "minHeight": undefined,
-                                        "minWidth": undefined,
-                                        "position": "absolute",
-                                        "top": 0,
-                                        "width": 0,
-                                      }
-                                    }
-                                  >
-                                    <TouchableOpacity
-                                      disabled={false}
-                                      onPress={[Function]}
-                                      style={
-                                        {
-                                          "backgroundColor": "#ffffff",
-                                          "borderRadius": 4,
-                                          "opacity": 1,
-                                          "position": "relative",
-                                        }
-                                      }
-                                    >
-                                      <View
-                                        accessibilityRole="none"
-                                        accessible={true}
-                                        style={
-                                          {
-                                            "padding": 16,
-                                          }
-                                        }
-                                      >
-                                        <View
-                                          style={
-                                            {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                            }
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              [
-                                                {
-                                                  "alignItems": "center",
-                                                  "backgroundColor": "#ffffff",
-                                                  "display": "flex",
-                                                  "flexDirection": "row",
-                                                  "gap": 16,
-                                                  "justifyContent": "space-between",
-                                                  "paddingBottom": 0,
-                                                  "paddingLeft": 0,
-                                                  "paddingRight": 0,
-                                                  "paddingTop": 0,
-                                                },
-                                                undefined,
-                                              ]
-                                            }
-                                            testID="multichain-address-row"
-                                          >
-                                            <View
-                                              collapsable={false}
-                                              pointerEvents="none"
-                                              style={
-                                                {
-                                                  "backgroundColor": "#457a391a",
-                                                  "bottom": 0,
-                                                  "left": 0,
-                                                  "opacity": 0,
-                                                  "position": "absolute",
-                                                  "right": 0,
-                                                  "top": 0,
-                                                }
-                                              }
-                                            />
-                                            <View
-                                              style={
-                                                {
-                                                  "alignItems": "center",
-                                                  "backgroundColor": "#ffffff",
-                                                  "borderRadius": 8,
-                                                  "height": 32,
-                                                  "justifyContent": "center",
-                                                  "overflow": "hidden",
-                                                  "width": 32,
-                                                }
-                                              }
-                                              testID="multichain-address-row-network-icon"
-                                            >
-                                              <Image
-                                                onError={[Function]}
-                                                resizeMode="contain"
-                                                source={1}
-                                                style={
-                                                  {
-                                                    "height": 32,
-                                                    "width": 32,
-                                                  }
-                                                }
-                                                testID="network-avatar-image"
-                                              />
-                                            </View>
-                                            <View
-                                              style={
-                                                [
-                                                  {
-                                                    "alignItems": "flex-start",
-                                                    "display": "flex",
-                                                    "flexBasis": "0%",
-                                                    "flexDirection": "column",
-                                                    "flexGrow": 1,
-                                                    "flexShrink": 1,
-                                                  },
-                                                  undefined,
-                                                ]
-                                              }
-                                            >
-                                              <Text
-                                                accessibilityRole="text"
-                                                style={
-                                                  [
-                                                    {
-                                                      "color": "#121314",
-                                                      "fontFamily": "Geist Medium",
-                                                      "fontSize": 16,
-                                                      "fontWeight": 400,
-                                                      "letterSpacing": 0,
-                                                      "lineHeight": 24,
-                                                    },
-                                                    undefined,
-                                                  ]
-                                                }
-                                                testID="multichain-address-row-network-name"
-                                              >
-                                                OP
-                                              </Text>
-                                              <Text
-                                                accessibilityRole="text"
-                                                style={
-                                                  [
-                                                    {
-                                                      "color": "#686e7d",
-                                                      "fontFamily": "Geist Medium",
-                                                      "fontSize": 14,
-                                                      "fontWeight": 400,
-                                                      "letterSpacing": 0,
-                                                      "lineHeight": 22,
-                                                    },
-                                                    undefined,
-                                                  ]
-                                                }
-                                                testID="multichain-address-row-address"
-                                              >
-                                                0x4FeC2...fdcB5
-                                              </Text>
-                                            </View>
-                                            <View
-                                              style={
-                                                [
-                                                  {
-                                                    "alignItems": "center",
-                                                    "display": "flex",
-                                                    "flexDirection": "row",
-                                                    "gap": 16,
-                                                  },
-                                                  undefined,
-                                                ]
-                                              }
-                                            />
-                                          </View>
-                                        </View>
-                                      </View>
-                                    </TouchableOpacity>
-                                  </View>
-                                  <View
-                                    index={4}
-                                    onLayout={[Function]}
-                                    style={
-                                      {
-                                        "flexDirection": "column",
-                                        "height": undefined,
-                                        "left": 0,
-                                        "maxHeight": undefined,
-                                        "maxWidth": undefined,
-                                        "minHeight": undefined,
-                                        "minWidth": undefined,
-                                        "position": "absolute",
-                                        "top": 0,
-                                        "width": 0,
-                                      }
-                                    }
-                                  >
-                                    <TouchableOpacity
-                                      disabled={false}
-                                      onPress={[Function]}
-                                      style={
-                                        {
-                                          "backgroundColor": "#ffffff",
-                                          "borderRadius": 4,
-                                          "opacity": 1,
-                                          "position": "relative",
-                                        }
-                                      }
-                                    >
-                                      <View
-                                        accessibilityRole="none"
-                                        accessible={true}
-                                        style={
-                                          {
-                                            "padding": 16,
-                                          }
-                                        }
-                                      >
-                                        <View
-                                          style={
-                                            {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                            }
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              [
-                                                {
-                                                  "alignItems": "center",
-                                                  "backgroundColor": "#ffffff",
-                                                  "display": "flex",
-                                                  "flexDirection": "row",
-                                                  "gap": 16,
-                                                  "justifyContent": "space-between",
-                                                  "paddingBottom": 0,
-                                                  "paddingLeft": 0,
-                                                  "paddingRight": 0,
-                                                  "paddingTop": 0,
-                                                },
-                                                undefined,
-                                              ]
-                                            }
-                                            testID="multichain-address-row"
-                                          >
-                                            <View
-                                              collapsable={false}
-                                              pointerEvents="none"
-                                              style={
-                                                {
-                                                  "backgroundColor": "#457a391a",
-                                                  "bottom": 0,
-                                                  "left": 0,
-                                                  "opacity": 0,
-                                                  "position": "absolute",
-                                                  "right": 0,
-                                                  "top": 0,
-                                                }
-                                              }
-                                            />
-                                            <View
-                                              style={
-                                                {
-                                                  "alignItems": "center",
-                                                  "backgroundColor": "#ffffff",
-                                                  "borderRadius": 8,
-                                                  "height": 32,
-                                                  "justifyContent": "center",
-                                                  "overflow": "hidden",
-                                                  "width": 32,
-                                                }
-                                              }
-                                              testID="multichain-address-row-network-icon"
-                                            >
-                                              <Image
-                                                onError={[Function]}
-                                                resizeMode="contain"
-                                                source={1}
-                                                style={
-                                                  {
-                                                    "height": 32,
-                                                    "width": 32,
-                                                  }
-                                                }
-                                                testID="network-avatar-image"
-                                              />
-                                            </View>
-                                            <View
-                                              style={
-                                                [
-                                                  {
-                                                    "alignItems": "flex-start",
-                                                    "display": "flex",
-                                                    "flexBasis": "0%",
-                                                    "flexDirection": "column",
-                                                    "flexGrow": 1,
-                                                    "flexShrink": 1,
-                                                  },
-                                                  undefined,
-                                                ]
-                                              }
-                                            >
-                                              <Text
-                                                accessibilityRole="text"
-                                                style={
-                                                  [
-                                                    {
-                                                      "color": "#121314",
-                                                      "fontFamily": "Geist Medium",
-                                                      "fontSize": 16,
-                                                      "fontWeight": 400,
-                                                      "letterSpacing": 0,
-                                                      "lineHeight": 24,
-                                                    },
-                                                    undefined,
-                                                  ]
-                                                }
-                                                testID="multichain-address-row-network-name"
-                                              >
-                                                Arbitrum
-                                              </Text>
-                                              <Text
-                                                accessibilityRole="text"
-                                                style={
-                                                  [
-                                                    {
-                                                      "color": "#686e7d",
-                                                      "fontFamily": "Geist Medium",
-                                                      "fontSize": 14,
-                                                      "fontWeight": 400,
-                                                      "letterSpacing": 0,
-                                                      "lineHeight": 22,
-                                                    },
-                                                    undefined,
-                                                  ]
-                                                }
-                                                testID="multichain-address-row-address"
-                                              >
-                                                0x4FeC2...fdcB5
-                                              </Text>
-                                            </View>
-                                            <View
-                                              style={
-                                                [
-                                                  {
-                                                    "alignItems": "center",
-                                                    "display": "flex",
-                                                    "flexDirection": "row",
-                                                    "gap": 16,
-                                                  },
-                                                  undefined,
-                                                ]
-                                              }
-                                            />
-                                          </View>
-                                        </View>
-                                      </View>
-                                    </TouchableOpacity>
-                                  </View>
-                                  <View
-                                    index={5}
                                     onLayout={[Function]}
                                     style={
                                       {
@@ -1754,7 +1211,188 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                     </TouchableOpacity>
                                   </View>
                                   <View
-                                    index={6}
+                                    index={3}
+                                    onLayout={[Function]}
+                                    style={
+                                      {
+                                        "flexDirection": "column",
+                                        "height": undefined,
+                                        "left": 0,
+                                        "maxHeight": undefined,
+                                        "maxWidth": undefined,
+                                        "minHeight": undefined,
+                                        "minWidth": undefined,
+                                        "position": "absolute",
+                                        "top": 0,
+                                        "width": 0,
+                                      }
+                                    }
+                                  >
+                                    <TouchableOpacity
+                                      disabled={false}
+                                      onPress={[Function]}
+                                      style={
+                                        {
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "opacity": 1,
+                                          "position": "relative",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        accessibilityRole="none"
+                                        accessible={true}
+                                        style={
+                                          {
+                                            "padding": 16,
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "flexDirection": "row",
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#ffffff",
+                                                  "display": "flex",
+                                                  "flexDirection": "row",
+                                                  "gap": 16,
+                                                  "justifyContent": "space-between",
+                                                  "paddingBottom": 0,
+                                                  "paddingLeft": 0,
+                                                  "paddingRight": 0,
+                                                  "paddingTop": 0,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                            testID="multichain-address-row"
+                                          >
+                                            <View
+                                              collapsable={false}
+                                              pointerEvents="none"
+                                              style={
+                                                {
+                                                  "backgroundColor": "#457a391a",
+                                                  "bottom": 0,
+                                                  "left": 0,
+                                                  "opacity": 0,
+                                                  "position": "absolute",
+                                                  "right": 0,
+                                                  "top": 0,
+                                                }
+                                              }
+                                            />
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#ffffff",
+                                                  "borderRadius": 8,
+                                                  "height": 32,
+                                                  "justifyContent": "center",
+                                                  "overflow": "hidden",
+                                                  "width": 32,
+                                                }
+                                              }
+                                              testID="multichain-address-row-network-icon"
+                                            >
+                                              <Image
+                                                onError={[Function]}
+                                                resizeMode="contain"
+                                                source={1}
+                                                style={
+                                                  {
+                                                    "height": 32,
+                                                    "width": 32,
+                                                  }
+                                                }
+                                                testID="network-avatar-image"
+                                              />
+                                            </View>
+                                            <View
+                                              style={
+                                                [
+                                                  {
+                                                    "alignItems": "flex-start",
+                                                    "display": "flex",
+                                                    "flexBasis": "0%",
+                                                    "flexDirection": "column",
+                                                    "flexGrow": 1,
+                                                    "flexShrink": 1,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  [
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 16,
+                                                      "fontWeight": 400,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    },
+                                                    undefined,
+                                                  ]
+                                                }
+                                                testID="multichain-address-row-network-name"
+                                              >
+                                                Arbitrum
+                                              </Text>
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  [
+                                                    {
+                                                      "color": "#686e7d",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 14,
+                                                      "fontWeight": 400,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 22,
+                                                    },
+                                                    undefined,
+                                                  ]
+                                                }
+                                                testID="multichain-address-row-address"
+                                              >
+                                                0x4FeC2...fdcB5
+                                              </Text>
+                                            </View>
+                                            <View
+                                              style={
+                                                [
+                                                  {
+                                                    "alignItems": "center",
+                                                    "display": "flex",
+                                                    "flexDirection": "row",
+                                                    "gap": 16,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </View>
+                                        </View>
+                                      </View>
+                                    </TouchableOpacity>
+                                  </View>
+                                  <View
+                                    index={4}
                                     onLayout={[Function]}
                                     style={
                                       {
@@ -1935,6 +1573,368 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                     </TouchableOpacity>
                                   </View>
                                   <View
+                                    index={5}
+                                    onLayout={[Function]}
+                                    style={
+                                      {
+                                        "flexDirection": "column",
+                                        "height": undefined,
+                                        "left": 0,
+                                        "maxHeight": undefined,
+                                        "maxWidth": undefined,
+                                        "minHeight": undefined,
+                                        "minWidth": undefined,
+                                        "position": "absolute",
+                                        "top": 0,
+                                        "width": 0,
+                                      }
+                                    }
+                                  >
+                                    <TouchableOpacity
+                                      disabled={false}
+                                      onPress={[Function]}
+                                      style={
+                                        {
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "opacity": 1,
+                                          "position": "relative",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        accessibilityRole="none"
+                                        accessible={true}
+                                        style={
+                                          {
+                                            "padding": 16,
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "flexDirection": "row",
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#ffffff",
+                                                  "display": "flex",
+                                                  "flexDirection": "row",
+                                                  "gap": 16,
+                                                  "justifyContent": "space-between",
+                                                  "paddingBottom": 0,
+                                                  "paddingLeft": 0,
+                                                  "paddingRight": 0,
+                                                  "paddingTop": 0,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                            testID="multichain-address-row"
+                                          >
+                                            <View
+                                              collapsable={false}
+                                              pointerEvents="none"
+                                              style={
+                                                {
+                                                  "backgroundColor": "#457a391a",
+                                                  "bottom": 0,
+                                                  "left": 0,
+                                                  "opacity": 0,
+                                                  "position": "absolute",
+                                                  "right": 0,
+                                                  "top": 0,
+                                                }
+                                              }
+                                            />
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#ffffff",
+                                                  "borderRadius": 8,
+                                                  "height": 32,
+                                                  "justifyContent": "center",
+                                                  "overflow": "hidden",
+                                                  "width": 32,
+                                                }
+                                              }
+                                              testID="multichain-address-row-network-icon"
+                                            >
+                                              <Image
+                                                onError={[Function]}
+                                                resizeMode="contain"
+                                                source={1}
+                                                style={
+                                                  {
+                                                    "height": 32,
+                                                    "width": 32,
+                                                  }
+                                                }
+                                                testID="network-avatar-image"
+                                              />
+                                            </View>
+                                            <View
+                                              style={
+                                                [
+                                                  {
+                                                    "alignItems": "flex-start",
+                                                    "display": "flex",
+                                                    "flexBasis": "0%",
+                                                    "flexDirection": "column",
+                                                    "flexGrow": 1,
+                                                    "flexShrink": 1,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  [
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 16,
+                                                      "fontWeight": 400,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    },
+                                                    undefined,
+                                                  ]
+                                                }
+                                                testID="multichain-address-row-network-name"
+                                              >
+                                                BNB Chain
+                                              </Text>
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  [
+                                                    {
+                                                      "color": "#686e7d",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 14,
+                                                      "fontWeight": 400,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 22,
+                                                    },
+                                                    undefined,
+                                                  ]
+                                                }
+                                                testID="multichain-address-row-address"
+                                              >
+                                                0x4FeC2...fdcB5
+                                              </Text>
+                                            </View>
+                                            <View
+                                              style={
+                                                [
+                                                  {
+                                                    "alignItems": "center",
+                                                    "display": "flex",
+                                                    "flexDirection": "row",
+                                                    "gap": 16,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </View>
+                                        </View>
+                                      </View>
+                                    </TouchableOpacity>
+                                  </View>
+                                  <View
+                                    index={6}
+                                    onLayout={[Function]}
+                                    style={
+                                      {
+                                        "flexDirection": "column",
+                                        "height": undefined,
+                                        "left": 0,
+                                        "maxHeight": undefined,
+                                        "maxWidth": undefined,
+                                        "minHeight": undefined,
+                                        "minWidth": undefined,
+                                        "position": "absolute",
+                                        "top": 0,
+                                        "width": 0,
+                                      }
+                                    }
+                                  >
+                                    <TouchableOpacity
+                                      disabled={false}
+                                      onPress={[Function]}
+                                      style={
+                                        {
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "opacity": 1,
+                                          "position": "relative",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        accessibilityRole="none"
+                                        accessible={true}
+                                        style={
+                                          {
+                                            "padding": 16,
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "flexDirection": "row",
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#ffffff",
+                                                  "display": "flex",
+                                                  "flexDirection": "row",
+                                                  "gap": 16,
+                                                  "justifyContent": "space-between",
+                                                  "paddingBottom": 0,
+                                                  "paddingLeft": 0,
+                                                  "paddingRight": 0,
+                                                  "paddingTop": 0,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                            testID="multichain-address-row"
+                                          >
+                                            <View
+                                              collapsable={false}
+                                              pointerEvents="none"
+                                              style={
+                                                {
+                                                  "backgroundColor": "#457a391a",
+                                                  "bottom": 0,
+                                                  "left": 0,
+                                                  "opacity": 0,
+                                                  "position": "absolute",
+                                                  "right": 0,
+                                                  "top": 0,
+                                                }
+                                              }
+                                            />
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#ffffff",
+                                                  "borderRadius": 8,
+                                                  "height": 32,
+                                                  "justifyContent": "center",
+                                                  "overflow": "hidden",
+                                                  "width": 32,
+                                                }
+                                              }
+                                              testID="multichain-address-row-network-icon"
+                                            >
+                                              <Image
+                                                onError={[Function]}
+                                                resizeMode="contain"
+                                                source={1}
+                                                style={
+                                                  {
+                                                    "height": 32,
+                                                    "width": 32,
+                                                  }
+                                                }
+                                                testID="network-avatar-image"
+                                              />
+                                            </View>
+                                            <View
+                                              style={
+                                                [
+                                                  {
+                                                    "alignItems": "flex-start",
+                                                    "display": "flex",
+                                                    "flexBasis": "0%",
+                                                    "flexDirection": "column",
+                                                    "flexGrow": 1,
+                                                    "flexShrink": 1,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  [
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 16,
+                                                      "fontWeight": 400,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    },
+                                                    undefined,
+                                                  ]
+                                                }
+                                                testID="multichain-address-row-network-name"
+                                              >
+                                                OP
+                                              </Text>
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  [
+                                                    {
+                                                      "color": "#686e7d",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 14,
+                                                      "fontWeight": 400,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 22,
+                                                    },
+                                                    undefined,
+                                                  ]
+                                                }
+                                                testID="multichain-address-row-address"
+                                              >
+                                                0x4FeC2...fdcB5
+                                              </Text>
+                                            </View>
+                                            <View
+                                              style={
+                                                [
+                                                  {
+                                                    "alignItems": "center",
+                                                    "display": "flex",
+                                                    "flexDirection": "row",
+                                                    "gap": 16,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </View>
+                                        </View>
+                                      </View>
+                                    </TouchableOpacity>
+                                  </View>
+                                  <View
                                     index={7}
                                     onLayout={[Function]}
                                     style={
@@ -2075,7 +2075,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 }
                                                 testID="multichain-address-row-network-name"
                                               >
-                                                Solana
+                                                Polygon
                                               </Text>
                                               <Text
                                                 accessibilityRole="text"
@@ -2094,7 +2094,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 }
                                                 testID="multichain-address-row-address"
                                               >
-                                                FcdCd3m...GPZgj
+                                                0x4FeC2...fdcB5
                                               </Text>
                                             </View>
                                             <View
