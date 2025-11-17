@@ -5,7 +5,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { ActivityIndicator, Image, View } from 'react-native';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
@@ -24,7 +24,7 @@ import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import {
-  PredictEventType,
+  PredictTradeStatus,
   PredictEventValues,
 } from '../../constants/eventNames';
 import { formatPercentage, formatPrice } from '../../utils/format';
@@ -38,15 +38,12 @@ import {
   ButtonSize as ButtonSizeHero,
 } from '@metamask/design-system-react-native';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
-import PredictConsentSheet, {
-  type PredictConsentSheetRef,
-} from '../../components/PredictConsentSheet';
-import { usePredictAgreement } from '../../hooks/usePredictAgreement';
+import { TraceName } from '../../../../../util/trace';
+import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 
 const PredictSellPreview = () => {
   const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
-  const consentSheetRef = useRef<PredictConsentSheetRef>(null);
   const { goBack, dispatch } =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const route =
@@ -99,16 +96,23 @@ const PredictSellPreview = () => {
     autoRefreshTimeout: 1000,
   });
 
-  const { isAgreementAccepted } = usePredictAgreement({
-    providerId: position.providerId,
+  // Track screen load performance (position data + preview)
+  usePredictMeasurement({
+    traceName: TraceName.PredictSellPreviewView,
+    conditions: [!!position, !!preview, !!market],
+    debugContext: {
+      marketId: market?.id,
+      hasPosition: !!position,
+      hasPreview: !!preview,
+    },
   });
 
-  // Track Predict Action Initiated when screen mounts
+  // Track Predict Trade Transaction with initiated status when screen mounts
   useEffect(() => {
     const controller = Engine.context.PredictController;
 
     controller.trackPredictOrderEvent({
-      eventType: PredictEventType.INITIATED,
+      status: PredictTradeStatus.INITIATED,
       analyticsProperties,
       providerId: position.providerId,
       sharePrice: position?.price,
@@ -134,24 +138,12 @@ const PredictSellPreview = () => {
   const onCashOut = useCallback(async () => {
     if (!preview) return;
 
-    // Check if user has accepted the agreement
-    if (!isAgreementAccepted) {
-      consentSheetRef.current?.onOpenBottomSheet();
-      return;
-    }
-
     await placeOrder({
       providerId: position.providerId,
       analyticsProperties,
       preview,
     });
-  }, [
-    preview,
-    isAgreementAccepted,
-    placeOrder,
-    analyticsProperties,
-    position.providerId,
-  ]);
+  }, [preview, placeOrder, analyticsProperties, position.providerId]);
 
   const renderCashOutButton = () => {
     if (isLoading) {
@@ -236,7 +228,7 @@ const PredictSellPreview = () => {
               color={TextColor.Error}
               style={tw.style('text-center')}
             >
-              {strings('predict.order.order_failed_generic')}
+              {placeOrderError}
             </Text>
           )}
           <Box twClassName="flex-row items-center gap-4">
@@ -267,11 +259,6 @@ const PredictSellPreview = () => {
           </View>
         </View>
       </View>
-      <PredictConsentSheet
-        ref={consentSheetRef}
-        providerId={position.providerId}
-        onAgree={onCashOut}
-      />
     </SafeAreaView>
   );
 };

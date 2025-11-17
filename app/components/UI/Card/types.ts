@@ -168,6 +168,7 @@ export enum CardErrorType {
   TIMEOUT_ERROR = 'TIMEOUT_ERROR',
   API_KEY_MISSING = 'API_KEY_MISSING',
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
+  ACCOUNT_DISABLED = 'ACCOUNT_DISABLED',
   VALIDATION_ERROR = 'VALIDATION_ERROR',
   SERVER_ERROR = 'SERVER_ERROR',
   NO_CARD = 'NO_CARD',
@@ -341,6 +342,22 @@ export interface ConsentMetadata {
   version?: string;
 }
 
+export interface ConsentSet {
+  consentSetId: string;
+  userId: string | null;
+  onboardingId: string;
+  tenantId: string;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  consents: Consent[];
+}
+
+export interface GetOnboardingConsentResponse {
+  onboardingId: string;
+  consentSets: ConsentSet[];
+}
+
 export interface Consent {
   consentType:
     | 'eSignAct'
@@ -355,8 +372,8 @@ export interface Consent {
 export interface CreateOnboardingConsentRequest {
   policyType: 'US' | 'global';
   onboardingId: string;
-  tenantId: string;
   consents: Consent[];
+  tenantId: string;
   metadata?: ConsentMetadata;
 }
 

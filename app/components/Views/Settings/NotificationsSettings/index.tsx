@@ -1,7 +1,7 @@
 /* eslint-disable react/display-name */
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React, { useEffect } from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../locales/i18n';
@@ -31,12 +31,18 @@ import styleSheet, {
 import { ResetNotificationsButton } from './ResetNotificationsButton';
 import SessionHeader from './sectionHeader';
 import { PushNotificationToggle } from './PushNotificationToggle';
+import { useFirstHDWalletAccounts } from './AccountsList.hooks';
+import { NotificationSettingsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationSettingsView.selectors';
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const theme = useTheme();
 
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
+  );
+  const firstHDWallet = useFirstHDWalletAccounts();
+  const hasFirstHDWallet = Boolean(
+    firstHDWallet?.data && firstHDWallet?.data.length > 0,
   );
 
   const loadingText = useSwitchNotificationLoadingText();
@@ -60,7 +66,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   }, [colors, isFullScreenModal, navigation]);
 
   return (
-    <ScrollView style={styles.wrapper}>
+    <ScrollView style={styles.container}>
       {/* Main Toggle */}
       <MainNotificationToggle />
 
@@ -69,6 +75,8 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
         <>
           {/* Push Notifications Toggle */}
           <PushNotificationToggle />
+
+          <View style={styles.line} />
 
           {/* Feature Announcement Toggle */}
           <SessionHeader
@@ -80,19 +88,32 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
             )}
             styles={styles}
           />
-          <FeatureAnnouncementToggle />
+          <View style={styles.productAnnouncementContainer}>
+            <FeatureAnnouncementToggle />
+          </View>
+
+          <View
+            style={styles.line}
+            testID={
+              NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENT_SEPARATOR
+            }
+          />
 
           {/* Account Notification Toggles */}
-          <SessionHeader
-            title={strings(
-              'app_settings.notifications_opts.account_session_title',
-            )}
-            description={strings(
-              'app_settings.notifications_opts.account_session_desc',
-            )}
-            styles={styles}
-          />
-          <AccountsList />
+          {hasFirstHDWallet && (
+            <>
+              <SessionHeader
+                title={strings(
+                  'app_settings.notifications_opts.account_session_title',
+                )}
+                description={strings(
+                  'app_settings.notifications_opts.account_session_desc',
+                )}
+                styles={styles}
+              />
+              <AccountsList />
+            </>
+          )}
 
           {/* Reset Notifications Button */}
           <ResetNotificationsButton />

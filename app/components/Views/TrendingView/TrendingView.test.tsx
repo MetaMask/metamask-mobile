@@ -21,23 +21,29 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-import TrendingView from './TrendingView';
-import { updateLastTrendingScreen } from '../../Nav/Main/MainNavigator';
-
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest.fn((selector) => {
-    if (selector.toString().includes('dataCollectionForMarketing')) {
-      return false;
-    }
-    return undefined;
-  }),
+  useSelector: jest.fn(),
 }));
+
+import TrendingView from './TrendingView';
+import { updateLastTrendingScreen } from '../../Nav/Main/MainNavigator';
+import {
+  selectChainId,
+  selectPopularNetworkConfigurationsByCaipChainId,
+  selectCustomNetworkConfigurationsByCaipChainId,
+} from '../../../selectors/networkController';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
+import { useSelector } from 'react-redux';
 
 jest.mock('../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
     isEnabled: mockIsEnabled,
   }),
+  withMetricsAwareness: (Component: unknown) => Component,
 }));
 
 jest.mock('../../../util/browser', () => ({
@@ -51,23 +57,107 @@ jest.mock('../Browser', () => ({
   default: jest.fn(() => null),
 }));
 
+// Mock the network hooks used by useTrendingRequest
+jest.mock(
+  '../../../components/hooks/useNetworksByNamespace/useNetworksByNamespace',
+  () => ({
+    useNetworksByNamespace: jest.fn(() => ({
+      networks: [],
+      selectedNetworks: [],
+      areAllNetworksSelected: false,
+      areAnyNetworksSelected: false,
+      networkCount: 0,
+      selectedCount: 0,
+    })),
+    NetworkType: {
+      Popular: 'popular',
+      Custom: 'custom',
+    },
+  }),
+);
+
+jest.mock(
+  '../../../components/hooks/useNetworksToUse/useNetworksToUse',
+  () => ({
+    useNetworksToUse: jest.fn(() => ({
+      networksToUse: [],
+      evmNetworks: [],
+      solanaNetworks: [],
+      selectedEvmAccount: null,
+      selectedSolanaAccount: null,
+      isMultichainAccountsState2Enabled: false,
+      areAllNetworksSelectedCombined: false,
+      areAllEvmNetworksSelected: false,
+      areAllSolanaNetworksSelected: false,
+    })),
+  }),
+);
+
+// Mock useTrendingRequest to return empty results
+jest.mock('../../../components/UI/Assets/hooks/useTrendingRequest', () => ({
+  useTrendingRequest: jest.fn(() => ({
+    results: [],
+    isLoading: false,
+    error: null,
+    fetch: jest.fn(),
+  })),
+}));
+
 describe('TrendingView', () => {
+  const mockUseSelector = useSelector as jest.MockedFunction<
+    typeof useSelector
+  >;
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsEnabled.mockReturnValue(true);
     mockAddListener.mockReturnValue(jest.fn());
-  });
 
-  it('renders native coming soon view', () => {
-    const { getByTestId } = render(
-      <NavigationContainer>
-        <TrendingView />
-      </NavigationContainer>,
-    );
-
-    const comingSoonText = getByTestId('trending-view-coming-soon');
-
-    expect(comingSoonText).toBeDefined();
+    mockUseSelector.mockImplementation((selector) => {
+      // Compare selectors by reference for memoized selectors
+      if (selector === selectChainId) {
+        return '0x1';
+      }
+      if (selector === selectIsEvmNetworkSelected) {
+        return true;
+      }
+      if (selector === selectEnabledNetworksByNamespace) {
+        return {
+          eip155: {
+            '0x1': true,
+          },
+        };
+      }
+      if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
+        // Return empty array to prevent Object.entries() error
+        return [];
+      }
+      if (selector === selectCustomNetworkConfigurationsByCaipChainId) {
+        // Return empty array to prevent Object.entries() error
+        return [];
+      }
+      if (selector === selectMultichainAccountsState2Enabled) {
+        // Return false to use default networks behavior
+        return false;
+      }
+      // Handle selectSelectedInternalAccountByScope which is a selector factory
+      // It returns a function that takes a scope and returns an account
+      if (selector === selectSelectedInternalAccountByScope) {
+        // Return a function that returns null (no account selected)
+        return (_scope: string) => null;
+      }
+      // Fallback: if selector is a function and might be a selector factory, return a function
+      if (typeof selector === 'function') {
+        const selectorStr = selector.toString();
+        if (
+          selectorStr.includes('selectSelectedInternalAccountByScope') ||
+          selectorStr.includes('SelectedInternalAccountByScope')
+        ) {
+          return (_scope: string) => null;
+        }
+      }
+      return undefined;
+    });
   });
 
   it('renders browser button in header', () => {
@@ -129,5 +219,31 @@ describe('TrendingView', () => {
         fromTrending: true,
       }),
     );
+  });
+
+  it('renders search bar button', () => {
+    const { getByTestId } = render(
+      <NavigationContainer>
+        <TrendingView />
+      </NavigationContainer>,
+    );
+
+    const searchButton = getByTestId('explore-view-search-button');
+
+    expect(searchButton).toBeDefined();
+  });
+
+  it('navigates to ExploreSearch route when search bar is pressed', () => {
+    const { getByTestId } = render(
+      <NavigationContainer>
+        <TrendingView />
+      </NavigationContainer>,
+    );
+
+    const searchButton = getByTestId('explore-view-search-button');
+
+    fireEvent.press(searchButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith('ExploreSearch');
   });
 });

@@ -1949,7 +1949,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               "flexGrow": 1,
                             }
                           }
-                          handlerTag={6}
+                          handlerTag={8}
                           handlerType="NativeViewGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
