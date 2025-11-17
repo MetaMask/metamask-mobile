@@ -36,21 +36,9 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('@metamask/bridge-controller', () => ({
-  ...jest.requireActual('@metamask/bridge-controller'),
-  formatAddressToAssetId: jest.fn(),
-  isNonEvmChainId: jest.fn(),
-}));
-
 const mockWipeBridgeStatus = Engine.context.BridgeStatusController
   .wipeBridgeStatus as jest.MockedFunction<
   typeof Engine.context.BridgeStatusController.wipeBridgeStatus
->;
-
-const mockFormatAddressToAssetId =
-  formatAddressToAssetId as jest.MockedFunction<typeof formatAddressToAssetId>;
-const mockIsNonEvmChainId = isNonEvmChainId as jest.MockedFunction<
-  typeof isNonEvmChainId
 >;
 
 describe('Bridge Utils', () => {
@@ -71,18 +59,18 @@ describe('Bridge Utils', () => {
       LINEA_CHAIN_ID,
     ];
 
-    it('return true when bridge is active and chain ID is allowed', () => {
+    it('should return true when bridge is active and chain ID is allowed', () => {
       supportedChainIds.forEach((chainId) => {
         expect(isBridgeAllowed(chainId)).toBe(true);
       });
     });
 
-    it('return false when bridge is active but chain ID is not allowed', () => {
+    it('should return false when bridge is active but chain ID is not allowed', () => {
       const unsupportedChainId = '0x1234' as Hex;
       expect(isBridgeAllowed(unsupportedChainId)).toBe(false);
     });
 
-    it('return false when bridge is inactive', () => {
+    it('should return false when bridge is inactive', () => {
       Object.defineProperty(AppConstants.BRIDGE, 'ACTIVE', {
         get: () => false,
       });
@@ -92,7 +80,7 @@ describe('Bridge Utils', () => {
       });
     });
 
-    it('handle invalid chain ID formats', () => {
+    it('should handle invalid chain ID formats', () => {
       const invalidChainIds = ['0x123' as Hex, '0x' as Hex];
 
       invalidChainIds.forEach((chainId) => {
@@ -100,7 +88,7 @@ describe('Bridge Utils', () => {
       });
     });
 
-    it('handle edge cases', () => {
+    it('should handle edge cases', () => {
       // Test with malformed chain ID
       expect(
         isBridgeAllowed(
@@ -115,9 +103,7 @@ describe('Bridge Utils', () => {
     const testAddressLowercase = testAddress.toLowerCase();
     const evmChainId = ETH_CHAIN_ID;
 
-    it('calls wipeBridgeStatus twice for EVM chains with original and lowercase address', () => {
-      mockIsNonEvmChainId.mockReturnValue(false);
-
+    it('should call wipeBridgeStatus twice for EVM chains (original and lowercase address)', () => {
       wipeBridgeStatus(testAddress, evmChainId);
 
       expect(mockWipeBridgeStatus).toHaveBeenCalledTimes(2);
@@ -131,9 +117,7 @@ describe('Bridge Utils', () => {
       });
     });
 
-    it('calls wipeBridgeStatus once for Solana chains with original address only', () => {
-      mockIsNonEvmChainId.mockReturnValue(true);
-
+    it('should call wipeBridgeStatus only once for Solana chains (original address only)', () => {
       wipeBridgeStatus(testAddress, SolScope.Mainnet);
 
       expect(mockWipeBridgeStatus).toHaveBeenCalledTimes(1);
@@ -145,110 +129,111 @@ describe('Bridge Utils', () => {
   });
 
   describe('getTokenIconUrl', () => {
-    beforeEach(() => {
-      mockIsNonEvmChainId.mockReturnValue(false);
-    });
-
-    it('returns token icon URL for native token on Ethereum', () => {
+    it('should return token icon URL for native token on Ethereum', () => {
+      // Arrange
       const nativeTokenAddress = '0x0000000000000000000000000000000000000000';
-      mockFormatAddressToAssetId.mockReturnValue('eip155:1/slip44:60');
+      const nativeTokenAssetId = formatAddressToAssetId(
+        nativeTokenAddress,
+        ETH_CHAIN_ID,
+      );
 
-      const result = getTokenIconUrl(nativeTokenAddress, ETH_CHAIN_ID);
+      // Act
+      const result = getTokenIconUrl(
+        nativeTokenAssetId,
+        isNonEvmChainId(ETH_CHAIN_ID),
+      );
 
+      // Assert
       expect(result).toBe(
         'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
       );
     });
 
-    it('returns token icon URL for ERC20 token on Ethereum', () => {
+    it('should return token icon URL for ERC20 token on Ethereum', () => {
+      // Arrange
       const usdcAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
-      mockFormatAddressToAssetId.mockReturnValue(
-        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      const usdcAssetId = formatAddressToAssetId(usdcAddress, ETH_CHAIN_ID);
+
+      // Act
+      const result = getTokenIconUrl(
+        usdcAssetId,
+        isNonEvmChainId(ETH_CHAIN_ID),
       );
 
-      const result = getTokenIconUrl(usdcAddress, ETH_CHAIN_ID);
-
+      // Assert
       expect(result).toBe(
         'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
       );
     });
 
-    it('returns token icon URL for Solana native token', () => {
+    it('should return token icon URL for Solana native token', () => {
+      // Arrange
       const solNativeAddress = '0x0000000000000000000000000000000000000000';
-      mockIsNonEvmChainId.mockReturnValue(true);
-      mockFormatAddressToAssetId.mockReturnValue(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+      const solNativeAssetId = formatAddressToAssetId(
+        solNativeAddress,
+        SolScope.Mainnet,
+      );
+      // Act
+      const result = getTokenIconUrl(
+        solNativeAssetId,
+        isNonEvmChainId(SolScope.Mainnet),
       );
 
-      const result = getTokenIconUrl(solNativeAddress, SolScope.Mainnet);
-
+      // Assert
       expect(result).toBe(
         'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png',
       );
     });
 
-    it('returns token icon URL for Solana SPL token', () => {
+    it('should return token icon URL for Solana SPL token', () => {
+      // Arrange
       const usdcSolanaAddress = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
-      mockIsNonEvmChainId.mockReturnValue(true);
-      mockFormatAddressToAssetId.mockReturnValue(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+      const usdcSolanaAssetId = formatAddressToAssetId(
+        usdcSolanaAddress,
+        SolScope.Mainnet,
       );
 
-      const result = getTokenIconUrl(usdcSolanaAddress, SolScope.Mainnet);
+      // Act
+      const result = getTokenIconUrl(
+        usdcSolanaAssetId,
+        isNonEvmChainId(SolScope.Mainnet),
+      );
 
+      // Assert
       expect(result).toBe(
         'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png',
       );
     });
 
-    it('returns undefined when formatAddressToAssetId returns null', () => {
-      const address = '0x1234567890123456789012345678901234567890';
-      // @ts-expect-error Testing null return value
-      mockFormatAddressToAssetId.mockReturnValue(null);
+    it('should return undefined for invalid address', () => {
+      // Arrange
+      const invalidAddress = 'invalid';
+      const invalidAssetId = formatAddressToAssetId(
+        invalidAddress,
+        ETH_CHAIN_ID,
+      );
 
-      const result = getTokenIconUrl(address, ETH_CHAIN_ID);
+      // Act
+      const result = getTokenIconUrl(
+        invalidAssetId,
+        isNonEvmChainId(ETH_CHAIN_ID),
+      );
 
+      // Assert
       expect(result).toBeUndefined();
     });
 
-    it('returns undefined when formatAddressToAssetId returns undefined', () => {
-      const address = '0x1234567890123456789012345678901234567890';
-      mockFormatAddressToAssetId.mockReturnValue(undefined);
-
-      const result = getTokenIconUrl(address, ETH_CHAIN_ID);
-
-      expect(result).toBeUndefined();
-    });
-
-    it('returns undefined when formatAddressToAssetId throws error for unsupported chain', () => {
-      const address = '0x1234567890123456789012345678901234567890';
-      const unsupportedChainId = '0x9999' as Hex;
-      mockFormatAddressToAssetId.mockImplementation(() => {
-        throw new Error('Unsupported chain');
-      });
-
-      const result = getTokenIconUrl(address, unsupportedChainId);
-
-      expect(result).toBeUndefined();
-    });
-
-    it('returns undefined when formatAddressToAssetId throws error for invalid address format', () => {
-      const invalidAddress = 'invalid-address-format';
-      mockFormatAddressToAssetId.mockImplementation(() => {
-        throw new Error('Invalid address format');
-      });
-
-      const result = getTokenIconUrl(invalidAddress, ETH_CHAIN_ID);
-
-      expect(result).toBeUndefined();
-    });
-
-    it('returns token icon URL for empty address when formatAddressToAssetId succeeds', () => {
+    it('should return native token icon URL for empty address', () => {
+      // Arrange
       const emptyAddress = '';
-      mockFormatAddressToAssetId.mockReturnValue('eip155:1/slip44:60');
+      const emptyAssetId = formatAddressToAssetId(emptyAddress, ETH_CHAIN_ID);
+      // Act
+      const result = getTokenIconUrl(
+        emptyAssetId,
+        isNonEvmChainId(ETH_CHAIN_ID),
+      );
 
-      const result = getTokenIconUrl(emptyAddress, ETH_CHAIN_ID);
-
+      // Assert
       expect(result).toBe(
         'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
       );
