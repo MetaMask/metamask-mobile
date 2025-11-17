@@ -1,5 +1,6 @@
 /* eslint-disable dot-notation */
 import {
+  Scope,
   UserFeedback,
   captureUserFeedback,
   getGlobalScope,
@@ -1150,10 +1151,12 @@ describe('rewriteReport', () => {
 
 describe('setEASUpdateContext', () => {
   const manifestMock = expoUpdatesMockValues.manifest;
-  let scopeMock: { setTag: jest.Mock };
+  const scopeMock = { setTag: jest.fn() };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedGetGlobalScope.mockReturnValue(scopeMock as unknown as Scope);
+
     manifestMock.metadata = {
       updateGroup: 'test-group-id',
     };
@@ -1169,65 +1172,29 @@ describe('setEASUpdateContext', () => {
     setEASUpdateContext();
 
     expect(mockedGetGlobalScope).toHaveBeenCalledTimes(1);
-    // expect(scopeMock.setTag).toHaveBeenCalledWith(
-    //   'expo-update-id',
-    //   expoUpdatesMockValues.updateId,
-    // );
-    // expect(scopeMock.setTag).toHaveBeenCalledWith(
-    //   'expo-is-embedded-update',
-    //   expoUpdatesMockValues.isEmbeddedLaunch,
-    // );
-    // expect(scopeMock.setTag).toHaveBeenCalledWith(
-    //   'expo-update-group-id',
-    //   'test-group-id',
-    // );
-    // expect(scopeMock.setTag).toHaveBeenCalledWith(
-    //   'expo-update-debug-url',
-    //   'https://expo.dev/accounts/test-owner/projects/test-project/updates/test-group-id',
-    // );
+    expect(scopeMock.setTag).toHaveBeenCalledWith(
+      'expo-update-id',
+      expoUpdatesMockValues.updateId,
+    );
+    expect(scopeMock.setTag).toHaveBeenCalledWith(
+      'expo-is-embedded-update',
+      expoUpdatesMockValues.isEmbeddedLaunch,
+    );
+    expect(scopeMock.setTag).toHaveBeenCalledWith(
+      'expo-update-group-id',
+      'test-group-id',
+    );
+    expect(scopeMock.setTag).toHaveBeenCalledWith(
+      'expo-update-debug-url',
+      'https://expo.dev/accounts/test-owner/projects/test-project/updates/test-group-id',
+    );
+    expect(scopeMock.setTag).toHaveBeenCalledWith(
+      'expo-ota-version',
+      OTA_VERSION,
+    );
+    expect(scopeMock.setTag).toHaveBeenCalledWith(
+      'expo-runtime-version',
+      expoUpdatesMockValues.runtimeVersion,
+    );
   });
-
-  // it('skips debug url when update group metadata is missing', () => {
-  //   manifestMock.metadata = undefined;
-
-  //   setEASUpdateContext();
-
-  //   expect(scopeMock.setTag).toHaveBeenCalledWith(
-  //     'expo-update-id',
-  //     expoUpdatesMockValues.updateId,
-  //   );
-  //   expect(scopeMock.setTag).toHaveBeenCalledWith(
-  //     'expo-is-embedded-update',
-  //     expoUpdatesMockValues.isEmbeddedLaunch,
-  //   );
-  //   expect(scopeMock.setTag).toHaveBeenCalledTimes(2);
-  //   expect(scopeMock.setTag).not.toHaveBeenCalledWith(
-  //     'expo-update-group-id',
-  //     expect.anything(),
-  //   );
-  //   expect(scopeMock.setTag).not.toHaveBeenCalledWith(
-  //     'expo-update-debug-url',
-  //     expect.anything(),
-  //   );
-  // });
-
-  // it('logs warning when global scope retrieval fails', () => {
-  //   const error = new Error('scope failure');
-  //   (Sentry as unknown as { getGlobalScope: jest.Mock }).getGlobalScope = jest
-  //     .fn()
-  //     .mockImplementation(() => {
-  //       throw error;
-  //     });
-  //   const consoleWarnSpy = jest
-  //     .spyOn(console, 'warn')
-  //     .mockImplementation(() => {});
-
-  //   setEASUpdateContext();
-
-  //   expect(consoleWarnSpy).toHaveBeenCalledWith(
-  //     'Failed to set EAS update context in Sentry:',
-  //     error,
-  //   );
-  //   consoleWarnSpy.mockRestore();
-  // });
 });
