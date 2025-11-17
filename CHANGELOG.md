@@ -11,6 +11,112 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Uncategorized
 
+- Merge branch 'release/7.59.0' into release/7.59.0-Changelog
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- [skip ci] Bump version number to 3067
+- chore(runway): cherry-pick fix: Fix layout of small devices in asset amount ([#22793](https://github.com/MetaMask/metamask-mobile/pull/22793))
+- chore(runway): cherry-pick fix: transition to BIP-44 selectors for rewards row cp-7.59.0 ([#22746](https://github.com/MetaMask/metamask-mobile/pull/22746))
+- update changelog for 7.59.0 (hotfix - no test plan)
+- [skip ci] Bump version number to 3054
+- update changelog for 7.59.0 (hotfix - no test plan)
+- chore(runway): cherry-pick fix(card): cp-7.58.3 physical address consent issue + undefined balances ([#22738](https://github.com/MetaMask/metamask-mobile/pull/22738))
+- Revert/persistence fixes 7.59.0 ([#22735](https://github.com/MetaMask/metamask-mobile/pull/22735))
+- update changelog for 7.59.0 (hotfix - no test plan)
+- chore(runway): cherry-pick fix: prevent concurrency for `createAccount` for Snap account providers ([#22729](https://github.com/MetaMask/metamask-mobile/pull/22729))
+- update changelog for 7.59.0 (hotfix - no test plan)
+- [skip ci] Bump version number to 3045
+- chore(runway): cherry-pick fix: cp-7.59.0 Fix submit loading for nonEVM send transactions ([#22704](https://github.com/MetaMask/metamask-mobile/pull/22704))
+- update changelog for 7.59.0 (hotfix - no test plan)
+- [skip ci] Bump version number to 3038
+- update changelog for 7.59.0 (hotfix - no test plan)
+- chore(runway): cherry-pick fix(perps): race condition sometime preventing loading hip-3 positions cp-7.59.0 ([#22670](https://github.com/MetaMask/metamask-mobile/pull/22670))
+- update changelog for 7.59.0 (hotfix - no test plan)
+- chore(runway): cherry-pick fix(card): cp-7.59.0 wrong zero balances on SelectAsset BottomSheet ([#22665](https://github.com/MetaMask/metamask-mobile/pull/22665))
+- update changelog for 7.59.0 (hotfix - no test plan)
+- Revert "enable 7.59.0 auto create rc builds"
+- update changelog for 7.59.0 (hotfix - no test plan)
+- [skip ci] Bump version number to 3036
+- [skip ci] Bump version number to 3034
+- update changelog for 7.59.0 (hotfix - no test plan)
+- [skip ci] Bump version number to 3030
+- enable 7.59.0 auto create rc builds
+- update changelog for 7.59.0 (hotfix - no test plan)
+- chore(runway): cherry-pick fix(card): cp-7.59.0 accept other chars on zip code input ([#22652](https://github.com/MetaMask/metamask-mobile/pull/22652))
+- update changelog for 7.59.0 (hotfix - no test plan)
+- chore(runway): cherry-pick fix(perps): prevent unwanted tab navigation in market details and ensure tab content is shown cp-7.59.0 ([#22651](https://github.com/MetaMask/metamask-mobile/pull/22651))
+- update changelog for 7.59.0 (hotfix - no test plan)
+- Revert "chore: updated bitrise to enable 7.59.0 auto create rc builds ([#22591](https://github.com/MetaMask/metamask-mobile/pull/22591))
+- update changelog for 7.59.0 (hotfix - no test plan)
+- [skip ci] Bump version number to 3028
+- chore(runway): cherry-pick fix: Exclude token transfers from marking them as a swap tx cp-7.59.0 ([#22634](https://github.com/MetaMask/metamask-mobile/pull/22634))
+- update changelog for 7.59.0 (hotfix - no test plan)
+- chore(runway): cherry-pick fix(card): cp-7.59.0 delegation refresh issue ([#22625](https://github.com/MetaMask/metamask-mobile/pull/22625))
+- update changelog for 7.59.0 (hotfix - no test plan)
+- chore(runway): cherry-pick fix(bridge): cp-7.59.0 prevent crash when fetching icons for unsupported chains ([#22640](https://github.com/MetaMask/metamask-mobile/pull/22640))
+- update changelog for 7.59.0 (hotfix - no test plan)
+- chore(runway): cherry-pick fix: run discovery and alignment upon unlock for all wallets cp-7.59.0 ([#22626](https://github.com/MetaMask/metamask-mobile/pull/22626))
+- update changelog for 7.59.0 (hotfix - no test plan)
+- chore(runway): cherry-pick test: disables android perps tests, fixes Card unit test ([#22643](https://github.com/MetaMask/metamask-mobile/pull/22643))
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- chore(runway): cherry-pick fix: cp-7.59.0 fix perps flow when solana is selected ([#22616](https://github.com/MetaMask/metamask-mobile/pull/22616))
+- chore: update merge commit remaining files
+- update changelog for 7.59.0 (hotfix - no test plan)
+- Merge branch 'stable' into release/7.59.0
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- chore(runway): cherry-pick chore: rewards bip 44 tracked indicators ([#22579](https://github.com/MetaMask/metamask-mobile/pull/22579))
+- update changelog for 7.59.0 (hotfix - no test plan)
+- chore: updated bitrise to enable 7.59.0 auto create rc builds ([#22591](https://github.com/MetaMask/metamask-mobile/pull/22591))
+- update changelog for 7.59.0 (hotfix - no test plan)
+- chore(runway): cherry-pick chore: run release-pr-approval upon review submission cp-7.59.0 ([#22582](https://github.com/MetaMask/metamask-mobile/pull/22582))
+- [skip ci] Bump version number to 3021
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- chore(runway): cherry-pick chore: bump multichain accounts deps (and other related peers) ([#22575](https://github.com/MetaMask/metamask-mobile/pull/22575))
+- chore(runway): cherry-pick fix(perps): enable live PnL in perps position card cp-7.59.0 ([#22555](https://github.com/MetaMask/metamask-mobile/pull/22555))
+- update changelog for 7.59.0 (hotfix - no test plan)
+- chore(runway): cherry-pick fix: bump bitcoin ([#22569](https://github.com/MetaMask/metamask-mobile/pull/22569))
+- update changelog for 7.59.0 (hotfix - no test plan)
+- chore(runway): cherry-pick fix(perps): optimize read operations and prevent builder fee blocking cp-7.59.0 ([#22565](https://github.com/MetaMask/metamask-mobile/pull/22565))
+- chore: fix version
+- Merge branch 'release/7.59.0' into runway-cherry-pick-7.59.0-1762971215
+- update changelog for 7.59.0 (hotfix - no test plan)
+- chore(runway): cherry-pick chore: input fixes ([#22564](https://github.com/MetaMask/metamask-mobile/pull/22564))
+- chore(runway): cherry-pick fix(perps): optimize read operations and prevent builder fee blocking cp-7.59.0 ([#22552](https://github.com/MetaMask/metamask-mobile/pull/22552))
+- update changelog for 7.59.0 (hotfix - no test plan)
+- [skip ci] Bump version number to 3011
+- update changelog for 7.59.0 (hotfix - no test plan)
+- chore(runway): cherry-pick fix(perps): rerender tabs when the amount of tabs changes cp-7.59.0 ([#22543](https://github.com/MetaMask/metamask-mobile/pull/22543))
+- update changelog for 7.59.0 (hotfix - no test plan)
+- chore(runway): cherry-pick fix(perps): use USD as source of truth for order precision and validation cp-7.59.0 ([#22526](https://github.com/MetaMask/metamask-mobile/pull/22526))
+- chore(runway): cherry-pick fix: cp-7.59.0 unconfirmed status styling ([#22518](https://github.com/MetaMask/metamask-mobile/pull/22518))
+- chore(runway): cherry-pick chore: rewards optimize usage of get opt in status ([#22527](https://github.com/MetaMask/metamask-mobile/pull/22527))
+- chore(runway): cherry-pick chore: rewards bip 44 tracked indicators ([#22528](https://github.com/MetaMask/metamask-mobile/pull/22528))
+- update changelog for 7.59.0 (hotfix - no test plan)
+- update changelog for 7.59.0 (hotfix - no test plan)
+- [skip ci] Bump version number to 3010
+- chore(runway): cherry-pick chore: revert font preloader changes from #21199 ([#22507](https://github.com/MetaMask/metamask-mobile/pull/22507))
+- chore(runway): cherry-pick chore: bump network-enablement-controller cp-7.59.0 ([#22511](https://github.com/MetaMask/metamask-mobile/pull/22511))
+- update changelog for 7.59.0 (hotfix - no test plan)
+- chore(runway): cherry-pick fix: New Persistence Improvements based on Abuse testing cp-7.59.0 ([#22515](https://github.com/MetaMask/metamask-mobile/pull/22515))
+- update changelog for 7.59.0 (hotfix - no test plan)
+- chore: fix changelog category header format
+- [skip ci] Bump version number to 3003
+- [skip ci] Bump version number to 3002
+- [skip ci] Bump version number to 3000
+- [skip ci] Bump version number to 2983
+- [skip ci] Bump version number to 2980
+- [skip ci] Bump version number to 2970
+- [skip ci] Bump version number to 2968
+- Merge commit 'afe7d2240ba43e4ea48983ace93c2b8bef52daf1' into release/7.59.0
+- [skip ci] Bump version number to 2952
+- remove v7.57.3
+- fix changelog duplicate sections
+- keep main
+- take main corrections
+- Merge origin/main into stable-main-7.59.0
 - Merge origin/main into stable-main-7.59.0
 - chore: fix changelog category header format
 - chore(runway): cherry-pick fix(perps): Resolve 429 errors and improve session performance cp-7.59.0 ([#22425](https://github.com/MetaMask/metamask-mobile/pull/22425))
@@ -336,6 +442,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- fix: cp-7.59.0 metamask pay with non-evm token filter ([#22696](https://github.com/MetaMask/metamask-mobile/pull/22696))
+- fix: accountByChainId of undefined bug ([#22663](https://github.com/MetaMask/metamask-mobile/pull/22663))
+- fix: Skip `No MM fee` badge on `PayWithModal` assets ([#22614](https://github.com/MetaMask/metamask-mobile/pull/22614))
+- fix: cp-7.59.0 remove dex prefix for hip3 asset display (#22461) ([#22461](https://github.com/MetaMask/metamask-mobile/pull/22461))
+- fix: cp-7.59.0 bump bitcoin ([#22557](https://github.com/MetaMask/metamask-mobile/pull/22557))
 - fix: use correct order for BTC network and fees cp-7.59.0 ([#22244](https://github.com/MetaMask/metamask-mobile/pull/22244))
 - fix: cp-7.59.0 Update minimum BTC amount ([#22401](https://github.com/MetaMask/metamask-mobile/pull/22401))
 - fix: cp-7.59.0 remove hip-3 stocks list all filter ([#22462](https://github.com/MetaMask/metamask-mobile/pull/22462))
@@ -446,6 +557,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.58.1]
 
+### Changed
+
+- refactor(card): sonarcloud maintainability issues ([#22268](https://github.com/MetaMask/metamask-mobile/pull/22268))
+
 ### Fixed
 
 - fix: Android In-App Browser Crash ([#22269](https://github.com/MetaMask/metamask-mobile/pull/22269))
@@ -453,10 +568,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(card): add temporary fix for crashing KYC webview on Android ([#22238](https://github.com/MetaMask/metamask-mobile/pull/22238))
 - fix(card): Onboarding UI issues ([#22263](https://github.com/MetaMask/metamask-mobile/pull/22263))
 - fix(card): delegation issues ([#22249](https://github.com/MetaMask/metamask-mobile/pull/22249))
-
-### Changed
-
-- refactor(card): sonarcloud maintainability issues ([#22268](https://github.com/MetaMask/metamask-mobile/pull/22268))
 
 ## [7.58.0]
 
@@ -9243,7 +9354,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.59.0...HEAD
-[7.59.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.58.0...v7.59.0
+[7.59.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.58.2...v7.59.0
 [7.58.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.58.1...v7.58.2
 [7.58.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.58.0...v7.58.1
 [7.58.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.57.2...v7.58.0
