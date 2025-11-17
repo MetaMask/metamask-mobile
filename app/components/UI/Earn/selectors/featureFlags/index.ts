@@ -5,10 +5,8 @@ import {
   VersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
 import { Hex } from '@metamask/utils';
-import {
-  CONVERTIBLE_STABLECOINS_BY_CHAIN,
-  convertSymbolAllowlistToAddresses,
-} from '../../constants/musd';
+import { CONVERTIBLE_STABLECOINS_BY_CHAIN } from '../../constants/musd';
+import { convertSymbolAllowlistToAddresses } from '../../utils/musd';
 
 export const selectPooledStakingEnabledFlag = createSelector(
   selectRemoteFeatureFlags,

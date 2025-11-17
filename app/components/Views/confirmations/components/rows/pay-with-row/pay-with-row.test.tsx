@@ -79,6 +79,7 @@ describe('PayWithRow', () => {
 
     expect(navigateMock).toHaveBeenCalledWith(
       Routes.CONFIRMATION_PAY_WITH_MODAL,
+      { allowedPaymentTokens: undefined },
     );
   });
 
@@ -103,5 +104,40 @@ describe('PayWithRow', () => {
     });
 
     expect(navigateMock).not.toHaveBeenCalled();
+  });
+
+  describe('allowedPaymentTokens', () => {
+    it('navigates to pay with modal with allowedPaymentTokens in params when provided', async () => {
+      const allowedPaymentTokens = {
+        '0x1': ['0xabc'],
+      };
+
+      const { getByText } = renderWithProvider(
+        <PayWithRow allowedPaymentTokens={allowedPaymentTokens} />,
+        { state: STATE_MOCK },
+      );
+
+      act(() => {
+        fireEvent.press(getByText(`${ADDRESS_MOCK} ${CHAIN_ID_MOCK}`));
+      });
+
+      expect(navigateMock).toHaveBeenCalledWith(
+        Routes.CONFIRMATION_PAY_WITH_MODAL,
+        { allowedPaymentTokens },
+      );
+    });
+
+    it('navigates to pay with modal without allowedPaymentTokens when not provided', async () => {
+      const { getByText } = render();
+
+      act(() => {
+        fireEvent.press(getByText(`${ADDRESS_MOCK} ${CHAIN_ID_MOCK}`));
+      });
+
+      expect(navigateMock).toHaveBeenCalledWith(
+        Routes.CONFIRMATION_PAY_WITH_MODAL,
+        { allowedPaymentTokens: undefined },
+      );
+    });
   });
 });

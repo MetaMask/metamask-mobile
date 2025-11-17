@@ -271,5 +271,96 @@ describe('Transaction Pay Utils', () => {
 
       expect(result).toStrictEqual([]);
     });
+
+    describe('allowedPaymentTokens filter', () => {
+      const TOKEN_1_ADDRESS = '0x1111111111111111111111111111111111111111';
+      const TOKEN_2_ADDRESS = '0x2222222222222222222222222222222222222222';
+      const CHAIN_ID_1 = '0x1';
+      const CHAIN_ID_2 = '0x89';
+
+      const token1 = {
+        ...TOKEN_MOCK,
+        address: TOKEN_1_ADDRESS,
+        chainId: CHAIN_ID_1,
+      } as AssetType;
+
+      const token2 = {
+        ...TOKEN_MOCK,
+        address: TOKEN_2_ADDRESS,
+        chainId: CHAIN_ID_1,
+      } as AssetType;
+
+      const token3 = {
+        ...TOKEN_MOCK,
+        address: TOKEN_1_ADDRESS,
+        chainId: CHAIN_ID_2,
+      } as AssetType;
+
+      it('excludes tokens not in allowedPaymentTokens list', () => {
+        const allowedPaymentTokens = {
+          [CHAIN_ID_1]: [TOKEN_1_ADDRESS],
+          [CHAIN_ID_2]: [TOKEN_1_ADDRESS],
+        };
+
+        const result = getAvailableTokens({
+          tokens: [token1, token2, token3],
+          allowedPaymentTokens,
+        });
+
+        expect(result).toHaveLength(2);
+
+        expect(result[0].address).toBe(TOKEN_1_ADDRESS);
+        expect(result[0].chainId).toBe(CHAIN_ID_1);
+
+        expect(result[1].address).toBe(TOKEN_1_ADDRESS);
+        expect(result[1].chainId).toBe(CHAIN_ID_2);
+      });
+
+      it('performs case-insensitive address matching', () => {
+        const allowedPaymentTokens = {
+          [CHAIN_ID_1]: [TOKEN_1_ADDRESS.toUpperCase()],
+        };
+
+        const result = getAvailableTokens({
+          tokens: [token1, token2],
+          allowedPaymentTokens,
+        });
+
+        expect(result).toHaveLength(1);
+        expect(result[0].address).toBe(TOKEN_1_ADDRESS);
+        expect(result[0].chainId).toBe(CHAIN_ID_1);
+      });
+
+      it('allows all tokens when allowedPaymentTokens is undefined', () => {
+        const result = getAvailableTokens({
+          tokens: [token1, token2],
+          allowedPaymentTokens: undefined,
+        });
+
+        expect(result).toHaveLength(2);
+      });
+
+      it('excludes required tokens when not in allowedPaymentTokens', () => {
+        const allowedPaymentTokens = {
+          [CHAIN_ID_1]: [TOKEN_1_ADDRESS],
+        };
+
+        const result = getAvailableTokens({
+          tokens: [token1, token2],
+          requiredTokens: [
+            {
+              address: TOKEN_2_ADDRESS as Hex,
+              chainId: CHAIN_ID_1 as Hex,
+              skipIfBalance: false,
+            } as TransactionPayRequiredToken,
+          ],
+          allowedPaymentTokens,
+        });
+
+        // Filter is applied first, so required token is excluded
+        expect(result).toHaveLength(1);
+        expect(result[0].address).toBe(TOKEN_1_ADDRESS);
+      });
+    });
   });
 });

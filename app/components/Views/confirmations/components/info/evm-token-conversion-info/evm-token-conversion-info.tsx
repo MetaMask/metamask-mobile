@@ -1,11 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import useNavbar from '../../../hooks/ui/useNavbar';
 import { CustomAmountInfo } from '../custom-amount-info';
 import { MUSD_TOKEN_MAINNET } from '../../../constants/musd';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { Hex } from '@metamask/utils';
-import { useRoute, RouteProp } from '@react-navigation/native';
+import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import {
   TokenConversionConfig,
   areValidAllowedPaymentTokens,
@@ -14,9 +14,19 @@ import {
 export const EvmTokenConversionInfo = () => {
   const route =
     useRoute<RouteProp<Record<string, TokenConversionConfig>, string>>();
+  const navigation = useNavigation();
   const preferredPaymentToken = route.params?.preferredPaymentToken;
   const outputTokenInfo = route.params?.outputToken;
   const rawAllowedPaymentTokens = route.params?.allowedPaymentTokens;
+
+  useEffect(() => {
+    if (!outputTokenInfo) {
+      console.error(
+        '[Token Conversion] outputToken is required but was not provided in route params. Navigating back.',
+      );
+      navigation.goBack();
+    }
+  }, [outputTokenInfo, navigation]);
 
   const allowedPaymentTokens = useMemo(() => {
     if (!rawAllowedPaymentTokens) {
@@ -59,6 +69,10 @@ export const EvmTokenConversionInfo = () => {
     symbol: tokenToAdd.symbol,
     tokenAddress: tokenToAdd.address as Hex,
   });
+
+  if (!outputTokenInfo) {
+    return null;
+  }
 
   // TODO: Fix broken "Transaction fee" tooltip (currently empty tooltip bottom-sheet).
   return (

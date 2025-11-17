@@ -15,7 +15,10 @@ import {
 } from '../../../../component-library/components/Toast/Toast.types';
 import { useAppThemeFromContext } from '../../../../util/theme';
 
-export type EarnToastOptions = Omit<ToastOptions, 'labelOptions'> & {
+export type EarnToastOptions = Omit<
+  Extract<ToastOptions, { variant: ToastVariants.Icon }>,
+  'labelOptions'
+> & {
   hapticsType: NotificationFeedbackType;
   // Overwriting ToastOptions.labelOptions to also support ReactNode since this works.
   labelOptions?: {

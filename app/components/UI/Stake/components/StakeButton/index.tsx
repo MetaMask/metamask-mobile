@@ -43,8 +43,8 @@ import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagCon
 import {
   ETHEREUM_MAINNET_CHAIN_ID,
   MUSD_ADDRESS_ETHEREUM,
-  isMusdConversionPaymentToken,
 } from '../../../Earn/constants/musd';
+import { isMusdConversionPaymentToken } from '../../../Earn/utils/musd';
 import { useEvmTokenConversion } from '../../../Earn/hooks/useEvmTokenConversion';
 import Logger from '../../../../../util/Logger';
 import { MUSD_TOKEN_MAINNET } from '../../../../Views/confirmations/constants/musd';
