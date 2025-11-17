@@ -29,6 +29,7 @@ const CONFIG_MAP = {
     updatesEnabled: true,
     updateUrl: UPDATE_URL,
     checkAutomatically: 'NEVER',
+    fallbackToCacheTimeout: 0,
   },
 };
 
@@ -62,6 +63,10 @@ const EXPO_CONFIG_MAP = {
   codeSigningMetadata: {
     ios: 'EXUpdatesCodeSigningMetadata',
     android: 'expo.modules.updates.CODE_SIGNING_METADATA'
+  },
+  fallbackToCacheTimeout: {
+    ios: 'EXUpdatesLaunchWaitMs',
+    android: 'expo.modules.updates.EXPO_UPDATES_LAUNCH_WAIT_MS'
   },
 };
 
@@ -130,6 +135,7 @@ function getConfigForEnvironment() {
  * @param {boolean} updatesEnabled
  * @param {string} updateUrl
  * @param {string} checkAutomatically
+ * @param {number} fallbackToCacheTimeout
  */
 function updateAndroidManifest(
   filePath,
@@ -138,6 +144,7 @@ function updateAndroidManifest(
   updatesEnabled,
   updateUrl,
   checkAutomatically,
+  fallbackToCacheTimeout,
   codeSigningConfig,
 ) {
   let content = fs.readFileSync(filePath, 'utf8');
@@ -195,6 +202,20 @@ function updateAndroidManifest(
     content = content.replace(
       /(\s*)<\/application>/,
       `\n\t\t<meta-data android:name="${checkAutomaticallyKey}" android:value="${checkAutomatically}" />$1</application>`
+    );
+  }
+
+  // Update or insert EXPO_UPDATES_LAUNCH_WAIT_MS (fallbackToCacheTimeout)
+  const fallbackToCacheTimeoutKey = EXPO_CONFIG_MAP.fallbackToCacheTimeout.android;
+  if (content.includes(fallbackToCacheTimeoutKey)) {
+    content = content.replace(
+      /<meta-data android:name="expo\.modules\.updates\.EXPO_UPDATES_LAUNCH_WAIT_MS" android:value="[^"]*" \/>/g,
+      `<meta-data android:name="${fallbackToCacheTimeoutKey}" android:value="${fallbackToCacheTimeout}" />`,
+    );
+  } else {
+    content = content.replace(
+      /(\s*)<\/application>/,
+      `\n\t\t<meta-data android:name="${fallbackToCacheTimeoutKey}" android:value="${fallbackToCacheTimeout}" />$1</application>`,
     );
   }
 
@@ -260,6 +281,7 @@ function updateAndroidManifest(
  * @param {boolean} updatesEnabled
  * @param {string} updateUrl
  * @param {string} checkAutomatically
+ * @param {number} fallbackToCacheTimeout
  */
 function updatePlistFile(
   filePath,
@@ -269,6 +291,7 @@ function updatePlistFile(
   updatesEnabled,
   updateUrl,
   checkAutomatically,
+  fallbackToCacheTimeout,
   codeSigningConfig,
 ) {
   console.log(`Updating ${fileName}: channel=${channelName}, runtime=${runtimeVersion}, EXUpdatesEnabled=${updatesEnabled}, updateUrl=${updateUrl}, checkAutomatically=${checkAutomatically}`);
@@ -338,6 +361,22 @@ function updatePlistFile(
     );
   }
 
+  // Update or insert EXUpdatesLaunchWaitMs (fallbackToCacheTimeout)
+  const fallbackToCacheTimeoutKey = EXPO_CONFIG_MAP.fallbackToCacheTimeout.ios;
+  if (content.includes(`<key>${fallbackToCacheTimeoutKey}</key>`)) {
+    content = content.replace(
+      new RegExp(
+        `(<key>${fallbackToCacheTimeoutKey}<\\/key>\\s*<integer>)[^<]*(<\\/integer>)`,
+      ),
+      `$1${fallbackToCacheTimeout}$2`,
+    );
+  } else {
+    content = content.replace(
+      /(\s*)<\/dict>\s*<\/plist>/,
+      `\n\t<key>${fallbackToCacheTimeoutKey}</key>\n\t<integer>${fallbackToCacheTimeout}</integer>$1</dict>\n</plist>`,
+    );
+  }
+
   if (codeSigningConfig?.iosCertificateValue) {
     const certificateKey = EXPO_CONFIG_MAP.codeSigningCertificate.ios;
     const certificateBlock = `<key>${certificateKey}</key>\n\t<string>${codeSigningConfig.iosCertificateValue}</string>`;
@@ -376,7 +415,7 @@ function updatePlistFile(
     }
   }
 
-  // Only toggle EXUpdatesEnabled; do not modify LaunchWaitMs
+  // Only toggle EXUpdatesEnabled; LaunchWaitMs is handled via fallbackToCacheTimeout
   const enabledKey = EXPO_CONFIG_MAP.enabled.ios;
   if (content.includes(`<key>${enabledKey}</key>`)) {
     content = content.replace(
@@ -429,7 +468,14 @@ function main() {
   }
 
   // Get configuration for this environment
-  const { channel, runtimeVersion, updatesEnabled, updateUrl, checkAutomatically } = getConfigForEnvironment(environment);
+  const {
+    channel,
+    runtimeVersion,
+    updatesEnabled,
+    updateUrl,
+    checkAutomatically,
+    fallbackToCacheTimeout,
+  } = getConfigForEnvironment(environment);
 
   // Check if files exist
   if (!fs.existsSync(ANDROID_MANIFEST_PATH)) {
@@ -451,6 +497,7 @@ function main() {
       updatesEnabled,
       updateUrl,
       checkAutomatically,
+      fallbackToCacheTimeout,
       codeSigningConfig,
     );
     updatePlistFile(
@@ -461,6 +508,7 @@ function main() {
       updatesEnabled,
       updateUrl,
       checkAutomatically,
+      fallbackToCacheTimeout,
       codeSigningConfig,
     );
 
