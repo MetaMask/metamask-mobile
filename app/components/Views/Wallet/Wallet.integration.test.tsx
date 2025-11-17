@@ -1,8 +1,9 @@
 import '../../../util/test/integration/mocks';
 import { renderWalletView } from '../../../util/test/integration/renderers/wallet';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { describeForPlatforms } from '../../../util/test/platform';
 
-describe('Wallet (background-only integration)', () => {
+describeForPlatforms('Wallet (background-only integration)', () => {
   it('renders wallet home with minimal state and shows key UI elements', () => {
     const { getByTestId } = renderWalletView({
       overrides: {
