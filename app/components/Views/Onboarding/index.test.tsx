@@ -1389,7 +1389,7 @@ describe('Onboarding', () => {
 
     it('returns early when route.params.delete is true', async () => {
       // Arrange
-      mockAsyncStorageGetItem.mockClear();
+      mockGetVaultFromBackup.mockClear();
       renderScreen(
         Onboarding,
         { name: 'Onboarding' },
@@ -1404,17 +1404,14 @@ describe('Onboarding', () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
-      // Assert - When delete param is true, AsyncStorage check is never reached
-      const migrationFlagCalls = mockAsyncStorageGetItem.mock.calls.filter(
-        (call) => call[0] === MIGRATION_ERROR_HAPPENED,
-      );
-      expect(migrationFlagCalls.length).toBe(0);
+      // Assert - When delete param is true, vault backup check is never reached
+      expect(mockGetVaultFromBackup).not.toHaveBeenCalled();
     });
 
     it('skips vault backup check when running in E2E test environment', async () => {
       // Arrange
       mockIsE2E = true;
-      mockAsyncStorageGetItem.mockClear();
+      mockGetVaultFromBackup.mockClear();
 
       // Act
       renderScreen(
@@ -1429,11 +1426,8 @@ describe('Onboarding', () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
-      // Assert - When in E2E mode, AsyncStorage check is never reached
-      const migrationFlagCalls = mockAsyncStorageGetItem.mock.calls.filter(
-        (call) => call[0] === MIGRATION_ERROR_HAPPENED,
-      );
-      expect(migrationFlagCalls.length).toBe(0);
+      // Assert - When in E2E mode, vault backup check is never reached
+      expect(mockGetVaultFromBackup).not.toHaveBeenCalled();
 
       // Cleanup
       mockIsE2E = false;
