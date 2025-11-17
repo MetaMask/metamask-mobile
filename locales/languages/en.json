@@ -3477,6 +3477,7 @@
     "self_sent_dai": "Sent Yourself DAI",
     "received_dai": "Received DAI",
     "sent_tokens": "Sent Tokens",
+    "received_tokens": "Received Tokens",
     "ether": "Ether",
     "sent_unit": "Sent {{unit}}",
     "self_sent_unit": "Sent Yourself {{unit}}",
