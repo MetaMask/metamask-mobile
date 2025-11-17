@@ -14,7 +14,7 @@ jest.mock('@react-navigation/native', () => ({
   createNavigatorFactory: () => ({}),
 }));
 
-jest.mock('../../../../../../component-library/hooks', () => ({
+jest.mock('../../../../../component-library/hooks', () => ({
   useStyles: jest.fn(() => {
     const actualStyleSheet = jest.requireActual(
       './TrendingTokenRowItem.styles',
@@ -32,7 +32,7 @@ jest.mock('../../../../../../component-library/hooks', () => ({
   }),
 }));
 
-jest.mock('../../TrendingTokenLogo', () => {
+jest.mock('../TrendingTokenLogo', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -54,7 +54,7 @@ jest.mock('../../TrendingTokenLogo', () => {
 });
 
 jest.mock(
-  '../../../../../../component-library/components/Badges/BadgeWrapper',
+  '../../../../../component-library/components/Badges/BadgeWrapper',
   () => {
     const { View: RNView } = jest.requireActual('react-native');
     return {
@@ -82,7 +82,7 @@ jest.mock(
   },
 );
 
-jest.mock('../../../../../../component-library/components/Badges/Badge', () => {
+jest.mock('../../../../../component-library/components/Badges/Badge', () => {
   const { View: RNView } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -113,13 +113,13 @@ jest.mock('../../../../../../component-library/components/Badges/Badge', () => {
   };
 });
 
-jest.mock('../../../../../../util/networks', () => ({
+jest.mock('../../../../../util/networks', () => ({
   getDefaultNetworkByChainId: jest.fn(),
   getTestNetImageByChainId: jest.fn(),
   isTestNet: jest.fn(() => false),
 }));
 
-jest.mock('../../../../../../util/networks/customNetworks', () => {
+jest.mock('../../../../../util/networks/customNetworks', () => {
   // Create mutable objects that can be modified in tests
   const mockCustomNetworkImgMapping: Record<string, string> = {};
   const mockUnpopularNetworkList: unknown[] = [];
@@ -149,12 +149,12 @@ jest.mock('../../../../../../util/networks/customNetworks', () => {
 });
 
 // Mock the constants file that uses PopularList at module load time
-jest.mock('../../../../../../constants/popular-networks', () => ({
+jest.mock('../../../../../constants/popular-networks', () => ({
   POPULAR_NETWORK_CHAIN_IDS: new Set(['0x1']),
   POPULAR_NETWORK_CHAIN_IDS_CAIP: new Set(['eip155:1']),
 }));
 
-jest.mock('../../../../../UI/NetworkModal', () => {
+jest.mock('../../../NetworkModal', () => {
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -203,7 +203,7 @@ jest.mock('@metamask/utils', () => {
 });
 
 const { getDefaultNetworkByChainId, isTestNet } = jest.requireMock(
-  '../../../../../../util/networks',
+  '../../../../../util/networks',
 );
 const { parseCaipChainId, isCaipChainId } = jest.requireMock('@metamask/utils');
 const mockIsCaipChainId = isCaipChainId as jest.MockedFunction<
@@ -370,7 +370,7 @@ describe('TrendingTokenRowItem', () => {
 
   it('renders network badge with testnet image source when chain is testnet', () => {
     const { getTestNetImageByChainId } = jest.requireMock(
-      '../../../../../../util/networks',
+      '../../../../../util/networks',
     );
     const mockGetTestNetImageByChainId =
       getTestNetImageByChainId as jest.MockedFunction<
@@ -393,7 +393,7 @@ describe('TrendingTokenRowItem', () => {
 
   it('renders network badge with popular network image source', () => {
     const { PopularList } = jest.requireMock(
-      '../../../../../../util/networks/customNetworks',
+      '../../../../../util/networks/customNetworks',
     );
     // Update the existing network's imageSource
     const existingNetwork = PopularList.find(
@@ -420,7 +420,7 @@ describe('TrendingTokenRowItem', () => {
 
   it('renders network badge with unpopular network image source', () => {
     const { UnpopularNetworkList } = jest.requireMock(
-      '../../../../../../util/networks/customNetworks',
+      '../../../../../util/networks/customNetworks',
     );
     UnpopularNetworkList.push({
       chainId: '0x1' as const,
