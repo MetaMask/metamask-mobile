@@ -35,7 +35,7 @@ import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 import { selectPredictWonPositions } from '../../selectors/predictController';
 import { PredictPosition } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
-import { formatPrice } from '../../utils/format';
+import { formatPercentage, formatPrice } from '../../utils/format';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { PredictEventValues } from '../../constants/eventNames';
@@ -105,6 +105,9 @@ const PredictPositionsHeader = forwardRef<
   const handleBalanceTouch = () => {
     navigation.navigate(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
+      params: {
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+      },
     });
   };
 
@@ -136,7 +139,7 @@ const PredictPositionsHeader = forwardRef<
 
   const formatPercent = (percent: number) => {
     const sign = percent >= 0 ? '+' : '';
-    return `${sign}${percent.toFixed(1)}%`;
+    return `${sign}${formatPercentage(percent)}`;
   };
 
   const hasClaimableAmount =
@@ -251,7 +254,7 @@ const PredictPositionsHeader = forwardRef<
           )}
           {(hasUnrealizedPnL || isUnrealizedPnLLoading) && (
             <>
-              <Box twClassName="h-px bg-alternative" />
+              <Box twClassName="h-px bg-default" />
               <Box
                 twClassName="px-4 pb-3 mt-3"
                 flexDirection={BoxFlexDirection.Row}

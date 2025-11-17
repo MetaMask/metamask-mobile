@@ -19,6 +19,7 @@ import {
   balanceToFiatNumber,
   weiToFiatNumber,
   weiToFiat,
+  formatAmountWithThreshold,
 } from '../../../../util/number';
 import { Hex } from '@metamask/utils';
 import { ethers } from 'ethers';
@@ -72,10 +73,14 @@ export const decodeBridgeTx = (args: {
   const { quote } = bridgeTxHistoryItem;
 
   const sourceTokenSymbol = quote.srcAsset?.symbol;
-  const sourceAmountSent = ethers.utils.formatUnits(
-    bridgeTxHistoryItem.quote.srcTokenAmount,
-    quote.srcAsset.decimals,
+  const rawSourceAmount = parseFloat(
+    ethers.utils.formatUnits(
+      bridgeTxHistoryItem.quote.srcTokenAmount,
+      quote.srcAsset.decimals,
+    ),
   );
+  const sourceAmountSent = formatAmountWithThreshold(rawSourceAmount, 5);
+
   const renderTo = tx.txParams.to;
   const renderFrom = tx.txParams.from;
 
@@ -85,7 +90,7 @@ export const decodeBridgeTx = (args: {
     : contractExchangeRates?.[toFormattedAddress(quote.srcAsset.address)]
         ?.price;
   const sourceAmountFiatNumber = balanceToFiatNumber(
-    Number(sourceAmountSent),
+    rawSourceAmount,
     conversionRate,
     sourceExchangeRate,
   );
@@ -135,10 +140,14 @@ export const decodeSwapsTx = (args: {
 
   const sourceTokenSymbol = quote.srcAsset?.symbol;
   const destTokenSymbol = quote.destAsset?.symbol;
-  const sourceAmountSent = ethers.utils.formatUnits(
-    bridgeTxHistoryItem.quote.srcTokenAmount,
-    quote.srcAsset.decimals,
+  const rawSourceAmount = parseFloat(
+    ethers.utils.formatUnits(
+      bridgeTxHistoryItem.quote.srcTokenAmount,
+      quote.srcAsset.decimals,
+    ),
   );
+  const sourceAmountSent = formatAmountWithThreshold(rawSourceAmount, 5);
+
   const renderTo = tx.txParams.to;
   const renderFrom = tx.txParams.from;
 
@@ -154,7 +163,7 @@ export const decodeSwapsTx = (args: {
     : contractExchangeRates?.[toFormattedAddress(quote.srcAsset.address)]
         ?.price;
   const sourceAmountFiatNumber = balanceToFiatNumber(
-    Number(sourceAmountSent),
+    rawSourceAmount,
     conversionRate,
     sourceExchangeRate,
   );
@@ -179,13 +188,13 @@ export const decodeSwapsTx = (args: {
         destinationToken: destTokenSymbol,
       },
     ),
-    value: `-${sourceAmountSent} ${sourceTokenSymbol}`,
+    value: `${sourceAmountSent} ${sourceTokenSymbol}`,
     fiatValue: sourceAmountFiatValue,
     transactionType: TRANSACTION_TYPES.SWAPS_TRANSACTION,
   };
 
   const summaryTotalAmountNativeToken = `${
-    Number(sourceAmountSent) + Number(totalGasDecimalAmount)
+    rawSourceAmount + Number(totalGasDecimalAmount)
   } ${gasTokenSymbol}`;
   const summaryTotalAmountNativeTokenFiat = addCurrencySymbol(
     sourceAmountFiatNumber + weiToFiatNumber(totalGas, conversionRate),
