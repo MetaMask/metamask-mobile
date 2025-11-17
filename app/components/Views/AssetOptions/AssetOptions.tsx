@@ -21,6 +21,7 @@ import {
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import styleSheet from './AssetOptions.styles';
 import { selectTokenList } from '../../../selectors/tokenListController';
+import { selectAllTokens } from '../../../selectors/tokensController';
 import Logger from '../../../util/Logger';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
@@ -31,12 +32,15 @@ import {
 import { isPortfolioUrl } from '../../../util/url';
 import { BrowserTab, TokenI } from '../../../components/UI/Tokens/types';
 import { RootState } from '../../../reducers';
-import { CaipAssetType, Hex } from '@metamask/utils';
+import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
 import { appendURLParams } from '../../../util/browser';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { removeNonEvmToken } from '../../UI/Tokens/util';
+import { selectLastSelectedEvmAccount } from '../../../selectors/accountsController';
+import { areAddressesEqual } from '../../../util/address';
+import { selectMultichainAssets } from '../../../selectors/multichain/multichain';
 
 // Wrapped SOL token address on Solana
 const WRAPPED_SOL_ADDRESS = 'So11111111111111111111111111111111111111111';
@@ -114,6 +118,41 @@ const AssetOptions = (props: Props) => {
   const selectInternalAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
+  const allTokens = useSelector(selectAllTokens);
+  const selectedAccountAddressEvm = useSelector(selectLastSelectedEvmAccount);
+  const selectedAccountAddress = selectedAccountAddressEvm?.address;
+  const multichainAssets = useSelector(selectMultichainAssets);
+
+  // Check if the token exists in the user's token list
+  const isTokenInList = useMemo(() => {
+    if (isNonEvmChainId(networkId)) {
+      // For non-EVM chains, check MultichainAssetsController
+      const selectedNonEvmAccount = selectInternalAccountByScope(
+        networkId as CaipChainId,
+      );
+      if (!selectedNonEvmAccount?.id) {
+        return false;
+      }
+      const accountAssets = multichainAssets?.[selectedNonEvmAccount.id] || [];
+      // Check if the address (which may be in CAIP format) exists in the account's assets
+      return accountAssets.some(
+        (assetAddress: string) =>
+          assetAddress.toLowerCase() === address.toLowerCase(),
+      );
+    }
+    const tokensByChain =
+      allTokens?.[networkId as Hex]?.[selectedAccountAddress as Hex] ?? [];
+    return tokensByChain.some((token) =>
+      areAddressesEqual(token.address, address),
+    );
+  }, [
+    allTokens,
+    networkId,
+    selectedAccountAddress,
+    address,
+    multichainAssets,
+    selectInternalAccountByScope,
+  ]);
 
   // Memoize the provider config for the token explorer
   const { providerConfigTokenExplorer } = useMemo(() => {
@@ -342,6 +381,7 @@ const AssetOptions = (props: Props) => {
         icon: IconName.DocumentCode,
       });
     !isNativeToken &&
+      isTokenInList &&
       options.push({
         label: strings('asset_details.options.remove_token'),
         onPress: removeToken,

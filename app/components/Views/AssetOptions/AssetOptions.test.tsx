@@ -181,6 +181,20 @@ jest.mock('../../../selectors/tokenListController', () => ({
   selectTokenList: jest.fn(() => ({})),
 }));
 
+jest.mock('../../../selectors/tokensController', () => ({
+  selectAllTokens: jest.fn(() => ({})),
+}));
+
+jest.mock('../../../selectors/accountsController', () => ({
+  selectLastSelectedEvmAccount: jest.fn(() => ({
+    address: '0x1234567890123456789012345678901234567890',
+  })),
+}));
+
+jest.mock('../../../selectors/multichain/multichain', () => ({
+  selectMultichainAssets: jest.fn(() => ({})),
+}));
+
 jest.mock('react-native-inappbrowser-reborn', () => ({
   isAvailable: jest.fn(),
   open: jest.fn(),
@@ -261,6 +275,12 @@ describe('AssetOptions Component', () => {
       if (selector.name === 'selectProviderConfig') return {};
       if (selector.name === 'selectTokenList')
         return { '0x123': { symbol: 'ABC' } };
+      if (selector.name === 'selectAllTokens') return {};
+      if (selector.name === 'selectLastSelectedEvmAccount')
+        return {
+          address: '0x1234567890123456789012345678901234567890',
+        };
+      if (selector.name === 'selectMultichainAssets') return {};
       return {};
     });
     mockNavigation.navigate.mockClear();
