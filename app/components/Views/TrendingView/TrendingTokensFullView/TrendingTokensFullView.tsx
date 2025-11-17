@@ -26,7 +26,8 @@ import TrendingTokensList from '../TrendingTokensSection/TrendingTokensList/Tren
 import TrendingTokensSkeleton from '../TrendingTokensSection/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import { useTrendingRequest } from '../../../UI/Assets/hooks/useTrendingRequest';
 import { SortTrendingBy } from '@metamask/assets-controllers';
-import { CaipChainId } from '@metamask/utils';
+import { CaipChainId, Hex, parseCaipChainId } from '@metamask/utils';
+import { PopularList } from '../../../../util/networks/customNetworks';
 import {
   createTrendingTokenTimeBottomSheetNavDetails,
   createTrendingTokenNetworkBottomSheetNavDetails,
@@ -157,10 +158,30 @@ const TrendingTokensFullView = () => {
       return strings('trending.all_networks');
     }
     const selectedNetworkChainId = selectedNetwork[0];
-    return (
-      networkConfigurations[selectedNetworkChainId]?.name ||
-      strings('trending.all_networks')
-    );
+
+    // First check if network is in user's configurations
+    const networkConfig = networkConfigurations[selectedNetworkChainId];
+    if (networkConfig?.name) {
+      return networkConfig.name;
+    }
+
+    // If not found, check PopularList
+    try {
+      const { namespace, reference } = parseCaipChainId(selectedNetworkChainId);
+      if (namespace === 'eip155') {
+        const hexChainId = `0x${Number(reference).toString(16)}` as Hex;
+        const popularNetwork = PopularList.find(
+          (network) => network.chainId === hexChainId,
+        );
+        if (popularNetwork?.nickname) {
+          return popularNetwork.nickname;
+        }
+      }
+    } catch {
+      // If parsing fails, fall through to default
+    }
+
+    return strings('trending.all_networks');
   }, [selectedNetwork, networkConfigurations]);
 
   const { results: trendingTokensResults, isLoading } = useTrendingRequest({
