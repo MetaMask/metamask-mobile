@@ -2789,7 +2789,7 @@ describe('CardSDK', () => {
             accepted: true,
           },
         ],
-        policyType: 'US',
+        policyType: 'us',
       };
 
       (global.fetch as jest.Mock).mockResolvedValue({

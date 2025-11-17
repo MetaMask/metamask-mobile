@@ -206,7 +206,7 @@ const SetPhoneNumber = () => {
           />
         </Box>
       </Box>
-      {debouncedPhoneNumber && phoneVerificationIsError ? (
+      {phoneNumber && phoneVerificationIsError ? (
         <Text
           variant={TextVariant.BodySm}
           testID="set-phone-number-phone-number-error"

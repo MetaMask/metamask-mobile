@@ -237,7 +237,7 @@ const SignUp = () => {
           isError={debouncedEmail.length > 0 && isEmailError}
           testID="signup-email-input"
         />
-        {debouncedEmail.length > 0 && emailVerificationIsError ? (
+        {email.length > 0 && emailVerificationIsError ? (
           <Text
             testID="signup-email-error-text"
             variant={TextVariant.BodySm}
