@@ -27,4 +27,3 @@ export const sanitizeDeviceName = (deviceName: string | undefined): string => {
 
   return deviceName;
 };
-
