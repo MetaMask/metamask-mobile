@@ -25,6 +25,7 @@ import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import AlertRow from '../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
 import { useAlerts } from '../../../context/alert-system-context';
+import { EVM_TOKEN_CONVERSION_TRANSACTION_TYPE } from '../../../../../UI/Earn/constants/musd';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
@@ -108,6 +109,12 @@ function Tooltip({
 
   if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
     message = strings('confirm.tooltip.predict_deposit.transaction_fee');
+  }
+
+  if (
+    hasTransactionType(transactionMeta, [EVM_TOKEN_CONVERSION_TRANSACTION_TYPE])
+  ) {
+    message = strings('confirm.tooltip.token_conversion.transaction_fee');
   }
 
   switch (transactionMeta.type) {
