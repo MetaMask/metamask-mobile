@@ -662,4 +662,146 @@ describe('AccountSelector', () => {
       expect(addButton).toHaveTextContent('Add account or hardware wallet');
     });
   });
+
+  describe('Feature Flag: Full-Page Account List', () => {
+    let mockUseFeatureFlag: jest.Mock;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockUseFeatureFlag = jest.requireMock(
+        '../../hooks/useFeatureFlag',
+      ).useFeatureFlag;
+    });
+
+    it('renders BottomSheet when feature flag is disabled', () => {
+      mockUseFeatureFlag.mockReturnValue(false);
+
+      renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      // BottomSheet version renders the sheet header
+      expect(screen.getByText('Accounts')).toBeDefined();
+      // Accounts list is present
+      expect(
+        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
+      ).toBeDefined();
+    });
+
+    it('renders full-page modal when feature flag is enabled', () => {
+      // Use real timers for animation
+      jest.useRealTimers();
+
+      mockUseFeatureFlag.mockReturnValue(true);
+
+      renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      // Full-page version has sheet header with back button
+      expect(screen.getByText('Accounts')).toBeDefined();
+      // Accounts list is present
+      expect(
+        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
+      ).toBeDefined();
+
+      // Restore fake timers
+      jest.useFakeTimers();
+    });
+
+    it('renders add button in both modes', () => {
+      // Arrange: BottomSheet mode
+      mockUseFeatureFlag.mockReturnValue(false);
+
+      // Act: Render in BottomSheet mode
+      const { unmount } = renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      // Assert: Add button is present
+      expect(
+        screen.getByTestId(
+          AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+        ),
+      ).toBeDefined();
+
+      unmount();
+
+      // Arrange: Full-page mode
+      jest.useRealTimers();
+      mockUseFeatureFlag.mockReturnValue(true);
+
+      // Act: Render in full-page mode
+      renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      // Assert: Add button is present
+      expect(
+        screen.getByTestId(
+          AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+        ),
+      ).toBeDefined();
+
+      jest.useFakeTimers();
+    });
+
+    it('switches between multichain screens in full-page mode', () => {
+      // Arrange
+      jest.useRealTimers();
+      mockUseFeatureFlag.mockReturnValue(true);
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
+
+      renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      const addButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+
+      // Act
+      fireEvent.press(addButton);
+
+      // Assert: MultichainAddWalletActions screen is displayed
+      expect(screen.getByText('Add wallet')).toBeDefined();
+
+      jest.useFakeTimers();
+    });
+  });
 });

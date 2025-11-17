@@ -293,6 +293,15 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     }
   }, [isAccountSelector]);
 
+  // End trace when bottom sheet opens (only for non-full-page version)
+  const onBottomSheetOpen = useCallback(() => {
+    if (!isFullPageAccountList && isAccountSelector) {
+      endTrace({
+        name: TraceName.ShowAccountList,
+      });
+    }
+  }, [isFullPageAccountList, isAccountSelector]);
+
   const addAccountButtonProps: ButtonProps[] = useMemo(
     () => [
       {
@@ -441,7 +450,11 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
 
   // Render BottomSheet version
   return (
-    <BottomSheet ref={sheetRef}>
+    <BottomSheet
+      ref={sheetRef}
+      onOpen={onBottomSheetOpen}
+      keyboardAvoidingViewEnabled={keyboardAvoidingViewEnabled}
+    >
       <SheetHeader title={strings('accounts.accounts_title')} />
       {renderAccountScreens()}
     </BottomSheet>
