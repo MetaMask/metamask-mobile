@@ -7,8 +7,9 @@ import {
   TouchableOpacity,
   TextInput,
   Platform,
+  Image,
 } from 'react-native';
-import { colors as importedColors } from '../../../styles/common';
+import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -98,7 +99,6 @@ import { useMetrics } from '../../hooks/useMetrics';
 import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
-import OnboardingAnimation from '../../UI/OnboardingAnimation/OnboardingAnimation';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -131,8 +131,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const [error, setError] = useState<string | null>(null);
 
   const [hasBiometricCredentials, setHasBiometricCredentials] = useState(false);
-  const [startOnboardingAnimation, setStartOnboardingAnimation] =
-    useState(false);
   const [startFoxAnimation, setStartFoxAnimation] = useState<
     undefined | 'Start' | 'Loader'
   >(undefined);
@@ -152,10 +150,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const isSeedlessPasswordOutdated = useSelector(
     selectIsSeedlessPasswordOutdated,
   );
-
-  const setStartFoxAnimationCallback = () => {
-    setStartFoxAnimation('Start');
-  };
 
   const track = (
     event: IMetaMetricsEvent,
@@ -190,13 +184,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
     BackHandler.addEventListener('hardwareBackPress', handleBackPress);
 
+    setStartFoxAnimation('Start');
+
     const timeoutId = setTimeout(async () => {
       if (await Authentication.checkIsSeedlessPasswordOutdated()) {
         navigation.replace('Rehydrate', {
           isSeedlessPasswordOutdated: true,
         });
-      } else {
-        setStartOnboardingAnimation(true);
       }
     }, 100);
 
@@ -514,17 +508,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   return (
     <ErrorBoundary navigation={navigation} view="Login">
-      <SafeAreaView
-        style={[
-          styles.mainWrapper,
-          {
-            backgroundColor:
-              themeAppearance === 'dark'
-                ? importedColors.gettingStartedTextColor
-                : importedColors.gettingStartedPageBackgroundColorLightMode,
-          },
-        ]}
-      >
+      <SafeAreaView style={styles.mainWrapper}>
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
           resetScrollToCoords={{ x: 0, y: 0 }}
@@ -534,78 +518,79 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           enableResetScrollToCoords={false}
         >
           <View testID={LoginViewSelectors.CONTAINER} style={styles.container}>
-            <OnboardingAnimation
-              startOnboardingAnimation={startOnboardingAnimation}
-              setStartFoxAnimation={setStartFoxAnimationCallback}
-            >
-              <View style={styles.field}>
-                <TextField
-                  size={TextFieldSize.Lg}
-                  placeholder={strings('login.password_placeholder')}
-                  placeholderTextColor={colors.text.alternative}
-                  testID={LoginViewSelectors.PASSWORD_INPUT}
-                  returnKeyType={'done'}
-                  autoCapitalize="none"
-                  secureTextEntry
-                  ref={fieldRef}
-                  onChangeText={handlePasswordChange}
-                  value={password}
-                  onSubmitEditing={handleLogin}
-                  endAccessory={
-                    <BiometryButton
-                      onPress={handleTryBiometric}
-                      hidden={shouldHideBiometricAccessoryButton}
-                      biometryType={biometryType as BIOMETRY_TYPE}
-                    />
-                  }
-                  keyboardAppearance={themeAppearance}
-                  isError={!!error}
-                  style={styles.textField}
-                />
-              </View>
+            <Image
+              source={METAMASK_NAME}
+              style={styles.metamaskName}
+              resizeMode="contain"
+              resizeMethod={'auto'}
+            />
 
-              <View style={styles.helperTextContainer}>
-                {!!error && (
-                  <HelpText
-                    severity={HelpTextSeverity.Error}
-                    variant={TextVariant.BodyMD}
-                    testID={LoginViewSelectors.PASSWORD_ERROR}
-                  >
-                    {error}
-                  </HelpText>
-                )}
-              </View>
+            <View style={styles.field}>
+              <TextField
+                size={TextFieldSize.Lg}
+                placeholder={strings('login.password_placeholder')}
+                placeholderTextColor={colors.text.alternative}
+                testID={LoginViewSelectors.PASSWORD_INPUT}
+                returnKeyType={'done'}
+                autoCapitalize="none"
+                secureTextEntry
+                ref={fieldRef}
+                onChangeText={handlePasswordChange}
+                value={password}
+                onSubmitEditing={handleLogin}
+                endAccessory={
+                  <BiometryButton
+                    onPress={handleTryBiometric}
+                    hidden={shouldHideBiometricAccessoryButton}
+                    biometryType={biometryType as BIOMETRY_TYPE}
+                  />
+                }
+                keyboardAppearance={themeAppearance}
+                isError={!!error}
+              />
+            </View>
 
-              <View style={styles.ctaWrapper} pointerEvents="box-none">
-                <LoginOptionsSwitch
-                  shouldRenderBiometricOption={shouldRenderBiometricLogin}
-                  biometryChoiceState={biometryChoice}
-                  onUpdateBiometryChoice={updateBiometryChoice}
-                  onUpdateRememberMe={setRememberMe}
-                />
-                <Button
-                  variant={ButtonVariants.Primary}
-                  width={ButtonWidthTypes.Full}
-                  size={ButtonSize.Lg}
-                  onPress={handleLogin}
-                  label={strings('login.unlock_button')}
-                  isDisabled={password.length === 0 || loading}
-                  testID={LoginViewSelectors.LOGIN_BUTTON_ID}
-                  loading={loading}
-                  style={styles.unlockButton}
-                />
+            <View style={styles.helperTextContainer}>
+              {!!error && (
+                <HelpText
+                  severity={HelpTextSeverity.Error}
+                  variant={TextVariant.BodyMD}
+                  testID={LoginViewSelectors.PASSWORD_ERROR}
+                >
+                  {error}
+                </HelpText>
+              )}
+            </View>
 
-                <Button
-                  style={styles.goBack}
-                  variant={ButtonVariants.Link}
-                  onPress={toggleWarningModal}
-                  testID={LoginViewSelectors.RESET_WALLET}
-                  label={strings('login.forgot_password')}
-                  isDisabled={loading}
-                  size={ButtonSize.Lg}
-                />
-              </View>
-            </OnboardingAnimation>
+            <View style={styles.ctaWrapper} pointerEvents="box-none">
+              <LoginOptionsSwitch
+                shouldRenderBiometricOption={shouldRenderBiometricLogin}
+                biometryChoiceState={biometryChoice}
+                onUpdateBiometryChoice={updateBiometryChoice}
+                onUpdateRememberMe={setRememberMe}
+              />
+              <Button
+                variant={ButtonVariants.Primary}
+                width={ButtonWidthTypes.Full}
+                size={ButtonSize.Lg}
+                onPress={handleLogin}
+                label={strings('login.unlock_button')}
+                isDisabled={password.length === 0 || loading}
+                testID={LoginViewSelectors.LOGIN_BUTTON_ID}
+                loading={loading}
+                style={styles.unlockButton}
+              />
+
+              <Button
+                style={styles.goBack}
+                variant={ButtonVariants.Link}
+                onPress={toggleWarningModal}
+                testID={LoginViewSelectors.RESET_WALLET}
+                label={strings('login.forgot_password')}
+                isDisabled={loading}
+                size={ButtonSize.Lg}
+              />
+            </View>
           </View>
         </KeyboardAwareScrollView>
         <FadeOutOverlay />
