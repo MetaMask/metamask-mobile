@@ -1261,8 +1261,8 @@ describe('Onboarding', () => {
       mockSeedlessOnboardingEnabled.mockReturnValue(true);
 
       mockStorage = {};
-      (StorageWrapper.getItem as jest.Mock).mockImplementation(
-        (key: string) => Promise.resolve(mockStorage[key]),
+      (StorageWrapper.getItem as jest.Mock).mockImplementation((key: string) =>
+        Promise.resolve(mockStorage[key]),
       );
       (StorageWrapper.setItem as jest.Mock).mockImplementation(
         (key: string, value: unknown) => {
