@@ -1,6 +1,5 @@
 import React, { useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -31,7 +30,10 @@ import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { strings } from '../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
-import { createDepositNavigationDetails } from '../../../Ramp/Deposit/routes/utils';
+import {
+  useRampNavigation,
+  RampMode,
+} from '../../../Ramp/hooks/useRampNavigation';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import {
@@ -52,7 +54,6 @@ export const createAddFundsModalNavigationDetails =
 
 const AddFundsBottomSheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
   const { priorityToken } = useParams<AddFundsModalNavigationDetails>();
 
   const { isDepositEnabled } = useDepositEnabled();
@@ -63,6 +64,7 @@ const AddFundsBottomSheet: React.FC = () => {
   });
   const { trackEvent, createEventBuilder } = useMetrics();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
+  const { goToRamps } = useRampNavigation();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -80,7 +82,7 @@ const AddFundsBottomSheet: React.FC = () => {
 
   const openDeposit = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigation.navigate(...createDepositNavigationDetails());
+      goToRamps({ mode: RampMode.DEPOSIT });
     });
     trackEvent(
       createEventBuilder(
@@ -106,7 +108,7 @@ const AddFundsBottomSheet: React.FC = () => {
   }, [
     rampGeodetectedRegion,
     closeBottomSheetAndNavigate,
-    navigation,
+    goToRamps,
     trackEvent,
     createEventBuilder,
     priorityToken,

@@ -10,6 +10,8 @@ const BASE_WIDTH = 375;
 const BASE_HEIGHT_IOS = 812; // iPhone X/11/12/13/14/15 Pro base
 const BASE_HEIGHT_ANDROID = 736; // Common Android base
 
+const MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES = 750;
+
 // Calculate platform-aware scaling factors
 const isIOS = Platform.OS === 'ios';
 const baseHeight = isIOS ? BASE_HEIGHT_IOS : BASE_HEIGHT_ANDROID;
@@ -49,7 +51,11 @@ const createStyles = (theme: Theme) =>
       right: 0,
       bottom: 0,
       width: screenWidth * 1.07, // 7% wider for edge coverage
-      height: screenHeight * 1.12, // 12% taller for edge coverage
+      height:
+        screenHeight *
+        (screenHeight < MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES
+          ? 1.12
+          : 1.14), // 12% taller for edge coverage
       resizeMode: 'cover',
     },
     contentContainer: {
@@ -60,26 +66,38 @@ const createStyles = (theme: Theme) =>
       paddingHorizontal: scaleHorizontal(16),
       paddingVertical: scaleVertical(16),
     },
+    poweredByImage: {
+      width: scaleHorizontal(200),
+      height: scaleVertical(24),
+      marginBottom: 8,
+    },
     spacer: {
       flex: 1,
     },
     title: {
       fontFamily: Platform.OS === 'ios' ? 'MM Poly' : 'MM Poly Regular',
       fontWeight: '400',
-      fontSize: 50,
-      lineHeight: 50, // 100% of font size
+      // make it smaller on smaller screens
+      fontSize:
+        screenHeight < MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES ? 40 : 50,
+      lineHeight:
+        screenHeight < MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES ? 40 : 50, // 100% of font size
       letterSpacing: 0,
       textAlign: 'center',
-      paddingTop: scaleVertical(12),
+      paddingTop: scaleVertical(
+        screenHeight < MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES ? 8 : 12,
+      ),
       color: theme.colors.accent02.light,
     },
     titleDescription: {
+      // make it smaller on smaller screens
+      fontSize:
+        screenHeight < MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES ? 14 : 16,
       paddingTop: scaleVertical(10),
       paddingHorizontal: scaleHorizontal(8),
       textAlign: 'center',
       fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto', // Default system font
       fontWeight: '500',
-      fontSize: 16, // BodyMd
       lineHeight: 24, // Line Height BodyMd
       letterSpacing: 0,
       color: theme.colors.accent02.light,

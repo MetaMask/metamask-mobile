@@ -94,7 +94,7 @@ describe('PredictActivity', () => {
     expect(screen.getByText('Buy')).toBeOnTheScreen();
     expect(screen.getByText(baseItem.marketTitle)).toBeOnTheScreen();
     expect(screen.getByText('-$1,234.50')).toBeOnTheScreen();
-    expect(screen.getByText('+1.50%')).toBeOnTheScreen();
+    expect(screen.getByText('2%')).toBeOnTheScreen();
   });
 
   it('renders SELL activity with plus-signed amount and negative percent', () => {
