@@ -13,11 +13,15 @@ jest.mock('@shopify/flash-list', () => {
 });
 
 // Mock navigation
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: jest.fn(() => ({
-    navigate: jest.fn(),
-  })),
-}));
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: jest.fn(() => ({
+      navigate: jest.fn(),
+    })),
+  };
+});
 
 // Mock Predict components
 jest.mock(
