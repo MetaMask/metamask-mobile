@@ -93,7 +93,7 @@ export const createStyles = (colors: Colors) =>
     pasteText: {
       textAlign: 'right' as const,
       paddingTop: 12,
-      paddingBottom: 16,
+      paddingBottom: 1,
       alignSelf: 'flex-end' as const,
     } satisfies TextStyle,
 
