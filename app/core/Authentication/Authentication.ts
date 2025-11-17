@@ -531,7 +531,7 @@ class AuthenticationService {
 
       await this.storePassword(password, authData?.currentAuthType).catch(
         async (error) => {
-          this.storePasswordFallback(authData, password, error);
+          await this.storePasswordFallback(authData, password, error);
         },
       );
 
@@ -572,7 +572,7 @@ class AuthenticationService {
       await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
       await this.storePassword(password, authData.currentAuthType).catch(
         async (error) => {
-          this.storePasswordFallback(authData, password, error);
+          await this.storePasswordFallback(authData, password, error);
         },
       );
 
