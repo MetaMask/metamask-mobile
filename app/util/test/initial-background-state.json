@@ -128,21 +128,6 @@
           }
         ]
       },
-      "0x531": {
-        "blockExplorerUrls": [],
-        "chainId": "0x531",
-        "defaultRpcEndpointIndex": 0,
-        "name": "Sei",
-        "nativeCurrency": "SEI",
-        "rpcEndpoints": [
-          {
-            "failoverUrls": [],
-            "networkClientId": "sei-mainnet",
-            "type": "infura",
-            "url": "https://sei-mainnet.infura.io/v3/{infuraProjectId}"
-          }
-        ]
-      },
       "0x89": {
         "blockExplorerUrls": [],
         "chainId": "0x89",
@@ -334,8 +319,7 @@
       "0x507": true,
       "0x505": true,
       "0x64": true,
-      "0x531": true,
-      "0x8f": true
+      "0x531": true
     },
     "isIpfsGatewayEnabled": true,
     "smartTransactionsOptInStatus": true,

@@ -16,10 +16,12 @@ export function useInsufficientPayTokenBalanceAlert({
   const { balanceUsd } = payToken ?? {};
   const requiredTokens = useTransactionPayRequiredTokens();
 
-  const totalAmountUsd = (requiredTokens ?? []).reduce<BigNumber>(
-    (total, token) => total.plus(token.amountUsd),
-    new BigNumber(0),
-  );
+  const totalAmountUsd = (requiredTokens ?? [])
+    .filter((t) => !t.skipIfBalance)
+    .reduce<BigNumber>(
+      (total, token) => total.plus(token.amountUsd),
+      new BigNumber(0),
+    );
 
   const isInsufficientForAmount =
     payToken &&

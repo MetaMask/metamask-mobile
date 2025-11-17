@@ -19,6 +19,11 @@ import I18n from '../../../../../locales/i18n';
 import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 
+const extractTrailingCurrencyCode = (value: string): string | undefined => {
+  const match = value.trim().match(/([A-Za-z]{3})$/);
+  return match ? match[1].toUpperCase() : undefined;
+};
+
 export interface AssetBalanceInfo {
   asset: TokenI | undefined;
   balanceFiat: string;
@@ -71,6 +76,7 @@ export const useAssetBalances = (
           }
         }
       });
+
     return map;
   });
 
@@ -114,6 +120,7 @@ export const useAssetBalances = (
         }
       }
     });
+
     return map;
   });
 
@@ -205,6 +212,7 @@ export const useAssetBalances = (
           style: 'currency',
           currency: currentCurrency?.toUpperCase() || 'USD',
         });
+
         return {
           balanceFiat,
           rawFiatNumber: 0,
@@ -312,22 +320,106 @@ export const useAssetBalances = (
 
       // Use pre-calculated fiat from filtered token
       if (balanceSource === 'filteredToken' && filteredToken?.balanceFiat) {
-        return {
-          balanceFiat: filteredToken.balanceFiat,
-          rawFiatNumber: parseFloat(
-            filteredToken.balanceFiat.replace(/[^0-9.-]/g, ''),
-          ),
-        };
+        // Handle special strings like "tokenRateUndefined" or "tokenBalanceLoading"
+        if (
+          filteredToken.balanceFiat === 'tokenRateUndefined' ||
+          filteredToken.balanceFiat === 'tokenBalanceLoading'
+        ) {
+          // Check if balance is zero
+          const balanceNum = parseFloat(balanceToUse.replace(',', '.'));
+          if (balanceNum === 0 || isNaN(balanceNum)) {
+            const balanceFiat = formatWithThreshold(0, 0.01, I18n.locale, {
+              style: 'currency',
+              currency: currentCurrency?.toUpperCase() || 'USD',
+            });
+            return { balanceFiat, rawFiatNumber: 0 };
+          }
+
+          // Non-zero balance but no rate - show token balance
+          return {
+            balanceFiat: `${parseFloat(balanceToUse.replace(',', '.')).toFixed(6)} ${_token.symbol}`,
+            rawFiatNumber: undefined,
+          };
+        }
+
+        // Parse the numeric value and reformat it properly
+        const rawFiatNumber = parseFloat(
+          filteredToken.balanceFiat.replace(/[^0-9.-]/g, ''),
+        );
+
+        if (!isNaN(rawFiatNumber)) {
+          const originalCurrencyCode = extractTrailingCurrencyCode(
+            filteredToken.balanceFiat,
+          );
+
+          // Use the detected currency code if available, otherwise use current currency
+          const currencyToUse =
+            originalCurrencyCode || currentCurrency?.toUpperCase() || 'USD';
+
+          const balanceFiat = formatWithThreshold(
+            rawFiatNumber,
+            0.01,
+            I18n.locale,
+            {
+              style: 'currency',
+              currency: currencyToUse,
+            },
+          );
+
+          return { balanceFiat, rawFiatNumber };
+        }
       }
 
       // Use pre-calculated fiat from wallet asset
       if (balanceSource === 'walletAsset' && walletAsset?.balanceFiat) {
-        return {
-          balanceFiat: walletAsset.balanceFiat,
-          rawFiatNumber: parseFloat(
-            walletAsset.balanceFiat.replace(/[^0-9.-]/g, ''),
-          ),
-        };
+        // Handle special strings like "tokenRateUndefined" or "tokenBalanceLoading"
+        if (
+          walletAsset.balanceFiat === 'tokenRateUndefined' ||
+          walletAsset.balanceFiat === 'tokenBalanceLoading'
+        ) {
+          // Check if balance is zero
+          const balanceNum = parseFloat(balanceToUse.replace(',', '.'));
+          if (balanceNum === 0 || isNaN(balanceNum)) {
+            const balanceFiat = formatWithThreshold(0, 0.01, I18n.locale, {
+              style: 'currency',
+              currency: currentCurrency?.toUpperCase() || 'USD',
+            });
+            return { balanceFiat, rawFiatNumber: 0 };
+          }
+
+          // Non-zero balance but no rate - show token balance
+          return {
+            balanceFiat: `${parseFloat(balanceToUse.replace(',', '.')).toFixed(6)} ${_token.symbol}`,
+            rawFiatNumber: undefined,
+          };
+        }
+
+        // Parse the numeric value and reformat it properly
+        const rawFiatNumber = parseFloat(
+          walletAsset.balanceFiat.replace(/[^0-9.-]/g, ''),
+        );
+
+        if (!isNaN(rawFiatNumber)) {
+          const originalCurrencyCode = extractTrailingCurrencyCode(
+            walletAsset.balanceFiat,
+          );
+
+          // Use the detected currency code if available, otherwise use current currency
+          const currencyToUse =
+            originalCurrencyCode || currentCurrency?.toUpperCase() || 'USD';
+
+          const balanceFiat = formatWithThreshold(
+            rawFiatNumber,
+            0.01,
+            I18n.locale,
+            {
+              style: 'currency',
+              currency: currencyToUse,
+            },
+          );
+
+          return { balanceFiat, rawFiatNumber };
+        }
       }
 
       // For availableBalance with rates but no market data price
@@ -389,6 +481,7 @@ export const useAssetBalances = (
               currency: currentCurrency?.toUpperCase() || 'USD',
             },
           );
+
           return {
             balanceFiat,
             rawFiatNumber: derivedBalance.balanceFiatCalculation,
@@ -416,6 +509,7 @@ export const useAssetBalances = (
           style: 'currency',
           currency: currentCurrency?.toUpperCase() || 'USD',
         });
+
         return {
           balanceFiat,
           rawFiatNumber: 0,
@@ -487,8 +581,13 @@ export const useAssetBalances = (
         : safeFormatChainIdToHex(token.caipChainId);
 
       // Find the token in tokensWithBalance
+      // Note: tokensWithBalance uses hex chainId (e.g., "0xe708") while token has CAIP chainId (e.g., "eip155:59144")
+      // We need to use assetChainId which is already normalized to the correct format
+      // Also need case-insensitive address comparison since tokensWithBalance may have checksum addresses
       const filteredToken = tokensWithBalance.find(
-        (t) => t.address === assetAddress && t.chainId === token.caipChainId,
+        (t) =>
+          t.address?.toLowerCase() === assetAddress?.toLowerCase() &&
+          t.chainId === assetChainId,
       );
 
       // Get wallet asset as fallback

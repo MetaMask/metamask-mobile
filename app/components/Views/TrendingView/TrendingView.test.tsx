@@ -43,6 +43,7 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
     isEnabled: mockIsEnabled,
   }),
+  withMetricsAwareness: (Component: unknown) => Component,
 }));
 
 jest.mock('../../../util/browser', () => ({
@@ -218,5 +219,31 @@ describe('TrendingView', () => {
         fromTrending: true,
       }),
     );
+  });
+
+  it('renders search bar button', () => {
+    const { getByTestId } = render(
+      <NavigationContainer>
+        <TrendingView />
+      </NavigationContainer>,
+    );
+
+    const searchButton = getByTestId('explore-view-search-button');
+
+    expect(searchButton).toBeDefined();
+  });
+
+  it('navigates to ExploreSearch route when search bar is pressed', () => {
+    const { getByTestId } = render(
+      <NavigationContainer>
+        <TrendingView />
+      </NavigationContainer>,
+    );
+
+    const searchButton = getByTestId('explore-view-search-button');
+
+    fireEvent.press(searchButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith('ExploreSearch');
   });
 });

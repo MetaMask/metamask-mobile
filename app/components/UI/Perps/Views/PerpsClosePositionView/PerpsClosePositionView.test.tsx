@@ -2090,10 +2090,11 @@ describe('PerpsClosePositionView', () => {
         },
         marketPrice: '3000.00',
         // Slippage parameters added in USD-as-source-of-truth refactor
+        // For full closes (100%), usdAmount is undefined to bypass $10 minimum validation
         slippage: {
-          usdAmount: '4500', // closingValueString: absSize * currentPrice * (closePercentage / 100) = 1.5 * 3000 * 1.0
+          usdAmount: undefined, // undefined for full close to bypass $10 minimum validation
           priceAtCalculation: 3000, // effectivePrice: currentPrice for market orders
-          maxSlippageBps: 100, // maxSlippageBps: 1% slippage tolerance (100 basis points)
+          maxSlippageBps: 300, // maxSlippageBps: 3% slippage tolerance (300 basis points) - conservative default
         },
       });
     });

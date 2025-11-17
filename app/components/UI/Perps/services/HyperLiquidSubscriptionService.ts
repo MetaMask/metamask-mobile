@@ -159,6 +159,7 @@ export class HyperLiquidSubscriptionService {
     this.walletService = walletService;
     this.hip3Enabled = hip3Enabled ?? false;
     this.enabledDexs = enabledDexs ?? [];
+    this.discoveredDexNames = enabledDexs ?? [];
     this.allowlistMarkets = allowlistMarkets ?? [];
     this.blocklistMarkets = blocklistMarkets ?? [];
   }

@@ -578,10 +578,7 @@ enum EVENT_NAME {
   REWARDS_WAYS_TO_EARN_CTA_CLICKED = 'Rewards Ways to Earn CTA Clicked',
 
   // Predict
-  PREDICT_ACTION_INITIATED = 'Predict Action Initiated',
-  PREDICT_ACTION_SUBMITTED = 'Predict Action Submitted',
-  PREDICT_ACTION_COMPLETED = 'Predict Action Completed',
-  PREDICT_ACTION_FAILED = 'Predict Action Failed',
+  PREDICT_TRADE_TRANSACTION = 'Predict Trade Transaction',
   PREDICT_MARKET_DETAILS_OPENED = 'Predict Market Details Opened',
   PREDICT_POSITION_VIEWED = 'Predict Position Viewed',
   PREDICT_ACTIVITY_VIEWED = 'Predict Activity Viewed',
@@ -590,6 +587,10 @@ enum EVENT_NAME {
 
   // Share
   SHARE_ACTION = 'Share Action',
+
+  // QR Scanner
+  QR_SCANNER_OPENED = 'QR Scanner Opened',
+  QR_SCANNED = 'QR Scanned',
 }
 
 enum ACTIONS {
@@ -1463,10 +1464,7 @@ const events = {
     EVENT_NAME.REWARDS_WAYS_TO_EARN_CTA_CLICKED,
   ),
   // Predict
-  PREDICT_ACTION_INITIATED: generateOpt(EVENT_NAME.PREDICT_ACTION_INITIATED),
-  PREDICT_ACTION_SUBMITTED: generateOpt(EVENT_NAME.PREDICT_ACTION_SUBMITTED),
-  PREDICT_ACTION_COMPLETED: generateOpt(EVENT_NAME.PREDICT_ACTION_COMPLETED),
-  PREDICT_ACTION_FAILED: generateOpt(EVENT_NAME.PREDICT_ACTION_FAILED),
+  PREDICT_TRADE_TRANSACTION: generateOpt(EVENT_NAME.PREDICT_TRADE_TRANSACTION),
   PREDICT_MARKET_DETAILS_OPENED: generateOpt(
     EVENT_NAME.PREDICT_MARKET_DETAILS_OPENED,
   ),
@@ -1479,6 +1477,10 @@ const events = {
 
   // Share
   SHARE_ACTION: generateOpt(EVENT_NAME.SHARE_ACTION),
+
+  // QR Scanner
+  QR_SCANNER_OPENED: generateOpt(EVENT_NAME.QR_SCANNER_OPENED),
+  QR_SCANNED: generateOpt(EVENT_NAME.QR_SCANNED),
 };
 
 /**

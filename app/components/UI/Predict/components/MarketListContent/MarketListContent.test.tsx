@@ -5,6 +5,8 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { PredictCategory, PredictMarket, Recurrence } from '../../types';
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
+import { strings } from '../../../../../../locales/i18n';
+import { getPredictMarketListSelector } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 // Mock animations to prevent act() warnings
 jest.mock('react-native/Libraries/Animated/Animated', () => {
@@ -172,13 +174,14 @@ const initialState = {
 function setupMarketListContentTest(
   marketDataOverrides = {},
   category: PredictCategory = 'trending',
+  q?: string,
 ) {
   jest.clearAllMocks();
   mockUsePredictMarketData.mockReturnValue({
     ...defaultMockReturn,
     ...marketDataOverrides,
   });
-  return renderWithProvider(<MarketListContent category={category} />, {
+  return renderWithProvider(<MarketListContent category={category} q={q} />, {
     state: initialState,
   });
 }
@@ -254,6 +257,26 @@ describe('MarketListContent', () => {
       );
 
       expect(getByText('No crypto markets available')).toBeOnTheScreen();
+    });
+
+    it('renders search empty state when query has no matching markets', () => {
+      const searchTerm = 'bitcoin';
+      const expectedEmptySearchText = strings(
+        'predict.search_no_markets_found',
+        { q: searchTerm },
+      );
+
+      const { getByText, getByTestId } = setupMarketListContentTest(
+        { marketData: [] },
+        'crypto',
+        searchTerm,
+      );
+
+      expect(
+        getByTestId(getPredictMarketListSelector.emptyState()),
+      ).toBeOnTheScreen();
+      expect(getByTestId('icon')).toBeOnTheScreen();
+      expect(getByText(expectedEmptySearchText)).toBeOnTheScreen();
     });
   });
 

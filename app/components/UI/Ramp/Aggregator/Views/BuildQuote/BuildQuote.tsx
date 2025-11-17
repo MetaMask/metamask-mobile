@@ -70,7 +70,7 @@ import { createFiatSelectorModalNavigationDetails } from '../../components/FiatS
 import { createIncompatibleAccountTokenModalNavigationDetails } from '../../components/IncompatibleAccountTokenModal';
 import { createRegionSelectorModalNavigationDetails } from '../../components/RegionSelectorModal';
 import { createPaymentMethodSelectorModalNavigationDetails } from '../../components/PaymentMethodSelectorModal';
-import { QuickAmount, ScreenLocation } from '../../types';
+import { QuickAmount, RampIntent, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../../component-library/hooks';
 
 import {
@@ -106,7 +106,7 @@ import { createBuySettingsModalNavigationDetails } from '../Modals/Settings/Sett
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SelectorButton = BaseSelectorButton as any;
 
-interface BuildQuoteParams {
+interface BuildQuoteParams extends RampIntent {
   showBack?: boolean;
 }
 
@@ -116,6 +116,14 @@ export const createBuildQuoteNavDetails =
 const BuildQuote = () => {
   const navigation = useNavigation();
   const params = useParams<BuildQuoteParams>();
+  const { showBack } = params;
+
+  // Memoize the intent object to prevent unnecessary re-renders
+  const intent = useMemo(() => {
+    const { showBack: _, ...intentParams } = params;
+    return intentParams;
+  }, [params]);
+
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors, themeAppearance } = theme;
   const trackEvent = useAnalytics();
@@ -125,6 +133,7 @@ const BuildQuote = () => {
   const [amountBNMinimalUnit, setAmountBNMinimalUnit] = useState<BN4>();
   const [error, setError] = useState<string | null>(null);
   const [isKeyboardFreshlyOpened, setIsKeyboardFreshlyOpened] = useState(false);
+  const [intentHandled, setIntentHandled] = useState(false);
   const keyboardHeight = useRef(1000);
   const keypadOffset = useSharedValue(1000);
   const nativeSymbol = useSelector(selectTicker);
@@ -146,7 +155,15 @@ const BuildQuote = () => {
     rampType,
     isBuy,
     isSell,
+    setIntent,
   } = useRampSDK();
+
+  useEffect(() => {
+    if (intent && !intentHandled && Object.keys(intent || {}).length > 0) {
+      setIntent(intent);
+      setIntentHandled(true);
+    }
+  }, [intent, setIntent, intentHandled]);
 
   const screenLocation: ScreenLocation = isBuy
     ? 'Amount to Buy Screen'
@@ -430,7 +447,7 @@ const BuildQuote = () => {
           title: isBuy
             ? strings('fiat_on_ramp_aggregator.amount_to_buy')
             : strings('fiat_on_ramp_aggregator.amount_to_sell'),
-          showBack: params.showBack,
+          showBack: showBack ?? false,
           showConfiguration: isBuy,
           onConfigurationPress: handleConfigurationPress,
         },
@@ -442,7 +459,7 @@ const BuildQuote = () => {
     navigation,
     theme,
     handleCancelPress,
-    params.showBack,
+    showBack,
     isBuy,
     handleConfigurationPress,
   ]);
