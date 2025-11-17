@@ -216,7 +216,6 @@ exports[`Login renders matching snapshot 1`] = `
               {
                 "alignItems": "center",
                 "flexDirection": "column",
-                "gap": 0,
                 "marginTop": -16,
                 "width": "100%",
               }
@@ -240,6 +239,7 @@ exports[`Login renders matching snapshot 1`] = `
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
+                  "marginTop": 0,
                   "opacity": 0.5,
                   "overflow": "hidden",
                   "paddingHorizontal": 16,
@@ -575,7 +575,6 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
               {
                 "alignItems": "center",
                 "flexDirection": "column",
-                "gap": 0,
                 "marginTop": -16,
                 "width": "100%",
               }
@@ -599,6 +598,7 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
+                  "marginTop": 0,
                   "overflow": "hidden",
                   "paddingHorizontal": 16,
                 }

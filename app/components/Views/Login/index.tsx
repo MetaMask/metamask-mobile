@@ -592,6 +592,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                   isDisabled={password.length === 0 || loading}
                   testID={LoginViewSelectors.LOGIN_BUTTON_ID}
                   loading={loading}
+                  style={styles.unlockButton}
                 />
 
                 <Button

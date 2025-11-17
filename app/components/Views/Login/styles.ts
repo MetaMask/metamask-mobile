@@ -65,10 +65,6 @@ const styleSheet = (params: { theme: Theme }) => {
       width: '100%',
       flexDirection: 'column',
       alignItems: 'center',
-      gap: Platform.select({
-        ios: 0,
-        android: 16,
-      }),
       marginTop: Platform.select({
         ios: -16,
         android: -16,
@@ -78,10 +74,6 @@ const styleSheet = (params: { theme: Theme }) => {
       width: '100%',
       flexDirection: 'column',
       alignItems: 'center',
-      gap: Platform.select({
-        ios: 0,
-        android: 16,
-      }),
       marginTop: Platform.select({
         ios: 8,
         android: 16,
@@ -90,6 +82,12 @@ const styleSheet = (params: { theme: Theme }) => {
     footer: {
       marginTop: 32,
       alignItems: 'center',
+    },
+    unlockButton: {
+      marginTop: Platform.select({
+        ios: 0,
+        android: 16,
+      }),
     },
     goBack: {
       marginVertical: 0,
