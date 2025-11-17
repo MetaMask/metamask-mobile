@@ -7,12 +7,12 @@ globs:
 alwaysApply: false
 ---
 
-## Integration Tests (Local Rules)
+## component-view Tests (Local Rules)
 
-These rules apply to files under `app/util/test/integration` and related test suites.
+These rules apply to files under `app/util/test/component-view` and related test suites.
 
 - **Always import the global mocks**
-  - Add `import '../../util/test/integration/mocks';` at the top of integration tests.
+  - Add `import '../../util/test/component-view/mocks';` at the top of component-view tests.
 
 - **Prefer presets + renderers**
   - Bridge: `initialStateBridge` + `renderBridgeView`
@@ -24,17 +24,17 @@ These rules apply to files under `app/util/test/integration` and related test su
   - Prefer helper `withBridgeRecommendedQuoteEvmSimple` when possible.
 
 - **Navigation**
-  - Use `renderIntegrationScreenWithRoutes` only when route probing is needed; build state from the preset.
+  - Use `renderScreenWithRoutes` only when route probing is needed; build state from the preset.
   - Assert on route tokens from `app/constants/navigation/Routes.ts`.
 
 - **Deterministic fiat**
   - Use `deterministicFiat: true` in renderers or presets when asserting exact fiat values.
 
 - **Lint and guard**
-  - ESLint override blocks forbidden `jest.mock(...)` in `*.integration.test.*`.
+  - ESLint override blocks forbidden `jest.mock(...)` in `*.view.test.*`.
   - Runtime guard in `testSetup.js` rejects unauthorized mocks at runtime.
 
-See: `../README.md` and `../INTEGRATION_TEST_RULES.md` for full guidance.
+See: `../README.md` and `../COMPONENT_VIEW_TEST_RULES.md` for full guidance.
 
-@app/util/test/integration/README.md
-@app/util/test/integration/INTEGRATION_TEST_RULES.md
+@app/util/test/component-view/README.md
+@app/util/test/component-view/COMPONENT_VIEW_TEST_RULES.md

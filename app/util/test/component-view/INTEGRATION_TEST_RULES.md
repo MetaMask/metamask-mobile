@@ -1,6 +1,6 @@
-# Integration Testing Rules (Mobile)
+# Component View Testing Rules (Mobile)
 
-This document defines the rules for writing integration tests in this project. It complements the framework docs at `app/util/test/integration/README.md` and must be followed for new and existing integration tests.
+This document defines the rules for writin component-view tests in this project. It complements the framework docs at `app/util/test/view/README.md` and must be followed for new and existing component-view tests.
 
 These rules are written to align with Cursor Context Rules so the guidance is easy to consume inside Cursor. See the official guidance: [Cursor Context Rules](https://cursor.com/docs/context/rules).
 
@@ -27,31 +27,31 @@ These rules are written to align with Cursor Context Rules so the guidance is ea
 
 1. Only mock the Engine (and allowed native modules)
 
-- Allowed mocks in integration tests:
+- Allowed mocks in component-view tests:
   - `../../../core/Engine`
   - `../../../core/Engine/Engine`
   - `react-native-device-info`
 - Enforced by:
-  - Runtime guard in `app/util/test/testSetup.js` (blocks other `jest.mock` in `*.integration.test.*`)
-  - ESLint override in root `.eslintrc.js` (disallows other `jest.mock` in `*.integration.test.*`)
+  - Runtime guard in `app/util/test/testSetup.js` (blocks other `jest.mock` in `*.view.test.*`)
+  - ESLint override in root `.eslintrc.js` (disallows other `jest.mock` in `*.view.test.*`)
 
 2. Drive behavior via Redux state (no mocking hooks or selectors)
 
 - Do not mock hooks or selectors.
 - Provide all required data through the Redux state using the state fixture.
 
-3. Reuse the integration test framework pieces
+3. Reuse the component-view test framework pieces
 
 - Presets:
-  - `initialStateBridge` → `app/util/test/integration/presets/bridge.ts`
-  - `initialStateWallet` → `app/util/test/integration/presets/wallet.ts`
+  - `initialStateBridge` → `app/util/test/component-view/presets/bridge.ts`
+  - `initialStateWallet` → `app/util/test/component-view/presets/wallet.ts`
 - Renderers:
-  - `renderBridgeView` → `app/util/test/integration/renderers/bridge.ts`
-  - `renderWalletView` → `app/util/test/integration/renderers/wallet.ts`
+  - `renderBridgeView` → `app/util/test/component-view/renderers/bridge.ts`
+  - `renderWalletView` → `app/util/test/component-view/renderers/wallet.ts`
 - Global Engine + native mocks:
-  - `app/util/test/integration/mocks.ts`
+  - `app/util/test/component-view/mocks.ts`
 - State fixture and helpers:
-  - `app/util/test/integration/stateFixture.ts`
+  - `app/util/test/component-view/stateFixture.ts`
 
 4. Keep overrides minimal and local to the test
 
@@ -66,15 +66,15 @@ These rules are written to align with Cursor Context Rules so the guidance is ea
 - One behavior per test.
 - See project “Unit Testing Guidelines” for details.
 
-## How to Write Integration Tests
+## How to Write component-view Tests
 
 ### Rendering a View
 
 - Preferred: use a view-specific renderer:
 
 ```ts
-import '../../util/test/integration/mocks';
-import { renderBridgeView } from '../../util/test/integration/renderers/bridge';
+import '../../util/test/component-view/mocks';
+import { renderBridgeView } from '../../util/test/component-view/renderers/bridge';
 
 const { getByTestId } = renderBridgeView({
   deterministicFiat: true, // optional: exact fiat outputs
@@ -88,11 +88,11 @@ const { getByTestId } = renderBridgeView({
 });
 ```
 
-- Alternatively (navigation tests): build state via preset and pass into `renderIntegrationScreenWithRoutes`:
+- Alternatively (navigation tests): build state via preset and pass into `renderScreenWithRoutes`:
 
 ```ts
-import { initialStateBridge } from '../../util/test/integration/presets/bridge';
-import { renderIntegrationScreenWithRoutes } from '../../util/test/integration/render';
+import { initialStateBridge } from '../../util/test/component-view/presets/bridge';
+import { renderScreenWithRoutes } from '../../util/test/component-view/render';
 import Routes from '../../../constants/navigation/Routes';
 import BridgeView from './index';
 
@@ -104,7 +104,7 @@ const state = initialStateBridge()
   })
   .build();
 
-renderIntegrationScreenWithRoutes(
+renderScreenWithRoutes(
   BridgeView as unknown as React.ComponentType,
   { name: Routes.BRIDGE.ROOT },
   [{ name: Routes.BRIDGE.MODALS.ROOT, Component: ModalProbe }],
@@ -130,7 +130,7 @@ renderIntegrationScreenWithRoutes(
 
 ### Navigation Tests
 
-- Use `renderIntegrationScreenWithRoutes` to probe nested navigation routes.
+- Use `renderScreenWithRoutes` to probe nested navigation routes.
 - Provide the baseline state via `initialStateBridge()` (or `initialStateWallet()`), plus small overrides.
 - Assert using route names from `app/constants/navigation/Routes.ts`.
 - Example: to open Destination Network Selector in BridgeView, act on “Swap to” button and assert `Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR`.
@@ -162,20 +162,20 @@ yarn jest <path/to/test> -t "<name>" --runInBand --silent --coverage=false
 - Don’t:
   - Mock hooks or selectors
   - Rebuild entire background state manually (use presets)
-  - Use arbitrary `jest.mock` in integration files (blocked)
+  - Use arbitrary `jest.mock` in component-view files (blocked)
 
 ## Where to Find Things
 
-- Engine and native mocks: `app/util/test/integration/mocks.ts`
+- Engine and native mocks: `app/util/test/component-view/mocks.ts`
 - Render helpers:
-  - `app/util/test/integration/render.tsx`
-  - `app/util/test/integration/renderers/bridge.ts`
-  - `app/util/test/integration/renderers/wallet.ts`
+  - `app/util/test/component-view/render.tsx`
+  - `app/util/test/component-view/renderers/bridge.ts`
+  - `app/util/test/component-view/renderers/wallet.ts`
 - Presets:
-  - `app/util/test/integration/presets/bridge.ts`
-  - `app/util/test/integration/presets/wallet.ts`
-- State fixture + helpers: `app/util/test/integration/stateFixture.ts`
-- Framework overview: `app/util/test/integration/README.md`
+  - `app/util/test/component-view/presets/bridge.ts`
+  - `app/util/test/component-view/presets/wallet.ts`
+- State fixture + helpers: `app/util/test/component-view/stateFixture.ts`
+- Framework overview: `app/util/test/component-view/README.md`
 - Enforcement:
-  - `.eslintrc.js` (override for `**/*.integration.test.*`)
+  - `.eslintrc.js` (override for `**/*.view.test.*`)
   - `app/util/test/testSetup.js` (runtime guard)

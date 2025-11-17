@@ -3,7 +3,7 @@ import { Text } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import renderWithProvider, { renderScreen } from '../renderWithProvider';
 
-export function renderIntegrationScreen(
+export function renderComponentViewScreen(
   Component: React.ComponentType,
   options: { name: string },
   providerValues?: Parameters<typeof renderScreen>[2],
@@ -16,7 +16,7 @@ export function renderIntegrationScreen(
  * Render a screen with additional registered routes to assert navigation without mocking.
  * Each extra route can provide a simple component; if omitted, a default probe will render the route name.
  */
-export function renderIntegrationScreenWithRoutes(
+export function renderScreenWithRoutes(
   Component: React.ComponentType,
   options: { name: string },
   extraRoutes: {

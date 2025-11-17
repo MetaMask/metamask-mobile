@@ -1,6 +1,6 @@
 # Component View Test Framework
 
-This folder contains a lightweight integration testing framework with the following goals:
+This folder contains a lightweight component-view testing framework with the following goals:
 
 - Only mock the Engine and native modules necessary for deterministic environments
 - Build and control application state through a single, composable fixture
@@ -36,7 +36,7 @@ describeForPlatforms('BridgeView', ({ os }) => {
 
 ## Principles
 
-- Single Engine mock: `app/util/test/integration/mocks.ts`
+- Single Engine mock: `app/util/test/component-view/mocks.ts`
   - Provides minimal controller APIs and stubs for background interactions (e.g., `NetworkController.getNetworkClientById`)
   - Deterministic native data (e.g., `react-native-device-info`)
 - State-driven tests:
@@ -52,7 +52,7 @@ describeForPlatforms('BridgeView', ({ os }) => {
 ## Layout
 
 ```
-app/util/test/integration/
+app/util/test/component-view/
 ├─ mocks.ts                     # Engine + native mocks (single source of truth)
 ├─ render.ts                    # Base render helper for any screen
 ├─ stateFixture.ts              # State builder with chainable helpers
@@ -69,7 +69,7 @@ app/util/test/integration/
 ### 1) Import the Engine mock once per test file
 
 ```ts
-import '../../util/test/integration/mocks';
+import '../../util/test/component-view/mocks';
 ```
 
 This ensures only the Engine (and allowed native bits) are mocked globally.
@@ -77,7 +77,7 @@ This ensures only the Engine (and allowed native bits) are mocked globally.
 ### 2) Render a screen using a view-specific renderer
 
 ```ts
-import { renderBridgeView } from '../../util/test/integration/renderers/bridge';
+import { renderBridgeView } from '../../util/test/component-view/renderers/bridge';
 
 const { getByTestId } = renderBridgeView({
   deterministicFiat: true,
@@ -130,7 +130,7 @@ You can still call `.withOverrides()` or use any builder helper for special case
 Render Wallet with its preset:
 
 ```ts
-import { renderWalletView } from '../../util/test/integration/renderers/wallet';
+import { renderWalletView } from '../../util/test/component-view/renderers/wallet';
 import { WalletViewSelectorsIDs } from '../../../e2e/selectors/wallet/WalletView.selectors';
 
 const { getByTestId } = renderWalletView({
@@ -188,8 +188,8 @@ To make fiat assertions exact, use:
 
 ## Adding New View Presets
 
-1. Create `app/util/test/integration/presets/<view>.ts` with a function like `initialState<PascalView>()`
-2. Add `app/util/test/integration/renderers/<view>.ts` with a function `render<PascalView>(options)`
+1. Create `app/util/test/component-view/presets/<view>.ts` with a function like `initialState<PascalView>()`
+2. Add `app/util/test/component-view/renderers/<view>.ts` with a function `render<PascalView>(options)`
 3. Keep Engine mocks centralized in `mocks.ts`
 4. Only use state overrides and builder helpers to cover scenarios
 
@@ -210,36 +210,36 @@ yarn jest <path/to/test> -t "<test-name>" --runInBand --silent --coverage=false
 
 ## Enforcement (Allowed mocks only)
 
-To enforce integration purity, we have two layers:
+To enforce component-view purity, we have two layers:
 
-1. Runtime guard prevents unauthorized mocks in integration tests:
+1. Runtime guard prevents unauthorized mocks in component-view tests:
 
 - Location: `app/util/test/testSetup.js`
-- Applies to files matching `*.integration.test.*`
+- Applies to files matching `*.view.test.*`
 - Only these `jest.mock(...)` calls are allowed:
   - `'../../../core/Engine'`
   - `'../../../core/Engine/Engine'`
   - `'react-native-device-info'`
 
-Any other `jest.mock(...)` inside integration tests will throw an error at runtime.
+Any other `jest.mock(...)` inside component-view tests will throw an error at runtime.
 
 2. ESLint override blocks unauthorized mocks statically:
 
 - Location: root `.eslintrc.js`
-- Override for `**/*.integration.test.{js,ts,tsx,jsx}`
+- Override for `**/*.view.test.{js,ts,tsx,jsx}`
 - Disallows `jest.mock(...)` except for the whitelist above
 
 ```json
 {
   "overrides": [
     {
-      "files": ["**/*.integration.test.{ts,tsx,js,jsx}"],
+      "files": ["**/*.view.test.{ts,tsx,js,jsx}"],
       "rules": {
         "no-restricted-syntax": [
           "error",
           {
             "selector": "CallExpression[callee.object.name='jest'][callee.property.name='mock'][arguments.0.type='Literal'][arguments.0.value!='../../../core/Engine'][arguments.0.value!='../../../core/Engine/Engine'][arguments.0.value!='react-native-device-info']",
-            "message": "Only Engine and react-native-device-info can be mocked in integration tests."
+            "message": "Only Engine and react-native-device-info can be mocked in component-view tests."
           }
         ]
       }

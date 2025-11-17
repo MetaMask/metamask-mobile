@@ -117,9 +117,9 @@ jest.mock('react-native/index.js', () => {
 });
 
 /**
- * Integration tests guard:
- * For files matching *.integration.test.(ts|tsx|js|jsx), only allow jest.mock for a strict whitelist.
- * This enforces our integration testing rule: mock only Engine and allowed native modules.
+ * component-view tests guard:
+ * For files matching *.view.test.(ts|tsx|js|jsx), only allow jest.mock for a strict whitelist.
+ * This enforces our component-view testing rule: mock only Engine and allowed native modules.
  */
 (() => {
   const ALLOWED_MOCK_MODULES = new Set([
@@ -136,15 +136,16 @@ jest.mock('react-native/index.js', () => {
         // Expect state is available when evaluating test files
         const state = global.expect?.getState?.();
         const testPath = state?.testPath ?? '';
-        const isIntegrationTest =
-          /\.[iI]ntegration(\..*)?\.test\.(t|j)sx?$/.test(testPath);
-        if (isIntegrationTest) {
+        const isComponentViewTest = /\.[iI]view(\..*)?\.test\.(t|j)sx?$/.test(
+          testPath,
+        );
+        if (isComponentViewTest) {
           const [moduleName] = args;
           if (!ALLOWED_MOCK_MODULES.has(moduleName)) {
             throw new Error(
               `Forbidden jest.mock("${String(
                 moduleName,
-              )}") in integration tests. Allowed only: ${[
+              )}") in component-view tests. Allowed only: ${[
                 ...ALLOWED_MOCK_MODULES,
               ].join(', ')}`,
             );

@@ -1,4 +1,4 @@
-import type { DeepPartial } from '../../test/renderWithProvider';
+import type { DeepPartial } from '../renderWithProvider';
 import type { RootState } from '../../../reducers';
 import baseDeviceState from '../../../../state-logs-v7.59.0-(2968).json';
 

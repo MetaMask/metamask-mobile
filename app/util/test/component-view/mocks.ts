@@ -1,5 +1,5 @@
 /**
- * Integration test mocks:
+ * Component view test mocks:
  * - ONLY Engine (business) and minimal native mocks.
  */
 
