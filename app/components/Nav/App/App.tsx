@@ -45,7 +45,7 @@ import {
   TrendingTokenTimeBottomSheet,
   TrendingTokenNetworkBottomSheet,
   TrendingTokenPriceChangeBottomSheet,
-} from '../../../components/Views/TrendingView/TrendingTokensBottomSheet';
+} from '../../../components/UI/Trending/components/TrendingTokensBottomSheet';
 import NetworkManager from '../../../components/UI/NetworkManager';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import AccountPermissionsConfirmRevokeAll from '../../../components/Views/AccountPermissions/AccountPermissionsConfirmRevokeAll';

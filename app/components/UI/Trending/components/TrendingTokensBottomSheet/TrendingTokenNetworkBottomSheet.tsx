@@ -1,27 +1,27 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../../../../util/theme';
-import { useParams } from '../../../../util/navigation/navUtils';
+import { useTheme } from '../../../../../util/theme';
+import { useParams } from '../../../../../util/navigation/navUtils';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
+} from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Text, {
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconName,
   IconSize,
-} from '../../../../component-library/components/Icons/Icon';
+} from '../../../../../component-library/components/Icons/Icon';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
-} from '../../../../component-library/components/Avatars/Avatar';
-import { strings } from '../../../../../locales/i18n';
-import { ProcessedNetwork } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+} from '../../../../../component-library/components/Avatars/Avatar';
+import { strings } from '../../../../../../locales/i18n';
+import { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { CaipChainId } from '@metamask/utils';
-import { usePopularNetworks } from '../../../hooks/usePopularNetworks';
+import { usePopularNetworks } from '../../../../hooks/usePopularNetworks';
 
 export enum NetworkOption {
   AllNetworks = 'all',

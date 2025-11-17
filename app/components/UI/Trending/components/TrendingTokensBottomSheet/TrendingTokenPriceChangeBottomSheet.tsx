@@ -1,23 +1,23 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../../../../util/theme';
-import { useParams } from '../../../../util/navigation/navUtils';
+import { useTheme } from '../../../../../util/theme';
+import { useParams } from '../../../../../util/navigation/navUtils';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
+} from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
+} from '../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconName,
   IconSize,
   IconColor,
-} from '../../../../component-library/components/Icons/Icon';
-import { strings } from '../../../../../locales/i18n';
-import ButtonBase from '../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
+} from '../../../../../component-library/components/Icons/Icon';
+import { strings } from '../../../../../../locales/i18n';
+import ButtonBase from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 
 export enum PriceChangeOption {
   PriceChange = 'price_change',

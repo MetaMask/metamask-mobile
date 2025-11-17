@@ -1,8 +1,8 @@
 import React, { useCallback } from 'react';
 import { FlashList } from '@shopify/flash-list';
 import { TrendingAsset } from '@metamask/assets-controllers';
-import TrendingTokenRowItem from './TrendingTokenRowItem/TrendingTokenRowItem';
-import { TimeOption } from '../../TrendingTokensBottomSheet';
+import TrendingTokenRowItem from '../TrendingTokenRowItem/TrendingTokenRowItem';
+import { TimeOption } from '../TrendingTokensBottomSheet';
 
 export interface TrendingTokensListProps {
   /**

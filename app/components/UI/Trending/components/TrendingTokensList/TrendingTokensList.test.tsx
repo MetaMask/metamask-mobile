@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import TrendingTokensList from './TrendingTokensList';
 import type { TrendingAsset } from '@metamask/assets-controllers';
-import { TimeOption } from '../../TrendingTokensBottomSheet';
+import { TimeOption } from '../TrendingTokensBottomSheet';
 
 // Mock FlashList
 jest.mock('@shopify/flash-list', () => {

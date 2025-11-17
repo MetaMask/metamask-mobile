@@ -5,17 +5,17 @@ import { useSelector } from 'react-redux';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../../component-library/hooks';
+} from '../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './TrendingTokenRowItem.styles';
 import { TrendingAsset } from '@metamask/assets-controllers';
-import TrendingTokenLogo from '../../TrendingTokenLogo';
+import TrendingTokenLogo from '../../../../Views/TrendingView/TrendingTokensSection/TrendingTokenLogo';
 import Badge, {
   BadgeVariant,
-} from '../../../../../../component-library/components/Badges/Badge';
+} from '../../../../../component-library/components/Badges/Badge';
 import BadgeWrapper, {
   BadgePosition,
-} from '../../../../../../component-library/components/Badges/BadgeWrapper';
+} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import {
   parseCaipChainId,
   CaipChainId,
@@ -26,20 +26,20 @@ import {
   getDefaultNetworkByChainId,
   getTestNetImageByChainId,
   isTestNet,
-} from '../../../../../../util/networks';
+} from '../../../../../util/networks';
 import {
   CustomNetworkImgMapping,
   PopularList,
   UnpopularNetworkList,
   getNonEvmNetworkImageSourceByChainId,
-} from '../../../../../../util/networks/customNetworks';
-import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
+} from '../../../../../util/networks/customNetworks';
+import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { formatMarketStats } from './utils';
-import { formatPriceWithDecimals } from '../../../../../UI/Predict/utils/format';
-import { TimeOption } from '../../../TrendingTokensBottomSheet';
-import NetworkModals from '../../../../../UI/NetworkModal';
-import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
-import type { Network } from '../../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
+import { formatPriceWithDecimals } from '../../../Predict/utils/format';
+import { TimeOption } from '../TrendingTokensBottomSheet';
+import NetworkModals from '../../../NetworkModal';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
+import type { Network } from '../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 
 /**
  * Maps TimeOption to the corresponding priceChangePct field key

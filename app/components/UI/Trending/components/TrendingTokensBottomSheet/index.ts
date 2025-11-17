@@ -1,5 +1,5 @@
-import Routes from '../../../../constants/navigation/Routes';
-import { createNavigationDetails } from '../../../../util/navigation/navUtils';
+import Routes from '../../../../../constants/navigation/Routes';
+import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 
 export const createTrendingTokenTimeBottomSheetNavDetails =
   createNavigationDetails(

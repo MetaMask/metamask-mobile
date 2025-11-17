@@ -1,10 +1,10 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { ImageSourcePropType } from 'react-native';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { TrendingTokenNetworkBottomSheet } from './TrendingTokenNetworkBottomSheet';
 import { CaipChainId } from '@metamask/utils';
-import type { ProcessedNetwork } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import type { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn(() => true);

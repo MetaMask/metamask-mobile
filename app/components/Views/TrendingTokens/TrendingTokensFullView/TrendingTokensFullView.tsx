@@ -22,24 +22,24 @@ import Icon, {
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../locales/i18n';
-import TrendingTokensList from '../TrendingTokensSection/TrendingTokensList/TrendingTokensList';
-import TrendingTokensSkeleton from '../TrendingTokensSection/TrendingTokenSkeleton/TrendingTokensSkeleton';
+import TrendingTokensList from '../../../UI/Trending/components/TrendingTokensList/TrendingTokensList';
+import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import { useTrendingRequest } from '../../../UI/Assets/hooks/useTrendingRequest';
 import { SortTrendingBy } from '@metamask/assets-controllers';
 import { CaipChainId, Hex, parseCaipChainId } from '@metamask/utils';
 import { PopularList } from '../../../../util/networks/customNetworks';
-import {
-  createTrendingTokenTimeBottomSheetNavDetails,
-  createTrendingTokenNetworkBottomSheetNavDetails,
-  createTrendingTokenPriceChangeBottomSheetNavDetails,
-  TimeOption,
-  PriceChangeOption,
-  SortDirection,
-} from '../TrendingTokensBottomSheet';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import {
+  createTrendingTokenNetworkBottomSheetNavDetails,
+  createTrendingTokenPriceChangeBottomSheetNavDetails,
+  createTrendingTokenTimeBottomSheetNavDetails,
+  PriceChangeOption,
+  SortDirection,
+  TimeOption,
+} from '../../../UI/Trending/components/TrendingTokensBottomSheet';
 
 interface TrendingTokensNavigationParamList {
   [key: string]: undefined | object;
