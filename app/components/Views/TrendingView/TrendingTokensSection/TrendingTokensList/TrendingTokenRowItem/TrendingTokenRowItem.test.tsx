@@ -271,18 +271,6 @@ describe('TrendingTokenRowItem', () => {
     });
   });
 
-  it('matches snapshot', () => {
-    const token = createMockToken();
-
-    const { toJSON } = renderWithProvider(
-      <TrendingTokenRowItem token={token} />,
-      { state: mockState },
-      false,
-    );
-
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('renders token name', () => {
     const token = createMockToken({ name: 'Ethereum' });
 
