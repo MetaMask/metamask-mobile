@@ -129,6 +129,19 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
         // TODO: Add `balance` to the QR Keyring accounts or remove it from the expected type
         firstAccountsPage.map((account) => ({ ...account, balance: '0x0' })),
       );
+      const deviceName = await withQrKeyring(
+        async ({ keyring }) => await keyring.getName(),
+      );
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.HARDWARE_WALLET_ACCOUNT_SELECTOR_OPEN,
+        )
+          .addProperties({
+            device_type: HardwareDeviceTypes.QR,
+            device_model: deviceName,
+          })
+          .build(),
+      );
     } finally {
       setIsScanning(false);
     }
