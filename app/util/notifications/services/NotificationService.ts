@@ -61,7 +61,9 @@ class NotificationsService {
     }
   }
 
-  async getAllPermissions(shouldOpenSettings = true) {
+  async getAllPermissions(
+    shouldOpenSettings = true,
+  ): Promise<{ permission: 'authorized' | 'denied' }> {
     const promises: Promise<string>[] = notificationChannels.map(
       async (channel: AndroidChannel) =>
         await withTimeout(this.createChannel(channel), 5000),
@@ -317,4 +319,9 @@ export async function requestPushPermissions() {
 export async function hasPushPermission() {
   const result = await NotificationService.getAllPermissions(false);
   return result.permission === 'authorized';
+}
+
+export async function getPushPermission() {
+  const result = await NotificationService.getAllPermissions(false);
+  return result.permission;
 }
