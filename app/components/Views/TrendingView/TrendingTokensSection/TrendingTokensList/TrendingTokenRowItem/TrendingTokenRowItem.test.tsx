@@ -205,7 +205,10 @@ jest.mock('@metamask/utils', () => {
 const { getDefaultNetworkByChainId, isTestNet } = jest.requireMock(
   '../../../../../../util/networks',
 );
-const { parseCaipChainId } = jest.requireMock('@metamask/utils');
+const { parseCaipChainId, isCaipChainId } = jest.requireMock('@metamask/utils');
+const mockIsCaipChainId = isCaipChainId as jest.MockedFunction<
+  typeof isCaipChainId
+>;
 
 const mockGetDefaultNetworkByChainId =
   getDefaultNetworkByChainId as jest.MockedFunction<
@@ -500,12 +503,69 @@ describe('TrendingTokenRowItem', () => {
     expect(getByText(/\$1500B cap • \$5B vol/)).toBeTruthy();
   });
 
+  describe('navigation', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockIsCaipChainId.mockReturnValue(true);
+    });
+
+    it('navigates to Asset page with token data when network is already added', () => {
+      const token = createMockToken({
+        assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        symbol: 'USDC',
+        name: 'USD Coin',
+        decimals: 6,
+      });
+
+      // Mock networkConfigurations to include the network (already added)
+      // The selector returns by CAIP chain ID, so we need to structure the state correctly
+      const networkAddedState = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            NetworkController: {
+              networkConfigurations: {},
+              networkConfigurationsByChainId: {
+                '0x1': {
+                  chainId: '0x1',
+                  caipChainId: 'eip155:1',
+                  name: 'Ethereum Mainnet',
+                },
+              },
+            },
+            MultichainNetworkController: {
+              ...mockState.engine.backgroundState.MultichainNetworkController,
+              multichainNetworkConfigurationsByChainId: {},
+            },
+          },
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} />,
+        { state: networkAddedState },
+        false,
+      );
+
+      const tokenRow = getByTestId(
+        'trending-token-row-item-eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      );
+      fireEvent.press(tokenRow);
+
+      expect(mockNavigate).toHaveBeenCalledWith('Asset', {
+        chainId: '0x1',
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        symbol: 'USDC',
+        name: 'USD Coin',
+        decimals: 6,
+      });
+    });
+  });
+
   describe('closeNetworkModal', () => {
     beforeEach(() => {
-      const { isCaipChainId } = jest.requireMock('@metamask/utils');
-      const mockIsCaipChainId = isCaipChainId as jest.MockedFunction<
-        typeof isCaipChainId
-      >;
       mockIsCaipChainId.mockReturnValue(true);
     });
 
