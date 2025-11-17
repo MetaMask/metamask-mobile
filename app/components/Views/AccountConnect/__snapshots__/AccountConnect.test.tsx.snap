@@ -398,7 +398,18 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                                 }
                               }
                             >
-                              <View
+                              <Text
+                                accessibilityRole="text"
+                                numberOfLines={1}
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "Geist Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
                                 testID="cellbase-avatar-title"
                               />
                               <Text
@@ -1453,7 +1464,18 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                                 }
                               }
                             >
-                              <View
+                              <Text
+                                accessibilityRole="text"
+                                numberOfLines={1}
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "Geist Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
                                 testID="cellbase-avatar-title"
                               />
                               <Text
@@ -2508,7 +2530,18 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                 }
                               }
                             >
-                              <View
+                              <Text
+                                accessibilityRole="text"
+                                numberOfLines={1}
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "Geist Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
                                 testID="cellbase-avatar-title"
                               />
                               <Text
@@ -3563,7 +3596,18 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                 }
                               }
                             >
-                              <View
+                              <Text
+                                accessibilityRole="text"
+                                numberOfLines={1}
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "Geist Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
                                 testID="cellbase-avatar-title"
                               />
                               <Text
