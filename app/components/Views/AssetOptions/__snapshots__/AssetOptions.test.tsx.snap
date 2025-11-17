@@ -118,6 +118,28 @@ exports[`AssetOptions Component matches the snapshot 1`] = `
           </Text>
         </TouchableOpacity>
       </View>
+      <View>
+        <TouchableOpacity
+          onPress={[Function]}
+        >
+          <SvgMock
+            color="#121314"
+            fill="currentColor"
+            height={20}
+            name="Trash"
+            style={
+              {
+                "height": 20,
+                "width": 20,
+              }
+            }
+            width={20}
+          />
+          <Text>
+            Remove token
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   </View>
 </View>
