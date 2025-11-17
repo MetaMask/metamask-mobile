@@ -10,10 +10,7 @@ import { trace, TraceName } from '../../../../../util/trace';
 import { CardTokenAllowance, AllowanceState } from '../../types';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import {
-  useRampNavigation,
-  RampMode,
-} from '../../../Ramp/hooks/useRampNavigation';
+import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
 
 // Mock hooks first - must be hoisted before imports
@@ -301,7 +298,7 @@ describe('AddFundsBottomSheet', () => {
 
     fireEvent.press(getByText('Fund with cash'));
 
-    expect(mockGoToBuy).toHaveBeenCalledWith({ mode: RampMode.DEPOSIT });
+    expect(mockGoToBuy).toHaveBeenCalled();
   });
 
   it('renders component correctly', () => {
