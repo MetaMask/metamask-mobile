@@ -20,7 +20,7 @@ import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome
 const mockUseParams = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
-const mockGoToRamps = jest.fn();
+const mockGoToBuy = jest.fn();
 
 // Mock dependencies
 jest.mock('../../../Ramp/hooks/useRampNavigation');
@@ -141,7 +141,7 @@ describe('AddFundsBottomSheet', () => {
     });
 
     (useRampNavigation as jest.Mock).mockReturnValue({
-      goToRamps: mockGoToRamps,
+      goToBuy: mockGoToBuy,
     });
 
     (useDepositEnabled as jest.Mock).mockReturnValue({
@@ -301,7 +301,7 @@ describe('AddFundsBottomSheet', () => {
 
     fireEvent.press(getByText('Fund with cash'));
 
-    expect(mockGoToRamps).toHaveBeenCalledWith({ mode: RampMode.DEPOSIT });
+    expect(mockGoToBuy).toHaveBeenCalledWith({ mode: RampMode.DEPOSIT });
   });
 
   it('renders component correctly', () => {

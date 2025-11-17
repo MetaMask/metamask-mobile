@@ -622,7 +622,7 @@ describe('CardHome Component', () => {
       '../../../Ramp/hooks/useRampNavigation',
     );
     (useRampNavigation as jest.Mock).mockReturnValue({
-      goToRamps: jest.fn(),
+      goToBuy: jest.fn(),
     });
 
     (useMetrics as jest.Mock).mockReturnValue({

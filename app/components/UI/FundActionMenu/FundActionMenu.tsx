@@ -47,7 +47,8 @@ const FundActionMenu = () => {
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
-  const { goToRamps, goToBuy, goToSell, goToDeposit } = useRampNavigation();
+  const { goToBuy, goToAggregator, goToSell, goToDeposit } =
+    useRampNavigation();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -121,7 +122,7 @@ const FundActionMenu = () => {
             if (customOnBuy) {
               customOnBuy();
             } else {
-              goToRamps({ assetId: assetContext?.assetId });
+              goToBuy({ assetId: assetContext?.assetId });
             }
           },
         },
@@ -163,7 +164,7 @@ const FundActionMenu = () => {
             if (customOnBuy) {
               customOnBuy();
             } else {
-              goToBuy({ assetId: assetContext?.assetId });
+              goToAggregator({ assetId: assetContext?.assetId });
             }
           },
         },
@@ -197,8 +198,8 @@ const FundActionMenu = () => {
       canSignTransactions,
       customOnBuy,
       assetContext,
-      goToRamps,
       goToBuy,
+      goToAggregator,
       goToSell,
       goToDeposit,
     ],

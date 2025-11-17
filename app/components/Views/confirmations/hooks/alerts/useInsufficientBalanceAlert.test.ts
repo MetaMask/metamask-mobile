@@ -67,7 +67,7 @@ describe('useInsufficientBalanceAlert', () => {
   const mockUseTransactionPayToken = jest.mocked(useTransactionPayToken);
   const mockUseConfirmationContext = jest.mocked(useConfirmationContext);
   const mockUseRampNavigation = jest.mocked(useRampNavigation);
-  const mockGoToRamps = jest.fn();
+  const mockGoToBuy = jest.fn();
   const useIsGaslessSupportedMock = jest.mocked(useIsGaslessSupported);
 
   const mockChainId = '0x1';
@@ -124,7 +124,7 @@ describe('useInsufficientBalanceAlert', () => {
       isTransactionValueUpdating: false,
     } as unknown as ReturnType<typeof useConfirmationContext>);
     mockUseRampNavigation.mockReturnValue({
-      goToRamps: mockGoToRamps,
+      goToBuy: mockGoToBuy,
     });
   });
 

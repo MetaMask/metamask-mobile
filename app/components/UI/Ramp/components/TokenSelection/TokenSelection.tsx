@@ -71,13 +71,13 @@ function TokenSelection() {
     searchString,
   });
 
-  const { goToRamps } = useRampNavigation();
+  const { goToBuy } = useRampNavigation();
 
   const handleSelectAssetIdCallback = useCallback(
     (assetId: string) => {
-      goToRamps({ assetId });
+      goToBuy({ assetId });
     },
-    [goToRamps],
+    [goToBuy],
   );
 
   const scrollToTop = useCallback(() => {

@@ -9,7 +9,7 @@ import Routes from '../../../../../../../constants/navigation/Routes';
 
 const mockUseDepositSDK = jest.fn();
 const mockNavigate = jest.fn();
-const mockGoToBuy = jest.fn();
+const mockGoToAggregator = jest.fn();
 const mockDangerouslyGetParent = jest.fn();
 const mockPop = jest.fn();
 const mockGoBack = jest.fn();
@@ -54,7 +54,7 @@ jest.mock('../../../../../../../util/navigation/navUtils', () => ({
 }));
 
 jest.mock('../../../../hooks/useRampNavigation', () => ({
-  useRampNavigation: jest.fn(() => ({ goToBuy: mockGoToBuy })),
+  useRampNavigation: jest.fn(() => ({ goToAggregator: mockGoToAggregator })),
 }));
 
 function render(Component: React.ComponentType) {
@@ -103,7 +103,7 @@ describe('UnsupportedStateModal', () => {
 
     expect(mockDangerouslyGetParent).toHaveBeenCalled();
     expect(mockPop).toHaveBeenCalled();
-    expect(mockGoToBuy).toHaveBeenCalledWith();
+    expect(mockGoToAggregator).toHaveBeenCalledWith();
   });
 
   it('handles select different state button press correctly', () => {

@@ -47,7 +47,7 @@ function UnsupportedStateModal() {
   const { selectedRegion } = useDepositSDK();
   const { stateCode, stateName, onStateSelect } =
     useParams<UnsupportedStateModalParams>();
-  const { goToBuy } = useRampNavigation();
+  const { goToAggregator } = useRampNavigation();
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -73,9 +73,9 @@ function UnsupportedStateModal() {
     closeBottomSheetAndNavigate(() => {
       // @ts-expect-error navigation prop mismatch
       navigation.dangerouslyGetParent()?.pop();
-      goToBuy();
+      goToAggregator();
     });
-  }, [closeBottomSheetAndNavigate, navigation, goToBuy]);
+  }, [closeBottomSheetAndNavigate, navigation, goToAggregator]);
 
   const handleClose = useCallback(() => {
     closeBottomSheetAndNavigate(() => {

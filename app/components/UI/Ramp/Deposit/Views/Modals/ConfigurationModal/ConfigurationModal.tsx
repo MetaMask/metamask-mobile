@@ -36,7 +36,7 @@ function ConfigurationModal() {
   const { toastRef } = useContext(ToastContext);
   const trackEvent = useAnalytics();
 
-  const { goToBuy } = useRampNavigation();
+  const { goToAggregator } = useRampNavigation();
   const { logoutFromProvider, isAuthenticated, selectedRegion } =
     useDepositSDK();
 
@@ -62,8 +62,8 @@ function ConfigurationModal() {
       region: selectedRegion?.isoCode as string,
     });
     navigation.dangerouslyGetParent()?.dangerouslyGetParent()?.goBack();
-    goToBuy();
-  }, [navigation, selectedRegion?.isoCode, trackEvent, goToBuy]);
+    goToAggregator();
+  }, [navigation, selectedRegion?.isoCode, trackEvent, goToAggregator]);
 
   const handleLogOut = useCallback(async () => {
     try {

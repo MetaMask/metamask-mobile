@@ -7,7 +7,7 @@ import Routes from '../../../../../../../constants/navigation/Routes';
 import { MOCK_REGIONS } from '../../../testUtils';
 
 const mockNavigate = jest.fn();
-const mockGoToBuy = jest.fn();
+const mockGoToAggregator = jest.fn();
 const mockUseDepositSDK = jest.fn();
 const mockGoBack = jest.fn();
 const mockPop = jest.fn();
@@ -32,7 +32,7 @@ jest.mock('../../../sdk', () => ({
 }));
 
 jest.mock('../../../../hooks/useRampNavigation', () => ({
-  useRampNavigation: jest.fn(() => ({ goToBuy: mockGoToBuy })),
+  useRampNavigation: jest.fn(() => ({ goToAggregator: mockGoToAggregator })),
 }));
 
 const mockUseParams = jest.fn().mockReturnValue({
@@ -98,7 +98,7 @@ describe('UnsupportedRegionModal', () => {
 
     expect(mockDangerouslyGetParent).toHaveBeenCalled();
     expect(mockPop).toHaveBeenCalled();
-    expect(mockGoToBuy).toHaveBeenCalledWith();
+    expect(mockGoToAggregator).toHaveBeenCalledWith();
   });
 
   it('navigates to region selector when Change region button is pressed', () => {

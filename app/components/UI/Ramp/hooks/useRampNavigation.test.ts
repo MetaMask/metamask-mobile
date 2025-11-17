@@ -69,7 +69,7 @@ describe('useRampNavigation', () => {
     ] as unknown as ReturnType<typeof createTokenSelectionNavigationDetails>);
   });
 
-  describe('goToRamps', () => {
+  describe('goToBuy', () => {
     describe('when unified V1 is disabled', () => {
       it('navigates to aggregator BUY without intent', () => {
         const mockNavDetails = [Routes.RAMP.BUY] as const;
@@ -79,7 +79,7 @@ describe('useRampNavigation', () => {
           state: createMockState(),
         });
 
-        result.current.goToRamps();
+        result.current.goToBuy();
 
         expect(mockCreateRampNavigationDetails).toHaveBeenCalledWith(
           AggregatorRampType.BUY,
@@ -97,7 +97,7 @@ describe('useRampNavigation', () => {
           state: createMockState(),
         });
 
-        result.current.goToRamps(intent);
+        result.current.goToBuy(intent);
 
         expect(mockCreateRampNavigationDetails).toHaveBeenCalledWith(
           AggregatorRampType.BUY,
@@ -123,7 +123,7 @@ describe('useRampNavigation', () => {
             state: createMockState(),
           });
 
-          result.current.goToRamps();
+          result.current.goToBuy();
 
           expect(
             mockCreateTokenSelectionNavigationDetails,
@@ -146,7 +146,7 @@ describe('useRampNavigation', () => {
             state: createMockState(),
           });
 
-          result.current.goToRamps(intent);
+          result.current.goToBuy(intent);
 
           expect(
             mockCreateTokenSelectionNavigationDetails,
@@ -169,7 +169,7 @@ describe('useRampNavigation', () => {
             state: createMockState(),
           });
 
-          result.current.goToRamps(intent);
+          result.current.goToBuy(intent);
 
           expect(mockCreateDepositNavigationDetails).toHaveBeenCalledWith(
             intent,
@@ -187,7 +187,7 @@ describe('useRampNavigation', () => {
             state: createMockState(),
           });
 
-          result.current.goToRamps(intent);
+          result.current.goToBuy(intent);
 
           expect(mockCreateRampNavigationDetails).toHaveBeenCalledWith(
             AggregatorRampType.BUY,
@@ -200,7 +200,7 @@ describe('useRampNavigation', () => {
     });
   });
 
-  describe('goToBuy', () => {
+  describe('goToAggregator', () => {
     it('navigates to aggregator BUY flow (overrides unified routing)', () => {
       mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
       mockRampRoutingDecision = UnifiedRampRoutingType.DEPOSIT;
@@ -211,7 +211,7 @@ describe('useRampNavigation', () => {
         state: createMockState(),
       });
 
-      result.current.goToBuy();
+      result.current.goToAggregator();
 
       expect(mockCreateRampNavigationDetails).toHaveBeenCalledWith(
         AggregatorRampType.BUY,
@@ -230,7 +230,7 @@ describe('useRampNavigation', () => {
         state: createMockState(),
       });
 
-      result.current.goToBuy(intent);
+      result.current.goToAggregator(intent);
 
       expect(mockCreateRampNavigationDetails).toHaveBeenCalledWith(
         AggregatorRampType.BUY,

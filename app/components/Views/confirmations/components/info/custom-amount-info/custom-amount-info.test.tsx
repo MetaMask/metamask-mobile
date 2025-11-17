@@ -40,7 +40,7 @@ jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/transactions/useTransactionConfirm');
 
-const mockGoToRamps = jest.fn();
+const mockGoToBuy = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -50,7 +50,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../../UI/Ramp/hooks/useRampNavigation', () => ({
   ...jest.requireActual('../../../../../UI/Ramp/hooks/useRampNavigation'),
   useRampNavigation: () => ({
-    goToRamps: mockGoToRamps,
+    goToBuy: mockGoToBuy,
   }),
 }));
 
@@ -222,8 +222,8 @@ describe('CustomAmountInfo', () => {
 
     fireEvent.press(getByText(strings('confirm.custom_amount.buy_button')));
 
-    expect(mockGoToRamps).toHaveBeenCalledTimes(1);
-    expect(mockGoToRamps).toHaveBeenCalledWith({
+    expect(mockGoToBuy).toHaveBeenCalledTimes(1);
+    expect(mockGoToBuy).toHaveBeenCalledWith({
       mode: RampMode.AGGREGATOR,
       params: {
         rampType: RampType.BUY,

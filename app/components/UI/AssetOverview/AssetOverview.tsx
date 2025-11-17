@@ -168,7 +168,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   ///: END:ONLY_INCLUDE_IF
 
   const currentAddress = asset.address as Hex;
-  const { goToRamps } = useRampNavigation();
+  const { goToBuy } = useRampNavigation();
 
   const { data: prices = [], isLoading } = useTokenHistoricalPrices({
     asset,
@@ -338,7 +338,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       assetId = undefined;
     }
 
-    goToRamps({ assetId });
+    goToBuy({ assetId });
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)

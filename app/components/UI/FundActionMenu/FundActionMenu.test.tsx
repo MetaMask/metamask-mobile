@@ -97,7 +97,7 @@ const { createBuyNavigationDetails, createSellNavigationDetails } =
 describe('FundActionMenu', () => {
   // Mock functions
   const mockNavigate = jest.fn();
-  const mockGoToRamps = jest.fn();
+  const mockGoToBuy = jest.fn();
   const mockTrackEvent = jest.fn();
   const mockCreateEventBuilder = jest.fn();
   const mockBuild = jest.fn();
@@ -140,7 +140,12 @@ describe('FundActionMenu', () => {
     mockUseRampNetwork.mockReturnValue([true, true]);
     mockUseDepositEnabled.mockReturnValue({ isDepositEnabled: true });
     mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
-    mockUseRampNavigation.mockReturnValue({ goToRamps: mockGoToRamps });
+    mockUseRampNavigation.mockReturnValue({
+      goToBuy: mockGoToBuy,
+      goToAggregator: jest.fn(),
+      goToSell: jest.fn(),
+      goToDeposit: jest.fn(),
+    });
     getDecimalChainId.mockReturnValue(1);
     createBuyNavigationDetails.mockReturnValue(['BuyScreen', {}] as never);
     createSellNavigationDetails.mockReturnValue(['SellScreen', {}] as never);
@@ -271,7 +276,7 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToRamps).toHaveBeenCalledWith({ mode: RampMode.DEPOSIT });
+        expect(mockGoToBuy).toHaveBeenCalledWith({ mode: RampMode.DEPOSIT });
       });
     });
 
@@ -283,7 +288,7 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToRamps).toHaveBeenCalledWith({
+        expect(mockGoToBuy).toHaveBeenCalledWith({
           mode: RampMode.AGGREGATOR,
           params: { rampType: expect.anything() },
         });
@@ -318,7 +323,7 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToRamps).toHaveBeenCalledWith({
+        expect(mockGoToBuy).toHaveBeenCalledWith({
           mode: RampMode.AGGREGATOR,
           params: { rampType: expect.anything() },
         });
@@ -360,7 +365,7 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToRamps).toHaveBeenCalledWith({
+        expect(mockGoToBuy).toHaveBeenCalledWith({
           mode: RampMode.AGGREGATOR,
           params: {
             rampType: expect.anything(),
@@ -382,7 +387,7 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToRamps).toHaveBeenCalledWith({
+        expect(mockGoToBuy).toHaveBeenCalledWith({
           mode: RampMode.AGGREGATOR,
           params: { rampType: expect.anything() },
         });
@@ -563,7 +568,7 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToRamps).toHaveBeenCalledWith({
+        expect(mockGoToBuy).toHaveBeenCalledWith({
           mode: RampMode.AGGREGATOR,
           params: { rampType: expect.anything() },
         });
@@ -585,7 +590,7 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToRamps).toHaveBeenCalledWith({
+        expect(mockGoToBuy).toHaveBeenCalledWith({
           mode: RampMode.AGGREGATOR,
           params: { rampType: expect.anything() },
         });

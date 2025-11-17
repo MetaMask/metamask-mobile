@@ -23,17 +23,17 @@ enum RampMode {
  * Hook that returns functions to navigate to ramp flows.
  *
  * @returns An object containing navigation functions:
- * - goToRamps: Smart routing based on unified V1 settings and routing decision
- * - goToBuy: Always navigates to aggregator BUY flow
+ * - goToBuy: Smart routing based on unified V1 settings and routing decision
+ * - goToAggregator: @deprecated Always navigates to aggregator BUY flow (bypasses smart routing)
  * - goToSell: Always navigates to aggregator SELL flow
- * - goToDeposit: Always navigates to deposit flow
+ * - goToDeposit: @deprecated Always navigates to deposit flow (bypasses smart routing)
  */
 export const useRampNavigation = () => {
   const navigation = useNavigation();
   const isRampsUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
 
-  const goToRamps = useCallback(
+  const goToBuy = useCallback(
     (
       intent?: RampIntent,
       options?: {
@@ -78,37 +78,45 @@ export const useRampNavigation = () => {
     [navigation, isRampsUnifiedV1Enabled, rampRoutingDecision],
   );
 
-  const goToBuy = useCallback(
+  /**
+   * @deprecated Use goToBuy instead. This function always navigates to the aggregator BUY flow,
+   * bypassing unified routing. Use goToBuy for smart routing that respects user preferences.
+   */
+  const goToAggregator = useCallback(
     (intent?: RampIntent) => {
-      goToRamps(intent, {
+      goToBuy(intent, {
         rampType: AggregatorRampType.BUY,
         mode: RampMode.AGGREGATOR,
         overrideUnifiedRouting: true,
       });
     },
-    [goToRamps],
+    [goToBuy],
   );
 
   const goToSell = useCallback(
     (intent?: RampIntent) => {
-      goToRamps(intent, {
+      goToBuy(intent, {
         rampType: AggregatorRampType.SELL,
         mode: RampMode.AGGREGATOR,
         overrideUnifiedRouting: true,
       });
     },
-    [goToRamps],
+    [goToBuy],
   );
 
+  /**
+   * @deprecated Use goToBuy instead. This function always navigates to the deposit flow,
+   * bypassing unified routing. Use goToBuy for smart routing that respects user preferences.
+   */
   const goToDeposit = useCallback(
     (intent?: RampIntent) => {
-      goToRamps(intent, {
+      goToBuy(intent, {
         mode: RampMode.DEPOSIT,
         overrideUnifiedRouting: true,
       });
     },
-    [goToRamps],
+    [goToBuy],
   );
 
-  return { goToRamps, goToBuy, goToSell, goToDeposit };
+  return { goToBuy, goToAggregator, goToSell, goToDeposit };
 };

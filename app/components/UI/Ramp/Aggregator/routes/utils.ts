@@ -23,7 +23,7 @@ export function createRampNavigationDetails(
 }
 
 export function createBuyNavigationDetails(intent?: RampIntent) {
-  // TODO: Use goToRamps hook for managing ramps navigation
+  // TODO: Use goToBuy hook for managing ramps navigation
   // https://consensyssoftware.atlassian.net/browse/TRAM-2813
   // const isRampsUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   // if (isRampsUnifiedV1Enabled) {

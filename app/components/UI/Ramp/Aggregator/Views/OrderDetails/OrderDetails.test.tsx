@@ -28,13 +28,13 @@ const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockDispatch = jest.fn();
-const mockGoToBuy = jest.fn();
+const mockGoToAggregator = jest.fn();
 const mockGoToSell = jest.fn();
 
 jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 jest.mock('../../../hooks/useRampNavigation', () => ({
   useRampNavigation: jest.fn(() => ({
-    goToBuy: mockGoToBuy,
+    goToAggregator: mockGoToAggregator,
     goToSell: mockGoToSell,
   })),
 }));
@@ -310,7 +310,7 @@ describe('OrderDetails', () => {
     fireEvent.press(screen.getByRole('button', { name: 'Start a new order' }));
 
     expect(mockGoBack).toHaveBeenCalled();
-    expect(mockGoToBuy).toHaveBeenCalledWith();
+    expect(mockGoToAggregator).toHaveBeenCalledWith();
   });
 
   it('navigates to sell flow when the user attempts to make another purchase', async () => {
