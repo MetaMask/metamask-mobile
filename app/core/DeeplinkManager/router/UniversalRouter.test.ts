@@ -134,8 +134,8 @@ describe('UniversalRouter', () => {
       }));
       const handler = new MockHandler([ACTIONS.HOME], 10, handleFn);
 
+      // Don't call initialize() to avoid built-in handlers
       router.getRegistry().register(handler);
-      router.initialize(); // Initialize after registering
 
       const result = await router.route('metamask://home', 'test', mockContext);
 
@@ -174,6 +174,7 @@ describe('UniversalRouter', () => {
         }),
       );
 
+      // Don't call initialize() to avoid built-in handlers
       router.getRegistry().register(handler1);
       router.getRegistry().register(handler2);
       router.getRegistry().register(handler3);
@@ -221,8 +222,8 @@ describe('UniversalRouter', () => {
       }));
       const handler = new MockHandler([ACTIONS.HOME], 10, handleFn);
 
+      // Don't call initialize() to avoid built-in handlers
       router.getRegistry().register(handler);
-      router.initialize();
 
       const result = await router.route('metamask://home', 'test', mockContext);
 

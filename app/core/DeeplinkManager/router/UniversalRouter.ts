@@ -41,6 +41,7 @@ export class UniversalRouter {
    */
   initialize(_context?: Partial<HandlerContext>): void {
     if (this.isInitialized) return;
+    this.registry.clear();
 
     // Register built-in handlers
     try {
