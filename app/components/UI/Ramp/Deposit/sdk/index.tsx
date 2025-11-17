@@ -25,8 +25,6 @@ import {
 } from '../utils/ProviderTokenVault';
 import { getSdkEnvironment } from './getSdkEnvironment';
 import {
-  fiatOrdersGetStartedDeposit,
-  setFiatOrdersGetStartedDeposit,
   fiatOrdersRegionSelectorDeposit,
   setFiatOrdersRegionDeposit,
   fiatOrdersCryptoCurrencySelectorDeposit,
@@ -48,8 +46,7 @@ export interface DepositSDK {
   setAuthToken: (token: NativeTransakAccessToken) => Promise<boolean>;
   logoutFromProvider: (requireServerInvalidation?: boolean) => Promise<void>;
   checkExistingToken: () => Promise<boolean>;
-  getStarted: boolean;
-  setGetStarted: (seen: boolean) => void;
+
   selectedWalletAddress: string | null;
   selectedRegion: DepositRegion | null;
   setSelectedRegion: (region: DepositRegion | null) => void;
@@ -99,7 +96,6 @@ export const DepositSDKProvider = ({
     undefined,
   );
 
-  const INITIAL_GET_STARTED = useSelector(fiatOrdersGetStartedDeposit);
   const INITIAL_SELECTED_REGION: DepositRegion | null = useSelector(
     fiatOrdersRegionSelectorDeposit,
   );
@@ -107,7 +103,6 @@ export const DepositSDKProvider = ({
     useSelector(fiatOrdersCryptoCurrencySelectorDeposit);
   const INITIAL_SELECTED_PAYMENT_METHOD: DepositPaymentMethod | null =
     useSelector(fiatOrdersPaymentMethodSelectorDeposit);
-  const [getStarted, setGetStarted] = useState<boolean>(INITIAL_GET_STARTED);
 
   const [selectedRegion, setSelectedRegion] = useState<DepositRegion | null>(
     INITIAL_SELECTED_REGION,
@@ -120,14 +115,6 @@ export const DepositSDKProvider = ({
 
   const selectedWalletAddress = useRampAccountAddress(
     selectedCryptoCurrency?.chainId,
-  );
-
-  const setGetStartedCallback = useCallback(
-    (getStartedFlag: boolean) => {
-      setGetStarted(getStartedFlag);
-      dispatch(setFiatOrdersGetStartedDeposit(getStartedFlag));
-    },
-    [dispatch],
   );
 
   const setSelectedRegionCallback = useCallback(
@@ -253,8 +240,6 @@ export const DepositSDKProvider = ({
       setAuthToken: setAuthTokenCallback,
       logoutFromProvider,
       checkExistingToken,
-      getStarted,
-      setGetStarted: setGetStartedCallback,
       selectedWalletAddress,
       selectedRegion,
       setSelectedRegion: setSelectedRegionCallback,
@@ -274,8 +259,6 @@ export const DepositSDKProvider = ({
       setAuthTokenCallback,
       logoutFromProvider,
       checkExistingToken,
-      getStarted,
-      setGetStartedCallback,
       selectedWalletAddress,
       selectedRegion,
       setSelectedRegionCallback,

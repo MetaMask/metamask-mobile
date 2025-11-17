@@ -1,8 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useDepositSDK } from '../../sdk';
-import GetStarted from './GetStarted/GetStarted';
 import { useSelector } from 'react-redux';
 import { getAllDepositOrders } from '../../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
@@ -15,8 +14,7 @@ const Root = () => {
   const navigation = useNavigation();
   const params = useParams<DepositNavigationParams>();
   const [initialRoute] = useState<string>(Routes.DEPOSIT.BUILD_QUOTE);
-  const { checkExistingToken, getStarted, setIntent } = useDepositSDK();
-
+  const { checkExistingToken, setIntent } = useDepositSDK();
   const hasCheckedToken = useRef(false);
   const orders = useSelector(getAllDepositOrders);
 
@@ -28,7 +26,7 @@ const Root = () => {
 
   useEffect(() => {
     const initializeFlow = async () => {
-      if (hasCheckedToken.current || !getStarted) return;
+      if (hasCheckedToken.current) return;
 
       const isAuthenticatedFromToken = await checkExistingToken();
       hasCheckedToken.current = true;
@@ -72,9 +70,9 @@ const Root = () => {
     };
 
     initializeFlow();
-  }, [checkExistingToken, getStarted, orders, navigation, initialRoute]);
+  }, [checkExistingToken, orders, navigation, initialRoute]);
 
-  return <GetStarted />;
+  return null;
 };
 
 export default Root;

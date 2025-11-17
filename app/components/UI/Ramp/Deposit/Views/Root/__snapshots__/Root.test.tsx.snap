@@ -54,16 +54,15 @@ exports[`Root Component render matches snapshot 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "rgb(255, 255, 255)",
                 "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0,
+                "shadowOpacity": 0.85,
                 "shadowRadius": 0,
               }
             }
@@ -106,231 +105,27 @@ exports[`Root Component render matches snapshot 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
+                  "marginHorizontal": 16,
                   "opacity": 1,
                 }
               }
             >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
+              <Text
+                accessibilityRole="header"
+                aria-level="1"
+                collapsable={false}
+                numberOfLines={1}
+                onLayout={[Function]}
                 style={
                   {
-                    "alignItems": "center",
-                    "justifyContent": "center",
+                    "color": "rgb(28, 28, 30)",
+                    "fontSize": 17,
+                    "fontWeight": "600",
                   }
                 }
               >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist Bold",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Deposit
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
-                }
-              >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
+                DepositRoot
+              </Text>
             </View>
           </View>
         </View>
@@ -447,7 +242,7 @@ exports[`Root Component render matches snapshot 1`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={1}
+              handlerTag={-1}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -516,35 +311,7 @@ exports[`Root Component render matches snapshot 1`] = `
                         "flex": 1,
                       }
                     }
-                  >
-                    <RNCSafeAreaView
-                      edges={
-                        {
-                          "bottom": "additive",
-                          "left": "additive",
-                          "right": "additive",
-                          "top": "off",
-                        }
-                      }
-                      style={
-                        {
-                          "flex": 1,
-                        }
-                      }
-                    >
-                      <View
-                        style={
-                          [
-                            {
-                              "backgroundColor": "#ffffff",
-                              "flex": 1,
-                            },
-                            undefined,
-                          ]
-                        }
-                      />
-                    </RNCSafeAreaView>
-                  </View>
+                  />
                 </View>
               </View>
             </View>

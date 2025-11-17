@@ -13,9 +13,9 @@ export function createRampNavigationDetails(
   return [
     route,
     {
-      screen: Routes.RAMP.GET_STARTED,
+      screen: Routes.RAMP.ID,
       params: {
-        screen: Routes.RAMP.GET_STARTED,
+        screen: Routes.RAMP.BUILD_QUOTE,
         params: intent,
       },
     },
