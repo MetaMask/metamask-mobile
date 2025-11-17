@@ -1,6 +1,5 @@
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
-import { strings } from '../../../../../locales/i18n';
 import SectionHeader from '../components/SectionHeader/SectionHeader';
 import SectionCard from '../components/SectionCard/SectionCard';
 import PerpsMarketRowSkeleton from '../../../UI/Perps/Views/PerpsMarketListView/components/PerpsMarketRowSkeleton';
@@ -16,15 +15,6 @@ const PerpsSection = () => {
   const { markets, isLoading } = usePerpsMarkets();
   const perpsTokens = markets.slice(0, 3);
 
-  const handleViewAll = useCallback(() => {
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.MARKET_LIST,
-      params: {
-        defaultMarketTypeFilter: 'all',
-      },
-    });
-  }, [navigation]);
-
   const handleTokenPress = useCallback(
     (market: PerpsMarketData) => {
       navigation.navigate(Routes.PERPS.ROOT, {
@@ -37,10 +27,7 @@ const PerpsSection = () => {
 
   return (
     <View>
-      <SectionHeader
-        title={strings('trending.perps')}
-        onViewAll={handleViewAll}
-      />
+      <SectionHeader sectionId="perps" />
       <SectionCard>
         {isLoading || perpsTokens.length === 0 ? (
           <>

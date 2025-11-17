@@ -12,8 +12,8 @@ import {
   selectDestToken,
   selectSourceAmount,
 } from '../../../../../core/redux/slices/bridge';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
-import { selectChainId } from '../../../../../selectors/networkController';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { getFormattedAddressFromInternalAccount } from '../../../../../core/Multichain/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import {
   toCaipAccountId,
@@ -104,10 +104,19 @@ export const useRewards = ({
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
+  const getSelectedAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
   );
-  const currentChainId = useSelector(selectChainId);
+
+  const sourceChainId = sourceToken?.chainId
+    ? formatChainIdToCaip(sourceToken.chainId)
+    : undefined;
+  const selectedAccount = sourceChainId
+    ? getSelectedAccountByScope(sourceChainId)
+    : undefined;
+  const selectedAddress = selectedAccount
+    ? getFormattedAddressFromInternalAccount(selectedAccount)
+    : undefined;
 
   const estimatePoints = useCallback(async () => {
     // Skip if no active quote or missing required data
@@ -117,7 +126,7 @@ export const useRewards = ({
       !destToken ||
       !sourceAmount ||
       !selectedAddress ||
-      !currentChainId
+      !sourceChainId
     ) {
       setEstimatedPoints(null);
       return;
@@ -141,7 +150,7 @@ export const useRewards = ({
       // Format account to CAIP-10
       const caipAccount = formatAccountToCaipAccountId(
         selectedAddress,
-        currentChainId,
+        sourceChainId,
       );
 
       if (!caipAccount) {
@@ -232,7 +241,7 @@ export const useRewards = ({
     destToken,
     sourceAmount,
     selectedAddress,
-    currentChainId,
+    sourceChainId,
   ]);
 
   // Estimate points when dependencies change
