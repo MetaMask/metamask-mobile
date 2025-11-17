@@ -194,7 +194,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       },
       () => runOnJS(onAnimationComplete)(),
     );
-  }, [isFullPageAccountList, screen, translateY]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFullPageAccountList]);
 
   const closeModal = useCallback(() => {
     if (isFullPageAccountList) {
