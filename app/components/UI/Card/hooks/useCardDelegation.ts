@@ -279,7 +279,15 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
         );
         setState({ isLoading: false, error: null });
       } catch (error) {
-        if (!(error instanceof UserCancelledError)) {
+        if (error instanceof UserCancelledError) {
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.CARD_DELEGATION_PROCESS_USER_CANCELED,
+            )
+              .addProperties(metricsProps)
+              .build(),
+          );
+        } else {
           trackEvent(
             createEventBuilder(MetaMetricsEvents.CARD_DELEGATION_PROCESS_FAILED)
               .addProperties(metricsProps)
