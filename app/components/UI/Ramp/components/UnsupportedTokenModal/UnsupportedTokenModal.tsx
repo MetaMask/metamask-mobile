@@ -26,7 +26,10 @@ function UnsupportedTokenModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
+      <BottomSheetHeader
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+        closeButtonProps={{ testID: 'bottomsheetheader-close-button' }}
+      >
         <Text variant={TextVariant.HeadingMD}>
           {strings('deposit.token_modal.unsupported_token_title')}
         </Text>
