@@ -28,8 +28,8 @@ const PredictModalStack = () => (
     }}
   >
     <ModalStack.Screen
-      name={Routes.PREDICT.MODALS.GTM_MODAL}
-      component={PredictGTMModal}
+      name={Routes.PREDICT.MODALS.UNAVAILABLE}
+      component={PredictUnavailableModal}
       options={{
         cardStyleInterpolator: ({ current }) => ({
           cardStyle: {
@@ -39,8 +39,8 @@ const PredictModalStack = () => (
       }}
     />
     <ModalStack.Screen
-      name={Routes.PREDICT.MODALS.UNAVAILABLE}
-      component={PredictUnavailableModal}
+      name={Routes.PREDICT.MODALS.GTM_MODAL}
+      component={PredictGTMModal}
       options={{
         cardStyleInterpolator: ({ current }) => ({
           cardStyle: {
