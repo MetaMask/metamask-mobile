@@ -16,12 +16,12 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const mockUseTrendingRequest = jest.fn();
-jest.mock('../../../UI/Assets/hooks/useTrendingRequest', () => ({
+jest.mock('../../../UI/Trending/hooks/useTrendingRequest', () => ({
   useTrendingRequest: (options: unknown) => mockUseTrendingRequest(options),
 }));
 
 jest.mock(
-  '../TrendingTokensSection/TrendingTokensList/TrendingTokensList',
+  '../../../UI/Trending/components/TrendingTokensList/TrendingTokensList',
   () => {
     const { View, Text } = jest.requireActual('react-native');
     return ({
@@ -47,7 +47,7 @@ jest.mock(
 );
 
 jest.mock(
-  '../TrendingTokensSection/TrendingTokenSkeleton/TrendingTokensSkeleton',
+  '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton',
   () => {
     const { View } = jest.requireActual('react-native');
     return ({ count }: { count: number }) => (
@@ -65,35 +65,94 @@ jest.mock('../../../../util/navigation/navUtils', () => ({
   ),
 }));
 
-jest.mock('../TrendingTokensBottomSheet', () => ({
-  createTrendingTokenTimeBottomSheetNavDetails: (params?: unknown) => [
-    'MODAL_ROOT',
-    { screen: 'TrendingTokenTimeBottomSheet', params },
-  ],
-  createTrendingTokenNetworkBottomSheetNavDetails: (params?: unknown) => [
-    'MODAL_ROOT',
-    { screen: 'TrendingTokenNetworkBottomSheet', params },
-  ],
-  createTrendingTokenPriceChangeBottomSheetNavDetails: (params?: unknown) => [
-    'MODAL_ROOT',
-    { screen: 'TrendingTokenPriceChangeBottomSheet', params },
-  ],
-  TimeOption: {
-    TwentyFourHours: '24h',
-    SixHours: '6h',
-    OneHour: '1h',
-    FiveMinutes: '5m',
-  },
-  PriceChangeOption: {
-    PriceChange: 'price_change',
-    Volume: 'volume',
-    MarketCap: 'market_cap',
-  },
-  SortDirection: {
-    Ascending: 'ascending',
-    Descending: 'descending',
-  },
-}));
+jest.mock('../../../UI/Trending/components/TrendingTokensBottomSheet', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    TrendingTokenTimeBottomSheet: ({
+      isVisible,
+      onClose,
+      onTimeSelect,
+    }: {
+      isVisible: boolean;
+      onClose: () => void;
+      onTimeSelect?: (sortBy: string, timeOption: string) => void;
+    }) => {
+      if (!isVisible) return null;
+      return (
+        <View testID="trending-token-time-bottom-sheet">
+          <View
+            testID="time-select-24h"
+            onTouchEnd={() => onTimeSelect?.('h24_trending', '24h')}
+          />
+          <View
+            testID="time-select-6h"
+            onTouchEnd={() => onTimeSelect?.('h6_trending', '6h')}
+          />
+          <View testID="time-close" onTouchEnd={onClose} />
+        </View>
+      );
+    },
+    TrendingTokenNetworkBottomSheet: ({
+      isVisible,
+      onClose,
+      onNetworkSelect,
+    }: {
+      isVisible: boolean;
+      onClose: () => void;
+      onNetworkSelect?: (chainIds: string[] | null) => void;
+    }) => {
+      if (!isVisible) return null;
+      return (
+        <View testID="trending-token-network-bottom-sheet">
+          <View
+            testID="network-select-all"
+            onTouchEnd={() => onNetworkSelect?.(null)}
+          />
+          <View
+            testID="network-select-eip155:1"
+            onTouchEnd={() => onNetworkSelect?.(['eip155:1'])}
+          />
+          <View testID="network-close" onTouchEnd={onClose} />
+        </View>
+      );
+    },
+    TrendingTokenPriceChangeBottomSheet: ({
+      isVisible,
+      onClose,
+      onPriceChangeSelect,
+    }: {
+      isVisible: boolean;
+      onClose: () => void;
+      onPriceChangeSelect?: (option: string, sortDirection: string) => void;
+    }) => {
+      if (!isVisible) return null;
+      return (
+        <View testID="trending-token-price-change-bottom-sheet">
+          <View
+            testID="price-change-select-volume"
+            onTouchEnd={() => onPriceChangeSelect?.('volume', 'ascending')}
+          />
+          <View testID="price-change-close" onTouchEnd={onClose} />
+        </View>
+      );
+    },
+    TimeOption: {
+      TwentyFourHours: '24h',
+      SixHours: '6h',
+      OneHour: '1h',
+      FiveMinutes: '5m',
+    },
+    PriceChangeOption: {
+      PriceChange: 'price_change',
+      Volume: 'volume',
+      MarketCap: 'market_cap',
+    },
+    SortDirection: {
+      Ascending: 'ascending',
+      Descending: 'descending',
+    },
+  };
+});
 
 jest.mock('../../../../component-library/components/HeaderBase', () => {
   const { View } = jest.requireActual('react-native');
@@ -275,7 +334,7 @@ describe('TrendingTokensFullView', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('navigates to time bottom sheet when 24h button is pressed', () => {
+  it('opens time bottom sheet when 24h button is pressed', () => {
     const { getByTestId } = renderWithProvider(
       <TrendingTokensFullView />,
       { state: mockState },
@@ -285,19 +344,10 @@ describe('TrendingTokensFullView', () => {
     const button24h = getByTestId('24h-button');
     fireEvent.press(button24h);
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'MODAL_ROOT',
-      expect.objectContaining({
-        screen: 'TrendingTokenTimeBottomSheet',
-        params: expect.objectContaining({
-          onTimeSelect: expect.any(Function),
-          selectedTime: '24h',
-        }),
-      }),
-    );
+    expect(getByTestId('trending-token-time-bottom-sheet')).toBeTruthy();
   });
 
-  it('navigates to network bottom sheet when all networks button is pressed', () => {
+  it('opens network bottom sheet when all networks button is pressed', () => {
     const { getByTestId } = renderWithProvider(
       <TrendingTokensFullView />,
       { state: mockState },
@@ -307,19 +357,10 @@ describe('TrendingTokensFullView', () => {
     const allNetworksButton = getByTestId('all-networks-button');
     fireEvent.press(allNetworksButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'MODAL_ROOT',
-      expect.objectContaining({
-        screen: 'TrendingTokenNetworkBottomSheet',
-        params: expect.objectContaining({
-          onNetworkSelect: expect.any(Function),
-          selectedNetwork: null,
-        }),
-      }),
-    );
+    expect(getByTestId('trending-token-network-bottom-sheet')).toBeTruthy();
   });
 
-  it('navigates to price change bottom sheet when price change button is pressed', () => {
+  it('opens price change bottom sheet when price change button is pressed', () => {
     const { getByTestId } = renderWithProvider(
       <TrendingTokensFullView />,
       { state: mockState },
@@ -329,17 +370,9 @@ describe('TrendingTokensFullView', () => {
     const priceChangeButton = getByTestId('price-change-button');
     fireEvent.press(priceChangeButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'MODAL_ROOT',
-      expect.objectContaining({
-        screen: 'TrendingTokenPriceChangeBottomSheet',
-        params: expect.objectContaining({
-          onPriceChangeSelect: expect.any(Function),
-          selectedOption: 'price_change',
-          sortDirection: 'descending',
-        }),
-      }),
-    );
+    expect(
+      getByTestId('trending-token-price-change-bottom-sheet'),
+    ).toBeTruthy();
   });
 
   it('displays skeleton loader when loading', () => {
@@ -419,17 +452,10 @@ describe('TrendingTokensFullView', () => {
     const button24h = getByTestId('24h-button');
     fireEvent.press(button24h);
 
-    const navigateCall = mockNavigate.mock.calls.find(
-      (call) => call[1]?.screen === 'TrendingTokenTimeBottomSheet',
-    );
-    expect(navigateCall).toBeTruthy();
-
-    const onTimeSelect = navigateCall?.[1]?.params?.onTimeSelect;
-    if (onTimeSelect) {
-      await act(async () => {
-        onTimeSelect('h6_trending' as never, '6h' as never);
-      });
-    }
+    const timeSelect6h = getByTestId('time-select-6h');
+    await act(async () => {
+      fireEvent(timeSelect6h, 'touchEnd');
+    });
 
     await waitFor(() => {
       expect(mockUseTrendingRequest).toHaveBeenLastCalledWith({
@@ -449,17 +475,10 @@ describe('TrendingTokensFullView', () => {
     const allNetworksButton = getByTestId('all-networks-button');
     fireEvent.press(allNetworksButton);
 
-    const navigateCall = mockNavigate.mock.calls.find(
-      (call) => call[1]?.screen === 'TrendingTokenNetworkBottomSheet',
-    );
-    expect(navigateCall).toBeTruthy();
-
-    const onNetworkSelect = navigateCall?.[1]?.params?.onNetworkSelect;
-    if (onNetworkSelect) {
-      await act(async () => {
-        onNetworkSelect(['eip155:1']);
-      });
-    }
+    const networkSelect = getByTestId('network-select-eip155:1');
+    await act(async () => {
+      fireEvent(networkSelect, 'touchEnd');
+    });
 
     await waitFor(() => {
       expect(mockUseTrendingRequest).toHaveBeenLastCalledWith({
