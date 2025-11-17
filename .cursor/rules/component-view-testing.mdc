@@ -1,14 +1,14 @@
 ---
-description: Mobile integration testing rules (project-wide). Engine-only mocks, state-driven tests, presets/renderers, deterministicFiat, AAA, execution.
+description: Mobile component-view testing rules (project-wide). Engine-only mocks, state-driven tests, presets/renderers, deterministicFiat, AAA, execution.
 globs:
-  - "**/*.integration.test.{ts,tsx,js,jsx}"
-  - "app/util/test/integration/**"
+  - "**/*.view.test.{ts,tsx,js,jsx}"
+  - "app/util/test/component-view/**"
 alwaysApply: false
 ---
 
-## Integration Testing (Project-wide)
+## Component-view Testing (Project-wide)
 
-Follow these rules for all integration tests. Nested, component-specific rules may also apply.
+Follow these rules for all component-view tests. Nested, component-specific rules may also apply.
 
 - **Mock policy**
   - Only mock `../../../core/Engine`, `../../../core/Engine/Engine`, and `react-native-device-info`.
@@ -22,7 +22,7 @@ Follow these rules for all integration tests. Nested, component-specific rules m
   - Prefer `deterministicFiat: true` for exact fiat assertions.
 
 - **Navigation tests**
-  - Use `renderIntegrationScreenWithRoutes` and build `state` via the preset + minimal overrides.
+  - Use `renderScreenWithRoutes` and build `state` via the preset + minimal overrides.
   - Assert using route names from `app/constants/navigation/Routes.ts`.
 
 - **Test structure**
@@ -35,9 +35,9 @@ Follow these rules for all integration tests. Nested, component-specific rules m
   - Use yarn only (no npm/npx).
 
 - **References**
-  - Integration framework guide: `app/util/test/integration/README.md`
-  - Detailed rules: `app/util/test/integration/INTEGRATION_TEST_RULES.md`
+  - Component-view framework guide: `app/util/test/component-view/README.md`
+  - Detailed rules: `app/util/test/component-view/COMPONENT_VIEW_TEST_RULES.md`
   - Cursor authoring rules: [Cursor Context Rules](https://cursor.com/docs/context/rules)
 
-@app/util/test/integration/README.md
-@app/util/test/integration/INTEGRATION_TEST_RULES.md
+@app/util/test/component-view/README.md
+@app/util/test/component-view/COMPONENT_VIEW_TEST_RULES.md

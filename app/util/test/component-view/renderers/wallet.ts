@@ -2,7 +2,7 @@ import '../mocks';
 import React from 'react';
 import type { DeepPartial } from '../../renderWithProvider';
 import type { RootState } from '../../../../reducers';
-import { renderIntegrationScreen } from '../render';
+import { renderComponentViewScreen } from '../render';
 import Routes from '../../../../constants/navigation/Routes';
 import Wallet from '../../../../components/Views/Wallet';
 import { initialStateWallet } from '../presets/wallet';
@@ -18,7 +18,7 @@ interface RenderWalletViewOptions {
  */
 export function renderWalletView(
   options: RenderWalletViewOptions = {},
-): ReturnType<typeof renderIntegrationScreen> {
+): ReturnType<typeof renderComponentViewScreen> {
   const { overrides, deterministicFiat } = options;
 
   const builder = initialStateWallet({ deterministicFiat });
@@ -27,7 +27,7 @@ export function renderWalletView(
   }
   const state = builder.build();
 
-  return renderIntegrationScreen(
+  return renderComponentViewScreen(
     Wallet as unknown as React.ComponentType,
     { name: Routes.WALLET_VIEW },
     { state },

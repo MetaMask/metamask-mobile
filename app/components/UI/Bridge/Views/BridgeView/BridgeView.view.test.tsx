@@ -1,17 +1,17 @@
-import '../../../../../util/test/integration/mocks';
+import '../../../../../util/test/component-view/mocks';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import { renderBridgeView } from '../../../../../util/test/integration/renderers/bridge';
+import { renderBridgeView } from '../../../../../util/test/component-view/renderers/bridge';
 import { fireEvent, waitFor, within } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import React from 'react';
 import { Text } from 'react-native';
-import { renderIntegrationScreenWithRoutes } from '../../../../../util/test/integration/render';
+import { renderScreenWithRoutes } from '../../../../../util/test/component-view/render';
 import Routes from '../../../../../constants/navigation/Routes';
-import { initialStateBridge } from '../../../../../util/test/integration/presets/bridge';
+import { initialStateBridge } from '../../../../../util/test/component-view/presets/bridge';
 import BridgeView from './index';
 import { describeForPlatforms } from '../../../../../util/test/platform';
 
-describeForPlatforms('BridgeView (integration)', () => {
+describeForPlatforms('BridgeView', () => {
   it('renders input areas and hides confirm button without tokens or amount', () => {
     const { getByTestId, queryByTestId } = renderBridgeView({
       overrides: {
@@ -225,7 +225,7 @@ describeForPlatforms('BridgeView (integration)', () => {
         },
       } as unknown as Record<string, unknown>)
       .build() as unknown as Record<string, unknown>;
-    const { findByText } = renderIntegrationScreenWithRoutes(
+    const { findByText } = renderScreenWithRoutes(
       // Component
       BridgeView as unknown as React.ComponentType,
       // Entry route

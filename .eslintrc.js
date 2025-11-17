@@ -148,7 +148,7 @@ module.exports = {
       },
     },
     {
-      files: ['**/*.integration.test.{js,ts,tsx,jsx}'],
+      files: ['**/*.view.test.{js,ts,tsx,jsx}'],
       rules: {
         'no-restricted-syntax': [
           'error',
@@ -156,7 +156,7 @@ module.exports = {
             selector:
               "CallExpression[callee.object.name='jest'][callee.property.name='mock'][arguments.0.type='Literal'][arguments.0.value!='../../../core/Engine'][arguments.0.value!='../../../core/Engine/Engine'][arguments.0.value!='react-native-device-info']",
             message:
-              'Only Engine and react-native-device-info can be mocked in integration tests.',
+              'Only Engine and react-native-device-info can be mocked in component-view tests.',
           },
         ],
       },
