@@ -11,13 +11,13 @@ import I18n from '../../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { AssetType, TokenStandard } from '../../types/token';
-import { useSendScope } from './useSendScope';
+import { useSendType } from './useSendType';
 
 export function useAccountTokens({
   includeNoBalance = false,
 } = {}): AssetType[] {
   const assets = useSelector(selectFilteredAssetsBySelectedAccountGroup);
-  const { isEvmOnly, isSolanaOnly } = useSendScope();
+  const { isEvmSendType, isSolanaSendType } = useSendType();
   const fiatCurrency = useSelector(selectCurrentCurrency);
 
   return useMemo(() => {
@@ -25,11 +25,11 @@ export function useAccountTokens({
 
     let filteredAssets;
 
-    if (isEvmOnly) {
+    if (isEvmSendType) {
       filteredAssets = flatAssets.filter((asset) =>
         asset.accountType.includes('eip155'),
       );
-    } else if (isSolanaOnly) {
+    } else if (isSolanaSendType) {
       filteredAssets = flatAssets.filter((asset) =>
         asset.accountType.includes('solana'),
       );
@@ -88,8 +88,8 @@ export function useAccountTokens({
   }, [
     assets,
     includeNoBalance,
-    isEvmOnly,
-    isSolanaOnly,
+    isEvmSendType,
+    isSolanaSendType,
     fiatCurrency,
   ]) as unknown as AssetType[];
 }
