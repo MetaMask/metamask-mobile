@@ -168,9 +168,14 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   const onError = useCallback(
     async (error: Error) => {
       if (onScanError && error) {
-        const deviceName = await withQrKeyring(
-          async ({ keyring }) => await keyring.getName(),
-        );
+        let deviceName;
+        try {
+          deviceName = await withQrKeyring(
+            async ({ keyring }) => await keyring.getName(),
+          );
+        } catch {
+          deviceName = 'Unknown';
+        }
         trackEvent(
           createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
             .addProperties({
@@ -195,10 +200,16 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
       if (!response.data) {
         return;
       }
-      const deviceName = await withQrKeyring(
-        async ({ keyring }) => await keyring.getName(),
-      );
       try {
+        let deviceName;
+        try {
+          deviceName = await withQrKeyring(
+            async ({ keyring }) => await keyring.getName(),
+          );
+        } catch {
+          deviceName = 'Unknown';
+        }
+
         const content = response.data;
         urDecoder.receivePart(content);
         setProgress(Math.ceil(urDecoder.getProgress() * 100));
@@ -246,6 +257,14 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
           }
         }
       } catch (e) {
+        let deviceName;
+        try {
+          deviceName = await withQrKeyring(
+            async ({ keyring }) => await keyring.getName(),
+          );
+        } catch {
+          deviceName = 'Unknown';
+        }
         trackEvent(
           createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
             .addProperties({

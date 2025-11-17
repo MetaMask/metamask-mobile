@@ -44,7 +44,7 @@ export const useCamera = (isSigningQRObject: boolean) => {
               )
                 .addProperties({
                   permission: PERMISSION_TYPE.CAMERA,
-                  result: PERMISSION_RESULT.UNAVAILABLE,
+                  result: PERMISSION_RESULT.LIMITED,
                   device_type: HardwareDeviceTypes.QR,
                 })
                 .build(),

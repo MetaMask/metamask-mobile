@@ -140,17 +140,19 @@ const LedgerSelectAccount = () => {
   };
 
   useEffect(() => {
-    trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.HARDWARE_WALLET_ACCOUNT_SELECTOR_OPEN,
-      )
-        .addProperties({
-          device_type: HardwareDeviceTypes.LEDGER,
-          device_model: selectedDevice?.name,
-        })
-        .build(),
-    );
-  }, [trackEvent, createEventBuilder, selectedDevice?.name]);
+    if (selectedDevice && accounts.length > 0) {
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.HARDWARE_WALLET_ACCOUNT_SELECTOR_OPEN,
+        )
+          .addProperties({
+            device_type: HardwareDeviceTypes.LEDGER,
+            device_model: selectedDevice?.name,
+          })
+          .build(),
+      );
+    }
+  }, [trackEvent, createEventBuilder, selectedDevice, accounts]);
 
   const onConnectHardware = useCallback(async () => {
     setErrorMsg(null);
