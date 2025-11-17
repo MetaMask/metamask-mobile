@@ -9,8 +9,15 @@ import {
   formatCents,
   formatPositionSize,
   calculateNetAmount,
+  formatPriceWithDecimals,
 } from './format';
 import { Recurrence, PredictSeries } from '../types';
+
+import { formatWithThreshold } from '../../../../util/assets';
+
+const mockFormatWithThreshold = formatWithThreshold as jest.MockedFunction<
+  typeof formatWithThreshold
+>;
 
 // Mock the formatWithThreshold utility
 jest.mock('../../../../util/assets', () => ({
@@ -283,6 +290,247 @@ describe('format utils', () => {
     ])('formats boundary value %f as %s', (input, expected) => {
       const result = formatPrice(input);
       expect(result).toBe(expected);
+    });
+  });
+
+  describe('formatPriceWithDecimals', () => {
+    beforeEach(() => {
+      mockFormatWithThreshold.mockImplementation(
+        (value, _threshold, locale, options) =>
+          new Intl.NumberFormat(locale, options).format(Number(value)),
+      );
+    });
+
+    describe('prices >= 1000', () => {
+      it('formats prices >= 1000 with default 2 minimum decimals', () => {
+        // Arrange & Act
+        const result = formatPriceWithDecimals(1234.5678);
+
+        // Assert
+        expect(result).toBe('$1,234.57');
+        expect(mockFormatWithThreshold).toHaveBeenCalledWith(
+          1234.5678,
+          1000,
+          'en-US',
+          {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          },
+        );
+      });
+
+      it('formats prices >= 1000 with custom minimum decimals', () => {
+        // Arrange & Act
+        const result = formatPriceWithDecimals(50000, { minimumDecimals: 0 });
+
+        // Assert
+        expect(result).toBe('$50,000');
+        expect(mockFormatWithThreshold).toHaveBeenCalledWith(
+          50000,
+          1000,
+          'en-US',
+          {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
+          },
+        );
+      });
+
+      it('formats prices >= 1000 with 4 maximum decimals when minimum is higher', () => {
+        // Arrange & Act
+        const result = formatPriceWithDecimals(1234.5678, {
+          minimumDecimals: 4,
+        });
+
+        // Assert
+        expect(result).toBe('$1,234.5678');
+        expect(mockFormatWithThreshold).toHaveBeenCalledWith(
+          1234.5678,
+          1000,
+          'en-US',
+          {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 4,
+            maximumFractionDigits: 4,
+          },
+        );
+      });
+    });
+
+    describe('prices < 1000', () => {
+      it('formats prices < 1000 with up to 4 decimal places', () => {
+        // Arrange & Act
+        const result = formatPriceWithDecimals(0.1234);
+
+        // Assert
+        expect(result).toBe('$0.1234');
+        expect(mockFormatWithThreshold).toHaveBeenCalledWith(
+          0.1234,
+          0.0001,
+          'en-US',
+          {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 4,
+          },
+        );
+      });
+
+      it('formats prices < 1000 with custom minimum decimals', () => {
+        // Arrange & Act
+        const result = formatPriceWithDecimals(123.4567, {
+          minimumDecimals: 0,
+        });
+
+        // Assert
+        expect(result).toBe('$123.4567');
+        expect(mockFormatWithThreshold).toHaveBeenCalledWith(
+          123.4567,
+          0.0001,
+          'en-US',
+          {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 4,
+          },
+        );
+      });
+
+      it('formats small prices with 4-decimal rounding', () => {
+        // Arrange & Act
+        const result = formatPriceWithDecimals(0.0001234);
+
+        // Assert
+        expect(result).toBe('$0.0001');
+        expect(mockFormatWithThreshold).toHaveBeenCalledWith(
+          0.0001234,
+          0.0001,
+          'en-US',
+          {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 4,
+          },
+        );
+      });
+    });
+
+    describe('string inputs', () => {
+      it('handles string input with decimal value', () => {
+        // Arrange & Act
+        const result = formatPriceWithDecimals('1234.5678');
+
+        // Assert
+        expect(result).toBe('$1,234.57');
+      });
+
+      it('handles string input with small value', () => {
+        // Arrange & Act
+        const result = formatPriceWithDecimals('0.1234');
+
+        // Assert
+        expect(result).toBe('$0.1234');
+      });
+    });
+
+    describe('NaN and invalid inputs', () => {
+      it('returns default value for NaN with default decimals', () => {
+        // Arrange & Act
+        const result = formatPriceWithDecimals('not-a-number');
+
+        // Assert
+        expect(result).toBe('$0.00');
+      });
+
+      it('returns default value for NaN with minimumDecimals 0', () => {
+        // Arrange & Act
+        const result = formatPriceWithDecimals(NaN, { minimumDecimals: 0 });
+
+        // Assert
+        expect(result).toBe('$0');
+      });
+
+      it('returns default value for invalid string', () => {
+        // Arrange & Act
+        const result = formatPriceWithDecimals('abc');
+
+        // Assert
+        expect(result).toBe('$0.00');
+      });
+
+      it('returns default value for empty string', () => {
+        // Arrange & Act
+        const result = formatPriceWithDecimals('');
+
+        // Assert
+        expect(result).toBe('$0.00');
+      });
+    });
+
+    describe('edge cases', () => {
+      it('formats exactly 1000 correctly', () => {
+        // Arrange & Act
+        const result = formatPriceWithDecimals(1000);
+
+        // Assert
+        expect(result).toBe('$1,000.00');
+        expect(mockFormatWithThreshold).toHaveBeenCalledWith(
+          1000,
+          1000,
+          'en-US',
+          {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          },
+        );
+      });
+
+      it('formats negative prices correctly', () => {
+        // Arrange & Act
+        const result = formatPriceWithDecimals(-1234.56);
+
+        // Assert
+        expect(result).toBe('-$1,234.56');
+      });
+
+      it('formats zero correctly', () => {
+        // Arrange & Act
+        const result = formatPriceWithDecimals(0);
+
+        // Assert
+        expect(result).toBe('$0.00');
+      });
+
+      it('formats very large numbers correctly', () => {
+        // Arrange & Act
+        const result = formatPriceWithDecimals(1000000);
+
+        // Assert
+        expect(result).toBe('$1,000,000.00');
+      });
+    });
+
+    describe('boundary values', () => {
+      it.each([
+        [999.999, '$999.999'],
+        [1000, '$1,000.00'],
+        [1000.001, '$1,000.00'],
+        [0.9999, '$0.9999'],
+        [0.00009999, '$0.0001'],
+      ])('formats boundary value %f as %s', (input, expected) => {
+        const result = formatPriceWithDecimals(input);
+        expect(result).toBe(expected);
+      });
     });
   });
 
