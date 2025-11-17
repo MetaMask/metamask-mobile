@@ -4,6 +4,20 @@ jest.mock('../../../util/Logger', () => ({
   log: jest.fn(),
 }));
 
+// Mock AsyncStorage
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  getItem: jest.fn(() => Promise.resolve(null)),
+  setItem: jest.fn(() => Promise.resolve()),
+  removeItem: jest.fn(() => Promise.resolve()),
+}));
+
+// Mock getVaultFromBackup
+jest.mock('../../../core/BackupVault', () => ({
+  getVaultFromBackup: jest.fn(() =>
+    Promise.resolve({ success: false, vault: null }),
+  ),
+}));
+
 // Mock animation components - using existing mocks
 jest.mock('../../UI/FoxAnimation/FoxAnimation');
 jest.mock('../../UI/OnboardingAnimation/OnboardingAnimation');
@@ -15,6 +29,8 @@ import {
   Animated,
   Platform,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getVaultFromBackup } from '../../../core/BackupVault';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import Onboarding from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -27,6 +43,8 @@ import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { strings } from '../../../../locales/i18n';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
+import Logger from '../../../util/Logger';
+import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
 
 // Mock netinfo - using existing mock
 jest.mock('@react-native-community/netinfo');
@@ -1355,14 +1373,24 @@ describe('Onboarding', () => {
   });
 
   describe('checkForMigrationFailureAndVaultBackup', () => {
+    const mockGetVaultFromBackup = getVaultFromBackup as jest.Mock;
+    const mockAsyncStorageGetItem = AsyncStorage.getItem as jest.Mock;
+    const mockNavReset = mockNav.reset as jest.Mock;
+
     beforeEach(() => {
       jest.clearAllMocks();
-      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+      mockAsyncStorageGetItem.mockResolvedValue(null);
+      mockGetVaultFromBackup.mockResolvedValue({
+        success: false,
+        vault: null,
+      });
+      mockIsE2E = false;
     });
 
     it('returns early when route.params.delete is true', async () => {
       // Arrange
-      const { toJSON } = renderScreen(
+      mockGetVaultFromBackup.mockClear();
+      renderScreen(
         Onboarding,
         { name: 'Onboarding' },
         {
@@ -1372,17 +1400,18 @@ describe('Onboarding', () => {
       );
 
       // Act - Component mounts and checkForMigrationFailureAndVaultBackup is called
-      await waitFor(() => {
-        expect(toJSON()).toBeDefined();
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
-      // Assert - When delete param is true, vault backup check is skipped
-      expect(StorageWrapper.getItem).not.toHaveBeenCalled();
+      // Assert - When delete param is true, vault backup check is never reached
+      expect(mockGetVaultFromBackup).not.toHaveBeenCalled();
     });
 
     it('skips vault backup check when running in E2E test environment', async () => {
       // Arrange
       mockIsE2E = true;
+      mockGetVaultFromBackup.mockClear();
 
       // Act
       renderScreen(
@@ -1394,14 +1423,165 @@ describe('Onboarding', () => {
       );
 
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
-      // Assert
-      expect(StorageWrapper.getItem).not.toHaveBeenCalled();
+      // Assert - When in E2E mode, vault backup check is never reached
+      expect(mockGetVaultFromBackup).not.toHaveBeenCalled();
 
       // Cleanup
       mockIsE2E = false;
+    });
+
+    it('checks migration error flag when not E2E and no delete param', async () => {
+      // Arrange
+      mockAsyncStorageGetItem.mockClear();
+      mockAsyncStorageGetItem.mockResolvedValue(null);
+
+      // Act
+      renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      // Assert
+      await waitFor(() => {
+        expect(mockAsyncStorageGetItem).toHaveBeenCalledWith(
+          MIGRATION_ERROR_HAPPENED,
+        );
+      });
+    });
+
+    it('does not redirect when migration error flag is not set', async () => {
+      // Arrange
+      mockAsyncStorageGetItem.mockResolvedValue(null);
+      mockGetVaultFromBackup.mockResolvedValue({
+        success: true,
+        vault: 'mock-vault',
+      });
+
+      // Act
+      renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Assert
+      expect(mockNavReset).not.toHaveBeenCalled();
+    });
+
+    it('does not redirect when migration error flag is set but vault backup does not exist', async () => {
+      // Arrange
+      mockAsyncStorageGetItem.mockResolvedValue('true');
+      mockGetVaultFromBackup.mockResolvedValue({
+        success: false,
+        vault: null,
+      });
+
+      // Act
+      renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Assert
+      expect(mockGetVaultFromBackup).toHaveBeenCalled();
+      expect(mockNavReset).not.toHaveBeenCalled();
+    });
+
+    it('redirects to vault recovery when migration error flag is set and vault backup exists', async () => {
+      // Arrange
+      mockAsyncStorageGetItem.mockResolvedValue('true');
+      mockGetVaultFromBackup.mockResolvedValue({
+        success: true,
+        vault: 'mock-vault-data',
+      });
+
+      // Act
+      renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      // Assert
+      await waitFor(() => {
+        expect(mockNavReset).toHaveBeenCalledWith({
+          routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
+        });
+      });
+    });
+
+    it('handles errors during vault backup check gracefully', async () => {
+      // Arrange
+      const mockError = new Error('Vault backup check failed');
+      mockAsyncStorageGetItem.mockResolvedValue('true');
+      mockGetVaultFromBackup.mockRejectedValue(mockError);
+
+      // Act
+      renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Assert
+      expect(Logger.error).toHaveBeenCalledWith(
+        mockError,
+        'Failed to check for migration failure and vault backup',
+      );
+      expect(mockNavReset).not.toHaveBeenCalled();
+    });
+
+    it('handles errors during AsyncStorage read gracefully', async () => {
+      // Arrange
+      const mockError = new Error('AsyncStorage read failed');
+      mockAsyncStorageGetItem.mockRejectedValue(mockError);
+
+      // Act
+      renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Assert
+      expect(Logger.error).toHaveBeenCalledWith(
+        mockError,
+        'Failed to check for migration failure and vault backup',
+      );
+      expect(mockNavReset).not.toHaveBeenCalled();
     });
 
     it('accesses existingUser prop from Redux state', async () => {
