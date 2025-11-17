@@ -47,6 +47,19 @@ export const useSearchTokens = ({
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const currentSearchQueryRef = useRef<string>('');
 
+  // Use refs to store the latest values without causing re-renders or callback recreation
+  const chainIdsRef = useRef(chainIds);
+  const includeAssetsRef = useRef(includeAssets);
+
+  // Update refs when values change
+  useEffect(() => {
+    chainIdsRef.current = chainIds;
+  }, [chainIds]);
+
+  useEffect(() => {
+    includeAssetsRef.current = includeAssets;
+  }, [includeAssets]);
+
   const resetSearch = useCallback(() => {
     setSearchResults([]);
     setSearchCursor(undefined);
@@ -73,7 +86,9 @@ export const useSearchTokens = ({
       }
 
       try {
-        const parsedIncludeAssets: IncludeAsset[] = JSON.parse(includeAssets);
+        const parsedIncludeAssets: IncludeAsset[] = JSON.parse(
+          includeAssetsRef.current,
+        );
 
         const requestBody: {
           chainIds: CaipChainId[];
@@ -81,7 +96,7 @@ export const useSearchTokens = ({
           after?: string;
           includeAssets?: IncludeAsset[];
         } = {
-          chainIds,
+          chainIds: chainIdsRef.current,
           query: query.trim(),
         };
 
@@ -137,7 +152,7 @@ export const useSearchTokens = ({
         }
       }
     },
-    [chainIds, includeAssets, resetSearch],
+    [resetSearch],
   );
 
   // Create debounced search function
