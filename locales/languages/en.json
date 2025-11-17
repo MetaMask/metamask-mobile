@@ -5841,7 +5841,7 @@
     "nested_transaction_heading": "Transaction {{index}}",
     "transaction": "Transaction",
     "available_balance": "Available: ",
-    "edit_amount_done": "Done",
+    "edit_amount_done": "Continue",
     "deposit_edit_amount_done": "Add funds",
     "deposit_edit_amount_predict_withdraw": "Withdraw"
   },
