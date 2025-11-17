@@ -275,6 +275,19 @@ const TrendingTokensFullView = () => {
     );
   }, [navigation, handleTimeSelect, selectedTimeOption]);
 
+  // Get the button text based on selected price change option
+  const priceChangeButtonText = useMemo(() => {
+    switch (selectedPriceChangeOption) {
+      case PriceChangeOption.Volume:
+        return strings('trending.volume');
+      case PriceChangeOption.MarketCap:
+        return strings('trending.market_cap');
+      case PriceChangeOption.PriceChange:
+      default:
+        return strings('trending.price_change');
+    }
+  }, [selectedPriceChangeOption]);
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['left', 'right', 'bottom']}>
       <View
@@ -322,7 +335,7 @@ const TrendingTokensFullView = () => {
           >
             <View style={styles.controlButtonContent}>
               <Text style={styles.controlButtonText}>
-                {strings('trending.price_change')}
+                {priceChangeButtonText}
               </Text>
               <Icon
                 name={IconName.ArrowDown}
