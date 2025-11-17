@@ -38,22 +38,26 @@ export class NavigationHandler extends BaseHandler {
           break;
 
         case ACTIONS.CREATE_ACCOUNT:
+          // todo: implement create account to match handleCreateAccountUrl.ts
           this.navigate(context, Routes.MODAL.ROOT_MODAL_FLOW, {
             screen: Routes.MODAL.MODAL_CONFIRMATION,
           });
           break;
 
         case ACTIONS.REWARDS:
+          // todo: implement rewards to match handlRewardsUrl.ts
           this.navigate(context, Routes.REWARDS_VIEW, link.params);
           break;
 
         case ACTIONS.PREDICT:
+          // todo: implement predict to match handlePredictUrl.ts
           this.navigate(context, Routes.PREDICT.ROOT, link.params);
           break;
 
         case ACTIONS.PERPS:
         case ACTIONS.PERPS_MARKETS:
         case ACTIONS.PERPS_ASSET: {
+          // todo: implement perps to match handlePerpsUrl.ts
           const perpsPath = link.params.perpsPath || '/markets';
           this.navigate(context, Routes.PERPS.ROOT, { path: perpsPath });
           break;

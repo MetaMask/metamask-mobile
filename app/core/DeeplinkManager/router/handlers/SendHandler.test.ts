@@ -1,13 +1,17 @@
 import { SendHandler } from './SendHandler';
 import { ACTIONS } from '../../../../constants/deeplinks';
 import Routes from '../../../../constants/navigation/Routes';
-import {
-  createMockContext,
-  createMockLink,
-  mockLockedWallet,
-} from '../testUtils';
+import { createMockContext, createMockLink } from '../testUtils';
+import Engine from '../../../Engine';
 
 jest.mock('../../../../util/Logger');
+jest.mock('../../../Engine', () => ({
+  context: {
+    KeyringController: {
+      isUnlocked: jest.fn(() => true),
+    },
+  },
+}));
 
 describe('SendHandler', () => {
   let handler: SendHandler;
@@ -50,7 +54,9 @@ describe('SendHandler', () => {
     });
 
     it('requires authentication for send transactions', async () => {
-      mockLockedWallet(mockContext);
+      (
+        Engine.context.KeyringController.isUnlocked as jest.Mock
+      ).mockReturnValue(false);
       const link = createMockLink(ACTIONS.SEND, { to: '0x123' }, true);
 
       const result = await handler.handle(link, mockContext);

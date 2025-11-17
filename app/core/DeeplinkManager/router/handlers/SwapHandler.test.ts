@@ -1,13 +1,17 @@
 import { SwapHandler } from './SwapHandler';
 import { ACTIONS } from '../../../../constants/deeplinks';
-import {
-  createMockContext,
-  createMockLink,
-  mockLockedWallet,
-} from '../testUtils';
+import { createMockContext, createMockLink } from '../testUtils';
 import Routes from '../../../../constants/navigation/Routes';
+import Engine from '../../../Engine';
 
 jest.mock('../../../../util/Logger');
+jest.mock('../../../Engine', () => ({
+  context: {
+    KeyringController: {
+      isUnlocked: jest.fn(() => true),
+    },
+  },
+}));
 
 describe('SwapHandler', () => {
   let handler: SwapHandler;
@@ -40,7 +44,9 @@ describe('SwapHandler', () => {
   });
 
   it('requires authentication for swap', async () => {
-    mockLockedWallet(mockContext);
+    (Engine.context.KeyringController.isUnlocked as jest.Mock).mockReturnValue(
+      false,
+    );
     const link = createMockLink(ACTIONS.SWAP, {}, true);
 
     const result = await handler.handle(link, mockContext);

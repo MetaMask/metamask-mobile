@@ -22,9 +22,21 @@ export class SendHandler extends BaseHandler {
     try {
       Logger.log(`💸 SendHandler processing: ${link.action}`, link.params);
 
-      // Authentication is required for send/approve
+      // Check for APPROVE action first - delegate to legacy immediately
+      if (link.action === ACTIONS.APPROVE) {
+        // ethereum: syntax
+        // Approve requires transaction creation, delegate to legacy
+        Logger.log('Approve action requires legacy system');
+        return {
+          handled: false,
+          fallbackToLegacy: true,
+          metadata: { reason: 'approve_requires_transaction' },
+        };
+      }
+
+      // Authentication is required for send
       if (!this.isAuthenticated(context)) {
-        Logger.log('Send/Approve requires authentication');
+        Logger.log('Send requires authentication');
         return {
           handled: false,
           fallbackToLegacy: true,
@@ -54,14 +66,6 @@ export class SendHandler extends BaseHandler {
           hasChainId: !!chainId,
           source: link.source,
         });
-      } else if (link.action === ACTIONS.APPROVE) {
-        // Approve requires transaction creation, delegate to legacy
-        Logger.log('Approve action requires legacy system');
-        return {
-          handled: false,
-          fallbackToLegacy: true,
-          metadata: { reason: 'approve_requires_transaction' },
-        };
       }
 
       return this.createSuccessResult({

@@ -4,13 +4,17 @@ import {
   HandlerContext,
   HandlerResult,
 } from '../interfaces/UniversalLinkHandler';
-import {
-  createMockContext,
-  createMockLink,
-  mockLockedWallet,
-} from '../testUtils';
+import { createMockContext, createMockLink } from '../testUtils';
+import Engine from '../../../Engine';
 
 jest.mock('../../../../util/Logger');
+jest.mock('../../../Engine', () => ({
+  context: {
+    KeyringController: {
+      isUnlocked: jest.fn(() => true),
+    },
+  },
+}));
 
 class TestHandler extends BaseHandler {
   readonly supportedActions = ['test'];
@@ -44,11 +48,16 @@ describe('BaseHandler', () => {
 
   describe('isAuthenticated', () => {
     it('returns true when wallet is unlocked', () => {
+      (
+        Engine.context.KeyringController.isUnlocked as jest.Mock
+      ).mockReturnValue(true);
       expect(handler.testIsAuthenticated(mockContext)).toBe(true);
     });
 
     it('returns false when wallet is locked', () => {
-      mockLockedWallet(mockContext);
+      (
+        Engine.context.KeyringController.isUnlocked as jest.Mock
+      ).mockReturnValue(false);
       expect(handler.testIsAuthenticated(mockContext)).toBe(false);
     });
   });

@@ -6,6 +6,7 @@ import {
 import { CoreUniversalLink } from '../../types/CoreUniversalLink';
 import Logger from '../../../../util/Logger';
 import Routes from '../../../../constants/navigation/Routes';
+import Engine from '../../../Engine';
 
 /**
  * Base handler with common utilities for all deep link handlers
@@ -32,12 +33,11 @@ export abstract class BaseHandler extends UniversalLinkHandler {
   /**
    * Check if user is authenticated
    */
-  protected isAuthenticated(context: HandlerContext): boolean {
+  protected isAuthenticated(_context: HandlerContext): boolean {
     // Check if wallet is unlocked via Engine
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const Engine = (context.instance as any)?.context?.KeyringController;
-      return Engine?.isUnlocked?.() ?? false;
+      const { KeyringController } = Engine.context;
+      return KeyringController.isUnlocked?.() ?? false;
     } catch {
       return false;
     }
