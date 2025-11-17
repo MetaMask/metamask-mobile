@@ -19,6 +19,8 @@ export const initialStateBridge = (options?: InitialStateBridgeOptions) => {
     .withMinimalAccounts()
     .withMinimalMainnetNetwork()
     .withMinimalMultichainNetwork(true)
+    .withMinimalMultichainAssets()
+    .withMinimalMultichainTransactions()
     .withMinimalSmartTransactions()
     .withPreferences({
       smartTransactionsOptInStatus: false,
@@ -30,6 +32,7 @@ export const initialStateBridge = (options?: InitialStateBridgeOptions) => {
     .withMinimalKeyringController()
     .withMinimalTokenRates()
     .withMinimalMultichainAssetsRates()
+    .withMinimalMultichainBalances()
     .withAccountTreeForSelectedAccount()
     .withRemoteFeatureFlags({});
 
