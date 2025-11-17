@@ -518,17 +518,10 @@ const ImportFromSecretRecoveryPhrase = ({
         keyboardDismissMode="none"
         enableOnAndroid
         enableAutomaticScroll
-        extraScrollHeight={240}
+        extraScrollHeight={250}
         keyboardOpeningTime={0}
         showsVerticalScrollIndicator={false}
       >
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-          {strings('import_from_seed.steps', {
-            currentStep: currentStep + 1,
-            totalSteps: 2,
-          })}
-        </Text>
-
         {currentStep === 0 && (
           <>
             <Text

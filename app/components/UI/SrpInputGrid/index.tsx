@@ -34,6 +34,29 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 export interface SrpInputGridRef {
   handleSeedPhraseChange: (seedPhraseText: string) => void;
 }
+
+const suggestionBarStyles = StyleSheet.create({
+  container: {
+    paddingVertical: 1,
+  },
+  listContent: {
+    alignItems: 'center',
+  },
+  suggestionButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+    marginRight: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    minWidth: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pressed: {
+    opacity: 0.7,
+  },
+});
+
 /**
  * SrpInputGrid Component
  *
@@ -434,10 +457,11 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                   isError={errorWordIndexes[index]}
                   autoCapitalize="none"
                   testID={`${testIdPrefix}_${index}`}
-                  keyboardType="default"
+                  keyboardType="visible-password"
                   autoCorrect={false}
-                  textContentType="oneTimeCode"
+                  textContentType="none"
                   spellCheck={false}
+                  importantForAutofill="no"
                   autoFocus={index === nextSeedPhraseInputFocusedIndex}
                   onKeyPress={(e) => handleKeyPress(e, index)}
                   isDisabled={disabled}
@@ -472,10 +496,11 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                 showSoftInputOnFocus
                 autoCapitalize="none"
                 testID={testIdPrefix}
-                keyboardType="default"
+                keyboardType="visible-password"
                 autoCorrect={false}
-                textContentType="oneTimeCode"
+                textContentType="none"
                 spellCheck={false}
+                importantForAutofill="no"
                 autoFocus={isFirstInput}
                 multiline
                 onKeyPress={(e) => handleKeyPress(e, 0)}
@@ -484,6 +509,24 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
             </View>
           </View>
         </View>
+
+        {/* Paste/Clear Button */}
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Primary}
+          style={styles.pasteText}
+          onPress={() => {
+            if (trimmedSeedPhraseLength >= 1) {
+              handleClear();
+            } else {
+              handlePaste();
+            }
+          }}
+        >
+          {trimmedSeedPhraseLength >= 1
+            ? strings('import_from_seed.clear_all')
+            : strings('import_from_seed.paste')}
+        </Text>
 
         {/* BIP39 Word Suggestions Bar */}
         {suggestions.length > 0 && (
@@ -523,24 +566,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
           </View>
         )}
 
-        {/* Paste/Clear Button */}
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Primary}
-          style={styles.pasteText}
-          onPress={() => {
-            if (trimmedSeedPhraseLength >= 1) {
-              handleClear();
-            } else {
-              handlePaste();
-            }
-          }}
-        >
-          {trimmedSeedPhraseLength >= 1
-            ? strings('import_from_seed.clear_all')
-            : strings('import_from_seed.paste')}
-        </Text>
-
         {/* Error Text */}
         {Boolean(externalError || error) && (
           <Text variant={TextVariant.BodySMMedium} color={TextColor.Error}>
@@ -551,28 +576,5 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     );
   },
 );
-
-// Styles for the BIP39 word suggestions bar
-const suggestionBarStyles = StyleSheet.create({
-  container: {
-    paddingVertical: 12,
-  },
-  listContent: {
-    alignItems: 'center',
-  },
-  suggestionButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    marginRight: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    minWidth: 60,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-});
 
 export default SrpInputGrid;
