@@ -11,7 +11,6 @@ import {
   Easing,
   Platform,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { captureException } from '@sentry/react-native';
 import Text, {
   TextVariant,
@@ -32,6 +31,8 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
 import { getVaultFromBackup } from '../../../core/BackupVault';
 import Logger from '../../../util/Logger';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { isE2E } from '../../../util/test/utils';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
@@ -384,7 +385,7 @@ class Onboarding extends PureComponent {
     try {
       // Check for migration error flag
       const migrationErrorFlag = await AsyncStorage.getItem(
-        'MIGRATION_ERROR_HAPPENED',
+        MIGRATION_ERROR_HAPPENED,
       );
 
       if (migrationErrorFlag === 'true') {

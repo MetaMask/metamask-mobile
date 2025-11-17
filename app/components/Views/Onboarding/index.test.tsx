@@ -44,6 +44,7 @@ import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { strings } from '../../../../locales/i18n';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import Logger from '../../../util/Logger';
+import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
 
 // Mock netinfo - using existing mock
 jest.mock('@react-native-community/netinfo');
@@ -1378,7 +1379,6 @@ describe('Onboarding', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
-      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
       mockAsyncStorageGetItem.mockResolvedValue(null);
       mockGetVaultFromBackup.mockResolvedValue({
         success: false,
@@ -1406,7 +1406,7 @@ describe('Onboarding', () => {
 
       // Assert - When delete param is true, AsyncStorage check is never reached
       const migrationFlagCalls = mockAsyncStorageGetItem.mock.calls.filter(
-        (call) => call[0] === 'MIGRATION_ERROR_HAPPENED',
+        (call) => call[0] === MIGRATION_ERROR_HAPPENED,
       );
       expect(migrationFlagCalls.length).toBe(0);
     });
@@ -1431,7 +1431,7 @@ describe('Onboarding', () => {
 
       // Assert - When in E2E mode, AsyncStorage check is never reached
       const migrationFlagCalls = mockAsyncStorageGetItem.mock.calls.filter(
-        (call) => call[0] === 'MIGRATION_ERROR_HAPPENED',
+        (call) => call[0] === MIGRATION_ERROR_HAPPENED,
       );
       expect(migrationFlagCalls.length).toBe(0);
 
@@ -1456,7 +1456,7 @@ describe('Onboarding', () => {
       // Assert
       await waitFor(() => {
         expect(mockAsyncStorageGetItem).toHaveBeenCalledWith(
-          'MIGRATION_ERROR_HAPPENED',
+          MIGRATION_ERROR_HAPPENED,
         );
       });
     });

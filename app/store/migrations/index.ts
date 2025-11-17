@@ -113,8 +113,7 @@ import migration107 from './107';
 import { ControllerStorage } from '../persistConfig';
 import { captureException } from '@sentry/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const MIGRATION_ERROR_FLAG_KEY = 'MIGRATION_ERROR_HAPPENED';
+import { MIGRATION_ERROR_HAPPENED } from '../../constants/storage';
 
 type MigrationFunction = (state: unknown) => unknown;
 type AsyncMigrationFunction = (state: unknown) => Promise<unknown>;
@@ -390,9 +389,8 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
 
           return migratedState;
         } catch (error) {
-          console.error(' DEBUG: Migration error:', error);
           try {
-            await AsyncStorage.setItem(MIGRATION_ERROR_FLAG_KEY, 'true');
+            await AsyncStorage.setItem(MIGRATION_ERROR_HAPPENED, 'true');
           } catch (storageError) {
             captureException(storageError as Error);
           }

@@ -10,6 +10,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Logger from '../../../util/Logger';
+import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
 
 // Mock all external dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -177,7 +178,7 @@ describe('WalletRestored', () => {
     // Assert
     await waitFor(() => {
       expect(mockAsyncStorageRemoveItem).toHaveBeenCalledWith(
-        'MIGRATION_ERROR_HAPPENED',
+        MIGRATION_ERROR_HAPPENED,
       );
     });
   });
@@ -218,7 +219,7 @@ describe('WalletRestored', () => {
       fireEvent.press(continueButton);
     });
 
-    // Assert
+    // Assert - Navigation proceeds to allow user access, recovery will retry on next launch
     await waitFor(() => {
       expect(mockNavigation.replace).toHaveBeenCalledWith(
         Routes.ONBOARDING.LOGIN,
