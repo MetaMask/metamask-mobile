@@ -77,8 +77,19 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../../Earn/selectors/featureFlags', () => ({
+  selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(true),
   selectStablecoinLendingEnabledFlag: jest.fn(),
 }));
+
+jest.mock('../../../../../../components/hooks/useFeatureFlag', () => {
+  const actual = jest.requireActual(
+    '../../../../../../components/hooks/useFeatureFlag',
+  );
+  return {
+    useFeatureFlag: jest.fn().mockReturnValue(true),
+    FeatureFlagNames: actual.FeatureFlagNames,
+  };
+});
 
 jest.mock('../../../../../../components/hooks/useFeatureFlag', () => ({
   useFeatureFlag: jest.fn(),
