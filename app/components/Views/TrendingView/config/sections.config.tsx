@@ -14,7 +14,7 @@ import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigatio
 import PredictMarketSkeleton from '../../../UI/Predict/components/PredictMarketSkeleton';
 import SectionCard from '../components/SectionCard/SectionCard';
 import SectionCarrousel from '../components/SectionCarrousel/SectionCarrousel';
-import { useTrendingRequest } from '../../../UI/Assets/hooks/useTrendingRequest';
+import { useTrendingRequest } from '../../../UI/Trending/hooks/useTrendingRequest';
 import { usePredictMarketData } from '../../../UI/Predict/hooks/usePredictMarketData';
 import { usePerpsMarkets } from '../../../UI/Perps/hooks';
 import { PerpsConnectionProvider } from '../../../UI/Perps/providers/PerpsConnectionProvider';

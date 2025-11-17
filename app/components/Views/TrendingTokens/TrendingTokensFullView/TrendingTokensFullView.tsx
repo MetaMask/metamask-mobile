@@ -24,7 +24,7 @@ import Icon, {
 import { strings } from '../../../../../locales/i18n';
 import TrendingTokensList from '../../../UI/Trending/components/TrendingTokensList/TrendingTokensList';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
-import { useTrendingRequest } from '../../../UI/Assets/hooks/useTrendingRequest';
+import { useTrendingRequest } from '../../../UI/Trending/hooks/useTrendingRequest';
 import { SortTrendingBy } from '@metamask/assets-controllers';
 import { CaipChainId, Hex, parseCaipChainId } from '@metamask/utils';
 import { PopularList } from '../../../../util/networks/customNetworks';

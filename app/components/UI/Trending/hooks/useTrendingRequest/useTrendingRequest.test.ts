@@ -1,4 +1,4 @@
-import { DEBOUNCE_WAIT, useTrendingRequest, clearCache } from './';
+import { DEBOUNCE_WAIT, useTrendingRequest, clearCache } from '.';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { act } from '@testing-library/react-native';
 // eslint-disable-next-line import/no-namespace
