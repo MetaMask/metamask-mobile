@@ -19,9 +19,6 @@ export interface ExploreSearchResult {
  * - Filtering results based on section configurations
  * - Returning top 3 items when no query is present
  *
- * TO ADD A NEW SECTION:
- * Edit sections.config.tsx only - this file requires no changes!
- *
  * @param query - Search query string
  * @returns Search results grouped by section
  */
