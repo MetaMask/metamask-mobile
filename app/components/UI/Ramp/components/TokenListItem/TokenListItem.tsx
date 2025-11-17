@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
@@ -43,9 +43,9 @@ function TokenListItem({
   const { networkName, depositNetworkName, networkImageSource } =
     getTokenNetworkInfo(token.chainId);
 
-  const handleInfoPress = () => {
+  const handleInfoPress = useCallback(() => {
     onInfoPress?.();
-  };
+  }, [onInfoPress]);
 
   return (
     <ListItemSelect
