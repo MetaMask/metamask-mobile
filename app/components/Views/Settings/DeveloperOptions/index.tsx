@@ -30,7 +30,7 @@ const DeveloperOptions = () => {
 
   const isPerpsEnabled = useFeatureFlag(
     FeatureFlagNames.perpsPerpTradingEnabled,
-  );
+  ) as boolean;
 
   useEffect(
     () => {

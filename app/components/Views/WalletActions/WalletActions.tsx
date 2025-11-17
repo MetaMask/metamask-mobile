@@ -58,10 +58,10 @@ const WalletActions = () => {
   );
   const isPerpsEnabled = useFeatureFlag(
     FeatureFlagNames.perpsPerpTradingEnabled,
-  );
+  ) as boolean;
   const isPredictEnabled = useFeatureFlag(
     FeatureFlagNames.predictTradingEnabled,
-  );
+  ) as boolean;
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const { trackEvent, createEventBuilder } = useMetrics();
   const canSignTransactions = useSelector(selectCanSignTransactions);

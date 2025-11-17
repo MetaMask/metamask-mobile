@@ -92,10 +92,10 @@ function TradeWalletActions() {
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const isPerpsEnabled = useFeatureFlag(
     FeatureFlagNames.perpsPerpTradingEnabled,
-  );
+  ) as boolean;
   const isPredictEnabled = useFeatureFlag(
     FeatureFlagNames.predictTradingEnabled,
-  );
+  ) as boolean;
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const isStablecoinLendingEnabled = useSelector(

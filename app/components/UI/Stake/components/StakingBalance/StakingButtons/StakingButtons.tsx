@@ -44,7 +44,7 @@ const StakingButtons = ({
   const chainId = useSelector(selectEvmChainId);
   const isPooledStakingEnabled = useFeatureFlag(
     FeatureFlagNames.earnPooledStakingEnabled,
-  );
+  ) as boolean;
 
   const { isStakingSupportedChain } = useStakingChain();
 

@@ -10,7 +10,6 @@ import {
   FeatureFlagInfo,
   isMinimumRequiredVersionSupported,
 } from '../../../util/feature-flags';
-import { FeatureFlagNames } from '../../hooks/useFeatureFlag';
 
 // Mock all dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -659,7 +658,7 @@ describe('FeatureFlagOverride', () => {
       (isMinimumRequiredVersionSupported as jest.Mock).mockReturnValue(false);
 
       const versionFlag = createMockFeatureFlag(
-        FeatureFlagNames.rewardsEnabled,
+        'testFlag',
         'boolean with minimumVersion',
         {
           enabled: true,
@@ -787,13 +786,7 @@ describe('FeatureFlagOverride', () => {
         setOverride: jest.fn(),
         removeOverride: jest.fn(),
         clearAllOverrides: jest.fn(),
-        featureFlagsList: [
-          createMockFeatureFlag(
-            FeatureFlagNames.rewardsEnabled,
-            'boolean',
-            false,
-          ),
-        ],
+        featureFlagsList: [createMockFeatureFlag('testFlag', 'boolean', false)],
       });
 
       render(<FeatureFlagOverride />);
