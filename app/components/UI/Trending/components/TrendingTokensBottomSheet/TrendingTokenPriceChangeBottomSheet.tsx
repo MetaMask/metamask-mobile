@@ -1,8 +1,6 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
-import { useParams } from '../../../../../util/navigation/navUtils';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -30,7 +28,9 @@ export enum SortDirection {
   Descending = 'descending',
 }
 
-export interface TrendingTokenPriceChangeBottomSheetParams {
+export interface TrendingTokenPriceChangeBottomSheetProps {
+  isVisible: boolean;
+  onClose: () => void;
   onPriceChangeSelect?: (
     option: PriceChangeOption,
     sortDirection: SortDirection,
@@ -48,15 +48,17 @@ const closeButtonStyle = StyleSheet.create({
   },
 });
 
-const TrendingTokenPriceChangeBottomSheet = () => {
+const TrendingTokenPriceChangeBottomSheet: React.FC<
+  TrendingTokenPriceChangeBottomSheetProps
+> = ({
+  isVisible,
+  onClose,
+  onPriceChangeSelect,
+  selectedOption: initialSelectedOption,
+  sortDirection: initialSortDirection,
+}) => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
   const { colors } = useTheme();
-  const {
-    onPriceChangeSelect,
-    selectedOption: initialSelectedOption,
-    sortDirection: initialSortDirection,
-  } = useParams<TrendingTokenPriceChangeBottomSheetParams>();
   // Default to "Price change" if no selection
   const [selectedOption, setSelectedOption] = useState<PriceChangeOption>(
     initialSelectedOption || PriceChangeOption.PriceChange,
@@ -74,6 +76,13 @@ const TrendingTokenPriceChangeBottomSheet = () => {
       setSortDirection(initialSortDirection);
     }
   }, [initialSelectedOption, initialSortDirection]);
+
+  // Open bottom sheet when isVisible becomes true
+  useEffect(() => {
+    if (isVisible) {
+      sheetRef.current?.onOpenBottomSheet();
+    }
+  }, [isVisible]);
 
   const optionStyles = StyleSheet.create({
     optionsList: {
@@ -120,28 +129,24 @@ const TrendingTokenPriceChangeBottomSheet = () => {
   });
 
   const handleClose = useCallback(() => {
-    // Navigate back immediately to dismiss modal and remove overlay
-    // The sheet animation will continue in the background
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-    }
-    sheetRef.current?.onCloseBottomSheet();
-  }, [navigation]);
+    sheetRef.current?.onCloseBottomSheet(() => {
+      onClose();
+    });
+  }, [onClose]);
 
   const handleSheetClose = useCallback(() => {
-    // Navigate back immediately when clicking outside to dismiss modal and remove overlay
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-    }
-  }, [navigation]);
+    onClose();
+  }, [onClose]);
 
   const handleApply = useCallback(() => {
     // Apply the current selection and close
     if (onPriceChangeSelect) {
       onPriceChangeSelect(selectedOption, sortDirection);
     }
-    handleClose();
-  }, [onPriceChangeSelect, selectedOption, sortDirection, handleClose]);
+    sheetRef.current?.onCloseBottomSheet(() => {
+      onClose();
+    });
+  }, [onPriceChangeSelect, selectedOption, sortDirection, onClose]);
 
   const onOptionPress = useCallback(
     (option: PriceChangeOption) => {
@@ -161,6 +166,8 @@ const TrendingTokenPriceChangeBottomSheet = () => {
     },
     [selectedOption, sortDirection],
   );
+
+  if (!isVisible) return null;
 
   return (
     <BottomSheet

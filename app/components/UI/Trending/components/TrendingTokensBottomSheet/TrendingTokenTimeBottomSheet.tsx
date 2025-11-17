@@ -1,8 +1,6 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
-import { useParams } from '../../../../../util/navigation/navUtils';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -24,7 +22,9 @@ export enum TimeOption {
   FiveMinutes = '5m',
 }
 
-export interface TrendingTokenTimeBottomSheetParams {
+export interface TrendingTokenTimeBottomSheetProps {
+  isVisible: boolean;
+  onClose: () => void;
   onTimeSelect?: (sortBy: SortTrendingBy, timeOption: TimeOption) => void;
   selectedTime?: TimeOption;
 }
@@ -76,12 +76,16 @@ const closeButtonStyle = StyleSheet.create({
   },
 });
 
-const TrendingTokenTimeBottomSheet = () => {
+const TrendingTokenTimeBottomSheet: React.FC<
+  TrendingTokenTimeBottomSheetProps
+> = ({
+  isVisible,
+  onClose,
+  onTimeSelect,
+  selectedTime: initialSelectedTime,
+}) => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
   const { colors } = useTheme();
-  const { onTimeSelect, selectedTime: initialSelectedTime } =
-    useParams<TrendingTokenTimeBottomSheetParams>();
   // make default selected time 24 hours
   const [selectedTime, setSelectedTime] = useState<TimeOption>(
     initialSelectedTime || TimeOption.TwentyFourHours,
@@ -93,6 +97,13 @@ const TrendingTokenTimeBottomSheet = () => {
       setSelectedTime(initialSelectedTime);
     }
   }, [initialSelectedTime]);
+
+  // Open bottom sheet when isVisible becomes true
+  useEffect(() => {
+    if (isVisible) {
+      sheetRef.current?.onOpenBottomSheet();
+    }
+  }, [isVisible]);
 
   const optionStyles = StyleSheet.create({
     optionsList: {
@@ -112,20 +123,14 @@ const TrendingTokenTimeBottomSheet = () => {
   });
 
   const handleClose = useCallback(() => {
-    // Navigate back immediately to dismiss modal and remove overlay
-    // The sheet animation will continue in the background
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-    }
-    sheetRef.current?.onCloseBottomSheet();
-  }, [navigation]);
+    sheetRef.current?.onCloseBottomSheet(() => {
+      onClose();
+    });
+  }, [onClose]);
 
   const handleSheetClose = useCallback(() => {
-    // Navigate back immediately when clicking outside to dismiss modal and remove overlay
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-    }
-  }, [navigation]);
+    onClose();
+  }, [onClose]);
 
   const onTimeOptionPress = useCallback(
     (option: TimeOption) => {
@@ -134,10 +139,14 @@ const TrendingTokenTimeBottomSheet = () => {
       if (onTimeSelect) {
         onTimeSelect(sortBy, option);
       }
-      sheetRef.current?.onCloseBottomSheet();
+      sheetRef.current?.onCloseBottomSheet(() => {
+        onClose();
+      });
     },
-    [onTimeSelect],
+    [onTimeSelect, onClose],
   );
+
+  if (!isVisible) return null;
 
   return (
     <BottomSheet

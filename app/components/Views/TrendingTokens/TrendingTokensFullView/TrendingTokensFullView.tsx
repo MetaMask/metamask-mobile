@@ -33,9 +33,9 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import {
-  createTrendingTokenNetworkBottomSheetNavDetails,
-  createTrendingTokenPriceChangeBottomSheetNavDetails,
-  createTrendingTokenTimeBottomSheetNavDetails,
+  TrendingTokenTimeBottomSheet,
+  TrendingTokenNetworkBottomSheet,
+  TrendingTokenPriceChangeBottomSheet,
   PriceChangeOption,
   SortDirection,
   TimeOption,
@@ -143,6 +143,10 @@ const TrendingTokensFullView = () => {
   >(PriceChangeOption.PriceChange);
   const [priceChangeSortDirection, setPriceChangeSortDirection] =
     useState<SortDirection>(SortDirection.Descending);
+  const [showTimeBottomSheet, setShowTimeBottomSheet] = useState(false);
+  const [showNetworkBottomSheet, setShowNetworkBottomSheet] = useState(false);
+  const [showPriceChangeBottomSheet, setShowPriceChangeBottomSheet] =
+    useState(false);
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -252,32 +256,16 @@ const TrendingTokensFullView = () => {
   );
 
   const handlePriceChangePress = useCallback(() => {
-    navigation.navigate(
-      ...createTrendingTokenPriceChangeBottomSheetNavDetails({
-        onPriceChangeSelect: handlePriceChangeSelect,
-        selectedOption: selectedPriceChangeOption,
-        sortDirection: priceChangeSortDirection,
-      }),
-    );
-  }, [
-    navigation,
-    handlePriceChangeSelect,
-    selectedPriceChangeOption,
-    priceChangeSortDirection,
-  ]);
+    setShowPriceChangeBottomSheet(true);
+  }, []);
 
   const handleNetworkSelect = useCallback((chainIds: CaipChainId[] | null) => {
     setSelectedNetwork(chainIds);
   }, []);
 
   const handleAllNetworksPress = useCallback(() => {
-    navigation.navigate(
-      ...createTrendingTokenNetworkBottomSheetNavDetails({
-        onNetworkSelect: handleNetworkSelect,
-        selectedNetwork,
-      }),
-    );
-  }, [navigation, handleNetworkSelect, selectedNetwork]);
+    setShowNetworkBottomSheet(true);
+  }, []);
 
   const handleTimeSelect = useCallback(
     (selectedSortBy: SortTrendingBy, timeOption: TimeOption) => {
@@ -288,13 +276,8 @@ const TrendingTokensFullView = () => {
   );
 
   const handle24hPress = useCallback(() => {
-    navigation.navigate(
-      ...createTrendingTokenTimeBottomSheetNavDetails({
-        onTimeSelect: handleTimeSelect,
-        selectedTime: selectedTimeOption,
-      }),
-    );
-  }, [navigation, handleTimeSelect, selectedTimeOption]);
+    setShowTimeBottomSheet(true);
+  }, []);
 
   // Get the button text based on selected price change option
   const priceChangeButtonText = useMemo(() => {
@@ -415,6 +398,25 @@ const TrendingTokensFullView = () => {
           />
         </View>
       )}
+      <TrendingTokenTimeBottomSheet
+        isVisible={showTimeBottomSheet}
+        onClose={() => setShowTimeBottomSheet(false)}
+        onTimeSelect={handleTimeSelect}
+        selectedTime={selectedTimeOption}
+      />
+      <TrendingTokenNetworkBottomSheet
+        isVisible={showNetworkBottomSheet}
+        onClose={() => setShowNetworkBottomSheet(false)}
+        onNetworkSelect={handleNetworkSelect}
+        selectedNetwork={selectedNetwork}
+      />
+      <TrendingTokenPriceChangeBottomSheet
+        isVisible={showPriceChangeBottomSheet}
+        onClose={() => setShowPriceChangeBottomSheet(false)}
+        onPriceChangeSelect={handlePriceChangeSelect}
+        selectedOption={selectedPriceChangeOption}
+        sortDirection={priceChangeSortDirection}
+      />
     </SafeAreaView>
   );
 };

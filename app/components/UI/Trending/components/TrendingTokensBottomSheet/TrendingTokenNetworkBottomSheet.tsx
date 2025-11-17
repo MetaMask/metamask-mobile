@@ -1,8 +1,6 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
-import { useParams } from '../../../../../util/navigation/navUtils';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -27,7 +25,9 @@ export enum NetworkOption {
   AllNetworks = 'all',
 }
 
-export interface TrendingTokenNetworkBottomSheetParams {
+export interface TrendingTokenNetworkBottomSheetProps {
+  isVisible: boolean;
+  onClose: () => void;
   onNetworkSelect?: (chainIds: CaipChainId[] | null) => void;
   selectedNetwork?: CaipChainId[] | null;
 }
@@ -41,13 +41,16 @@ const closeButtonStyle = StyleSheet.create({
   },
 });
 
-const TrendingTokenNetworkBottomSheet = () => {
+const TrendingTokenNetworkBottomSheet: React.FC<
+  TrendingTokenNetworkBottomSheetProps
+> = ({
+  isVisible,
+  onClose,
+  onNetworkSelect,
+  selectedNetwork: initialSelectedNetwork,
+}) => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
   const { colors } = useTheme();
-  const { onNetworkSelect, selectedNetwork: initialSelectedNetwork } =
-    useParams<TrendingTokenNetworkBottomSheetParams>();
-
   const networks = usePopularNetworks();
 
   // Default to "All networks" if no selection
@@ -61,6 +64,13 @@ const TrendingTokenNetworkBottomSheet = () => {
       setSelectedNetwork(initialSelectedNetwork);
     }
   }, [initialSelectedNetwork]);
+
+  // Open bottom sheet when isVisible becomes true
+  useEffect(() => {
+    if (isVisible) {
+      sheetRef.current?.onOpenBottomSheet();
+    }
+  }, [isVisible]);
 
   const optionStyles = StyleSheet.create({
     optionsList: {
@@ -86,20 +96,14 @@ const TrendingTokenNetworkBottomSheet = () => {
   });
 
   const handleClose = useCallback(() => {
-    // Navigate back immediately to dismiss modal and remove overlay
-    // The sheet animation will continue in the background
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-    }
-    sheetRef.current?.onCloseBottomSheet();
-  }, [navigation]);
+    sheetRef.current?.onCloseBottomSheet(() => {
+      onClose();
+    });
+  }, [onClose]);
 
   const handleSheetClose = useCallback(() => {
-    // Navigate back immediately when clicking outside to dismiss modal and remove overlay
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-    }
-  }, [navigation]);
+    onClose();
+  }, [onClose]);
 
   const isAllNetworksSelected =
     selectedNetwork === NetworkOption.AllNetworks || selectedNetwork === null;
@@ -118,9 +122,11 @@ const TrendingTokenNetworkBottomSheet = () => {
           onNetworkSelect(chainIds);
         }
       }
-      sheetRef.current?.onCloseBottomSheet();
+      sheetRef.current?.onCloseBottomSheet(() => {
+        onClose();
+      });
     },
-    [onNetworkSelect],
+    [onNetworkSelect, onClose],
   );
 
   const isNetworkSelected = (network: ProcessedNetwork) => {
@@ -130,6 +136,8 @@ const TrendingTokenNetworkBottomSheet = () => {
       selectedNetwork.includes(network.caipChainId)
     );
   };
+
+  if (!isVisible) return null;
 
   return (
     <BottomSheet

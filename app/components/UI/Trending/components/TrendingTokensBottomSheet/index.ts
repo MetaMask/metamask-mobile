@@ -1,37 +1,19 @@
-import Routes from '../../../../../constants/navigation/Routes';
-import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
-
-export const createTrendingTokenTimeBottomSheetNavDetails =
-  createNavigationDetails(
-    Routes.MODAL.ROOT_MODAL_FLOW,
-    Routes.SHEET.TRENDING_TOKEN_TIME,
-  );
-
-export const createTrendingTokenNetworkBottomSheetNavDetails =
-  createNavigationDetails(
-    Routes.MODAL.ROOT_MODAL_FLOW,
-    Routes.SHEET.TRENDING_TOKEN_NETWORK,
-  );
-
-export const createTrendingTokenPriceChangeBottomSheetNavDetails =
-  createNavigationDetails(
-    Routes.MODAL.ROOT_MODAL_FLOW,
-    Routes.SHEET.TRENDING_TOKEN_PRICE_CHANGE,
-  );
-
 export {
   TrendingTokenTimeBottomSheet,
   TimeOption,
   mapSortByToTimeOption,
+  type TrendingTokenTimeBottomSheetProps,
 } from './TrendingTokenTimeBottomSheet';
 
 export {
   TrendingTokenNetworkBottomSheet,
   NetworkOption,
+  type TrendingTokenNetworkBottomSheetProps,
 } from './TrendingTokenNetworkBottomSheet';
 
 export {
   TrendingTokenPriceChangeBottomSheet,
   PriceChangeOption,
   SortDirection,
+  type TrendingTokenPriceChangeBottomSheetProps,
 } from './TrendingTokenPriceChangeBottomSheet';
