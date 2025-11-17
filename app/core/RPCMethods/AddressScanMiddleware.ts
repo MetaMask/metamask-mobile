@@ -162,6 +162,12 @@ async function handleEthSendTransaction(
       );
     }
   }
+
+  // Log cache after all scans complete
+  Logger.log(
+    '[AddressScanMiddleware] addressScanCache after eth_sendTransaction scan:',
+    JSON.stringify(phishingController.state.addressScanCache, null, 2),
+  );
 }
 
 /**
@@ -213,6 +219,12 @@ async function handleEthSignTypedData(
       'signature:spender',
     );
   }
+
+  // Log cache after all scans complete
+  Logger.log(
+    '[AddressScanMiddleware] addressScanCache after eth_signTypedData scan:',
+    JSON.stringify(phishingController.state.addressScanCache, null, 2),
+  );
 }
 
 /**
