@@ -37,7 +37,7 @@ export abstract class BaseHandler extends UniversalLinkHandler {
     // Check if wallet is unlocked via Engine
     try {
       const { KeyringController } = Engine.context;
-      return KeyringController.isUnlocked?.() ?? false;
+      return KeyringController.state.isUnlocked;
     } catch {
       return false;
     }
