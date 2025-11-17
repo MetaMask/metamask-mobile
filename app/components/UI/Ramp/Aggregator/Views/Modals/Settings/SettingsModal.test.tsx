@@ -116,7 +116,7 @@ describe('SettingsModal', () => {
     fireEvent.press(newBuyExperienceButton);
 
     expect(mockDangerouslyGetParent).toHaveBeenCalled();
-    expect(mockGoToDeposit).toHaveBeenCalledWith();
+    expect(mockGoToDeposit).toHaveBeenCalled();
   });
 
   it('navigates back through parent navigation when deposit is pressed', () => {

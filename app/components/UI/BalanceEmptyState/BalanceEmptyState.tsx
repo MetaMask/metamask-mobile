@@ -37,10 +37,10 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
   const chainId = useSelector(selectChainId);
   const { trackEvent, createEventBuilder } = useMetrics();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
-  const { goToBuy } = useRampNavigation();
+  const { goToRamps } = useRampNavigation();
 
   const handleAction = () => {
-    goToBuy();
+    goToRamps();
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED).build(),

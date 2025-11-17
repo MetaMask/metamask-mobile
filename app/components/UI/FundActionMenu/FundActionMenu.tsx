@@ -121,11 +121,7 @@ const FundActionMenu = () => {
             if (customOnBuy) {
               customOnBuy();
             } else {
-              goToRamps(
-                assetContext?.assetId
-                  ? { assetId: assetContext.assetId }
-                  : undefined,
-              );
+              goToRamps({ assetId: assetContext?.assetId });
             }
           },
         },
@@ -167,11 +163,7 @@ const FundActionMenu = () => {
             if (customOnBuy) {
               customOnBuy();
             } else {
-              goToBuy(
-                assetContext?.assetId
-                  ? { assetId: assetContext.assetId }
-                  : undefined,
-              );
+              goToBuy({ assetId: assetContext?.assetId });
             }
           },
         },
@@ -192,7 +184,7 @@ const FundActionMenu = () => {
           },
           traceName: TraceName.LoadRampExperience,
           traceProperties: { tags: { rampType: RampType.SELL } },
-          navigationAction: () => goToSell(),
+          navigationAction: () => goToSell({ assetId: assetContext?.assetId }),
         },
       ] as ActionConfig[],
     [

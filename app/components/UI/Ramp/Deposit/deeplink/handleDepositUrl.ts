@@ -2,7 +2,7 @@ import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import Logger from '../../../../../util/Logger';
 import getRedirectPathsAndParams from '../../utils/getRedirectPathAndParams';
 import { createDepositNavigationDetails } from '../routes/utils';
-import parseRampIntent from '../../Aggregator/utils/parseRampIntent';
+import parseRampIntent from '../../utils/parseRampIntent';
 
 interface DepositUrlOptions {
   depositPath: string;
