@@ -18,6 +18,7 @@ import {
 import SelectOptionSheet, { ISelectOption } from '../../UI/SelectOptionSheet';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
+import { sanitizeDeviceName } from '../../../util/hardwareWallet/deviceNameUtils';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -117,6 +118,7 @@ const Scan = ({
             createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
               .addProperties({
                 device_type: HardwareDeviceTypes.LEDGER,
+                device_model: sanitizeDeviceName(selectedDevice?.name),
                 error: 'LEDGER_BLUETOOTH_PERMISSION_ERR',
               })
               .build(),

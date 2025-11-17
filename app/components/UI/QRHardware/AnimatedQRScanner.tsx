@@ -200,16 +200,18 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
       if (!response.data) {
         return;
       }
-      try {
-        let deviceName;
-        try {
-          deviceName = await withQrKeyring(
-            async ({ keyring }) => await keyring.getName(),
-          );
-        } catch {
-          deviceName = 'Unknown';
-        }
 
+      // Fetch device name once at the start
+      let deviceName: string;
+      try {
+        deviceName = await withQrKeyring(
+          async ({ keyring }) => await keyring.getName(),
+        );
+      } catch {
+        deviceName = 'Unknown';
+      }
+
+      try {
         const content = response.data;
         urDecoder.receivePart(content);
         setProgress(Math.ceil(urDecoder.getProgress() * 100));
@@ -257,14 +259,6 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
           }
         }
       } catch (e) {
-        let deviceName;
-        try {
-          deviceName = await withQrKeyring(
-            async ({ keyring }) => await keyring.getName(),
-          );
-        } catch {
-          deviceName = 'Unknown';
-        }
         trackEvent(
           createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
             .addProperties({

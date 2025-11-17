@@ -204,7 +204,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
               device_type: HardwareDeviceTypes.QR,
               device_model: deviceName,
               hd_path: null,
-              connected_devices_count: (
+              connected_device_count: (
                 await getConnectedDevicesCount()
               ).toString(),
             })

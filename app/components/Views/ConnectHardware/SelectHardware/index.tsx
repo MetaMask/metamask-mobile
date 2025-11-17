@@ -109,7 +109,7 @@ const SelectHardwareWallet = () => {
       createEventBuilder(MetaMetricsEvents.CONNECT_HARDWARE_WALLET)
         .addProperties({
           device_type: HardwareDeviceTypes.QR,
-          connected_devices_count: connectedDeviceCount.toString(),
+          connected_device_count: connectedDeviceCount.toString(),
         })
         .build(),
     );
@@ -122,7 +122,7 @@ const SelectHardwareWallet = () => {
       createEventBuilder(MetaMetricsEvents.CONNECT_HARDWARE_WALLET)
         .addProperties({
           device_type: HardwareDeviceTypes.LEDGER,
-          connected_devices_count: connectedDeviceCount.toString(),
+          connected_device_count: connectedDeviceCount.toString(),
         })
         .build(),
     );

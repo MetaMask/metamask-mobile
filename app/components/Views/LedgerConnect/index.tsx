@@ -43,6 +43,7 @@ import { getDeviceId } from '../../../core/Ledger/Ledger';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { HARDWARE_WALLET_BUTTON_TYPE } from '../../../core/Analytics/MetaMetrics.events';
+import { sanitizeDeviceName } from '../../../util/hardwareWallet/deviceNameUtils';
 
 interface LedgerConnectProps {
   onConnectLedger: () => void;
@@ -98,7 +99,7 @@ const LedgerConnect = ({
         )
           .addProperties({
             device_type: HardwareDeviceTypes.LEDGER,
-            device_model: selectedDevice?.name,
+            device_model: sanitizeDeviceName(selectedDevice?.name),
           })
           .build(),
       );
@@ -117,7 +118,7 @@ const LedgerConnect = ({
       createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_CONTINUE_CONNECTION)
         .addProperties({
           device_type: HardwareDeviceTypes.LEDGER,
-          device_model: selectedDevice?.name,
+          device_model: sanitizeDeviceName(selectedDevice?.name),
         })
         .build(),
     );
@@ -154,7 +155,7 @@ const LedgerConnect = ({
             )
               .addProperties({
                 device_type: HardwareDeviceTypes.LEDGER,
-                device_model: selectedDevice?.name,
+                device_model: sanitizeDeviceName(selectedDevice?.name),
                 retry_count: retryCount,
               })
               .build(),
@@ -164,7 +165,6 @@ const LedgerConnect = ({
           connectLedger();
         },
       },
-      selectedDevice,
     });
   };
 

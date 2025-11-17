@@ -28,15 +28,12 @@ import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PAGINATION_OPERATIONS from '../../../constants/pagination';
 import { Device as LedgerDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
+import { sanitizeDeviceName } from '../../../util/hardwareWallet/deviceNameUtils';
 import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
 import {
   LEDGER_BIP44_PATH,
-  LEDGER_BIP44_STRING,
   LEDGER_LEGACY_PATH,
-  LEDGER_LEGACY_STRING,
   LEDGER_LIVE_PATH,
-  LEDGER_LIVE_STRING,
-  LEDGER_UNKNOWN_STRING,
 } from '../../../core/Ledger/constants';
 import SelectOptionSheet from '../../UI/SelectOptionSheet';
 import { AccountsController } from '@metamask/accounts-controller';
@@ -147,7 +144,7 @@ const LedgerSelectAccount = () => {
         )
           .addProperties({
             device_type: HardwareDeviceTypes.LEDGER,
-            device_model: selectedDevice?.name,
+            device_model: sanitizeDeviceName(selectedDevice?.name),
           })
           .build(),
       );
@@ -236,8 +233,8 @@ const LedgerSelectAccount = () => {
           createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ADD_ACCOUNT)
             .addProperties({
               device_type: HardwareDeviceTypes.LEDGER,
-              device_model: selectedDevice?.name,
-              connected_devices_count: numberOfConnectedDevices.toString(),
+              device_model: sanitizeDeviceName(selectedDevice?.name),
+              connected_device_count: numberOfConnectedDevices.toString(),
             })
             .build(),
         );
@@ -247,7 +244,7 @@ const LedgerSelectAccount = () => {
           createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
             .addProperties({
               device_type: HardwareDeviceTypes.LEDGER,
-              device_model: selectedDevice?.name,
+              device_model: sanitizeDeviceName(selectedDevice?.name),
               error: (err as Error).message,
             })
             .build(),
