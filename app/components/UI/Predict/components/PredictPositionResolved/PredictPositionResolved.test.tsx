@@ -6,6 +6,20 @@ import {
   type PredictPosition as PredictPositionType,
 } from '../../types';
 
+// Mock strings function from i18n
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string, params?: Record<string, string | number>) => {
+    const translations: Record<string, string> = {
+      'predict.market_details.resolved_early': 'Resolved early',
+      'predict.market_details.ended': 'Ended',
+      'predict.market_details.amount_on_outcome': `$${params?.amount} on ${params?.outcome}`,
+      'predict.market_details.won': 'Won',
+      'predict.market_details.lost': 'Lost',
+    };
+    return translations[key] || key;
+  }),
+}));
+
 // Mock dayjs to return consistent relative time
 jest.mock('dayjs', () => {
   const originalDayjs = jest.requireActual('dayjs');

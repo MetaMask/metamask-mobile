@@ -90,8 +90,7 @@ const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
             numberOfLines={1}
             ellipsizeMode="tail"
           >
-            {strings('predict.market_details.won')}
-            {''}
+            {strings('predict.market_details.won')}{' '}
             {formatPrice(currentValue, { maximumDecimals: 2 })}
           </Text>
         ) : (
