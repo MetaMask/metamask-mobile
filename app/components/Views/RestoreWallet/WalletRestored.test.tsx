@@ -84,7 +84,7 @@ describe('WalletRestored', () => {
   });
 
   it('renders correctly with all required elements', () => {
-    // Arrange
+    // Arrange & Act
     const { getByText } = renderWithProvider(<WalletRestored />);
 
     // Assert

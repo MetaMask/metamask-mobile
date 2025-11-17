@@ -1389,7 +1389,8 @@ describe('Onboarding', () => {
 
     it('returns early when route.params.delete is true', async () => {
       // Arrange
-      const { toJSON } = renderScreen(
+      mockAsyncStorageGetItem.mockClear();
+      renderScreen(
         Onboarding,
         { name: 'Onboarding' },
         {
@@ -1399,19 +1400,21 @@ describe('Onboarding', () => {
       );
 
       // Act - Component mounts and checkForMigrationFailureAndVaultBackup is called
-      await waitFor(() => {
-        expect(toJSON()).toBeDefined();
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
-      // Assert - When delete param is true, vault backup check is skipped
-      expect(mockAsyncStorageGetItem).not.toHaveBeenCalledWith(
-        'MIGRATION_ERROR_HAPPENED',
+      // Assert - When delete param is true, AsyncStorage check is never reached
+      const migrationFlagCalls = mockAsyncStorageGetItem.mock.calls.filter(
+        (call) => call[0] === 'MIGRATION_ERROR_HAPPENED',
       );
+      expect(migrationFlagCalls.length).toBe(0);
     });
 
     it('skips vault backup check when running in E2E test environment', async () => {
       // Arrange
       mockIsE2E = true;
+      mockAsyncStorageGetItem.mockClear();
 
       // Act
       renderScreen(
@@ -1423,13 +1426,14 @@ describe('Onboarding', () => {
       );
 
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
-      // Assert
-      expect(mockAsyncStorageGetItem).not.toHaveBeenCalledWith(
-        'MIGRATION_ERROR_HAPPENED',
+      // Assert - When in E2E mode, AsyncStorage check is never reached
+      const migrationFlagCalls = mockAsyncStorageGetItem.mock.calls.filter(
+        (call) => call[0] === 'MIGRATION_ERROR_HAPPENED',
       );
+      expect(migrationFlagCalls.length).toBe(0);
 
       // Cleanup
       mockIsE2E = false;
@@ -1437,6 +1441,7 @@ describe('Onboarding', () => {
 
     it('checks migration error flag when not E2E and no delete param', async () => {
       // Arrange
+      mockAsyncStorageGetItem.mockClear();
       mockAsyncStorageGetItem.mockResolvedValue(null);
 
       // Act
