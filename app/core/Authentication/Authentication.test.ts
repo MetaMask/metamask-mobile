@@ -35,7 +35,7 @@ import {
 import { EncryptionKey } from '@metamask/browser-passworder';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import { SolScope } from '@metamask/keyring-api';
-import { logOut } from '../../actions/user';
+import { logOut, setExistingUser, logIn } from '../../actions/user';
 import { RootState } from '../../reducers';
 import {
   SeedlessOnboardingControllerError,
@@ -511,6 +511,196 @@ describe('Authentication', () => {
           'Keychain error',
         );
       }
+    });
+
+    it('falls back to PASSWORD authType when biometric storePassword fails in newWalletAndKeychain', async () => {
+      const mockDispatch = jest.fn();
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: mockDispatch,
+        getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+      } as unknown as ReduxStore);
+
+      const Engine = jest.requireMock('../Engine');
+
+      // Mock successful vault creation
+      Engine.context.KeyringController.createNewVaultAndKeychain.mockResolvedValueOnce(
+        undefined,
+      );
+      Engine.resetState = jest.fn().mockResolvedValueOnce(undefined);
+
+      // Mock storePassword to fail on first call (biometric), succeed on second (password)
+      const storePasswordSpy = jest
+        .spyOn(Authentication, 'storePassword')
+        .mockRejectedValueOnce(new Error('Biometric storage failed'))
+        .mockResolvedValueOnce(undefined);
+
+      await Authentication.newWalletAndKeychain('password', {
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+      });
+
+      // Should have called storePassword twice: first with BIOMETRIC (failed), then with PASSWORD (succeeded)
+      expect(storePasswordSpy).toHaveBeenCalledTimes(2);
+      expect(storePasswordSpy).toHaveBeenNthCalledWith(
+        1,
+        'password',
+        AUTHENTICATION_TYPE.BIOMETRIC,
+      );
+      expect(storePasswordSpy).toHaveBeenNthCalledWith(
+        2,
+        'password',
+        AUTHENTICATION_TYPE.PASSWORD,
+      );
+
+      // Should have completed successfully
+      expect(mockDispatch).toHaveBeenCalledWith(setExistingUser(true));
+      expect(mockDispatch).toHaveBeenCalledWith(logIn());
+
+      storePasswordSpy.mockRestore();
+    });
+
+    it('falls back to PASSWORD authType when biometric storePassword fails in newWalletAndRestore', async () => {
+      const mockDispatch = jest.fn();
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: mockDispatch,
+        getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+      } as unknown as ReduxStore);
+
+      const Engine = jest.requireMock('../Engine');
+
+      // Mock successful vault restoration
+      Engine.context.KeyringController.createNewVaultAndRestore.mockResolvedValueOnce(
+        undefined,
+      );
+      Engine.resetState = jest.fn().mockResolvedValueOnce(undefined);
+
+      // Mock storePassword to fail on first call (biometric), succeed on second (password)
+      const storePasswordSpy = jest
+        .spyOn(Authentication, 'storePassword')
+        .mockRejectedValueOnce(new Error('Biometric storage failed'))
+        .mockResolvedValueOnce(undefined);
+
+      await Authentication.newWalletAndRestore(
+        'password',
+        {
+          currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        },
+        'test seed phrase',
+        true,
+      );
+
+      // Should have called storePassword twice: first with BIOMETRIC (failed), then with PASSWORD (succeeded)
+      expect(storePasswordSpy).toHaveBeenCalledTimes(2);
+      expect(storePasswordSpy).toHaveBeenNthCalledWith(
+        1,
+        'password',
+        AUTHENTICATION_TYPE.BIOMETRIC,
+      );
+      expect(storePasswordSpy).toHaveBeenNthCalledWith(
+        2,
+        'password',
+        AUTHENTICATION_TYPE.PASSWORD,
+      );
+
+      // Should have completed successfully
+      expect(mockDispatch).toHaveBeenCalledWith(setExistingUser(true));
+      expect(mockDispatch).toHaveBeenCalledWith(logIn());
+
+      storePasswordSpy.mockRestore();
+    });
+
+    it('throws error when PASSWORD authType storePassword fails in newWalletAndKeychain', async () => {
+      const mockDispatch = jest.fn();
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: mockDispatch,
+        getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+      } as unknown as ReduxStore);
+
+      const Engine = jest.requireMock('../Engine');
+
+      Engine.context.KeyringController.setLocked.mockResolvedValue(undefined);
+
+      // Mock successful vault creation
+      Engine.context.KeyringController.createNewVaultAndKeychain.mockResolvedValueOnce(
+        undefined,
+      );
+      Engine.resetState = jest.fn().mockResolvedValueOnce(undefined);
+
+      // Mock storePassword to fail even with PASSWORD authType
+      const storePasswordSpy = jest
+        .spyOn(Authentication, 'storePassword')
+        .mockRejectedValue(new Error('Password storage failed'));
+
+      try {
+        await Authentication.newWalletAndKeychain('password', {
+          currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+        });
+        throw new Error('Expected an error to be thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(AuthenticationError);
+        expect((error as AuthenticationError).customErrorMessage).toBe(
+          AUTHENTICATION_FAILED_WALLET_CREATION,
+        );
+        expect((error as AuthenticationError).message).toBe(
+          'Password storage failed',
+        );
+        // Should have called storePassword only once since it's PASSWORD authType (no fallback)
+        expect(storePasswordSpy).toHaveBeenCalledTimes(1);
+        await Promise.resolve();
+        jest.runAllTimers();
+        expect(mockDispatch).toHaveBeenCalledWith(logOut());
+      }
+
+      storePasswordSpy.mockRestore();
+    });
+
+    it('throws error when PASSWORD authType storePassword fails in newWalletAndRestore', async () => {
+      const mockDispatch = jest.fn();
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: mockDispatch,
+        getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+      } as unknown as ReduxStore);
+
+      const Engine = jest.requireMock('../Engine');
+
+      Engine.context.KeyringController.setLocked.mockResolvedValue(undefined);
+
+      // Mock successful vault restoration
+      Engine.context.KeyringController.createNewVaultAndRestore.mockResolvedValueOnce(
+        undefined,
+      );
+      Engine.resetState = jest.fn().mockResolvedValueOnce(undefined);
+
+      // Mock storePassword to fail even with PASSWORD authType
+      const storePasswordSpy = jest
+        .spyOn(Authentication, 'storePassword')
+        .mockRejectedValue(new Error('Password storage failed'));
+
+      try {
+        await Authentication.newWalletAndRestore(
+          'password',
+          {
+            currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+          },
+          'test seed phrase',
+          true,
+        );
+        throw new Error('Expected an error to be thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(AuthenticationError);
+        expect((error as AuthenticationError).customErrorMessage).toBe(
+          AUTHENTICATION_FAILED_WALLET_CREATION,
+        );
+        expect((error as AuthenticationError).message).toBe(
+          'Password storage failed',
+        );
+        // Should have called storePassword only once since it's PASSWORD authType (no fallback)
+        expect(storePasswordSpy).toHaveBeenCalledTimes(1);
+        await Promise.resolve();
+        jest.runAllTimers();
+        expect(mockDispatch).toHaveBeenCalledWith(logOut());
+      }
+
+      storePasswordSpy.mockRestore();
     });
   });
 
