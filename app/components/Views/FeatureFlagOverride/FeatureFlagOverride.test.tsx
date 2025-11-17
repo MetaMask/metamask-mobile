@@ -75,6 +75,18 @@ jest.mock('../../../util/feature-flags', () => ({
   isMinimumRequiredVersionSupported: jest.fn(),
 }));
 
+// Mock FeatureFlagNames to include testFlag for testing
+jest.mock('../../hooks/useFeatureFlag', () => {
+  const actual = jest.requireActual('../../hooks/useFeatureFlag');
+  return {
+    ...actual,
+    FeatureFlagNames: {
+      ...actual.FeatureFlagNames,
+      testFlag: 'testFlag',
+    },
+  };
+});
+
 describe('FeatureFlagOverride', () => {
   let mockNavigation: ReturnType<typeof useNavigation>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
