@@ -36,6 +36,7 @@ import {
   formatAddressToAssetId,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
+import { isTradableToken } from '../../utils/isTradableToken';
 
 interface CalculateFiatBalancesParams {
   assets: TokenI[];
@@ -221,7 +222,7 @@ export const useTokensWithBalance: ({
     const allTokens = [...allEvmAccountTokens, ...allNonEvmAccountTokens];
 
     const properTokens: BridgeToken[] = allTokens
-      .filter((token) => Boolean(token.chainId)) // Ensure token has a chainId
+      .filter((token) => Boolean(token.chainId) && isTradableToken(token)) // Ensure token has a chainId and is tradable
       .map((token, i) => {
         const evmBalance = evmBalances?.[i]?.balance;
         const nonEvmBalance = renderNumber(token.balance ?? '0');
