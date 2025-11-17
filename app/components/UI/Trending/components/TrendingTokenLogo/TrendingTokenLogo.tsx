@@ -52,7 +52,7 @@ const TrendingTokenLogo: React.FC<TrendingTokenLogoProps> = ({
   });
 
   // Show custom two-letter fallback if no symbol or error
-  if (!symbol || !imageUri || hasError) {
+  if (!symbol || hasError) {
     return (
       <View style={[containerStyle, style]} testID={testID}>
         <Text variant={TextVariant.BodyMD} style={fallbackTextStyle}>

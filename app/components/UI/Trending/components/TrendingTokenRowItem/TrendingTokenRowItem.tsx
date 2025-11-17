@@ -272,7 +272,10 @@ const TrendingTokenRowItem = ({
             </Text>
           </View>
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {formatMarketStats(token.marketCap, token.aggregatedUsdVolume)}
+            {formatMarketStats(
+              token.marketCap ?? 0,
+              token.aggregatedUsdVolume ?? 0,
+            )}
           </Text>
         </View>
         <View style={styles.rightContainer}>
