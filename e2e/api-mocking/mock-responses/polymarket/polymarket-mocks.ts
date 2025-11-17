@@ -658,8 +658,9 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
               toAddress === PROXY_WALLET_ADDRESS.toLowerCase() ||
               toAddress === '0x254955be605cf7c4e683e92b157187550bd5e639';
 
-            // Match USDC balance calls, proxy wallet calls, and other contract calls
-            return isUSDCBalanceCall || isProxyWalletCall || Boolean(toAddress);
+            // Only match USDC balance calls and proxy wallet calls specifically
+            // Don't match all contract calls to avoid conflicts with higher priority mocks
+            return isUSDCBalanceCall || isProxyWalletCall;
           }
 
           // Also match other RPC methods like eth_getCode, eth_getBalance, etc.
@@ -929,13 +930,33 @@ export const POLYMARKET_UPDATE_USDC_BALANCE_MOCKS = async (
     throw new Error(`Unknown positionType: ${positionType}`);
   }
 
+  // Update global balance variable so base mocks return correct balance for subsequent calls
+  currentUSDCBalance = balance;
+
   await mockServer
     .forPost('/proxy')
-    .matching((request) => {
+    .matching(async (request) => {
       const urlParam = new URL(request.url).searchParams.get('url');
-      return Boolean(
+      const isPolygonRPC = Boolean(
         urlParam?.includes('polygon') || urlParam?.includes('infura'),
       );
+
+      if (!isPolygonRPC) {
+        return false;
+      }
+
+      // Only match USDC balance calls specifically
+      try {
+        const bodyText = await request.body.getText();
+        const body = bodyText ? JSON.parse(bodyText) : undefined;
+        if (body?.method === 'eth_call') {
+          const toAddress = body?.params?.[0]?.to?.toLowerCase();
+          return toAddress === USDC_CONTRACT_ADDRESS.toLowerCase();
+        }
+        return false;
+      } catch {
+        return false;
+      }
     })
     .asPriority(PRIORITY.BALANCE_REFRESH_PROXY) // Higher priority (1005) to catch balance refresh calls before base mocks
     .thenCallback(async (request) => {

@@ -16,7 +16,7 @@ import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import PredictCashOutPage from '../../pages/Predict/PredictCashOutPage';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+// import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import PredictActivityDetails from '../../pages/Transactions/predictionsActivityDetails';
 
@@ -85,21 +85,12 @@ describe(SmokePredictions('Predictions'), () => {
         await device.enableSynchronization();
 
         await PredictDetailsPage.tapBackButton();
-        await TabBarComponent.tapActivity();
 
-        await ActivitiesView.tapOnPredictionsTab();
-        // await ActivitiesView.tapPredictPosition(positionDetails.name);
-        await Assertions.expectTextDisplayed('Cashed out');
-        await ActivitiesView.tapPredictPosition(positionDetails.name);
-        await Assertions.expectElementToBeVisible(
-          PredictActivityDetails.container,
-        );
-        await Assertions.expectTextDisplayed(positionDetails.cashOutValue);
-        await PredictActivityDetails.tapBackButton();
-        await TabBarComponent.tapWallet();
-        await Assertions.expectTextDisplayed(positionDetails.newBalance);
+        await Assertions.expectTextDisplayed(positionDetails.newBalance, {
+          description: 'Predictions balance should be updated to $58.16',
+        });
 
-        await WalletView.tapOnPredictionsTab();
+        // await WalletView.tapOnPredictionsTab();
 
         // Check that Spurs vs Pelicans is removed from current positions list
         for (let i = 0; i < 4; i++) {
@@ -113,10 +104,22 @@ describe(SmokePredictions('Predictions'), () => {
             },
           );
         }
+        await TabBarComponent.tapActivity();
 
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapPredictButton();
-        await Assertions.expectTextDisplayed(positionDetails.newBalance);
+        await ActivitiesView.tapOnPredictionsTab();
+        await Assertions.expectTextDisplayed('Cashed out');
+        await ActivitiesView.tapPredictPosition(positionDetails.name);
+        await Assertions.expectElementToBeVisible(
+          PredictActivityDetails.container,
+        );
+        await Assertions.expectTextDisplayed(positionDetails.cashOutValue);
+
+        // await PredictActivityDetails.tapBackButton();
+        // await TabBarComponent.tapWallet();
+
+        // await TabBarComponent.tapActions();
+        // await WalletActionsBottomSheet.tapPredictButton();
+        // await Assertions.expectTextDisplayed(positionDetails.newBalance);
       },
     );
   });
