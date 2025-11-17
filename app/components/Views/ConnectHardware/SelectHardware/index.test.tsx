@@ -120,7 +120,7 @@ describe('SelectHardwareWallet', () => {
 
       expect(mockAddProperties).toHaveBeenCalledWith({
         device_type: HardwareDeviceTypes.LEDGER,
-        connected_devices_count: connectedDeviceCount.toString(),
+        connected_device_count: connectedDeviceCount.toString(),
       });
       expect(mockBuild).toHaveBeenCalled();
     });
@@ -143,7 +143,7 @@ describe('SelectHardwareWallet', () => {
 
       expect(mockAddProperties).toHaveBeenCalledWith({
         device_type: HardwareDeviceTypes.LEDGER,
-        connected_devices_count: '0',
+        connected_device_count: '0',
       });
     });
   });
@@ -187,7 +187,7 @@ describe('SelectHardwareWallet', () => {
 
       expect(mockAddProperties).toHaveBeenCalledWith({
         device_type: HardwareDeviceTypes.QR,
-        connected_devices_count: connectedDeviceCount.toString(),
+        connected_device_count: connectedDeviceCount.toString(),
       });
       expect(mockBuild).toHaveBeenCalled();
     });
