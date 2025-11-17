@@ -27,6 +27,21 @@ jest.mock('rive-react-native', () => {
   };
 });
 
+jest.mock('react-native-fade-in-image', () => {
+  const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      children,
+      placeholderStyle,
+    }: {
+      children: React.ReactNode;
+      placeholderStyle?: unknown;
+    }) => React.createElement(View, { style: placeholderStyle }, children),
+  };
+});
+
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -67,7 +82,31 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
 jest.mock('../../../../../core/Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
   },
+}));
+
+// Mock formatChainIdToCaip for AddRewardsAccount component
+jest.mock('@metamask/bridge-controller', () => ({
+  ...jest.requireActual('@metamask/bridge-controller'),
+  formatChainIdToCaip: jest.fn((chainId: string) => {
+    // If already in CAIP format, return as-is
+    if (chainId.includes(':')) {
+      return chainId as `${string}:${string}`;
+    }
+    // Otherwise, convert to CAIP format
+    return `eip155:${chainId}` as `${string}:${string}`;
+  }),
+}));
+
+// Mock useLinkAccountAddress for AddRewardsAccount component
+jest.mock('../../../../UI/Rewards/hooks/useLinkAccountAddress', () => ({
+  useLinkAccountAddress: jest.fn(() => ({
+    linkAccountAddress: jest.fn(),
+    isLoading: false,
+    isError: false,
+  })),
 }));
 
 // Mock the bridge selectors
@@ -486,6 +525,9 @@ describe('QuoteDetailsCard', () => {
           if (method === 'RewardsController:isRewardsFeatureEnabled') {
             return Promise.resolve(true);
           }
+          if (method === 'RewardsController:getFirstSubscriptionId') {
+            return Promise.resolve('subscription-id-1');
+          }
           if (method === 'RewardsController:getHasAccountOptedIn') {
             return Promise.resolve(true);
           }
@@ -515,6 +557,9 @@ describe('QuoteDetailsCard', () => {
         (method: string) => {
           if (method === 'RewardsController:isRewardsFeatureEnabled') {
             return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:getFirstSubscriptionId') {
+            return Promise.resolve('subscription-id-1');
           }
           if (method === 'RewardsController:getHasAccountOptedIn') {
             return Promise.resolve(true);
@@ -568,30 +613,42 @@ describe('QuoteDetailsCard', () => {
       });
     });
 
-    it('does not display rewards row when user has not opted in', async () => {
+    it('displays AddRewardsAccount when user has not opted in', async () => {
       // Given rewards feature is enabled but user has not opted in
       mockEngine.controllerMessenger.call.mockImplementation(
         (method: string) => {
           if (method === 'RewardsController:isRewardsFeatureEnabled') {
             return Promise.resolve(true);
           }
+          if (method === 'RewardsController:getFirstSubscriptionId') {
+            return Promise.resolve('subscription-id-1');
+          }
           if (method === 'RewardsController:getHasAccountOptedIn') {
             return Promise.resolve(false);
+          }
+          if (method === 'RewardsController:isOptInSupported') {
+            return Promise.resolve(true);
           }
           return Promise.resolve(null);
         },
       );
 
       // When rendering the component
-      const { queryByText } = renderScreen(
+      const { getByText, getByTestId, queryByTestId } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
 
-      // Then the rewards row should not be displayed
+      // Then the rewards row should be displayed
       await waitFor(() => {
-        expect(queryByText(strings('bridge.points'))).toBeNull();
+        expect(getByText(strings('bridge.points'))).toBeOnTheScreen();
+      });
+
+      // And AddRewardsAccount should be shown instead of RewardsAnimations
+      await waitFor(() => {
+        expect(getByTestId('bridge-add-rewards-account')).toBeOnTheScreen();
+        expect(queryByTestId('mock-rive-animation')).toBeNull();
       });
     });
 
@@ -601,6 +658,9 @@ describe('QuoteDetailsCard', () => {
         (method: string) => {
           if (method === 'RewardsController:isRewardsFeatureEnabled') {
             return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:getFirstSubscriptionId') {
+            return Promise.resolve('subscription-id-1');
           }
           if (method === 'RewardsController:getHasAccountOptedIn') {
             return Promise.resolve(true);
@@ -631,6 +691,9 @@ describe('QuoteDetailsCard', () => {
         (method: string) => {
           if (method === 'RewardsController:isRewardsFeatureEnabled') {
             return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:getFirstSubscriptionId') {
+            return Promise.resolve('subscription-id-1');
           }
           if (method === 'RewardsController:getHasAccountOptedIn') {
             return Promise.resolve(true);
@@ -668,6 +731,9 @@ describe('QuoteDetailsCard', () => {
           if (method === 'RewardsController:isRewardsFeatureEnabled') {
             return Promise.resolve(true);
           }
+          if (method === 'RewardsController:getFirstSubscriptionId') {
+            return Promise.resolve('subscription-id-1');
+          }
           if (method === 'RewardsController:getHasAccountOptedIn') {
             return Promise.resolve(true);
           }
@@ -702,6 +768,9 @@ describe('QuoteDetailsCard', () => {
           if (method === 'RewardsController:isRewardsFeatureEnabled') {
             return Promise.resolve(true);
           }
+          if (method === 'RewardsController:getFirstSubscriptionId') {
+            return Promise.resolve('subscription-id-1');
+          }
           if (method === 'RewardsController:getHasAccountOptedIn') {
             return Promise.resolve(true);
           }
@@ -733,6 +802,9 @@ describe('QuoteDetailsCard', () => {
           if (method === 'RewardsController:isRewardsFeatureEnabled') {
             return Promise.resolve(true);
           }
+          if (method === 'RewardsController:getFirstSubscriptionId') {
+            return Promise.resolve('subscription-id-1');
+          }
           if (method === 'RewardsController:getHasAccountOptedIn') {
             return Promise.resolve(true);
           }
@@ -763,6 +835,9 @@ describe('QuoteDetailsCard', () => {
         (method: string) => {
           if (method === 'RewardsController:isRewardsFeatureEnabled') {
             return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:getFirstSubscriptionId') {
+            return Promise.resolve('subscription-id-1');
           }
           if (method === 'RewardsController:getHasAccountOptedIn') {
             return Promise.resolve(true);
@@ -812,6 +887,9 @@ describe('QuoteDetailsCard', () => {
           if (method === 'RewardsController:isRewardsFeatureEnabled') {
             return Promise.resolve(true);
           }
+          if (method === 'RewardsController:getFirstSubscriptionId') {
+            return Promise.resolve('subscription-id-1');
+          }
           if (method === 'RewardsController:getHasAccountOptedIn') {
             return Promise.resolve(true);
           }
@@ -826,7 +904,7 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { getByText } = renderScreen(
+      const { getByText, getByTestId } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
@@ -834,6 +912,7 @@ describe('QuoteDetailsCard', () => {
 
       // Rewards row should be shown
       await waitFor(() => {
+        expect(getByTestId('bridge-rewards-row')).toBeOnTheScreen();
         expect(getByText(strings('bridge.points'))).toBeOnTheScreen();
       });
 

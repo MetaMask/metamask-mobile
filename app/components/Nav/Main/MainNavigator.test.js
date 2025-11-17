@@ -13,17 +13,13 @@ jest.mock('./MainNavigator', () => {
     TabBarIconKey,
   } = require('../../../component-library/components/Navigation/TabBar/TabBar.types');
   const {
-    selectRewardsEnabledFlag,
-  } = require('../../../selectors/featureFlagController/rewards');
-  const {
     selectAssetsTrendingTokensEnabled,
   } = require('../../../selectors/featureFlagController/assetsTrendingTokens');
   const { selectBrowserFullscreen } = require('../../../selectors/browser');
   const Routes = require('../../../constants/navigation/Routes').default;
 
-  // Mock implementation that tests tab visibility based on rewards flag and browser fullscreen state
+  // Mock implementation that tests tab visibility based on browser fullscreen state
   return function MockMainNavigator({ route }) {
-    const isRewardsEnabled = selectRewardsEnabledFlag();
     const isTrendingEnabled = selectAssetsTrendingTokensEnabled();
     const isBrowserFullscreen = selectBrowserFullscreen();
 
@@ -62,21 +58,11 @@ jest.mock('./MainNavigator', () => {
       }),
     );
 
-    // Add Rewards tab if enabled
-    if (isRewardsEnabled) {
-      tabs.push(
-        React.createElement(View, {
-          key: 'rewards',
-          testID: `tab-bar-item-${TabBarIconKey.Rewards}`,
-        }),
-      );
-    }
-
-    // Add Settings tab (always shown at the end)
+    // Add Rewards tab
     tabs.push(
       React.createElement(View, {
-        key: 'settings',
-        testID: `tab-bar-item-${TabBarIconKey.Setting}`,
+        key: 'rewards',
+        testID: `tab-bar-item-${TabBarIconKey.Rewards}`,
       }),
     );
 
@@ -86,7 +72,6 @@ jest.mock('./MainNavigator', () => {
 
 // Mock the rewards selector
 jest.mock('../../../selectors/featureFlagController/rewards', () => ({
-  selectRewardsEnabledFlag: jest.fn(),
   selectRewardsSubscriptionId: jest.fn().mockReturnValue(null),
 }));
 
@@ -103,7 +88,6 @@ jest.mock('../../../selectors/browser', () => ({
   selectBrowserFullscreen: jest.fn(),
 }));
 
-import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
 import { selectBrowserFullscreen } from '../../../selectors/browser';
 import MainNavigator from './MainNavigator';
@@ -111,13 +95,11 @@ import MainNavigator from './MainNavigator';
 describe('MainNavigator', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    selectRewardsEnabledFlag.mockReturnValue(false);
     selectAssetsTrendingTokensEnabled.mockReturnValue(false);
     selectBrowserFullscreen.mockReturnValue(false);
   });
 
   it('shows Browser tab when trending feature flag is off', () => {
-    selectRewardsEnabledFlag.mockReturnValue(false);
     selectAssetsTrendingTokensEnabled.mockReturnValue(false);
 
     const { getByTestId, queryByTestId } = render(<MainNavigator />);
@@ -126,11 +108,10 @@ describe('MainNavigator', () => {
     expect(queryByTestId('tab-bar-item-Trending')).toBeNull();
     expect(getByTestId('tab-bar-item-Wallet')).toBeDefined();
     expect(getByTestId('tab-bar-item-Trade')).toBeDefined();
-    expect(getByTestId('tab-bar-item-Setting')).toBeDefined();
+    expect(getByTestId('tab-bar-item-Rewards')).toBeDefined();
   });
 
   it('shows Trending tab and hides Browser tab when trending feature flag is on', () => {
-    selectRewardsEnabledFlag.mockReturnValue(false);
     selectAssetsTrendingTokensEnabled.mockReturnValue(true);
 
     const { getByTestId, queryByTestId } = render(<MainNavigator />);
@@ -139,37 +120,20 @@ describe('MainNavigator', () => {
     expect(queryByTestId('tab-bar-item-Browser')).toBeNull();
     expect(getByTestId('tab-bar-item-Wallet')).toBeDefined();
     expect(getByTestId('tab-bar-item-Trade')).toBeDefined();
-    expect(getByTestId('tab-bar-item-Setting')).toBeDefined();
+    expect(getByTestId('tab-bar-item-Rewards')).toBeDefined();
   });
 
-  it('shows Settings tab when rewards feature flag is off', () => {
-    selectRewardsEnabledFlag.mockReturnValue(false);
-    selectAssetsTrendingTokensEnabled.mockReturnValue(false);
-
-    const { getByTestId, queryByTestId } = render(<MainNavigator />);
-
-    expect(getByTestId('tab-bar-item-Setting')).toBeDefined();
-    expect(queryByTestId('tab-bar-item-Rewards')).toBeNull();
-    expect(getByTestId('tab-bar-item-Wallet')).toBeDefined();
-    expect(getByTestId('tab-bar-item-Browser')).toBeDefined();
-    expect(getByTestId('tab-bar-item-Trade')).toBeDefined();
-  });
-
-  it('shows Rewards tab when rewards feature flag is on', () => {
-    selectRewardsEnabledFlag.mockReturnValue(true);
-    selectAssetsTrendingTokensEnabled.mockReturnValue(false);
-
+  it('should show Rewards tab', () => {
     const { getByTestId } = render(<MainNavigator />);
 
     expect(getByTestId('tab-bar-item-Rewards')).toBeDefined();
-    expect(getByTestId('tab-bar-item-Setting')).toBeDefined();
+    // Verify other core tabs are present
     expect(getByTestId('tab-bar-item-Wallet')).toBeDefined();
     expect(getByTestId('tab-bar-item-Browser')).toBeDefined();
     expect(getByTestId('tab-bar-item-Trade')).toBeDefined();
   });
 
   it('shows Trending and Rewards tabs and hides Browser tab when both feature flags are on', () => {
-    selectRewardsEnabledFlag.mockReturnValue(true);
     selectAssetsTrendingTokensEnabled.mockReturnValue(true);
 
     const { getByTestId, queryByTestId } = render(<MainNavigator />);
@@ -179,7 +143,6 @@ describe('MainNavigator', () => {
     expect(queryByTestId('tab-bar-item-Browser')).toBeNull();
     expect(getByTestId('tab-bar-item-Wallet')).toBeDefined();
     expect(getByTestId('tab-bar-item-Trade')).toBeDefined();
-    expect(getByTestId('tab-bar-item-Setting')).toBeDefined();
   });
 
   it('should show navbar tabs when browser is not in fullscreen mode', () => {
@@ -193,7 +156,7 @@ describe('MainNavigator', () => {
     expect(getByTestId('tab-bar-item-Wallet')).toBeDefined();
     expect(getByTestId('tab-bar-item-Browser')).toBeDefined();
     expect(getByTestId('tab-bar-item-Trade')).toBeDefined();
-    expect(getByTestId('tab-bar-item-Setting')).toBeDefined();
+    expect(getByTestId('tab-bar-item-Rewards')).toBeDefined();
   });
 
   it('should not show navbar when browser is in fullscreen mode', () => {
@@ -209,7 +172,7 @@ describe('MainNavigator', () => {
     expect(queryByTestId('tab-bar-item-Wallet')).toBeNull();
     expect(queryByTestId('tab-bar-item-Browser')).toBeNull();
     expect(queryByTestId('tab-bar-item-Trade')).toBeNull();
-    expect(queryByTestId('tab-bar-item-Setting')).toBeNull();
+    expect(queryByTestId('tab-bar-item-Rewards')).toBeNull();
   });
 
   it('should show navbar tabs when browser is in fullscreen mode but on non-browser route', () => {
@@ -225,7 +188,7 @@ describe('MainNavigator', () => {
     expect(getByTestId('tab-bar-item-Wallet')).toBeDefined();
     expect(getByTestId('tab-bar-item-Browser')).toBeDefined();
     expect(getByTestId('tab-bar-item-Trade')).toBeDefined();
-    expect(getByTestId('tab-bar-item-Setting')).toBeDefined();
+    expect(getByTestId('tab-bar-item-Rewards')).toBeDefined();
   });
 
   it('should return null when isBrowserFullscreen is true AND route starts with BrowserTabHome', () => {
