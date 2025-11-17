@@ -433,3 +433,5 @@ export const TokenInputArea = forwardRef<
     );
   },
 );
+
+TokenInputArea.displayName = 'TokenInputArea';

@@ -648,7 +648,7 @@ buildAndroid() {
 	if [ "$METAMASK_BUILD_TYPE" == "release" ] || [ "$METAMASK_BUILD_TYPE" == "main" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
 			buildAndroidMainLocal
-		elif [ "$METAMASK_ENVIRONMENT" = "e2e" ] || [ "$E2E" = "true" ] ; then
+		elif [ "$METAMASK_ENVIRONMENT" = "e2e" ] && [ "$E2E" = "true" ] ; then
 			# E2E builds use a separate function
 			buildAndroidReleaseE2E "Prod"
 		else
@@ -662,7 +662,7 @@ buildAndroid() {
 	elif [ "$METAMASK_BUILD_TYPE" == "flask" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
 			buildAndroidFlaskLocal
-		elif [ "$METAMASK_ENVIRONMENT" = "e2e" ] || [ "$E2E" = "true" ] ; then
+		elif [ "$METAMASK_ENVIRONMENT" = "e2e" ] && [ "$E2E" = "true" ] ; then
 			# E2E builds use a separate function
 			buildAndroidReleaseE2E "Flask"
 		else
@@ -848,7 +848,11 @@ if [ -z "$METAMASK_ENVIRONMENT" ]; then
 	exit 1
 else
     echo "METAMASK_ENVIRONMENT is set to: $METAMASK_ENVIRONMENT"
+	
 fi
+	# Update Expo channel configuration based on environment
+	echo "Updating Expo channel configuration..."
+	node "${__DIRNAME__}/update-expo-channel.js"
 
 if [ "$PLATFORM" == "ios" ]; then
 	# we don't care about env file in CI

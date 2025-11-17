@@ -6,6 +6,12 @@ import {
 } from '../../../../component-library/components/Toast';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
+import {
+  trace,
+  endTrace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 import { PlaceOrderParams } from '../providers/types';
 import { Side, type Result } from '../types';
 import { usePredictTrading } from './usePredictTrading';
@@ -50,6 +56,17 @@ export function usePredictPlaceOrder(
 
   const showCashedOutToast = useCallback(
     (amount: string) => {
+      // Track cashout confirmation toast display performance
+      const traceId = `cashout-toast-${Date.now()}`;
+      trace({
+        name: TraceName.PredictCashoutConfirmationToast,
+        op: TraceOperation.PredictOperation,
+        id: traceId,
+        tags: {
+          feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        },
+      });
+
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         iconName: IconName.Check,
@@ -65,22 +82,45 @@ export function usePredictPlaceOrder(
         ],
         hasNoTimeout: false,
       });
+
+      // End trace immediately after toast is shown
+      endTrace({
+        name: TraceName.PredictCashoutConfirmationToast,
+        id: traceId,
+        data: { success: true },
+      });
     },
     [toastRef],
   );
 
-  const showOrderPlacedToast = useCallback(
-    () =>
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Check,
-        labelOptions: [
-          { label: strings('predict.order.prediction_placed'), isBold: true },
-        ],
-        hasNoTimeout: false,
-      }),
-    [toastRef],
-  );
+  const showOrderPlacedToast = useCallback(() => {
+    // Track order confirmation toast display performance
+    const traceId = `order-toast-${Date.now()}`;
+    trace({
+      name: TraceName.PredictOrderConfirmationToast,
+      op: TraceOperation.PredictOperation,
+      id: traceId,
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+      },
+    });
+
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: IconName.Check,
+      labelOptions: [
+        { label: strings('predict.order.prediction_placed'), isBold: true },
+      ],
+      hasNoTimeout: false,
+    });
+
+    // End trace immediately after toast is shown
+    endTrace({
+      name: TraceName.PredictOrderConfirmationToast,
+      id: traceId,
+      data: { success: true },
+    });
+  }, [toastRef]);
 
   const placeOrder = useCallback(
     async (orderParams: PlaceOrderParams) => {

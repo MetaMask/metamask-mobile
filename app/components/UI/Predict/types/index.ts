@@ -272,6 +272,7 @@ export type PredictPosition = {
   avgPrice: number;
   endDate: string;
   negRisk?: boolean;
+  optimistic?: boolean;
 };
 
 export type PredictBalance = {

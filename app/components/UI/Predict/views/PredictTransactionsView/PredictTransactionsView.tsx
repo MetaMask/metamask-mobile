@@ -9,6 +9,8 @@ import { formatCents } from '../../utils/format';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import { PredictEventValues } from '../../constants/eventNames';
+import { TraceName } from '../../../../../util/trace';
+import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 
 interface PredictTransactionsViewProps {
   transactions?: unknown[];
@@ -61,6 +63,17 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
 }) => {
   const tw = useTailwind();
   const { activity, isLoading } = usePredictActivity({});
+
+  // Track screen load performance (activity data loaded)
+  usePredictMeasurement({
+    traceName: TraceName.PredictTransactionHistoryView,
+    conditions: [!isLoading, activity !== undefined, isVisible === true],
+    debugContext: {
+      activityCount: activity?.length,
+      hasActivity: !!activity,
+      isLoading,
+    },
+  });
 
   // Track activity list viewed when tab becomes visible
   useEffect(() => {
@@ -181,16 +194,19 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
     });
 
     // Convert to sections array, maintaining chronological order
-    const sections: ActivitySection[] = [];
+    const activitySections: ActivitySection[] = [];
 
     // Add Today first if it exists
     if (groupedByDate[todayLabel]) {
-      sections.push({ title: todayLabel, data: groupedByDate[todayLabel] });
+      activitySections.push({
+        title: todayLabel,
+        data: groupedByDate[todayLabel],
+      });
     }
 
     // Add Yesterday second if it exists
     if (groupedByDate[yesterdayLabel]) {
-      sections.push({
+      activitySections.push({
         title: yesterdayLabel,
         data: groupedByDate[yesterdayLabel],
       });
@@ -199,11 +215,11 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
     // Add all other dates in chronological order
     sectionOrder.forEach((label) => {
       if (label !== todayLabel && label !== yesterdayLabel) {
-        sections.push({ title: label, data: groupedByDate[label] });
+        activitySections.push({ title: label, data: groupedByDate[label] });
       }
     });
 
-    return sections;
+    return activitySections;
   }, [activity]);
 
   const renderSectionHeader = useCallback(
