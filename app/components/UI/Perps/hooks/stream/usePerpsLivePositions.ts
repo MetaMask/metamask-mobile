@@ -40,11 +40,11 @@ export function enrichPositionsWithLivePnL(
     }
 
     // Use mark price if available, fallback to mid price
-    const markPrice = priceUpdate.markPrice
-      ? Number.parseFloat(priceUpdate.markPrice)
-      : Number.parseFloat(priceUpdate.price);
+    const currentPrice = Number.parseFloat(
+      priceUpdate.price ?? priceUpdate.markPrice,
+    );
 
-    if (!markPrice || Number.isNaN(markPrice) || markPrice <= 0) {
+    if (!currentPrice || Number.isNaN(currentPrice) || currentPrice <= 0) {
       return position;
     }
 
@@ -58,14 +58,14 @@ export function enrichPositionsWithLivePnL(
 
     const direction = size >= 0 ? 'long' : 'short';
 
-    const calculatedUnrealizedPnl = (markPrice - entryPrice) * size;
+    const calculatedUnrealizedPnl = (currentPrice - entryPrice) * size;
 
     const roePercentage = calculateRoEForPrice(
-      markPrice.toString(),
+      currentPrice.toString(),
       calculatedUnrealizedPnl >= 0, // isProfit
       true, // isForPositionBoundTpsl - true for existing positions
       {
-        currentPrice: markPrice,
+        currentPrice,
         direction,
         leverage,
         entryPrice,
