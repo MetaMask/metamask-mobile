@@ -767,7 +767,193 @@ describe('HyperLiquidProvider', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should close a position successfully', async () => {
+    it('retries USD-based order when rejected for $10 minimum with adjusted amount', async () => {
+      // Add PUMP to the asset mapping
+      Object.defineProperty(provider, 'coinToAssetId', {
+        value: new Map([
+          ['BTC', 0],
+          ['ETH', 1],
+          ['PUMP', 2],
+        ]),
+        writable: true,
+      });
+      Object.defineProperty(provider, 'assetIdToCoin', {
+        value: new Map([
+          [0, 'BTC'],
+          [1, 'ETH'],
+          [2, 'PUMP'],
+        ]),
+        writable: true,
+      });
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          meta: jest.fn().mockResolvedValue({
+            universe: [
+              { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
+              { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
+              { name: 'PUMP', szDecimals: 2, maxLeverage: 20 },
+            ],
+          }),
+          allMids: jest
+            .fn()
+            .mockResolvedValue({ BTC: '50000', ETH: '3000', PUMP: '0.003918' }),
+        }),
+      );
+
+      const orderParams: OrderParams = {
+        coin: 'PUMP',
+        isBuy: true,
+        size: '2553',
+        orderType: 'market',
+        usdAmount: '10.00',
+        currentPrice: 0.003918,
+      };
+
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue({
+        ...createMockExchangeClient(),
+        order: jest
+          .fn()
+          .mockRejectedValueOnce(
+            new Error('Order must have minimum value of $10'),
+          )
+          .mockResolvedValueOnce({
+            status: 'ok',
+            response: { data: { statuses: [{ resting: { oid: 456 } }] } },
+          }),
+      });
+
+      const result = await provider.placeOrder(orderParams);
+
+      expect(result.success).toBe(true);
+      expect(mockClientService.getExchangeClient().order).toHaveBeenCalledTimes(
+        2,
+      );
+    });
+
+    it('retries size-based order with currentPrice when rejected for $10 minimum', async () => {
+      // Add PUMP to the asset mapping
+      Object.defineProperty(provider, 'coinToAssetId', {
+        value: new Map([
+          ['BTC', 0],
+          ['ETH', 1],
+          ['PUMP', 2],
+        ]),
+        writable: true,
+      });
+      Object.defineProperty(provider, 'assetIdToCoin', {
+        value: new Map([
+          [0, 'BTC'],
+          [1, 'ETH'],
+          [2, 'PUMP'],
+        ]),
+        writable: true,
+      });
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          meta: jest.fn().mockResolvedValue({
+            universe: [
+              { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
+              { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
+              { name: 'PUMP', szDecimals: 2, maxLeverage: 20 },
+            ],
+          }),
+          allMids: jest
+            .fn()
+            .mockResolvedValue({ BTC: '50000', ETH: '3000', PUMP: '0.003918' }),
+        }),
+      );
+
+      const orderParams: OrderParams = {
+        coin: 'PUMP',
+        isBuy: true,
+        size: '2553',
+        orderType: 'market',
+        currentPrice: 0.003918,
+      };
+
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue({
+        ...createMockExchangeClient(),
+        order: jest
+          .fn()
+          .mockRejectedValueOnce(
+            new Error('Order 0: Order must have minimum value'),
+          )
+          .mockResolvedValueOnce({
+            status: 'ok',
+            response: { data: { statuses: [{ resting: { oid: 789 } }] } },
+          }),
+      });
+
+      const result = await provider.placeOrder(orderParams);
+
+      expect(result.success).toBe(true);
+      expect(mockClientService.getExchangeClient().order).toHaveBeenCalledTimes(
+        2,
+      );
+    });
+
+    it('validates price requirement before attempting order placement', async () => {
+      // Add PUMP to the asset mapping
+      Object.defineProperty(provider, 'coinToAssetId', {
+        value: new Map([
+          ['BTC', 0],
+          ['ETH', 1],
+          ['PUMP', 2],
+        ]),
+        writable: true,
+      });
+      Object.defineProperty(provider, 'assetIdToCoin', {
+        value: new Map([
+          [0, 'BTC'],
+          [1, 'ETH'],
+          [2, 'PUMP'],
+        ]),
+        writable: true,
+      });
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          meta: jest.fn().mockResolvedValue({
+            universe: [
+              { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
+              { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
+              { name: 'PUMP', szDecimals: 2, maxLeverage: 20 },
+            ],
+          }),
+          allMids: jest
+            .fn()
+            .mockResolvedValue({ BTC: '50000', ETH: '3000', PUMP: '0.003918' }),
+        }),
+      );
+
+      const orderParams: OrderParams = {
+        coin: 'PUMP',
+        isBuy: true,
+        size: '2553',
+        orderType: 'market',
+      };
+
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue({
+        ...createMockExchangeClient(),
+        order: jest
+          .fn()
+          .mockRejectedValueOnce(
+            new Error('Order must have minimum value of $10'),
+          ),
+      });
+
+      const result = await provider.placeOrder(orderParams);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('perps.order.validation.price_required');
+      expect(
+        mockClientService.getExchangeClient().order,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('closes a position successfully', async () => {
       const closeParams: ClosePositionParams = {
         coin: 'BTC',
         orderType: 'market',
@@ -1937,6 +2123,7 @@ describe('HyperLiquidProvider', () => {
         isBuy: true,
         size: '0.1',
         orderType: 'market',
+        currentPrice: 50000, // Add price so validation passes, then fails on asset lookup
       };
 
       const result = await provider.placeOrder(orderParams);
@@ -1960,7 +2147,7 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.placeOrder(orderParams);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('No price available for BTC');
+      expect(result.error).toContain('perps.order.validation.price_required');
     });
 
     it('should handle missing position in close operation', async () => {
@@ -2590,6 +2777,7 @@ describe('HyperLiquidProvider', () => {
           isBuy: true,
           size: '0.1',
           orderType: 'market',
+          currentPrice: 50000, // Add price for validation
         };
 
         const result = await freshProvider.placeOrder(orderParams);
@@ -2664,19 +2852,19 @@ describe('HyperLiquidProvider', () => {
         expect(result.error).toContain('Failed to update leverage');
       });
 
-      it('should handle market order without current price (fallback to API)', async () => {
+      it('should fail market order without current price or usdAmount', async () => {
         const orderParams: OrderParams = {
           coin: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
-          // No currentPrice provided - should fetch from API
+          // No currentPrice or usdAmount provided - should fail validation
         };
 
         const result = await provider.placeOrder(orderParams);
 
-        expect(result.success).toBe(true);
-        expect(mockClientService.getInfoClient().allMids).toHaveBeenCalled();
+        expect(result.success).toBe(false);
+        expect(result.error).toContain('perps.order.validation.price_required');
       });
 
       it('should handle order with custom slippage', async () => {
@@ -3709,6 +3897,7 @@ describe('HyperLiquidProvider', () => {
             isBuy: true,
             size: '0.001',
             orderType: 'market',
+            currentPrice: 50000, // Add price for validation
           });
 
           // Assert: Verify exchangeClient.order called with discounted fee
@@ -3986,6 +4175,7 @@ describe('HyperLiquidProvider', () => {
         coin: 'BTC',
         size: '0.1',
         price: undefined,
+        orderType: 'market',
       });
     });
 
@@ -4060,6 +4250,7 @@ describe('HyperLiquidProvider', () => {
         coin: 'ETH',
         size: '1',
         price: '3000',
+        orderType: 'limit',
       });
     });
 

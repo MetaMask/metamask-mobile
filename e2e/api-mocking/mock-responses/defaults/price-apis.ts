@@ -9,6 +9,44 @@ export const PRICE_API_MOCKS: MockEventsObject = {
   GET: [
     {
       urlEndpoint:
+        /^https:\/\/price\.api\.cx\.metamask\.io\/v1\/exchange-rates\?baseCurrency=.*$/,
+      responseCode: 200,
+      response: {
+        usd: {
+          name: 'US Dollar',
+          ticker: 'usd',
+          value: 1,
+          currencyType: 'fiat',
+        },
+        eth: {
+          name: 'Ether',
+          ticker: 'eth',
+          value: 0.000233,
+          currencyType: 'crypto',
+        },
+        btc: {
+          name: 'Bitcoin',
+          ticker: 'btc',
+          value: 0.000008333,
+          currencyType: 'crypto',
+        },
+        eur: { name: 'Euro', ticker: 'eur', value: 0.85, currencyType: 'fiat' },
+        gbp: {
+          name: 'British Pound Sterling',
+          ticker: 'gbp',
+          value: 0.73,
+          currencyType: 'fiat',
+        },
+        jpy: {
+          name: 'Japanese Yen',
+          ticker: 'jpy',
+          value: 110,
+          currencyType: 'fiat',
+        },
+      },
+    },
+    {
+      urlEndpoint:
         /^https:\/\/price\.api\.cx\.metamask\.io\/v3\/spot-prices\?assetIds=.*&vsCurrency=usd$/,
       responseCode: 200,
       response: {

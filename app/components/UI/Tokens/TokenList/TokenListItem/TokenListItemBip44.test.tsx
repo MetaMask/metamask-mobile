@@ -45,6 +45,8 @@ jest.mock('../../../Earn/hooks/useEarnTokens', () => ({
 }));
 
 jest.mock('../../../Stake/hooks/useStakingChain', () => ({
+  __esModule: true,
+  default: () => ({ isStakingSupportedChain: false }),
   useStakingChainByChainId: () => ({ isStakingSupportedChain: false }),
 }));
 

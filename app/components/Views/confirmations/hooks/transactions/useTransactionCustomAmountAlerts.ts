@@ -17,7 +17,7 @@ const KEYBOARD_ALERTS: AlertKeys[] = [
   AlertKeys.InsufficientPredictBalance,
 ];
 
-export const ON_CHANGE_ALERTS = [
+const ON_CHANGE_ALERTS = [
   AlertKeys.PerpsDepositMinimum,
   AlertKeys.InsufficientPayTokenBalance,
   AlertKeys.InsufficientPredictBalance,
@@ -25,47 +25,52 @@ export const ON_CHANGE_ALERTS = [
 
 export function useTransactionCustomAmountAlerts({
   isInputChanged,
+  isKeyboardVisible,
   pendingTokenAmount,
 }: {
   isInputChanged: boolean;
+  isKeyboardVisible: boolean;
   pendingTokenAmount: string;
-}) {
+}): {
+  alertMessage?: string;
+  alertTitle?: string;
+} {
   const { alerts: confirmationAlerts } = useAlerts();
   const pendingTokenAlerts = usePendingAmountAlerts({ pendingTokenAmount });
 
   const filteredConfirmationAlerts = useMemo(
     () =>
       confirmationAlerts.filter(
-        (a) => !PENDING_AMOUNT_ALERTS.includes(a.key as AlertKeys),
+        (a) =>
+          a.isBlocking &&
+          !PENDING_AMOUNT_ALERTS.includes(a.key as AlertKeys) &&
+          (!isKeyboardVisible ||
+            KEYBOARD_ALERTS.includes(a.key as AlertKeys)) &&
+          (isInputChanged || !ON_CHANGE_ALERTS.includes(a.key as AlertKeys)),
       ),
-    [confirmationAlerts],
+    [confirmationAlerts, isInputChanged, isKeyboardVisible],
   );
 
   const alerts = useMemo(
-    () =>
-      [...pendingTokenAlerts, ...filteredConfirmationAlerts].filter((a) =>
-        KEYBOARD_ALERTS.includes(a.key as AlertKeys),
-      ),
+    () => [...pendingTokenAlerts, ...filteredConfirmationAlerts],
     [filteredConfirmationAlerts, pendingTokenAlerts],
   );
 
   const firstAlert = alerts?.[0];
 
-  const hasAlert =
-    Boolean(firstAlert) &&
-    (!ON_CHANGE_ALERTS.includes(firstAlert?.key as AlertKeys) ||
-      isInputChanged);
+  if (!firstAlert) {
+    return {};
+  }
 
-  const keyboardAlertMessage = hasAlert
-    ? (firstAlert?.title ?? (firstAlert?.message as string | undefined))
+  const alertTitle =
+    firstAlert.title ?? (firstAlert.message as string | undefined);
+
+  const alertMessage = firstAlert.title
+    ? (firstAlert.message as string | undefined)
     : undefined;
-
-  const alertMessage =
-    hasAlert && firstAlert?.title ? (firstAlert?.message as string) : undefined;
 
   return {
     alertMessage,
-    excludeBannerKeys: KEYBOARD_ALERTS,
-    keyboardAlertMessage,
+    alertTitle,
   };
 }

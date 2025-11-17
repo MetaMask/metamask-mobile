@@ -30,7 +30,10 @@ import {
 } from '../../../reducers/legalNotices';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { baseStyles } from '../../../styles/common';
-import { PERPS_GTM_MODAL_SHOWN } from '../../../constants/storage';
+import {
+  PERPS_GTM_MODAL_SHOWN,
+  PREDICT_GTM_MODAL_SHOWN,
+} from '../../../constants/storage';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import Tokens from '../../UI/Tokens';
 
@@ -172,12 +175,14 @@ import {
   selectPerpsGtmOnboardingModalEnabledFlag,
 } from '../../UI/Perps';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
-import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
+import {
+  selectPredictEnabledFlag,
+  selectPredictGtmOnboardingModalEnabledFlag,
+} from '../../UI/Predict/selectors/featureFlags';
 import PredictTabView from '../../UI/Predict/views/PredictTabView';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
-import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 import { SolScope } from '@metamask/keyring-api';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
@@ -515,6 +520,11 @@ const Wallet = ({
     selectPerpsGtmOnboardingModalEnabledFlag,
   );
 
+  const isPredictFlagEnabled = useSelector(selectPredictEnabledFlag);
+  const isPredictGTMModalEnabled = useSelector(
+    selectPredictGtmOnboardingModalEnabledFlag,
+  );
+
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -829,6 +839,26 @@ const Wallet = ({
     }
   }, [isPerpsFlagEnabled, isPerpsGTMModalEnabled, checkAndNavigateToPerpsGTM]);
 
+  const checkAndNavigateToPredictGTM = useCallback(async () => {
+    const hasSeenModal = await StorageWrapper.getItem(PREDICT_GTM_MODAL_SHOWN);
+
+    if (hasSeenModal !== 'true') {
+      navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.GTM_MODAL,
+      });
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    if (isPredictFlagEnabled && isPredictGTMModalEnabled) {
+      checkAndNavigateToPredictGTM();
+    }
+  }, [
+    isPredictFlagEnabled,
+    isPredictGTMModalEnabled,
+    checkAndNavigateToPredictGTM,
+  ]);
+
   useEffect(() => {
     addTraitsToUser({
       [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: hdKeyrings.length,
@@ -1060,7 +1090,6 @@ const Wallet = ({
   );
 
   const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
-  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
   );
@@ -1082,7 +1111,6 @@ const Wallet = ({
         unreadNotificationCount,
         readNotificationCount,
         shouldDisplayCardButton,
-        isRewardsEnabled,
       ),
     );
   }, [
@@ -1098,7 +1126,6 @@ const Wallet = ({
     unreadNotificationCount,
     readNotificationCount,
     shouldDisplayCardButton,
-    isRewardsEnabled,
   ]);
 
   const getTokenAddedAnalyticsParams = useCallback(

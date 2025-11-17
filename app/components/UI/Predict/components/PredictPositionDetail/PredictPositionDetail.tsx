@@ -11,7 +11,7 @@ import {
   PredictMarket,
   PredictMarketStatus,
 } from '../../types';
-import { formatPercentage, formatPrice } from '../../utils/format';
+import { formatCents, formatPercentage, formatPrice } from '../../utils/format';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -67,14 +67,11 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
         const _outcome = market?.outcomes.find(
           (o) => o.id === position.outcomeId,
         );
-        navigate(Routes.PREDICT.MODALS.ROOT, {
-          screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
-          params: {
-            market,
-            position,
-            outcome: _outcome,
-            entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-          },
+        navigate(Routes.PREDICT.MODALS.SELL_PREVIEW, {
+          market,
+          position,
+          outcome: _outcome,
+          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
         });
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CASHOUT },
@@ -136,8 +133,8 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
             variant={TextVariant.BodySMMedium}
             color={TextColor.Alternative}
           >
-            ${initialValue.toFixed(2)} on {outcome} •{' '}
-            {(avgPrice * 100).toFixed(0)}¢
+            {formatPrice(initialValue, { maximumDecimals: 2 })} on {outcome} •{' '}
+            {formatCents(avgPrice)}
           </Text>
         </Box>
         <Box twClassName="items-end justify-end ml-auto shrink-0">

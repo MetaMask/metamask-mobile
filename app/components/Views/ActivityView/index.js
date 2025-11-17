@@ -184,8 +184,8 @@ const ActivityView = () => {
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
   const isPredictEnabled = useMemo(
-    () => predictEnabledFlag && isEvmSelected,
-    [predictEnabledFlag, isEvmSelected],
+    () => predictEnabledFlag,
+    [predictEnabledFlag],
   );
 
   const openAccountSelector = useCallback(() => {
@@ -254,7 +254,7 @@ const ActivityView = () => {
   // Calculate if Perps tab is currently active
   // Perps is the last tab, so its index depends on what other tabs are shown
   const perpsTabIndex = 2;
-  const predictTabIndex = 3;
+  const predictTabIndex = isPerpsEnabled ? 3 : 2;
   const isPerpsTabActive = isPerpsEnabled && activeTabIndex === perpsTabIndex;
   const isPredictTabActive =
     isPredictEnabled && activeTabIndex === predictTabIndex;
