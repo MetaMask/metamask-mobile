@@ -300,28 +300,123 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
       const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
       const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
 
-      // Combine lost positions with winning positions if includeWinnings is true
-      const resolvedMarkets = POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE.map(
-        (position) => ({
-          ...position,
-          proxyWallet: userAddress,
-        }),
-      );
+      // Check if eventId parameter is present for filtering
+      const eventIdMatch = url?.match(/eventId=([0-9]+)/);
+      const eventId = eventIdMatch ? eventIdMatch[1] : null;
 
-      let resolvedPositions = resolvedMarkets;
-      if (includeWinnings) {
-        const winningPositions = POLYMARKET_WINNING_POSITIONS_RESPONSE.map(
-          (position) => ({
-            ...position,
-            proxyWallet: userAddress,
-          }),
+      // Combine lost positions with winning positions if includeWinnings is true
+      let resolvedMarkets = POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE;
+      let winningPositions = includeWinnings
+        ? POLYMARKET_WINNING_POSITIONS_RESPONSE
+        : [];
+
+      // Filter by eventId if provided
+      if (eventId) {
+        resolvedMarkets = resolvedMarkets.filter(
+          (position) => position.eventId === eventId,
         );
-        resolvedPositions = [...resolvedMarkets, ...winningPositions];
+        winningPositions = winningPositions.filter(
+          (position) => position.eventId === eventId,
+        );
       }
+
+      const resolvedMarketsWithAddress = resolvedMarkets.map((position) => ({
+        ...position,
+        proxyWallet: userAddress,
+      }));
+
+      const winningPositionsWithAddress = winningPositions.map((position) => ({
+        ...position,
+        proxyWallet: userAddress,
+      }));
+
+      const resolvedPositions = [
+        ...resolvedMarketsWithAddress,
+        ...winningPositionsWithAddress,
+      ];
 
       return {
         statusCode: 200,
         json: resolvedPositions,
+      };
+    });
+};
+
+/**
+ * Mock for Polymarket CLOB prices API
+ * Returns BUY (best ask) and SELL (best bid) prices for outcome tokens
+ * This is used to display current market prices in the UI
+ */
+export const POLYMARKET_PRICES_MOCKS = async (mockServer: Mockttp) => {
+  await mockServer
+    .forPost('/proxy')
+    .matching(async (request) => {
+      const urlParam = new URL(request.url).searchParams.get('url');
+      if (!urlParam?.includes('clob.polymarket.com/prices')) {
+        return false;
+      }
+
+      try {
+        const bodyText = await request.body.getText();
+        const body = bodyText ? JSON.parse(bodyText) : undefined;
+        // Check if it's an array of price queries
+        return Array.isArray(body) && body.length > 0;
+      } catch {
+        return false;
+      }
+    })
+    .asPriority(PRIORITY.BASE)
+    .thenCallback(async (request) => {
+      const bodyText = await request.body.getText();
+      const body = bodyText ? JSON.parse(bodyText) : [];
+
+      // Extract unique token IDs from the request
+      const tokenIds = new Set<string>();
+      body.forEach((query: { token_id: string; side: string }) => {
+        if (query.token_id) {
+          tokenIds.add(query.token_id);
+        }
+      });
+
+      // Build response with prices for each token
+      const pricesResponse: Record<string, { BUY: string; SELL: string }> = {};
+
+      tokenIds.forEach((tokenId) => {
+        // Spurs token
+        if (
+          tokenId ===
+          '110743925263777693447488608878982152642205002490046349037358337248548507433643'
+        ) {
+          // Best ask (BUY) = 0.62, Best bid (SELL) = 0.61
+          // Using mid price for display: (0.62 + 0.61) / 2 = 0.615, but for accuracy use best ask for BUY and best bid for SELL
+          pricesResponse[tokenId] = {
+            BUY: '0.62', // Best ask - what you'd pay to buy
+            SELL: '0.61', // Best bid - what you'd receive to sell
+          };
+        }
+        // Pelicans token
+        else if (
+          tokenId ===
+          '38489710206351002266036612280230748165102516187175290608628298208123746725814'
+        ) {
+          // Best ask (BUY) = 0.38, Best bid (SELL) = 0.37
+          pricesResponse[tokenId] = {
+            BUY: '0.38', // Best ask - what you'd pay to buy
+            SELL: '0.37', // Best bid - what you'd receive to sell
+          };
+        }
+        // Default prices for other tokens (can be extended as needed)
+        else {
+          pricesResponse[tokenId] = {
+            BUY: '0.50',
+            SELL: '0.50',
+          };
+        }
+      });
+
+      return {
+        statusCode: 200,
+        json: pricesResponse,
       };
     });
 };
@@ -427,12 +522,22 @@ export const POLYMARKET_RESOLVED_MARKETS_POSITIONS_MOCKS = async (
       const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
       const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
 
-      const dynamicResponse = POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE.map(
-        (position) => ({
-          ...position,
-          proxyWallet: userAddress,
-        }),
-      );
+      // Check if eventId parameter is present for filtering
+      const eventIdMatch = url?.match(/eventId=([0-9]+)/);
+      const eventId = eventIdMatch ? eventIdMatch[1] : null;
+
+      // Filter positions by eventId if provided
+      let filteredPositions = POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE;
+      if (eventId) {
+        filteredPositions = POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE.filter(
+          (position) => position.eventId === eventId,
+        );
+      }
+
+      const dynamicResponse = filteredPositions.map((position) => ({
+        ...position,
+        proxyWallet: userAddress,
+      }));
 
       return {
         statusCode: 200,
@@ -1248,5 +1353,6 @@ export const POLYMARKET_COMPLETE_MOCKS = async (mockServer: Mockttp) => {
   await POLYMARKET_USDC_BALANCE_MOCKS(mockServer); // Uses default balance
   await POLYMARKET_EVENT_DETAILS_MOCKS(mockServer);
   await POLYMARKET_ORDER_BOOK_MOCKS(mockServer);
+  await POLYMARKET_PRICES_MOCKS(mockServer); // Mock for CLOB prices API
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
 };
