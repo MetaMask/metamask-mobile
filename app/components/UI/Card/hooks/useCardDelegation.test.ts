@@ -855,6 +855,10 @@ describe('useCardDelegation', () => {
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.CARD_DELEGATION_PROCESS_USER_CANCELED,
       );
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_DELEGATION_PROCESS_FAILED,
+      );
+      expect(Logger.error).not.toHaveBeenCalled();
     });
   });
 
