@@ -383,7 +383,7 @@ describe('usePerpsLivePositions', () => {
       });
     });
 
-    it('uses mark price over mid price when available', async () => {
+    it('uses price price over mark price when available', async () => {
       let positionsCallback: (positions: Position[]) => void = jest.fn();
       let pricesCallback: (prices: Record<string, PriceUpdate>) => void =
         jest.fn();
@@ -428,7 +428,7 @@ describe('usePerpsLivePositions', () => {
 
       await waitFor(() => {
         const updatedPosition = result.current.positions[0];
-        expect(updatedPosition.unrealizedPnl).toBe('1500');
+        expect(updatedPosition.unrealizedPnl).toBe('1000');
       });
     });
 
