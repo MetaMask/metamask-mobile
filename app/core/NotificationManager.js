@@ -538,7 +538,7 @@ class NotificationManager {
     }
 
     const isRequired = transactions.some((tx) =>
-      tx.requiredTransactionIds?.includes(transactionMeta.id),
+      tx.requiredTransactionIds?.includes(transactionMeta?.id),
     );
 
     if (isRequired) {
@@ -549,7 +549,7 @@ class NotificationManager {
       (tx) =>
         hasTransactionType(tx, SKIP_NOTIFICATION_TRANSACTION_TYPES) &&
         tx.batchId &&
-        tx.batchId === transactionMeta.batchId,
+        tx.batchId === transactionMeta?.batchId,
     );
 
     return isSameBatch;
