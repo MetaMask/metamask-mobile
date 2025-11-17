@@ -66,7 +66,11 @@ import FastOnboarding from './FastOnboarding';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import storageWrapper from '../../../store/storage-wrapper';
-import { AGREED, METRICS_OPT_IN_PRIOR_RESET } from '../../../constants/storage';
+import {
+  AGREED,
+  METRICS_OPT_IN_PRIOR_RESET,
+  METRICS_OPT_IN,
+} from '../../../constants/storage';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import OnboardingAnimation from '../../UI/OnboardingAnimation/OnboardingAnimation';
 
@@ -429,8 +433,23 @@ class Onboarding extends PureComponent {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
-    await this.props.metrics.enable(false);
-    // need to call hasMetricConset to update the cached consent state
+
+    const metricsPriorReset = await storageWrapper.getItem(
+      METRICS_OPT_IN_PRIOR_RESET,
+    );
+    const metricsEnabled = await storageWrapper.getItem(METRICS_OPT_IN);
+
+    // if metrics prior reset does not match metrics enabled, set metrics enabled to metrics prior reset
+    if (metricsPriorReset !== metricsEnabled) {
+      await this.props.metrics.enable(metricsPriorReset === AGREED);
+
+      // if metrics prior reset undefined  set metrics enabled to undefined
+      if (metricsEnabled === undefined) {
+        await storageWrapper.setItem(METRICS_OPT_IN, metricsPriorReset);
+      }
+    }
+
+    // need to call hasMetricsConsent to update the cached consent state
     await hasMetricsConsent();
 
     trace({ name: TraceName.OnboardingCreateWallet });
