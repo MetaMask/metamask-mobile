@@ -2,6 +2,7 @@ import { createSelector } from 'reselect';
 import { RootState } from '../../../../reducers';
 import { TokenI } from '../../Tokens/types';
 import { selectTrxStakingEnabled } from '../../../../selectors/featureFlagController/trxStakingEnabled';
+import { isMainnetByChainId } from '../../../../util/networks';
 
 /**
  * Returns true if the given asset should surface staking UI.
@@ -13,7 +14,10 @@ export const selectIsStakeableToken = createSelector(
   (asset, trxStakingEnabled) => {
     if (!asset) return false;
 
-    if (asset.isETH) return true;
+    // Only allow staking/earn for ETH on Ethereum mainnet
+    if (asset.isETH) {
+      return isMainnetByChainId(asset.chainId);
+    }
 
     const isTronNative =
       asset.ticker === 'TRX' && asset.chainId?.startsWith('tron:');
