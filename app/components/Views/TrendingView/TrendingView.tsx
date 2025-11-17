@@ -136,7 +136,7 @@ const TrendingFeed: React.FC = () => {
         {HOME_SECTIONS_ARRAY.map((section) => (
           <React.Fragment key={section.id}>
             <SectionHeader sectionId={section.id} />
-            {section.renderSection()}
+            <section.Section />
           </React.Fragment>
         ))}
       </ScrollView>

@@ -31,14 +31,14 @@ interface SectionConfig {
   id: SectionId;
   title: string;
   viewAllAction: (navigation: NavigationProp<ParamListBase>) => void;
-  renderRowItem: (
-    item: unknown,
-    navigation: NavigationProp<ParamListBase>,
-  ) => JSX.Element;
-  renderSkeleton: () => JSX.Element;
+  RowItem: React.ComponentType<{
+    item: unknown;
+    navigation: NavigationProp<ParamListBase>;
+  }>;
+  Skeleton: React.ComponentType;
   getSearchableText: (item: unknown) => string;
   keyExtractor: (item: unknown) => string;
-  renderSection: () => JSX.Element;
+  Section: React.ComponentType;
   useSectionData: (searchQuery?: string) => {
     data: unknown[];
     isLoading: boolean;
@@ -69,17 +69,17 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       // TODO: Implement tokens navigation when ready
       // _navigation.navigate(...);
     },
-    renderRowItem: (item) => (
+    RowItem: ({ item }) => (
       <TrendingTokenRowItem
         token={item as TrendingAsset}
         onPress={() => undefined}
       />
     ),
-    renderSkeleton: () => <TrendingTokensSkeleton />,
+    Skeleton: () => <TrendingTokensSkeleton />,
     getSearchableText: (item) =>
       `${(item as TrendingAsset).symbol} ${(item as TrendingAsset).name}`.toLowerCase(),
     keyExtractor: (item) => `token-${(item as TrendingAsset).assetId}`,
-    renderSection: () => <SectionCard sectionId="tokens" />,
+    Section: () => <SectionCard sectionId="tokens" />,
     useSectionData: () => {
       const { results, isLoading } = useTrendingRequest({});
 
@@ -97,7 +97,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         },
       });
     },
-    renderRowItem: (item, navigation) => (
+    RowItem: ({ item, navigation }) => (
       <PerpsMarketRowItem
         market={item as PerpsMarketData}
         onPress={() => {
@@ -112,11 +112,11 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         showBadge={false}
       />
     ),
-    renderSkeleton: () => <PerpsMarketRowSkeleton />,
+    Skeleton: () => <PerpsMarketRowSkeleton />,
     getSearchableText: (item) =>
       `${(item as PerpsMarketData).symbol} ${(item as PerpsMarketData).name || ''}`.toLowerCase(),
     keyExtractor: (item) => `perp-${(item as PerpsMarketData).symbol}`,
-    renderSection: () => (
+    Section: () => (
       <PerpsConnectionProvider>
         <PerpsStreamProvider>
           <SectionCard sectionId="perps" />
@@ -137,14 +137,12 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         screen: Routes.PREDICT.MARKET_LIST,
       });
     },
-    renderRowItem: (item) => (
-      <PredictMarket market={item as PredictMarketType} />
-    ),
-    renderSkeleton: () => <PredictMarketSkeleton />,
+    RowItem: ({ item }) => <PredictMarket market={item as PredictMarketType} />,
+    Skeleton: () => <PredictMarketSkeleton />,
     getSearchableText: (item) =>
       (item as PredictMarketType).title.toLowerCase(),
     keyExtractor: (item) => `prediction-${(item as PredictMarketType).id}`,
-    renderSection: () => <SectionCarrousel sectionId="predictions" />,
+    Section: () => <SectionCarrousel sectionId="predictions" />,
     useSectionData: (searchQuery?: string) => {
       const { marketData, isFetching } = usePredictMarketData({
         category: 'trending',

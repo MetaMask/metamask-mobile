@@ -68,9 +68,11 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({ sectionId }) => {
           style={cardWidthStyle}
           twClassName="mr-4 rounded-2xl px-2 overflow-hidden"
         >
-          {isLoading
-            ? section.renderSkeleton()
-            : section.renderRowItem(item, navigation)}
+          {isLoading ? (
+            <section.Skeleton />
+          ) : (
+            <section.RowItem item={item} navigation={navigation} />
+          )}
         </Box>
       );
     },

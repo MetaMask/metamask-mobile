@@ -113,11 +113,11 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       if (!section) return null;
 
       if (item.type === 'skeleton') {
-        return section.renderSkeleton();
+        return <section.Skeleton />;
       }
 
       // Cast navigation to 'never' to satisfy different navigation param list types
-      return section.renderRowItem(item.data, navigation);
+      return <section.RowItem item={item.data} navigation={navigation} />;
     },
     [navigation, renderSectionHeader],
   );
