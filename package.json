@@ -123,7 +123,7 @@
     "deduplicate": "yarn dedupe",
     "storybook-generate": "sb-rn-get-stories",
     "storybook-watch": "sb-rn-watcher",
-    "gen-bundle:ios": "yarn react-native bundle --platform ios --dev false --entry-file index.js --bundle-output ios/main.jsbundle",
+    "gen-bundle:ios": "NODE_OPTIONS='--max-old-space-size=8192' yarn react-native bundle --platform ios --dev false --entry-file index.js --bundle-output ios/main.jsbundle",
     "gen-bundle:android": "yarn react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/main.jsbundle",
     "circular:deps": "dpdm ./app/* --circular --exit-code circular:1 --warning=false",
     "generate-icons": "yarn ts-node app/component-library/components/Icons/Icon/scripts/generate-assets.ts"
