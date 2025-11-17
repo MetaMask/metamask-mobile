@@ -97,7 +97,7 @@ const QuoteDetailsRecipientKeyValueRow = () => {
           <Icon
             name={IconName.Edit}
             size={IconSize.Sm}
-            color={IconColor.Muted}
+            color={IconColor.Alternative}
           />
         </TouchableOpacity>
       </Box>

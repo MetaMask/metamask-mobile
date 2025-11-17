@@ -782,19 +782,6 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                   testID="edit-slippage-button"
                                 >
-                                  <SvgMock
-                                    color="#686e7d"
-                                    fill="currentColor"
-                                    height={16}
-                                    name="Edit"
-                                    style={
-                                      {
-                                        "height": 16,
-                                        "width": 16,
-                                      }
-                                    }
-                                    width={16}
-                                  />
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -809,6 +796,19 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   >
                                     0.5%
                                   </Text>
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={16}
+                                    name="Edit"
+                                    style={
+                                      {
+                                        "height": 16,
+                                        "width": 16,
+                                      }
+                                    }
+                                    width={16}
+                                  />
                                 </TouchableOpacity>
                               </View>
                             </View>
@@ -1037,7 +1037,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 Select recipient
                               </Text>
                               <SvgMock
-                                color="#b7bbc8"
+                                color="#686e7d"
                                 fill="currentColor"
                                 height={16}
                                 name="Edit"

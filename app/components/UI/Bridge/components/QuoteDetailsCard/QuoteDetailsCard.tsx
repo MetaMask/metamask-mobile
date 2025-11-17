@@ -212,17 +212,17 @@ const QuoteDetailsCard: React.FC = () => {
                 testID="edit-slippage-button"
                 style={styles.slippageButton}
               >
-                <Icon
-                  name={IconName.Edit}
-                  size={IconSize.Sm}
-                  color={IconColor.Alternative}
-                />
                 <Text
                   variant={TextVariant.BodyMD}
                   color={TextColor.Alternative}
                 >
                   {slippage}
                 </Text>
+                <Icon
+                  name={IconName.Edit}
+                  size={IconSize.Sm}
+                  color={IconColor.Alternative}
+                />
               </TouchableOpacity>
             ),
           }}
