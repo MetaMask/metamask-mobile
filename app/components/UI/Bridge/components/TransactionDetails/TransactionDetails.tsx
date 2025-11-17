@@ -252,22 +252,29 @@ export const BridgeTransactionDetails = (
 
   let multiChainTotalGasFee;
   if (multiChainTx) {
-    const { baseFee, priorityFee } = getMultichainTxFees(multiChainTx);
-    multiChainTotalGasFee =
-      baseFee?.asset.fungible && priorityFee?.asset.fungible
-        ? (
-            Number(baseFee?.asset.amount) + Number(priorityFee?.asset.amount)
-          ).toFixed(5)
-        : null;
+    const multichainTxFees = getMultichainTxFees(multiChainTx);
+    const baseFeeIsFungible = multichainTxFees?.baseFee?.asset.fungible;
+    const priorityFeeIsFungible = multichainTxFees?.priorityFee?.asset.fungible;
+
+    // Only calculate total fee if at least one fee is fungible
+    if (baseFeeIsFungible || priorityFeeIsFungible) {
+      const baseFee = baseFeeIsFungible
+        ? multichainTxFees?.baseFee?.asset.amount
+        : 0;
+      const priorityFee = priorityFeeIsFungible
+        ? Number(multichainTxFees?.priorityFee?.asset.amount)
+        : 0;
+      multiChainTotalGasFee = (Number(baseFee) + Number(priorityFee)).toFixed(
+        5,
+      );
+    }
   }
 
   let status;
   if (isBridge) {
     status = bridgeStatus.status;
-  } else if (isSwap) {
-    status = evmTxMeta?.status;
-  } else if (multiChainTx) {
-    status = multiChainTx.status;
+  } else {
+    status = evmTxMeta?.status || multiChainTx?.status;
   }
 
   return (

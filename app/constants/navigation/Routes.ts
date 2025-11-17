@@ -78,6 +78,7 @@ const Routes = {
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',
   TRENDING_VIEW: 'TrendingView',
+  EXPLORE_SEARCH: 'ExploreSearch',
   REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
   REWARDS_ONBOARDING_INTRO: 'RewardsOnboardingIntro',
   REWARDS_ONBOARDING_1: 'RewardsOnboarding1',
@@ -189,6 +190,7 @@ const Routes = {
     SEEDPHRASE_MODAL: 'SeedphraseModal',
     SKIP_ACCOUNT_SECURITY_MODAL: 'SkipAccountSecurityModal',
     SUCCESS_ERROR_SHEET: 'SuccessErrorSheet',
+    ELIGIBILITY_FAILED_MODAL: 'EligibilityFailedModal',
     TOKEN_INSIGHTS: 'TokenInsights',
     MULTICHAIN_ACCOUNT_DETAILS: {
       ACCOUNT_ACTIONS: 'MultichainAccountActions',
@@ -287,6 +289,7 @@ const Routes = {
       SELL_PREVIEW: 'PredictSellPreview',
       UNAVAILABLE: 'PredictUnavailable',
       ADD_FUNDS_SHEET: 'PredictAddFundsSheet',
+      GTM_MODAL: 'PredictGTMModal',
     },
   },
   LOCK_SCREEN: 'LockScreen',
