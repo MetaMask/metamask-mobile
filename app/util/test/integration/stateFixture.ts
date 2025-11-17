@@ -152,6 +152,9 @@ export interface StateFixtureBuilder {
   withMinimalBridgeController(): StateFixtureBuilder;
   withMinimalTokenRates(): StateFixtureBuilder;
   withMinimalMultichainAssetsRates(): StateFixtureBuilder;
+  withMinimalMultichainBalances(): StateFixtureBuilder;
+  withMinimalMultichainAssets(): StateFixtureBuilder;
+  withMinimalMultichainTransactions(): StateFixtureBuilder;
   withBridgeRecommendedQuoteEvmSimple(params?: {
     srcAmount?: string;
     srcTokenAddress?: string;
@@ -341,6 +344,68 @@ export function createStateFixture(options?: {
               ...bg,
               MultichainAssetsRatesController: {
                 conversionRates: {},
+              },
+            },
+          },
+        } as unknown as DeepPartial<RootState> as PlainObject,
+      );
+      return api;
+    },
+    withMinimalMultichainBalances() {
+      const bg = (current.engine?.backgroundState ?? {}) as unknown as Record<
+        string,
+        unknown
+      >;
+      current = deepMerge(
+        current as PlainObject,
+        {
+          engine: {
+            backgroundState: {
+              ...bg,
+              MultichainBalancesController: {
+                balances: {},
+              },
+            },
+          },
+        } as unknown as DeepPartial<RootState> as PlainObject,
+      );
+      return api;
+    },
+    withMinimalMultichainAssets() {
+      const bg = (current.engine?.backgroundState ?? {}) as unknown as Record<
+        string,
+        unknown
+      >;
+      current = deepMerge(
+        current as PlainObject,
+        {
+          engine: {
+            backgroundState: {
+              ...bg,
+              MultichainAssetsController: {
+                accountsAssets: {},
+                assetsMetadata: {},
+                allIgnoredAssets: {},
+              },
+            },
+          },
+        } as unknown as DeepPartial<RootState> as PlainObject,
+      );
+      return api;
+    },
+    withMinimalMultichainTransactions() {
+      const bg = (current.engine?.backgroundState ?? {}) as unknown as Record<
+        string,
+        unknown
+      >;
+      current = deepMerge(
+        current as PlainObject,
+        {
+          engine: {
+            backgroundState: {
+              ...bg,
+              MultichainTransactionsController: {
+                nonEvmTransactions: {},
               },
             },
           },
