@@ -82,7 +82,7 @@
     "release:ios": "./scripts/build.sh ios release",
     "release:android:qa": "./scripts/build.sh android QA && open android/app/build/outputs/apk/release/",
     "test": "yarn test:unit",
-    "test:unit": "jest ./app/ ./locales/ ./e2e/**/*.test.ts .github/**/*.test.ts --testPathIgnorePatterns='.*\\.integration(\\..*)?\\.test\\.(ts|tsx)$'",
+    "test:unit": "jest ./app/ ./locales/ ./e2e/**/*.test.ts .github/**/*.test.ts --testPathIgnorePatterns='.*/e2e/specs/.*\\.spec\\.(ts|tsx|js)$|.*\\.integration(\\..*)?\\.test\\.(ts|tsx)$'",
     "test:integration": "jest --runInBand --no-watchman --verbose --testPathPattern='.*\\.integration(\\..*)?\\.test\\.(ts|tsx)$'",
     "test:unit:update": "time jest -u ./app/",
     "test:api-specs": "detox reset-lock-file && detox test -c ios.sim.apiSpecs",
