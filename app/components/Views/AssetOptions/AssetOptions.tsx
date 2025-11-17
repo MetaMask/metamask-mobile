@@ -31,7 +31,7 @@ import {
 import { isPortfolioUrl } from '../../../util/url';
 import { BrowserTab, TokenI } from '../../../components/UI/Tokens/types';
 import { CaipAssetType, Hex } from '@metamask/utils';
-import { buildPortfolioUrl } from '../../../util/browser';
+import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
@@ -110,6 +110,7 @@ const AssetOptions = (props: Props) => {
   const selectInternalAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
+  const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
 
   // Memoize the provider config for the token explorer
   const { providerConfigTokenExplorer } = useMemo(() => {
@@ -139,7 +140,7 @@ const AssetOptions = (props: Props) => {
     networkConfigurations,
     providerConfigTokenExplorer,
   );
-  const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const goToBrowserUrl = (url: string, title: string) => {
     modalRef.current?.dismissModal(() => {
@@ -221,14 +222,8 @@ const AssetOptions = (props: Props) => {
     if (existingPortfolioTab) {
       existingTabId = existingPortfolioTab.id;
     } else {
-      const analyticsEnabled = isEnabled();
-
-      const portfolioUrl = buildPortfolioUrl(
+      const portfolioUrl = buildPortfolioUrlWithMetrics(
         AppConstants.PORTFOLIO.URL,
-        analyticsEnabled,
-        {
-          metricsEnabled: analyticsEnabled,
-        },
       );
 
       newTabUrl = portfolioUrl.href;

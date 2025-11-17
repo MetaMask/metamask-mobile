@@ -14,8 +14,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
-import { buildPortfolioUrl } from '../../../util/browser';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
 import Browser from '../Browser';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -65,7 +64,7 @@ const BrowserWrapper: React.FC<{ route: object }> = ({ route }) => {
 const TrendingFeed: React.FC = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const { isEnabled } = useMetrics();
+  const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
 
   // Update state when returning to TrendingFeed
   useEffect(() => {
@@ -76,13 +75,7 @@ const TrendingFeed: React.FC = () => {
     return unsubscribe;
   }, [navigation]);
 
-  const portfolioUrl = buildPortfolioUrl(
-    AppConstants.PORTFOLIO.URL,
-    isEnabled(),
-    {
-      metricsEnabled: isEnabled(),
-    },
-  );
+  const portfolioUrl = buildPortfolioUrlWithMetrics(AppConstants.PORTFOLIO.URL);
 
   const handleBrowserPress = useCallback(() => {
     updateLastTrendingScreen('TrendingBrowser');

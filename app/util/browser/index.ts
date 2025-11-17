@@ -212,19 +212,12 @@ export const appendURLParams = (
  */
 export const buildPortfolioUrl = (
   baseUrl: string,
-  userAcceptedTracking: boolean | null,
   additionalParams?: Record<string, string | boolean | number>,
 ): URL => {
   const params: Record<string, string | boolean | number> = {
     metamaskEntry: 'mobile',
     ...additionalParams,
   };
-
-  // Only add userAcceptedTracking parameter if user has explicitly set their preference
-  // null means no preference set yet, so we omit the parameter to show the modal
-  if (userAcceptedTracking !== null) {
-    params.userAcceptedTracking = userAcceptedTracking;
-  }
 
   return appendURLParams(baseUrl, params);
 };
