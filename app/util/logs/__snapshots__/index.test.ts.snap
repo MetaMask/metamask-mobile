@@ -306,21 +306,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
               },
             ],
           },
-          "0x531": {
-            "blockExplorerUrls": [],
-            "chainId": "0x531",
-            "defaultRpcEndpointIndex": 0,
-            "name": "Sei",
-            "nativeCurrency": "SEI",
-            "rpcEndpoints": [
-              {
-                "failoverUrls": [],
-                "networkClientId": "sei-mainnet",
-                "type": "infura",
-                "url": "https://sei-mainnet.infura.io/v3/{infuraProjectId}",
-              },
-            ],
-          },
           "0x89": {
             "blockExplorerUrls": [],
             "chainId": "0x89",
@@ -1062,21 +1047,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
                 "networkClientId": "bsc-mainnet",
                 "type": "infura",
                 "url": "https://bsc-mainnet.infura.io/v3/{infuraProjectId}",
-              },
-            ],
-          },
-          "0x531": {
-            "blockExplorerUrls": [],
-            "chainId": "0x531",
-            "defaultRpcEndpointIndex": 0,
-            "name": "Sei",
-            "nativeCurrency": "SEI",
-            "rpcEndpoints": [
-              {
-                "failoverUrls": [],
-                "networkClientId": "sei-mainnet",
-                "type": "infura",
-                "url": "https://sei-mainnet.infura.io/v3/{infuraProjectId}",
               },
             ],
           },

@@ -43,6 +43,7 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
     isEnabled: mockIsEnabled,
   }),
+  withMetricsAwareness: (Component: unknown) => Component,
 }));
 
 jest.mock('../../../util/browser', () => ({

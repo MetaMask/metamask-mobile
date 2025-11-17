@@ -3,6 +3,7 @@ import InfoRow from '../../UI/info-row';
 import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import Text, {
   TextColor,
+  TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../locales/i18n';
 import {
@@ -11,7 +12,6 @@ import {
 } from '@metamask/transaction-controller';
 import { Box } from '../../../../../UI/Box/Box';
 import { FlexDirection, JustifyContent } from '../../../../../UI/Box/box.types';
-import { SkeletonRow } from '../skeleton-row';
 import { hasTransactionType } from '../../../utils/transaction';
 import { TransactionPayTotals } from '@metamask/transaction-pay-controller';
 import {
@@ -21,6 +21,10 @@ import {
 } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPayFiat } from '../../../hooks/pay/useTransactionPayFiat';
 import { BigNumber } from 'bignumber.js';
+import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
+import AlertRow from '../../UI/info-row/alert-row';
+import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
+import { useAlerts } from '../../../context/alert-system-context';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
@@ -28,6 +32,8 @@ export function BridgeFeeRow() {
   const isLoading = useIsTransactionPayLoading();
   const quotes = useTransactionPayQuotes();
   const totals = useTransactionPayTotals();
+  const { fieldAlerts } = useAlerts();
+  const hasAlert = fieldAlerts.some((a) => a.field === RowAlertKey.PayWithFee);
 
   const feeTotalUsd = useMemo(() => {
     if (!totals?.fees) return '';
@@ -47,8 +53,8 @@ export function BridgeFeeRow() {
   if (isLoading) {
     return (
       <>
-        <SkeletonRow testId="bridge-fee-row-skeleton" />
-        <SkeletonRow testId="metamask-fee-row-skeleton" />
+        <InfoRowSkeleton testId="bridge-fee-row-skeleton" />
+        <InfoRowSkeleton testId="metamask-fee-row-skeleton" />
       </>
     );
   }
@@ -57,8 +63,9 @@ export function BridgeFeeRow() {
 
   return (
     <>
-      <InfoRow
+      <AlertRow
         testID="bridge-fee-row"
+        alertField={RowAlertKey.PayWithFee}
         label={strings('confirm.label.transaction_fee')}
         tooltip={
           hasQuotes && totals ? (
@@ -66,15 +73,24 @@ export function BridgeFeeRow() {
           ) : undefined
         }
         tooltipTitle={strings('confirm.tooltip.title.transaction_fee')}
+        rowVariant={InfoRowVariant.Small}
       >
-        <Text>{feeTotalUsd}</Text>
-      </InfoRow>
+        <Text
+          variant={TextVariant.BodySM}
+          color={hasAlert ? TextColor.Error : TextColor.Alternative}
+        >
+          {feeTotalUsd}
+        </Text>
+      </AlertRow>
       {hasQuotes && (
         <InfoRow
           testID="metamask-fee-row"
           label={strings('confirm.label.metamask_fee')}
+          rowVariant={InfoRowVariant.Small}
         >
-          <Text>{metamaskFeeUsd}</Text>
+          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            {metamaskFeeUsd}
+          </Text>
         </InfoRow>
       )}
     </>

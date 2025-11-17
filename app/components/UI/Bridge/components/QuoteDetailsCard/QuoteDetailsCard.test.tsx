@@ -135,6 +135,35 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: () => (scope: string) => {
+    // Return appropriate account based on the scope
+    if (scope.startsWith('solana:')) {
+      return {
+        id: 'solanaAccountId',
+        address: 'pXwSggYaFeUryz86UoCs9ugZ4VWoZ7R1U5CVhxYjL61',
+        name: 'Solana Account',
+        type: 'snap',
+        scopes: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
+        metadata: {
+          lastSelected: 0,
+        },
+      };
+    }
+    // Default to EVM account
+    return {
+      id: 'evmAccountId',
+      address: '0x1234567890123456789012345678901234567890',
+      name: 'Account 1',
+      type: 'eip155:eoa',
+      scopes: ['eip155:1'],
+      metadata: {
+        lastSelected: 0,
+      },
+    };
+  },
+}));
+
 jest.mock(
   '../../../../../selectors/featureFlagController/multichainAccounts',
   () => ({
