@@ -891,11 +891,9 @@ const EarnWithdrawInputView = () => {
           variant={ButtonVariants.Primary}
           loading={isSubmittingStakeWithdrawalTransaction}
           isDisabled={
-            ///: BEGIN:ONLY_INCLUDE_IF(tron)
             (isTronAsset
               ? !isNonZeroAmount
-              : ///: END:ONLY_INCLUDE_IF
-                isWithdrawingMoreThanAvailableForLendingToken ||
+              : isWithdrawingMoreThanAvailableForLendingToken ||
                 isOverMaximum.isOverMaximumToken ||
                 isOverMaximum.isOverMaximumEth ||
                 !isNonZeroAmount) || isSubmittingStakeWithdrawalTransaction
