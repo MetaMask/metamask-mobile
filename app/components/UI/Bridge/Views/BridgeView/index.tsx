@@ -503,7 +503,7 @@ const BridgeView = () => {
             <Box style={styles.arrowCircle}>
               <ButtonIcon
                 iconName={IconName.SwapVertical}
-                onPress={handleSwitchTokens}
+                onPress={handleSwitchTokens(destTokenAmount)}
                 disabled={!destChainId || !destToken}
                 testID="arrow-button"
                 size={ButtonIconSizes.Lg}
