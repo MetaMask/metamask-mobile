@@ -48,7 +48,7 @@ const SampleFeature = () => {
   const { networkName, networkImageSource } = useSampleNetwork();
   const isCounterEnabled = useFeatureFlag(
     FeatureFlagNames.sampleFeatureCounterEnabled,
-  );
+  ) as boolean;
 
   return (
     <KeyboardAwareScrollView
