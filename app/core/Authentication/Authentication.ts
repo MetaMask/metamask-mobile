@@ -510,7 +510,17 @@ class AuthenticationService {
         await this.createWalletVaultAndKeychain(password);
       }
 
-      await this.storePassword(password, authData?.currentAuthType);
+      await this.storePassword(password, authData?.currentAuthType).catch(
+        async (error) => {
+          if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSWORD) {
+            throw error;
+          }
+
+          // Fall back to password authType
+          await this.storePassword(password, AUTHENTICATION_TYPE.PASSWORD);
+        },
+      );
+
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
 
@@ -546,7 +556,17 @@ class AuthenticationService {
   ): Promise<void> => {
     try {
       await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
-      await this.storePassword(password, authData.currentAuthType);
+      await this.storePassword(password, authData.currentAuthType).catch(
+        async (error) => {
+          if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSWORD) {
+            throw error;
+          }
+
+          // Fall back to password authType
+          await this.storePassword(password, AUTHENTICATION_TYPE.PASSWORD);
+        },
+      );
+
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       await this.dispatchLogin({
