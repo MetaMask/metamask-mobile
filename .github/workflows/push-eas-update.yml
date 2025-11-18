@@ -241,19 +241,23 @@ jobs:
       - name: Update summary
         if: success()
         run: |
-          echo "### ✅ EAS Update Published Successfully" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Channel:** \`${EXPO_CHANNEL:-<not set>}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Message:** test eas update workflow" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Users on the \`${EXPO_CHANNEL:-<not set>}\` channel will receive this update on their next app launch." >> $GITHUB_STEP_SUMMARY
+          {
+            echo "### ✅ EAS Update Published Successfully"
+            echo
+            echo "**Channel:** \`${EXPO_CHANNEL:-<not set>}\`"
+            echo "**Message:** test eas update workflow"
+            echo
+            echo "Users on the \`${EXPO_CHANNEL:-<not set>}\` channel will receive this update on their next app launch."
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Update summary on failure
         if: failure()
         run: |
-          echo "### ❌ EAS Update Failed" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Check the logs above for error details." >> $GITHUB_STEP_SUMMARY
+          {
+            echo "### ❌ EAS Update Failed"
+            echo
+            echo "Check the logs above for error details."
+          } >> "$GITHUB_STEP_SUMMARY"
 
   fingerprint-mismatch:
     name: Fingerprint Mismatch Guard
