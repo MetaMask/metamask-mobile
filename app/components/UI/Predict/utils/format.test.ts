@@ -146,12 +146,12 @@ describe('format utils', () => {
   });
 
   describe('formatPrice', () => {
-    it('formats prices with exactly 2 decimal places (truncated)', () => {
+    it('formats prices with exactly 2 decimal places (rounded up)', () => {
       // Arrange & Act
       const result = formatPrice(1234.5678);
 
       // Assert
-      expect(result).toBe('$1,234.56');
+      expect(result).toBe('$1,234.57');
     });
 
     it('formats prices ignoring custom minimum decimals option', () => {
@@ -159,7 +159,7 @@ describe('format utils', () => {
       const result = formatPrice(50000, { minimumDecimals: 0 });
 
       // Assert
-      expect(result).toBe('$50,000.00');
+      expect(result).toBe('$50,000');
     });
 
     it('formats prices ignoring custom maximum decimals option', () => {
@@ -167,23 +167,23 @@ describe('format utils', () => {
       const result = formatPrice(1234.5678, { minimumDecimals: 4 });
 
       // Assert
-      expect(result).toBe('$1,234.56');
+      expect(result).toBe('$1,234.57');
     });
 
-    it('formats small prices with 2 decimal places (truncated)', () => {
+    it('formats small prices with 2 decimal places (rounded up)', () => {
       // Arrange & Act
       const result = formatPrice(0.1234);
 
       // Assert
-      expect(result).toBe('$0.12');
+      expect(result).toBe('$0.13');
     });
 
-    it('formats very small prices as $0.00', () => {
+    it('formats very small prices rounded up', () => {
       // Arrange & Act
       const result = formatPrice(0.0001234);
 
       // Assert
-      expect(result).toBe('$0.00');
+      expect(result).toBe('$0.01');
     });
 
     it('handles string input with decimal value', () => {
@@ -191,7 +191,7 @@ describe('format utils', () => {
       const result = formatPrice('1234.5678');
 
       // Assert
-      expect(result).toBe('$1,234.56');
+      expect(result).toBe('$1,234.57');
     });
 
     it('handles string input with small value', () => {
@@ -199,7 +199,7 @@ describe('format utils', () => {
       const result = formatPrice('0.1234');
 
       // Assert
-      expect(result).toBe('$0.12');
+      expect(result).toBe('$0.13');
     });
 
     it('returns default value for NaN with default decimals', () => {
@@ -239,7 +239,7 @@ describe('format utils', () => {
       const result = formatPrice(1000);
 
       // Assert
-      expect(result).toBe('$1,000.00');
+      expect(result).toBe('$1,000');
     });
 
     it('formats negative prices correctly', () => {
@@ -255,7 +255,7 @@ describe('format utils', () => {
       const result = formatPrice(0);
 
       // Assert
-      expect(result).toBe('$0.00');
+      expect(result).toBe('$0');
     });
 
     it('formats very large numbers correctly', () => {
@@ -263,23 +263,23 @@ describe('format utils', () => {
       const result = formatPrice(1000000);
 
       // Assert
-      expect(result).toBe('$1,000,000.00');
+      expect(result).toBe('$1,000,000');
     });
 
-    it('truncates not rounds - 1234.999 becomes $1,234.99 not $1,235.00', () => {
+    it('rounds up to next cent - 1234.999 becomes $1,235', () => {
       // Arrange & Act
       const result = formatPrice(1234.999);
 
       // Assert
-      expect(result).toBe('$1,234.99');
+      expect(result).toBe('$1,235');
     });
 
     it.each([
-      [999.999, '$999.99'],
-      [1000, '$1,000.00'],
-      [1000.001, '$1,000.00'],
-      [0.9999, '$0.99'],
-      [0.00009999, '$0.00'],
+      [999.999, '$1,000'],
+      [1000, '$1,000'],
+      [1000.001, '$1,000.01'],
+      [0.9999, '$1'],
+      [0.00009999, '$0.01'],
     ])('formats boundary value %f as %s', (input, expected) => {
       const result = formatPrice(input);
       expect(result).toBe(expected);
@@ -299,7 +299,7 @@ describe('format utils', () => {
     it.each([
       [1234.56, '$1,234.56'],
       [-789.1, '$789.10'],
-      [0, '$0.00'],
+      [0, '$0'],
     ])('formats %s without sign by default as %s', (input, expected) => {
       const result = formatCurrencyValue(input);
 
@@ -309,23 +309,23 @@ describe('format utils', () => {
     it.each([
       [123.45, '+$123.45'],
       [-123.45, '-$123.45'],
-      [0, '$0.00'],
+      [0, '$0'],
     ])('formats %s with sign when showSign=true as %s', (input, expected) => {
       const result = formatCurrencyValue(input, { showSign: true });
 
       expect(result).toBe(expected);
     });
 
-    it('uses absolute value and 2 decimals (truncated) for values >= 1000', () => {
+    it('uses absolute value and 2 decimals (rounded up) for values >= 1000', () => {
       const result = formatCurrencyValue(-1234.567);
 
-      expect(result).toBe('$1,234.56');
+      expect(result).toBe('$1,234.57');
     });
 
-    it('uses absolute value and 2 decimals (truncated) for values < 1000', () => {
+    it('uses absolute value and 2 decimals (rounded up) for values < 1000', () => {
       const result = formatCurrencyValue(-0.1234);
 
-      expect(result).toBe('$0.12');
+      expect(result).toBe('$0.13');
     });
   });
 
@@ -1143,7 +1143,7 @@ describe('format utils', () => {
       expect(result).toBe('9.25');
     });
 
-    it('calculates net amount with high precision decimal values', () => {
+    it('calculates net amount with high precision decimal values rounded up to next cent', () => {
       const params = {
         totalFiat: '1.04361142938843253220839271649743403',
         bridgeFeeFiat: '0.036399',
@@ -1152,7 +1152,7 @@ describe('format utils', () => {
 
       const result = calculateNetAmount(params);
 
-      expect(result).toBe('0.9991879511181999');
+      expect(result).toBe('1');
     });
 
     it('returns "0" when total equals sum of fees', () => {
@@ -1302,7 +1302,7 @@ describe('format utils', () => {
       expect(result).toBe('6.75');
     });
 
-    it('handles very small decimal amounts precisely', () => {
+    it('handles very small decimal amounts rounded up to next cent', () => {
       const params = {
         totalFiat: '0.001',
         bridgeFeeFiat: '0.0001',
@@ -1311,7 +1311,7 @@ describe('format utils', () => {
 
       const result = calculateNetAmount(params);
 
-      expect(result).toBe('0.0007');
+      expect(result).toBe('0.01');
     });
 
     it('handles large amounts correctly', () => {

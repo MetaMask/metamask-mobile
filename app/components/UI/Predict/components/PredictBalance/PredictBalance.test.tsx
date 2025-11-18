@@ -209,7 +209,7 @@ describe('PredictBalance', () => {
       });
 
       // Assert
-      expect(getByText(/\$1,234,567\.88/)).toBeOnTheScreen();
+      expect(getByText(/\$1,234,567\.89/)).toBeOnTheScreen();
     });
 
     it('renders container with correct test ID', () => {
@@ -506,7 +506,7 @@ describe('PredictBalance', () => {
       });
 
       // Assert
-      expect(getByText(/\$123,456,789\.12/)).toBeOnTheScreen();
+      expect(getByText(/\$123,456,789\.13/)).toBeOnTheScreen();
     });
 
     it('handles adding funds state', () => {

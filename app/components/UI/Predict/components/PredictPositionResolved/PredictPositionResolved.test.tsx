@@ -106,7 +106,7 @@ describe('PredictPositionResolved', () => {
       percentPnl: 0,
     });
 
-    expect(screen.getByText(/Lost \$0\.00/)).toBeOnTheScreen();
+    expect(screen.getByText('Lost $0')).toBeOnTheScreen();
   });
 
   it('calls onPress when position is tapped', () => {

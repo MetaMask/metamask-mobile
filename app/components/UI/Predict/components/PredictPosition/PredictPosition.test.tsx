@@ -71,9 +71,7 @@ describe('PredictPosition', () => {
       size: 10,
     });
 
-    expect(
-      screen.getByText('$50.00 on No · 10 shares at 70¢'),
-    ).toBeOnTheScreen();
+    expect(screen.getByText('$50 on No · 10 shares at 70¢')).toBeOnTheScreen();
   });
 
   it('displays singular share when size is 1', () => {
@@ -84,7 +82,7 @@ describe('PredictPosition', () => {
       size: 1,
     });
 
-    expect(screen.getByText('$50.00 on No · 1 share at 70¢')).toBeOnTheScreen();
+    expect(screen.getByText('$50 on No · 1 share at 70¢')).toBeOnTheScreen();
   });
 
   it('renders icon image with correct URI', () => {
@@ -170,16 +168,14 @@ describe('PredictPosition', () => {
   it('formats initialValue without decimals when minimumDecimals is 0', () => {
     renderComponent({ initialValue: 100, size: 3 });
 
-    expect(
-      screen.getByText('$100.00 on Yes · 3 shares at 34¢'),
-    ).toBeOnTheScreen();
+    expect(screen.getByText('$100 on Yes · 3 shares at 34¢')).toBeOnTheScreen();
   });
 
   it('formats size with 2 decimal places', () => {
     renderComponent({ size: 10.5555, initialValue: 200 });
 
     expect(
-      screen.getByText('$200.00 on Yes · 10.56 shares at 34¢'),
+      screen.getByText('$200 on Yes · 10.56 shares at 34¢'),
     ).toBeOnTheScreen();
   });
 

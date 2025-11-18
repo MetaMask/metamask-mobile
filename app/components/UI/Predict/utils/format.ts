@@ -36,14 +36,15 @@ export const formatPercentage = (value: string | number): string => {
 };
 
 /**
- * Formats a price value as USD currency with exactly 2 decimal places (truncated, no rounding)
+ * Formats a price value as USD currency with rounding up to nearest cent
  * @param price - Raw numeric price value
  * @param options - Optional formatting options (kept for backwards compatibility, but not used)
- * @returns USD formatted string with exactly 2 decimals (truncated, not rounded)
- * @example formatPrice(1234.5678) => "$1,234.56"
- * @example formatPrice(0.1234) => "$0.12"
- * @example formatPrice(50000) => "$50,000.00"
- * @example formatPrice(1234.999) => "$1,234.99" (truncated, not rounded to $1,235.00)
+ * @returns USD formatted string, hiding .00 for integer values, rounding up to nearest cent for 3+ decimals
+ * @example formatPrice(1234.5678) => "$1,234.57" (rounds up from .5678)
+ * @example formatPrice(0.1234) => "$0.13" (rounds up from .1234)
+ * @example formatPrice(50000) => "$50,000" (no .00 for integers)
+ * @example formatPrice(1234.999) => "$1,235" (rounds up to next dollar)
+ * @example formatPrice(0.991) => "$1" (rounds up from .991)
  */
 export const formatPrice = (
   price: string | number,
@@ -55,16 +56,19 @@ export const formatPrice = (
     return '$0.00';
   }
 
-  // Truncate to 2 decimal places (no rounding)
-  const truncated = Math.floor(num * 100) / 100;
+  // Round up to 2 decimal places (ceiling)
+  const rounded = Math.ceil(num * 100) / 100;
 
-  // Format with exactly 2 decimal places
+  // Check if it's an integer (no decimal part)
+  const isInteger = rounded === Math.floor(rounded);
+
+  // Format with appropriate decimal places
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-    minimumFractionDigits: 2,
+    minimumFractionDigits: isInteger ? 0 : 2,
     maximumFractionDigits: 2,
-  }).format(truncated);
+  }).format(rounded);
 };
 
 /**
