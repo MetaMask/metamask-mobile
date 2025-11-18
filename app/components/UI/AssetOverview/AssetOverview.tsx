@@ -39,6 +39,7 @@ import {
   renderFromWei,
   toHexadecimal,
   addCurrencySymbol,
+  balanceToFiatNumber,
 } from '../../../util/number';
 import { getEther } from '../../../util/transactions';
 import Text from '../../Base/Text';
@@ -74,11 +75,6 @@ import {
   selectTokenDisplayData,
 } from '../../../selectors/tokenSearchDiscoveryDataController';
 import { formatWithThreshold } from '../../../util/assets';
-import { deriveBalanceFromAssetMarketDetails } from '../Tokens/util/deriveBalanceFromAssetMarketDetails';
-import {
-  TOKEN_BALANCE_LOADING,
-  TOKEN_RATE_UNDEFINED,
-} from '../Tokens/constants';
 import {
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
@@ -585,12 +581,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     if (
       !isEvmAccountType(selectedInternalAccount?.type as KeyringAccountType)
     ) {
-      balance = asset.balance || 0;
+      balance = asset.balance ?? undefined;
     } else {
       balance =
         itemAddress && tokenBalanceHex
           ? renderFromTokenMinimalUnit(tokenBalanceHex, asset.decimals)
-          : 0;
+          : (asset.balance ?? undefined);
     }
   }
 
@@ -645,60 +641,35 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             ? addCurrencySymbol(balanceFiatNumber, currentCurrency)
             : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
       } else if (!isNonEvmAsset) {
-        // For EVM assets, use deriveBalanceFromAssetMarketDetails for consistency
-        // Use the market data directly from allTokenMarketData (already in correct format)
-        const tokenExchangeRates = allTokenMarketData?.[currentChainId] || {};
-
-        // Prepare token balances object (hex format)
-        const tokenBalances: Record<string, Hex> = {};
-        if (
-          itemAddress &&
-          multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
-            chainId as Hex
-          ]?.[itemAddress as Hex]
-        ) {
-          tokenBalances[itemAddress] =
-            multiChainTokenBalance[selectedInternalAccountAddress as Hex][
-              chainId as Hex
-            ][itemAddress as Hex];
-        }
-
+        // For EVM assets, calculate fiat balance directly using balance, market price, and conversion rate
         const tickerConversionRate =
           conversionRateByTicker?.[nativeCurrency]?.conversionRate;
 
-        // Use deriveBalanceFromAssetMarketDetails for consistent calculation
-        if (tickerConversionRate) {
-          // Create a temporary asset object with the balance (as string)
-          const assetWithBalance = {
-            ...asset,
-            balance:
-              typeof balance === 'string' ? balance : String(balanceNumber),
-          };
-
-          const balanceResult = deriveBalanceFromAssetMarketDetails(
-            assetWithBalance,
-            tokenExchangeRates,
-            tokenBalances,
+        if (
+          tickerConversionRate &&
+          marketDataRate !== undefined &&
+          isFinite(marketDataRate)
+        ) {
+          const balanceFiatNumber = balanceToFiatNumber(
+            balanceNumber,
             tickerConversionRate,
-            currentCurrency,
+            marketDataRate,
           );
-
-          // Only use calculated balance if we have valid market data
-          if (
-            balanceResult.balanceFiat &&
-            balanceResult.balanceFiat !== TOKEN_BALANCE_LOADING &&
-            balanceResult.balanceFiat !== TOKEN_RATE_UNDEFINED
-          ) {
-            mainBalance = balanceResult.balanceFiat;
+          if (isFinite(balanceFiatNumber)) {
+            mainBalance =
+              balanceFiatNumber >= 0.01 || balanceFiatNumber === 0
+                ? addCurrencySymbol(balanceFiatNumber, currentCurrency)
+                : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
           }
         }
       }
     }
   }
 
-  const secondaryBalance = `${balance} ${
-    asset.isETH ? asset.ticker : asset.symbol
-  }`;
+  const secondaryBalance =
+    balance != null
+      ? `${balance} ${asset.isETH ? asset.ticker : asset.symbol}`
+      : undefined;
 
   return (
     <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
