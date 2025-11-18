@@ -35,7 +35,6 @@ import ErrorDetailsModal from '../Views/Modals/ErrorDetailsModal/ErrorDetailsMod
 import Routes from '../../../../../constants/navigation/Routes';
 
 interface DepositParamList {
-  [Routes.DEPOSIT.ROOT]: DepositNavigationParams;
   [key: string]:
     | {
         animationEnabled?: boolean;
