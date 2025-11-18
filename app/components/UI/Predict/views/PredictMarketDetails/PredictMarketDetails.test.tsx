@@ -133,11 +133,8 @@ jest.mock('react-native-safe-area-context', () => {
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, vars?: Record<string, string | number>) => {
-    if (key === 'predict.position_info_plural' && vars) {
-      return `${vars.amount} on ${vars.outcome} • ${vars.shares} shares @ ${vars.priceCents}`;
-    }
-    if (key === 'predict.position_info_singular' && vars) {
-      return `${vars.amount} on ${vars.outcome} • ${vars.shares} share @ ${vars.priceCents}`;
+    if (key === 'predict.position_info' && vars) {
+      return `${vars.initialValue} on ${vars.outcome} to win ${vars.shares}`;
     }
     return key;
   }),
@@ -1541,7 +1538,7 @@ describe('PredictMarketDetails', () => {
 
       expect(screen.getByText('predict.cash_out')).toBeOnTheScreen();
       expect(
-        screen.getByText('$65.00 on Yes • 100.00 shares @ 65¢', {
+        screen.getByText('$65.00 on Yes to win $100.00', {
           exact: false,
         }),
       ).toBeOnTheScreen();
@@ -1721,7 +1718,7 @@ describe('PredictMarketDetails', () => {
 
       expect(screen.getByText('Yes Option')).toBeOnTheScreen();
       expect(
-        screen.getByText('$65.00 on Yes • 100.00 shares @ 65¢', {
+        screen.getByText('$65.00 on Yes to win $100.00', {
           exact: false,
         }),
       ).toBeOnTheScreen();
@@ -1754,7 +1751,7 @@ describe('PredictMarketDetails', () => {
 
       expect(screen.getByText('Yes')).toBeOnTheScreen();
       expect(
-        screen.getByText('$65.00 on Yes • 100.00 shares @ 65¢', {
+        screen.getByText('$65.00 on Yes to win $100.00', {
           exact: false,
         }),
       ).toBeOnTheScreen();

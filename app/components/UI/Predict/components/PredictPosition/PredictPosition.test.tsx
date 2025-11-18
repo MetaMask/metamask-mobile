@@ -7,6 +7,15 @@ import {
 } from '../../types';
 import { PredictPositionSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string, vars?: Record<string, string | number>) => {
+    if (key === 'predict.position_info' && vars) {
+      return `${vars.initialValue} on ${vars.outcome} to win ${vars.shares}`;
+    }
+    return key;
+  }),
+}));
+
 const basePosition: PredictPositionType = {
   id: 'pos-1',
   providerId: 'polymarket',
@@ -46,17 +55,15 @@ describe('PredictPosition', () => {
     renderComponent();
 
     expect(screen.getByText(basePosition.title)).toBeOnTheScreen();
-    expect(
-      screen.getByText('$123.45 on Yes · 10 shares at 34¢'),
-    ).toBeOnTheScreen();
+    expect(screen.getByText('$123.45 on Yes to win $10')).toBeOnTheScreen();
     expect(screen.getByText('$2,345.67')).toBeOnTheScreen();
-    expect(screen.getByText('5%')).toBeOnTheScreen();
+    expect(screen.getByText('5.25%')).toBeOnTheScreen();
   });
 
   it.each([
-    { value: -3.5, expected: '-3%' },
+    { value: -3.5, expected: '-3.5%' },
     { value: 0, expected: '0%' },
-    { value: 7.5, expected: '8%' },
+    { value: 7.5, expected: '7.5%' },
   ])('formats percentPnl $value as $expected', ({ value, expected }) => {
     renderComponent({ percentPnl: value });
 
@@ -71,7 +78,7 @@ describe('PredictPosition', () => {
       size: 10,
     });
 
-    expect(screen.getByText('$50 on No · 10 shares at 70¢')).toBeOnTheScreen();
+    expect(screen.getByText('$50 on No to win $10')).toBeOnTheScreen();
   });
 
   it('displays singular share when size is 1', () => {
@@ -82,7 +89,7 @@ describe('PredictPosition', () => {
       size: 1,
     });
 
-    expect(screen.getByText('$50 on No · 1 share at 70¢')).toBeOnTheScreen();
+    expect(screen.getByText('$50 on No to win $1')).toBeOnTheScreen();
   });
 
   it('renders icon image with correct URI', () => {
@@ -152,31 +159,25 @@ describe('PredictPosition', () => {
   it('formats avgPrice with 1 decimal precision in cents', () => {
     renderComponent({ avgPrice: 0.456, size: 5 });
 
-    expect(
-      screen.getByText('$123.45 on Yes · 5 shares at 45.6¢'),
-    ).toBeOnTheScreen();
+    expect(screen.getByText('$123.45 on Yes to win $5')).toBeOnTheScreen();
   });
 
   it('formats avgPrice as whole cents when no decimals needed', () => {
     renderComponent({ avgPrice: 0.5, size: 2 });
 
-    expect(
-      screen.getByText('$123.45 on Yes · 2 shares at 50¢'),
-    ).toBeOnTheScreen();
+    expect(screen.getByText('$123.45 on Yes to win $2')).toBeOnTheScreen();
   });
 
   it('formats initialValue without decimals when minimumDecimals is 0', () => {
     renderComponent({ initialValue: 100, size: 3 });
 
-    expect(screen.getByText('$100 on Yes · 3 shares at 34¢')).toBeOnTheScreen();
+    expect(screen.getByText('$100 on Yes to win $3')).toBeOnTheScreen();
   });
 
   it('formats size with 2 decimal places', () => {
     renderComponent({ size: 10.5555, initialValue: 200 });
 
-    expect(
-      screen.getByText('$200 on Yes · 10.56 shares at 34¢'),
-    ).toBeOnTheScreen();
+    expect(screen.getByText('$200 on Yes to win $10.56')).toBeOnTheScreen();
   });
 
   it('renders all position properties correctly', () => {
@@ -205,11 +206,9 @@ describe('PredictPosition', () => {
     render(<PredictPosition position={position} />);
 
     expect(screen.getByText('Test Market Question?')).toBeOnTheScreen();
-    expect(
-      screen.getByText('$75.25 on Maybe · 7.50 shares at 62.5¢'),
-    ).toBeOnTheScreen();
+    expect(screen.getByText('$75.25 on Maybe to win $7.50')).toBeOnTheScreen();
     expect(screen.getByText('$100.75')).toBeOnTheScreen();
-    expect(screen.getByText('16%')).toBeOnTheScreen();
+    expect(screen.getByText('15.75%')).toBeOnTheScreen();
   });
 
   describe('optimistic updates UI', () => {
@@ -229,15 +228,13 @@ describe('PredictPosition', () => {
       renderComponent({ optimistic: false });
 
       expect(screen.getByText('$2,345.67')).toBeOnTheScreen();
-      expect(screen.getByText('5%')).toBeOnTheScreen();
+      expect(screen.getByText('5.25%')).toBeOnTheScreen();
     });
 
     it('shows initial value line when optimistic', () => {
       renderComponent({ optimistic: true, initialValue: 123.45 });
 
-      expect(
-        screen.getByText('$123.45 on Yes · 10 shares at 34¢'),
-      ).toBeOnTheScreen();
+      expect(screen.getByText('$123.45 on Yes to win $10')).toBeOnTheScreen();
     });
   });
 });

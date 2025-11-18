@@ -393,7 +393,7 @@ describe('PredictSellPreview', () => {
 
       expect(getAllByText('Cash out').length).toBeGreaterThan(0);
       expect(getByText('Will Bitcoin reach $150,000?')).toBeOnTheScreen();
-      expect(getByText('50.00 at 50¢ per share')).toBeOnTheScreen();
+      expect(getByText('Selling 50.00 shares at 50¢')).toBeOnTheScreen();
 
       expect(
         queryByText('Funds will be added to your available balance'),
@@ -476,7 +476,7 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      expect(getByText('50.00 at 50¢ per share')).toBeOnTheScreen();
+      expect(getByText('Selling 50.00 shares at 50¢')).toBeOnTheScreen();
     });
 
     it('renders position icon with correct source', () => {

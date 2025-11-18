@@ -40,108 +40,334 @@ describe('format utils', () => {
   });
 
   describe('formatPercentage', () => {
-    it('formats positive decimal percentage with no decimals', () => {
-      // Arrange & Act
-      const result = formatPercentage(5.25);
+    describe('default behavior (truncate=false)', () => {
+      it('formats positive decimal percentage with 2 decimals', () => {
+        // Arrange & Act
+        const result = formatPercentage(5.25);
 
-      // Assert
-      expect(result).toBe('5%');
+        // Assert
+        expect(result).toBe('5.25%');
+      });
+
+      it('formats large percentage without truncation', () => {
+        // Arrange & Act
+        const result = formatPercentage(100);
+
+        // Assert
+        expect(result).toBe('100%');
+      });
+
+      it('formats negative decimal percentage with 2 decimals', () => {
+        // Arrange & Act
+        const result = formatPercentage(-2.75);
+
+        // Assert
+        expect(result).toBe('-2.75%');
+      });
+
+      it('formats negative whole number percentage without decimals', () => {
+        // Arrange & Act
+        const result = formatPercentage(-50);
+
+        // Assert
+        expect(result).toBe('-50%');
+      });
+
+      it('formats zero as 0%', () => {
+        // Arrange & Act
+        const result = formatPercentage(0);
+
+        // Assert
+        expect(result).toBe('0%');
+      });
+
+      it('handles string input with decimal value', () => {
+        // Arrange & Act
+        const result = formatPercentage('3.14159');
+
+        // Assert
+        expect(result).toBe('3.14%');
+      });
+
+      it('handles string input with whole number', () => {
+        // Arrange & Act
+        const result = formatPercentage('42');
+
+        // Assert
+        expect(result).toBe('42%');
+      });
+
+      it('handles string input with negative value', () => {
+        // Arrange & Act
+        const result = formatPercentage('-7.89');
+
+        // Assert
+        expect(result).toBe('-7.89%');
+      });
+
+      it('returns default value for NaN input', () => {
+        // Arrange & Act
+        const result = formatPercentage('not-a-number');
+
+        // Assert
+        expect(result).toBe('0%');
+      });
+
+      it('returns default value for invalid string', () => {
+        // Arrange & Act
+        const result = formatPercentage('abc');
+
+        // Assert
+        expect(result).toBe('0%');
+      });
+
+      it('returns default value for empty string', () => {
+        // Arrange & Act
+        const result = formatPercentage('');
+
+        // Assert
+        expect(result).toBe('0%');
+      });
+
+      it.each([
+        [0.01, '0.01%'],
+        [0.001, '0%'],
+        [0.5, '0.5%'],
+        [0.9, '0.9%'],
+        [1.999, '2%'],
+        [99, '99%'],
+        [99.999, '100%'],
+        [100, '100%'],
+        [-0.01, '-0.01%'],
+        [-0.001, '0%'],
+        [-1.999, '-2%'],
+      ])('formats %f correctly as %s', (input, expected) => {
+        expect(formatPercentage(input)).toBe(expected);
+      });
     });
 
-    it('formats large percentage as >99%', () => {
-      // Arrange & Act
-      const result = formatPercentage(100);
+    describe('with truncate=true', () => {
+      it('formats positive decimal percentage with no decimals', () => {
+        // Arrange & Act
+        const result = formatPercentage(5.25, { truncate: true });
 
-      // Assert
-      expect(result).toBe('>99%');
+        // Assert
+        expect(result).toBe('5%');
+      });
+
+      it('formats large percentage as >99%', () => {
+        // Arrange & Act
+        const result = formatPercentage(100, { truncate: true });
+
+        // Assert
+        expect(result).toBe('>99%');
+      });
+
+      it('formats negative decimal percentage with no decimals', () => {
+        // Arrange & Act
+        const result = formatPercentage(-2.75, { truncate: true });
+
+        // Assert
+        expect(result).toBe('-3%');
+      });
+
+      it('formats negative whole number percentage without decimals', () => {
+        // Arrange & Act
+        const result = formatPercentage(-50, { truncate: true });
+
+        // Assert
+        expect(result).toBe('-50%');
+      });
+
+      it('formats zero as 0%', () => {
+        // Arrange & Act
+        const result = formatPercentage(0, { truncate: true });
+
+        // Assert
+        expect(result).toBe('0%');
+      });
+
+      it('handles string input with decimal value', () => {
+        // Arrange & Act
+        const result = formatPercentage('3.14159', { truncate: true });
+
+        // Assert
+        expect(result).toBe('3%');
+      });
+
+      it('handles string input with whole number', () => {
+        // Arrange & Act
+        const result = formatPercentage('42', { truncate: true });
+
+        // Assert
+        expect(result).toBe('42%');
+      });
+
+      it('handles string input with negative value', () => {
+        // Arrange & Act
+        const result = formatPercentage('-7.89', { truncate: true });
+
+        // Assert
+        expect(result).toBe('-8%');
+      });
+
+      it('returns default value for NaN input', () => {
+        // Arrange & Act
+        const result = formatPercentage('not-a-number', { truncate: true });
+
+        // Assert
+        expect(result).toBe('0%');
+      });
+
+      it.each([
+        [0.01, '<1%'],
+        [0.001, '<1%'],
+        [0.5, '<1%'],
+        [0.9, '<1%'],
+        [1.999, '2%'],
+        [99, '>99%'],
+        [99.999, '>99%'],
+        [100, '>99%'],
+        [-0.01, '0%'],
+        [-0.001, '0%'],
+        [-1.999, '-2%'],
+      ])('formats %f correctly as %s', (input, expected) => {
+        expect(formatPercentage(input, { truncate: true })).toBe(expected);
+      });
     });
 
-    it('formats negative decimal percentage with no decimals', () => {
-      // Arrange & Act
-      const result = formatPercentage(-2.75);
+    describe('with truncate=false', () => {
+      it('displays integer percentage without decimals', () => {
+        // Arrange & Act
+        const result = formatPercentage(5, { truncate: false });
 
-      // Assert
-      expect(result).toBe('-3%');
-    });
+        // Assert
+        expect(result).toBe('5%');
+      });
 
-    it('formats negative whole number percentage without decimals', () => {
-      // Arrange & Act
-      const result = formatPercentage(-50);
+      it('displays percentage with 2 decimals when not integer', () => {
+        // Arrange & Act
+        const result = formatPercentage(5.25, { truncate: false });
 
-      // Assert
-      expect(result).toBe('-50%');
-    });
+        // Assert
+        expect(result).toBe('5.25%');
+      });
 
-    it('formats zero as 0%', () => {
-      // Arrange & Act
-      const result = formatPercentage(0);
+      it('displays percentage with 1 decimal when second decimal is zero', () => {
+        // Arrange & Act
+        const result = formatPercentage(5.5, { truncate: false });
 
-      // Assert
-      expect(result).toBe('0%');
-    });
+        // Assert
+        expect(result).toBe('5.5%');
+      });
 
-    it('handles string input with decimal value', () => {
-      // Arrange & Act
-      const result = formatPercentage('3.14159');
+      it('displays values above 99 with actual percentage', () => {
+        // Arrange & Act
+        const result = formatPercentage(99.5, { truncate: false });
 
-      // Assert
-      expect(result).toBe('3%');
-    });
+        // Assert
+        expect(result).toBe('99.5%');
+      });
 
-    it('handles string input with whole number', () => {
-      // Arrange & Act
-      const result = formatPercentage('42');
+      it('displays values above 100 with actual percentage', () => {
+        // Arrange & Act
+        const result = formatPercentage(150, { truncate: false });
 
-      // Assert
-      expect(result).toBe('42%');
-    });
+        // Assert
+        expect(result).toBe('150%');
+      });
 
-    it('handles string input with negative value', () => {
-      // Arrange & Act
-      const result = formatPercentage('-7.89');
+      it('displays values below 1 with actual percentage', () => {
+        // Arrange & Act
+        const result = formatPercentage(0.5, { truncate: false });
 
-      // Assert
-      expect(result).toBe('-8%');
-    });
+        // Assert
+        expect(result).toBe('0.5%');
+      });
 
-    it('returns default value for NaN input', () => {
-      // Arrange & Act
-      const result = formatPercentage('not-a-number');
+      it('displays small decimal values with 2 decimals', () => {
+        // Arrange & Act
+        const result = formatPercentage(0.01, { truncate: false });
 
-      // Assert
-      expect(result).toBe('0%');
-    });
+        // Assert
+        expect(result).toBe('0.01%');
+      });
 
-    it('returns default value for invalid string', () => {
-      // Arrange & Act
-      const result = formatPercentage('abc');
+      it('displays negative percentage with decimals', () => {
+        // Arrange & Act
+        const result = formatPercentage(-2.75, { truncate: false });
 
-      // Assert
-      expect(result).toBe('0%');
-    });
+        // Assert
+        expect(result).toBe('-2.75%');
+      });
 
-    it('returns default value for empty string', () => {
-      // Arrange & Act
-      const result = formatPercentage('');
+      it('displays negative integer percentage without decimals', () => {
+        // Arrange & Act
+        const result = formatPercentage(-50, { truncate: false });
 
-      // Assert
-      expect(result).toBe('0%');
-    });
+        // Assert
+        expect(result).toBe('-50%');
+      });
 
-    it.each([
-      [0.01, '<1%'],
-      [0.001, '<1%'],
-      [0.5, '<1%'],
-      [0.9, '<1%'],
-      [1.999, '2%'],
-      [99, '>99%'],
-      [99.999, '>99%'],
-      [100, '>99%'],
-      [-0.01, '0%'],
-      [-0.001, '0%'],
-      [-1.999, '-2%'],
-    ])('formats %f correctly as %s', (input, expected) => {
-      expect(formatPercentage(input)).toBe(expected);
+      it('displays zero without decimals', () => {
+        // Arrange & Act
+        const result = formatPercentage(0, { truncate: false });
+
+        // Assert
+        expect(result).toBe('0%');
+      });
+
+      it('rounds to 2 decimals when more decimals provided', () => {
+        // Arrange & Act
+        const result = formatPercentage(5.256, { truncate: false });
+
+        // Assert
+        expect(result).toBe('5.26%');
+      });
+
+      it('handles string input with decimals', () => {
+        // Arrange & Act
+        const result = formatPercentage('3.14159', { truncate: false });
+
+        // Assert
+        expect(result).toBe('3.14%');
+      });
+
+      it('handles string input with integer', () => {
+        // Arrange & Act
+        const result = formatPercentage('42', { truncate: false });
+
+        // Assert
+        expect(result).toBe('42%');
+      });
+
+      it('returns default value for NaN input', () => {
+        // Arrange & Act
+        const result = formatPercentage('not-a-number', { truncate: false });
+
+        // Assert
+        expect(result).toBe('0%');
+      });
+
+      it.each([
+        [0.01, '0.01%'],
+        [0.001, '0%'],
+        [0.5, '0.5%'],
+        [0.9, '0.9%'],
+        [1.999, '2%'],
+        [99, '99%'],
+        [99.999, '100%'],
+        [99.5, '99.5%'],
+        [100, '100%'],
+        [150.75, '150.75%'],
+        [-0.01, '-0.01%'],
+        [-0.001, '0%'],
+        [-1.999, '-2%'],
+        [-50, '-50%'],
+        [-2.75, '-2.75%'],
+      ])('formats %f correctly as %s', (input, expected) => {
+        expect(formatPercentage(input, { truncate: false })).toBe(expected);
+      });
     });
   });
 
@@ -170,20 +396,20 @@ describe('format utils', () => {
       expect(result).toBe('$1,234.57');
     });
 
-    it('formats small prices with 2 decimal places (rounded up)', () => {
+    it('formats small prices with 2 decimal places (rounded)', () => {
       // Arrange & Act
       const result = formatPrice(0.1234);
 
       // Assert
-      expect(result).toBe('$0.13');
+      expect(result).toBe('$0.12');
     });
 
-    it('formats very small prices rounded up', () => {
+    it('formats very small prices rounded', () => {
       // Arrange & Act
       const result = formatPrice(0.0001234);
 
       // Assert
-      expect(result).toBe('$0.01');
+      expect(result).toBe('$0');
     });
 
     it('handles string input with decimal value', () => {
@@ -199,7 +425,7 @@ describe('format utils', () => {
       const result = formatPrice('0.1234');
 
       // Assert
-      expect(result).toBe('$0.13');
+      expect(result).toBe('$0.12');
     });
 
     it('returns default value for NaN with default decimals', () => {
@@ -277,9 +503,9 @@ describe('format utils', () => {
     it.each([
       [999.999, '$1,000'],
       [1000, '$1,000'],
-      [1000.001, '$1,000.01'],
+      [1000.001, '$1,000'],
       [0.9999, '$1'],
-      [0.00009999, '$0.01'],
+      [0.00009999, '$0'],
     ])('formats boundary value %f as %s', (input, expected) => {
       const result = formatPrice(input);
       expect(result).toBe(expected);
@@ -316,16 +542,16 @@ describe('format utils', () => {
       expect(result).toBe(expected);
     });
 
-    it('uses absolute value and 2 decimals (rounded up) for values >= 1000', () => {
+    it('uses absolute value and 2 decimals (rounded) for values >= 1000', () => {
       const result = formatCurrencyValue(-1234.567);
 
       expect(result).toBe('$1,234.57');
     });
 
-    it('uses absolute value and 2 decimals (rounded up) for values < 1000', () => {
+    it('uses absolute value and 2 decimals (rounded) for values < 1000', () => {
       const result = formatCurrencyValue(-0.1234);
 
-      expect(result).toBe('$0.13');
+      expect(result).toBe('$0.12');
     });
   });
 

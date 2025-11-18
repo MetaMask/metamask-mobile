@@ -25,10 +25,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
         return 'Lost';
       case 'predict.cash_out':
         return 'Cash out';
-      case 'predict.position_info_plural':
-        return `${vars?.amount} on ${vars?.outcome} • ${vars?.shares} shares @ ${vars?.priceCents}`;
-      case 'predict.position_info_singular':
-        return `${vars?.amount} on ${vars?.outcome} • ${vars?.shares} share @ ${vars?.priceCents}`;
+      case 'predict.position_info':
+        return `${vars?.initialValue} on ${vars?.outcome} to win ${vars?.shares}`;
       default:
         return key;
     }
@@ -191,18 +189,18 @@ describe('PredictPositionDetail', () => {
 
     expect(screen.getByText('Group')).toBeOnTheScreen();
     expect(
-      screen.getByText('$123.45 on Yes • 10 shares @ 34¢', { exact: false }),
+      screen.getByText('$123.45 on Yes to win $10', { exact: false }),
     ).toBeOnTheScreen();
 
     expect(screen.getByText('$2,345.67')).toBeOnTheScreen();
-    expect(screen.getByText('5%')).toBeOnTheScreen();
+    expect(screen.getByText('5.25%')).toBeOnTheScreen();
     expect(screen.getByText('Cash out')).toBeOnTheScreen();
   });
 
   it.each([
-    { value: -3.5, expected: '-3%' },
+    { value: -3.5, expected: '-3.5%' },
     { value: 0, expected: '0%' },
-    { value: 7.5, expected: '8%' },
+    { value: 7.5, expected: '7.5%' },
   ])('formats percentPnl %p as %p for open market', ({ value, expected }) => {
     renderComponent({ percentPnl: value });
 
@@ -214,7 +212,7 @@ describe('PredictPositionDetail', () => {
 
     expect(screen.getByText('Group')).toBeOnTheScreen();
     expect(
-      screen.getByText('$50 on No • 10 shares @ 70¢', { exact: false }),
+      screen.getByText('$50 on No to win $10', { exact: false }),
     ).toBeOnTheScreen();
   });
 
@@ -272,7 +270,7 @@ describe('PredictPositionDetail', () => {
       renderComponent({ optimistic: true, initialValue: 123.45 });
 
       expect(
-        screen.getByText('$123.45 on Yes • 10 shares @ 34¢', { exact: false }),
+        screen.getByText('$123.45 on Yes to win $10', { exact: false }),
       ).toBeOnTheScreen();
     });
   });

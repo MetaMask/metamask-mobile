@@ -2,37 +2,64 @@ import { Dimensions } from 'react-native';
 import { PredictSeries, Recurrence } from '../types';
 
 /**
- * Formats a percentage value with no decimals
+ * Formats a percentage value
  * @param value - Raw percentage value (e.g., 5.25 for 5.25%, not 0.0525)
- * @returns Format: "X%" with no decimals
- * - For values >= 99: ">99%"
- * - For values < 1 (but > 0): "<1%"
- * - For negative values: rounded normally (e.g., "-3%", "-99%")
+ * @param options - Optional formatting options
+ * @param options.truncate - Whether to truncate values with >99% and <1% (default: true)
+ * @returns Format depends on truncate option:
+ * - truncate=true (default): ">99%" for values >= 99, "<1%" for values < 1, rounded integer otherwise
+ * - truncate=false: Shows actual percentage with up to 2 decimals, hides decimals for integers
  * @example formatPercentage(5.25) => "5%"
+ * @example formatPercentage(5.25, { truncate: false }) => "5.25%"
  * @example formatPercentage(99.5) => ">99%"
+ * @example formatPercentage(99.5, { truncate: false }) => "99.5%"
  * @example formatPercentage(0.5) => "<1%"
+ * @example formatPercentage(0.5, { truncate: false }) => "0.5%"
+ * @example formatPercentage(5, { truncate: false }) => "5%"
  * @example formatPercentage(-2.75) => "-3%"
- * @example formatPercentage(-99.5) => "-100%"
- * @example formatPercentage(0) => "0%"
+ * @example formatPercentage(-2.75, { truncate: false }) => "-2.75%"
  */
-export const formatPercentage = (value: string | number): string => {
+export const formatPercentage = (
+  value: string | number,
+  options?: { truncate?: boolean },
+): string => {
   const num = typeof value === 'string' ? parseFloat(value) : value;
+  const truncate = options?.truncate ?? false;
 
   if (isNaN(num)) {
     return '0%';
   }
 
-  // Handle special cases for positive numbers only
-  if (num >= 99) {
-    return '>99%';
+  // Handle truncation mode (default behavior)
+  if (truncate) {
+    // Handle special cases for positive numbers only
+    if (num >= 99) {
+      return '>99%';
+    }
+
+    if (num > 0 && num < 1) {
+      return '<1%';
+    }
+
+    // Round to nearest integer
+    return `${Math.round(num)}%`;
   }
 
-  if (num > 0 && num < 1) {
-    return '<1%';
+  // Non-truncated mode: show up to 2 decimals
+  // Check if the number is an integer
+  if (num === Math.floor(num)) {
+    return `${num}%`;
   }
 
-  // Round to nearest integer
-  return `${Math.round(num)}%`;
+  // Format with up to 2 decimals, removing trailing zeros
+  const formatted = num.toFixed(2).replace(/\.?0+$/, '');
+
+  // Handle edge case: toFixed can return "-0" for very small negative numbers
+  if (formatted === '-0') {
+    return '0%';
+  }
+
+  return `${formatted}%`;
 };
 
 /**
@@ -56,8 +83,8 @@ export const formatPrice = (
     return '$0.00';
   }
 
-  // Round up to 2 decimal places (ceiling)
-  const rounded = Math.ceil(num * 100) / 100;
+  // Round to 2 decimal places
+  const rounded = Math.round(num * 100) / 100;
 
   // Check if it's an integer (no decimal part)
   const isInteger = rounded === Math.floor(rounded);

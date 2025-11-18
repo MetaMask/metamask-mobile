@@ -1,35 +1,30 @@
+import { Box } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Image } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box } from '@metamask/design-system-react-native';
+import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { strings } from '../../../../../../locales/i18n';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import Routes from '../../../../../constants/navigation/Routes';
+import { PredictEventValues } from '../../constants/eventNames';
+import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import {
-  PredictPosition as PredictPositionType,
   PredictMarket,
   PredictMarketStatus,
+  PredictPosition as PredictPositionType,
 } from '../../types';
-import {
-  formatCents,
-  formatPercentage,
-  formatPositionSize,
-  formatPrice,
-} from '../../utils/format';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import Routes from '../../../../../constants/navigation/Routes';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../../types/navigation';
-import { PredictEventValues } from '../../constants/eventNames';
-import { strings } from '../../../../../../locales/i18n';
-import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { formatPercentage, formatPrice } from '../../utils/format';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -49,7 +44,6 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     initialValue,
     percentPnl,
     outcome,
-    avgPrice,
     currentValue,
     title,
     optimistic,
@@ -139,23 +133,17 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
             variant={TextVariant.BodySMMedium}
             color={TextColor.Alternative}
           >
-            {strings(
-              size !== 1
-                ? 'predict.position_info_plural'
-                : 'predict.position_info_singular',
-              {
-                amount: formatPrice(initialValue, {
-                  minimumDecimals: 0,
-                  maximumDecimals: 2,
-                }),
-                outcome,
-                shares: formatPositionSize(size, {
-                  minimumDecimals: 2,
-                  maximumDecimals: 2,
-                }),
-                priceCents: formatCents(avgPrice),
-              },
-            )}
+            {strings('predict.position_info', {
+              initialValue: formatPrice(initialValue, {
+                minimumDecimals: 0,
+                maximumDecimals: 2,
+              }),
+              outcome,
+              shares: formatPrice(size, {
+                minimumDecimals: 2,
+                maximumDecimals: 2,
+              }),
+            })}
           </Text>
         </Box>
         <Box twClassName="items-end justify-end ml-auto shrink-0">
