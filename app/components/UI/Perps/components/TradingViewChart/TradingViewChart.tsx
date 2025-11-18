@@ -33,11 +33,21 @@ export interface TPSLLines {
 
 export type { TimeDuration } from '../../constants/chartConfig';
 
+export interface OhlcData {
+  open: string;
+  high: string;
+  low: string;
+  close: string;
+  volume?: string;
+  time: number;
+}
+
 export interface TradingViewChartRef {
   resetToDefault: () => void;
   zoomToLatestCandle: (candleCount?: number) => void;
   clearTPSLLines: () => void;
   toggleVolumeVisibility: (visible: boolean) => void;
+  toggleOverlayVisibility: (visible: boolean) => void;
 }
 
 interface TradingViewChartProps {
@@ -47,6 +57,8 @@ interface TradingViewChartProps {
   onChartReady?: () => void;
   visibleCandleCount?: number; // Number of candles to display (for zoom level)
   showVolume?: boolean; // Control volume bars visibility
+  showOverlay?: boolean; // Control chart overlay visibility (OHLC legend)
+  onOhlcDataChange?: (data: OhlcData | null) => void; // Callback when OHLC data changes
   testID?: string;
 }
 
@@ -65,6 +77,8 @@ const TradingViewChart = React.forwardRef<
       onChartReady,
       visibleCandleCount = 45, // Default to 45 visible candles
       showVolume = true, // Default to showing volume
+      showOverlay = false, // Default to hiding overlay
+      onOhlcDataChange,
       testID,
     },
     ref,
@@ -73,13 +87,7 @@ const TradingViewChart = React.forwardRef<
     const webViewRef = useRef<WebView>(null);
     const [isChartReady, setIsChartReady] = useState(false);
     const [webViewError, setWebViewError] = useState<string | null>(null);
-    const [ohlcData, setOhlcData] = useState<{
-      open: string;
-      high: string;
-      low: string;
-      close: string;
-      time: number;
-    } | null>(null);
+    const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
 
     // Format OHLC values using the same formatting as the header
     const formattedOhlcData = useMemo(() => {
@@ -208,6 +216,13 @@ const TradingViewChart = React.forwardRef<
       },
       [isChartReady],
     );
+
+    // Toggle overlay visibility (not used internally, but exposed via ref for parent control)
+    const toggleOverlayVisibility = useCallback((_visible: boolean) => {
+      // Note: Overlay visibility is controlled by the parent component via the showOverlay prop
+      // This method is kept for API consistency but doesn't need to do anything
+      // The parent component controls overlay visibility by setting showOverlay prop
+    }, []);
 
     // Handle messages from WebView
     const handleWebViewMessage = useCallback(
@@ -374,7 +389,14 @@ const TradingViewChart = React.forwardRef<
       }
     }, [showVolume, isChartReady, sendMessage]);
 
-    // Expose reset function via ref
+    // Notify parent component when OHLC data changes
+    useEffect(() => {
+      if (onOhlcDataChange) {
+        onOhlcDataChange(ohlcData);
+      }
+    }, [ohlcData, onOhlcDataChange]);
+
+    // Expose ref methods for parent components
     React.useImperativeHandle(
       ref,
       () => ({
@@ -382,12 +404,14 @@ const TradingViewChart = React.forwardRef<
         zoomToLatestCandle,
         clearTPSLLines,
         toggleVolumeVisibility,
+        toggleOverlayVisibility,
       }),
       [
         resetToDefault,
         zoomToLatestCandle,
         clearTPSLLines,
         toggleVolumeVisibility,
+        toggleOverlayVisibility,
       ],
     );
 
@@ -467,8 +491,8 @@ const TradingViewChart = React.forwardRef<
           )}
         </Box>
 
-        {/* OHLC Legend */}
-        {formattedOhlcData && (
+        {/* OHLC Legend Overlay (conditionally rendered based on showOverlay prop) */}
+        {showOverlay && formattedOhlcData && (
           <Box style={styles.ohlcLegend}>
             <Box style={styles.ohlcRow}>
               <Text variant={TextVariant.BodyXs}>

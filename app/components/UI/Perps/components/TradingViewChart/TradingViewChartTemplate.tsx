@@ -471,12 +471,22 @@ export const createTradingViewChartTemplate = (
                 if (window.candlestickSeries && param.seriesData && param.seriesData.get(window.candlestickSeries)) {
                     const data = param.seriesData.get(window.candlestickSeries);
                     if (data && data.open !== undefined) {
+                        // Get volume data from the volume series if available
+                        let volumeValue = null;
+                        if (window.volumeSeries && param.seriesData.get(window.volumeSeries)) {
+                            const volumeData = param.seriesData.get(window.volumeSeries);
+                            if (volumeData && volumeData.value !== undefined) {
+                                volumeValue = volumeData.value.toString();
+                            }
+                        }
+
                         // Send raw numeric values as strings - formatting will be done on React Native side
                         const ohlcData = {
                             open: data.open.toString(),
                             high: data.high.toString(),
                             low: data.low.toString(),
                             close: data.close.toString(),
+                            volume: volumeValue,
                             time: param.time
                         };
 

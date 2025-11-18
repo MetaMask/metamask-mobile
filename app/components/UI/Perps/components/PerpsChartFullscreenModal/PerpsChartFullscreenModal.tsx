@@ -20,13 +20,15 @@ import {
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import TradingViewChart, {
-  TradingViewChartRef,
-  TPSLLines,
-} from '../TradingViewChart/TradingViewChart';
+  type TradingViewChartRef,
+  type TPSLLines,
+  type OhlcData,
+} from '../TradingViewChart';
 import type { CandleData } from '../../types/perps-types';
 import { CandlePeriod } from '../../constants/chartConfig';
 import PerpsCandlestickChartIntervalSelector from '../PerpsCandlestickChartIntervalSelector/PerpsCandlestickChartIntervalSelector';
 import { styleSheet } from './PerpsChartFullscreenModal.styles';
+import PerpsOHLCVBar from '../PerpsOHLCVBar';
 
 export interface PerpsChartFullscreenModalProps {
   isVisible: boolean;
@@ -52,6 +54,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
     'portrait' | 'landscape'
   >('portrait');
   const [showVolume, setShowVolume] = useState(true);
+  const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
   const [chartHeight, setChartHeight] = useState(600); // Dynamic height for chart
 
   // Unlock orientation when modal closes
@@ -161,6 +164,19 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
             setChartHeight(height - insets.bottom);
           }}
         >
+          {/* OHLCV Bar - Shows above chart when interacting */}
+          {ohlcData && (
+            <PerpsOHLCVBar
+              open={ohlcData.open}
+              high={ohlcData.high}
+              low={ohlcData.low}
+              close={ohlcData.close}
+              volume={ohlcData.volume}
+              time={ohlcData.time}
+              testID="fullscreen-chart-ohlcv-bar"
+            />
+          )}
+
           <TradingViewChart
             ref={chartRef}
             candleData={candleData}
@@ -168,6 +184,8 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
             tpslLines={tpslLines}
             visibleCandleCount={90} // Show more candles in landscape mode
             showVolume={showVolume}
+            showOverlay={false}
+            onOhlcDataChange={setOhlcData}
             testID="fullscreen-chart"
           />
         </View>

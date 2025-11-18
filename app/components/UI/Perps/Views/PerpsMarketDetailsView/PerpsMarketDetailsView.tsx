@@ -75,9 +75,11 @@ import PerpsNavigationCard, {
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
 import TradingViewChart, {
   type TradingViewChartRef,
+  type OhlcData,
 } from '../../components/TradingViewChart';
 import PerpsChartFullscreenModal from '../../components/PerpsChartFullscreenModal/PerpsChartFullscreenModal';
 import PerpsCandlePeriodSelector from '../../components/PerpsCandlePeriodSelector';
+import PerpsOHLCVBar from '../../components/PerpsOHLCVBar';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
 import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
@@ -179,6 +181,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [isFullscreenChartVisible, setIsFullscreenChartVisible] =
     useState(false);
+  const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
 
   const { account } = usePerpsLiveAccount();
 
@@ -708,6 +711,19 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         >
           {/* TradingView Chart Section */}
           <View style={[styles.section, styles.chartSection]}>
+            {/* OHLCV Bar - Shows above chart when interacting */}
+            {ohlcData && (
+              <PerpsOHLCVBar
+                open={ohlcData.open}
+                high={ohlcData.high}
+                low={ohlcData.low}
+                close={ohlcData.close}
+                volume={ohlcData.volume}
+                time={ohlcData.time}
+                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-ohlcv-bar`}
+              />
+            )}
+
             {hasHistoricalData ? (
               <>
                 <TradingViewChart
@@ -716,6 +732,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                   height={350}
                   visibleCandleCount={visibleCandleCount}
                   tpslLines={tpslLines}
+                  showOverlay={false}
+                  onOhlcDataChange={setOhlcData}
                   testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
                 />
               </>
