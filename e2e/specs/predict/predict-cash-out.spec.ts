@@ -16,7 +16,6 @@ import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import PredictCashOutPage from '../../pages/Predict/PredictCashOutPage';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-// import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import PredictActivityDetails from '../../pages/Transactions/predictionsActivityDetails';
 
@@ -27,8 +26,6 @@ Test Scenario: Cash out on open position - Spurs vs. Pelicans
   2. Open Spurs vs. Pelicans position details
   3. Cash out the position with updated mocks
   4. Verify cash out appears in Activities tab
-  5. Verify balance updated to $58.66 and position removed from current positions
-  6. Verify final balance consistency across views
   */
 const positionDetails = {
   name: 'Spurs vs. Pelicans',
@@ -89,9 +86,6 @@ describe(SmokePredictions('Predictions'), () => {
         await Assertions.expectTextDisplayed(positionDetails.newBalance, {
           description: 'Predictions balance should be updated to $58.16',
         });
-
-        // await WalletView.tapOnPredictionsTab();
-
         // Check that Spurs vs Pelicans is removed from current positions list
         for (let i = 0; i < 4; i++) {
           const positionCard =
@@ -113,13 +107,6 @@ describe(SmokePredictions('Predictions'), () => {
           PredictActivityDetails.container,
         );
         await Assertions.expectTextDisplayed(positionDetails.cashOutValue);
-
-        // await PredictActivityDetails.tapBackButton();
-        // await TabBarComponent.tapWallet();
-
-        // await TabBarComponent.tapActions();
-        // await WalletActionsBottomSheet.tapPredictButton();
-        // await Assertions.expectTextDisplayed(positionDetails.newBalance);
       },
     );
   });
