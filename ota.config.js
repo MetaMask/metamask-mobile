@@ -2,7 +2,6 @@
  * OTA (Over-The-Air) Update Configuration
  *
  * Provides runtime version and project metadata consumed by Expo tooling.
- * OTA_VERSION is now managed in app/constants/ota.ts for runtime display.
  *
  * Used by:
  * - app.config.js (Expo configuration)
@@ -10,8 +9,7 @@
  * - app/constants/ota.ts (App runtime - TypeScript re-exports)
  *
  * Workflow:
- * Workflow:
- * 1. For OTA updates (JS-only): Increment OTA_VERSION in app/constants/ota.ts
+\ * 1. For OTA updates (JS-only): Increment OTA_VERSION in app/constants/ota.ts
  * 2. For native releases: Bump version in package.json
  */
 
