@@ -71,6 +71,7 @@ export function useRampTokens(): UseRampTokensResult {
       setRawTopTokens(null);
       setRawAllTokens(null);
       setIsLoading(false);
+      setError(null);
       return;
     }
 
@@ -83,6 +84,7 @@ export function useRampTokens(): UseRampTokensResult {
       setRawTopTokens(null);
       setRawAllTokens(null);
       setIsLoading(false);
+      setError(null);
       return;
     }
 

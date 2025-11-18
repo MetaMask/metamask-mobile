@@ -397,7 +397,7 @@ describe('useRampTokens', () => {
       });
     });
 
-    it('sets error to null at start of fetch attempt', async () => {
+    it('clears error at start of new fetch attempt', async () => {
       const mockResponse = createMockResponse(
         [createMockToken()],
         [createMockToken()],

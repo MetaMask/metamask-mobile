@@ -56,7 +56,7 @@ function TokenSelection() {
 
   // Use topTokens for initial display, allTokens when searching
   const supportedTokens = useMemo(() => {
-    const tokensToUse = searchString ? allTokens : topTokens;
+    const tokensToUse = searchString.trim() ? allTokens : topTokens;
     return tokensToUse || [];
   }, [searchString, allTokens, topTokens]);
 

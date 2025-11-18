@@ -216,4 +216,28 @@ describe('TokenSelection Component', () => {
       );
     });
   });
+
+  it('uses topTokens when search string contains only whitespace', () => {
+    const topTokens = convertToRampsTokens([mockTokens[0]]);
+    const allTokens = convertToRampsTokens(mockTokens);
+
+    mockUseRampTokens.mockReturnValue({
+      topTokens,
+      allTokens,
+      isLoading: false,
+      error: null,
+    });
+
+    const { getByPlaceholderText } = renderWithProvider(TokenSelection);
+
+    const searchInput = getByPlaceholderText('Search token by name or address');
+    fireEvent.changeText(searchInput, '   ');
+
+    expect(useSearchTokenResults).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tokens: topTokens,
+        searchString: '   ',
+      }),
+    );
+  });
 });
