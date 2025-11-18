@@ -26,18 +26,6 @@ export const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginBottom: 12,
-    },
-    leftButtons: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-    },
-    headerBottomRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 8,
     },
     chartContainer: {
       flex: 1,
@@ -45,6 +33,9 @@ export const styleSheet = (params: { theme: Theme }) => {
     },
     intervalSelectorWrapper: {
       marginTop: 0, // Override the default marginTop: 24 from selector
+    },
+    ohlcvWrapper: {
+      paddingHorizontal: 16,
     },
   });
 };

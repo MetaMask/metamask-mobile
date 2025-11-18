@@ -8,10 +8,6 @@ import {
   OrientationLock,
 } from 'expo-screen-orientation';
 import { useStyles } from '../../../../../component-library/hooks';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-} from '../../../../../component-library/components/Buttons/Button';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -50,48 +46,30 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
   const chartRef = React.useRef<TradingViewChartRef>(null);
-  const [currentOrientation, setCurrentOrientation] = useState<
-    'portrait' | 'landscape'
-  >('portrait');
-  const [showVolume, setShowVolume] = useState(true);
   const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
   const [chartHeight, setChartHeight] = useState(600); // Dynamic height for chart
 
-  // Unlock orientation when modal closes
+  // Auto-follow device orientation when modal is open
   useEffect(() => {
-    if (!isVisible) {
+    if (isVisible) {
+      // Unlock orientation to follow device
       unlockAsync();
+    } else {
+      // Lock back to portrait when closing
+      lockAsync(OrientationLock.PORTRAIT_UP);
     }
+
+    return () => {
+      // Cleanup: ensure portrait lock on unmount
+      lockAsync(OrientationLock.PORTRAIT_UP);
+    };
   }, [isVisible]);
 
   const handleClose = useCallback(async () => {
-    // Unlock orientation before closing
-    await unlockAsync();
+    // Lock orientation back to portrait before closing
+    await lockAsync(OrientationLock.PORTRAIT_UP);
     onClose();
   }, [onClose]);
-
-  const handleToggleOrientation = useCallback(async () => {
-    try {
-      // Toggle between portrait and landscape
-      const nextOrientation: 'portrait' | 'landscape' =
-        currentOrientation === 'portrait' ? 'landscape' : 'portrait';
-      const lockMode =
-        nextOrientation === 'landscape'
-          ? OrientationLock.LANDSCAPE_LEFT
-          : OrientationLock.PORTRAIT_UP;
-
-      setCurrentOrientation(nextOrientation);
-      await lockAsync(lockMode);
-    } catch (error) {
-      console.error('Orientation lock error:', error);
-    }
-  }, [currentOrientation]);
-
-  const handleToggleVolume = useCallback(() => {
-    const newShowVolume = !showVolume;
-    setShowVolume(newShowVolume);
-    chartRef.current?.toggleVolumeVisibility(newShowVolume);
-  }, [showVolume]);
 
   return (
     <Modal
@@ -116,41 +94,20 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
           },
         ]}
       >
-        {/* Header - Two Rows with safe area top padding */}
+        {/* Header - Single Row with interval selector and close button */}
         <View style={[styles.header, { paddingTop: 12 + insets.top }]}>
-          {/* Top Row: Orientation and Volume on left, Close on right */}
           <View style={styles.headerTopRow}>
-            <View style={styles.leftButtons}>
-              <Button
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Sm}
-                label="Orientation"
-                onPress={handleToggleOrientation}
-                startIconName={IconName.ProgrammingArrows}
-              />
-              <Button
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Sm}
-                label="Volume"
-                onPress={handleToggleVolume}
-                startIconName={showVolume ? IconName.Eye : IconName.EyeSlash}
-              />
-            </View>
+            <PerpsCandlestickChartIntervalSelector
+              selectedInterval={selectedInterval}
+              onIntervalChange={onIntervalChange}
+              style={styles.intervalSelectorWrapper}
+            />
             <ButtonIcon
               iconName={IconName.Close}
               iconColor={IconColor.Default}
               size={ButtonIconSizes.Md}
               onPress={handleClose}
               accessibilityLabel="Close"
-            />
-          </View>
-
-          {/* Bottom Row: Interval Selector Only */}
-          <View style={styles.headerBottomRow}>
-            <PerpsCandlestickChartIntervalSelector
-              selectedInterval={selectedInterval}
-              onIntervalChange={onIntervalChange}
-              style={styles.intervalSelectorWrapper}
             />
           </View>
         </View>
@@ -166,15 +123,17 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
         >
           {/* OHLCV Bar - Shows above chart when interacting */}
           {ohlcData && (
-            <PerpsOHLCVBar
-              open={ohlcData.open}
-              high={ohlcData.high}
-              low={ohlcData.low}
-              close={ohlcData.close}
-              volume={ohlcData.volume}
-              time={ohlcData.time}
-              testID="fullscreen-chart-ohlcv-bar"
-            />
+            <View style={styles.ohlcvWrapper}>
+              <PerpsOHLCVBar
+                open={ohlcData.open}
+                high={ohlcData.high}
+                low={ohlcData.low}
+                close={ohlcData.close}
+                volume={ohlcData.volume}
+                time={ohlcData.time}
+                testID="fullscreen-chart-ohlcv-bar"
+              />
+            </View>
           )}
 
           <TradingViewChart
@@ -183,7 +142,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
             height={chartHeight}
             tpslLines={tpslLines}
             visibleCandleCount={90} // Show more candles in landscape mode
-            showVolume={showVolume}
+            showVolume // Always show volume in fullscreen
             showOverlay={false}
             coloredVolume
             onOhlcDataChange={setOhlcData}
