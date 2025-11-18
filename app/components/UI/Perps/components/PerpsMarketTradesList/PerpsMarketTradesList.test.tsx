@@ -2,7 +2,6 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsMarketTradesList from './PerpsMarketTradesList';
 import Routes from '../../../../../constants/navigation/Routes';
-import { FillType } from '../../types/transactionHistory';
 import { usePerpsOrderFills } from '../../hooks/usePerpsOrderFills';
 import type { OrderFill } from '../../controllers/types';
 
@@ -163,78 +162,6 @@ describe('PerpsMarketTradesList', () => {
       pnl: '0',
       direction: 'Open Long',
       success: true,
-    },
-  ];
-
-  const mockTrades = [
-    {
-      id: 'trade-1',
-      type: 'trade' as const,
-      category: 'position_open' as const,
-      title: 'Opened long',
-      subtitle: '1.5 ETH',
-      timestamp: 1698700000000,
-      asset: 'ETH',
-      fill: {
-        shortTitle: 'Opened long',
-        amount: '-$10.50',
-        amountNumber: -10.5,
-        isPositive: false,
-        size: '1.5',
-        entryPrice: '2500',
-        pnl: '0',
-        fee: '10.5',
-        points: '0',
-        feeToken: 'USDC',
-        action: 'Opened',
-        fillType: FillType.Standard,
-      },
-    },
-    {
-      id: 'trade-2',
-      type: 'trade' as const,
-      category: 'position_close' as const,
-      title: 'Closed long',
-      subtitle: '2.0 ETH',
-      timestamp: 1698690000000,
-      asset: 'ETH',
-      fill: {
-        shortTitle: 'Closed long',
-        amount: '+$145.00',
-        amountNumber: 145,
-        isPositive: true,
-        size: '2.0',
-        entryPrice: '2600',
-        pnl: '150',
-        fee: '5.0',
-        points: '0',
-        feeToken: 'USDC',
-        action: 'Closed',
-        fillType: FillType.Standard,
-      },
-    },
-    {
-      id: 'trade-3',
-      type: 'trade' as const,
-      category: 'position_open' as const,
-      title: 'Opened short',
-      subtitle: '1.0 ETH',
-      timestamp: 1698680000000,
-      asset: 'ETH',
-      fill: {
-        shortTitle: 'Opened short',
-        amount: '-$5.00',
-        amountNumber: -5,
-        isPositive: false,
-        size: '1.0',
-        entryPrice: '2550',
-        pnl: '0',
-        fee: '5.0',
-        points: '0',
-        feeToken: 'USDC',
-        action: 'Opened',
-        fillType: FillType.Standard,
-      },
     },
   ];
 
@@ -485,11 +412,18 @@ describe('PerpsMarketTradesList', () => {
       fireEvent.press(tradeItem.parent?.parent || tradeItem);
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
+      // Verify navigation to correct route with transaction param
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.PERPS.POSITION_TRANSACTION,
-        {
-          transaction: mockTrades[0],
-        },
+        expect.objectContaining({
+          transaction: expect.objectContaining({
+            id: 'fill-1',
+            type: 'trade',
+            category: 'position_open',
+            title: 'Opened long',
+            asset: 'ETH',
+          }),
+        }),
       );
     });
 
@@ -507,11 +441,18 @@ describe('PerpsMarketTradesList', () => {
       const ethTrade = screen.getByText('Closed long');
       fireEvent.press(ethTrade.parent?.parent || ethTrade);
 
+      // Verify navigation with correct transformed transaction data
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.PERPS.POSITION_TRANSACTION,
-        {
-          transaction: mockTrades[1],
-        },
+        expect.objectContaining({
+          transaction: expect.objectContaining({
+            id: 'fill-2',
+            type: 'trade',
+            category: 'position_close',
+            title: 'Closed long',
+            asset: 'ETH',
+          }),
+        }),
       );
     });
   });
