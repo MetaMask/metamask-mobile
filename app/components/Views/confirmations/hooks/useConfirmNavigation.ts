@@ -34,7 +34,9 @@ export function useConfirmNavigation() {
 
   const pendingTransactions = useMemo(
     () =>
-      transactions.filter((tx) => tx.status === TransactionStatus.unapproved),
+      (transactions ?? []).filter(
+        (tx) => tx.status === TransactionStatus.unapproved,
+      ),
     [transactions],
   );
 
