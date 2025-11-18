@@ -456,14 +456,14 @@ describe('PredictSellPreview', () => {
       expect(mockFormatPercentage).toHaveBeenCalledWith(-20);
     });
 
-    it('uses position price when preview sharePrice is undefined', () => {
+    it('uses zero when preview sharePrice is zero', () => {
       mockPreview = {
         marketId: 'market-1',
         outcomeId: 'outcome-456',
         outcomeTokenId: 'outcome-token-789',
         timestamp: Date.now(),
         side: 'SELL',
-        sharePrice: undefined as unknown as number,
+        sharePrice: 0,
         maxAmountSpent: 100,
         minAmountReceived: 60,
         slippage: 0.005,
@@ -476,7 +476,7 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      expect(getByText('Selling 50.00 shares at 50¢')).toBeOnTheScreen();
+      expect(getByText('Selling 50.00 shares at 0¢')).toBeOnTheScreen();
     });
 
     it('renders position icon with correct source', () => {

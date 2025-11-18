@@ -1,4 +1,9 @@
 import {
+  Box,
+  ButtonSize as ButtonSizeHero,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
   NavigationProp,
   RouteProp,
   StackActions,
@@ -7,26 +12,33 @@ import {
 } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { ActivityIndicator, Image, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { PredictCashOutSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { strings } from '../../../../../../locales/i18n';
+import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
+import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import Engine from '../../../../../core/Engine';
+import { TraceName } from '../../../../../util/trace';
+import {
+  PredictEventValues,
+  PredictTradeStatus,
+} from '../../constants/eventNames';
+import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
-import {
-  PredictTradeStatus,
-  PredictEventValues,
-} from '../../constants/eventNames';
 import {
   formatCents,
   formatPercentage,
@@ -34,17 +46,6 @@ import {
   formatPrice,
 } from '../../utils/format';
 import styleSheet from './PredictSellPreview.styles';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { PredictCashOutSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
-import { strings } from '../../../../../../locales/i18n';
-import {
-  Box,
-  ButtonSize as ButtonSizeHero,
-} from '@metamask/design-system-react-native';
-import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
-import { TraceName } from '../../../../../util/trace';
-import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 
 const PredictSellPreview = () => {
   const tw = useTailwind();
@@ -141,7 +142,7 @@ const PredictSellPreview = () => {
   }, [dispatch, result]);
 
   const currentValue = preview?.minAmountReceived ?? 0;
-  const currentPrice = preview?.sharePrice ?? position?.price;
+  const currentPrice = preview?.sharePrice ?? 0;
   const { cashPnl, percentPnl, avgPrice } = position;
 
   const signal = useMemo(() => (cashPnl >= 0 ? '+' : '-'), [cashPnl]);
@@ -211,30 +212,58 @@ const PredictSellPreview = () => {
         style={styles.container}
       >
         <View style={styles.cashOutContainer}>
-          <Text style={styles.currentValue} variant={TextVariant.BodyMDMedium}>
-            {formatPrice(currentValue, { maximumDecimals: 2 })}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Alternative}
-          >
-            {strings('predict.at_price_per_share', {
-              size: formatPositionSize(size, {
-                minimumDecimals: 2,
-                maximumDecimals: 2,
-              }),
-              price: formatCents(currentPrice),
-            })}
-          </Text>
-          <Text
-            style={styles.percentPnl}
-            color={percentPnl > 0 ? TextColor.Success : TextColor.Error}
-            variant={TextVariant.BodyMDMedium}
-          >
-            {`${signal}${formatPrice(Math.abs(cashPnl), {
-              maximumDecimals: 2,
-            })} (${formatPercentage(percentPnl)})`}
-          </Text>
+          {!preview ? (
+            <Box twClassName="items-center gap-2">
+              <Skeleton
+                width={200}
+                height={74}
+                style={tw.style('rounded-lg')}
+                testID="predict-sell-preview-value-skeleton"
+              />
+              <Skeleton
+                width={180}
+                height={24}
+                style={tw.style('rounded-md')}
+                testID="predict-sell-preview-price-skeleton"
+              />
+              <Skeleton
+                width={150}
+                height={24}
+                style={tw.style('rounded-md')}
+                testID="predict-sell-preview-pnl-skeleton"
+              />
+            </Box>
+          ) : (
+            <>
+              <Text
+                style={styles.currentValue}
+                variant={TextVariant.BodyMDMedium}
+              >
+                {formatPrice(currentValue, { maximumDecimals: 2 })}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Alternative}
+              >
+                {strings('predict.at_price_per_share', {
+                  size: formatPositionSize(size, {
+                    minimumDecimals: 2,
+                    maximumDecimals: 2,
+                  }),
+                  price: formatCents(currentPrice),
+                })}
+              </Text>
+              <Text
+                style={styles.percentPnl}
+                color={percentPnl > 0 ? TextColor.Success : TextColor.Error}
+                variant={TextVariant.BodyMDMedium}
+              >
+                {`${signal}${formatPrice(Math.abs(cashPnl), {
+                  maximumDecimals: 2,
+                })} (${formatPercentage(percentPnl)})`}
+              </Text>
+            </>
+          )}
         </View>
         <View style={styles.bottomContainer}>
           {placeOrderError && (
