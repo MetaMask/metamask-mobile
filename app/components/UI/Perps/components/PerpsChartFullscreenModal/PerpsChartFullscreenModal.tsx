@@ -146,6 +146,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
               size={ButtonIconSizes.Md}
               onPress={handleClose}
               accessibilityLabel="Close"
+              testID="perps-chart-fullscreen-close-button"
             />
           </View>
         </View>

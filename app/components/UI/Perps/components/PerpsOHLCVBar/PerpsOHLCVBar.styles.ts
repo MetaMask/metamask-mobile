@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import type { Theme } from '@metamask/design-system-react-native';
+import type { Theme } from '../../../../../util/theme/models';
 import type { PerpsOHLCVBarStyleSheetOptions } from './PerpsOHLCVBar.types';
 
 /**
