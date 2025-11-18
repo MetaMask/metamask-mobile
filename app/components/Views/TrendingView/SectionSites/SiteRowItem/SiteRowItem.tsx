@@ -1,0 +1,66 @@
+import React from 'react';
+import { Pressable, Image } from 'react-native';
+import {
+  Box,
+  Text,
+  TextVariant,
+  Icon,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+
+export interface SiteData {
+  id: string;
+  name: string;
+  url: string;
+  displayUrl: string;
+  logoUrl?: string;
+}
+
+interface SiteRowItemProps {
+  site: SiteData;
+  onPress: () => void;
+}
+
+const SiteRowItem = ({ site, onPress }: SiteRowItemProps) => {
+  const tw = useTailwind();
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) =>
+        tw.style(
+          'flex-row items-center justify-between pr-4 py-4',
+          pressed && 'bg-pressed',
+        )
+      }
+    >
+      {/* Logo */}
+      <Box twClassName="flex-row items-center flex-1">
+        {site.logoUrl ? (
+          <Image
+            source={{ uri: site.logoUrl }}
+            style={tw.style('w-10 h-10 rounded-full mr-4')}
+            resizeMode="cover"
+          />
+        ) : (
+          <Box twClassName="w-10 h-10 rounded-full bg-alternative mr-4 items-center justify-center">
+            <Text variant={TextVariant.HeadingMd}>🌐</Text>
+          </Box>
+        )}
+        {/* Site Info */}
+        <Box twClassName="flex-1">
+          <Text variant={TextVariant.HeadingMd}>{site.name}</Text>
+          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+            {site.displayUrl}
+          </Text>
+        </Box>
+      </Box>
+      {/* Arrow Icon */}
+      <Icon name={IconName.Arrow2UpRight} size={IconSize.Md} />
+    </Pressable>
+  );
+};
+
+export default SiteRowItem;

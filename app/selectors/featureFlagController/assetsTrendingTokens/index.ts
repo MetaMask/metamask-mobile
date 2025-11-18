@@ -69,6 +69,7 @@ export const isAssetsTrendingTokensFeatureEnabled = (
   flagValue: unknown,
   envOverride?: string,
 ): boolean => {
+  return true;
   // Check for override from environment variables
   if (envOverride === 'true') {
     return true;
