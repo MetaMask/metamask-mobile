@@ -72,6 +72,7 @@ import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip'
 import PerpsNavigationCard, {
   type NavigationItem,
 } from '../../components/PerpsNavigationCard/PerpsNavigationCard';
+import PerpsMarketTradesList from '../../components/PerpsMarketTradesList';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
 import TradingViewChart, {
   type TradingViewChartRef,
@@ -751,9 +752,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             />
           </View>
 
-          {/* Navigation Card Section */}
+          {/* Recent Trades Section */}
           <View style={styles.section}>
-            <PerpsNavigationCard items={navigationItems} />
+            <PerpsMarketTradesList symbol={market?.symbol || ''} />
           </View>
 
           {/* Risk Disclaimer Section */}
@@ -772,6 +773,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 TradingView.
               </Text>
             </Text>
+          </View>
+
+          {/* Navigation Card Section */}
+          <View style={styles.section}>
+            <PerpsNavigationCard items={navigationItems} />
           </View>
         </ScrollView>
       </View>
