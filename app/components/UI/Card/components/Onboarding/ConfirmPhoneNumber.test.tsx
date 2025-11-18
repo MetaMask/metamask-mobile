@@ -229,10 +229,18 @@ jest.mock('react-native-confirmation-code-field', () => {
 
   const MockCursor = () => React.createElement(Text, { testID: 'cursor' }, '|');
 
+  const mockUseBlurOnFulfill = () => ({
+    current: {
+      focus: jest.fn(),
+      blur: jest.fn(),
+    },
+  });
+
   return {
     CodeField: MockCodeField,
     Cursor: MockCursor,
     useClearByFocusCell: jest.fn(() => [{}, jest.fn()]),
+    useBlurOnFulfill: mockUseBlurOnFulfill,
   };
 });
 
