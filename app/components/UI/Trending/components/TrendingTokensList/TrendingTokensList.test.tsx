@@ -34,7 +34,7 @@ jest.mock('@shopify/flash-list', () => {
 });
 
 // Mock TrendingTokenRowItem
-jest.mock('./TrendingTokenRowItem/TrendingTokenRowItem', () => {
+jest.mock('../TrendingTokenRowItem/TrendingTokenRowItem', () => {
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
