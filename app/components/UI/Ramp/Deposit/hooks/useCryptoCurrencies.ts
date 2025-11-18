@@ -64,10 +64,17 @@ export function useCryptoCurrencies(): UseCryptoCurrenciesResult {
             return true;
           }
 
-          const [chainId, assetId] = intent?.assetId?.split('/') || [];
+          if (intent?.assetId?.includes('/')) {
+            const [chainId, assetId] = intent.assetId.split('/');
 
-          if (token.chainId === chainId && token.assetId === assetId) {
-            return true;
+            if (
+              chainId &&
+              assetId &&
+              token.chainId === chainId &&
+              token.assetId === assetId
+            ) {
+              return true;
+            }
           }
 
           return false;
