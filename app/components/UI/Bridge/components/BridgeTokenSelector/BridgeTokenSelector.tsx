@@ -22,7 +22,6 @@ import {
   formatAddressToAssetId,
   formatChainIdToCaip,
   UnifiedSwapBridgeEventName,
-
   isNonEvmChainId,
   formatChainIdToHex,
 } from '@metamask/bridge-controller';
@@ -113,11 +112,7 @@ export const BridgeTokenSelector: React.FC = () => {
     route.params?.type === 'source' ? sourceToken : destToken;
   const [selectedChainId, setSelectedChainId] = useState<
     CaipChainId | undefined
-  >(
-    selectedToken?.chainId
-      ? formatChainIdToCaip(selectedToken.chainId)
-      : undefined,
-  );
+  >(undefined);
 
   // Chain IDs to fetch tokens for
   const chainIdsToFetch = useMemo(() => {
