@@ -134,7 +134,7 @@ export class FrameworkDetector {
 }
 
 /**
- * Platform detector for Appium/WebdriverIO context
+ * Platform detector for Appium/WebdriverIO and Detox context
  */
 export class PlatformDetector {
   /**

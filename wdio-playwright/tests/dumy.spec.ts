@@ -2,8 +2,10 @@ import LoginView from '../../e2e/pages/wallet/LoginView';
 import { asPlaywrightElement, PlaywrightElement } from '../framework';
 import { test } from '../fixture';
 import { expect } from '@playwright/test';
+import FixtureBuilder from '../../e2e/framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../e2e/framework/fixtures/FixtureHelper';
 
-const E2E_PASSWORD = process.env.E2E_PASSWORD || '';
+const E2E_PASSWORD = '123123123';
 
 /**
  * Using helper functions, check LoginView to see the flow
@@ -13,10 +15,19 @@ test.only('login with password - page object helper functions flow', async ({
 }) => {
   expect(driver).toBeDefined();
 
-  // High-level method - works with both frameworks
-  await LoginView.enterPassword(E2E_PASSWORD);
+  await withFixtures(
+    {
+      fixture: new FixtureBuilder().build(),
+      skipReactNativeReload: true,
+    },
+    async () => {
+      // High-level method - works with both frameworks
+      await LoginView.enterPassword(E2E_PASSWORD);
 
-  await new Promise((resolve) => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+    },
+  );
 });
 
 test('login with password - playing with locator types', async ({ driver }) => {
