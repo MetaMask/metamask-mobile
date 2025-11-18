@@ -136,6 +136,14 @@ jest.mock('../../../core/Engine', () => {
         },
       },
     },
+    controllerMessenger: {
+      subscribe() {
+        return undefined;
+      },
+      unsubscribe() {
+        return undefined;
+      },
+    },
     getTotalEvmFiatAccountBalance() {
       return { balance: '0', fiatBalance: '0' };
     },
@@ -180,3 +188,50 @@ jest.mock('react-native-device-info', () => ({
   __esModule: true,
   getVersion: () => '99.0.0',
 }));
+
+// Mock Animated Easing to avoid importing heavy bezier implementation during tests
+// and to prevent late imports after Jest environment teardown.
+jest.mock('react-native/Libraries/Animated/Easing', () => {
+  const identity = (t: number) => t;
+  const returnIdentity = () => identity;
+  const wrapIdentity = () => identity;
+
+  return {
+    // Core easings
+    linear: identity,
+    ease: identity,
+    quad: identity,
+    cubic: identity,
+    poly: () => identity,
+    sin: identity,
+    circle: identity,
+    exp: identity,
+    elastic: returnIdentity,
+    back: returnIdentity,
+    bounce: identity,
+    // Bezier should return an easing function
+    bezier: returnIdentity,
+    // Composition helpers usually accept an easing and return easing
+    in: wrapIdentity,
+    out: wrapIdentity,
+    inOut: wrapIdentity,
+    // Default export shape
+    default: {
+      linear: identity,
+      ease: identity,
+      quad: identity,
+      cubic: identity,
+      poly: () => identity,
+      sin: identity,
+      circle: identity,
+      exp: identity,
+      elastic: returnIdentity,
+      back: returnIdentity,
+      bounce: identity,
+      bezier: returnIdentity,
+      in: wrapIdentity,
+      out: wrapIdentity,
+      inOut: wrapIdentity,
+    },
+  };
+});

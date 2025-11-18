@@ -13,16 +13,17 @@ Enzyme.configure({ adapter: new Adapter() });
 global.base64FromArrayBuffer = base64js.fromByteArray;
 global.base64ToArrayBuffer = base64js.toByteArray;
 
-// Mock the redux-devtools-expo-dev-plugin module
+// Mock the redux-devtools-expo-dev-plugin module to prevent loading the actual devtools during tests, which could cause side effects or errors in non-Expo/Jest environments.
 jest.mock('redux-devtools-expo-dev-plugin', () => {});
 
-// Mock Expo's fetch implementation
+// Infra mock: route expo/fetch to global fetch to avoid Expo-specific polyfills and ensure determinism in Node/Jest
 jest.mock('expo/fetch', () => {
   return {
     fetch: fetch,
   };
 });
 
+// Infra mock: replace native crypto with JS stubs so tests run in Node without native bindings and remain deterministic
 jest.mock('react-native-quick-crypto', () => ({
   getRandomValues: jest.fn((array) => {
     for (let i = 0; i < array.length; i++) {
@@ -78,6 +79,7 @@ const mockBatchedUpdates = jest.fn((fn) => {
   return fn;
 });
 
+// Infra patch: stabilize RN environment (Platform + batched updates) to prevent teardown/import timing issues
 jest.mock('react-native', () => {
   const originalModule = jest.requireActual('react-native');
 
@@ -109,7 +111,7 @@ if (ReactNative.unstable_batchedUpdates) {
 // Also mock it globally as a fallback
 global.unstable_batchedUpdates = mockBatchedUpdates;
 
-// Mock the specific module path that might be causing issues
+// Infra patch: ensure react-native entry also uses the stable batched updates mock
 jest.mock('react-native/index.js', () => {
   const originalModule = jest.requireActual('react-native');
   originalModule.unstable_batchedUpdates = mockBatchedUpdates;
@@ -173,6 +175,7 @@ jest.mock('@metamask/react-native-webview', () => {
   };
 });
 
+// Infra mock: prevent loading preinstalled snaps to avoid heavy payloads and global side-effects in render tests
 jest.mock('../../lib/snaps/preinstalled-snaps');
 
 const mockFs = {
@@ -226,8 +229,10 @@ const mockFs = {
   writeFile: jest.fn(),
 };
 
+// Infra mock: stub filesystem to avoid real I/O during tests
 jest.mock('react-native-fs', () => mockFs);
 
+// Infra mock: stub blob/fs helpers to avoid native code paths and I/O
 jest.mock('react-native-blob-util', () => ({
   fs: {
     dirs: {
@@ -240,20 +245,12 @@ jest.mock('react-native-blob-util', () => ({
   },
 }));
 
+// Deterministic time for stable assertions across test runs
 Date.now = jest.fn(() => 123);
-
-jest.mock('../../core/NotificationManager', () => ({
-  init: jest.fn(),
-  watchSubmittedTransaction: jest.fn(),
-  getTransactionToView: jest.fn(),
-  setTransactionToView: jest.fn(),
-  gotIncomingTransaction: jest.fn(),
-  requestPushNotificationsPermission: jest.fn(),
-  showSimpleNotification: jest.fn(),
-}));
 
 let mockState = {};
 
+// Store mock: allow tests to control state via _updateMockState without redux-persist or middleware
 jest.mock('../../store', () => ({
   store: {
     getState: jest.fn().mockImplementation(() => mockState),
@@ -267,18 +264,7 @@ jest.mock('../../store', () => ({
   },
 }));
 
-// Mock SDKConnectV2 singleton to prevent auto-initialization during test setup.
-jest.mock('../../core/SDKConnectV2', () => ({
-  __esModule: true,
-  default: {
-    isConnectDeeplink: jest.fn(() => false),
-    handleConnectDeeplink: jest.fn().mockResolvedValue(undefined),
-    disconnect: jest.fn().mockResolvedValue(undefined),
-  },
-}));
-
-jest.mock('../../core/NotificationManager');
-
+// Infra mock: prevent requiring RN event emitter native module in Node tests
 jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
 
 jest.mock(
@@ -298,6 +284,7 @@ jest.mock(
   }),
 );
 
+// Infra mock: avoid native keychain calls; provide enums and resolved promises
 jest.mock('react-native-keychain', () => ({
   // Security Level enum
   SECURITY_LEVEL: {
@@ -410,6 +397,7 @@ jest.mock('react-native-keychain', () => ({
   SECURITY_LEVEL_SECURE_HARDWARE: 'MOCK_SECURITY_LEVEL_SECURE_HARDWARE',
 }));
 
+// Lightweight stubs for SDKs not under test to avoid native linking or network
 jest.mock('react-native-share', () => 'RNShare');
 jest.mock('react-native-branch', () => ({
   subscribe: jest.fn(),
@@ -417,6 +405,7 @@ jest.mock('react-native-branch', () => ({
 jest.mock('react-native-sensors', () => 'RNSensors');
 jest.mock('@metamask/react-native-search-api', () => 'SearchApi');
 
+// Infra timers/storage/cookies: avoid native timers and persistent storage in unit tests
 jest.mock('react-native-background-timer', () => 'RNBackgroundTimer');
 jest.mock(
   '@react-native-async-storage/async-storage',
@@ -576,25 +565,12 @@ jest.mock('@notifee/react-native', () =>
   require('@notifee/react-native/jest-mock'),
 );
 
+// Infra mock: simplify RN asset resolution to keep image sources test-friendly
 jest.mock('react-native/Libraries/Image/resolveAssetSource', () => ({
   __esModule: true,
   default: (source) => {
     return { uri: source.uri };
   },
-}));
-
-jest.mock('redux-persist', () => ({
-  persistStore: jest.fn(),
-  persistReducer: (_, reducer) => {
-    return reducer || ((state) => state);
-  },
-  createTransform: jest.fn(),
-  createMigrate: jest.fn(),
-}));
-
-jest.mock('../../store/storage-wrapper', () => ({
-  getItem: jest.fn(),
-  setItem: jest.fn(),
 }));
 
 // eslint-disable-next-line import/no-commonjs
@@ -606,6 +582,7 @@ jest.mock('../../core/Engine', () =>
   require('../../core/__mocks__/MockedEngine'),
 );
 
+// Safe area: provide zeroed insets for deterministic layout in tests
 jest.mock('react-native-safe-area-context', () => ({
   ...jest.requireActual('react-native-safe-area-context'),
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
@@ -700,14 +677,14 @@ jest.mock('@react-native-firebase/messaging', () => {
   return module;
 });
 
-jest.mock('../../core/Analytics/MetaMetricsTestUtils', () => {
-  return {
-    default: {
-      getInstance: jest.fn().mockReturnValue({
-        trackEvent: jest.fn(),
-      }),
-    },
-  };
+// Avoid animated/timer behaviors from third-party fade-in wrappers in tests
+jest.mock('react-native-fade-in-image', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const React = require('react');
+  const FadeIn = ({ children, ...rest }) =>
+    // Render children directly without animations
+    children ?? null;
+  return FadeIn;
 });
 
 jest.mock('react-native/Libraries/TurboModule/TurboModuleRegistry', () => {
