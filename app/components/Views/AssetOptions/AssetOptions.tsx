@@ -186,17 +186,22 @@ const AssetOptions = (props: Props) => {
   const goToBrowserUrl = (url: string, title: string) => {
     modalRef.current?.dismissModal(() => {
       (async () => {
-        if (await InAppBrowser.isAvailable()) {
-          await InAppBrowser.open(url);
-        } else {
-          navigation.navigate('Webview', {
-            screen: 'SimpleWebview',
-            params: {
-              url,
-              title,
-            },
-          });
+        try {
+          if (await InAppBrowser.isAvailable()) {
+            await InAppBrowser.open(url);
+            return;
+          }
+        } catch (error) {
+          // InAppBrowser failed (e.g., already open), fallback to Webview
         }
+        // Fallback to Webview navigation
+        navigation.navigate('Webview', {
+          screen: 'SimpleWebview',
+          params: {
+            url,
+            title,
+          },
+        });
       })();
     });
   };

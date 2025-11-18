@@ -16,6 +16,7 @@ export const MEGAETH_MAINNET = 'megaeth-mainnet';
 export const MONAD_TESTNET = 'monad-testnet';
 export const BITCOIN_TESTNET = 'bitcoin-testnet';
 export const BITCOIN_MUTINYNET = 'bitcoin-mutinynet';
+export const BSC_MAINNET = 'bsc-mainnet';
 
 export const RPC = NetworkType.rpc;
 export const NO_RPC_BLOCK_EXPLORER = 'NO_BLOCK_EXPLORER';
