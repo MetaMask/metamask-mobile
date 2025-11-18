@@ -1,12 +1,11 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { createStackNavigator } from '@react-navigation/stack';
 import {
   Box,
-  BoxFlexDirection,
   Text,
   TextVariant,
   ButtonIcon,
@@ -17,6 +16,7 @@ import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { appendURLParams } from '../../../util/browser';
 import { useMetrics } from '../../hooks/useMetrics';
+import { useTheme } from '../../../util/theme';
 import Browser from '../Browser';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -74,6 +74,7 @@ const TrendingFeed: React.FC = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { isEnabled } = useMetrics();
+  const { colors } = useTheme();
 
   // Update state when returning to TrendingFeed
   useEffect(() => {
@@ -87,6 +88,10 @@ const TrendingFeed: React.FC = () => {
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: { security: { dataCollectionForMarketing?: boolean } }) =>
       state.security.dataCollectionForMarketing,
+  );
+
+  const browserTabsCount = useSelector(
+    (state: { browser: { tabs: unknown[] } }) => state.browser.tabs.length,
   );
 
   const portfolioUrl = appendURLParams(AppConstants.PORTFOLIO.URL, {
@@ -110,22 +115,46 @@ const TrendingFeed: React.FC = () => {
 
   return (
     <Box style={{ paddingTop: insets.top }} twClassName="flex-1 bg-default">
-      <Box twClassName="flex-row justify-between items-center px-4 py-3">
+      <Box twClassName="px-4 py-3">
         <Text variant={TextVariant.HeadingLg} twClassName="text-default">
           {strings('trending.title')}
         </Text>
-
-        <Box flexDirection={BoxFlexDirection.Row}>
-          <ButtonIcon
-            iconName={IconName.Explore}
-            size={ButtonIconSize.Lg}
-            onPress={handleBrowserPress}
-            testID="trending-view-browser-button"
-          />
-        </Box>
       </Box>
 
-      <ExploreSearchBar type="button" onPress={handleSearchPress} />
+      <Box twClassName="px-4 pb-3">
+        <Box twClassName="flex-row items-center gap-2">
+          <Box twClassName="flex-1">
+            <ExploreSearchBar type="button" onPress={handleSearchPress} />
+          </Box>
+
+          <Pressable
+            onPress={handleBrowserPress}
+            testID="trending-view-browser-button"
+          >
+            <Box
+              twClassName="rounded-md items-center justify-center h-8 w-8 border-4"
+              style={{
+                borderColor: colors.text.default,
+              }}
+            >
+              {browserTabsCount > 0 ? (
+                <Text
+                  variant={TextVariant.BodyMd}
+                  twClassName="text-default font-bold"
+                >
+                  {browserTabsCount}
+                </Text>
+              ) : (
+                <ButtonIcon
+                  iconName={IconName.Add}
+                  size={ButtonIconSize.Md}
+                  onPress={handleBrowserPress}
+                />
+              )}
+            </Box>
+          </Pressable>
+        </Box>
+      </Box>
 
       <ScrollView
         style={styles.scrollView}
