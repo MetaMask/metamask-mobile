@@ -110,6 +110,15 @@ jest.mock('@metamask/utils', () => ({
     .mockReturnValue('eip155:1:0x1234567890123456789012345678901234567890'),
 }));
 
+// Mock EligibilityService to prevent actual geo-location fetching in tests
+jest.mock('./services/EligibilityService', () => ({
+  EligibilityService: {
+    checkEligibility: jest.fn().mockResolvedValue(true),
+    fetchGeoLocation: jest.fn().mockResolvedValue('UNKNOWN'),
+    clearCache: jest.fn(),
+  },
+}));
+
 describe('PerpsController', () => {
   let controller: PerpsController;
   let mockProvider: jest.Mocked<HyperLiquidProvider>;
@@ -173,7 +182,9 @@ describe('PerpsController', () => {
       expect(controller.state.initializationState).toBe('uninitialized'); // Waits for explicit initialization
       expect(controller.state.initializationError).toBeNull();
       expect(controller.state.initializationAttempts).toBe(0); // Not started yet
-      expect(controller.state.isEligible).toBe(false);
+      // isEligible is initially false, but refreshEligibility is called during construction
+      // which updates it to true (defaulting to eligible when geo-location is unknown)
+      expect(controller.state.isEligible).toBe(true);
       expect(controller.state.isTestnet).toBe(false); // Default to mainnet
     });
 
