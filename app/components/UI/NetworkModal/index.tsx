@@ -372,6 +372,8 @@ const NetworkModals = (props: NetworkProps) => {
 
     if (autoSwitchNetwork) {
       switchNetwork();
+    } else if (skipEnableNetwork) {
+      await closeModal();
     } else {
       setNetworkAdded(isValidUrl);
     }
@@ -442,7 +444,6 @@ const NetworkModals = (props: NetworkProps) => {
                 customNetworkInformation={customNetworkInformation}
                 onReject={() => {
                   onReject?.();
-                  onClose();
                 }}
                 onConfirm={allowNetworkSwitch ? addNetwork : closeModal}
                 isCustomNetwork={!showPopularNetworkModal}
