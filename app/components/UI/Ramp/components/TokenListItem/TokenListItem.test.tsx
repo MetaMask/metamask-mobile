@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, act } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TokenListItem from './TokenListItem';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
@@ -132,12 +132,8 @@ describe('TokenListItem', () => {
         <TokenListItem token={token} onPress={mockOnPress} />,
       );
 
-      // Use the token name to find the list item Text
       const tokenNameText = getByText(token.name);
-
-      act(() => {
-        fireEvent.press(tokenNameText);
-      });
+      fireEvent.press(tokenNameText);
 
       expect(mockOnPress).toHaveBeenCalledTimes(1);
     });

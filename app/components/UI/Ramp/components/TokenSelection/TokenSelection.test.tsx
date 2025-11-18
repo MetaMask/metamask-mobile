@@ -2,7 +2,6 @@ import React from 'react';
 import { ActivityIndicator } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import TokenSelection from './TokenSelection';
-import { useParams } from '../../../../../util/navigation/navUtils';
 import useSearchTokenResults from '../../Deposit/hooks/useSearchTokenResults';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -42,11 +41,6 @@ function renderWithProvider(component: React.ComponentType) {
   );
 }
 
-jest.mock('../../../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../../../util/navigation/navUtils'),
-  useParams: jest.fn(),
-}));
-
 jest.mock('../../Deposit/hooks/useSearchTokenResults', () => jest.fn());
 
 jest.mock('../../hooks/useRampTokens', () => ({
@@ -68,9 +62,6 @@ const convertToRampsTokens = (tokens: typeof mockTokens) =>
 describe('TokenSelection Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useParams as jest.Mock).mockReturnValue({
-      intent: undefined,
-    });
     (useSearchTokenResults as jest.Mock).mockReturnValue(mockTokens);
 
     const rampsTokens = convertToRampsTokens(mockTokens);
@@ -103,18 +94,6 @@ describe('TokenSelection Component', () => {
     await waitFor(() => {
       expect(getByText('No tokens match "Nonexistent Token"')).toBeTruthy();
     });
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('marks token as selected when intent assetId matches', () => {
-    (useParams as jest.Mock).mockReturnValue({
-      intent: {
-        assetId: mockTokens[0].assetId,
-      },
-    });
-
-    const { toJSON } = renderWithProvider(TokenSelection);
-
     expect(toJSON()).toMatchSnapshot();
   });
 

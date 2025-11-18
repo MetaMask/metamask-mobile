@@ -25,19 +25,15 @@ import TextFieldSearch from '../../../../../component-library/components/Form/Te
 import useSearchTokenResults from '../../Deposit/hooks/useSearchTokenResults';
 import { useRampTokens, RampsToken } from '../../hooks/useRampTokens';
 
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../util/navigation/navUtils';
+import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
 import { getDepositNavbarOptions } from '../../../Navbar';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
-import { RampIntent } from '../../Aggregator/types';
 
-export const createTokenSelectionNavDetails = createNavigationDetails<{
-  intent?: RampIntent;
-}>(Routes.RAMP.TOKEN_SELECTION);
+export const createTokenSelectionNavDetails = createNavigationDetails(
+  Routes.RAMP.TOKEN_SELECTION,
+);
 
 function TokenSelection() {
   const listRef = useRef<FlatList>(null);
@@ -48,9 +44,6 @@ function TokenSelection() {
   const theme = useTheme();
 
   const navigation = useNavigation();
-
-  const { intent } = useParams<{ intent?: RampIntent }>();
-  const selectedCryptoAssetId = intent?.assetId;
 
   const { topTokens, allTokens, isLoading, error } = useRampTokens();
 
@@ -199,7 +192,6 @@ function TokenSelection() {
           ref={listRef}
           data={searchTokenResults as unknown as RampsToken[]}
           renderItem={renderToken}
-          extraData={selectedCryptoAssetId}
           keyExtractor={(item) => item.assetId}
           ListEmptyComponent={renderEmptyList}
           keyboardDismissMode="on-drag"
