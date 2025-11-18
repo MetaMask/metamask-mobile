@@ -13,10 +13,19 @@ import { useMaxValueRefresher } from '../../../hooks/useMaxValueRefresher';
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { useTransferAssetType } from '../../../hooks/useTransferAssetType';
 import { HeroRow, HeroRowSkeleton } from '../../rows/transactions/hero-row';
-import { NetworkAndOriginRow, NetworkAndOriginRowSkeleton } from '../../rows/transactions/network-and-origin-row';
-import FromToRow, { FromToRowSkeleton } from '../../rows/transactions/from-to-row';
-import GasFeesDetailsRow, { GasFeesDetailsRowSkeleton } from '../../rows/transactions/gas-fee-details-row';
-import AdvancedDetailsRow, { AdvancedDetailsRowSkeleton } from '../../rows/transactions/advanced-details-row';
+import {
+  NetworkAndOriginRow,
+  NetworkAndOriginRowSkeleton,
+} from '../../rows/transactions/network-and-origin-row';
+import FromToRow, {
+  FromToRowSkeleton,
+} from '../../rows/transactions/from-to-row';
+import GasFeesDetailsRow, {
+  GasFeesDetailsRowSkeleton,
+} from '../../rows/transactions/gas-fee-details-row';
+import AdvancedDetailsRow, {
+  AdvancedDetailsRowSkeleton,
+} from '../../rows/transactions/advanced-details-row';
 
 const Transfer = () => {
   // Set navbar as first to prevent Android navigation flickering

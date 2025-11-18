@@ -15,8 +15,16 @@ export function HeroRowSkeleton() {
   return (
     <View style={styles.wrapper}>
       <Skeleton width={64} height={64} style={{ borderRadius: 32 }} />
-      <Skeleton width={150} height={24} style={{ borderRadius: 6, marginTop: 16 }} />
-      <Skeleton width={80} height={18} style={{ borderRadius: 4, marginTop: 8, marginBottom: 14 }} />
+      <Skeleton
+        width={150}
+        height={24}
+        style={{ borderRadius: 6, marginTop: 16 }}
+      />
+      <Skeleton
+        width={80}
+        height={18}
+        style={{ borderRadius: 4, marginTop: 8, marginBottom: 14 }}
+      />
     </View>
   );
 }
