@@ -6,7 +6,7 @@ import otaConfig from '../../ota.config.js';
  * Reset to v0 when releasing a new native build
  * We keep this OTA_VERSION here to because changes in ota.config.js will affect the fingerprint and break the workflow in Github Actions
  */
-export const OTA_VERSION = 'v0';
+export const OTA_VERSION = 'v1';
 export const RUNTIME_VERSION = otaConfig.RUNTIME_VERSION;
 export const PROJECT_ID = otaConfig.PROJECT_ID;
 export const UPDATE_URL = otaConfig.UPDATE_URL;
@@ -17,6 +17,6 @@ export const UPDATE_URL = otaConfig.UPDATE_URL;
  * @returns Full version string (e.g., "7.58.0 OTA Version: v3")
  */
 export const getFullVersion = (appVersion: string): string =>
-  process.env.METAMASK_ENVIRONMENT !== 'production' && OTA_VERSION !== 'v0'
+  process.env.METAMASK_ENVIRONMENT !== 'production'
     ? `${appVersion} OTA: ${OTA_VERSION}`
     : `${appVersion}`;

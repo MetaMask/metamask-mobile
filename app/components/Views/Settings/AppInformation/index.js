@@ -268,40 +268,13 @@ export default class AppInformation extends PureComponent {
               </>
             )}
           </View>
-          <Text style={styles.title}>{strings('app_information.links')}</Text>
           <View style={styles.links}>
-            <TouchableOpacity onPress={this.onPrivacyPolicy}>
-              <Text style={styles.link}>
-                {strings('app_information.privacy_policy')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.onTermsOfUse}>
-              <Text style={styles.link}>
-                {strings('app_information.terms_of_use')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.onAttributions}>
-              <Text style={styles.link}>
-                {strings('app_information.attributions')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.division} />
-          <View style={styles.links}>
-            <TouchableOpacity onPress={this.onSupportCenter}>
-              <Text style={styles.link}>
-                {strings('app_information.support_center')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.onWebSite}>
-              <Text style={styles.link}>
-                {strings('app_information.web_site')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.onContactUs}>
-              <Text style={styles.link}>
-                {strings('app_information.contact_us')}
-              </Text>
+            <TouchableOpacity
+              onPress={() => {
+                throw new Error('Hello, Sentry Error!');
+              }}
+            >
+              <Text style={styles.link}>Hello, Sentry Error!</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -309,5 +282,4 @@ export default class AppInformation extends PureComponent {
     );
   };
 }
-
 AppInformation.contextType = ThemeContext;
