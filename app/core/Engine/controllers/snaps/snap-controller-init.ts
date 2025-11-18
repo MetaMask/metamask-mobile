@@ -47,6 +47,8 @@ export const snapControllerInit: ControllerInitFunction<
   SnapControllerMessenger,
   SnapControllerInitMessenger
 > = ({ initMessenger, controllerMessenger, persistedState }) => {
+  // eslint-disable-next-line no-console
+  console.log('Initializing SnapController:', process.env.METAMASK_BUILD_TYPE);
   const requireAllowlist = process.env.METAMASK_BUILD_TYPE !== 'flask';
   const disableSnapInstallation = process.env.METAMASK_BUILD_TYPE !== 'flask';
   const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';

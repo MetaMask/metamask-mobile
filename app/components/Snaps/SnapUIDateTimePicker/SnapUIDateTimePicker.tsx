@@ -13,10 +13,12 @@ import DateTimePicker, {
 import TextField, {
   TextFieldSize,
 } from '../../../component-library/components/Form/TextField';
-import { Platform, TextInput, TouchableOpacity } from 'react-native';
+import { Platform, TextInput, View } from 'react-native';
+import stylesheet from './SnapUIDateTimePicker.styles';
 import ApprovalModal from '../../Approvals/ApprovalModal';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
+import { useStyles } from '../../hooks/useStyles';
 
 /**
  * The props for the SnapUIDateTimePicker component.
@@ -33,9 +35,22 @@ export interface SnapUIDateTimePickerProps {
   disabled?: boolean;
 }
 
-/**
- * Styles for the SnapUIDateTimePicker component.
- */
+const formatDateForDisplay = (
+  date: Date | null,
+  type: 'date' | 'time' | 'datetime',
+) => {
+  if (!date) {
+    return undefined;
+  }
+  switch (type) {
+    case 'date':
+      return DateTime.fromJSDate(date).toLocaleString(DateTime.DATE_SHORT);
+    case 'time':
+      return DateTime.fromJSDate(date).toLocaleString(DateTime.TIME_SIMPLE);
+    case 'datetime':
+      return DateTime.fromJSDate(date).toLocaleString(DateTime.DATETIME_SHORT);
+  }
+};
 
 /**
  * The SnapUIDateTimePicker component.
@@ -68,6 +83,8 @@ export const SnapUIDateTimePicker: FunctionComponent<
   const { handleInputChange, getValue, setCurrentFocusedInput } =
     useSnapInterfaceContext();
 
+  const { styles } = useStyles(stylesheet, {});
+
   const inputRef = useRef<TextInput>(null);
 
   const initialValue = getValue(name, form) as string;
@@ -84,6 +101,13 @@ export const SnapUIDateTimePicker: FunctionComponent<
     }
   }, [initialValue]);
 
+  /**
+   * Handles internal value change for iOS picker.
+   * Since iOS picker is displayed in a bottom sheet,
+   * we only submit the value when the user confirms.
+   * @param _event - The date time picker event.
+   * @param date - The selected date.
+   */
   const handleInternalValueChange = (
     _event: DateTimePickerEvent,
     date: Date | undefined,
@@ -91,12 +115,21 @@ export const SnapUIDateTimePicker: FunctionComponent<
     setValue(date ?? null);
   };
 
+  /**
+   * Submits the internal value to the snap.
+   */
   const submitInternalValue = () => {
     const isoString = value ? DateTime.fromJSDate(value).toISO() : null;
 
     handleInputChange(name, isoString, form);
+    setShowDatePicker(false);
   };
 
+  /**
+   * Handles change event for Android picker.
+   * @param _event - The date time picker event.
+   * @param date - The selected date.
+   */
   const handleChange = (
     _event: DateTimePickerEvent,
     date: Date | undefined,
@@ -109,46 +142,65 @@ export const SnapUIDateTimePicker: FunctionComponent<
     handleInputChange(name, isoString, form);
   };
 
+  /**
+   * Handles opening the picker.
+   */
   const handleOpenPicker = () => {
     setShowDatePicker(true);
+
+    // If no value is set, default to current date/time.
+    if (value === null) {
+      setValue(new Date());
+    }
   };
 
+  /**
+   * Handles closing the picker.
+   * Submits the internal value before closing.
+   */
   const handleClosePicker = () => {
+    submitInternalValue();
     setShowDatePicker(false);
+
+    // Revert to initial value if the user cancels.
+    setValue(initialValue ? new Date(initialValue) : null);
   };
 
+  /**
+   * Handles focus event on the input.
+   */
   const handleFocus = () => setCurrentFocusedInput(name);
+
+  /**
+   * Handles blur event on the input.
+   */
   const handleBlur = () => setCurrentFocusedInput(null);
 
   return (
     <Box>
       {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}
-      <TouchableOpacity onPress={handleOpenPicker} activeOpacity={0.7}>
-        <TextField
-          size={TextFieldSize.Lg}
-          placeholder={placeholder}
-          isDisabled={disabled}
-          ref={inputRef}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          id={name}
-          readOnly
-          testID={`${name}-snap-ui-date-time-picker`}
-          value={
-            value
-              ? DateTime.fromJSDate(value).toLocaleString(DateTime.DATETIME_MED)
-              : undefined
-          }
-          // We set a max height of 58px and let the input grow to fill the rest of the height next to a taller sibling element.
-          // eslint-disable-next-line react-native/no-inline-styles
-          style={{ maxHeight: 58, flexGrow: 1 }}
-        />
-      </TouchableOpacity>
+      <TextField
+        size={TextFieldSize.Lg}
+        onPress={handleOpenPicker}
+        placeholder={placeholder}
+        isDisabled={disabled}
+        ref={inputRef}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        id={name}
+        readOnly
+        testID={`${name}-snap-ui-date-time-picker`}
+        value={formatDateForDisplay(value, type)}
+        // We set a max height of 58px and let the input grow to fill the rest of the height next to a taller sibling element.
+        // eslint-disable-next-line react-native/no-inline-styles
+        style={{ maxHeight: 58, flexGrow: 1 }}
+      />
+
       {Platform.OS === 'android' && showDatePicker && (
         <DateTimePicker
+          // Default selection to current date/time.
           value={value ?? new Date()}
           mode={type}
-          display="default"
           onChange={handleChange}
           maximumDate={disableFuture ? new Date() : undefined}
           minimumDate={disablePast ? new Date() : undefined}
@@ -161,28 +213,31 @@ export const SnapUIDateTimePicker: FunctionComponent<
           onCancel={handleClosePicker}
           avoidKeyboard
         >
-          <DateTimePicker
-            value={value ?? new Date()}
-            mode={type}
-            display="spinner"
-            onChange={handleInternalValueChange}
-            maximumDate={disableFuture ? new Date() : undefined}
-            minimumDate={disablePast ? new Date() : undefined}
-          />
-          <BottomSheetFooter
-            buttonPropsArray={[
-              {
-                label: 'Cancel',
-                variant: ButtonVariants.Secondary,
-                onPress: handleClosePicker,
-              },
-              {
-                label: 'Confirm',
-                variant: ButtonVariants.Primary,
-                onPress: submitInternalValue,
-              },
-            ]}
-          />
+          <View style={styles.modal}>
+            <DateTimePicker
+              // Default selection to current date/time.
+              value={value ?? new Date()}
+              mode={type}
+              display={type === 'datetime' ? 'inline' : 'spinner'}
+              onChange={handleInternalValueChange}
+              maximumDate={disableFuture ? new Date() : undefined}
+              minimumDate={disablePast ? new Date() : undefined}
+            />
+            <BottomSheetFooter
+              buttonPropsArray={[
+                {
+                  label: 'Cancel',
+                  variant: ButtonVariants.Secondary,
+                  onPress: handleClosePicker,
+                },
+                {
+                  label: 'OK',
+                  variant: ButtonVariants.Primary,
+                  onPress: submitInternalValue,
+                },
+              ]}
+            />
+          </View>
         </ApprovalModal>
       )}
       {error && <HelpText severity={HelpTextSeverity.Error}>{error}</HelpText>}
