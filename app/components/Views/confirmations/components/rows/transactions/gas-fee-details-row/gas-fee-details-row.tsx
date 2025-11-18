@@ -329,33 +329,17 @@ const GasFeesDetailsRow = ({
 };
 
 export function GasFeesDetailsRowSkeleton() {
+  const { styles } = useStyles(styleSheet, {});
+
   return (
     <InfoSection>
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          minHeight: 24,
-          paddingBottom: 8,
-          paddingHorizontal: 8,
-        }}
-      >
-        <Skeleton width={105} height={20} style={{ borderRadius: 4 }} />
-        <Skeleton width={140} height={20} style={{ borderRadius: 4 }} />
+      <View style={styles.skeletonRowContainer}>
+        <Skeleton width={105} height={20} style={styles.skeletonBorderRadius} />
+        <Skeleton width={140} height={20} style={styles.skeletonBorderRadius} />
       </View>
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          minHeight: 24,
-          paddingBottom: 8,
-          paddingHorizontal: 8,
-        }}
-      >
-        <Skeleton width={50} height={20} style={{ borderRadius: 4 }} />
-        <Skeleton width={140} height={20} style={{ borderRadius: 4 }} />
+      <View style={styles.skeletonRowContainer}>
+        <Skeleton width={50} height={20} style={styles.skeletonBorderRadius} />
+        <Skeleton width={140} height={20} style={styles.skeletonBorderRadius} />
       </View>
     </InfoSection>
   );
