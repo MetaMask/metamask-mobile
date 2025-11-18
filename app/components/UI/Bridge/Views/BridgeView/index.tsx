@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../../../Base/ScreenView';
-import Keypad from '../../../../Base/Keypad';
 import {
   MAX_INPUT_LENGTH,
   TokenInputArea,
@@ -83,6 +82,7 @@ import ApprovalTooltip from '../../components/ApprovalText';
 import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
 import { isNullOrUndefined } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
+import { SwapsKeypad } from '../../components/SwapsKeypad/index.tsx';
 import { useGasIncluded } from '../../hooks/useGasIncluded';
 
 export interface BridgeRouteParams {
@@ -330,6 +330,12 @@ const BridgeView = () => {
     }
   };
 
+  const handleSourceMaxPress = () => {
+    if (latestSourceBalance?.displayBalance) {
+      dispatch(setSourceAmountAsMax(latestSourceBalance.displayBalance));
+    }
+  };
+
   const handleSourceTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: 'source',
@@ -489,13 +495,7 @@ const BridgeView = () => {
             onFocus={() => setIsInputFocused(true)}
             onBlur={() => setIsInputFocused(false)}
             onInputPress={() => setIsInputFocused(true)}
-            onMaxPress={() => {
-              if (latestSourceBalance?.displayBalance) {
-                dispatch(
-                  setSourceAmountAsMax(latestSourceBalance.displayBalance),
-                );
-              }
-            }}
+            onMaxPress={handleSourceMaxPress}
             latestAtomicBalance={latestSourceBalance?.atomicBalance}
             isSourceToken
           />
@@ -539,15 +539,15 @@ const BridgeView = () => {
                 <QuoteDetailsCard />
               </Box>
             ) : shouldDisplayKeypad ? (
-              <Box style={styles.keypadContainer}>
-                <Keypad
-                  style={styles.keypad}
-                  value={sourceAmount || '0'}
-                  onChange={handleKeypadChange}
-                  currency={sourceToken?.symbol || 'ETH'}
-                  decimals={sourceToken?.decimals || 18}
-                />
-              </Box>
+              <SwapsKeypad
+                value={sourceAmount || '0'}
+                onChange={handleKeypadChange}
+                currency={sourceToken?.symbol || 'ETH'}
+                decimals={sourceToken?.decimals || 18}
+                token={sourceToken}
+                tokenBalance={latestSourceBalance}
+                onMaxPress={handleSourceMaxPress}
+              />
             ) : null}
           </Box>
         </ScrollView>

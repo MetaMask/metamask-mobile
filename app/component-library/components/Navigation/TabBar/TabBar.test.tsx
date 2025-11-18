@@ -30,11 +30,6 @@ interface TestDescriptors {
   [key: string]: TestTabDescriptor;
 }
 
-// Force rewards feature flag to be enabled for this test file
-jest.mock('../../../../selectors/featureFlagController/rewards', () => ({
-  selectRewardsEnabledFlag: () => true,
-}));
-
 // Mock trending tokens feature flag selector
 jest.mock('../../../../selectors/featureFlagController/assetsTrendingTokens');
 
