@@ -13,14 +13,6 @@ export const MUSD_ADDRESS_ETHEREUM =
 // Ethereum mainnet chain ID
 export const ETHEREUM_MAINNET_CHAIN_ID = '0x1';
 
-// Supported chains for token conversion
-export const SUPPORTED_CONVERSION_CHAIN_IDS: Hex[] = [
-  NETWORKS_CHAIN_ID.MAINNET,
-  NETWORKS_CHAIN_ID.ARBITRUM,
-  NETWORKS_CHAIN_ID.BASE,
-  NETWORKS_CHAIN_ID.LINEA_MAINNET,
-];
-
 export const STABLECOIN_SYMBOL_TO_ADDRESS_BY_CHAIN: Record<
   Hex,
   Record<string, Hex>

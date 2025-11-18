@@ -234,8 +234,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
   const handleConvertToMUSD = useCallback(async () => {
     try {
-      if (!earnToken?.address || !earnToken?.chainId) {
-        throw new Error('Earn token address or chain ID is not set');
+      if (!asset?.address || !asset?.chainId) {
+        throw new Error('Asset address or chain ID is not set');
       }
 
       await initiateConversion({
@@ -248,8 +248,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
           decimals: MUSD_TOKEN_MAINNET.decimals,
         },
         preferredPaymentToken: {
-          address: toHex(earnToken.address),
-          chainId: toHex(earnToken.chainId),
+          address: toHex(asset.address),
+          chainId: toHex(asset.chainId),
         },
         allowedPaymentTokens: musdConversionPaymentTokensAllowlist,
         navigationStack: Routes.EARN.ROOT,
@@ -269,22 +269,22 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       );
     }
   }, [
-    earnToken?.address,
-    earnToken?.chainId,
+    asset?.address,
+    asset?.chainId,
     initiateConversion,
     musdConversionPaymentTokensAllowlist,
   ]);
 
   const onEarnButtonPress = async () => {
+    if (isConvertibleStablecoin) {
+      return handleConvertToMUSD();
+    }
+
     if (primaryExperienceType === EARN_EXPERIENCES.POOLED_STAKING) {
       return handleStakeRedirect();
     }
 
     if (primaryExperienceType === EARN_EXPERIENCES.STABLECOIN_LENDING) {
-      if (isConvertibleStablecoin) {
-        return handleConvertToMUSD();
-      }
-
       return handleLendingRedirect();
     }
   };

@@ -6,7 +6,6 @@ import { Hex } from '@metamask/utils';
 import {
   STABLECOIN_SYMBOL_TO_ADDRESS_BY_CHAIN,
   CONVERTIBLE_STABLECOINS_BY_CHAIN,
-  SUPPORTED_CONVERSION_CHAIN_IDS,
 } from '../constants/musd';
 
 /**
@@ -77,10 +76,6 @@ export const isMusdConversionPaymentToken = (
   chainId: string,
   allowlist: Record<Hex, Hex[]> = CONVERTIBLE_STABLECOINS_BY_CHAIN,
 ): boolean => {
-  if (!SUPPORTED_CONVERSION_CHAIN_IDS.includes(chainId as Hex)) {
-    return false;
-  }
-
   const convertibleTokens = allowlist[chainId as Hex];
   if (!convertibleTokens) {
     return false;
