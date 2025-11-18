@@ -34,6 +34,7 @@ import { useRewards } from '../../hooks/useRewards';
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../Rewards/components/RewardPointsAnimation';
+import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
 import QuoteCountdownTimer from '../QuoteCountdownTimer';
 import QuoteDetailsRecipientKeyValueRow from '../QuoteDetailsRecipientKeyValueRow/QuoteDetailsRecipientKeyValueRow';
 import { toSentenceCase } from '../../../../../util/string';
@@ -69,6 +70,7 @@ const QuoteDetailsCard: React.FC = () => {
     isLoading: isRewardsLoading,
     shouldShowRewardsRow,
     hasError: hasRewardsError,
+    accountOptedIn,
   } = useRewards({
     activeQuote,
     isQuoteLoading,
@@ -286,51 +288,57 @@ const QuoteDetailsCard: React.FC = () => {
 
         {/* Estimated Points */}
         {shouldShowRewardsRow && (
-          <KeyValueRow
-            field={{
-              label: {
-                text: toSentenceCase(strings('bridge.points')),
-                variant: TextVariant.BodyMD,
-              },
-              tooltip: {
-                title: strings('bridge.points_tooltip'),
-                content: `${strings(
-                  'bridge.points_tooltip_content_1',
-                )}\n\n${strings('bridge.points_tooltip_content_2')}`,
-                size: TooltipSizes.Sm,
-                iconName: IconName.Info,
-              },
-            }}
-            value={{
-              label: (
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  justifyContent={BoxJustifyContent.Center}
-                  gap={1}
-                >
-                  <RewardsAnimations
-                    value={estimatedPoints ?? 0}
-                    state={
-                      isRewardsLoading
-                        ? RewardAnimationState.Loading
-                        : hasRewardsError
-                          ? RewardAnimationState.ErrorState
-                          : RewardAnimationState.Idle
-                    }
-                  />
-                </Box>
-              ),
-              ...(hasRewardsError && {
+          <Box testID="bridge-rewards-row">
+            <KeyValueRow
+              field={{
+                label: {
+                  text: toSentenceCase(strings('bridge.points')),
+                  variant: TextVariant.BodyMD,
+                },
                 tooltip: {
-                  title: strings('bridge.points_error'),
-                  content: strings('bridge.points_error_content'),
+                  title: strings('bridge.points_tooltip'),
+                  content: `${strings(
+                    'bridge.points_tooltip_content_1',
+                  )}\n\n${strings('bridge.points_tooltip_content_2')}`,
                   size: TooltipSizes.Sm,
                   iconName: IconName.Info,
                 },
-              }),
-            }}
-          />
+              }}
+              value={{
+                label: (
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    justifyContent={BoxJustifyContent.Center}
+                    gap={1}
+                  >
+                    {accountOptedIn ? (
+                      <RewardsAnimations
+                        value={estimatedPoints ?? 0}
+                        state={
+                          isRewardsLoading
+                            ? RewardAnimationState.Loading
+                            : hasRewardsError
+                              ? RewardAnimationState.ErrorState
+                              : RewardAnimationState.Idle
+                        }
+                      />
+                    ) : (
+                      <AddRewardsAccount testID="bridge-add-rewards-account" />
+                    )}
+                  </Box>
+                ),
+                ...(hasRewardsError && {
+                  tooltip: {
+                    title: strings('bridge.points_error'),
+                    content: strings('bridge.points_error_content'),
+                    size: TooltipSizes.Sm,
+                    iconName: IconName.Info,
+                  },
+                }),
+              }}
+            />
+          </Box>
         )}
       </Box>
     </Box>
