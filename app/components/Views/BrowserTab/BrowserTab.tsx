@@ -1315,7 +1315,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     );
 
     const handleBackPress = useCallback(() => {
-      navigation.navigate('TrendingFeed');
+      navigation.goBack();
     }, [navigation]);
 
     const onCancelUrlBar = useCallback(() => {

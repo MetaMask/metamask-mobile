@@ -81,6 +81,7 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
             style={tw.style('flex-1 text-base text-default py-2.5')}
             testID="explore-view-search-input"
             autoFocus={props.isSearchFocused}
+            autoCapitalize="none"
           />
           {props.searchQuery && props.searchQuery.length > 0 && (
             <TouchableOpacity

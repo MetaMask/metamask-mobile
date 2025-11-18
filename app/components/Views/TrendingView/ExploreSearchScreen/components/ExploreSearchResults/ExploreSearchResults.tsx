@@ -1,27 +1,26 @@
-import React, { useMemo, useCallback } from 'react';
-import { FlashList, ListRenderItem } from '@shopify/flash-list';
+import React, { useMemo, useCallback, useRef, useEffect } from 'react';
+import { TouchableOpacity } from 'react-native';
+import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
-  BoxAlignItems,
   Text,
   TextVariant,
+  Icon,
+  IconName,
+  IconSize,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../../locales/i18n';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   SECTIONS_CONFIG,
   SECTIONS_ARRAY,
   type SectionId,
 } from '../../../config/sections.config';
 import { useExploreSearch } from './config/useExploreSearch';
-import { StyleSheet } from 'react-native';
 
-const styles = StyleSheet.create({
-  contentContainer: {
-    paddingHorizontal: 16,
-  },
-});
-
+function looksLikeUrl(str: string): boolean {
+  return /^(https?:\/\/)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([/?].*)?$/.test(str);
+}
 interface ExploreSearchResultsProps {
   searchQuery: string;
 }
@@ -49,7 +48,20 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   searchQuery,
 }) => {
   const navigation = useNavigation();
+  const tw = useTailwind();
   const { data, isLoading } = useExploreSearch(searchQuery);
+  const flashListRef = useRef<FlashListRef<FlatListItem>>(null);
+
+  const handlePressFooterLink = useCallback(
+    (url: string) => {
+      navigation.navigate('TrendingBrowser', {
+        newTabUrl: url,
+        timestamp: Date.now(),
+        fromTrending: true,
+      });
+    },
+    [navigation],
+  );
 
   const renderSectionHeader = useCallback(
     (title: string) => (
@@ -103,6 +115,68 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     return result;
   }, [data, isLoading]);
 
+  // Scroll to top when search query changes
+  useEffect(() => {
+    if (flatData.length > 0) {
+      flashListRef.current?.scrollToIndex({
+        index: 0,
+        animated: false,
+      });
+    }
+  }, [searchQuery, flatData.length]);
+
+  const finishedLoading = useMemo(
+    () => Object.values(isLoading).every((value) => !value),
+    [isLoading],
+  );
+
+  const renderFooter = useMemo(() => {
+    if (!finishedLoading || searchQuery.length === 0) return null;
+
+    const isUrl = looksLikeUrl(searchQuery.toLowerCase());
+
+    return (
+      <Box>
+        {isUrl && (
+          <TouchableOpacity
+            style={tw.style('flex-row items-center justify-center py-4 px-4')}
+            onPress={() => handlePressFooterLink(searchQuery)}
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="flex-1 text-primary"
+            >
+              {searchQuery}
+            </Text>
+            <Icon
+              name={IconName.Export}
+              size={IconSize.Md}
+              twClassName="text-primary"
+            />
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity
+          style={tw.style('flex-row items-center justify-center py-4 px-4')}
+          onPress={() =>
+            handlePressFooterLink(
+              `https://www.google.com/search?q=${searchQuery}`,
+            )
+          }
+        >
+          <Text variant={TextVariant.BodyMd} twClassName="flex-1 text-primary">
+            {`Search for "${searchQuery}" on Google`}
+          </Text>
+          <Icon
+            name={IconName.Export}
+            size={IconSize.Md}
+            twClassName="text-primary"
+          />
+        </TouchableOpacity>
+      </Box>
+    );
+  }, [finishedLoading, searchQuery, handlePressFooterLink, tw]);
+
   const renderFlatItem: ListRenderItem<FlatListItem> = useCallback(
     ({ item }) => {
       if (item.type === 'header') {
@@ -131,33 +205,17 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     return section ? section.keyExtractor(item.data) : `item-${index}`;
   }, []);
 
-  if (flatData.length === 0) {
-    return (
-      <Box
-        twClassName="flex-1 items-center justify-center px-5 py-10"
-        alignItems={BoxAlignItems.Center}
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          twClassName="text-muted text-center"
-          testID="trending-search-no-results"
-        >
-          {strings('trending.no_results')}
-        </Text>
-      </Box>
-    );
-  }
-
   return (
     <Box twClassName="flex-1 bg-default">
       <FlashList
+        ref={flashListRef}
         data={flatData}
         renderItem={renderFlatItem}
         keyExtractor={keyExtractor}
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={tw.style('px-4')}
         showsVerticalScrollIndicator={false}
-        removeClippedSubviews
         testID="trending-search-results-list"
+        ListFooterComponent={renderFooter}
       />
     </Box>
   );
