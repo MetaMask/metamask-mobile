@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { View, Linking } from 'react-native';
+import { Box } from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
   TextColor,
@@ -14,29 +14,18 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 
-import styleSheet from './EligibilityFailedModal.styles';
-import { useStyles } from '../../../../hooks/useStyles';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 
-const SUPPORT_URL = 'https://support.metamask.io';
-
-export const createEligibilityFailedModalNavigationDetails =
+export const createRampUnsupportedModalNavigationDetails =
   createNavigationDetails(
     Routes.MODAL.ROOT_MODAL_FLOW,
-    Routes.SHEET.ELIGIBILITY_FAILED_MODAL,
+    Routes.SHEET.UNSUPPORTED_REGION_MODAL,
   );
 
-function EligibilityFailedModal() {
+function RampUnsupportedModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { styles } = useStyles(styleSheet, {});
-
-  const navigateToContactSupport = useCallback(() => {
-    Linking.openURL(SUPPORT_URL).catch((error: unknown) => {
-      console.error('Failed to open support URL:', error);
-    });
-  }, []);
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -47,47 +36,38 @@ function EligibilityFailedModal() {
       ref={sheetRef}
       shouldNavigateBack
       isInteractable={false}
-      testID="eligibility-failed-modal"
+      testID="ramp-unsupported-modal"
     >
       <BottomSheetHeader
         onClose={handleClose}
         closeButtonProps={{ testID: 'bottomsheetheader-close-button' }}
       >
         <Text variant={TextVariant.HeadingMD}>
-          {strings('fiat_on_ramp_aggregator.eligibility_failed_modal.title')}
+          {strings('fiat_on_ramp_aggregator.unsupported_region_modal.title')}
         </Text>
       </BottomSheetHeader>
 
-      <View style={styles.content}>
+      <Box twClassName="px-6 pb-6">
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           {strings(
-            'fiat_on_ramp_aggregator.eligibility_failed_modal.description',
+            'fiat_on_ramp_aggregator.unsupported_region_modal.description',
           )}
         </Text>
-      </View>
+      </Box>
 
-      <View style={styles.footer}>
-        <Button
-          size={ButtonSize.Lg}
-          onPress={navigateToContactSupport}
-          label={strings(
-            'fiat_on_ramp_aggregator.eligibility_failed_modal.contact_support',
-          )}
-          variant={ButtonVariants.Secondary}
-          width={ButtonWidthTypes.Full}
-        />
+      <Box twClassName="gap-4 px-6 pb-6">
         <Button
           size={ButtonSize.Lg}
           onPress={handleClose}
           label={strings(
-            'fiat_on_ramp_aggregator.eligibility_failed_modal.got_it',
+            'fiat_on_ramp_aggregator.unsupported_region_modal.got_it',
           )}
           variant={ButtonVariants.Primary}
           width={ButtonWidthTypes.Full}
         />
-      </View>
+      </Box>
     </BottomSheet>
   );
 }
 
-export default EligibilityFailedModal;
+export default RampUnsupportedModal;
