@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { View, Dimensions } from 'react-native';
 import Modal from 'react-native-modal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -47,28 +47,50 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   const insets = useSafeAreaInsets();
   const chartRef = React.useRef<TradingViewChartRef>(null);
   const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
-  const [chartHeight, setChartHeight] = useState(600); // Dynamic height for chart
+  // Initialize with screen height to avoid flash of incorrect size
+  const [chartHeight, setChartHeight] = useState<number>(
+    Dimensions.get('window').height * 0.7,
+  );
 
   // Auto-follow device orientation when modal is open
   useEffect(() => {
-    if (isVisible) {
-      // Unlock orientation to follow device
-      unlockAsync();
-    } else {
-      // Lock back to portrait when closing
-      lockAsync(OrientationLock.PORTRAIT_UP);
-    }
+    const handleOrientationChange = async () => {
+      try {
+        if (isVisible) {
+          // Unlock orientation to follow device
+          await unlockAsync();
+        } else {
+          // Lock back to portrait when closing
+          await lockAsync(OrientationLock.PORTRAIT_UP);
+        }
+      } catch (error) {
+        console.warn('Failed to change orientation lock:', error);
+      }
+    };
 
+    handleOrientationChange();
+
+    // Cleanup only if component unmounts while modal is visible
+    // No need to lock again on visibility change as it's handled above
     return () => {
-      // Cleanup: ensure portrait lock on unmount
-      lockAsync(OrientationLock.PORTRAIT_UP);
+      if (isVisible) {
+        lockAsync(OrientationLock.PORTRAIT_UP).catch((error) => {
+          console.warn('Failed to lock orientation on cleanup:', error);
+        });
+      }
     };
   }, [isVisible]);
 
   const handleClose = useCallback(async () => {
-    // Lock orientation back to portrait before closing
-    await lockAsync(OrientationLock.PORTRAIT_UP);
-    onClose();
+    try {
+      // Lock orientation back to portrait before closing
+      await lockAsync(OrientationLock.PORTRAIT_UP);
+    } catch (error) {
+      console.warn('Failed to lock orientation on close:', error);
+    } finally {
+      // Always call onClose even if orientation lock fails
+      onClose();
+    }
   }, [onClose]);
 
   return (
