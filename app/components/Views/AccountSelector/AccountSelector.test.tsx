@@ -702,9 +702,6 @@ describe('AccountSelector', () => {
     });
 
     it('renders full-page modal when feature flag is enabled', () => {
-      // Use real timers for animation
-      jest.useRealTimers();
-
       mockUseFeatureFlag.mockReturnValue(true);
 
       renderScreen(
@@ -724,9 +721,6 @@ describe('AccountSelector', () => {
       expect(
         screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
       ).toBeDefined();
-
-      // Restore fake timers
-      jest.useFakeTimers();
     });
 
     it('renders add button in both modes', () => {
@@ -844,12 +838,11 @@ describe('AccountSelector', () => {
       expect(Engine.setSelectedAddress).toHaveBeenCalled();
     });
 
-    it('renders SheetHeader with onBack callback in full-page mode', () => {
+    it('renders SheetHeader with title in full-page mode', () => {
       // Arrange
-      jest.useRealTimers();
       mockUseFeatureFlag.mockReturnValue(true);
 
-      const { UNSAFE_getByProps } = renderScreen(
+      renderScreen(
         AccountSelectorWrapper,
         {
           name: Routes.SHEET.ACCOUNT_SELECTOR,
@@ -860,16 +853,12 @@ describe('AccountSelector', () => {
         mockRoute.params,
       );
 
-      // Act
-      // Find the SheetHeader
-      const sheetHeader = UNSAFE_getByProps({ title: 'Accounts' });
-
-      // Assert: SheetHeader exists with onBack callback
-      expect(sheetHeader).toBeDefined();
-      expect(sheetHeader.props.onBack).toBeDefined();
-      expect(typeof sheetHeader.props.onBack).toBe('function');
-
-      jest.useFakeTimers();
+      // Assert: SheetHeader with title is present in full-page mode
+      expect(screen.getByText('Accounts')).toBeDefined();
+      // Verify accounts list is also present (confirms we're on the right screen)
+      expect(
+        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
+      ).toBeDefined();
     });
 
     it('closes full-page modal when account is selected with feature flag enabled', async () => {

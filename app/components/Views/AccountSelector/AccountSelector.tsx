@@ -33,6 +33,7 @@ import { MultichainAddWalletActions } from '../../../component-library/component
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import Engine from '../../../core/Engine';
 import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
@@ -418,7 +419,10 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     opacity: backdropOpacity.value,
   }));
 
-  if (isFullPageAccountList) {
+  if (
+    isFullPageAccountList &&
+    screen === AccountSelectorScreens.AccountSelector
+  ) {
     return (
       <>
         <Animated.View style={[styles.backdrop, backdropStyle]} />
@@ -455,7 +459,19 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       onOpen={onBottomSheetOpen}
       keyboardAvoidingViewEnabled={keyboardAvoidingViewEnabled}
     >
-      <SheetHeader title={strings('accounts.accounts_title')} />
+      {screen === AccountSelectorScreens.AccountSelector && (
+        <SheetHeader title={strings('accounts.accounts_title')} />
+      )}
+      {screen === AccountSelectorScreens.AddAccountActions && (
+        <BottomSheetHeader>
+          {strings('account_actions.add_account')}
+        </BottomSheetHeader>
+      )}
+      {screen === AccountSelectorScreens.MultichainAddWalletActions && (
+        <BottomSheetHeader>
+          {strings('multichain_accounts.add_wallet')}
+        </BottomSheetHeader>
+      )}
       {renderAccountScreens()}
     </BottomSheet>
   );
