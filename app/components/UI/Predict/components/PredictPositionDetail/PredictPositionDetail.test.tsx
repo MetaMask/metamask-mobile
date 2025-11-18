@@ -17,7 +17,7 @@ declare global {
 }
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string, _vars?: Record<string, string | number>) => {
+  strings: (key: string, vars?: Record<string, string | number>) => {
     switch (key) {
       case 'predict.market_details.won':
         return 'Won';
@@ -25,6 +25,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
         return 'Lost';
       case 'predict.cash_out':
         return 'Cash out';
+      case 'predict.position_info_plural':
+        return `${vars?.amount} on ${vars?.outcome} • ${vars?.shares} shares @ ${vars?.priceCents}`;
+      case 'predict.position_info_singular':
+        return `${vars?.amount} on ${vars?.outcome} • ${vars?.shares} share @ ${vars?.priceCents}`;
       default:
         return key;
     }
@@ -187,7 +191,7 @@ describe('PredictPositionDetail', () => {
 
     expect(screen.getByText('Group')).toBeOnTheScreen();
     expect(
-      screen.getByText('$123.45 on Yes • 34¢', { exact: false }),
+      screen.getByText('$123.45 on Yes • 10 shares @ 34¢', { exact: false }),
     ).toBeOnTheScreen();
 
     expect(screen.getByText('$2,345.67')).toBeOnTheScreen();
@@ -210,7 +214,7 @@ describe('PredictPositionDetail', () => {
 
     expect(screen.getByText('Group')).toBeOnTheScreen();
     expect(
-      screen.getByText('$50.00 on No • 70¢', { exact: false }),
+      screen.getByText('$50 on No • 10 shares @ 70¢', { exact: false }),
     ).toBeOnTheScreen();
   });
 
@@ -221,7 +225,7 @@ describe('PredictPositionDetail', () => {
       PredictMarketStatus.CLOSED,
     );
 
-    expect(screen.getByText('Won $500.00')).toBeOnTheScreen();
+    expect(screen.getByText('Won $500')).toBeOnTheScreen();
     expect(screen.queryByText('+12.34%')).toBeNull();
     expect(screen.queryByText('Cash out')).toBeNull();
   });
@@ -233,7 +237,7 @@ describe('PredictPositionDetail', () => {
       PredictMarketStatus.CLOSED,
     );
 
-    expect(screen.getByText('Lost $321.08')).toBeOnTheScreen();
+    expect(screen.getByText('Lost $321.09')).toBeOnTheScreen();
     expect(screen.queryByText('Cash out')).toBeNull();
   });
 
@@ -268,7 +272,7 @@ describe('PredictPositionDetail', () => {
       renderComponent({ optimistic: true, initialValue: 123.45 });
 
       expect(
-        screen.getByText('$123.45 on Yes • 34¢', { exact: false }),
+        screen.getByText('$123.45 on Yes • 10 shares @ 34¢', { exact: false }),
       ).toBeOnTheScreen();
     });
   });

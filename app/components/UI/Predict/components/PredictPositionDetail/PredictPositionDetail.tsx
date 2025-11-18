@@ -11,7 +11,12 @@ import {
   PredictMarket,
   PredictMarketStatus,
 } from '../../types';
-import { formatCents, formatPercentage, formatPrice } from '../../utils/format';
+import {
+  formatCents,
+  formatPercentage,
+  formatPositionSize,
+  formatPrice,
+} from '../../utils/format';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -48,6 +53,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     currentValue,
     title,
     optimistic,
+    size,
   } = position;
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -133,8 +139,23 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
             variant={TextVariant.BodySMMedium}
             color={TextColor.Alternative}
           >
-            {formatPrice(initialValue, { maximumDecimals: 2 })} on {outcome} •{' '}
-            {formatCents(avgPrice)}
+            {strings(
+              size !== 1
+                ? 'predict.position_info_plural'
+                : 'predict.position_info_singular',
+              {
+                amount: formatPrice(initialValue, {
+                  minimumDecimals: 0,
+                  maximumDecimals: 2,
+                }),
+                outcome,
+                shares: formatPositionSize(size, {
+                  minimumDecimals: 2,
+                  maximumDecimals: 2,
+                }),
+                priceCents: formatCents(avgPrice),
+              },
+            )}
           </Text>
         </Box>
         <Box twClassName="items-end justify-end ml-auto shrink-0">

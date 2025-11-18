@@ -27,7 +27,12 @@ import {
   PredictTradeStatus,
   PredictEventValues,
 } from '../../constants/eventNames';
-import { formatPercentage, formatPrice } from '../../utils/format';
+import {
+  formatCents,
+  formatPercentage,
+  formatPositionSize,
+  formatPrice,
+} from '../../utils/format';
 import styleSheet from './PredictSellPreview.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -50,7 +55,13 @@ const PredictSellPreview = () => {
     useRoute<RouteProp<PredictNavigationParamList, 'PredictSellPreview'>>();
   const { market, position, outcome, entryPoint } = route.params;
 
-  const { icon, title, outcome: outcomeSideText, initialValue } = position;
+  const {
+    icon,
+    title,
+    outcome: outcomeSideText,
+    initialValue,
+    size,
+  } = position;
 
   const outcomeTitle = title;
 
@@ -208,7 +219,11 @@ const PredictSellPreview = () => {
             color={TextColor.Alternative}
           >
             {strings('predict.at_price_per_share', {
-              price: (currentPrice * 100).toFixed(0),
+              size: formatPositionSize(size, {
+                minimumDecimals: 2,
+                maximumDecimals: 2,
+              }),
+              price: formatCents(currentPrice),
             })}
           </Text>
           <Text
@@ -244,9 +259,9 @@ const PredictSellPreview = () => {
                 color={TextColor.Alternative}
               >
                 {strings('predict.cashout_info', {
-                  amount: formatPrice(initialValue, { maximumDecimals: 2 }),
+                  amount: formatPrice(initialValue),
                   outcome: outcomeSideText,
-                  initialPrice: (avgPrice * 100).toFixed(0),
+                  initialPrice: formatCents(avgPrice),
                 })}
               </Text>
             </Box>
