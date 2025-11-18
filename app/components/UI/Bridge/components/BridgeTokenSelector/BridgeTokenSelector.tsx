@@ -9,6 +9,7 @@ import { NetworkPills } from './NetworkPills';
 import { CaipChainId, parseCaipAssetType } from '@metamask/utils';
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
+import { constants } from 'ethers';
 import {
   selectBridgeFeatureFlags,
   selectSourceToken,
@@ -21,6 +22,9 @@ import {
   formatAddressToAssetId,
   formatChainIdToCaip,
   UnifiedSwapBridgeEventName,
+
+  isNonEvmChainId,
+  formatChainIdToHex,
 } from '@metamask/bridge-controller';
 import {
   Box,
@@ -53,11 +57,36 @@ export interface BridgeTokenSelectorRouteParams {
 const convertAPITokensToBridgeTokens = (
   apiTokens: PopularToken[],
 ): (BridgeToken & { assetId?: string })[] =>
-  apiTokens.map((token) => ({
-    ...token,
-    assetId: token.assetId,
-    address: parseCaipAssetType(token.assetId).assetReference,
-  }));
+  apiTokens.map((token) => {
+    const { assetReference, chainId, assetNamespace } = parseCaipAssetType(
+      token.assetId,
+    );
+    const isNonEvm = isNonEvmChainId(chainId);
+    const isNative = assetNamespace === 'slip44';
+
+    // For non-EVM chains, keep the full assetId as the address to properly match balances
+    // For EVM native tokens, use the zero address (required by useLatestBalance)
+    // For EVM ERC20 tokens, use the asset reference (the actual contract address)
+    let address: string;
+    if (isNonEvm) {
+      address = token.assetId;
+    } else if (isNative) {
+      address = constants.AddressZero;
+    } else {
+      address = assetReference;
+    }
+
+    // For EVM chains, convert chainId to Hex format for useLatestBalance to work correctly
+    // For non-EVM chains, keep CAIP format
+    const formattedChainId = isNonEvm ? chainId : formatChainIdToHex(chainId);
+
+    return {
+      ...token,
+      assetId: token.assetId,
+      address,
+      chainId: formattedChainId,
+    };
+  });
 
 export const BridgeTokenSelector: React.FC = () => {
   const navigation = useNavigation();
