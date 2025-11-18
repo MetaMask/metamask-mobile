@@ -8926,9 +8926,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:^6.0.0":
-  version: 6.0.0
-  resolution: "@metamask/transaction-pay-controller@npm:6.0.0"
+"@metamask/transaction-pay-controller@npm:^7.0.0":
+  version: 7.0.0
+  resolution: "@metamask/transaction-pay-controller@npm:7.0.0"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
@@ -8949,7 +8949,7 @@ __metadata:
     "@metamask/network-controller": ^25.0.0
     "@metamask/remote-feature-flag-controller": ^2.0.0
     "@metamask/transaction-controller": ^61.0.0
-  checksum: 10/ee31e630c1f436d2daf225e9f974f5428c52e8f3b905702000889079d21f41b7bf131b572f0b41862fe07e92ab05c29f73b1ebad19f602ee71d9a67b2c596569
+  checksum: 10/598bd8fa348d0a21087fa0ce2d50c409f7607b6939c58c3679275c0f216e7b5e9f634f966438250a92823987760e3a8bffb4becc495d97d8827e7f81f0c0a5a3
   languageName: node
   linkType: hard
 
@@ -34428,7 +34428,7 @@ __metadata:
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/token-search-discovery-controller": "npm:^4.0.0"
     "@metamask/transaction-controller": "patch:@metamask/transaction-controller@npm%3A61.3.0#~/.yarn/patches/@metamask-transaction-controller-npm-61.0.0-cccac388c7.patch"
-    "@metamask/transaction-pay-controller": "npm:^6.0.0"
+    "@metamask/transaction-pay-controller": "npm:^7.0.0"
     "@metamask/tron-wallet-snap": "npm:^1.8.0"
     "@metamask/utils": "npm:^11.8.1"
     "@ngraveio/bc-ur": "npm:^1.1.6"
