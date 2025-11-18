@@ -20,6 +20,8 @@ import {
   selectConfirmationRedesignFlags,
 } from '../../../../../selectors/featureFlagController/confirmations';
 import { toWei, weiToFiatNumber } from '../../../../../util/number';
+// eslint-disable-next-line import/no-namespace
+import * as numberUtils from '../../../../../util/number';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_2,
@@ -625,6 +627,51 @@ describe('EarnInputView', () => {
 
       expect(getByTestId('resource-toggle-energy')).toBeTruthy();
       expect(getByTestId('resource-toggle-bandwidth')).toBeTruthy();
+    });
+
+    it('builds TRX earnToken from route token when earn token map has no entry', () => {
+      (selectTrxStakingEnabled as unknown as jest.Mock).mockReturnValue(true);
+
+      const normalizeToDotDecimalSpy = jest.spyOn(
+        numberUtils,
+        'normalizeToDotDecimal',
+      );
+      const toTokenMinimalUnitSpy = jest.spyOn(
+        numberUtils,
+        'toTokenMinimalUnit',
+      );
+
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => undefined),
+        getOutputToken: jest.fn(() => undefined),
+      });
+
+      const TRX_TOKEN = {
+        name: 'TRON',
+        symbol: 'TRX',
+        ticker: 'TRX',
+        chainId: 'tron:728126428',
+        isNative: true,
+        address: 'TEFik7dGm6r5Y1Af9mGwnELuJLa1jXDDUB',
+        balance: '1',
+        balanceFiat: '$1',
+        decimals: 6,
+        isETH: false,
+      } as unknown as typeof MOCK_ETH_MAINNET_ASSET;
+
+      render(EarnInputView, {
+        params: {
+          token: TRX_TOKEN,
+        },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      });
+
+      expect(normalizeToDotDecimalSpy).toHaveBeenCalledWith(TRX_TOKEN.balance);
+      expect(toTokenMinimalUnitSpy).toHaveBeenCalledWith(
+        expect.any(String),
+        TRX_TOKEN.decimals,
+      );
     });
   });
 

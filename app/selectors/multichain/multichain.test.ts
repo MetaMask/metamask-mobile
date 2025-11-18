@@ -10,6 +10,7 @@ import {
   selectNonEvmTransactions,
   selectMultichainHistoricalPrices,
   makeSelectNonEvmAssetById,
+  selectMultichainTokenListForAccountsAnyChain,
 } from './multichain';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -560,6 +561,115 @@ describe('MultichainNonEvm Selectors', () => {
       expect(result.totalNativeTokenBalance?.unit).toEqual('SOL');
       // Expect total fiat balance: (10 SOL * $100) + (20 JUP * $2) = $1000 + $40 = $1040
       expect(result.totalBalanceFiat).toEqual(1040);
+    });
+  });
+
+  describe('selectMultichainTokenListForAccountsAnyChain', () => {
+    it('returns empty list when accounts array is empty', () => {
+      const state = getNonEvmState();
+
+      const result = selectMultichainTokenListForAccountsAnyChain(state, []);
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns tokens with fiat balance for multiple accounts across chains', () => {
+      const state = getNonEvmState();
+      const accountMainnet = MOCK_ACCOUNT_BIP122_P2WPKH;
+      const accountTestnet = MOCK_ACCOUNT_BIP122_P2WPKH_TESTNET;
+
+      const mainnetAssetId = BTC_NATIVE_CURRENCY;
+      const testnetAssetId = BTC_TESTNET_NATIVE_CURRENCY;
+
+      state.engine.backgroundState.MultichainBalancesController.balances = {
+        [accountMainnet.id]: {
+          [mainnetAssetId]: {
+            amount: '1.00000000',
+            unit: 'BTC',
+          },
+        },
+        [accountTestnet.id]: {
+          [testnetAssetId]: {
+            amount: '2.00000000',
+            unit: 'tBTC',
+          },
+        },
+      };
+
+      state.engine.backgroundState.MultichainAssetsController = {
+        accountsAssets: {
+          [accountMainnet.id]: [mainnetAssetId] as CaipAssetType[],
+          [accountTestnet.id]: [testnetAssetId] as CaipAssetType[],
+        },
+        assetsMetadata: {
+          [mainnetAssetId]: {
+            name: 'Bitcoin',
+            symbol: 'BTC',
+            fungible: true,
+            units: [
+              {
+                name: mainnetAssetId,
+                symbol: 'BTC',
+                decimals: 8,
+              },
+            ],
+          },
+          [testnetAssetId]: {
+            name: 'Bitcoin Testnet',
+            symbol: 'tBTC',
+            fungible: true,
+            units: [
+              {
+                name: testnetAssetId,
+                symbol: 'tBTC',
+                decimals: 8,
+              },
+            ],
+          },
+        },
+        allIgnoredAssets: {},
+      } as unknown as (typeof state.engine.backgroundState)['MultichainAssetsController'];
+
+      state.engine.backgroundState.MultichainAssetsRatesController = {
+        conversionRates: {
+          [mainnetAssetId]: { rate: '50000', conversionTime: 0 },
+          [testnetAssetId]: { rate: '25000', conversionTime: 0 },
+        },
+        assetsRates: {},
+        historicalPrices: {},
+      } as unknown as (typeof state.engine.backgroundState)['MultichainAssetsRatesController'];
+
+      const result = selectMultichainTokenListForAccountsAnyChain(state, [
+        accountMainnet,
+        accountTestnet,
+      ]);
+
+      expect(result).toHaveLength(2);
+
+      const btcToken = result.find((token) => token.address === mainnetAssetId);
+      const tbtcToken = result.find(
+        (token) => token.address === testnetAssetId,
+      );
+
+      expect(btcToken).toMatchObject({
+        name: 'Bitcoin',
+        symbol: 'BTC',
+        chainId: BtcScope.Mainnet,
+        isNative: true,
+        balance: '1.00000000',
+        balanceFiat: '50000',
+        accountType: accountMainnet.type,
+      });
+
+      expect(tbtcToken).toMatchObject({
+        name: 'Bitcoin Testnet',
+        symbol: 'tBTC',
+        chainId: BtcScope.Testnet,
+        isNative: true,
+        balance: '2.00000000',
+        balanceFiat: '50000',
+        accountType: accountTestnet.type,
+      });
     });
   });
 

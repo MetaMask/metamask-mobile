@@ -51,11 +51,7 @@ import { EARN_INPUT_VIEW_ACTIONS } from '../EarnInputView/EarnInputView.types';
 import styleSheet from './EarnWithdrawInputView.styles';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
 import BN from 'bnjs4';
-import {
-  renderFromTokenMinimalUnit,
-  toTokenMinimalUnit,
-  normalizeToDotDecimal,
-} from '../../../../../util/number';
+import { renderFromTokenMinimalUnit } from '../../../../../util/number';
 import { TokenI } from '../../../Tokens/types';
 import useEarnTokens from '../../hooks/useEarnTokens';
 import { EarnTokenDetails } from '../../types/lending.types';
@@ -76,6 +72,10 @@ import {
   TronResourceType,
 } from '../../../../../core/Multichain/constants';
 import { isTronChainId } from '../../../../../core/Multichain/utils';
+import {
+  buildTronEarnTokenIfEligible,
+  handleTronStakingNavigationResult,
+} from '../../utils/tron';
 ///: END:ONLY_INCLUDE_IF
 
 const EarnWithdrawInputView = () => {
@@ -106,24 +106,13 @@ const EarnWithdrawInputView = () => {
     if (earnTokenFromMap) return earnTokenFromMap;
 
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
-    if (isTrxStakingEnabled && isTronAsset) {
-      const normalized = normalizeToDotDecimal(token.balance);
-      const balanceMinimalUnit = toTokenMinimalUnit(
-        normalized,
-        token.decimals ?? 0,
-      ).toString();
+    const tronEarnToken = buildTronEarnTokenIfEligible(token, {
+      isTrxStakingEnabled,
+      isTronEligible: isTronAsset,
+    });
 
-      const experiences = [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }];
-      return {
-        ...token,
-        isETH: false,
-        balanceMinimalUnit,
-        balanceFormatted: token.balance ?? '0',
-        balanceFiat: token.balanceFiat ?? '0',
-        tokenUsdExchangeRate: 0,
-        experiences,
-        experience: experiences[0],
-      } as EarnTokenDetails;
+    if (tronEarnToken) {
+      return tronEarnToken;
     }
     ///: END:ONLY_INCLUDE_IF
     return undefined;
@@ -576,29 +565,7 @@ const EarnWithdrawInputView = () => {
         resourceType as TronResourceType,
         String(token.chainId),
       );
-      if (result?.valid && (!result.errors || result.errors.length === 0)) {
-        navigation.goBack();
-        requestAnimationFrame(() => {
-          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-            params: {
-              title: strings('stake.tron.unstake_completed'),
-              description: strings('stake.tron.unstake_completed_description'),
-              type: 'success',
-              closeOnPrimaryButtonPress: true,
-            },
-          });
-        });
-      } else {
-        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params: {
-            title: strings('stake.tron.unstake_failed'),
-            description: result?.errors?.join('\n') ?? '',
-            type: 'error',
-          },
-        });
-      }
+      handleTronStakingNavigationResult(navigation, result, 'unstake');
       return;
     }
     ///: END:ONLY_INCLUDE_IF
