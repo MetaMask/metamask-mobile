@@ -4,8 +4,8 @@ jest.mock('../../../util/Logger', () => ({
   log: jest.fn(),
 }));
 
-// Mock AsyncStorage
-jest.mock('@react-native-async-storage/async-storage', () => ({
+// Mock FilesystemStorage
+jest.mock('redux-persist-filesystem-storage', () => ({
   getItem: jest.fn(() => Promise.resolve(null)),
   setItem: jest.fn(() => Promise.resolve()),
   removeItem: jest.fn(() => Promise.resolve()),
@@ -29,7 +29,7 @@ import {
   Animated,
   Platform,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
 import { getVaultFromBackup } from '../../../core/BackupVault';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import Onboarding from './';
@@ -1374,12 +1374,12 @@ describe('Onboarding', () => {
 
   describe('checkForMigrationFailureAndVaultBackup', () => {
     const mockGetVaultFromBackup = getVaultFromBackup as jest.Mock;
-    const mockAsyncStorageGetItem = AsyncStorage.getItem as jest.Mock;
+    const mockFilesystemGetItem = FilesystemStorage.getItem as jest.Mock;
     const mockNavReset = mockNav.reset as jest.Mock;
 
     beforeEach(() => {
       jest.clearAllMocks();
-      mockAsyncStorageGetItem.mockResolvedValue(null);
+      mockFilesystemGetItem.mockResolvedValue(null);
       mockGetVaultFromBackup.mockResolvedValue({
         success: false,
         vault: null,
@@ -1435,8 +1435,8 @@ describe('Onboarding', () => {
 
     it('checks migration error flag when not E2E and no delete param', async () => {
       // Arrange
-      mockAsyncStorageGetItem.mockClear();
-      mockAsyncStorageGetItem.mockResolvedValue(null);
+      mockFilesystemGetItem.mockClear();
+      mockFilesystemGetItem.mockResolvedValue(null);
 
       // Act
       renderScreen(
@@ -1449,7 +1449,7 @@ describe('Onboarding', () => {
 
       // Assert
       await waitFor(() => {
-        expect(mockAsyncStorageGetItem).toHaveBeenCalledWith(
+        expect(mockFilesystemGetItem).toHaveBeenCalledWith(
           MIGRATION_ERROR_HAPPENED,
         );
       });
@@ -1457,7 +1457,7 @@ describe('Onboarding', () => {
 
     it('does not redirect when migration error flag is not set', async () => {
       // Arrange
-      mockAsyncStorageGetItem.mockResolvedValue(null);
+      mockFilesystemGetItem.mockResolvedValue(null);
       mockGetVaultFromBackup.mockResolvedValue({
         success: true,
         vault: 'mock-vault',
@@ -1482,7 +1482,7 @@ describe('Onboarding', () => {
 
     it('does not redirect when migration error flag is set but vault backup does not exist', async () => {
       // Arrange
-      mockAsyncStorageGetItem.mockResolvedValue('true');
+      mockFilesystemGetItem.mockResolvedValue('true');
       mockGetVaultFromBackup.mockResolvedValue({
         success: false,
         vault: null,
@@ -1508,7 +1508,7 @@ describe('Onboarding', () => {
 
     it('redirects to vault recovery when migration error flag is set and vault backup exists', async () => {
       // Arrange
-      mockAsyncStorageGetItem.mockResolvedValue('true');
+      mockFilesystemGetItem.mockResolvedValue('true');
       mockGetVaultFromBackup.mockResolvedValue({
         success: true,
         vault: 'mock-vault-data',
@@ -1534,7 +1534,7 @@ describe('Onboarding', () => {
     it('handles errors during vault backup check gracefully', async () => {
       // Arrange
       const mockError = new Error('Vault backup check failed');
-      mockAsyncStorageGetItem.mockResolvedValue('true');
+      mockFilesystemGetItem.mockResolvedValue('true');
       mockGetVaultFromBackup.mockRejectedValue(mockError);
 
       // Act
@@ -1558,10 +1558,10 @@ describe('Onboarding', () => {
       expect(mockNavReset).not.toHaveBeenCalled();
     });
 
-    it('handles errors during AsyncStorage read gracefully', async () => {
+    it('handles errors during FilesystemStorage read gracefully', async () => {
       // Arrange
-      const mockError = new Error('AsyncStorage read failed');
-      mockAsyncStorageGetItem.mockRejectedValue(mockError);
+      const mockError = new Error('FilesystemStorage read failed');
+      mockFilesystemGetItem.mockRejectedValue(mockError);
 
       // Act
       renderScreen(
