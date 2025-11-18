@@ -1,10 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Dimensions } from 'react-native';
+import { View } from 'react-native';
 import Modal from 'react-native-modal';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   lockAsync,
   unlockAsync,
@@ -27,7 +24,7 @@ import TradingViewChart, {
   TPSLLines,
 } from '../TradingViewChart/TradingViewChart';
 import type { CandleData } from '../../types/perps-types';
-import { CandlePeriod } from '../../constants/chartConfig';
+import { ChartInterval } from '../../constants/chartConfig';
 import PerpsCandlestickChartIntervalSelector from '../PerpsCandlestickChartIntervalSelector/PerpsCandlestickChartIntervalSelector';
 import { styleSheet } from './PerpsChartFullscreenModal.styles';
 
@@ -35,9 +32,9 @@ export interface PerpsChartFullscreenModalProps {
   isVisible: boolean;
   candleData?: CandleData | null;
   tpslLines?: TPSLLines;
-  selectedInterval: CandlePeriod;
+  selectedInterval: ChartInterval;
   onClose: () => void;
-  onIntervalChange: (interval: CandlePeriod) => void;
+  onIntervalChange: (interval: ChartInterval) => void;
 }
 
 const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
@@ -50,24 +47,12 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
-  const [dimensions, setDimensions] = useState(Dimensions.get('window'));
   const chartRef = React.useRef<TradingViewChartRef>(null);
   const [currentOrientation, setCurrentOrientation] = useState<
-    'portrait' | 'landscape-left' | 'landscape-right'
+    'portrait' | 'landscape'
   >('portrait');
   const [showVolume, setShowVolume] = useState(true);
-
-  // Handle screen dimension changes
-  useEffect(() => {
-    const subscription = Dimensions.addEventListener(
-      'change',
-      ({ window: windowDimensions }) => {
-        setDimensions(windowDimensions);
-      },
-    );
-
-    return () => subscription?.remove();
-  }, []);
+  const [chartHeight, setChartHeight] = useState(600); // Dynamic height for chart
 
   // Unlock orientation when modal closes
   useEffect(() => {
@@ -84,24 +69,13 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
 
   const handleToggleOrientation = useCallback(async () => {
     try {
-      // Cycle through orientations: portrait → landscape-left → landscape-right → portrait
-      let nextOrientation: 'portrait' | 'landscape-left' | 'landscape-right';
-      let lockMode: OrientationLock;
-
-      switch (currentOrientation) {
-        case 'portrait':
-          nextOrientation = 'landscape-left';
-          lockMode = OrientationLock.LANDSCAPE_LEFT;
-          break;
-        case 'landscape-left':
-          nextOrientation = 'landscape-right';
-          lockMode = OrientationLock.LANDSCAPE_RIGHT;
-          break;
-        case 'landscape-right':
-          nextOrientation = 'portrait';
-          lockMode = OrientationLock.PORTRAIT_UP;
-          break;
-      }
+      // Toggle between portrait and landscape
+      const nextOrientation: 'portrait' | 'landscape' =
+        currentOrientation === 'portrait' ? 'landscape' : 'portrait';
+      const lockMode =
+        nextOrientation === 'landscape'
+          ? OrientationLock.LANDSCAPE_LEFT
+          : OrientationLock.PORTRAIT_UP;
 
       setCurrentOrientation(nextOrientation);
       await lockAsync(lockMode);
@@ -116,9 +90,6 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
     chartRef.current?.toggleVolumeVisibility(newShowVolume);
   }, [showVolume]);
 
-  // Calculate chart height (full screen minus header)
-  const chartHeight = dimensions.height - 120; // 120px for two-row header
-
   return (
     <Modal
       isVisible={isVisible}
@@ -131,9 +102,18 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
       useNativeDriver
       hideModalContentWhileAnimating
       coverScreen
+      statusBarTranslucent
     >
-      <SafeAreaView style={styles.container} edges={['left', 'right']}>
-        {/* Header - Two Rows with manual top safe area handling */}
+      <View
+        style={[
+          styles.container,
+          {
+            paddingLeft: insets.left,
+            paddingRight: insets.right,
+          },
+        ]}
+      >
+        {/* Header - Two Rows with safe area top padding */}
         <View style={[styles.header, { paddingTop: 12 + insets.top }]}>
           {/* Top Row: Orientation and Volume on left, Close on right */}
           <View style={styles.headerTopRow}>
@@ -172,8 +152,15 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
           </View>
         </View>
 
-        {/* Chart */}
-        <View style={styles.chartContainer}>
+        {/* Chart - fills remaining space with bottom safe area padding */}
+        <View
+          style={[styles.chartContainer, { paddingBottom: insets.bottom }]}
+          onLayout={(event) => {
+            const { height } = event.nativeEvent.layout;
+            // Subtract bottom inset from measured height for actual chart height
+            setChartHeight(height - insets.bottom);
+          }}
+        >
           <TradingViewChart
             ref={chartRef}
             candleData={candleData}
@@ -184,7 +171,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
             testID="fullscreen-chart"
           />
         </View>
-      </SafeAreaView>
+      </View>
     </Modal>
   );
 };

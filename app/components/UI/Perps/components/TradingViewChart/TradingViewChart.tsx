@@ -240,10 +240,6 @@ const TradingViewChart = React.forwardRef<
               }
               setOhlcData(message.data);
               break;
-            case 'DEBUG':
-              // Log debug messages from WebView
-              DevLogger.log(`[TradingView Debug] ${message.message}`);
-              break;
             default:
               break;
           }
@@ -429,10 +425,6 @@ const TradingViewChart = React.forwardRef<
         onHttpError={(syntheticEvent) => {
           const { nativeEvent } = syntheticEvent;
           console.error('TradingViewChart: HTTP Error:', nativeEvent);
-        }}
-        onConsoleMessage={(event) => {
-          // Forward all WebView console logs to React Native console
-          DevLogger.log(`[WebView] ${event.nativeEvent.message}`);
         }}
         testID={`${testID || TradingViewChartSelectorsIDs.CONTAINER}-webview`}
         {...(Platform.OS === 'android' ? { nestedScrollEnabled: true } : {})}
