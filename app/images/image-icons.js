@@ -82,6 +82,7 @@ export default {
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TRON,
   TRX: TRON,
+  sTRX: TRON,
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   'BTC-TESTNET': BTC_TESTNET,
