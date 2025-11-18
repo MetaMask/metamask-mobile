@@ -17,6 +17,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - update changelog for 7.60.0 (hotfix - no test plan)
 - update changelog for 7.60.0 (hotfix - no test plan)
 - update changelog for 7.60.0 (hotfix - no test plan)
+- update changelog for 7.60.0 (hotfix - no test plan)
+- update changelog for 7.60.0
+- [skip ci] Bump version number to 3073
+- chore: update release pr approval trigger
+- chore: fix changelog format
+- [skip ci] Bump version number to 3047
+- Merge origin/main into stable-sync
+- Merge branch 'main' into stable-main-7.59.0
+- update changelog for 7.60.0 (hotfix - no test plan)
+- update changelog for 7.60.0 (hotfix - no test plan)
+- update changelog for 7.60.0 (hotfix - no test plan)
+- update changelog for 7.60.0 (hotfix - no test plan)
+- update changelog for 7.60.0 (hotfix - no test plan)
+- update changelog for 7.60.0 (hotfix - no test plan)
 - update changelog for 7.60.0
 - [skip ci] Bump version number to 3073
 - chore: update release pr approval trigger
