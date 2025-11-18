@@ -13,6 +13,8 @@ import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import { Utilities } from '../../../framework';
 
+// TODO:
+// eslint-disable-next-line jest/no-disabled-tests
 describe.skip(
   SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'),
   () => {
@@ -66,7 +68,8 @@ describe.skip(
       });
     });
 
-    // Skipping individual test for now, as it's flaky
+    // TODO:
+    // eslint-disable-next-line jest/no-disabled-tests
     it.skip('Switching between 2 accounts should reflect in the dapp', async () => {
       await withSolanaAccountEnabled(
         {

@@ -4,6 +4,8 @@ import { connectSolanaTestDapp, navigateToSolanaTestDApp } from './testHelpers';
 import { withSolanaAccountEnabled } from '../../../common-solana';
 import Assertions from '../../../framework/Assertions';
 
+// TODO:
+// eslint-disable-next-line jest/no-disabled-tests
 describe.skip(
   SmokeNetworkExpansion('Solana Wallet Standard E2E - Transfer SOL'),
   () => {
@@ -27,6 +29,8 @@ describe.skip(
     });
 
     // TODO: Enable when devnet is supported on mobile (https://github.com/MetaMask/metamask-mobile/issues/15002)
+    // TODO:
+    // eslint-disable-next-line jest/no-disabled-tests
     it.skip('Should send a transaction', async () => {
       await withSolanaAccountEnabled({}, async () => {
         await navigateToSolanaTestDApp();

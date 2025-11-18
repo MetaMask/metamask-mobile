@@ -23,6 +23,8 @@ describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
     await TestHelpers.reverseServerPort();
   });
 
+  // TODO:
+  // eslint-disable-next-line jest/no-disabled-tests
   it.skip('deletes the account', async () => {
     await withMultichainAccountDetailsEnabledFixtures(async () => {
       await Assertions.expectElementToBeVisible(

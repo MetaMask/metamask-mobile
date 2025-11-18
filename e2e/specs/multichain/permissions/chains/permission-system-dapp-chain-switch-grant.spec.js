@@ -18,6 +18,8 @@ describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
     jest.setTimeout(150000);
   });
 
+  // TODO:
+  // eslint-disable-next-line jest/no-disabled-tests
   describe.skip('When a dApp requests to switch to a new chain', () => {
     it('should grant permission to the new chain and switch to it when approved', async () => {
       await withFixtures(

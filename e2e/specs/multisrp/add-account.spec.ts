@@ -52,6 +52,8 @@ const addAccountToSrp = async (
   await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
 };
 
+// TODO:
+// eslint-disable-next-line jest/no-disabled-tests
 describe.skip(
   SmokeWalletPlatform('Multi-SRP: Add new account to a specific SRP'),
   () => {

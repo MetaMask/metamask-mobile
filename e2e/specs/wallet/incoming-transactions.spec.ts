@@ -97,6 +97,8 @@ function createAccountsTestSpecificMock(
   };
 }
 
+// TODO:
+// eslint-disable-next-line jest/no-disabled-tests
 describe.skip(SmokeWalletPlatform('Incoming Transactions'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
@@ -120,6 +122,7 @@ describe.skip(SmokeWalletPlatform('Incoming Transactions'), () => {
 
   // TODO: Fix this test and remove the skip
   // More info: https://github.com/MetaMask/metamask-mobile/issues/15730
+  // eslint-disable-next-line jest/no-disabled-tests
   it.skip('displays incoming token transfers', async () => {
     await withFixtures(
       {
@@ -181,6 +184,7 @@ describe.skip(SmokeWalletPlatform('Incoming Transactions'), () => {
     );
   });
 
+  // eslint-disable-next-line jest/no-disabled-tests
   it.skip('displays nothing if incoming transaction is a duplicate', async () => {
     await withFixtures(
       {
@@ -209,6 +213,7 @@ describe.skip(SmokeWalletPlatform('Incoming Transactions'), () => {
     );
   });
 
+  // eslint-disable-next-line jest/no-disabled-tests
   it.skip('displays notification', async () => {
     await withFixtures(
       {

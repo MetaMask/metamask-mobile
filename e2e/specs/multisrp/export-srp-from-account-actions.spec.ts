@@ -12,6 +12,8 @@ const DEFAULT_SRP = defaultOptions.mnemonic;
 const IMPORTED_SRP =
   'lazy youth dentist air relief leave neither liquid belt aspect bone frame';
 
+// TODO:
+// eslint-disable-next-line jest/no-disabled-tests
 describe.skip(
   SmokeWalletPlatform('Multi-SRP: Exports the correct srp in account actions'),
   () => {
