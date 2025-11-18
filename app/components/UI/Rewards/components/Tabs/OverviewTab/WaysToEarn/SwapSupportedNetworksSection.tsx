@@ -18,6 +18,7 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../../../../../../se
 import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../../../../selectors/multichainNetworkController';
 import { strings } from '../../../../../../../../locales/i18n';
 import { PopularList } from '../../../../../../../util/networks/customNetworks';
+import { selectAdditionalNetworksBlacklistFeatureFlag } from '../../../../../../../selectors/featureFlagController/networkBlacklist';
 
 interface NetworkConfig {
   chainId: string;
@@ -87,6 +88,9 @@ export const SwapSupportedNetworksSection = () => {
   const nonEvmNetworkConfigurations = useSelector(
     selectNonEvmNetworkConfigurationsByChainId,
   );
+  const additionalNetworksBlacklist = useSelector(
+    selectAdditionalNetworksBlacklistFeatureFlag,
+  );
 
   const supportedNetworks = useMemo(() => {
     const allNetworkConfigurations: Record<
@@ -97,29 +101,40 @@ export const SwapSupportedNetworksSection = () => {
       ...nonEvmNetworkConfigurations,
     };
 
-    return SWAP_SUPPORTED_CHAIN_IDS.map((chainId) => {
-      const networkConfig = allNetworkConfigurations[chainId];
-      let name = networkConfig?.name;
+    // Exclude any chain IDs present in the remote/local blacklist
+    const allowedChainIds = SWAP_SUPPORTED_CHAIN_IDS.filter(
+      (chainId) => !additionalNetworksBlacklist?.includes(chainId),
+    );
 
-      // If we don't have the network config, check if it's in PopularList and use that name
-      if (!name) {
-        const popularNetwork = PopularList.find(
-          (network) => network.chainId === chainId,
-        );
-        name = popularNetwork?.nickname || 'Unknown Network';
-      }
+    return allowedChainIds
+      .map((chainId) => {
+        const networkConfig = allNetworkConfigurations[chainId];
+        let name = networkConfig?.name;
 
-      // Add boost for Linea
-      const boost =
-        chainId === NETWORKS_CHAIN_ID.LINEA_MAINNET ? '+100%' : undefined;
+        // If we don't have the network config, check if it's in PopularList and use that name
+        if (!name) {
+          const popularNetwork = PopularList.find(
+            (network) => network.chainId === chainId,
+          );
+          name = popularNetwork?.nickname || 'Unknown Network';
+        }
 
-      return {
-        chainId,
-        name,
-        ...(boost && { boost }),
-      };
-    }).filter((network) => network.name !== 'Unknown Network'); // Only include networks we have names for
-  }, [evmNetworkConfigurations, nonEvmNetworkConfigurations]);
+        // Add boost for Linea
+        const boost =
+          chainId === NETWORKS_CHAIN_ID.LINEA_MAINNET ? '+100%' : undefined;
+
+        return {
+          chainId,
+          name,
+          ...(boost && { boost }),
+        };
+      })
+      .filter((network) => network.name !== 'Unknown Network'); // Only include networks we have names for
+  }, [
+    evmNetworkConfigurations,
+    nonEvmNetworkConfigurations,
+    additionalNetworksBlacklist,
+  ]);
 
   return (
     <Box twClassName="w-full bg-muted p-4 rounded-md">

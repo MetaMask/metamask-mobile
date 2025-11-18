@@ -2954,6 +2954,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                   "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xdAC17F958D2ee523a2206206994597C13D831ec7.png",
                                   "name": "Tether USD",
                                   "symbol": "USDT",
+                                  "unsupported": true,
                                 },
                                 {
                                   "assetId": "bip122:000000000019d6689c085ae165831e93/slip44:0",
@@ -2962,6 +2963,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                   "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/bip122/000000000019d6689c085ae165831e93/slip44/0.png",
                                   "name": "Bitcoin",
                                   "symbol": "BTC",
+                                  "unsupported": true,
                                 },
                                 {
                                   "assetId": "eip155:1/slip44:60",

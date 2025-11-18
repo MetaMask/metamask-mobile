@@ -114,7 +114,6 @@ const mockedState = {
     selectedRegionDeposit: null,
     selectedCryptoCurrencyDeposit: null,
     selectedPaymentMethodDeposit: null,
-    getStartedDeposit: false,
   },
 };
 

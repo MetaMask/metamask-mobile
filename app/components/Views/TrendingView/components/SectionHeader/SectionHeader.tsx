@@ -46,9 +46,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({ sectionId }) => {
       <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
         {sectionConfig.title}
       </Text>
-      <TouchableOpacity
-        onPress={() => sectionConfig.navigationAction(navigation)}
-      >
+      <TouchableOpacity onPress={() => sectionConfig.viewAllAction(navigation)}>
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Primary}>
           {strings('trending.view_all')}
         </Text>

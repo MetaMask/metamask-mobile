@@ -116,10 +116,8 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         return section.renderSkeleton();
       }
 
-      // Get the onPress handler from the section config if it exists
       // Cast navigation to 'never' to satisfy different navigation param list types
-      const onPressHandler = section.getOnPressHandler?.(navigation as never);
-      return section.renderItem(item.data as never, onPressHandler as never);
+      return section.renderRowItem(item.data, navigation);
     },
     [navigation, renderSectionHeader],
   );
@@ -130,7 +128,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       return `skeleton-${item.sectionId}-${item.index}`;
 
     const section = SECTIONS_CONFIG[item.sectionId];
-    return section ? section.keyExtractor(item.data as never) : `item-${index}`;
+    return section ? section.keyExtractor(item.data) : `item-${index}`;
   }, []);
 
   if (flatData.length === 0) {

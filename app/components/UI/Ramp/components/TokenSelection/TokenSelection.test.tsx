@@ -106,4 +106,15 @@ describe('TokenSelection Component', () => {
       );
     });
   });
+
+  it('navigates to unsupported token modal when info button is pressed', () => {
+    const { getAllByTestId } = renderWithProvider(TokenSelection);
+
+    const infoButtons = getAllByTestId('token-unsupported-info-button');
+    fireEvent.press(infoButtons[0]);
+
+    expect(mockNavigate).toHaveBeenCalledWith('RampModals', {
+      screen: 'RampUnsupportedTokenModal',
+    });
+  });
 });

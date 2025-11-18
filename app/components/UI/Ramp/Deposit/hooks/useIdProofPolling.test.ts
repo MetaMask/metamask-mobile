@@ -60,8 +60,6 @@ describe('useIdProofPolling', () => {
       setAuthToken: jest.fn(),
       checkExistingToken: jest.fn(),
       logoutFromProvider: jest.fn(),
-      getStarted: true,
-      setGetStarted: jest.fn(),
       selectedRegion: MOCK_US_REGION,
       setSelectedRegion: jest.fn(),
       selectedPaymentMethod: MOCK_CREDIT_DEBIT_CARD,
