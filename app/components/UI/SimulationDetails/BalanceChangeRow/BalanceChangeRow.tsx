@@ -47,14 +47,7 @@ const BalanceChangeRow: React.FC<BalanceChangeRowProperties> = ({
       return null;
     }
     if (hasIncomingTokens) {
-      return (
-        <AlertRow
-          alertField={RowAlertKey.IncomingTokens}
-          label={label}
-          // eslint-disable-next-line react-native/no-inline-styles
-          // style={{ marginLeft: 0, paddingLeft: 0 }}
-        />
-      );
+      return <AlertRow alertField={RowAlertKey.IncomingTokens} label={label} />;
     }
     return (
       <Text
