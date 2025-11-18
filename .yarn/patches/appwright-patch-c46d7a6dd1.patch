@@ -1,0 +1,12 @@
+diff --git a/dist/providers/browserstack/index.js b/dist/providers/browserstack/index.js
+index 09bf83155b64b4bcf86ce8684efe36e0f9923adb..4cc4d1935f12a54f5d95155ac9827805996930ae 100644
+--- a/dist/providers/browserstack/index.js
++++ b/dist/providers/browserstack/index.js
+@@ -246,6 +246,7 @@ class BrowserStackDeviceProvider {
+             hostname: "hub.browserstack.com",
+             capabilities: {
+                 "bstack:options": {
++                    local: true,
+                     debug: true,
+                     networkProfile : '4g-lte-advanced-good',
+                     interactiveDebugging: true,

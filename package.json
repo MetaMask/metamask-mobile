@@ -559,7 +559,7 @@
     "appium-chromium-driver": "^2.0.2",
     "appium-uiautomator2-driver": "4.2.7",
     "appium-xcuitest-driver": "5.16.1",
-    "appwright": "patch:appwright@patch%3Aappwright@npm%253A0.1.45%23./.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=7499a8&locator=metamask%2540workspace%253A.#~/.yarn/patches/appwright-patch-55afb81fc2.patch",
+    "appwright": "patch:appwright@patch%3Aappwright@patch%253Aappwright@npm%25253A0.1.45%2523./.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%253A%253Aversion=0.1.45&hash=7499a8&locator=metamask%252540workspace%25253A.%23~/.yarn/patches/appwright-patch-55afb81fc2.patch%3A%3Aversion=0.1.45&hash=9a1cdb#~/.yarn/patches/appwright-patch-c46d7a6dd1.patch",
     "assert": "^1.5.0",
     "babel-jest": "^29.7.0",
     "babel-loader": "^9.1.3",
