@@ -11,7 +11,7 @@ const styleSheet = (params: { theme: Theme }) => {
     emptyList: {
       justifyContent: 'center',
       alignItems: 'center',
-      paddingBottom: 24,
+      paddingVertical: 48,
     },
     emptyListText: {
       color: colors.text.muted,
