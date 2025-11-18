@@ -1669,15 +1669,13 @@ exports[`TokenSelection Component marks token as selected when intent assetId ma
                                 style={null}
                               >
                                 <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
+                                  disabled={true}
                                   onPress={[Function]}
                                   style={
                                     {
                                       "backgroundColor": "#ffffff",
                                       "borderRadius": 4,
-                                      "opacity": 1,
+                                      "opacity": 0.5,
                                       "position": "relative",
                                     }
                                   }
@@ -1857,7 +1855,7 @@ exports[`TokenSelection Component marks token as selected when intent assetId ma
                                             }
                                           }
                                         >
-                                          USDC
+                                          USD Coin
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -1871,37 +1869,107 @@ exports[`TokenSelection Component marks token as selected when intent assetId ma
                                             }
                                           }
                                         >
-                                          Ethereum
+                                          USDC
                                         </Text>
                                       </View>
-                                    </View>
-                                  </View>
-                                  <View
-                                    accessibilityRole="checkbox"
-                                    accessible={true}
-                                    style={
-                                      {
-                                        "backgroundColor": "#4459ff1a",
-                                        "bottom": 0,
-                                        "flexDirection": "row",
-                                        "left": 0,
-                                        "position": "absolute",
-                                        "right": 0,
-                                        "top": 0,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "borderRadius": 2,
-                                          "marginLeft": 4,
-                                          "marginVertical": 4,
-                                          "width": 4,
+                                      <View
+                                        accessible={false}
+                                        style={
+                                          {
+                                            "width": 16,
+                                          }
                                         }
-                                      }
-                                    />
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "transform": [
+                                                  {
+                                                    "scale": 1,
+                                                  },
+                                                ],
+                                              },
+                                              {
+                                                "alignItems": "center",
+                                                "justifyContent": "center",
+                                              },
+                                            ]
+                                          }
+                                        >
+                                          <View
+                                            accessibilityState={
+                                              {
+                                                "busy": undefined,
+                                                "checked": undefined,
+                                                "disabled": false,
+                                                "expanded": undefined,
+                                                "selected": undefined,
+                                              }
+                                            }
+                                            accessibilityValue={
+                                              {
+                                                "max": undefined,
+                                                "min": undefined,
+                                                "now": undefined,
+                                                "text": undefined,
+                                              }
+                                            }
+                                            accessible={true}
+                                            collapsable={false}
+                                            focusable={true}
+                                            onBlur={[Function]}
+                                            onClick={[Function]}
+                                            onFocus={[Function]}
+                                            onResponderGrant={[Function]}
+                                            onResponderMove={[Function]}
+                                            onResponderRelease={[Function]}
+                                            onResponderTerminate={[Function]}
+                                            onResponderTerminationRequest={[Function]}
+                                            onStartShouldSetResponder={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "transparent",
+                                                  "borderRadius": 2,
+                                                  "height": 32,
+                                                  "justifyContent": "center",
+                                                  "opacity": 1,
+                                                  "width": 32,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                            testID="token-unsupported-info-button"
+                                          >
+                                            <SvgMock
+                                              fill="currentColor"
+                                              name="Info"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "height": 20,
+                                                    "width": 20,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </View>
+                                        </View>
+                                      </View>
+                                    </View>
                                   </View>
                                 </TouchableOpacity>
                               </View>
@@ -1911,8 +1979,6 @@ exports[`TokenSelection Component marks token as selected when intent assetId ma
                                 style={null}
                               >
                                 <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
                                   disabled={true}
                                   onPress={[Function]}
                                   style={
@@ -2099,7 +2165,7 @@ exports[`TokenSelection Component marks token as selected when intent assetId ma
                                             }
                                           }
                                         >
-                                          USDT
+                                          Tether USD
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -2113,7 +2179,7 @@ exports[`TokenSelection Component marks token as selected when intent assetId ma
                                             }
                                           }
                                         >
-                                          Ethereum
+                                          USDT
                                         </Text>
                                       </View>
                                       <View
@@ -2223,8 +2289,6 @@ exports[`TokenSelection Component marks token as selected when intent assetId ma
                                 style={null}
                               >
                                 <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
                                   disabled={true}
                                   onPress={[Function]}
                                   style={
@@ -2411,7 +2475,7 @@ exports[`TokenSelection Component marks token as selected when intent assetId ma
                                             }
                                           }
                                         >
-                                          BTC
+                                          Bitcoin
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -2425,7 +2489,7 @@ exports[`TokenSelection Component marks token as selected when intent assetId ma
                                             }
                                           }
                                         >
-                                          Bitcoin
+                                          BTC
                                         </Text>
                                       </View>
                                       <View
@@ -2535,15 +2599,13 @@ exports[`TokenSelection Component marks token as selected when intent assetId ma
                                 style={null}
                               >
                                 <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
+                                  disabled={true}
                                   onPress={[Function]}
                                   style={
                                     {
                                       "backgroundColor": "#ffffff",
                                       "borderRadius": 4,
-                                      "opacity": 1,
+                                      "opacity": 0.5,
                                       "position": "relative",
                                     }
                                   }
@@ -2723,7 +2785,7 @@ exports[`TokenSelection Component marks token as selected when intent assetId ma
                                             }
                                           }
                                         >
-                                          ETH
+                                          Ethereum
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -2737,8 +2799,105 @@ exports[`TokenSelection Component marks token as selected when intent assetId ma
                                             }
                                           }
                                         >
-                                          Ethereum
+                                          ETH
                                         </Text>
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
+                                          {
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "transform": [
+                                                  {
+                                                    "scale": 1,
+                                                  },
+                                                ],
+                                              },
+                                              {
+                                                "alignItems": "center",
+                                                "justifyContent": "center",
+                                              },
+                                            ]
+                                          }
+                                        >
+                                          <View
+                                            accessibilityState={
+                                              {
+                                                "busy": undefined,
+                                                "checked": undefined,
+                                                "disabled": false,
+                                                "expanded": undefined,
+                                                "selected": undefined,
+                                              }
+                                            }
+                                            accessibilityValue={
+                                              {
+                                                "max": undefined,
+                                                "min": undefined,
+                                                "now": undefined,
+                                                "text": undefined,
+                                              }
+                                            }
+                                            accessible={true}
+                                            collapsable={false}
+                                            focusable={true}
+                                            onBlur={[Function]}
+                                            onClick={[Function]}
+                                            onFocus={[Function]}
+                                            onResponderGrant={[Function]}
+                                            onResponderMove={[Function]}
+                                            onResponderRelease={[Function]}
+                                            onResponderTerminate={[Function]}
+                                            onResponderTerminationRequest={[Function]}
+                                            onStartShouldSetResponder={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "transparent",
+                                                  "borderRadius": 2,
+                                                  "height": 32,
+                                                  "justifyContent": "center",
+                                                  "opacity": 1,
+                                                  "width": 32,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                            testID="token-unsupported-info-button"
+                                          >
+                                            <SvgMock
+                                              fill="currentColor"
+                                              name="Info"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "height": 20,
+                                                    "width": 20,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </View>
+                                        </View>
                                       </View>
                                     </View>
                                   </View>
@@ -2750,15 +2909,13 @@ exports[`TokenSelection Component marks token as selected when intent assetId ma
                                 style={null}
                               >
                                 <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
+                                  disabled={true}
                                   onPress={[Function]}
                                   style={
                                     {
                                       "backgroundColor": "#ffffff",
                                       "borderRadius": 4,
-                                      "opacity": 1,
+                                      "opacity": 0.5,
                                       "position": "relative",
                                     }
                                   }
@@ -2938,7 +3095,7 @@ exports[`TokenSelection Component marks token as selected when intent assetId ma
                                             }
                                           }
                                         >
-                                          USDC
+                                          USD Coin
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -2952,8 +3109,105 @@ exports[`TokenSelection Component marks token as selected when intent assetId ma
                                             }
                                           }
                                         >
-                                          Solana
+                                          USDC
                                         </Text>
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
+                                          {
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "transform": [
+                                                  {
+                                                    "scale": 1,
+                                                  },
+                                                ],
+                                              },
+                                              {
+                                                "alignItems": "center",
+                                                "justifyContent": "center",
+                                              },
+                                            ]
+                                          }
+                                        >
+                                          <View
+                                            accessibilityState={
+                                              {
+                                                "busy": undefined,
+                                                "checked": undefined,
+                                                "disabled": false,
+                                                "expanded": undefined,
+                                                "selected": undefined,
+                                              }
+                                            }
+                                            accessibilityValue={
+                                              {
+                                                "max": undefined,
+                                                "min": undefined,
+                                                "now": undefined,
+                                                "text": undefined,
+                                              }
+                                            }
+                                            accessible={true}
+                                            collapsable={false}
+                                            focusable={true}
+                                            onBlur={[Function]}
+                                            onClick={[Function]}
+                                            onFocus={[Function]}
+                                            onResponderGrant={[Function]}
+                                            onResponderMove={[Function]}
+                                            onResponderRelease={[Function]}
+                                            onResponderTerminate={[Function]}
+                                            onResponderTerminationRequest={[Function]}
+                                            onStartShouldSetResponder={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "transparent",
+                                                  "borderRadius": 2,
+                                                  "height": 32,
+                                                  "justifyContent": "center",
+                                                  "opacity": 1,
+                                                  "width": 32,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                            testID="token-unsupported-info-button"
+                                          >
+                                            <SvgMock
+                                              fill="currentColor"
+                                              name="Info"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "height": 20,
+                                                    "width": 20,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </View>
+                                        </View>
                                       </View>
                                     </View>
                                   </View>
@@ -3784,15 +4038,13 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                 style={null}
                               >
                                 <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
+                                  disabled={true}
                                   onPress={[Function]}
                                   style={
                                     {
                                       "backgroundColor": "#ffffff",
                                       "borderRadius": 4,
-                                      "opacity": 1,
+                                      "opacity": 0.5,
                                       "position": "relative",
                                     }
                                   }
@@ -3972,7 +4224,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                             }
                                           }
                                         >
-                                          USDC
+                                          USD Coin
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -3986,8 +4238,105 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                             }
                                           }
                                         >
-                                          Ethereum
+                                          USDC
                                         </Text>
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
+                                          {
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "transform": [
+                                                  {
+                                                    "scale": 1,
+                                                  },
+                                                ],
+                                              },
+                                              {
+                                                "alignItems": "center",
+                                                "justifyContent": "center",
+                                              },
+                                            ]
+                                          }
+                                        >
+                                          <View
+                                            accessibilityState={
+                                              {
+                                                "busy": undefined,
+                                                "checked": undefined,
+                                                "disabled": false,
+                                                "expanded": undefined,
+                                                "selected": undefined,
+                                              }
+                                            }
+                                            accessibilityValue={
+                                              {
+                                                "max": undefined,
+                                                "min": undefined,
+                                                "now": undefined,
+                                                "text": undefined,
+                                              }
+                                            }
+                                            accessible={true}
+                                            collapsable={false}
+                                            focusable={true}
+                                            onBlur={[Function]}
+                                            onClick={[Function]}
+                                            onFocus={[Function]}
+                                            onResponderGrant={[Function]}
+                                            onResponderMove={[Function]}
+                                            onResponderRelease={[Function]}
+                                            onResponderTerminate={[Function]}
+                                            onResponderTerminationRequest={[Function]}
+                                            onStartShouldSetResponder={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "transparent",
+                                                  "borderRadius": 2,
+                                                  "height": 32,
+                                                  "justifyContent": "center",
+                                                  "opacity": 1,
+                                                  "width": 32,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                            testID="token-unsupported-info-button"
+                                          >
+                                            <SvgMock
+                                              fill="currentColor"
+                                              name="Info"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "height": 20,
+                                                    "width": 20,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </View>
+                                        </View>
                                       </View>
                                     </View>
                                   </View>
@@ -3999,8 +4348,6 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                 style={null}
                               >
                                 <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
                                   disabled={true}
                                   onPress={[Function]}
                                   style={
@@ -4187,7 +4534,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                             }
                                           }
                                         >
-                                          USDT
+                                          Tether USD
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -4201,7 +4548,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                             }
                                           }
                                         >
-                                          Ethereum
+                                          USDT
                                         </Text>
                                       </View>
                                       <View
@@ -4311,8 +4658,6 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                 style={null}
                               >
                                 <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
                                   disabled={true}
                                   onPress={[Function]}
                                   style={
@@ -4499,7 +4844,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                             }
                                           }
                                         >
-                                          BTC
+                                          Bitcoin
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -4513,7 +4858,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                             }
                                           }
                                         >
-                                          Bitcoin
+                                          BTC
                                         </Text>
                                       </View>
                                       <View
@@ -4623,15 +4968,13 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                 style={null}
                               >
                                 <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
+                                  disabled={true}
                                   onPress={[Function]}
                                   style={
                                     {
                                       "backgroundColor": "#ffffff",
                                       "borderRadius": 4,
-                                      "opacity": 1,
+                                      "opacity": 0.5,
                                       "position": "relative",
                                     }
                                   }
@@ -4811,7 +5154,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                             }
                                           }
                                         >
-                                          ETH
+                                          Ethereum
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -4825,8 +5168,105 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                             }
                                           }
                                         >
-                                          Ethereum
+                                          ETH
                                         </Text>
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
+                                          {
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "transform": [
+                                                  {
+                                                    "scale": 1,
+                                                  },
+                                                ],
+                                              },
+                                              {
+                                                "alignItems": "center",
+                                                "justifyContent": "center",
+                                              },
+                                            ]
+                                          }
+                                        >
+                                          <View
+                                            accessibilityState={
+                                              {
+                                                "busy": undefined,
+                                                "checked": undefined,
+                                                "disabled": false,
+                                                "expanded": undefined,
+                                                "selected": undefined,
+                                              }
+                                            }
+                                            accessibilityValue={
+                                              {
+                                                "max": undefined,
+                                                "min": undefined,
+                                                "now": undefined,
+                                                "text": undefined,
+                                              }
+                                            }
+                                            accessible={true}
+                                            collapsable={false}
+                                            focusable={true}
+                                            onBlur={[Function]}
+                                            onClick={[Function]}
+                                            onFocus={[Function]}
+                                            onResponderGrant={[Function]}
+                                            onResponderMove={[Function]}
+                                            onResponderRelease={[Function]}
+                                            onResponderTerminate={[Function]}
+                                            onResponderTerminationRequest={[Function]}
+                                            onStartShouldSetResponder={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "transparent",
+                                                  "borderRadius": 2,
+                                                  "height": 32,
+                                                  "justifyContent": "center",
+                                                  "opacity": 1,
+                                                  "width": 32,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                            testID="token-unsupported-info-button"
+                                          >
+                                            <SvgMock
+                                              fill="currentColor"
+                                              name="Info"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "height": 20,
+                                                    "width": 20,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </View>
+                                        </View>
                                       </View>
                                     </View>
                                   </View>
@@ -4838,15 +5278,13 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                 style={null}
                               >
                                 <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
+                                  disabled={true}
                                   onPress={[Function]}
                                   style={
                                     {
                                       "backgroundColor": "#ffffff",
                                       "borderRadius": 4,
-                                      "opacity": 1,
+                                      "opacity": 0.5,
                                       "position": "relative",
                                     }
                                   }
@@ -5026,7 +5464,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                             }
                                           }
                                         >
-                                          USDC
+                                          USD Coin
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -5040,8 +5478,105 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                             }
                                           }
                                         >
-                                          Solana
+                                          USDC
                                         </Text>
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
+                                          {
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "transform": [
+                                                  {
+                                                    "scale": 1,
+                                                  },
+                                                ],
+                                              },
+                                              {
+                                                "alignItems": "center",
+                                                "justifyContent": "center",
+                                              },
+                                            ]
+                                          }
+                                        >
+                                          <View
+                                            accessibilityState={
+                                              {
+                                                "busy": undefined,
+                                                "checked": undefined,
+                                                "disabled": false,
+                                                "expanded": undefined,
+                                                "selected": undefined,
+                                              }
+                                            }
+                                            accessibilityValue={
+                                              {
+                                                "max": undefined,
+                                                "min": undefined,
+                                                "now": undefined,
+                                                "text": undefined,
+                                              }
+                                            }
+                                            accessible={true}
+                                            collapsable={false}
+                                            focusable={true}
+                                            onBlur={[Function]}
+                                            onClick={[Function]}
+                                            onFocus={[Function]}
+                                            onResponderGrant={[Function]}
+                                            onResponderMove={[Function]}
+                                            onResponderRelease={[Function]}
+                                            onResponderTerminate={[Function]}
+                                            onResponderTerminationRequest={[Function]}
+                                            onStartShouldSetResponder={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "transparent",
+                                                  "borderRadius": 2,
+                                                  "height": 32,
+                                                  "justifyContent": "center",
+                                                  "opacity": 1,
+                                                  "width": 32,
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                            testID="token-unsupported-info-button"
+                                          >
+                                            <SvgMock
+                                              fill="currentColor"
+                                              name="Info"
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#121314",
+                                                    "height": 20,
+                                                    "width": 20,
+                                                  },
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </View>
+                                        </View>
                                       </View>
                                     </View>
                                   </View>

@@ -15,6 +15,45 @@ jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
+// Mock network configurations for the selector
+const mockNetworkConfigurations = {
+  'eip155:1': {
+    chainId: '0x1',
+    name: 'Ethereum Mainnet',
+    nativeCurrency: 'ETH',
+    rpcEndpoints: [],
+  },
+  'eip155:137': {
+    chainId: '0x89',
+    name: 'Polygon',
+    nativeCurrency: 'POL',
+    rpcEndpoints: [],
+  },
+  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+    chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    name: 'Solana',
+    nativeCurrency: 'SOL',
+    rpcEndpoints: [],
+  },
+  'bip122:000000000019d6689c085ae165831e93': {
+    chainId: 'bip122:000000000019d6689c085ae165831e93',
+    name: 'Bitcoin',
+    nativeCurrency: 'BTC',
+    rpcEndpoints: [],
+  },
+  'tron:728126428': {
+    chainId: 'tron:728126428',
+    name: 'TRON',
+    nativeCurrency: 'TRX',
+    rpcEndpoints: [],
+  },
+};
+
+jest.mock('../../../../selectors/networkController', () => ({
+  ...jest.requireActual('../../../../selectors/networkController'),
+  selectNetworkConfigurationsByCaipChainId: () => mockNetworkConfigurations,
+}));
+
 const mockHandleFetch = handleFetch as jest.MockedFunction<typeof handleFetch>;
 const mockLoggerError = Logger.error as jest.MockedFunction<
   typeof Logger.error
@@ -72,7 +111,12 @@ describe('useRampTokens', () => {
       ];
       const mockAllTokens = [
         ...mockTopTokens,
-        createMockToken({ symbol: 'SOL', tokenSupported: false }),
+        createMockToken({
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          symbol: 'SOL',
+          tokenSupported: false,
+          assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        }),
       ];
       const mockResponse = createMockResponse(mockTopTokens, mockAllTokens);
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
@@ -425,7 +469,12 @@ describe('useRampTokens', () => {
       const mockAllTokens = [
         ...mockTopTokens,
         createMockToken({ symbol: 'USDC', tokenSupported: false }),
-        createMockToken({ symbol: 'SOL', tokenSupported: false }),
+        createMockToken({
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          symbol: 'SOL',
+          tokenSupported: false,
+          assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        }),
       ];
       const mockResponse = createMockResponse(mockTopTokens, mockAllTokens);
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
@@ -438,11 +487,75 @@ describe('useRampTokens', () => {
         expect(result.current.topTokens).toEqual(mockTopTokens);
       });
 
-      expect(result.current.allTokens).toEqual(mockAllTokens);
+      // All 4 tokens pass network filter (ETH, BTC, USDC on eip155:1, SOL on solana)
+      expect(result.current.allTokens).toHaveLength(4);
       expect(result.current.topTokens?.[0].tokenSupported).toBe(true);
       expect(result.current.topTokens?.[1].tokenSupported).toBe(true);
       expect(result.current.allTokens?.[2].tokenSupported).toBe(false);
       expect(result.current.allTokens?.[3].tokenSupported).toBe(false);
+    });
+  });
+
+  describe('network filtering', () => {
+    it('filters tokens based on user networks in wallet', async () => {
+      // Create tokens for networks that exist in mockNetworkConfigurations
+      const ethToken = createMockToken({ symbol: 'ETH' });
+      const solToken = createMockToken({
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        symbol: 'SOL',
+        assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+      });
+      const btcToken = createMockToken({
+        chainId: 'bip122:000000000019d6689c085ae165831e93',
+        symbol: 'BTC',
+        assetId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+      });
+
+      const mockResponse = createMockResponse(
+        [ethToken, solToken],
+        [ethToken, solToken, btcToken],
+      );
+      mockHandleFetch.mockResolvedValueOnce(mockResponse);
+
+      const { result } = renderHookWithProvider(() => useRampTokens(), {
+        state: createMockState(UnifiedRampRoutingType.DEPOSIT, 'us-ca'),
+      });
+
+      await waitFor(() => {
+        expect(result.current.topTokens).toBeDefined();
+      });
+
+      // All networks from mock config are in the user's wallet
+      expect(result.current.topTokens).toHaveLength(2);
+      expect(result.current.allTokens).toHaveLength(3);
+    });
+
+    it('filters out tokens with empty chainId', async () => {
+      const ethToken = createMockToken({ symbol: 'ETH' });
+      const invalidToken = createMockToken({
+        chainId: '' as `${string}:${string}`,
+        symbol: 'INVALID',
+        assetId: 'invalid:token',
+      });
+
+      const mockResponse = createMockResponse(
+        [ethToken, invalidToken],
+        [ethToken, invalidToken],
+      );
+      mockHandleFetch.mockResolvedValueOnce(mockResponse);
+
+      const { result } = renderHookWithProvider(() => useRampTokens(), {
+        state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+      });
+
+      await waitFor(() => {
+        expect(result.current.topTokens).toBeDefined();
+      });
+
+      // Should exclude token with empty chainId
+      expect(result.current.topTokens).toHaveLength(1);
+      expect(result.current.topTokens?.[0].symbol).toBe('ETH');
+      expect(result.current.allTokens).toHaveLength(1);
     });
   });
 });

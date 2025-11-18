@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { handleFetch } from '@metamask/controller-utils';
 import type { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
@@ -7,6 +7,7 @@ import {
   getDetectedGeolocation,
   UnifiedRampRoutingType,
 } from '../../../../reducers/fiatOrders';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../../selectors/networkController';
 import Logger from '../../../../util/Logger';
 
 const SDK_VERSION = '2.1.5';
@@ -53,19 +54,22 @@ export interface UseRampTokensResult {
  * @returns An object containing top tokens, all tokens, loading state, and error state
  */
 export function useRampTokens(): UseRampTokensResult {
-  const [topTokens, setTopTokens] = useState<RampsToken[] | null>(null);
-  const [allTokens, setAllTokens] = useState<RampsToken[] | null>(null);
+  const [rawTopTokens, setRawTopTokens] = useState<RampsToken[] | null>(null);
+  const [rawAllTokens, setRawAllTokens] = useState<RampsToken[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const detectedGeolocation = useSelector(getDetectedGeolocation);
+  const networksByCaipChainId = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
 
   const fetchTokens = useCallback(async () => {
     // Don't fetch if no region detected
     if (!detectedGeolocation) {
-      setTopTokens(null);
-      setAllTokens(null);
+      setRawTopTokens(null);
+      setRawAllTokens(null);
       setIsLoading(false);
       return;
     }
@@ -76,8 +80,8 @@ export function useRampTokens(): UseRampTokensResult {
       rampRoutingDecision === UnifiedRampRoutingType.UNSUPPORTED ||
       rampRoutingDecision === UnifiedRampRoutingType.ERROR
     ) {
-      setTopTokens(null);
-      setAllTokens(null);
+      setRawTopTokens(null);
+      setRawAllTokens(null);
       setIsLoading(false);
       return;
     }
@@ -96,7 +100,10 @@ export function useRampTokens(): UseRampTokensResult {
           : 'deposit';
 
       // Build URL using URL and searchParams
-      const url = new URL(`/regions/${detectedGeolocation}/tokens`, baseUrl);
+      const url = new URL(
+        `/regions/${detectedGeolocation.toLowerCase()}/tokens`,
+        baseUrl,
+      );
       url.searchParams.set('action', action);
       url.searchParams.set('sdk', SDK_VERSION);
 
@@ -105,8 +112,8 @@ export function useRampTokens(): UseRampTokensResult {
         url.toString(),
       )) as TokenCacheAPIResponse;
 
-      setTopTokens(response.topTokens);
-      setAllTokens(response.allTokens);
+      setRawTopTokens(response.topTokens);
+      setRawAllTokens(response.allTokens);
     } catch (requestError) {
       const errorObject = requestError as Error;
       setError(errorObject);
@@ -119,6 +126,25 @@ export function useRampTokens(): UseRampTokensResult {
   useEffect(() => {
     fetchTokens();
   }, [fetchTokens]);
+
+  // Filter tokens to only include those for networks the user has added
+  const topTokens = useMemo(() => {
+    if (!rawTopTokens) return null;
+
+    return rawTopTokens.filter((token) => {
+      if (!token.chainId) return false;
+      return networksByCaipChainId[token.chainId] !== undefined;
+    });
+  }, [rawTopTokens, networksByCaipChainId]);
+
+  const allTokens = useMemo(() => {
+    if (!rawAllTokens) return null;
+
+    return rawAllTokens.filter((token) => {
+      if (!token.chainId) return false;
+      return networksByCaipChainId[token.chainId] !== undefined;
+    });
+  }, [rawAllTokens, networksByCaipChainId]);
 
   return { topTokens, allTokens, isLoading, error };
 }

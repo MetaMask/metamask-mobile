@@ -5,10 +5,10 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { ActivityIndicator } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { CaipChainId } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import TokenNetworkFilterBar from '../TokenNetworkFilterBar';
@@ -23,6 +23,7 @@ import ListItemSelect from '../../../../../component-library/components/List/Lis
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 
 import useSearchTokenResults from '../../Deposit/hooks/useSearchTokenResults';
+import { useRampTokens, RampsToken } from '../../hooks/useRampTokens';
 
 import {
   createNavigationDetails,
@@ -31,22 +32,12 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { getDepositNavbarOptions } from '../../../Navbar';
 import Routes from '../../../../../constants/navigation/Routes';
-import { getRampRoutingDecision } from '../../../../../reducers/fiatOrders';
 import { useTheme } from '../../../../../util/theme';
-import {
-  MOCK_CRYPTOCURRENCIES,
-  MockDepositCryptoCurrency,
-} from '../../Deposit/constants/mockCryptoCurrencies';
 import { RampIntent } from '../../Aggregator/types';
-// TODO: Fetch these tokens from the API new enpoint for top 25 with supported status
-//https://consensyssoftware.atlassian.net/browse/TRAM-2816
 
-interface TokenSelectionParams {
+export const createTokenSelectionNavDetails = createNavigationDetails<{
   intent?: RampIntent;
-}
-
-export const createTokenSelectionNavDetails =
-  createNavigationDetails<TokenSelectionParams>(Routes.RAMP.TOKEN_SELECTION);
+}>(Routes.RAMP.TOKEN_SELECTION);
 
 function TokenSelection() {
   const listRef = useRef<FlatList>(null);
@@ -57,13 +48,17 @@ function TokenSelection() {
   const theme = useTheme();
 
   const navigation = useNavigation();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const rampRoutingDecision = useSelector(getRampRoutingDecision);
 
-  const { intent } = useParams<TokenSelectionParams>();
+  const { intent } = useParams<{ intent?: RampIntent }>();
   const selectedCryptoAssetId = intent?.assetId;
 
-  const supportedTokens = MOCK_CRYPTOCURRENCIES;
+  const { topTokens, allTokens, isLoading, error } = useRampTokens();
+
+  // Use topTokens for initial display, allTokens when searching
+  const supportedTokens = useMemo(() => {
+    const tokensToUse = searchString ? allTokens : topTokens;
+    return tokensToUse || [];
+  }, [searchString, allTokens, topTokens]);
 
   const searchTokenResults = useSearchTokenResults({
     tokens: supportedTokens,
@@ -102,20 +97,15 @@ function TokenSelection() {
   }, [navigation]);
 
   const renderToken = useCallback(
-    ({ item: token }: { item: MockDepositCryptoCurrency }) => (
+    ({ item: token }: { item: RampsToken }) => (
       <TokenListItem
         token={token}
-        isSelected={selectedCryptoAssetId === token.assetId}
         onPress={() => handleSelectAssetIdCallback(token.assetId)}
-        isDisabled={token.unsupported}
+        isDisabled={!token.tokenSupported}
         onInfoPress={handleUnsupportedInfoPress}
       />
     ),
-    [
-      handleSelectAssetIdCallback,
-      selectedCryptoAssetId,
-      handleUnsupportedInfoPress,
-    ],
+    [handleSelectAssetIdCallback, handleUnsupportedInfoPress],
   );
 
   const renderEmptyList = useCallback(
@@ -152,6 +142,37 @@ function TokenSelection() {
     );
   }, [navigation, theme]);
 
+  if (isLoading) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <Box twClassName="flex-1 items-center justify-center">
+            <ActivityIndicator
+              size="large"
+              color={theme.colors.primary.default}
+            />
+          </Box>
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <Box twClassName="flex-1 items-center justify-center px-4">
+            <Box twClassName="text-center">
+              <Text variant={TextVariant.BodyMD}>
+                {strings('deposit.token_modal.error_loading_tokens')}
+              </Text>
+            </Box>
+          </Box>
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
+
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
@@ -176,7 +197,7 @@ function TokenSelection() {
         </Box>
         <FlatList
           ref={listRef}
-          data={searchTokenResults}
+          data={searchTokenResults as unknown as RampsToken[]}
           renderItem={renderToken}
           extraData={selectedCryptoAssetId}
           keyExtractor={(item) => item.assetId}

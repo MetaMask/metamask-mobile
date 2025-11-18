@@ -25,7 +25,7 @@ import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 
 interface TokenListItemProps {
   token: DepositCryptoCurrency;
-  isSelected: boolean;
+  isSelected?: boolean;
   onPress: () => void;
   textColor?: string;
   isDisabled?: boolean;
@@ -53,14 +53,15 @@ function TokenListItem({
       isSelected={isSelected}
       onPress={onPress}
       isDisabled={isDisabled}
-      accessibilityRole="button"
-      accessible
     >
       <ListItemColumn widthType={WidthType.Auto}>
         <BadgeWrapper
           badgePosition={BadgePosition.BottomRight}
           badgeElement={
-            <BadgeNetwork name={networkName} imageSource={networkImageSource} />
+            <BadgeNetwork
+              name={depositNetworkName ?? networkName}
+              imageSource={networkImageSource}
+            />
           }
         >
           <AvatarToken
@@ -71,9 +72,9 @@ function TokenListItem({
         </BadgeWrapper>
       </ListItemColumn>
       <ListItemColumn widthType={WidthType.Fill}>
-        <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
+        <Text variant={TextVariant.BodyLGMedium}>{token.name}</Text>
         <Text variant={TextVariant.BodyMD} color={textColor}>
-          {depositNetworkName ?? networkName}
+          {token.symbol}
         </Text>
       </ListItemColumn>
       {isDisabled && onInfoPress && (
