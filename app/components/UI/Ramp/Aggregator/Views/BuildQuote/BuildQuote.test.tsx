@@ -30,6 +30,7 @@ import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 import { createTokenSelectModalNavigationDetails } from '../../components/TokenSelectModal/TokenSelectModal';
 import { createFiatSelectorModalNavigationDetails } from '../../components/FiatSelectorModal';
 import { mockNetworkState } from '../../../../../../util/test/network';
+import { RampIntent } from '../../types';
 
 const mockSetActiveNetwork = jest.fn();
 const mockEngineContext = {
@@ -87,6 +88,7 @@ const mockGoBack = jest.fn();
 const mockReset = jest.fn();
 const mockPop = jest.fn();
 const mockTrackEvent = jest.fn();
+const mockSetIntent = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -246,6 +248,7 @@ const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   selectedAddress: '0x2990079bcdee240329a520d2444386fc119da21a',
   sdkError: undefined,
   setSelectedPaymentMethodId: mockSetSelectedPaymentMethodId,
+  setIntent: mockSetIntent,
   rampType: RampType.BUY,
   isBuy: true,
   isSell: false,
@@ -260,9 +263,11 @@ jest.mock('../../sdk', () => ({
   useRampSDK: () => mockUseRampSDKValues,
 }));
 
-let mockUseParamsValues: {
-  showBack?: boolean;
-} = {
+let mockUseParamsValues:
+  | {
+      showBack?: boolean;
+    }
+  | RampIntent = {
   showBack: undefined,
 };
 
@@ -426,6 +431,16 @@ describe('BuildQuote View', () => {
     mockUseRampSDKValues.isSell = true;
     render(BuildQuote);
     expect(mockSetOptions).toHaveBeenCalled();
+  });
+
+  it('calls setIntent when params have intent', async () => {
+    mockUseParamsValues = {
+      assetId: 'eip155:1/er20:0x6b175474e89094c44da98b954eedeac495271d0f',
+    };
+    render(BuildQuote);
+    expect(mockSetIntent).toHaveBeenCalledWith({
+      assetId: 'eip155:1/er20:0x6b175474e89094c44da98b954eedeac495271d0f',
+    });
   });
 
   it('navigates and tracks event on cancel button press', async () => {

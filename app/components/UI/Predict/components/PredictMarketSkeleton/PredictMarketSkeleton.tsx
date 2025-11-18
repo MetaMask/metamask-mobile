@@ -5,6 +5,7 @@ import Skeleton from '../../../../../component-library/components/Skeleton/Skele
 
 interface PredictMarketSkeletonProps {
   testID?: string;
+  isCarousel?: boolean;
 }
 
 /**
@@ -13,15 +14,19 @@ interface PredictMarketSkeletonProps {
  */
 const PredictMarketSkeleton: React.FC<PredictMarketSkeletonProps> = ({
   testID = 'predict-market-skeleton',
+  isCarousel = false,
 }) => {
   const tw = useTailwind();
 
   return (
-    <Box testID={testID} twClassName="bg-section rounded-xl p-4 my-2">
+    <Box
+      testID={testID}
+      twClassName={`bg-section rounded-xl ${isCarousel ? 'p-3 h-full' : 'p-4 my-2'}`}
+    >
       {/* Header: Circle Avatar + Title Bar */}
       <Box
         flexDirection={BoxFlexDirection.Row}
-        twClassName="items-center gap-4 mb-4"
+        twClassName={`items-center gap-4 ${isCarousel ? 'mb-3' : 'mb-4'}`}
       >
         {/* Circle Avatar - 40x40 */}
         <Skeleton
@@ -35,7 +40,7 @@ const PredictMarketSkeleton: React.FC<PredictMarketSkeletonProps> = ({
         <Box twClassName="flex-1">
           <Skeleton
             width="100%"
-            height={20}
+            height={isCarousel ? 18 : 20}
             style={tw.style('rounded-md')}
             testID={`${testID}-title`}
           />
@@ -45,15 +50,15 @@ const PredictMarketSkeleton: React.FC<PredictMarketSkeletonProps> = ({
       {/* Prediction Options Area */}
       <Skeleton
         width="100%"
-        height={150}
-        style={tw.style('rounded-xl mb-4')}
+        height={isCarousel ? 120 : 150}
+        style={tw.style(`rounded-xl ${isCarousel ? 'mb-3' : 'mb-4'}`)}
         testID={`${testID}-chart`}
       />
 
       {/* Bottom Info Bar - narrower width */}
       <Skeleton
         width="75%"
-        height={40}
+        height={isCarousel ? 32 : 40}
         style={tw.style('rounded-md')}
         testID={`${testID}-footer`}
       />

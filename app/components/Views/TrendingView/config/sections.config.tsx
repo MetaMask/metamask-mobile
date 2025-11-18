@@ -138,9 +138,9 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       });
     },
     renderRowItem: (item) => (
-      <PredictMarket market={item as PredictMarketType} />
+      <PredictMarket market={item as PredictMarketType} isCarousel />
     ),
-    renderSkeleton: () => <PredictMarketSkeleton />,
+    renderSkeleton: () => <PredictMarketSkeleton isCarousel />,
     getSearchableText: (item) =>
       (item as PredictMarketType).title.toLowerCase(),
     keyExtractor: (item) => `prediction-${(item as PredictMarketType).id}`,

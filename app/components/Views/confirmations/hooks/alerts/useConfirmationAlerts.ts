@@ -9,7 +9,6 @@ import { Alert } from '../../types/alerts';
 import { useBatchedUnusedApprovalsAlert } from './useBatchedUnusedApprovalsAlert';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
-import { useInsufficientPayTokenNativeAlert } from './useInsufficientPayTokenNativeAlert';
 import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBalanceAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
 import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
@@ -28,7 +27,6 @@ function useTransactionAlerts(): Alert[] {
   const insufficientPayTokenBalanceAlert =
     useInsufficientPayTokenBalanceAlert();
   const noPayTokenQuotesAlert = useNoPayTokenQuotesAlert();
-  const insufficientPayTokenNativeAlert = useInsufficientPayTokenNativeAlert();
   const insufficientPredictBalanceAlert = useInsufficientPredictBalanceAlert();
   const burnAddressAlert = useBurnAddressAlert();
   const tokenTrustSignalAlerts = useTokenTrustSignalAlerts();
@@ -41,7 +39,6 @@ function useTransactionAlerts(): Alert[] {
       ...signedOrSubmittedAlert,
       ...insufficientPayTokenBalanceAlert,
       ...noPayTokenQuotesAlert,
-      ...insufficientPayTokenNativeAlert,
       ...insufficientPredictBalanceAlert,
       ...burnAddressAlert,
       ...tokenTrustSignalAlerts,
@@ -53,7 +50,6 @@ function useTransactionAlerts(): Alert[] {
       signedOrSubmittedAlert,
       insufficientPayTokenBalanceAlert,
       noPayTokenQuotesAlert,
-      insufficientPayTokenNativeAlert,
       insufficientPredictBalanceAlert,
       burnAddressAlert,
       tokenTrustSignalAlerts,
