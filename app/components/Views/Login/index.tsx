@@ -184,11 +184,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
     BackHandler.addEventListener('hardwareBackPress', handleBackPress);
 
-    const animationTimeoutId = setTimeout(() => {
-      setStartFoxAnimation('Start');
-    }, 100);
-
     const timeoutId = setTimeout(async () => {
+      setStartFoxAnimation('Start');
+
       if (await Authentication.checkIsSeedlessPasswordOutdated()) {
         navigation.replace('Rehydrate', {
           isSeedlessPasswordOutdated: true,
@@ -197,7 +195,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     }, 100);
 
     return () => {
-      clearTimeout(animationTimeoutId);
       clearTimeout(timeoutId);
       BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
     };
