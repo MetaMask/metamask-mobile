@@ -159,6 +159,7 @@ import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/Mu
 import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -1126,6 +1127,13 @@ const AppContent: React.FC = () => {
           const previousRoute = routes[routes.length - 2]?.name;
 
           if (previousRoute === Routes.SETTINGS_VIEW) {
+            return;
+          }
+
+          // only proceed if biometric is enabled else rerouted to lock screen
+          const authType = await Authentication.getType();
+          if (authType.currentAuthType === AUTHENTICATION_TYPE.PASSWORD) {
+            navigation.reset({ routes: [{ name: Routes.ONBOARDING.LOGIN }] });
             return;
           }
 

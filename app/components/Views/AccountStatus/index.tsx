@@ -52,6 +52,7 @@ interface AccountRouteParams {
   accountName?: string;
   oauthLoginSuccess?: boolean;
   onboardingTraceCtx?: TraceContext;
+  provider?: string;
 }
 
 const AccountStatus = ({
@@ -66,6 +67,7 @@ const AccountStatus = ({
     ?.oauthLoginSuccess;
   const onboardingTraceCtx = (route.params as AccountRouteParams)
     ?.onboardingTraceCtx;
+  const provider = (route.params as AccountRouteParams)?.provider;
 
   // check for small screen size
   const isSmallScreen = Dimensions.get('window').width < 375;
@@ -128,6 +130,7 @@ const AccountStatus = ({
         [PREVIOUS_SCREEN]: previousScreen,
         oauthLoginSuccess,
         onboardingTraceCtx,
+        provider,
       }),
     );
     track(
