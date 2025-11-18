@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
-import { ScrollView, StyleSheet, Pressable } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -35,6 +35,7 @@ import PredictBuyPreview from '../../UI/Predict/views/PredictBuyPreview/PredictB
 import QuickActions from './components/QuickActions/QuickActions';
 import SectionHeader from './components/SectionHeader/SectionHeader';
 import { HOME_SECTIONS_ARRAY } from './config/sections.config';
+import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
 
 const Stack = createStackNavigator();
 
@@ -127,32 +128,27 @@ const TrendingFeed: React.FC = () => {
             <ExploreSearchBar type="button" onPress={handleSearchPress} />
           </Box>
 
-          <Pressable
-            onPress={handleBrowserPress}
-            testID="trending-view-browser-button"
+          <Box
+            twClassName="rounded-md items-center justify-center h-8 w-8 border-4"
+            style={{
+              borderColor: colors.text.default,
+            }}
           >
-            <Box
-              twClassName="rounded-md items-center justify-center h-8 w-8 border-4"
-              style={{
-                borderColor: colors.text.default,
-              }}
-            >
-              {browserTabsCount > 0 ? (
-                <Text
-                  variant={TextVariant.BodyMd}
-                  twClassName="text-default font-bold"
-                >
-                  {browserTabsCount}
-                </Text>
-              ) : (
-                <ButtonIcon
-                  iconName={IconName.Add}
-                  size={ButtonIconSize.Md}
-                  onPress={handleBrowserPress}
-                />
-              )}
-            </Box>
-          </Pressable>
+            {browserTabsCount > 0 ? (
+              <ButtonLink
+                onPress={handleBrowserPress}
+                label={browserTabsCount}
+                testID="trending-view-browser-button"
+              />
+            ) : (
+              <ButtonIcon
+                iconName={IconName.Add}
+                size={ButtonIconSize.Md}
+                onPress={handleBrowserPress}
+                testID="trending-view-browser-button"
+              />
+            )}
+          </Box>
         </Box>
       </Box>
 
