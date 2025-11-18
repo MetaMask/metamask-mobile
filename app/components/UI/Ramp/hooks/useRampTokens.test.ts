@@ -410,10 +410,9 @@ describe('useRampTokens', () => {
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(true);
+        // Error should be null WHILE loading is true
+        expect(result.current.error).toBeNull();
       });
-
-      // Error should be null during fetch
-      expect(result.current.error).toBeNull();
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
