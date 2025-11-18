@@ -36,5 +36,3 @@ export const HeroRow = ({ amountWei }: { amountWei?: string }) => {
     </View>
   );
 };
-
-
