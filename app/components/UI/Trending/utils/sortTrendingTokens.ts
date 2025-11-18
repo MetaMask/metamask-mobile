@@ -34,12 +34,10 @@ export const sortTrendingTokens = (
       case PriceChangeOption.PriceChange: {
         // For price change, use the priceChangePct field corresponding to the selected time option
         const priceChangeFieldKey = getPriceChangeFieldKey(timeOption);
-        aValue = a.priceChangePct?.[priceChangeFieldKey]
-          ? parseFloat(a.priceChangePct[priceChangeFieldKey]) || 0
-          : 0;
-        bValue = b.priceChangePct?.[priceChangeFieldKey]
-          ? parseFloat(b.priceChangePct[priceChangeFieldKey]) || 0
-          : 0;
+        const aPriceChange = a.priceChangePct?.[priceChangeFieldKey];
+        aValue = aPriceChange ? parseFloat(aPriceChange) || 0 : 0;
+        const bPriceChange = b.priceChangePct?.[priceChangeFieldKey];
+        bValue = bPriceChange ? parseFloat(bPriceChange) || 0 : 0;
         break;
       }
       case PriceChangeOption.Volume:
