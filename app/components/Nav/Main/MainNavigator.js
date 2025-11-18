@@ -52,6 +52,7 @@ import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import TrendingView from '../../Views/TrendingView/TrendingView';
+import SitesListView from '../../Views/TrendingView/SitesListView';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
@@ -289,6 +290,11 @@ const TrendingHome = () => (
     <Stack.Screen
       name={Routes.TRENDING_VIEW}
       component={TrendingView}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.SITES_LIST_VIEW}
+      component={SitesListView}
       options={{ headerShown: false }}
     />
   </Stack.Navigator>

@@ -6992,6 +6992,7 @@
     "search_placeholder": "Search tokens, sites, URLs",
     "perps": "Perps",
     "predictions": "Predictions",
-    "no_results": "No results found"
+    "no_results": "No results found",
+    "sites": "Sites"
   }
 }
