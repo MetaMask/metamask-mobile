@@ -13,6 +13,7 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
       maxValueMode: false,
     },
   }),
+  createNavigationDetails: jest.fn(() => jest.fn()),
 }));
 
 jest.mock('../../../hooks/useTokenAmount', () => ({
