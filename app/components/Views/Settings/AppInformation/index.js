@@ -269,7 +269,7 @@ export default class AppInformation extends PureComponent {
             )}
           </View>
           <Text style={styles.title}>{strings('app_information.links')}</Text>
-          <View style={styles.links}>
+          {/* <View style={styles.links}>
             <TouchableOpacity onPress={this.onPrivacyPolicy}>
               <Text style={styles.link}>
                 {strings('app_information.privacy_policy')}
@@ -285,7 +285,9 @@ export default class AppInformation extends PureComponent {
                 {strings('app_information.attributions')}
               </Text>
             </TouchableOpacity>
-          </View>
+          </View> */}
+          <View style={styles.division} />
+          <View style={styles.division} />
           <View style={styles.division} />
           <View style={styles.links}>
             <TouchableOpacity onPress={this.onSupportCenter}>

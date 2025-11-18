@@ -21,7 +21,7 @@ const packageJson = require('./package.json');
  * Increment with each OTA update: v0 -> v1 -> v2 -> v3 etc.
  * Reset to v0 when releasing a new native build
  */
-const OTA_VERSION = 'v3';
+const OTA_VERSION = 'v4';
 
 /**
  * Runtime version for native compatibility
