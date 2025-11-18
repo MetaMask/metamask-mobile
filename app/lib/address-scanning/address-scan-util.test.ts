@@ -9,7 +9,7 @@ import { Hex } from '@metamask/utils';
 
 describe('address-scan-util', () => {
   describe('resemblesAddress', () => {
-    it('should return true for valid Ethereum addresses', () => {
+    it('returns true for valid Ethereum addresses', () => {
       expect(
         resemblesAddress('0x1234567890123456789012345678901234567890'),
       ).toBe(true);
@@ -18,7 +18,7 @@ describe('address-scan-util', () => {
       ).toBe(true);
     });
 
-    it('should return false for invalid addresses', () => {
+    it('returns false for invalid addresses', () => {
       expect(resemblesAddress('0x123')).toBe(false);
       expect(resemblesAddress('1234567890123456789012345678901234567890')).toBe(
         false,
@@ -32,7 +32,7 @@ describe('address-scan-util', () => {
   });
 
   describe('parseTypedDataMessage', () => {
-    it('should parse typed data from string', () => {
+    it('parses typed data from string', () => {
       const typedDataString = JSON.stringify({
         domain: {
           name: 'Test',
@@ -56,7 +56,7 @@ describe('address-scan-util', () => {
       expect(result?.primaryType).toBe('Permit');
     });
 
-    it('should parse typed data from object', () => {
+    it('parses typed data from object', () => {
       const typedDataObject = {
         domain: {
           name: 'Test',
@@ -80,12 +80,12 @@ describe('address-scan-util', () => {
       expect(result?.primaryType).toBe('Permit');
     });
 
-    it('should return undefined for invalid JSON string', () => {
+    it('returns undefined for invalid JSON string', () => {
       const result = parseTypedDataMessage('invalid json');
       expect(result).toBeUndefined();
     });
 
-    it('should handle empty object', () => {
+    it('handles empty object', () => {
       const result = parseTypedDataMessage({});
       expect(result).toBeDefined();
       expect(result?.domain).toBeUndefined();
@@ -94,14 +94,14 @@ describe('address-scan-util', () => {
   });
 
   describe('extractSpenderFromApprovalData', () => {
-    it('should return undefined for empty data', () => {
+    it('returns undefined for empty data', () => {
       expect(extractSpenderFromApprovalData(undefined)).toBeUndefined();
       expect(
         extractSpenderFromApprovalData('0x' as unknown as Hex),
       ).toBeUndefined();
     });
 
-    it('should extract spender from ERC-20 approve transaction', () => {
+    it('extracts spender from ERC-20 approve transaction', () => {
       // approve(address spender, uint256 amount)
       // Function signature: 0x095ea7b3
       // spender: 0x1234567890123456789012345678901234567890
@@ -112,7 +112,7 @@ describe('address-scan-util', () => {
       expect(spender).toBe('0x1234567890123456789012345678901234567890');
     });
 
-    it('should return undefined for non-approval transaction', () => {
+    it('returns undefined for non-approval transaction', () => {
       // transfer(address to, uint256 amount)
       // Function signature: 0xa9059cbb
       const data =
@@ -121,7 +121,7 @@ describe('address-scan-util', () => {
       expect(spender).toBeUndefined();
     });
 
-    it('should handle invalid transaction data gracefully', () => {
+    it('handles invalid transaction data gracefully', () => {
       const data = '0xinvalid';
       const spender = extractSpenderFromApprovalData(data);
       expect(spender).toBeUndefined();
@@ -129,7 +129,7 @@ describe('address-scan-util', () => {
   });
 
   describe('extractSpenderFromPermitMessage', () => {
-    it('should extract spender from Permit typed data', () => {
+    it('extracts spender from Permit typed data', () => {
       const typedDataMessage = {
         domain: {
           name: 'Test Token',
@@ -152,7 +152,7 @@ describe('address-scan-util', () => {
       expect(spender).toBe('0x9876543210987654321098765432109876543210');
     });
 
-    it('should extract spender from PermitSingle typed data', () => {
+    it('extracts spender from PermitSingle typed data', () => {
       const typedDataMessage = {
         domain: {
           name: 'Permit2',
@@ -178,7 +178,7 @@ describe('address-scan-util', () => {
       expect(spender).toBe('0x9876543210987654321098765432109876543210');
     });
 
-    it('should return undefined for non-permit typed data', () => {
+    it('returns undefined for non-permit typed data', () => {
       const typedDataMessage = {
         domain: {
           name: 'Test',
@@ -198,7 +198,7 @@ describe('address-scan-util', () => {
       expect(spender).toBeUndefined();
     });
 
-    it('should return undefined if message has no spender', () => {
+    it('returns undefined if message has no spender', () => {
       const typedDataMessage = {
         domain: {
           name: 'Test Token',
@@ -218,7 +218,7 @@ describe('address-scan-util', () => {
       expect(spender).toBeUndefined();
     });
 
-    it('should return undefined if primaryType is missing', () => {
+    it('returns undefined if primaryType is missing', () => {
       const typedDataMessage = {
         domain: {
           name: 'Test Token',
@@ -236,7 +236,7 @@ describe('address-scan-util', () => {
       expect(spender).toBeUndefined();
     });
 
-    it('should return undefined if message is missing', () => {
+    it('returns undefined if message is missing', () => {
       const typedDataMessage = {
         domain: {
           name: 'Test Token',
@@ -254,7 +254,7 @@ describe('address-scan-util', () => {
   });
 
   describe('PRIMARY_TYPES_PERMIT', () => {
-    it('should contain expected permit types', () => {
+    it('contains expected permit types', () => {
       expect(PRIMARY_TYPES_PERMIT).toContain('Permit');
       expect(PRIMARY_TYPES_PERMIT).toContain('PermitSingle');
       expect(PRIMARY_TYPES_PERMIT).toContain('PermitBatch');
