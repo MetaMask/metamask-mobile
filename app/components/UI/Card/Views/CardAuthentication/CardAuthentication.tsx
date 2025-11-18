@@ -16,7 +16,12 @@ import {
   TextInput,
   StyleSheet,
 } from 'react-native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  FontWeight,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 import Icon, {
   IconName,
@@ -603,14 +608,18 @@ const CardAuthentication = () => {
                 width={ButtonWidthTypes.Full}
                 disabled={isLoginDisabled || loading}
               />
-              <Button
-                variant={ButtonVariants.Secondary}
-                label={strings('card.card_authentication.signup_button')}
-                size={ButtonSize.Lg}
-                testID={CardAuthenticationSelectors.SIGNUP_BUTTON}
+              <TouchableOpacity
                 onPress={() => navigation.navigate(Routes.CARD.ONBOARDING.ROOT)}
-                width={ButtonWidthTypes.Full}
-              />
+              >
+                <Text
+                  testID={CardAuthenticationSelectors.SIGNUP_BUTTON}
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  twClassName="text-default text-center p-4"
+                >
+                  {strings('card.card_authentication.signup_button')}
+                </Text>
+              </TouchableOpacity>
             </Box>
           </Box>
         </ScrollView>
