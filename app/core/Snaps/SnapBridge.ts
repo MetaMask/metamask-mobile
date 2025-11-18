@@ -9,10 +9,7 @@ import createFilterMiddleware from '@metamask/eth-json-rpc-filters';
 // @ts-expect-error - No types declarations
 import createSubscriptionManager from '@metamask/eth-json-rpc-filters/subscriptionManager';
 import EthQuery, { JsonRpcParams } from '@metamask/eth-query';
-import {
-  createSelectedNetworkMiddleware,
-  SelectedNetworkControllerMessenger,
-} from '@metamask/selected-network-controller';
+import { createSelectedNetworkMiddleware } from '@metamask/selected-network-controller';
 import { createPreinstalledSnapsMiddleware } from '@metamask/snaps-rpc-methods';
 import { SubjectType } from '@metamask/permission-controller';
 import { providerAsMiddleware } from '@metamask/eth-json-rpc-middleware';
@@ -171,11 +168,7 @@ export default class SnapBridge {
       >,
     );
 
-    engine.push(
-      createSelectedNetworkMiddleware(
-        controllerMessenger as unknown as SelectedNetworkControllerMessenger,
-      ),
-    );
+    engine.push(createSelectedNetworkMiddleware(controllerMessenger));
 
     // Filter and subscription polyfills
     engine.push(filterMiddleware);
