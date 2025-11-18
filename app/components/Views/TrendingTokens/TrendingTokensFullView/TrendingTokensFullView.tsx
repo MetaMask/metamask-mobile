@@ -55,7 +55,6 @@ const createStyles = (theme: Theme) =>
     },
     headerContainer: {
       backgroundColor: theme.colors.background.default,
-      zIndex: 10,
     },
     header: {
       paddingTop: 16,

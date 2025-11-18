@@ -42,7 +42,6 @@ import { TokenSortBottomSheet } from '../../../components/UI/Tokens/TokensBottom
 import ProfilerManager from '../../../components/UI/ProfilerManager';
 import { TokenFilterBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenFilterBottomSheet';
 import {
-  TrendingTokenTimeBottomSheet,
   TrendingTokenNetworkBottomSheet,
   TrendingTokenPriceChangeBottomSheet,
 } from '../../../components/UI/Trending/components/TrendingTokensBottomSheet';
@@ -478,10 +477,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.TOKEN_FILTER}
       component={TokenFilterBottomSheet}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.TRENDING_TOKEN_TIME}
-      component={TrendingTokenTimeBottomSheet}
     />
     <Stack.Screen
       name={Routes.SHEET.TRENDING_TOKEN_NETWORK}
