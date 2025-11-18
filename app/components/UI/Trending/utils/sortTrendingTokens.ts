@@ -2,19 +2,23 @@ import type { TrendingAsset } from '@metamask/assets-controllers';
 import {
   PriceChangeOption,
   SortDirection,
+  TimeOption,
 } from '../components/TrendingTokensBottomSheet';
+import { getPriceChangeFieldKey } from '../components/TrendingTokenRowItem/TrendingTokenRowItem';
 
 /**
  * Sorts trending tokens based on the selected option and direction
  * @param tokens - Array of trending tokens to sort
  * @param option - The sorting option (PriceChange, Volume, MarketCap)
  * @param direction - The sort direction (Ascending or Descending)
+ * @param timeOption - The time period option (24h, 6h, 1h, 5m) - only used for PriceChange sorting
  * @returns Sorted array of tokens
  */
 export const sortTrendingTokens = (
   tokens: TrendingAsset[],
   option: PriceChangeOption = PriceChangeOption.PriceChange,
   direction: SortDirection = SortDirection.Descending,
+  timeOption: TimeOption = TimeOption.TwentyFourHours,
 ): TrendingAsset[] => {
   if (tokens.length === 0) {
     return [];
@@ -27,15 +31,17 @@ export const sortTrendingTokens = (
     let bValue: number;
 
     switch (option) {
-      case PriceChangeOption.PriceChange:
-        // For price change, use priceChangePct?.h24 for 24-hour price change percentage
-        aValue = a.priceChangePct?.h24
-          ? parseFloat(a.priceChangePct.h24) || 0
+      case PriceChangeOption.PriceChange: {
+        // For price change, use the priceChangePct field corresponding to the selected time option
+        const priceChangeFieldKey = getPriceChangeFieldKey(timeOption);
+        aValue = a.priceChangePct?.[priceChangeFieldKey]
+          ? parseFloat(a.priceChangePct[priceChangeFieldKey]) || 0
           : 0;
-        bValue = b.priceChangePct?.h24
-          ? parseFloat(b.priceChangePct.h24) || 0
+        bValue = b.priceChangePct?.[priceChangeFieldKey]
+          ? parseFloat(b.priceChangePct[priceChangeFieldKey]) || 0
           : 0;
         break;
+      }
       case PriceChangeOption.Volume:
         aValue = a.aggregatedUsdVolume ?? 0;
         bValue = b.aggregatedUsdVolume ?? 0;

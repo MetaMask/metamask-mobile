@@ -44,7 +44,7 @@ import type { Network } from '../../../../Views/Settings/NetworksSettings/Networ
 /**
  * Maps TimeOption to the corresponding priceChangePct field key
  */
-const getPriceChangeFieldKey = (
+export const getPriceChangeFieldKey = (
   timeOption: TimeOption,
 ): 'h24' | 'h6' | 'h1' | 'm5' => {
   switch (timeOption) {
