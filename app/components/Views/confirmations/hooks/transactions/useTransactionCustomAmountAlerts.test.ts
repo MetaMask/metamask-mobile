@@ -185,7 +185,10 @@ describe('useTransactionCustomAmountAlerts', () => {
       ],
     } as AlertsContextParams);
 
-    const { result } = runHook({ isKeyboardVisible: true });
+    const { result } = runHook({
+      isInputChanged: true,
+      isKeyboardVisible: true,
+    });
 
     expect(result.current.alertMessage).toBeUndefined();
   });
