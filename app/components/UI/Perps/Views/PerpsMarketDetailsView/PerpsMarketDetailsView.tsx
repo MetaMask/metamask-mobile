@@ -84,6 +84,7 @@ import TradingViewChart, {
 import PerpsChartFullscreenModal from '../../components/PerpsChartFullscreenModal/PerpsChartFullscreenModal';
 import PerpsCandlePeriodSelector from '../../components/PerpsCandlePeriodSelector';
 import PerpsOHLCVBar from '../../components/PerpsOHLCVBar';
+import ComponentErrorBoundary from '../../../ComponentErrorBoundary';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
 import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
@@ -625,6 +626,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     setIsFullscreenChartVisible(false);
   }, []);
 
+  const handleChartError = useCallback(() => {
+    // Log the error but don't block the UI
+    console.error('Chart rendering error in market details view');
+  }, []);
+
   // Determine market hours content key based on current status - recalculated on each render to stay current
   const marketHoursContentKey = (() => {
     const status = getMarketHoursStatus();
@@ -715,39 +721,44 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         >
           {/* TradingView Chart Section */}
           <View style={[styles.section, styles.chartSection]}>
-            {/* OHLCV Bar - Shows above chart when interacting */}
-            {ohlcData && (
-              <PerpsOHLCVBar
-                open={ohlcData.open}
-                high={ohlcData.high}
-                low={ohlcData.low}
-                close={ohlcData.close}
-                volume={ohlcData.volume}
-                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-ohlcv-bar`}
-              />
-            )}
-
-            {hasHistoricalData ? (
-              <>
-                <TradingViewChart
-                  ref={chartRef}
-                  candleData={candleData}
-                  height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
-                  visibleCandleCount={visibleCandleCount}
-                  tpslLines={tpslLines}
-                  showOverlay={false}
-                  coloredVolume
-                  onOhlcDataChange={setOhlcData}
-                  testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
+            <ComponentErrorBoundary
+              componentLabel="PerpsMarketDetailsChart"
+              onError={handleChartError}
+            >
+              {/* OHLCV Bar - Shows above chart when interacting */}
+              {ohlcData && (
+                <PerpsOHLCVBar
+                  open={ohlcData.open}
+                  high={ohlcData.high}
+                  low={ohlcData.low}
+                  close={ohlcData.close}
+                  volume={ohlcData.volume}
+                  testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-ohlcv-bar`}
                 />
-              </>
-            ) : (
-              <Skeleton
-                height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
-                width="100%"
-                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`}
-              />
-            )}
+              )}
+
+              {hasHistoricalData ? (
+                <>
+                  <TradingViewChart
+                    ref={chartRef}
+                    candleData={candleData}
+                    height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
+                    visibleCandleCount={visibleCandleCount}
+                    tpslLines={tpslLines}
+                    showOverlay={false}
+                    coloredVolume
+                    onOhlcDataChange={setOhlcData}
+                    testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
+                  />
+                </>
+              ) : (
+                <Skeleton
+                  height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
+                  width="100%"
+                  testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`}
+                />
+              )}
+            </ComponentErrorBoundary>
 
             {/* Candle Period Selector */}
             <PerpsCandlePeriodSelector
