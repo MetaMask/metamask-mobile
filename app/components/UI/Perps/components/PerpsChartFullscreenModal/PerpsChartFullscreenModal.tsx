@@ -73,12 +73,14 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
 
     handleOrientationChange();
 
-    // Cleanup: always lock to portrait when component unmounts
-    // This ensures orientation is restored even if the component is unmounted unexpectedly
+    // Cleanup only if component unmounts while modal is visible
+    // No need to lock again on visibility change as it's handled above
     return () => {
-      lockAsync(OrientationLock.PORTRAIT_UP).catch((error) => {
-        console.warn('Failed to lock orientation on cleanup:', error);
-      });
+      if (isVisible) {
+        lockAsync(OrientationLock.PORTRAIT_UP).catch((error) => {
+          console.warn('Failed to lock orientation on cleanup:', error);
+        });
+      }
     };
   }, [isVisible]);
 
