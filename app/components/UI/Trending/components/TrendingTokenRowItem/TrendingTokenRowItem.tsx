@@ -40,6 +40,7 @@ import { TimeOption } from '../TrendingTokensBottomSheet';
 import NetworkModals from '../../../NetworkModal';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 import type { Network } from '../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
+import { getTrendingTokenImageUrl } from '../../utils/getTrendingTokenImageUrl';
 
 /**
  * Maps TimeOption to the corresponding priceChangePct field key
@@ -170,6 +171,14 @@ const TrendingTokenRowItem = ({
       }
     }
 
+    // Construct image URL from assetId
+    const imageUrl = getTrendingTokenImageUrl(token.assetId);
+
+    // Get 24-hour price change percentage (h24 corresponds to 1 day)
+    const priceChange24h = token.priceChangePct?.h24
+      ? parseFloat(token.priceChangePct.h24)
+      : undefined;
+
     // Navigate to Asset page with token data
     navigation.navigate('Asset', {
       chainId: hexChainId,
@@ -177,6 +186,8 @@ const TrendingTokenRowItem = ({
       symbol: token.symbol,
       name: token.name,
       decimals: token.decimals,
+      image: imageUrl,
+      pricePercentChange1d: priceChange24h,
     });
   }, [token, navigation, networkConfigurations]);
 

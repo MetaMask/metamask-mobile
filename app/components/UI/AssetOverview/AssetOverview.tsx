@@ -36,6 +36,7 @@ import {
   renderFromTokenMinimalUnit,
   renderFromWei,
   toHexadecimal,
+  addCurrencySymbol,
 } from '../../../util/number';
 import { getEther } from '../../../util/transactions';
 import Text from '../../Base/Text';
@@ -71,6 +72,11 @@ import {
   selectTokenDisplayData,
 } from '../../../selectors/tokenSearchDiscoveryDataController';
 import { formatWithThreshold } from '../../../util/assets';
+import { deriveBalanceFromAssetMarketDetails } from '../Tokens/util/deriveBalanceFromAssetMarketDetails';
+import {
+  TOKEN_BALANCE_LOADING,
+  TOKEN_RATE_UNDEFINED,
+} from '../Tokens/constants';
 import {
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
@@ -496,7 +502,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     : undefined;
   ///: END:ONLY_INCLUDE_IF
 
-  if (isMultichainAccountsState2Enabled) {
+  if (isMultichainAccountsState2Enabled && asset.balance != null) {
+    // When state2 is enabled and asset has balance, use it directly
     balance = asset.balance;
   } else if (isMultichainAsset) {
     balance = asset.balance
@@ -531,11 +538,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     }
   }
 
-  const mainBalance = asset.balanceFiat || '';
-  const secondaryBalance = `${balance} ${
-    asset.isETH ? asset.ticker : asset.symbol
-  }`;
-
   const convertedMultichainAssetRates =
     isNonEvmAsset && multichainAssetRates
       ? {
@@ -569,6 +571,78 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     priceDiff = calculatedPriceDiff;
     comparePrice = calculatedComparePrice;
   }
+
+  // Calculate fiat balance if not provided in asset (e.g., when coming from trending view)
+  let mainBalance = asset.balanceFiat || '';
+  if (!mainBalance && balance != null) {
+    // Convert balance to number for calculations
+    const balanceNumber =
+      typeof balance === 'number' ? balance : parseFloat(String(balance));
+
+    if (balanceNumber > 0 && !isNaN(balanceNumber)) {
+      if (isNonEvmAsset && multichainAssetRates?.rate) {
+        // For non-EVM assets, use multichainAssetRates directly
+        const rate = Number(multichainAssetRates.rate);
+        const balanceFiatNumber = balanceNumber * rate;
+        mainBalance =
+          balanceFiatNumber >= 0.01 || balanceFiatNumber === 0
+            ? addCurrencySymbol(balanceFiatNumber, currentCurrency)
+            : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
+      } else if (!isNonEvmAsset) {
+        // For EVM assets, use deriveBalanceFromAssetMarketDetails for consistency
+        // Use the market data directly from allTokenMarketData (already in correct format)
+        const tokenExchangeRates = allTokenMarketData?.[currentChainId] || {};
+
+        // Prepare token balances object (hex format)
+        const tokenBalances: Record<string, Hex> = {};
+        if (
+          itemAddress &&
+          multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
+            chainId as Hex
+          ]?.[itemAddress as Hex]
+        ) {
+          tokenBalances[itemAddress] =
+            multiChainTokenBalance[selectedInternalAccountAddress as Hex][
+              chainId as Hex
+            ][itemAddress as Hex];
+        }
+
+        const tickerConversionRate =
+          conversionRateByTicker?.[nativeCurrency]?.conversionRate;
+
+        // Use deriveBalanceFromAssetMarketDetails for consistent calculation
+        if (tickerConversionRate) {
+          // Create a temporary asset object with the balance (as string)
+          const assetWithBalance = {
+            ...asset,
+            balance:
+              typeof balance === 'string' ? balance : String(balanceNumber),
+          };
+
+          const balanceResult = deriveBalanceFromAssetMarketDetails(
+            assetWithBalance,
+            tokenExchangeRates,
+            tokenBalances,
+            tickerConversionRate,
+            currentCurrency,
+          );
+
+          // Only use calculated balance if we have valid market data
+          if (
+            balanceResult.balanceFiat &&
+            balanceResult.balanceFiat !== TOKEN_BALANCE_LOADING &&
+            balanceResult.balanceFiat !== TOKEN_RATE_UNDEFINED
+          ) {
+            mainBalance = balanceResult.balanceFiat;
+          }
+        }
+      }
+    }
+  }
+
+  const secondaryBalance = `${balance} ${
+    asset.isETH ? asset.ticker : asset.symbol
+  }`;
 
   return (
     <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>

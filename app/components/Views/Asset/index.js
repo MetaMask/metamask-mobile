@@ -292,10 +292,6 @@ class Asset extends PureComponent {
       this.checkLiveness(tokenChainId);
     }
 
-    InteractionManager.runAfterInteractions(() => {
-      this.normalizeTransactions();
-      this.mounted = true;
-    });
     this.navSymbol = (this.props.route.params?.symbol ?? '').toLowerCase();
     this.navAddress = (this.props.route.params?.address ?? '').toLowerCase();
 
@@ -304,6 +300,9 @@ class Asset extends PureComponent {
     } else {
       this.filter = this.ethFilter;
     }
+
+    this.normalizeTransactions();
+    this.mounted = true;
   }
 
   componentDidUpdate(prevProps) {
