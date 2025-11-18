@@ -1156,6 +1156,7 @@ describe('setEASUpdateContext', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockedGetGlobalScope.mockReturnValue(scopeMock as unknown as Scope);
+    expoUpdatesMockValues.isEmbeddedLaunch = false;
 
     manifestMock.metadata = {
       updateGroup: 'test-group-id',
@@ -1196,5 +1197,39 @@ describe('setEASUpdateContext', () => {
       'expo-runtime-version',
       expoUpdatesMockValues.runtimeVersion,
     );
+  });
+
+  it('marks debug url as not applicable for embedded updates without metadata', () => {
+    manifestMock.metadata = undefined;
+    expoUpdatesMockValues.isEmbeddedLaunch = true;
+
+    setEASUpdateContext();
+
+    expect(scopeMock.setTag).toHaveBeenCalledWith(
+      'expo-update-debug-url',
+      'not applicable for embedded updates',
+    );
+    expect(scopeMock.setTag).not.toHaveBeenCalledWith(
+      'expo-update-group-id',
+      expect.anything(),
+    );
+  });
+
+  it('warns when retrieving the Sentry scope fails', () => {
+    const error = new Error('scope failure');
+    mockedGetGlobalScope.mockImplementation(() => {
+      throw error;
+    });
+    const consoleWarnSpy = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => undefined);
+
+    setEASUpdateContext();
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      'Failed to set EAS update context in Sentry:',
+      error,
+    );
+    expect(scopeMock.setTag).not.toHaveBeenCalled();
   });
 });
