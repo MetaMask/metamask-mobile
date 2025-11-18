@@ -1,8 +1,15 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import TronStakingButtons from './TronStakingButtons';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenI } from '../../../../Tokens/types';
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 const mockNavigate = jest.fn();
 
@@ -52,6 +59,8 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 describe('TronStakingButtons', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockUseSelector.mockReturnValue(undefined);
   });
 
   const baseAsset = {
@@ -91,6 +100,11 @@ describe('TronStakingButtons', () => {
       isStaked: true,
       nativeAsset: undefined,
     } as TokenI;
+
+    mockUseSelector.mockReturnValue({
+      ...baseAsset,
+      isStaked: false,
+    });
 
     const { getByTestId } = render(
       <TronStakingButtons asset={stakedTrx} hasStakedPositions />,
