@@ -136,8 +136,7 @@ const AssetOptions = (props: Props) => {
       const accountAssets = multichainAssets?.[selectedNonEvmAccount.id] || [];
       // Check if the address (which may be in CAIP format) exists in the account's assets
       return accountAssets.some(
-        (assetAddress: string) =>
-          assetAddress.toLowerCase() === address.toLowerCase(),
+        (assetAddress: string) => assetAddress === address,
       );
     }
     const tokensByChain =
