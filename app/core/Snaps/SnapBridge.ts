@@ -49,9 +49,9 @@ type GetRPCMethodMiddleware = ({
  * @param params.getRPCMethodMiddleware - A function to get the RPC method middleware.
  */
 export default class SnapBridge {
-  snapId: SnapId;
-  stream: Duplex;
-  getRPCMethodMiddleware: GetRPCMethodMiddleware;
+  #snapId: SnapId;
+  #stream: Duplex;
+  #getRPCMethodMiddleware: GetRPCMethodMiddleware;
 
   constructor({
     snapId,
@@ -64,16 +64,16 @@ export default class SnapBridge {
   }) {
     Logger.log('[SNAP BRIDGE] Initializing SnapBridge for Snap:', snapId);
 
-    this.snapId = snapId;
-    this.stream = connectionStream;
-    this.getRPCMethodMiddleware = getRPCMethodMiddleware;
+    this.#snapId = snapId;
+    this.#stream = connectionStream;
+    this.#getRPCMethodMiddleware = getRPCMethodMiddleware;
   }
 
   /**
    * Gets the provider state.
    * @returns An object containing the provider state.
    */
-  async #getProviderState() {
+  #getProviderState() {
     return {
       isUnlocked: Engine.context.KeyringController.isUnlocked(),
     };
@@ -91,7 +91,7 @@ export default class SnapBridge {
     const engine = new JsonRpcEngine();
 
     const proxy = SelectedNetworkController.getProviderAndBlockTracker(
-      this.snapId,
+      this.#snapId,
     );
 
     const filterMiddleware = createFilterMiddleware(proxy);
@@ -102,7 +102,7 @@ export default class SnapBridge {
     );
 
     engine.push(
-      createOriginMiddleware({ origin: this.snapId }) as JsonRpcMiddleware<
+      createOriginMiddleware({ origin: this.#snapId }) as JsonRpcMiddleware<
         JsonRpcParams,
         Json
       >,
@@ -118,12 +118,12 @@ export default class SnapBridge {
     engine.push(filterMiddleware);
     engine.push(subscriptionManager.middleware);
 
-    if (isSnapPreinstalled(this.snapId)) {
+    if (isSnapPreinstalled(this.#snapId)) {
       engine.push(
         createPreinstalledSnapsMiddleware({
           getPermissions: PermissionController.getPermissions.bind(
             PermissionController,
-            this.snapId,
+            this.#snapId,
           ),
           getAllEvmAccounts: () =>
             controllerMessenger
@@ -132,7 +132,7 @@ export default class SnapBridge {
           grantPermissions: (approvedPermissions) =>
             controllerMessenger.call('PermissionController:grantPermissions', {
               approvedPermissions,
-              subject: { origin: this.snapId },
+              subject: { origin: this.#snapId },
             }),
         }),
       );
@@ -140,7 +140,7 @@ export default class SnapBridge {
 
     engine.push(
       PermissionController.createPermissionMiddleware({
-        origin: this.snapId,
+        origin: this.#snapId,
       }),
     );
 
@@ -148,15 +148,15 @@ export default class SnapBridge {
       snapMethodMiddlewareBuilder(
         context,
         controllerMessenger,
-        this.snapId,
+        this.#snapId,
         SubjectType.Snap,
       ),
     );
 
     // User-Facing RPC methods
     engine.push(
-      this.getRPCMethodMiddleware({
-        hostname: this.snapId,
+      this.#getRPCMethodMiddleware({
+        hostname: this.#snapId,
         getProviderState: this.#getProviderState.bind(this),
       }),
     );
@@ -173,7 +173,7 @@ export default class SnapBridge {
   setupProviderConnection() {
     Logger.log('[SNAP BRIDGE] Setting up provider connection');
 
-    const mux = setupMultiplex(this.stream);
+    const mux = setupMultiplex(this.#stream);
     const stream = mux.createStream('metamask-provider');
 
     const engine = this.#setupProviderEngine();
