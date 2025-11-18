@@ -8,7 +8,7 @@ import {
   Linking,
 } from 'react-native';
 import { strings } from '../../../../locales/i18n';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
 import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
 import { createStyles } from './styles';
 import Text, {
@@ -53,18 +53,12 @@ const WalletRestored = () => {
   }, [deviceMetaData, trackEvent, createEventBuilder]);
 
   const finishWalletRestore = useCallback(async (): Promise<void> => {
-    // Clear migration error flag after successful vault recovery
-    // Note: If this fails, the flag will trigger recovery again on next launch,
-    // but that's acceptable - user can still use their wallet and recovery will retry clearing
     try {
-      await AsyncStorage.removeItem(MIGRATION_ERROR_HAPPENED);
+      await FilesystemStorage.removeItem(MIGRATION_ERROR_HAPPENED);
     } catch (error) {
       Logger.error(error as Error, 'Failed to clear migration error flag');
     }
 
-    // After vault recovery, navigate to Login for manual password entry
-    // This unlocks the restored vault AND stores credentials in keychain
-    // Note: appTriggeredAuth cannot work here - no credentials exist yet
     navigation.replace(Routes.ONBOARDING.LOGIN, {
       isVaultRecovery: true,
     });

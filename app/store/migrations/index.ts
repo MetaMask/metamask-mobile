@@ -112,7 +112,8 @@ import migration107 from './107';
 // Add migrations above this line
 import { ControllerStorage } from '../persistConfig';
 import { captureException } from '@sentry/react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
+import Device from '../../util/device';
 import { MIGRATION_ERROR_HAPPENED } from '../../constants/storage';
 
 type MigrationFunction = (state: unknown) => unknown;
@@ -390,7 +391,13 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
           return migratedState;
         } catch (error) {
           try {
-            await AsyncStorage.setItem(MIGRATION_ERROR_HAPPENED, 'true');
+            // Use FilesystemStorage with isIos flag to exclude from iCloud backup
+            // This prevents the flag from persisting across app deletions on iOS
+            await FilesystemStorage.setItem(
+              MIGRATION_ERROR_HAPPENED,
+              'true',
+              Device.isIos(),
+            );
           } catch (storageError) {
             captureException(storageError as Error);
           }

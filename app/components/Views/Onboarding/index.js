@@ -31,7 +31,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
 import { getVaultFromBackup } from '../../../core/BackupVault';
 import Logger from '../../../util/Logger';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
 import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { isE2E } from '../../../util/test/utils';
@@ -384,7 +384,8 @@ class Onboarding extends PureComponent {
 
     try {
       // Check for migration error flag
-      const migrationErrorFlag = await AsyncStorage.getItem(
+      // Using FilesystemStorage (excluded from iCloud backup) for reliability
+      const migrationErrorFlag = await FilesystemStorage.getItem(
         MIGRATION_ERROR_HAPPENED,
       );
 
