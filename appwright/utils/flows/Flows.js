@@ -16,6 +16,7 @@ import MultichainAccountEducationModal from '../../../wdio/screen-objects/Modals
 import PerpsGTMModal from '../../../wdio/screen-objects/Modals/PerpsGTMModal.js';
 import RewardsGTMModal from '../../../wdio/screen-objects/Modals/RewardsGTMModal.js';
 import AppwrightGestures from '../../../e2e/framework/AppwrightGestures.js';
+import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors.js';
 
 export async function onboardingFlowImportSRP(device, srp) {
   WelcomeScreen.device = device;
@@ -62,6 +63,7 @@ export async function onboardingFlowImportSRP(device, srp) {
 }
 
 export async function dissmissAllModals(device) {
+  await dismissAddAccountModal(device);
   await dismissMultichainAccountsIntroModal(device);
   await tapPerpsBottomSheetGotItButton(device);
   await dismissRewardsBottomSheetModal(device);
@@ -125,10 +127,9 @@ export async function login(device, options = {}) {
   await LoginScreen.tapUnlockButton();
   // Wait for app to settle after unlock
 
-  // if (shouldDismissModals) {
-  //   await dissmissAllModals(device);
-  // }
-  console.log('Manually dismiss modals now!');
+  if (shouldDismissModals) {
+    await dissmissAllModals(device);
+  }
   await AppwrightGestures.wait(5000);
 }
 export async function tapPerpsBottomSheetGotItButton(device) {
@@ -137,6 +138,7 @@ export async function tapPerpsBottomSheetGotItButton(device) {
   if (await container.isVisible({ timeout: 5000 })) {
     await PerpsGTMModal.tapNotNowButton();
     console.log('Perps onboarding dismissed');
+    return;
   }
   if (await container.isVisible({ timeout: 5000 })) {
     await PerpsGTMModal.tapNotNowButton();
@@ -160,8 +162,24 @@ export async function dismissMultichainAccountsIntroModal(
   const closeButton = await MultichainAccountEducationModal.closeButton;
   if (await closeButton.isVisible({ timeout })) {
     await MultichainAccountEducationModal.tapGotItButton();
+    return;
   }
   if (await closeButton.isVisible({ timeout })) {
     await MultichainAccountEducationModal.tapGotItButton();
+  }
+}
+
+export async function dismissAddAccountModal(device) {
+  // Fix this for iOS
+  const cancelButton = await AppwrightSelectors.getElementByXpath(
+    device,
+    '//android.widget.Button[@content-desc="Cancel"]',
+  );
+  if (await cancelButton.isVisible({ timeout: 5000 })) {
+    await AppwrightGestures.tap(cancelButton);
+    return;
+  }
+  if (await cancelButton.isVisible({ timeout: 5000 })) {
+    await AppwrightGestures.tap(cancelButton);
   }
 }
