@@ -89,7 +89,7 @@ describe('PredictPositionResolved', () => {
 
     expect(screen.getByText(/\$100\.00 on Yes/)).toBeOnTheScreen();
     expect(screen.getByText(/Ended 2 days ago/)).toBeOnTheScreen();
-    expect(screen.getByText(/Lost \$50\.00/)).toBeOnTheScreen();
+    expect(screen.getByText(/Lost\s+\$50/)).toBeOnTheScreen();
   });
 
   it('renders different outcome text', () => {

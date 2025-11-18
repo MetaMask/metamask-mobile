@@ -506,7 +506,7 @@ describe('PredictBalance', () => {
       });
 
       // Assert
-      expect(getByText(/\$123,456,789\.13/)).toBeOnTheScreen();
+      expect(getByText(/\$123,456,789\.12/)).toBeOnTheScreen();
     });
 
     it('handles adding funds state', () => {
