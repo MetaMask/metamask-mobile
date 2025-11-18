@@ -5,7 +5,7 @@ __metadata:
   version: 8
   cacheKey: 10
 
-"@0no-co/graphql.web@npm:^1.0.1, @0no-co/graphql.web@npm:^1.0.13":
+"@0no-co/graphql.web@npm:^1.0.1, @0no-co/graphql.web@npm:^1.0.13, @0no-co/graphql.web@npm:^1.0.5, @0no-co/graphql.web@npm:^1.0.8":
   version: 1.2.0
   resolution: "@0no-co/graphql.web@npm:1.2.0"
   peerDependencies:
@@ -14,18 +14,6 @@ __metadata:
     graphql:
       optional: true
   checksum: 10/bb53b2e013686df0c8ca518430e9371bd14bd26910c1ab5b7bebd76cea1867ba6160d7e01924a04af846e90d99cb8f101f35960f89a76a8a91ce1d70f74d321d
-  languageName: node
-  linkType: hard
-
-"@0no-co/graphql.web@npm:^1.0.5, @0no-co/graphql.web@npm:^1.0.8":
-  version: 1.0.13
-  resolution: "@0no-co/graphql.web@npm:1.0.13"
-  peerDependencies:
-    graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
-  peerDependenciesMeta:
-    graphql:
-      optional: true
-  checksum: 10/c392d9ff60b11ea8bb11f7ba456331ec074f6a5f8fb53aae0cb1d962e19c8b89e669b024958b2054c4113cdbed1198b0e21e3a4f7f46d7141354e4a7d609e0f8
   languageName: node
   linkType: hard
 
@@ -586,7 +574,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/helper-validator-identifier@npm:^7.24.7, @babel/helper-validator-identifier@npm:^7.25.9, @babel/helper-validator-identifier@npm:^7.27.1":
+"@babel/helper-validator-identifier@npm:^7.25.9, @babel/helper-validator-identifier@npm:^7.27.1":
   version: 7.27.1
   resolution: "@babel/helper-validator-identifier@npm:7.27.1"
   checksum: 10/75041904d21bdc0cd3b07a8ac90b11d64cd3c881e89cb936fa80edd734bf23c35e6bd1312611e8574c4eab1f3af0f63e8a5894f4699e9cfdf70c06fcf4252320
@@ -621,19 +609,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/highlight@npm:^7.10.4":
-  version: 7.24.7
-  resolution: "@babel/highlight@npm:7.24.7"
-  dependencies:
-    "@babel/helper-validator-identifier": "npm:^7.24.7"
-    chalk: "npm:^2.4.2"
-    js-tokens: "npm:^4.0.0"
-    picocolors: "npm:^1.0.0"
-  checksum: 10/69b73f38cdd4f881b09b939a711e76646da34f4834f4ce141d7a49a6bb1926eab1c594148970a8aa9360398dff800f63aade4e81fafdd7c8d8a8489ea93bfec1
-  languageName: node
-  linkType: hard
-
-"@babel/highlight@npm:^7.23.4":
+"@babel/highlight@npm:^7.10.4, @babel/highlight@npm:^7.23.4":
   version: 7.25.9
   resolution: "@babel/highlight@npm:7.25.9"
   dependencies:
@@ -47357,7 +47333,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yaml@npm:2.8.0, yaml@npm:^2.2.1, yaml@npm:^2.3.4":
+"yaml@npm:2.8.0":
   version: 2.8.0
   resolution: "yaml@npm:2.8.0"
   bin:
@@ -47373,7 +47349,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yaml@npm:^2.4.3":
+"yaml@npm:^2.2.1, yaml@npm:^2.3.4, yaml@npm:^2.4.3":
   version: 2.8.1
   resolution: "yaml@npm:2.8.1"
   bin:
