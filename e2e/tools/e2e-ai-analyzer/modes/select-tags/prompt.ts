@@ -10,6 +10,7 @@ import {
   buildConfidenceGuidanceSection,
   buildRiskAssessmentSection,
 } from '../shared/base-system-prompt';
+import { CLAUDE_CONFIG } from '../../config';
 
 /**
  * Builds the system prompt, i.e. the initial system message
@@ -19,10 +20,11 @@ export function buildSystemPrompt(): string {
   const goal = `GOAL: Analyze code changes and select appropriate test tags to run.`;
 
   const guidanceSection = `GUIDANCE:
-Use your judgment - selecting 0 tags is acceptable for non-functional changes.
+Use your judgment - selecting all tags is acceptable (recommended as conservative approach), as well as selecting none of them.
 Critical files (marked in file list) typically warrant testing. Use tools to investigate when uncertain.
 For E2E test infrastructure related changes, consider running the necessary tests or all of them in case the changes are wide-ranging.
-Balance thoroughness with efficiency, and be conservative in the assessment of risk and tags to run.`;
+Balance thoroughness with efficiency, and be conservative in the assessment of risk and tags to run.
+Do not exceed the maximum number of analysis iterations which is ${CLAUDE_CONFIG.maxIterations}.`;
 
   const prompt = [
     role,
