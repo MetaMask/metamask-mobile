@@ -7,7 +7,7 @@ import {
 } from '../Aggregator/types';
 import { createRampNavigationDetails } from '../Aggregator/routes/utils';
 import { createDepositNavigationDetails } from '../Deposit/routes/utils';
-import { createTokenSelectionNavigationDetails } from '../components/TokenSelection/TokenSelection';
+import { createTokenSelectionNavDetails } from '../components/TokenSelection/TokenSelection';
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
 import {
   getRampRoutingDecision,
@@ -47,11 +47,7 @@ export const useRampNavigation = () => {
       if (isRampsUnifiedV1Enabled && !overrideUnifiedRouting) {
         // If no assetId is provided, route to TokenSelection
         if (!intent?.assetId) {
-          navigation.navigate(
-            ...createTokenSelectionNavigationDetails({
-              selectedCryptoAssetId: undefined,
-            }),
-          );
+          navigation.navigate(...createTokenSelectionNavDetails());
           return;
         }
 
