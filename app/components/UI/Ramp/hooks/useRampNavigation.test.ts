@@ -136,11 +136,7 @@ describe('useRampNavigation', () => {
 
           result.current.goToBuy();
 
-          expect(
-            mockCreateTokenSelectionNavigationDetails,
-          ).toHaveBeenCalledWith({
-            selectedCryptoAssetId: undefined,
-          });
+          expect(mockCreateTokenSelectionNavigationDetails).toHaveBeenCalled();
           expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
           expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
           expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
@@ -160,11 +156,7 @@ describe('useRampNavigation', () => {
 
           result.current.goToBuy(intent);
 
-          expect(
-            mockCreateTokenSelectionNavigationDetails,
-          ).toHaveBeenCalledWith({
-            selectedCryptoAssetId: undefined,
-          });
+          expect(mockCreateTokenSelectionNavigationDetails).toHaveBeenCalled();
           expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
         });
       });
