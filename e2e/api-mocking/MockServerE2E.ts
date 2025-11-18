@@ -21,6 +21,7 @@ import {
   FALLBACK_DAPP_SERVER_PORT,
 } from '../framework/Constants';
 import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager';
+import { PlatformDetector } from '../../wdio-playwright/framework';
 
 const logger = createLogger({
   name: 'MockServer',
@@ -311,10 +312,9 @@ export default class MockServerE2E implements Resource {
           };
         }
 
-        let updatedUrl =
-          device.getPlatform() === 'android'
-            ? urlEndpoint.replace('localhost', '127.0.0.1')
-            : urlEndpoint;
+        let updatedUrl = (await PlatformDetector.isAndroid())
+          ? urlEndpoint.replace('localhost', '127.0.0.1')
+          : urlEndpoint;
 
         // Translate fallback ports to actual allocated ports (host-side forwarding)
         updatedUrl = translateFallbackPortToActual(updatedUrl);
