@@ -15,6 +15,8 @@ import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
 import MultichainAccountEducationModal from '../../../wdio/screen-objects/Modals/MultichainAccountEducationModal.js';
 import PerpsGTMModal from '../../../wdio/screen-objects/Modals/PerpsGTMModal.js';
 import RewardsGTMModal from '../../../wdio/screen-objects/Modals/RewardsGTMModal.js';
+import AppwrightGestures from '../../../e2e/framework/AppwrightGestures.js';
+import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors.js';
 
 export async function onboardingFlowImportSRP(device, srp) {
   WelcomeScreen.device = device;
@@ -61,6 +63,7 @@ export async function onboardingFlowImportSRP(device, srp) {
 }
 
 export async function dissmissAllModals(device) {
+  await dismissAddAccountModal(device);
   await dismissMultichainAccountsIntroModal(device);
   await tapPerpsBottomSheetGotItButton(device);
   await dismissRewardsBottomSheetModal(device);
@@ -115,10 +118,7 @@ export async function importSRPFlow(device, srp) {
 
 export async function login(device, options = {}) {
   LoginScreen.device = device;
-  const {
-    scenarioType = 'login',
-    shouldDismissModals = true,
-  } = options;
+  const { scenarioType = 'login', shouldDismissModals = true } = options;
 
   const password = getPasswordForScenario(scenarioType);
 
@@ -130,6 +130,7 @@ export async function login(device, options = {}) {
   if (shouldDismissModals) {
     await dissmissAllModals(device);
   }
+  await AppwrightGestures.wait(5000);
 }
 export async function tapPerpsBottomSheetGotItButton(device) {
   PerpsGTMModal.device = device;
@@ -137,6 +138,7 @@ export async function tapPerpsBottomSheetGotItButton(device) {
   if (await container.isVisible({ timeout: 5000 })) {
     await PerpsGTMModal.tapNotNowButton();
     console.log('Perps onboarding dismissed');
+    return;
   }
   if (await container.isVisible({ timeout: 5000 })) {
     await PerpsGTMModal.tapNotNowButton();
@@ -160,8 +162,24 @@ export async function dismissMultichainAccountsIntroModal(
   const closeButton = await MultichainAccountEducationModal.closeButton;
   if (await closeButton.isVisible({ timeout })) {
     await MultichainAccountEducationModal.tapGotItButton();
+    return;
   }
   if (await closeButton.isVisible({ timeout })) {
     await MultichainAccountEducationModal.tapGotItButton();
+  }
+}
+
+export async function dismissAddAccountModal(device) {
+  // Fix this for iOS
+  const cancelButton = await AppwrightSelectors.getElementByXpath(
+    device,
+    '//android.widget.Button[@content-desc="Cancel"]',
+  );
+  if (await cancelButton.isVisible({ timeout: 5000 })) {
+    await AppwrightGestures.tap(cancelButton);
+    return;
+  }
+  if (await cancelButton.isVisible({ timeout: 5000 })) {
+    await AppwrightGestures.tap(cancelButton);
   }
 }
