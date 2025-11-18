@@ -177,10 +177,19 @@ class NotificationsService {
 
   async hasPerimssion() {
     const settings = await notifee.getNotificationSettings();
-    return settings.authorizationStatus === AuthorizationStatus.AUTHORIZED ||
-      settings.authorizationStatus === AuthorizationStatus.PROVISIONAL
-      ? ('authorized' as const)
-      : ('denied' as const);
+    // status where we can assume authorized
+    if (
+      [
+        AuthorizationStatus.NOT_DETERMINED,
+        AuthorizationStatus.AUTHORIZED,
+        AuthorizationStatus.PROVISIONAL,
+      ].includes(settings.authorizationStatus)
+    ) {
+      return 'authorized' as const;
+    }
+
+    // Otherwise this settings has been denied
+    return 'denied' as const;
   }
 
   onForegroundEvent = (

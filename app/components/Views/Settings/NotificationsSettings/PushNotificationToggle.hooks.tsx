@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
-import { Linking } from 'react-native';
-import { getPushPermission } from '../../../../util/notifications/services/NotificationService';
+import NotificationService, {
+  getPushPermission,
+} from '../../../../util/notifications/services/NotificationService';
 import { usePushNotificationsToggle } from '../../../../util/notifications/hooks/usePushNotifications';
 
 export function usePushNotificationSettingsToggle() {
@@ -10,7 +11,7 @@ export function usePushNotificationSettingsToggle() {
   const onToggle = useCallback(async () => {
     const perm = await getPushPermission();
     if (perm === 'denied') {
-      await Linking.openSettings();
+      await NotificationService.openSystemSettings();
       return;
     }
 
