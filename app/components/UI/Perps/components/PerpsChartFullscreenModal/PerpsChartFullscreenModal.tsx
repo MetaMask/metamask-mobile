@@ -21,7 +21,7 @@ import TradingViewChart, {
   type OhlcData,
 } from '../TradingViewChart';
 import type { CandleData } from '../../types/perps-types';
-import { CandlePeriod } from '../../constants/chartConfig';
+import { CandlePeriod, PERPS_CHART_CONFIG } from '../../constants/chartConfig';
 import PerpsCandlestickChartIntervalSelector from '../PerpsCandlestickChartIntervalSelector/PerpsCandlestickChartIntervalSelector';
 import { styleSheet } from './PerpsChartFullscreenModal.styles';
 import PerpsOHLCVBar from '../PerpsOHLCVBar';
@@ -49,7 +49,8 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
   // Initialize with screen height to avoid flash of incorrect size
   const [chartHeight, setChartHeight] = useState<number>(
-    Dimensions.get('window').height * 0.7,
+    Dimensions.get('window').height *
+      PERPS_CHART_CONFIG.LAYOUT.FULLSCREEN_INITIAL_HEIGHT_RATIO,
   );
 
   // Auto-follow device orientation when modal is open
@@ -162,7 +163,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
             candleData={candleData}
             height={chartHeight}
             tpslLines={tpslLines}
-            visibleCandleCount={90} // Show more candles in landscape mode
+            visibleCandleCount={PERPS_CHART_CONFIG.CANDLE_COUNT.FULLSCREEN}
             showVolume // Always show volume in fullscreen
             showOverlay={false}
             coloredVolume

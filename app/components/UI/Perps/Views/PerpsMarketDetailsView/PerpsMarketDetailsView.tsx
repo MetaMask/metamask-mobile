@@ -41,7 +41,11 @@ import type {
 import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
-import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
+import {
+  CandlePeriod,
+  TimeDuration,
+  PERPS_CHART_CONFIG,
+} from '../../constants/chartConfig';
 import { PERFORMANCE_CONFIG } from '../../constants/perpsConfig';
 import { createStyles } from './PerpsMarketDetailsView.styles';
 import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
@@ -728,7 +732,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 <TradingViewChart
                   ref={chartRef}
                   candleData={candleData}
-                  height={350}
+                  height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
                   visibleCandleCount={visibleCandleCount}
                   tpslLines={tpslLines}
                   showOverlay={false}
@@ -739,7 +743,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               </>
             ) : (
               <Skeleton
-                height={350}
+                height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
                 width="100%"
                 testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`}
               />
