@@ -207,7 +207,7 @@ export function createTrustSignalsMiddleware({
       const chainId = getChainIdForRequest(req, networkController);
       if (!chainId) {
         Logger.log('[AddressScanMiddleware] Could not get chainId for request');
-        return next();
+        return;
       }
 
       if (req.method === 'eth_sendTransaction') {
