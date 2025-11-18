@@ -74,7 +74,6 @@ export const EvmTokenConversionInfo = () => {
     return null;
   }
 
-  // TODO: Fix broken "Transaction fee" tooltip (currently empty tooltip bottom-sheet).
   return (
     <CustomAmountInfo
       allowedPaymentTokens={allowedPaymentTokens}
