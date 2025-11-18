@@ -152,7 +152,6 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
                 low={ohlcData.low}
                 close={ohlcData.close}
                 volume={ohlcData.volume}
-                time={ohlcData.time}
                 testID="fullscreen-chart-ohlcv-bar"
               />
             </View>

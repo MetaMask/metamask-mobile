@@ -36,12 +36,6 @@ export interface PerpsOHLCVBarProps {
   volume?: string;
 
   /**
-   * Unix timestamp for the candle (optional)
-   * Used for displaying time information
-   */
-  time?: number;
-
-  /**
    * Test ID for automated testing
    */
   testID?: string;

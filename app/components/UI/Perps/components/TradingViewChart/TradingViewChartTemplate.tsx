@@ -243,13 +243,24 @@ export const createTradingViewChartTemplate = (
                         priceFormatter: (price) => {
                             // Dynamic Y-axis formatter that adjusts precision based on visible price range
                             // This prevents duplicate labels (e.g., "160 160 161 161") by using more decimals when zoomed in
-                            
+
                             if (price === 0) return '0.00';
 
                             const absPrice = Math.abs(price);
 
-                            // Detect and format volume values (typically >= 100k)
-                            // Volume values are much larger than typical crypto prices
+                            // VOLUME DETECTION HEURISTIC:
+                            // Detect and format volume values using 100k threshold
+                            //
+                            // Why 100k?
+                            // - USD notional volume (volume × price) typically ranges from millions to billions
+                            // - Most crypto asset prices are < $100k (BTC, ETH, altcoins)
+                            // - Even high-value assets rarely sustain prices > $100k for Y-axis display
+                            //
+                            // Edge cases:
+                            // - If BTC or other assets exceed $100k consistently, this may misformat prices
+                            // - Future improvement: Pass explicit flag from volume series instead of heuristic
+                            //
+                            // Volume calculation: volume × close price = USD notional volume
                             if (absPrice >= 100000) {
                                 return window.formatVolumeNumber(price);
                             }
@@ -529,6 +540,15 @@ export const createTradingViewChartTemplate = (
 
         // Custom volume formatter using K/M/B/T suffixes
         // Inline JavaScript version of formatLargeNumber from formatUtils.ts
+        //
+        // This formatter is specifically designed for USD notional volume display
+        // USD notional = volume × price (e.g., 100 BTC × $40,000 = $4,000,000 = "4.00M")
+        //
+        // Format examples:
+        // - 1,234,567,890 → "1.23B" (billions)
+        // - 12,345,678 → "12.35M" (millions)
+        // - 123,456 → "123K" (thousands)
+        // - 999 → "999.00" (under 1000)
         window.formatVolumeNumber = function(value) {
             // Don't show labels for zero or negative volume (doesn't make sense)
             if (value <= 0 || isNaN(value) || !isFinite(value)) {

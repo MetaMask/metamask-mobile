@@ -447,7 +447,17 @@ const TradingViewChart = React.forwardRef<
 
     const webViewElement = (
       <WebView
-        key="chart-webview-v20" // Change this version to force remount and reload HTML
+        // WebView cache versioning strategy:
+        // Increment this version number to force WebView remount and HTML reload
+        // when making incompatible changes to TradingViewChartTemplate.tsx
+        //
+        // Current version: v20 (added volume histogram + fullscreen support)
+        //
+        // Future improvement: Consider using a content hash of the template
+        // for automatic cache busting: key={`chart-webview-${templateHash}`}
+        //
+        // Note: HTML content is already memoized and regenerates on theme/coloredVolume changes
+        key="chart-webview-v20"
         ref={webViewRef}
         source={{ html: htmlContent }}
         style={[styles.webView, { height, width: '100%' }]} // eslint-disable-line react-native/no-inline-styles

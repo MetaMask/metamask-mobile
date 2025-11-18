@@ -719,7 +719,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 low={ohlcData.low}
                 close={ohlcData.close}
                 volume={ohlcData.volume}
-                time={ohlcData.time}
                 testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-ohlcv-bar`}
               />
             )}
