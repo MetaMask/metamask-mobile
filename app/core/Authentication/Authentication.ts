@@ -454,6 +454,10 @@ class AuthenticationService {
 
     // Fall back to password authType
     await this.storePassword(password, AUTHENTICATION_TYPE.PASSWORD);
+    this.authData = {
+      currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+      availableBiometryType: authData.availableBiometryType,
+    };
   };
 
   /**
@@ -531,11 +535,12 @@ class AuthenticationService {
       } else {
         await this.createWalletVaultAndKeychain(password);
       }
-
+      let isStorePasswordFallback = false;
       try {
         await this.storePassword(password, authData?.currentAuthType);
       } catch (error) {
         await this.storePasswordFallback(authData, password, error);
+        isStorePasswordFallback = true;
       }
 
       ReduxService.store.dispatch(setExistingUser(true));
@@ -544,7 +549,9 @@ class AuthenticationService {
       await this.dispatchLogin({
         clearAccountTreeState: true,
       });
-      this.authData = authData;
+      if (!isStorePasswordFallback) {
+        this.authData = authData;
+      }
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
@@ -573,18 +580,21 @@ class AuthenticationService {
   ): Promise<void> => {
     try {
       await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
+      let isStorePasswordFallback = false;
       try {
         await this.storePassword(password, authData.currentAuthType);
       } catch (error) {
         await this.storePasswordFallback(authData, password, error);
+        isStorePasswordFallback = true;
       }
-
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       await this.dispatchLogin({
         clearAccountTreeState: true,
       });
-      this.authData = authData;
+      if (!isStorePasswordFallback) {
+        this.authData = authData;
+      }
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
