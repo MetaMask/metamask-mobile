@@ -1,5 +1,6 @@
 import { Dimensions } from 'react-native';
 import { PredictSeries, Recurrence } from '../types';
+import { formatWithThreshold } from '../../../../util/assets';
 
 /**
  * Formats a percentage value with no decimals
@@ -50,7 +51,6 @@ export const formatPrice = (
   _options?: { minimumDecimals?: number; maximumDecimals?: number },
 ): string => {
   const num = typeof price === 'string' ? parseFloat(price) : price;
-
   if (isNaN(num)) {
     return '$0.00';
   }
@@ -65,6 +65,50 @@ export const formatPrice = (
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(truncated);
+};
+
+/**
+ * Formats a price value as USD currency with variable decimal places based on magnitude
+ * @param price - Raw numeric price value
+ * @param options - Optional formatting options
+ * @param options.minimumDecimals - Minimum decimal places (default: 2, use 0 for whole numbers)
+ * @param options.maximumDecimals - Maximum decimal places (default: 2 for prices >= $1000, 4 for prices < $1000)
+ * @returns USD formatted string with variable decimals:
+ * - Prices >= $1000: "$X,XXX.XX" (2 decimals by default)
+ * - Prices < $1000: "$X.XXXX" (up to 4 decimals)
+ * @example formatPrice(1234.5678) => "$1,234.57"
+ * @example formatPrice(0.1234) => "$0.1234"
+ * @example formatPrice(50000, { minimumDecimals: 0 }) => "$50,000"
+ */
+export const formatPriceWithDecimals = (
+  price: string | number,
+  options?: { minimumDecimals?: number; maximumDecimals?: number },
+): string => {
+  const num = typeof price === 'string' ? parseFloat(price) : price;
+  const minDecimals = options?.minimumDecimals ?? 2;
+  const maxDecimals = options?.maximumDecimals ?? 4;
+  if (isNaN(num)) {
+    return minDecimals === 0 ? '$0' : '$0.00';
+  }
+
+  // For prices >= 1000, use specified minimum decimal places
+  if (num >= 1000) {
+    return formatWithThreshold(num, 1000, 'en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: minDecimals,
+      maximumFractionDigits:
+        options?.maximumDecimals ?? Math.max(minDecimals, 2),
+    });
+  }
+
+  // For prices < 1000, use up to 4 decimal places
+  return formatWithThreshold(num, 0.0001, 'en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: minDecimals,
+    maximumFractionDigits: maxDecimals,
+  });
 };
 
 /**

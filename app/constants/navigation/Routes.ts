@@ -184,6 +184,8 @@ const Routes = {
     TOOLTIP_MODAL: 'tooltipModal',
     TOKEN_SORT: 'TokenSort',
     TOKEN_FILTER: 'TokenFilter',
+    TRENDING_TOKEN_NETWORK: 'TrendingTokenNetwork',
+    TRENDING_TOKEN_PRICE_CHANGE: 'TrendingTokenPriceChange',
     NETWORK_MANAGER: 'NetworkManager',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
     SELECT_SRP: 'SelectSRP',
@@ -223,6 +225,7 @@ const Routes = {
     WALLET_CONNECT_SESSIONS_VIEW: 'WalletConnectSessionsView',
     NFTS_FULL_VIEW: 'NftFullView',
     TOKENS_FULL_VIEW: 'TokensFullView',
+    TRENDING_TOKENS_FULL_VIEW: 'TrendingTokensFullView',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',

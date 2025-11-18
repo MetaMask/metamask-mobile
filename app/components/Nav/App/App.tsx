@@ -41,6 +41,10 @@ import AddressSelector from '../../../components/Views/AddressSelector';
 import { TokenSortBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenSortBottomSheet';
 import ProfilerManager from '../../../components/UI/ProfilerManager';
 import { TokenFilterBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenFilterBottomSheet';
+import {
+  TrendingTokenNetworkBottomSheet,
+  TrendingTokenPriceChangeBottomSheet,
+} from '../../../components/UI/Trending/components/TrendingTokensBottomSheet';
 import NetworkManager from '../../../components/UI/NetworkManager';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import AccountPermissionsConfirmRevokeAll from '../../../components/Views/AccountPermissions/AccountPermissionsConfirmRevokeAll';
@@ -473,6 +477,14 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.TOKEN_FILTER}
       component={TokenFilterBottomSheet}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.TRENDING_TOKEN_NETWORK}
+      component={TrendingTokenNetworkBottomSheet}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.TRENDING_TOKEN_PRICE_CHANGE}
+      component={TrendingTokenPriceChangeBottomSheet}
     />
     <Stack.Screen
       name={Routes.SHEET.NETWORK_MANAGER}

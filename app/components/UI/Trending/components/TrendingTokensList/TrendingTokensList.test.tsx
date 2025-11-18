@@ -1,7 +1,8 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import TrendingTokensList from './TrendingTokensList';
 import type { TrendingAsset } from '@metamask/assets-controllers';
+import { TimeOption } from '../TrendingTokensBottomSheet';
 
 // Mock FlashList
 jest.mock('@shopify/flash-list', () => {
@@ -33,22 +34,12 @@ jest.mock('@shopify/flash-list', () => {
 });
 
 // Mock TrendingTokenRowItem
-jest.mock('./TrendingTokenRowItem/TrendingTokenRowItem', () => {
-  const React = jest.requireActual('react');
+jest.mock('../TrendingTokenRowItem/TrendingTokenRowItem', () => {
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({
-      token,
-      onPress,
-    }: {
-      token: TrendingAsset;
-      onPress: () => void;
-    }) => (
-      <TouchableOpacity
-        testID={`trending-token-row-item-${token.assetId}`}
-        onPress={onPress}
-      >
+    default: ({ token }: { token: TrendingAsset }) => (
+      <TouchableOpacity testID={`trending-token-row-item-${token.assetId}`}>
         <Text>{token.name}</Text>
       </TouchableOpacity>
     ),
@@ -69,8 +60,6 @@ const createMockToken = (
 });
 
 describe('TrendingTokensList', () => {
-  const mockOnTokenPress = jest.fn();
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -79,7 +68,7 @@ describe('TrendingTokensList', () => {
     const { getByTestId } = render(
       <TrendingTokensList
         trendingTokens={[]}
-        onTokenPress={mockOnTokenPress}
+        selectedTimeOption={TimeOption.TwentyFourHours}
       />,
     );
 
@@ -108,75 +97,11 @@ describe('TrendingTokensList', () => {
     const { getByTestId, getAllByTestId } = render(
       <TrendingTokensList
         trendingTokens={tokens}
-        onTokenPress={mockOnTokenPress}
+        selectedTimeOption={TimeOption.TwentyFourHours}
       />,
     );
 
     expect(getByTestId('trending-tokens-list')).toBeTruthy();
     expect(getAllByTestId(/trending-token-row-item-/)).toHaveLength(3);
-  });
-
-  it('calls onTokenPress when a token is pressed', () => {
-    const tokens = [
-      createMockToken({
-        assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-        name: 'USD Coin',
-        symbol: 'USDC',
-      }),
-    ];
-
-    const { getByTestId } = render(
-      <TrendingTokensList
-        trendingTokens={tokens}
-        onTokenPress={mockOnTokenPress}
-      />,
-    );
-
-    const tokenItem = getByTestId(
-      'trending-token-row-item-eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-    );
-
-    fireEvent.press(tokenItem);
-
-    expect(mockOnTokenPress).toHaveBeenCalledTimes(1);
-    expect(mockOnTokenPress).toHaveBeenCalledWith(tokens[0]);
-  });
-
-  it('calls onTokenPress with correct token for each item', () => {
-    const tokens = [
-      createMockToken({
-        assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-        name: 'USD Coin',
-        symbol: 'USDC',
-      }),
-      createMockToken({
-        assetId: 'eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7',
-        name: 'Tether',
-        symbol: 'USDT',
-      }),
-    ];
-
-    const { getByTestId } = render(
-      <TrendingTokensList
-        trendingTokens={tokens}
-        onTokenPress={mockOnTokenPress}
-      />,
-    );
-
-    // Press first token
-    const firstTokenItem = getByTestId(
-      'trending-token-row-item-eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-    );
-    fireEvent.press(firstTokenItem);
-    expect(mockOnTokenPress).toHaveBeenCalledWith(tokens[0]);
-
-    // Press second token
-    const secondTokenItem = getByTestId(
-      'trending-token-row-item-eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7',
-    );
-    fireEvent.press(secondTokenItem);
-    expect(mockOnTokenPress).toHaveBeenCalledWith(tokens[1]);
-
-    expect(mockOnTokenPress).toHaveBeenCalledTimes(2);
   });
 });

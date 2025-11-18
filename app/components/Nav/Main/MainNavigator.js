@@ -28,7 +28,7 @@ import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
-import TrendingTokensFullView from '../../Views/TrendingView/TrendingTokensFullView/TrendingTokensFullView';
+import TrendingTokensFullView from '../../Views/TrendingTokens/TrendingTokensFullView/TrendingTokensFullView';
 import SendLegacy from '../../Views/confirmations/legacy/Send';
 import SendTo from '../../Views/confirmations/legacy/SendFlow/SendTo';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';

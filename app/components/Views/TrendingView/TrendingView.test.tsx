@@ -94,7 +94,7 @@ jest.mock(
 );
 
 // Mock useTrendingRequest to return empty results
-jest.mock('../../../components/UI/Assets/hooks/useTrendingRequest', () => ({
+jest.mock('../../../components/UI/Trending/hooks/useTrendingRequest', () => ({
   useTrendingRequest: jest.fn(() => ({
     results: [],
     isLoading: false,
