@@ -60,7 +60,7 @@ if (isE2E) {
 //          adb reverse to transparently map these hardcoded ports to dynamically allocated ports.
 //          Example: App connects to localhost:12345, adb reverse maps it to host port 30002.
 //          See FixtureHelper.ts for the port mapping implementation.
-if (isTest) {
+if (isTest || isE2E) {
   const raw = LaunchArguments.value();
   testConfig.fixtureServerPort = raw?.fixtureServerPort
     ? raw.fixtureServerPort
