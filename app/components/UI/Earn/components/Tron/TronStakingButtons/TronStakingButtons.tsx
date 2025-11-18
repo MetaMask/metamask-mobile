@@ -46,9 +46,7 @@ const TronStakingButtons = ({
 
   const baseAssetForStake = React.useMemo(
     () =>
-      !isStakedTrx
-        ? asset
-        : (unstakedTrxAsset ?? (asset as TokenI).nativeAsset ?? asset),
+      !isStakedTrx ? asset : (unstakedTrxAsset ?? asset.nativeAsset ?? asset),
     [asset, isStakedTrx, unstakedTrxAsset],
   );
 
