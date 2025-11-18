@@ -478,7 +478,8 @@ const PredictBuyPreview = () => {
         style={tw.style('w-full')}
       >
         <Text variant={TextVariant.BodyMDMedium} style={tw.style('text-white')}>
-          {outcomeToken?.title} · {formatCents(outcomeToken?.price ?? 0)}
+          {outcomeToken?.title} ·{' '}
+          {formatCents(preview?.sharePrice ?? outcomeToken?.price ?? 0)}
         </Text>
       </ButtonHero>
     );
