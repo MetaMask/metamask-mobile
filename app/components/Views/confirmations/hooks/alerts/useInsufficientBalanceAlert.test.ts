@@ -19,6 +19,7 @@ import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../util/navigation/navUtils'),
   useParams: jest.fn().mockReturnValue({
     params: {
       maxValueMode: false,
