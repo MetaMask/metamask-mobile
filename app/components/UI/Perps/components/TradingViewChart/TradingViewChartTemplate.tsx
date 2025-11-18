@@ -3,6 +3,7 @@ import { Theme } from '../../../../../util/theme/models';
 export const createTradingViewChartTemplate = (
   theme: Theme,
   lightweightChartsLib: string,
+  coloredVolume = true,
 ): string => `<!DOCTYPE html>
 <html>
 <head>
@@ -389,12 +390,12 @@ export const createTradingViewChartTemplate = (
                                 color: '${theme.colors.background.default}',
                             },
                             textColor: '${theme.colors.text.default}',
-                        },
-                        // Pane separator configuration (appears between panes)
-                        panes: {
-                            separatorColor: '${theme.colors.border.default}', // Line color between panes
-                            separatorHoverColor: '${theme.colors.border.muted}', // Hover color
-                            enableResize: false, // Prevent user from dragging separator
+                            // Pane separator configuration (appears between panes)
+                            panes: {
+                                separatorColor: 'transparent', // Hide separator line between panes
+                                separatorHoverColor: 'transparent', // Hide hover color
+                                enableResize: false, // Prevent user from dragging separator
+                            },
                         },
                     });
                 } catch (error) {
@@ -403,6 +404,9 @@ export const createTradingViewChartTemplate = (
 
                 // Initialize volume visibility state (default: visible)
                 window.volumeVisible = true;
+
+                // Initialize colored volume state (from template parameter)
+                window.coloredVolume = ${coloredVolume};
 
                 // Notify React Native that chart is ready
                 if (window.ReactNativeWebView) {
@@ -551,6 +555,11 @@ export const createTradingViewChartTemplate = (
             }
         };
 
+        // Empty formatter to hide volume Y-axis labels
+        window.formatVolumeEmpty = function(value) {
+            return ''; // Always return empty string to hide labels
+        };
+
         // Function to create volume histogram series
         window.createVolumeSeries = function() {
             if (!window.chart) {
@@ -574,23 +583,25 @@ export const createTradingViewChartTemplate = (
                     color: '${theme.colors.success.default}',
                     priceFormat: {
                         type: 'custom',
-                        formatter: window.formatVolumeNumber, // Use custom K/M/B/T formatter
+                        formatter: window.formatVolumeEmpty, // Use empty formatter to hide Y-axis labels
                         minMove: 0.01,
                     },
-                    priceScaleId: 'right', // Use right price scale WITH visible labels
+                    priceScaleId: 'right', // Use right price scale (labels will be empty)
                     lastValueVisible: false,
                     priceLineVisible: false,
                     base: 0, // Start histogram from zero
                 }, 1); // Pane index 1 - creates NEW bottom pane for volume
 
-                // Configure volume price scale options (independent y-axis WITH visible numeric labels)
+                // Configure volume price scale options (visible but labels are transparent)
                 window.volumeSeries.priceScale().applyOptions({
                     autoScale: true,
                     mode: 0, // Normal mode for proper scaling
                     alignLabels: true,
-                    visible: true, // Show scale labels with volume numeric values
+                    visible: true, // Must be true for bars to render
+                    ticksVisible: false, // Hide tick marks on scale
+                    entireTextOnly: false, // Allow partial text
                     borderVisible: false, // Hide border for cleaner look
-                    textColor: '${theme.colors.text.muted}',
+                    textColor: 'transparent', // Make volume labels invisible
                     scaleMargins: {
                         top: 0.1,
                         bottom: 0.2, // Add 20% margin at bottom to prevent 0 from showing
@@ -764,9 +775,9 @@ export const createTradingViewChartTemplate = (
                                 const volumeData = window.allCandleData.map(candle => ({
                                     time: candle.time,
                                     value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0,
-                                    color: candle.close >= candle.open
-                                        ? '${theme.colors.success.default}'
-                                        : '${theme.colors.error.default}'
+                                    color: window.coloredVolume
+                                        ? (candle.close >= candle.open ? '${theme.colors.success.default}' : '${theme.colors.error.default}')
+                                        : '${theme.colors.border.muted}'
                                 }));
                                 window.volumeSeries.setData(volumeData);
 
@@ -1161,7 +1172,9 @@ export const createTradingViewChartTemplate = (
                                         const volumeData = message.data.map(candle => ({
                                             time: candle.time,
                                             value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0, // USD notional = volume × price
-                                            color: candle.close >= candle.open ? '${theme.colors.success.default}' : '${theme.colors.error.default}'
+                                            color: window.coloredVolume
+                                                ? (candle.close >= candle.open ? '${theme.colors.success.default}' : '${theme.colors.error.default}')
+                                                : '${theme.colors.border.muted}'
                                         }));
 
                                         window.volumeSeries.setData(volumeData);
@@ -1296,9 +1309,9 @@ export const createTradingViewChartTemplate = (
                                             const volumeData = window.allCandleData.map(candle => ({
                                                 time: candle.time,
                                                 value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0, // USD notional = volume × price
-                                                color: candle.close >= candle.open
-                                                    ? '${theme.colors.success.default}'
-                                                    : '${theme.colors.error.default}'
+                                                color: window.coloredVolume
+                                                    ? (candle.close >= candle.open ? '${theme.colors.success.default}' : '${theme.colors.error.default}')
+                                                    : '${theme.colors.border.muted}'
                                             }));
                                             window.volumeSeries.setData(volumeData);
                                         }

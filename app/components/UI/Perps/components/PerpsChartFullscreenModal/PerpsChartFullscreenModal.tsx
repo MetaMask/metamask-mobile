@@ -185,6 +185,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
             visibleCandleCount={90} // Show more candles in landscape mode
             showVolume={showVolume}
             showOverlay={false}
+            coloredVolume
             onOhlcDataChange={setOhlcData}
             testID="fullscreen-chart"
           />

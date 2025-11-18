@@ -58,6 +58,7 @@ interface TradingViewChartProps {
   visibleCandleCount?: number; // Number of candles to display (for zoom level)
   showVolume?: boolean; // Control volume bars visibility
   showOverlay?: boolean; // Control chart overlay visibility (OHLC legend)
+  coloredVolume?: boolean; // Control volume bar coloring (true = green/red by direction, false = single color)
   onOhlcDataChange?: (data: OhlcData | null) => void; // Callback when OHLC data changes
   testID?: string;
 }
@@ -78,6 +79,7 @@ const TradingViewChart = React.forwardRef<
       visibleCandleCount = 45, // Default to 45 visible candles
       showVolume = true, // Default to showing volume
       showOverlay = false, // Default to hiding overlay
+      coloredVolume = true, // Default to colored volume bars
       onOhlcDataChange,
       testID,
     },
@@ -155,8 +157,13 @@ const TradingViewChart = React.forwardRef<
 
     // Force WebView HTML regeneration when template changes (cache bust)
     const htmlContent = useMemo(
-      () => createTradingViewChartTemplate(theme, LIGHTWEIGHT_CHARTS_LIBRARY),
-      [theme],
+      () =>
+        createTradingViewChartTemplate(
+          theme,
+          LIGHTWEIGHT_CHARTS_LIBRARY,
+          coloredVolume,
+        ),
+      [theme, coloredVolume],
     );
 
     // Send message to WebView - simplified to avoid loops
@@ -440,7 +447,7 @@ const TradingViewChart = React.forwardRef<
 
     const webViewElement = (
       <WebView
-        key="chart-webview-v16" // Change this version to force remount and reload HTML
+        key="chart-webview-v20" // Change this version to force remount and reload HTML
         ref={webViewRef}
         source={{ html: htmlContent }}
         style={[styles.webView, { height, width: '100%' }]} // eslint-disable-line react-native/no-inline-styles

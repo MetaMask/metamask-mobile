@@ -14,6 +14,7 @@ export const createStyles = ({
   StyleSheet.create({
     container: {
       paddingVertical: 8,
+      paddingHorizontal: 16, // Add horizontal padding for spacing from edges
       backgroundColor: theme.colors.background.default,
       marginBottom: 8,
     },

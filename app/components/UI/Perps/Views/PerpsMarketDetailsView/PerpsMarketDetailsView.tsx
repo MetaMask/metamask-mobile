@@ -733,6 +733,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                   visibleCandleCount={visibleCandleCount}
                   tpslLines={tpslLines}
                   showOverlay={false}
+                  coloredVolume
                   onOhlcDataChange={setOhlcData}
                   testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
                 />
