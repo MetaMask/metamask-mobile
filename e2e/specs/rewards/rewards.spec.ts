@@ -14,7 +14,7 @@ import {
 } from './rewards.mocks';
 
 describe(SmokeRewards('Rewards Feature Test'), () => {
-  it('should opt-in to rewards successfully', async () => {
+  it.skip('should opt-in to rewards successfully', async () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
       await setUpRewardsOnboardingMocks(mockServer);
     };

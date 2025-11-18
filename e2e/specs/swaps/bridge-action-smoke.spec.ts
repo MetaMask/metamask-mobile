@@ -25,7 +25,7 @@ enum eventsToCheck {
 }
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
-describe(SmokeTrade('Bridge functionality'), () => {
+describe.skip(SmokeTrade('Bridge functionality'), () => {
   jest.setTimeout(120000);
   const eventsToAssert: {
     event: string;

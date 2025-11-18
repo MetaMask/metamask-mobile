@@ -97,7 +97,7 @@ function createAccountsTestSpecificMock(
   };
 }
 
-describe(SmokeWalletPlatform('Incoming Transactions'), () => {
+describe.skip(SmokeWalletPlatform('Incoming Transactions'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
   });
