@@ -41,7 +41,7 @@ export function BridgeFeeRow() {
 
     return formatFiat(
       new BigNumber(totals.fees.provider.usd)
-        .plus(totals.fees.sourceNetwork.usd)
+        .plus(totals.fees.sourceNetwork.estimate.usd)
         .plus(totals.fees.targetNetwork.usd),
     );
   }, [totals, formatFiat]);
@@ -140,7 +140,7 @@ function FeesTooltip({
   const networkFeeUsd = useMemo(
     () =>
       formatFiat(
-        new BigNumber(totals.fees.sourceNetwork.usd).plus(
+        new BigNumber(totals.fees.sourceNetwork.estimate.usd).plus(
           totals.fees.targetNetwork.usd,
         ),
       ),
