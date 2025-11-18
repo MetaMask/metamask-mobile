@@ -66,18 +66,16 @@ const AddAsset = () => {
   } = useStyles(styleSheet, {});
 
   const providerConfig = useSelector(selectProviderConfig);
-  // const chainId = useSelector(selectChainId);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const [openNetworkSelector, setOpenNetworkSelector] = useState(false);
-  const { enabledNetworksForCurrentNamespace } = useNetworkEnablement();
+  const { enabledNetworksForAllNamespaces } = useNetworkEnablement();
   const enabledChainId = useMemo(
     () =>
-      Object.keys(enabledNetworksForCurrentNamespace).find(
-        (chainId) =>
-          enabledNetworksForCurrentNamespace[chainId as Hex] === true,
+      Object.keys(enabledNetworksForAllNamespaces).find(
+        (chainId) => enabledNetworksForAllNamespaces[chainId as Hex] === true,
       ),
-    [enabledNetworksForCurrentNamespace],
+    [enabledNetworksForAllNamespaces],
   );
   const [selectedNetwork, setSelectedNetwork] = useState<
     SupportedCaipChainId | Hex | null

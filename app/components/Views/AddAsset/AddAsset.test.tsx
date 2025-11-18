@@ -97,6 +97,24 @@ const mockEnableNetworkEnablement = {
     '0x89': false,
     '0xa': true,
   },
+  enabledNetworksForAllNamespaces: {
+    // EVM networks
+    '0x1': true,
+    '0x89': true,
+    '0xa': true,
+    '0xa4b1': true,
+    '0x38': true,
+    // Solana networks
+    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': true,
+    'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z': false,
+    'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1': false,
+    // Bitcoin networks
+    'bip122:000000000019d6689c085ae165831e93': true,
+    'bip122:000000000933ea01ad0ee984209779ba': false,
+    // Tron networks
+    'tron:728126428': true,
+    'tron:2494104990': false,
+  },
 };
 
 jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
@@ -500,4 +518,228 @@ describe('AddAsset component', () => {
       expect(getByTestId('add-token-screen')).toBeOnTheScreen();
     });
   });
+  //   it('should select first enabled network from enabledNetworksForAllNamespaces when it is an EVM network', () => {
+  //     mockUseParamsValues.assetType = 'token';
+
+  //     mockEnableNetworkEnablement.enabledNetworksForAllNamespaces = {
+  //       '0x1': true, // First enabled - EVM
+  //       '0x89': false,
+  //       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': false,
+  //       'bip122:000000000019d6689c085ae165831e93': false,
+  //       'tron:728126428': false,
+  //     };
+
+  //     const { getByTestId } = renderComponent(<AddAsset />);
+
+  //     expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+  //     expect(mockUseTopTokens).toHaveBeenCalledWith({
+  //       chainId: '0x1',
+  //     });
+  //   });
+
+  //   it('should select first enabled network when it is a Solana network', () => {
+  //     mockUseParamsValues.assetType = 'token';
+
+  //     mockEnableNetworkEnablement.enabledNetworksForAllNamespaces = {
+  //       '0x1': false,
+  //       '0x89': false,
+  //       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': true, // First enabled - Solana
+  //       'bip122:000000000019d6689c085ae165831e93': false,
+  //       'tron:728126428': false,
+  //     };
+
+  //     const { getByTestId } = renderComponent(<AddAsset />);
+
+  //     expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+  //     expect(mockUseTopTokens).toHaveBeenCalledWith({
+  //       chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  //     });
+  //   });
+
+  //   it('should select first enabled network when it is a Bitcoin network', () => {
+  //     mockUseParamsValues.assetType = 'token';
+
+  //     mockEnableNetworkEnablement.enabledNetworksForAllNamespaces = {
+  //       '0x1': false,
+  //       '0x89': false,
+  //       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': false,
+  //       'bip122:000000000019d6689c085ae165831e93': true, // First enabled - Bitcoin
+  //       'tron:728126428': false,
+  //     };
+
+  //     const { getByTestId } = renderComponent(<AddAsset />);
+
+  //     expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+  //     expect(mockUseTopTokens).toHaveBeenCalledWith({
+  //       chainId: 'bip122:000000000019d6689c085ae165831e93',
+  //     });
+  //   });
+
+  //   it('should select first enabled network when it is a Tron network', () => {
+  //     mockUseParamsValues.assetType = 'token';
+
+  //     mockEnableNetworkEnablement.enabledNetworksForAllNamespaces = {
+  //       '0x1': false,
+  //       '0x89': false,
+  //       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': false,
+  //       'bip122:000000000019d6689c085ae165831e93': false,
+  //       'tron:728126428': true, // First enabled - Tron
+  //     };
+
+  //     const { getByTestId } = renderComponent(<AddAsset />);
+
+  //     expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+  //     expect(mockUseTopTokens).toHaveBeenCalledWith({
+  //       chainId: 'tron:728126428',
+  //     });
+  //   });
+
+  //   it('should handle mix of enabled networks across all chains and select the first enabled one', () => {
+  //     mockUseParamsValues.assetType = 'token';
+
+  //     mockEnableNetworkEnablement.enabledNetworksForAllNamespaces = {
+  //       '0x1': false,
+  //       '0x89': true, // First enabled in iteration order
+  //       '0xa': false,
+  //       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': true,
+  //       'bip122:000000000019d6689c085ae165831e93': true,
+  //       'tron:728126428': true,
+  //     };
+
+  //     const { getByTestId } = renderComponent(<AddAsset />);
+
+  //     expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+  //     // Should call with first enabled network found
+  //     expect(mockUseTopTokens).toHaveBeenCalled();
+  //   });
+
+  //   it('should handle all networks disabled across all chains gracefully', () => {
+  //     mockUseParamsValues.assetType = 'token';
+
+  //     mockEnableNetworkEnablement.enabledNetworksForAllNamespaces = {
+  //       '0x1': false,
+  //       '0x89': false,
+  //       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': false,
+  //       'bip122:000000000019d6689c085ae165831e93': false,
+  //       'tron:728126428': false,
+  //     };
+
+  //     const { getByTestId } = renderComponent(<AddAsset />);
+
+  //     expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+  //   });
+
+  //   it('should only include enabled Solana networks', () => {
+  //     mockUseParamsValues.assetType = 'token';
+
+  //     mockEnableNetworkEnablement.enabledNetworksForAllNamespaces = {
+  //       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': true, // Mainnet - enabled
+  //       'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z': false, // Devnet - disabled
+  //       'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1': false, // Testnet - disabled
+  //     };
+
+  //     const { getByTestId } = renderComponent(<AddAsset />);
+
+  //     expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+  //     expect(mockUseTopTokens).toHaveBeenCalledWith({
+  //       chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  //     });
+  //   });
+
+  //   it('should only include enabled Bitcoin networks', () => {
+  //     mockUseParamsValues.assetType = 'token';
+
+  //     mockEnableNetworkEnablement.enabledNetworksForAllNamespaces = {
+  //       'bip122:000000000019d6689c085ae165831e93': true, // Mainnet - enabled
+  //       'bip122:000000000933ea01ad0ee984209779ba': false, // Testnet - disabled
+  //     };
+
+  //     const { getByTestId } = renderComponent(<AddAsset />);
+
+  //     expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+  //     expect(mockUseTopTokens).toHaveBeenCalledWith({
+  //       chainId: 'bip122:000000000019d6689c085ae165831e93',
+  //     });
+  //   });
+
+  //   it('should only include enabled Tron networks', () => {
+  //     mockUseParamsValues.assetType = 'token';
+
+  //     mockEnableNetworkEnablement.enabledNetworksForAllNamespaces = {
+  //       'tron:728126428': true, // Mainnet - enabled
+  //       'tron:2494104990': false, // Shasta testnet - disabled
+  //       'tron:3448148188': false, // Nile testnet - disabled
+  //     };
+
+  //     const { getByTestId } = renderComponent(<AddAsset />);
+
+  //     expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+  //     expect(mockUseTopTokens).toHaveBeenCalledWith({
+  //       chainId: 'tron:728126428',
+  //     });
+  //   });
+
+  //   it('should handle real-world scenario with multiple chains enabled', () => {
+  //     mockUseParamsValues.assetType = 'token';
+
+  //     // Simulate real output from enabledNetworksForAllNamespaces
+  //     mockEnableNetworkEnablement.enabledNetworksForAllNamespaces = {
+  //       '0x1': true,
+  //       '0x18c6': false,
+  //       '0x2105': true,
+  //       '0x279f': false,
+  //       '0x38': true,
+  //       '0x531': false,
+  //       '0x89': true,
+  //       '0xa': true,
+  //       '0xa4b1': true,
+  //       '0xaa36a7': false,
+  //       '0xe705': false,
+  //       '0xe708': true,
+  //       'bip122:000000000019d6689c085ae165831e93': true,
+  //       'bip122:000000000933ea01ad0ee984209779ba': false,
+  //       'bip122:00000000da84f2bafbbc53dee25a72ae': false,
+  //       'bip122:00000008819873e925422c1ff0f99f7c': false,
+  //       'bip122:regtest': false,
+  //       'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z': false,
+  //       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': true,
+  //       'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1': false,
+  //       'tron:2494104990': false,
+  //       'tron:3448148188': false,
+  //       'tron:728126428': true,
+  //     };
+
+  //     const { getByTestId } = renderComponent(<AddAsset />);
+
+  //     expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+  //     // Verify component renders with multi-chain enabled networks
+  //     expect(mockUseTopTokens).toHaveBeenCalled();
+  //   });
+
+  //   it('should filter out disabled networks across all blockchain types', () => {
+  //     mockUseParamsValues.assetType = 'token';
+
+  //     mockEnableNetworkEnablement.enabledNetworksForAllNamespaces = {
+  //       // All EVM disabled
+  //       '0x1': false,
+  //       '0x89': false,
+  //       '0xa': false,
+  //       // All Solana disabled except mainnet
+  //       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': true,
+  //       'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z': false,
+  //       // All Bitcoin disabled
+  //       'bip122:000000000019d6689c085ae165831e93': false,
+  //       // All Tron disabled
+  //       'tron:728126428': false,
+  //     };
+
+  //     const { getByTestId } = renderComponent(<AddAsset />);
+
+  //     expect(getByTestId('add-token-screen')).toBeOnTheScreen();
+  //     // Should select Solana mainnet as it's the only enabled one
+  //     expect(mockUseTopTokens).toHaveBeenCalledWith({
+  //       chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  //     });
+  //   });
+  // });
 });

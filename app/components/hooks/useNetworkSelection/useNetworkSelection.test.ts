@@ -354,6 +354,11 @@ describe('useNetworkSelection', () => {
       hasOneEnabledNetwork: false,
       enableAllPopularNetworks: mockEnableAllPopularNetworks,
       tryEnableEvmNetwork: jest.fn(),
+      enabledNetworksForAllNamespaces: {
+        '0x1': true,
+        '0x89': false,
+        '0x13881': true,
+      },
     });
 
     mockToHex.mockImplementation((value) => {
@@ -485,6 +490,11 @@ describe('useNetworkSelection', () => {
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {
+          '0x1': true,
+          '0x89': false,
+          '0x13881': true,
+        },
       });
 
       const { result } = renderHook(() =>
@@ -551,6 +561,11 @@ describe('useNetworkSelection', () => {
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {
+          '0x1': true,
+          '0x89': false,
+          '0x13881': true,
+        },
       });
 
       const { result } = renderHook(() =>
@@ -638,6 +653,11 @@ describe('useNetworkSelection', () => {
         hasOneEnabledNetwork: false,
         enableAllPopularNetworks: mockEnableAllPopularNetworks,
         tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {
+          '0x1': true,
+          '0x89': false,
+          '0x13881': true,
+        },
       });
     });
 
@@ -826,6 +846,7 @@ describe('useNetworkSelection', () => {
         hasOneEnabledNetwork: false,
         enableAllPopularNetworks: mockEnableAllPopularNetworks,
         tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {},
       });
 
       const { result } = renderHook(() =>
@@ -860,6 +881,10 @@ describe('useNetworkSelection', () => {
         hasOneEnabledNetwork: false,
         enableAllPopularNetworks: mockEnableAllPopularNetworks,
         tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {
+          '0x1': true,
+          '0x2': false,
+        },
       });
 
       renderHook(() => useNetworkSelection({ networks: mockNetworks }));
@@ -1448,6 +1473,7 @@ describe('useNetworkSelection', () => {
         hasOneEnabledNetwork: false,
         enableAllPopularNetworks: mockEnableAllPopularNetworks,
         tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {},
       });
 
       const { result } = renderHook(() =>
@@ -1478,6 +1504,7 @@ describe('useNetworkSelection', () => {
         hasOneEnabledNetwork: false,
         enableAllPopularNetworks: mockEnableAllPopularNetworks,
         tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {},
       });
 
       const { result } = renderHook(() =>
