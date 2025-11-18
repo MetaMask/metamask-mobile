@@ -434,6 +434,7 @@ const BuildQuote = () => {
       });
     }
 
+    // @ts-expect-error navigation prop mismatch
     navigation.dangerouslyGetParent()?.pop();
     navigation.navigate(Routes.WALLET.HOME, {
       screen: Routes.WALLET.TAB_STACK_FLOW,

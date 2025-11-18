@@ -51,7 +51,14 @@ jest.mock(
 
 // Mock dependencies
 jest.mock('@react-navigation/native');
-jest.mock('react-redux');
+jest.mock('@react-navigation/compat', () => ({
+  withNavigation: jest.fn((component) => component),
+}));
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+  connect: jest.fn(() => (component: React.ComponentType) => component),
+}));
 jest.mock('../../hooks/useMetrics');
 jest.mock('../Ramp/Aggregator/hooks/useRampNetwork');
 jest.mock('../Ramp/Deposit/hooks/useDepositEnabled');
