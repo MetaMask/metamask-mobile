@@ -7,7 +7,12 @@
 
 import otaConfig from '../../ota.config.js';
 
-export const OTA_VERSION = 'v1';
+/**
+ * Current OTA update version
+ * Increment with each OTA update: v0 -> v1 -> v2 -> v3 etc.
+ * Reset to v0 when releasing a new native build
+ */
+export const OTA_VERSION = 'v0';
 export const RUNTIME_VERSION = otaConfig.RUNTIME_VERSION;
 export const PROJECT_ID = otaConfig.PROJECT_ID;
 export const UPDATE_URL = otaConfig.UPDATE_URL;
