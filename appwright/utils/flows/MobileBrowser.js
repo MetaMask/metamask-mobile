@@ -15,7 +15,7 @@ export async function navigateToDappAndroid(device, url, dappName) {
   await MobileBrowserScreen.tapSearchBox();
   await MobileBrowserScreen.tapUrlBar();
   await AppwrightGestures.typeText(await MobileBrowserScreen.chromeUrlBar, url);
-  await MobileBrowserScreen.tapSelectDappUrl(dappName);
+  await MobileBrowserScreen.tapSelectDappUrl();
 }
 
 export async function navigateToDappIOS(device, url, dappName) {

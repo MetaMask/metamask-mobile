@@ -74,12 +74,22 @@ class MobileBrowserScreen {
         }
     }
 
-    async tapSelectDappUrl(dappName) {
+    get chromeUrlEntry() {
         if (!this._device) {
             return;
         }
 
-        const element = await AppwrightSelectors.getElementByText(this._device, dappName);
+        if (AppwrightSelectors.isAndroid(this._device)) {
+            return AppwrightSelectors.getElementByID(this._device, 'com.android.chrome:id/line_2');
+        }
+    }
+
+    async tapSelectDappUrl() {
+        if (!this._device) {
+            return;
+        }
+
+        const element = await this.chromeUrlEntry;
         await AppwrightGestures.tap(element)
     }
 
