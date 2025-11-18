@@ -52,7 +52,6 @@ export default class SnapBridge {
   snapId: SnapId;
   stream: Duplex;
   getRPCMethodMiddleware: GetRPCMethodMiddleware;
-  deprecatedNetworkVersions: Record<string, string | null> = {};
 
   constructor({
     snapId,
