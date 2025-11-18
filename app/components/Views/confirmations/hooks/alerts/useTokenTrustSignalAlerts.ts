@@ -4,73 +4,91 @@ import { Alert, Severity } from '../../types/alerts';
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { selectTokenScanResult } from '../../../../../selectors/phishingController';
+import { selectMultipleTokenScanResults } from '../../../../../selectors/phishingController';
 import { RootState } from '../../../../../reducers';
 import { strings } from '../../../../../../locales/i18n';
 
 export function useTokenTrustSignalAlerts(): Alert[] {
   const transactionMetadata = useTransactionMetadataRequest();
 
-  const incomingToken =
-    transactionMetadata?.simulationData?.tokenBalanceChanges?.find(
-      (change) => !change.isDecrease,
-    );
+  const incomingTokens = useMemo(() => {
+    const tokens: { address: string; chainId: string }[] = [];
+    const tokenBalanceChanges =
+      transactionMetadata?.simulationData?.tokenBalanceChanges;
 
-  const tokenAddress = incomingToken?.address || '';
-  const chainId = transactionMetadata?.chainId || '';
+    if (
+      !tokenBalanceChanges ||
+      !Array.isArray(tokenBalanceChanges) ||
+      !transactionMetadata?.chainId
+    ) {
+      return tokens;
+    }
 
-  const tokenScanResult = useSelector((state: RootState) =>
-    selectTokenScanResult(state, { tokenAddress, chainId }),
+    const chainId = transactionMetadata.chainId;
+
+    tokenBalanceChanges.forEach((change) => {
+      if (!change.isDecrease) {
+        tokens.push({
+          address: change.address || '',
+          chainId,
+        });
+      }
+    });
+
+    return tokens;
+  }, [transactionMetadata]);
+
+  const tokenScanResults = useSelector((state: RootState) =>
+    selectMultipleTokenScanResults(state, { tokens: incomingTokens }),
   );
 
-  const alertSeverity = useMemo(() => {
-    if (!tokenScanResult) {
-      return null;
-    }
-
-    const resultType = tokenScanResult.result_type;
-
-    if (resultType === 'Malicious') {
-      return Severity.Danger;
-    }
-
-    if (resultType === 'Warning') {
-      return Severity.Warning;
-    }
-
-    return null;
-  }, [tokenScanResult]);
-
   const alerts = useMemo(() => {
-    if (!alertSeverity) {
-      return [];
-    }
+    const alertsList: Alert[] = [];
 
-    const isDanger = alertSeverity === Severity.Danger;
+    tokenScanResults.forEach(({ scanResult }) => {
+      if (!scanResult) {
+        return;
+      }
 
-    const alertKey = isDanger
-      ? AlertKeys.TokenTrustSignalMalicious
-      : AlertKeys.TokenTrustSignalWarning;
+      const resultType = scanResult.result_type;
+      let severity: Severity | null = null;
 
-    const message = isDanger
-      ? strings('alert_system.token_trust_signal.malicious.message')
-      : strings('alert_system.token_trust_signal.warning.message');
+      if (resultType === 'Malicious') {
+        severity = Severity.Danger;
+      } else if (resultType === 'Warning') {
+        severity = Severity.Warning;
+      }
 
-    const title = isDanger
-      ? strings('alert_system.token_trust_signal.malicious.title')
-      : strings('alert_system.token_trust_signal.warning.title');
+      if (!severity) {
+        return;
+      }
 
-    return [
-      {
+      const isDanger = severity === Severity.Danger;
+
+      const alertKey = isDanger
+        ? AlertKeys.TokenTrustSignalMalicious
+        : AlertKeys.TokenTrustSignalWarning;
+
+      const message = isDanger
+        ? strings('alert_system.token_trust_signal.malicious.message')
+        : strings('alert_system.token_trust_signal.warning.message');
+
+      const title = isDanger
+        ? strings('alert_system.token_trust_signal.malicious.title')
+        : strings('alert_system.token_trust_signal.warning.title');
+
+      alertsList.push({
         key: alertKey,
         field: RowAlertKey.IncomingTokens,
         message,
         title,
-        severity: alertSeverity,
+        severity,
         isBlocking: false,
-      },
-    ];
-  }, [alertSeverity]);
+      });
+    });
+
+    return alertsList;
+  }, [tokenScanResults]);
 
   return alerts;
 }
