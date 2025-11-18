@@ -31,6 +31,14 @@ import { useTransactionMetadataRequest } from '../../hooks/transactions/useTrans
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
 
+const TRANSACTION_TYPES_DISABLE_SCROLL = [TransactionType.predictClaim];
+
+const TRANSACTION_TYPES_DISABLE_ALERT_BANNER = [
+  TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
+  TransactionType.predictWithdraw,
+];
+
 export enum ConfirmationLoader {
   Default = 'default',
   CustomAmount = 'customAmount',
@@ -67,7 +75,9 @@ const ConfirmWrapped = ({
               >
                 <TouchableWithoutFeedback>
                   <>
-                    <AlertBanner ignoreTypes={[TransactionType.perpsDeposit]} />
+                    <AlertBanner
+                      ignoreTypes={TRANSACTION_TYPES_DISABLE_ALERT_BANNER}
+                    />
                     <Info route={route} />
                   </>
                 </TouchableWithoutFeedback>
@@ -210,5 +220,5 @@ function InfoLoader({
 
 function useDisableScroll() {
   const transaction = useTransactionMetadataRequest();
-  return hasTransactionType(transaction, [TransactionType.predictClaim]);
+  return hasTransactionType(transaction, TRANSACTION_TYPES_DISABLE_SCROLL);
 }
