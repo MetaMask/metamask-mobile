@@ -52,6 +52,10 @@ export const createTradingViewChartTemplate = (
         window.allCandleData = []; // Store all loaded data for zoom functionality
         window.visiblePriceRange = null; // Track visible price range for dynamic decimal precision
 
+        // Cache for Intl.NumberFormat instances to avoid expensive recreation
+        // Key: decimal count (e.g., "0", "2", "4"), Value: NumberFormat instance
+        window.formatterCache = new Map();
+
         // Price formatting constants (matches formatUtils.ts PRICE_RANGES_UNIVERSAL)
         window.PRICE_THRESHOLD = {
             VERY_HIGH: 100000,  // > $100k
@@ -72,6 +76,21 @@ export const createTradingViewChartTemplate = (
             { threshold: window.PRICE_THRESHOLD.LOW, minDec: 2, maxDec: 6, sigDig: 5 },
             { threshold: 0, minDec: 2, maxDec: 6, sigDig: 4 }, // < $0.01
         ];
+
+        // Get or create cached Intl.NumberFormat for given decimal precision
+        // Caching prevents expensive formatter recreation on every Y-axis label render
+        window.getCachedFormatter = function(decimals) {
+            const key = String(decimals);
+
+            if (!window.formatterCache.has(key)) {
+                window.formatterCache.set(key, new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: decimals,
+                    maximumFractionDigits: decimals
+                }));
+            }
+
+            return window.formatterCache.get(key);
+        };
 
         // Format price with significant digits (matches formatUtils.ts logic)
         window.formatPriceWithSignificantDigits = function(value, sigDigits, minDec, maxDec) {
@@ -143,13 +162,11 @@ export const createTradingViewChartTemplate = (
                 rangeConfig.maxDec
             );
 
-            // Format the number with consistent decimal places
+            // Format the number with consistent decimal places using cached formatter
             // Keep trailing zeros to maintain visual consistency on Y-axis
             // e.g., for $1.24-$1.26 range, all values show 4 decimals: 1.2391, 1.2560, 1.2500
-            return new Intl.NumberFormat('en-US', {
-                minimumFractionDigits: decimals, // Keep trailing zeros for Y-axis consistency
-                maximumFractionDigits: decimals
-            }).format(formattedValue);
+            const formatter = window.getCachedFormatter(decimals);
+            return formatter.format(formattedValue);
         };
         
         // Smart timestamp formatter using TradingView's native tickMarkType with fallback
@@ -348,10 +365,56 @@ export const createTradingViewChartTemplate = (
                     },
                     localization: {
                         priceFormatter: (price) => {
-                            // Use universal price formatting to match header and pills
-                            // This ensures consistent decimal precision across all price displays
-                            // (header, OHLC, TP/SL, entry, liquidation prices)
-                            return window.formatPriceUniversal(price);
+                            // Hybrid formatter: starts with universal formatting but adjusts for tight ranges
+                            // This prevents duplicate Y-axis labels when zoomed in while maintaining
+                            // consistency with header and pills at normal zoom levels
+
+                            if (price === 0) return '0';
+                            if (isNaN(price)) return '0';
+
+                            const absPrice = Math.abs(price);
+
+                            // Get base formatting configuration from universal ranges
+                            let rangeConfig = null;
+                            for (let i = 0; i < window.PRICE_RANGES.length; i++) {
+                                if (absPrice > window.PRICE_RANGES[i].threshold) {
+                                    rangeConfig = window.PRICE_RANGES[i];
+                                    break;
+                                }
+                            }
+                            if (!rangeConfig) {
+                                rangeConfig = window.PRICE_RANGES[window.PRICE_RANGES.length - 1];
+                            }
+
+                            // Calculate base formatting with significant digits
+                            const { value: formattedValue, decimals: baseDecimals } = window.formatPriceWithSignificantDigits(
+                                price,
+                                rangeConfig.sigDig,
+                                rangeConfig.minDec,
+                                rangeConfig.maxDec
+                            );
+
+                            // Determine if we need extra decimals based on visible range
+                            let finalDecimals = baseDecimals;
+
+                            if (window.visiblePriceRange && window.visiblePriceRange.span > 0) {
+                                const span = window.visiblePriceRange.span;
+
+                                // Dynamic decimal adjustment based on zoom level
+                                // Tighter visible range = more decimals needed to distinguish Y-axis labels
+                                if (span < 1) {
+                                    finalDecimals = Math.max(4, baseDecimals);
+                                } else if (span < 10) {
+                                    finalDecimals = Math.max(3, baseDecimals);
+                                } else if (span < 100) {
+                                    finalDecimals = Math.max(2, baseDecimals);
+                                }
+                                // For span >= 100, use baseDecimals (no adjustment needed)
+                            }
+
+                            // Format with final decimal precision using cached formatter
+                            const formatter = window.getCachedFormatter(finalDecimals);
+                            return formatter.format(formattedValue);
                         },
                         timeFormatter: (time) => {
                             // Format time in user's local timezone for crosshair labels
