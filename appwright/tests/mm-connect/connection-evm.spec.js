@@ -242,132 +242,132 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
     },
     EVM_LEGACY_TEST_DAPP_URL,
   );
+
+  // Resume from refresh
+
+  // await AppwrightHelpers.withNativeAction(device, async () => {
+  //   await refreshMobileBrowser(device);
+  // });
+
+  // // Wait for page to initialize
+  // await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  // await AppwrightHelpers.withWebAction(
+  //   device,
+  //   async () => {
+  //     await MultiChainEvmTestDapp.isDappConnected();
+  //     await MultiChainEvmTestDapp.assertConnectedChainValue('0x1');
+  //     await MultiChainEvmTestDapp.assertConnectedAccountsValue(
+  //       // Account 3 is now the first account connected
+  //       // Note that this is checksummed but the initial connection is not checksummed. Fix this
+  //       '0xE2bEca5CaDC60b61368987728b4229822e6CDa83,0x19a7ad8256ab119655f1d758348501d598fc1c94',
+  //     );
+  //     await MultiChainEvmTestDapp.assertRequestResponseValue(""); // Make this better
+  //     await MultiChainEvmTestDapp.tapPersonalSignButton();
+  //   },
+  //   EVM_LEGACY_TEST_DAPP_URL,
+  // );
+
+  // // Switch back to native context to interact with Android system dialog
+  // await AppwrightHelpers.withNativeAction(device, async () => {
+  //   await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+  //   await SignModal.tapCancelButton();
+  // });
+
+  // // Explicit pausing to avoid navigating back too fast to the dapp
+  // await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  // await launchMobileBrowser(device);
+
+  // await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  // await AppwrightHelpers.withWebAction(
+  //   device,
+  //   async () => {
+  //     await MultiChainEvmTestDapp.assertRequestResponseValue(
+  //       'User rejected the request.',
+  //     );
+  // },
+  // EVM_LEGACY_TEST_DAPP_URL,
+  // );
+
+  // Terminate and connect
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await MultiChainEvmTestDapp.tapTerminateButton();
+      await MultiChainEvmTestDapp.assertDappConnected('false');
+      await MultiChainEvmTestDapp.assertConnectedAccountsValue(''); // Make this better
+      // TODO: check chain value when fixed
+      await MultiChainEvmTestDapp.tapConnectButton();
+    },
+    EVM_LEGACY_TEST_DAPP_URL,
+  );
+
+  // Switch back to native context to interact with Android system dialog
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await DappConnectionModal.tapConnectButton();
+  });
+
+  // Explicit pausing to avoid navigating back too fast to the dapp
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await launchMobileBrowser(device);
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await MultiChainEvmTestDapp.isDappConnected();
+      await MultiChainEvmTestDapp.assertConnectedChainValue('0x1');
+      await MultiChainEvmTestDapp.assertConnectedAccountsValue(
+        '0xe2beca5cadc60b61368987728b4229822e6cda83', // Account 3 because it's the currently selected account
+      );
+
+      // Wait a little longer to be sure the relay is connected??
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+      await MultiChainEvmTestDapp.tapPersonalSignButton();
+    },
+    EVM_LEGACY_TEST_DAPP_URL,
+  );
+
+  // Switch back to native context to interact with Android system dialog
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await SignModal.tapCancelButton();
+  });
+
+  // Explicit pausing to avoid navigating back too fast to the dapp
+  await new Promise((resolve) => setTimeout(resolve, 5000));
+
+  await launchMobileBrowser(device);
+
+  await new Promise((resolve) => setTimeout(resolve, 5000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await MultiChainEvmTestDapp.assertRequestResponseValue(
+        'User rejected the request.',
+      );
+    },
+    EVM_LEGACY_TEST_DAPP_URL,
+  );
+
+  // Read-only method should hit rpc endpoint instead of wallet
+  await AppwrightGestures.terminateApp(device);
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await MultiChainEvmTestDapp.tapEthGetBalanceButton();
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+      await MultiChainEvmTestDapp.assertRequestResponseValue('0x0');
+      await MultiChainEvmTestDapp.tapTerminateButton();
+    },
+    EVM_LEGACY_TEST_DAPP_URL,
+  );
 });
-
-// Resume from refresh
-
-// await AppwrightHelpers.withNativeAction(device, async () => {
-//   await refreshMobileBrowser(device);
-// });
-
-// // Wait for page to initialize
-// await new Promise((resolve) => setTimeout(resolve, 2000));
-
-// await AppwrightHelpers.withWebAction(
-//   device,
-//   async () => {
-//     await MultiChainEvmTestDapp.isDappConnected();
-//     await MultiChainEvmTestDapp.assertConnectedChainValue('0x1');
-//     await MultiChainEvmTestDapp.assertConnectedAccountsValue(
-//       // Account 3 is now the first account connected
-//       // Note that this is checksummed but the initial connection is not checksummed. Fix this
-//       '0xE2bEca5CaDC60b61368987728b4229822e6CDa83,0x19a7ad8256ab119655f1d758348501d598fc1c94',
-//     );
-//     await MultiChainEvmTestDapp.assertRequestResponseValue(""); // Make this better
-//     await MultiChainEvmTestDapp.tapPersonalSignButton();
-//   },
-//   EVM_LEGACY_TEST_DAPP_URL,
-// );
-
-// // Switch back to native context to interact with Android system dialog
-// await AppwrightHelpers.withNativeAction(device, async () => {
-//   await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-//   await SignModal.tapCancelButton();
-// });
-
-// // Explicit pausing to avoid navigating back too fast to the dapp
-// await new Promise((resolve) => setTimeout(resolve, 1000));
-
-// await launchMobileBrowser(device);
-
-// await new Promise((resolve) => setTimeout(resolve, 1000));
-
-// await AppwrightHelpers.withWebAction(
-//   device,
-//   async () => {
-//     await MultiChainEvmTestDapp.assertRequestResponseValue(
-//       'User rejected the request.',
-//     );
-// },
-// EVM_LEGACY_TEST_DAPP_URL,
-// );
-
-// Terminate and connect
-
-await AppwrightHelpers.withWebAction(
-  device,
-  async () => {
-    await MultiChainEvmTestDapp.tapTerminateButton();
-    await MultiChainEvmTestDapp.assertDappConnected('false');
-    await MultiChainEvmTestDapp.assertConnectedAccountsValue(''); // Make this better
-    // TODO: check chain value when fixed
-    await MultiChainEvmTestDapp.tapConnectButton();
-  },
-  EVM_LEGACY_TEST_DAPP_URL,
-);
-
-// Switch back to native context to interact with Android system dialog
-await AppwrightHelpers.withNativeAction(device, async () => {
-  await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-  await DappConnectionModal.tapConnectButton();
-});
-
-// Explicit pausing to avoid navigating back too fast to the dapp
-await new Promise((resolve) => setTimeout(resolve, 1000));
-
-await launchMobileBrowser(device);
-
-await new Promise((resolve) => setTimeout(resolve, 1000));
-
-await AppwrightHelpers.withWebAction(
-  device,
-  async () => {
-    await MultiChainEvmTestDapp.isDappConnected();
-    await MultiChainEvmTestDapp.assertConnectedChainValue('0x1');
-    await MultiChainEvmTestDapp.assertConnectedAccountsValue(
-      '0xe2beca5cadc60b61368987728b4229822e6cda83', // Account 3 because it's the currently selected account
-    );
-
-    // Wait a little longer to be sure the relay is connected??
-    await new Promise((resolve) => setTimeout(resolve, 10000));
-    await MultiChainEvmTestDapp.tapPersonalSignButton();
-  },
-  EVM_LEGACY_TEST_DAPP_URL,
-);
-
-// Switch back to native context to interact with Android system dialog
-await AppwrightHelpers.withNativeAction(device, async () => {
-  await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-  await SignModal.tapCancelButton();
-});
-
-// Explicit pausing to avoid navigating back too fast to the dapp
-await new Promise((resolve) => setTimeout(resolve, 5000));
-
-await launchMobileBrowser(device);
-
-await new Promise((resolve) => setTimeout(resolve, 5000));
-
-await AppwrightHelpers.withWebAction(
-  device,
-  async () => {
-    await MultiChainEvmTestDapp.assertRequestResponseValue(
-      'User rejected the request.',
-    );
-  },
-  EVM_LEGACY_TEST_DAPP_URL,
-);
-
-// Read-only method should hit rpc endpoint instead of wallet
-await AppwrightGestures.terminateApp(device);
-
-await AppwrightHelpers.withWebAction(
-  device,
-  async () => {
-    await MultiChainEvmTestDapp.tapEthGetBalanceButton();
-    await new Promise((resolve) => setTimeout(resolve, 10000));
-    await MultiChainEvmTestDapp.assertRequestResponseValue('0x0');
-    await MultiChainEvmTestDapp.tapTerminateButton();
-  },
-  EVM_LEGACY_TEST_DAPP_URL,
-);
