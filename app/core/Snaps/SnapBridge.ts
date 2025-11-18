@@ -71,7 +71,7 @@ export default class SnapBridge {
   }
 
   /**
-   * Gets the provider state including unlock status and network information.
+   * Gets the provider state.
    * @returns An object containing the provider state.
    */
   async #getProviderState() {
