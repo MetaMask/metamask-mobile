@@ -100,7 +100,7 @@ describe('EarnBalance', () => {
 
   describe('Ethereum Mainnet', () => {
     it('renders staking balance when asset is ETH', () => {
-      const mockEth = { isETH: true, isStaked: false };
+      const mockEth = { isETH: true, isStaked: false, chainId: '0x1' };
 
       renderWithProvider(<EarnBalance asset={mockEth as unknown as TokenI} />);
 
@@ -140,7 +140,7 @@ describe('EarnBalance', () => {
     });
 
     it('renders nothinge if Staked ETH is passed', () => {
-      const mockEth = { isETH: true, isStaked: true };
+      const mockEth = { isETH: true, isStaked: true, chainId: '0x1' };
 
       renderWithProvider(<EarnBalance asset={mockEth as unknown as TokenI} />);
 

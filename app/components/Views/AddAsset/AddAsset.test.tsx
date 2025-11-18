@@ -8,26 +8,31 @@ import { NFTImportScreenSelectorsIDs } from '../../../../e2e/selectors/wallet/Im
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useTopTokens } from '../../UI/Bridge/hooks/useTopTokens';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 const mockDispatch = jest.fn();
-const mockIsNonEvmChainId = jest.fn();
 
-// Mock network utilities
-jest.mock('../../../util/networks', () => ({
-  getNetworkNameFromProviderConfig: jest.fn(() => 'Ethereum Mainnet'),
-  getNetworkImageSource: jest.fn(() => 'ethereum'),
-  getBlockExplorerAddressUrl: jest.fn(() => ({
-    title: 'View on Etherscan',
-    url: 'https://etherscan.io',
-  })),
-  isTestNet: jest.fn(() => false),
-  getTestNetImageByChainId: jest.fn(() => 'testnet-image'),
-  getDefaultNetworkByChainId: jest.fn(() => ({
-    imageSource: 'default-image',
-  })),
-}));
+// Mock network utilities, preserving other exports like getDecimalChainId
+jest.mock('../../../util/networks', () => {
+  const actual = jest.requireActual('../../../util/networks');
+
+  return {
+    ...actual,
+    getNetworkNameFromProviderConfig: jest.fn(() => 'Ethereum Mainnet'),
+    getNetworkImageSource: jest.fn(() => 'ethereum'),
+    getBlockExplorerAddressUrl: jest.fn(() => ({
+      title: 'View on Etherscan',
+      url: 'https://etherscan.io',
+    })),
+    isTestNet: jest.fn(() => false),
+    getTestNetImageByChainId: jest.fn(() => 'testnet-image'),
+    getDefaultNetworkByChainId: jest.fn(() => ({
+      imageSource: 'default-image',
+    })),
+  };
+});
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -75,8 +80,12 @@ jest.mock('../../UI/Bridge/hooks/useTopTokens', () => ({
 
 jest.mock('../../../core/Multichain/utils', () => ({
   ...jest.requireActual('../../../core/Multichain/utils'),
-  isNonEvmChainId: (chainId: string) => mockIsNonEvmChainId(chainId),
+  isNonEvmChainId: jest.fn(),
 }));
+
+const mockIsNonEvmChainId = isNonEvmChainId as jest.MockedFunction<
+  typeof isNonEvmChainId
+>;
 
 jest.mock('../../../core/Engine', () => ({
   context: {

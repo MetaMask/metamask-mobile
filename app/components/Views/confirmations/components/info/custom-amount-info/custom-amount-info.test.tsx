@@ -240,9 +240,7 @@ describe('CustomAmountInfo', () => {
     });
 
     await act(async () => {
-      fireEvent.press(
-        getByText(strings('confirm.deposit_edit_amount_predict_withdraw')),
-      );
+      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
     });
 
     expect(

@@ -4,6 +4,7 @@ import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 
 export enum FeatureFlagNames {
   rewardsEnabled = 'rewardsEnabled',
+  otaUpdatesEnabled = 'otaUpdatesEnabled',
 }
 
 export const useFeatureFlag = (key: FeatureFlagNames) => {

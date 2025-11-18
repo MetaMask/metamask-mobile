@@ -10,6 +10,8 @@ import { CaipAssetType, Hex } from '@metamask/utils';
 jest.mock('../../../../../core/Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
   },
 }));
 
@@ -222,6 +224,7 @@ describe('useRewards', () => {
           isLoading: false,
           estimatedPoints: null,
           hasError: false,
+          accountOptedIn: null,
         });
       });
 
@@ -232,12 +235,18 @@ describe('useRewards', () => {
   });
 
   describe('when user has not opted in', () => {
-    it('should return default state when user has not opted in', async () => {
+    it('should return default state when user has not opted in and opt-in is not supported', async () => {
       mockCall.mockImplementation((method) => {
         if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(true);
         }
+        if (method === 'RewardsController:getFirstSubscriptionId') {
+          return Promise.resolve('subscription-id-1');
+        }
         if (method === 'RewardsController:getHasAccountOptedIn') {
+          return Promise.resolve(false);
+        }
+        if (method === 'RewardsController:isOptInSupported') {
           return Promise.resolve(false);
         }
         return Promise.resolve(null);
@@ -266,12 +275,77 @@ describe('useRewards', () => {
           isLoading: false,
           estimatedPoints: null,
           hasError: false,
+          accountOptedIn: false,
         });
       });
 
       expect(mockCall).toHaveBeenCalledWith(
+        'RewardsController:getFirstSubscriptionId',
+      );
+      expect(mockCall).toHaveBeenCalledWith(
         'RewardsController:getHasAccountOptedIn',
         'eip155:1:0x1234567890123456789012345678901234567890',
+      );
+      expect(mockCall).toHaveBeenCalledWith(
+        'RewardsController:isOptInSupported',
+        expect.any(Object),
+      );
+    });
+
+    it('should show rewards row when user has not opted in but opt-in is supported', async () => {
+      mockCall.mockImplementation((method) => {
+        if (method === 'RewardsController:isRewardsFeatureEnabled') {
+          return Promise.resolve(true);
+        }
+        if (method === 'RewardsController:getFirstSubscriptionId') {
+          return Promise.resolve('subscription-id-1');
+        }
+        if (method === 'RewardsController:getHasAccountOptedIn') {
+          return Promise.resolve(false);
+        }
+        if (method === 'RewardsController:isOptInSupported') {
+          return Promise.resolve(true);
+        }
+        return Promise.resolve(null);
+      });
+
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceToken: defaultSourceToken,
+          destToken: defaultDestToken,
+          sourceAmount: '1',
+        },
+      });
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useRewards({
+            activeQuote: mockActiveQuote,
+            isQuoteLoading: false,
+          }),
+        { state: testState },
+      );
+
+      await waitFor(() => {
+        expect(result.current).toEqual({
+          shouldShowRewardsRow: true,
+          isLoading: false,
+          estimatedPoints: null,
+          hasError: false,
+          accountOptedIn: false,
+        });
+      });
+
+      expect(mockCall).toHaveBeenCalledWith(
+        'RewardsController:getFirstSubscriptionId',
+      );
+      expect(mockCall).toHaveBeenCalledWith(
+        'RewardsController:getHasAccountOptedIn',
+        'eip155:1:0x1234567890123456789012345678901234567890',
+      );
+      expect(mockCall).toHaveBeenCalledWith(
+        'RewardsController:isOptInSupported',
+        expect.any(Object),
       );
     });
   });
@@ -281,6 +355,9 @@ describe('useRewards', () => {
       mockCall.mockImplementation((method) => {
         if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(true);
+        }
+        if (method === 'RewardsController:getFirstSubscriptionId') {
+          return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
           return Promise.resolve(true);
@@ -314,6 +391,7 @@ describe('useRewards', () => {
           isLoading: false,
           estimatedPoints: 100,
           hasError: false,
+          accountOptedIn: true,
         });
       });
 
@@ -347,6 +425,9 @@ describe('useRewards', () => {
       mockCall.mockImplementation((method) => {
         if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(true);
+        }
+        if (method === 'RewardsController:getFirstSubscriptionId') {
+          return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
           return Promise.resolve(true);
@@ -417,6 +498,7 @@ describe('useRewards', () => {
         isLoading: false,
         estimatedPoints: null,
         hasError: false,
+        accountOptedIn: null,
       });
 
       // Should not call Engine methods
@@ -446,6 +528,7 @@ describe('useRewards', () => {
         isLoading: false,
         estimatedPoints: null,
         hasError: false,
+        accountOptedIn: null,
       });
     });
 
@@ -472,6 +555,7 @@ describe('useRewards', () => {
         isLoading: false,
         estimatedPoints: null,
         hasError: false,
+        accountOptedIn: null,
       });
     });
 
@@ -498,7 +582,60 @@ describe('useRewards', () => {
         isLoading: false,
         estimatedPoints: null,
         hasError: false,
+        accountOptedIn: null,
       });
+    });
+  });
+
+  describe('when subscription ID is missing', () => {
+    it('should return default state when there is no subscription', async () => {
+      mockCall.mockImplementation((method) => {
+        if (method === 'RewardsController:isRewardsFeatureEnabled') {
+          return Promise.resolve(true);
+        }
+        if (method === 'RewardsController:getFirstSubscriptionId') {
+          return Promise.resolve(null);
+        }
+        return Promise.resolve(null);
+      });
+
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceToken: defaultSourceToken,
+          destToken: defaultDestToken,
+          sourceAmount: '1',
+        },
+      });
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useRewards({
+            activeQuote: mockActiveQuote,
+            isQuoteLoading: false,
+          }),
+        { state: testState },
+      );
+
+      await waitFor(() => {
+        expect(result.current).toEqual({
+          shouldShowRewardsRow: false,
+          isLoading: false,
+          estimatedPoints: null,
+          hasError: false,
+          accountOptedIn: null,
+        });
+      });
+
+      expect(mockCall).toHaveBeenCalledWith(
+        'RewardsController:isRewardsFeatureEnabled',
+      );
+      expect(mockCall).toHaveBeenCalledWith(
+        'RewardsController:getFirstSubscriptionId',
+      );
+      expect(mockCall).not.toHaveBeenCalledWith(
+        'RewardsController:getHasAccountOptedIn',
+        expect.any(String),
+      );
     });
   });
 
@@ -507,6 +644,9 @@ describe('useRewards', () => {
       mockCall.mockImplementation((method) => {
         if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(true);
+        }
+        if (method === 'RewardsController:getFirstSubscriptionId') {
+          return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
           return Promise.resolve(true);
@@ -540,6 +680,7 @@ describe('useRewards', () => {
           isLoading: false,
           estimatedPoints: null,
           hasError: true,
+          accountOptedIn: true,
         });
       });
     });
@@ -575,6 +716,7 @@ describe('useRewards', () => {
           isLoading: false,
           estimatedPoints: null,
           hasError: true,
+          accountOptedIn: null,
         });
       });
     });
@@ -583,6 +725,9 @@ describe('useRewards', () => {
       mockCall.mockImplementation((method) => {
         if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(true);
+        }
+        if (method === 'RewardsController:getFirstSubscriptionId') {
+          return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
           throw new Error('Opt-in check failed');
@@ -613,6 +758,7 @@ describe('useRewards', () => {
           isLoading: false,
           estimatedPoints: null,
           hasError: true,
+          accountOptedIn: null,
         });
       });
     });
@@ -622,6 +768,9 @@ describe('useRewards', () => {
       mockCall.mockImplementationOnce((method) => {
         if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(true);
+        }
+        if (method === 'RewardsController:getFirstSubscriptionId') {
+          return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
           return Promise.resolve(true);
@@ -659,6 +808,9 @@ describe('useRewards', () => {
         if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(true);
         }
+        if (method === 'RewardsController:getFirstSubscriptionId') {
+          return Promise.resolve('subscription-id-1');
+        }
         if (method === 'RewardsController:getHasAccountOptedIn') {
           return Promise.resolve(true);
         }
@@ -687,6 +839,7 @@ describe('useRewards', () => {
           isLoading: false,
           estimatedPoints: 100,
           hasError: false,
+          accountOptedIn: true,
         });
       });
     });

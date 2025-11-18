@@ -8,7 +8,9 @@ export interface HandlerContext {
     navigate: (routeName: string, params?: Record<string, unknown>) => void;
   };
   dispatch: (action: Record<string, unknown>) => void;
-  instance: Record<string, unknown>; // DeeplinkManager instance
+  // linting issues due to legacy DeeplinkManager, which we will be replacing in subsequent PRs
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  instance: any; // DeeplinkManager instance
   featureFlags?: Record<string, boolean>;
   browserCallBack?: (url: string) => void;
 }
@@ -34,6 +36,7 @@ export abstract class UniversalLinkHandler {
 
   /**
    * Priority for handler execution (lower = higher priority)
+   * For example auth is highest priority
    */
   abstract readonly priority: number;
 

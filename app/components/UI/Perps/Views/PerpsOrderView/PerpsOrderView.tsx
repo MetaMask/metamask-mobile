@@ -160,6 +160,15 @@ const PerpsOrderViewContentBase: React.FC = () => {
     [styles.fixedBottomContainer, insets.bottom],
   );
 
+  // Deferred loading: Load non-critical data after UI renders
+  const [isDataReady, setIsDataReady] = useState(false);
+  useEffect(() => {
+    // Defer data loading to next frame for faster initial render
+    requestAnimationFrame(() => {
+      setIsDataReady(true);
+    });
+  }, []);
+
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
 
@@ -216,9 +225,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
    * updating leverage after positions load to prevent protocol violations.
    */
 
-  // Market data hook with automatic error toast handling
+  // Market data hook with automatic error toast handling (deferred)
   const { marketData, isLoading: isLoadingMarketData } = usePerpsMarketData({
-    asset: orderForm.asset,
+    asset: isDataReady ? orderForm.asset : '', // Defer until UI renders
     showErrorToast: true,
   });
 
@@ -274,23 +283,23 @@ const PerpsOrderViewContentBase: React.FC = () => {
     },
   });
 
-  // Get real-time price data using new stream architecture
+  // Get real-time price data using new stream architecture (deferred)
   // Uses single WebSocket subscription with component-level debouncing
   const prices = usePerpsLivePrices({
-    symbols: [orderForm.asset],
+    symbols: isDataReady ? [orderForm.asset] : [], // Defer subscription
     throttleMs: 1000,
   });
   const currentPrice = prices[orderForm.asset];
 
-  // Get top of book data for maker/taker fee determination
+  // Get top of book data for maker/taker fee determination (deferred)
   const currentTopOfBook = usePerpsTopOfBook({
-    symbol: orderForm.asset,
+    symbol: isDataReady ? orderForm.asset : '', // Defer subscription
   });
 
-  // Track screen load with unified hook
+  // Track screen load with unified hook (measure data loading, not initial render)
   usePerpsMeasurement({
     traceName: TraceName.PerpsOrderView,
-    conditions: [!!currentPrice, !!account],
+    conditions: [isDataReady, !!currentPrice, !!account],
   });
 
   const assetData = useMemo(() => {

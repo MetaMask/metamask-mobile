@@ -4,7 +4,7 @@ import { selectSelectedCountry } from '../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
 import AppConstants from '../../../../core/AppConstants';
 import { getErrorMessage } from '../util/getErrorMessage';
-import { Consent } from '../types';
+import { Consent, ConsentSet } from '../types';
 
 interface UseRegisterUserConsentState {
   isLoading: boolean;
@@ -19,6 +19,9 @@ interface UseRegisterUserConsentReturn extends UseRegisterUserConsentState {
   linkUserToConsent: (consentSetId: string, userId: string) => Promise<void>;
   clearError: () => void;
   reset: () => void;
+  getOnboardingConsentSetByOnboardingId: (
+    onboardingId: string,
+  ) => Promise<ConsentSet | null>;
 }
 
 /**
@@ -63,6 +66,23 @@ export const useRegisterUserConsent = (): UseRegisterUserConsentReturn => {
       consentSetId: null,
     });
   }, []);
+
+  const getOnboardingConsentSetByOnboardingId = useCallback(
+    async (onboardingId: string): Promise<ConsentSet | null> => {
+      if (!sdk) {
+        throw new Error('Card SDK not initialized');
+      }
+
+      const consentSetResponse =
+        await sdk.getConsentSetByOnboardingId(onboardingId);
+      if (!consentSetResponse) {
+        return null;
+      }
+
+      return consentSetResponse.consentSets[0];
+    },
+    [sdk],
+  );
 
   /**
    * Step 7: Creates an onboarding consent record
@@ -223,6 +243,7 @@ export const useRegisterUserConsent = (): UseRegisterUserConsentReturn => {
 
   return {
     ...state,
+    getOnboardingConsentSetByOnboardingId,
     createOnboardingConsent,
     linkUserToConsent,
     clearError,

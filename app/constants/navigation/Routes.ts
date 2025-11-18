@@ -25,6 +25,7 @@ const Routes = {
       INCOMPATIBLE_ACCOUNT_TOKEN: 'RampIncompatibleAccountTokenModal',
       REGION_SELECTOR: 'RampRegionSelectorModal',
       UNSUPPORTED_REGION: 'RampUnsupportedRegionModal',
+      UNSUPPORTED_TOKEN: 'RampUnsupportedTokenModal',
       PAYMENT_METHOD_SELECTOR: 'RampPaymentMethodSelectorModal',
       SETTINGS: 'RampSettingsModal',
     },

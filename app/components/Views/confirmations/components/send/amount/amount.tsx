@@ -52,7 +52,6 @@ export const Amount = () => {
   const assetDisplaySymbol = assetSymbol ?? (isNFT ? 'NFT' : '');
   const { styles } = useStyles(styleSheet, {
     contentLength: amount.length + assetDisplaySymbol.length,
-    isNFT,
   });
   const isIos = Device.isIos();
   const { setAmountInputTypeFiat, setAmountInputTypeToken } =
@@ -171,17 +170,15 @@ export const Amount = () => {
             </TagBase>
           </TouchableOpacity>
         )}
+        <Text style={styles.balanceText} color={TextColor.Alternative}>
+          {balanceDisplayValue}
+        </Text>
       </View>
-      <View>
-        <View style={styles.balanceSection}>
-          <Text color={TextColor.Alternative}>{balanceDisplayValue}</Text>
-        </View>
-        <AmountKeyboard
-          amount={amount}
-          fiatMode={fiatMode}
-          updateAmount={setAmount}
-        />
-      </View>
+      <AmountKeyboard
+        amount={amount}
+        fiatMode={fiatMode}
+        updateAmount={setAmount}
+      />
     </SafeAreaView>
   );
 };

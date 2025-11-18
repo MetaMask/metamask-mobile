@@ -96,7 +96,7 @@ export function useTransactionPayMetrics() {
 
   if (totals) {
     properties.mm_pay_network_fee_usd = new BigNumber(
-      totals.fees.sourceNetwork.usd,
+      totals.fees.sourceNetwork.estimate.usd,
     )
       .plus(totals.fees.targetNetwork.usd)
       .toString(10);

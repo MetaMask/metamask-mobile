@@ -10,7 +10,7 @@ export function usePendingAmountAlerts({
   pendingTokenAmount: string | undefined;
 }): Alert[] {
   const insufficientTokenFundsAlert = useInsufficientPayTokenBalanceAlert({
-    amountFiatOverride: pendingTokenAmount,
+    pendingAmountUsd: pendingTokenAmount,
   });
 
   const perpsHardwareAccountAlert = usePerpsHardwareAccountAlert();

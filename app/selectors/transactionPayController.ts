@@ -30,7 +30,7 @@ export const selectTransactionPayQuotesByTransactionId = createSelector(
 
 export const selectTransactionPayTokensByTransactionId = createSelector(
   selectTransactionDataByTransactionId,
-  (transactionData) => transactionData?.tokens,
+  (transactionData) => transactionData?.tokens ?? [],
 );
 
 export const selectTransactionPaymentTokenByTransactionId = createSelector(
