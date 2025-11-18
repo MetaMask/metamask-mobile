@@ -8,6 +8,8 @@ import {
   OrientationLock,
 } from 'expo-screen-orientation';
 import { CandlePeriod } from '../../constants/chartConfig';
+import type { CandleData } from '../../types/perps-types';
+import type { TPSLLines } from '../TradingViewChart/TradingViewChart';
 import {
   PerpsChartFullscreenModalSelectorsIDs,
   PerpsOHLCVBarSelectorsIDs,
@@ -161,15 +163,17 @@ describe('PerpsChartFullscreenModal', () => {
     onIntervalChange: mockOnIntervalChange,
   };
 
-  const mockCandleData = {
-    data: [
+  const mockCandleData: CandleData = {
+    coin: 'BTC',
+    interval: CandlePeriod.ONE_HOUR,
+    candles: [
       {
         time: 1234567890,
-        open: 100,
-        high: 110,
-        low: 90,
-        close: 105,
-        volume: 1000,
+        open: '100',
+        high: '110',
+        low: '90',
+        close: '105',
+        volume: '1000',
       },
     ],
   };
@@ -391,9 +395,9 @@ describe('PerpsChartFullscreenModal', () => {
     });
 
     it('passes tpslLines to chart when provided', () => {
-      const mockTpslLines = {
-        takeProfit: { price: 110, visible: true },
-        stopLoss: { price: 90, visible: true },
+      const mockTpslLines: TPSLLines = {
+        takeProfitPrice: '110',
+        stopLossPrice: '90',
       };
 
       const { getByTestId } = render(
