@@ -46,6 +46,7 @@ export const createTradingViewChartTemplate = (
         // Global variables
         window.chart = null;
         window.candlestickSeries = null;
+        window.volumeSeries = null; // Volume histogram series
         window.isInitialDataLoad = true; // Track if this is the first data load
         window.lastDataKey = null; // Track the last dataset to avoid unnecessary autoscaling
         window.visibleCandleCount = 45; // Default visible candle count
@@ -255,6 +256,12 @@ export const createTradingViewChartTemplate = (
 
                             const absPrice = Math.abs(price);
 
+                            // Detect and format volume values (typically >= 100k)
+                            // Volume values are much larger than typical crypto prices
+                            if (absPrice >= 100000) {
+                                return window.formatVolumeNumber(price);
+                            }
+
                             // For values >= 1, use dynamic precision based on visible range
                             if (absPrice >= 1) {
                                 let targetDecimals;
@@ -372,12 +379,40 @@ export const createTradingViewChartTemplate = (
                         ticksVisible: true,
                         // Ensure edge tick marks are visible for granular display
                         ensureEdgeTickMarksVisible: true,
+                        // With multiple panes, scale automatically appears only in its pane
+                        // No scaleMargins needed - pane heights control layout
                     },
                     leftPriceScale: {
                         borderColor: 'transparent',
-                        visible: false, // Disable left scale to avoid conflicts
+                        visible: false, // Hide left scale - volume uses overlay with no labels
+                        autoScale: true,
+                        mode: 0,
                     }
                 });
+
+                // Configure pane separator styling for visual separation between candlesticks and volume
+                try {
+                    window.chart.applyOptions({
+                        layout: {
+                            background: {
+                                color: '${theme.colors.background.default}',
+                            },
+                            textColor: '${theme.colors.text.default}',
+                        },
+                        // Pane separator configuration (appears between panes)
+                        panes: {
+                            separatorColor: '${theme.colors.border.default}', // Line color between panes
+                            separatorHoverColor: '${theme.colors.border.muted}', // Hover color
+                            enableResize: false, // Prevent user from dragging separator
+                        },
+                    });
+                    console.log('✅ TradingView: Chart created with pane separator styling');
+                } catch (error) {
+                    console.warn('⚠️ TradingView: Pane configuration warning:', error);
+                }
+
+                // Initialize volume visibility state (default: visible)
+                window.volumeVisible = true;
 
                 // Notify React Native that chart is ready
                 if (window.ReactNativeWebView) {
@@ -397,7 +432,7 @@ export const createTradingViewChartTemplate = (
             if (window.candlestickSeries) {
                 window.chart.removeSeries(window.candlestickSeries);
             }
-            // Create new candlestick series with performance optimizations
+            // Create new candlestick series in pane 0 (top pane)
             window.candlestickSeries = window.chart.addSeries(window.LightweightCharts.CandlestickSeries, {
                 upColor: '${theme.colors.success.default}',
                 downColor: '${theme.colors.error.default}',
@@ -418,7 +453,17 @@ export const createTradingViewChartTemplate = (
                 // Optimize for smooth panning
                 crosshairMarkerVisible: false, // Disable crosshair during panning for performance
                 crosshairMarkerRadius: 0, // Minimize crosshair impact
+            }, 0); // Pane index 0 (default/top pane for candlesticks)
+
+            // Apply scale margins to the candlestick price scale (75% top, 25% bottom for volume)
+            window.candlestickSeries.priceScale().applyOptions({
+                scaleMargins: {
+                    top: 0.05,    // 5% padding at top
+                    bottom: 0.30, // Reserve 30% at bottom (25% volume + 5% gap)
+                },
             });
+
+            console.log('✅ TradingView: Chart and candlestick series initialized');
 
             // Subscribe to crosshair events to send OHLC data to React Native
             window.chart.subscribeCrosshairMove((param) => {
@@ -482,7 +527,170 @@ export const createTradingViewChartTemplate = (
             
             return window.candlestickSeries;
         };
-        
+
+        // Custom volume formatter using K/M/B/T suffixes
+        // Inline JavaScript version of formatLargeNumber from formatUtils.ts
+        window.formatVolumeNumber = function(value) {
+            // Don't show labels for zero or negative volume (doesn't make sense)
+            if (value <= 0 || isNaN(value) || !isFinite(value)) {
+                return '';
+            }
+
+            const absNum = Math.abs(value);
+
+            // Volume ranges with appropriate decimal precision
+            // Billions (>=1B): 2 decimals, Millions (>=1M): 2 decimals
+            // Thousands (>=1K): 0 decimals, Under 1000: 2 decimals
+            if (absNum >= 1000000000) {
+                // Billions: 2 decimals (e.g., "1.23B")
+                return (absNum / 1000000000).toFixed(2) + 'B';
+            } else if (absNum >= 1000000) {
+                // Millions: 2 decimals (e.g., "12.35M")
+                return (absNum / 1000000).toFixed(2) + 'M';
+            } else if (absNum >= 1000) {
+                // Thousands: 0 decimals (e.g., "123K")
+                return (absNum / 1000).toFixed(0) + 'K';
+            } else {
+                // Under 1000: 2 decimals (e.g., "99.12")
+                return absNum.toFixed(2);
+            }
+        };
+
+        // Function to create volume histogram series
+        window.createVolumeSeries = function() {
+            if (!window.chart) {
+                console.error('❌ TradingView: Cannot create volume series - chart not initialized');
+                return null;
+            }
+
+            // Remove existing volume series if it exists
+            if (window.volumeSeries) {
+                try {
+                    window.chart.removeSeries(window.volumeSeries);
+                } catch (e) {
+                    console.warn('⚠️ TradingView: Error removing old volume series:', e);
+                }
+            }
+
+            // Create volume histogram series
+            try {
+                // Use the old API: chart.addSeries(SeriesType, options, paneIndex)
+                // Pane index 1 creates a NEW separate pane below the default pane 0
+                window.volumeSeries = window.chart.addSeries(window.LightweightCharts.HistogramSeries, {
+                    color: '${theme.colors.success.default}',
+                    priceFormat: {
+                        type: 'custom',
+                        formatter: window.formatVolumeNumber, // Use custom K/M/B/T formatter
+                        minMove: 0.01,
+                    },
+                    priceScaleId: 'right', // Use right price scale WITH visible labels
+                    lastValueVisible: false,
+                    priceLineVisible: false,
+                    base: 0, // Start histogram from zero
+                }, 1); // Pane index 1 - creates NEW bottom pane for volume
+
+                // Configure volume price scale options (independent y-axis WITH visible numeric labels)
+                window.volumeSeries.priceScale().applyOptions({
+                    autoScale: true,
+                    mode: 0, // Normal mode for proper scaling
+                    alignLabels: true,
+                    visible: true, // Show scale labels with volume numeric values
+                    borderVisible: false, // Hide border for cleaner look
+                    textColor: '${theme.colors.text.muted}',
+                    scaleMargins: {
+                        top: 0.1,
+                        bottom: 0.2, // Add 20% margin at bottom to prevent 0 from showing
+                    },
+                });
+
+                // Configure pane heights: 80% for candlesticks (pane 0), 20% for volume (pane 1)
+                // Call the helper function to set dynamic heights after both panes exist
+                try {
+                    // Set pane heights after a brief delay to ensure panes are fully created
+                    setTimeout(() => {
+                        if (window.setPaneHeights) {
+                            window.setPaneHeights();
+                        }
+                    }, 100);
+
+                    // Log pane configuration for debugging
+                    if (window.ReactNativeWebView) {
+                        window.ReactNativeWebView.postMessage(JSON.stringify({
+                            type: 'DEBUG',
+                            message: 'Volume series added to pane 1 - applying 80/20 split'
+                        }));
+                    }
+                } catch (e) {
+                    console.warn('⚠️ TradingView: Pane configuration warning:', e);
+                }
+
+                console.log('✅ TradingView: Volume series created in separate pane');
+
+                // Send confirmation to React Native
+                if (window.ReactNativeWebView) {
+                    window.ReactNativeWebView.postMessage(JSON.stringify({
+                        type: 'DEBUG',
+                        message: 'Volume series created successfully'
+                    }));
+                }
+
+                return window.volumeSeries;
+            } catch (error) {
+                console.error('❌ TradingView: Failed to create volume series:', error);
+
+                // Send error to React Native
+                if (window.ReactNativeWebView) {
+                    window.ReactNativeWebView.postMessage(JSON.stringify({
+                        type: 'DEBUG',
+                        message: 'Volume series creation failed: ' + error.message
+                    }));
+                }
+
+                return null;
+            }
+        };
+
+        // Helper function to set pane heights with 80/20 split (candlesticks/volume)
+        window.setPaneHeights = function() {
+            if (!window.chart) {
+                console.warn('⚠️ TradingView: Cannot set pane heights - chart not initialized');
+                return;
+            }
+
+            try {
+                const panes = window.chart.panes();
+
+                if (panes.length < 2) {
+                    console.warn('⚠️ TradingView: Not enough panes for height configuration');
+                    return;
+                }
+
+                // Get total chart height
+                const totalHeight = window.chart.options().height || window.innerHeight;
+
+                // Calculate heights with 80/20 split
+                // Note: TradingView has a minimum pane height of ~30px
+                const mainPaneHeight = Math.floor(totalHeight * 0.80); // 80% for candlesticks
+                const volumePaneHeight = Math.max(Math.floor(totalHeight * 0.20), 30); // 20% for volume (min 30px)
+
+                // Set pane heights
+                panes[0].setHeight(mainPaneHeight);  // Candlestick pane
+                panes[1].setHeight(volumePaneHeight); // Volume pane
+
+                console.log('TradingView: Pane heights set to ' + mainPaneHeight + 'px / ' + volumePaneHeight + 'px (80/20 split)');
+
+                // Send debug info to React Native
+                if (window.ReactNativeWebView) {
+                    window.ReactNativeWebView.postMessage(JSON.stringify({
+                        type: 'DEBUG',
+                        message: 'Pane heights: Candles=' + mainPaneHeight + 'px, Volume=' + volumePaneHeight + 'px'
+                    }));
+                }
+            } catch (error) {
+                console.error('❌ TradingView: Failed to set pane heights:', error);
+            }
+        };
+
         // Function to update visible price range for dynamic formatting
         window.updateVisiblePriceRange = function() {
             if (!window.allCandleData || window.allCandleData.length === 0) {
@@ -567,7 +775,7 @@ export const createTradingViewChartTemplate = (
                 try {
                     const priceLine = window.candlestickSeries.createPriceLine({
                         price: parseFloat(currentPrice),
-                        color: '#FFF', // White
+                        color: '${theme.colors.text.default}',
                         lineWidth: 1,
                         lineStyle: 2, // Dashed line
                         axisLabelVisible: true,
@@ -595,6 +803,33 @@ export const createTradingViewChartTemplate = (
                         width: window.innerWidth,
                         height: window.innerHeight
                     });
+
+                    // Conditionally recalculate pane heights based on pane count
+                    const panes = window.chart.panes();
+
+                    if (panes.length === 2 && window.volumeSeries) {
+                        // Volume is visible: Apply 80/20 split
+                        if (window.setPaneHeights) {
+                            window.setPaneHeights();
+                        }
+                    } else if (panes.length === 1) {
+                        // Volume is hidden: Expand candlestick to 100% height
+                        const chartHeight = window.chart.options().height;
+                        panes[0].setHeight(chartHeight);
+
+                        // Reset scale margins to use full pane
+                        if (window.candlestickSeries) {
+                            window.candlestickSeries.priceScale().applyOptions({
+                                scaleMargins: {
+                                    top: 0.05,
+                                    bottom: 0.05,
+                                },
+                            });
+                        }
+
+                        // Update visible price range instead of fitContent
+                        window.updateVisiblePriceRange();
+                    }
                 }
             }, 100); // Throttle resize to prevent excessive redraws
         });
@@ -651,7 +886,7 @@ export const createTradingViewChartTemplate = (
                 try {
                     window.priceLines.entryPrice = window.candlestickSeries.createPriceLine({
                         price: window.originalPriceLineData.entryPrice.price,
-                        color: '#CCC',
+                        color: '${theme.colors.text.muted}',
                         lineWidth: 1,
                         lineStyle: 2,
                         axisLabelVisible: true,
@@ -665,7 +900,7 @@ export const createTradingViewChartTemplate = (
                 try {
                     window.priceLines.liquidationPrice = window.candlestickSeries.createPriceLine({
                         price: window.originalPriceLineData.liquidationPrice.price,
-                        color: '#FF7584',
+                        color: '${theme.colors.error.default}',
                         lineWidth: 1,
                         lineStyle: 2,
                         axisLabelVisible: true,
@@ -679,7 +914,7 @@ export const createTradingViewChartTemplate = (
                 try {
                     window.priceLines.takeProfitPrice = window.candlestickSeries.createPriceLine({
                         price: window.originalPriceLineData.takeProfitPrice.price,
-                        color: '#BAF24A',
+                        color: '${theme.colors.success.default}',
                         lineWidth: 1,
                         lineStyle: 2,
                         axisLabelVisible: true,
@@ -693,7 +928,7 @@ export const createTradingViewChartTemplate = (
                 try {
                     window.priceLines.stopLossPrice = window.candlestickSeries.createPriceLine({
                         price: window.originalPriceLineData.stopLossPrice.price,
-                        color: '#484848',
+                        color: '${theme.colors.background.alternative}',
                         lineWidth: 1,
                         lineStyle: 2,
                         axisLabelVisible: true,
@@ -709,7 +944,7 @@ export const createTradingViewChartTemplate = (
                 try {
                     window.priceLines.currentPrice = window.candlestickSeries.createPriceLine({
                         price: window.originalPriceLineData.currentPrice.price,
-                        color: '#FFF',
+                        color: '${theme.colors.text.default}',
                         lineWidth: 1,
                         lineStyle: 2,
                         axisLabelVisible: true,
@@ -725,7 +960,7 @@ export const createTradingViewChartTemplate = (
                 try {
                     window.priceLines.currentPrice = window.candlestickSeries.createPriceLine({
                         price: window.originalPriceLineData.currentPrice.price,
-                        color: '#FFF',
+                        color: '${theme.colors.text.default}',
                         lineWidth: 1,
                         lineStyle: 2,
                         axisLabelVisible: true,
@@ -814,7 +1049,7 @@ export const createTradingViewChartTemplate = (
                 try {
                     const priceLine = window.candlestickSeries.createPriceLine({
                         price: parseFloat(lines.entryPrice),
-                        color: '#CCC', // Light Gray
+                        color: '${theme.colors.text.muted}', // Light Gray
                         lineWidth: 1,
                         lineStyle: 2, // Dashed
                         axisLabelVisible: true,
@@ -841,7 +1076,7 @@ export const createTradingViewChartTemplate = (
                 try {
                     const priceLine = window.candlestickSeries.createPriceLine({
                         price: parseFloat(lines.takeProfitPrice),
-                        color: '#BAF24A', // Light Green
+                        color: '${theme.colors.success.default}', // Light Green
                         lineWidth: 1,
                         lineStyle: 2, // Dashed
                         axisLabelVisible: true,
@@ -868,7 +1103,7 @@ export const createTradingViewChartTemplate = (
                 try {
                     const priceLine = window.candlestickSeries.createPriceLine({
                         price: parseFloat(lines.stopLossPrice),
-                        color: '#484848', // Dark Gray
+                        color: '${theme.colors.background.alternative}', // Dark Gray
                         lineWidth: 1,
                         lineStyle: 2, // Dashed
                         axisLabelVisible: true,
@@ -895,7 +1130,7 @@ export const createTradingViewChartTemplate = (
                 try {
                     const priceLine = window.candlestickSeries.createPriceLine({
                         price: parseFloat(lines.liquidationPrice),
-                        color: '#FF7584', // Red
+                        color: '${theme.colors.error.default}', // Red
                         lineWidth: 1,
                         lineStyle: 2, // Dashed
                         axisLabelVisible: true,
@@ -915,15 +1150,26 @@ export const createTradingViewChartTemplate = (
                 const message = JSON.parse(event.data);
                 switch (message.type) {
                     case 'SET_CANDLESTICK_DATA':
+                        console.log('📊 TradingView: Received SET_CANDLESTICK_DATA with', message.data?.length || 0, 'candles');
                         if (window.chart && message.data?.length > 0) {
                             // Create or get candlestick series
                             if (!window.candlestickSeries) {
+                                console.log('📊 TradingView: Creating candlestick series...');
                                 window.createCandlestickSeries();
                             }
+
+                            // Create or get volume series (only if user wants it visible)
+                            if (!window.volumeSeries && window.volumeVisible) {
+                                console.log('📊 TradingView: Creating volume series (volumeVisible=true)...');
+                                window.createVolumeSeries();
+                            } else if (!window.volumeSeries && !window.volumeVisible) {
+                                console.log('📊 TradingView: Skipping volume series creation (volumeVisible=false)');
+                            }
+
                             if (window.candlestickSeries) {
                                 // Store all data for zoom functionality
                                 window.allCandleData = [...message.data];
-                                
+
                                 // Use batch update for better performance during large data sets
                                 try {
                                     window.candlestickSeries.setData(message.data);
@@ -939,6 +1185,75 @@ export const createTradingViewChartTemplate = (
                                             chunk.forEach(candle => window.candlestickSeries.update(candle));
                                         }
                                     }
+                                }
+
+                                // Update volume series with volume data
+                                if (window.volumeSeries) {
+                                    try {
+                                        // Log raw volume values from candles BEFORE parsing
+                                        const rawVolumesSample = message.data.slice(0, 5).map(c => ({
+                                            time: c.time,
+                                            volume: c.volume,
+                                            type: typeof c.volume
+                                        }));
+                                        window.ReactNativeWebView.postMessage(JSON.stringify({
+                                            type: 'DEBUG',
+                                            message: '📊 Raw volume data from candles (first 5): ' + JSON.stringify(rawVolumesSample, null, 2)
+                                        }));
+
+                                        const volumeData = message.data.map(candle => ({
+                                            time: candle.time,
+                                            value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0, // USD notional = volume × price
+                                            color: candle.close >= candle.open ? '${theme.colors.success.default}' : '${theme.colors.error.default}'
+                                        }));
+
+                                        // Debug logging for volume data via DevLogger
+                                        window.ReactNativeWebView.postMessage(JSON.stringify({
+                                            type: 'DEBUG',
+                                            message: '📊 Volume series exists: ' + !!window.volumeSeries
+                                        }));
+                                        window.ReactNativeWebView.postMessage(JSON.stringify({
+                                            type: 'DEBUG',
+                                            message: '📊 Total volume bars: ' + volumeData.length
+                                        }));
+                                        window.ReactNativeWebView.postMessage(JSON.stringify({
+                                            type: 'DEBUG',
+                                            message: '📊 Volume data sample (first 3): ' + JSON.stringify(volumeData.slice(0, 3), null, 2)
+                                        }));
+
+                                        // Log volume range for debugging
+                                        const volumes = volumeData.map(d => d.value);
+                                        const minVol = Math.min(...volumes);
+                                        const maxVol = Math.max(...volumes);
+                                        const avgVol = volumes.reduce((a,b) => a+b, 0) / volumes.length;
+                                        window.ReactNativeWebView.postMessage(JSON.stringify({
+                                            type: 'DEBUG',
+                                            message: '📊 Volume range - min: ' + minVol + ', max: ' + maxVol + ', avg: ' + avgVol
+                                        }));
+
+                                        // Check if all volumes are the same
+                                        const uniqueVolumes = new Set(volumes);
+                                        window.ReactNativeWebView.postMessage(JSON.stringify({
+                                            type: 'DEBUG',
+                                            message: '📊 Unique volume values count: ' + uniqueVolumes.size + ' (out of ' + volumes.length + ' total)'
+                                        }));
+
+                                        window.volumeSeries.setData(volumeData);
+                                        window.ReactNativeWebView.postMessage(JSON.stringify({
+                                            type: 'DEBUG',
+                                            message: '✅ Volume data set successfully'
+                                        }));
+                                    } catch (error) {
+                                        window.ReactNativeWebView.postMessage(JSON.stringify({
+                                            type: 'DEBUG',
+                                            message: '❌ Error setting volume data: ' + error.message
+                                        }));
+                                    }
+                                } else {
+                                    window.ReactNativeWebView.postMessage(JSON.stringify({
+                                        type: 'DEBUG',
+                                        message: '⚠️ Volume series not initialized when trying to set data'
+                                    }));
                                 }
                                 
                                 // Update visible candle count if provided
@@ -1051,6 +1366,109 @@ export const createTradingViewChartTemplate = (
                                 candleCount: message.candleCount,
                                 timestamp: new Date().toISOString()
                             }));
+                        }
+                        break;
+                    case 'TOGGLE_VOLUME_VISIBILITY':
+                        // Toggle volume by removing/recreating pane (prevents empty pane space)
+                        if (window.chart) {
+                            const isVisible = message.visible;
+
+                            try {
+                                if (isVisible) {
+                                    // Set visibility state FIRST (before creating series)
+                                    window.volumeVisible = true;
+
+                                    // Show volume - recreate series and pane if it doesn't exist
+                                    if (!window.volumeSeries) {
+                                        // Recreate volume series
+                                        window.createVolumeSeries();
+
+                                        // Set volume data if we have it
+                                        if (window.allCandleData && window.allCandleData.length > 0) {
+                                            const volumeData = window.allCandleData.map(candle => ({
+                                                time: candle.time,
+                                                value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0, // USD notional = volume × price
+                                                color: candle.close >= candle.open
+                                                    ? '${theme.colors.success.default}'
+                                                    : '${theme.colors.error.default}'
+                                            }));
+                                            window.volumeSeries.setData(volumeData);
+                                        }
+
+                                        // Restore candlestick scale margins for 80/20 split
+                                        if (window.candlestickSeries) {
+                                            window.candlestickSeries.priceScale().applyOptions({
+                                                scaleMargins: {
+                                                    top: 0.05,    // 5% padding at top
+                                                    bottom: 0.30, // Reserve 30% at bottom for volume
+                                                },
+                                            });
+                                            console.log('✅ TradingView: Restored candlestick scale margins for volume (5% top, 30% bottom)');
+                                        }
+
+                                        console.log('✅ TradingView: Volume series recreated and shown');
+                                    }
+                                } else {
+                                    // Hide volume - remove series AND pane entirely
+                                    if (window.volumeSeries) {
+                                        try {
+                                            // Remove the series (pane is automatically removed by TradingView)
+                                            window.chart.removeSeries(window.volumeSeries);
+                                            window.volumeSeries = null;
+
+                                            // Set visibility state AFTER removing series
+                                            window.volumeVisible = false;
+
+                                            console.log('✅ TradingView: Volume series removed, pane automatically removed');
+
+                                            // Reset candlestick pane to full height (100%)
+                                            // Use setTimeout to allow TradingView to complete pane removal
+                                            setTimeout(function() {
+                                                try {
+                                                    const panes = window.chart.panes();
+                                                    if (panes.length === 1) {
+                                                        // Only one pane left - expand to full height
+                                                        const chartHeight = window.chart.options().height;
+
+                                                        // Set pane to full chart height
+                                                        panes[0].setHeight(chartHeight);
+
+                                                        // CRITICAL FIX: Reset candlestick scale margins to use full pane
+                                                        if (window.candlestickSeries) {
+                                                            window.candlestickSeries.priceScale().applyOptions({
+                                                                scaleMargins: {
+                                                                    top: 0.05,    // 5% padding at top
+                                                                    bottom: 0.05, // Reset from 30% to 5%
+                                                                },
+                                                            });
+                                                            console.log('✅ TradingView: Reset scale margins to full pane (5% top, 5% bottom)');
+                                                        }
+
+                                                        // Force chart to recalculate layout by triggering resize
+                                                        window.chart.applyOptions({
+                                                            width: window.chart.options().width,
+                                                            height: chartHeight
+                                                        });
+
+                                                        // Update visible price range instead of fitContent to preserve scroll
+                                                        window.updateVisiblePriceRange();
+
+                                                        console.log('✅ TradingView: Candlestick pane expanded to ' + chartHeight + 'px (100% height)');
+                                                    }
+                                                } catch (heightError) {
+                                                    console.error('❌ TradingView: Error resetting pane height:', heightError);
+                                                }
+                                            }, 100);
+                                        } catch (removeError) {
+                                            console.error('❌ TradingView: Error removing volume series:', removeError);
+                                        }
+                                    }
+                                }
+
+                                console.log('TradingView: Volume visibility toggled to ' + isVisible);
+                            } catch (error) {
+                                console.error('❌ TradingView: Error toggling volume visibility:', error);
+                            }
                         }
                         break;
                 }

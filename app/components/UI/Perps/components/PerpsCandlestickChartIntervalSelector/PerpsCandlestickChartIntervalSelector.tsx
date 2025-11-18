@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { TouchableOpacity, ScrollView } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextColor,
@@ -16,15 +16,22 @@ interface PerpsCandlestickChartIntervalSelectorProps {
   selectedInterval: ChartInterval | string;
   onIntervalChange?: (interval: ChartInterval) => void;
   testID?: string;
+  style?: object; // Allow custom styles to override defaults
 }
 
 const PerpsCandlestickChartIntervalSelector: React.FC<
   PerpsCandlestickChartIntervalSelectorProps
-> = ({ selectedInterval, onIntervalChange, testID }) => {
+> = ({ selectedInterval, onIntervalChange, testID, style }) => {
   const { styles } = useStyles(selectorStyleSheet, {});
 
   return (
-    <View style={styles.intervalSelector} testID={testID}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={[styles.intervalSelector, style]}
+      contentContainerStyle={styles.intervalSelectorContent}
+      testID={testID}
+    >
       {CHART_INTERVALS.map((interval) => (
         <TouchableOpacity
           key={interval.value}
@@ -56,7 +63,7 @@ const PerpsCandlestickChartIntervalSelector: React.FC<
           </Text>
         </TouchableOpacity>
       ))}
-    </View>
+    </ScrollView>
   );
 };
 

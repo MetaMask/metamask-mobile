@@ -76,6 +76,7 @@ import { isNotificationsFeatureEnabled } from '../../../../../util/notifications
 import TradingViewChart, {
   type TradingViewChartRef,
 } from '../../components/TradingViewChart';
+import PerpsChartFullscreenModal from '../../components/PerpsChartFullscreenModal/PerpsChartFullscreenModal';
 import PerpsCandlePeriodSelector from '../../components/PerpsCandlePeriodSelector';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
 import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
@@ -176,6 +177,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const chartRef = useRef<TradingViewChartRef>(null);
 
   const [refreshing, setRefreshing] = useState(false);
+  const [isFullscreenChartVisible, setIsFullscreenChartVisible] =
+    useState(false);
 
   const { account } = usePerpsLiveAccount();
 
@@ -607,6 +610,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     setIsMarketHoursModalVisible(true);
   }, []);
 
+  const handleFullscreenChartOpen = useCallback(() => {
+    setIsFullscreenChartVisible(true);
+  }, []);
+
+  const handleFullscreenChartClose = useCallback(() => {
+    setIsFullscreenChartVisible(false);
+  }, []);
+
   // Determine market hours content key based on current status - recalculated on each render to stay current
   const marketHoursContentKey = (() => {
     const status = getMarketHoursStatus();
@@ -678,6 +689,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           market={market}
           onBackPress={handleBackPress}
           onFavoritePress={handleWatchlistPress}
+          onFullscreenPress={handleFullscreenChartOpen}
           isFavorite={isWatchlist}
           testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
         />
@@ -697,14 +709,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           {/* TradingView Chart Section */}
           <View style={[styles.section, styles.chartSection]}>
             {hasHistoricalData ? (
-              <TradingViewChart
-                ref={chartRef}
-                candleData={candleData}
-                height={350}
-                visibleCandleCount={visibleCandleCount}
-                tpslLines={tpslLines}
-                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
-              />
+              <>
+                <TradingViewChart
+                  ref={chartRef}
+                  candleData={candleData}
+                  height={350}
+                  visibleCandleCount={visibleCandleCount}
+                  tpslLines={tpslLines}
+                  testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
+                />
+              </>
             ) : (
               <Skeleton
                 height={350}
@@ -869,6 +883,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           testID={PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP}
         />
       )}
+
+      {/* Fullscreen Chart Modal */}
+      <PerpsChartFullscreenModal
+        isVisible={isFullscreenChartVisible}
+        candleData={candleData}
+        tpslLines={tpslLines}
+        selectedInterval={selectedCandlePeriod}
+        onClose={handleFullscreenChartClose}
+        onIntervalChange={handleCandlePeriodChange}
+      />
     </SafeAreaView>
   );
 };

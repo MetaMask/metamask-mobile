@@ -37,6 +37,7 @@ export interface TradingViewChartRef {
   resetToDefault: () => void;
   zoomToLatestCandle: (candleCount?: number) => void;
   clearTPSLLines: () => void;
+  toggleVolumeVisibility: (visible: boolean) => void;
 }
 
 interface TradingViewChartProps {
@@ -45,6 +46,7 @@ interface TradingViewChartProps {
   tpslLines?: TPSLLines;
   onChartReady?: () => void;
   visibleCandleCount?: number; // Number of candles to display (for zoom level)
+  showVolume?: boolean; // Control volume bars visibility
   testID?: string;
 }
 
@@ -62,6 +64,7 @@ const TradingViewChart = React.forwardRef<
       tpslLines,
       onChartReady,
       visibleCandleCount = 45, // Default to 45 visible candles
+      showVolume = true, // Default to showing volume
       testID,
     },
     ref,
@@ -142,6 +145,7 @@ const TradingViewChart = React.forwardRef<
       }
     }, []);
 
+    // Force WebView HTML regeneration when template changes (cache bust)
     const htmlContent = useMemo(
       () => createTradingViewChartTemplate(theme, LIGHTWEIGHT_CHARTS_LIBRARY),
       [theme],
@@ -191,6 +195,20 @@ const TradingViewChart = React.forwardRef<
       }
     }, [isChartReady]);
 
+    // Toggle volume visibility
+    const toggleVolumeVisibility = useCallback(
+      (visible: boolean) => {
+        if (webViewRef.current && isChartReady) {
+          const message = {
+            type: 'TOGGLE_VOLUME_VISIBILITY',
+            visible,
+          };
+          webViewRef.current.postMessage(JSON.stringify(message));
+        }
+      },
+      [isChartReady],
+    );
+
     // Handle messages from WebView
     const handleWebViewMessage = useCallback(
       (event: WebViewMessageEvent) => {
@@ -222,6 +240,10 @@ const TradingViewChart = React.forwardRef<
               }
               setOhlcData(message.data);
               break;
+            case 'DEBUG':
+              // Log debug messages from WebView
+              DevLogger.log(`[TradingView Debug] ${message.message}`);
+              break;
             default:
               break;
           }
@@ -251,6 +273,7 @@ const TradingViewChart = React.forwardRef<
             high: parseFloat(candle.high),
             low: parseFloat(candle.low),
             close: parseFloat(candle.close),
+            volume: candle.volume, // Include volume for histogram series
           };
 
           // Validate all values are valid numbers
@@ -345,6 +368,16 @@ const TradingViewChart = React.forwardRef<
       }
     }, [tpslLines, isChartReady, sendMessage]);
 
+    // Sync volume visibility with chart
+    useEffect(() => {
+      if (isChartReady) {
+        sendMessage({
+          type: 'TOGGLE_VOLUME_VISIBILITY',
+          visible: showVolume,
+        });
+      }
+    }, [showVolume, isChartReady, sendMessage]);
+
     // Expose reset function via ref
     React.useImperativeHandle(
       ref,
@@ -352,8 +385,14 @@ const TradingViewChart = React.forwardRef<
         resetToDefault,
         zoomToLatestCandle,
         clearTPSLLines,
+        toggleVolumeVisibility,
       }),
-      [resetToDefault, zoomToLatestCandle, clearTPSLLines],
+      [
+        resetToDefault,
+        zoomToLatestCandle,
+        clearTPSLLines,
+        toggleVolumeVisibility,
+      ],
     );
 
     // Handle WebView errors
@@ -381,6 +420,7 @@ const TradingViewChart = React.forwardRef<
 
     const webViewElement = (
       <WebView
+        key="chart-webview-v16" // Change this version to force remount and reload HTML
         ref={webViewRef}
         source={{ html: htmlContent }}
         style={[styles.webView, { height, width: '100%' }]} // eslint-disable-line react-native/no-inline-styles
@@ -389,6 +429,10 @@ const TradingViewChart = React.forwardRef<
         onHttpError={(syntheticEvent) => {
           const { nativeEvent } = syntheticEvent;
           console.error('TradingViewChart: HTTP Error:', nativeEvent);
+        }}
+        onConsoleMessage={(event) => {
+          // Forward all WebView console logs to React Native console
+          DevLogger.log(`[WebView] ${event.nativeEvent.message}`);
         }}
         testID={`${testID || TradingViewChartSelectorsIDs.CONTAINER}-webview`}
         {...(Platform.OS === 'android' ? { nestedScrollEnabled: true } : {})}

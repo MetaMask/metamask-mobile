@@ -30,6 +30,12 @@ module.exports = {
     ],
 
     'expo-apple-authentication',
+    [
+      'expo-screen-orientation',
+      {
+        initialOrientation: 'DEFAULT',
+      },
+    ],
   ],
   android: {
     package:
@@ -41,6 +47,7 @@ module.exports = {
     bundleIdentifier: 'io.metamask.MetaMask',
     usesAppleSignIn: true,
     jsEngine: 'hermes',
+    requireFullScreen: true, // Required for iPad orientation locking
   },
   expo: {
     owner: 'metamask-test',
