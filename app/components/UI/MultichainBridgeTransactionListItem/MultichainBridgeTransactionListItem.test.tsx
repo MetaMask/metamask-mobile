@@ -131,7 +131,7 @@ describe('MultichainBridgeTransactionListItem', () => {
       getByText('bridge_transaction_details.bridge_to_chain'),
     ).toBeTruthy();
     expect(getByText('transaction.confirmed')).toBeTruthy();
-    expect(getByText('1.0 ETH')).toBeTruthy();
+    expect(getByText('1 ETH')).toBeTruthy();
     expect(getByText('Mar 15, 2025')).toBeTruthy();
   });
 
@@ -183,5 +183,53 @@ describe('MultichainBridgeTransactionListItem', () => {
         multiChainTx: mockTransaction,
       },
     );
+  });
+
+  it('displays less than threshold for very small amounts', () => {
+    const verySmallAmountBridgeHistoryItem = {
+      ...mockBridgeHistoryItem,
+      quote: {
+        ...mockBridgeHistoryItem.quote,
+        srcTokenAmount: '123456789012',
+        srcAsset: {
+          ...mockBridgeHistoryItem.quote.srcAsset,
+          decimals: 18,
+        },
+      },
+    };
+
+    const { getByText } = renderWithProvider(
+      <MultichainBridgeTransactionListItem
+        transaction={mockTransaction}
+        bridgeHistoryItem={verySmallAmountBridgeHistoryItem}
+        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+      />,
+    );
+
+    expect(getByText(/< 0\.00001 ETH/)).toBeTruthy();
+  });
+
+  it('caps amount display at 5 decimal places for larger values', () => {
+    const largerAmountBridgeHistoryItem = {
+      ...mockBridgeHistoryItem,
+      quote: {
+        ...mockBridgeHistoryItem.quote,
+        srcTokenAmount: '123456789012345',
+        srcAsset: {
+          ...mockBridgeHistoryItem.quote.srcAsset,
+          decimals: 18,
+        },
+      },
+    };
+
+    const { getByText } = renderWithProvider(
+      <MultichainBridgeTransactionListItem
+        transaction={mockTransaction}
+        bridgeHistoryItem={largerAmountBridgeHistoryItem}
+        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+      />,
+    );
+
+    expect(getByText(/0\.00012 ETH/)).toBeTruthy();
   });
 });

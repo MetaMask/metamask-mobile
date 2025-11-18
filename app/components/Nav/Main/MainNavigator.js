@@ -61,7 +61,7 @@ import RampRoutes from '../../UI/Ramp/Aggregator/routes';
 import { RampType } from '../../UI/Ramp/Aggregator/types';
 import RampSettings from '../../UI/Ramp/Aggregator/Views/Settings';
 import RampActivationKeyForm from '../../UI/Ramp/Aggregator/Views/Settings/ActivationKeyForm';
-import RampTokenSelection from '../../UI/Ramp/components/TokenSelection';
+import TokenListRoutes from '../../UI/Ramp/routes';
 
 import DepositOrderDetails from '../../UI/Ramp/Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import DepositRoutes from '../../UI/Ramp/Deposit/routes';
@@ -108,7 +108,6 @@ import {
   PredictModalStack,
   selectPredictEnabledFlag,
 } from '../../UI/Predict';
-import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
@@ -527,7 +526,6 @@ const HomeTabs = () => {
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const accountsLength = useSelector(selectAccountsLength);
-  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
   const rewardsSubscription = useSelector(selectRewardsSubscriptionId);
   const isAssetsTrendingTokensEnabled = useSelector(
     selectAssetsTrendingTokensEnabled,
@@ -650,11 +648,7 @@ const HomeTabs = () => {
     const currentRoute = state.routes[state.index];
 
     // Hide tab bar for rewards onboarding splash screen
-    if (
-      currentRoute.name?.startsWith('Rewards') &&
-      isRewardsEnabled &&
-      !rewardsSubscription
-    ) {
+    if (currentRoute.name?.startsWith('Rewards') && !rewardsSubscription) {
       return null;
     }
 
@@ -716,21 +710,12 @@ const HomeTabs = () => {
         component={TransactionsHome}
         layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
-      {isRewardsEnabled ? (
-        <Tab.Screen
-          name={Routes.REWARDS_VIEW}
-          options={options.rewards}
-          component={RewardsHome}
-          layout={({ children }) => UnmountOnBlurComponent(children)}
-        />
-      ) : (
-        <Tab.Screen
-          name={Routes.SETTINGS_VIEW}
-          options={options.settings}
-          component={SettingsFlow}
-          layout={({ children }) => UnmountOnBlurComponent(children)}
-        />
-      )}
+      <Tab.Screen
+        name={Routes.REWARDS_VIEW}
+        options={options.rewards}
+        component={RewardsHome}
+        layout={({ children }) => UnmountOnBlurComponent(children)}
+      />
     </Tab.Navigator>
   );
 };
@@ -949,7 +934,6 @@ const MainNavigator = () => {
   const { enabled: isSendRedesignEnabled } = useSelector(
     selectSendRedesignFlags,
   );
-  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   return (
     <Stack.Navigator
@@ -1009,28 +993,26 @@ const MainNavigator = () => {
         component={ConfirmAddAsset}
         options={{ headerShown: true }}
       />
-      {isRewardsEnabled && (
-        <Stack.Screen
-          name={Routes.SETTINGS_VIEW}
-          component={SettingsFlow}
-          options={{
-            headerShown: false,
-            animationEnabled: true,
-            cardStyleInterpolator: ({ current, layouts }) => ({
-              cardStyle: {
-                transform: [
-                  {
-                    translateX: current.progress.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [layouts.screen.width, 0],
-                    }),
-                  },
-                ],
-              },
-            }),
-          }}
-        />
-      )}
+      <Stack.Screen
+        name={Routes.SETTINGS_VIEW}
+        component={SettingsFlow}
+        options={{
+          headerShown: false,
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
       <Stack.Screen name="Asset" component={AssetModalFlow} />
       <Stack.Screen
         name="TrendingTokensFullView"
@@ -1085,7 +1067,7 @@ const MainNavigator = () => {
       <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
       <Stack.Screen
         name={Routes.RAMP.TOKEN_SELECTION}
-        component={RampTokenSelection}
+        component={TokenListRoutes}
       />
       <Stack.Screen name={Routes.RAMP.BUY}>
         {() => <RampRoutes rampType={RampType.BUY} />}
