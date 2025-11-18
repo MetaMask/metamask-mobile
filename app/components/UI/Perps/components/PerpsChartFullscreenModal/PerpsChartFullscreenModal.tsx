@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { View, Dimensions } from 'react-native';
 import Modal from 'react-native-modal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -25,6 +25,7 @@ import { CandlePeriod, PERPS_CHART_CONFIG } from '../../constants/chartConfig';
 import PerpsCandlestickChartIntervalSelector from '../PerpsCandlestickChartIntervalSelector/PerpsCandlestickChartIntervalSelector';
 import { styleSheet } from './PerpsChartFullscreenModal.styles';
 import PerpsOHLCVBar from '../PerpsOHLCVBar';
+import ComponentErrorBoundary from '../../../ComponentErrorBoundary';
 
 export interface PerpsChartFullscreenModalProps {
   isVisible: boolean;
@@ -52,6 +53,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
     Dimensions.get('window').height *
       PERPS_CHART_CONFIG.LAYOUT.FULLSCREEN_INITIAL_HEIGHT_RATIO,
   );
+  const lastHeightRef = useRef<number>(chartHeight);
 
   // Auto-follow device orientation when modal is open
   useEffect(() => {
@@ -90,6 +92,19 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
       console.warn('Failed to lock orientation on close:', error);
     } finally {
       // Always call onClose even if orientation lock fails
+      onClose();
+    }
+  }, [onClose]);
+
+  // Handle chart errors by restoring orientation and closing modal
+  const handleChartError = useCallback(async () => {
+    try {
+      // Restore orientation lock on error to prevent getting stuck
+      await lockAsync(OrientationLock.PORTRAIT_UP);
+    } catch (error) {
+      console.warn('Failed to lock orientation after chart error:', error);
+    } finally {
+      // Close modal even if orientation lock fails
       onClose();
     }
   }, [onClose]);
@@ -141,7 +156,20 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
           onLayout={(event) => {
             const { height } = event.nativeEvent.layout;
             // Subtract bottom inset from measured height for actual chart height
-            setChartHeight(height - insets.bottom);
+            const newHeight = height - insets.bottom;
+
+            // Debounce: only update if height change is significant OR it's the first real measurement
+            // Prevents unnecessary re-renders during animations or minor layout shifts
+            const heightDiff = Math.abs(newHeight - lastHeightRef.current);
+            const isSignificantChange =
+              heightDiff > PERPS_CHART_CONFIG.LAYOUT.HEIGHT_CHANGE_THRESHOLD;
+            const isFirstRealMeasurement =
+              lastHeightRef.current === chartHeight; // Still at initial estimate
+
+            if (isSignificantChange || isFirstRealMeasurement) {
+              lastHeightRef.current = newHeight;
+              setChartHeight(newHeight);
+            }
           }}
         >
           {/* OHLCV Bar - Shows above chart when interacting */}
@@ -158,18 +186,23 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
             </View>
           )}
 
-          <TradingViewChart
-            ref={chartRef}
-            candleData={candleData}
-            height={chartHeight}
-            tpslLines={tpslLines}
-            visibleCandleCount={PERPS_CHART_CONFIG.CANDLE_COUNT.FULLSCREEN}
-            showVolume // Always show volume in fullscreen
-            showOverlay={false}
-            coloredVolume
-            onOhlcDataChange={setOhlcData}
-            testID="fullscreen-chart"
-          />
+          <ComponentErrorBoundary
+            componentLabel="PerpsChartFullscreenModal"
+            onError={handleChartError}
+          >
+            <TradingViewChart
+              ref={chartRef}
+              candleData={candleData}
+              height={chartHeight}
+              tpslLines={tpslLines}
+              visibleCandleCount={PERPS_CHART_CONFIG.CANDLE_COUNT.FULLSCREEN}
+              showVolume // Always show volume in fullscreen
+              showOverlay={false}
+              coloredVolume
+              onOhlcDataChange={setOhlcData}
+              testID="fullscreen-chart"
+            />
+          </ComponentErrorBoundary>
         </View>
       </View>
     </Modal>

@@ -81,6 +81,7 @@ export const PERPS_CHART_CONFIG = {
   LAYOUT: {
     DETAIL_VIEW_HEIGHT: 350, // Height for chart in market detail view
     FULLSCREEN_INITIAL_HEIGHT_RATIO: 0.7, // Initial height as ratio of screen height
+    HEIGHT_CHANGE_THRESHOLD: 10, // Minimum pixels change to trigger height update (debouncing)
   },
 } as const;
 
