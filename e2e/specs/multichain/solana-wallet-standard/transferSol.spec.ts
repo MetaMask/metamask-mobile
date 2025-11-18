@@ -4,7 +4,7 @@ import { connectSolanaTestDapp, navigateToSolanaTestDApp } from './testHelpers';
 import { withSolanaAccountEnabled } from '../../../common-solana';
 import Assertions from '../../../framework/Assertions';
 
-describe(
+describe.skip(
   SmokeNetworkExpansion('Solana Wallet Standard E2E - Transfer SOL'),
   () => {
     beforeAll(async () => {

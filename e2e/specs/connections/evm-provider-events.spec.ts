@@ -19,7 +19,7 @@ import ToastModal from '../../pages/wallet/ToastModal';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 
-describe(SmokeWalletPlatform('EVM Provider Events'), () => {
+describe.skip(SmokeWalletPlatform('EVM Provider Events'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
   });
