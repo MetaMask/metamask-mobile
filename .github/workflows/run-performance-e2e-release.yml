@@ -7,6 +7,10 @@ on:
     branches:
       - 'release/*'
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   check-release-trigger:
     name: Check if Release Performance Tests Should Run
