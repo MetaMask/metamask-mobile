@@ -9,7 +9,7 @@
  * - app/constants/ota.ts (App runtime - TypeScript re-exports)
  *
  * Workflow:
-\ * 1. For OTA updates (JS-only): Increment OTA_VERSION in app/constants/ota.ts
+ * 1. For OTA updates (JS-only): Increment OTA_VERSION in app/constants/ota.ts
  * 2. For native releases: Bump version in package.json
  */
 
