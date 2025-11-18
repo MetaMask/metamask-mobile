@@ -185,12 +185,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     BackHandler.addEventListener('hardwareBackPress', handleBackPress);
 
     const timeoutId = setTimeout(async () => {
-      setStartFoxAnimation('Start');
-
       if (await Authentication.checkIsSeedlessPasswordOutdated()) {
         navigation.replace('Rehydrate', {
           isSeedlessPasswordOutdated: true,
         });
+      } else {
+        setStartFoxAnimation('Start');
       }
     }, 100);
 
