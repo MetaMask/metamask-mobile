@@ -279,7 +279,7 @@ describe('useTransactionPayMetrics', () => {
   it('includes quote metrics', async () => {
     useTransactionPayTotalsMock.mockReturnValue({
       fees: {
-        sourceNetwork: { usd: '1.5', fiat: '1.6' },
+        sourceNetwork: { estimate: { usd: '1.5', fiat: '1.6' } },
         targetNetwork: { usd: '2.5', fiat: '2.6' },
         provider: { usd: '0.5', fiat: '0.6' },
       },
