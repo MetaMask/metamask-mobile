@@ -98,6 +98,8 @@ export const selectMultipleTokenScanResults = createDeepEqualSelector(
           scanResult: cacheEntry?.data,
         };
       })
-      .filter((result) => result !== null);
+      .filter(
+        (result): result is NonNullable<typeof result> => result !== null,
+      );
   },
 );
