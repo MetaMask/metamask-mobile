@@ -2,7 +2,6 @@ import { createAsyncMiddleware } from '@metamask/json-rpc-engine';
 import type { Hex, Json, JsonRpcRequest } from '@metamask/utils';
 import type { PhishingController } from '@metamask/phishing-controller';
 import type { NetworkController } from '@metamask/network-controller';
-import type { PreferencesController } from '@metamask/preferences-controller';
 import Logger from '../../util/Logger';
 import {
   parseTypedDataMessage,
@@ -25,18 +24,7 @@ interface AddressScanRequest extends JsonRpcRequest {
 interface AddressScanMiddlewareConfig {
   phishingController: PhishingController;
   networkController: NetworkController;
-  preferencesController: PreferencesController;
 }
-
-/**
- * RPC methods that should trigger address scanning
- */
-// const SCANNABLE_METHODS = [
-//   'eth_sendTransaction',
-//   'eth_signTypedData',
-//   'eth_signTypedData_v3',
-//   'eth_signTypedData_v4',
-// ] as const;
 
 /**
  * Normalize chainId to lowercase hex with 0x prefix
@@ -106,9 +94,6 @@ async function scanAddress(
 
   try {
     await phishingController.scanAddress(chainId, address);
-    Logger.log(
-      `[AddressScanMiddleware] Scanned address ${address} on chain ${chainId} (${context})`,
-    );
   } catch (error) {
     Logger.log(
       `[AddressScanMiddleware] Failed to scan address ${address} (${context}):`,
@@ -140,19 +125,14 @@ async function handleEthSendTransaction(
 
   const { to, data } = txParams as { to?: string; data?: string };
 
-  Logger.log('[AddressScanMiddleware] to:', to);
-
-  // Always scan the 'to' address (contract or EOA)
   if (to) {
     await scanAddress(phishingController, chainId, to, 'transaction:to');
   }
 
-  // If this is an approval transaction, also scan the spender
   if (data && typeof data === 'string') {
     const spenderAddress = extractSpenderFromApprovalData(
       data as unknown as Hex,
     );
-    Logger.log('[AddressScanMiddleware] spenderAddress:', spenderAddress);
     if (spenderAddress) {
       await scanAddress(
         phishingController,
@@ -162,12 +142,6 @@ async function handleEthSendTransaction(
       );
     }
   }
-
-  // Log cache after all scans complete
-  Logger.log(
-    '[AddressScanMiddleware] addressScanCache after eth_sendTransaction scan:',
-    JSON.stringify(phishingController.state.addressScanCache, null, 2),
-  );
 }
 
 /**
@@ -186,7 +160,6 @@ async function handleEthSignTypedData(
     return;
   }
 
-  // For eth_signTypedData variants, the typed data is in params[1]
   const typedData = req.params[1];
   const typedDataMessage = parseTypedDataMessage(
     typedData as unknown as string | object,
@@ -196,9 +169,7 @@ async function handleEthSignTypedData(
     return;
   }
 
-  // Scan the verifying contract address
   const verifyingContract = typedDataMessage.domain?.verifyingContract;
-  Logger.log('[AddressScanMiddleware] verifyingContract:', verifyingContract);
   if (verifyingContract) {
     await scanAddress(
       phishingController,
@@ -208,9 +179,7 @@ async function handleEthSignTypedData(
     );
   }
 
-  // If this is a permit signature, also scan the spender
   const spenderAddress = extractSpenderFromPermitMessage(typedDataMessage);
-  Logger.log('[AddressScanMiddleware] spenderAddress:', spenderAddress);
   if (spenderAddress) {
     await scanAddress(
       phishingController,
@@ -219,86 +188,42 @@ async function handleEthSignTypedData(
       'signature:spender',
     );
   }
-
-  // Log cache after all scans complete
-  Logger.log(
-    '[AddressScanMiddleware] addressScanCache after eth_signTypedData scan:',
-    JSON.stringify(phishingController.state.addressScanCache, null, 2),
-  );
 }
 
 /**
- * Create the address scan middleware
+ * Create the Trust Signals middleware
  *
- * This middleware scans addresses in transactions and signatures for security threats.
- * It is non-blocking and runs in the background.
+ * This middleware scans addresses in transactions and signatures.
  *
  * @param config - The middleware configuration
  * @returns The middleware function
  */
-export function createAddressScanMiddleware({
+export function createTrustSignalsMiddleware({
   phishingController,
   networkController,
 }: AddressScanMiddlewareConfig) {
   return createAsyncMiddleware(async (req: AddressScanRequest, _res, next) => {
     try {
-      // // Fast exit if this is not a scannable method
-      // if (
-      //   !SCANNABLE_METHODS.includes(
-      //     req.method as (typeof SCANNABLE_METHODS)[number],
-      //   )
-      // ) {
-      //   return next();
-      // }
-
-      // Get chainId for the request
       const chainId = getChainIdForRequest(req, networkController);
       if (!chainId) {
-        Logger.log(
-          '[AddressScanMiddleware] Could not determine chainId for request',
-        );
+        Logger.log('[AddressScanMiddleware] Could not get chainId for request');
         return next();
       }
 
-      Logger.log('[AddressScanMiddleware] ChainId:', chainId);
-      Logger.log('[AddressScanMiddleware] Method:', req.method);
-
-      // Fire and forget - scan addresses without blocking the request
       if (req.method === 'eth_sendTransaction') {
-        Logger.log('[AddressScanMiddleware] Handling eth_sendTransaction');
-        handleEthSendTransaction(req, phishingController, chainId).catch(
-          (error) => {
-            Logger.log(
-              '[AddressScanMiddleware] Error in handleEthSendTransaction:',
-              error,
-            );
-          },
-        );
+        handleEthSendTransaction(req, phishingController, chainId);
       } else if (
         req.method === 'eth_signTypedData' ||
+        req.method === 'eth_signTypedData_v1' ||
         req.method === 'eth_signTypedData_v3' ||
         req.method === 'eth_signTypedData_v4'
       ) {
-        Logger.log('[AddressScanMiddleware] Handling eth_signTypedData');
-        handleEthSignTypedData(req, phishingController, chainId).catch(
-          (error) => {
-            Logger.log(
-              '[AddressScanMiddleware] Error in handleEthSignTypedData:',
-              error,
-            );
-          },
-        );
+        handleEthSignTypedData(req, phishingController, chainId);
       }
     } catch (error) {
       Logger.log('[AddressScanMiddleware] Unexpected error:', error);
     } finally {
-      // Always call next to ensure the request continues
       next();
-      Logger.log('[AddressScanMiddleware] Request processed');
-      Logger.log(
-        '[AddressScanMiddleware] addressScanCache:',
-        JSON.stringify(phishingController.state.addressScanCache, null, 2),
-      );
     }
   });
 }
