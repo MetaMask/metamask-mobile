@@ -24,9 +24,9 @@ enum RampMode {
  *
  * @returns An object containing navigation functions:
  * - goToBuy: Smart routing based on unified V1 settings and routing decision
- * - goToAggregator: @deprecated Always navigates to aggregator BUY flow (bypasses smart routing)
+ * - goToAggregator: deprecated Always navigates to aggregator BUY flow (bypasses smart routing)
  * - goToSell: Always navigates to aggregator SELL flow
- * - goToDeposit: @deprecated Always navigates to deposit flow (bypasses smart routing)
+ * - goToDeposit: deprecated Always navigates to deposit flow (bypasses smart routing)
  */
 export const useRampNavigation = () => {
   const navigation = useNavigation();
