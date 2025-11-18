@@ -140,6 +140,10 @@ const useTokenHistoricalPrices = ({
             data: { uri: uri.toString() },
           });
           const response = await fetch(uri.toString());
+          if (response.status !== 200) {
+            setPrices([]);
+            return;
+          }
           endTrace({ name: TraceName.FetchHistoricalPrices });
           const data: { prices: TokenPrice[] } = await response.json();
           setPrices(data.prices as TokenPrice[]);
