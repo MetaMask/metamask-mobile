@@ -112,8 +112,6 @@ import migration107 from './107';
 // Add migrations above this line
 import { ControllerStorage } from '../persistConfig';
 import { captureException } from '@sentry/react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { MIGRATION_ERROR_HAPPENED } from '../../constants/storage';
 
 type MigrationFunction = (state: unknown) => unknown;
 type AsyncMigrationFunction = (state: unknown) => Promise<unknown>;
@@ -289,6 +287,8 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
         ),
       );
 
+      // CRASH on load failure, don't allow migrations to run with incomplete data
+      // This could result in data loss if migrations can't access all controller state
       throw new Error(
         `Critical: Failed to load controller data for migration. ` +
           `Cannot continue safely as migrations may corrupt data without complete state. ` +
@@ -318,6 +318,9 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
         string,
         unknown,
       ][];
+
+      // Save all controller states to individual storage
+      // CRITICAL: If ANY controller fails to save, crash the app immediately
       await Promise.all(
         entries.map(async ([controllerName, controllerState]) => {
           try {
@@ -326,6 +329,7 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
               JSON.stringify(controllerState),
             );
           } catch (error) {
+            // Log the error for debugging
             captureException(
               new Error(
                 `deflateToControllersAndStrip: Failed to save ${controllerName} to individual storage: ${String(
@@ -334,6 +338,8 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
               ),
             );
 
+            // CRASH immediately, don't allow partial migration success
+            // This ensures clean recovery and prevents state corruption
             throw new Error(
               `Critical: Migration failed for controller '${controllerName}'. ` +
                 `Cannot continue with partial migration as this would corrupt user data. ` +
@@ -343,6 +349,7 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
         }),
       );
 
+      // All controllers saved successfully, safe to strip engine state
       const { engine: _engine, ...rest } = s;
       return rest as unknown;
     } catch (error) {
@@ -354,6 +361,8 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
         ),
       );
 
+      // CRASH on any deflation error, don't return original state
+      // Returning original state would mean user continues with unmigrated data
       throw new Error(
         `Critical: deflateToControllersAndStrip failed completely. ` +
           `Cannot continue safely as this indicates severe migration system failure. ` +
@@ -367,37 +376,26 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
       const asyncMigration = async (
         incomingState: Promise<unknown> | unknown,
       ) => {
-        try {
-          let state = await incomingState;
+        let state = await incomingState;
 
-          if (!didInflate && Number(migrationNumber) > 106) {
-            state = await inflateFromControllers(state);
-            didInflate = true;
-          }
-
-          const migratedState = await migrationFunction(state);
-          if (Number(migrationNumber) === lastVersion && lastVersion >= 106) {
-            const s2 = migratedState as StateWithEngine;
-            const hasControllers = Boolean(
-              s2.engine?.backgroundState &&
-                Object.keys(s2.engine.backgroundState).length > 0,
-            );
-            if (hasControllers) {
-              return await deflateToControllersAndStrip(migratedState);
-            }
-          }
-
-          return migratedState;
-        } catch (error) {
-          try {
-            await AsyncStorage.setItem(MIGRATION_ERROR_HAPPENED, 'true');
-          } catch (storageError) {
-            captureException(storageError as Error);
-          }
-
-          // Re-throw to let redux-persist handle it
-          throw error;
+        if (!didInflate && Number(migrationNumber) > 106) {
+          state = await inflateFromControllers(state);
+          didInflate = true;
         }
+
+        const migratedState = await migrationFunction(state);
+        if (Number(migrationNumber) === lastVersion && lastVersion >= 106) {
+          const s2 = migratedState as StateWithEngine;
+          const hasControllers = Boolean(
+            s2.engine?.backgroundState &&
+              Object.keys(s2.engine.backgroundState).length > 0,
+          );
+          if (hasControllers) {
+            return await deflateToControllersAndStrip(migratedState);
+          }
+        }
+
+        return migratedState;
       };
       newMigrations[migrationNumber] = asyncMigration;
       return newMigrations;

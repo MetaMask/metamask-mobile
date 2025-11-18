@@ -3,7 +3,6 @@ const prefix = `@${mm}:`;
 const USE_TERMS_VERSION = 'v1.0';
 
 export const EXISTING_USER = `${prefix}existingUser`;
-export const MIGRATION_ERROR_HAPPENED = `${prefix}migrationErrorHappened`;
 export const BIOMETRY_CHOICE = `${prefix}biometryChoice`;
 export const BIOMETRY_CHOICE_DISABLED = `${prefix}biometryChoiceDisabled`;
 
