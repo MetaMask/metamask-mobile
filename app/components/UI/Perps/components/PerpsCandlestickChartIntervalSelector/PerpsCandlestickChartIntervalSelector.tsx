@@ -6,15 +6,15 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import {
-  CHART_INTERVALS,
+  CANDLE_PERIODS,
   PERPS_CHART_CONFIG,
-  ChartInterval,
+  CandlePeriod,
 } from '../../constants/chartConfig';
 import { selectorStyleSheet } from './PerpsCandlestickChartIntervalSelector.styles.ts';
 
 interface PerpsCandlestickChartIntervalSelectorProps {
-  selectedInterval: ChartInterval | string;
-  onIntervalChange?: (interval: ChartInterval) => void;
+  selectedInterval: CandlePeriod | string;
+  onIntervalChange?: (interval: CandlePeriod) => void;
   testID?: string;
   style?: object; // Allow custom styles to override defaults
 }
@@ -32,7 +32,7 @@ const PerpsCandlestickChartIntervalSelector: React.FC<
       contentContainerStyle={styles.intervalSelectorContent}
       testID={testID}
     >
-      {CHART_INTERVALS.map((interval) => (
+      {CANDLE_PERIODS.map((interval) => (
         <TouchableOpacity
           key={interval.value}
           style={[

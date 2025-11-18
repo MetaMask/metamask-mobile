@@ -24,7 +24,7 @@ import TradingViewChart, {
   TPSLLines,
 } from '../TradingViewChart/TradingViewChart';
 import type { CandleData } from '../../types/perps-types';
-import { ChartInterval } from '../../constants/chartConfig';
+import { CandlePeriod } from '../../constants/chartConfig';
 import PerpsCandlestickChartIntervalSelector from '../PerpsCandlestickChartIntervalSelector/PerpsCandlestickChartIntervalSelector';
 import { styleSheet } from './PerpsChartFullscreenModal.styles';
 
@@ -32,9 +32,9 @@ export interface PerpsChartFullscreenModalProps {
   isVisible: boolean;
   candleData?: CandleData | null;
   tpslLines?: TPSLLines;
-  selectedInterval: ChartInterval;
+  selectedInterval: CandlePeriod;
   onClose: () => void;
-  onIntervalChange: (interval: ChartInterval) => void;
+  onIntervalChange: (interval: CandlePeriod) => void;
 }
 
 const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
