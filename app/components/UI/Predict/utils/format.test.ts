@@ -1143,7 +1143,7 @@ describe('format utils', () => {
       expect(result).toBe('9.25');
     });
 
-    it('calculates net amount with high precision decimal values rounded up to next cent', () => {
+    it('calculates net amount with high precision decimal values', () => {
       const params = {
         totalFiat: '1.04361142938843253220839271649743403',
         bridgeFeeFiat: '0.036399',
@@ -1152,7 +1152,7 @@ describe('format utils', () => {
 
       const result = calculateNetAmount(params);
 
-      expect(result).toBe('1');
+      expect(result).toBe('0.9991879511181999');
     });
 
     it('returns "0" when total equals sum of fees', () => {
@@ -1302,7 +1302,7 @@ describe('format utils', () => {
       expect(result).toBe('6.75');
     });
 
-    it('handles very small decimal amounts rounded up to next cent', () => {
+    it('handles very small decimal amounts', () => {
       const params = {
         totalFiat: '0.001',
         bridgeFeeFiat: '0.0001',
@@ -1311,7 +1311,7 @@ describe('format utils', () => {
 
       const result = calculateNetAmount(params);
 
-      expect(result).toBe('0.01');
+      expect(result).toBe('0.0007');
     });
 
     it('handles large amounts correctly', () => {
