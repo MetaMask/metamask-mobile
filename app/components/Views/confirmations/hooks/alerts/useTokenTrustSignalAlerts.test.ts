@@ -171,4 +171,62 @@ describe('useTokenTrustSignalAlerts', () => {
     );
     expect(result.current).toEqual([]);
   });
+
+  it('detects malicious token when it is not the first incoming token', () => {
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      simulationData: {
+        tokenBalanceChanges: [
+          {
+            address: '0x0000000000000000000000000000000000000001',
+            isDecrease: false,
+          },
+          {
+            address: '0x0000000000000000000000000000000000000002',
+            isDecrease: false,
+          },
+        ],
+      },
+      chainId: '0x1',
+    } as unknown as TransactionMeta);
+
+    const { result } = renderHookWithProvider(
+      () => useTokenTrustSignalAlerts(),
+      {
+        state: {
+          engine: {
+            backgroundState: {
+              PhishingController: {
+                tokenScanCache: {
+                  '0x1:0x0000000000000000000000000000000000000001': {
+                    data: {
+                      // @ts-expect-error - TokenScanResultType is not exported in PhishingController
+                      result_type: 'Benign',
+                    },
+                  },
+                  '0x1:0x0000000000000000000000000000000000000002': {
+                    data: {
+                      // @ts-expect-error - TokenScanResultType is not exported in PhishingController
+                      result_type: 'Malicious',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    );
+
+    expect(result.current).toEqual([
+      {
+        key: AlertKeys.TokenTrustSignalMalicious,
+        field: RowAlertKey.IncomingTokens,
+        message:
+          'This token has been identified as malicious. Interacting with this token may result in a loss of funds.',
+        title: 'Malicious token',
+        severity: Severity.Danger,
+        isBlocking: false,
+      },
+    ]);
+  });
 });
