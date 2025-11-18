@@ -1070,6 +1070,8 @@ export const getRpcMethodMiddleware = ({
 
       wallet_switchEthereumChain: () => {
         checkTabActive();
+        // eslint-disable-next-line no-console
+        console.log('RPCMethods: wallet_switchEthereumChain', req.params);
         return RPCMethods.wallet_switchEthereumChain({
           req,
           res,
