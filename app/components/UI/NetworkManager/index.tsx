@@ -317,11 +317,13 @@ const NetworkManager = () => {
       const otherNetwork = networksToUse.find(
         (network) => network.caipChainId !== caipChainId,
       );
-      const otherCaipChainId = otherNetwork?.caipChainId as CaipChainId;
 
       // Remove the network from controller and disable it
       NetworkController.removeNetwork(chainId);
-      enableNetwork(otherCaipChainId);
+
+      if (otherNetwork?.caipChainId) {
+        enableNetwork(otherNetwork.caipChainId);
+      }
       disableNetwork(showConfirmDeleteModal.caipChainId);
       MetaMetrics.getInstance().addTraitsToUser(
         removeItemFromChainIdList(chainId),
