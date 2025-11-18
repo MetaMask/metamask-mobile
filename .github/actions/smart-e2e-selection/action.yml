@@ -46,8 +46,8 @@ runs:
     - name: Fetch base branch for comparison
       shell: bash
       run: |
-        # Fetch base branch with enough depth to compute merge base for git diff
-        git fetch origin main --depth=100 2>/dev/null || git fetch origin master --depth=100 2>/dev/null || true
+        # Fetch base branch with full history to ensure merge-base exists
+        git fetch --unshallow origin main 2>/dev/null || git fetch origin main --depth=500 2>/dev/null || git fetch origin master --depth=500 2>/dev/null || true
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
