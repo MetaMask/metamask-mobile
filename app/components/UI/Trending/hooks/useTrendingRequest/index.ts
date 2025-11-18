@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
 import { debounce } from 'lodash';
-import { CaipChainId } from '@metamask/utils';
+import { CaipChainId, parseCaipChainId } from '@metamask/utils';
 import {
   getTrendingTokens,
   SortTrendingBy,
@@ -33,6 +33,36 @@ const cache = new Map<
   { data: Awaited<ReturnType<typeof getTrendingTokens>>; timestamp: number }
 >();
 
+/**
+ * Compare function for CAIP chain IDs to ensure consistent sorting
+ * First compares by namespace (alphabetically), then by reference
+ * (numerically if both are numbers, otherwise alphabetically)
+ */
+const compareCaipChainIds = (a: CaipChainId, b: CaipChainId): number => {
+  try {
+    const { namespace: namespaceA, reference: refA } = parseCaipChainId(a);
+    const { namespace: namespaceB, reference: refB } = parseCaipChainId(b);
+
+    // First compare namespaces
+    if (namespaceA !== namespaceB) {
+      return namespaceA.localeCompare(namespaceB);
+    }
+
+    // Then compare references - try numeric comparison first
+    const numA = Number(refA);
+    const numB = Number(refB);
+    if (!isNaN(numA) && !isNaN(numB)) {
+      return numA - numB;
+    }
+
+    // Fallback to alphabetical comparison for non-numeric references
+    return refA.localeCompare(refB);
+  } catch {
+    // If parsing fails, fall back to string comparison
+    return a.localeCompare(b);
+  }
+};
+
 // Generate cache key from options
 const getCacheKey = (options: {
   chainIds: CaipChainId[];
@@ -43,7 +73,9 @@ const getCacheKey = (options: {
   minMarketCap?: number;
   maxMarketCap?: number;
 }): string => {
-  const sortedChainIds = [...options.chainIds].sort();
+  // Sort chain IDs using compare function to ensure consistent cache keys
+  // regardless of input order
+  const sortedChainIds = [...options.chainIds].sort(compareCaipChainIds);
   return JSON.stringify({
     chainIds: sortedChainIds,
     sortBy: options.sortBy,
