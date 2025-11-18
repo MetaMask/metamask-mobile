@@ -40,8 +40,6 @@ import Logger from '../../../../util/Logger';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import { isHardwareAccount } from '../../../../util/address';
-import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
-import { store } from '../../../../store';
 import {
   CaipAccountId,
   parseCaipChainId,
@@ -1602,13 +1600,13 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Check if the rewards feature is enabled via feature flag
+   * Check if the rewards feature is enabled
    * @returns boolean - True if rewards feature is enabled, false otherwise
    */
   isRewardsFeatureEnabled(): boolean {
     const isDisabled = this.#isDisabled();
     if (isDisabled) return false;
-    return selectRewardsEnabledFlag(store.getState());
+    return true;
   }
 
   /**
