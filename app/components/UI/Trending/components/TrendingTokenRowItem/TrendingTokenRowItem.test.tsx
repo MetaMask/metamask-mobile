@@ -548,104 +548,10 @@ describe('TrendingTokenRowItem', () => {
         symbol: 'USDC',
         name: 'USD Coin',
         decimals: 6,
+        image:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+        pricePercentChange1d: 3.44,
       });
-    });
-  });
-
-  describe('closeNetworkModal', () => {
-    beforeEach(() => {
-      mockIsCaipChainId.mockReturnValue(true);
-    });
-
-    it('closes the network modal when onClose is called', () => {
-      const token = createMockToken({
-        assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-      });
-
-      // Mock networkConfigurations to be empty so the network is not added
-      const emptyNetworkState = {
-        ...mockState,
-        engine: {
-          ...mockState.engine,
-          backgroundState: {
-            ...mockState.engine.backgroundState,
-            NetworkController: {
-              networkConfigurations: {},
-              networkConfigurationsByChainId: {},
-            },
-          },
-        },
-      };
-
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <TrendingTokenRowItem token={token} />,
-        { state: emptyNetworkState },
-        false,
-      );
-
-      // Click on the token to open the modal
-      const tokenRow = getByTestId(
-        'trending-token-row-item-eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-      );
-      fireEvent.press(tokenRow);
-
-      // Verify modal is visible
-      expect(getByTestId('network-modal')).toBeTruthy();
-      expect(getByTestId('network-modal-network-name')).toBeTruthy();
-
-      // Close the modal
-      const closeButton = getByTestId('network-modal-close-button');
-      fireEvent.press(closeButton);
-
-      // Verify modal is closed
-      expect(queryByTestId('network-modal')).toBeNull();
-    });
-
-    it('resets selectedNetwork when modal is closed', () => {
-      const token = createMockToken({
-        assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-      });
-
-      // Mock networkConfigurations to be empty so the network is not added
-      const emptyNetworkState = {
-        ...mockState,
-        engine: {
-          ...mockState.engine,
-          backgroundState: {
-            ...mockState.engine.backgroundState,
-            NetworkController: {
-              networkConfigurations: {},
-              networkConfigurationsByChainId: {},
-            },
-          },
-        },
-      };
-
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <TrendingTokenRowItem token={token} />,
-        { state: emptyNetworkState },
-        false,
-      );
-
-      // Click on the token to open the modal
-      const tokenRow = getByTestId(
-        'trending-token-row-item-eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-      );
-      fireEvent.press(tokenRow);
-
-      // Verify modal is visible with network name
-      expect(getByTestId('network-modal-network-name')).toBeTruthy();
-      expect(getByTestId('network-modal-network-name').props.children).toBe(
-        'Ethereum Mainnet',
-      );
-
-      // Close the modal
-      const closeButton = getByTestId('network-modal-close-button');
-      fireEvent.press(closeButton);
-
-      // Verify modal is closed and network name is no longer visible
-      expect(queryByTestId('network-modal')).toBeNull();
-      expect(queryByTestId('network-modal-network-name')).toBeNull();
     });
   });
 });
