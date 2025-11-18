@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useMemo } from 'react';
 import {
   createStackNavigator,
   StackNavigationOptions,
@@ -31,6 +31,9 @@ import Text, {
 import { strings } from '../../../../../locales/i18n';
 import { View, ActivityIndicator, Alert } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
+import { useParams } from '../../../../util/navigation/navUtils';
+import { CardUserPhase } from '../types';
+
 const Stack = createStackNavigator();
 
 export const KYCModalNavigationOptions = ({
@@ -109,29 +112,66 @@ const ValidatingKYCNavigationOptions = ({
 });
 
 const OnboardingNavigator: React.FC = () => {
+  const { cardUserPhase } = useParams<{
+    cardUserPhase?: CardUserPhase;
+  }>();
   const onboardingId = useSelector(selectOnboardingId);
   const { user, isLoading } = useCardSDK();
 
-  const getInitialRouteName = useCallback(() => {
-    if (!onboardingId || !user?.id) {
-      return Routes.CARD.ONBOARDING.SIGN_UP;
-    }
-    if (user?.verificationState === 'PENDING') {
-      return Routes.CARD.ONBOARDING.VALIDATING_KYC;
-    }
-    if (user?.verificationState === 'VERIFIED') {
-      if (!user?.firstName || !user?.countryOfNationality) {
+  const getInitialRouteName = useMemo(() => {
+    // If cardUserPhase is provided, use it to determine the initial route.
+    // We get this from the login response.
+    if (cardUserPhase) {
+      if (cardUserPhase === 'ACCOUNT' || !user?.contactVerificationId) {
+        return Routes.CARD.ONBOARDING.SIGN_UP;
+      }
+      if (cardUserPhase === 'PHONE_NUMBER') {
+        return Routes.CARD.ONBOARDING.SET_PHONE_NUMBER;
+      }
+      if (cardUserPhase === 'PERSONAL_INFORMATION') {
         return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
-      } else if (!user?.addressLine1) {
+      }
+      if (cardUserPhase === 'PHYSICAL_ADDRESS') {
         return Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS;
       }
-      return Routes.CARD.ONBOARDING.COMPLETE;
+      if (cardUserPhase === 'MAILING_ADDRESS') {
+        return Routes.CARD.ONBOARDING.MAILING_ADDRESS;
+      }
+    } else if (user?.verificationState && onboardingId) {
+      if (user.verificationState === 'UNVERIFIED') {
+        if (!user?.email) {
+          return Routes.CARD.ONBOARDING.SIGN_UP;
+        }
+
+        if (!user?.phoneNumber) {
+          return Routes.CARD.ONBOARDING.SET_PHONE_NUMBER;
+        }
+
+        return Routes.CARD.ONBOARDING.VERIFY_IDENTITY;
+      }
+
+      if (user.verificationState === 'PENDING') {
+        return Routes.CARD.ONBOARDING.VALIDATING_KYC;
+      }
+
+      if (user.verificationState === 'VERIFIED') {
+        if (!user?.firstName || !user?.countryOfNationality) {
+          return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
+        } else if (!user?.addressLine1) {
+          return Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS;
+        } else if (
+          user?.countryOfResidence?.toLowerCase() === 'us' &&
+          !user?.mailingAddressLine1
+        ) {
+          return Routes.CARD.ONBOARDING.MAILING_ADDRESS;
+        }
+
+        return Routes.CARD.ONBOARDING.COMPLETE;
+      }
     }
-    if (onboardingId) {
-      return Routes.CARD.ONBOARDING.SET_PHONE_NUMBER;
-    }
-    return Routes.CARD.ONBOARDING.VERIFY_IDENTITY;
-  }, [onboardingId, user]);
+
+    return Routes.CARD.ONBOARDING.SIGN_UP;
+  }, [user, cardUserPhase, onboardingId]);
 
   // Show loading indicator while SDK is initializing or user data is being fetched
   if (isLoading) {
@@ -143,7 +183,7 @@ const OnboardingNavigator: React.FC = () => {
   }
 
   return (
-    <Stack.Navigator initialRouteName={getInitialRouteName()}>
+    <Stack.Navigator initialRouteName={getInitialRouteName}>
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.SIGN_UP}
         component={SignUp}

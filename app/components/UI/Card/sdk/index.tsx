@@ -22,6 +22,7 @@ import {
   resetOnboardingState,
   resetAuthenticatedData,
   clearAllCache,
+  setContactVerificationId,
 } from '../../../../core/redux/slices/card';
 import { UserResponse } from '../types';
 
@@ -32,6 +33,7 @@ export interface ICardSDK {
   user: UserResponse | null;
   setUser: (user: UserResponse | null) => void;
   logoutFromProvider: () => Promise<void>;
+  fetchUserData: () => Promise<void>;
 }
 
 interface ProviderProps<T> {
@@ -82,26 +84,35 @@ export const CardSDKProvider = ({
     setIsLoading(false);
   }, [cardFeatureFlag, userCardLocation]);
 
+  const fetchUserData = useCallback(async () => {
+    if (!sdk || !onboardingId) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const userData = await sdk.getRegistrationStatus(onboardingId);
+
+      if (userData.contactVerificationId) {
+        dispatch(setContactVerificationId(userData.contactVerificationId));
+      }
+      setUser(userData);
+    } catch {
+      // Assume user is not registered
+    } finally {
+      setIsLoading(false);
+    }
+  }, [sdk, onboardingId, dispatch]);
+
   // Fetch user data on mount if onboardingId exists
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (!sdk || !onboardingId) {
-        return;
-      }
-      setIsLoading(true);
-
-      try {
-        const userData = await sdk.getRegistrationStatus(onboardingId);
-        setUser(userData);
-      } catch {
-        // Assume user is not registered
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    if (!sdk || !onboardingId) {
+      return;
+    }
 
     fetchUserData();
-  }, [sdk, onboardingId]);
+  }, [sdk, onboardingId, fetchUserData]);
 
   const logoutFromProvider = useCallback(async () => {
     if (!sdk) {
@@ -129,8 +140,9 @@ export const CardSDKProvider = ({
       user,
       setUser,
       logoutFromProvider,
+      fetchUserData,
     }),
-    [sdk, isLoading, user, setUser, logoutFromProvider],
+    [sdk, isLoading, user, setUser, logoutFromProvider, fetchUserData],
   );
 
   return <CardSDKContext.Provider value={value || contextValue} {...props} />;
