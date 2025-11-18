@@ -257,7 +257,7 @@ const EarnTokenList = () => {
     });
 
     return [...sortByHighestRewards(tokensWithBalance)];
-  }, [tokens]);
+  }, [tokens, isTrxStakingEnabled]);
 
   const tokensSortedByHighestBalance = useMemo(() => {
     if (!tokens?.length) return [];
