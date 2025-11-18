@@ -19,6 +19,7 @@ import { providerAsMiddleware } from '@metamask/eth-json-rpc-middleware';
 import { createEngineStream } from '@metamask/json-rpc-middleware-stream';
 import { SnapId } from '@metamask/snaps-sdk';
 import { Json } from '@metamask/utils';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 import Engine from '../Engine';
 import { setupMultiplex } from '../../util/streams';
@@ -190,7 +191,7 @@ export default class SnapBridge {
           getAllEvmAccounts: () =>
             controllerMessenger
               .call('AccountsController:listAccounts')
-              .map((account) => account.address),
+              .map((account: InternalAccount) => account.address),
           grantPermissions: (approvedPermissions) =>
             controllerMessenger.call('PermissionController:grantPermissions', {
               approvedPermissions,
