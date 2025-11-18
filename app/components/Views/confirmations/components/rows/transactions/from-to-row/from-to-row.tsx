@@ -79,13 +79,25 @@ export function FromToRowSkeleton() {
     <InfoSection>
       <View style={styles.container}>
         <View style={[styles.nameContainer, styles.leftNameContainer]}>
-          <Skeleton width={110} height={36} style={{ borderRadius: 18 }} />
+          <Skeleton
+            width={110}
+            height={36}
+            style={styles.skeletonBorderRadiusLarge}
+          />
         </View>
         <View style={styles.iconContainer}>
-          <Skeleton width={16} height={16} style={{ borderRadius: 4 }} />
+          <Skeleton
+            width={16}
+            height={16}
+            style={styles.skeletonBorderRadiusSmall}
+          />
         </View>
         <View style={[styles.nameContainer, styles.rightNameContainer]}>
-          <Skeleton width={110} height={36} style={{ borderRadius: 18 }} />
+          <Skeleton
+            width={110}
+            height={36}
+            style={styles.skeletonBorderRadiusLarge}
+          />
         </View>
       </View>
     </InfoSection>

@@ -92,19 +92,13 @@ export const NetworkAndOriginRow = () => {
 };
 
 export function NetworkAndOriginRowSkeleton() {
+  const { styles } = useStyles(styleSheet, {});
+
   return (
     <InfoSection>
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          paddingBottom: 8,
-          paddingHorizontal: 8,
-        }}
-      >
-        <Skeleton width={70} height={20} style={{ borderRadius: 4 }} />
-        <Skeleton width={100} height={20} style={{ borderRadius: 4 }} />
+      <View style={styles.skeletonContainer}>
+        <Skeleton width={70} height={20} style={styles.skeletonBorderRadius} />
+        <Skeleton width={100} height={20} style={styles.skeletonBorderRadius} />
       </View>
     </InfoSection>
   );

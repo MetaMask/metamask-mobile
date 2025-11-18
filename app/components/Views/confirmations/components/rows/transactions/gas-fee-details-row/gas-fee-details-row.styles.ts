@@ -42,6 +42,9 @@ const styleSheet = (params: { theme: Theme }) => {
       textAlign: 'left',
       flex: 1,
     },
+    skeletonBorderRadius: {
+      borderRadius: 4,
+    },
   });
 };
 

@@ -164,19 +164,15 @@ const AdvancedDetailsRow = () => {
 };
 
 export function AdvancedDetailsRowSkeleton() {
+  const { styles } = useStyles(styleSheet, {
+    isNonceChangeDisabled: false,
+  });
+
   return (
     <InfoSection>
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          paddingBottom: 8,
-          paddingHorizontal: 8,
-        }}
-      >
-        <Skeleton width={130} height={20} style={{ borderRadius: 4 }} />
-        <Skeleton width={16} height={16} style={{ borderRadius: 4 }} />
+      <View style={styles.skeletonContainer}>
+        <Skeleton width={130} height={20} style={styles.skeletonBorderRadius} />
+        <Skeleton width={16} height={16} style={styles.skeletonBorderRadius} />
       </View>
     </InfoSection>
   );

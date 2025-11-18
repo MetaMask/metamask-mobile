@@ -43,9 +43,13 @@ const PaidByMetaMask = () => (
   </Text>
 );
 
-const SkeletonEstimationInfo = () => (
-  <Skeleton width={140} height={20} style={{ borderRadius: 4 }} />
-);
+const SkeletonEstimationInfo = () => {
+  const { styles } = useStyles(styleSheet, {});
+
+  return (
+    <Skeleton width={140} height={20} style={styles.skeletonBorderRadius} />
+  );
+};
 
 const EstimationInfo = ({
   hideFiatForTestnet,
