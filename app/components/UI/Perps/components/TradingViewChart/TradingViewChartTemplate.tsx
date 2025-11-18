@@ -748,16 +748,33 @@ export const createTradingViewChartTemplate = (
                     const panes = window.chart.panes();
 
                     if (panes.length === 2 && window.volumeSeries) {
-                        // Volume is visible: Apply 80/20 split
-                        if (window.setPaneHeights) {
-                            window.setPaneHeights();
-                        }
-
-                        // Force volume series to recalculate scale after pane resize
+                        // Force volume series to recalculate scale by refreshing data
                         try {
-                            window.volumeSeries.priceScale().applyOptions({
-                                autoScale: true,
-                            });
+                            if (window.allCandleData && window.allCandleData.length > 0) {
+                                const volumeData = window.allCandleData.map(candle => ({
+                                    time: candle.time,
+                                    value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0,
+                                    color: candle.close >= candle.open
+                                        ? '${theme.colors.success.default}'
+                                        : '${theme.colors.error.default}'
+                                }));
+                                window.volumeSeries.setData(volumeData);
+
+                                // Re-apply 80/20 split AFTER data refresh (with small delay)
+                                setTimeout(function() {
+                                    if (window.setPaneHeights) {
+                                        window.setPaneHeights();
+                                    }
+                                }, 50);
+                            } else {
+                                // Fallback: just toggle autoscale and apply pane heights
+                                window.volumeSeries.priceScale().applyOptions({
+                                    autoScale: true,
+                                });
+                                if (window.setPaneHeights) {
+                                    window.setPaneHeights();
+                                }
+                            }
                         } catch (error) {
                             // Silent error handling
                         }
