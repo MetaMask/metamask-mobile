@@ -164,7 +164,7 @@ test('@metamask/connect-evm - Connect to the EVM Legacy Test Dapp', async ({
     // Accept in MetaMask app
     // await login(device, { shouldDismissModals: false });
     await SwitchChainModal.assertNetworkText('Polygon');
-    await SwitchChainModal.tapConfirmButton();
+    await SwitchChainModal.tapConnectButton();
   });
 
   // Explicit pausing to avoid navigating back too fast to the dapp

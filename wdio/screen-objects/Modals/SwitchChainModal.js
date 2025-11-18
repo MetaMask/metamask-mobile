@@ -23,16 +23,26 @@ class SwitchChainModal {
         }
     }
 
-    async tapConfirmButton() {
+    get connectButton() {
+        if (!this._device) {
+            return null;
+        }
+
+        if (AppwrightSelectors.isAndroid(this._device)) {
+            return AppwrightSelectors.getElementByID(this._device, 'connect-button');
+        }
+    }
+
+    async tapConnectButton() {
         if (!this._device) {
             return;
         }
 
-        // const element = await this.connectButton;
-        // await AppwrightGestures.tap(element)
+        const element = await this.connectButton;
+        await AppwrightGestures.tap(element)
 
         // Temporarily tapping by coordinates
-        await AppwrightGestures.tapByCoordinates(this._device, { x: 815, y: 2160 }, { delay: 1500 });
+        // await AppwrightGestures.tapByCoordinates(this._device, { x: 815, y: 2160 }, { delay: 1500 });
     }
 
 
