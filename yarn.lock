@@ -27986,7 +27986,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-updates@npm:0.27.4":
+"expo-updates@npm:~0.27.4":
   version: 0.27.4
   resolution: "expo-updates@npm:0.27.4"
   dependencies:
@@ -28010,33 +28010,6 @@ __metadata:
   bin:
     expo-updates: bin/cli.js
   checksum: 10/ea72f84525305ed0c32cafdec60b215bfd769236ecba1646bed1a647e3eb78a752853ffbe128b6365b6d7d87ddde738e377e3c9396a1688da36d7ccc1e1a182f
-  languageName: node
-  linkType: hard
-
-"expo-updates@patch:expo-updates@npm%3A0.27.4#~/.yarn/patches/expo-updates-npm-0.27.4-2a215516d7.patch":
-  version: 0.27.4
-  resolution: "expo-updates@patch:expo-updates@npm%3A0.27.4#~/.yarn/patches/expo-updates-npm-0.27.4-2a215516d7.patch::version=0.27.4&hash=06aea5"
-  dependencies:
-    "@expo/code-signing-certificates": "npm:0.0.5"
-    "@expo/config": "npm:~10.0.11"
-    "@expo/config-plugins": "npm:~9.0.17"
-    "@expo/spawn-async": "npm:^1.7.2"
-    arg: "npm:4.1.0"
-    chalk: "npm:^4.1.2"
-    expo-eas-client: "npm:~0.13.3"
-    expo-manifests: "npm:~0.15.7"
-    expo-structured-headers: "npm:~4.0.0"
-    expo-updates-interface: "npm:~1.0.0"
-    fast-glob: "npm:^3.3.2"
-    fbemitter: "npm:^3.0.0"
-    ignore: "npm:^5.3.1"
-    resolve-from: "npm:^5.0.0"
-  peerDependencies:
-    expo: "*"
-    react: "*"
-  bin:
-    expo-updates: bin/cli.js
-  checksum: 10/eb1ab10382100932f37200f0abad34c1d9635ab0e40dc8633cbe50a56a10e766e0be4a60a5213882c686941ad89421dcd191e4d13d9c32a590431b615b1e40d2
   languageName: node
   linkType: hard
 
@@ -34579,7 +34552,7 @@ __metadata:
     expo-haptics: "npm:~14.0.1"
     expo-image: "npm:~2.0.7"
     expo-sensors: "npm:~14.0.2"
-    expo-updates: "patch:expo-updates@npm%3A0.27.4#~/.yarn/patches/expo-updates-npm-0.27.4-2a215516d7.patch"
+    expo-updates: "npm:~0.27.4"
     fast-equals: "npm:^5.2.2"
     fs-extra: "npm:^10.1.0"
     fuse.js: "npm:3.4.4"
