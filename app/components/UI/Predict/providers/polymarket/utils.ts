@@ -1139,7 +1139,10 @@ export const roundOrderAmounts = ({
   size: number;
   price: number;
 }): { makerAmount: number; takerAmount: number } => {
-  const rawPrice = roundDown(price, roundConfig.price);
+  // NOTE: even though the CLOB client code uses roundDown for market orders,
+  // that seems to be incorrect. roundNormal here seems to give us the same
+  // results as PM website.
+  const rawPrice = roundNormal(price, roundConfig.price);
   const rawMakerAmt = roundDown(size, roundConfig.size);
   let rawTakerAmt;
   if (side === Side.BUY) {
