@@ -3544,7 +3544,7 @@ app:
       MM_PERPS_HIP3_BLOCKLIST_MARKETS: ""
     - opts:
         is_expand: false
-      MM_MUSD_CONVERSION_FLOW_ENABLED: true
+      MM_MUSD_CONVERSION_FLOW_ENABLED: false
     - opts:
         is_expand: false
       PROJECT_LOCATION: android
