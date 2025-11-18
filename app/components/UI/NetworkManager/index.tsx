@@ -308,7 +308,7 @@ const NetworkManager = () => {
     [networkConfigurations, closeModal],
   );
 
-  const confirmRemoveRpc = useCallback(async () => {
+  const confirmRemoveRpc = useCallback(() => {
     if (showConfirmDeleteModal.caipChainId) {
       const { caipChainId } = showConfirmDeleteModal;
       const { NetworkController } = Engine.context;
