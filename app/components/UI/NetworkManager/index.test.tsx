@@ -1063,6 +1063,11 @@ describe('NetworkManager Component', () => {
         hasOneEnabledNetwork: false,
         enableAllPopularNetworks: jest.fn(),
         tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {
+          '0x1': true,
+          '0x89': true,
+          '0xa': false,
+        },
       });
 
       // The component internally processes enabledNetworksByNamespace
@@ -1093,6 +1098,11 @@ describe('NetworkManager Component', () => {
         hasOneEnabledNetwork: false,
         enableAllPopularNetworks: jest.fn(),
         tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {
+          '0x1': true,
+          '0x89': false,
+          '0xa': false,
+        },
       });
 
       // The component should handle nested namespace structures
@@ -1113,6 +1123,7 @@ describe('NetworkManager Component', () => {
         hasOneEnabledNetwork: false,
         enableAllPopularNetworks: jest.fn(),
         tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {},
       });
 
       const { getByTestId } = renderComponent();
@@ -1139,6 +1150,12 @@ describe('NetworkManager Component', () => {
         hasOneEnabledNetwork: false,
         enableAllPopularNetworks: jest.fn(),
         tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {
+          '0x1': true,
+          '0x89': false,
+          '0xa': false,
+          '0xa4b1': true,
+        },
       });
 
       // Component should only include enabled (true) networks
@@ -1182,6 +1199,10 @@ describe('NetworkManager Component', () => {
         hasOneEnabledNetwork: false,
         enableAllPopularNetworks: jest.fn(),
         tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {
+          '0x1': true,
+          '0x89': true,
+        },
       });
 
       const { getByTestId } = renderComponent();
