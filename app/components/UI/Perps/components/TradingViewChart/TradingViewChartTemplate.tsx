@@ -52,25 +52,6 @@ export const createTradingViewChartTemplate = (
         window.allCandleData = []; // Store all loaded data for zoom functionality
         window.visiblePriceRange = null; // Track visible price range for dynamic decimal precision
         
-        // Track displayed dates to prevent duplicates within a single render cycle
-        window.displayedDates = new Set();
-        window.lastVisibleRangeKey = null; // Track visible range to detect scrolling
-        
-        // Helper function to get visible range key for change detection
-        window.getVisibleRangeKey = function() {
-            if (!window.chart) return null;
-            try {
-                const visibleRange = window.chart.timeScale().getVisibleRange();
-                if (!visibleRange) return null;
-                // Create a key with 1-hour precision to detect meaningful scrolls
-                const fromKey = Math.floor(visibleRange.from / 3600);
-                const toKey = Math.floor(visibleRange.to / 3600);
-                return fromKey + '-' + toKey;
-            } catch (e) {
-                return null;
-            }
-        };
-        
         // Helper function to get date string in user's timezone (YYYY-MM-DD)
         window.getDateString = function(date, userTimezone) {
             const year = date.toLocaleString('en-US', { year: 'numeric', timeZone: userTimezone });
@@ -103,17 +84,6 @@ export const createTradingViewChartTemplate = (
                     timeZone: userTimezone
                 });
             } else {
-                // Check if visible range has changed (user scrolled/zoomed) and reset displayed dates
-                const currentRangeKey = window.getVisibleRangeKey();
-                if (currentRangeKey !== null && currentRangeKey !== window.lastVisibleRangeKey) {
-                    window.displayedDates.clear();
-                    window.lastVisibleRangeKey = currentRangeKey;
-                }
-                
-                // Get date string for duplicate tracking
-                const dateString = window.getDateString(date, userTimezone);
-                const isNewDay = !window.displayedDates.has(dateString);
-                
                 // Use TradingView's native tickMarkType if available
                 if (tickMarkType) {
                     switch (tickMarkType) {
@@ -138,11 +108,8 @@ export const createTradingViewChartTemplate = (
                             return day + ' ' + month;
                         case 'Hour':
                         case 'Minute':
-                            // Show date + time on first occurrence of each day to mark boundaries
-                            // Exception: if the date is today, only show time
-                            if (isNewDay && !window.isToday(date, userTimezone)) {
-                                window.displayedDates.add(dateString);
-                                // Show both date and time to mark day boundary clearly
+                            // Show date + time if not today, otherwise just time
+                            if (!window.isToday(date, userTimezone)) {
                                 // Format: "17 Nov 00:15"
                                 const day = date.toLocaleString('en-US', { 
                                     day: 'numeric',
@@ -160,10 +127,7 @@ export const createTradingViewChartTemplate = (
                                 });
                                 return day + ' ' + month + ' ' + timeStr;
                             } else {
-                                // Show time only for subsequent times on the same day OR if it's today
-                                if (isNewDay) {
-                                    window.displayedDates.add(dateString);
-                                }
+                                // Show time only for today
                                 return date.toLocaleString('en-US', { 
                                     hour: '2-digit', 
                                     minute: '2-digit',
@@ -193,10 +157,8 @@ export const createTradingViewChartTemplate = (
                         const timeSpanHours = (visibleRange.to - visibleRange.from) / 3600;
                         
                         if (timeSpanHours <= 24) {
-                            // Less than 24 hours: show date + time on first occurrence, then show time only
-                            // Exception: if the date is today, only show time
-                            if (isNewDay && !window.isToday(date, userTimezone)) {
-                                window.displayedDates.add(dateString);
+                            // Less than 24 hours: show date + time if not today, otherwise just time
+                            if (!window.isToday(date, userTimezone)) {
                                 // Format: "17 Nov 00:15"
                                 const day = date.toLocaleString('en-US', { 
                                     day: 'numeric',
@@ -214,10 +176,7 @@ export const createTradingViewChartTemplate = (
                                 });
                                 return day + ' ' + month + ' ' + timeStr;
                             } else {
-                                // Show time only for subsequent times on the same day OR if it's today
-                                if (isNewDay) {
-                                    window.displayedDates.add(dateString);
-                                }
+                                // Show time only for today
                                 return date.toLocaleString('en-US', { 
                                     hour: '2-digit', 
                                     minute: '2-digit',
@@ -226,10 +185,8 @@ export const createTradingViewChartTemplate = (
                                 });
                             }
                         } else if (timeSpanHours <= 24 * 7) {
-                            // Less than a week: show date + time on first occurrence, then show time only
-                            // Exception: if the date is today, only show time
-                            if (isNewDay && !window.isToday(date, userTimezone)) {
-                                window.displayedDates.add(dateString);
+                            // Less than a week: show date + time if not today, otherwise just time
+                            if (!window.isToday(date, userTimezone)) {
                                 // Format: "17 Nov 00:15"
                                 const day = date.toLocaleString('en-US', { 
                                     day: 'numeric',
@@ -247,10 +204,7 @@ export const createTradingViewChartTemplate = (
                                 });
                                 return day + ' ' + month + ' ' + timeStr;
                             } else {
-                                // Show time only for subsequent times on the same day OR if it's today
-                                if (isNewDay) {
-                                    window.displayedDates.add(dateString);
-                                }
+                                // Show time only for today
                                 return date.toLocaleString('en-US', { 
                                     hour: '2-digit', 
                                     minute: '2-digit',
@@ -261,26 +215,15 @@ export const createTradingViewChartTemplate = (
                         } else {
                             // Longer ranges: always show day + month (e.g., "17 Nov")
                             // This is especially important for 1D candles
-                            if (isNewDay) {
-                                window.displayedDates.add(dateString);
-                                const day = date.toLocaleString('en-US', { 
-                                    day: 'numeric',
-                                    timeZone: userTimezone
-                                });
-                                const month = date.toLocaleString('en-US', { 
-                                    month: 'short',
-                                    timeZone: userTimezone
-                                });
-                                return day + ' ' + month;
-                            } else {
-                                // For duplicate days in longer ranges, show time
-                                return date.toLocaleString('en-US', { 
-                                    hour: '2-digit', 
-                                    minute: '2-digit',
-                                    hour12: false,
-                                    timeZone: userTimezone
-                                });
-                            }
+                            const day = date.toLocaleString('en-US', { 
+                                day: 'numeric',
+                                timeZone: userTimezone
+                            });
+                            const month = date.toLocaleString('en-US', { 
+                                month: 'short',
+                                timeZone: userTimezone
+                            });
+                            return day + ' ' + month;
                         }
                     }
                 }
@@ -1056,10 +999,6 @@ export const createTradingViewChartTemplate = (
                             if (window.candlestickSeries) {
                                 // Store all data for zoom functionality
                                 window.allCandleData = [...message.data];
-                                
-                                // Reset displayed dates tracking when new data is loaded
-                                window.displayedDates.clear();
-                                window.lastVisibleRangeKey = null;
                                 
                                 // Use batch update for better performance during large data sets
                                 try {
