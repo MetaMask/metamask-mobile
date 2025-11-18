@@ -176,13 +176,12 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
 
   useLayoutEffect(() => {
     if (!isFullPageAccountList) return;
+    if (screen !== AccountSelectorScreens.AccountSelector) return;
 
     const onAnimationComplete = () => {
-      if (screen === AccountSelectorScreens.AccountSelector) {
-        endTrace({
-          name: TraceName.ShowAccountList,
-        });
-      }
+      endTrace({
+        name: TraceName.ShowAccountList,
+      });
     };
 
     translateY.value = withSpring(
@@ -195,7 +194,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       () => runOnJS(onAnimationComplete)(),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isFullPageAccountList]);
+  }, [isFullPageAccountList, screen]);
 
   const closeModal = useCallback(() => {
     if (isFullPageAccountList) {
