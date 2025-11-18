@@ -753,9 +753,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           </View>
 
           {/* Recent Trades Section */}
-          <View style={styles.section}>
-            <PerpsMarketTradesList symbol={market?.symbol || ''} />
-          </View>
+          {market?.symbol && (
+            <View style={styles.section}>
+              <PerpsMarketTradesList symbol={market.symbol} />
+            </View>
+          )}
 
           {/* Risk Disclaimer Section */}
           <View style={styles.section}>
