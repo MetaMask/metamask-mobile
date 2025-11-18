@@ -114,7 +114,10 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
                 {item.title}
               </Text>
               {!!item.subtitle && (
-                <Text variant={TextVariant.BodySM} style={styles.tradeAmount}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                >
                   {getPerpsDisplaySymbol(item.subtitle)}
                 </Text>
               )}

@@ -1,9 +1,9 @@
-import type { Theme } from '@metamask/design-system-react-native';
+import type { Theme } from '../../../../../util/theme/models';
 import { StyleSheet } from 'react-native';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
-  const { colors, typography } = theme;
+  const { colors } = theme;
 
   return StyleSheet.create({
     container: {
@@ -37,13 +37,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
     tradeType: {
-      ...typography.sBodyMDMedium,
-      color: colors.text.default,
       marginBottom: 2,
-    },
-    tradeAmount: {
-      ...typography.sBodySM,
-      color: colors.text.alternative,
     },
     rightSection: {
       alignItems: 'flex-end',
@@ -51,7 +45,6 @@ const styleSheet = (params: { theme: Theme }) => {
     emptyText: {
       textAlign: 'center',
       paddingVertical: 24,
-      color: colors.text.alternative,
     },
   });
 };
