@@ -550,7 +550,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   "paddingHorizontal": 4,
                                 }
                               }
-                              handlerTag={1}
+                              handlerTag={-1}
                               handlerType="NativeViewGestureHandler"
                               horizontal={true}
                               onGestureHandlerEvent={[Function]}
@@ -886,7 +886,13 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                           </View>
                           <View>
                             <RCTScrollView
-                              ListEmptyComponent={[Function]}
+                              ListEmptyComponent={
+                                {
+                                  "$$typeof": Symbol(react.memo),
+                                  "compare": null,
+                                  "type": [Function],
+                                }
+                              }
                               bounces={true}
                               collapsable={false}
                               data={
