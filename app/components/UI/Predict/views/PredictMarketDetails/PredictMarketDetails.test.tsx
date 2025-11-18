@@ -132,7 +132,15 @@ jest.mock('react-native-safe-area-context', () => {
 });
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => key),
+  strings: jest.fn((key: string, vars?: Record<string, string | number>) => {
+    if (key === 'predict.position_info_plural' && vars) {
+      return `${vars.amount} on ${vars.outcome} • ${vars.shares} shares @ ${vars.priceCents}`;
+    }
+    if (key === 'predict.position_info_singular' && vars) {
+      return `${vars.amount} on ${vars.outcome} • ${vars.shares} share @ ${vars.priceCents}`;
+    }
+    return key;
+  }),
 }));
 
 jest.mock('../../../Navbar', () => ({
@@ -166,6 +174,12 @@ jest.mock('../../utils/format', () => ({
     }
     return `${cents.toFixed(1)}¢`;
   }),
+  formatPositionSize: jest.fn(
+    (
+      value: number,
+      options?: { minimumDecimals?: number; maximumDecimals?: number },
+    ) => value.toFixed(options?.maximumDecimals || 2),
+  ),
 }));
 
 jest.mock('../../hooks/usePredictMarket', () => ({
@@ -1527,7 +1541,9 @@ describe('PredictMarketDetails', () => {
 
       expect(screen.getByText('predict.cash_out')).toBeOnTheScreen();
       expect(
-        screen.getByText('$65.00 on Yes • 65¢', { exact: false }),
+        screen.getByText('$65.00 on Yes • 100.00 shares @ 65¢', {
+          exact: false,
+        }),
       ).toBeOnTheScreen();
       expect(screen.getByText('+7.70%')).toBeOnTheScreen();
     });
@@ -1705,7 +1721,9 @@ describe('PredictMarketDetails', () => {
 
       expect(screen.getByText('Yes Option')).toBeOnTheScreen();
       expect(
-        screen.getByText('$65.00 on Yes • 65¢', { exact: false }),
+        screen.getByText('$65.00 on Yes • 100.00 shares @ 65¢', {
+          exact: false,
+        }),
       ).toBeOnTheScreen();
     });
 
@@ -1736,7 +1754,9 @@ describe('PredictMarketDetails', () => {
 
       expect(screen.getByText('Yes')).toBeOnTheScreen();
       expect(
-        screen.getByText('$65.00 on Yes • 65¢', { exact: false }),
+        screen.getByText('$65.00 on Yes • 100.00 shares @ 65¢', {
+          exact: false,
+        }),
       ).toBeOnTheScreen();
     });
 
