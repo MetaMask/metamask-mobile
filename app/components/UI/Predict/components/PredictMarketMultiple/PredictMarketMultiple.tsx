@@ -46,16 +46,18 @@ interface PredictMarketMultipleProps {
   market: PredictMarket;
   testID?: string;
   entryPoint?: PredictEntryPoint;
+  isCarousel?: boolean;
 }
 
 const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   market,
   testID,
   entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+  isCarousel = false,
 }) => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { isCarousel });
   const tw = useTailwind();
 
   const { executeGuardedAction } = usePredictActionGuard({
@@ -159,9 +161,11 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="mb-3 gap-4"
+            twClassName={isCarousel ? 'mb-2 gap-2' : 'mb-3 gap-4'}
           >
-            <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
+            <Box
+              twClassName={`${isCarousel ? 'w-8 h-8' : 'w-10 h-10'} rounded-lg bg-muted overflow-hidden`}
+            >
               {market.image && (
                 <Box twClassName="w-full h-full">
                   <Image
@@ -174,9 +178,16 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
             </Box>
             <Box twClassName="flex-1">
               <Text
-                variant={TextVariant.HeadingSM}
+                variant={
+                  isCarousel ? TextVariant.BodyMDMedium : TextVariant.HeadingSM
+                }
                 color={TextColor.Default}
-                style={tw.style('font-medium leading-[24px]')}
+                style={tw.style(
+                  isCarousel
+                    ? 'font-medium leading-[20px]'
+                    : 'font-medium leading-[24px]',
+                )}
+                numberOfLines={isCarousel ? 2 : undefined}
               >
                 {market.title}
               </Text>
@@ -189,14 +200,20 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                 key={`${outcome.id}`}
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName="py-1 gap-4"
+                twClassName={isCarousel ? 'py-0.5 gap-2' : 'py-1 gap-4'}
               >
                 <Box twClassName="flex-1">
                   <Text
-                    variant={TextVariant.BodySMMedium}
+                    variant={
+                      isCarousel
+                        ? TextVariant.BodyXSMedium
+                        : TextVariant.BodySMMedium
+                    }
                     color={TextColor.Default}
-                    numberOfLines={2}
-                    style={tw.style('leading-[18px]')}
+                    numberOfLines={1}
+                    style={tw.style(
+                      isCarousel ? 'leading-[16px]' : 'leading-[18px]',
+                    )}
                   >
                     {outcome.groupItemTitle}
                   </Text>
@@ -204,7 +221,11 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
 
                 <Box>
                   <Text
-                    variant={TextVariant.BodySMMedium}
+                    variant={
+                      isCarousel
+                        ? TextVariant.BodyXSMedium
+                        : TextVariant.BodySMMedium
+                    }
                     color={TextColor.Alternative}
                   >
                     {getOutcomePercentage(
@@ -213,10 +234,13 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   </Text>
                 </Box>
 
-                <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  twClassName={isCarousel ? 'gap-1' : 'gap-2'}
+                >
                   <Button
                     variant={ButtonVariants.Secondary}
-                    size={ButtonSize.Md}
+                    size={isCarousel ? ButtonSize.Sm : ButtonSize.Md}
                     label={
                       <Text
                         style={tw.style('font-medium')}
@@ -232,7 +256,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   />
                   <Button
                     variant={ButtonVariants.Secondary}
-                    size={ButtonSize.Md}
+                    size={isCarousel ? ButtonSize.Sm : ButtonSize.Md}
                     width={ButtonWidthTypes.Full}
                     label={
                       <Text

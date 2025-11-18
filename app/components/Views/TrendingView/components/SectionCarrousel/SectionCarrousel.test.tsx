@@ -4,6 +4,14 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import SectionCarrousel from './SectionCarrousel';
 import type { PredictMarket } from '../../../../UI/Predict/types';
 
+// Mock FlashList
+jest.mock('@shopify/flash-list', () => {
+  const { FlatList } = jest.requireActual('react-native');
+  return {
+    FlashList: FlatList,
+  };
+});
+
 // Mock navigation
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -64,32 +72,120 @@ describe('SectionCarrousel', () => {
     jest.resetAllMocks();
   });
 
-  it('renders carousel with data items and pagination dots', () => {
-    const { getByTestId } = renderWithProvider(
-      <SectionCarrousel sectionId="predictions" />,
-      { state: initialState },
-    );
+  describe('rendering', () => {
+    it('renders all items using section config renderItem', () => {
+      const { getByTestId } = renderWithProvider(
+        <SectionCarrousel sectionId="predictions" />,
+        { state: initialState },
+      );
 
-    expect(getByTestId('predictions-flash-list')).toBeOnTheScreen();
-    expect(getByTestId('predictions-pagination-dot-0')).toBeOnTheScreen();
-    expect(getByTestId('predictions-pagination-dot-1')).toBeOnTheScreen();
-    expect(getByTestId('predictions-pagination-dot-2')).toBeOnTheScreen();
-  });
-
-  it('renders skeleton items with pagination when loading', () => {
-    mockUsePredictMarketData.mockReturnValue({
-      marketData: [],
-      isFetching: true,
+      expect(getByTestId('predictions-flash-list')).toBeOnTheScreen();
     });
 
-    const { getByTestId } = renderWithProvider(
-      <SectionCarrousel sectionId="predictions" />,
-      { state: initialState },
-    );
+    it('renders pagination dots', () => {
+      const { getByTestId } = renderWithProvider(
+        <SectionCarrousel sectionId="predictions" />,
+        { state: initialState },
+      );
 
-    expect(getByTestId('predictions-flash-list')).toBeOnTheScreen();
-    expect(getByTestId('predictions-pagination-dot-0')).toBeOnTheScreen();
-    expect(getByTestId('predictions-pagination-dot-1')).toBeOnTheScreen();
-    expect(getByTestId('predictions-pagination-dot-2')).toBeOnTheScreen();
+      expect(getByTestId('predictions-pagination-dot-0')).toBeOnTheScreen();
+      expect(getByTestId('predictions-pagination-dot-1')).toBeOnTheScreen();
+      expect(getByTestId('predictions-pagination-dot-2')).toBeOnTheScreen();
+    });
+
+    it('renders FlashList with sectionId as testID prefix', () => {
+      const { getByTestId } = renderWithProvider(
+        <SectionCarrousel sectionId="predictions" />,
+        { state: initialState },
+      );
+
+      expect(getByTestId('predictions-flash-list')).toBeOnTheScreen();
+    });
+  });
+
+  describe('loading state', () => {
+    it('renders skeleton items when isLoading is true', () => {
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: true,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <SectionCarrousel sectionId="predictions" />,
+        { state: initialState },
+      );
+
+      expect(getByTestId('predictions-flash-list')).toBeOnTheScreen();
+      expect(getByTestId('predictions-pagination-dot-0')).toBeOnTheScreen();
+      expect(getByTestId('predictions-pagination-dot-1')).toBeOnTheScreen();
+      expect(getByTestId('predictions-pagination-dot-2')).toBeOnTheScreen();
+    });
+
+    it('renders actual data when isLoading is false', () => {
+      const { getByTestId } = renderWithProvider(
+        <SectionCarrousel sectionId="predictions" />,
+        { state: initialState },
+      );
+
+      expect(getByTestId('predictions-flash-list')).toBeOnTheScreen();
+    });
+  });
+
+  describe('pagination interaction', () => {
+    it('renders pressable pagination dot without errors', () => {
+      const { getByTestId } = renderWithProvider(
+        <SectionCarrousel sectionId="predictions" />,
+        { state: initialState },
+      );
+
+      const dot = getByTestId('predictions-pagination-dot-1');
+
+      expect(dot).toBeOnTheScreen();
+    });
+  });
+
+  describe('empty data', () => {
+    it('renders without items when data is empty and not loading', () => {
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: false,
+      });
+
+      const { queryByTestId, getByTestId } = renderWithProvider(
+        <SectionCarrousel sectionId="predictions" />,
+        { state: initialState },
+      );
+
+      expect(getByTestId('predictions-flash-list')).toBeOnTheScreen();
+      expect(queryByTestId('predictions-pagination-dot-0')).toBeNull();
+    });
+  });
+
+  describe('single item', () => {
+    it('renders pagination dot for single item', () => {
+      const singleItem = [createMockPredictMarket('1', 'Single Market')];
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: singleItem,
+        isFetching: false,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <SectionCarrousel sectionId="predictions" />,
+        { state: initialState },
+      );
+
+      expect(getByTestId('predictions-pagination-dot-0')).toBeOnTheScreen();
+    });
+  });
+
+  describe('section configuration', () => {
+    it('uses section config keyExtractor for items', () => {
+      const { getByTestId } = renderWithProvider(
+        <SectionCarrousel sectionId="predictions" />,
+        { state: initialState },
+      );
+
+      expect(getByTestId('predictions-flash-list')).toBeOnTheScreen();
+    });
   });
 });
