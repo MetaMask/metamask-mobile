@@ -6,7 +6,7 @@ import useSearchTokenResults from '../../Deposit/hooks/useSearchTokenResults';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { MOCK_CRYPTOCURRENCIES } from '../../Deposit/testUtils';
-import { UnifiedRampRoutingType } from '../../../../../reducers/fiatOrders';
+import { UnifiedRampRoutingType } from '../../../../../reducers/fiatOrders/types';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -42,7 +42,7 @@ function renderWithProvider(
         },
         fiatOrders: {
           detectedGeolocation: 'US',
-          rampRoutingDecision: null,
+          rampRoutingDecision: UnifiedRampRoutingType.DEPOSIT,
           ...customState?.fiatOrders,
         },
       },
@@ -73,8 +73,7 @@ describe('TokenSelection Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useParams as jest.Mock).mockReturnValue({
-      rampType: 'BUY',
-      selectedCryptoAssetId: undefined,
+      intent: undefined,
     });
     (useSearchTokenResults as jest.Mock).mockReturnValue(mockTokens);
   });
@@ -103,10 +102,11 @@ describe('TokenSelection Component', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('marks token as selected when selectedCryptoAssetId matches', () => {
+  it('marks token as selected when intent assetId matches', () => {
     (useParams as jest.Mock).mockReturnValue({
-      rampType: 'BUY',
-      selectedCryptoAssetId: mockTokens[0].assetId,
+      intent: {
+        assetId: mockTokens[0].assetId,
+      },
     });
 
     const { toJSON } = renderWithProvider(TokenSelection);

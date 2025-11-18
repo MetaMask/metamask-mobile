@@ -2974,10 +2974,10 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                   "symbol": "ETH",
                                 },
                                 {
-                                  "assetId": "solana:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                                  "assetId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501",
                                   "chainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
                                   "decimals": 6,
-                                  "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png",
+                                  "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png",
                                   "name": "USD Coin",
                                   "symbol": "USDC",
                                 },
@@ -3922,7 +3922,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                       "position": "relative",
                                     }
                                   }
-                                  testID="token-list-item-solana:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+                                  testID="token-list-item-solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501"
                                 >
                                   <View
                                     accessibilityRole="none"
@@ -3976,7 +3976,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                                 resizeMode="contain"
                                                 source={
                                                   {
-                                                    "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png",
+                                                    "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png",
                                                   }
                                                 }
                                                 style={

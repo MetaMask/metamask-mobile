@@ -4,7 +4,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { useRampNavigation } from './useRampNavigation';
 import { createRampNavigationDetails } from '../Aggregator/routes/utils';
 import { createDepositNavigationDetails } from '../Deposit/routes/utils';
-import { createTokenSelectionNavigationDetails } from '../components/TokenSelection/TokenSelection';
+import { createTokenSelectionNavDetails } from '../components/TokenSelection/TokenSelection';
 import { RampType as AggregatorRampType } from '../Aggregator/types';
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
 import {
@@ -13,9 +13,22 @@ import {
 } from '../../../../reducers/fiatOrders';
 
 jest.mock('@react-navigation/native');
+jest.mock('@react-navigation/compat', () => ({
+  withNavigation: jest.fn((component) => component),
+}));
 jest.mock('../Aggregator/routes/utils');
 jest.mock('../Deposit/routes/utils');
-jest.mock('../components/TokenSelection/TokenSelection');
+jest.mock('../components/TokenSelection/TokenSelection', () => {
+  const actual = jest.requireActual(
+    '../components/TokenSelection/TokenSelection',
+  );
+  const mockFn = jest.fn();
+  return {
+    ...actual,
+    createTokenSelectionNavDetails: mockFn,
+    createTokenSelectionNavigationDetails: mockFn, // Alias for hook compatibility
+  };
+});
 jest.mock('./useRampsUnifiedV1Enabled');
 jest.mock('../../../../reducers/fiatOrders', () => ({
   ...jest.requireActual('../../../../reducers/fiatOrders'),
@@ -39,8 +52,8 @@ const mockCreateDepositNavigationDetails =
     typeof createDepositNavigationDetails
   >;
 const mockCreateTokenSelectionNavigationDetails =
-  createTokenSelectionNavigationDetails as jest.MockedFunction<
-    typeof createTokenSelectionNavigationDetails
+  createTokenSelectionNavDetails as jest.MockedFunction<
+    typeof createTokenSelectionNavDetails
   >;
 const mockGetRampRoutingDecision =
   getRampRoutingDecision as jest.MockedFunction<typeof getRampRoutingDecision>;
@@ -67,7 +80,7 @@ describe('useRampNavigation', () => {
 
     mockCreateTokenSelectionNavigationDetails.mockReturnValue([
       Routes.RAMP.TOKEN_SELECTION,
-    ] as unknown as ReturnType<typeof createTokenSelectionNavigationDetails>);
+    ] as unknown as ReturnType<typeof createTokenSelectionNavDetails>);
   });
 
   describe('goToBuy', () => {

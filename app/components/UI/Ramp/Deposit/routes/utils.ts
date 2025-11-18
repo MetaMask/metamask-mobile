@@ -12,10 +12,7 @@ export function createDepositNavigationDetails(
     route,
     {
       screen: Routes.DEPOSIT.ROOT,
-      params: {
-        screen: Routes.DEPOSIT.ROOT,
-        params: intent,
-      },
+      params: intent,
     },
   ] as const;
 }

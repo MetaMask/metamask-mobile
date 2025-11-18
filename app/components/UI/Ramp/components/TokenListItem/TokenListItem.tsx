@@ -12,6 +12,7 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import {
@@ -35,7 +36,7 @@ function TokenListItem({
   token,
   isSelected,
   onPress,
-  textColor,
+  textColor = TextColor.Alternative,
   isDisabled = false,
   onInfoPress,
 }: Readonly<TokenListItemProps>) {

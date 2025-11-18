@@ -26,10 +26,7 @@ describe('createDepositNavigationDetails', () => {
         Routes.DEPOSIT.ID,
         {
           screen: Routes.DEPOSIT.ROOT,
-          params: {
-            screen: Routes.DEPOSIT.ROOT,
-            params: intent,
-          },
+          params: intent,
         },
       ]);
     });
@@ -43,10 +40,7 @@ describe('createDepositNavigationDetails', () => {
         Routes.DEPOSIT.ID,
         {
           screen: Routes.DEPOSIT.ROOT,
-          params: {
-            screen: Routes.DEPOSIT.ROOT,
-            params: intent,
-          },
+          params: intent,
         },
       ]);
     });
@@ -60,10 +54,7 @@ describe('createDepositNavigationDetails', () => {
         Routes.DEPOSIT.ID,
         {
           screen: Routes.DEPOSIT.ROOT,
-          params: {
-            screen: Routes.DEPOSIT.ROOT,
-            params: intent,
-          },
+          params: intent,
         },
       ]);
     });
@@ -77,10 +68,7 @@ describe('createDepositNavigationDetails', () => {
         Routes.DEPOSIT.ID,
         {
           screen: Routes.DEPOSIT.ROOT,
-          params: {
-            screen: Routes.DEPOSIT.ROOT,
-            params: intent,
-          },
+          params: intent,
         },
       ]);
     });
