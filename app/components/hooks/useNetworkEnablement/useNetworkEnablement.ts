@@ -66,10 +66,12 @@ export const useNetworkEnablement = () => {
 
   const enabledNetworksForAllNamespaces = useMemo(
     () =>
-      Object.values(enabledNetworksByNamespace).reduce(
-        (acc, obj) => ({ ...acc, ...obj }),
-        {},
-      ),
+      enabledNetworksByNamespace
+        ? Object.values(enabledNetworksByNamespace).reduce(
+            (acc, obj) => ({ ...acc, ...obj }),
+            {},
+          )
+        : {},
     [enabledNetworksByNamespace],
   );
 
