@@ -884,7 +884,13 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                               </View>
                             </View>
                           </View>
-                          <View>
+                          <View
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
+                          >
                             <RCTScrollView
                               ListEmptyComponent={
                                 {
@@ -895,6 +901,11 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                               }
                               bounces={true}
                               collapsable={false}
+                              contentContainerStyle={
+                                {
+                                  "paddingBottom": 0,
+                                }
+                              }
                               data={
                                 [
                                   {
@@ -962,6 +973,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                               stickyHeaderIndices={[]}
                               style={
                                 {
+                                  "flex": 1,
                                   "marginTop": 10,
                                 }
                               }
