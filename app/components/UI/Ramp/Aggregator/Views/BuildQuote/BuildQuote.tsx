@@ -433,7 +433,20 @@ const BuildQuote = () => {
         chain_id_source: selectedAsset.network.chainId,
       });
     }
-  }, [screenLocation, isBuy, selectedAsset?.network?.chainId, trackEvent]);
+
+    navigation.navigate(Routes.WALLET.HOME, {
+      screen: Routes.WALLET.TAB_STACK_FLOW,
+      params: {
+        screen: Routes.WALLET_VIEW,
+      },
+    });
+  }, [
+    screenLocation,
+    isBuy,
+    selectedAsset?.network?.chainId,
+    trackEvent,
+    navigation,
+  ]);
 
   const handleConfigurationPress = useCallback(() => {
     navigation.navigate(...createBuySettingsModalNavigationDetails());

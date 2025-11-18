@@ -7,13 +7,20 @@ import { createDepositNavigationDetails } from '../Deposit/routes/utils';
 import { createTokenSelectionNavigationDetails } from '../components/TokenSelection/TokenSelection';
 import { RampType as AggregatorRampType } from '../Aggregator/types';
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
-import { UnifiedRampRoutingType } from '../../../../reducers/fiatOrders';
+import {
+  getRampRoutingDecision,
+  UnifiedRampRoutingType,
+} from '../../../../reducers/fiatOrders';
 
 jest.mock('@react-navigation/native');
 jest.mock('../Aggregator/routes/utils');
 jest.mock('../Deposit/routes/utils');
 jest.mock('../components/TokenSelection/TokenSelection');
 jest.mock('./useRampsUnifiedV1Enabled');
+jest.mock('../../../../reducers/fiatOrders', () => ({
+  ...jest.requireActual('../../../../reducers/fiatOrders'),
+  getRampRoutingDecision: jest.fn(),
+}));
 
 const mockNavigate = jest.fn();
 const mockUseNavigation = useNavigation as jest.MockedFunction<
@@ -35,26 +42,20 @@ const mockCreateTokenSelectionNavigationDetails =
   createTokenSelectionNavigationDetails as jest.MockedFunction<
     typeof createTokenSelectionNavigationDetails
   >;
-
-let mockRampRoutingDecision: UnifiedRampRoutingType | null = null;
+const mockGetRampRoutingDecision =
+  getRampRoutingDecision as jest.MockedFunction<typeof getRampRoutingDecision>;
 
 describe('useRampNavigation', () => {
-  const createMockState = () => ({
-    fiatOrders: {
-      rampRoutingDecision: mockRampRoutingDecision,
-    },
-  });
-
   beforeEach(() => {
     jest.clearAllMocks();
-
-    mockRampRoutingDecision = null;
 
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
     } as unknown as ReturnType<typeof useNavigation>);
 
     mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
+
+    mockGetRampRoutingDecision.mockReturnValue(null);
 
     mockCreateRampNavigationDetails.mockReturnValue([
       Routes.RAMP.BUY,
@@ -75,9 +76,7 @@ describe('useRampNavigation', () => {
         const mockNavDetails = [Routes.RAMP.BUY] as const;
         mockCreateRampNavigationDetails.mockReturnValue(mockNavDetails);
 
-        const { result } = renderHookWithProvider(() => useRampNavigation(), {
-          state: createMockState(),
-        });
+        const { result } = renderHookWithProvider(() => useRampNavigation());
 
         result.current.goToBuy();
 
@@ -93,9 +92,7 @@ describe('useRampNavigation', () => {
         const mockNavDetails = [Routes.RAMP.BUY] as const;
         mockCreateRampNavigationDetails.mockReturnValue(mockNavDetails);
 
-        const { result } = renderHookWithProvider(() => useRampNavigation(), {
-          state: createMockState(),
-        });
+        const { result } = renderHookWithProvider(() => useRampNavigation());
 
         result.current.goToBuy(intent);
 
@@ -114,15 +111,15 @@ describe('useRampNavigation', () => {
 
       describe('token selection routing', () => {
         it('navigates to TokenSelection when no assetId is provided', () => {
-          const mockNavDetails = [Routes.RAMP.TOKEN_SELECTION] as const;
-          mockCreateTokenSelectionNavigationDetails.mockReturnValue([
+          const mockNavDetails = [
             Routes.RAMP.TOKEN_SELECTION,
             undefined,
-          ] as const);
+          ] as const;
+          mockCreateTokenSelectionNavigationDetails.mockReturnValue(
+            mockNavDetails,
+          );
 
-          const { result } = renderHookWithProvider(() => useRampNavigation(), {
-            state: createMockState(),
-          });
+          const { result } = renderHookWithProvider(() => useRampNavigation());
 
           result.current.goToBuy();
 
@@ -138,15 +135,15 @@ describe('useRampNavigation', () => {
 
         it('navigates to TokenSelection when intent is provided without assetId', () => {
           const intent = { amount: '100', currency: 'USD' };
-          const mockNavDetails = [Routes.RAMP.TOKEN_SELECTION] as const;
-          mockCreateTokenSelectionNavigationDetails.mockReturnValue([
+          const mockNavDetails = [
             Routes.RAMP.TOKEN_SELECTION,
             undefined,
-          ] as const);
+          ] as const;
+          mockCreateTokenSelectionNavigationDetails.mockReturnValue(
+            mockNavDetails,
+          );
 
-          const { result } = renderHookWithProvider(() => useRampNavigation(), {
-            state: createMockState(),
-          });
+          const { result } = renderHookWithProvider(() => useRampNavigation());
 
           result.current.goToBuy(intent);
 
@@ -163,13 +160,13 @@ describe('useRampNavigation', () => {
         const intent = { assetId: 'eip155:1/erc20:0x123' };
 
         it('navigates to deposit when routing decision is DEPOSIT', () => {
-          mockRampRoutingDecision = UnifiedRampRoutingType.DEPOSIT;
+          mockGetRampRoutingDecision.mockReturnValue(
+            UnifiedRampRoutingType.DEPOSIT,
+          );
           const mockNavDetails = [Routes.DEPOSIT.ID] as const;
           mockCreateDepositNavigationDetails.mockReturnValue(mockNavDetails);
 
-          const { result } = renderHookWithProvider(() => useRampNavigation(), {
-            state: createMockState(),
-          });
+          const { result } = renderHookWithProvider(() => useRampNavigation());
 
           result.current.goToBuy(intent);
 
@@ -181,13 +178,13 @@ describe('useRampNavigation', () => {
         });
 
         it('navigates to aggregator when routing decision is AGGREGATOR', () => {
-          mockRampRoutingDecision = UnifiedRampRoutingType.AGGREGATOR;
+          mockGetRampRoutingDecision.mockReturnValue(
+            UnifiedRampRoutingType.AGGREGATOR,
+          );
           const mockNavDetails = [Routes.RAMP.BUY] as const;
           mockCreateRampNavigationDetails.mockReturnValue(mockNavDetails);
 
-          const { result } = renderHookWithProvider(() => useRampNavigation(), {
-            state: createMockState(),
-          });
+          const { result } = renderHookWithProvider(() => useRampNavigation());
 
           result.current.goToBuy(intent);
 
@@ -205,13 +202,13 @@ describe('useRampNavigation', () => {
   describe('goToAggregator', () => {
     it('navigates to aggregator BUY flow (overrides unified routing)', () => {
       mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
-      mockRampRoutingDecision = UnifiedRampRoutingType.DEPOSIT;
+      mockGetRampRoutingDecision.mockReturnValue(
+        UnifiedRampRoutingType.DEPOSIT,
+      );
       const mockNavDetails = [Routes.RAMP.BUY] as const;
       mockCreateRampNavigationDetails.mockReturnValue(mockNavDetails);
 
-      const { result } = renderHookWithProvider(() => useRampNavigation(), {
-        state: createMockState(),
-      });
+      const { result } = renderHookWithProvider(() => useRampNavigation());
 
       result.current.goToAggregator();
 
@@ -228,9 +225,7 @@ describe('useRampNavigation', () => {
       const mockNavDetails = [Routes.RAMP.BUY] as const;
       mockCreateRampNavigationDetails.mockReturnValue(mockNavDetails);
 
-      const { result } = renderHookWithProvider(() => useRampNavigation(), {
-        state: createMockState(),
-      });
+      const { result } = renderHookWithProvider(() => useRampNavigation());
 
       result.current.goToAggregator(intent);
 
@@ -245,13 +240,13 @@ describe('useRampNavigation', () => {
   describe('goToSell', () => {
     it('navigates to aggregator SELL flow (overrides unified routing)', () => {
       mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
-      mockRampRoutingDecision = UnifiedRampRoutingType.DEPOSIT;
+      mockGetRampRoutingDecision.mockReturnValue(
+        UnifiedRampRoutingType.DEPOSIT,
+      );
       const mockNavDetails = [Routes.RAMP.SELL] as const;
       mockCreateRampNavigationDetails.mockReturnValue(mockNavDetails);
 
-      const { result } = renderHookWithProvider(() => useRampNavigation(), {
-        state: createMockState(),
-      });
+      const { result } = renderHookWithProvider(() => useRampNavigation());
 
       result.current.goToSell();
 
@@ -268,10 +263,7 @@ describe('useRampNavigation', () => {
       const mockNavDetails = [Routes.RAMP.SELL] as const;
       mockCreateRampNavigationDetails.mockReturnValue(mockNavDetails);
 
-      const { result } = renderHookWithProvider(() => useRampNavigation(), {
-        state: createMockState(),
-      });
-
+      const { result } = renderHookWithProvider(() => useRampNavigation());
       result.current.goToSell(intent);
 
       expect(mockCreateRampNavigationDetails).toHaveBeenCalledWith(
@@ -285,13 +277,13 @@ describe('useRampNavigation', () => {
   describe('goToDeposit', () => {
     it('navigates to deposit flow (overrides unified routing)', () => {
       mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
-      mockRampRoutingDecision = UnifiedRampRoutingType.AGGREGATOR;
+      mockGetRampRoutingDecision.mockReturnValue(
+        UnifiedRampRoutingType.AGGREGATOR,
+      );
       const mockNavDetails = [Routes.DEPOSIT.ID] as const;
       mockCreateDepositNavigationDetails.mockReturnValue(mockNavDetails);
 
-      const { result } = renderHookWithProvider(() => useRampNavigation(), {
-        state: createMockState(),
-      });
+      const { result } = renderHookWithProvider(() => useRampNavigation());
 
       result.current.goToDeposit();
 
@@ -306,9 +298,7 @@ describe('useRampNavigation', () => {
       const mockNavDetails = [Routes.DEPOSIT.ID] as const;
       mockCreateDepositNavigationDetails.mockReturnValue(mockNavDetails);
 
-      const { result } = renderHookWithProvider(() => useRampNavigation(), {
-        state: createMockState(),
-      });
+      const { result } = renderHookWithProvider(() => useRampNavigation());
 
       result.current.goToDeposit(intent);
 

@@ -53,8 +53,13 @@ InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
 
 const mockInteractionManager = createMockInteractionManager();
 
-const { mockNavigate, mockGoBack, mockSetNavigationOptions, mockSetParams } =
-  createMockNavigation();
+const {
+  mockNavigate,
+  mockGoBack,
+  mockSetNavigationOptions,
+  mockSetParams,
+  mockPop,
+} = createMockNavigation();
 
 const {
   mockGetQuote,
@@ -78,6 +83,9 @@ jest.mock('@react-navigation/native', () => {
         actualReactNavigation.useNavigation().setOptions,
       ),
       setParams: mockSetParams,
+      dangerouslyGetParent: () => ({
+        pop: mockPop,
+      }),
     }),
     useFocusEffect: jest.fn().mockImplementation((callback) => callback()),
     useRoute: () => mockUseRoute(),
@@ -185,6 +193,23 @@ describe('BuildQuote Component', () => {
   it('render matches snapshot', () => {
     render(BuildQuote);
     expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('navigates to home when close button is pressed', () => {
+    render(BuildQuote);
+
+    const setOptionsCall = mockSetNavigationOptions.mock.calls[0]?.[0];
+    const closeButtonHandler = setOptionsCall?.headerRight?.().props?.onPress;
+
+    closeButtonHandler?.();
+
+    expect(mockPop).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
+      screen: Routes.WALLET.TAB_STACK_FLOW,
+      params: {
+        screen: Routes.WALLET_VIEW,
+      },
+    });
   });
 
   describe('Region Selection', () => {

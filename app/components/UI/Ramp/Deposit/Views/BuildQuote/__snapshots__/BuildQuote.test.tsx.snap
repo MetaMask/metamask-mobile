@@ -447,7 +447,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={28}
+              handlerTag={29}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -2321,7 +2321,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={30}
+              handlerTag={31}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4195,7 +4195,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={32}
+              handlerTag={33}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -6069,7 +6069,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={20}
+              handlerTag={21}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -7882,7 +7882,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={19}
+              handlerTag={20}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -9694,7 +9694,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={13}
+              handlerTag={14}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -11507,7 +11507,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={12}
+              handlerTag={13}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -13413,7 +13413,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={10}
+              handlerTag={11}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -15181,7 +15181,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={9}
+              handlerTag={10}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -16994,7 +16994,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={4}
+              handlerTag={5}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -18807,7 +18807,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={2}
+              handlerTag={3}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -20620,7 +20620,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={7}
+              handlerTag={8}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -22433,7 +22433,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={6}
+              handlerTag={7}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -24339,7 +24339,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={18}
+              handlerTag={19}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -26150,7 +26150,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={17}
+              handlerTag={18}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -28054,7 +28054,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={21}
+              handlerTag={22}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}

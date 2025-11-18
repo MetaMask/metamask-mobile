@@ -447,12 +447,19 @@ describe('BuildQuote View', () => {
     render(BuildQuote);
     fireEvent.press(screen.getByTestId('deposit-close-navbar-button'));
     expect(mockPop).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
+      screen: Routes.WALLET.TAB_STACK_FLOW,
+      params: {
+        screen: Routes.WALLET_VIEW,
+      },
+    });
     expect(mockTrackEvent).toHaveBeenCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '1',
       location: 'Amount to Buy Screen',
     });
 
     mockPop.mockReset();
+    mockNavigate.mockReset();
     mockTrackEvent.mockReset();
 
     mockUseRampSDKValues.isBuy = false;
@@ -461,6 +468,12 @@ describe('BuildQuote View', () => {
     render(BuildQuote);
     fireEvent.press(screen.getByTestId('deposit-close-navbar-button'));
     expect(mockPop).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
+      screen: Routes.WALLET.TAB_STACK_FLOW,
+      params: {
+        screen: Routes.WALLET_VIEW,
+      },
+    });
     expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_CANCELED', {
       chain_id_source: '1',
       location: 'Amount to Sell Screen',

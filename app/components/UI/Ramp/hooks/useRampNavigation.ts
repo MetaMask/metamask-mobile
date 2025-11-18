@@ -37,16 +37,12 @@ export const useRampNavigation = () => {
     (
       intent?: RampIntent,
       options?: {
-        rampType?: AggregatorRampType;
         mode?: RampMode;
         overrideUnifiedRouting?: boolean;
       },
     ) => {
-      const {
-        rampType = AggregatorRampType.BUY,
-        mode = RampMode.AGGREGATOR,
-        overrideUnifiedRouting = false,
-      } = options || {};
+      const { mode = RampMode.AGGREGATOR, overrideUnifiedRouting = false } =
+        options || {};
 
       if (isRampsUnifiedV1Enabled && !overrideUnifiedRouting) {
         // If no assetId is provided, route to TokenSelection
@@ -63,7 +59,9 @@ export const useRampNavigation = () => {
         if (rampRoutingDecision === UnifiedRampRoutingType.DEPOSIT) {
           navigation.navigate(...createDepositNavigationDetails(intent));
         } else {
-          navigation.navigate(...createRampNavigationDetails(rampType, intent));
+          navigation.navigate(
+            ...createRampNavigationDetails(AggregatorRampType.BUY, intent),
+          );
         }
         return;
       }
@@ -72,7 +70,9 @@ export const useRampNavigation = () => {
       if (mode === RampMode.DEPOSIT) {
         navigation.navigate(...createDepositNavigationDetails(intent));
       } else {
-        navigation.navigate(...createRampNavigationDetails(rampType, intent));
+        navigation.navigate(
+          ...createRampNavigationDetails(AggregatorRampType.BUY, intent),
+        );
       }
     },
     [navigation, isRampsUnifiedV1Enabled, rampRoutingDecision],
@@ -85,7 +85,6 @@ export const useRampNavigation = () => {
   const goToAggregator = useCallback(
     (intent?: RampIntent) => {
       goToBuy(intent, {
-        rampType: AggregatorRampType.BUY,
         mode: RampMode.AGGREGATOR,
         overrideUnifiedRouting: true,
       });
@@ -95,13 +94,11 @@ export const useRampNavigation = () => {
 
   const goToSell = useCallback(
     (intent?: RampIntent) => {
-      goToBuy(intent, {
-        rampType: AggregatorRampType.SELL,
-        mode: RampMode.AGGREGATOR,
-        overrideUnifiedRouting: true,
-      });
+      navigation.navigate(
+        ...createRampNavigationDetails(AggregatorRampType.SELL, intent),
+      );
     },
-    [goToBuy],
+    [navigation],
   );
 
   /**
