@@ -49,7 +49,7 @@ export const useInsufficientBalanceAlert = ({
   const { payToken } = useTransactionPayToken();
   const requiredTokens = useTransactionPayRequiredTokens();
 
-  const primaryRequiredToken = requiredTokens.find(
+  const primaryRequiredToken = (requiredTokens ?? []).find(
     (token) => !token.skipIfBalance,
   );
 
