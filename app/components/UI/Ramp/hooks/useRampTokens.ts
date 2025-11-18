@@ -11,10 +11,10 @@ import Logger from '../../../../util/Logger';
 
 const SDK_VERSION = '2.1.5';
 
-const TOKEN_CACHE_URLS = {
+const TOKEN_API_URL = {
   STAGING: 'https://on-ramp-cache.uat-api.cx.metamask.io',
   PRODUCTION: 'https://on-ramp-cache.api.cx.metamask.io',
-};
+} as const;
 
 /**
  * Determines the base URL for the token cache API based on the MetaMask environment.
@@ -28,15 +28,21 @@ function getBaseUrl(): string {
     metamaskEnvironment === 'beta' ||
     metamaskEnvironment === 'rc';
 
-  return isProduction ? TOKEN_CACHE_URLS.PRODUCTION : TOKEN_CACHE_URLS.STAGING;
+  return isProduction ? TOKEN_API_URL.PRODUCTION : TOKEN_API_URL.STAGING;
 }
 
 export interface RampsToken extends DepositCryptoCurrency {
-  supported: boolean;
+  tokenSupported: boolean;
+}
+
+interface TokenCacheAPIResponse {
+  topTokens: RampsToken[];
+  allTokens: RampsToken[];
 }
 
 export interface UseRampTokensResult {
-  tokens: RampsToken[] | null;
+  topTokens: RampsToken[] | null;
+  allTokens: RampsToken[] | null;
   isLoading: boolean;
   error: Error | null;
 }
@@ -44,10 +50,11 @@ export interface UseRampTokensResult {
 /**
  * Hook to fetch available tokens for ramp flows based on user region and routing decision.
  *
- * @returns An object containing tokens array, loading state, and error state
+ * @returns An object containing top tokens, all tokens, loading state, and error state
  */
 export function useRampTokens(): UseRampTokensResult {
-  const [tokens, setTokens] = useState<RampsToken[] | null>(null);
+  const [topTokens, setTopTokens] = useState<RampsToken[] | null>(null);
+  const [allTokens, setAllTokens] = useState<RampsToken[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
@@ -57,7 +64,8 @@ export function useRampTokens(): UseRampTokensResult {
   const fetchTokens = useCallback(async () => {
     // Don't fetch if no region detected
     if (!detectedGeolocation) {
-      setTokens(null);
+      setTopTokens(null);
+      setAllTokens(null);
       setIsLoading(false);
       return;
     }
@@ -68,7 +76,8 @@ export function useRampTokens(): UseRampTokensResult {
       rampRoutingDecision === UnifiedRampRoutingType.UNSUPPORTED ||
       rampRoutingDecision === UnifiedRampRoutingType.ERROR
     ) {
-      setTokens(null);
+      setTopTokens(null);
+      setAllTokens(null);
       setIsLoading(false);
       return;
     }
@@ -92,9 +101,12 @@ export function useRampTokens(): UseRampTokensResult {
       url.searchParams.set('sdk', SDK_VERSION);
 
       // Fetch tokens from API
-      const response = (await handleFetch(url.toString())) as RampsToken[];
+      const response = (await handleFetch(
+        url.toString(),
+      )) as TokenCacheAPIResponse;
 
-      setTokens(response);
+      setTopTokens(response.topTokens);
+      setAllTokens(response.allTokens);
     } catch (requestError) {
       const errorObject = requestError as Error;
       setError(errorObject);
@@ -108,5 +120,5 @@ export function useRampTokens(): UseRampTokensResult {
     fetchTokens();
   }, [fetchTokens]);
 
-  return { tokens, isLoading, error };
+  return { topTokens, allTokens, isLoading, error };
 }

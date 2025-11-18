@@ -27,8 +27,16 @@ const createMockToken = (overrides = {}): RampsToken => ({
   symbol: 'ETH',
   decimals: 18,
   iconUrl: 'https://example.com/eth.png',
-  supported: true,
+  tokenSupported: true,
   ...overrides,
+});
+
+const createMockResponse = (
+  topTokens: RampsToken[],
+  allTokens: RampsToken[],
+) => ({
+  topTokens,
+  allTokens,
 });
 
 const createMockState = (
@@ -58,11 +66,16 @@ describe('useRampTokens', () => {
 
   describe('fetches tokens with correct parameters', () => {
     it('fetches tokens for AGGREGATOR routing decision', async () => {
-      const mockTokens = [
+      const mockTopTokens = [
         createMockToken(),
         createMockToken({ symbol: 'BTC' }),
       ];
-      mockHandleFetch.mockResolvedValueOnce(mockTokens);
+      const mockAllTokens = [
+        ...mockTopTokens,
+        createMockToken({ symbol: 'SOL', tokenSupported: false }),
+      ];
+      const mockResponse = createMockResponse(mockTopTokens, mockAllTokens);
+      mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       const { result } = renderHookWithProvider(() => useRampTokens(), {
         state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
@@ -74,14 +87,20 @@ describe('useRampTokens', () => {
         );
       });
 
-      expect(result.current.tokens).toEqual(mockTokens);
+      expect(result.current.topTokens).toEqual(mockTopTokens);
+      expect(result.current.allTokens).toEqual(mockAllTokens);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBeNull();
     });
 
     it('fetches tokens for DEPOSIT routing decision', async () => {
-      const mockTokens = [createMockToken()];
-      mockHandleFetch.mockResolvedValueOnce(mockTokens);
+      const mockTopTokens = [createMockToken()];
+      const mockAllTokens = [
+        ...mockTopTokens,
+        createMockToken({ symbol: 'USDC' }),
+      ];
+      const mockResponse = createMockResponse(mockTopTokens, mockAllTokens);
+      mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       const { result } = renderHookWithProvider(() => useRampTokens(), {
         state: createMockState(UnifiedRampRoutingType.DEPOSIT, 'uk'),
@@ -93,14 +112,18 @@ describe('useRampTokens', () => {
         );
       });
 
-      expect(result.current.tokens).toEqual(mockTokens);
+      expect(result.current.topTokens).toEqual(mockTopTokens);
+      expect(result.current.allTokens).toEqual(mockAllTokens);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBeNull();
     });
 
     it('includes SDK version in query parameters', async () => {
-      const mockTokens = [createMockToken()];
-      mockHandleFetch.mockResolvedValueOnce(mockTokens);
+      const mockResponse = createMockResponse(
+        [createMockToken()],
+        [createMockToken()],
+      );
+      mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       renderHookWithProvider(() => useRampTokens(), {
         state: createMockState(UnifiedRampRoutingType.DEPOSIT, 'us-ca'),
@@ -118,8 +141,11 @@ describe('useRampTokens', () => {
   describe('environment-based URL selection', () => {
     it('uses production URL for production environment', async () => {
       process.env.METAMASK_ENVIRONMENT = 'production';
-      const mockTokens = [createMockToken()];
-      mockHandleFetch.mockResolvedValueOnce(mockTokens);
+      const mockResponse = createMockResponse(
+        [createMockToken()],
+        [createMockToken()],
+      );
+      mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       renderHookWithProvider(() => useRampTokens(), {
         state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
@@ -134,8 +160,11 @@ describe('useRampTokens', () => {
 
     it('uses production URL for beta environment', async () => {
       process.env.METAMASK_ENVIRONMENT = 'beta';
-      const mockTokens = [createMockToken()];
-      mockHandleFetch.mockResolvedValueOnce(mockTokens);
+      const mockResponse = createMockResponse(
+        [createMockToken()],
+        [createMockToken()],
+      );
+      mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       renderHookWithProvider(() => useRampTokens(), {
         state: createMockState(UnifiedRampRoutingType.DEPOSIT, 'us-ca'),
@@ -150,8 +179,11 @@ describe('useRampTokens', () => {
 
     it('uses production URL for rc environment', async () => {
       process.env.METAMASK_ENVIRONMENT = 'rc';
-      const mockTokens = [createMockToken()];
-      mockHandleFetch.mockResolvedValueOnce(mockTokens);
+      const mockResponse = createMockResponse(
+        [createMockToken()],
+        [createMockToken()],
+      );
+      mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       renderHookWithProvider(() => useRampTokens(), {
         state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
@@ -166,8 +198,11 @@ describe('useRampTokens', () => {
 
     it('uses staging URL for dev environment', async () => {
       process.env.METAMASK_ENVIRONMENT = 'dev';
-      const mockTokens = [createMockToken()];
-      mockHandleFetch.mockResolvedValueOnce(mockTokens);
+      const mockResponse = createMockResponse(
+        [createMockToken()],
+        [createMockToken()],
+      );
+      mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       renderHookWithProvider(() => useRampTokens(), {
         state: createMockState(UnifiedRampRoutingType.DEPOSIT, 'us-ca'),
@@ -182,8 +217,11 @@ describe('useRampTokens', () => {
 
     it('uses staging URL for exp environment', async () => {
       process.env.METAMASK_ENVIRONMENT = 'exp';
-      const mockTokens = [createMockToken()];
-      mockHandleFetch.mockResolvedValueOnce(mockTokens);
+      const mockResponse = createMockResponse(
+        [createMockToken()],
+        [createMockToken()],
+      );
+      mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       renderHookWithProvider(() => useRampTokens(), {
         state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
@@ -198,8 +236,11 @@ describe('useRampTokens', () => {
 
     it('uses staging URL for test environment', async () => {
       process.env.METAMASK_ENVIRONMENT = 'test';
-      const mockTokens = [createMockToken()];
-      mockHandleFetch.mockResolvedValueOnce(mockTokens);
+      const mockResponse = createMockResponse(
+        [createMockToken()],
+        [createMockToken()],
+      );
+      mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       renderHookWithProvider(() => useRampTokens(), {
         state: createMockState(UnifiedRampRoutingType.DEPOSIT, 'us-ca'),
@@ -214,8 +255,11 @@ describe('useRampTokens', () => {
 
     it('uses staging URL for e2e environment', async () => {
       process.env.METAMASK_ENVIRONMENT = 'e2e';
-      const mockTokens = [createMockToken()];
-      mockHandleFetch.mockResolvedValueOnce(mockTokens);
+      const mockResponse = createMockResponse(
+        [createMockToken()],
+        [createMockToken()],
+      );
+      mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       renderHookWithProvider(() => useRampTokens(), {
         state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
@@ -235,7 +279,8 @@ describe('useRampTokens', () => {
         state: createMockState(UnifiedRampRoutingType.AGGREGATOR),
       });
 
-      expect(result.current.tokens).toBeNull();
+      expect(result.current.topTokens).toBeNull();
+      expect(result.current.allTokens).toBeNull();
       expect(result.current.isLoading).toBe(false);
       expect(mockHandleFetch).not.toHaveBeenCalled();
     });
@@ -245,7 +290,8 @@ describe('useRampTokens', () => {
         state: createMockState(UnifiedRampRoutingType.UNSUPPORTED, 'us-ca'),
       });
 
-      expect(result.current.tokens).toBeNull();
+      expect(result.current.topTokens).toBeNull();
+      expect(result.current.allTokens).toBeNull();
       expect(result.current.isLoading).toBe(false);
       expect(mockHandleFetch).not.toHaveBeenCalled();
     });
@@ -255,7 +301,8 @@ describe('useRampTokens', () => {
         state: createMockState(UnifiedRampRoutingType.ERROR, 'us-ca'),
       });
 
-      expect(result.current.tokens).toBeNull();
+      expect(result.current.topTokens).toBeNull();
+      expect(result.current.allTokens).toBeNull();
       expect(result.current.isLoading).toBe(false);
       expect(mockHandleFetch).not.toHaveBeenCalled();
     });
@@ -265,7 +312,8 @@ describe('useRampTokens', () => {
         state: createMockState(null, 'us-ca'),
       });
 
-      expect(result.current.tokens).toBeNull();
+      expect(result.current.topTokens).toBeNull();
+      expect(result.current.allTokens).toBeNull();
       expect(result.current.isLoading).toBe(false);
       expect(mockHandleFetch).not.toHaveBeenCalled();
     });
@@ -284,7 +332,8 @@ describe('useRampTokens', () => {
         expect(result.current.error).toEqual(mockError);
       });
 
-      expect(result.current.tokens).toBeNull();
+      expect(result.current.topTokens).toBeNull();
+      expect(result.current.allTokens).toBeNull();
       expect(result.current.isLoading).toBe(false);
     });
 
@@ -305,8 +354,11 @@ describe('useRampTokens', () => {
     });
 
     it('sets error to null at start of fetch attempt', async () => {
-      const mockTokens = [createMockToken()];
-      mockHandleFetch.mockResolvedValueOnce(mockTokens);
+      const mockResponse = createMockResponse(
+        [createMockToken()],
+        [createMockToken()],
+      );
+      mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       const { result } = renderHookWithProvider(() => useRampTokens(), {
         state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
@@ -323,14 +375,18 @@ describe('useRampTokens', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(result.current.tokens).toEqual(mockTokens);
+      expect(result.current.topTokens).toEqual(mockResponse.topTokens);
+      expect(result.current.allTokens).toEqual(mockResponse.allTokens);
     });
   });
 
   describe('loading state', () => {
     it('sets loading to false after successful fetch', async () => {
-      const mockTokens = [createMockToken()];
-      mockHandleFetch.mockResolvedValueOnce(mockTokens);
+      const mockResponse = createMockResponse(
+        [createMockToken()],
+        [createMockToken()],
+      );
+      mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       const { result } = renderHookWithProvider(() => useRampTokens(), {
         state: createMockState(UnifiedRampRoutingType.DEPOSIT, 'us-ca'),
@@ -340,7 +396,8 @@ describe('useRampTokens', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(result.current.tokens).toEqual(mockTokens);
+      expect(result.current.topTokens).toEqual(mockResponse.topTokens);
+      expect(result.current.allTokens).toEqual(mockResponse.allTokens);
     });
 
     it('sets loading to false after failed fetch', async () => {
@@ -360,23 +417,32 @@ describe('useRampTokens', () => {
   });
 
   describe('returns correct token data structure', () => {
-    it('returns tokens with supported field', async () => {
-      const mockTokens = [
-        createMockToken({ supported: true }),
-        createMockToken({ symbol: 'USDC', supported: false }),
+    it('returns both topTokens and allTokens with tokenSupported field', async () => {
+      const mockTopTokens = [
+        createMockToken({ tokenSupported: true }),
+        createMockToken({ symbol: 'BTC', tokenSupported: true }),
       ];
-      mockHandleFetch.mockResolvedValueOnce(mockTokens);
+      const mockAllTokens = [
+        ...mockTopTokens,
+        createMockToken({ symbol: 'USDC', tokenSupported: false }),
+        createMockToken({ symbol: 'SOL', tokenSupported: false }),
+      ];
+      const mockResponse = createMockResponse(mockTopTokens, mockAllTokens);
+      mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       const { result } = renderHookWithProvider(() => useRampTokens(), {
         state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
       });
 
       await waitFor(() => {
-        expect(result.current.tokens).toEqual(mockTokens);
+        expect(result.current.topTokens).toEqual(mockTopTokens);
       });
 
-      expect(result.current.tokens?.[0].supported).toBe(true);
-      expect(result.current.tokens?.[1].supported).toBe(false);
+      expect(result.current.allTokens).toEqual(mockAllTokens);
+      expect(result.current.topTokens?.[0].tokenSupported).toBe(true);
+      expect(result.current.topTokens?.[1].tokenSupported).toBe(true);
+      expect(result.current.allTokens?.[2].tokenSupported).toBe(false);
+      expect(result.current.allTokens?.[3].tokenSupported).toBe(false);
     });
   });
 });
