@@ -1010,7 +1010,7 @@ describe('App', () => {
       const { getByTestId } = renderAppWithRouteState(routeState);
 
       await waitFor(() => {
-        expect(getByTestId('eligibility-failed-modal')).toBeTruthy();
+        expect(getByTestId('eligibility-failed-modal')).toBeOnTheScreen();
       });
     });
 
@@ -1030,7 +1030,7 @@ describe('App', () => {
       const { getByTestId } = renderAppWithRouteState(routeState);
 
       await waitFor(() => {
-        expect(getByTestId('ramp-unsupported-modal')).toBeTruthy();
+        expect(getByTestId('ramp-unsupported-modal')).toBeOnTheScreen();
       });
     });
   });

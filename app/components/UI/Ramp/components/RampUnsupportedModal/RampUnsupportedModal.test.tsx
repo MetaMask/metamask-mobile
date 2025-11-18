@@ -45,9 +45,12 @@ describe('RampUnsupportedModal', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the modal with the correct title and description', () => {
-    const { toJSON } = render(RampUnsupportedModal);
-    expect(toJSON()).toMatchSnapshot();
+  it('renders modal with title and description', () => {
+    const component = render(RampUnsupportedModal);
+
+    const result = component.toJSON();
+
+    expect(result).toMatchSnapshot();
   });
 
   it('closes the modal when the close button is pressed', () => {

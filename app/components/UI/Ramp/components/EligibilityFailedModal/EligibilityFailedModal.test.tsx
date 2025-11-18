@@ -54,8 +54,9 @@ describe('EligibilityFailedModal', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the modal with the correct title and description', () => {
+  it('renders modal with title and description', () => {
     const { toJSON } = render(EligibilityFailedModal);
+
     expect(toJSON()).toMatchSnapshot();
   });
   it('navigates to contact support when the contact support button is pressed', () => {
