@@ -112,7 +112,11 @@ export const BridgeTokenSelector: React.FC = () => {
     route.params?.type === 'source' ? sourceToken : destToken;
   const [selectedChainId, setSelectedChainId] = useState<
     CaipChainId | undefined
-  >(undefined);
+  >(
+    selectedToken?.chainId && route.params?.type === 'dest'
+      ? formatChainIdToCaip(selectedToken.chainId)
+      : undefined,
+  );
 
   // Chain IDs to fetch tokens for
   const chainIdsToFetch = useMemo(() => {

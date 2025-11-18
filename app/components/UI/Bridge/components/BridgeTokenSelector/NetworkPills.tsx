@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { Pressable } from 'react-native';
 import { Text, TextVariant } from '@metamask/design-system-react-native';
@@ -41,6 +41,8 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
   onChainSelect,
 }) => {
   const tw = useTailwind();
+  const scrollViewRef = useRef<ScrollView>(null);
+  const hasScrolledRef = useRef(false);
   const bridgeFeatureFlags = useSelector((state: RootState) =>
     selectBridgeFeatureFlags(state),
   );
@@ -58,6 +60,25 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
       name: getNetworkName(chain.chainId, networkConfigurations),
     }));
   }, [bridgeFeatureFlags, networkConfigurations]);
+
+  // Auto-scroll to selected network on initial layout
+  const handleContentSizeChange = () => {
+    if (hasScrolledRef.current || !selectedChainId) return;
+
+    const selectedIndex = chainRanking.findIndex(
+      (chain) => chain.chainId === selectedChainId,
+    );
+
+    if (selectedIndex !== -1) {
+      // Calculate scroll position (accounting for "All" pill + selected pill)
+      const pillWidth = 90; // Average pill width including gap
+      scrollViewRef.current?.scrollTo({
+        x: (selectedIndex + 1) * pillWidth,
+        animated: false,
+      });
+      hasScrolledRef.current = true;
+    }
+  };
 
   const handleAllPress = () => {
     onChainSelect(undefined);
@@ -90,10 +111,12 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
 
   return (
     <ScrollView
+      ref={scrollViewRef}
       horizontal
       showsHorizontalScrollIndicator={false}
       style={tw.style('flex-grow-0')}
       contentContainerStyle={tw.style('flex-row items-center gap-2 mx-2')}
+      onContentSizeChange={handleContentSizeChange}
     >
       {/* All CTA - First pill */}
       <Pressable
