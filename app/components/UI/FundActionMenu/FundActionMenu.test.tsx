@@ -284,6 +284,10 @@ describe('FundActionMenu', () => {
     });
 
     it('calls aggregator action when buy button is pressed', async () => {
+      mockUseRoute.mockReturnValue({
+        params: { asset: { assetId: 'eip155:1/slip44:60' } },
+      } as never);
+
       const { getByTestId } = render(<FundActionMenu />);
 
       fireEvent.press(
@@ -292,7 +296,7 @@ describe('FundActionMenu', () => {
 
       await waitFor(() => {
         expect(mockGoToAggregator).toHaveBeenCalledWith({
-          assetId: expect.anything(),
+          assetId: 'eip155:1/slip44:60',
         });
       });
     });
@@ -317,6 +321,9 @@ describe('FundActionMenu', () => {
 
     it('calls buy action when unified buy button is pressed and useRampsUnifiedV1Enabled is true', async () => {
       mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
+      mockUseRoute.mockReturnValue({
+        params: { asset: { assetId: 'eip155:1/slip44:60' } },
+      } as never);
 
       const { getByTestId } = render(<FundActionMenu />);
 
@@ -326,7 +333,7 @@ describe('FundActionMenu', () => {
 
       await waitFor(() => {
         expect(mockGoToBuy).toHaveBeenCalledWith({
-          assetId: expect.anything(),
+          assetId: 'eip155:1/slip44:60',
         });
       });
     });
@@ -366,7 +373,7 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToBuy).toHaveBeenCalledWith({
+        expect(mockGoToAggregator).toHaveBeenCalledWith({
           assetId: 'eip155:137/slip44:60',
         });
       });
@@ -384,8 +391,8 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToBuy).toHaveBeenCalledWith({
-          assetId: expect.anything(),
+        expect(mockGoToAggregator).toHaveBeenCalledWith({
+          assetId: undefined,
         });
       });
     });
@@ -565,7 +572,7 @@ describe('FundActionMenu', () => {
 
       await waitFor(() => {
         expect(mockGoToAggregator).toHaveBeenCalledWith({
-          assetId: expect.anything(),
+          assetId: undefined,
         });
       });
     });
@@ -586,7 +593,7 @@ describe('FundActionMenu', () => {
 
       await waitFor(() => {
         expect(mockGoToAggregator).toHaveBeenCalledWith({
-          assetId: expect.anything(),
+          assetId: undefined,
         });
       });
     });
