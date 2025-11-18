@@ -74,7 +74,7 @@ const AddAsset = () => {
     () =>
       Object.keys(enabledNetworksForAllNamespaces).find(
         (chainId) => enabledNetworksForAllNamespaces[chainId as Hex] === true,
-      ),
+      ) ?? '0x1', // Fallback to Ethereum Mainnet if no networks are enabled
     [enabledNetworksForAllNamespaces],
   );
   const [selectedNetwork, setSelectedNetwork] = useState<
