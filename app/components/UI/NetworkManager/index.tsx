@@ -60,6 +60,7 @@ import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 import RpcSelectionModal from '../../Views/NetworkSelector/RpcSelectionModal/RpcSelectionModal';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
+import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 
 export const createNetworkManagerNavDetails = createNavigationDetails(
   Routes.MODAL.ROOT_MODAL_FLOW,
@@ -94,7 +95,16 @@ const NetworkManager = () => {
   const { selectedCount } = useNetworksByNamespace({
     networkType: NetworkType.Popular,
   });
-  const { disableNetwork, enabledNetworksByNamespace } = useNetworkEnablement();
+  const { networks, areAllNetworksSelected } = useNetworksByNamespace({
+    networkType: NetworkType.Custom,
+  });
+  const { disableNetwork, enableNetwork, enabledNetworksByNamespace } =
+    useNetworkEnablement();
+  const { networksToUse } = useNetworksToUse({
+    networks,
+    networkType: NetworkType.Custom,
+    areAllNetworksSelected,
+  });
 
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
@@ -298,23 +308,28 @@ const NetworkManager = () => {
     [networkConfigurations, closeModal],
   );
 
-  const confirmRemoveRpc = useCallback(() => {
+  const confirmRemoveRpc = useCallback(async () => {
     if (showConfirmDeleteModal.caipChainId) {
       const { caipChainId } = showConfirmDeleteModal;
       const { NetworkController } = Engine.context;
       const rawChainId = parseCaipChainId(caipChainId).reference;
       const chainId = toHex(rawChainId);
+      const otherNetwork = networksToUse.find(
+        (network) => network.caipChainId !== caipChainId,
+      );
+      const otherCaipChainId = otherNetwork?.caipChainId as CaipChainId;
 
+      // Remove the network from controller and disable it
       NetworkController.removeNetwork(chainId);
+      enableNetwork(otherCaipChainId);
       disableNetwork(showConfirmDeleteModal.caipChainId);
-
       MetaMetrics.getInstance().addTraitsToUser(
         removeItemFromChainIdList(chainId),
       );
 
       setShowConfirmDeleteModal(initialShowConfirmDeleteModal);
     }
-  }, [showConfirmDeleteModal, disableNetwork]);
+  }, [showConfirmDeleteModal, disableNetwork, networksToUse, enableNetwork]);
 
   const cancelButtonProps: ButtonProps = useMemo(
     () => ({
