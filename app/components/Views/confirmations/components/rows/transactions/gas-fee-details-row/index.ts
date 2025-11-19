@@ -1,1 +1,1 @@
-export { default } from './gas-fee-details-row';
+export { default, GasFeesDetailsRowSkeleton } from './gas-fee-details-row';
