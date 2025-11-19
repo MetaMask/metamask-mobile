@@ -1798,7 +1798,9 @@
       "market_unavailable": "Market unavailable",
       "amount_on_outcome": "${{amount}} on {{outcome}}",
       "outcome_at_price": "{{outcome}} at {{price}}¢",
-      "fee_exemption": "We don't charge any fees on this market."
+      "fee_exemption": "We don't charge any fees on this market.",
+      "ended": "Ended",
+      "resolved_early": "Resolved early"
     },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
