@@ -88,7 +88,7 @@ export function usePredictPositions(
   );
 
   const filteredClaimablePositions = useMemo(() => {
-    if (!marketId) return claimablePositions;
+    if (!marketId) return [...claimablePositions];
     return claimablePositions.filter(
       (position) => position.marketId === marketId,
     );
