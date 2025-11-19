@@ -76,6 +76,7 @@ describe('useMetrics', () => {
     expect(result.current).toMatchInlineSnapshot(`
       {
         "addTraitsToUser": [MockFunction],
+        "backupMetricsOptInPriorReset": undefined,
         "checkDataDeleteStatus": [MockFunction],
         "createDataDeletionTask": [MockFunction],
         "createEventBuilder": [MockFunction],
@@ -85,6 +86,7 @@ describe('useMetrics', () => {
         "getMetaMetricsId": [MockFunction],
         "isDataRecorded": [MockFunction],
         "isEnabled": [MockFunction],
+        "restoreMetricsOptInPriorReset": undefined,
         "trackEvent": [MockFunction],
       }
     `);
