@@ -420,6 +420,15 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_SELECTOR}
       component={AccountSelector}
+      options={{
+        cardStyle: { backgroundColor: importedColors.transparent },
+        cardStyleInterpolator: () => ({
+          overlayStyle: {
+            opacity: 0,
+          },
+        }),
+        detachPreviousScreen: false,
+      }}
     />
     <Stack.Screen
       name={Routes.SHEET.ADDRESS_SELECTOR}
