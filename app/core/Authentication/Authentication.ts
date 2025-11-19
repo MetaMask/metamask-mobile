@@ -436,7 +436,7 @@ class AuthenticationService {
 
   /**
    * store password with fallback to password authType if the storePassword with non Password authType fails
-   * it should only apply for account creation for now
+   * it should only apply for account creation and reset password flows for now
    *
    * @param password - password to store
    * @param authData - authentication data
