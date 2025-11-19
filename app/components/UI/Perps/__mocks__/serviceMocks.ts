@@ -57,19 +57,21 @@ export const createMockPerpsControllerState = (
     testnet: true,
     mainnet: true,
   },
+  hasPlacedFirstOrder: {
+    testnet: false,
+    mainnet: false,
+  },
+  watchlistMarkets: {
+    testnet: [],
+    mainnet: [],
+  },
+  tradeConfigurations: {
+    testnet: {},
+    mainnet: {},
+  },
+  marketFilterPreferences: 'volume',
+  lastError: null,
   lastUpdateTimestamp: Date.now(),
-  currentMarketSort: 'MOST_TRADED',
-  marketMetadata: {},
-  blockedRegionList: {
-    list: [],
-    source: 'remote',
-  },
-  hip3Config: {
-    enabled: false,
-    allowlistMarkets: [],
-    blocklistMarkets: [],
-    source: 'remote',
-  },
   hip3ConfigVersion: 0,
   ...overrides,
 });

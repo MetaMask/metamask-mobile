@@ -170,7 +170,9 @@ describe('RewardsIntegrationService', () => {
       (mockMessenger.call as jest.Mock).mockReturnValue({
         selectedNetworkClientId: 'mainnet',
       });
-      mockNetworkController.getNetworkClientById.mockReturnValue(null);
+      mockNetworkController.getNetworkClientById.mockImplementation(() => {
+        throw new Error('Network client not found');
+      });
 
       const result = await RewardsIntegrationService.calculateUserFeeDiscount({
         rewardsController: mockRewardsController,

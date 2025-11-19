@@ -35,7 +35,7 @@ describe('DepositService', () => {
   const mockTransferData = '0xabcdef';
   const mockBridgeAddress = '0xBridgeContract';
   const mockTokenAddress = '0xTokenAddress';
-  const mockAssetId = 'eip155:42161/erc20:0xTokenAddress';
+  const mockAssetId = 'eip155:42161/erc20:0xTokenAddress/default';
 
   beforeEach(() => {
     mockProvider =
@@ -44,10 +44,8 @@ describe('DepositService', () => {
     mockProvider.getDepositRoutes.mockReturnValue([
       {
         assetId: mockAssetId,
-        assetSymbol: 'USDC',
         contractAddress: mockBridgeAddress,
-        protocolId: 'hyperliquid',
-        chainId: '42161',
+        chainId: 'eip155:42161',
       },
     ]);
 
@@ -118,17 +116,13 @@ describe('DepositService', () => {
       mockProvider.getDepositRoutes.mockReturnValue([
         {
           assetId: mockAssetId,
-          assetSymbol: 'USDC',
           contractAddress: mockBridgeAddress,
-          protocolId: 'hyperliquid',
-          chainId: '42161',
+          chainId: 'eip155:42161',
         },
         {
-          assetId: 'eip155:1/erc20:0xOtherToken',
-          assetSymbol: 'DAI',
+          assetId: 'eip155:1/erc20:0xOtherToken/default',
           contractAddress: '0xOtherBridge',
-          protocolId: 'hyperliquid',
-          chainId: '1',
+          chainId: 'eip155:1',
         },
       ]);
 
@@ -281,10 +275,8 @@ describe('DepositService', () => {
       mockProvider.getDepositRoutes.mockReturnValue([
         {
           assetId: mockAssetId,
-          assetSymbol: 'USDC',
           contractAddress: differentBridgeAddress,
-          protocolId: 'hyperliquid',
-          chainId: '42161',
+          chainId: 'eip155:42161',
         },
       ]);
 

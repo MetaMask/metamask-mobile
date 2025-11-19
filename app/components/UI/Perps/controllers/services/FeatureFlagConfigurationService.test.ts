@@ -58,6 +58,7 @@ describe('FeatureFlagConfigurationService', () => {
 
     mockRemoteFeatureFlagState = {
       remoteFeatureFlags: {},
+      cacheTimestamp: Date.now(),
     };
 
     (parseCommaSeparatedString as jest.Mock).mockImplementation((str: string) =>
